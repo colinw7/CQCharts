@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+#include <CQChartsColumnNum.h>
 #include <CQSummaryModel.h>
 
 //---
@@ -56,21 +57,21 @@ class CQChartsTablePlot : public CQChartsPlot {
   // columns
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
-  Q_PROPERTY(Mode          mode        READ mode         WRITE setMode       )
-  Q_PROPERTY(int           maxRows     READ maxRows      WRITE setMaxRows    )
-  Q_PROPERTY(int           sortColumn  READ sortColumn   WRITE setSortColumn )
-  Q_PROPERTY(int           sortRole    READ sortRole     WRITE setSortRole   )
-  Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder    WRITE setSortOrder  )
-  Q_PROPERTY(int           pageSize    READ pageSize     WRITE setPageSize   )
-  Q_PROPERTY(int           currentPage READ currentPage  WRITE setCurrentPage)
-  Q_PROPERTY(QString       rowNums     READ rowNumsStr   WRITE setRowNumsStr )
-  Q_PROPERTY(bool          rowColumn   READ isRowColumn  WRITE setRowColumn  )
-  Q_PROPERTY(CQChartsColor gridColor   READ gridColor    WRITE setGridColor  )
-  Q_PROPERTY(CQChartsColor textColor   READ textColor    WRITE setTextColor  )
-  Q_PROPERTY(CQChartsColor headerColor READ headerColor  WRITE setHeaderColor)
-  Q_PROPERTY(CQChartsColor cellColor   READ cellColor    WRITE setCellColor  )
-  Q_PROPERTY(double        indent      READ indent       WRITE setIndent     )
-  Q_PROPERTY(bool          followView  READ isFollowView WRITE setFollowView )
+  Q_PROPERTY(Mode              mode        READ mode         WRITE setMode       )
+  Q_PROPERTY(int               maxRows     READ maxRows      WRITE setMaxRows    )
+  Q_PROPERTY(CQChartsColumnNum sortColumn  READ sortColumn   WRITE setSortColumn )
+  Q_PROPERTY(int               sortRole    READ sortRole     WRITE setSortRole   )
+  Q_PROPERTY(Qt::SortOrder     sortOrder   READ sortOrder    WRITE setSortOrder  )
+  Q_PROPERTY(int               pageSize    READ pageSize     WRITE setPageSize   )
+  Q_PROPERTY(int               currentPage READ currentPage  WRITE setCurrentPage)
+  Q_PROPERTY(QString           rowNums     READ rowNumsStr   WRITE setRowNumsStr )
+  Q_PROPERTY(bool              rowColumn   READ isRowColumn  WRITE setRowColumn  )
+  Q_PROPERTY(CQChartsColor     gridColor   READ gridColor    WRITE setGridColor  )
+  Q_PROPERTY(CQChartsColor     textColor   READ textColor    WRITE setTextColor  )
+  Q_PROPERTY(CQChartsColor     headerColor READ headerColor  WRITE setHeaderColor)
+  Q_PROPERTY(CQChartsColor     cellColor   READ cellColor    WRITE setCellColor  )
+  Q_PROPERTY(double            indent      READ indent       WRITE setIndent     )
+  Q_PROPERTY(bool              followView  READ isFollowView WRITE setFollowView )
 
   Q_ENUMS(Mode)
 
@@ -119,8 +120,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   // sort data
-  int sortColumn() const;
-  void setSortColumn(int i);
+  CQChartsColumnNum sortColumn() const;
+  void setSortColumn(const CQChartsColumnNum &c);
 
   int sortRole() const;
   void setSortRole(int r);

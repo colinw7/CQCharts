@@ -2038,7 +2038,8 @@ fillBrush() const
   //---
 
   if (isSetHidden())
-    barColor = CQChartsUtil::blendColors(barColor, key_->interpBgColor(), key_->hiddenAlpha());
+    barColor = CQChartsUtil::blendColors(barColor, key_->interpBgColor(),
+                                         key_->hiddenAlpha().value());
 
   return barColor;
 }

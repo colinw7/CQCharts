@@ -143,7 +143,7 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setBestFit(false);
   setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setBestFitFillAlpha(0.5);
+  setBestFitFillAlpha(CQChartsAlpha(0.5));
 
   setStatsLines(false);
   setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
@@ -254,7 +254,7 @@ setSymbolMapKey(bool b)
 
 void
 CQChartsScatterPlot::
-setSymbolMapKeyAlpha(double a)
+setSymbolMapKeyAlpha(const CQChartsAlpha &a)
 {
   CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -428,7 +428,7 @@ setDensityWidth(const CQChartsLength &l)
 
 void
 CQChartsScatterPlot::
-setDensityAlpha(double a)
+setDensityAlpha(const CQChartsAlpha &a)
 {
   CQChartsUtil::testAndSet(axisDensityData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -502,7 +502,7 @@ setWhiskerMargin(const CQChartsLength &l)
 
 void
 CQChartsScatterPlot::
-setWhiskerAlpha(double a)
+setWhiskerAlpha(const CQChartsAlpha &a)
 {
   CQChartsUtil::testAndSet(axisWhiskerData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -581,17 +581,17 @@ addProperties()
   addProp("density/y", "yDensity"    , "visible", "Show y axis density curve");
   addProp("density/y", "yDensitySide", "side"   , "Y axis density curve side");
 
-  addStyleProp("density/fill", "densityAlpha", "alpha"  , "Axis density curve alpha");
+  addStyleProp("density/fill", "densityAlpha", "alpha", "Axis density curve alpha");
 
   // whisker axis
   addProp("whisker"  , "whiskerWidth" , "width"  , "Axis whisker width");
-  addProp("whisker"  , "whiskerMargin", "margin" , "Axis whisker margin");
+  addProp("whisker"  , "whiskerMargin", "margin" , "Axis whisker margin in pixels");
   addProp("whisker/x", "xWhisker"     , "visible", "Show x axis whisker");
   addProp("whisker/x", "xWhiskerSide" , "side"   , "X axis whisker side");
   addProp("whisker/y", "yWhisker"     , "visible", "Show y axis whisker");
   addProp("whisker/y", "yWhiskerSide" , "side"   , "Y axis whisker side");
 
-  addStyleProp("whisker/fill", "whiskerAlpha" , "alpha"  , "Axis whisker alpha");
+  addStyleProp("whisker/fill", "whiskerAlpha" , "alpha", "Axis whisker alpha");
 
   // symbol
   addSymbolProperties("symbol", "", "");
@@ -609,9 +609,12 @@ addProperties()
   addLineProperties("gridCells/stroke", "gridCellStroke" , "Grid cell");
 
   // symbol key
-  addProp     ("symbol/key"     , "symbolMapKey"      , "visible", "Symbol size key visible");
-  addProp     ("symbol/key"     , "symbolMapKeyMargin", "margin" , "Symbol size key margin");
-  addStyleProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  , "Symbol size key fill alpha");
+  addProp     ("symbol/key"     , "symbolMapKey"      , "visible",
+               "Symbol size key visible");
+  addProp     ("symbol/key"     , "symbolMapKeyMargin", "margin" ,
+               "Symbol size key margin in pixels")->setMinValue(0.0);
+  addStyleProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  ,
+               "Symbol size key fill alpha");
 
   //---
 
@@ -2740,11 +2743,11 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   CQChartsGeom::BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
   CQChartsGeom::BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
 
-  double a = symbolMapKeyAlpha();
+  CQChartsAlpha a = symbolMapKeyAlpha();
 
-  QColor fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a);
-  QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a);
-  QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a);
+  QColor fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a.value());
+  QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
+  QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
 
   device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(pbbox1));
   device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2));
@@ -3137,7 +3140,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (color.isValid()) {
     QColor c = plot_->interpColor(color, ic);
 
-    c.setAlphaF(plot_->symbolFillAlpha());
+    c.setAlphaF(plot_->symbolFillAlpha().value());
 
     penBrush.brush.setColor(c);
   }
@@ -3393,7 +3396,7 @@ fillBrush() const
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  c.setAlphaF(plot->symbolFillAlpha());
+  c.setAlphaF(plot->symbolFillAlpha().value());
 
   int ih = hideIndex();
 
@@ -3512,7 +3515,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   QColor tc = plot_->interpThemeColor(ColorInd(1.0));
 
-  plot_->setPen(pen, true, tc, 1.0);
+  plot_->setPen(pen, true, tc, CQChartsAlpha());
 
   device->setPen(pen);
 

@@ -7,6 +7,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
+#include <CQChartsAlpha.h>
 #include <CQChartsGeom.h>
 
 #include <QPen>
@@ -28,7 +29,8 @@ class CQChartsPenData {
   CQChartsPenData() = default;
 
   explicit CQChartsPenData(bool visible, const QColor &color=QColor(),
-                           double alpha=1.0, const CQChartsLength &width=CQChartsLength(),
+                           const CQChartsAlpha &alpha=CQChartsAlpha(),
+                           const CQChartsLength &width=CQChartsLength(),
                            const CQChartsLineDash &dash=CQChartsLineDash()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
   }
@@ -39,8 +41,8 @@ class CQChartsPenData {
   const QColor &color() const { return color_; }
   void setColor(const QColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsLength &width() const { return width_; }
   void setWidth(const CQChartsLength &v) { width_ = v; }
@@ -51,7 +53,7 @@ class CQChartsPenData {
  private:
   bool             visible_ { true };  //!< visible
   QColor           color_;             //!< pen color
-  double           alpha_   { 1.0 };   //!< pen alpha
+  CQChartsAlpha    alpha_;             //!< pen alpha
   CQChartsLength   width_   { "0px" }; //!< pen width
   CQChartsLineDash dash_    { };       //!< pen dash
 };
@@ -62,8 +64,9 @@ class CQChartsBrushData {
  public:
   CQChartsBrushData() = default;
 
-  explicit CQChartsBrushData(bool visible, const QColor &color=QColor(), double alpha=1.0,
-                            const CQChartsFillPattern &pattern=CQChartsFillPattern()) :
+  explicit CQChartsBrushData(bool visible, const QColor &color=QColor(),
+                             const CQChartsAlpha &alpha=CQChartsAlpha(),
+                             const CQChartsFillPattern &pattern=CQChartsFillPattern()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 
@@ -73,8 +76,8 @@ class CQChartsBrushData {
   const QColor &color() const { return color_; }
   void setColor(const QColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsFillPattern &pattern() const { return pattern_; }
   void setPattern(const CQChartsFillPattern &v) { pattern_ = v; }
@@ -84,7 +87,7 @@ class CQChartsBrushData {
  private:
   bool                visible_ { true };                             //!< visible
   QColor              color_;                                        //!< fill color
-  double              alpha_   { 1.0 };                              //!< fill alpha
+  CQChartsAlpha       alpha_;                                        //!< fill alpha
   CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID }; //!< fill pattern
 };
 
@@ -140,7 +143,7 @@ CQChartsGeom::BBox calcAlignedTextRect(CQChartsPaintDevice *device, const QFont 
                                        Qt::Alignment align, double dx, double dy);
 
 void drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
-                      const QString &text, double alpha);
+                      const QString &text, const CQChartsAlpha &alpha);
 
 CQChartsGeom::Size calcTextSize(const QString &text, const QFont &font,
                                 const CQChartsTextOptions &options);
@@ -157,17 +160,19 @@ void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
                 const CQChartsGeom::BBox &bbox);
 
 void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
-                  double ri, double ro, double a1, double a2,
+                  double ri, double ro, const CQChartsAngle &a1, const CQChartsAngle &a2,
                   bool isInvertX=false, bool isInvertY=false);
 
 void drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
-             double angle, double dangle);
+             const CQChartsAngle &angle, const CQChartsAngle &dangle);
 
 void drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
-                    const CQChartsGeom::BBox &obbox, double angle, double dangle);
+                    const CQChartsGeom::BBox &obbox, const CQChartsAngle &angle,
+                    const CQChartsAngle &dangle);
 
 void drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
-                       double a1, double da1, double a2, double da2, bool isSelf);
+                       const CQChartsAngle &a1, const CQChartsAngle &da1,
+                       const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
 
 }
 

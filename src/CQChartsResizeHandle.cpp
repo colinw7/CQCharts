@@ -31,11 +31,11 @@ draw(QPainter *painter) const
     bc = CQChartsUtil::invColor(bc);
 
   if      (plot()) {
-    plot()->setPen  (pen  , true, pc, 1.0);
+    plot()->setPen  (pen  , true, pc, CQChartsAlpha());
     plot()->setBrush(brush, true, bc, fillAlpha());
   }
   else if (view()) {
-    view()->setPen  (pen  , true, pc, 1.0);
+    view()->setPen  (pen  , true, pc, CQChartsAlpha());
     view()->setBrush(brush, true, bc, fillAlpha());
   }
 

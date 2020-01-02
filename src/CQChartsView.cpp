@@ -142,8 +142,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   setSelectedMode(HighlightDataMode::FILL);
 
-  setSelectedFillAlpha(0.8);
-  setInsideFillAlpha  (0.8);
+  setSelectedFillAlpha(CQChartsAlpha(0.8));
+  setInsideFillAlpha  (CQChartsAlpha(0.8));
 
   //---
 
@@ -1130,7 +1130,8 @@ addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 CQChartsPieSliceAnnotation *
 CQChartsView::
 addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
-                      const CQChartsLength &outerRadius, double startAngle, double spanAngle)
+                      const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
+                      const CQChartsAngle &spanAngle)
 {
   CQChartsPieSliceAnnotation *annotation =
     new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
@@ -3650,9 +3651,9 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 void
 CQChartsView::
 setPenBrush(CQChartsPenBrush &penBrush,
-            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-            bool filled, const QColor &fillColor, double fillAlpha,
+            bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
             const CQChartsFillPattern &pattern) const
 {
   setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
@@ -3662,7 +3663,7 @@ setPenBrush(CQChartsPenBrush &penBrush,
 
 void
 CQChartsView::
-setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
        const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(strokeWidth));
@@ -3672,7 +3673,7 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
 
 void
 CQChartsView::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
          const CQChartsFillPattern &pattern) const
 {
   CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
@@ -3731,8 +3732,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
   if (drawType != DrawType::LINE) {
     // outline box, symbol
     if (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor opc;
-      double alpha = 1.0;
+      QColor        opc;
+      CQChartsAlpha alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
         QColor pc = penBrush.pen.color();
@@ -3742,7 +3743,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         else
           opc = CQChartsUtil::invColor(pc);
 
-        alpha = pc.alphaF();
+        alpha = CQChartsAlpha(pc.alphaF());
       }
       else {
         QColor bc = penBrush.brush.color();
@@ -3769,12 +3770,12 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       else
         ibc = insideColor(bc);
 
-      double alpha = 1.0;
+      CQChartsAlpha alpha;
 
       if (isBufferLayers())
-        alpha = insideFillAlpha()*bc.alphaF();
+        alpha = CQChartsAlpha(insideFillAlpha().value()*bc.alphaF());
       else
-        alpha = bc.alphaF();
+        alpha = CQChartsAlpha(bc.alphaF());
 
       setBrush(penBrush.brush, true, ibc, alpha, insideFillPattern());
     }
@@ -3790,7 +3791,9 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    setPen(penBrush.pen, true, opc, pc.alphaF(), insideStrokeWidth(), insideStrokeDash());
+    CQChartsAlpha alpha(pc.alphaF());
+
+    setPen(penBrush.pen, true, opc, alpha, insideStrokeWidth(), insideStrokeDash());
   }
 }
 
@@ -3803,8 +3806,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
   if      (drawType != DrawType::LINE) {
     // outline box, symbol
     if (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor opc;
-      double alpha = 1.0;
+      QColor        opc;
+      CQChartsAlpha alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
         QColor pc = penBrush.pen.color();
@@ -3814,7 +3817,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         else
           opc = selectedColor(pc);
 
-        alpha = pc.alphaF();
+        alpha = CQChartsAlpha(pc.alphaF());
       }
       else {
         QColor bc = penBrush.brush.color();
@@ -3840,12 +3843,12 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       else
         ibc = selectedColor(bc);
 
-      double alpha = 1.0;
+      CQChartsAlpha alpha;
 
       if (isBufferLayers())
-        alpha = selectedFillAlpha()*bc.alphaF();
+        alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
       else
-        alpha = bc.alphaF();
+        alpha = CQChartsAlpha(bc.alphaF());
 
       setBrush(penBrush.brush, true, ibc, alpha, selectedFillPattern());
     }
@@ -3861,7 +3864,9 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    setPen(penBrush.pen, true, opc, pc.alphaF(), selectedStrokeWidth(), selectedStrokeDash());
+    CQChartsAlpha alpha(pc.alphaF());
+
+    setPen(penBrush.pen, true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash());
   }
 }
 

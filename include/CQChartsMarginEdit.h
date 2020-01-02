@@ -18,8 +18,8 @@ class CQChartsMarginEdit : public QFrame {
  public:
   CQChartsMarginEdit(QWidget *parent=nullptr);
 
-  const CQChartsMargin &margin() const;
-  void setMargin(const CQChartsMargin &pos);
+  const CQChartsMargin &margin() const { return margin_; }
+  void setMargin(const CQChartsMargin &margin);
 
  signals:
   void marginChanged();
@@ -35,7 +35,7 @@ class CQChartsMarginEdit : public QFrame {
 
  private:
   CQChartsMargin    margin_;                //!< margin data
-  CQChartsLineEdit* edit_      { nullptr }; //!< margin edit
+  CQChartsLineEdit* edit_      { nullptr }; //!< line edit
   bool              connected_ { false };   //!< is connected
 };
 
@@ -49,7 +49,7 @@ class CQChartsMarginEdit : public QFrame {
  */
 class CQChartsMarginPropertyViewType : public CQPropertyViewType {
  public:
-  CQChartsMarginPropertyViewType();
+  CQChartsMarginPropertyViewType() { }
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
@@ -74,7 +74,7 @@ class CQChartsMarginPropertyViewType : public CQPropertyViewType {
  */
 class CQChartsMarginPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
-  CQChartsMarginPropertyViewEditor();
+  CQChartsMarginPropertyViewEditor() { }
 
   QWidget *createEdit(QWidget *parent);
 

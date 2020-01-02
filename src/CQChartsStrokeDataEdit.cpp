@@ -328,7 +328,7 @@ connectSlots(bool b)
 
   connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
   connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, widthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
                     SLOT(widgetsToData()));
@@ -345,7 +345,7 @@ dataToWidgets()
 
   groupBox_ ->setChecked (data_.isVisible());
   colorEdit_->setColor   (data_.color());
-  alphaEdit_->setValue   (data_.alpha());
+  alphaEdit_->setAlpha   (data_.alpha());
   widthEdit_->setLength  (data_.width());
   dashEdit_ ->setLineDash(data_.dash());
 
@@ -363,7 +363,7 @@ widgetsToData()
 {
   data_.setVisible(groupBox_ ->isChecked());
   data_.setColor  (colorEdit_->color());
-  data_.setAlpha  (alphaEdit_->value());
+  data_.setAlpha  (alphaEdit_->alpha());
   data_.setWidth  (widthEdit_->length());
   data_.setDash   (dashEdit_ ->getLineDash());
 

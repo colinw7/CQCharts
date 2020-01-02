@@ -163,15 +163,6 @@ setTextLabels(bool b)
 
 void
 CQChartsHierScatterPlot::
-setFontSize(double s)
-{
-  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
-}
-
-//---
-
-void
-CQChartsHierScatterPlot::
 popCurrentGroup()
 {
   if (! currentGroup())
@@ -235,9 +226,6 @@ addProperties()
 
   // symbl
   addSymbolProperties("symbol", "", "");
-
-  // font
-  addProp("font", "fontSize", "size", "Font size");
 
   // point data labels
   dataLabel_->addPathProperties("labels", "Labels");

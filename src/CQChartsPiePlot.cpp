@@ -182,23 +182,23 @@ setLabelRadius(double r)
 
 void
 CQChartsPiePlot::
-setStartAngle(double r)
+setStartAngle(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setAngleExtent(double r)
+setAngleExtent(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setGapAngle(double r)
+setGapAngle(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(gapAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -250,7 +250,10 @@ addProperties()
   // options
   addProp("options", "donut"      , "", "Display as donut using inner radius");
   addProp("options", "count"      , "", "Show count of groups");
-  addProp("options", "innerRadius", "", "Inner radius");
+  addProp("options", "innerRadius", "", "Inner radius for donut")->
+    setMinValue(0.0).setMaxValue(1.0);
+  addProp("options", "outerRadius", "", "Outer radius for donut")->
+    setMinValue(0.0).setMaxValue(1.0).setHidden(true);
   addProp("options", "startAngle" , "", "Start angle for first segment");
   addProp("options", "angleExtent", "", "Angle extent for pie segments");
   addProp("options", "gapAngle"   , "", "Gap angle");
@@ -272,12 +275,12 @@ addProperties()
 
   // explode
   addProp("explode", "explodeSelected", "selected", "Explode selected segments");
-  addProp("explode", "explodeRadius"  , "radius"  , "Explode radius");
+  addProp("explode", "explodeRadius"  , "radius"  , "Explode radius")->setMinValue(0.0);
 
   // labels
   //addProp("labels", "textVisible", "visible", "Labels visible");
 
-  addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at");
+  addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at")->setMinValue(0.0);
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
   textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
@@ -308,8 +311,8 @@ calcRange() const
 
   double r = std::max(1.0, labelRadius());
 
-  double angle1 = startAngle();
-  double alen   = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+  double angle1 = startAngle().value();
+  double alen   = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
   double angle2 = angle1 + alen;
 
   // add segment outside points
@@ -399,7 +402,7 @@ createObjs(PlotObjs &objs) const
     return false;
 
   double ro = outerRadius();
-  double ri = (isDonut() ? innerRadius()*outerRadius() : 0.0);
+  double ri = std::min(std::max(isDonut() ? innerRadius()*ro : 0.0, 0.0), 1.0);
 
   int ig = 0;
   int ng = numGroups();
@@ -628,7 +631,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   //---
 
   // set radii
-  double ri = (groupObj ? groupObj->innerRadius() : innerRadius());
+  double ri = std::min(std::max(groupObj ? groupObj->innerRadius() : innerRadius(), 0.0), 1.0);
   double ro = (groupObj ? groupObj->outerRadius() : outerRadius());
   double rv = ro;
 
@@ -883,7 +886,7 @@ CQChartsPiePlot::
 adjustObjAngles() const
 {
   double ro = outerRadius();
-  double ri = (isDonut() ? innerRadius()*outerRadius() : 0.0);
+  double ri = std::min(std::max(isDonut() ? innerRadius()*ro : 0.0, 0.0), 1.0);
 
   bool isGrouped = (numGroups() > 1);
 
@@ -918,7 +921,7 @@ adjustObjAngles() const
   //---
 
   // calc angle extents for each group
-  double ga1 = startAngle();
+  double ga1 = startAngle().value();
   double ga2 = ga1;
 
   double r = ro;
@@ -945,7 +948,7 @@ adjustObjAngles() const
 
     ga2 = ga1 - dga;
 
-    groupObj->setAngles(ga1, ga2);
+    groupObj->setAngles(CQChartsAngle(ga1), CQChartsAngle(ga2));
 
     //---
 
@@ -959,9 +962,26 @@ adjustObjAngles() const
       //---
 
       // set segment angles
-      double angle1    = startAngle();
-      double alen      = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+      double ga = gapAngle().value();
+
+      double angle1    = startAngle().value();
+      double alen      = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
       double dataTotal = groupObj->dataTotal();
+
+      int numObjs = groupObj->objs().size();
+
+      if (abs(alen) >= 360.0) { // contiguous
+        if (alen < 0)
+          alen = std::min(alen + numObjs*ga, 0.0);
+        else
+          alen = std::max(alen - numObjs*ga, 0.0);
+      }
+      else {
+        if (alen < 0)
+          alen = std::min(alen + (numObjs - 1)*ga, 0.0);
+        else
+          alen = std::max(alen - (numObjs - 1)*ga, 0.0);
+      }
 
       for (auto &obj : groupObj->objs()) {
         // skip hidden objects
@@ -976,8 +996,8 @@ adjustObjAngles() const
         double angle  = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
         double angle2 = angle1 + angle;
 
-        obj->setAngle1(angle1);
-        obj->setAngle2(angle2);
+        obj->setAngle1(CQChartsAngle(angle1));
+        obj->setAngle2(CQChartsAngle(angle2));
 
         //---
 
@@ -1001,7 +1021,7 @@ adjustObjAngles() const
         //---
 
         // move to next start angle
-        angle1 = angle2;
+        angle1 = angle2 + ga;
       }
 
       //---
@@ -1281,8 +1301,8 @@ annotationBBox() const
   //---
 
   // calc angle extent
-  double a1 = angle1();
-  double a2 = angle2();
+  double a1 = angle1().value();
+  double a2 = angle2().value();
 
   double a21 = a2 - a1;
 
@@ -1295,7 +1315,7 @@ annotationBBox() const
   // draw on arc center line
   else {
     // calc label radius
-    double ri = innerRadius();
+    double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
     double ro = outerRadius();
     double lr = plot_->labelRadius();
 
@@ -1366,17 +1386,18 @@ draw(CQChartsPaintDevice *device)
   // get pie center, radii and angles
   CQChartsGeom::Point c = getCenter();
 
-  double ri = innerRadius();
+  double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
   double ro = outerRadius();
   double rv = valueRadius();
 
-  double a1 = angle1();
-  double a2 = angle2();
+  double a1 = angle1().value();
+  double a2 = angle2().value();
 
-  double ga = plot_->gapAngle()/2.0;
+//double ga = plot_->gapAngle().value()/2.0;
+  double ga = 0.0;
 
-  double aa1 = a1 - ga;
-  double aa2 = a2 + ga;
+  double aa1 = a1 + ga;
+  double aa2 = a2 - ga;
 
   //---
 
@@ -1395,7 +1416,8 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsGeom::Point c(0.0, 0.0);
 
-    CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, a1, a2, isInvertX, isInvertY);
+    CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, CQChartsAngle(a1), CQChartsAngle(a2),
+                                   isInvertX, isInvertY);
   }
 
   //---
@@ -1414,7 +1436,8 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, aa1, aa2, isInvertX, isInvertY);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, CQChartsAngle(aa1), CQChartsAngle(aa2),
+                                 isInvertX, isInvertY);
 
   device->resetColorNames();
 }
@@ -1445,7 +1468,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
   //---
 
   // calc label radius
-  double ri = innerRadius();
+  double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
   double ro = outerRadius();
   double lr = plot_->labelRadius();
 
@@ -1461,8 +1484,8 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
   //---
 
   // calc text angle
-  double a1 = angle1();
-  double a2 = angle2();
+  double a1 = angle1().value();
+  double a2 = angle2().value();
 
   double ta = CMathUtil::avg(a1, a2);
 
@@ -1474,7 +1497,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
 
   QColor bg = fillColor();
 
-  plot_->setPen(lpen, true, bg, 1.0);
+  plot_->setPen(lpen, true, bg, CQChartsAlpha());
 
   //---
 
@@ -1598,13 +1621,15 @@ getCenter() const
   // get adjusted center (exploded state)
   double rv = valueRadius();
 
-  double a1 = angle1();
-  double a2 = angle2();
+  double a1 = angle1().value();
+  double a2 = angle2().value();
 
   double angle = CMathUtil::Deg2Rad(CMathUtil::avg(a1, a2));
 
-  double dx = plot_->explodeRadius()*rv*cos(angle);
-  double dy = plot_->explodeRadius()*rv*sin(angle);
+  double er = std::max(plot_->explodeRadius(), 0.0);
+
+  double dx = er*rv*cos(angle);
+  double dy = er*rv*sin(angle);
 
   c.x += dx;
   c.y += dy;
@@ -1616,8 +1641,8 @@ double
 CQChartsPieObj::
 xColorValue(bool relative) const
 {
-  double a1 = angle1();
-  double a2 = angle2();
+  double a1 = angle1().value();
+  double a2 = angle2().value();
 
   double a21 = std::abs(a2 - a1);
 
@@ -1702,7 +1727,7 @@ inside(const CQChartsGeom::Point &p) const
   double r = p.distanceTo(center);
 
   double ro = plot_->outerRadius();
-  double ri = (plot_->isDonut() ? plot_->innerRadius()*plot_->outerRadius() : 0.0);
+  double ri = std::min(std::max(plot_->isDonut() ? plot_->innerRadius()*ro : 0.0, 0.0), 1.0);
 
   if (r < ri || r > ro)
     return false;
@@ -1713,8 +1738,8 @@ inside(const CQChartsGeom::Point &p) const
   double a = CMathUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
   a = CMathUtil::normalizeAngle(a);
 
-  double a1 = startAngle_; a1 = CMathUtil::normalizeAngle(a1);
-  double a2 = endAngle_  ; a2 = CMathUtil::normalizeAngle(a2);
+  double a1 = startAngle().value(); a1 = CMathUtil::normalizeAngle(a1);
+  double a2 = endAngle  ().value(); a2 = CMathUtil::normalizeAngle(a2);
 
   if (a1 < a2) {
     // crosses zero
@@ -1747,17 +1772,17 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point c(0, 0);
 
   double ro = plot_->outerRadius();
-  double ri = (plot_->isDonut() ? plot_->innerRadius()*plot_->outerRadius() : 0.0);
+  double ri = std::min(std::max(plot_->isDonut() ? plot_->innerRadius()*ro : 0.0, 0.0), 1.0);
 
   //---
 
-  double a1 = startAngle_;
-  double a2 = endAngle_;
+  double a1 = startAngle().value();
+  double a2 = endAngle  ().value();
 
-  double ga = plot_->gapAngle()/2.0;
+  double ga = plot_->gapAngle().value()/2.0;
 
-  double aa1 = a1 - ga;
-  double aa2 = a2 + ga;
+  double aa1 = a1 + ga;
+  double aa2 = a2 - ga;
 
   //---
 
@@ -1778,7 +1803,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw pie slice
-  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, aa1, aa2, isInvertX, isInvertY);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, CQChartsAngle(aa1), CQChartsAngle(aa2),
+                                 isInvertX, isInvertY);
 }
 
 void
@@ -1790,8 +1816,8 @@ drawFg(CQChartsPaintDevice *device) const
 
   CQChartsGeom::Point c(0, 0);
 
-  double a1 = startAngle_;
-  double a2 = endAngle_;
+  double a1 = startAngle().value();
+  double a2 = endAngle  ().value();
 
   double ta = CMathUtil::avg(a1, a2);
 
@@ -1814,7 +1840,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-  plot_->setPen(pen, true, fg, 1.0);
+  plot_->setPen(pen, true, fg, CQChartsAlpha());
 
   //---
 

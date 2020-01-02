@@ -124,8 +124,8 @@ class CQChartsRadarPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
 
   // options
-  Q_PROPERTY(double angleStart  READ angleStart  WRITE setAngleStart )
-  Q_PROPERTY(double angleExtent READ angleExtent WRITE setAngleExtent)
+  Q_PROPERTY(CQChartsAngle angleStart  READ angleStart  WRITE setAngleStart )
+  Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent WRITE setAngleExtent)
 
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
@@ -153,11 +153,11 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   //---
 
-  double angleStart() const { return angleStart_; }
-  void setAngleStart(double r);
+  const CQChartsAngle &angleStart() const { return angleStart_; }
+  void setAngleStart(const CQChartsAngle &a);
 
-  double angleExtent() const { return angleExtent_; }
-  void setAngleExtent(double r);
+  const CQChartsAngle &angleExtent() const { return angleExtent_; }
+  void setAngleExtent(const CQChartsAngle &a);
 
   //----
 
@@ -223,8 +223,8 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   CQChartsColumn  nameColumn_;             //!< name column
   CQChartsColumns valueColumns_;           //!< value columns
-  double          angleStart_   { 90.0 };  //!< angle start
-  double          angleExtent_  { 360.0 }; //!< angle extent
+  CQChartsAngle   angleStart_   { 90.0 };  //!< angle start
+  CQChartsAngle   angleExtent_  { 360.0 }; //!< angle extent
   ValueDatas      valueDatas_;             //!< value
   double          valueRadius_  { 1.0 };   //!< max value (radius)
 };

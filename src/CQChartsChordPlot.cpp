@@ -198,7 +198,7 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
-  setStrokeAlpha(0.3);
+  setStrokeAlpha(CQChartsAlpha(0.3));
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -261,30 +261,30 @@ setLabelRadius(double r)
 
 void
 CQChartsChordPlot::
-setSegmentAlpha(double r)
+setSegmentAlpha(const CQChartsAlpha &a)
 {
-  CQChartsUtil::testAndSet(segmentAlpha_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(segmentAlpha_, a, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
-setArcAlpha(double r)
+setArcAlpha(const CQChartsAlpha &a)
 {
-  CQChartsUtil::testAndSet(arcAlpha_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(arcAlpha_, a, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
-setGapAngle(double r)
+setGapAngle(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(gapAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsChordPlot::
-setStartAngle(double r)
+setStartAngle(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -316,7 +316,8 @@ addProperties()
 
   // options
   addProp("options", "sorted"     , "", "Sort values by size");
-  addProp("options", "innerRadius", "", "Radius of inside of outer strip");
+  addProp("options", "innerRadius", "", "Radius of inside of outer strip (0-1)")->
+    setMinValue(0.0).setMaxValue(1.0);
 
   // stroke
   addLineProperties("stroke", "stroke", "");
@@ -328,12 +329,13 @@ addProperties()
   addProp("arc", "gapAngle"  , "gapAngle"  , "Angle for gap between strip segements");
   addProp("arc", "startAngle", "startAngle", "Angle for first strip segment");
 
-  addStyleProp("arc/fill", "arcAlpha"  , "alpha"     , "Alpha for arc fill");
+  addStyleProp("arc/fill", "arcAlpha", "alpha", "Alpha for arc fill");
 
   // labels
   textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
-  addProp("labels", "labelRadius", "radius", "Radius for segment label");
+  addProp("labels", "labelRadius", "radius", "Radius for segment label (>= 1.0)")->
+    setMinValue(1.0);
 
   QString labelBoxPath = "labels/box";
 
@@ -346,14 +348,12 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsChordPlot::calcRange");
 
-  double r = 1.0;
-
-  r = std::max(r, labelRadius());
+  double lr = std::max(labelRadius(), 1.0);
 
   CQChartsGeom::Range dataRange;
 
-  dataRange.updateRange(-r, -r);
-  dataRange.updateRange( r,  r);
+  dataRange.updateRange(-lr, -lr);
+  dataRange.updateRange( lr,  lr);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
@@ -598,7 +598,7 @@ initTableObjs(PlotObjs &objs) const
   //---
 
   // 360 degree circle, minus gap angle degrees per set
-  double gap = this->gapAngle();
+  double gap = std::max(this->gapAngle().value(), 0.0);
 
   double drange = 360 - nv1*gap;
 
@@ -615,7 +615,7 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
-  double angle1 = this->startAngle();
+  double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
     CQChartsChordData &data = datas[row];
@@ -629,7 +629,7 @@ initTableObjs(PlotObjs &objs) const
 
     double angle2 = angle1 + dangle;
 
-    data.setAngles(angle1, dangle);
+    data.setAngles(CQChartsAngle(angle1), CQChartsAngle(dangle));
 
     angle1 = angle2 + gap;
   }
@@ -808,7 +808,7 @@ initHierObjs(PlotObjs &objs) const
   //---
 
   // 360 degree circle, minus gap angle degrees per set
-  double gap = this->gapAngle();
+  double gap = std::max(this->gapAngle().value(), 0.0);
 
   double drange = 360 - nv*gap;
 
@@ -825,7 +825,7 @@ initHierObjs(PlotObjs &objs) const
 
   //---
 
-  double angle1 = this->startAngle();
+  double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
     CQChartsChordData &data = datas[row];
@@ -839,7 +839,7 @@ initHierObjs(PlotObjs &objs) const
 
     double angle2 = angle1 + dangle;
 
-    data.setAngles(angle1, dangle);
+    data.setAngles(CQChartsAngle(angle1), CQChartsAngle(dangle));
 
     angle1 = angle2 + gap;
   }
@@ -947,11 +947,11 @@ arcData() const
   arcData.setInnerRadius(innerRadius());
   arcData.setOuterRadius(outerRadius());
 
-  double a1 = data_.angle();
-  double a2 = a1 + data_.dangle();
+  double a1 = data_.angle().value();
+  double a2 = a1 + data_.dangle().value();
 
-  arcData.setAngle1(a1);
-  arcData.setAngle2(a2);
+  arcData.setAngle1(CQChartsAngle(a1));
+  arcData.setAngle2(CQChartsAngle(a2));
 
   return arcData;
 }
@@ -982,8 +982,8 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  double angle1 = data_.angle();
-  double dangle = data_.dangle();
+  double angle1 = data_.angle().value();
+  double dangle = data_.dangle().value();
 
   //---
 
@@ -1001,7 +1001,8 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, angle1, dangle);
+  CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, CQChartsAngle(angle1),
+                                   CQChartsAngle(dangle));
 
   device->resetColorNames();
 
@@ -1043,7 +1044,8 @@ draw(CQChartsPaintDevice *device)
     // draw connecting arc
     bool isSelf = (from == value.to);
 
-    CQChartsDrawUtil::drawArcsConnector(device, ibbox, a1, da1, a2, da2, isSelf);
+    CQChartsDrawUtil::drawArcsConnector(device, ibbox,
+      CQChartsAngle(a1), CQChartsAngle(da1), CQChartsAngle(a2), CQChartsAngle(da2), isSelf);
   }
 }
 
@@ -1067,15 +1069,15 @@ drawFg(CQChartsPaintDevice *device) const
   double ri = innerRadius();
   double ro = outerRadius();
 
-  double lr = plot_->labelRadius();
+  double lr = std::max(plot_->labelRadius(), 1.0);
 
   double lr1 = ri + lr*(ro - ri);
 
   lr1 = std::max(lr1, 0.01);
 
   // calc label angle
-  double angle1 = data_.angle();
-  double dangle = data_.dangle();
+  double angle1 = data_.angle().value();
+  double dangle = data_.dangle().value();
   double angle2 = angle1 + dangle;
 
   double ta = CMathUtil::avg(angle1, angle2);
@@ -1090,7 +1092,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor bg = plot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpen, true, bg, 1.0);
+  plot_->setPen(lpen, true, bg, CQChartsAlpha());
 
   //---
 
@@ -1109,8 +1111,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   // TODO: separate segment stroke/fill control
   QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  QColor fromColor = calcFromColor();
-  double fromAlpha = 1.0;
+  QColor        fromColor = calcFromColor();
+  CQChartsAlpha fromAlpha;
 
   if (! isInside() && ! isSelected())
     fromAlpha = plot_->segmentAlpha();
@@ -1139,7 +1141,7 @@ calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const
 
   QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
-  double fillAlpha = 1.0;
+  CQChartsAlpha fillAlpha;
 
   if (! isInside() && ! isSelected())
     fillAlpha = plot_->arcAlpha();
@@ -1196,8 +1198,8 @@ textBBox() const
 
   //---
 
-  double angle1 = data_.angle();
-  double dangle = data_.dangle();
+  double angle1 = data_.angle().value();
+  double dangle = data_.dangle().value();
   double angle2 = angle1 + dangle;
 
   //---
@@ -1213,7 +1215,7 @@ textBBox() const
   //---
 
   // calc box of text on arc center line
-  double lr = plot_->labelRadius();
+  double lr = std::max(plot_->labelRadius(), 1.0);
 
   double ta = CMathUtil::avg(angle1, angle2);
 
@@ -1263,7 +1265,7 @@ void
 CQChartsChordObj::
 valueAngles(int ind, double &a, double &da) const
 {
-  a = data_.angle();
+  a = data_.angle().value();
 
   for (const auto &value : data_.values()) {
     da = plot_->valueToDegrees(value.value);

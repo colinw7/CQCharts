@@ -12,6 +12,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsGrahamHull.h>
 #include <CQChartsGridCell.h>
+#include <CQChartsAngle.h>
 
 class CQChartsEditHandles;
 class CQChartsSmooth;
@@ -692,6 +693,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
+  void init();
+
+ private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
   CQChartsPosition start_ { CQChartsGeom::Point(0, 0) }; //!< arrow start
@@ -743,7 +747,11 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
              const QString &varName="") const override;
 
  private:
-  CQChartsPosition position_; //!< point position
+  void init();
+
+ private:
+  CQChartsPosition position_;                                //!< point position
+  CQChartsSymbol   type_     { CQChartsSymbol::Type::NONE }; //!< symbol type
 };
 
 //---
@@ -760,18 +768,20 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition position    READ position    WRITE setPosition   )
   Q_PROPERTY(CQChartsLength   innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(CQChartsLength   outerRadius READ outerRadius WRITE setOuterRadius)
-  Q_PROPERTY(double           startAngle  READ startAngle  WRITE setStartAngle )
-  Q_PROPERTY(double           spanAngle   READ spanAngle   WRITE setSpanAngle  )
+  Q_PROPERTY(CQChartsAngle    startAngle  READ startAngle  WRITE setStartAngle )
+  Q_PROPERTY(CQChartsAngle    spanAngle   READ spanAngle   WRITE setSpanAngle  )
 
  public:
   CQChartsPieSliceAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
                              const CQChartsLength &innerRadius=CQChartsLength(),
                              const CQChartsLength &outerRadius=CQChartsLength(),
-                             double startAngle=0.0, double spanAngle=90.0);
+                             const CQChartsAngle &startAngle=CQChartsAngle(0.0),
+                             const CQChartsAngle &spanAngle=CQChartsAngle(90.0));
   CQChartsPieSliceAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
                              const CQChartsLength &innerRadius=CQChartsLength(),
                              const CQChartsLength &outerRadius=CQChartsLength(),
-                             double startAngle=0.0, double spanAngle=90.0);
+                             const CQChartsAngle &startAngle=CQChartsAngle(0.0),
+                             const CQChartsAngle &spanAngle=CQChartsAngle(90.0));
 
   virtual ~CQChartsPieSliceAnnotation();
 
@@ -786,11 +796,11 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   const CQChartsLength &outerRadius() const { return outerRadius_; }
   void setOuterRadius(const CQChartsLength &v) { outerRadius_ = v; }
 
-  double startAngle() const { return startAngle_; }
-  void setStartAngle(double r) { startAngle_ = r; }
+  const CQChartsAngle &startAngle() const { return startAngle_; }
+  void setStartAngle(const CQChartsAngle &a) { startAngle_ = a; }
 
-  double spanAngle() const { return spanAngle_; }
-  void setSpanAngle(double r) { spanAngle_ = r; }
+  const CQChartsAngle &spanAngle() const { return spanAngle_; }
+  void setSpanAngle(const CQChartsAngle &a) { spanAngle_ = a; }
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
@@ -813,8 +823,8 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   CQChartsPosition position_;             //!< point position
   CQChartsLength   innerRadius_;          //!< inner radius
   CQChartsLength   outerRadius_;          //!< outer radius
-  double           startAngle_  {  0.0 }; //!< start angle
-  double           spanAngle_   { 90.0 }; //!< span angle
+  CQChartsAngle    startAngle_  {  0.0 }; //!< start angle
+  CQChartsAngle    spanAngle_   { 90.0 }; //!< span angle
 };
 
 //---

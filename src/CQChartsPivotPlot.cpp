@@ -1373,7 +1373,8 @@ draw(CQChartsPaintDevice *device)
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, CQChartsPenData(false), CQChartsBrushData(true, fc, 0.5));
+    plot_->setPenBrush(penBrush, CQChartsPenData(false),
+                       CQChartsBrushData(true, fc, CQChartsAlpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1603,7 +1604,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsTextOptions textOptions;
 
-    textOptions.angle         = 0.0;
+    textOptions.angle         = CQChartsAngle(0.0);
     textOptions.contrast      = plot_->dataLabel()->isTextContrast();
     textOptions.contrastAlpha = plot_->dataLabel()->textContrastAlpha();
     textOptions.formatted     = false;

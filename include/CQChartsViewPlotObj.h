@@ -44,16 +44,18 @@ class CQChartsViewPlotObj : public CQChartsObj {
                    const CQChartsBrushData &brushData) const;
 
   void setPenBrush(CQChartsPenBrush &penBrush,
-                   bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
                    const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-                   bool filled, const QColor &fillColor, double fillAlpha,
+                   bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                    const CQChartsFillPattern &pattern) const;
 
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor,
+              const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
 
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
+                const CQChartsAlpha &fillAlpha=CQChartsAlpha(),
                 const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
 
   void updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType=DrawType::BOX) const;

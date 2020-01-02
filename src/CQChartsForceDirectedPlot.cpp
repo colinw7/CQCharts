@@ -220,7 +220,7 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
 
   setOuterMargin(0, 0, 0, 0);
 
-  setNodeStrokeAlpha(0.5);
+  setNodeStrokeAlpha(CQChartsAlpha(0.5));
 }
 
 CQChartsForceDirectedPlot::
@@ -325,7 +325,7 @@ addProperties()
   addProp("options", "running", "", "Is running");
 
   // node/edge
-  addProp("node", "nodeRadius", "radius", "Node radius");
+  addProp("node", "nodeRadius", "radius", "Node radius in pixels")->setMinValue(0.0);
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeStroke", "Node");
@@ -697,7 +697,7 @@ animateStep()
   if (isAutoFit()) {
     double xmin { 0.0 }, ymin { 0.0 }, xmax { 0.0 }, ymax { 0.0 };
 
-    double r = nodeRadius();
+    double r = std::max(nodeRadius(), 0.0);
 
     double xm = pixelToWindowWidth (2*r);
     double ym = pixelToWindowHeight(2*r);
@@ -869,7 +869,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   }
 
   // draw nodes
-  double r = nodeRadius();
+  double r = std::max(nodeRadius(), 0.0);
 
   double xm = pixelToWindowWidth (2*r);
   double ym = pixelToWindowHeight(2*r);

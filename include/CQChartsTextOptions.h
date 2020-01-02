@@ -1,6 +1,8 @@
 #ifndef CQChartsTextOptions_H
 #define CQChartsTextOptions_H
 
+#include <CQChartsAngle.h>
+#include <CQChartsAlpha.h>
 #include <QString>
 
 struct CQChartsTextOptions {
@@ -17,10 +19,10 @@ struct CQChartsTextOptions {
     ALL    = (ANGLE | ALIGN | CONTRAST | FORMATTED | SCALED | HTML)
   };
 
-  double        angle            { 0.0 };   //!< text angle
+  CQChartsAngle angle;                      //!< text angle
   Qt::Alignment align            { Qt::AlignHCenter | Qt::AlignVCenter }; //!< text align
   bool          contrast         { false }; //!< text contrast
-  double        contrastAlpha    { 0.5 };   //!< text contrast alpha
+  CQChartsAlpha contrastAlpha    { 0.5 };   //!< text contrast alpha
   bool          formatted        { false }; //!< text formatted
   bool          scaled           { false }; //!< text scaled
   double        scale            { -1.0 };  //!< text fixed scale

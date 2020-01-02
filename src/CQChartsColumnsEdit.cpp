@@ -1,5 +1,6 @@
 #include <CQChartsColumnsEdit.h>
 #include <CQChartsColumnEdit.h>
+#include <CQChartsColumnCombo.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
 
@@ -270,37 +271,28 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsColumns columns = value.value<CQChartsColumns>();
-  if (! columns.isValid()) return;
+  //---
+
+  bool ok;
+
+  QString str = valueString(item, value, ok);
+
+  QFont font = option.font;
+
+  if (! ok)
+    font.setItalic(true);
 
   //---
 
-  QString str = columns.toString();
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(item->object());
-
-  if (plot) {
-    QString str1;
-
-    for (const auto &column : columns.columns()) {
-      if (str1.length())
-        str1 += ", ";
-
-      str1 += plot->columnHeaderName(column);
-    }
-
-    str += " (" + str1 + ")";
-  }
-
-  //---
-
-  QFontMetrics fm(option.font);
+  QFontMetrics fm(font);
 
   int w = fm.width(str);
 
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -309,7 +301,45 @@ QString
 CQChartsColumnsPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsColumns>().toString();
+  bool ok;
+
+  QString str = valueString(nullptr, value, ok);
+
+  return str;
+}
+
+QString
+CQChartsColumnsPropertyViewType::
+valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
+{
+  CQChartsColumns columns = value.value<CQChartsColumns>();
+
+  QString str;
+
+  if (columns.isValid()) {
+    str = columns.toString();
+
+    CQChartsPlot *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
+
+    if (plot) {
+      QString str1;
+
+      for (const auto &column : columns.columns()) {
+        if (str1.length())
+          str1 += ", ";
+
+        str1 += plot->columnHeaderName(column);
+      }
+
+      str += " (" + str1 + ")";
+    }
+
+    ok = true;
+  }
+  else {
+    str = "<none>";
+    ok  = false;
+  }
 
   return str;
 }

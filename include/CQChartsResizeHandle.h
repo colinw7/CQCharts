@@ -3,6 +3,8 @@
 
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
+#include <CQChartsAlpha.h>
+
 #include <QPainterPath>
 #include <QColor>
 #include <QPointF>
@@ -18,9 +20,9 @@ class QPainter;
 class CQChartsResizeHandle : QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QColor fillColor   READ fillColor   WRITE setFillColor  )
-  Q_PROPERTY(double fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
-  Q_PROPERTY(QColor strokeColor READ strokeColor WRITE setStrokeColor)
+  Q_PROPERTY(QColor        fillColor   READ fillColor   WRITE setFillColor  )
+  Q_PROPERTY(CQChartsAlpha fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
+  Q_PROPERTY(QColor        strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
   CQChartsResizeHandle() = default;
@@ -42,8 +44,8 @@ class CQChartsResizeHandle : QObject {
   const QColor &fillColor() const { return fillColor_; }
   void setFillColor(const QColor &v) { fillColor_ = v; }
 
-  double fillAlpha() const { return fillAlpha_; }
-  void setFillAlpha(double r) { fillAlpha_ = r; }
+  const CQChartsAlpha &fillAlpha() const { return fillAlpha_; }
+  void setFillAlpha(const CQChartsAlpha &a) { fillAlpha_ = a; }
 
   const QColor &strokeColor() const { return strokeColor_; }
   void setStrokeColor(const QColor &v) { strokeColor_ = v; }
@@ -64,7 +66,7 @@ class CQChartsResizeHandle : QObject {
   CQChartsResizeSide   side_        { CQChartsResizeSide::NONE };
   bool                 selected_    { false };
   QColor               fillColor_   { "#4444aa" };
-  double               fillAlpha_   { 0.5 };
+  CQChartsAlpha        fillAlpha_   { 0.5 };
   QColor               strokeColor_ { Qt::black };
   QPointF              pos_         { 0, 0 };
   mutable QPainterPath path_;

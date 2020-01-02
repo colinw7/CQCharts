@@ -2,7 +2,7 @@
 #include <CQChartsArrow.h>
 
 #include <CQChartsLengthEdit.h>
-#include <CQAngleSpinBox.h>
+#include <CQChartsAngleEdit.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
@@ -230,14 +230,14 @@ CQChartsArrowDataEdit(QWidget *parent) :
   CQChartsWidgetUtil::addGridLabelWidget(layout, "Length", lengthEdit_, row);
 
   // angle
-  angleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("angle");
+  angleEdit_ = CQUtil::makeWidget<CQChartsAngleEdit>("angle");
 
   angleEdit_->setToolTip("arrow head angle");
 
   CQChartsWidgetUtil::addGridLabelWidget(layout, "Angle", angleEdit_, row);
 
   // back angle
-  backAngleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("back_angle");
+  backAngleEdit_ = CQUtil::makeWidget<CQChartsAngleEdit>("back_angle");
 
   backAngleEdit_->setToolTip("arrow head back angle");
 
@@ -329,8 +329,8 @@ connectSlots(bool b)
 
 //connectDisconnect(b, relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, lengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
-  connectDisconnect(b, backAngleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
+  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, backAngleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, fheadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, theadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, lineEndsEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
@@ -345,8 +345,8 @@ dataToWidgets()
 
 //relativeEdit_ ->setChecked(data_.isRelative());
   lengthEdit_   ->setLength (data_.length());
-  angleEdit_    ->setAngle  (CAngle(data_.angle()));
-  backAngleEdit_->setAngle  (CAngle(data_.backAngle()));
+  angleEdit_    ->setAngle  (data_.angle());
+  backAngleEdit_->setAngle  (data_.backAngle());
   fheadEdit_    ->setChecked(data_.isFHead());
   theadEdit_    ->setChecked(data_.isTHead());
   lineEndsEdit_ ->setChecked(data_.isLineEnds());
@@ -363,8 +363,8 @@ widgetsToData()
 {
 //data_.setRelative (relativeEdit_->isChecked());
   data_.setLength   (lengthEdit_->length());
-  data_.setAngle    (angleEdit_->getAngle().value());
-  data_.setBackAngle(backAngleEdit_->getAngle().value());
+  data_.setAngle    (angleEdit_->angle());
+  data_.setBackAngle(backAngleEdit_->angle());
   data_.setFHead    (fheadEdit_->isChecked());
   data_.setTHead    (theadEdit_->isChecked());
   data_.setLineEnds (lineEndsEdit_->isChecked());

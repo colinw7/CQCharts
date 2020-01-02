@@ -2,7 +2,9 @@
 #define CQChartsTextDlg_H
 
 #include <CQChartsColor.h>
+#include <CQChartsAlpha.h>
 #include <CQChartsFont.h>
+#include <CQChartsAngle.h>
 
 #include <QDialog>
 
@@ -29,11 +31,11 @@ class CQChartsTextCanvas : public QWidget {
 
   Q_PROPERTY(QString       text          READ text          WRITE setText         )
   Q_PROPERTY(CQChartsColor color         READ color         WRITE setColor        )
-  Q_PROPERTY(double        alpha         READ alpha         WRITE setAlpha        )
+  Q_PROPERTY(CQChartsAlpha alpha         READ alpha         WRITE setAlpha        )
   Q_PROPERTY(CQChartsFont  font          READ font          WRITE setFont         )
-  Q_PROPERTY(double        angle         READ angle         WRITE setAngle        )
+  Q_PROPERTY(CQChartsAngle angle         READ angle         WRITE setAngle        )
   Q_PROPERTY(bool          contrast      READ isContrast    WRITE setContrast     )
-  Q_PROPERTY(double        contrastAlpha READ contrastAlpha WRITE setContrastAlpha)
+  Q_PROPERTY(CQChartsAlpha contrastAlpha READ contrastAlpha WRITE setContrastAlpha)
   Q_PROPERTY(Qt::Alignment align         READ align         WRITE setAlign        )
   Q_PROPERTY(bool          formatted     READ isFormatted   WRITE setFormatted    )
   Q_PROPERTY(bool          scaled        READ isScaled      WRITE setScaled       )
@@ -50,20 +52,21 @@ class CQChartsTextCanvas : public QWidget {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { if (c != color_) { color_ = c; invalidate(); } }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double a) { if (a != alpha_) { alpha_ = a; invalidate(); } }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { if (a != alpha_) { alpha_ = a; invalidate(); } }
 
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f) { if (f != font_) { font_ = f; invalidate(); } }
 
-  double angle() const { return angle_; }
-  void setAngle(double a) { if (a != angle_) { angle_ = a; invalidate(); } }
+  const CQChartsAngle &angle() const { return angle_; }
+  void setAngle(const CQChartsAngle &a) { if (a != angle_) { angle_ = a; invalidate(); } }
 
   bool isContrast() const { return contrast_; }
   void setContrast(bool b) { if (b != contrast_) { contrast_ = b; invalidate(); } }
 
-  double contrastAlpha() const { return contrastAlpha_; }
-  void setContrastAlpha(double a) { if (a != contrastAlpha_) { contrastAlpha_ = a; invalidate(); } }
+  const CQChartsAlpha &contrastAlpha() const { return contrastAlpha_; }
+  void setContrastAlpha(const CQChartsAlpha &a) {
+    if (a != contrastAlpha_) { contrastAlpha_ = a; invalidate(); } }
 
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &a) { if (a != align_) { align_ = a; invalidate(); } }
@@ -85,11 +88,11 @@ class CQChartsTextCanvas : public QWidget {
   QString       text_          { "Abc" };
   QRect         rect_          { 100, 100, 400, 400 };
   CQChartsColor color_;
-  double        alpha_         { 1.0 };
+  CQChartsAlpha alpha_;
   CQChartsFont  font_;
-  double        angle_         { 0.0 };
+  CQChartsAngle angle_         { 0.0 };
   bool          contrast_      { false };
-  double        contrastAlpha_ { 0.5 };
+  CQChartsAlpha contrastAlpha_ { 0.5 };
   Qt::Alignment align_         { Qt::AlignHCenter | Qt::AlignVCenter };
   bool          formatted_     { false };
   bool          scaled_        { false };

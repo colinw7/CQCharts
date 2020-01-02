@@ -50,7 +50,7 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
 
 class CQChartsLengthEdit;
 class CQChartsArrowDataEditPreview;
-class CQAngleSpinBox;
+class CQChartsAngleEdit;
 class CQCheckBox;
 
 /*!
@@ -87,8 +87,8 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
   CQChartsArrowData             data_;                      //!< arrow data
 //CQCheckBox*                   relativeEdit_  { nullptr }; //!< relative edit
   CQChartsLengthEdit*           lengthEdit_    { nullptr }; //!< length edit
-  CQAngleSpinBox*               angleEdit_     { nullptr }; //!< angle edit
-  CQAngleSpinBox*               backAngleEdit_ { nullptr }; //!< back angle edit
+  CQChartsAngleEdit*            angleEdit_     { nullptr }; //!< angle edit
+  CQChartsAngleEdit*            backAngleEdit_ { nullptr }; //!< back angle edit
   CQCheckBox*                   fheadEdit_     { nullptr }; //!< start head edit
   CQCheckBox*                   theadEdit_     { nullptr }; //!< end head edit
   CQCheckBox*                   lineEndsEdit_  { nullptr }; //!< line ends edit

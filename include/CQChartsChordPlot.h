@@ -128,14 +128,14 @@ class CQChartsChordData {
     return total;
   }
 
-  void setAngles(double a, double da) {
+  void setAngles(const CQChartsAngle &a, const CQChartsAngle &da) {
     a_  = a;
     da_ = da;
   }
 
-  double angle() const { return a_; }
+  const CQChartsAngle &angle() const { return a_; }
 
-  double dangle() const { return da_; }
+  const CQChartsAngle &dangle() const { return da_; }
 
   void sort() {
     std::sort(values_.begin(), values_.end(),
@@ -145,15 +145,15 @@ class CQChartsChordData {
   }
 
  private:
-  int         from_       { -1 };    //!< from node
-  QString     name_;                 //!< value name
-  Group       group_;                //!< group
-  Values      values_;               //!< connection values
-  QModelIndex ind_;                  //!< model index
-  double      a_          { 0.0 };   //!< start angle
-  double      da_         { 0.0 };   //!< delta angle
-  double      total_      { 0.0 };   //!< value total
-  double      totalValid_ { false }; //!< is total valid
+  int           from_       { -1 };    //!< from node
+  QString       name_;                 //!< value name
+  Group         group_;                //!< group
+  Values        values_;               //!< connection values
+  QModelIndex   ind_;                  //!< model index
+  CQChartsAngle a_;                    //!< start angle
+  CQChartsAngle da_;                   //!< delta angle
+  double        total_      { 0.0 };   //!< value total
+  double        totalValid_ { false }; //!< is total valid
 };
 
 //---
@@ -262,10 +262,10 @@ class CQChartsChordPlot : public CQChartsPlot,
   CQCHARTS_STROKE_DATA_PROPERTIES
 
   // style
-  Q_PROPERTY(double segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
-  Q_PROPERTY(double arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
-  Q_PROPERTY(double gapAngle     READ gapAngle     WRITE setGapAngle    )
-  Q_PROPERTY(double startAngle   READ startAngle   WRITE setStartAngle  )
+  Q_PROPERTY(CQChartsAlpha segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
+  Q_PROPERTY(CQChartsAlpha arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
+  Q_PROPERTY(CQChartsAngle gapAngle     READ gapAngle     WRITE setGapAngle    )
+  Q_PROPERTY(CQChartsAngle startAngle   READ startAngle   WRITE setStartAngle  )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
@@ -294,17 +294,17 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   //---
 
-  double segmentAlpha() const { return segmentAlpha_; }
-  void setSegmentAlpha(double r);
+  const CQChartsAlpha &segmentAlpha() const { return segmentAlpha_; }
+  void setSegmentAlpha(const CQChartsAlpha &a);
 
-  double arcAlpha() const { return arcAlpha_; }
-  void setArcAlpha(double r);
+  const CQChartsAlpha &arcAlpha() const { return arcAlpha_; }
+  void setArcAlpha(const CQChartsAlpha &a);
 
-  double gapAngle() const { return gapAngle_; }
-  void setGapAngle(double r);
+  const CQChartsAngle &gapAngle() const { return gapAngle_; }
+  void setGapAngle(const CQChartsAngle &a);
 
-  double startAngle() const { return startAngle_; }
-  void setStartAngle(double r);
+  const CQChartsAngle &startAngle() const { return startAngle_; }
+  void setStartAngle(const CQChartsAngle &a);
 
   //---
 
@@ -344,10 +344,10 @@ class CQChartsChordPlot : public CQChartsPlot,
   bool                       sorted_         { false };   //!< is sorted
   double                     innerRadius_    { 0.9 };     //!< inner radius
   double                     labelRadius_    { 1.1 };     //!< label radius
-  double                     segmentAlpha_   { 0.7 };     //!< segment alpha
-  double                     arcAlpha_       { 0.3 };     //!< arc alpha
-  double                     gapAngle_       { 2.0 };     //!< gap angle
-  double                     startAngle_     { 90.0 };    //!< start angle
+  CQChartsAlpha              segmentAlpha_   { 0.7 };     //!< segment alpha
+  CQChartsAlpha              arcAlpha_       { 0.3 };     //!< arc alpha
+  CQChartsAngle              gapAngle_       { 2.0 };     //!< gap angle
+  CQChartsAngle              startAngle_     { 90.0 };    //!< start angle
   CQChartsRotatedTextBoxObj* textBox_        { nullptr }; //!< text box
   double                     valueToDegrees_ { 1.0 };     //!< value to degrees scale
 };

@@ -347,7 +347,7 @@ void
 CQChartsBoxPlot::
 setYMargin(double r)
 {
-  CQChartsUtil::testAndSet(ymargin_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(ymargin_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -393,7 +393,8 @@ addProperties()
   addProp("options", "normalized", "normalized", "Normalize bar ranges to 0-1");
 
   // margins
-  addProp("margins", "ymargin", "ybar", "Margin above/below bar");
+  addProp("margins", "ymargin", "ybar", "Margin above/below bar when normalized")->
+    setMinValue(0.0).setMaxValue(0.5);
 
   // jitter
   addProp("points", "pointsType", "type", "Draw jitter or scatter points");
@@ -410,7 +411,8 @@ addProperties()
   addProp("errorBar", "errorBarType", "type"   , "Error bar type");
 
   // whisker box
-  addProp("box", "whiskerRange", "range"  , "Whisker interquartile range factor");
+  addProp("box", "whiskerRange", "range"  , "Whisker interquartile range factor")->
+    setMinValue(1.0);
   addProp("box", "boxWidth"    , "width"  , "Box width");
   addProp("box", "notched"     , "notched", "Box notched at median");
 
@@ -428,14 +430,15 @@ addProperties()
   // whisker line
   addLineProperties("whisker/stroke", "whiskerLines", "Whisker");
 
-  addProp("whisker", "whiskerExtent", "extent", "Box whisker line extent");
+  addProp("whisker", "whiskerExtent", "extent", "Box whisker line extent")->
+    setMinValue(0.0).setMaxValue(1.0);
 
   // value labels
   addProp("labels", "textVisible", "visible", "Value labels visible");
 
   addTextProperties("labels/text", "text", "Value", CQChartsTextOptions::ValueType::CONTRAST);
 
-  addProp("labels", "textMargin", "margin", "Value text margin");
+  addProp("labels", "textMargin", "margin", "Value text margin in pixels")->setMinValue(0.0);
 
   // outlier
   addProp("outlier", "showOutliers", "visible", "Outlier points visible");
@@ -2949,9 +2952,8 @@ CQChartsBoxPlotObj::
 drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
           const QString &text, bool onLeft)
 {
-  double margin = plot_->textMargin();
-
-  bool invertX = plot_->isInvertX();
+  double margin  = plot_->textMargin();
+  bool   invertX = plot_->isInvertX();
 
   if (invertX)
     onLeft = ! onLeft;
@@ -2974,7 +2976,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = 0;
+  options.angle         = CQChartsAngle(0);
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
@@ -2989,9 +2991,8 @@ CQChartsBoxPlotObj::
 drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
           const QString &text, bool onBottom)
 {
-  double margin = plot_->textMargin();
-
-  bool invertY = plot_->isInvertY();
+  double margin  = plot_->textMargin();
+  bool   invertY = plot_->isInvertY();
 
   if (invertY)
     onBottom = ! onBottom;
@@ -3016,7 +3017,7 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = 0;
+  options.angle         = CQChartsAngle(0);
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
@@ -3031,9 +3032,8 @@ CQChartsBoxPlotObj::
 addHBBox(CQChartsGeom::BBox &pbbox, double xl, double xr, double y,
          const QString &text, bool onLeft) const
 {
-  double margin = plot_->textMargin();
-
-  bool invertX = plot_->isInvertX();
+  double margin  = plot_->textMargin();
+  bool   invertX = plot_->isInvertX();
 
   if (invertX)
     onLeft = ! onLeft;
@@ -3064,9 +3064,8 @@ CQChartsBoxPlotObj::
 addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
          const QString &text, bool onBottom) const
 {
-  double margin = plot_->textMargin();
-
-  bool invertY = plot_->isInvertY();
+  double margin  = plot_->textMargin();
+  bool   invertY = plot_->isInvertY();
 
   if (invertY)
     onBottom = ! onBottom;

@@ -218,7 +218,7 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   setBestFit(false);
   setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setBestFitFillAlpha(0.5);
+  setBestFitFillAlpha(CQChartsAlpha(0.5));
 
   setStatsLines(false);
   setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
@@ -236,7 +236,7 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
 
   setFillUnderFilled   (false);
   setFillUnderFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setFillUnderFillAlpha(0.5);
+  setFillUnderFillAlpha(CQChartsAlpha(0.5));
 
   //---
 
@@ -2835,7 +2835,7 @@ draw(CQChartsPaintDevice *device)
   if (color.isValid()) {
     QColor c = plot()->interpColor(color, ic);
 
-    c.setAlphaF(plot_->symbolFillAlpha());
+    c.setAlphaF(plot_->symbolFillAlpha().value());
 
     penBrush.brush.setColor(c);
   }
@@ -3673,7 +3673,7 @@ fillBrush() const
   QBrush brush;
 
   QColor              c;
-  double              alpha   = 1.0;
+  CQChartsAlpha       alpha;
   CQChartsFillPattern pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot()->isBivariateLines()) {
@@ -3792,8 +3792,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   device->setClipRect(pbbox1, Qt::IntersectClip);
 
-  QColor hideBg;
-  double hideAlpha { 1.0 };
+  QColor        hideBg;
+  CQChartsAlpha hideAlpha;
 
   if (plot()->isSetHidden(ic_.i)) {
     hideBg    = key_->interpBgColor();

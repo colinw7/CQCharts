@@ -35,7 +35,7 @@ class CQChartsKey : public CQChartsBoxObj,
   Q_PROPERTY(bool                     above         READ isAbove       WRITE setAbove        )
   Q_PROPERTY(CQChartsKeyLocation      location      READ location      WRITE setLocation     )
   Q_PROPERTY(QString                  header        READ headerStr     WRITE setHeaderStr    )
-  Q_PROPERTY(double                   hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
+  Q_PROPERTY(CQChartsAlpha            hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
   Q_PROPERTY(int                      maxRows       READ maxRows       WRITE setMaxRows      )
   Q_PROPERTY(bool                     interactive   READ isInteractive WRITE setInteractive  )
   Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior WRITE setPressBehavior)
@@ -98,8 +98,8 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   // alpha when associated object hidden
-  double hiddenAlpha() const { return hiddenAlpha_; }
-  void setHiddenAlpha(double r) { hiddenAlpha_ = r; }
+  const CQChartsAlpha &hiddenAlpha() const { return hiddenAlpha_; }
+  void setHiddenAlpha(const CQChartsAlpha &a) { hiddenAlpha_ = a; }
 
   //---
 
@@ -174,7 +174,7 @@ class CQChartsKey : public CQChartsBoxObj,
   bool                     autoHide_       { true };    //!< auto hide if too big
   bool                     clipped_        { true };    //!< clipped to parent
   bool                     interactive_    { true };    //!< is interactive
-  double                   hiddenAlpha_    { 0.3 };     //!< alpha for hidden item
+  CQChartsAlpha            hiddenAlpha_    { 0.3 };     //!< alpha for hidden item
   int                      maxRows_        { 100 };     //!< max rows
   CQChartsKeyPressBehavior pressBehavior_;              //!< press behavior
   mutable ScrollData       scrollData_;                 //!< scrollbar data

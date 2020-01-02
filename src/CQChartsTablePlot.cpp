@@ -197,20 +197,20 @@ setMaxRows(int i)
 
 //---
 
-int
+CQChartsColumnNum
 CQChartsTablePlot::
 sortColumn() const
 {
-  return (summaryModel_ ? summaryModel_->sortColumn() : 0);
+  return (summaryModel_ ? CQChartsColumnNum(summaryModel_->sortColumn()) : CQChartsColumnNum());
 }
 
 void
 CQChartsTablePlot::
-setSortColumn(int i)
+setSortColumn(const CQChartsColumnNum &c)
 {
-  if (i != sortColumn()) {
+  if (c != sortColumn()) {
     if (summaryModel_)
-      summaryModel_->setSortColumn(i);
+      summaryModel_->setSortColumn(c.column());
 
     updateRangeAndObjs();
   }
@@ -423,12 +423,12 @@ addProperties()
   addProp("columns", "columns", "columns", "Columns");
 
   addProp("options", "mode"       , "mode"       , "Set mode"        );
-  addProp("options", "maxRows"    , "maxRows"    , "Set max rows"    );
+  addProp("options", "maxRows"    , "maxRows"    , "Set max rows"    )->setMinValue(1);
   addProp("options", "sortColumn" , "sortColumn" , "Set sort column" );
-  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"   );
+  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"   )->setHidden(true);
   addProp("options", "sortOrder"  , "sortOrder"  , "Set sort order"  );
-  addProp("options", "pageSize"   , "pageSize"   , "Set page size"   );
-  addProp("options", "currentPage", "currentPage", "Set current page");
+  addProp("options", "pageSize"   , "pageSize"   , "Set page size"   )->setMinValue(1);
+  addProp("options", "currentPage", "currentPage", "Set current page")->setMinValue(0);
   addProp("options", "rowNums"    , "rowNums"    , "Set row numbers" );
   addProp("options", "rowColumn"  , "rowColumn"  , "Display row number column" );
 
@@ -437,7 +437,7 @@ addProperties()
   addProp("options", "headerColor", "headerColor", "Header color");
   addProp("options", "cellColor"  , "cellColor"  , "Cell color"  );
 
-  addProp("options", "indent"    , "indent"    , "Hierarchical row indent");
+  addProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
   addProp("options", "followView", "followView", "Follow view");
 }
 
@@ -716,7 +716,7 @@ addMenuItems(QMenu *menu)
   sortColumnSpin_ = new CQIntegerSpin;
 
   sortColumnSpin_->setRange(1, columns_.count());
-  sortColumnSpin_->setValue(sortColumn() + 1);
+  sortColumnSpin_->setValue(std::max(sortColumn().column(), 0) + 1);
   sortColumnSpin_->setToolTip("Sort Column Number");
 
   connect(sortColumnSpin_, SIGNAL(valueChanged(int)), this, SLOT(sortColumnSlot()));
@@ -800,7 +800,7 @@ void
 CQChartsTablePlot::
 sortColumnSlot()
 {
-  setSortColumn(sortColumnSpin_->value() - 1);
+  setSortColumn(CQChartsColumnNum(sortColumnSpin_->value() - 1));
 
   if (sender()->metaObject()->method(senderSignalIndex()).name() == "editingFinished")
     menu_->close();
@@ -923,7 +923,8 @@ drawTable(CQChartsPaintDevice *device) const
   // draw header background
   QBrush headerBrush;
 
-  setBrush(headerBrush, true, interpColor(headerColor(), ColorInd()), 1.0, CQChartsFillPattern());
+  setBrush(headerBrush, true, interpColor(headerColor(), ColorInd()),
+           CQChartsAlpha(), CQChartsFillPattern());
 
   device->setBrush(headerBrush);
 
@@ -936,7 +937,8 @@ drawTable(CQChartsPaintDevice *device) const
   // draw cells background
   QBrush cellBrush;
 
-  setBrush(cellBrush, true, interpColor(cellColor(), ColorInd()), 1.0, CQChartsFillPattern());
+  setBrush(cellBrush, true, interpColor(cellColor(), ColorInd()),
+           CQChartsAlpha(), CQChartsFillPattern());
 
   device->setBrush(cellBrush);
 
@@ -951,7 +953,8 @@ drawTable(CQChartsPaintDevice *device) const
   // draw table column lines
   QPen gridPen;
 
-  setPen(gridPen, true, interpColor(gridColor(), ColorInd()), 1.0, 0.0, CQChartsLineDash());
+  setPen(gridPen, true, interpColor(gridColor(), ColorInd()),
+         CQChartsAlpha(), 0.0, CQChartsLineDash());
 
   device->setPen(gridPen);
 
@@ -996,7 +999,8 @@ drawTable(CQChartsPaintDevice *device) const
 
   QPen textPen;
 
-  setPen(textPen, true, interpColor(textColor(), ColorInd()), 1.0, 1.0, CQChartsLineDash());
+  setPen(textPen, true, interpColor(textColor(), ColorInd()),
+         CQChartsAlpha(), 0.0, CQChartsLineDash());
 
   device->setPen(textPen);
 

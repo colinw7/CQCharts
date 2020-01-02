@@ -180,7 +180,7 @@ createRectFrame()
   // padding
   rectWidgets_.paddingEdit = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
 
-  rectWidgets_.paddingEdit->setToolTip("Padding");
+  rectWidgets_.paddingEdit->setToolTip("Padding in pixels");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
 

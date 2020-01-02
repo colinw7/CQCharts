@@ -5622,7 +5622,7 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
       bool ok;
       double angle = CQChartsUtil::toReal(strs[0], ok);
       if (! ok) return errorMsg(QString("Invalid angle string '%1'").arg(strs[0]));
-      if (angle > 0) arrowData.setAngle(angle);
+      if (angle > 0) arrowData.setAngle(CQChartsAngle(angle));
     }
     else if (strs.length() == 2) {
       bool ok1, ok2;
@@ -5631,8 +5631,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
       if (! ok1 || ! ok2) return errorMsg(QString("Invalid angle strings '%1' '%2'").
                                            arg(strs[0]).arg(strs[1]));
 
-      if (angle1 > 0) arrowData.setFrontAngle(angle1);
-      if (angle2 > 0) arrowData.setTailAngle (angle2);
+      if (angle1 > 0) arrowData.setFrontAngle(CQChartsAngle(angle1));
+      if (angle2 > 0) arrowData.setTailAngle (CQChartsAngle(angle2));
     }
     else
       return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
@@ -5649,7 +5649,7 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
     if      (strs.length() == 1) {
       bool ok; double angle = CQChartsUtil::toReal(strs[0], ok);
       if (! ok) return errorMsg(QString("Invalid back_angle string '%1'").arg(strs[0]));
-      if (angle > 0) arrowData.setBackAngle(angle);
+      if (angle > 0) arrowData.setBackAngle(CQChartsAngle(angle));
     }
     else if (strs.length() == 2) {
       bool ok1; double angle1 = CQChartsUtil::toReal(strs[0], ok1);
@@ -5657,8 +5657,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
       if (! ok1 && ! ok2) return errorMsg(QString("Invalid back_angle strings '%1' '%2'").
                                            arg(strs[0]).arg(strs[1]));
 
-      if (angle1 > 0) arrowData.setFrontBackAngle(angle1);
-      if (angle2 > 0) arrowData.setTailBackAngle (angle2);
+      if (angle1 > 0) arrowData.setFrontBackAngle(CQChartsAngle(angle1));
+      if (angle2 > 0) arrowData.setTailBackAngle (CQChartsAngle(angle2));
     }
     else
       return errorMsg(QString("Invalid back_angle string '%1'").
@@ -5876,12 +5876,12 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
 //fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
   stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
 
@@ -6117,8 +6117,8 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsLength innerRadius = argv.getParseLength(view, plot, "inner_radius");
   CQChartsLength outerRadius = argv.getParseLength(view, plot, "outer_radius");
 
-  double startAngle = argv.getParseReal("start_angle");
-  double spanAngle  = argv.getParseReal("span_angle");
+  CQChartsAngle startAngle = argv.getParseAngle("start_angle");
+  CQChartsAngle spanAngle  = argv.getParseAngle("span_angle");
 
   if (innerRadius.value() < 0 || outerRadius.value() < 0)
     return errorMsg("Invalid radius value");
@@ -6263,11 +6263,11 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha", fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha", fill.alpha    ()));
 
   stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal  ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
 
   //---
@@ -6489,12 +6489,12 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
 //fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
   stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
 
@@ -6626,12 +6626,12 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
 //fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
   stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
 
@@ -6774,12 +6774,12 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
 //fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
   stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
 
@@ -6962,20 +6962,20 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 
   textData.setFont    (argv.getParseFont ("font"    , textData.font      ()));
   textData.setColor   (argv.getParseColor("color"   , textData.color     ()));
-  textData.setAlpha   (argv.getParseReal ("alpha"   , textData.alpha     ()));
-  textData.setAngle   (argv.getParseReal ("angle"   , textData.angle     ()));
+  textData.setAlpha   (argv.getParseAlpha("alpha"   , textData.alpha     ()));
+  textData.setAngle   (argv.getParseAngle("angle"   , textData.angle     ()));
   textData.setContrast(argv.getParseBool ("contrast", textData.isContrast()));
   textData.setAlign   (argv.getParseAlign("align"   , textData.align     ()));
   textData.setHtml    (argv.getParseBool ("html"    , textData.isHtml    ()));
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+  fill.setAlpha  (argv.getParseAlpha("fill_alpha"  , fill.alpha    ()));
 //fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
 
   stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
   stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setAlpha  (argv.getParseAlpha   ("stroke_alpha", stroke.alpha    ()));
   stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
   stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
 
@@ -7207,7 +7207,7 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
 
   textData.setFont (argv.getParseFont ("font" , textData.font      ()));
   textData.setColor(argv.getParseColor("color", textData.color     ()));
-  textData.setAlpha(argv.getParseReal ("alpha", textData.alpha     ()));
+  textData.setAlpha(argv.getParseAlpha("alpha", textData.alpha     ()));
 
   //---
 

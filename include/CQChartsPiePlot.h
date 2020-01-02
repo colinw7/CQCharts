@@ -70,8 +70,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   Q_OBJECT
 
   Q_PROPERTY(int           colorIndex  READ colorIndex  WRITE setColorIndex )
-  Q_PROPERTY(double        angle1      READ angle1      WRITE setAngle1     )
-  Q_PROPERTY(double        angle2      READ angle2      WRITE setAngle2     )
+  Q_PROPERTY(CQChartsAngle angle1      READ angle1      WRITE setAngle1     )
+  Q_PROPERTY(CQChartsAngle angle2      READ angle2      WRITE setAngle2     )
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
   Q_PROPERTY(QString       label       READ label       WRITE setLabel      )
@@ -110,11 +110,11 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  double angle1() const { return angle1_; }
-  void setAngle1(double a) { angle1_ = a; }
+  const CQChartsAngle &angle1() const { return angle1_; }
+  void setAngle1(const CQChartsAngle &a) { angle1_ = a; }
 
-  double angle2() const { return angle2_; }
-  void setAngle2(double a) { angle2_ = a; }
+  const CQChartsAngle &angle2() const { return angle2_; }
+  void setAngle2(const CQChartsAngle &a) { angle2_ = a; }
 
   double innerRadius() const { return ri_; }
   void setInnerRadius(double r) { ri_ = r; }
@@ -193,8 +193,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
  protected:
   const CQChartsPiePlot* plot_       { nullptr }; //!< parent plot
   int                    colorIndex_ { -1 };      //!< color index
-  double                 angle1_     { 0 };       //!< wedge start angle
-  double                 angle2_     { 360 };     //!< wedge end angle
+  CQChartsAngle          angle1_     { 0.0 };     //!< wedge start angle
+  CQChartsAngle          angle2_     { 360.0 };   //!< wedge end angle
   double                 ri_         { 0.0 };     //!< inner radius
   double                 ro_         { 0.0 };     //!< outer radius
   double                 rv_         { 0.0 };     //!< value radius
@@ -268,7 +268,14 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   const PieObjs &objs() const { return objs_; }
 
-  void setAngles(double a1, double a2) { startAngle_ = a1; endAngle_ = a2; }
+  //---
+
+  const CQChartsAngle &startAngle() const { return startAngle_; }
+  const CQChartsAngle &endAngle  () const { return endAngle_; }
+
+  void setAngles(const CQChartsAngle &a1, const CQChartsAngle &a2) {
+    startAngle_ = a1; endAngle_ = a2;
+  }
 
   //---
 
@@ -300,8 +307,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   double                 innerRadius_  { 0.0 };     //!< inner radius
   double                 outerRadius_  { 0.0 };     //!< outer radius
   PieObjs                objs_;                     //!< objects
-  double                 startAngle_   { 0.0 };     //!< start angle
-  double                 endAngle_     { 0.0 };     //!< end angle
+  CQChartsAngle          startAngle_   { 0.0 };     //!< start angle
+  CQChartsAngle          endAngle_     { 0.0 };     //!< end angle
 };
 
 //---
@@ -366,15 +373,15 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   // options
   //  donut, count, inner radius, outer radius, label radius, start angle, end angle,
   //  explode/explode radius
-  Q_PROPERTY(bool   donut       READ isDonut       WRITE setDonut      )
-  Q_PROPERTY(bool   count       READ isCount       WRITE setCount      )
-  Q_PROPERTY(double innerRadius READ innerRadius   WRITE setInnerRadius)
-  Q_PROPERTY(double outerRadius READ outerRadius   WRITE setOuterRadius)
-  Q_PROPERTY(double labelRadius READ labelRadius   WRITE setLabelRadius)
-  Q_PROPERTY(double startAngle  READ startAngle    WRITE setStartAngle )
-  Q_PROPERTY(double angleExtent READ angleExtent   WRITE setAngleExtent)
-  Q_PROPERTY(double gapAngle    READ gapAngle      WRITE setGapAngle   )
-  Q_PROPERTY(bool   rotatedText READ isRotatedText WRITE setRotatedText)
+  Q_PROPERTY(bool          donut       READ isDonut       WRITE setDonut      )
+  Q_PROPERTY(bool          count       READ isCount       WRITE setCount      )
+  Q_PROPERTY(double        innerRadius READ innerRadius   WRITE setInnerRadius)
+  Q_PROPERTY(double        outerRadius READ outerRadius   WRITE setOuterRadius)
+  Q_PROPERTY(double        labelRadius READ labelRadius   WRITE setLabelRadius)
+  Q_PROPERTY(CQChartsAngle startAngle  READ startAngle    WRITE setStartAngle )
+  Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent   WRITE setAngleExtent)
+  Q_PROPERTY(CQChartsAngle gapAngle    READ gapAngle      WRITE setGapAngle   )
+  Q_PROPERTY(bool          rotatedText READ isRotatedText WRITE setRotatedText)
 
   // explode
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
@@ -423,14 +430,14 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   double labelRadius() const { return labelRadius_; }
   void setLabelRadius(double r);
 
-  double startAngle() const { return startAngle_; }
-  void setStartAngle(double r);
+  const CQChartsAngle &startAngle() const { return startAngle_; }
+  void setStartAngle(const CQChartsAngle &a);
 
-  double angleExtent() const { return angleExtent_; }
-  void setAngleExtent(double r);
+  const CQChartsAngle &angleExtent() const { return angleExtent_; }
+  void setAngleExtent(const CQChartsAngle &a);
 
-  double gapAngle() const { return gapAngle_; }
-  void setGapAngle(double r);
+  const CQChartsAngle &gapAngle() const { return gapAngle_; }
+  void setGapAngle(const CQChartsAngle &a);
 
   //---
 
@@ -527,9 +534,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   double              innerRadius_     { 0.6 };     //!< relative inner donut radius
   double              outerRadius_     { 0.9 };     //!< relative outer donut radius
   double              labelRadius_     { 1.1 };     //!< label radius
-  double              startAngle_      { 90 };      //!< first pie start angle
-  double              angleExtent_     { 360.0 };   //!< pie angle extent
-  double              gapAngle_        { 0.0 };     //!< angle gap between segments
+  CQChartsAngle       startAngle_      { 90 };      //!< first pie start angle
+  CQChartsAngle       angleExtent_     { 360.0 };   //!< pie angle extent
+  CQChartsAngle       gapAngle_        { 0.0 };     //!< angle gap between segments
   bool                rotatedText_     { false };   //!< is label rotated
   bool                explodeSelected_ { true };    //!< explode selected pie
   double              explodeRadius_   { 0.05 };    //!< expose radius

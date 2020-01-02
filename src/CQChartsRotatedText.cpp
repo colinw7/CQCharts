@@ -11,7 +11,7 @@ void
 drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QString &text,
           const CQChartsTextOptions &options, bool /*alignBBox*/)
 {
-  double a1 = CMathUtil::Deg2Rad(options.angle);
+  double a1 = CMathUtil::Deg2Rad(options.angle.value());
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -115,7 +115,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &t
   double th = fm.height();
   double tw = fm.width(text);
 
-  double a1 = CMathUtil::Deg2Rad(options.angle);
+  double a1 = CMathUtil::Deg2Rad(options.angle.value());
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -185,7 +185,7 @@ drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QStri
 
   CQChartsGeom::Point pt1 = device->pixelToWindow(pt);
 
-  device->setTransformRotate(pt1, options.angle);
+  device->setTransformRotate(pt1, options.angle.value());
 
   if (options.contrast) {
     QColor tc = device->pen().color();
@@ -193,7 +193,7 @@ drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QStri
   //QColor icolor = CQChartsUtil::invColor(tc);
     QColor icolor = CQChartsUtil::bwColor(tc);
 
-    icolor.setAlphaF(options.contrastAlpha);
+    icolor.setAlphaF(options.contrastAlpha.value());
 
     // draw contrast outline
     device->setPen(icolor);
@@ -275,7 +275,7 @@ calcBBoxData(double x, double y, const QString &text, const QFont &font,
   double th = fm.height()    + xlm + xrm;
   double tw = fm.width(text) + ybm + ytm;
 
-  double a1 = CMathUtil::Deg2Rad(options.angle);
+  double a1 = CMathUtil::Deg2Rad(options.angle.value());
 
   double c = cos(-a1);
   double s = sin(-a1);

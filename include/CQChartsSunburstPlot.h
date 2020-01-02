@@ -114,10 +114,10 @@ class CQChartsSunburstNode {
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &v) { ind_ = v; }
 
-  double r () const { return r_ ; }
-  double a () const { return a_ ; }
-  double dr() const { return dr_; }
-  double da() const { return da_; }
+  double        r () const { return r_ ; }
+  CQChartsAngle a () const { return a_ ; }
+  double        dr() const { return dr_; }
+  CQChartsAngle da() const { return da_; }
 
   int colorId() const { return colorId_; }
   virtual void setColorId(int colorId) { colorId_ = colorId; }
@@ -132,7 +132,7 @@ class CQChartsSunburstNode {
 
   virtual QString hierName(const QChar &separator='/') const;
 
-  virtual void setPosition(double r, double a, double dr, double da);
+  virtual void setPosition(double r, const CQChartsAngle &a, double dr, const CQChartsAngle &da);
 
   void unplace() { placed_ = false; }
 
@@ -142,13 +142,6 @@ class CQChartsSunburstNode {
   void setObj(CQChartsSunburstNodeObj *obj) { obj_ = obj; }
 
   //---
-
-  static double normalizeAngle(double a) {
-    while (a <    0.0) a += 360.0;
-    while (a >= 360.0) a -= 360.0;
-
-    return a;
-  }
 
   bool pointInside(double x, double y);
 
@@ -163,9 +156,9 @@ class CQChartsSunburstNode {
   double                      size_    { 0.0 };     //!< node size
   QModelIndex                 ind_;                 //!< node index
   double                      r_       { 0.0 };     //!< node radius
-  double                      a_       { 0.0 };     //!< node angle
+  CQChartsAngle               a_;                   //!< node angle
   double                      dr_      { 0.0 };     //!< node delta radius
-  double                      da_      { 0.0 };     //!< node delta angle
+  CQChartsAngle               da_;                  //!< node delta angle
   int                         colorId_ { -1 };      //!< node color index
   CQChartsColor               color_   { };         //!< node explicit color
   bool                        filler_  { false };   //!< is filler
@@ -247,11 +240,12 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   void unplaceNodes();
 
-  void packNodes(CQChartsSunburstHierNode *root, double ri, double ro,
-                 double dr, double a, double da, const Order &order, bool sort);
+  void packNodes(CQChartsSunburstHierNode *root, double ri, double ro, double dr,
+                 const CQChartsAngle &a, const CQChartsAngle &da, const Order &order, bool sort);
 
-  void packSubNodes(CQChartsSunburstHierNode *root, double ri,
-                    double dr, double a, double da, const Order &order, bool sort);
+  void packSubNodes(CQChartsSunburstHierNode *root, double ri, double dr,
+                    const CQChartsAngle &a, const CQChartsAngle &da,
+                    const Order &order, bool sort);
 
   void addNode(CQChartsSunburstNode *node);
 
@@ -284,7 +278,9 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
   Order order() const { return order_; }
   void setOrder(Order order) { order_ = order; }
 
-  void packNodes(double ri=0.5, double ro=1.0, double dr=0.0, double a=0.0, double da=360.0) {
+  void packNodes(double ri=0.5, double ro=1.0, double dr=0.0,
+                 const CQChartsAngle &a=CQChartsAngle(0.0),
+                 const CQChartsAngle &da=CQChartsAngle(360.0)) {
     CQChartsSunburstHierNode::packNodes(this, ri, ro, dr, a, da, order(), sort());
   }
 
@@ -305,10 +301,10 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
-  Q_PROPERTY(double outerRadius READ outerRadius WRITE setOuterRadius)
-  Q_PROPERTY(double startAngle  READ startAngle  WRITE setStartAngle )
-  Q_PROPERTY(bool   multiRoot   READ isMultiRoot WRITE setMultiRoot  )
+  Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
+  Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
+  Q_PROPERTY(CQChartsAngle startAngle  READ startAngle  WRITE setStartAngle )
+  Q_PROPERTY(bool          multiRoot   READ isMultiRoot WRITE setMultiRoot  )
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -335,8 +331,8 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   double outerRadius() const { return outerRadius_; }
   void setOuterRadius(double r);
 
-  double startAngle() const { return startAngle_; }
-  void setStartAngle(double a);
+  const CQChartsAngle &startAngle() const { return startAngle_; }
+  void setStartAngle(const CQChartsAngle &a);
 
   //---
 
@@ -471,15 +467,15 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popTopSlot();
 
  private:
-  double    innerRadius_      { 0.5 };   //!< inner radius
-  double    outerRadius_      { 1.0 };   //!< outer radius
-  double    startAngle_       { -90 };   //!< start angle
-  bool      multiRoot_        { false }; //!< has multiple roots
-  RootNodes roots_;                      //!< root nodes
-  QString   currentRootName_;            //!< current root name
-  int       colorId_          { -1 };    //!< current color id
-  int       numColorIds_      { 0 };     //!< num used color ids
-  bool      colorById_        { true };  //!< color by id
+  double        innerRadius_      { 0.5 };   //!< inner radius
+  double        outerRadius_      { 1.0 };   //!< outer radius
+  CQChartsAngle startAngle_       { -90 };   //!< start angle
+  bool          multiRoot_        { false }; //!< has multiple roots
+  RootNodes     roots_;                      //!< root nodes
+  QString       currentRootName_;            //!< current root name
+  int           colorId_          { -1 };    //!< current color id
+  int           numColorIds_      { 0 };     //!< num used color ids
+  bool          colorById_        { true };  //!< color by id
 };
 
 #endif

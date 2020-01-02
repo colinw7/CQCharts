@@ -124,7 +124,7 @@ drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
 
   auto prect = device->windowToPixel(rect);
 
-  if (CMathUtil::isZero(options.angle)) {
+  if (CMathUtil::isZero(options.angle.value())) {
     QFontMetricsF fm(device->font());
 
     if (options.clipped)
@@ -240,7 +240,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &point, c
 
   auto tw = [&]() { return fm.width(text); };
 
-  if (CMathUtil::isZero(options.angle)) {
+  if (CMathUtil::isZero(options.angle.value())) {
     // calc dx : point is left or hcenter of text (
     // drawContrastText and drawSimpleText wants left aligned
     double dx1 = 0.0, dy1 = 0.0;
@@ -351,7 +351,7 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const CQChar
 
 void
 drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
-                 const QString &text, double alpha)
+                 const QString &text, const CQChartsAlpha &alpha)
 {
   QPen pen = device->pen();
 
@@ -362,7 +362,7 @@ drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
 //QColor icolor = CQChartsUtil::invColor(pen.color());
   QColor icolor = CQChartsUtil::bwColor(pen.color());
 
-  icolor.setAlphaF(alpha);
+  icolor.setAlphaF(alpha.value());
 
   //---
 
@@ -468,7 +468,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
 
 void
 drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
-             double ri, double ro, double a1, double a2,
+             double ri, double ro, const CQChartsAngle &a1, const CQChartsAngle &a2,
              bool isInvertX, bool isInvertY)
 {
   CQChartsGeom::BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
@@ -484,8 +484,8 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
 
     double da = (isInvertX != isInvertY ? -1 : 1);
 
-    double ra1 = da*CMathUtil::Deg2Rad(a1);
-    double ra2 = da*CMathUtil::Deg2Rad(a2);
+    double ra1 = da*CMathUtil::Deg2Rad(a1.value());
+    double ra2 = da*CMathUtil::Deg2Rad(a2.value());
 
     CQChartsGeom::Point p1 = CQChartsGeom::circlePoint(c, ri, ra1);
     CQChartsGeom::Point p2 = CQChartsGeom::circlePoint(c, ro, ra1);
@@ -495,20 +495,20 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
     path.moveTo(p1.x, p1.y);
     path.lineTo(p2.x, p2.y);
 
-    path.arcTo(bbox.qrect(), -a1, a1 - a2);
+    path.arcTo(bbox.qrect(), -a1.value(), a1.value() - a2.value());
 
     path.lineTo(p4.x, p4.y);
     path.lineTo(p3.x, p3.y);
 
-    path.arcTo(bbox1.qrect(), -a2, a2 - a1);
+    path.arcTo(bbox1.qrect(), -a2.value(), a2.value() - a1.value());
   }
   else {
-    double a21 = a2 - a1;
+    double a21 = a2.value() - a1.value();
 
     if (std::abs(a21) < 360.0) {
       path.moveTo(QPointF(c.x, c.y));
 
-      path.arcTo(bbox.qrect(), -a1, a1 - a2);
+      path.arcTo(bbox.qrect(), -a1.value(), a1.value() - a2.value());
     }
     else {
       path.addEllipse(bbox.qrect());
@@ -521,7 +521,8 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
 }
 
 void
-drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double angle, double dangle)
+drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+        const CQChartsAngle &angle, const CQChartsAngle &dangle)
 {
   CQChartsGeom::Point c = bbox.getCenter();
 
@@ -529,8 +530,8 @@ drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double angl
 
   QPainterPath path;
 
-  path.arcMoveTo(rect, -angle);
-  path.arcTo    (rect, -angle, -dangle);
+  path.arcMoveTo(rect, -angle.value());
+  path.arcTo    (rect, -angle.value(), -dangle.value());
   path.lineTo   (c.x, c.y);
 
   path.closeSubpath();
@@ -540,10 +541,11 @@ drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double angl
 
 void
 drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
-               const CQChartsGeom::BBox &obbox, double angle, double dangle)
+               const CQChartsGeom::BBox &obbox, const CQChartsAngle &angle,
+               const CQChartsAngle &dangle)
 {
   // draw arc segment for start angle and delta angle for circles in inner and outer boxes
-  double angle2 = angle + dangle;
+  CQChartsAngle angle2 = angle + dangle;
 
   QRectF irect = ibbox.qrect();
   QRectF orect = obbox.qrect();
@@ -552,9 +554,9 @@ drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
 
   QPainterPath path;
 
-  path.arcMoveTo(orect, -angle);
-  path.arcTo    (orect, -angle , -dangle);
-  path.arcTo    (irect, -angle2,  dangle);
+  path.arcMoveTo(orect, -angle.value());
+  path.arcTo    (orect, -angle.value() , -dangle.value());
+  path.arcTo    (irect, -angle2.value(),  dangle.value());
 
   path.closeSubpath();
 
@@ -563,13 +565,14 @@ drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
 
 void
 drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
-                  double a1, double da1, double a2, double da2, bool isSelf)
+                  const CQChartsAngle &a1, const CQChartsAngle &da1,
+                  const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf)
 {
   // draw connecting arc between inside of two arc segments
   // . arc segments have start angle and delta angle for circles in inner and outer boxes
   // isSelf is true if connecting arcs are the same
-  double a11 = a1 + da1;
-  double a21 = a2 + da2;
+  CQChartsAngle a11 = a1 + da1;
+  CQChartsAngle a21 = a2 + da2;
 
   QRectF  irect = ibbox.qrect();
   QPointF c     = irect.center();
@@ -578,26 +581,26 @@ drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
 
   QPainterPath path;
 
-  path.arcMoveTo(irect, -a1 );   QPointF p1 = path.currentPosition();
-  path.arcMoveTo(irect, -a11);   QPointF p2 = path.currentPosition();
-  path.arcMoveTo(irect, -a2 ); //QPointF p3 = path.currentPosition();
-  path.arcMoveTo(irect, -a21);   QPointF p4 = path.currentPosition();
+  path.arcMoveTo(irect, -a1 .value());   QPointF p1 = path.currentPosition();
+  path.arcMoveTo(irect, -a11.value());   QPointF p2 = path.currentPosition();
+  path.arcMoveTo(irect, -a2 .value()); //QPointF p3 = path.currentPosition();
+  path.arcMoveTo(irect, -a21.value());   QPointF p4 = path.currentPosition();
 
   //--
 
   if (! isSelf) {
     path.moveTo(p1);
     path.quadTo(c, p4);
-    path.arcTo (irect, -a21, da2);
+    path.arcTo (irect, -a21.value(), da2.value());
     path.quadTo(c, p2);
-    path.arcTo (irect, -a11, da1);
+    path.arcTo (irect, -a11.value(), da1.value());
 
     path.closeSubpath();
   }
   else {
     path.moveTo(p1);
     path.quadTo(c, p2);
-    path.arcTo (irect, -a11, da1);
+    path.arcTo (irect, -a11.value(), da1.value());
 
     path.closeSubpath();
   }
@@ -710,11 +713,11 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
 
   painter->save();
 
-  if (! CMathUtil::isZero(options.angle)) {
+  if (! CMathUtil::isZero(options.angle.value())) {
     QPointF tc = tbbox.getCenter().qpoint();
 
     painter->translate(tc);
-    painter->rotate(options.angle);
+    painter->rotate(options.angle.value());
     painter->translate(-tc);
   }
 

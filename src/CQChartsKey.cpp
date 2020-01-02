@@ -37,7 +37,7 @@ CQChartsKey(CQChartsPlot *plot) :
   init();
 
   setFilled(true);
-  setFillAlpha(0.5);
+  setFillAlpha(CQChartsAlpha(0.5));
 
   editHandles_ = new CQChartsEditHandles(plot, CQChartsEditHandles::Mode::MOVE);
 }
@@ -822,7 +822,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
     CQChartsGeom::BBox bbox = absolutePlotRect();
 
     if (bbox.isValid())
-      kp = CQChartsGeom::Point(bbox.getLL());
+      kp = CQChartsGeom::Point(bbox.getUL());
   }
 
   setPosition(kp);
@@ -856,8 +856,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp("insideY" , "Key placed inside plot in y direction");
   addProp("location", "Key placement location");
 
-  addProp("absolutePosition" , "Key placement absolute position");
-  addProp("absoluteRectangle", "Key placement absolute rectangle");
+  addProp("absolutePosition" , "Key placement absolute position in view coordinates");
+  addProp("absoluteRectangle", "Key placement absolute rectangle in view coordinates");
 
   addProp("interactive"  , "Key supports click");
   addProp("pressBehavior", "Key click behavior");
@@ -1537,8 +1537,12 @@ draw(CQChartsPaintDevice *device) const
   double h = layoutData_.size.height();
 
   if (locationType ==CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-    w = wbbox_.getWidth ();
-    h = wbbox_.getHeight();
+    CQChartsGeom::BBox bbox = absolutePlotRect();
+
+    if (bbox.isValid()) {
+      w = bbox.getWidth ();
+      h = bbox.getHeight();
+    }
   }
 
   //---
@@ -1554,6 +1558,12 @@ draw(CQChartsPaintDevice *device) const
   // set displayed bbox
   if (locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
     wbbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
+  }
+  else {
+    CQChartsGeom::BBox bbox = absolutePlotRect();
+
+    if (bbox.isValid())
+      wbbox_ = bbox;
   }
 
   //---
@@ -1698,8 +1708,8 @@ draw(CQChartsPaintDevice *device) const
     clipRect = CQChartsGeom::BBox(p1.x, p1.y + phh, p2.x - vspw, p2.y - hsph);
   }
   else {
-    if (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
-        locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
+    if      (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
+             locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
       if (isInsideX()) {
         clipRect.setXMin(dataRect.getXMin());
         clipRect.setXMax(dataRect.getXMax());
@@ -1710,6 +1720,14 @@ draw(CQChartsPaintDevice *device) const
         clipRect.setYMax(dataRect.getYMax());
       }
     }
+    else if (locationType == CQChartsKeyLocation::Type::ABS_RECTANGLE) {
+      CQChartsGeom::BBox bbox = absolutePlotRect();
+
+      if (bbox.isValid()) {
+        clipped  = true;
+        clipRect = plot()->windowToPixel(bbox);
+      }
+    }
 
     clipped = isClipped();
   }
@@ -1718,6 +1736,14 @@ draw(CQChartsPaintDevice *device) const
 
   // draw box (background)
   CQChartsBoxObj::draw(device, device->pixelToWindow(pixelRect));
+
+  //---
+
+  if (clipped) {
+    CQChartsGeom::BBox cr = device->pixelToWindow(clipRect);
+
+    device->setClipRect(cr);
+  }
 
   //---
 
@@ -1784,14 +1810,6 @@ draw(CQChartsPaintDevice *device) const
     device->setPen(tPenBrush.pen);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), headerStr(), textOptions);
-  }
-
-  //---
-
-  if (clipped) {
-    CQChartsGeom::BBox cr = device->pixelToWindow(clipRect);
-
-    device->setClipRect(cr);
   }
 
   //---

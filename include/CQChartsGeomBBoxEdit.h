@@ -70,6 +70,9 @@ class CQChartsGeomBBoxPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 
   QString userName() const override { return "geom_bbox"; }
+
+ private:
+  QString valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const;
 };
 
 //---

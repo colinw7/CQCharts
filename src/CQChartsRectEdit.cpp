@@ -162,25 +162,34 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsRectPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsRect rect = value.value<CQChartsRect>();
+  //---
 
-  QString str = rect.toString();
+  bool ok;
 
-  QFontMetrics fm(option.font);
+  QString str = valueString(item, value, ok);
 
-  int w = fm.width(str);
+  QFont font = option.font;
+
+  if (! ok)
+    font.setItalic(true);
 
   //---
+
+  QFontMetrics fm(font);
+
+  int w = fm.width(str);
 
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -189,7 +198,29 @@ QString
 CQChartsRectPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsRect>().toString();
+  bool ok;
+
+  QString str = valueString(nullptr, value, ok);
+
+  return str;
+}
+
+QString
+CQChartsRectPropertyViewType::
+valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
+{
+  CQChartsRect rect = value.value<CQChartsRect>();
+
+  QString str;
+
+  if (rect.isValid()) {
+    str = rect.toString();
+    ok  = true;
+  }
+  else {
+    str = "Undefined";
+    ok  = false;
+  }
 
   return str;
 }

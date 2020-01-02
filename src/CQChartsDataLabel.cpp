@@ -91,7 +91,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
   //---
 
-  if (CMathUtil::isZero(textAngle())) {
+  if (CMathUtil::isZero(textAngle().value())) {
     CQChartsGeom::BBox pbbox  = device->windowToPixel(bbox);
 
     double xm = 2; // pixels
@@ -181,7 +181,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
         CQChartsTextOptions options;
 
-        options.angle         = 0;
+        options.angle         = CQChartsAngle(0);
         options.align         = Qt::AlignLeft;
         options.contrast      = isTextContrast();
         options.contrastAlpha = textContrastAlpha();
@@ -337,7 +337,7 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
 
   CQChartsGeom::BBox wbbox;
 
-  if (CMathUtil::isZero(textAngle())) {
+  if (CMathUtil::isZero(textAngle().value())) {
     CQChartsGeom::BBox pbbox  = plot()->windowToPixel(bbox);
 
     //---

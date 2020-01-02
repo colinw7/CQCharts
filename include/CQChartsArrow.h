@@ -34,22 +34,22 @@ class CQChartsArrow : public QObject,
   // front head
   Q_PROPERTY(bool           frontVisible   READ isFrontVisible  WRITE setFrontVisible)
   Q_PROPERTY(HeadType       frontType      READ frontType       WRITE setFrontType)
-  Q_PROPERTY(double         frontAngle     READ frontAngle      WRITE setFrontAngle)
-  Q_PROPERTY(double         frontBackAngle READ frontBackAngle  WRITE setFrontBackAngle)
+  Q_PROPERTY(CQChartsAngle  frontAngle     READ frontAngle      WRITE setFrontAngle)
+  Q_PROPERTY(CQChartsAngle  frontBackAngle READ frontBackAngle  WRITE setFrontBackAngle)
   Q_PROPERTY(CQChartsLength frontLength    READ frontLength     WRITE setFrontLength)
   Q_PROPERTY(bool           frontLineEnds  READ isFrontLineEnds WRITE setFrontLineEnds)
 
   // tail head
   Q_PROPERTY(bool           tailVisible    READ isTailVisible   WRITE setTailVisible)
   Q_PROPERTY(HeadType       tailType       READ tailType        WRITE setTailType)
-  Q_PROPERTY(double         tailAngle      READ tailAngle       WRITE setTailAngle)
-  Q_PROPERTY(double         tailBackAngle  READ tailBackAngle   WRITE setTailBackAngle)
+  Q_PROPERTY(CQChartsAngle  tailAngle      READ tailAngle       WRITE setTailAngle)
+  Q_PROPERTY(CQChartsAngle  tailBackAngle  READ tailBackAngle   WRITE setTailBackAngle)
   Q_PROPERTY(CQChartsLength tailLength     READ tailLength      WRITE setTailLength)
   Q_PROPERTY(bool           tailLineEnds   READ isTailLineEnds  WRITE setTailLineEnds)
 
   // front & tail head
-  Q_PROPERTY(double         angle     READ angle      WRITE setAngle)
-  Q_PROPERTY(double         backAngle READ backAngle  WRITE setBackAngle)
+  Q_PROPERTY(CQChartsAngle  angle     READ angle      WRITE setAngle)
+  Q_PROPERTY(CQChartsAngle  backAngle READ backAngle  WRITE setBackAngle)
   Q_PROPERTY(CQChartsLength length    READ length     WRITE setLength)
   Q_PROPERTY(bool           lineEnds  READ isLineEnds WRITE setLineEnds)
 
@@ -117,11 +117,11 @@ class CQChartsArrow : public QObject,
   void setFrontType(const HeadType &type) {
     data_.setFHeadType((CQChartsArrowData::HeadType) type); emit dataChanged(); }
 
-  double frontAngle() const { return data_.frontAngle(); }
-  void setFrontAngle(double r) { data_.setFrontAngle(r); emit dataChanged(); }
+  const CQChartsAngle &frontAngle() const { return data_.frontAngle(); }
+  void setFrontAngle(const CQChartsAngle &a) { data_.setFrontAngle(a); emit dataChanged(); }
 
-  double frontBackAngle() const { return data_.frontBackAngle(); }
-  void setFrontBackAngle(double r) { data_.setFrontBackAngle(r); emit dataChanged(); }
+  const CQChartsAngle &frontBackAngle() const { return data_.frontBackAngle(); }
+  void setFrontBackAngle(const CQChartsAngle &a) { data_.setFrontBackAngle(a); emit dataChanged(); }
 
   const CQChartsLength &frontLength() const { return data_.frontLength(); }
   void setFrontLength(const CQChartsLength &l) { data_.setFrontLength(l); emit dataChanged(); }
@@ -139,11 +139,11 @@ class CQChartsArrow : public QObject,
   void setTailType(const HeadType &type) {
     data_.setTHeadType((CQChartsArrowData::HeadType) type); emit dataChanged(); }
 
-  double tailAngle() const { return data_.tailAngle(); }
-  void setTailAngle(double r) { data_.setTailAngle(r); emit dataChanged(); }
+  const CQChartsAngle &tailAngle() const { return data_.tailAngle(); }
+  void setTailAngle(const CQChartsAngle &a) { data_.setTailAngle(a); emit dataChanged(); }
 
-  double tailBackAngle() const { return data_.tailBackAngle(); }
-  void setTailBackAngle(double r) { data_.setTailBackAngle(r); emit dataChanged(); }
+  const CQChartsAngle &tailBackAngle() const { return data_.tailBackAngle(); }
+  void setTailBackAngle(const CQChartsAngle &a) { data_.setTailBackAngle(a); emit dataChanged(); }
 
   const CQChartsLength &tailLength() const { return data_.tailLength(); }
   void setTailLength(const CQChartsLength &l) { data_.setTailLength(l); emit dataChanged(); }
@@ -154,11 +154,11 @@ class CQChartsArrow : public QObject,
   //---
 
   // get/set tail & head data
-  double angle() const { return data_.angle(); }
-  void setAngle(double r) { data_.setAngle(r); emit dataChanged(); }
+  const CQChartsAngle &angle() const { return data_.angle(); }
+  void setAngle(const CQChartsAngle &a) { data_.setAngle(a); emit dataChanged(); }
 
-  double backAngle() const { return data_.backAngle(); }
-  void setBackAngle(double r) { data_.setBackAngle(r); emit dataChanged(); }
+  const CQChartsAngle &backAngle() const { return data_.backAngle(); }
+  void setBackAngle(const CQChartsAngle &a) { data_.setBackAngle(a); emit dataChanged(); }
 
   const CQChartsLength &length() const { return data_.length(); }
   void setLength(const CQChartsLength &l) { data_.setLength(l); emit dataChanged(); }

@@ -164,7 +164,7 @@ createRectFrame()
   rectWidgets_.paddingEdit = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
 
   rectWidgets_.paddingEdit->setValue(annotation->padding());
-  rectWidgets_.paddingEdit->setToolTip("Padding");
+  rectWidgets_.paddingEdit->setToolTip("Padding in pixels");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
 
@@ -228,7 +228,7 @@ createEllipseFrame()
   addFillWidgets  (ellipseWidgets_, frameLayout);
   addStrokeWidgets(ellipseWidgets_, frameLayout, /*cornerSize*/true);
 
-  addSidesWidget(rectWidgets_, frameLayout);
+  addSidesWidget(ellipseWidgets_, frameLayout);
 
   //---
 
@@ -406,7 +406,7 @@ createTextFrame()
   addFillWidgets  (textWidgets_, frameLayout);
   addStrokeWidgets(textWidgets_, frameLayout, /*cornerSize*/true);
 
-  addSidesWidget(rectWidgets_, frameLayout);
+  addSidesWidget(textWidgets_, frameLayout);
 
   //---
 

@@ -65,6 +65,9 @@ class CQChartsRectPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 
   QString userName() const override { return "rectangle"; }
+
+ private:
+  QString valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const;
 };
 
 //---

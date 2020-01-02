@@ -2,6 +2,7 @@
 #define CQChartsData_H
 
 #include <CQChartsColor.h>
+#include <CQChartsAlpha.h>
 #include <CQChartsFont.h>
 #include <CQChartsMargin.h>
 #include <CQChartsPosition.h>
@@ -9,6 +10,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
+#include <CQChartsAngle.h>
 #include <CQUtilMeta.h>
 
 //------
@@ -38,20 +40,20 @@ class CQChartsTextData {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &v) { font_ = v; }
 
-  double angle() const { return angle_; }
-  void setAngle(double r) { angle_ = r; }
+  const CQChartsAngle &angle() const { return angle_; }
+  void setAngle(const CQChartsAngle &a) { angle_ = a; }
 
   bool isContrast() const { return contrast_; }
   void setContrast(bool b) { contrast_ = b; }
 
-  double contrastAlpha() const { return contrastAlpha_; }
-  void setContrastAlpha(double a) { contrastAlpha_ = a; }
+  const CQChartsAlpha &contrastAlpha() const { return contrastAlpha_; }
+  void setContrastAlpha(const CQChartsAlpha &a) { contrastAlpha_ = a; }
 
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &v) { align_ = v; }
@@ -78,11 +80,11 @@ class CQChartsTextData {
  private:
   bool          visible_       { true };                                      //!< is visible
   CQChartsColor color_         { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
-  double        alpha_         { 1.0 };                                       //!< alpha
+  CQChartsAlpha alpha_;                                                       //!< alpha
   CQChartsFont  font_;                                                        //!< font
-  double        angle_         { 0.0 };                                       //!< angle
+  CQChartsAngle angle_;                                                       //!< angle
   bool          contrast_      { false };                                     //!< contrast
-  double        contrastAlpha_ { 0.5 };                                       //!< contrast alpha
+  CQChartsAlpha contrastAlpha_ { 0.5 };                                       //!< contrast alpha
   Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter };          //!< align
   bool          formatted_     { false };                                     //!< formatted
   bool          scaled_        { false };                                     //!< scaled
@@ -113,7 +115,8 @@ class CQChartsLineData {
   }
 
   explicit CQChartsLineData(bool visible, const CQChartsColor &color=CQChartsColor(),
-                            double alpha=1.0, const CQChartsLength &width=CQChartsLength(),
+                            const CQChartsAlpha &alpha=CQChartsAlpha(),
+                            const CQChartsLength &width=CQChartsLength(),
                             const CQChartsLineDash &dash=CQChartsLineDash()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
   }
@@ -124,8 +127,8 @@ class CQChartsLineData {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsLength &width() const { return width_; }
   void setWidth(const CQChartsLength &v) { width_ = v; }
@@ -146,7 +149,7 @@ class CQChartsLineData {
  private:
   bool             visible_ { true };                                      //!< visible
   CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  double           alpha_   { 1.0 };                                       //!< stroke alpha
+  CQChartsAlpha    alpha_;                                                 //!< stroke alpha
   CQChartsLength   width_   { "0px" };                                     //!< stroke width
   CQChartsLineDash dash_    { };                                           //!< stroke dash
 };
@@ -175,7 +178,7 @@ class CQChartsFillData {
   }
 
   explicit CQChartsFillData(bool visible, const CQChartsColor &color=CQChartsColor(),
-                            double alpha=1.0,
+                            const CQChartsAlpha &alpha=CQChartsAlpha(),
                             const CQChartsFillPattern &pattern=CQChartsFillPattern()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
@@ -186,8 +189,8 @@ class CQChartsFillData {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsFillPattern &pattern() const { return pattern_; }
   void setPattern(const CQChartsFillPattern &v) { pattern_ = v; }
@@ -205,7 +208,7 @@ class CQChartsFillData {
  private:
   bool                visible_ { true };                                      //!< visible
   CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
-  double              alpha_   { 1.0 };                                       //!< fill alpha
+  CQChartsAlpha       alpha_;                                                 //!< fill alpha
   CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID };          //!< fill pattern
 };
 
@@ -238,8 +241,8 @@ class CQChartsStrokeData {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  double alpha() const { return alpha_; }
-  void setAlpha(double r) { alpha_ = r; }
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
 
   const CQChartsLength &width() const { return width_; }
   void setWidth(const CQChartsLength &v) { width_ = v; }
@@ -263,7 +266,7 @@ class CQChartsStrokeData {
  private:
   bool             visible_    { true };  //!< draw stroke
   CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  double           alpha_      { 1.0 };   //!< stroke color alpha
+  CQChartsAlpha    alpha_;                //!< stroke color alpha
   CQChartsLength   width_      { "0px" }; //!< stroke width
   CQChartsLineDash dash_       { };       //!< stroke dash
   CQChartsLength   cornerSize_ { "0px" }; //!< corner size
@@ -533,11 +536,11 @@ class CQChartsArrowData {
   HeadType fheadType() const { return fheadData_.type; }
   void setFHeadType(HeadType type);
 
-  double frontAngle() const { return fheadData_.angle; }
-  void setFrontAngle(double a) { fheadData_.angle = a; updateFrontBackAngle(); }
+  const CQChartsAngle &frontAngle() const { return fheadData_.angle; }
+  void setFrontAngle(const CQChartsAngle &a) { fheadData_.angle = a; updateFrontBackAngle(); }
 
-  double frontBackAngle() const { return fheadData_.backAngle; }
-  void setFrontBackAngle(double a) { fheadData_.backAngle = a; }
+  const CQChartsAngle &frontBackAngle() const { return fheadData_.backAngle; }
+  void setFrontBackAngle(const CQChartsAngle &a) { fheadData_.backAngle = a; }
 
   const CQChartsLength &frontLength() const { return fheadData_.length; }
   void setFrontLength(const CQChartsLength &l) { fheadData_.length = l; }
@@ -554,11 +557,11 @@ class CQChartsArrowData {
   HeadType theadType() const { return theadData_.type; }
   void setTHeadType(HeadType type);
 
-  double tailAngle() const { return theadData_.angle; }
-  void setTailAngle(double a) { theadData_.angle = a; updateTailBackAngle(); }
+  const CQChartsAngle &tailAngle() const { return theadData_.angle; }
+  void setTailAngle(const CQChartsAngle &a) { theadData_.angle = a; updateTailBackAngle(); }
 
-  double tailBackAngle() const { return theadData_.backAngle; }
-  void setTailBackAngle(double a) { theadData_.backAngle = a; }
+  const CQChartsAngle &tailBackAngle() const { return theadData_.backAngle; }
+  void setTailBackAngle(const CQChartsAngle &a) { theadData_.backAngle = a; }
 
   const CQChartsLength &tailLength() const { return theadData_.length; }
   void setTailLength(const CQChartsLength &l) { theadData_.length = l; }
@@ -568,11 +571,11 @@ class CQChartsArrowData {
 
   //---
 
-  double angle() const { return tailAngle(); }
-  void setAngle(double a) { setFrontAngle(a); setTailAngle(a); }
+  const CQChartsAngle &angle() const { return tailAngle(); }
+  void setAngle(const CQChartsAngle &a) { setFrontAngle(a); setTailAngle(a); }
 
-  double backAngle() const { return tailBackAngle(); }
-  void setBackAngle(double a) { setFrontBackAngle(a); setTailBackAngle(a); }
+  const CQChartsAngle &backAngle() const { return tailBackAngle(); }
+  void setBackAngle(const CQChartsAngle &a) { setFrontBackAngle(a); setTailBackAngle(a); }
 
   const CQChartsLength &length() const { return tailLength(); }
   void setLength(const CQChartsLength &l) { setFrontLength(l); setTailLength(l); }
@@ -592,26 +595,29 @@ class CQChartsArrowData {
 
   //---
 
-  static bool getTypeAngles(const HeadType &type, double &angle, double &backAngle);
-  static bool checkTypeAngles(const HeadType &type, double angle, double backAngle);
+  static bool getTypeAngles(const HeadType &type, CQChartsAngle &angle, CQChartsAngle &backAngle);
+  static bool checkTypeAngles(const HeadType &type, const CQChartsAngle &angle,
+                              const CQChartsAngle &backAngle);
 
   static bool nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible);
 
   static bool dataToName(const HeadType &type, bool lineEnds, bool visible,
-                         double angle, double backAngle, QString &name);
+                         const CQChartsAngle &angle, const CQChartsAngle &backAngle,
+                         QString &name);
 
  private:
   void updateFrontBackAngle();
   void updateTailBackAngle ();
 
-  static bool getTypeBackAngle(const HeadType &type, double angle, double &backAngle);
+  static bool getTypeBackAngle(const HeadType &type, const CQChartsAngle &angle,
+                               CQChartsAngle &backAngle);
 
  private:
   struct HeadData {
     bool           visible   { false };          //!< draw arrow head
     HeadType       type      { HeadType::NONE }; //!< arrow head type
-    double         angle     { -1 };             //!< arrow angle (default 45 if <= 0)
-    double         backAngle { -1 };             //!< back angle (default 90 if <= 0)
+    CQChartsAngle  angle     { -1 };             //!< arrow angle (default 45 if <= 0)
+    CQChartsAngle  backAngle { -1 };             //!< back angle (default 90 if <= 0)
     CQChartsLength length    { "1V" };           //!< arrow length
     bool           lineEnds  { false };          //!< lines at end
   };
@@ -662,7 +668,7 @@ struct CQChartsKeyData {
   bool                     insideX      { false };
   bool                     insideY      { false };
   CQChartsGeom::Point      absolutePosition;
-  double                   hiddenAlpha  { 0.3 };
+  CQChartsAlpha            hiddenAlpha  { 0.3 };
   int                      maxRows;
   bool                     interactive  { false };
   CQChartsKeyPressBehavior pressBehavior;

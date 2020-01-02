@@ -15,7 +15,7 @@ class CQChartsMargin {
   static int metaTypeId;
 
  public:
-  CQChartsMargin(const QString &str) {
+  explicit CQChartsMargin(const QString &str) {
     setValue(str);
   }
 

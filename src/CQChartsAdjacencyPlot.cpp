@@ -93,7 +93,7 @@ description() const
      p("The group is specified using the " + B("Group") + " column.").
     h3("Options").
      p("The nodes can be sorted by group, name or count using the " + B("sortType") + " option").
-     p("The margin around the plot can be specified using the " + B("bgMargin") + " option").
+     p("The margin around the plot can be specified using the " + B("margin") + " option").
     h3("Styling").
      p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
        "and background can be set").
@@ -230,7 +230,7 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
   setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
   setStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
-  setStrokeAlpha(0.5);
+  setStrokeAlpha(CQChartsAlpha(0.5));
 
   setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
   setEmptyCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
@@ -937,7 +937,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = 0;
+    options.angle         = CQChartsAngle(0);
     options.align         = Qt::AlignLeft;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
@@ -964,7 +964,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = 90;
+    options.angle         = CQChartsAngle(90);
     options.align         = Qt::AlignHCenter | Qt::AlignBottom;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();

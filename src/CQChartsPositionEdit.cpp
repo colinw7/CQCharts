@@ -33,6 +33,8 @@ CQChartsPositionEdit(QWidget *parent) :
 
   //---
 
+  setFocusProxy(edit_);
+
   connectSlots(true);
 }
 

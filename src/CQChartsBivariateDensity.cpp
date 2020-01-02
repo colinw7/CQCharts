@@ -82,7 +82,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
 
       QColor c = plot->interpPaletteColor(CQChartsUtil::ColorInd(v));
 
-      plot->setBrush(brush, true, c, a, CQChartsFillPattern());
+      plot->setBrush(brush, true, c, CQChartsAlpha(a), CQChartsFillPattern());
 
       //---
 

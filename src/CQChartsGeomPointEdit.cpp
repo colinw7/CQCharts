@@ -3,88 +3,21 @@
 #include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
-#include <CQRealSpin.h>
 
 #include <QHBoxLayout>
 
 CQChartsGeomPointEdit::
-CQChartsGeomPointEdit(QWidget *parent, const Point &value, bool spin) :
- QFrame(parent), spin_(spin)
+CQChartsGeomPointEdit(QWidget *parent, const Point &value) :
+ QFrame(parent)
 {
   init(value);
 }
 
 CQChartsGeomPointEdit::
-CQChartsGeomPointEdit(const Point &value, bool spin) :
- QFrame(0), spin_(spin)
+CQChartsGeomPointEdit(const Point &value) :
+ QFrame(0)
 {
   init(value);
-}
-
-void
-CQChartsGeomPointEdit::
-setSpin(bool spin)
-{
-  if (spin == spin_) return;
-
-  spin_ = spin;
-
-  x_edit_->setVisible(! spin_);
-  y_edit_->setVisible(! spin_);
-  x_spin_->setVisible(  spin_);
-  y_spin_->setVisible(  spin_);
-
-  layout_->invalidate();
-}
-
-void
-CQChartsGeomPointEdit::
-setDecimals(int i)
-{
-  decimals_ = i;
-
-  updateRange();
-}
-
-void
-CQChartsGeomPointEdit::
-setMinimum(const Point &p)
-{
-  min_ = p;
-
-  updateRange();
-}
-
-void
-CQChartsGeomPointEdit::
-setMaximum(const Point &p)
-{
-  max_ = p;
-
-  updateRange();
-}
-
-void
-CQChartsGeomPointEdit::
-setStep(const Point &p)
-{
-  step_ = p;
-
-  updateRange();
-}
-
-void
-CQChartsGeomPointEdit::
-updateRange()
-{
-  x_validator_->setRange(min_.x, max_.x, decimals_);
-  y_validator_->setRange(min_.y, max_.y, decimals_);
-
-  x_spin_->setRange(min_.x, max_.x);
-  y_spin_->setRange(min_.y, max_.y);
-
-  x_spin_->setSingleStep(step_.x);
-  y_spin_->setSingleStep(step_.y);
 }
 
 void
@@ -95,57 +28,21 @@ init(const Point &value)
 
   setFrameStyle(QFrame::NoFrame | QFrame::Plain);
 
-  layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
   //---
 
-  x_validator_ = new QDoubleValidator(this);
-  y_validator_ = new QDoubleValidator(this);
+  edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-  x_edit_ = CQUtil::makeWidget<CQChartsLineEdit>("xedit");
-  y_edit_ = CQUtil::makeWidget<CQChartsLineEdit>("yedit");
+  edit_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-  x_edit_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-  y_edit_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  connect(edit_, SIGNAL(editingFinished()), this, SLOT(editingFinishedI()));
 
-  x_edit_->setValidator(x_validator_);
-  y_edit_->setValidator(y_validator_);
-
-  connect(x_edit_, SIGNAL(editingFinished()), this, SLOT(editingFinishedI()));
-  connect(y_edit_, SIGNAL(editingFinished()), this, SLOT(editingFinishedI()));
+  layout->addWidget(edit_);
 
   //---
 
-  x_spin_ = CQUtil::makeWidget<CQRealSpin>("xspin");
-  y_spin_ = CQUtil::makeWidget<CQRealSpin>("yspin");
-
-  x_spin_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-  y_spin_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-  connect(x_spin_, SIGNAL(valueChanged(double)), this, SLOT(editingFinishedI()));
-  connect(y_spin_, SIGNAL(valueChanged(double)), this, SLOT(editingFinishedI()));
-
-  //---
-
-  updateRange();
-
-  //---
-
-  layout_->addWidget(x_edit_);
-  layout_->addWidget(x_spin_);
-  layout_->addWidget(y_edit_);
-  layout_->addWidget(y_spin_);
-
-  //---
-
-  x_edit_->setVisible(! spin_);
-  y_edit_->setVisible(! spin_);
-  x_spin_->setVisible(  spin_);
-  y_spin_->setVisible(  spin_);
-
-  //---
-
-  setFocusProxy(x_edit_);
+  setFocusProxy(edit_);
 
   setValue(value);
 }
@@ -182,11 +79,9 @@ pointToWidget()
 {
   disableSignals_ = true;
 
-  x_edit_->setText(QString("%1").arg(point_.getX()));
-  y_edit_->setText(QString("%1").arg(point_.getY()));
+  QString str = point_.toString();
 
-  x_spin_->setValue(point_.getX());
-  y_spin_->setValue(point_.getY());
+  edit_->setText(str);
 
   disableSignals_ = false;
 }
@@ -195,22 +90,12 @@ bool
 CQChartsGeomPointEdit::
 widgetToPoint()
 {
-  if (! spin_) {
-    bool ok1, ok2;
+  Point point;
 
-    double x = x_edit_->text().toDouble(&ok1);
-    double y = y_edit_->text().toDouble(&ok2);
+  if (! point.fromString(edit_->text()))
+    return false;
 
-    if (ok1)
-      point_.setX(x);
-
-    if (ok2)
-      point_.setY(y);
-  }
-  else {
-    point_.setX(x_spin_->value());
-    point_.setY(y_spin_->value());
-  }
+  point_ = point;
 
   return true;
 }
@@ -241,28 +126,34 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsGeomPointPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
   delegate->drawBackground(painter, option, ind, inside);
 
+  //---
+
   bool ok;
 
-  CQChartsGeom::Point point = CQChartsVariant::toPoint(value, ok);
-  if (! ok) return;
+  QString str = valueString(item, value, ok);
 
-  QString str = point.toString();
+  QFont font = option.font;
+
+  if (! ok)
+    font.setItalic(true);
+
+  //---
 
   QFontMetrics fm(option.font);
 
   int w = fm.width(str);
 
-  //---
-
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -273,10 +164,23 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  CQChartsGeom::Point point = CQChartsVariant::toPoint(value, ok);
-  if (! ok) return "";
+  QString str = valueString(nullptr, value, ok);
 
-  QString str = point.toString();
+  return str;
+}
+
+QString
+CQChartsGeomPointPropertyViewType::
+valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
+{
+  CQChartsGeom::Point point = CQChartsVariant::toPoint(value, ok);
+
+  QString str;
+
+  if (ok)
+    str = point.toString();
+  else
+    str = "Undefined";
 
   return str;
 }

@@ -27,6 +27,7 @@ CQChartsExprDataModel.cpp \
 CQChartsSelectionModel.cpp \
 \
 CQChartsColumn.cpp \
+CQChartsColumnNum.cpp \
 CQChartsColumnType.cpp \
 \
 CQChartsTable.cpp \
@@ -149,6 +150,8 @@ CQChartsOptPosition.cpp \
 CQChartsOptReal.cpp \
 CQChartsOptRect.cpp \
 \
+CQChartsAlpha.cpp \
+CQChartsAngle.cpp \
 CQChartsColor.cpp \
 CQChartsColorStops.cpp \
 CQChartsFont.cpp \
@@ -208,6 +211,7 @@ CQChartsKeyEdit.cpp \
 CQChartsAxisEdit.cpp \
 \
 CQChartsAlphaEdit.cpp \
+CQChartsAngleEdit.cpp \
 CQChartsArrowDataEdit.cpp \
 CQChartsAxisSideEdit.cpp \
 CQChartsAxisTickLabelPlacementEdit.cpp \
@@ -216,6 +220,8 @@ CQChartsBoxDataEdit.cpp \
 CQChartsColorEdit.cpp \
 CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
+CQChartsColumnNumEdit.cpp \
+CQChartsColumnCombo.cpp \
 CQChartsDocument.cpp \
 CQChartsEditBase.cpp \
 CQChartsFillDataEdit.cpp \
@@ -229,6 +235,12 @@ CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
 CQChartsMarginEdit.cpp \
+CQChartsOptIntEdit.cpp \
+CQChartsOptRealEdit.cpp \
+CQChartsOptPositionEdit.cpp \
+CQChartsOptLengthEdit.cpp \
+CQChartsOptRectEdit.cpp \
+CQChartsOptEdit.cpp \
 CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
 CQChartsPositionEdit.cpp \
@@ -295,6 +307,7 @@ HEADERS += \
 ../include/CQChartsSelectionModel.h \
 \
 ../include/CQChartsColumn.h \
+../include/CQChartsColumnNum.h \
 ../include/CQChartsColumnType.h \
 \
 ../include/CQChartsTable.h \
@@ -444,6 +457,8 @@ HEADERS += \
 ../include/CQChartsRotatedText.h \
 ../include/CQChartsRoundedPolygon.h \
 \
+../include/CQChartsAlpha.h \
+../include/CQChartsAngle.h \
 ../include/CQChartsColor.h \
 ../include/CQChartsColorStops.h \
 ../include/CQChartsFont.h \
@@ -477,6 +492,7 @@ HEADERS += \
 ../include/CQChartsAxisEdit.h \
 \
 ../include/CQChartsAlphaEdit.h \
+../include/CQChartsAngleEdit.h \
 ../include/CQChartsArrowDataEdit.h \
 ../include/CQChartsAxisSideEdit.h \
 ../include/CQChartsAxisTickLabelPlacementEdit.h \
@@ -485,6 +501,8 @@ HEADERS += \
 ../include/CQChartsColorEdit.h \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
+../include/CQChartsColumnNumEdit.h \
+../include/CQChartsColumnCombo.h \
 ../include/CQChartsDocument.h \
 ../include/CQChartsEditBase.h \
 ../include/CQChartsFillDataEdit.h \
@@ -498,6 +516,12 @@ HEADERS += \
 ../include/CQChartsLineDataEdit.h \
 ../include/CQChartsLineEditBase.h \
 ../include/CQChartsMarginEdit.h \
+../include/CQChartsOptIntEdit.h \
+../include/CQChartsOptRealEdit.h \
+../include/CQChartsOptPositionEdit.h \
+../include/CQChartsOptLengthEdit.h \
+../include/CQChartsOptRectEdit.h \
+../include/CQChartsOptEdit.h \
 ../include/CQChartsPaletteNameEdit.h \
 ../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPositionEdit.h \

@@ -16,11 +16,11 @@ class CQChartsArcData {
   double outerRadius() const { return ro_; }
   void setOuterRadius(double r) { ro_ = r; }
 
-  double angle1() const { return a1_; }
-  void setAngle1(double a) { a1_ = a; }
+  const CQChartsAngle &angle1() const { return a1_; }
+  void setAngle1(const CQChartsAngle &a) { a1_ = a; }
 
-  double angle2() const { return a2_; }
-  void setAngle2(double a) { a2_ = a; }
+  const CQChartsAngle &angle2() const { return a2_; }
+  void setAngle2(const CQChartsAngle &a) { a2_ = a; }
 
   bool inside(const CQChartsGeom::Point &p) const {
     // calc distance from center (radius)
@@ -41,8 +41,8 @@ class CQChartsArcData {
     double a = CMathUtil::Rad2Deg(atan2(p.y - center().y, p.x - center().x));
     a = CMathUtil::normalizeAngle(a);
 
-    double a1 = CMathUtil::normalizeAngle(angle1());
-    double a2 = CMathUtil::normalizeAngle(angle2());
+    double a1 = CMathUtil::normalizeAngle(angle1().value());
+    double a2 = CMathUtil::normalizeAngle(angle2().value());
 
     if (a1 > a2) {
       // crosses zero
@@ -64,8 +64,8 @@ class CQChartsArcData {
   CQChartsGeom::Point c_  { 0.0, 0.0 };
   double              ri_ { 0.0 };
   double              ro_ { 1.0 };
-  double              a1_ { 0.0 };
-  double              a2_ { 360.0 };
+  CQChartsAngle       a1_ { 0.0 };
+  CQChartsAngle       a2_ { 360.0 };
 };
 
 #endif

@@ -124,17 +124,17 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 
   setNodeFilled(true);
   setNodeFillColor(bg);
-  setNodeFillAlpha(1.00);
+  setNodeFillAlpha(CQChartsAlpha(1.0));
 
   setNodeStroked(true);
-  setNodeStrokeAlpha(0.2);
+  setNodeStrokeAlpha(CQChartsAlpha(0.2));
 
   setEdgeFilled(true);
   setEdgeFillColor(bg);
-  setEdgeFillAlpha(0.25);
+  setEdgeFillAlpha(CQChartsAlpha(0.25));
 
   setEdgeStroked(true);
-  setEdgeStrokeAlpha(0.2);
+  setEdgeStrokeAlpha(CQChartsAlpha(0.2));
 
   //---
 
@@ -1167,7 +1167,7 @@ drawFg(CQChartsPaintDevice *device) const
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = 0;
+  options.angle         = CQChartsAngle(0);
   options.align         = Qt::AlignLeft;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();

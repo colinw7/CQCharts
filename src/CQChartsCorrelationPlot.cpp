@@ -82,8 +82,8 @@ CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model) :
 
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
-  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop    ); setXLabelTextAngle(90);
-  setYLabelTextAlign(Qt::AlignRight   | Qt::AlignVCenter); setYLabelTextAngle( 0);
+  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop    ); setXLabelTextAngle(CQChartsAngle(90));
+  setYLabelTextAlign(Qt::AlignRight   | Qt::AlignVCenter); setYLabelTextAngle(CQChartsAngle( 0));
 
   setXLabelTextFont(CQChartsFont().decFontSize(4));
   setYLabelTextFont(CQChartsFont().decFontSize(4));

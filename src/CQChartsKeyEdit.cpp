@@ -262,7 +262,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   // hiddenAlpha
   hiddenAlphaEdit_ = CQUtil::makeWidget<CQChartsAlphaEdit>("hiddenAlphaEdit");
 
-  hiddenAlphaEdit_->setValue(data_.hiddenAlpha);
+  hiddenAlphaEdit_->setAlpha(data_.hiddenAlpha);
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Hidden Alpha", hiddenAlphaEdit_, row);
 
@@ -388,7 +388,7 @@ connectSlots(bool b)
   connectDisconnect(b, clippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
   connectDisconnect(b, aboveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
   connectDisconnect(b, locationEdit_, SIGNAL(keyLocationChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, hiddenAlphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, hiddenAlphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, maxRowsEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, interactiveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
   connectDisconnect(b, pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()),
@@ -424,7 +424,7 @@ dataToWidgets()
   clippedEdit_       ->setChecked(data_.clipped);
   aboveEdit_         ->setChecked(data_.above);
   locationEdit_      ->setKeyLocation(data_.location);
-  hiddenAlphaEdit_   ->setValue(data_.hiddenAlpha);
+  hiddenAlphaEdit_   ->setAlpha(data_.hiddenAlpha);
   maxRowsEdit_       ->setValue(data_.maxRows);
   interactiveEdit_   ->setChecked(data_.interactive);
   pressBehaviorEdit_ ->setKeyPressBehavior(data_.pressBehavior);
@@ -458,7 +458,7 @@ widgetsToData()
   data_.clipped        = clippedEdit_->isChecked();
   data_.above          = aboveEdit_->isChecked();
   data_.location       = locationEdit_->keyLocation();
-  data_.hiddenAlpha    = hiddenAlphaEdit_->value();
+  data_.hiddenAlpha    = hiddenAlphaEdit_->alpha();
   data_.maxRows        = maxRowsEdit_->value();
   data_.interactive    = interactiveEdit_->isChecked();
   data_.pressBehavior  = pressBehaviorEdit_->keyPressBehavior();

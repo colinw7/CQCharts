@@ -266,8 +266,8 @@ writeScriptData(CQChartsScriptPainter *device) const
     os << "  this.arc.cy = " << arc.center().y << ";\n";
     os << "  this.arc.ri = " << arc.innerRadius() << ";\n";
     os << "  this.arc.ro = " << arc.outerRadius() << ";\n";
-    os << "  this.arc.a1 = " << arc.angle1() << ";\n";
-    os << "  this.arc.a2 = " << arc.angle2() << ";\n";
+    os << "  this.arc.a1 = " << arc.angle1().value() << ";\n";
+    os << "  this.arc.a2 = " << arc.angle2().value() << ";\n";
   }
 }
 

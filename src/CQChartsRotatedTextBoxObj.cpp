@@ -66,7 +66,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
 
     CQChartsTextOptions options;
 
-    options.angle = angle;
+    options.angle = CQChartsAngle(angle);
     options.align = align;
 
     CQChartsRotatedText::calcBBoxData(center.x, center.y, text, device->font(), options,
@@ -95,7 +95,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
 
   CQChartsTextOptions options;
 
-  options.angle         = angle;
+  options.angle         = CQChartsAngle(angle);
   options.align         = align;
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
@@ -147,7 +147,7 @@ bbox(const CQChartsGeom::Point &center, const QString &text,
 
     CQChartsTextOptions options;
 
-    options.angle = angle;
+    options.angle = CQChartsAngle(angle);
     options.align = align;
 
     CQChartsRotatedText::calcBBoxData(center.x, center.y, text, font, options, border,

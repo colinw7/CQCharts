@@ -77,7 +77,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
   setHeaderStroked(true);
-  setHeaderStrokeAlpha(0.5);
+  setHeaderStrokeAlpha(CQChartsAlpha(0.5));
 
   setHeaderFilled(true);
 
@@ -272,6 +272,8 @@ addProperties()
           "Max extent of hierarchical group header (0.0 - 1.0)");
   addProp("header", "titleHeight"  , "height"   ,
           "Explicit hierarchical group header height");
+  addProp("header", "titleMargin"  , "margin"   ,
+          "Hierarchical group header margin in pixels")->setMinValue(0.0);
 
   // header/fill
   addProp("header/fill", "headerFilled", "visible", "Header fill visible");

@@ -102,6 +102,7 @@ QColor bwColor(const QColor &c);
 
 QColor invColor(const QColor &c);
 
+QColor blendColors(const QColor &c1, const QColor &c2, const CQChartsAlpha &a);
 QColor blendColors(const QColor &c1, const QColor &c2, double f);
 QColor blendColors(const std::vector<QColor> &colors);
 
@@ -201,7 +202,7 @@ bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly);
 QString bboxToString(const CQChartsGeom::BBox &bbox);
 bool stringToBBox(const QString &str, CQChartsGeom::BBox &bbox);
 
-QString sizeToString(const QSize &s);
+QString sizeToString(const CQChartsGeom::Size &s);
 
 QString pointToString(const CQChartsGeom::Point &p);
 bool stringToPoint(const QString &str, CQChartsGeom::Point &point);
@@ -240,15 +241,17 @@ namespace CQChartsUtil {
 void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
 
 void setPenBrush(CQChartsPenBrush &penBrush,
-                 bool stroked, const QColor &strokeColor, double strokeAlpha,
+                 bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
                  double strokeWidth, const CQChartsLineDash &strokeDash,
-                 bool filled, const QColor &fillColor, double fillAlpha,
+                 bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                  const CQChartsFillPattern &pattern);
 
-void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
+            const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),
             double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());
 
-void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
+void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
+              const CQChartsAlpha &fillAlpha=CQChartsAlpha(),
               const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
 
 double limitLineWidth(double w);

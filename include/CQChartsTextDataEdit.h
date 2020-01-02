@@ -54,7 +54,8 @@ class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
 class CQChartsTextDataEditPreview;
 class CQChartsFontLineEdit;
-class CQAngleSpinBox;
+class CQChartsAngleEdit;
+
 class CQAlignEdit;
 class CQGroupBox;
 class CQCheckBox;
@@ -97,7 +98,7 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   CQChartsFontLineEdit*        fontEdit_      { nullptr }; //!< font edit
   CQChartsColorLineEdit*       colorEdit_     { nullptr }; //!< color edit
   CQChartsAlphaEdit*           alphaEdit_     { nullptr }; //!< alpha edit
-  CQAngleSpinBox*              angleEdit_     { nullptr }; //!< angle edit
+  CQChartsAngleEdit*           angleEdit_     { nullptr }; //!< angle edit
   CQCheckBox*                  contrastEdit_  { nullptr }; //!< contrast edit
   CQAlignEdit*                 alignEdit_     { nullptr }; //!< align edit
   CQCheckBox*                  formattedEdit_ { nullptr }; //!< formatted edit

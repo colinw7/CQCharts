@@ -3,7 +3,6 @@
 
 #include <CQChartsColumn.h>
 #include <CQChartsLineEditBase.h>
-#include <QComboBox>
 
 class CQChartsColumnEdit;
 class CQChartsColumnCombo;
@@ -134,6 +133,9 @@ class CQChartsColumnPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 
   QString userName() const override { return "column"; }
+
+ private:
+  QString valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const;
 };
 
 //---
@@ -155,27 +157,6 @@ class CQChartsColumnPropertyViewEditor : public CQPropertyViewEditorFactory {
   QVariant getValue(QWidget *w);
 
   void setValue(QWidget *w, const QVariant &var);
-};
-
-//---
-
-/*!
- * \brief combo box for CQChartsColumn
- * \ingroup Charts
- */
-class CQChartsColumnCombo : public QComboBox {
-  Q_OBJECT
-
- public:
-  CQChartsColumnCombo(QWidget *parent=nullptr);
-
-  void setColumn(const CQChartsColumn &column);
-  CQChartsColumn getColumn() const;
-
-  void setModel(QAbstractItemModel *model);
-
- signals:
-  void columnChanged();
 };
 
 #endif

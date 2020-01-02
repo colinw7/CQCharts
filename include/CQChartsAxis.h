@@ -468,14 +468,14 @@ class CQChartsAxis : public CQChartsObj,
     }
 
     AxisTickLabelDrawData(const CQChartsGeom::Point &p, const CQChartsGeom::BBox &bbox,
-                          const QString &text, double angle, Qt::Alignment align) :
+                          const QString &text, const CQChartsAngle &angle, Qt::Alignment align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
     }
 
     CQChartsGeom::Point p;
     CQChartsGeom::BBox  bbox;
     QString             text;
-    double              angle   { 0.0 };
+    CQChartsAngle       angle;
     Qt::Alignment       align   { Qt::AlignHCenter };
     bool                visible { true };
   };

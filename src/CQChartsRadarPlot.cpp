@@ -110,7 +110,7 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setFillAlpha(0.5);
+  setFillAlpha(CQChartsAlpha(0.5));
 
   setFilled (true);
   setStroked(true);
@@ -147,16 +147,16 @@ setValueColumns(const CQChartsColumns &c)
 
 void
 CQChartsRadarPlot::
-setAngleStart(double r)
+setAngleStart(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(angleStart_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleStart_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
-setAngleExtent(double r)
+setAngleExtent(const CQChartsAngle &a)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 //----
@@ -303,7 +303,7 @@ calcAnnotationBBox() const
 
     CQChartsPlotPainter device(th, nullptr);
 
-    double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
 
     double da = alen/nv;
 
@@ -317,7 +317,7 @@ calcAnnotationBBox() const
     for (int i = 0; i <= nl; ++i) {
       double r = dr*i;
 
-      double a = angleStart();
+      double a = angleStart().value();
 
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
@@ -431,7 +431,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   // calc polygon angle
   int nv = valueColumns().count();
 
-  double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+  double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
 
   double da = (nv > 2 ? alen/nv : 90.0);
 
@@ -441,7 +441,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   CQChartsGeom::Polygon        poly;
   CQChartsRadarObj::NameValues nameValues;
 
-  double a = (nv > 2 ? angleStart() : 0.0);
+  double a = (nv > 2 ? angleStart().value() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
     const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
@@ -619,7 +619,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     // TODO
   }
   else if (nv > 2) {
-    double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
 
     double da = alen/nv;
 
@@ -637,7 +637,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
       CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(0.0, 0.0));
 
-      double a = angleStart();
+      double a = angleStart().value();
 
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
@@ -677,7 +677,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     for (int i = 0; i <= nl; ++i) {
       double r = dr*i;
 
-      double a = angleStart();
+      double a = angleStart().value();
 
       CQChartsGeom::Polygon poly;
 
@@ -717,7 +717,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
           // only contrast support (custom align, zero angle)
           CQChartsTextOptions options;
 
-          options.angle         = 0;
+          options.angle         = CQChartsAngle(0);
           options.align         = align;
           options.contrast      = isTextContrast();
           options.contrastAlpha = textContrastAlpha();

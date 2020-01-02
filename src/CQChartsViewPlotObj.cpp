@@ -44,9 +44,9 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 void
 CQChartsViewPlotObj::
 setPenBrush(CQChartsPenBrush &penBrush,
-            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-            bool filled, const QColor &fillColor, double fillAlpha,
+            bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
             const CQChartsFillPattern &pattern) const
 {
   if      (plot())
@@ -61,7 +61,7 @@ setPenBrush(CQChartsPenBrush &penBrush,
 
 void
 CQChartsViewPlotObj::
-setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
        const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
   if      (plot())
@@ -72,7 +72,7 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
 
 void
 CQChartsViewPlotObj::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
          const CQChartsFillPattern &pattern) const
 {
   if      (plot())

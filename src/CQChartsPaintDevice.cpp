@@ -303,14 +303,14 @@ drawEllipse(const CQChartsGeom::BBox &bbox)
 #if 0
 void
 CQChartsViewPlotPainter::
-drawArc(const CQChartsGeom::BBox &rect, double a1, double a2)
+drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2)
 {
   auto pbbox = windowToPixel(bbox);
 
   QRectF prect = pbbox.qrect();
 
   if (prect.isValid())
-    painter_->drawArc(prect, a1*16, a2*16);
+    painter_->drawArc(prect, a1.value()*16, a2.value()*16);
 }
 #endif
 
@@ -782,12 +782,12 @@ drawEllipse(const CQChartsGeom::BBox &bbox)
 #if 0
 void
 CQChartsScriptPainter::
-drawArc(const CQChartsGeom::BBox &bbox, double a1, double a2)
+drawArc(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a1, const CQChartsAngle &a2)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
           bbox.getXMax() << ", " << bbox.getYMax() << ", " <<
-          a1 << ", " << a2 << ");\n";
+          a1.value() << ", " << a2.value() << ");\n";
 }
 #endif
 
@@ -1178,7 +1178,7 @@ drawEllipse(const CQChartsGeom::BBox &bbox)
 #if 0
 void
 CQChartsSVGPainter::
-drawArc(const CQChartsGeom::BBox &, double, double)
+drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &, const CQChartsAngle &)
 {
   // TODO
 }

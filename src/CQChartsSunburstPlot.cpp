@@ -112,7 +112,7 @@ setOuterRadius(double r)
 
 void
 CQChartsSunburstPlot::
-setStartAngle(double a)
+setStartAngle(const CQChartsAngle &a)
 {
   CQChartsUtil::testAndSet(startAngle_, a, [&]() { resetRoots(); updateObjs(); } );
 }
@@ -185,8 +185,10 @@ addProperties()
   addProp("columns", "valueColumn", "value", "Value columns");
 
   // options
-  addProp("options", "innerRadius"     , "", "Inner radius");
-  addProp("options", "outerRadius"     , "", "Outer radius");
+  addProp("options", "innerRadius"     , "", "Inner radius")->
+    setMinValue(0.0).setMaxValue(1.0);
+  addProp("options", "outerRadius"     , "", "Outer radius")->
+    setMinValue(0.0).setMaxValue(1.0);
   addProp("options", "startAngle"      , "", "Angle for first segment");
   addProp("options", "multiRoot"       , "", "Support multiple roots");
   addProp("options", "followViewExpand", "", "Follow view expand");
@@ -405,10 +407,10 @@ replaceRoots() const
   double ri = std::max(innerRadius(), 0.0);
   double ro = CMathUtil::clamp(outerRadius(), ri, 1.0);
 
-  double a = startAngle();
+  CQChartsAngle a = startAngle();
 
   if (currentRoot()) {
-    double da = 360.0;
+    CQChartsAngle da(360.0);
 
     currentRoot()->setPosition(0.0, a, ri, da);
 
@@ -416,7 +418,7 @@ replaceRoots() const
                              CQChartsSunburstRootNode::Order::SIZE, true);
   }
   else {
-    double da = (! roots_.empty() ? 360.0/roots_.size() : 0.0);
+    CQChartsAngle da(! roots_.empty() ? 360.0/roots_.size() : 0.0);
 
     for (auto &root : roots_) {
       root->setPosition(0.0, a, ri, da);
@@ -1099,8 +1101,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   CQChartsGeom::BBox ibbox(p11, p21);
   CQChartsGeom::BBox obbox(p12, p22);
 
-  double a1 = node->a();
-  double da = node->da();
+  double a1 = node->a().value();
+  double da = node->da().value();
   double a2 = a1 + da;
 
   //---
@@ -1136,11 +1138,11 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   else {
     // if has non-zero inner radius draw arc segment
     if      (ibbox.getWidth()) {
-      CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, a1, da);
+      CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, CQChartsAngle(a1), CQChartsAngle(da));
     }
     // draw pie slice
     else if (obbox.getWidth()) {
-      CQChartsDrawUtil::drawArc(device, obbox, a1, da);
+      CQChartsDrawUtil::drawArc(device, obbox, CQChartsAngle(a1), CQChartsAngle(da));
     }
   }
 
@@ -1234,7 +1236,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   // only contrast support (custom align and angle)
   CQChartsTextOptions options;
 
-  options.angle         = ta1;
+  options.angle         = CQChartsAngle(ta1);
   options.align         = align;
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
@@ -1319,8 +1321,8 @@ inside(const CQChartsGeom::Point &p) const
   // check angle
   double a = CMathUtil::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
 
-  double a1 = node_->a();
-  double a2 = a1 + node_->da();
+  double a1 = node_->a().value();
+  double a2 = a1 + node_->da().value();
 
   while (a1 < 0) a1 += 360.0;
   while (a2 < 0) a2 += 360.0;
@@ -1456,8 +1458,8 @@ unplaceNodes()
 
 void
 CQChartsSunburstHierNode::
-packNodes(CQChartsSunburstHierNode *root, double ri, double ro,
-          double dr, double a, double da, const Order &order, bool sort)
+packNodes(CQChartsSunburstHierNode *root, double ri, double ro, double dr,
+          const CQChartsAngle &a, const CQChartsAngle &da, const Order &order, bool sort)
 {
   int d = depth();
 
@@ -1466,15 +1468,15 @@ packNodes(CQChartsSunburstHierNode *root, double ri, double ro,
 
   double s = (order == Order::SIZE ? hierSize() : numNodes());
 
-  double da1 = da/s;
+  double da1 = da.value()/s;
 
-  packSubNodes(root, ri, dr, a, da1, order, sort);
+  packSubNodes(root, ri, dr, a, CQChartsAngle(da1), order, sort);
 }
 
 void
 CQChartsSunburstHierNode::
-packSubNodes(CQChartsSunburstHierNode *root, double ri,
-             double dr, double a, double da, const Order &order, bool sort)
+packSubNodes(CQChartsSunburstHierNode *root, double ri, double dr,
+             const CQChartsAngle &a, const CQChartsAngle &da, const Order &order, bool sort)
 {
   if (! isExpanded())
     return;
@@ -1504,19 +1506,19 @@ packSubNodes(CQChartsSunburstHierNode *root, double ri,
   placed_ = true;
 
   // place each node
-  double a1 = a;
+  double a1 = a.value();
 
   for (auto &node : nodes) {
     double s = (order == Order::SIZE ? node->hierSize() : node->numNodes());
 
-    node->setPosition(ri, a1, dr, s*da);
+    node->setPosition(ri, CQChartsAngle(a1), dr, CQChartsAngle(s*da.value()));
 
     CQChartsSunburstHierNode *hierNode = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
     if (hierNode)
-      hierNode->packSubNodes(root, ri + dr, dr, a1, da, order, sort);
+      hierNode->packSubNodes(root, ri + dr, dr, CQChartsAngle(a1), da, order, sort);
 
-    a1 += s*da;
+    a1 += s*da.value();
   }
 }
 
@@ -1592,7 +1594,7 @@ hierName(const QChar &separator) const
 
 void
 CQChartsSunburstNode::
-setPosition(double r, double a, double dr, double da)
+setPosition(double r, const CQChartsAngle &a, double dr, const CQChartsAngle &da)
 {
   r_  = r ; a_  = a ;
   dr_ = dr; da_ = da;
@@ -1610,15 +1612,15 @@ pointInside(double x, double y)
 
   if (r < r_ || r > r_ + dr_) return false;
 
-  double a = normalizeAngle(CMathUtil::Rad2Deg(atan2(y, x)));
+  double a = CMathUtil::normalizeAngle(CMathUtil::Rad2Deg(atan2(y, x)));
 
-  double a1 = normalizeAngle(a_);
-  double a2 = a1 + da_;
+  double a1 = CMathUtil::normalizeAngle(a_.value());
+  double a2 = a1 + da_.value();
 
   if (a2 > a1) {
     if (a2 >= 360.0) {
       double da = a2 - 360.0; a -= da; a1 -= da; a2 = 360.0;
-      a = normalizeAngle(a);
+      a = CMathUtil::normalizeAngle(a);
     }
 
     if (a < a1 || a > a2)
@@ -1628,7 +1630,7 @@ pointInside(double x, double y)
     if (a2 < 0.0) {
       double da = -a2; a += da; a1 += da; a2 = 0.0;
 
-      a = normalizeAngle(a);
+      a = CMathUtil::normalizeAngle(a);
     }
 
     if (a < a2 || a > a1)

@@ -121,10 +121,10 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
 
   setPoints(true);
 
-  setSymbolStrokeAlpha(0.25);
+  setSymbolStrokeAlpha(CQChartsAlpha(0.25));
   setSymbolFilled     (true);
   setSymbolFillColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
-  setSymbolFillAlpha  (0.5);
+  setSymbolFillAlpha  (CQChartsAlpha(0.5));
 
   masterAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
 
@@ -900,7 +900,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = 0;
+    options.angle         = CQChartsAngle(0);
     options.align         = Qt::AlignLeft;
     options.contrast      = masterAxis_->isAxesLabelTextContrast();
     options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();

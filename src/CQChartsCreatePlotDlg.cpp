@@ -9,6 +9,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsColumnsEdit.h>
+#include <CQChartsColumnCombo.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetailsWidget.h>

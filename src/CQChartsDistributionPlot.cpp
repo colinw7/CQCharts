@@ -348,7 +348,8 @@ addProperties()
   addProp("options", "percent"   , "", "Show value as percentage");
   addProp("options", "skipEmpty" , "", "Skip empty buckets");
   addProp("options", "sorted"    , "", "Sort by count");
-  addProp("options", "minBarSize", "", "Minimum bar size")->setHidden(true);
+  addProp("options", "minBarSize", "", "Minimum bar size in pixels")->
+   setMinValue(0.0).setHidden(true);
 
   // density
   addProp("density", "density"        , "visible" , "Show density plot");
@@ -359,7 +360,8 @@ addProperties()
 
   // scatter
   addProp("scatter", "scatter"      , "visible", "Draw scatter points");
-  addProp("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)");
+  addProp("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)")->
+    setMinValue(0.0).setMaxValue(1.0);
 
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
@@ -2454,7 +2456,7 @@ addKeyItems(CQChartsPlotKey *key)
         if (ok) {
           QColor c1 = interpColor(c, ColorInd());
 
-          c1.setAlphaF(barFillAlpha());
+          c1.setAlphaF(barFillAlpha().value());
 
           colorBox->setColor(c1);
         }
@@ -3521,7 +3523,7 @@ getBarColoredRects(ColorData &colorData) const
     if (plot_->columnColor(ind.row, ind.parent, color)) {
       QColor c1 = plot_->interpColor(color, ColorInd());
 
-      c1.setAlphaF(plot_->barFillAlpha());
+      c1.setAlphaF(plot_->barFillAlpha().value());
 
       color = c1;
     }
@@ -4060,7 +4062,7 @@ drawRug(CQChartsPaintDevice *device) const
   QColor fillColor = plot_->interpBarFillColor(is_);
 
   plot_->setPenBrush(penBrush, CQChartsPenData(true, fillColor),
-                     CQChartsBrushData(true, fillColor, 0.5));
+                     CQChartsBrushData(true, fillColor, CQChartsAlpha(0.5)));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4124,7 +4126,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
     QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
 
-    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha());
+    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha().value());
 
     penBrush.brush = QBrush(lg);
   }

@@ -37,13 +37,13 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValueType<CQChartsColor>("color", color());
 
-  if (alpha() != 1.0)
-    nameValues.setNameValue("alpha", alpha());
+  if (alpha() != CQChartsAlpha())
+    nameValues.setNameValue("alpha", alpha().value());
 
   nameValues.setNameValueType<CQChartsFont>("font", font());
 
-  if (angle() != 0.0)
-    nameValues.setNameValue("angle", angle());
+  if (angle() != CQChartsAngle())
+    nameValues.setNameValue("angle", angle().value());
 
   if (isContrast())
     nameValues.setNameValue("contrast", isContrast());
@@ -73,11 +73,19 @@ bool
 CQChartsTextData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
+    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  };
+
+  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle) {
+    double r; nameValues.nameValueReal(name, r); angle = CQChartsAngle(r);
+  };
+
   nameValues.nameValueBool ("visible"  , visible_);
   nameValues.nameValueColor("color"    , color_);
-  nameValues.nameValueReal ("alpha"    , alpha_);
+  nameValueAlpha           ("alpha"    , alpha_);
   nameValues.nameValueFont ("font"     , font_);
-  nameValues.nameValueReal ("angle"    , angle_);
+  nameValueAngle           ("angle"    , angle_);
   nameValues.nameValueBool ("contrast" , contrast_);
   nameValues.nameValueAlign("align"    , align_);
   nameValues.nameValueBool ("formatted", formatted_);
@@ -122,8 +130,8 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValueType<CQChartsColor>("color", color());
 
-  if (alpha() != 1.0)
-    nameValues.setNameValue("alpha", alpha());
+  if (alpha() != CQChartsAlpha())
+    nameValues.setNameValue("alpha", alpha().value());
 
   nameValues.setNameValueType<CQChartsLength>("width", width());
 
@@ -144,9 +152,13 @@ bool
 CQChartsLineData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
+    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  };
+
   nameValues.nameValueBool ("visible", visible_);
   nameValues.nameValueColor("color"  , color_);
-  nameValues.nameValueReal ("alpha"  , alpha_);
+  nameValueAlpha           ("alpha"  , alpha_);
 
   nameValues.nameValueType<CQChartsLength>  ("width", width_);
   nameValues.nameValueType<CQChartsLineDash>("dash" , dash_);
@@ -365,8 +377,8 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValueType<CQChartsColor>("fillColor", color());
 
-  if (alpha() != 1.0)
-    nameValues.setNameValue("fillAlpha", alpha());
+  if (alpha() != CQChartsAlpha())
+    nameValues.setNameValue("fillAlpha", alpha().value());
 
   if (pattern() != CQChartsFillPattern(CQChartsFillPattern::Type::SOLID))
     nameValues.setNameValueType<CQChartsFillPattern>("fillPattern", pattern());
@@ -385,9 +397,13 @@ bool
 CQChartsFillData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
+    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  };
+
   nameValues.nameValueBool ("filled", visible_);
   nameValues.nameValueColor("fillColor", color_);
-  nameValues.nameValueReal ("fillAlpha", alpha_);
+  nameValueAlpha           ("fillAlpha", alpha_);
 
   nameValues.nameValueType<CQChartsFillPattern>("fillPattern", pattern_);
 
@@ -428,8 +444,8 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValueType<CQChartsColor>("strokeColor", color());
 
-  if (alpha() != 1.0)
-    nameValues.setNameValue("strokeAlpha", alpha());
+  if (alpha() != CQChartsAlpha())
+    nameValues.setNameValue("strokeAlpha", alpha().value());
 
   if (width() != CQChartsLength("0px"))
     nameValues.setNameValueType<CQChartsLength>("strokeWidth", width());
@@ -454,9 +470,13 @@ bool
 CQChartsStrokeData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
+    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  };
+
   nameValues.nameValueBool ("stroked"    , visible_);
   nameValues.nameValueColor("strokeColor", color_);
-  nameValues.nameValueReal ("strokeAlpha", alpha_);
+  nameValueAlpha           ("strokeAlpha", alpha_);
 
   nameValues.nameValueType<CQChartsLength>("strokeWidth", width_);
 
@@ -557,7 +577,7 @@ setFHeadType(HeadType type)
   if      (fheadData_.type == HeadType::TRIANGLE ||
            fheadData_.type == HeadType::STEALTH  ||
            fheadData_.type == HeadType::DIAMOND) {
-    double angle, backAngle;
+    CQChartsAngle angle, backAngle;
 
     getTypeAngles(fheadData_.type, angle, backAngle);
 
@@ -583,7 +603,7 @@ setTHeadType(HeadType type)
   if      (theadData_.type == HeadType::TRIANGLE ||
            theadData_.type == HeadType::STEALTH  ||
            theadData_.type == HeadType::DIAMOND) {
-    double angle, backAngle;
+    CQChartsAngle angle, backAngle;
 
     getTypeAngles(theadData_.type, angle, backAngle);
 
@@ -638,8 +658,11 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValue("front_visible", isFHead());
 
-  if (frontAngle    () > 0) nameValues.setNameValue("front_angle", frontAngle());
-  if (frontBackAngle() > 0) nameValues.setNameValue("front_back_angle", frontBackAngle());
+  if (frontAngle().value() > 0)
+    nameValues.setNameValue("front_angle", frontAngle().value());
+
+  if (frontBackAngle().value() > 0)
+    nameValues.setNameValue("front_back_angle", frontBackAngle().value());
 
   if (frontLength().isValid())
     nameValues.setNameValueType<CQChartsLength>("front_length", frontLength());
@@ -651,8 +674,11 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   nameValues.setNameValue("tail_visible", isTHead());
 
-  if (tailAngle    () > 0) nameValues.setNameValue("tail_angle", tailAngle());
-  if (tailBackAngle() > 0) nameValues.setNameValue("tail_back_angle", tailBackAngle());
+  if (tailAngle().value() > 0)
+    nameValues.setNameValue("tail_angle", tailAngle().value());
+
+  if (tailBackAngle().value() > 0)
+    nameValues.setNameValue("tail_back_angle", tailBackAngle().value());
 
   if (tailLength().isValid())
     nameValues.setNameValueType<CQChartsLength>("tail_length", tailLength());
@@ -674,19 +700,23 @@ bool
 CQChartsArrowData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle) {
+    double r; nameValues.nameValueReal(name, r); angle = CQChartsAngle(r);
+  };
+
 //nameValues.nameValueBool("relative", relative_);
 
   nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_);
 
   nameValues.nameValueBool                ("front_visible"   , fheadData_.visible);
-  nameValues.nameValueReal                ("front_angle"     , fheadData_.angle);
-  nameValues.nameValueReal                ("front_back_angle", fheadData_.backAngle);
+  nameValueAngle                          ("front_angle"     , fheadData_.angle);
+  nameValueAngle                          ("front_back_angle", fheadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
   nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds);
 
   nameValues.nameValueBool                ("tail_visible"    , theadData_.visible);
-  nameValues.nameValueReal                ("tail_angle"      , theadData_.angle);
-  nameValues.nameValueReal                ("tail_back_angle" , theadData_.backAngle);
+  nameValueAngle                          ("tail_angle"      , theadData_.angle);
+  nameValueAngle                          ("tail_back_angle" , theadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("tail_length"     , theadData_.length);
   nameValues.nameValueBool                ("tail_line_ends"  , theadData_.lineEnds);
 
@@ -695,11 +725,11 @@ getNameValues(const CQChartsNameValues &nameValues)
 
 bool
 CQChartsArrowData::
-getTypeAngles(const HeadType &type, double &angle, double &backAngle)
+getTypeAngles(const HeadType &type, CQChartsAngle &angle, CQChartsAngle &backAngle)
 {
-  if      (type == HeadType::TRIANGLE) angle = 30.0;
-  else if (type == HeadType::STEALTH ) angle = 30.0;
-  else if (type == HeadType::DIAMOND ) angle = 30.0;
+  if      (type == HeadType::TRIANGLE) angle = CQChartsAngle(30.0);
+  else if (type == HeadType::STEALTH ) angle = CQChartsAngle(30.0);
+  else if (type == HeadType::DIAMOND ) angle = CQChartsAngle(30.0);
   else return false;
 
   getTypeBackAngle(type, angle, backAngle);
@@ -709,14 +739,14 @@ getTypeAngles(const HeadType &type, double &angle, double &backAngle)
 
 bool
 CQChartsArrowData::
-getTypeBackAngle(const HeadType &type, double angle, double &backAngle)
+getTypeBackAngle(const HeadType &type, const CQChartsAngle &angle, CQChartsAngle &backAngle)
 {
   if      (type == HeadType::TRIANGLE)
-    backAngle = 90.0;
+    backAngle = CQChartsAngle(90.0);
   else if (type == HeadType::STEALTH )
-    backAngle = 90 - 2.0*angle/3.0;
+    backAngle = CQChartsAngle(90 - 2.0*angle.value()/3.0);
   else if (type == HeadType::DIAMOND )
-    backAngle = 180.0 - angle;
+    backAngle = CQChartsAngle(180.0 - angle.value());
   else
     return false;
 
@@ -725,9 +755,9 @@ getTypeBackAngle(const HeadType &type, double angle, double &backAngle)
 
 bool
 CQChartsArrowData::
-checkTypeAngles(const HeadType &type, double angle, double backAngle)
+checkTypeAngles(const HeadType &type, const CQChartsAngle &angle, const CQChartsAngle &backAngle)
 {
-  double angle1, backAngle1;
+  CQChartsAngle angle1, backAngle1;
 
   if (! getTypeAngles(type, angle1, backAngle1))
     return false;
@@ -761,7 +791,7 @@ nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible)
 bool
 CQChartsArrowData::
 dataToName(const HeadType &type, bool lineEnds, bool visible,
-           double angle, double backAngle, QString &name)
+           const CQChartsAngle &angle, const CQChartsAngle &backAngle, QString &name)
 {
   if (! visible) { name = "none"; return true; }
   if (lineEnds ) { name = "line"; return true; }

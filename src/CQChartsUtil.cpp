@@ -49,16 +49,13 @@ long toInt(const char *str, bool &ok, const char **rstr) {
 //---
 
 QString toString(const std::vector<CQChartsColumn> &columns) {
-  QString str;
+  QStringList strs;
 
   for (std::size_t i = 0; i < columns.size(); ++i) {
-    if (str.length())
-      str += " ";
-
-    str += QString("%1").arg(columns[i].toString());
+    strs += columns[i].toString();
   }
 
-  return str;
+  return CQTcl::mergeList(strs);
 }
 
 bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
@@ -252,6 +249,10 @@ QColor bwColor(const QColor &c) {
 
 QColor invColor(const QColor &c) {
   return QColor(255 - c.red(), 255 - c.green(), 255 - c.blue());
+}
+
+QColor blendColors(const QColor &c1, const QColor &c2, const CQChartsAlpha &a) {
+  return blendColors(c1, c2, a.value());
 }
 
 QColor blendColors(const QColor &c1, const QColor &c2, double f) {
@@ -544,6 +545,8 @@ int countLeadingBraces(const QString &str) {
   return n;
 }
 
+//---
+
 bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &polygons) {
   CQStrParse parse(str);
 
@@ -596,6 +599,22 @@ bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &po
 
   return true;
 }
+
+QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList) {
+  int np = polyList.size();
+
+  QStringList strs;
+
+  for (int i = 0; i < np; ++i) {
+    const CQChartsGeom::Polygon &poly = polyList[i];
+
+    strs += polygonToString(poly);
+  }
+
+  return CQTcl::mergeList(strs);
+}
+
+//---
 
 bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly) {
   CQStrParse parse(str);
@@ -654,6 +673,22 @@ bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly) {
   return true;
 }
 
+QString polygonToString(const CQChartsGeom::Polygon &poly) {
+  int np = poly.size();
+
+  QStringList strs;
+
+  for (int i = 0; i < np; ++i) {
+    CQChartsGeom::Point p = poly.point(i);
+
+    strs += pointToString(p);
+  }
+
+  return CQTcl::mergeList(strs);
+}
+
+//---
+
 bool stringToBBox(const QString &str, CQChartsGeom::BBox &bbox) {
   CQStrParse parse(str);
 
@@ -710,6 +745,25 @@ bool parseBBox(CQStrParse &parse, CQChartsGeom::BBox &bbox, bool terminated) {
 
   return true;
 }
+
+QString bboxToString(const CQChartsGeom::BBox &bbox) {
+  if (bbox.isSet()) {
+    QStringList strs;
+
+    const CQChartsGeom::Point &pmin = bbox.getMin();
+    const CQChartsGeom::Point &pmax = bbox.getMax();
+
+    strs += pointToString(pmin);
+    strs += pointToString(pmax);
+
+    return CQTcl::mergeList(strs);
+  }
+  else {
+    return "{ }";
+  }
+}
+
+//---
 
 bool stringToPoint(const QString &str, CQChartsGeom::Point &point) {
   CQStrParse parse(str);
@@ -781,58 +835,28 @@ bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &point, bool terminated) 
   return true;
 }
 
+QString pointToString(const CQChartsGeom::Point &p) {
+  QStringList strs;
+
+  strs += QString("%1").arg(p.x);
+  strs += QString("%1").arg(p.y);
+
+  return CQTcl::mergeList(strs);
+}
+
 }
 
 //------
 
 namespace CQChartsUtil {
 
-QString pointToString(const CQChartsGeom::Point &p) {
-  return QString("%1 %2").arg(p.x).arg(p.y);
-}
+QString sizeToString(const CQChartsGeom::Size &s) {
+  QStringList strs;
 
-QString sizeToString(const QSize &s) {
-  return QString("%1 %2").arg(s.width()).arg(s.height());
-}
+  strs += QString("%1").arg(s.width ());
+  strs += QString("%1").arg(s.height());
 
-QString bboxToString(const CQChartsGeom::BBox &bbox) {
-  if (bbox.isSet()) {
-    const CQChartsGeom::Point &pmin = bbox.getMin();
-    const CQChartsGeom::Point &pmax = bbox.getMax();
-
-    return QString("{%1 %2} {%3 %4}").arg(pmin.x).arg(pmin.y).arg(pmax.x).arg(pmax.y);
-  }
-  else {
-    return "{ }";
-  }
-}
-
-QString polygonToString(const CQChartsGeom::Polygon &poly) {
-  int np = poly.size();
-
-  QString str;
-
-  for (int i = 0; i < np; ++i) {
-    CQChartsGeom::Point p = poly.point(i);
-
-    str += QString("{%1}").arg(pointToString(p));
-  }
-
-  return str;
-}
-
-QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList) {
-  int np = polyList.size();
-
-  QString str;
-
-  for (int i = 0; i < np; ++i) {
-    const CQChartsGeom::Polygon &poly = polyList[i];
-
-    str += QString("{%1}").arg(polygonToString(poly));
-  }
-
-  return str;
+  return CQTcl::mergeList(strs);
 }
 
 }
@@ -1067,9 +1091,9 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 namespace CQChartsUtil {
 
 void setPenBrush(CQChartsPenBrush &penBrush,
-                 bool stroked, const QColor &strokeColor, double strokeAlpha,
+                 bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
                  double strokeWidth, const CQChartsLineDash &strokeDash,
-                 bool filled, const QColor &fillColor, double fillAlpha,
+                 bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                  const CQChartsFillPattern &pattern)
 {
   setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
@@ -1077,7 +1101,7 @@ void setPenBrush(CQChartsPenBrush &penBrush,
   setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
 }
 
-void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             double strokeWidth, const CQChartsLineDash &strokeDash) {
   double width = limitLineWidth(strokeWidth);
 
@@ -1085,7 +1109,7 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlp
   if (stroked) {
     QColor color = strokeColor;
 
-    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
+    color.setAlphaF(CMathUtil::clamp(strokeAlpha.value(), 0.0, 1.0));
 
     pen.setColor(color);
 
@@ -1103,13 +1127,13 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlp
   }
 }
 
-void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
               const CQChartsFillPattern &pattern) {
   // calc brush (fill)
   if (filled) {
     QColor color = fillColor;
 
-    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
+    color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
 
     brush.setColor(color);
 

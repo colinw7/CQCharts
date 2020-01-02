@@ -18,6 +18,33 @@ registerMetaType()
 
 bool
 CQChartsRect::
+setValue(const QString &str, const CQChartsUnits &defUnits)
+{
+  CQChartsUnits units;
+  CQChartsGeom::BBox        bbox;
+
+  if (! decodeString(str, units, bbox, defUnits))
+    return false;
+
+  units_ = units;
+  bbox_  = bbox;
+
+  return true;
+}
+
+QString
+CQChartsRect::
+toString() const
+{
+  QString ustr = CQChartsUtil::unitsString(units_);
+
+  return QString("%1 %2 %3 %4 %5").
+           arg(bbox_.getXMin()).arg(bbox_.getYMin()).
+           arg(bbox_.getXMax()).arg(bbox_.getYMax()).arg(ustr);
+}
+
+bool
+CQChartsRect::
 decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
              const CQChartsUnits &defUnits)
 {

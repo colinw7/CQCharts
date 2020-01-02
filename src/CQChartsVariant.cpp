@@ -17,6 +17,11 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::Int) {
     str = CQChartsUtil::formatInteger((long) var.toInt());
   }
+  else if (var.type() == QVariant::Point) {
+    QPoint point = var.value<QPoint>();
+
+    str = CQChartsUtil::pointToString(CQChartsGeom::Point(QPointF(point)));
+  }
   else if (var.type() == QVariant::PointF) {
     QPointF point = var.value<QPointF>();
 
@@ -25,14 +30,22 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::Size) {
     QSize size = var.value<QSize>();
 
-    str = CQChartsUtil::sizeToString(size);
+    str = CQChartsUtil::sizeToString(CQChartsGeom::Size(QSizeF(size)));
+  }
+  else if (var.type() == QVariant::SizeF) {
+    QSizeF size = var.value<QSizeF>();
+
+    str = CQChartsUtil::sizeToString(CQChartsGeom::Size(size));
+  }
+  else if (var.type() == QVariant::Rect) {
+    QRect rect = var.value<QRect>();
+
+    str = CQChartsUtil::bboxToString(CQChartsGeom::BBox(QRectF(rect)));
   }
   else if (var.type() == QVariant::RectF) {
     QRectF rect = var.value<QRectF>();
 
-    CQChartsGeom::BBox bbox(rect);
-
-    str = bbox.toString();
+    str = CQChartsUtil::bboxToString(CQChartsGeom::BBox(rect));
   }
   else if (var.type() == QVariant::PolygonF) {
     QPolygonF poly = var.value<QPolygonF>();

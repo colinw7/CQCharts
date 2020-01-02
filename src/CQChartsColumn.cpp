@@ -208,16 +208,13 @@ QString
 CQChartsColumn::
 columnsToString(const Columns &columns)
 {
-  QString str;
+  QStringList strs;
 
   for (const auto &c : columns) {
-    if (str.length())
-      str += " ";
-
-    str += c.toString();
+    strs += c.toString();
   }
 
-  return str;
+  return CQTcl::mergeList(strs);
 }
 
 bool

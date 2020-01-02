@@ -5,11 +5,13 @@
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsColor.h>
+#include <CQChartsAlpha.h>
 #include <CQChartsFont.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsSides.h>
 #include <CQChartsPoints.h>
 #include <CQChartsReals.h>
+#include <CQChartsAngle.h>
 
 #include <CQChartsCmdArg.h>
 #include <CQChartsCmdGroup.h>
@@ -791,6 +793,18 @@ class CQChartsCmdBaseArgs {
   CQChartsColor
   getParseColor(const QString &name, const CQChartsColor &def=CQChartsColor()) const {
     return getParseValue<CQChartsColor>(name, def);
+  }
+
+  // get parsed alpha for option (default returned if not found)
+  CQChartsAlpha
+  getParseAlpha(const QString &name, const CQChartsAlpha &def=CQChartsAlpha()) const {
+    return getParseValue<CQChartsAlpha>(name, def);
+  }
+
+  // get parsed angle for option (default returned if not found)
+  CQChartsAngle
+  getParseAngle(const QString &name, const CQChartsAngle &def=CQChartsAngle()) const {
+    return getParseValue<CQChartsAngle>(name, def);
   }
 
   // get parsed line dash for option (default returned if not found)

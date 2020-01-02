@@ -99,17 +99,17 @@ addProperties()
   addProp("columns", "nameColumn" , "name" , "Name column");
   addProp("columns", "valueColumn", "value", "Value column");
 
-  // options
-  addProp("options", "textMargin", "textMargin", "Text margin");
-
   // node
-  addProp("node", "circleSize", "circleSize", "Circle size");
+  addProp("node", "circleSize", "circleSize", "Circle size in pixels")->setMinValue(1.0);
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeStroke", "Node");
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+  // label
+  addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+
+  addProp("label", "textMargin", "margin", "Text margin in pixels")->setMinValue(1.0);
 }
 
 //---
@@ -367,15 +367,16 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
 {
   if (! node->isPlaced()) return;
 
-  double cs = circleSize();
-  double tm = textMargin();
+  double cs = std::max(circleSize(), 1.0);
+//double tm = std::max(textMargin(), 1.0);
 
   double cw = pixelToWindowWidth (cs);
   double ch = pixelToWindowHeight(cs);
 
-  double mw = pixelToWindowWidth(tm);
+//double mw = pixelToWindowWidth(tm);
 
-  double xc = node->x() + mw;
+//double xc = node->x() + mw;
+  double xc = node->x();
   double yc = node->yc();
 
   CQChartsGeom::BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
@@ -439,8 +440,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
   CQChartsGeom::Point pn = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
 
-  double cs = circleSize();
-  double tm = textMargin();
+  double cs = std::max(circleSize(), 1.0);
+//double tm = std::max(textMargin(), 1.0);
 
   //---
 
@@ -448,8 +449,9 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
   if (hier) {
     CQChartsGeom::Point ph = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
 
-    double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
-    double x4 = pn.x - cs/2.0     ; double y4 = pn.y;
+//  double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
+    double x1 = ph.x + cs/2.0;      double y1 = ph.y;
+    double x4 = pn.x - cs/2.0;      double y4 = pn.y;
     double x2 = x1 + (x4 - x1)/3.0; double y2 = y1;
     double x3 = x2 + (x4 - x1)/3.0; double y3 = y4;
 
@@ -570,10 +572,10 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
 
-  double cs = plot_->circleSize();
-  double tm = plot_->textMargin();
+  double cs = std::max(plot_->circleSize(), 1.0);
+  double tm = std::max(plot_->textMargin(), 1.0);
 
-  p1.x += tm;
+//p1.x += tm;
 
   CQChartsGeom::BBox bbox(p1.x - cs/2.0, p1.y - cs/2.0, p1.x + cs/2.0, p1.y + cs/2.0);
 
@@ -629,14 +631,14 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p;
 
   if (is_hier)
-    p = CQChartsGeom::Point(p1.x - cs - fm.width(name), p1.y + dy); // align right
+    p = CQChartsGeom::Point(p1.x - cs - fm.width(name) - tm, p1.y + dy); // align right
   else
-    p = CQChartsGeom::Point(p1.x + cs, p1.y + dy); // align left
+    p = CQChartsGeom::Point(p1.x + cs + tm, p1.y + dy); // align left
 
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = 0;
+  options.angle         = CQChartsAngle(0);
   options.align         = Qt::AlignLeft;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();

@@ -243,8 +243,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
   // options
-  Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
-  Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
+  Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
  public:
   using GroupValueSets = std::map<CQChartsColumn,CQChartsValueSet *>;
@@ -255,6 +254,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
+  // columns
   const CQChartsColumn &xColumn() const { return xColumn_; }
   void setXColumn(const CQChartsColumn &c);
 
@@ -269,14 +269,13 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set text labels
   bool isTextLabels() const;
   void setTextLabels(bool b);
 
-  double fontSize() const { return fontSize_; }
-  void setFontSize(double s);
-
   //---
 
+  //! get/set current group
   CQChartsHierScatterPointGroup *currentGroup() const { return currentGroup_; }
   void setCurrentGroup(CQChartsHierScatterPointGroup *group);
 
@@ -350,7 +349,6 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   CQChartsColumn     yColumn_;                     //!< y column
   CQChartsColumn     nameColumn_;                  //!< name column
   CQChartsColumns    groupColumns_;                //!< group columns
-  double             fontSize_        { 8 };       //!< font size
   CQChartsDataLabel* dataLabel_       { nullptr }; //!< data label style
   QStringList        filterNames_;                 //!< filter names
   CQChartsColumns    groupValues_;                 //!< group values

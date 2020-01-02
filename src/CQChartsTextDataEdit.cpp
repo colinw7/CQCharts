@@ -8,12 +8,12 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsAngleEdit.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQUtil.h>
 
-#include <CQAngleSpinBox.h>
 #include <CQAlignEdit.h>
 #include <CQGroupBox.h>
 #include <CQCheckBox.h>
@@ -269,7 +269,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // angle
   QLabel *angleLabel = CQUtil::makeLabelWidget<QLabel>("Angle", "angleLabel");
 
-  angleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("angleEdit");
+  angleEdit_ = CQUtil::makeWidget<CQChartsAngleEdit>("angleEdit");
 
   groupLayout->addWidget(angleLabel, 3, 0);
   groupLayout->addWidget(angleEdit_, 3, 1);
@@ -410,8 +410,8 @@ connectSlots(bool b)
 
   connectDisconnect(b, fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
-  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, contrastEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), SLOT(widgetsToData()));
   connectDisconnect(b, formattedEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
@@ -430,8 +430,8 @@ dataToWidgets()
 
   fontEdit_     ->setFont   (data_.font());
   colorEdit_    ->setColor  (data_.color());
-  alphaEdit_    ->setValue  (data_.alpha());
-  angleEdit_    ->setAngle  (CAngle(data_.angle()));
+  alphaEdit_    ->setAlpha  (data_.alpha());
+  angleEdit_    ->setAngle  (data_.angle());
   contrastEdit_ ->setChecked(data_.isContrast());
   alignEdit_    ->setAlign  (data_.align());
   formattedEdit_->setChecked(data_.isFormatted());
@@ -452,8 +452,8 @@ widgetsToData()
 
   data_.setFont     (fontEdit_->font());
   data_.setColor    (colorEdit_->color());
-  data_.setAlpha    (alphaEdit_->value());
-  data_.setAngle    (angleEdit_->getAngle().value());
+  data_.setAlpha    (alphaEdit_->alpha());
+  data_.setAngle    (angleEdit_->angle());
   data_.setContrast (contrastEdit_->isChecked());
   data_.setAlign    (alignEdit_->align());
   data_.setFormatted(formattedEdit_->isChecked());
@@ -520,7 +520,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
 
   CQChartsTextOptions options;
 
-  options.angle         = 0;
+  options.angle         = CQChartsAngle(0);
   options.align         = Qt::AlignLeft;
   options.contrast      = data.isContrast();
   options.contrastAlpha = data.contrastAlpha();

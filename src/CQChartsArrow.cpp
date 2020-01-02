@@ -56,7 +56,7 @@ draw(CQChartsPaintDevice *device) const
   QColor sc = interpStrokeColor(ColorInd());
 
   CQChartsUtil::setPenBrush(penBrush,
-    isStroked(), sc, strokeAlpha(), 1.0, CQChartsLineDash(),
+    isStroked(), sc, strokeAlpha(), 0.0, CQChartsLineDash(),
     isFilled (), fc, fillAlpha(), fillPattern());
 
   draw(device, penBrush);
@@ -233,12 +233,12 @@ drawContents(const CQChartsPenBrush &penBrush) const
   Angle a(p1, p4);
 
   // calc front/tail arrow angles (radians)
-  Angle faa(CMathUtil::Deg2Rad(frontAngle() > 0 ? frontAngle() : 45));
-  Angle taa(CMathUtil::Deg2Rad(tailAngle () > 0 ? tailAngle () : 45));
+  Angle faa(CMathUtil::Deg2Rad(frontAngle().value() > 0 ? frontAngle().value() : 45));
+  Angle taa(CMathUtil::Deg2Rad(tailAngle ().value() > 0 ? tailAngle ().value() : 45));
 
   // calc front/tail arrow back angles (radians)
-  Angle fba(CMathUtil::Deg2Rad(frontBackAngle() > 0 ? frontBackAngle() : 90));
-  Angle tba(CMathUtil::Deg2Rad(tailBackAngle () > 0 ? tailBackAngle () : 90));
+  Angle fba(CMathUtil::Deg2Rad(frontBackAngle().value() > 0 ? frontBackAngle().value() : 90));
+  Angle tba(CMathUtil::Deg2Rad(tailBackAngle ().value() > 0 ? tailBackAngle ().value() : 90));
 
   //---
 
@@ -785,7 +785,7 @@ drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above
 
   QColor tc = Qt::black;
 
-  CQChartsUtil::setPen(tpen, true, tc, 1.0, 1.0);
+  CQChartsUtil::setPen(tpen, true, tc, CQChartsAlpha(), 0.0);
 
   device_->setPen(tpen);
 
@@ -807,7 +807,8 @@ drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above
 
   CQChartsGeom::Point pt(point.x - fw/2, point.y + (above ? -(fd + 4) : fa + 4));
 
-  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text, 0.5);
+  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text,
+                                     CQChartsAlpha(0.5));
 }
 #endif
 

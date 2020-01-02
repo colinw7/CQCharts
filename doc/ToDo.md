@@ -3,6 +3,14 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Statistical Painter - use in tests
+ + Region tool to fill in coords
+ + Custom editors for all properties (CQRealSpin, CQAlignEdit)
+ + More menu editors (see table plot sort column)
+ + test <desc> <body> <result> tcl proc ?
+ + Restrictions on column for editor (no vertical, no expression, ...)
+ + Tcl Parser for all string conversions to/from
+ + Single line edit for property editors (and focus proxy)
  + Testing (all values)
  + Replace QRectF, QPolygonF, QSizeF, QPointF
  + Auto fit text scaling

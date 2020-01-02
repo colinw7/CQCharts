@@ -320,7 +320,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool           yDensity     READ isYDensity   WRITE setYDensity    )
   Q_PROPERTY(XSide          yDensitySide READ yDensitySide WRITE setYDensitySide)
   Q_PROPERTY(CQChartsLength densityWidth READ densityWidth WRITE setDensityWidth)
-  Q_PROPERTY(double         densityAlpha READ densityAlpha WRITE setDensityAlpha)
+  Q_PROPERTY(CQChartsAlpha  densityAlpha READ densityAlpha WRITE setDensityAlpha)
 
   // density map
   Q_PROPERTY(bool   densityMap         READ isDensityMap       WRITE setDensityMap        )
@@ -334,7 +334,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(XSide          yWhiskerSide  READ yWhiskerSide  WRITE setYWhiskerSide )
   Q_PROPERTY(CQChartsLength whiskerWidth  READ whiskerWidth  WRITE setWhiskerWidth )
   Q_PROPERTY(CQChartsLength whiskerMargin READ whiskerMargin WRITE setWhiskerMargin)
-  Q_PROPERTY(double         whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
+  Q_PROPERTY(CQChartsAlpha  whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
 
   // symbol
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -346,9 +346,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell,gridCell)
 
   // symbol map key
-  Q_PROPERTY(bool   symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
-  Q_PROPERTY(double symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
-  Q_PROPERTY(double symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
+  Q_PROPERTY(bool          symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
+  Q_PROPERTY(CQChartsAlpha symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
+  Q_PROPERTY(double        symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
 
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
@@ -485,8 +485,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   const CQChartsLength &densityWidth() const { return axisDensityData_.width; }
   void setDensityWidth(const CQChartsLength &w);
 
-  double densityAlpha() const { return axisDensityData_.alpha; }
-  void setDensityAlpha(double a);
+  const CQChartsAlpha &densityAlpha() const { return axisDensityData_.alpha; }
+  void setDensityAlpha(const CQChartsAlpha &a);
 
   //---
 
@@ -517,8 +517,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   const CQChartsLength &whiskerMargin() const { return axisWhiskerData_.margin; }
   void setWhiskerMargin(const CQChartsLength &w);
 
-  double whiskerAlpha() const { return axisWhiskerData_.alpha; }
-  void setWhiskerAlpha(double a);
+  const CQChartsAlpha &whiskerAlpha() const { return axisWhiskerData_.alpha; }
+  void setWhiskerAlpha(const CQChartsAlpha &a);
 
   //---
 
@@ -537,8 +537,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool isSymbolMapKey() const { return symbolMapKeyData_.displayed; }
   void setSymbolMapKey(bool b);
 
-  double symbolMapKeyAlpha() const { return symbolMapKeyData_.alpha; }
-  void setSymbolMapKeyAlpha(double r);
+  const CQChartsAlpha &symbolMapKeyAlpha() const { return symbolMapKeyData_.alpha; }
+  void setSymbolMapKeyAlpha(const CQChartsAlpha &a);
 
   double symbolMapKeyMargin() const { return symbolMapKeyData_.margin; }
   void setSymbolMapKeyMargin(double r);
@@ -688,9 +688,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
  private:
   struct SymbolMapKeyData {
-    bool   displayed { false }; //!< is symbol map key displayed
-    double alpha     { 0.2 };   //!< symbol map key background alpha
-    double margin    { 16.0 };  //!< symbol map key margin in pixels
+    bool          displayed { false }; //!< is symbol map key displayed
+    CQChartsAlpha alpha     { 0.2 };   //!< symbol map key background alpha
+    double        margin    { 16.0 };  //!< symbol map key margin in pixels
   };
 
   struct StatData {
@@ -729,7 +729,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     bool           yVisible { false };        //!< y visible
     XSide          ySide    { XSide::RIGHT }; //!< y side
     CQChartsLength width    { "48px" };       //!< width
-    double         alpha    { 0.5 };          //!< alpha
+    CQChartsAlpha  alpha    { 0.5 };          //!< alpha
   };
 
   struct AxisWhiskerData {
@@ -739,7 +739,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     XSide          ySide    { XSide::RIGHT }; //!< y side
     CQChartsLength width    { "24px" };       //!< width
     CQChartsLength margin   { "8px" };        //!< margin
-    double         alpha    { 0.5 };          //!< alpha
+    CQChartsAlpha  alpha    { 0.5 };          //!< alpha
   };
 
   struct DensityMapData {

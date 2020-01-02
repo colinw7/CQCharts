@@ -317,11 +317,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
-    QModelIndex ind;
-    int         node;
-    QString     name;
-    int         group;
-    Connections connections;
+    QModelIndex ind;          //!< model index
+    int         node  { -1 }; //!< node numbe
+    QString     name;         //!< name
+    int         group { -1 }; //!< group index
+    Connections connections;  //!< connections list
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;

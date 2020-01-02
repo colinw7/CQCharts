@@ -1544,7 +1544,8 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
                                                       const CQChartsLength &innerRadius,
                                                       const CQChartsLength &outerRadius,
-                                                      double startAngle, double spanAngle);
+                                                      const CQChartsAngle &startAngle,
+                                                      const CQChartsAngle &spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsSymbol &type);
   CQChartsPointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
@@ -1794,20 +1795,22 @@ class CQChartsPlot : public CQChartsObj,
                    const CQChartsBrushData &brushData) const;
 
   void setPenBrush(CQChartsPenBrush &penBrush,
-                   bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
                    const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-                   bool filled, const QColor &fillColor, double fillAlpha,
+                   bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                    const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
   void setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const;
 
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
+              const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
 
   void setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const;
 
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
+                const CQChartsAlpha &fillAlpha=CQChartsAlpha(),
                 const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
   //---
@@ -2149,25 +2152,29 @@ class CQChartsPlot : public CQChartsObj,
 
   void setInterrupt(bool b=true);
 
+  bool hasLockId() const { return updateData_.lockData.id; }
+  void setLockId(const char *id) { updateData_.lockData.id = id; }
+  void resetLockId() { updateData_.lockData.id = nullptr; }
+
   void updateLock(const char *id) {
     //std::cerr << "> " << id << "\n";
-    assert(! updateData_.lockData.id);
+    assert(! hasLockId());
     updateData_.lockData.lock.lock();
-    updateData_.lockData.id = id;
+    setLockId(id);
   }
 
   bool updateTryLock(const char *id) {
     //std::cerr << "> " << id << "\n";
-    assert(! updateData_.lockData.id);
+    assert(! hasLockId());
     bool locked = updateData_.lockData.lock.try_lock();
-    updateData_.lockData.id = id;
+    setLockId(id);
     return locked;
   }
 
   void updateUnLock() {
     //std::cerr << "< " << updateData_.lockData.id << "\n";
     updateData_.lockData.lock.unlock();
-    updateData_.lockData.id = nullptr;
+    resetLockId();
    }
 
   struct LockMutex {
@@ -2361,6 +2368,7 @@ class CQChartsPlot : public CQChartsObj,
   Annotations                  pressAnnotations_;                //!< press annotations
   UpdatesData                  updatesData_;                     //!< updates data
   bool                         fromInvalidate_   { false };      //!< call from invalidate
+  mutable std::mutex           resizeMutex_;                     //!< resize mutex
 
   mutable CQChartsGeom::BBox   annotationBBox_;
 };

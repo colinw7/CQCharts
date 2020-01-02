@@ -55,8 +55,9 @@ void
 CQChartsLengthEdit::
 editChanged()
 {
-  double               value = edit_->value();
-  const CQChartsUnits &units = length_.units();
+  double value = edit_->value();
+
+  CQChartsUnits units = (length_.isValid() ? length_.units() : CQChartsUnits::NONE);
 
   CQChartsLength length(value, units);
 
@@ -72,7 +73,8 @@ void
 CQChartsLengthEdit::
 unitsChanged()
 {
-  double        value = length_.value();
+  double value = (length_.isValid() ? length_.value() : 0.0);
+
   CQChartsUnits units = unitsEdit_->units();
 
   CQChartsLength length(value, units);
@@ -91,12 +93,17 @@ lengthToWidgets()
 {
   connectSlots(false);
 
-  double               value = length_.value();
-  const CQChartsUnits &units = length_.units();
+  if (length_.isValid()) {
+    double               value = length_.value();
+    const CQChartsUnits &units = length_.units();
 
-  edit_->setValue(value);
-
-  unitsEdit_->setUnits(units);
+    edit_     ->setValue(value);
+    unitsEdit_->setUnits(units);
+  }
+  else {
+    edit_     ->setValue(0.0);
+    unitsEdit_->setUnits(CQChartsUnits::NONE);
+  }
 
   connectSlots(true);
 }

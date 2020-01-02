@@ -1,4 +1,5 @@
 #include <CQChartsColumnEdit.h>
+#include <CQChartsColumnCombo.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
@@ -8,7 +9,6 @@
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
 
-#include <QComboBox>
 #include <QCheckBox>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -22,7 +22,7 @@ CQChartsColumnLineEdit(QWidget *parent) :
 {
   setObjectName("columnLineEdit");
 
-  setToolTip("Column");
+  setToolTip("Optional Column Number or Name (use empty string to unset)");
 
   //---
 
@@ -191,31 +191,28 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsColumn column = value.value<CQChartsColumn>();
-  if (! column.isValid()) return;
+  //---
+
+  bool ok;
+
+  QString str = valueString(item, value, ok);
+
+  QFont font = option.font;
+
+  if (! ok)
+    font.setItalic(true);
 
   //---
 
-  QString str = column.toString();
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(item->object());
-
-  if (plot) {
-    QString str1 = plot->columnHeaderName(column);
-
-    if (str1.length())
-      str += " (" + str1 + ")";
-  }
-
-  //---
-
-  QFontMetrics fm(option.font);
+  QFontMetrics fm(font);
 
   int w = fm.width(str);
 
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -224,7 +221,39 @@ QString
 CQChartsColumnPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsColumn>().toString();
+  bool ok;
+
+  QString str = valueString(nullptr, value, ok);
+
+  return str;
+}
+
+QString
+CQChartsColumnPropertyViewType::
+valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
+{
+  CQChartsColumn column = value.value<CQChartsColumn>();
+
+  QString str;
+
+  if (column.isValid()) {
+    str = column.toString();
+
+    CQChartsPlot *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
+
+    if (plot) {
+      QString str1 = plot->columnHeaderName(column);
+
+      if (str1.length())
+        str += " (" + str1 + ")";
+    }
+
+    ok  = true;
+  }
+  else {
+    str = "<none>";
+    ok  = false;
+  }
 
   return str;
 }
@@ -311,6 +340,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //--
 
+  // column name/number and role
   QVBoxLayout *menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
 
   columnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>();
@@ -338,6 +368,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
+  // column expression
   menuExprGroup_ = CQUtil::makeLabelWidget<CQGroupBox>("Expression", "menuExprGroup");
 
   menuExprGroup_->setCheckable(true);
@@ -362,6 +393,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
+  // vertical header
   vheaderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Vertical Header", "vheaderCheck");
 
   vheaderCheck_->setToolTip("Get value from vertical header");
@@ -660,73 +692,4 @@ updateState()
 {
   columnCombo_   ->setEnabled(columnGroup_  ->isChecked());
   expressionEdit_->setEnabled(menuExprGroup_->isChecked());
-}
-
-//---
-
-CQChartsColumnCombo::
-CQChartsColumnCombo(QWidget *parent) :
- QComboBox(parent)
-{
-  setObjectName("columnCombo");
-
-  setToolTip("Column Name");
-
-  connect(this, SIGNAL(currentIndexChanged(int)),
-          this, SIGNAL(columnChanged()));
-}
-
-void
-CQChartsColumnCombo::
-setColumn(const CQChartsColumn &column)
-{
-  int ind = findData(column.column());
-
-  if (ind > 0)
-    setCurrentIndex(ind);
-  else
-    setCurrentIndex(0);
-}
-
-CQChartsColumn
-CQChartsColumnCombo::
-getColumn() const
-{
-  QVariant var = itemData(currentIndex());
-
-  bool ok;
-
-  long icolumn = CQChartsVariant::toInt(var, ok);
-
-  if (icolumn < 0)
-    icolumn = -1;
-
-  return CQChartsColumn(icolumn);
-}
-
-void
-CQChartsColumnCombo::
-setModel(QAbstractItemModel *model)
-{
-  clear();
-
-  addItem("<none>", -1);
-
-  if (! model)
-    return;
-
-  int nc = model->columnCount();
-
-  for (int c = 0; c < nc; ++c) {
-    QString name = model->headerData(c, Qt::Horizontal).toString();
-
-    QString label;
-
-    if (! name.simplified().length())
-      label = QString("%1 : <no name>").arg(c);
-    else
-      label = QString("%1 : %2").arg(c).arg(name);
-
-    addItem(label, c);
-  }
 }

@@ -133,6 +133,9 @@ class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 
   QString userName() const override { return "column_list"; }
+
+ private:
+  QString valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const;
 };
 
 //---

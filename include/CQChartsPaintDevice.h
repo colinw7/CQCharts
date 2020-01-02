@@ -51,7 +51,9 @@ class CQChartsPaintDevice {
   virtual void drawRect(const CQChartsGeom::BBox &) { }
 
   virtual void drawEllipse(const CQChartsGeom::BBox &) { }
-//virtual void drawArc(const CQChartsGeom::BBox &, double, double) { }
+
+//virtual void drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &,
+//                     const CQChartsAngle &) { }
 
   virtual void drawPolygon (const CQChartsGeom::Polygon &) { }
   virtual void drawPolyline(const CQChartsGeom::Polygon &) { }
@@ -148,7 +150,9 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
   void drawEllipse(const CQChartsGeom::BBox &bbox) override;
-//void drawArc(const CQChartsGeom::BBox &rect, double a1, double a2) override;
+
+//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
+//             const CQChartsAngle &a2) override;
 
   void drawPolygon (const CQChartsGeom::Polygon &poly) override;
   void drawPolyline(const CQChartsGeom::Polygon &poly) override;
@@ -308,7 +312,9 @@ class CQChartsScriptPainter : public CQChartsHtmlPainter {
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
   void drawEllipse(const CQChartsGeom::BBox &bbox) override;
-//void drawArc(const CQChartsGeom::BBox &rect, double a1, double a2) override;
+
+//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
+//             const CQChartsAngle &a2) override;
 
   void drawPolygon (const CQChartsGeom::Polygon &poly) override;
   void drawPolyline(const CQChartsGeom::Polygon &poly) override;
@@ -394,11 +400,13 @@ class CQChartsSVGPainter : public CQChartsHtmlPainter {
   void strokePath(const QPainterPath &path, const QPen &pen) override;
   void drawPath  (const QPainterPath &path) override;
 
-  void fillRect(const CQChartsGeom::BBox &rect, const QBrush &brush) override;
+  void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
   void drawEllipse(const CQChartsGeom::BBox &bbox) override;
-//void drawArc(const CQChartsGeom::BBox &rect, double a1, double a2) override;
+
+//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
+//             const CQChartsAngle &a2) override;
 
   void drawPolygon (const CQChartsGeom::Polygon &poly) override;
   void drawPolyline(const CQChartsGeom::Polygon &poly) override;

@@ -142,7 +142,7 @@ writeFill(std::ostream &os) const
     if (fillColor().isValid())
       os << " -fill_color " << fillColor().toString().toStdString();
 
-    if (fillAlpha() != 1.0)
+    if (fillAlpha() != CQChartsAlpha())
       os << " -fill_alpha " << fillAlpha();
   }
 }
@@ -159,7 +159,7 @@ writeStroke(std::ostream &os) const
     if (strokeColor().isValid())
       os << " -stroke_color " << strokeColor().toString().toStdString();
 
-    if (strokeAlpha() != 1.0)
+    if (strokeAlpha() != CQChartsAlpha())
       os << " -stroke_alpha " << strokeAlpha();
 
     if (strokeWidth().isSet())
@@ -1964,7 +1964,11 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set box
-  CQChartsGeom::BBox prect = windowToPixel(bbox_);
+//CQChartsGeom::BBox pbbox = windowToPixel(bbox_);
+
+  // get internal padding
+  double xp = pixelToWindowWidth (padding());
+  double yp = pixelToWindowHeight(padding());
 
   // get external margin
   double xlm = lengthParentWidth (margin().left  ());
@@ -1972,20 +1976,20 @@ draw(CQChartsPaintDevice *device)
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          prect.getXMin  () +       xlm +   padding();
-  double ty =          prect.getYMin  () +       ybm +   padding();
-  double tw = std::max(prect.getWidth () - xlm - xrm - 2*padding(), 0.0);
-  double th = std::max(prect.getHeight() - ybm - ytm - 2*padding(), 0.0);
+  double tx =          bbox_.getXMin  () +       xlm +   xp;
+  double ty =          bbox_.getYMin  () +       ybm +   yp;
+  double tw = std::max(bbox_.getWidth () - xlm - xrm - 2*xp, 0.0);
+  double th = std::max(bbox_.getHeight() - ybm - ytm - 2*yp, 0.0);
 
-  CQChartsGeom::BBox trect(tx, ty, tw, th);
+  CQChartsGeom::BBox tbbox(tx, ty, tx + tw, ty + th);
 
   //---
 
   // draw text
-  if (trect.isValid()) {
+  if (tbbox.isValid()) {
     device->setRenderHints(QPainter::Antialiasing);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), textStr(), textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
   }
 
   //---
@@ -2069,11 +2073,11 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (textColor().isValid())
     os << " -color {" << textColor().toString().toStdString() << "}";
 
-  if (textAlpha() != 1.0)
-    os << " -alpha " << textAlpha();
+  if (textAlpha() != CQChartsAlpha())
+    os << " -alpha " << textAlpha().value();
 
-  if (textAngle() != 1.0)
-    os << " -angle " << textAngle();
+  if (textAngle() != CQChartsAngle())
+    os << " -angle " << textAngle().value();
 
   if (isTextContrast())
     os << " -contrast 1";
@@ -2382,18 +2386,21 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set box
-  CQChartsGeom::BBox prect = windowToPixel(bbox_);
+//CQChartsGeom::BBox pbbox = windowToPixel(bbox_);
 
   // get external margin
+  double xp = pixelToWindowWidth (padding());
+  double yp = pixelToWindowHeight(padding());
+
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          prect.getXMin  () +       xlm +   padding();
-  double ty =          prect.getYMin  () +       ybm +   padding();
-  double tw = std::max(prect.getWidth () - xlm - xrm - 2*padding(), 0.0);
-  double th = std::max(prect.getHeight() - ybm - ytm - 2*padding(), 0.0);
+  double tx =          bbox_.getXMin  () +       xlm +   xp;
+  double ty =          bbox_.getYMin  () +       ybm +   yp;
+  double tw = std::max(bbox_.getWidth () - xlm - xrm - 2*xp, 0.0);
+  double th = std::max(bbox_.getHeight() - ybm - ytm - 2*yp, 0.0);
 
   CQChartsGeom::BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2429,10 +2436,10 @@ draw(CQChartsPaintDevice *device)
       }
     }
 
-    device->drawImageInRect(device->pixelToWindow(tbbox), disabledImage_);
+    device->drawImageInRect(tbbox, disabledImage_);
   }
   else {
-    device->drawImageInRect(device->pixelToWindow(tbbox), image_);
+    device->drawImageInRect(tbbox, image_);
   }
 
   //---
@@ -2524,13 +2531,7 @@ CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start,
                         const CQChartsPosition &end) :
  CQChartsAnnotation(view, Type::ARROW), start_(start), end_(end)
 {
-  setObjectName(QString("arrow.%1").arg(ind()));
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
-
-  arrow_ = std::make_unique<CQChartsArrow>(view);
-
-  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  init();
 }
 
 CQChartsArrowAnnotation::
@@ -2538,18 +2539,28 @@ CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
                         const CQChartsPosition &end) :
  CQChartsAnnotation(plot, Type::ARROW), start_(start), end_(end)
 {
-  setObjectName(QString("arrow.%1").arg(ind()));
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
-
-  arrow_ = std::make_unique<CQChartsArrow>(plot);
-
-  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  init();
 }
 
 CQChartsArrowAnnotation::
 ~CQChartsArrowAnnotation()
 {
+}
+
+void
+CQChartsArrowAnnotation::
+init()
+{
+  setObjectName(QString("arrow.%1").arg(ind()));
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  if (plot())
+    arrow_ = std::make_unique<CQChartsArrow>(plot());
+  else
+    arrow_ = std::make_unique<CQChartsArrow>(view());
+
+  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 }
 
 const CQChartsArrowData &
@@ -2847,33 +2858,35 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
   // add angles if custom
   if      (fcustom && tcustom) {
-    if      (arrow()->frontAngle() != 0.0 && arrow()->tailAngle() != 0.0)
-      os << " -angle {" << arrow()->frontAngle() << " " << arrow()->tailAngle() << "}";
-    else if (arrow()->frontAngle() != 0.0)
-      os << " -angle {" << arrow()->frontAngle() << " 0.0 }";
-    else if (arrow()->tailAngle() != 0.0)
-      os << " -angle {0.0 " << arrow()->tailAngle() << "}";
+    if      (arrow()->frontAngle().value() != 0.0 && arrow()->tailAngle().value() != 0.0)
+      os << " -angle {" << arrow()->frontAngle().value() << " " <<
+                           arrow()->tailAngle ().value() << "}";
+    else if (arrow()->frontAngle().value() != 0.0)
+      os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
+    else if (arrow()->tailAngle().value() != 0.0)
+      os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
 
-    if      (arrow()->frontBackAngle() >= 0.0 && arrow()->tailBackAngle() >= 0.0)
-      os << " -angle {" << arrow()->frontBackAngle() << " " << arrow()->tailBackAngle() << "}";
-    else if (arrow()->frontBackAngle() >= 0.0)
-      os << " -angle {" << arrow()->frontBackAngle() << " -1}";
-    else if (arrow()->tailBackAngle () >= 0.0)
-      os << " -angle {-1 " << arrow()->tailBackAngle() << "}";
+    if      (arrow()->frontBackAngle().value() >= 0.0 && arrow()->tailBackAngle().value() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle().value() << " " <<
+                           arrow()->tailBackAngle ().value() << "}";
+    else if (arrow()->frontBackAngle().value() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
+    else if (arrow()->tailBackAngle ().value() >= 0.0)
+      os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
   }
   else if (fcustom) {
-    if (arrow()->frontAngle() != 0.0)
-      os << " -angle {" << arrow()->frontAngle() << " 0.0 }";
+    if (arrow()->frontAngle().value() != 0.0)
+      os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
 
-    if (arrow()->frontBackAngle() >= 0.0)
-      os << " -angle {" << arrow()->frontBackAngle() << " -1}";
+    if (arrow()->frontBackAngle().value() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
   }
   else if (tcustom) {
-    if (arrow()->tailAngle() != 0.0)
-      os << " -angle {0.0 " << arrow()->tailAngle() << "}";
+    if (arrow()->tailAngle().value() != 0.0)
+      os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
 
-    if (arrow()->tailBackAngle () >= 0.0)
-      os << " -angle {-1 " << arrow()->tailBackAngle() << "}";
+    if (arrow()->tailBackAngle().value() >= 0.0)
+      os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
   }
 
   if      (arrow()->frontLength().isSet() && arrow()->tailLength().isSet())
@@ -2939,30 +2952,33 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &position,
                         const CQChartsSymbol &type) :
- CQChartsAnnotation(view, Type::POINT),
- CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position)
+ CQChartsAnnotation(view, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
+ position_(position), type_(type)
 {
-  setObjectName(QString("point.%1").arg(ind()));
-
-  setSymbolType(type);
+  init();
 }
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
                         const CQChartsSymbol &type) :
- CQChartsAnnotation(plot, Type::POINT),
- CQChartsObjPointData<CQChartsPointAnnotation>(this),
- position_(position)
+ CQChartsAnnotation(plot, Type::POINT), CQChartsObjPointData<CQChartsPointAnnotation>(this),
+ position_(position), type_(type)
 {
-  setObjectName(QString("point.%1").arg(ind()));
-
-  setSymbolType(type);
+  init();
 }
 
 CQChartsPointAnnotation::
 ~CQChartsPointAnnotation()
 {
+}
+
+void
+CQChartsPointAnnotation::
+init()
+{
+  setObjectName(QString("point.%1").arg(ind()));
+
+  setSymbolType(type_);
 }
 
 void
@@ -3135,8 +3151,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (fillColor().isValid())
     os << " -fill_color {" << fillColor().toString().toStdString() << "}";
 
-  if (fillAlpha() != 1.0)
-    os << " -fill_alpha " << fillAlpha();
+  if (fillAlpha() != CQChartsAlpha())
+    os << " -fill_alpha " << fillAlpha().value();
 
   if (isStroked())
     os << " -stroked 1";
@@ -3144,8 +3160,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (strokeColor().isValid())
     os << " -stroke_color {" << strokeColor().toString().toStdString() << "}";
 
-  if (strokeAlpha() != 1.0)
-    os << " -stroke_alpha " << strokeAlpha();
+  if (strokeAlpha() != CQChartsAlpha())
+    os << " -stroke_alpha " << strokeAlpha().value();
 
   if (strokeWidth().isSet())
     os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
@@ -3163,7 +3179,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 CQChartsPieSliceAnnotation::
 CQChartsPieSliceAnnotation(CQChartsView *view, const CQChartsPosition &position,
                            const CQChartsLength &innerRadius, const CQChartsLength &outerRadius,
-                           double startAngle, double spanAngle) :
+                           const CQChartsAngle &startAngle, const CQChartsAngle &spanAngle) :
  CQChartsAnnotation(view, Type::PIE_SLICE), position_(position),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
@@ -3174,7 +3190,7 @@ CQChartsPieSliceAnnotation(CQChartsView *view, const CQChartsPosition &position,
 CQChartsPieSliceAnnotation::
 CQChartsPieSliceAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
                            const CQChartsLength &innerRadius, const CQChartsLength &outerRadius,
-                           double startAngle, double spanAngle) :
+                           const CQChartsAngle &startAngle, const CQChartsAngle &spanAngle) :
  CQChartsAnnotation(plot, Type::PIE_SLICE), position_(position),
  innerRadius_(innerRadius), outerRadius_(outerRadius),
  startAngle_(startAngle), spanAngle_(spanAngle)
@@ -3309,8 +3325,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   CQChartsDrawUtil::drawPieSlice(device, c, CMathUtil::avg(xri, yri), CMathUtil::avg(xro, yro),
-                                 startAngle(), startAngle() + spanAngle(),
-                                 false, false);
+                                 startAngle(), startAngle() + spanAngle(), false, false);
 
   //---
 
@@ -3333,9 +3348,9 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (outerRadius().isValid())
     os << " -outer_radius {" << outerRadius().toString().toStdString() << "}";
 
-  os << " -start_angle " << startAngle();
+  os << " -start_angle " << startAngle().value();
 
-  os << " -span_angle " << spanAngle();
+  os << " -span_angle " << spanAngle().value();
 
   os << "]\n";
 
@@ -3420,7 +3435,7 @@ QString
 CQChartsPointSetAnnotation::
 propertyId() const
 {
-  return QString("valueSetAnnotation%1").arg(ind());
+  return QString("pointSetAnnotation%1").arg(ind());
 }
 
 void

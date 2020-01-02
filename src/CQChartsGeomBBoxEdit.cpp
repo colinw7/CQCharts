@@ -127,28 +127,34 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsGeomBBoxPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
   delegate->drawBackground(painter, option, ind, inside);
 
+  //---
+
   bool ok;
 
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(value, ok);
-  if (! ok) return;
+  QString str = valueString(item, value, ok);
 
-  QString str = bbox.toString();
+  QFont font = option.font;
 
-  QFontMetrics fm(option.font);
-
-  int w = fm.width(str);
+  if (! ok)
+    font.setItalic(true);
 
   //---
+
+  QFontMetrics fm(font);
+
+  int w = fm.width(str);
 
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -159,10 +165,23 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(value, ok);
-  if (! ok) return "";
+  QString str = valueString(nullptr, value, ok);
 
-  QString str = bbox.toString();
+  return str;
+}
+
+QString
+CQChartsGeomBBoxPropertyViewType::
+valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
+{
+  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(value, ok);
+
+  QString str;
+
+  if (ok)
+    str = bbox.toString();
+  else
+    str = "Undefined";
 
   return str;
 }

@@ -31,13 +31,6 @@ CQChartsMarginEdit(QWidget *parent) :
   connectSlots(true);
 }
 
-const CQChartsMargin &
-CQChartsMarginEdit::
-margin() const
-{
-  return margin_;
-}
-
 void
 CQChartsMarginEdit::
 setMargin(const CQChartsMargin &margin)
@@ -55,12 +48,11 @@ editChanged()
 
   CQChartsMargin margin(value);
 
-  if (! margin.isValid())
-    return;
+  if (margin.isValid()) {
+    margin_ = margin;
 
-  margin_ = margin;
-
-  emit marginChanged();
+    emit marginChanged();
+  }
 }
 
 void
@@ -84,10 +76,8 @@ widgetsToMargin()
 
   CQChartsMargin margin(value);
 
-  if (! margin.isValid())
-    return;
-
-  margin_ = margin;
+  if (margin.isValid())
+    margin_ = margin;
 }
 
 void
@@ -114,11 +104,6 @@ connectSlots(bool b)
 
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
-
-CQChartsMarginPropertyViewType::
-CQChartsMarginPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsMarginPropertyViewType::
@@ -169,11 +154,6 @@ tip(const QVariant &value) const
 }
 
 //------
-
-CQChartsMarginPropertyViewEditor::
-CQChartsMarginPropertyViewEditor()
-{
-}
 
 QWidget *
 CQChartsMarginPropertyViewEditor::

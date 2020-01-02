@@ -1019,3 +1019,6 @@
  + Replace QRectF with CQChartsGeom::BBox
  + Replace QPolygonF with CQChartsGeom::Polygon
  + Add custom edit for CQChartsGeom::Point and CQChartsGeom::BBox
+# 01/02/2020
+ + Add more types/custom editors (CQChartsAlpha, CQChartsAngle, CQChartsColumnNum)
+ + Add range (min, max) support for integer/real properties

@@ -354,7 +354,7 @@ CQChartsPlot::
 animateSlot()
 {
   interruptRange();
-  //interruptDraw();
+//interruptDraw();
 
   animateStep();
 }
@@ -3058,6 +3058,9 @@ syncState()
   UpdateState updateState = this->updateState();
 
   while (updateState == UpdateState::INVALID) {
+    if (isInterrupt())
+      return;
+
     threadTimerSlot();
 
     updateState = this->updateState();
@@ -3112,6 +3115,9 @@ waitRange1()
 
       return;
     }
+
+    if (isInterrupt())
+      return;
 
     threadTimerSlot();
 
@@ -3305,6 +3311,9 @@ waitObjs1()
 
       return;
     }
+
+    if (isInterrupt())
+      return;
 
     threadTimerSlot();
 
@@ -6298,7 +6307,7 @@ void
 CQChartsPlot::
 preResize()
 {
-  LockMutex lock(this, "preResize");
+  std::unique_lock<std::mutex> lock(resizeMutex_);
 
   interruptDraw();
 }
@@ -6582,6 +6591,9 @@ waitDraw1()
 
       return;
     }
+
+    if (isInterrupt())
+      return;
 
     threadTimerSlot();
 
@@ -7025,9 +7037,9 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
   //---
 
   auto drawBackgroundRect = [&](bool isFilled, bool isStroked, const CQChartsGeom::BBox &rect,
-                                const QColor &fillColor, double fillAlpha,
+                                const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                                 const CQChartsFillPattern &fillPattern,
-                                const QColor &strokeColor, double strokeAlpha,
+                                const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
                                 const CQChartsLength &strokeWidth,
                                 const CQChartsLineDash &strokeDash, const CQChartsSides &sides) {
     if (isFilled) {
@@ -8292,7 +8304,8 @@ addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 CQChartsPieSliceAnnotation *
 CQChartsPlot::
 addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
-                      const CQChartsLength &outerRadius, double startAngle, double spanAngle)
+                      const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
+                      const CQChartsAngle &spanAngle)
 {
   CQChartsPieSliceAnnotation *annotation =
     new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
@@ -8988,9 +9001,9 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 void
 CQChartsPlot::
 setPenBrush(CQChartsPenBrush &penBrush,
-            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-            bool filled, const QColor &fillColor, double fillAlpha,
+            bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
             const CQChartsFillPattern &pattern) const
 {
   setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
@@ -9008,7 +9021,7 @@ setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
 
 void
 CQChartsPlot::
-setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
        const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
   double width = lengthPixelWidth(strokeWidth);
@@ -9026,7 +9039,7 @@ setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
 
 void
 CQChartsPlot::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
          const CQChartsFillPattern &pattern) const
 {
   CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
