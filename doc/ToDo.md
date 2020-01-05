@@ -3,7 +3,10 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Grouped Axis Ranges
+   + Multiple Ranges, tick label per group.
  + Statistical Painter - use in tests
+ + Test write/reload and compare same
  + Region tool to fill in coords
  + Custom editors for all properties (CQRealSpin, CQAlignEdit)
  + More menu editors (see table plot sort column)

@@ -10672,36 +10672,6 @@ viewToWindow(const CQChartsGeom::Point &v) const
   return CQChartsGeom::Point(wx, wy);
 }
 
-#if 0
-QPointF
-CQChartsPlot::
-windowToPixel(const QPointF &w) const
-{
-  return windowToPixel(CQChartsGeom::Point(w)).qpoint();
-}
-
-QPointF
-CQChartsPlot::
-windowToView(const QPointF &w) const
-{
-  return windowToView(CQChartsGeom::Point(w)).qpoint();
-}
-
-QPointF
-CQChartsPlot::
-pixelToWindow(const QPointF &w) const
-{
-  return pixelToWindow(CQChartsGeom::Point(w)).qpoint();
-}
-
-QPointF
-CQChartsPlot::
-viewToWindow(const QPointF &v) const
-{
-  return viewToWindow(CQChartsGeom::Point(v)).qpoint();
-}
-#endif
-
 void
 CQChartsPlot::
 windowToPixelI(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const

@@ -884,6 +884,17 @@ class BBox {
     return bbox;
   }
 
+  //---
+
+  void update() {
+    assert(set_);
+
+    if (pmin_.x > pmax_.x) std::swap(pmin_.x, pmax_.x);
+    if (pmin_.y > pmax_.y) std::swap(pmin_.y, pmax_.y);
+  }
+
+  //---
+
   friend bool operator==(const BBox &lhs, const BBox &rhs) {
     return (lhs.pmin_ == rhs.pmin_ && lhs.pmax_ == rhs.pmax_);
   }
@@ -905,14 +916,6 @@ class BBox {
     bbox.print(os);
 
     return os;
-  }
-
- private:
-  void update() {
-    assert(set_);
-
-    if (pmin_.x > pmax_.x) std::swap(pmin_.x, pmax_.x);
-    if (pmin_.y > pmax_.y) std::swap(pmin_.y, pmax_.y);
   }
 
  private:

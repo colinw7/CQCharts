@@ -878,7 +878,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw box
-  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
+  //CQChartsBoxObj::draw(device, bbox_, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1913,7 +1913,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw box
-  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
+  //CQChartsBoxObj::draw(device, bbox_, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2377,7 +2377,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw box
-  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
+  //CQChartsBoxObj::draw(device, bbox_, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

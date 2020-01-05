@@ -95,7 +95,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   button_ = CQUtil::makeWidget<QToolButton>("button");
 
-  menu_ = new QMenu;
+  menu_ = new QMenu(this);
 
   //menu_->setStyle(new CQChartsLineDashEditProxyStyle);
 

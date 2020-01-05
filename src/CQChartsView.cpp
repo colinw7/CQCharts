@@ -320,7 +320,8 @@ addProperties()
 
   // text
   addStyleProp("text", "scaleFont" , "scaled", "Scale font to view size");
-  addStyleProp("text", "fontFactor", "factor", "Global text scale factor");
+  addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->
+    setMinValue(0.001);
   addStyleProp("text", "font"      , "font"  , "Global text font");
 
   // sizing
@@ -642,7 +643,7 @@ calcFontScale(const CQChartsGeom::Size &size) const
   double sx = (size.width () > 0 ? size.width ()/defSizeHint().width () : 1.0);
   double sy = (size.height() > 0 ? size.height()/defSizeHint().height() : 1.0);
 
-  return fontFactor()*std::min(sx, sy);
+  return std::max(fontFactor()*std::min(sx, sy), 0.01);
 }
 
 QFont

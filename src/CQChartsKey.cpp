@@ -865,7 +865,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp("hiddenAlpha", "Alpha for hidden items");
 
   addProp("maxRows", "Max rows for key");
-  addProp("spacing", "Spacing between rows");
+  addProp("spacing", "Spacing between rows in pixels");
 
   //---
 

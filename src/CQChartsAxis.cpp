@@ -220,7 +220,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   addProp(path, "tickLabels", "", "Tick Labels")->setHidden(true);
 
-  addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit");
+  addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit")->
+    setMinValue(0.0);
 
   //---
 
@@ -1272,7 +1273,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //----
 
-  double extent = maxFitExtent_/100.0;
+  double extent = std::max(maxFitExtent()/100.0, 0.0);
 
   double fitMin = fitBBox_.getMinExtent(isHorizontal());
   double fitMax = fitBBox_.getMaxExtent(isHorizontal());
@@ -1297,6 +1298,8 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     if (f2 > extent)
       bbox1.setMaxExtent(isHorizontal(), fitMax + extent*fitLen);
+
+    bbox1.update();
 
     return bbox1;
   };
