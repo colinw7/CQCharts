@@ -35,8 +35,10 @@ init()
 {
   setObjectName("editModelDlg");
 
-  if (modelData_)
+  if (modelData_) {
     connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+    connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+  }
 
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
@@ -105,8 +107,10 @@ void
 CQChartsEditModelDlg::
 setModelData(CQChartsModelData *modelData)
 {
-  if (modelData_)
+  if (modelData_) {
     disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+    disconnect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+  }
 
   modelData_ = modelData;
 
@@ -115,8 +119,10 @@ setModelData(CQChartsModelData *modelData)
   else
     model_ = ModelP();
 
-  if (modelData_)
+  if (modelData_) {
     connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+    connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+  }
 
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));

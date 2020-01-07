@@ -328,6 +328,8 @@ assignColumn(const QString &header, int column, const QString &expr)
     QVariant var;
 
     if (evaluateExpression(expr1, var)) {
+      currentCol_ = column;
+
       QModelIndex ind = index(currentRow_, currentCol_, QModelIndex());
 
       setData(ind, var, role);

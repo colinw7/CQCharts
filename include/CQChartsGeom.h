@@ -320,24 +320,24 @@ class BBox {
 
   BBox(const Point &pmin, const Point &pmax) :
    pmin_(pmin), pmax_(pmax), set_(true) {
-    update();
+    (void) update();
   }
 
   BBox(double x1, double y1, double x2, double y2) :
    pmin_(x1, y1), pmax_(x2, y2), set_(true) {
-    update();
+    (void) update();
   }
 
   explicit BBox(const QRectF &rect) :
    pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(rect.isValid()) {
     if (isSet())
-      update();
+      (void) update();
   }
 
   explicit BBox(const QPointF &p1, const QPointF &p2) :
    pmin_(p1.x(), p1.y()), pmax_(p2.x(), p2.y()), set_(true) {
     if (isSet())
-      update();
+      (void) update();
   }
 
   explicit BBox(const Range &range);
@@ -345,7 +345,7 @@ class BBox {
 #if 0
   BBox(const Point &o, const Size &s) :
    pmin_(o), pmax_(o + s), set_(true) {
-    update();
+    (void) update();
   }
 #endif
 
@@ -613,30 +613,38 @@ class BBox {
     }
   }
 
-  void expand(double delta) {
-    if (! set_) return;
+  bool expand(double delta) {
+    assert(set_);
 
     pmin_ -= delta;
     pmax_ += delta;
 
-    update();
+    return update();
   }
 
-  void expand(double dx1, double dy1, double dx2, double dy2) {
-    if (! set_) return;
+  bool expand(double dx1, double dy1, double dx2, double dy2) {
+    assert(set_);
 
     pmin_.x += dx1;
     pmin_.y += dy1;
     pmax_.x += dx2;
     pmax_.y += dy2;
 
-    update();
+    return update();
   }
 
   BBox adjusted(double dx1, double dy1, double dx2, double dy2) const {
+    bool swapped;
+
+    return adjusted(dx1, dy1, dx2, dy2, swapped);
+  }
+
+  BBox adjusted(double dx1, double dy1, double dx2, double dy2, bool &swapped) const {
+    assert(set_);
+
     BBox bbox(*this);
 
-    bbox.expand(dx1, dy1, dx2, dy2);
+    swapped = bbox.expand(dx1, dy1, dx2, dy2);
 
     return bbox;
   }
@@ -754,11 +762,15 @@ class BBox {
     (horizontal ? setXRange(emin, emax) : setYRange(emin, emax));
   }
 
-  void expandExtent(double emin, double emax, bool horizontal) {
+  bool expandExtent(double emin, double emax, bool horizontal) {
+    assert(set_);
+
     if (horizontal)
       setXRange(getXMin() - emin, getXMax() + emax);
     else
       setYRange(getYMin() - emin, getYMax() + emax);
+
+    return update();
   }
 
   void setXRange(double xl, double xr) { setXMin(xl); setXMax(xr); }
@@ -823,7 +835,7 @@ class BBox {
     pmin_.x += dx;
     pmax_.x += dx;
 
-    update();
+    (void) update();
 
     return *this;
   }
@@ -836,7 +848,7 @@ class BBox {
     pmin_.y += dy;
     pmax_.y += dy;
 
-    update();
+    (void) update();
 
     return *this;
   }
@@ -849,7 +861,7 @@ class BBox {
     pmin_ += delta;
     pmax_ += delta;
 
-    update();
+    (void) update();
 
     return *this;
   }
@@ -860,7 +872,7 @@ class BBox {
     pmin_ += delta;
     pmax_ += delta;
 
-    update();
+    (void) update();
 
     return *this;
   }
@@ -871,7 +883,7 @@ class BBox {
     pmin_ += dmin;
     pmax_ += dmax;
 
-    update();
+    (void) update();
 
     return *this;
   }
@@ -886,11 +898,16 @@ class BBox {
 
   //---
 
-  void update() {
+  // true if ok, false if changed (swapped)
+  bool update() {
     assert(set_);
 
-    if (pmin_.x > pmax_.x) std::swap(pmin_.x, pmax_.x);
-    if (pmin_.y > pmax_.y) std::swap(pmin_.y, pmax_.y);
+    bool changed = false;
+
+    if (pmin_.x > pmax_.x) { std::swap(pmin_.x, pmax_.x); changed = true; }
+    if (pmin_.y > pmax_.y) { std::swap(pmin_.y, pmax_.y); changed = true; }
+
+    return ! changed;
   }
 
   //---

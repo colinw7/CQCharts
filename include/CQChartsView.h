@@ -470,6 +470,8 @@ class CQChartsView : public QFrame,
   // group plots (overlay, x1/x2, y1/y2)
   void resetGrouping();
 
+  void resetPlotGrouping();
+
   void initOverlay(const Plots &plots, bool reset=false);
 
   void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);

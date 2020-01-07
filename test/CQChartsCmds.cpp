@@ -4550,29 +4550,36 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(vars);
     }
     // column named value
-    else if (CQChartsModelColumnDetails::isNamedValue(name)) {
-      const CQChartsModelDetails *details = modelData->details();
+    else if (name.left(8) == "details.") {
+      QString name1 = name.mid(8);
 
-      if (argv.hasParseArg("column")) {
-        if (! column.isValid() || column.column() >= details->numColumns())
-          return errorMsg("Invalid column specified");
+      if (CQChartsModelColumnDetails::isNamedValue(name1)) {
+        const CQChartsModelDetails *details = modelData->details();
 
-        auto columnDetails = details->columnDetails(column);
+        if (argv.hasParseArg("column")) {
+          if (! column.isValid() || column.column() >= details->numColumns())
+            return errorMsg("Invalid column specified");
 
-        cmdBase_->setCmdRc(columnDetails->getNamedValue(name));
+          auto columnDetails = details->columnDetails(column);
+
+          cmdBase_->setCmdRc(columnDetails->getNamedValue(name));
+        }
+        else {
+          int nc = details->numColumns();
+
+          QVariantList vars;
+
+          for (int c = 0; c < nc; ++c) {
+            auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+            vars.push_back(columnDetails->getNamedValue(name));
+          }
+
+          cmdBase_->setCmdRc(vars);
+        }
       }
       else {
-        int nc = details->numColumns();
-
-        QVariantList vars;
-
-        for (int c = 0; c < nc; ++c) {
-          auto columnDetails = details->columnDetails(CQChartsColumn(c));
-
-          vars.push_back(columnDetails->getNamedValue(name));
-        }
-
-        cmdBase_->setCmdRc(vars);
+        return errorMsg(QString("Invalid column details name '%1'").arg(name));
       }
     }
     // map value
@@ -4671,7 +4678,10 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
         "title" /* << "property.<name>" */;
 
-      names << CQChartsModelColumnDetails::getLongNamedValues();
+      QStringList detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
+
+      for (const auto &detailsName : detailsNames)
+        names << QString("details.%1").arg(detailsName);
 
       cmdBase_->setCmdRc(names);
     }
@@ -5121,7 +5131,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         cmdBase_->setCmdRc(QString());
     }
     // get column header or row, column value
-    if      (name == "properties") {
+    else if (name == "properties") {
       QStringList names;
 
       annotation->getPropertyNames(names, hidden);

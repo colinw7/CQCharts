@@ -2121,8 +2121,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   CQChartsGeom::BBox prect = plot->windowToPixel(rect);
 
-  CQChartsGeom::BBox prect1(prect.getXMin() + 2, prect.getYMin() + 2,
-                            prect.getXMax() - 2, prect.getYMax() - 2);
+  bool swapped;
+  CQChartsGeom::BBox prect1 = prect.adjusted(2, 2, -2, -2, swapped);
+  if (swapped) return;
 
   ColorInd colorInd = calcColorInd();
 

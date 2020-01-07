@@ -332,6 +332,15 @@ currentModel() const
 
 void
 CQChartsModelData::
+emitDeleted()
+{
+  emit deleted();
+}
+
+//---
+
+void
+CQChartsModelData::
 addSelectionModel(QItemSelectionModel *model)
 {
   connect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),

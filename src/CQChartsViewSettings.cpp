@@ -1308,8 +1308,8 @@ initPlotsFrame(QFrame *plotsFrame)
 
   plotsWidgets_.raiseButton     = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
   plotsWidgets_.lowerButton     = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
-  plotsWidgets_.createButton    = createPushButton("Create", "create", SLOT(removePlotsSlot()));
-  plotsWidgets_.removeButton    = createPushButton("Remove", "remove", SLOT(createPlotSlot()));
+  plotsWidgets_.createButton    = createPushButton("Create", "create", SLOT(createPlotSlot()));
+  plotsWidgets_.removeButton    = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
 //QPushButton*  writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
   plotsWidgets_.raiseButton ->setToolTip("Raise selected plot");

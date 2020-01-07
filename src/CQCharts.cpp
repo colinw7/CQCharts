@@ -992,6 +992,8 @@ removeModelData(CQChartsModelData *modelData)
 
   modelDatas_.pop_back();
 
+  modelData->emitDeleted();
+
   delete modelData;
 
   emit modelDataRemoved(ind);

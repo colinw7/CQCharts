@@ -174,6 +174,7 @@ init()
   //--
 
   connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
+  connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
 
   initialized_ = true;
 

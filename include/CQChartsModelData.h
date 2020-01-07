@@ -135,6 +135,10 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  void emitDeleted();
+
+  //---
+
   // add/get summary model
   CQSummaryModel *addSummaryModel();
 
@@ -232,6 +236,9 @@ class CQChartsModelData : public QObject {
 
   // selection changed
   void selectionChanged(QItemSelectionModel *sm);
+
+  // model data deleted
+  void deleted();
 
  private:
   using SelectionModelP = QPointer<QItemSelectionModel>;

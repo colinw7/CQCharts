@@ -1565,6 +1565,15 @@ resetGrouping()
 {
   resetConnections(/*notify*/false);
 
+  resetPlotGrouping();
+
+  emit connectDataChanged();
+}
+
+void
+CQChartsView::
+resetPlotGrouping()
+{
   for (auto &plot : plots_) {
     if (plot->xAxis()) {
       plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
@@ -1587,8 +1596,6 @@ resetGrouping()
 
     plot->resetKeyItems();
   }
-
-  emit connectDataChanged();
 }
 
 void
@@ -1713,6 +1720,9 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
     if (isScrolled())
       setScrolled(false);
 
+    if (! overlay)
+      resetPlotGrouping();
+
     resetConnections(/*notify*/false);
   }
 
@@ -1764,6 +1774,9 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   if (reset) {
     if (isScrolled())
       setScrolled(false);
+
+    if (! overlay)
+      resetPlotGrouping();
 
     resetConnections(/*notify*/false);
   }
@@ -6680,7 +6693,10 @@ writeAll(std::ostream &os) const
       plot->x1x2Plots(plot1, plot2);
 
       os << "\n";
-      os << "group_charts_plots -x1x2 -overlay";
+      os << "group_charts_plots -x1x2";
+
+      if (plot->isOverlay())
+        os << " -overlay";
 
       os << " $" << plotVars[plot1].toStdString();
       os << " $" << plotVars[plot2].toStdString();
@@ -6692,7 +6708,10 @@ writeAll(std::ostream &os) const
       plot->y1y2Plots(plot1, plot2);
 
       os << "\n";
-      os << "group_charts_plots -y1y2 -overlay";
+      os << "group_charts_plots -y1y2";
+
+      if (plot->isOverlay())
+        os << " -overlay";
 
       os << " $" << plotVars[plot1].toStdString();
       os << " $" << plotVars[plot2].toStdString();
