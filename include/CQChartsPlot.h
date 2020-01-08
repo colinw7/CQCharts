@@ -565,11 +565,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // get/set bbox in view range
-  const CQChartsGeom::BBox &viewBBox() const { return viewBBox_; }
+  CQChartsGeom::BBox viewBBox() const;
   void setViewBBox(const CQChartsGeom::BBox &bbox);
 
   // get inner view bbox
-  const CQChartsGeom::BBox &innerViewBBox() const { return innerViewBBox_; }
+  CQChartsGeom::BBox innerViewBBox() const;
 
   // get/set data range
   CQChartsGeom::BBox range() const;

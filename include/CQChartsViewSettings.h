@@ -119,6 +119,8 @@ class CQChartsViewSettings : public QFrame {
 
   void plotsSelectionChangeSlot();
 
+  void updatePlotOverlayState();
+
   void editViewKeySlot();
 
   void editPlotTitleSlot();

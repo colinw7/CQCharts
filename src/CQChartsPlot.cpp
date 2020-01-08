@@ -1527,6 +1527,26 @@ dataRect() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
+viewBBox() const
+{
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->viewBBox();
+
+  return viewBBox_;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+innerViewBBox() const
+{
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->innerViewBBox();
+
+  return innerViewBBox_;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
 range() const
 {
   return dataRect();
@@ -3061,6 +3081,9 @@ syncState()
     if (isInterrupt())
       return;
 
+    if (hasLockId())
+      return;
+
     threadTimerSlot();
 
     updateState = this->updateState();
@@ -3118,6 +3141,12 @@ waitRange1()
 
     if (isInterrupt())
       return;
+
+    if (hasLockId())
+      return;
+
+    if (! isFirstPlot())
+      break;
 
     threadTimerSlot();
 
@@ -3314,6 +3343,12 @@ waitObjs1()
 
     if (isInterrupt())
       return;
+
+    if (hasLockId())
+      return;
+
+    if (! isFirstPlot())
+      break;
 
     threadTimerSlot();
 
@@ -6594,6 +6629,12 @@ waitDraw1()
 
     if (isInterrupt())
       return;
+
+    if (hasLockId())
+      return;
+
+    if (! isFirstPlot())
+      break;
 
     threadTimerSlot();
 

@@ -265,6 +265,8 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
     horizontalHeader()->setStretchLastSection(true);
 
+    //setSelectionMode(ExtendedSelection);
+
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
 
@@ -316,9 +318,10 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       // set state item
       QStringList states;
 
+      if      (plot->isX1X2()) states += "x1x2";
+      else if (plot->isY1Y2()) states += "y1y2";
+
       if (plot->isOverlay()) states += "overlay";
-      if (plot->isX1X2   ()) states += "x1x2";
-      if (plot->isY1Y2   ()) states += "y1y2";
 
       QString stateStr = states.join("|");
 
@@ -1194,6 +1197,11 @@ initPlotsFrame(QFrame *plotsFrame)
   plotsWidgets_.x1x2Check   ->setToolTip("Plot shares Y axis with another plot");
   plotsWidgets_.y1y2Check   ->setToolTip("Plot shares X axis with another plot");
 
+  connect(plotsWidgets_.x1x2Check, SIGNAL(stateChanged(int)),
+          this, SLOT(updatePlotOverlayState()));
+  connect(plotsWidgets_.y1y2Check, SIGNAL(stateChanged(int)),
+          this, SLOT(updatePlotOverlayState()));
+
   groupPlotsCheckLayout->addWidget(plotsWidgets_.overlayCheck);
   groupPlotsCheckLayout->addWidget(plotsWidgets_.x1x2Check);
   groupPlotsCheckLayout->addWidget(plotsWidgets_.y1y2Check);
@@ -1209,7 +1217,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   auto groupApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
 
-  groupApplyButton->setToolTip("Apply connection options");
+  groupApplyButton->setToolTip("Apply connection options to all plots");
 
   connect(groupApplyButton, SIGNAL(clicked()), this, SLOT(groupPlotsSlot()));
 
@@ -1282,7 +1290,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   auto placeApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
 
-  placeApplyButton->setToolTip("Apply placement options");
+  placeApplyButton->setToolTip("Apply placement options to all plots");
 
   placePlotsButtonsLayout->addWidget(placeApplyButton);
   placePlotsButtonsLayout->addStretch(1);
@@ -1331,6 +1339,10 @@ initPlotsFrame(QFrame *plotsFrame)
   //---
 
   controlPlotsGroupLayout->addStretch(1);
+
+  //---
+
+  updatePlotOverlayState();
 }
 
 void
@@ -2108,6 +2120,26 @@ plotsSelectionChangeSlot()
     plot->setSelected(true);
 
   view->endSelection();
+}
+
+void
+CQChartsViewSettings::
+updatePlotOverlayState()
+{
+  QObject *obj = sender();
+
+  if      (obj == plotsWidgets_.x1x2Check) {
+    if (plotsWidgets_.x1x2Check->isChecked())
+      plotsWidgets_.y1y2Check->setChecked(false);
+  }
+  else if (obj == plotsWidgets_.y1y2Check) {
+    if (plotsWidgets_.y1y2Check->isChecked())
+      plotsWidgets_.x1x2Check->setChecked(false);
+  }
+  else {
+    if (plotsWidgets_.x1x2Check->isChecked() && plotsWidgets_.y1y2Check->isChecked())
+      plotsWidgets_.y1y2Check->setChecked(false);
+  }
 }
 
 void

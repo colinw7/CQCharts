@@ -1591,9 +1591,6 @@ resetPlotGrouping()
     //if (plot->title())
     //  plot->title()->setVisible(true);
 
-    //plot->setBackground    (true);
-    //plot->setDataBackground(true);
-
     plot->resetKeyItems();
   }
 }
@@ -1632,6 +1629,8 @@ initOverlay(const Plots &plots, bool reset)
   if (reset) {
     if (isScrolled())
       setScrolled(false);
+
+    resetPlotGrouping();
 
     resetConnections(/*notify*/false);
   }
@@ -1695,14 +1694,6 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
     if (yaxis)
       yaxis->setVisible(false);
-
-    //CQChartsTitle *title = plot->title();
-
-    //if (title)
-    //  title->setVisible(false);
-
-    //plot->setBackground    (false);
-    //plot->setDataBackground(false);
   }
 
   //---
@@ -1720,8 +1711,7 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
     if (isScrolled())
       setScrolled(false);
 
-    if (! overlay)
-      resetPlotGrouping();
+    resetPlotGrouping();
 
     resetConnections(/*notify*/false);
   }
@@ -1749,15 +1739,6 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   if (plot2->isOverlay()) {
     if (plot2->yAxis())
       plot2->yAxis()->setVisible(false);
-
-    //if (plot2->key())
-    //  plot2->key()->setVisible(false);
-
-    //if (plot2->title())
-    //  plot2->title()->setVisible(false);
-
-//  plot2->setBackground    (false);
-//  plot2->setDataBackground(false);
   }
 
   //---
@@ -1775,8 +1756,7 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
     if (isScrolled())
       setScrolled(false);
 
-    if (! overlay)
-      resetPlotGrouping();
+    resetPlotGrouping();
 
     resetConnections(/*notify*/false);
   }
@@ -1804,15 +1784,6 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   if (plot2->isOverlay()) {
     if (plot2->xAxis())
       plot2->xAxis()->setVisible(false);
-
-    //if (plot2->key())
-    //  plot2->key()->setVisible(false);
-
-    //if (plot2->title())
-    //  plot2->title()->setVisible(false);
-
-//  plot2->setBackground    (false);
-//  plot2->setDataBackground(false);
   }
 
   //---
