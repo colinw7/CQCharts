@@ -1730,7 +1730,7 @@ updateOverlay()
     plot->updatesData_.reset();
   });
 
-  applyDataRange();
+  applyDataRangeAndDraw();
 }
 
 void
@@ -3399,6 +3399,16 @@ calcDataRange(bool adjust) const
   return bbox;
 }
 
+void
+CQChartsPlot::
+calcDataRanges(CQChartsGeom::BBox &rawRange, CQChartsGeom::BBox &adjustedRange) const
+{
+  rawRange = getDataRange();
+
+  // if zoom data, adjust bbox by pan offset, zoom scale
+  adjustedRange = adjustDataRangeBBox(rawRange);
+}
+
 CQChartsGeom::BBox
 CQChartsPlot::
 adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
@@ -3460,6 +3470,19 @@ applyDataRangeAndDraw()
   applyDataRange();
 
   drawObjs();
+
+  if (! isOverlay()) {
+    if (isX1X2() || isY1Y2()) {
+      CQChartsPlot *plot1 = firstPlot();
+
+      while (plot1) {
+        if (plot1 != this)
+          plot1->drawObjs();
+
+        plot1 = plot1->nextPlot();
+      }
+    }
+  }
 }
 
 void
@@ -3478,60 +3501,65 @@ applyDataRange(bool propagate)
 
   //---
 
-  CQChartsGeom::BBox dataRange;
+  CQChartsGeom::BBox rawRange, adjustedRange;
 
   if (propagate) {
-    if      (isX1X2()) {
-      CQChartsPlot *plot1 = firstPlot();
+    if (isOverlay()) {
+      if      (isX1X2()) {
+        CQChartsPlot *plot1 = firstPlot();
 
-      dataRange = plot1->calcDataRange(/*adjust*/false);
-    }
-    else if (isY1Y2()) {
-      CQChartsPlot *plot1 = firstPlot();
+        plot1->calcDataRanges(rawRange, adjustedRange);
+      }
+      else if (isY1Y2()) {
+        CQChartsPlot *plot1 = firstPlot();
 
-      dataRange = plot1->calcDataRange(/*adjust*/false);
-    }
-    else if (isOverlay()) {
-      processOverlayPlots([&](CQChartsPlot *plot) {
-        //plot->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
-        //plot->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
+        plot1->calcDataRanges(rawRange, adjustedRange);
+      }
+      else {
+        processOverlayPlots([&](CQChartsPlot *plot) {
+          //plot->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
+          //plot->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
 
-        CQChartsGeom::BBox dataRange1 = plot->calcDataRange(/*adjust*/false);
+          CQChartsGeom::BBox rawRange1, adjustedRange1;
 
-        dataRange += dataRange1;
-      });
+          plot->calcDataRanges(rawRange1, adjustedRange1);
+
+          rawRange      += rawRange1;
+          adjustedRange += adjustedRange1;
+        });
+      }
     }
     else {
-      dataRange = calcDataRange();
+      calcDataRanges(rawRange, adjustedRange);
     }
   }
   else {
-    dataRange = calcDataRange();
+    calcDataRanges(rawRange, adjustedRange);
   }
 
   if (isOverlay()) {
     if (! propagate) {
       if      (isX1X2()) {
-        setWindowRange(dataRange);
+        setWindowRange(adjustedRange);
       }
       else if (isY1Y2()) {
-        setWindowRange(dataRange);
+        setWindowRange(adjustedRange);
       }
     }
     else {
       // This breaks X1X2 and Y1Y2 plots (wrong range)
       //processOverlayPlots([&](CQChartsPlot *plot) {
-      //  plot->setWindowRange(dataRange);
+      //  plot->setWindowRange(adjustedRange);
       //});
     }
   }
   else {
-    setWindowRange(dataRange);
+    setWindowRange(adjustedRange);
   }
 
   if (xAxis()) {
-    xAxis()->setRange(dataRange.getXMin(), dataRange.getXMax());
-    yAxis()->setRange(dataRange.getYMin(), dataRange.getYMax());
+    xAxis()->setRange(adjustedRange.getXMin(), adjustedRange.getXMax());
+    yAxis()->setRange(adjustedRange.getYMin(), adjustedRange.getYMax());
   }
 
   if (propagate) {
@@ -3539,101 +3567,15 @@ applyDataRange(bool propagate)
       assert(isFirstPlot());
     }
 
-    if      (isX1X2()) {
-      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
+    if (isOverlay()) {
+      if      (isX1X2()) {
+        CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(rawRange);
 
-      CQChartsPlot *plot1, *plot2;
+        CQChartsPlot *plot1, *plot2;
 
-      x1x2Plots(plot1, plot2);
+        x1x2Plots(plot1, plot2);
 
-      if (plot1) {
-        plot1->setDataScaleX (dataScaleX ());
-        plot1->setDataScaleY (dataScaleY ());
-        plot1->setDataOffsetX(dataOffsetX());
-        plot1->setDataOffsetY(dataOffsetY());
-
-        plot1->applyDataRange(/*propagate*/false);
-      }
-
-      //---
-
-      if (plot2) {
-        //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
-        //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
-
-        CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
-
-        CQChartsGeom::Range dataRange2 =
-          CQChartsGeom::Range(bbox2.getXMin(), dataRange1.bottom(),
-                              bbox2.getXMax(), dataRange1.top   ());
-
-        plot2->setDataRange(dataRange2, /*update*/false);
-
-        plot2->setDataScaleX (dataScaleX ());
-        plot2->setDataScaleY (dataScaleY ());
-        plot2->setDataOffsetX(dataOffsetX());
-        plot2->setDataOffsetY(dataOffsetY());
-
-        plot2->applyDataRange(/*propagate*/false);
-      }
-    }
-    else if (isY1Y2()) {
-      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
-
-      CQChartsPlot *plot1, *plot2;
-
-      y1y2Plots(plot1, plot2);
-
-      if (plot1) {
-        plot1->setDataScaleX (dataScaleX ());
-        plot1->setDataScaleY (dataScaleY ());
-        plot1->setDataOffsetX(dataOffsetX());
-        plot1->setDataOffsetY(dataOffsetY());
-
-        plot1->applyDataRange(/*propagate*/false);
-      }
-
-      //---
-
-      if (plot2) {
-        //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
-        //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
-
-        CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
-
-        CQChartsGeom::Range dataRange2 =
-          CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
-                              dataRange1.right(), bbox2.getYMax());
-
-        plot2->setDataRange(dataRange2, /*update*/false);
-
-        plot2->setDataScaleX (dataScaleX ());
-        plot2->setDataScaleY (dataScaleY ());
-        plot2->setDataOffsetX(dataOffsetX());
-        plot2->setDataOffsetY(dataOffsetY());
-
-        plot2->applyDataRange(/*propagate*/false);
-      }
-    }
-    else if (isOverlay()) {
-      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
-
-      processOverlayPlots([&](CQChartsPlot *plot) {
-        plot->setDataRange(dataRange1, /*update*/false);
-
-        plot->setDataScaleX (dataScaleX ());
-        plot->setDataScaleY (dataScaleY ());
-        plot->setDataOffsetX(dataOffsetX());
-        plot->setDataOffsetY(dataOffsetY());
-
-        plot->applyDataRange(/*propagate*/false);
-      });
-    }
-    else {
-      CQChartsPlot *plot1 = firstPlot();
-
-      while (plot1) {
-        if (plot1 != this) {
+        if (plot1) {
           plot1->setDataScaleX (dataScaleX ());
           plot1->setDataScaleY (dataScaleY ());
           plot1->setDataOffsetX(dataOffsetX());
@@ -3642,7 +3584,123 @@ applyDataRange(bool propagate)
           plot1->applyDataRange(/*propagate*/false);
         }
 
-        plot1 = plot1->nextPlot();
+        //---
+
+        if (plot2) {
+          //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
+          //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
+
+          CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
+
+          CQChartsGeom::Range dataRange2 =
+            CQChartsGeom::Range(bbox2.getXMin(), dataRange1.bottom(),
+                                bbox2.getXMax(), dataRange1.top   ());
+
+          plot2->setDataRange(dataRange2, /*update*/false);
+
+          plot2->setDataScaleX (dataScaleX ());
+          plot2->setDataScaleY (dataScaleY ());
+          plot2->setDataOffsetX(dataOffsetX());
+          plot2->setDataOffsetY(dataOffsetY());
+
+          plot2->applyDataRange(/*propagate*/false);
+        }
+      }
+      else if (isY1Y2()) {
+        CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(rawRange);
+
+        CQChartsPlot *plot1, *plot2;
+
+        y1y2Plots(plot1, plot2);
+
+        if (plot1) {
+          plot1->setDataScaleX (dataScaleX ());
+          plot1->setDataScaleY (dataScaleY ());
+          plot1->setDataOffsetX(dataOffsetX());
+          plot1->setDataOffsetY(dataOffsetY());
+
+          plot1->applyDataRange(/*propagate*/false);
+        }
+
+        //---
+
+        if (plot2) {
+          //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
+          //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
+
+          CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
+
+          CQChartsGeom::Range dataRange2 =
+            CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
+                                dataRange1.right(), bbox2.getYMax());
+
+          plot2->setDataRange(dataRange2, /*update*/false);
+
+          plot2->setDataScaleX (dataScaleX ());
+          plot2->setDataScaleY (dataScaleY ());
+          plot2->setDataOffsetX(dataOffsetX());
+          plot2->setDataOffsetY(dataOffsetY());
+
+          plot2->applyDataRange(/*propagate*/false);
+        }
+      }
+      else {
+        CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(rawRange);
+
+        processOverlayPlots([&](CQChartsPlot *plot) {
+          plot->setDataRange(dataRange1, /*update*/false);
+
+          plot->setDataScaleX (dataScaleX ());
+          plot->setDataScaleY (dataScaleY ());
+          plot->setDataOffsetX(dataOffsetX());
+          plot->setDataOffsetY(dataOffsetY());
+
+          plot->applyDataRange(/*propagate*/false);
+        });
+      }
+    }
+    else {
+      if (isX1X2() || isY1Y2()) {
+        CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(rawRange);
+
+        CQChartsPlot *plot1 = firstPlot();
+
+        while (plot1) {
+          if (plot1 != this) {
+            CQChartsGeom::BBox bbox2 = plot1->calcDataRange(/*adjust*/false);
+
+            if (isX1X2()) {
+              double ymin = std::min(bbox2.getYMin(), dataRange1.bottom());
+              double ymax = std::max(bbox2.getYMax(), dataRange1.top   ());
+
+              this ->setDataRange(CQChartsGeom::Range(rawRange.getXMin(), ymin,
+                                                      rawRange.getXMax(), ymax), /*update*/false);
+              plot1->setDataRange(CQChartsGeom::Range(bbox2.getXMin(), ymin,
+                                                      bbox2.getXMax(), ymax), /*update*/false);
+
+              plot1->setDataScaleY (dataScaleY ());
+              plot1->setDataOffsetY(dataOffsetY());
+
+              plot1->applyDataRange(/*propagate*/false);
+            }
+            else {
+              double xmin = std::min(bbox2.getXMin(), dataRange1.left ());
+              double xmax = std::max(bbox2.getXMax(), dataRange1.right());
+
+              this ->setDataRange(CQChartsGeom::Range(xmin, rawRange.getYMin(),
+                                                      xmax, rawRange.getYMax()), /*update*/false);
+              plot1->setDataRange(CQChartsGeom::Range(xmin, bbox2.getYMin(),
+                                                      xmax, bbox2.getYMax()), /*update*/false);
+
+              plot1->setDataScaleX (dataScaleX ());
+              plot1->setDataOffsetX(dataOffsetX());
+
+              plot1->applyDataRange(/*propagate*/false);
+            }
+          }
+
+          plot1 = plot1->nextPlot();
+        }
       }
     }
   }
@@ -5974,11 +6032,29 @@ panLeft(double f)
 
   double dx = viewToWindowWidth(f)/getDataRange().getWidth();
 
-  setDataOffsetX(dataOffsetX() - dx);
+  auto panX = [&](CQChartsPlot *plot) {
+    plot->setDataOffsetX(plot->dataOffsetX() - dx);
 
-  adjustPan();
+    plot->adjustPan();
 
-  applyDataRangeAndDraw();
+    plot->applyDataRangeAndDraw();
+  };
+
+  panX(this);
+
+#if 0
+  if (! isOverlay() && isY1Y2()) {
+    CQChartsPlot *plot1, *plot2;
+
+    y1y2Plots(plot1, plot2);
+
+    if (this == plot1) {
+      panX(plot2);
+    }
+    else
+      panX(plot1);
+  }
+#endif
 
   emit zoomPanChanged();
 }
@@ -5992,11 +6068,28 @@ panRight(double f)
 
   double dx = viewToWindowWidth(f)/getDataRange().getWidth();
 
-  setDataOffsetX(dataOffsetX() + dx);
+  auto panX = [&](CQChartsPlot *plot) {
+    plot->setDataOffsetX(plot->dataOffsetX() + dx);
 
-  adjustPan();
+    plot->adjustPan();
 
-  applyDataRangeAndDraw();
+    plot->applyDataRangeAndDraw();
+  };
+
+  panX(this);
+
+/*
+  if (! isOverlay() && isY1Y2()) {
+    CQChartsPlot *plot1, *plot2;
+
+    y1y2Plots(plot1, plot2);
+
+    if (this == plot1)
+      panX(plot2);
+    else
+      panX(plot1);
+  }
+*/
 
   emit zoomPanChanged();
 }
@@ -6010,11 +6103,28 @@ panUp(double f)
 
   double dy = viewToWindowHeight(f)/getDataRange().getHeight();
 
-  setDataOffsetY(dataOffsetY() + dy);
+  auto panY = [&](CQChartsPlot *plot) {
+    plot->setDataOffsetY(plot->dataOffsetY() + dy);
 
-  adjustPan();
+    plot->adjustPan();
 
-  applyDataRangeAndDraw();
+    plot->applyDataRangeAndDraw();
+  };
+
+  panY(this);
+
+/*
+  if (! isOverlay() && isX1X2()) {
+    CQChartsPlot *plot1, *plot2;
+
+    x1x2Plots(plot1, plot2);
+
+    if (this == plot1)
+      panY(plot2);
+    else
+      panY(plot1);
+  }
+*/
 
   emit zoomPanChanged();
 }
@@ -6028,11 +6138,28 @@ panDown(double f)
 
   double dy = viewToWindowHeight(f)/getDataRange().getHeight();
 
-  setDataOffsetY(dataOffsetY() - dy);
+  auto panY = [&](CQChartsPlot *plot) {
+    plot->setDataOffsetY(plot->dataOffsetY() - dy);
 
-  adjustPan();
+    plot->adjustPan();
 
-  applyDataRangeAndDraw();
+    plot->applyDataRangeAndDraw();
+  };
+
+  panY(this);
+
+#if 0
+  if (! isOverlay() && isX1X2()) {
+    CQChartsPlot *plot1, *plot2;
+
+    x1x2Plots(plot1, plot2);
+
+    if (this == plot1)
+      panY(plot2);
+    else
+      panY(plot1);
+  }
+#endif
 
   emit zoomPanChanged();
 }

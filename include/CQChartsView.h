@@ -247,6 +247,10 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void maximizePlot(CQChartsPlot *plot);
+
+  //---
+
   bool isScrolled() const { return scrollData_.active; }
   void setScrolled(bool b, bool update=true);
 
@@ -677,6 +681,8 @@ class CQChartsView : public QFrame,
 
   // get plots
   bool plots(Plots &plots, bool clear=true) const;
+
+  CQChartsPlot *basePlot(CQChartsPlot *plot) const;
 
   bool basePlots(PlotSet &plots, bool clear=true) const;
 

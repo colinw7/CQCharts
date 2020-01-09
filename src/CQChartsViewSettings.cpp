@@ -2298,7 +2298,7 @@ placePlotsSlot()
   int  rows       = plotsWidgets_.placeRowsEdit       ->value();
   int  columns    = plotsWidgets_.placeColumnsEdit    ->value();
 
-  view->placePlots(plots, vertical, horizontal, rows, columns, /*reset*/true);
+  view->placePlots(plots, vertical, horizontal, rows, columns, /*reset*/false);
 }
 
 void

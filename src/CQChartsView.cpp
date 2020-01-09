@@ -393,6 +393,13 @@ maximizePlotsSlot()
 {
   CQChartsPlot *plot = currentPlot(/*remap*/false);
 
+  maximizePlot(plot);
+}
+
+void
+CQChartsView::
+maximizePlot(CQChartsPlot *plot)
+{
   scrollData_.autoInit = true;
 
   setScrolled(true, /*update*/false);
@@ -1385,12 +1392,13 @@ CQChartsView::
 raisePlot(CQChartsPlot *plot)
 {
   int pos = plotPos(plot);
+  if (pos < 0) return; // not found
 
-  if (pos < 0)
-    return;
+  int np = plots_.size();
+  if (np < 2) return;
 
-  if (pos > 0)
-    std::swap(plots_[pos - 1], plots_[pos]);
+  if (pos < np - 1)
+    std::swap(plots_[pos + 1], plots_[pos]);
 
   update();
 
@@ -1402,12 +1410,13 @@ CQChartsView::
 lowerPlot(CQChartsPlot *plot)
 {
   int pos = plotPos(plot);
+  if (pos < 0) return; // not found
 
-  if (pos < 0)
-    return;
+  int np = plots_.size();
+  if (np < 2) return;
 
-  if (pos < int(plots_.size()) - 1)
-    std::swap(plots_[pos + 1], plots_[pos]);
+  if (pos > 0)
+    std::swap(plots_[pos - 1], plots_[pos]);
 
   update();
 
@@ -1699,8 +1708,6 @@ initOverlayPlot(CQChartsPlot *firstPlot)
   //---
 
   firstPlot->updateOverlay();
-
-  firstPlot->updateObjs();
 }
 
 void
@@ -1744,6 +1751,8 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   //---
 
   plot1->updateOverlay();
+
+  //---
 
   emit connectDataChanged();
 }
@@ -1790,6 +1799,8 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
   plot1->updateOverlay();
 
+  //---
+
   emit connectDataChanged();
 }
 
@@ -1821,10 +1832,42 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
   //---
 
-  int np = plots.size();
+  PlotSet basePlotSet;
+
+  for (const auto &plot : plots) {
+    CQChartsPlot *plot1 = this->basePlot(plot);
+
+    basePlotSet.insert(plot1);
+  }
+
+  Plots basePlots;
+
+  for (const auto &basePlot : basePlotSet)
+    basePlots.push_back(basePlot);
+
+  //---
+
+  int np = basePlots.size();
 
   if (np <= 0)
     return;
+
+  //---
+
+  auto setViewBBox = [&](CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) {
+    if (plot->isOverlay()) {
+      Plots plots;
+
+      plot->overlayPlots(plots);
+
+      for (const auto &plot : plots)
+        plot->setViewBBox(bbox);
+    }
+    else
+      plot->setViewBBox(bbox);
+  };
+
+  //---
 
   int  nr = 1, nc = 1;
   bool overlay = false;
@@ -1854,11 +1897,11 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
-      CQChartsPlot *plot = plots[i];
+      CQChartsPlot *plot = basePlots[i];
 
       CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
-      plot->setViewBBox(bbox);
+      setViewBBox(plot, bbox);
     }
   }
   else {
@@ -1872,14 +1915,14 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
       double x = 0.0;
 
       for (int c = 0; c < nc; ++c, ++i) {
-        if (i >= int(plots.size()))
+        if (i >= int(basePlots.size()))
           break;
 
-        CQChartsPlot *plot = plots[i];
+        CQChartsPlot *plot = basePlots[i];
 
         CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
 
-        plot->setViewBBox(bbox);
+        setViewBBox(plot, bbox);
 
         x += dx;
       }
@@ -1887,6 +1930,9 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
       y -= dy;
     }
   }
+
+  if (reset)
+    emit connectDataChanged();
 }
 
 //------
@@ -4019,7 +4065,7 @@ showMenu(const QPoint &p)
 
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsPlotType *plotType = (currentPlot ? currentPlot->type() : nullptr);
 
@@ -4724,7 +4770,7 @@ plotKeyVisibleSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
 
@@ -4745,7 +4791,7 @@ plotKeyPositionSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
 
@@ -4783,7 +4829,7 @@ plotKeyInsideXSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
 
@@ -4804,7 +4850,7 @@ plotKeyInsideYSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
 
@@ -4825,7 +4871,7 @@ xAxisVisibleSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
@@ -4839,7 +4885,7 @@ xAxisGridSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
@@ -4854,7 +4900,7 @@ xAxisSideSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
@@ -4872,7 +4918,7 @@ yAxisVisibleSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
@@ -4886,7 +4932,7 @@ yAxisGridSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
@@ -4901,7 +4947,7 @@ yAxisSideSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
@@ -4919,7 +4965,7 @@ titleVisibleSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
 
@@ -4933,7 +4979,7 @@ titleLocationSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
 
@@ -4957,7 +5003,7 @@ invertXSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setInvertX(b);
@@ -4969,7 +5015,7 @@ invertYSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setInvertY(b);
@@ -4983,7 +5029,7 @@ fitSlot()
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->autoFit();
@@ -4995,7 +5041,7 @@ zoomFullSlot()
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->zoomFull();
@@ -6181,7 +6227,7 @@ showBoxesSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setShowBoxes(b);
@@ -6308,6 +6354,13 @@ plots(Plots &plots, bool clear) const
   return ! plots.empty();
 }
 
+CQChartsPlot *
+CQChartsView::
+basePlot(CQChartsPlot *plot) const
+{
+  return (plot->isOverlay() ? plot->firstPlot() : plot);
+}
+
 bool
 CQChartsView::
 basePlots(PlotSet &plots, bool clear) const
@@ -6316,7 +6369,7 @@ basePlots(PlotSet &plots, bool clear) const
     plots.clear();
 
   for (const auto &plot : plots_) {
-    CQChartsPlot *plot1 = plot->firstPlot();
+    CQChartsPlot *plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }
@@ -6405,7 +6458,7 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     if (! bbox.inside(p))
       continue;
 
-    CQChartsPlot *plot1 = plot->firstPlot();
+    CQChartsPlot *plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }

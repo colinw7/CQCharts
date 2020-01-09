@@ -1258,6 +1258,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   CQChartsGeom::BBox calcDataRange(bool adjust=true) const;
+  void calcDataRanges(CQChartsGeom::BBox &rawRange, CQChartsGeom::BBox &adjustedRange) const;
 
   CQChartsGeom::BBox getDataRange() const;
 
