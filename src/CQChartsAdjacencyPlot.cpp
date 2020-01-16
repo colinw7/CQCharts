@@ -134,8 +134,11 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   if (hasConnections || hasNamePair)
     return;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto details = modelData->details();
   if (! details) return;
+
+  auto charts = modelData->charts();
+  auto model  = modelData->model().data();
 
   CQChartsColumn connectionsColumn;
   CQChartsColumn namePairColumn;
@@ -147,15 +150,13 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
 
+    CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
+
     if      (columnDetails->type() == CQBaseModelType::STRING) {
       if (! connectionsColumn.isValid()) {
-        QModelIndex parent;
-
         bool ok;
 
-        QString str =
-          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                         0, columnDetails->column(), parent, ok);
+        auto str = CQChartsModelUtil::modelString(charts, model, ind, ok);
         if (! ok) continue;
 
         CQChartsConnectionList::Connections connections;
@@ -165,13 +166,9 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
       }
 
       if (! namePairColumn.isValid()) {
-        QModelIndex parent;
-
         bool ok;
 
-        QString str =
-          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                         0, columnDetails->column(), parent, ok);
+        auto str = CQChartsModelUtil::modelString(charts, model, ind, ok);
         if (! ok) continue;
 
         CQChartsNamePair::Names names;
@@ -379,17 +376,13 @@ CQChartsGeom::Range
 CQChartsAdjacencyPlot::
 calcRange() const
 {
-  CQPerfTrace trace("CQChartsAdjacencyPlot::calcRange");
-
+  // base range always (0,0) - (1,1)
   CQChartsGeom::Range dataRange;
 
-  double r = 1.0;
+  dataRange.updateRange(0.0, 0.0);
+  dataRange.updateRange(1.0, 1.0);
 
-  //---
-
-  dataRange.updateRange(0, 0);
-  dataRange.updateRange(r, r);
-
+  // adjust for equal scale
   if (isEqualScale()) {
     double aspect = this->aspect();
 
@@ -413,21 +406,59 @@ createObjs(PlotObjs &objs) const
 
   th->clearNodes();
 
+  th->clearErrors();
+
   //---
 
   th->setInsideObj(nullptr);
 
-  th->connectionsColumnType_ = columnValueType(connectionsColumn());
-  th->namePairColumnType_    = columnValueType(namePairColumn   ());
-
   //---
 
-  if      (namePairColumn().isValid() && countColumn().isValid())
+  auto checkColumn = [&](const CQChartsColumn &c, const QString &name) {
+    if (c.isValid() && columnValueType(c) == ColumnType::NONE)
+      return th->addColumnError(c, QString("Invalid %1 column").arg(name));
+    else
+      return true;
+  };
+
+  if      (namePairColumn().isValid() && countColumn().isValid()) {
+    // name pair and count required
+    // groupId, name optional
+    th->namePairColumnType_ = columnValueType(namePairColumn());
+
+    if (namePairColumnType_ == ColumnType::NONE)
+      return th->addColumnError(namePairColumn(), "Invalid Name Pair column");
+
+    if (! checkColumn(groupIdColumn(), "Group Id"))
+      return false;
+
+    if (! checkColumn(nameColumn(), "Name"))
+      return false;
+
     return initHierObjs(objs);
-  else if (connectionsColumn().isValid())
+  }
+  else if (connectionsColumn().isValid()) {
+    // connection required
+    // groupId, node, name optional
+    th->connectionsColumnType_ = columnValueType(connectionsColumn());
+
+    if (connectionsColumnType_ == ColumnType::NONE)
+      return th->addColumnError(namePairColumn(), "Invalid Connections column");
+
+    if (! checkColumn(groupIdColumn(), "Group Id"))
+      return false;
+
+    if (! checkColumn(nodeColumn(), "Node"))
+      return false;
+
+    if (! checkColumn(nameColumn(), "Name"))
+      return false;
+
     return initConnectionObjs(objs);
-  else
-    return false;
+  }
+  else {
+    return th->addError("Required columns not specified");
+  }
 }
 
 bool
@@ -443,51 +474,57 @@ initHierObjs(PlotObjs &objs) const
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       int group = data.row;
 
+      // Get group value
       if (plot_->groupIdColumn().isValid()) {
+        CQChartsModelIndex groupInd(data.row, plot_->groupIdColumn(), data.parent);
+
         bool ok1;
 
-        group = plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
+        group = plot_->modelInteger(groupInd, ok1);
 
         if (! ok1)
-          group = data.row;
+          return addDataError(groupInd, "Non-integer group value");
       }
 
       //---
+
+      // Get name pair value
+      CQChartsModelIndex namePairInd(data.row, plot_->namePairColumn(), data.parent);
 
       bool ok2;
 
       CQChartsNamePair namePair;
 
       if (plot_->namePairColumnType() == ColumnType::NAME_PAIR) {
-        QVariant namePairVar =
-          plot_->modelValue(data.row, plot_->namePairColumn(), data.parent, ok2);
-
-        if (! ok2)
-          return State::SKIP;
+        QVariant namePairVar = plot_->modelValue(namePairInd, ok2);
+        assert(ok2);
 
         namePair = namePairVar.value<CQChartsNamePair>();
+        assert(namePair.isValid());
       }
       else {
-        QString namePairStr =
-          plot_->modelString(data.row, plot_->namePairColumn(), data.parent, ok2);
+        QString namePairStr = plot_->modelString(namePairInd, ok2);
 
         if (! ok2)
-          return State::SKIP;
+          return addDataError(namePairInd, "Invalid name pair");
 
         namePair = CQChartsNamePair(namePairStr);
-      }
 
-      if (! namePair.isValid())
-        return State::SKIP;
+        if (! namePair.isValid())
+          return addDataError(namePairInd, "Invalid name pair");
+      }
 
       //---
 
+      // Get count value
+      CQChartsModelIndex countInd(data.row, plot_->countColumn(), data.parent);
+
       bool ok3;
 
-      double count = plot_->modelReal(data.row, plot_->countColumn(), data.parent, ok3);
+      double count = plot_->modelReal(countInd, ok3);
 
       if (! ok3)
-        return State::SKIP;
+        return addDataError(countInd, "Invalid count value");
 
       //---
 
@@ -501,13 +538,26 @@ initHierObjs(PlotObjs &objs) const
 
       //---
 
-      QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
-
       srcNode->setGroup(group);
-      srcNode->setInd  (nameInd1);
+
+      //---
+
+      // Get name value
+      if (plot_->nameColumn().isValid()) {
+        CQChartsModelIndex nameInd(data.row, plot_->nameColumn(), data.parent);
+
+        CQChartsModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
+        srcNode->setInd(nameInd1);
+      }
 
       return State::OK;
+    }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) {
+      const_cast<CQChartsAdjacencyPlot *>(plot_)->addDataError(ind, msg);
+      return State::SKIP;
     }
 
    private:
@@ -626,10 +676,10 @@ initConnectionObjs(PlotObjs &objs) const
   //---
 
   for (const auto &idConnections : idConnectionsData) {
-    int                id    = idConnections.first;
-    const QModelIndex& ind   = idConnections.second.ind;
-    const QString&     name  = idConnections.second.name;
-    int                group = idConnections.second.group;
+    int                       id    = idConnections.first;
+    const CQChartsModelIndex& ind   = idConnections.second.ind;
+    const QString&            name  = idConnections.second.name;
+    int                       group = idConnections.second.group;
 
     CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, name, group, ind);
 
@@ -715,33 +765,51 @@ CQChartsAdjacencyPlot::
 getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const
 {
   // get optional group id
-  bool ok2;
+  int group = data.row;
 
-  int group = modelInteger(data.row, groupIdColumn(), data.parent, ok2);
+  if (groupIdColumn().isValid()) {
+    CQChartsModelIndex groupInd(data.row, groupIdColumn(), data.parent);
 
-  if (! ok2) group = data.row;
+    bool ok1;
+
+    int group1 = modelInteger(groupInd, ok1);
+
+    if (ok1)
+      group = group1;
+  }
 
   //---
 
   // get optional id
-  bool ok1;
+  int id = data.row;
 
-  int id = modelInteger(data.row, nodeColumn(), data.parent, ok1);
+  CQChartsModelIndex nodeInd;
 
-  if (! ok1) id = data.row;
+  if (nodeColumn().isValid()) {
+    nodeInd = CQChartsModelIndex(data.row, nodeColumn(), data.parent);
+
+    bool ok2;
+
+    int id1 = modelInteger(nodeInd, ok2);
+
+    if (ok2)
+      id = id1;
+  }
 
   //---
 
   // get connections
+  CQChartsModelIndex connectionsInd(data.row, connectionsColumn(), data.parent);
+
   bool ok3;
 
-  if (connectionsColumnType_ == ColumnType::CONNECTION_LIST) {
-    QVariant connectionsVar = modelValue(data.row, connectionsColumn(), data.parent, ok3);
+  if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
+    QVariant connectionsVar = modelValue(connectionsInd, ok3);
 
     connections.connections = connectionsVar.value<CQChartsConnectionList>().connections();
   }
   else {
-    QString connectionsStr = modelString(data.row, connectionsColumn(), data.parent, ok3);
+    QString connectionsStr = modelString(connectionsInd, ok3);
 
     if (! ok3)
       return false;
@@ -752,9 +820,18 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //----
 
   // get optional name
-  bool ok4;
+  QString name;
 
-  QString name = modelString(data.row, nameColumn(), data.parent, ok4);
+  if (nameColumn().isValid()) {
+    CQChartsModelIndex nameInd(data.row, nameColumn(), data.parent);
+
+    bool ok4;
+
+    QString name1 = modelString(nameInd, ok4);
+
+    if (ok4)
+      name = name1;
+  }
 
   if (! name.length())
     name = QString("%1").arg(id);
@@ -762,10 +839,12 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // return connections data
-  QModelIndex nodeInd  = modelIndex(data.row, nodeColumn(), data.parent);
-  QModelIndex nodeInd1 = normalizeIndex(nodeInd);
+  if (nodeInd.isValid()) {
+    CQChartsModelIndex nodeInd1 = normalizeIndex(nodeInd);
 
-  connections.ind   = nodeInd1;
+    connections.ind = nodeInd1;
+  }
+
   connections.node  = id;
   connections.name  = name;
   connections.group = group;
@@ -839,7 +918,7 @@ getNodeByName(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, QModelIndex());
+  CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
 
   CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
@@ -1087,8 +1166,8 @@ CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *n
 {
   setDetailHint(DetailHint::MAJOR);
 
-  addModelInd(node1->ind());
-  addModelInd(node2->ind());
+  addModelInd(plot->modelIndex(node1->ind()));
+  addModelInd(plot->modelIndex(node2->ind()));
 }
 
 QString

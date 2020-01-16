@@ -140,13 +140,11 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  virtual bool contains(const Point &p) const = 0;
-
-  //---
-
   virtual void redraw(bool /*queued*/=true) = 0;
 
   virtual void draw(CQChartsPaintDevice *device) const = 0;
+
+  virtual void drawEditHandles(QPainter *painter) const = 0;
 
   //---
 
@@ -231,7 +229,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void draw(CQChartsPaintDevice *device) const override;
 
-  void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
 
   void drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool checked) const;
 
@@ -425,7 +423,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void draw(CQChartsPaintDevice *device) const override;
 
-  void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
 
   //---
 

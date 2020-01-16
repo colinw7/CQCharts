@@ -3,11 +3,13 @@
 
 #include <QFrame>
 #include <QLabel>
+#include <QToolButton>
 
 class CQChartsWindow;
 class CQChartsViewStatusStatus;
 class CQChartsViewStatusPos;
 class CQChartsViewStatusSel;
+class CQChartsViewStatusError;
 
 /*!
  * \brief View status widget
@@ -34,13 +36,19 @@ class CQChartsViewStatus : public QFrame {
   QString selText() const;
   void setSelText(const QString &s);
 
+  void setHasErrors(bool b);
+
   QSize sizeHint() const override;
+
+ public slots:
+  void toggleViewErrors();
 
  private:
   CQChartsWindow*           window_      { nullptr };
   CQChartsViewStatusStatus* statusLabel_ { nullptr };
   CQChartsViewStatusPos*    posLabel_    { nullptr };
   CQChartsViewStatusSel*    selLabel_    { nullptr };
+  CQChartsViewStatusError*  errorButton_ { nullptr };
 };
 
 //---
@@ -120,6 +128,18 @@ class CQChartsViewStatusSel : public QLabel {
   CQChartsViewStatus* status_ { nullptr };
   QString             text_;
   bool                active_ { true };
+};
+
+//---
+
+class CQChartsViewStatusError : public QToolButton {
+  Q_OBJECT
+
+ public:
+  CQChartsViewStatusError(CQChartsViewStatus *status);
+
+ private:
+  CQChartsViewStatus* status_ { nullptr };
 };
 
 #endif

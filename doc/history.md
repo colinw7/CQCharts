@@ -1022,3 +1022,6 @@
 # 01/02/2020
  + Add more types/custom editors (CQChartsAlpha, CQChartsAngle, CQChartsColumnNum)
  + Add range (min, max) support for integer/real properties
+# 01/15/2020
+ + Add error log for plot errors
+ + cleanup plot obj access to shorten code

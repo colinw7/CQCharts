@@ -153,6 +153,10 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  bool contains(const CQChartsGeom::Point &p) const override;
+
+  //---
+
   //! get property path
   virtual QString propertyId() const;
 

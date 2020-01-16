@@ -81,6 +81,10 @@ CQChartsDataLabel::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
      const Position &position, const QPen &tpen) const
 {
+  bbox_ = bbox;
+
+  //---
+
   device->save();
 
   plot()->view()->setPlotPainterFont(plot(), device, textFont());
@@ -542,6 +546,15 @@ textBoxDataInvalidate()
     emit dataChanged();
   else
     CQChartsTextBoxObj::textBoxDataInvalidate();
+}
+
+//---
+
+bool
+CQChartsDataLabel::
+contains(const CQChartsGeom::Point &p) const
+{
+  return bbox_.inside(p);
 }
 
 //---

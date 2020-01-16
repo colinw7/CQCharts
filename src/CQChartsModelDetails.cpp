@@ -65,6 +65,16 @@ CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c)
 {
+  // fail if column not in model
+  if (c.hasColumn()) {
+    int nc = numColumns();
+
+    if (c.column() < 0 || c.column() >= nc)
+      return nullptr;
+  }
+
+  //---
+
   std::unique_lock<std::mutex> lock(mutex_);
 
   auto p = columnDetails_.find(c);

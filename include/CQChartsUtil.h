@@ -191,8 +191,8 @@ std::vector<double> stringToReals(const QString &str, bool &ok);
 
 int countLeadingBraces(const QString &str);
 
-QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList);
-bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &polyList);
+QString polygonListToString(const CQChartsGeom::Polygons &polyList);
+bool stringToPolygons(const QString &str, CQChartsGeom::Polygons &polyList);
 
 QString polygonToString(const CQChartsGeom::Polygon &poly);
 bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly );

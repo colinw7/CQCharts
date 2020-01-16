@@ -1226,6 +1226,8 @@ class Polygon {
   QPolygonF qpoly_;
 };
 
+using Polygons = std::vector<Polygon>;
+
 }
 
 //------

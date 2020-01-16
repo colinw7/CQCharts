@@ -68,6 +68,10 @@ class CQChartsPath {
 
   //---
 
+  QPolygonF qpoly() const { return path().toFillPolygon(); }
+
+  //---
+
   friend bool operator==(const CQChartsPath &lhs, const CQChartsPath &rhs) {
     if (  lhs.path_ ==   rhs.path_) return true;
     if (! lhs.path_ || ! rhs.path_) return false;

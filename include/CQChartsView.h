@@ -54,6 +54,7 @@ struct CQChartsTextOptions;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class CQColorsPalette;
+class CQChartsViewError;
 
 class QPainter;
 class QToolButton;
@@ -403,10 +404,12 @@ class CQChartsView : public QFrame,
 
   int numPlots() const { return plots_.size(); }
 
+  const Plots &plots() const { return plots_; }
   CQChartsPlot *plot(int i) { assert(i >= 0 && i < int(plots_.size())); return plots_[i]; }
 
-  CQChartsPlot *getPlot(const QString &id) const;
+  CQChartsPlot *getPlotForId(const QString &id) const;
 
+  void getDrawPlots(Plots &plots) const;
   void getPlots(Plots &plots) const;
 
   void raisePlot(CQChartsPlot *plot);
@@ -679,12 +682,14 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // get plots
-  bool plots(Plots &plots, bool clear=true) const;
+  // add plots to array
+  bool addPlots(Plots &plots, bool clear=true) const;
 
+  // get base plot for plot
   CQChartsPlot *basePlot(CQChartsPlot *plot) const;
 
-  bool basePlots(PlotSet &plots, bool clear=true) const;
+  // get all base plots
+  bool addBasePlots(PlotSet &plots, bool clear=true) const;
 
   // get plots at point
   CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
@@ -889,6 +894,11 @@ class CQChartsView : public QFrame,
   void updatePlots();
 
   void updateSlot();
+
+  void updateErrors();
+
+  void toggleErrors();
+  void showErrors(bool);
 
   void searchSlot();
 
@@ -1164,9 +1174,8 @@ class CQChartsView : public QFrame,
   Annotations           pressAnnotations_;                        //!< press annotations
   CQChartsDocument*     noDataText_        { nullptr };
   bool                  updateNoData_      { true };
-//QToolButton*          noDataModelButton_ { nullptr };           //!< no data model button
-//QToolButton*          noDataPlotButton_  { nullptr };           //!< no data plot button
-//QToolButton*          noDataHelpButton   { nullptr };           //!< no data help button
+  CQChartsViewError*    error_             { nullptr };
+  bool                  hasErrors_         { false };
 };
 
 #endif

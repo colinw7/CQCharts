@@ -17,6 +17,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsHtml.h>
+#include <CQChartsViewError.h>
 
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
@@ -190,6 +191,12 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   // TODO: only connect to current theme ?
   connect(CQColorsMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
   connect(CQColorsMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
+
+  //---
+
+  error_ = new CQChartsViewError(this);
+
+  updateErrors();
 }
 
 CQChartsView::
@@ -406,7 +413,7 @@ maximizePlot(CQChartsPlot *plot)
 
   PlotSet basePlots;
 
-  this->basePlots(basePlots);
+  addBasePlots(basePlots);
 
   int i = 0;
 
@@ -441,7 +448,7 @@ setScrolled(bool b, bool update)
   if (scrollData_.autoInit) {
     PlotSet basePlots;
 
-    this->basePlots(basePlots);
+    addBasePlots(basePlots);
 
     if (scrollData_.active) {
       scrollData_.plotBBoxMap.clear();
@@ -474,7 +481,7 @@ setScrolled(bool b, bool update)
       }
 
       if (! allFound)
-        placePlots(plots_, /*vertical*/false, /*horizontal*/true, /*rows*/1, /*cols*/1);
+        placePlots(plots(), /*vertical*/false, /*horizontal*/true, /*rows*/1, /*cols*/1);
     }
 
     if (update)
@@ -712,7 +719,7 @@ setCurrentPlotInd(int ind)
   if (isScrolled()) {
     PlotSet basePlots;
 
-    this->basePlots(basePlots);
+    addBasePlots(basePlots);
 
     int i = 0;
 
@@ -832,7 +839,7 @@ deselectAll()
   //---
 
   // deselect plots and their objects
-  for (auto &plot : plots_)
+  for (auto &plot : plots())
     plot->deselectAll();
 
   //---
@@ -1368,6 +1375,9 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   connect(plot, SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
 
+  connect(plot, SIGNAL(errorsCleared()), this, SLOT(updateErrors()));
+  connect(plot, SIGNAL(errorAdded()), this, SLOT(updateErrors()));
+
   //---
 
   if (currentPlotInd_ < 0)
@@ -1394,7 +1404,7 @@ raisePlot(CQChartsPlot *plot)
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
 
-  int np = plots_.size();
+  int np = plots().size();
   if (np < 2) return;
 
   if (pos < np - 1)
@@ -1412,7 +1422,7 @@ lowerPlot(CQChartsPlot *plot)
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
 
-  int np = plots_.size();
+  int np = plots().size();
   if (np < 2) return;
 
   if (pos > 0)
@@ -1427,7 +1437,9 @@ int
 CQChartsView::
 plotPos(CQChartsPlot *plot) const
 {
-  for (std::size_t i = 0; i < plots_.size(); ++i) {
+  int np = plots().size();
+
+  for (int i = 0; i < np; ++i) {
     if (plots_[i] == plot)
       return i;
   }
@@ -1442,13 +1454,13 @@ removePlot(CQChartsPlot *plot)
   bool isCurrent = (plot == currentPlot(/*remap*/false));
 
   // build new list of plots without plot and check for match
-  Plots plots;
+  Plots plots1;
 
   bool found = false;
 
-  for (auto &plot1 : plots_) {
+  for (auto &plot1 : plots()) {
     if (plot1 != plot)
-      plots.push_back(plot1);
+      plots1.push_back(plot1);
     else
       found = true;
   }
@@ -1464,7 +1476,7 @@ removePlot(CQChartsPlot *plot)
 
   propertyModel()->removeProperties(id, plot);
 
-  std::swap(plots, plots_);
+  std::swap(plots1, plots_);
 
   if (mousePlot() == plot)
     mouseData_.reset();
@@ -1474,7 +1486,7 @@ removePlot(CQChartsPlot *plot)
   //---
 
   if (isCurrent) {
-    if (plots_.empty())
+    if (plots().empty())
       setCurrentPlot(nullptr);
     else
       setCurrentPlot(plots_[0]);
@@ -1497,7 +1509,7 @@ void
 CQChartsView::
 removeAllPlots()
 {
-  for (auto &plot : plots_)
+  for (auto &plot : plots())
     propertyModel()->removeProperties(plot->id(), plot);
 
   for (auto &plot : plots_)
@@ -1520,26 +1532,6 @@ removeAllPlots()
 
   emit allPlotsRemoved();
   emit plotsChanged();
-}
-
-CQChartsPlot *
-CQChartsView::
-getPlot(const QString &id) const
-{
-  for (const auto &plot : plots_) {
-    if (plot->id() == id)
-      return plot;
-  }
-
-  return nullptr;
-}
-
-void
-CQChartsView::
-getPlots(Plots &plots) const
-{
-  for (const auto &plot : plots_)
-    plots.push_back(plot);
 }
 
 //---
@@ -1570,6 +1562,45 @@ plotConnectDataChangedSlot()
 
 void
 CQChartsView::
+updateErrors()
+{
+  hasErrors_ = false;
+
+  for (auto &plot : plots()) {
+    if (plot->hasErrors()) {
+      hasErrors_ = true;
+      break;
+    }
+  }
+
+  if (window_)
+    window_->setHasErrors(hasErrors_);
+
+  if (! hasErrors_)
+    error_->setVisible(false);
+}
+
+void
+CQChartsView::
+toggleErrors()
+{
+  showErrors(! error_->isVisible());
+}
+
+void
+CQChartsView::
+showErrors(bool show)
+{
+  error_->setVisible(show);
+
+  if (show)
+    error_->updatePlots();
+}
+
+//---
+
+void
+CQChartsView::
 resetGrouping()
 {
   resetConnections(/*notify*/false);
@@ -1583,7 +1614,7 @@ void
 CQChartsView::
 resetPlotGrouping()
 {
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     if (plot->xAxis()) {
       plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
       plot->xAxis()->setVisible(true);
@@ -1608,7 +1639,7 @@ void
 CQChartsView::
 resetConnections(bool notify)
 {
-  for (const auto &plot : plots_)
+  for (const auto &plot : plots())
     plot->resetConnectData(/*notify*/false);
 
   if (notify)
@@ -1750,7 +1781,12 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
   //---
 
-  plot1->updateOverlay();
+  if (overlay)
+    plot1->updateOverlay();
+
+  plot1->updateObjs();
+
+  plot1->applyDataRange();
 
   //---
 
@@ -1797,7 +1833,12 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
   //---
 
-  plot1->updateOverlay();
+  if (overlay)
+    plot1->updateOverlay();
+
+  plot1->updateObjs();
+
+  plot1->applyDataRange();
 
   //---
 
@@ -1810,12 +1851,12 @@ void
 CQChartsView::
 autoPlacePlots()
 {
-  int np = plots_.size();
+  int np = plots().size();
 
   int nr = std::max(int(sqrt(np)), 1);
   int nc = (np + nr - 1)/nr;
 
-  placePlots(plots_, /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
+  placePlots(plots(), /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
 }
 
 void
@@ -2901,10 +2942,10 @@ void
 CQChartsView::
 editObjs(Objs &objs)
 {
-  for (auto &plot : plots_)
+  for (auto &plot : plots())
     objs.push_back(plot);
 
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     Objs objs1;
 
     plot->editObjs(objs1);
@@ -3093,7 +3134,7 @@ updateSelText()
 
   selectedObjs(objs);
 
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3105,7 +3146,7 @@ updateSelText()
 
   int num = objs.size();
 
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3131,7 +3172,7 @@ void
 CQChartsView::
 selectedPlots(Plots &plots) const
 {
-  for (auto &plot : plots_) {
+  for (auto &plot : this->plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3164,7 +3205,7 @@ allSelectedObjs(Objs &objs) const
   for (const auto &obj1 : objs1)
     objs.push_back(obj1);
 
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3268,7 +3309,7 @@ doResize(int w, int h)
 
   //---
 
-  for (const auto &plot : plots_) {
+  for (const auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3293,7 +3334,7 @@ doResize(int w, int h)
 
   //---
 
-  for (const auto &plot : plots_) {
+  for (const auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -3379,7 +3420,7 @@ void
 CQChartsView::
 drawPlots(QPainter *painter)
 {
-  bool hasPlots       = ! plots_.empty();
+  bool hasPlots       = ! plots().empty();
   bool hasAnnotations = this->hasAnnotations();
 
   //---
@@ -3409,7 +3450,11 @@ drawPlots(QPainter *painter)
 
   // draw plots
   if (hasPlots) {
-    for (const auto &plot : plots_) {
+    Plots drawPlots;
+
+    getDrawPlots(drawPlots);
+
+    for (const auto &plot : drawPlots) {
       if (plot->isVisible())
         plot->draw(painter);
     }
@@ -3482,7 +3527,7 @@ updateNoData()
 {
   updateNoData_ = true;
 
-  bool hasPlots       = ! plots_.empty();
+  bool hasPlots       = ! plots().empty();
   bool hasAnnotations = this->hasAnnotations();
 
   if (! hasPlots && ! hasAnnotations) {
@@ -4039,7 +4084,7 @@ showMenu(const QPoint &p)
   // get all plots
   Plots allPlots;
 
-  this->plots(allPlots);
+  addPlots(allPlots);
 
   bool hasPlots = ! allPlots.empty();
 
@@ -4048,7 +4093,7 @@ showMenu(const QPoint &p)
   // get base plots
   PlotSet basePlots;
 
-  this->basePlots(basePlots);
+  addBasePlots(basePlots);
 
   //---
 
@@ -5428,7 +5473,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
     plot->writeHtml(&device);
   }
   else {
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeHtml(&device);
@@ -5459,7 +5504,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
   }
   // draw all plots
   else {
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeSVG(&device);
@@ -5642,7 +5687,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   else {
     int i = 0;
 
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       std::string plotId = "plot_" + plot->id().toStdString();
 
       if (i > 0)
@@ -6104,7 +6149,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   }
   // draw all plots
   else {
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       std::string plotId = "plot_" + plot->id().toStdString();
 
       os << "  this." << plotId << ".draw();\n";
@@ -6146,7 +6191,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
     plot->writeScript(&device);
   }
   else {
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeScript(&device);
@@ -6191,7 +6236,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
     plot->writeHtml(&device);
   }
   else {
-    for (auto &plot : plots_) {
+    for (auto &plot : plots()) {
       CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeHtml(&device);
@@ -6329,7 +6374,7 @@ void
 CQChartsView::
 updatePlots()
 {
-  for (auto &plot : plots_) {
+  for (auto &plot : plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -6341,14 +6386,73 @@ updatePlots()
 
 //------
 
+CQChartsPlot *
+CQChartsView::
+getPlotForId(const QString &id) const
+{
+  for (const auto &plot : plots()) {
+    if (plot->id() == id)
+      return plot;
+  }
+
+  return nullptr;
+}
+
+void
+CQChartsView::
+getDrawPlots(Plots &plots) const
+{
+  for (const auto &plot : this->plots()) {
+    if (plot->isOverlay()) {
+      if (! plot->firstPlot())
+        continue;
+
+      if      (plot->isX1X2()) {
+        CQChartsPlot *plot1, *plot2;
+
+        plot->x1x2Plots(plot1, plot2);
+
+        plots.push_back(plot1);
+        plots.push_back(plot2);
+      }
+      else if (plot->isY1Y2()) {
+        CQChartsPlot *plot1, *plot2;
+
+        plot->y1y2Plots(plot1, plot2);
+
+        plots.push_back(plot1);
+        plots.push_back(plot2);
+      }
+      else if (plot->isOverlay()) {
+        Plots oplots;
+
+        plot->overlayPlots(oplots);
+
+        for (const auto &oplot : oplots)
+          plots.push_back(oplot);
+      }
+    }
+    else
+      plots.push_back(plot);
+  }
+}
+
+void
+CQChartsView::
+getPlots(Plots &plots) const
+{
+  for (const auto &plot : this->plots())
+    plots.push_back(plot);
+}
+
 bool
 CQChartsView::
-plots(Plots &plots, bool clear) const
+addPlots(Plots &plots, bool clear) const
 {
   if (clear)
     plots.clear();
 
-  for (const auto &plot : plots_)
+  for (const auto &plot : this->plots())
     plots.push_back(plot);
 
   return ! plots.empty();
@@ -6363,12 +6467,12 @@ basePlot(CQChartsPlot *plot) const
 
 bool
 CQChartsView::
-basePlots(PlotSet &plots, bool clear) const
+addBasePlots(PlotSet &plots, bool clear) const
 {
   if (clear)
     plots.clear();
 
-  for (const auto &plot : plots_) {
+  for (const auto &plot : this->plots()) {
     CQChartsPlot *plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
@@ -6393,7 +6497,7 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
 
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
-  for (const auto &plot1 : plots_) {
+  for (const auto &plot1 : this->plots()) {
     if (! plot1->isVisible())
       continue;
 
@@ -6449,7 +6553,7 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
   if (clear)
     plots.clear();
 
-  for (const auto &plot : plots_) {
+  for (const auto &plot : this->plots()) {
     if (! plot->isVisible())
       continue;
 
@@ -6470,7 +6574,7 @@ CQChartsGeom::BBox
 CQChartsView::
 plotBBox(CQChartsPlot *plot) const
 {
-  for (const auto &plot1 : plots_) {
+  for (const auto &plot1 : plots()) {
     if (plot1 != plot)
       continue;
 
@@ -6488,7 +6592,7 @@ CQChartsPlot *
 CQChartsView::
 currentPlot(bool remap) const
 {
-  if (plots_.empty())
+  if (plots().empty())
     return nullptr;
 
   int ind = currentPlotInd();
@@ -6510,7 +6614,9 @@ CQChartsPlot *
 CQChartsView::
 getPlotForInd(int ind) const
 {
-  if (ind < 0 || ind >= int(plots_.size()))
+  int np = plots().size();
+
+  if (ind < 0 || ind >= np)
     return nullptr;
 
   CQChartsPlot *plot = plots_[ind];
@@ -6525,7 +6631,7 @@ getIndForPlot(const CQChartsPlot *plot) const
   if (! plot)
     return -1;
 
-  int np = plots_.size();
+  int np = plots().size();
 
   for (int ind = 0; ind < np; ++ind) {
     if (plots_[ind] == plot)
@@ -6539,12 +6645,12 @@ int
 CQChartsView::
 calcCurrentPlotInd(bool remap) const
 {
-  if (plots_.empty())
+  if (plots().empty())
     return -1;
 
   CQChartsPlot *plot = nullptr;
 
-  for (auto &plot1 : plots_) {
+  for (auto &plot1 : plots()) {
     if (plot1->isVisible()) {
       plot = plot1;
       break;
@@ -6708,7 +6814,7 @@ writeAll(std::ostream &os) const
 
   CQChartsView::PlotSet basePlots;
 
-  this->basePlots(basePlots);
+  addBasePlots(basePlots);
 
   for (const auto &plot : basePlots) {
     if      (plot->isX1X2()) {

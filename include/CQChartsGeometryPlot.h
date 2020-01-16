@@ -4,11 +4,32 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsPath.h>
 #include <CQChartsStyle.h>
 
 class CQChartsDataLabel;
 
 //---
+
+struct CQChartsGeometryShape {
+  enum class Type {
+    NONE,
+    POLYGON_LIST,
+    POLYGON,
+    RECT,
+    PATH
+  };
+
+  CQChartsGeometryShape() = default;
+
+  CQChartsGeometryShape(const QString &str);
+
+  Type                   type { Type::NONE };
+  CQChartsGeom::Polygons polygonList;
+  CQChartsGeom::Polygon  polygon;
+  CQChartsGeom::BBox     rect;
+  CQChartsPath           path;
+};
 
 /*!
  * \brief Geometry plot type
@@ -57,11 +78,9 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
-  using Polygons = std::vector<CQChartsGeom::Polygon>;
-
- public:
   CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv);
+                      const CQChartsGeom::Polygons &polygons, const QModelIndex &ind,
+                      const ColorInd &iv);
 
   QString typeName() const override { return "geom"; }
 
@@ -106,7 +125,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
  private:
   const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
-  Polygons                    polygons_;             //!< geometry polygons
+  CQChartsGeom::Polygons      polygons_;             //!< geometry polygons
   QString                     name_;                 //!< geometry name
   CQChartsColor               color_;                //!< optional color
   CQChartsStyle               style_;                //!< optional style
@@ -141,18 +160,17 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
  public:
-  using Polygons = std::vector<CQChartsGeom::Polygon>;
-  using OptReal  = boost::optional<double>;
+  using OptReal = boost::optional<double>;
 
   //! geometry data
   struct Geometry {
-    QString            name;     //!< name
-    Polygons           polygons; //!< polygon list
-    OptReal            value;    //!< value
-    CQChartsColor      color;    //!< custom color
-    CQChartsStyle      style;    //!< custom style
-    CQChartsGeom::BBox bbox;     //!< bounding box
-    QModelIndex        ind;      //!< associated model index
+    QString                name;     //!< name
+    CQChartsGeom::Polygons polygons; //!< polygon list
+    OptReal                value;    //!< value
+    CQChartsColor          color;    //!< custom color
+    CQChartsStyle          style;    //!< custom style
+    CQChartsGeom::BBox     bbox;     //!< bounding box
+    QModelIndex            ind;      //!< associated model index
   };
 
  public:
@@ -217,7 +235,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
               CQChartsGeom::Range &dataRange) const;
 
-  bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
+  bool decodeGeometry(const QString &geomStr, CQChartsGeom::Polygons &polygons) const;
 
  private:
   using Geometries = std::vector<Geometry>;

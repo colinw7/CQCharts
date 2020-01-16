@@ -332,6 +332,12 @@ struct CQChartsModelIndex {
                      const QModelIndex &parent=QModelIndex()) :
    row(row), column(column), parent(parent) {
   }
+
+  bool isValid() const { return (row >= 0); }
+
+  QString toString() const {
+    return QString("Row:%1 Col:%2").arg(row).arg(column.toString());
+  }
 };
 
 //---

@@ -60,7 +60,7 @@ class CQChartsAdjacencyNode {
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
-  CQChartsAdjacencyNode(int id, const QString &name, int group, const QModelIndex &ind) :
+  CQChartsAdjacencyNode(int id, const QString &name, int group, const CQChartsModelIndex &ind) :
    id_(id), name_(name), group_(group), ind_(ind) {
   }
 
@@ -72,8 +72,8 @@ class CQChartsAdjacencyNode {
   int group() const { return group_; }
   void setGroup(int group) { group_ = group; }
 
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &ind) { ind_ = ind; }
+  const CQChartsModelIndex &ind() const { return ind_; }
+  void setInd(const CQChartsModelIndex &ind) { ind_ = ind; }
 
   double count() const { return count_; }
 
@@ -101,13 +101,13 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  int         id_       { 0 };   //!< id
-  QString     name_;             //!< name
-  int         group_    { 0 };   //!< group
-  QModelIndex ind_;              //!< model index
-  double      count_    { 0.0 }; //!< total connections
-  double      maxCount_ { 0.0 }; //!< max connections to single node
-  NodeMap     nodes_;            //!< connected nodes
+  int                id_       { 0 };   //!< id
+  QString            name_;             //!< name
+  int                group_    { 0 };   //!< group
+  CQChartsModelIndex ind_;              //!< model index
+  double             count_    { 0.0 }; //!< total connections
+  double             maxCount_ { 0.0 }; //!< max connections to single node
+  NodeMap            nodes_;            //!< connected nodes
 };
 
 //------
@@ -281,6 +281,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   //---
 
+  const ColumnType &connectionsColumnType() const { return connectionsColumnType_; }
   const ColumnType &namePairColumnType() const { return namePairColumnType_; }
 
   //---
@@ -317,11 +318,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
-    QModelIndex ind;          //!< model index
-    int         node  { -1 }; //!< node numbe
-    QString     name;         //!< name
-    int         group { -1 }; //!< group index
-    Connections connections;  //!< connections list
+    CQChartsModelIndex ind;          //!< model index
+    int                node  { -1 }; //!< node numbe
+    QString            name;         //!< name
+    int                group { -1 }; //!< group index
+    Connections        connections;  //!< connections list
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;

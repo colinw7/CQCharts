@@ -1416,7 +1416,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     CQChartsPlotObj *plotObj = nullptr;
 
     if (objectId.length()) {
-      plotObj = plot->getObject(objectId);
+      plotObj = plot->getPlotObject(objectId);
       if (! plotObj) return errorMsg("Invalid plot object id '" + objectId + "'");
     }
 
@@ -4672,11 +4672,17 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       }
     }
 #endif
+    // get model name
+    else if (name == "name") {
+      QString name = modelData->name();
+
+      cmdBase_->setCmdRc(name);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
         "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
         "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
-        "title" /* << "property.<name>" */;
+        "title" /* << "property.<name>" */ << "name";
 
       QStringList detailsNames = CQChartsModelColumnDetails::getLongNamedValues();
 
@@ -4686,7 +4692,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid model name '" + name + "' specified");
   }
   // view data
   else if (argv.hasParseArg("view")) {
@@ -4732,6 +4738,11 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       }
 
       cmdBase_->setCmdRc(ids);
+    }
+    else if (name == "key_obj") {
+      CQChartsViewKey *key = view->key();
+
+      cmdBase_->setCmdRc(key ? key->id() : "");
     }
     else if (name == "view_width") {
       QString data = argv.getParseStr("data");
@@ -4816,7 +4827,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid view name '" + name + "' specified");
   }
   // type data
   else if (argv.hasParseArg("type")) {
@@ -4870,7 +4881,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         cmdBase_->setCmdRc(parameter.getPropertyValue(name1));
       }
       else
-        return errorMsg("Invalid name 'parameter." + name1 + "' specified");
+        return errorMsg("Invalid type name 'parameter." + name1 + "' specified");
     }
     else if (type->hasProperty(name)) {
       cmdBase_->setCmdRc(type->getPropertyValue(name));
@@ -4882,7 +4893,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid type name '" + name + "' specified");
   }
   // plot data
   else if (argv.hasParseArg("plot")) {
@@ -5003,34 +5014,48 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(ids);
     }
-    else if (name == "inds") {
-      if (! objectId.length())
-        return errorMsg("Missing object id");
+    else if (name == "key_obj") {
+      CQChartsPlotKey *key = plot->key();
 
-      QList<QModelIndex> inds = plot->getObjectInds(objectId);
-
-      QVariantList vars;
-
-      for (int i = 0; i < inds.length(); ++i)
-        vars.push_back(inds[i]);
-
-      cmdBase_->setCmdRc(vars);
+      cmdBase_->setCmdRc(key ? key->id() : "");
     }
-    else if (name == "rows") {
+    else if (name == "xaxis_obj") {
+      CQChartsAxis *axis = plot->xAxis();
+
+      cmdBase_->setCmdRc(axis ? axis->id() : "");
+    }
+    else if (name == "yaxis_obj") {
+      CQChartsAxis *axis = plot->yAxis();
+
+      cmdBase_->setCmdRc(axis ? axis->id() : "");
+    }
+    else if (name == "title_obj") {
+      CQChartsTitle *title = plot->title();
+
+      cmdBase_->setCmdRc(title ? title->id() : "");
+    }
+    // get model indices or rows for object
+    else if (name == "inds" || name == "rows") {
       if (! objectId.length())
         return errorMsg("Missing object id");
 
       QList<QModelIndex> inds = plot->getObjectInds(objectId);
 
-      std::set<int> rows;
-
-      for (int i = 0; i < inds.length(); ++i)
-        rows.insert(inds[i].row());
-
       QVariantList vars;
 
-      for (const auto &r : rows)
-        vars.push_back(QVariant(r));
+      if (name == "inds") {
+        for (int i = 0; i < inds.length(); ++i)
+          vars.push_back(inds[i]);
+      }
+      else {
+        std::set<int> rows;
+
+        for (int i = 0; i < inds.length(); ++i)
+          rows.insert(inds[i].row());
+
+        for (const auto &r : rows)
+          vars.push_back(QVariant(r));
+      }
 
       cmdBase_->setCmdRc(vars);
     }
@@ -5103,7 +5128,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid plot name '" + name + "' specified");
   }
   // annotation data
   else if (argv.hasParseArg("annotation")) {
@@ -5145,7 +5170,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid annotation name '" + name + "' specified");
   }
   // global charts data
   else {
@@ -5222,7 +5247,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
       const CQChartsColumnType *columnType = columnTypeMgr->getNamedType(dataStr);
-      if (! columnType) return errorMsg("Invalid type '" + dataStr + "' for '" + name + "'");
+      if (! columnType) return errorMsg("Invalid column type '" + dataStr + "' for '" + name + "'");
 
       QStringList names;
 
@@ -5276,7 +5301,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid global name '" + name + "' specified");
   }
 
   return true;
@@ -5299,18 +5324,27 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   CQPerfTrace trace("CQChartsCmds::setChartsDataCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model index");
-  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name");
-  argv.addCmdArg("-plot" , CQChartsCmdArg::Type::String , "plot name");
+  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model index");
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-type"      , CQChartsCmdArg::Type::String , "type name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String , "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String , "annotation name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-object", CQChartsCmdArg::Type::String, "object id");
 
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to set");
   argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
   argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
+  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::String , "model index");
+
   argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String , "role id");
+
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "option name");
   argv.addCmdArg("-value" , CQChartsCmdArg::Type::String , "option value");
   argv.addCmdArg("-data"  , CQChartsCmdArg::Type::String , "option data");
+
+  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
 
   bool rc;
 
@@ -5319,9 +5353,13 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  QString objectId = argv.getParseStr("object");
+
   bool    header = argv.getParseBool("header");
   QString name   = argv.getParseStr ("name");
-  QString value  = argv.getParseStr ("value");
+//bool    hidden = argv.getParseBool("hidden");
+
+  QString value = argv.getParseStr("value");
 
   //---
 
@@ -5343,6 +5381,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // model data
   if      (argv.hasParseArg("model")) {
     int modelInd = argv.getParseInt("model", -1);
 
@@ -5357,6 +5396,18 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
     CQChartsRow row = argv.getParseRow("row");
+
+    if (argv.hasParseArg("ind")) {
+      int irow, icol;
+
+      if (! CQTclUtil::stringToModelIndex(argv.getParseStr("ind"), irow, icol))
+        return errorMsg("Invalid model index");
+
+      row    = irow;
+      column = CQChartsColumn(icol);
+    }
+
+    //---
 
     // set column header or row, column value
     if      (name == "value") {
@@ -5378,6 +5429,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
           return errorMsg("Failed to set row value");
       }
     }
+    // set column type
     else if (name == "column_type") {
       if (column.isValid()) {
         if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, value))
@@ -5388,7 +5440,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
           return errorMsg(QString("Invalid column type string '%1'").arg(value));
       }
     }
-    // get meta data
+    // set meta data
     else if (name == "meta") {
       QString data = argv.getParseStr("data");
 
@@ -5428,8 +5480,9 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid model name '" + name + "' specified");
   }
+  // view data
   else if (argv.hasParseArg("view")) {
     QString viewName = argv.getParseStr("view");
 
@@ -5452,8 +5505,13 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid view name '" + name + "' specified");
   }
+  // type data
+  else if (argv.hasParseArg("type")) {
+     return errorMsg("Invalid type name '" + name + "' specified");
+  }
+  // plot data
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
 
@@ -5493,6 +5551,17 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
       plot->setSetHidden(id, b);
     }
+    else if (name == "select") {
+      if (objectId.length()) {
+        CQChartsObj *obj = plot->getObject(objectId);
+
+        if (! obj)
+          return errorMsg("Invalid plot object id '" + objectId + "'");
+
+        plot->selectOneObj(obj, /*allObjs*/false);
+      }
+    }
+    // plot object property
     else if (name == "?") {
       QStringList names = QStringList() <<
        "updates_enabled" << "set_hidden";
@@ -5500,10 +5569,15 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid name '" + name + "' specified");
+      return errorMsg("Invalid plot name '" + name + "' specified");
   }
-  else
-    return errorMsg("Invalid name '" + name + "' specified");
+  // annotation data
+  else if (argv.hasParseArg("annotation")) {
+    return errorMsg("Invalid annotation name '" + name + "' specified");
+  }
+  else {
+    return errorMsg("Invalid global name '" + name + "' specified");
+  }
 
   return true;
 }
@@ -8386,7 +8460,7 @@ CQChartsCmds::
 getPlotByName(CQChartsView *view, const QString &plotName) const
 {
   if (view) {
-    CQChartsPlot *plot = view->getPlot(plotName);
+    CQChartsPlot *plot = view->getPlotForId(plotName);
 
     if (plot)
       return plot;
@@ -8408,7 +8482,7 @@ getPlotByName(CQChartsView *view, const QString &plotName) const
   }
 
   for (auto &view : views) {
-    CQChartsPlot *plot = view->getPlot(plotName);
+    CQChartsPlot *plot = view->getPlotForId(plotName);
 
     if (plot)
       return plot;

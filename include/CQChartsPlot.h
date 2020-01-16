@@ -62,7 +62,6 @@ class CQChartsValueSetAnnotation;
 class CQChartsButtonAnnotation;
 
 class CQChartsPlotParameter;
-class CQChartsObj;
 class CQChartsDisplayRange;
 class CQChartsValueSet;
 class CQChartsModelColumnDetails;
@@ -82,6 +81,7 @@ class CQPropertyViewItem;
 
 class QSortFilterProxyModel;
 class QItemSelectionModel;
+class QTextBrowser;
 class QRubberBand;
 class QMenu;
 class QPainter;
@@ -803,7 +803,9 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  CQChartsModelIndex normalizeIndex(const CQChartsModelIndex &ind) const;
   QModelIndex normalizeIndex(const QModelIndex &ind) const;
+
   QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
 
   void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
@@ -1298,6 +1300,38 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // error for bad column
+  struct Error {
+    QString msg;
+  };
+
+  struct ColumnError {
+    CQChartsColumn column;
+    QString        msg;
+  };
+
+  // error accessing data in model
+  struct DataError {
+    CQChartsModelIndex ind;
+    QString            msg;
+  };
+
+  using Errors       = std::vector<Error>;
+  using ColumnErrors = std::vector<ColumnError>;
+  using DataErrors   = std::vector<DataError>;
+
+  void clearErrors();
+
+  bool hasErrors() const;
+
+  bool addError(const QString &msg);
+  bool addColumnError(const CQChartsColumn &c, const QString &msg);
+  bool addDataError(const CQChartsModelIndex &ind, const QString &msg);
+
+  void addErrorsToWidget(QTextBrowser *text);
+
+  //---
+
   const PlotObjs &plotObjects() const { return plotObjs_; }
 
   int numPlotObjects() const { return plotObjs_.size(); }
@@ -1384,6 +1418,17 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
   virtual bool selectRelease(const CQChartsGeom::Point &p);
 
+  //-
+
+  bool keySelectPress  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w, SelMod selMod);
+  bool titleSelectPress(CQChartsTitle   *title, const CQChartsGeom::Point &w, SelMod selMod);
+
+  bool annotationsSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
+
+  CQChartsObj *objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
+
+  //-
+
   // handle mouse drag press/move/release
   bool editMousePress  (const QPointF &p, bool inside=false);
   bool editMouseMove   (const QPointF &p, bool first=false);
@@ -1396,6 +1441,26 @@ class CQChartsPlot : public CQChartsObj,
                            bool first=false);
   virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
   virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+
+  //-
+
+  bool keyEditPress  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w);
+  bool axisEditPress (CQChartsAxis    *axis , const CQChartsGeom::Point &w);
+  bool titleEditPress(CQChartsTitle   *title, const CQChartsGeom::Point &w);
+
+  bool annotationsEditPress(const CQChartsGeom::Point &w);
+
+  //-
+
+  bool keyEditSelect  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w);
+  bool axisEditSelect (CQChartsAxis    *axis , const CQChartsGeom::Point &w);
+  bool titleEditSelect(CQChartsTitle   *title, const CQChartsGeom::Point &w);
+
+  bool annotationsEditSelect(const CQChartsGeom::Point &w);
+
+  bool objectsEditSelect(const CQChartsGeom::Point &w, bool inside);
+
+  //-
 
   virtual void editMoveBy(const CQChartsGeom::Point &d);
 
@@ -1573,7 +1638,9 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQChartsPlotObj *getObject(const QString &objectId) const;
+  CQChartsPlotObj *getPlotObject(const QString &objectId) const;
+
+  CQChartsObj *getObject(const QString &objectId) const;
 
   QList<QModelIndex> getObjectInds(const QString &objectId) const;
 
@@ -1960,6 +2027,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool contains(const CQChartsGeom::Point &p) const override;
+
  protected slots:
   void animateSlot();
 
@@ -2019,6 +2088,10 @@ class CQChartsPlot : public CQChartsObj,
 
   // selection changed
   void selectionChanged();
+
+  // errors cleared or added
+  void errorsCleared();
+  void errorAdded();
 
  protected:
   struct NoUpdate {
@@ -2367,11 +2440,13 @@ class CQChartsPlot : public CQChartsObj,
   bool                         editing_          { false };      //!< is editing
   Annotations                  annotations_;                     //!< extra annotations
   Annotations                  pressAnnotations_;                //!< press annotations
+  mutable CQChartsGeom::BBox   annotationBBox_;                  //!< cached annotation bbox
   UpdatesData                  updatesData_;                     //!< updates data
   bool                         fromInvalidate_   { false };      //!< call from invalidate
+  Errors                       errors_;                          //!< global errors
+  ColumnErrors                 columnErrors_;                    //!< column errors
+  DataErrors                   dataErrors_;                      //!< data access errors
   mutable std::mutex           resizeMutex_;                     //!< resize mutex
-
-  mutable CQChartsGeom::BBox   annotationBBox_;
 };
 
 //------

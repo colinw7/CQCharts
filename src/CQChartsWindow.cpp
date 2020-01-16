@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
-#include <CQChartsViewExpander.h>
 #include <CQChartsViewSettings.h>
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
@@ -615,6 +614,15 @@ CQChartsWindow::
 expandedModelIndices(QModelIndexList &inds)
 {
   modelView_->view()->expandedIndices(inds);
+}
+
+//---
+
+void
+CQChartsWindow::
+setHasErrors(bool b)
+{
+  status_->setHasErrors(b);
 }
 
 //---

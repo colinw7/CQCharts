@@ -95,8 +95,11 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
                       analyzeModelData.parameterNameColumn.end());
   if (hasGeometry) return;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto details = modelData->details();
   if (! details) return;
+
+  auto charts = modelData->charts();
+  auto model  = modelData->model().data();
 
   CQChartsColumn geometryColumn;
 
@@ -105,40 +108,17 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
 
-    if (columnDetails->type() == CQBaseModelType::STRING) {
-      QModelIndex parent;
+    CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
 
+    if (columnDetails->type() == CQBaseModelType::STRING) {
       bool ok;
 
-      QString str =
-        CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                       0, columnDetails->column(), parent, ok);
+      auto str = CQChartsModelUtil::modelString(charts, model, ind, ok);
       if (! ok) continue;
 
-      CQChartsPolygonList polygonList;
+      CQChartsGeometryShape shape(str);
 
-      if (polygonList.setValue(str)) {
-        geometryColumn = columnDetails->column();
-        break;
-      }
-
-      CQChartsPolygon polygon;
-
-      if (polygon.setValue(str)) {
-        geometryColumn = columnDetails->column();
-        break;
-      }
-
-      CQChartsRect rect;
-
-      if (rect.setValue(str)) {
-        geometryColumn = columnDetails->column();
-        break;
-      }
-
-      CQChartsPath path;
-
-      if (path.setValue(str)) {
+      if (shape.type != CQChartsGeometryShape::Type::NONE) {
         geometryColumn = columnDetails->column();
         break;
       }
@@ -381,20 +361,24 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry name
+  CQChartsModelIndex nameInd(data.row, nameColumn(), data.parent);
+
   bool ok1;
 
-  geometry.name = modelString(data.row, nameColumn(), data.parent, ok1);
+  geometry.name = modelString(nameInd, ok1);
 
   //---
 
   // decode geometry column value into polygons
+  CQChartsModelIndex geometryInd(data.row, geometryColumn(), data.parent);
+
   if (geometryColumnType_ == ColumnType::RECT ||
       geometryColumnType_ == ColumnType::POLYGON ||
       geometryColumnType_ == ColumnType::POLYGON_LIST ||
       geometryColumnType_ == ColumnType::PATH) {
     bool ok2;
 
-    QVariant var = modelValue(data.row, geometryColumn(), data.parent, ok2);
+    QVariant var = modelValue(geometryInd, ok2);
 
     bool converted;
 
@@ -406,9 +390,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     if      (geometryColumnType_ == ColumnType::RECT) {
       CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(rvar, ok3);
 
-      CQChartsGeom::Polygon poly(bbox);
-
-      geometry.polygons.push_back(poly);
+      geometry.polygons.push_back(CQChartsGeom::Polygon(bbox));
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
       CQChartsGeom::Polygon poly = CQChartsVariant::toPolygon(rvar, ok3);
@@ -435,12 +417,25 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   else {
     bool ok2;
 
-    QString geomStr = modelString(data.row, geometryColumn(), data.parent, ok2);
+    QString geomStr = modelString(geometryInd, ok2);
 
-    if (! decodeGeometry(geomStr, geometry.polygons)) {
-      if (! isPreview())
-        charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
+    CQChartsGeometryShape shape(geomStr);
+
+    if (shape.type == CQChartsGeometryShape::Type::NONE) {
+      th->addDataError(geometryInd, "Invalid geometry '" + geomStr + "'");
       return;
+    }
+
+    if      (shape.type == CQChartsGeometryShape::Type::RECT)
+      geometry.polygons.push_back(CQChartsGeom::Polygon(shape.rect));
+    else if (shape.type == CQChartsGeometryShape::Type::POLYGON)
+      geometry.polygons.push_back(shape.polygon);
+    else if (shape.type == CQChartsGeometryShape::Type::POLYGON_LIST)
+      geometry.polygons = shape.polygonList;
+    else if (shape.type == CQChartsGeometryShape::Type::PATH) {
+      CQChartsGeom::Polygon poly = CQChartsGeom::Polygon(shape.path.qpoly());
+
+      geometry.polygons.push_back(poly);
     }
   }
 
@@ -460,9 +455,11 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry associated value
+  CQChartsModelIndex valueInd(data.row, valueColumn(), data.parent);
+
   bool ok3;
 
-  double value = modelReal(data.row, valueColumn(), data.parent, ok3);
+  double value = modelReal(valueInd, ok3);
 
   if (ok3 && ! CMathUtil::isNaN(value))
     geometry.value = value;
@@ -475,6 +472,8 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry custom color
   if (colorColumn().isValid()) {
+    CQChartsModelIndex colorInd(data.row, colorColumn(), data.parent);
+
     if (colorColumnType_ == ColumnType::COLOR) {
       CQChartsColor c;
 
@@ -484,7 +483,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else {
       bool ok4;
 
-      QString str = modelString(data.row, colorColumn(), data.parent, ok4);
+      QString str = modelString(colorInd, ok4);
 
       if (ok4)
         geometry.color = CQChartsColor(str);
@@ -495,10 +494,12 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry custom style
   if (styleColumn().isValid()) {
+    CQChartsModelIndex styleInd(data.row, styleColumn(), data.parent);
+
     bool ok4;
 
     if (styleColumnType_ == ColumnType::STYLE) {
-      QString str = modelString(data.row, styleColumn(), data.parent, ok4);
+      QString str = modelString(styleInd, ok4);
 
       geometry.style = CQChartsStyle(str);
     }
@@ -507,7 +508,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // save model index for geometry
-  QModelIndex geomInd  = modelIndex(data.row, geometryColumn(), data.parent);
+  QModelIndex geomInd  = modelIndex(geometryInd);
   QModelIndex geomInd1 = normalizeIndex(geomInd);
 
   geometry.ind = geomInd1;
@@ -518,9 +519,10 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   th->geometries_.push_back(geometry);
 }
 
+#if 0
 bool
 CQChartsGeometryPlot::
-decodeGeometry(const QString &geomStr, Polygons &polygons) const
+decodeGeometry(const QString &geomStr, CQChartsGeom::Polygons &polygons) const
 {
   if (geomStr.simplified() == "")
     return true;
@@ -568,6 +570,7 @@ decodeGeometry(const QString &geomStr, Polygons &polygons) const
 
   return true;
 }
+#endif
 
 bool
 CQChartsGeometryPlot::
@@ -644,7 +647,8 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsGeometryObj::
 CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                    const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv) :
+                    const CQChartsGeom::Polygons &polygons, const QModelIndex &ind,
+                    const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), polygons_(polygons)
 {
@@ -794,4 +798,21 @@ writeScriptData(CQChartsScriptPainter *device) const
 
   os << "\n";
   os << "  this.value = " << value() << ";\n";
+}
+
+//------
+
+CQChartsGeometryShape::
+CQChartsGeometryShape(const QString &str)
+{
+  if      (CQChartsUtil::stringToPolygons(str, polygonList))
+    type = Type::POLYGON_LIST;
+  else if (CQChartsUtil::stringToPolygon(str, polygon))
+    type = Type::POLYGON;
+  else if (CQChartsUtil::stringToBBox(str, rect))
+    type = Type::RECT;
+  else if (CQChartsUtil::stringToPath(str, path))
+    type = Type::PATH;
+  else
+    type = Type::NONE;
 }

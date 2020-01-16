@@ -174,6 +174,9 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
 QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
+QString modelString(CQCharts *charts, const QAbstractItemModel *model,
+                    const CQChartsModelIndex &ind, bool &ok);
+
 #if 0
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent,

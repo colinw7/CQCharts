@@ -2,7 +2,9 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsWidgetUtil.h>
+
 #include <CQUtil.h>
+#include <CQPixmapCache.h>
 
 #include <QHBoxLayout>
 #include <QMenu>
@@ -10,6 +12,8 @@
 #include <QAction>
 #include <QLabel>
 #include <QContextMenuEvent>
+
+#include <svg/error_svg.h>
 
 CQChartsViewStatus::
 CQChartsViewStatus(CQChartsWindow *window) :
@@ -28,6 +32,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
   statusLabel_ = new CQChartsViewStatusStatus(this);
   posLabel_    = new CQChartsViewStatusPos   (this);
   selLabel_    = new CQChartsViewStatusSel   (this);
+  errorButton_ = new CQChartsViewStatusError (this);
 
   QFontMetricsF fm(font());
 
@@ -38,12 +43,14 @@ CQChartsViewStatus(CQChartsWindow *window) :
   layout->addWidget (posLabel_);
   layout->addWidget (selSpacer);
   layout->addWidget (selLabel_);
+  layout->addWidget (errorButton_);
 
   //---
 
   setStatusText("");
   setPosText   ("");
   setSelText   ("None");
+  setHasErrors (false);
 }
 
 QString
@@ -92,6 +99,20 @@ setSelText(const QString &s)
   selLabel_->setText(s);
 
   update();
+}
+
+void
+CQChartsViewStatus::
+setHasErrors(bool b)
+{
+  errorButton_->setEnabled(b);
+}
+
+void
+CQChartsViewStatus::
+toggleViewErrors()
+{
+  window()->view()->toggleErrors();
 }
 
 QSize
@@ -312,4 +333,19 @@ activateSlot(bool b)
   active_ = b;
 
   setText("");
+}
+
+//------
+
+CQChartsViewStatusError::
+CQChartsViewStatusError(CQChartsViewStatus *status) :
+ status_(status)
+{
+  setObjectName("error");
+
+  setIcon(CQPixmapCacheInst->getIcon("ERROR"));
+
+  setToolTip("Show Plot Errors");
+
+  connect(this, SIGNAL(clicked()), status, SLOT(toggleViewErrors()));
 }

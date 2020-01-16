@@ -91,11 +91,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const;
+  bool contains(const CQChartsGeom::Point &p) const override;
 
   //---
 
-  virtual bool selectPress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
   virtual bool selectMove   (const CQChartsGeom::Point &) { return false; }
   virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
 

@@ -387,7 +387,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void updatePlotPosition();
 
-  bool contains(const CQChartsGeom::Point &p) const;
+  bool contains(const CQChartsGeom::Point &p) const override;
 
   //---
 

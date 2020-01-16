@@ -146,7 +146,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! is point inside (also checks visible)
-  bool contains(const CQChartsGeom::Point &p) const;
+  bool contains(const CQChartsGeom::Point &p) const override;
 
   //! is point inside
   virtual bool inside(const CQChartsGeom::Point &p) const;

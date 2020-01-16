@@ -21,6 +21,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 
@@ -39,6 +40,7 @@
 #include <QApplication>
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
+#include <QTextBrowser>
 #include <QPainter>
 
 //------
@@ -2524,17 +2526,12 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   propertyModel()->objectNames(this, names, hidden);
 
-  if (title())
-    propertyModel()->objectNames(title(), names, hidden);
+  auto getObjPropertyNames = [&](std::initializer_list<CQChartsObj *> objs) {
+    for (const auto &obj : objs)
+      propertyModel()->objectNames(obj, names, hidden);
+  };
 
-  if (xAxis())
-    propertyModel()->objectNames(xAxis(), names, hidden);
-
-  if (yAxis())
-    propertyModel()->objectNames(yAxis(), names, hidden);
-
-  if (key())
-    propertyModel()->objectNames(key(), names, hidden);
+  getObjPropertyNames({title(), xAxis(), yAxis(), key()});
 }
 
 void
@@ -3557,10 +3554,11 @@ applyDataRange(bool propagate)
     setWindowRange(adjustedRange);
   }
 
-  if (xAxis()) {
+  if (xAxis())
     xAxis()->setRange(adjustedRange.getXMin(), adjustedRange.getXMax());
+
+  if (yAxis())
     yAxis()->setRange(adjustedRange.getYMin(), adjustedRange.getYMax());
-  }
 
   if (propagate) {
     if (isOverlay()) {
@@ -4265,6 +4263,117 @@ insideObjectText() const
 
 //------
 
+void
+CQChartsPlot::
+clearErrors()
+{
+  errors_      .clear();
+  columnErrors_.clear();
+  dataErrors_  .clear();
+
+  emit errorsCleared();
+}
+
+bool
+CQChartsPlot::
+hasErrors() const
+{
+  return (! errors_.empty() || ! columnErrors_.empty() || ! dataErrors_.empty());
+}
+
+bool
+CQChartsPlot::
+addError(const QString &msg)
+{
+  if (! isPreview()) {
+    Error err { msg };
+
+    errors_.push_back(err);
+
+    // TODO: add to log
+    //charts()->errorMsg(msg);
+
+    emit errorAdded();
+  }
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+addColumnError(const CQChartsColumn &c, const QString &msg)
+{
+  if (! isPreview()) {
+    ColumnError err { c, msg };
+
+    columnErrors_.push_back(err);
+
+    // TODO: add to log
+    //charts()->errorMsg(msg);
+
+    emit errorAdded();
+  }
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+addDataError(const CQChartsModelIndex &ind, const QString &msg)
+{
+  if (! isPreview()) {
+    DataError err { ind, msg };
+
+    dataErrors_.push_back(err);
+
+    // TODO: add to log
+    //charts()->errorMsg(msg);
+
+    emit errorAdded();
+  }
+
+  return false;
+}
+
+void
+CQChartsPlot::
+addErrorsToWidget(QTextBrowser *text)
+{
+  CQChartsHtml html;
+
+  if (! errors_.empty()) {
+    html.h2("Global Errors");
+
+    for (const auto &error : errors_) {
+      html.p(error.msg);
+    }
+  }
+
+  if (! columnErrors_.empty()) {
+    html.h2("Column Errors");
+
+    for (const auto &error : columnErrors_) {
+      QString msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
+
+      html.p(msg);
+    }
+  }
+
+  if (! dataErrors_.empty()) {
+    html.h2("Data Errors");
+
+    for (const auto &error : dataErrors_) {
+      QString msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
+
+      html.p(msg);
+    }
+  }
+
+  text->setHtml(html);
+}
+
+//------
+
 bool
 CQChartsPlot::
 selectMousePress(const QPointF &p, SelMod selMod)
@@ -4280,9 +4389,34 @@ bool
 CQChartsPlot::
 selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 {
+  if (keySelectPress(key(), w, selMod))
+    return true;
+
+  if (titleSelectPress(title(), w, selMod))
+    return true;
+
+  //---
+
+  if (annotationsSelectPress(w, selMod))
+    return true;
+
+  //---
+
+  if (objectsSelectPress(w, selMod))
+    return true;
+
+  //---
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+keySelectPress(CQChartsPlotKey *key, const CQChartsGeom::Point &w, SelMod selMod)
+{
   // select key
-  if (key() && key()->contains(w)) {
-    CQChartsKeyItem *item = key()->getItemAt(w);
+  if (key && key->contains(w)) {
+    CQChartsKeyItem *item = key->getItemAt(w);
 
     if (item) {
       bool handled = item->selectPress(w, selMod);
@@ -4295,31 +4429,40 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
       }
     }
 
-    bool handled = key()->selectPress(w, selMod);
+    bool handled = key->selectPress(w, selMod);
 
     if (handled) {
-      emit keyPressed  (key());
-      emit keyIdPressed(key()->id());
+      emit keyPressed  (key);
+      emit keyIdPressed(key->id());
 
       return true;
     }
   }
 
-  //---
+  return false;
+}
 
+bool
+CQChartsPlot::
+titleSelectPress(CQChartsTitle *title, const CQChartsGeom::Point &w, SelMod selMod)
+{
   // select title
-  if (title() && title()->contains(w)) {
-    if (title()->selectPress(w)) {
-      emit titlePressed  (title());
-      emit titleIdPressed(title()->id());
+  if (title && title->contains(w)) {
+    if (title->selectPress(w, selMod)) {
+      emit titlePressed  (title);
+      emit titleIdPressed(title->id());
 
       return true;
     }
   }
 
-  //---
+  return false;
+}
 
-  // select plot annotation
+bool
+CQChartsPlot::
+annotationsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
+{
   annotationsAtPoint(w, pressAnnotations_);
 
   for (const auto &annotation : pressAnnotations_) {
@@ -4340,8 +4483,13 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
     return true;
   }
 
-  //---
+  return false;
+}
 
+CQChartsObj *
+CQChartsPlot::
+objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
+{
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
   using ObjsSelected = std::map<CQChartsObj*,bool>;
@@ -4632,17 +4780,56 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     }
   }
 
+  if (keyEditPress(key(), w))
+    return true;
+
+  if (axisEditPress(xAxis(), w))
+    return true;
+
+  if (axisEditPress(yAxis(), w))
+    return true;
+
+  if (annotationsEditPress(w))
+    return true;
+
+  //---
+
+  if (keyEditSelect(key(), w))
+    return true;
+
+  if (axisEditSelect(xAxis(), w))
+    return true;
+
+  if (axisEditSelect(yAxis(), w))
+    return true;
+
+  if (titleEditSelect(title(), w))
+    return true;
+
+  if (annotationsEditSelect(w))
+    return true;
+
+  if (objectsEditSelect(w, inside))
+    return true;
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+keyEditPress(CQChartsPlotKey *key, const CQChartsGeom::Point &w)
+{
   // start drag on already selected key handle
-  if (key() && key()->isSelected()) {
-    mouseData_.dragSide = key()->editHandles()->inside(w);
+  if (key && key->isSelected()) {
+    mouseData_.dragSide = key->editHandles()->inside(w);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::KEY;
 
-      key()->editPress(w);
+      key->editPress(w);
 
-      key()->editHandles()->setDragSide(mouseData_.dragSide);
-      key()->editHandles()->setDragPos (w);
+      key->editHandles()->setDragSide(mouseData_.dragSide);
+      key->editHandles()->setDragPos (w);
 
       invalidateOverlay();
 
@@ -4650,35 +4837,24 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     }
   }
 
-  // start drag on already selected x axis handle
-  if (xAxis() && xAxis()->isSelected()) {
-    mouseData_.dragSide = xAxis()->editHandles()->inside(w);
+  return false;
+}
+
+bool
+CQChartsPlot::
+axisEditPress(CQChartsAxis *axis, const CQChartsGeom::Point &w)
+{
+  // start drag on already selected axis handle
+  if (axis && axis->isSelected()) {
+    mouseData_.dragSide = axis->editHandles()->inside(w);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::XAXIS;
+      mouseData_.dragObj = (axis == xAxis() ? DragObj::XAXIS : DragObj::YAXIS);
 
-      xAxis()->editPress(w);
+      axis->editPress(w);
 
-      xAxis()->editHandles()->setDragSide(mouseData_.dragSide);
-      xAxis()->editHandles()->setDragPos (w);
-
-      invalidateOverlay();
-
-      return true;
-    }
-  }
-
-  // start drag on already selected y axis handle
-  if (yAxis() && yAxis()->isSelected()) {
-    mouseData_.dragSide = yAxis()->editHandles()->inside(w);
-
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::YAXIS;
-
-      yAxis()->editPress(w);
-
-      yAxis()->editHandles()->setDragSide(mouseData_.dragSide);
-      yAxis()->editHandles()->setDragPos (w);
+      axis->editHandles()->setDragSide(mouseData_.dragSide);
+      axis->editHandles()->setDragPos (w);
 
       invalidateOverlay();
 
@@ -4686,17 +4862,24 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     }
   }
 
+  return false;
+}
+
+bool
+CQChartsPlot::
+titleEditPress(CQChartsTitle *title, const CQChartsGeom::Point &w)
+{
   // start drag on already selected title handle
-  if (title() && title()->isSelected()) {
-    mouseData_.dragSide = title()->editHandles()->inside(w);
+  if (title && title->isSelected()) {
+    mouseData_.dragSide = title->editHandles()->inside(w);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::TITLE;
 
-      title()->editPress(w);
+      title->editPress(w);
 
-      title()->editHandles()->setDragSide(mouseData_.dragSide);
-      title()->editHandles()->setDragPos (w);
+      title->editHandles()->setDragSide(mouseData_.dragSide);
+      title->editHandles()->setDragPos (w);
 
       invalidateOverlay();
 
@@ -4704,6 +4887,13 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     }
   }
 
+  return false;
+}
+
+bool
+CQChartsPlot::
+annotationsEditPress(const CQChartsGeom::Point &w)
+{
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
     if (annotation->isSelected()) {
@@ -4722,100 +4912,85 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     }
   }
 
-  //---
+  return false;
+}
 
+bool
+CQChartsPlot::
+keyEditSelect(CQChartsPlotKey *key, const CQChartsGeom::Point &w)
+{
   // select/deselect key
-  if (key()) {
-    if (key()->contains(w)) {
-      if (! key()->isSelected()) {
-        selectOneObj(key(), /*allObjs*/false);
+  if (key && key->contains(w)) {
+    if (! key->isSelected()) {
+      selectOneObj(key, /*allObjs*/false);
 
-        return true;
-      }
+      return true;
+    }
 
-      if (key()->editPress(w)) {
-        mouseData_.dragObj = DragObj::KEY;
+    if (key->editPress(w)) {
+      mouseData_.dragObj = DragObj::KEY;
 
-        invalidateOverlay();
+      invalidateOverlay();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
   }
 
-  //---
+  return false;
+}
 
+bool
+CQChartsPlot::
+axisEditSelect(CQChartsAxis *axis, const CQChartsGeom::Point &w)
+{
   // select/deselect x axis
-  if (xAxis()) {
-    if (xAxis()->contains(w)) {
-      if (! xAxis()->isSelected()) {
-        selectOneObj(xAxis(), /*allObjs*/false);
+  if (axis && axis->contains(w)) {
+    if (! axis->isSelected()) {
+      selectOneObj(axis, /*allObjs*/false);
 
-        return true;
-      }
+      return true;
+    }
 
-      if (xAxis()->editPress(w)) {
-        mouseData_.dragObj = DragObj::XAXIS;
+    if (axis->editPress(w)) {
+      mouseData_.dragObj = (axis == xAxis() ? DragObj::XAXIS : DragObj::YAXIS);
 
-        invalidateOverlay();
+      invalidateOverlay();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
   }
 
-  //---
+  return false;
+}
 
-  // select/deselect y axis
-  if (yAxis()) {
-    if (yAxis()->contains(w)) {
-      if (! yAxis()->isSelected()) {
-        selectOneObj(yAxis(), /*allObjs*/false);
-
-        return true;
-      }
-
-      if (yAxis()->editPress(w)) {
-        mouseData_.dragObj = DragObj::YAXIS;
-
-        invalidateOverlay();
-
-        return true;
-      }
-
-      return false;
-    }
-  }
-
-  //---
-
+bool
+CQChartsPlot::
+titleEditSelect(CQChartsTitle *title, const CQChartsGeom::Point &w)
+{
   // select/deselect title
-  if (title()) {
-    if (title()->contains(w)) {
-      if (! title()->isSelected()) {
-        selectOneObj(title(), /*allObjs*/false);
+  if (title && title->contains(w)) {
+    if (! title->isSelected()) {
+      selectOneObj(title, /*allObjs*/false);
 
-        return true;
-      }
+      return true;
+    }
 
-      if (title()->editPress(w)) {
-        mouseData_.dragObj = DragObj::TITLE;
+    if (title->editPress(w)) {
+      mouseData_.dragObj = DragObj::TITLE;
 
-        invalidateOverlay();
+      invalidateOverlay();
 
-        return true;
-      }
-
-      return false;
+      return true;
     }
   }
 
-  //---
+  return false;
+}
 
+bool
+CQChartsPlot::
+annotationsEditSelect(const CQChartsGeom::Point &w)
+{
   Annotations annotations;
 
   annotationsAtPoint(w, annotations);
@@ -4838,8 +5013,13 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
     return false;
   }
 
-  //---
+  return false;
+}
 
+bool
+CQChartsPlot::
+objectsEditSelect(const CQChartsGeom::Point &w, bool inside)
+{
   auto selectPlot = [&]() {
     startSelection();
 
@@ -4877,7 +5057,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
   }
 
   if (inside) {
-    if (dataRange_.inside(w)) {
+    if (contains(w)) {
       if (! isSelected()) {
         selectPlot();
 
@@ -4969,31 +5149,19 @@ deselectAll1(bool &changed)
     if (! changed) { startSelection(); changed = true; }
   };
 
+  auto deselectObjs = [&](std::initializer_list<CQChartsObj *> objs) {
+    for (const auto &obj : objs) {
+      if (obj && obj->isSelected()) {
+        obj->setSelected(false);
+
+        updateChanged();
+      }
+    }
+  };
+
+  deselectObjs({key(), xAxis(), yAxis(), title()});
+
   //---
-
-  if (key() && key()->isSelected()) {
-    key()->setSelected(false);
-
-    updateChanged();
-  }
-
-  if (xAxis() && xAxis()->isSelected()) {
-    xAxis()->setSelected(false);
-
-    updateChanged();
-  }
-
-  if (yAxis() && yAxis()->isSelected()) {
-    yAxis()->setSelected(false);
-
-    updateChanged();
-  }
-
-  if (title() && title()->isSelected()) {
-    title()->setSelected(false);
-
-    updateChanged();
-  }
 
   for (auto &annotation : annotations()) {
     if (annotation->isSelected()) {
@@ -8684,7 +8852,7 @@ updateAnnotationSlot()
 
 CQChartsPlotObj *
 CQChartsPlot::
-getObject(const QString &objectId) const
+getPlotObject(const QString &objectId) const
 {
   for (auto &plotObj : plotObjects()) {
     if (plotObj->id() == objectId)
@@ -8694,13 +8862,31 @@ getObject(const QString &objectId) const
   return nullptr;
 }
 
+CQChartsObj *
+CQChartsPlot::
+getObject(const QString &objectId) const
+{
+  CQChartsPlotObj *plotObj = getPlotObject(objectId);
+  if (plotObj) return plotObj;
+
+  auto checkObjs = [&](std::initializer_list<CQChartsObj *> objs) {
+    for (const auto &obj : objs)
+      if (obj && obj->id() == objectId)
+        return obj;
+
+    return static_cast<CQChartsObj *>(nullptr);
+  };
+
+  return checkObjs({xAxis(), yAxis(), key(), title()});
+}
+
 QList<QModelIndex>
 CQChartsPlot::
 getObjectInds(const QString &objectId) const
 {
   QList<QModelIndex> inds;
 
-  CQChartsPlotObj *plotObj = getObject(objectId);
+  CQChartsPlotObj *plotObj = getPlotObject(objectId);
 
   if (plotObj) {
     CQChartsPlotObj::Indices inds1;
@@ -9418,7 +9604,8 @@ columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
   ColumnType         columnBaseType;
   CQChartsNameValues nameValues;
 
-  (void) columnValueType(column, columnType, columnBaseType, nameValues, defType);
+  if (! columnValueType(column, columnType, columnBaseType, nameValues, defType))
+    return ColumnType::NONE;
 
   return columnType;
 }
@@ -9429,21 +9616,23 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
                 CQChartsNameValues &nameValues, const ColumnType &defType) const
 {
   if (! column.isValid()) {
-    columnType = defType;
+    columnType     = ColumnType::NONE;
+    columnBaseType = ColumnType::NONE;
     return false;
   }
 
   CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
 
   if (columnDetails) {
+    // if has details column is valid
     columnType     = columnDetails->type();
     columnBaseType = columnDetails->baseType();
     nameValues     = columnDetails->nameValues();
 
     if (columnType == ColumnType::NONE) {
+      // if no column type then could not be calculated (still return true)
       columnType     = defType;
       columnBaseType = defType;
-      return false;
     }
   }
   else {
@@ -9452,8 +9641,9 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
 
     if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnType,
                                              columnBaseType, nameValues)) {
-      columnType     = defType;
-      columnBaseType = defType;
+      // if fail column is invalid
+      columnType     = ColumnType::NONE;
+      columnBaseType = ColumnType::NONE;
       return false;
     }
   }
@@ -9578,6 +9768,18 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
 }
 
 //------
+
+CQChartsModelIndex
+CQChartsPlot::
+normalizeIndex(const CQChartsModelIndex &ind) const
+{
+  QModelIndex ind1 = normalizeIndex(modelIndex(ind));
+
+  if (ind1.column() == ind.column.column())
+    return CQChartsModelIndex(ind1.row(), ind.column, ind1.parent());
+  else
+    return CQChartsModelIndex(ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+}
 
 QModelIndex
 CQChartsPlot::
@@ -11116,6 +11318,13 @@ CQChartsPlot::
 getParameter(CQChartsPlotParameter *param, QVariant &value) const
 {
   return CQUtil::getProperty(this, param->propName(), value);
+}
+
+bool
+CQChartsPlot::
+contains(const CQChartsGeom::Point &p) const
+{
+  return dataRange_.inside(p);
 }
 
 //------

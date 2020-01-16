@@ -90,6 +90,10 @@ CQChartsBoxObj::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
      const CQChartsPenBrush &penBrush) const
 {
+  bbox_ = bbox;
+
+  //---
+
   if (isFilled()) {
     // set pen and brush
     CQChartsPenBrush penBrush1 = penBrush;
@@ -160,4 +164,13 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
 
     CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
   }
+}
+
+//---
+
+bool
+CQChartsBoxObj::
+contains(const CQChartsGeom::Point &p) const
+{
+  return bbox_.inside(p);
 }

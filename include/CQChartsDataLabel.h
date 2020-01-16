@@ -110,6 +110,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
+  bool contains(const CQChartsGeom::Point &p) const override;
+
+  //---
+
   void write(std::ostream &os, const QString &varName) const;
 
  signals:
@@ -119,10 +123,13 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Position adjustPosition(Position position) const;
 
  private:
+  using BBox = CQChartsGeom::BBox;
+
   Position        position_   { Position::TOP_INSIDE }; //!< position relative to parent
   Qt::Orientation direction_  { Qt::Vertical };         //!< parent object direction
   bool            clip_       { false };                //!< clip to parent
   bool            sendSignal_ { false };                //!< send signal on data change
+  mutable BBox    bbox_;                                //!< last drawn bbox
 };
 
 #endif

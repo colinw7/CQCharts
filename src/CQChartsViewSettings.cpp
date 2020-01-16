@@ -357,7 +357,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
       QString id = item->text();
 
-      CQChartsPlot *plot = view->getPlot(id);
+      CQChartsPlot *plot = view->getPlotForId(id);
 
       plots.push_back(plot);
     }
@@ -2026,7 +2026,7 @@ updateCurrentPlot()
   assert(view);
 
   if (plotId_.length()) {
-    CQChartsPlot *plot = view->getPlot(plotId_);
+    CQChartsPlot *plot = view->getPlotForId(plotId_);
 
     if (plot) {
       disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));

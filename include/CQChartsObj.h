@@ -72,6 +72,8 @@ class CQChartsObj : public QObject {
 
   //---
 
+  virtual bool contains(const CQChartsGeom::Point &p) const = 0;
+
  signals:
   //! emitted when object id changed
   void idChanged();

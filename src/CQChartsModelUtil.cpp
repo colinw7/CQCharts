@@ -1158,6 +1158,14 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
   return str;
 }
 
+QString modelString(CQCharts *charts, const QAbstractItemModel *model,
+                    const CQChartsModelIndex &ind, bool &ok)
+{
+  return modelString(charts, model, ind.row, ind.column, ind.parent, ok);
+}
+
+//---
+
 #if 0
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent,

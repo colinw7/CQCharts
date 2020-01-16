@@ -304,6 +304,13 @@ writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &penBrush) c
   os << "\";\n";
 }
 
+bool
+CQChartsPlotObj::
+contains(const CQChartsGeom::Point &p) const
+{
+  return inside(p);
+}
+
 void
 CQChartsPlotObj::
 writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const

@@ -10,7 +10,7 @@
  */
 class CQChartsPolygonList {
  public:
-  using Polygons = std::vector<CQChartsGeom::Polygon>;
+  using Polygons = CQChartsGeom::Polygons;
 
  public:
   static void registerMetaType();

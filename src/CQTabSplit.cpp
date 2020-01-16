@@ -108,6 +108,45 @@ addWidget(QWidget *w, const QString &name)
   }
 }
 
+void
+CQTabSplit::
+removeWidget(QWidget *w)
+{
+  int i = 0;
+
+  for (auto &data : widgets_) {
+    if (w == data.w)
+      break;
+
+    ++i;
+  }
+
+  if (i >= int(widgets_.size()))
+    return;
+
+  WidgetData data = widgets_[i];
+
+  for (int j = i + 1; j < int(widgets_.size()); ++j)
+    widgets_[j - 1] = widgets_[j];
+
+  widgets_.pop_back();
+
+  delete data.group;
+  delete data.w;
+}
+
+void
+CQTabSplit::
+removeAllWidgets()
+{
+  for (auto &data : widgets_) {
+    delete data.group;
+    delete data.w;
+  }
+
+  widgets_.clear();
+}
+
 QWidget *
 CQTabSplit::
 widget(int i) const

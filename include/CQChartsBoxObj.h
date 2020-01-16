@@ -53,8 +53,15 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
             const CQChartsPenBrush &penBrush) const;
 
+  //---
+
+  bool contains(const CQChartsGeom::Point &p) const override;
+
  protected:
-  bool stateColoring_ { true }; //!< color depending on inside/selected state
+  using BBox = CQChartsGeom::BBox;
+
+  bool         stateColoring_ { true }; //!< color depending on inside/selected state
+  mutable BBox bbox_;                   //!< last drawn bbox
 };
 
 #endif

@@ -37,6 +37,7 @@ CQChartsTableDelegate.cpp \
 \
 CQChartsWindow.cpp \
 CQChartsView.cpp \
+CQChartsViewError.cpp \
 CQChartsViewExpander.cpp \
 CQChartsViewSettings.cpp \
 CQChartsViewStatus.cpp \
@@ -317,6 +318,7 @@ HEADERS += \
 \
 ../include/CQChartsWindow.h \
 ../include/CQChartsView.h \
+../include/CQChartsViewError.h \
 ../include/CQChartsViewExpander.h \
 ../include/CQChartsViewSettings.h \
 ../include/CQChartsViewStatus.h \
