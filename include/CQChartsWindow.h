@@ -91,6 +91,8 @@ class CQChartsWindow : public QFrame {
 
   //---
 
+  void showErrorsTab();
+
   void setHasErrors(bool b);
 
   //---

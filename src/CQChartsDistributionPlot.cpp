@@ -714,7 +714,7 @@ bucketGroupValues() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::bucketGroupValues");
 
-  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
 
   // initialize bucketers to value range
   if (isConsistentBucketer()) {
@@ -906,7 +906,7 @@ calcBucketRanges() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::calcBucketRanges");
 
-  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
 
   //---
 
@@ -1261,7 +1261,7 @@ void
 CQChartsDistributionPlot::
 clearGroupValues() const
 {
-  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
 
   for (auto &groupValues : th->groupData_.groupValues)
     delete groupValues.second;
@@ -1314,14 +1314,14 @@ CQChartsDistributionPlot::Values *
 CQChartsDistributionPlot::
 getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 {
-  Values *values = const_cast<Values *>(getGroupValues(groupInd));
+  auto values = const_cast<Values *>(getGroupValues(groupInd));
 
   if (values)
     return values;
 
   //---
 
-  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
 
   CQChartsValueSet *valueSet = new CQChartsValueSet(this);
 
@@ -1363,7 +1363,7 @@ calcAnnotationBBox() const
   if (position == CQChartsDataLabel::TOP_OUTSIDE ||
       position == CQChartsDataLabel::BOTTOM_OUTSIDE) {
     for (const auto &plotObj : plotObjs_) {
-      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -1465,7 +1465,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::createObjs");
 
-  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
 
   NoUpdate noUpdate(this);
 
@@ -2665,7 +2665,7 @@ posStr(const CQChartsGeom::Point &w) const
     QString xstr = xStr(int(w.x));
 
     for (const auto &plotObj : plotObjs_) {
-      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       double value;
 
@@ -2681,7 +2681,7 @@ posStr(const CQChartsGeom::Point &w) const
     QString ystr = yStr(int(w.y));
 
     for (const auto &plotObj : plotObjs_) {
-      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       double value;
 
@@ -2934,7 +2934,7 @@ pushSlot()
   Filters filters;
 
   for (const auto &obj : objs) {
-    CQChartsDistributionBarObj *distObj = qobject_cast<CQChartsDistributionBarObj *>(obj);
+    auto distObj = qobject_cast<CQChartsDistributionBarObj *>(obj);
 
     double value1, value2;
 

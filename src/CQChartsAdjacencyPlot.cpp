@@ -402,11 +402,9 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   th->clearNodes();
-
-  th->clearErrors();
 
   //---
 
@@ -414,51 +412,50 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto checkColumn = [&](const CQChartsColumn &c, const QString &name) {
-    if (c.isValid() && columnValueType(c) == ColumnType::NONE)
-      return th->addColumnError(c, QString("Invalid %1 column").arg(name));
-    else
-      return true;
-  };
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
 
   if      (namePairColumn().isValid() && countColumn().isValid()) {
     // name pair and count required
     // groupId, name optional
-    th->namePairColumnType_ = columnValueType(namePairColumn());
+    if (! checkColumn(namePairColumn(), "Name Pair",
+                      th->namePairColumnType_, /*required*/true))
+      columnsValid = false;
 
-    if (namePairColumnType_ == ColumnType::NONE)
-      return th->addColumnError(namePairColumn(), "Invalid Name Pair column");
-
-    if (! checkColumn(groupIdColumn(), "Group Id"))
-      return false;
-
-    if (! checkColumn(nameColumn(), "Name"))
-      return false;
-
-    return initHierObjs(objs);
+    if (! checkColumn(groupIdColumn(), "Group Id") ||
+        ! checkColumn(nameColumn   (), "Name"))
+      columnsValid = false;
   }
   else if (connectionsColumn().isValid()) {
     // connection required
     // groupId, node, name optional
-    th->connectionsColumnType_ = columnValueType(connectionsColumn());
+    if (! checkColumn(connectionsColumn(), "Connections",
+                      th->connectionsColumnType_, /*required*/true))
+      columnsValid = false;
 
-    if (connectionsColumnType_ == ColumnType::NONE)
-      return th->addColumnError(namePairColumn(), "Invalid Connections column");
-
-    if (! checkColumn(groupIdColumn(), "Group Id"))
-      return false;
-
-    if (! checkColumn(nodeColumn(), "Node"))
-      return false;
-
-    if (! checkColumn(nameColumn(), "Name"))
-      return false;
-
-    return initConnectionObjs(objs);
+    if (! checkColumn(groupIdColumn(), "Group Id") ||
+        ! checkColumn(nodeColumn   (), "Node") ||
+        ! checkColumn(nameColumn   (), "Name"))
+      columnsValid = false;
   }
   else {
     return th->addError("Required columns not specified");
   }
+
+  if (! columnsValid)
+    return false;
+
+  //---
+
+  // create objects
+  if      (namePairColumn().isValid() && countColumn().isValid())
+    return initHierObjs(objs);
+  else if (connectionsColumn().isValid())
+    return initConnectionObjs(objs);
+  else
+    return false;
 }
 
 bool
@@ -570,7 +567,7 @@ initHierObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   for (const auto &nameNode : nameNodeMap_) {
     CQChartsAdjacencyNode *node = nameNode.second;
@@ -669,7 +666,7 @@ initConnectionObjs(PlotObjs &objs) const
 
   visitModel(visitor);
 
-  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   const IdConnectionsData &idConnectionsData = visitor.idConnections();
 
@@ -863,7 +860,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   nodeData.maxNode  = 0;
 
   for (auto &pnode : nodes) {
-    CQChartsAdjacencyNode *node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
+    auto node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
 
     sortedNodes.push_back(node);
 
@@ -920,7 +917,7 @@ getNodeByName(const QString &str) const
 
   CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
 
-  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(str, node));
 
@@ -1030,7 +1027,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   }
 
   // save draw factor
-  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   th->nodeData_.drawFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
 
@@ -1117,7 +1114,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   }
 
   if (insideObject()) {
-    CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+    auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
     th->setInsideObj(nullptr);
 
@@ -1218,7 +1215,7 @@ draw(CQChartsPaintDevice *device)
   // draw inside object
   if (isInside()) {
     if (plot_->insideObj() != this) {
-      CQChartsAdjacencyPlot *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
+      auto plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
 
       plot->setInsideObj(const_cast<CQChartsAdjacencyObj *>(this));
 

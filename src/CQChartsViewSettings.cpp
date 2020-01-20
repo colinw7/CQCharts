@@ -16,6 +16,7 @@
 #include <CQChartsKeyEdit.h>
 #include <CQChartsAxisEdit.h>
 #include <CQChartsKey.h>
+#include <CQChartsViewError.h>
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
@@ -865,9 +866,20 @@ addWidgets()
 
   //----
 
+  // Errors Tab
+  auto errorsFrame = CQUtil::makeWidget<QFrame>("errorsFrame");
+
+  tab_->addTab(errorsFrame, "Errors");
+
+  initErrorsFrame(errorsFrame);
+
+  //----
+
   updateModelsData();
 
   updateAnnotations();
+
+  updateErrors();
 }
 
 //------
@@ -1651,6 +1663,55 @@ initLayersFrame(QFrame *layersFrame)
   connect(plotImageButton, SIGNAL(clicked()), this, SLOT(plotLayerImageSlot()));
 
   controlLayout->addStretch(1);
+}
+
+//------
+
+void
+CQChartsViewSettings::
+initErrorsFrame(QFrame *errorsFrame)
+{
+  auto errorsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(errorsFrame, 2, 2);
+
+  //---
+
+  CQChartsView *view = window_->view();
+
+  error_ = new CQChartsViewError(view);
+
+  errorsFrameLayout->addWidget(error_);
+
+  //---
+
+  connect(view, SIGNAL(updateErrors()), this, SLOT(updateErrors()));
+}
+
+void
+CQChartsViewSettings::
+updateErrors()
+{
+  CQChartsView *view = window_->view();
+
+  bool hasErrors = false;
+
+  for (auto &plot : view->plots()) {
+    if (plot->hasErrors()) {
+      hasErrors = true;
+      break;
+    }
+  }
+
+  if (window_)
+    window_->setHasErrors(hasErrors);
+
+  error_->updatePlots();
+}
+
+void
+CQChartsViewSettings::
+showErrorsTab()
+{
+  tab_->setCurrentIndex(6);
 }
 
 //------

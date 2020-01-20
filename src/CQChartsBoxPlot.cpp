@@ -555,12 +555,21 @@ isPreCalc() const
           maxColumn        ().isValid());
 }
 
+//---
+
 CQChartsGeom::Range
 CQChartsBoxPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsBoxPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
+  CQChartsGeom::Range dataRange;
+
+  //---
+
+  // x-axis must be integer, y-axis must be real
   CQChartsAxis *xAxis = mappedXAxis();
   CQChartsAxis *yAxis = mappedYAxis();
 
@@ -573,9 +582,11 @@ calcRange() const
   //---
 
   if (! isPreCalc())
-    return updateRawRange();
+    dataRange = updateRawRange();
   else
-    return updateCalcRange();
+    dataRange = updateCalcRange();
+
+  return dataRange;
 }
 
 // calculate box plot from individual values
@@ -583,7 +594,32 @@ CQChartsGeom::Range
 CQChartsBoxPlot::
 updateRawRange() const
 {
-  CQChartsBoxPlot *th = const_cast<CQChartsBoxPlot *>(this);
+  auto th = const_cast<CQChartsBoxPlot *>(this);
+
+  CQChartsGeom::Range dataRange;
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value columns required
+  // name, group and set column optional
+
+  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn (), "Name" ) ||
+      ! checkColumn(groupColumn(), "Group"))
+    columnsValid = false;
+
+  if (! checkColumn(setColumn(), "Set", th->setType_))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return dataRange;
 
   //---
 
@@ -603,8 +639,6 @@ updateRawRange() const
   updateRawWhiskers();
 
   //---
-
-  CQChartsGeom::Range dataRange;
 
   RMinMax xrange;
 
@@ -839,11 +873,53 @@ CQChartsGeom::Range
 CQChartsBoxPlot::
 updateCalcRange() const
 {
-  CQChartsBoxPlot *th = const_cast<CQChartsBoxPlot *>(this);
+  auto th = const_cast<CQChartsBoxPlot *>(this);
 
   //---
 
-  th->xType_ = columnValueType(xColumn());
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // min, lowerMedian, median, upperMedia, max required (already checked)
+  // x, outliers optional (value list)
+
+  th->xType_ = ColumnType::NONE;
+
+  if (xColumn().isValid()) {
+    th->xType_ = columnValueType(xColumn());
+
+    if (th->xType_ == ColumnType::NONE)
+      columnsValid = th->addColumnError(xColumn(), "Invalid X column");
+  }
+
+  if (columnValueType(minColumn()) == ColumnType::NONE)
+    columnsValid = th->addColumnError(minColumn(), "Invalid Min column");
+
+  if (columnValueType(lowerMedianColumn()) == ColumnType::NONE)
+    columnsValid = th->addColumnError(lowerMedianColumn(), "Invalid Lower Median column");
+
+  if (columnValueType(medianColumn()) == ColumnType::NONE)
+    columnsValid = th->addColumnError(medianColumn(), "Invalid Median column");
+
+  if (columnValueType(upperMedianColumn()) == ColumnType::NONE)
+    columnsValid = th->addColumnError(upperMedianColumn(), "Invalid Upper Median column");
+
+  if (columnValueType(maxColumn()) == ColumnType::NONE)
+    columnsValid = th->addColumnError(maxColumn(), "Invalid Max column");
+
+  if (outliersColumn().isValid()) {
+    if (columnValueType(outliersColumn()) == ColumnType::NONE)
+      columnsValid = th->addColumnError(outliersColumn(), "Invalid Outliers column");
+  }
+
+  if (idColumn().isValid()) {
+    if (columnValueType(idColumn()) == ColumnType::NONE)
+      columnsValid = th->addColumnError(idColumn(), "Invalid Id column");
+  }
+
+  //---
 
   th->xValueInd_.clear();
 
@@ -941,44 +1017,77 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
       dataRange.updateRange(y, x);
   };
 
+  auto th = const_cast<CQChartsBoxPlot *>(this);
+
   //---
 
   CQChartsBoxWhiskerData data;
 
-  bool ok;
-
   data.ind = vdata.parent;
 
+  bool ok;
+
+  //---
+
   if (xColumn().isValid()) {
+    CQChartsModelIndex xInd(vdata.row, xColumn(), vdata.parent);
+
+    // x column can be string or real
     if (xType_ == ColumnType::STRING) {
-      QVariant var = modelValue(vdata.row, xColumn(), vdata.parent, ok);
+      QString xname = modelString(xInd, ok);
 
-      if (ok) {
-        CQChartsBoxPlot *th = const_cast<CQChartsBoxPlot *>(this);
-
-        data.name = var.toString();
-        data.x    = th->xValueInd_.calcId(data.name);
+      if (! ok) {
+        th->addDataError(xInd, "Invalid x value");
+        return;
       }
+
+      data.name = xname;
+      data.x    = th->xValueInd_.calcId(data.name);
     }
     else {
-      data.x = modelReal(vdata.row, xColumn(), vdata.parent, ok);
+      data.x = modelReal(xInd, ok);
+
+      if (! ok) {
+        th->addDataError(xInd, "Invalid x value");
+        return;
+      }
     }
   }
   else {
     data.x = vdata.row;
   }
 
-  data.statData.min         = modelReal(vdata.row, minColumn        (), vdata.parent, ok);
-  data.statData.lowerMedian = modelReal(vdata.row, lowerMedianColumn(), vdata.parent, ok);
-  data.statData.median      = modelReal(vdata.row, medianColumn     (), vdata.parent, ok);
-  data.statData.upperMedian = modelReal(vdata.row, upperMedianColumn(), vdata.parent, ok);
-  data.statData.max         = modelReal(vdata.row, maxColumn        (), vdata.parent, ok);
+  //---
+
+  CQChartsModelIndex minInd        (vdata.row, minColumn        (), vdata.parent);
+  CQChartsModelIndex lowerMedianInd(vdata.row, lowerMedianColumn(), vdata.parent);
+  CQChartsModelIndex medianInd     (vdata.row, medianColumn     (), vdata.parent);
+  CQChartsModelIndex upperMedianInd(vdata.row, upperMedianColumn(), vdata.parent);
+  CQChartsModelIndex maxInd        (vdata.row, maxColumn        (), vdata.parent);
+
+  data.statData.min         = modelReal(minInd        , ok);
+  if (! ok) { th->addDataError(minInd        , "Invalid min value"); return; }
+  data.statData.lowerMedian = modelReal(lowerMedianInd, ok);
+  if (! ok) { th->addDataError(lowerMedianInd, "Invalid lower median value"); return; }
+  data.statData.median      = modelReal(medianInd     , ok);
+  if (! ok) { th->addDataError(medianInd     , "Invalid median value"); return; }
+  data.statData.upperMedian = modelReal(upperMedianInd, ok);
+  if (! ok) { th->addDataError(upperMedianInd, "Invalid upper median value"); return; }
+  data.statData.max         = modelReal(maxInd        , ok);
+  if (! ok) { th->addDataError(maxInd        , "Invalid max value"); return; }
 
   data.dataMin = data.statData.min;
   data.dataMax = data.statData.max;
 
   if (isShowOutliers()) {
-    data.outliers = modelReals(vdata.row, outliersColumn(), vdata.parent, ok);
+    CQChartsModelIndex outliersInd(vdata.row, outliersColumn(), vdata.parent);
+
+    data.outliers = modelReals(outliersInd, ok);
+
+    if (! ok) {
+      th->addDataError(outliersInd, "Invalid outlier real values");
+      return;
+    }
 
     for (auto &o : data.outliers) {
       data.dataMin = std::min(data.dataMin, o);
@@ -1000,7 +1109,9 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   bool nameValid = true;
 
   if (! data.name.length()) {
-    data.name = modelString(vdata.row, idColumn(), vdata.parent, ok);
+    CQChartsModelIndex idInd(vdata.row, idColumn(), vdata.parent);
+
+    data.name = modelString(idInd, ok);
 
     if (! data.name.length()) {
       data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok);
@@ -1024,15 +1135,13 @@ void
 CQChartsBoxPlot::
 updateRawWhiskers() const
 {
-  CQChartsBoxPlot *th = const_cast<CQChartsBoxPlot *>(this);
+  auto th = const_cast<CQChartsBoxPlot *>(this);
 
   th->clearRawWhiskers();
 
   //---
 
-  // x data type
-  th->setType_ = columnValueType(setColumn());
-
+  // set data type
   th->setValueInd_.clear();
 
   //---
@@ -1090,25 +1199,28 @@ void
 CQChartsBoxPlot::
 addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
 {
-  CQChartsBoxPlot *th = const_cast<CQChartsBoxPlot *>(this);
+  auto th = const_cast<CQChartsBoxPlot *>(this);
 
   // get value set id
   int      setId = -1;
   QVariant setVal;
 
   if (setColumn().isValid()) {
+    CQChartsModelIndex setInd(vdata.row, setColumn(), vdata.parent);
+
     bool ok1;
 
-    setVal = modelHierValue(vdata.row, setColumn(), vdata.parent, ok1);
+    setVal = modelHierValue(setInd, ok1);
 
-    if (ok1)
-      setId = th->setValueInd_.calcId(setVal, setType_);
+    if (! ok1) {
+      th->addDataError(setInd, "Invalid set value");
+      return;
+    }
+
+    setId = th->setValueInd_.calcId(setVal, setType_);
   }
 
   //---
-
-  //QModelIndex xind  = modelIndex(vdata.row, setColumn(), vdata.parent);
-  //QModelIndex xind1 = normalizeIndex(xind);
 
   for (const auto &valueColumn : valueColumns()) {
     CQChartsModelIndex ind(vdata.row, valueColumn, vdata.parent);
@@ -1121,13 +1233,17 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     // add value to set
     bool ok2;
 
-    double value = modelReal(vdata.row, valueColumn, vdata.parent, ok2);
-    if (! ok2) continue;
+    double value = modelReal(ind, ok2);
+
+    if (! ok2) {
+      th->addDataError(ind, "Invalid value real");
+      continue;
+    }
 
     if (CMathUtil::isNaN(value))
       continue;
 
-    QModelIndex yind  = modelIndex(vdata.row, valueColumn, vdata.parent);
+    QModelIndex yind  = modelIndex(ind);
     QModelIndex yind1 = normalizeIndex(yind);
 
     CQChartsBoxPlotValue wv(value, yind1);
@@ -1149,7 +1265,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     auto ps = setWhiskerMap.find(setId);
 
     if (ps == setWhiskerMap.end()) {
-      SetWhiskerMap &setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
+      auto setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
 
       auto ps1 = setWhiskerMap1.find(setId);
 
@@ -1204,7 +1320,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    CQChartsBoxPlotWhiskerObj *boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
+    auto boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
 
     if (boxObj)
       bbox += boxObj->annotationBBox();
@@ -3200,7 +3316,7 @@ bool
 CQChartsBoxKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
-  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   ColorInd ic = (is_.n > 1 ? is_ : ig_);
 
@@ -3217,7 +3333,7 @@ fillBrush() const
 {
   QColor c = CQChartsKeyColorBox::fillBrush().color();
 
-  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   ColorInd ic = (is_.n > 1 ? is_ : ig_);
 
@@ -3250,7 +3366,7 @@ CQChartsBoxKeyColor::
 boxObj() const
 {
   for (const auto &plotObj : plot_->plotObjects()) {
-    CQChartsBoxPlotWhiskerObj *boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
+    auto boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
     if (! boxObj) continue;
 
     if (boxObj->is() == is_ && boxObj->ig() == ig_)
@@ -3273,7 +3389,7 @@ QColor
 CQChartsBoxKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   QColor c = CQChartsKeyText::interpTextColor(ind);
 

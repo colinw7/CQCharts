@@ -426,16 +426,17 @@ initTableObjs(PlotObjs &objs) const
 
       indRowData.rowData.resize(nc);
 
-      for (int col = 0; col < numCols(); ++col) {
+      for (int ic = 0; ic < numCols(); ++ic) {
+        CQChartsColumn col(ic);
+
         QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
 
-        if (col == 0)
+        if (ic == 0)
           indRowData.ind = ind;
 
         bool ok;
 
-        indRowData.rowData[col] =
-          plot_->modelValue(data.row, CQChartsColumn(col), data.parent, ok);
+        indRowData.rowData[ic] = plot_->modelValue(data.row, col, data.parent, ok);
       }
 
       indRowDatas_.push_back(indRowData);

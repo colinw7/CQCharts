@@ -112,7 +112,7 @@ void
 CQChartsViewStatus::
 toggleViewErrors()
 {
-  window()->view()->toggleErrors();
+  window()->showErrorsTab();
 }
 
 QSize

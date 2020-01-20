@@ -620,6 +620,13 @@ expandedModelIndices(QModelIndexList &inds)
 
 void
 CQChartsWindow::
+showErrorsTab()
+{
+  settings_->showErrorsTab();
+}
+
+void
+CQChartsWindow::
 setHasErrors(bool b)
 {
   status_->setHasErrors(b);

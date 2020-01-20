@@ -303,58 +303,46 @@ calcAnnotationBBox() const
 
     CQChartsPlotPainter device(th, nullptr);
 
-    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
-
-    double da = alen/nv;
+    QFont font = view()->plotFont(this, textFont());
 
     //---
 
-    QFont font = view()->plotFont(this, textFont());
+    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
 
-    int    nl = 5;
-    double dr = valueRadius_/nl;
+    double da = alen/nv;
+    double r  = valueRadius_;
 
-    for (int i = 0; i <= nl; ++i) {
-      double r = dr*i;
+    //---
 
-      double a = angleStart().value();
+    double a = angleStart().value();
 
-      for (int iv = 0; iv < nv; ++iv) {
-        double ra = CMathUtil::Deg2Rad(a);
+    for (int iv = 0; iv < nv; ++iv) {
+      double ra = CMathUtil::Deg2Rad(a);
 
-        double x = r*cos(ra);
-        double y = r*sin(ra);
+      double x = r*cos(ra);
+      double y = r*sin(ra);
 
-        //---
+      //---
 
-        if (i == nl) {
-          const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
+      const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
 
-          bool ok;
+      bool ok;
 
-          QString name = modelHHeaderString(valueColumn, ok);
+      QString name = modelHHeaderString(valueColumn, ok);
 
-          Qt::Alignment align = 0;
+      if (name.length()) {
+        Qt::Alignment align = alignForPosition(x, y);
 
-          if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
-          else if (x > 0)                align |= Qt::AlignLeft;
-          else if (x < 0)                align |= Qt::AlignRight;
+        CQChartsGeom::BBox tbbox =
+          CQChartsDrawUtil::calcAlignedTextRect(&device, font, CQChartsGeom::Point(x, y),
+                                                name, align, 2, 2);
 
-          if      (CMathUtil::isZero(y)) align |= Qt::AlignVCenter;
-          else if (y > 0)                align |= Qt::AlignBottom;
-          else if (y < 0)                align |= Qt::AlignTop;
-
-          CQChartsGeom::BBox tbbox =
-            CQChartsDrawUtil::calcAlignedTextRect(&device, font, CQChartsGeom::Point(x, y),
-                                                  name, align, 2, 2);
-
-          bbox += tbbox;
-        }
-
-        //---
-
-        a -= da;
+        bbox += tbbox;
       }
+
+      //---
+
+      a -= da;
     }
   }
 
@@ -381,6 +369,27 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
+  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name column optional
+
+  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn(), "Name"))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return false;
+
   //---
 
   // process model data
@@ -391,7 +400,8 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data, numRows(), objs_);
+      if (! plot_->addRow(data, numRows(), objs_))
+        return State::SKIP;
 
       return State::OK;
     }
@@ -410,21 +420,34 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
-void
+bool
 CQChartsRadarPlot::
 addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 {
   bool hidden = isSetHidden(data.row);
 
   if (hidden)
-    return;
+    return false;
+
+  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
 
   //---
 
   // get row name
-  bool ok;
+  CQChartsModelIndex nameInd;
 
-  QString name = modelString(data.row, nameColumn(), data.parent, ok);
+  QString name;
+
+  if (nameColumn().isValid()) {
+    nameInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
+
+    bool ok;
+
+    name = modelString(nameInd, ok);
+
+    if (! ok)
+      return th->addDataError(nameInd, "Invalid name");
+  }
 
   //---
 
@@ -449,16 +472,18 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     //---
 
     // get column value
-    CQChartsModelIndex ind(data.row, valueColumn, data.parent);
+    CQChartsModelIndex valueInd(data.row, valueColumn, data.parent);
 
     double value;
 
-    if (! columnValue(ind, value))
-      continue;
+    if (! columnValue(valueInd, value))
+      return th->addDataError(valueInd, "Invalid value");
 
     //---
 
-    // get column name
+    // get column name (unique ?)
+    bool ok;
+
     QString name = modelHHeaderString(valueColumn, ok);
 
     //---
@@ -492,8 +517,10 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   //---
 
   // create object
-  QModelIndex nameInd  = modelIndex(data.row, nameColumn(), data.parent);
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  QModelIndex nameInd1;
+
+  if (nameInd.isValid())
+    nameInd1 = normalizeIndex(modelIndex(nameInd));
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
 
@@ -503,6 +530,8 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, is);
 
   objs.push_back(radarObj);
+
+  return true;
 }
 
 bool
@@ -550,9 +579,15 @@ addKeyItems(CQChartsPlotKey *key)
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      bool ok;
+      QString name;
 
-      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+      if (plot_->nameColumn().isValid()) {
+        CQChartsModelIndex nameInd(data.row, plot_->nameColumn(), data.parent);
+
+        bool ok;
+
+        name = plot_->modelString(nameInd, ok);
+      }
 
       //---
 
@@ -704,27 +739,21 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
           QString name = modelHHeaderString(valueColumn, ok);
 
-          Qt::Alignment align = 0;
+          if (name.length()) {
+            Qt::Alignment align = alignForPosition(x, y);
 
-          if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
-          else if (x > 0)                align |= Qt::AlignLeft;
-          else if (x < 0)                align |= Qt::AlignRight;
+            // only contrast support (custom align, zero angle)
+            CQChartsTextOptions options;
 
-          if      (CMathUtil::isZero(y)) align |= Qt::AlignVCenter;
-          else if (y > 0)                align |= Qt::AlignBottom;
-          else if (y < 0)                align |= Qt::AlignTop;
+            options.angle         = CQChartsAngle(0);
+            options.align         = align;
+            options.contrast      = isTextContrast();
+            options.contrastAlpha = textContrastAlpha();
 
-          // only contrast support (custom align, zero angle)
-          CQChartsTextOptions options;
+            CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
 
-          options.angle         = CQChartsAngle(0);
-          options.align         = align;
-          options.contrast      = isTextContrast();
-          options.contrastAlpha = textContrastAlpha();
-
-          CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
-
-        //CQChartsDrawUtil::drawAlignedText(device, p1, name, align, 2, 2);
+          //CQChartsDrawUtil::drawAlignedText(device, p1, name, align, 2, 2);
+          }
         }
 
         //---
@@ -744,6 +773,23 @@ execDrawBackground(CQChartsPaintDevice *device) const
       }
     }
   }
+}
+
+Qt::Alignment
+CQChartsRadarPlot::
+alignForPosition(double x, double y) const
+{
+  Qt::Alignment align = 0;
+
+  if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
+  else if (x > 0)                align |= Qt::AlignLeft;
+  else if (x < 0)                align |= Qt::AlignRight;
+
+  if      (CMathUtil::isZero(y)) align |= Qt::AlignVCenter;
+  else if (y > 0)                align |= Qt::AlignBottom;
+  else if (y < 0)                align |= Qt::AlignTop;
+
+  return align;
 }
 
 //------

@@ -300,16 +300,18 @@ createObjs(PlotObjs &objs) const
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       x_ = 0.0;
 
-      for (int col = 0; col < numCols(); ++col) {
+      for (int ic = 0; ic < numCols(); ++ic) {
+        CQChartsColumn col(ic);
+
         QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
 
         bool ok;
 
-        double value = plot_->modelReal(data.row, CQChartsColumn(col), data.parent, ok);
+        double value = plot_->modelReal(data.row, col, data.parent, ok);
 
         //---
 
-        plot_->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind, objs_);
+        plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, value, ind, objs_);
 
         //---
 

@@ -841,6 +841,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool modelMappedReal(const CQChartsModelIndex &ind, double &r, bool log, double def) const;
   bool modelMappedReal(int row, const CQChartsColumn &col, const QModelIndex &ind,
                        double &r, bool log, double def) const;
 
@@ -856,7 +857,6 @@ class CQChartsPlot : public CQChartsObj,
 
   QModelIndex modelIndex(int row, const CQChartsColumn &column,
                          const QModelIndex &parent=QModelIndex()) const;
-  QModelIndex modelIndex(int row, int column, const QModelIndex &parent=QModelIndex()) const;
 
   //---
 
@@ -911,6 +911,7 @@ class CQChartsPlot : public CQChartsObj,
                            const QModelIndex &parent, int role, bool &ok) const;
 #endif
 
+  std::vector<double> modelReals(const CQChartsModelIndex &ind, bool &ok) const;
   std::vector<double> modelReals(int row, const CQChartsColumn &column,
                                  const QModelIndex &parent, bool &ok) const;
 
@@ -974,11 +975,13 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  QVariant modelHierValue(const CQChartsModelIndex &ind, bool &ok) const;
   QVariant modelHierValue(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QVariant modelHierValue(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, bool &ok) const;
 
+  QString modelHierString(const CQChartsModelIndex &ind, bool &ok) const;
   QString modelHierString(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QString modelHierString(int row, const CQChartsColumn &column,
@@ -1935,6 +1938,15 @@ class CQChartsPlot : public CQChartsObj,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const;
 
   //---
+
+  bool checkColumns(const CQChartsColumns &columns, const QString &name,
+                    bool required=false) const;
+
+  bool checkColumn(const CQChartsColumn &column, const QString &name,
+                   bool required=false) const;
+
+  bool checkColumn(const CQChartsColumn &column, const QString &name,
+                   ColumnType &type, bool required=false) const;
 
   ColumnType columnValueType(const CQChartsColumn &column,
                              const ColumnType &defType=ColumnType::STRING) const;

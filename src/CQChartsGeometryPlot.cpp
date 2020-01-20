@@ -29,10 +29,12 @@ addParameters()
 {
   startParameterGroup("Geometry");
 
+  // required object geometry
   addColumnParameter("geometry", "Geometry", "geometryColumn").
    setRequired().setTip("Polygon List, Polygon, Rect or Path geometry");
-  addColumnParameter("value", "Value", "valueColumn").setRequired();
 
+  // optional value, name, style
+  addColumnParameter("value", "Value", "valueColumn");
   addColumnParameter("name" , "Name" , "nameColumn" );
   addColumnParameter("style", "Style", "styleColumn");
 
@@ -297,12 +299,12 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsGeometryPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   CQChartsGeom::Range dataRange;
 
   QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return dataRange;
+  if (! model) return dataRange;
 
   //---
 
@@ -314,9 +316,28 @@ calcRange() const
 
   //---
 
-  th->geometryColumnType_ = columnValueType(geometryColumn());
-  th->colorColumnType_    = columnValueType(colorColumn());
-  th->styleColumnType_    = columnValueType(styleColumn());
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // geometry column required
+  // value, color and style columns optional
+
+  if (! checkColumn(geometryColumn(), "Geometry", th->geometryColumnType_, /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(valueColumn(), "Value"))
+    columnsValid = false;
+
+  if (! checkColumn(colorColumn(), "Color", th->colorColumnType_))
+    columnsValid = false;
+
+  if (! checkColumn(styleColumn(), "Style", th->styleColumnType_))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return dataRange;
 
   //---
 
@@ -361,11 +382,15 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry name
-  CQChartsModelIndex nameInd(data.row, nameColumn(), data.parent);
+  CQChartsModelIndex nameInd;
 
-  bool ok1;
+  if (nameColumn().isValid()) {
+    nameInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
 
-  geometry.name = modelString(nameInd, ok1);
+    bool ok1;
+
+    geometry.name = modelString(nameInd, ok1);
+  }
 
   //---
 
@@ -455,18 +480,25 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry associated value
-  CQChartsModelIndex valueInd(data.row, valueColumn(), data.parent);
+  if (valueColumn().isValid()) {
+    CQChartsModelIndex valueInd(data.row, valueColumn(), data.parent);
 
-  bool ok3;
+    bool ok3;
 
-  double value = modelReal(valueInd, ok3);
+    double value = modelReal(valueInd, ok3);
 
-  if (ok3 && ! CMathUtil::isNaN(value))
-    geometry.value = value;
+    if (! ok3) {
+      th->addDataError(geometryInd, "Invalid value real");
+      return;
+    }
 
-  // update value range
-  if (geometry.value)
-    th->valueRange_.add(*geometry.value);
+    if (! CMathUtil::isNaN(value))
+      geometry.value = value;
+
+    // update value range
+    if (geometry.value)
+      th->valueRange_.add(*geometry.value);
+  }
 
   //---
 

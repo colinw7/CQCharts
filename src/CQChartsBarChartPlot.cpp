@@ -334,9 +334,35 @@ calcRange() const
 
   NoUpdate noUpdate(this);
 
+  CQChartsGeom::Range dataRange;
+
   //---
 
-  CQChartsGeom::Range dataRange;
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value columns required
+  // name, label, group, color columns optional
+
+  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn (), "Name" ) ||
+      ! checkColumn(labelColumn(), "Label") ||
+      ! checkColumn(groupColumn(), "Group") ||
+      ! checkColumn(colorColumn(), "Color"))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return dataRange;
+
+  //---
 
   auto updateRange = [&](double x, double y) {
     if (! isHorizontal())
@@ -452,7 +478,7 @@ void
 CQChartsBarChartPlot::
 initRangeAxes() const
 {
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->initRangeAxesI();
 }
@@ -551,6 +577,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
       dataRange.updateRange(y, x);
   };
 
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
+
   //---
 
   CQChartsModelIndex ind;
@@ -584,9 +612,11 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString group;
 
   if (groupColumn().isValid()) {
+    CQChartsModelIndex groupModelInd(data.row, groupColumn(), data.parent);
+
     bool ok1;
 
-    group = modelHierString(data.row, groupColumn(), data.parent, ok1);
+    group = modelHierString(groupModelInd, ok1);
 
     categoryName = group;
   }
@@ -597,16 +627,19 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString name;
 
   if (nameColumn().isValid()) {
+    CQChartsModelIndex nameInd(data.row, nameColumn(), data.parent);
+
     bool ok2;
 
-    QVariant var = modelValue(data.row, nameColumn(), data.parent, ok2);
+    QVariant var = modelValue(nameInd, ok2);
 
+    // convert real value to string for real value name (e.g. date)
     double r;
 
     if (CQChartsVariant::toReal(var, r))
       name = columnStr(nameColumn(), r);
     else
-      name = modelString(data.row, nameColumn(), data.parent, ok2);
+      name = modelString(nameInd, ok2);
 
     if (! categoryName.length())
       categoryName = name;
@@ -618,9 +651,11 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString labelStr;
 
   if (labelColumn().isValid()) {
+    CQChartsModelIndex labelInd(data.row, labelColumn(), data.parent);
+
     bool ok3;
 
-    labelStr = modelString(data.row, labelColumn(), data.parent, ok3);
+    labelStr = modelString(labelInd, ok3);
   }
 
   //---
@@ -629,9 +664,11 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString colorStr;
 
   if (colorColumn().isValid()) {
+    CQChartsModelIndex colorModelInd(data.row, colorColumn(), data.parent);
+
     bool ok4;
 
-    colorStr = modelString(data.row, colorColumn(), data.parent, ok4);
+    colorStr = modelString(colorModelInd, ok4);
   }
 
   //---
@@ -649,11 +686,15 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   // add values for columns (1 column normally, all columns when grouped)
   for (const auto &valueColumn : valueColumns) {
+    CQChartsModelIndex valueModelInd(data.row, valueColumn, data.parent);
+
     double r;
 
-    bool ok2 = modelMappedReal(data.row, valueColumn, data.parent, r, isLogY(), data.row);
+    bool ok2 = modelMappedReal(valueModelInd, r, isLogY(), data.row);
 
     if (! ok2) {
+      th->addDataError(valueModelInd, "Invalid value");
+
       if (isSkipBad())
         continue;
 
@@ -778,7 +819,7 @@ void
 CQChartsBarChartPlot::
 initGroupValueSet() const
 {
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->valueData_.clear();
 }
@@ -787,7 +828,7 @@ const CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd) const
 {
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
 
   return th->groupValueSetI(groupInd);
 }
@@ -840,7 +881,7 @@ calcAnnotationBBox() const
 
   if (dataLabel()->isVisible()) {
     for (const auto &plotObj : plotObjs_) {
-      CQChartsBarChartObj *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
+      auto barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -1080,7 +1121,7 @@ void
 CQChartsBarChartPlot::
 initObjAxes() const
 {
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+  auto th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->initObjAxesI();
 }

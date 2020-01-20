@@ -17,7 +17,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsHtml.h>
-#include <CQChartsViewError.h>
 
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
@@ -191,12 +190,6 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   // TODO: only connect to current theme ?
   connect(CQColorsMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
   connect(CQColorsMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
-
-  //---
-
-  error_ = new CQChartsViewError(this);
-
-  updateErrors();
 }
 
 CQChartsView::
@@ -1375,8 +1368,8 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   connect(plot, SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
 
-  connect(plot, SIGNAL(errorsCleared()), this, SLOT(updateErrors()));
-  connect(plot, SIGNAL(errorAdded()), this, SLOT(updateErrors()));
+  connect(plot, SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
+  connect(plot, SIGNAL(errorAdded()), this, SIGNAL(updateErrors()));
 
   //---
 
@@ -1556,45 +1549,6 @@ plotConnectDataChangedSlot()
     emit plotConnectDataChanged(plot->id());
 
   emit connectDataChanged();
-}
-
-//---
-
-void
-CQChartsView::
-updateErrors()
-{
-  hasErrors_ = false;
-
-  for (auto &plot : plots()) {
-    if (plot->hasErrors()) {
-      hasErrors_ = true;
-      break;
-    }
-  }
-
-  if (window_)
-    window_->setHasErrors(hasErrors_);
-
-  if (! hasErrors_)
-    error_->setVisible(false);
-}
-
-void
-CQChartsView::
-toggleErrors()
-{
-  showErrors(! error_->isVisible());
-}
-
-void
-CQChartsView::
-showErrors(bool show)
-{
-  error_->setVisible(show);
-
-  if (show)
-    error_->updatePlots();
 }
 
 //---

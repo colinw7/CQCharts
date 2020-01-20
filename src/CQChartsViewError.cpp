@@ -11,19 +11,15 @@
 
 CQChartsViewError::
 CQChartsViewError(CQChartsView *view) :
- CQWinWidget(view), view_(view)
+ view_(view)
 {
-  setBorder(4);
-  setClosable(false);
-  setConstraint(VISIBLE_CONSTRAINT);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   tab_ = CQUtil::makeWidget<CQTabSplit>("area");
 
   tab_->setState(CQTabSplit::State::TAB);
 
-  setChild(tab_);
-
-  resize(sizeHint());
+  layout->addWidget(tab_);
 }
 
 void
@@ -82,5 +78,5 @@ sizeHint() const
   w = std::max(w, 100);
   h = std::max(h, 100);
 
-  return QSize(w + 8, h + getHeaderHeight() + 40);
+  return QSize(w + 8, h + 40);
 }

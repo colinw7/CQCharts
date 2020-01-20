@@ -54,7 +54,6 @@ struct CQChartsTextOptions;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class CQColorsPalette;
-class CQChartsViewError;
 
 class QPainter;
 class QToolButton;
@@ -872,6 +871,9 @@ class CQChartsView : public QFrame,
   // emitted when scrolled data changed
   void scrollDataChanged();
 
+  // emitted when errors added
+  void updateErrors();
+
  public slots:
   void updateNoData();
 
@@ -894,11 +896,6 @@ class CQChartsView : public QFrame,
   void updatePlots();
 
   void updateSlot();
-
-  void updateErrors();
-
-  void toggleErrors();
-  void showErrors(bool);
 
   void searchSlot();
 
@@ -1174,8 +1171,6 @@ class CQChartsView : public QFrame,
   Annotations           pressAnnotations_;                        //!< press annotations
   CQChartsDocument*     noDataText_        { nullptr };
   bool                  updateNoData_      { true };
-  CQChartsViewError*    error_             { nullptr };
-  bool                  hasErrors_         { false };
 };
 
 #endif

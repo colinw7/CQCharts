@@ -260,8 +260,31 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  auto th = const_cast<CQChartsBubblePlot *>(this);
+
   // init value sets
 //initValueSets();
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name, id, color columns optional
+
+  if (! checkColumn(valueColumn(), "Value", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn (), "Name" ) ||
+      ! checkColumn(idColumn   (), "Id"   ) ||
+      ! checkColumn(colorColumn(), "Color"))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return false;
 
   //---
 
@@ -269,8 +292,6 @@ createObjs(PlotObjs &objs) const
     initNodes();
 
   //---
-
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
 
   th->initColorIds();
 
@@ -285,16 +306,16 @@ createObjs(PlotObjs &objs) const
   int ig = 0, in = 0;
 
   for (auto &obj : objs) {
-    CQChartsBubbleHierObj *hierObj = dynamic_cast<CQChartsBubbleHierObj *>(obj);
-    CQChartsBubbleNodeObj *nodeObj = dynamic_cast<CQChartsBubbleNodeObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsBubbleHierObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsBubbleNodeObj *>(obj);
 
     if      (hierObj) { hierObj->setInd(ig); ++ig; }
     else if (nodeObj) { nodeObj->setInd(in); ++in; }
   }
 
   for (auto &obj : objs) {
-    CQChartsBubbleHierObj *hierObj = dynamic_cast<CQChartsBubbleHierObj *>(obj);
-    CQChartsBubbleNodeObj *nodeObj = dynamic_cast<CQChartsBubbleNodeObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsBubbleHierObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsBubbleNodeObj *>(obj);
 
     if      (hierObj) {
       if (hierObj->parent())
@@ -372,7 +393,7 @@ void
 CQChartsBubblePlot::
 initNodes() const
 {
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+  auto th = const_cast<CQChartsBubblePlot *>(this);
 
   th->nodeData_.hierInd = 0;
 
@@ -401,7 +422,7 @@ void
 CQChartsBubblePlot::
 placeNodes(CQChartsBubbleHierNode *hier) const
 {
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+  auto th = const_cast<CQChartsBubblePlot *>(this);
 
   initNodes(hier);
 
@@ -482,7 +503,7 @@ CQChartsBubblePlot::
 colorNode(CQChartsBubbleNode *node) const
 {
   if (! node->color().isValid()) {
-    CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+    auto th = const_cast<CQChartsBubblePlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -546,17 +567,18 @@ loadModel() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      CQChartsModelIndex nameModelInd;
+
       if (plot_->nameColumn().isValid())
-        nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
+        nameModelInd = CQChartsModelIndex(data.row, plot_->nameColumn(), data.parent);
       else
-        nameInd = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
+        nameModelInd = CQChartsModelIndex(data.row, plot_->idColumn(), data.parent);
+
+      nameInd = plot_->modelIndex(nameModelInd);
 
       bool ok;
 
-      if (plot_->nameColumn().isValid())
-        name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
-      else
-        name = plot_->modelString(data.row, plot_->idColumn(), data.parent, ok);
+      name = plot_->modelString(nameModelInd, ok);
 
       return ok;
     }
@@ -569,10 +591,12 @@ loadModel() const
 
       bool ok = true;
 
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
       if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
+        size = plot_->modelReal(valueModelInd, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
+        size = plot_->modelInteger(valueModelInd, ok);
       else if (valueColumnType_ == ColumnType::STRING)
         size = 1.0;
       else
@@ -606,7 +630,7 @@ groupHierNode(CQChartsBubbleHierNode *parent, int groupInd) const
   if (p != groupHierNodes_.end())
     return (*p).second;
 
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+  auto th = const_cast<CQChartsBubblePlot *>(this);
 
   QString name = groupIndName(groupInd, /*hier*/true);
 
@@ -624,7 +648,7 @@ CQChartsBubbleHierNode *
 CQChartsBubblePlot::
 addHierNode(CQChartsBubbleHierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+  auto th = const_cast<CQChartsBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
@@ -646,7 +670,7 @@ CQChartsBubblePlot::
 addNode(CQChartsBubbleHierNode *hier, const QString &name, double size,
         const QModelIndex &nameInd) const
 {
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
+  auto th = const_cast<CQChartsBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
@@ -879,9 +903,11 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
+    CQChartsModelIndex colorModelInd(ind1.row(), plot_->colorColumn(), ind1.parent());
+
     bool ok;
 
-    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(colorModelInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

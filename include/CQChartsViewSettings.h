@@ -26,6 +26,7 @@ class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
+class CQChartsViewError;
 
 class CQColorsEditCanvas;
 class CQColorsEditControl;
@@ -64,6 +65,8 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsPropertyViewTree *plotPropertyTree(CQChartsPlot *plot) const;
 
+  void showErrorsTab();
+
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -82,6 +85,8 @@ class CQChartsViewSettings : public QFrame {
   void updateAnnotations();
 
   void updateLayers();
+
+  void updateErrors();
 
   void viewLayerImageSlot();
   void plotLayerImageSlot();
@@ -174,6 +179,7 @@ class CQChartsViewSettings : public QFrame {
   void initAnnotationsFrame(QFrame *annotationsFrame);
   void initThemeFrame      (QFrame *themeFrame);
   void initLayersFrame     (QFrame *layersFrame);
+  void initErrorsFrame     (QFrame *errorsFrame);
 
   void updatePaletteWidgets();
 
@@ -262,6 +268,7 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets           annotationsWidgets_;              //!< annotations widgets
   ThemeWidgets                 themeWidgets_;                    //!< theme widgets
   LayersWidgets                layersWidgets_;                   //!< layers widgets
+  CQChartsViewError*           error_               { nullptr }; //!< error widget
 
   // dialogs
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog

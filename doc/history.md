@@ -1025,3 +1025,6 @@
 # 01/15/2020
  + Add error log for plot errors
  + cleanup plot obj access to shorten code
+# 01/19/2020
+ + Add more error checking and cleanup code
+ + Fix bad rect adjust swapped test

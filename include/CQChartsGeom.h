@@ -644,7 +644,7 @@ class BBox {
 
     BBox bbox(*this);
 
-    swapped = bbox.expand(dx1, dy1, dx2, dy2);
+    swapped = ! bbox.expand(dx1, dy1, dx2, dy2);
 
     return bbox;
   }

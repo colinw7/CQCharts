@@ -182,9 +182,11 @@ class CQChartsRadarPlot : public CQChartsPlot,
   void execDrawBackground(CQChartsPaintDevice *device) const override;
 
  private:
-  void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;
+  bool addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;
 
   bool columnValue(const CQChartsModelIndex &ind, double &value) const;
+
+  Qt::Alignment alignForPosition(double x, double y) const;
 
  private:
   class ValueData {

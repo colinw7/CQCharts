@@ -374,7 +374,7 @@ void
 CQChartsPlot::
 currentModelChangedSlot()
 {
-  CQChartsModelData *modelData = qobject_cast<CQChartsModelData *>(sender());
+  auto modelData = qobject_cast<CQChartsModelData *>(sender());
 
   if (! modelData)
     return;
@@ -2527,8 +2527,10 @@ getPropertyNames(QStringList &names, bool hidden) const
   propertyModel()->objectNames(this, names, hidden);
 
   auto getObjPropertyNames = [&](std::initializer_list<CQChartsObj *> objs) {
-    for (const auto &obj : objs)
-      propertyModel()->objectNames(obj, names, hidden);
+    for (const auto &obj : objs) {
+      if (obj)
+        propertyModel()->objectNames(obj, names, hidden);
+    }
   };
 
   getObjPropertyNames({title(), xAxis(), yAxis(), key()});
@@ -2810,7 +2812,7 @@ CQChartsPlot::UpdateState
 CQChartsPlot::
 calcNextState() const
 {
-  CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+  auto th = const_cast<CQChartsPlot *>(this);
 
   UpdateState nextState = UpdateState::INVALID;
 
@@ -2911,7 +2913,7 @@ bool
 CQChartsPlot::
 isReady() const
 {
-  UpdateState updateState = const_cast<CQChartsPlot *>(this)->updateState();
+  auto updateState = const_cast<CQChartsPlot *>(this)->updateState();
 
   return (updateState == UpdateState::READY || updateState == UpdateState::DRAWN);
 }
@@ -4553,7 +4555,7 @@ objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
     //selectObj->selectPress();
 
-    CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(selectObj);
+    auto selectPlotObj = dynamic_cast<CQChartsPlotObj *>(selectObj);
 
     if (selectPlotObj) {
       emit objPressed  (selectPlotObj);
@@ -4597,7 +4599,7 @@ objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
     beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
-      CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+      auto selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
 
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
@@ -5600,7 +5602,7 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
     beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
-      CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+      auto selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
 
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
@@ -7112,7 +7114,7 @@ drawBackgroundParts(QPainter *painter) const
   //---
 
   if (painter1) {
-    CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+    auto th = const_cast<CQChartsPlot *>(this);
 
     CQChartsPlotPainter device(th, painter1);
 
@@ -7178,7 +7180,7 @@ drawMiddleParts(QPainter *painter) const
   //---
 
   if (painter1) {
-    CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+    auto th = const_cast<CQChartsPlot *>(this);
 
     CQChartsPlotPainter device(th, painter1);
 
@@ -7228,7 +7230,7 @@ drawForegroundParts(QPainter *painter) const
   //---
 
   if (painter1) {
-    CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+    auto th = const_cast<CQChartsPlot *>(this);
 
     CQChartsPlotPainter device(th, painter1);
 
@@ -7291,7 +7293,7 @@ drawOverlayParts(QPainter *painter) const
   //---
 
   if (painter1) {
-    CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+    auto th = const_cast<CQChartsPlot *>(this);
 
     CQChartsPlotPainter device(th, painter1);
 
@@ -7324,7 +7326,7 @@ drawOverlayDeviceParts(CQChartsPaintDevice *device) const
 
   if (hasGroupedEditHandles()) {
     if (device->isInteractive()) {
-      CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+      auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
       drawGroupedEditHandles(painter->painter());
     }
@@ -9178,7 +9180,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const CQCh
            const CQChartsLength &size) const
 {
   if (bufferSymbols_) {
-    CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+    auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
     if (painter) {
       double sx, sy;
@@ -9277,7 +9279,7 @@ CQChartsPlot::
 drawWindowColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                    const QColor &c) const
 {
-  CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+  auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
   if (! painter) return;
 
   if (! bbox.isSet())
@@ -9292,7 +9294,7 @@ void
 CQChartsPlot::
 drawColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QColor &c) const
 {
-  CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+  auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
   if (! painter) return;
 
   painter->setPen(c);
@@ -9596,6 +9598,64 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
 
 //------
 
+bool
+CQChartsPlot::
+checkColumns(const CQChartsColumns &columns, const QString &name, bool required) const
+{
+  if (required) {
+    if (! columns.isValid())
+      return const_cast<CQChartsPlot *>(this)->
+        addError(QString("Missing required %1 columns").arg(name));
+  }
+
+  bool valid = true;
+
+  int iv = 0;
+
+  for (const auto &column : columns) {
+    if (columnValueType(column) == ColumnType::NONE)
+      valid = const_cast<CQChartsPlot *>(this)->
+        addColumnError(column, QString("Invalid %1 column (#%2)").arg(name).arg(iv));
+
+    ++iv;
+  }
+
+  return valid;
+}
+
+bool
+CQChartsPlot::
+checkColumn(const CQChartsColumn &column, const QString &name, bool required) const
+{
+  ColumnType type;
+
+  return checkColumn(column, name, type, required);
+}
+
+bool
+CQChartsPlot::
+checkColumn(const CQChartsColumn &column, const QString &name,
+            ColumnType &type, bool required) const
+{
+  type = ColumnType::NONE;
+
+  if (required) {
+    if (! column.isValid())
+      return const_cast<CQChartsPlot *>(this)->
+        addColumnError(column, QString("Missing required %1 column").arg(name));
+  }
+
+  if (column.isValid()) {
+    type = columnValueType(column);
+
+    if (type == ColumnType::NONE)
+      return const_cast<CQChartsPlot *>(this)->
+        addColumnError(column, QString("Invalid %1 column").arg(name));
+  }
+
+  return true;
+}
+
 CQChartsPlot::ColumnType
 CQChartsPlot::
 columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
@@ -9846,7 +9906,7 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+  auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
   if (proxyModel) {
     while (proxyModel) {
@@ -9928,6 +9988,13 @@ visitModel(ModelVisitor &visitor) const
 
 bool
 CQChartsPlot::
+modelMappedReal(const CQChartsModelIndex &ind, double &r, bool log, double def) const
+{
+  return modelMappedReal(ind.row, ind.column, ind.parent, r, log, def);
+}
+
+bool
+CQChartsPlot::
 modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
                 double &r, bool log, double def) const
 {
@@ -9945,8 +10012,12 @@ modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent
   else
     r = def;
 
-  if (log)
+  if (log) {
+    if (r <= 0)
+      return false;
+
     r = logValue(r);
+  }
 
   return ok;
 }
@@ -10035,17 +10106,13 @@ QModelIndex
 CQChartsPlot::
 modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
 {
-  return modelIndex(row, column.column(), parent);
-}
+  if (! column.hasColumn())
+    return QModelIndex();
 
-QModelIndex
-CQChartsPlot::
-modelIndex(int row, int column, const QModelIndex &parent) const
-{
   QAbstractItemModel *model = this->model().data();
   if (! model) return QModelIndex();
 
-  return model->index(row, column, parent);
+  return model->index(row, column.column(), parent);
 }
 
 //------
@@ -10216,6 +10283,13 @@ modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
 #endif
 
 //---
+
+std::vector<double>
+CQChartsPlot::
+modelReals(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelReals(ind.row, ind.column, ind.parent, ok);
+}
 
 std::vector<double>
 CQChartsPlot::
@@ -10408,6 +10482,13 @@ modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QVariant
 CQChartsPlot::
+modelHierValue(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelHierValue(ind.row, ind.column, ind.parent, ok);
+}
+
+QVariant
+CQChartsPlot::
 modelHierValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
   QVariant v = modelValue(row, column, parent, ok);
@@ -10450,6 +10531,13 @@ modelHierValue(int row, const CQChartsColumn &column,
 }
 
 //--
+
+QString
+CQChartsPlot::
+modelHierString(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelHierString(ind.row, ind.column, ind.parent, ok);
+}
 
 QString
 CQChartsPlot::
@@ -10631,8 +10719,10 @@ endSelectIndex()
 
     // build row range per column
     for (const auto &p1 : columnRows) {
-      int         column = p1.first;
-      const Rows &rows   = p1.second;
+      int         ic   = p1.first;
+      const Rows &rows = p1.second;
+
+      CQChartsColumn column(ic);
 
       int startRow = -1;
       int endRow   = -1;

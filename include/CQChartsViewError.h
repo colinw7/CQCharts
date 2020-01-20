@@ -1,7 +1,7 @@
 #ifndef CQChartsViewError_H
 #define CQChartsViewError_H
 
-#include <CQWinWidget.h>
+#include <QFrame>
 #include <map>
 
 class CQChartsView;
@@ -9,7 +9,7 @@ class CQChartsPlot;
 class CQTabSplit;
 class QTextBrowser;
 
-class CQChartsViewError : public CQWinWidget {
+class CQChartsViewError : public QFrame {
   Q_OBJECT
 
  public:
