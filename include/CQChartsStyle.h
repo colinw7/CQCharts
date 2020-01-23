@@ -21,7 +21,7 @@ class CQChartsStyle {
   CQChartsStyle() = default;
 
   explicit CQChartsStyle(const QString &str) {
-    (void) fromString(str);
+    (void) setValue(str);
   }
 
   CQChartsStyle(const CQChartsStyle &rhs) {
@@ -102,6 +102,8 @@ class CQChartsStyle {
   //---
 
  private:
+  bool setValue(const QString &s);
+
   QPen *penPtr() {
     static QPen s_pen;
 

@@ -108,7 +108,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // cell fill
   addProp("cell/fill", "cellFilled", "visible", "Cell fill visible");

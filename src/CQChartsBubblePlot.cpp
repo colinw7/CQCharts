@@ -165,13 +165,13 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "nameColumn" , "name" , "Name column");
   addProp("columns", "valueColumn", "value", "Value column");
 
-  CQChartsGroupPlot::addProperties();
+  addGroupingProperties();
 
   // options
   addProp("options", "valueLabel", "", "Show value label");
@@ -596,7 +596,7 @@ loadModel() const
       if      (valueColumnType_ == ColumnType::REAL)
         size = plot_->modelReal(valueModelInd, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(valueModelInd, ok);
+        size = (double) plot_->modelInteger(valueModelInd, ok);
       else if (valueColumnType_ == ColumnType::STRING)
         size = 1.0;
       else
@@ -851,15 +851,7 @@ void
 CQChartsBubbleHierObj::
 writeScriptData(CQChartsScriptPainter *device) const
 {
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-
-  std::ostream &os = device->os();
-
-  os << "\n";
-  os << "  this.name = \"" << node_->hierName().toStdString() << "\";\n";
-  os << "  this.size = " << node_->hierSize() << ";\n";
+  CQChartsBubbleNodeObj::writeScriptData(device);
 }
 
 //------
@@ -1326,7 +1318,7 @@ CQChartsBubbleNode(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *paren
                    const QString &name, double size, const QModelIndex &ind) :
  plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
 {
-  initRadius();
+  r_ = sqrt(size_/(2*M_PI));
 }
 
 CQChartsBubbleNode::
@@ -1338,6 +1330,7 @@ void
 CQChartsBubbleNode::
 initRadius()
 {
+  // area = PI*r*r; r = sqrt(area/PI)
   r_ = sqrt(hierSize()/(2*M_PI));
 }
 

@@ -284,7 +284,7 @@ numRows() const
 {
   bool ok;
 
-  int n = CQChartsUtil::toInt(numberEdit_->text(), ok);
+  int n = (int) CQChartsUtil::toInt(numberEdit_->text(), ok);
 
   if (! ok)
     n = expressionRows();

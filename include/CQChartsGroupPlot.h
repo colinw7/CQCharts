@@ -100,6 +100,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   void addProperties() override;
 
+  void addGroupingProperties();
+
   //---
 
   void initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn,

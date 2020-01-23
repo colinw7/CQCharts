@@ -44,7 +44,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   void columnsToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
   bool textToColumns(const QString &str, CQChartsColumns &columns) const;
 

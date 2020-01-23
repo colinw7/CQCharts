@@ -65,7 +65,7 @@ void
 CQChartsEmptyPlot::
 addProperties()
 {
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 }
 
 CQChartsGeom::Range

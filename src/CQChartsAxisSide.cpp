@@ -29,6 +29,13 @@ bool
 CQChartsAxisSide::
 fromString(const QString &str)
 {
+  return setValue(str);
+}
+
+bool
+CQChartsAxisSide::
+setValue(const QString &str)
+{
   Type type = Type::NONE;
 
   if      (str == "BOTTOM_LEFT") type = Type::BOTTOM_LEFT;

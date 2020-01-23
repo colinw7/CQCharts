@@ -38,7 +38,7 @@ class CQChartsFontLineEdit : public CQChartsLineEditBase {
 
   void fontToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsFontEdit* dataEdit_ { nullptr };

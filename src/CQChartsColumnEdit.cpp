@@ -142,7 +142,7 @@ void
 CQChartsColumnLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
@@ -494,7 +494,7 @@ widgetsToColumn()
     if (! ok)
       role = -1;
 
-    column = CQChartsColumn(icolumn.column(), role);
+    column = CQChartsColumn(icolumn.column(), int(role));
   }
   else if (menuExprGroup_->isChecked()) {
     QString str;

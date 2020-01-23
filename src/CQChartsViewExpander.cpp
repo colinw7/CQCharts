@@ -175,7 +175,7 @@ updateGeometry()
     raise();
   }
   else {
-    QFontMetricsF fm(font());
+    QFontMetrics fm(font());
 
     titleHeight_ = fm.height() + 2*border_;
 
@@ -499,7 +499,7 @@ paintEvent(QPaintEvent *)
     if (! icon_.isNull()) {
       int iy = (titleHeight_ - is)/2;
 
-      p.drawPixmap(x, iy, icon_.pixmap(QSize(is, is)));
+      p.drawPixmap(int(x), iy, icon_.pixmap(QSize(is, is)));
 
       x += is + border_;
     }
@@ -509,7 +509,7 @@ paintEvent(QPaintEvent *)
 
       p.setPen(c);
 
-      p.drawText(x, border_ + fm.ascent(), title_);
+      p.drawText(int(x), border_ + fm.ascent(), title_);
     }
   }
 }

@@ -77,7 +77,7 @@ class CQChartsLineEditBase : public QFrame {
 
   virtual void updateMenu();
 
-  virtual void connectSlots(bool b);
+  void connectBaseSlots(bool b);
 
   void initStyle(QStyleOptionComboBox &opt);
 

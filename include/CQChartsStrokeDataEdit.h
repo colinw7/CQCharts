@@ -46,7 +46,7 @@ class CQChartsStrokeDataLineEdit : public CQChartsLineEditBase {
 
   void strokeDataToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsStrokeDataEdit* dataEdit_ { nullptr };

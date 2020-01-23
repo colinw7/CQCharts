@@ -40,7 +40,7 @@ getColumn() const
   if (icolumn < 0)
     icolumn = -1;
 
-  return CQChartsColumn(icolumn);
+  return CQChartsColumn(int(icolumn));
 }
 
 void

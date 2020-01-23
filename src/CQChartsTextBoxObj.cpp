@@ -11,25 +11,25 @@
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsView *view) :
- CQChartsBoxObj(view),
- CQChartsObjTextData<CQChartsTextBoxObj>(this)
+ CQChartsBoxObj(view), CQChartsObjTextData<CQChartsTextBoxObj>(this)
 {
-  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
-
-  setTextColor(themeFg);
-
-  setFilled (false);
-  setStroked(false);
+  init();
 }
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
- CQChartsBoxObj(plot),
- CQChartsObjTextData<CQChartsTextBoxObj>(this)
+ CQChartsBoxObj(plot), CQChartsObjTextData<CQChartsTextBoxObj>(this)
+{
+  init();
+}
+
+void
+CQChartsTextBoxObj::
+init()
 {
   CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
-  setTextColor(themeFg);
+  textData_.setColor(themeFg); //setTextColor(themeFg);
 
   setFilled (false);
   setStroked(false);
@@ -39,7 +39,7 @@ void
 CQChartsTextBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
-  CQChartsBoxObj::addProperties(model, path, desc);
+  addBoxProperties(model, path, desc);
 
   QString textPath = path + "/text";
 

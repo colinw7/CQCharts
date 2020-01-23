@@ -120,7 +120,7 @@ void
 CQChartsTextDataLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));

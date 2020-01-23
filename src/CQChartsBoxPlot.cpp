@@ -152,7 +152,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   for (int i = 0; i < nc; ++i) {
     CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
 
-    if (columnDetails->isNumeric())
+    if (columnDetails && columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
   }
 
@@ -363,7 +363,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns/raw", "valueColumns", "values", "Value columns");
@@ -385,7 +385,7 @@ addProperties()
   addProp("columns/calculated", "outliersColumn"   , "outlier"    ,
           "Precalculated outliers column");
 
-  CQChartsGroupPlot::addProperties();
+  addGroupingProperties();
 
   // options
   addProp("options", "connected" , "connected" , "Connect across multiple whiskers");
@@ -798,7 +798,7 @@ groupSetColumnName(const QString &def) const
   if (! xname.length() && setColumn().isValid())
     xname = modelHHeaderString(setColumn(), ok);
 
-  if (! ok)
+  if (! xname.length())
     xname = def;
 
   return xname;
@@ -1124,7 +1124,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   }
 
   if (nameValid)
-    xAxis_->setTickLabel(data.x, data.name);
+    xAxis_->setTickLabel(int(data.x), data.name);
 
   //---
 

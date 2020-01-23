@@ -203,19 +203,19 @@ setColorStr(const QString &str)
           scale = true;
       }
 
-      setIndScaleValue(Type::PALETTE_VALUE, ind, value, scale);
+      setIndScaleValue(Type::PALETTE_VALUE, int(ind), value, scale);
     }
     else
-      setIndValue(Type::PALETTE, ind, 0.0);
+      setIndValue(Type::PALETTE, int(ind), 0.0);
   }
   else if (strs[0] == "ind_palette") {
     if (strs.length() > 1) {
       bool ok;
 
-      int value = CQChartsUtil::toInt(strs[1], ok);
+      long value = CQChartsUtil::toInt(strs[1], ok);
       if (! ok) return false;
 
-      setValue(Type::INDEXED_VALUE, value);
+      setValue(Type::INDEXED_VALUE, int(value));
     }
     else
       setValue(Type::INDEXED, 0);
@@ -233,13 +233,13 @@ setColorStr(const QString &str)
     if (strs.length() > 1) {
       bool ok;
 
-      int value = CQChartsUtil::toInt(strs[1], ok);
+      long value = CQChartsUtil::toInt(strs[1], ok);
       if (! ok) return false;
 
-      setIndValue(Type::INDEXED_VALUE, ind, value);
+      setIndValue(Type::INDEXED_VALUE, int(ind), int(value));
     }
     else
-      setIndValue(Type::INDEXED, ind, 0);
+      setIndValue(Type::INDEXED, int(ind), 0);
   }
   else if (strs[0] == "interface") {
     if (strs.length() > 1) {
@@ -259,16 +259,16 @@ setColorStr(const QString &str)
 
     bool ok;
 
-    int r = CQChartsUtil::toInt(strs[1], ok);
+    long r = CQChartsUtil::toInt(strs[1], ok);
     if (! ok) return false;
 
-    int g = CQChartsUtil::toInt(strs[2], ok);
+    long g = CQChartsUtil::toInt(strs[2], ok);
     if (! ok) return false;
 
-    int b = CQChartsUtil::toInt(strs[3], ok);
+    long b = CQChartsUtil::toInt(strs[3], ok);
     if (! ok) return false;
 
-    int rgb = encodeModelRGB(r, g, b);
+    int rgb = encodeModelRGB(int(r), int(g), int(b));
 
     if (strs.length() > 4) {
       bool ok;
@@ -319,7 +319,7 @@ setPaletteName(const QString &name)
   if (! paletteNameInd(name, ind))
     return false;
 
-  ind_ = ind;
+  ind_ = int(ind);
 
   return true;
 }

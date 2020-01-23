@@ -36,7 +36,7 @@ class CQChartsKeyLocation : public CQChartsEnum {
   }
 
   CQChartsKeyLocation(const QString &str) {
-    (void) fromString(str);
+    (void) setValue(str);
   }
 
   //---

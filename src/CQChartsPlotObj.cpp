@@ -213,6 +213,13 @@ void
 CQChartsPlotObj::
 writeScriptData(CQChartsScriptPainter *device) const
 {
+  writeObjScriptData(device);
+}
+
+void
+CQChartsPlotObj::
+writeObjScriptData(CQChartsScriptPainter *device) const
+{
   auto encodeString = [&](const QString &str) {
     return CQChartsScriptPainter::encodeString(str).toStdString();
   };

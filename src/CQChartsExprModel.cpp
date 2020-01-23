@@ -674,7 +674,7 @@ calcColumnRange(int column, int &minVal, int &maxVal)
 
     bool ok;
 
-    int value = CQChartsVariant::toInt(var, ok);
+    int value = (int) CQChartsVariant::toInt(var, ok);
     if (! ok) continue;
 
     if (r == 0) {
@@ -813,7 +813,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 
     bool ok;
 
-    column = CQChartsUtil::toInt(columnStr, ok);
+    column = (int) CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -833,7 +833,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 
     bool ok;
 
-    column = CQChartsUtil::toInt(columnStr, ok);
+    column = (int) CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -1656,7 +1656,7 @@ bucketCmd(const Values &values) const
     double delta = 1;
 
     if      (cmdValues.numValues() == 2) {
-      double minVal, maxVal;
+      double minVal = 0, maxVal = 0;
 
       columnRange(col, minVal, maxVal);
 
@@ -1738,8 +1738,7 @@ normCmd(const Values &values) const
 
     double value = CQChartsVariant::toReal(var, ok);
 
-    double minVal = 0;
-    double maxVal = 1;
+    double minVal = 0, maxVal = 1;
 
     columnRange(col, minVal, maxVal);
 
@@ -1753,7 +1752,7 @@ normCmd(const Values &values) const
     double d = maxVal - minVal;
     double s = 0.0;
 
-    if (d)
+    if (d > 0.0)
       s = scale*(value - minVal)/d;
 
     return QVariant(s);
@@ -1761,10 +1760,9 @@ normCmd(const Values &values) const
   else if (var.type() == QVariant::Int) {
     bool ok;
 
-    int value = CQChartsVariant::toInt(var, ok);
+    int value = (int) CQChartsVariant::toInt(var, ok);
 
-    int minVal = 0;
-    int maxVal = 1;
+    int minVal = 0, maxVal = 1;
 
     columnRange(col, minVal, maxVal);
 
@@ -1778,7 +1776,7 @@ normCmd(const Values &values) const
     int    d = maxVal - minVal;
     double s = 0.0;
 
-    if (d)
+    if (d > 0)
       s = scale*double(value - minVal)/d;
 
     return QVariant(s);
@@ -2298,7 +2296,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       if (modelData) {
         bool ok;
 
-        int imin = CQChartsVariant::toInt(
+        int imin = (int) CQChartsVariant::toInt(
           modelData->details()->columnDetails(CQChartsColumn(ind.column()))->minValue(), ok);
 
         rmin = imin;
@@ -2309,7 +2307,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       if (modelData) {
         bool ok;
 
-        int imax = CQChartsVariant::toInt(
+        int imax = (int) CQChartsVariant::toInt(
           modelData->details()->columnDetails(CQChartsColumn(ind.column()))->maxValue(), ok);
 
         rmax = imax;

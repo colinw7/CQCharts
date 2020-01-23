@@ -118,5 +118,7 @@ CQChartsGeom::Point
 CQChartsResizeHandle::
 windowToPixel(const CQChartsGeom::Point &p) const
 {
-  return (view_ ? view_->windowToPixel(p) : plot_->windowToPixel(p));
+  if (view_) return view_->windowToPixel(p);
+  if (plot_) return plot_->windowToPixel(p);
+  return p;
 }

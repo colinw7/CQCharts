@@ -175,7 +175,7 @@ updateMenu()
 
 void
 CQChartsLineEditBase::
-connectSlots(bool b)
+connectBaseSlots(bool b)
 {
   assert(b != connected_);
 

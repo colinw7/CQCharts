@@ -331,9 +331,10 @@ addOne(PVertex p)
   bool vis = false;
 
   PFace f = faces_;
+  if (! f) return false;
 
   do {
-    int vol = (f ? volumeSign(f, p) : 0);
+    int vol = volumeSign(f, p);
 
 #if 0
     if (debug_) {
@@ -769,6 +770,8 @@ void
 CQChartsHull3D::
 cleanEdges()
 {
+  if (! edges_) return;
+
   /* Integrate the new face's into the data structure. */
   /* Check every edge. */
   PEdge e = edges_;
@@ -789,13 +792,15 @@ cleanEdges()
   } while (e != edges_);
 
   /* Delete any edges marked for deletion. */
-  while (edges_ && edges_->isRemoved()) {
+  while (edges_->isRemoved()) {
     e = edges_;
 
     e->removeFrom(&edges_);
 
     delete e;
   }
+
+  if (! edges_) return;
 
   e = edges_->next;
 
@@ -825,13 +830,15 @@ cleanFaces()
 
   PFace f; /* Primary pointer into face list. */
 
-  while (faces_ && faces_->isVisible()) {
+  while (faces_->isVisible()) {
     f = faces_;
 
     f->removeFrom(&faces_);
 
     delete f;
   }
+
+  if (! faces_) return;
 
   f = faces_->next;
 
@@ -887,6 +894,8 @@ cleanVertices(PVertex *pvnext)
 
     delete v;
   }
+
+  if (! vertices_) return;
 
   if (vertices_) {
     v = vertices_->next;

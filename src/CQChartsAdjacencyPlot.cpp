@@ -149,6 +149,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
 
@@ -329,7 +330,7 @@ void
 CQChartsAdjacencyPlot::
 addProperties()
 {
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
@@ -477,7 +478,7 @@ initHierObjs(PlotObjs &objs) const
 
         bool ok1;
 
-        group = plot_->modelInteger(groupInd, ok1);
+        group = (int) plot_->modelInteger(groupInd, ok1);
 
         if (! ok1)
           return addDataError(groupInd, "Non-integer group value");
@@ -769,7 +770,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
 
     bool ok1;
 
-    int group1 = modelInteger(groupInd, ok1);
+    int group1 = (int) modelInteger(groupInd, ok1);
 
     if (ok1)
       group = group1;
@@ -787,7 +788,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
 
     bool ok2;
 
-    int id1 = modelInteger(nodeInd, ok2);
+    int id1 = (int) modelInteger(nodeInd, ok2);
 
     if (ok2)
       id = id1;
@@ -977,7 +978,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   QFont font = this->textFont().calcFont();
 
-  font.setPixelSize(ts >= 1 ? ts : 1.0);
+  font.setPixelSize(ts >= 1.0 ? int(ts) : 1);
 
   device->setFont(font);
 

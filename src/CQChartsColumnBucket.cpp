@@ -111,7 +111,7 @@ addValue(const QVariant &value)
     long i = CQChartsVariant::toInt(value, ok);
     if (! ok) return -1;
 
-    return addInteger(i);
+    return addInteger(int(i));
   }
   else if (columnType() == ColumnType::STRING) {
     QString s;
@@ -161,7 +161,7 @@ ind(const QVariant &value) const
     long i = CQChartsVariant::toInt(value, ok);
     if (! ok) return 0;
 
-    return valueSet_->ivals().id(i);
+    return valueSet_->ivals().id(int(i));
   }
   else if (columnType() == ColumnType::STRING) {
     QString s;

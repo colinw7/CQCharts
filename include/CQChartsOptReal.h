@@ -30,7 +30,7 @@ class CQChartsOptReal {
   }
 
   explicit CQChartsOptReal(const QString &s) {
-    (void) fromString(s);
+    (void) setValue(s);
   }
 
   const OptReal &value() const { return value_; }
@@ -54,6 +54,10 @@ class CQChartsOptReal {
   }
 
   bool fromString(const QString &s) {
+    return setValue(s);
+  }
+
+  bool setValue(const QString &s) {
     if (s.simplified().length() == 0)
       value_ = OptReal();
     else {

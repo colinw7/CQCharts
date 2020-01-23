@@ -107,7 +107,7 @@ void
 CQChartsTextBoxDataLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(menuEditChanged()));

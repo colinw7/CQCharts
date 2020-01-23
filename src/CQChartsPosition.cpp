@@ -42,6 +42,8 @@ decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::Point &poin
 
   //---
 
+  units = defUnits;
+
   if (strs.length() > 2) {
     if (! CQChartsUtil::decodeUnits(strs[2], units, defUnits))
       return false;

@@ -28,7 +28,7 @@ class CQChartsAxisTickLabelPlacement : public CQChartsEnum {
   }
 
   explicit CQChartsAxisTickLabelPlacement(const QString &str) {
-    (void) fromString(str);
+    (void) setValue(str);
   }
 
   //---
@@ -70,6 +70,9 @@ class CQChartsAxisTickLabelPlacement : public CQChartsEnum {
     l.print(os);
     return os;
   }
+
+ private:
+  bool setValue(const QString &s);
 
  private:
   Type type_ { Type::NONE };

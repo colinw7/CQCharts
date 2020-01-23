@@ -32,6 +32,13 @@ bool
 CQChartsTitleLocation::
 fromString(const QString &str)
 {
+  return setValue(str);
+}
+
+bool
+CQChartsTitleLocation::
+setValue(const QString &str)
+{
   Type type { Type::TOP };
 
   QString lstr = str.toLower();

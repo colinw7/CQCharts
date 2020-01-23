@@ -1028,3 +1028,5 @@
 # 01/19/2020
  + Add more error checking and cleanup code
  + Fix bad rect adjust swapped test
+# 01/22/2020
+ + clang tidy fixes

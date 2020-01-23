@@ -44,7 +44,7 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
   if (text.length()) {
     tip_->setText(text);
 
-    CQChartsGeom::Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
+    CQChartsGeom::Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2.0);
 
     QPoint pos = p4.qpointi();
 
@@ -55,7 +55,7 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
     CQChartsGeom::BBox bbox = view_->plotBBox(plot);
 
     if (bbox.inside(wpos)) {
-      QFontMetricsF fm(font());
+      QFontMetrics fm(font());
 
       tip_->move(gpos);
 
@@ -89,7 +89,7 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
   if (text.length()) {
     tip_->setText(text);
 
-    CQChartsGeom::Point p4(px2 -  tip_->sizeHint().width()/2,
+    CQChartsGeom::Point p4(px2 -  tip_->sizeHint().width()/2.0,
                            py - tickLen - 2 - tip_->sizeHint().height());
 
     QPoint pos = p4.qpointi();
@@ -101,7 +101,7 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
     CQChartsGeom::BBox bbox = view_->plotBBox(plot);
 
     if (bbox.inside(wpos)) {
-      QFontMetricsF fm(font());
+      QFontMetrics fm(font());
 
       tip_->move(gpos);
 

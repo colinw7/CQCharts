@@ -49,7 +49,7 @@ addPathProperties(const QString &path, const QString &desc)
 
   QString boxPath = path + "/box";
 
-  CQChartsBoxObj::addProperties(plot()->propertyModel(), boxPath, desc);
+  addBoxProperties(plot()->propertyModel(), boxPath, desc);
 }
 
 void

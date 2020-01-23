@@ -30,7 +30,7 @@ class CQChartsOptPosition {
   }
 
   explicit CQChartsOptPosition(const QString &s) {
-    (void) fromString(s);
+    (void) setValue(s);
   }
 
   const OptPosition &value() const { return value_; }
@@ -54,6 +54,10 @@ class CQChartsOptPosition {
   }
 
   bool fromString(const QString &s) {
+    return setValue(s);
+  }
+
+  bool setValue(const QString &s) {
     if (s.simplified().length() == 0)
       value_ = OptPosition();
     else {

@@ -633,7 +633,7 @@ exprApplySlot()
     long icolumn = CQChartsUtil::toInt(columnStr, ok);
 
     if (ok)
-      column = CQChartsColumn(icolumn);
+      column = CQChartsColumn(int(icolumn));
   }
 
   int column1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
@@ -793,7 +793,7 @@ typeApplySlot()
   QString nameStr = columnEditData_.nameEdit->text();
 
   if (nameStr.length())
-    model->setHeaderData(column, Qt::Horizontal, nameStr, Qt::DisplayRole);
+    model->setHeaderData(int(column), Qt::Horizontal, nameStr, Qt::DisplayRole);
 
   //---
 
@@ -848,10 +848,11 @@ typeApplySlot()
         nameValues.setNameValue(name, value);
     }
 
-    columnTypeMgr->setModelColumnType(model.data(), CQChartsColumn(column), columnType, nameValues);
+    columnTypeMgr->setModelColumnType(model.data(), CQChartsColumn(int(column)),
+                                      columnType, nameValues);
   }
 
-  setColumnData(column);
+  setColumnData(int(column));
 }
 
 void

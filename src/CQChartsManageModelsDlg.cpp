@@ -137,8 +137,8 @@ writeSlot()
       else if (param->type() == CQBaseModelType::INTEGER) {
         bool ok1, ok2;
 
-        int i1 = CQChartsVariant::toInt(var         , ok1);
-        int i2 = CQChartsVariant::toInt(param->def(), ok2);
+        int i1 = (int) CQChartsVariant::toInt(var         , ok1);
+        int i2 = (int) CQChartsVariant::toInt(param->def(), ok2);
 
         if (ok1 && ok2 && i1 == i2)
           continue;

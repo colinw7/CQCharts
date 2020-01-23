@@ -323,9 +323,9 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
-  CQChartsBarPlot::addProperties();
+  addBoxProperties();
 
   // columns
   addProp("columns", "nameColumn", "name", "Custom group name column");
@@ -383,7 +383,7 @@ addProperties()
 
   //---
 
-  CQChartsGroupPlot::addProperties();
+  addGroupingProperties();
 }
 
 //---
@@ -841,7 +841,7 @@ bucketGroupValues() const
           value  = QVariant(r);
         }
         else if (type == CQChartsValueSet::Type::INTEGER) {
-          int i = modelInteger(ind, ok);
+          int i = (int) modelInteger(ind, ok);
           if (! ok) continue;
 
           if (! isIncludeOutlier()) {
@@ -1613,7 +1613,7 @@ createObjs(PlotObjs &objs) const
 
           BarValue barValue = varIndsValue(varsData);
 
-          int n = barValue.n2;
+          int n = int(barValue.n2);
 
           groupCountBuckets[groupInd][n].push_back(bucket);
         }
@@ -3191,7 +3191,7 @@ int
 CQChartsDistributionBarObj::
 count() const
 {
-  return barValue_.n2;
+  return int(barValue_.n2);
 }
 
 double

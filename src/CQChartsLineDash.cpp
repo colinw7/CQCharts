@@ -174,10 +174,10 @@ setDashes(ushort pattern)
   if (dash_value[0] == 0) {
     offset = qlengths[0];
 
-    for (uint i = 1; i < num_lengths; ++i)
+    for (int i = 1; i < int(num_lengths); ++i)
       qlengths[i - 1] = qlengths[i];
 
-    qlengths[num_lengths - 1] = offset;
+    qlengths[int(num_lengths - 1)] = offset;
   }
 
   if (num_lengths == 1) {
@@ -186,9 +186,9 @@ setDashes(ushort pattern)
   }
 
   if (num_lengths & 1) {
-    offset += qlengths[num_lengths - 1];
+    offset += qlengths[int(num_lengths - 1)];
 
-    qlengths[0] += qlengths[num_lengths - 1];
+    qlengths[0] += qlengths[int(num_lengths - 1)];
 
     --num_lengths;
   }

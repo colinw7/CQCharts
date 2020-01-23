@@ -166,9 +166,9 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
-  CQChartsBarPlot::addProperties();
+  addBoxProperties();
 
   // columns
   addProp("columns", "nameColumn" , "name" , "Name column");
@@ -190,7 +190,7 @@ addProperties()
 
   //---
 
-  CQChartsGroupPlot::addProperties();
+  addGroupingProperties();
 }
 
 //---

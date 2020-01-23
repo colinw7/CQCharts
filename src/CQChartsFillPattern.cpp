@@ -25,6 +25,13 @@ bool
 CQChartsFillPattern::
 fromString(const QString &s)
 {
+  return setValue(s);
+}
+
+bool
+CQChartsFillPattern::
+setValue(const QString &s)
+{
   Type type = stringToType(s);
 
   if (type == Type::NONE)

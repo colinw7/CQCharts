@@ -92,7 +92,7 @@ iset(const QVariant &value) const
   bool ok;
 
   if      (type() == Type::INTEGER) {
-    int i = CQChartsVariant::toInt(value, ok);
+    int i = (int) CQChartsVariant::toInt(value, ok);
 
     if (ok)
       return ivals_.id(i);
@@ -363,13 +363,13 @@ CQChartsValueSet::
 rmin(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.min(def);
+    return (double) ivals_.min(int(def));
   else if (type() == Type::REAL)
     return rvals_.min(def);
   else if (type() == Type::STRING)
-    return svals_.imin(def);
+    return svals_.imin(int(def));
   else if (type() == Type::COLOR)
-    return cvals_.imin(def);
+    return cvals_.imin(int(def));
   else if (type() == Type::TIME)
     return tvals_.min(def);
   else
@@ -381,13 +381,13 @@ CQChartsValueSet::
 rmax(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.max(def);
+    return (double) ivals_.max(int(def));
   else if (type() == Type::REAL)
     return rvals_.max(def);
   else if (type() == Type::STRING)
-    return svals_.imax(def);
+    return svals_.imax(int(def));
   else if (type() == Type::COLOR)
-    return cvals_.imax(def);
+    return cvals_.imax(int(def));
   else if (type() == Type::TIME)
     return tvals_.max(def);
   else
@@ -542,7 +542,7 @@ init()
 
   for (const auto &value : values_) {
     if      (type() == Type::INTEGER) {
-      int i = CQChartsVariant::toInt(value, ok);
+      int i = (int) CQChartsVariant::toInt(value, ok);
 
       ivals_.addValue(ok ? OptInt(i) : OptInt());
     }

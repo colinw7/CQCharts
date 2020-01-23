@@ -90,6 +90,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if (columnDetails->type() == CQBaseModelType::STRING) {
       if (! linkColumn.isValid())
@@ -200,7 +201,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   addProp("columns", "linkColumn" , "link" , "Link column");
   addProp("columns", "valueColumn", "value", "Value column");
@@ -418,7 +419,7 @@ createNodes(const IndNodeMap &nodes) const
 
   //---
 
-  double height = margin_*(nodes.size() - 1);
+  double height = margin_*(int(nodes.size()) - 1);
 
   for (const auto &idNode : nodes) {
     CQChartsSankeyPlotNode *node = idNode.second;

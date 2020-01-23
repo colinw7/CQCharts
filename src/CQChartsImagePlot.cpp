@@ -102,7 +102,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // cell style
   addProp("cell", "cellStyle", "style", "Cell style (rect or balloon)");

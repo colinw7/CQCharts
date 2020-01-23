@@ -148,7 +148,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 CQChartsPlot::
 ~CQChartsPlot()
 {
-  clearPlotObjects();
+  CQChartsPlot::clearPlotObjects();
 
   for (auto &layer : layers_)
     delete layer.second;
@@ -1957,6 +1957,13 @@ propertyModel()
 void
 CQChartsPlot::
 addProperties()
+{
+  addBaseProperties();
+}
+
+void
+CQChartsPlot::
+addBaseProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden=false) {
@@ -4228,7 +4235,7 @@ prevInsideInd()
   --insideInd_;
 
   if (insideInd_ < 0)
-    insideInd_ = insideObjs_.size() - 1;
+    insideInd_ = int(insideObjs_.size()) - 1;
 }
 
 void
@@ -4335,6 +4342,33 @@ addDataError(const CQChartsModelIndex &ind, const QString &msg)
   }
 
   return false;
+}
+
+void
+CQChartsPlot::
+getErrors(QStringList &strs)
+{
+  if (! errors_.empty()) {
+    for (const auto &error : errors_) {
+      strs << error.msg;
+    }
+  }
+
+  if (! columnErrors_.empty()) {
+    for (const auto &error : columnErrors_) {
+      QString msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
+
+      strs << msg;
+    }
+  }
+
+  if (! dataErrors_.empty()) {
+    for (const auto &error : dataErrors_) {
+      QString msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
+
+      strs << msg;
+    }
+  }
 }
 
 void
@@ -5303,7 +5337,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       invalidateOverlay();
     }
 
-    if (dx || dy)
+    if (dx != 0.0 || dy != 0.0)
       mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
@@ -5348,7 +5382,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       invalidateOverlay();
     }
 
-    if (dx || dy)
+    if (dx != 0.0 || dy != 0.0)
       mouseData_.dragged = true;
 
     view()->update();
@@ -7041,7 +7075,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
     double tx = x - tw/2.0;
     double ty = y + r1 + r3 + 4 + ta;
 
-    painter->drawText(tx, ty, text);
+    painter->drawText(int(tx), int(ty), text);
   }
 }
 
@@ -9257,7 +9291,7 @@ drawBufferedSymbol(QPainter *painter, const CQChartsGeom::Point &p,
 
   double is = imageBuffer.isize/2.0;
 
-  painter->drawImage(p.x - is, p.y - is, imageBuffer.image);
+  painter->drawImage(int(p.x - is), int(p.y - is), imageBuffer.image);
 }
 
 CQChartsTextOptions

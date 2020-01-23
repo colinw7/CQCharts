@@ -107,7 +107,7 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
 
   font.decFontSize(8);
 
-  setFont(font);
+  font_ = font;
 
   //---
 
@@ -417,7 +417,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "columns", "columns", "Columns");

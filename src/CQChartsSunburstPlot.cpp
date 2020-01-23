@@ -178,7 +178,7 @@ addProperties()
 
   //---
 
-  CQChartsHierPlot::addProperties();
+  addHierProperties();
 
   // columns
   addProp("columns", "nameColumns", "names", "Name columns");
@@ -630,7 +630,7 @@ loadFlat(CQChartsSunburstHierNode *root) const
         if      (valueColumnType_ == ColumnType::REAL)
           size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
+          size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
         else
           ok2 = false;
 
@@ -947,7 +947,7 @@ pushSlot()
 
     CQChartsSunburstHierNode *hnode = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
-    if (! hnode)
+    if (! hnode && node)
       hnode = node->parent();
 
     if (hnode) {
@@ -1129,19 +1129,19 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
 
   if (isCircle) {
-    if (ibbox.getWidth())
+    if (ibbox.getWidth() > 0.0)
       device->drawEllipse(ibbox);
 
-    if (obbox.getWidth())
+    if (obbox.getWidth() > 0.0)
       device->drawEllipse(obbox);
   }
   else {
     // if has non-zero inner radius draw arc segment
-    if      (ibbox.getWidth()) {
+    if      (ibbox.getWidth() > 0.0) {
       CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, CQChartsAngle(a1), CQChartsAngle(da));
     }
     // draw pie slice
-    else if (obbox.getWidth()) {
+    else if (obbox.getWidth() > 0.0) {
       CQChartsDrawUtil::drawArc(device, obbox, CQChartsAngle(a1), CQChartsAngle(da));
     }
   }
@@ -1667,8 +1667,8 @@ operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2)
   int l2 = name2.size();
 
   for (int i = 0; i < std::max(l1, l2); ++i) {
-    char c1 = (i < l1 ? tolower(name1[i].toLatin1()) : '\0');
-    char c2 = (i < l2 ? tolower(name2[i].toLatin1()) : '\0');
+    int c1 = (i < l1 ? tolower(name1[i].toLatin1()) : '\0');
+    int c2 = (i < l2 ? tolower(name2[i].toLatin1()) : '\0');
 
     if (c1 > c2) return true;
     if (c1 < c2) return false;

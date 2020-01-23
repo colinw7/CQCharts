@@ -207,10 +207,12 @@ CQChartsWindow(CQChartsView *view) :
 
   connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
 
+#ifdef CQCHARTS_MODEL_VIEW
   connect(modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
           this, SLOT(expansionChangeSlot()));
   connect(modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
           this, SLOT(expansionChangeSlot()));
+#endif
 
   tableLayout->addWidget(modelView_);
 
@@ -613,7 +615,9 @@ void
 CQChartsWindow::
 expandedModelIndices(QModelIndexList &inds)
 {
+#ifdef CQCHARTS_MODEL_VIEW
   modelView_->view()->expandedIndices(inds);
+#endif
 }
 
 //---

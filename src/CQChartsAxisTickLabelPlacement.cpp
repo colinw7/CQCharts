@@ -31,6 +31,13 @@ bool
 CQChartsAxisTickLabelPlacement::
 fromString(const QString &str)
 {
+  return setValue(str);
+}
+
+bool
+CQChartsAxisTickLabelPlacement::
+setValue(const QString &str)
+{
   Type type = Type::NONE;
 
   if      (str == "MIDDLE"     ) type = Type::MIDDLE;

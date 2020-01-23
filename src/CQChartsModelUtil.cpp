@@ -1610,6 +1610,8 @@ QString
 replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
                      const QModelIndex &ind, int nr, int nc)
 {
+  assert(model);
+
   auto quoteStr = [](const QString &str, bool doQuote) -> QString {
     return (doQuote ? "\"" + str + "\"" : str);
   };
@@ -1642,7 +1644,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
 
         bool ok;
 
-        int column1 = CQChartsUtil::toInt(str, ok);
+        int column1 = (int) CQChartsUtil::toInt(str, ok);
 
         if (stringify) {
           QModelIndex ind1 = model->index(ind.row(), column1, ind.parent());

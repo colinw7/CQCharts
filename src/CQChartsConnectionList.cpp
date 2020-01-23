@@ -84,7 +84,7 @@ decodeConnection(const QString &str, Connection &connection)
   if (! CQChartsUtil::toInt(str2, count))
     return false;
 
-  connection = Connection(node, count);
+  connection = Connection(int(node), int(count));
 
   return true;
 }

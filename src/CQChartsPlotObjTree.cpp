@@ -214,7 +214,7 @@ draw(QPainter *painter)
     double g = 1.0 - std::min(std::max((n/16.0), 0.0), 1.0);
 
     painter->setPen  (Qt::black);
-    painter->setBrush(QColor(g*255, g*255, g*255));
+    painter->setBrush(QColor(int(g*255), int(g*255), int(g*255)));
 
     painter->drawRect(pbbox.qrect());
   };

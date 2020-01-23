@@ -760,6 +760,8 @@ class CQChartsPlot : public CQChartsObj,
   // add plot properties to model
   virtual void addProperties();
 
+  void addBaseProperties();
+
   void addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix);
 
   void addLineProperties(const QString &path, const QString &prefix,
@@ -1303,11 +1305,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // error for bad column
+  // general error
   struct Error {
     QString msg;
   };
 
+  // error for bad column
   struct ColumnError {
     CQChartsColumn column;
     QString        msg;
@@ -1330,6 +1333,8 @@ class CQChartsPlot : public CQChartsObj,
   bool addError(const QString &msg);
   bool addColumnError(const CQChartsColumn &c, const QString &msg);
   bool addDataError(const CQChartsModelIndex &ind, const QString &msg);
+
+  void getErrors(QStringList &errors);
 
   void addErrorsToWidget(QTextBrowser *text);
 

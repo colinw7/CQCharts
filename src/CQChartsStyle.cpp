@@ -42,6 +42,13 @@ bool
 CQChartsStyle::
 fromString(const QString &str)
 {
+  return setValue(str);
+}
+
+bool
+CQChartsStyle::
+setValue(const QString &str)
+{
   bool valid = true;
 
   delete pen_;

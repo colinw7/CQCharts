@@ -147,6 +147,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   for (int c = 0; c < nc; ++c) {
     if (! xColumn.isValid()) {
       auto columnDetails = details->columnDetails(CQChartsColumn(c));
+      if (! columnDetails) continue;
 
       if      (columnDetails->isMonotonic())
         xColumn = columnDetails->column();
@@ -169,6 +170,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
       continue;
 
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if (columnDetails->isNumeric())
       yColumns.addColumn(columnDetails->column());
@@ -481,7 +483,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "xColumn"    , "x"    , "X value column" );
@@ -3309,7 +3311,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::Point pl = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmin(), 0));
     CQChartsGeom::Point pr = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmax(), 0));
 
-    for (int px = pl.x; px <= pr.x; ++px) {
+    for (int px = int(pl.x); px <= int(pr.x); ++px) {
       if (plot()->isInterrupt())
         return;
 

@@ -1928,7 +1928,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       bool ok;
 
-      int i = CQChartsUtil::toInt(dataStr, ok);
+      int i = (int) CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
       int n = palette->numDefinedColors();
@@ -2128,7 +2128,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "red_model" || nameStr == "green_model" || nameStr == "blue_model") {
       bool ok;
 
-      int i = CQChartsUtil::toInt(valueStr, ok);
+      int i = (int) CQChartsUtil::toInt(valueStr, ok);
       if (! ok) return errorMsg(QString("Invalid model index '%1'").arg(valueStr));
 
       if      (nameStr == "red_model"  ) palette->setRedModel  (i);
@@ -5119,11 +5119,18 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(plot->isSetHidden(id));
     }
+    else if (name == "errors") {
+      QStringList strs;
+
+      plot->getErrors(strs);
+
+      cmdBase_->setCmdRc(strs);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "model" << "view" << "value" << "map" << "annotations" << "objects" <<
        "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
-       "pixel_height" << "pixel_position" << "properties" << "set_hidden";
+       "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors";
 
       cmdBase_->setCmdRc(names);
     }
@@ -8249,7 +8256,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
         bool ok;
 
-        int i = CQChartsUtil::toInt(value.simplified(), ok);
+        int i = (int) CQChartsUtil::toInt(value.simplified(), ok);
 
         if (! ok) {
           (void) errorMsg("Invalid integer value '" + value + "' for '" +

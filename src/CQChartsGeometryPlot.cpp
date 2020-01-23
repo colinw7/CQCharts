@@ -109,6 +109,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
 
@@ -253,7 +254,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "nameColumn"    , "name"    , "Name column");

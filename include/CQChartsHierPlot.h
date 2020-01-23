@@ -58,6 +58,8 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   void addProperties() override;
 
+  void addHierProperties();
+
  protected:
   CQChartsColumns nameColumns_;                //!< multiple name columns
   CQChartsColumn  valueColumn_;                //!< value column

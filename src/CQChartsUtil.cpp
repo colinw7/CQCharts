@@ -71,7 +71,7 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
     long col = toInt(strs[i], ok1);
 
     if (ok1)
-      columns.push_back(CQChartsColumn(col));
+      columns.push_back(CQChartsColumn(int(col)));
     else
       ok = false;
   }
@@ -398,7 +398,7 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
       return false;
 
     while (! feof(fp) && c != '\n') {
-      line += c;
+      line += char(c);
 
       c = fgetc(fp);
     }

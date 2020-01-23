@@ -38,7 +38,7 @@ class CQChartsSymbolDataLineEdit : public CQChartsLineEditBase {
 
   void symbolDataToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsSymbolDataEdit* dataEdit_ { nullptr };

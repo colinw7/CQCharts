@@ -29,6 +29,13 @@ bool
 CQChartsKeyPressBehavior::
 fromString(const QString &str)
 {
+  return setValue(str);
+}
+
+bool
+CQChartsKeyPressBehavior::
+setValue(const QString &str)
+{
   Type type = Type::NONE;
 
   QString lstr = str.toLower();

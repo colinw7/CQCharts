@@ -135,8 +135,9 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   int nc = details->numColumns();
 
-    for (int c = 0; c < nc; ++c) {
+  for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if      (columnDetails->type() == CQBaseModelType::STRING) {
       if (! connectionsColumn.isValid()) {
@@ -309,7 +310,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "nodeColumn"       , "node"      , "Node column");
@@ -382,7 +383,7 @@ createObjs(PlotObjs &) const
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1;
 
-      int group = plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
+      int group = (int) plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
 
       if (! ok1) group = data.row;
 
@@ -505,7 +506,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data,
   // get node
   bool ok2;
 
-  int id = modelInteger(data.row, nodeColumn(), data.parent, ok2);
+  int id = (int) modelInteger(data.row, nodeColumn(), data.parent, ok2);
 
   if (! ok2) id = data.row;
 
@@ -585,7 +586,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
   bool ok3;
 
-  count = modelInteger(data.row, countColumn(), data.parent, ok3);
+  count = (int) modelInteger(data.row, countColumn(), data.parent, ok3);
 
   if (! ok3)
     count = 0;

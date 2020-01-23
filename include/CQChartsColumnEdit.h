@@ -43,7 +43,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   void columnToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsColumnEdit* dataEdit_ { nullptr };

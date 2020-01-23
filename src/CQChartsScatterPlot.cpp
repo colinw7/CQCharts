@@ -527,7 +527,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "xColumn", "x", "X column");
@@ -1909,7 +1909,7 @@ drawBestFit(CQChartsPaintDevice *device) const
     CQChartsGeom::Point pl = CQChartsGeom::Point(fitData.xmin(), 0);
     CQChartsGeom::Point pr = CQChartsGeom::Point(fitData.xmax(), 0);
 
-    for (int px = pl.x; px <= pr.x; ++px) {
+    for (int px = int(pl.x); px <= int(pr.x); ++px) {
       if (isInterrupt())
         return;
 
@@ -3496,9 +3496,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   double dn = (n5 - n1)/4.0;
 
-  int n2 = n1 + dn;
-  int n4 = n5 - dn;
-  int n3 = (n5 + n1)/2.0;
+  int n2 = int(n1 + dn);
+  int n4 = int(n5 - dn);
+  int n3 = int((n5 + n1)/2.0);
 
   double y1 = rprect.getYMax();
   double y5 = rprect.getYMin();

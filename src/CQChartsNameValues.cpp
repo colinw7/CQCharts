@@ -25,7 +25,7 @@ nameValueInteger(const QString &name, int &value) const
 
   bool ok;
 
-  value = CQChartsVariant::toInt(var, ok);
+  value = (int) CQChartsVariant::toInt(var, ok);
 
   return ok;
 }

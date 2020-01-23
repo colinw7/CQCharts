@@ -1444,6 +1444,8 @@ void
 CQChartsView::
 removePlot(CQChartsPlot *plot)
 {
+  assert(plot);
+
   bool isCurrent = (plot == currentPlot(/*remap*/false));
 
   // build new list of plots without plot and check for match
@@ -3231,6 +3233,8 @@ resizeEvent(QResizeEvent *)
     if (sizeData_.vbar) sizeData_.vbar->setVisible(showVBar);
 
     if (showHBar) {
+      assert(sizeData_.hbar);
+
       sizeData_.hbar->resize(w - (showVBar ? vw : 0), hh);
 
       sizeData_.hbar->move(0, h - hh);
@@ -3240,6 +3244,8 @@ resizeEvent(QResizeEvent *)
     }
 
     if (showVBar) {
+      assert(sizeData_.vbar);
+
       sizeData_.vbar->resize(vw, h - (showHBar ? hh : 0));
 
       sizeData_.vbar->move(w - vw, 0);
@@ -3520,7 +3526,7 @@ drawNoData(CQChartsPaintDevice *)
   QFont p_font = this->font().font();
   QFontMetricsF p_fm(p_font);
 
-  int is = 4*p_fm.height();
+  int is = int(4*p_fm.height());
 
   CQChartsModelData *modelData = charts()->currentModelData();
 
@@ -6316,7 +6322,7 @@ currentPlotSlot()
 
   bool ok;
 
-  int plotInd = CQChartsVariant::toInt(action->data(), ok);
+  int plotInd = (int) CQChartsVariant::toInt(action->data(), ok);
   assert(ok);
 
   setCurrentPlotInd(plotInd);

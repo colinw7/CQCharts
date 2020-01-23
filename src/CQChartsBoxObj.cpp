@@ -23,6 +23,13 @@ void
 CQChartsBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
+  addBoxProperties(model, path, desc);
+}
+
+void
+CQChartsBoxObj::
+addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+{
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));

@@ -428,7 +428,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
       long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-      CQChartsAnnotation *annotation = view->getAnnotationByInd(ind);
+      CQChartsAnnotation *annotation = view->getAnnotationByInd(int(ind));
 
       if (annotation)
         annotations.push_back(annotation);
@@ -502,7 +502,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
 
       long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-      CQChartsAnnotation *annotation = plot->getAnnotationByInd(ind);
+      CQChartsAnnotation *annotation = plot->getAnnotationByInd(int(ind));
 
       if (annotation)
         annotations.push_back(annotation);
@@ -1865,7 +1865,7 @@ modelsSelectionChangeSlot()
   long ind = modelsWidgets_.modelTable->selectedModel();
 
   if (ind >= 0)
-    charts->setCurrentModelInd(ind);
+    charts->setCurrentModelInd(int(ind));
 
   modelsWidgets_.editButton  ->setEnabled(ind >= 0);
   modelsWidgets_.removeButton->setEnabled(ind >= 0);
@@ -1892,7 +1892,7 @@ editModelSlot()
 
   CQCharts *charts = window_->view()->charts();
 
-  CQChartsModelData *modelData = charts->getModelData(ind);
+  CQChartsModelData *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
   charts->editModelDlg(modelData);
@@ -1909,7 +1909,7 @@ removeModelSlot()
 
   CQCharts *charts = window_->view()->charts();
 
-  CQChartsModelData *modelData = charts->getModelData(ind);
+  CQChartsModelData *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
   charts->removeModelData(modelData);
@@ -1926,7 +1926,7 @@ createPlotModelSlot()
 
   CQCharts *charts = window_->view()->charts();
 
-  CQChartsModelData *modelData = charts->getModelData(ind);
+  CQChartsModelData *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
   CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);

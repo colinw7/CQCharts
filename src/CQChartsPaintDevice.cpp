@@ -379,7 +379,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  painter_->drawImage(pbbox.qrect(), image.scaled(w, h, Qt::IgnoreAspectRatio));
+  painter_->drawImage(pbbox.qrect(), image.scaled(int(w), int(h), Qt::IgnoreAspectRatio));
 }
 
 void
@@ -876,7 +876,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  drawImage(CQChartsGeom::Point(x, y), image.scaled(w, h, Qt::IgnoreAspectRatio));
+  drawImage(CQChartsGeom::Point(x, y), image.scaled(int(w), int(h), Qt::IgnoreAspectRatio));
 }
 
 void
@@ -1333,7 +1333,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
 
   CQChartsGeom::Point pw = pixelToWindow(CQChartsGeom::Point(px, py));
 
-  drawImage(pw, image.scaled(pbbox.getWidth(), pbbox.getHeight(), Qt::IgnoreAspectRatio));
+  drawImage(pw, image.scaled(int(pbbox.getWidth()), int(pbbox.getHeight()), Qt::IgnoreAspectRatio));
 }
 
 void

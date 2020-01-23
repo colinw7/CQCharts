@@ -354,8 +354,8 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   else
     type = Type::DATA;
 
-  column = column1;
-  role   = role1;
+  column = int(column1);
+  role   = int(role1);
 
   return true;
 }

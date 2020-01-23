@@ -342,11 +342,11 @@ initSymbolTypeData() const
 
       bool ok;
 
-      th->symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) th->symbolTypeData_.data_min = 0.0;
+      th->symbolTypeData_.data_min = int(CQChartsVariant::toReal(minVar, ok));
+      if (! ok) th->symbolTypeData_.data_min = 0;
 
-      th->symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) th->symbolTypeData_.data_max = 1.0;
+      th->symbolTypeData_.data_max = int(CQChartsVariant::toReal(maxVar, ok));
+      if (! ok) th->symbolTypeData_.data_max = 1;
     }
 
     CQBaseModelType    columnType;
@@ -387,11 +387,11 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
 
   if (symbolTypeData_.mapped) {
     if (CQChartsVariant::isNumeric(var)) {
-      int i = CQChartsVariant::toInt(var, ok);
+      int i = (int) CQChartsVariant::toInt(var, ok);
       if (! ok) return false;
 
-      int i1 = CMathUtil::map(i, symbolTypeData_.data_min, symbolTypeData_.data_max,
-                              symbolTypeData_.map_min, symbolTypeData_.map_max);
+      int i1 = (int) CMathUtil::map(i, symbolTypeData_.data_min, symbolTypeData_.data_max,
+                                    symbolTypeData_.map_min, symbolTypeData_.map_max);
 
       symbolType = CQChartsSymbol::outlineFromInt(i1);
     }

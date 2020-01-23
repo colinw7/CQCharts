@@ -115,7 +115,7 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
 
   void fillUnderPosToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsFillUnderPosEdit *dataEdit_ { nullptr };

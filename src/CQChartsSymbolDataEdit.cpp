@@ -110,7 +110,7 @@ void
 CQChartsSymbolDataLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(symbolDataChanged()), this, SLOT(menuEditChanged()));
@@ -125,13 +125,13 @@ drawPreview(QPainter *painter, const QRect &rect)
   CQChartsSymbolData data = this->symbolData();
 
   double s  = rect.height()/2.0 - 4.0;
-  double is = int(s + 0.5);
+  double is = std::round(s);
 
   int xl = 3;
 
   data.setSize(CQChartsLength(s, CQChartsUnits::PIXEL));
 
-  QRect rect1(rect.left() + xl, rect.center().y() - is, 2*is, 2*is);
+  QRect rect1(int(rect.left() + xl), int(rect.center().y() - is), int(2.0*is), int(2.0*is));
 
   CQChartsSymbolDataEditPreview::draw(painter, data, rect1, plot(), view());
 

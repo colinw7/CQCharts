@@ -39,7 +39,7 @@ class CQChartsBoxDataLineEdit : public CQChartsLineEditBase {
 
   void boxDataToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsBoxDataEdit* dataEdit_ { nullptr };

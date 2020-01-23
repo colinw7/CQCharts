@@ -789,7 +789,7 @@ uniqueId(const QVariant &var) const
     long i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet_->ivals().id(i);
+      return valueSet_->ivals().id(int(i));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -987,7 +987,7 @@ isOutlier(const QVariant &value) const
   if      (type() == CQBaseModelType::INTEGER) {
     long i = CQChartsVariant::toInt(value, ok);
 
-    return (ok && valueSet_->ivals().isOutlier(i));
+    return (ok && valueSet_->ivals().isOutlier(int(i)));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(value, ok);
@@ -1021,7 +1021,7 @@ map(const QVariant &var) const
     long i = CQChartsVariant::toInt(var, ok);
 
     if (ok)
-      return valueSet_->ivals().map(i);
+      return valueSet_->ivals().map(int(i));
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -1538,11 +1538,13 @@ calcType()
 
   //---
 
-  preferredWidth_ = columnType->preferredWidth(nameValues_);
+  if (columnType) {
+    preferredWidth_ = columnType->preferredWidth(nameValues_);
 
-  tableDrawColor_ = columnType->drawColor(nameValues_);
-  tableDrawType_  = columnType->drawType (nameValues_);
-  tableDrawStops_ = columnType->drawStops(nameValues_);
+    tableDrawColor_ = columnType->drawColor(nameValues_);
+    tableDrawType_  = columnType->drawType (nameValues_);
+    tableDrawStops_ = columnType->drawStops(nameValues_);
+  }
 
   //---
 

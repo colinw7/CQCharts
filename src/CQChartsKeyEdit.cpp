@@ -78,6 +78,8 @@ CQChartsKeyEdit::
 CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
  QFrame(parent), key_(key)
 {
+  assert(key_);
+
   setObjectName("keyEdit");
 
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
@@ -97,6 +99,11 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   data_.header         = key_->headerStr();
   data_.headerTextData = key_->headerTextData();
 
+  data_.textBoxData.setText(key_->textData());
+  data_.textBoxData.setBox (key_->boxData());
+
+  //-
+
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey) {
@@ -108,9 +115,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     data_.scrollWidth      = plotKey->scrollWidth();
     data_.scrollHeight     = plotKey->scrollHeight();
   }
-
-  data_.textBoxData.setText(key_->textData());
-  data_.textBoxData.setBox (key_->boxData());
 
   //---
 

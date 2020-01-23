@@ -999,7 +999,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
         pos1 = pos2;
 
         if (isDate())
-          pos2 = interval_.interval(i + 1);
+          pos2 = interval_.interval(int(i + 1));
         else
           pos2 = pos1 + inc;
       }
@@ -1054,7 +1054,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
         //---
 
         if (isDate())
-          pos1 = interval_.interval(i + 1);
+          pos1 = interval_.interval(int(i + 1));
         else
           pos1 += inc;
       }
@@ -1211,7 +1211,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
         //---
 
         if (isDate())
-          pos1 = interval_.interval(i + 1);
+          pos1 = interval_.interval(int(i + 1));
         else
           pos1 += inc;
       }
@@ -1344,7 +1344,7 @@ getTickLabelsPositions(std::set<int> &positions) const
     positions.insert(int(pos));
 
     if (isDate())
-      pos = interval_.interval(i + 1);
+      pos = interval_.interval(int(i + 1));
     else
       pos += inc;
   }

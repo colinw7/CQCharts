@@ -133,7 +133,7 @@ void
 CQChartsColumnsLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
@@ -164,8 +164,8 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
         long endCol   = CQChartsUtil::toInt(strs1[1], ok2);
 
         if (ok1 && ok2) {
-          for (int col = startCol; col <= endCol; ++col)
-            columns.addColumn(CQChartsColumn(col));
+          for (long col = startCol; col <= endCol; ++col)
+            columns.addColumn(CQChartsColumn(int(col)));
         }
         else
           ok = false;

@@ -288,7 +288,7 @@ QSize
 CQChartsTree::
 sizeHint() const
 {
-  QFontMetricsF fm(font());
+  QFontMetrics fm(font());
 
   return QSize(fm.width("X")*40, 20*fm.height());
 }

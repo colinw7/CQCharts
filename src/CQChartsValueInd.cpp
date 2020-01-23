@@ -8,7 +8,7 @@ calcId(const QVariant &val, CQBaseModelType type)
   bool ok;
 
   if      (type == CQBaseModelType::INTEGER) {
-    int i = CQChartsVariant::toInt(val, ok);
+    int i = (int) CQChartsVariant::toInt(val, ok);
     if (! ok) return -1;
 
     return calcId(i);

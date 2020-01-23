@@ -198,6 +198,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void writeScriptData(CQChartsScriptPainter *device) const;
 
+  void writeObjScriptData(CQChartsScriptPainter *device) const;
+
   virtual void writeScriptGC(CQChartsScriptPainter *device,
                              const CQChartsPenBrush &penBrush) const;
 

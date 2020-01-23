@@ -4043,7 +4043,7 @@ calcPixelRect() const
 
   CQChartsGeom::Point p = positionToPixel(position());
 
-  return QRect(p.x, p.y, w, h);
+  return QRect(int(p.x), int(p.y), w, h);
 }
 
 void

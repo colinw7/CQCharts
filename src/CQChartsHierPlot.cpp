@@ -63,6 +63,13 @@ void
 CQChartsHierPlot::
 addProperties()
 {
+  addHierProperties();
+}
+
+void
+CQChartsHierPlot::
+addHierProperties()
+{
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
@@ -70,7 +77,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   addProp("columns", "nameColumns", "name" , "Name columns");
   addProp("columns", "valueColumn", "value", "Data value column");

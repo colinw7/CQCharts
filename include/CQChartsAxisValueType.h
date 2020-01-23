@@ -29,7 +29,7 @@ class CQChartsAxisValueType : public CQChartsEnum {
   }
 
   explicit CQChartsAxisValueType(const QString &str) {
-    (void) fromString(str);
+    (void) setValue(str);
   }
 
   //---
@@ -68,6 +68,9 @@ class CQChartsAxisValueType : public CQChartsEnum {
     l.print(os);
     return os;
   }
+
+ private:
+  bool setValue(const QString &str);
 
  private:
   Type type_ { Type::REAL };

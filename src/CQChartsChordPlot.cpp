@@ -109,6 +109,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < nc; ++c) {
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if      (columnDetails->type() == CQBaseModelType::STRING) {
       if (! linkColumn.isValid()) {
@@ -163,6 +164,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
     for (int c = skip + 1; c < nc; ++c) {
       auto columnDetails = details->columnDetails(CQChartsColumn(c));
+      if (! columnDetails) continue;
 
       if (! columnDetails->isNumeric()) {
         allNumeric = false;
@@ -307,7 +309,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "linkColumn" , "link" , "Link column");
@@ -339,7 +341,7 @@ addProperties()
 
   QString labelBoxPath = "labels/box";
 
-  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath, "Labels");
+  textBox_->addBoxProperties(propertyModel(), labelBoxPath, "Labels");
 }
 
 CQChartsGeom::Range
@@ -460,7 +462,7 @@ initTableObjs(PlotObjs &objs) const
   const IndRowDatas &indRowDatas = visitor.indRowDatas();
 
   int nr = indRowDatas.size();
-  int nc = (nr > 0 ? indRowDatas[0].rowData.size() : 0);
+  int nc = (nr > 0 ? int(indRowDatas[0].rowData.size()) : 0);
 
   int numExtraColumns = 0;
 
@@ -705,7 +707,7 @@ initHierObjs(PlotObjs &objs) const
       if (ps == nameDataMap_.end()) {
         ps = nameDataMap_.insert(ps, NameDataMap::value_type(srcStr, CQChartsChordData()));
 
-        (*ps).second.setFrom(nameDataMap_.size() - 1);
+        (*ps).second.setFrom(int(nameDataMap_.size() - 1));
         (*ps).second.setName(srcStr);
         (*ps).second.setInd (linkInd1);
       }
@@ -716,7 +718,7 @@ initHierObjs(PlotObjs &objs) const
       if (pd == nameDataMap_.end()) {
         pd = nameDataMap_.insert(pd, NameDataMap::value_type(destStr, CQChartsChordData()));
 
-        (*pd).second.setFrom(nameDataMap_.size() - 1);
+        (*pd).second.setFrom(int(nameDataMap_.size() - 1));
         (*pd).second.setName(destStr);
         (*pd).second.setInd (linkInd1);
       }

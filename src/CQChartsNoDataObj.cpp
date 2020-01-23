@@ -21,7 +21,7 @@ draw(CQChartsPaintDevice *device)
 
   // get position of center
   double xm = bbox.getXMid();
-  double ym = bbox.getXMid();
+  double ym = bbox.getYMid();
 
   CQChartsGeom::Point c(xm, ym);
 

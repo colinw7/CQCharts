@@ -120,7 +120,7 @@ void
 CQChartsColorLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
@@ -440,7 +440,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   connectSlots(true);
 
-  setFixedHeight(minimumSizeHint().height());
+  setFixedHeight(CQChartsColorEdit::minimumSizeHint().height());
 
   updateState();
 }

@@ -69,6 +69,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
+  void addBoxProperties();
+
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
   //---

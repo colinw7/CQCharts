@@ -85,6 +85,8 @@ decodeString(const QString &str, CQChartsUnits &units, double &value,
   if (! CQChartsUtil::toReal(strs[0], value))
     return false;
 
+  units = defUnits;
+
   if (strs.length() > 1) {
     if (! CQChartsUtil::decodeUnits(strs[1], units, defUnits))
       return false;

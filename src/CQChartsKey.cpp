@@ -280,7 +280,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // stroke, fill
-  CQChartsBoxObj::addProperties(model, path, "");
+  addBoxProperties(model, path, "");
 
   //---
 
@@ -389,7 +389,7 @@ draw(CQChartsPaintDevice *device) const
 
     //---
 
-    drawCheckBox(device, px1, (py1 + py2)/2.0 - bs/2.0, bs, checked);
+    drawCheckBox(device, px1, (py1 + py2)/2.0 - bs/2.0, int(bs), checked);
 
     //---
 
@@ -912,7 +912,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // stroke, fill
-  CQChartsBoxObj::addProperties(model, path, "");
+  addBoxProperties(model, path, "");
 
   //---
 
@@ -1470,6 +1470,8 @@ setInsideItem(CQChartsKeyItem *item)
   bool changed = false;
 
   for (auto &item1 : items_) {
+    if (! item1) continue;
+
     if (item1 == item) {
       if (! item1->isInside()) {
         item1->setInside(true);
@@ -1627,8 +1629,8 @@ draw(CQChartsPaintDevice *device) const
   if (layoutData_.vscrolled) {
     scrollData_.vbar->show();
 
-    scrollData_.vbar->move(p2.x - scrollData_.pixelBarSize - 1, p1.y + phh);
-    scrollData_.vbar->resize(scrollData_.pixelBarSize - 2, p2.y - p1.y - phh - hsph - 1);
+    scrollData_.vbar->move(int(p2.x - scrollData_.pixelBarSize - 1), int(p1.y + phh));
+    scrollData_.vbar->resize(int(scrollData_.pixelBarSize - 2), int(p2.y - p1.y - phh - hsph - 1));
 
     //---
 
@@ -1642,7 +1644,7 @@ draw(CQChartsPaintDevice *device) const
 
       ++scrollRows;
 
-      int rh = rowHeights_[i] + 2*ys_;
+      int rh = int(rowHeights_[i] + 2*ys_);
 
       scrollHeight -= rh;
     }
@@ -1674,14 +1676,14 @@ draw(CQChartsPaintDevice *device) const
   if (layoutData_.hscrolled) {
     scrollData_.hbar->show();
 
-    scrollData_.hbar->move(p1.x + 1, p2.y - scrollData_.pixelBarSize - 1);
-    scrollData_.hbar->resize(p2.x - p1.x - vspw, scrollData_.pixelBarSize - 2);
+    scrollData_.hbar->move(int(p1.x + 1), int(p2.y - scrollData_.pixelBarSize - 1));
+    scrollData_.hbar->resize(int(p2.x - p1.x - vspw), int(scrollData_.pixelBarSize - 2));
 
     //---
 
     // update scroll bar
-    int pageStep  = plot()->windowToPixelWidth(sw - layoutData_.vbarWidth);
-    int fullWidth = plot()->windowToPixelWidth(layoutData_.fullSize.width());
+    int pageStep  = (int) plot()->windowToPixelWidth(sw - layoutData_.vbarWidth);
+    int fullWidth = (int) plot()->windowToPixelWidth(layoutData_.fullSize.width());
 
     if (scrollData_.hbar->pageStep() != pageStep)
       scrollData_.hbar->setPageStep(pageStep);

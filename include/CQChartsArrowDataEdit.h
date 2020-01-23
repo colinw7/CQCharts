@@ -38,7 +38,7 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
 
   void arrowDataToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsArrowDataEdit* dataEdit_ { nullptr }; //!< arrow data edit

@@ -1013,7 +1013,7 @@ getModelInd(const QAbstractItemModel *model, int &ind) const
 
   bool ok;
 
-  ind = CQChartsVariant::toInt(model->property("modelInd"), ok);
+  ind = (int) CQChartsVariant::toInt(model->property("modelInd"), ok);
 
   if (! ok)
     return false;

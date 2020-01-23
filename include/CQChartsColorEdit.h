@@ -38,7 +38,7 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
 
   void colorToWidgets();
 
-  void connectSlots(bool b) override;
+  void connectSlots(bool b);
 
  private:
   CQChartsColorEdit* dataEdit_ { nullptr }; //!< color data edit

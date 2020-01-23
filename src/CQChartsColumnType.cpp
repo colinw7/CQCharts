@@ -61,7 +61,7 @@ int varInteger(const QVariant &var, int def) {
 
   long i = CQChartsVariant::toInt(var, ok);
 
-  return (ok ? i : def);
+  return (ok ? int(i) : def);
 }
 
 double varReal(const QVariant &var, double def) {
@@ -1998,10 +1998,10 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
   if (mapped) {
     bool ok;
 
-    int i = CQChartsVariant::toInt(var, ok);
+    long i = CQChartsVariant::toInt(var, ok);
     if (! ok) return QVariant();
 
-    int i1 = CMathUtil::map(i, min, max, size_min, size_max);
+    int i1 = (int) CMathUtil::map(int(i), min, max, size_min, size_max);
 
     CQChartsSymbol symbol = CQChartsSymbol((CQChartsSymbol::Type) i1);
 

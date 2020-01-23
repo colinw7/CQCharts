@@ -137,7 +137,7 @@ bbox(const CQChartsGeom::Point &center, const QString &text,
 
   CQChartsGeom::BBox bbox;
 
-  if (angle) {
+  if (angle != 0.0) {
     bbox = CQChartsGeom::BBox(cx, cy, cx + tw1, cy + th1);
   }
   else {

@@ -702,7 +702,7 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
     painter = dynamic_cast<CQChartsViewPlotPainter *>(device)->painter();
   }
   else {
-    image = CQChartsUtil::initImage(QSize(ptbbox.getWidth(), ptbbox.getHeight()));
+    image = CQChartsUtil::initImage(QSize(int(ptbbox.getWidth()), int(ptbbox.getHeight())));
 
     ipainter = new QPainter(&image);
 

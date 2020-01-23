@@ -93,7 +93,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "nameColumn" , "name" , "Name column");

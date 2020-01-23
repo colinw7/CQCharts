@@ -26,7 +26,7 @@ createHSpacer(int width, const char *name)
 {
   auto spacer = CQUtil::makeWidget<QFrame>(name);
 
-  QFontMetricsF fm(spacer->font());
+  QFontMetrics fm(spacer->font());
 
   spacer->setFixedWidth(width*fm.width("X"));
 

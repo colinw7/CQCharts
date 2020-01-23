@@ -131,7 +131,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   painter->restore();
 
-  int x = bbox1.getXMax() + 2;
+  int x = int(bbox1.getXMax() + 2);
 
   //--
 

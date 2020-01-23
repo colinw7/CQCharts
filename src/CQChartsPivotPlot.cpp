@@ -207,7 +207,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "xColumns"   , "x"    , "X key column(s)");
@@ -1497,7 +1497,8 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
   // get column palette and bg color
   auto columnDetails = plot_->columnDetails(CQChartsColumn(modelInd().column()));
 
-  color_ = columnDetails->tableDrawColor();
+  if (columnDetails)
+    color_ = columnDetails->tableDrawColor();
 
   if (! color_.isValid())
     color_ = CQChartsColor(CQChartsColor::Type::PALETTE);

@@ -28,7 +28,7 @@ class CQChartsTitleLocation : public CQChartsEnum {
   }
 
   explicit CQChartsTitleLocation(const QString &str) {
-    (void) fromString(str);
+    (void) setValue(str);
   }
 
   //---
@@ -61,6 +61,9 @@ class CQChartsTitleLocation : public CQChartsEnum {
     l.print(os);
     return os;
   }
+
+ private:
+  bool setValue(const QString &s);
 
  private:
   Type type_ { Type::TOP };

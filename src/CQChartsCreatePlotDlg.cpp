@@ -1591,7 +1591,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
     spinEdit = CQUtil::makeWidget<CQIntegerSpin>("spinEdit");
     edit     = spinEdit;
 
-    spinEdit->setValue(i);
+    spinEdit->setValue(int(i));
 
     connect(spinEdit, SIGNAL(valueChanged(int)), this, SLOT(validateSlot()));
   }
@@ -1643,7 +1643,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   combo->addItems(names);
 
-  combo->setCurrentIndex(combo->findText(eparameter->valueName(i)));
+  combo->setCurrentIndex(combo->findText(eparameter->valueName(int(i))));
 
   connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(validateSlot()));
 
@@ -2308,7 +2308,8 @@ updateFormatSlot()
       return;
   }
 
-  formatEdit->setText(typeStr);
+  if (formatEdit)
+    formatEdit->setText(typeStr);
 }
 
 bool
@@ -2384,6 +2385,7 @@ validate(QStringList &msgs)
       if (column.type() == CQChartsColumn::Type::DATA ||
           column.type() == CQChartsColumn::Type::DATA_INDEX) {
         const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+        assert(columnDetails);
 
         if (parameter->isMonotonic()) {
           if (! columnDetails->isMonotonic()) {
@@ -2761,7 +2763,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
       bool ok;
 
-      int defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
+      int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = defValue;
 
@@ -2779,7 +2781,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter->type() == CQChartsPlotParameter::Type::ENUM) {
       bool ok;
 
-      int defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
+      int defValue = (int) CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = defValue;
 
@@ -3059,7 +3061,7 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
   else {
     bool ok;
 
-    i = CQChartsUtil::toInt(lineEdit->text(), ok);
+    i = (int) CQChartsUtil::toInt(lineEdit->text(), ok);
   }
 
   return true;

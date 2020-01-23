@@ -79,6 +79,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < details->numColumns(); ++c) {
     const CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if      (columnDetails->isNumeric()) {
       yColumns.addColumn(columnDetails->column());
@@ -195,7 +196,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "xColumn" , "x", "X column");
@@ -599,13 +600,13 @@ createObjs(PlotObjs &objs) const
       if (! isHorizontal()) {
         double dry = range.ymax() - range.ymin();
 
-        if (dry)
+        if (dry > 0.0)
           pos = (p.y - range.ymin())/dry;
       }
       else {
         double drx = range.xmax() - range.xmin();
 
-        if (drx)
+        if (drx > 0.0)
           pos = (p.x - range.xmin())/drx;
       }
 

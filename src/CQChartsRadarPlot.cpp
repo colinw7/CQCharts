@@ -72,6 +72,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < details->numColumns(); ++c) {
     const CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+    if (! columnDetails) continue;
 
     if      (columnDetails->isNumeric()) {
       numericColumns.addColumn(columnDetails->column());
@@ -172,7 +173,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "nameColumn"  , "name"  , "Name column");

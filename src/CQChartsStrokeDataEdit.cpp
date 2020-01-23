@@ -109,7 +109,7 @@ void
 CQChartsStrokeDataLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));

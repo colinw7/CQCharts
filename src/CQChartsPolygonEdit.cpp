@@ -107,7 +107,7 @@ void
 CQChartsPolygonLineEdit::
 connectSlots(bool b)
 {
-  CQChartsLineEditBase::connectSlots(b);
+  connectBaseSlots(b);
 
   if (b)
     connect(dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));

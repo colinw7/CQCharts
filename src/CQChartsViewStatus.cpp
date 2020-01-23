@@ -119,7 +119,7 @@ QSize
 CQChartsViewStatus::
 sizeHint() const
 {
-  QFontMetricsF fm(font());
+  QFontMetrics fm(font());
 
   return QSize(fm.width("XX"), fm.height() + 4);
 }

@@ -237,7 +237,7 @@ addProperties()
 
   //---
 
-  CQChartsPlot::addProperties();
+  addBaseProperties();
 
   // columns
   addProp("columns", "valueColumns"  , "values"  , "Value columns");
@@ -245,7 +245,7 @@ addProperties()
   addProp("columns", "radiusColumn"  , "radius"  , "Radius column");
   addProp("columns", "keyLabelColumn", "keyLabel", "Key label column");
 
-  CQChartsGroupPlot::addProperties();
+  addGroupingProperties();
 
   // options
   addProp("options", "donut"      , "", "Display as donut using inner radius");
@@ -287,7 +287,7 @@ addProperties()
 
   QString labelBoxPath = "labels/box";
 
-  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath, "Labels");
+  textBox_->addBoxProperties(propertyModel(), labelBoxPath, "Labels");
 
   // color map
   addColorMapProperties();
@@ -1938,9 +1938,9 @@ CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
   CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
-  if (group)
+  if      (group)
     setText(group->name());
-  else
+  else if (obj)
     setText(obj->keyLabel());
 }
 

@@ -156,7 +156,7 @@ int
 CQChartsDendrogram::HierNode::
 numNodes() const
 {
-  return nodes_.size() + children_.size();
+  return int(nodes_.size() + children_.size());
 }
 
 int

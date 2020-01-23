@@ -251,7 +251,7 @@ addProperties()
 
   //---
 
-  CQChartsHierPlot::addProperties();
+  addHierProperties();
 
   // options
   addProp("options", "valueLabel"      , "", "Show value label");
@@ -717,7 +717,7 @@ loadHier() const
       if      (valueColumnType_ == ColumnType::REAL)
         size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
+        size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
       else
         ok = false;
 
@@ -826,7 +826,7 @@ loadFlat() const
         if      (valueColumnType_ == ColumnType::REAL)
           size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
+          size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
         else
           ok2 = false;
 
@@ -1371,7 +1371,7 @@ writeScriptData(CQChartsScriptPainter *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
-  CQChartsPlotObj::writeScriptData(device);
+  writeObjScriptData(device);
 
   std::ostream &os = device->os();
 

@@ -10,7 +10,6 @@
 #include <QRectF>
 #include <QPolygonF>
 #include <set>
-//#include <mutex>
 
 namespace CQTclUtil {
 
@@ -610,12 +609,6 @@ class CQTcl : public CTcl {
     return CTclUtil::errorInfo(interp(), rc).c_str();
   }
 
-  Tcl_Interp *interp() const {
-    //std::unique_lock<std::mutex> lock(mutex_);
-
-    return CTcl::interp();
-  }
-
  private:
   static char *traceProc(ClientData data, Tcl_Interp *, const char *name1,
                          const char *, int flags) {
@@ -628,8 +621,7 @@ class CQTcl : public CTcl {
   }
 
  private:
-  Traces             traces_;
-//mutable std::mutex mutex_;
+  Traces traces_;
 };
 
 #endif
