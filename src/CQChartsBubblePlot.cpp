@@ -278,10 +278,9 @@ createObjs(PlotObjs &objs) const
   if (! checkColumn(valueColumn(), "Value", /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(nameColumn (), "Name" ) ||
-      ! checkColumn(idColumn   (), "Id"   ) ||
-      ! checkColumn(colorColumn(), "Color"))
-    columnsValid = false;
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(idColumn   (), "Id"   )) columnsValid = false;
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
   if (! columnsValid)
     return false;

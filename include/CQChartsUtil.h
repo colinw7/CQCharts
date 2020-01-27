@@ -114,26 +114,6 @@ QColor rgbToColor(double r, double g, double b);
 
 namespace CQChartsUtil {
 
-inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c,
-                                        double xr, double yr, double a) {
-  double ra = CMathUtil::Deg2Rad(a);
-
-  double x = c.x + xr*cos(ra);
-  double y = c.y + yr*sin(ra);
-
-  return CQChartsGeom::Point(x, y);
-}
-
-inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c, double r, double a) {
-  return AngleToPoint(c, r, r, a);
-}
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
 bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
 
 }

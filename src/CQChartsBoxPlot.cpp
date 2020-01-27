@@ -611,9 +611,8 @@ updateRawRange() const
   if (! checkColumns(valueColumns(), "Values", /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(nameColumn (), "Name" ) ||
-      ! checkColumn(groupColumn(), "Group"))
-    columnsValid = false;
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
 
   if (! checkColumn(setColumn(), "Set", th->setType_))
     columnsValid = false;
@@ -875,6 +874,8 @@ updateCalcRange() const
 {
   auto th = const_cast<CQChartsBoxPlot *>(this);
 
+  CQChartsGeom::Range dataRange;
+
   //---
 
   // check columns
@@ -885,39 +886,19 @@ updateCalcRange() const
   // min, lowerMedian, median, upperMedia, max required (already checked)
   // x, outliers optional (value list)
 
-  th->xType_ = ColumnType::NONE;
+  if (! checkColumn(xColumn(), "X", th->xType_))
+    columnsValid = false;
 
-  if (xColumn().isValid()) {
-    th->xType_ = columnValueType(xColumn());
+  if (! checkColumn(minColumn        (), "Min"         )) columnsValid = false;
+  if (! checkColumn(lowerMedianColumn(), "Lower Median")) columnsValid = false;
+  if (! checkColumn(medianColumn     (), "Median"      )) columnsValid = false;
+  if (! checkColumn(upperMedianColumn(), "Upper Median")) columnsValid = false;
+  if (! checkColumn(maxColumn        (), "Max"         )) columnsValid = false;
+  if (! checkColumn(outliersColumn   (), "Outliers"    )) columnsValid = false;
+  if (! checkColumn(idColumn         (), "Id"          )) columnsValid = false;
 
-    if (th->xType_ == ColumnType::NONE)
-      columnsValid = th->addColumnError(xColumn(), "Invalid X column");
-  }
-
-  if (columnValueType(minColumn()) == ColumnType::NONE)
-    columnsValid = th->addColumnError(minColumn(), "Invalid Min column");
-
-  if (columnValueType(lowerMedianColumn()) == ColumnType::NONE)
-    columnsValid = th->addColumnError(lowerMedianColumn(), "Invalid Lower Median column");
-
-  if (columnValueType(medianColumn()) == ColumnType::NONE)
-    columnsValid = th->addColumnError(medianColumn(), "Invalid Median column");
-
-  if (columnValueType(upperMedianColumn()) == ColumnType::NONE)
-    columnsValid = th->addColumnError(upperMedianColumn(), "Invalid Upper Median column");
-
-  if (columnValueType(maxColumn()) == ColumnType::NONE)
-    columnsValid = th->addColumnError(maxColumn(), "Invalid Max column");
-
-  if (outliersColumn().isValid()) {
-    if (columnValueType(outliersColumn()) == ColumnType::NONE)
-      columnsValid = th->addColumnError(outliersColumn(), "Invalid Outliers column");
-  }
-
-  if (idColumn().isValid()) {
-    if (columnValueType(idColumn()) == ColumnType::NONE)
-      columnsValid = th->addColumnError(idColumn(), "Invalid Id column");
-  }
+  if (! columnsValid)
+    return dataRange;
 
   //---
 
@@ -933,8 +914,6 @@ updateCalcRange() const
   yAxis->setVisible(false);
 
   //---
-
-  CQChartsGeom::Range dataRange;
 
   RMinMax xrange;
 
@@ -1079,7 +1058,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   data.dataMin = data.statData.min;
   data.dataMax = data.statData.max;
 
-  if (isShowOutliers()) {
+  if (isShowOutliers() && outliersColumn().isValid()) {
     CQChartsModelIndex outliersInd(vdata.row, outliersColumn(), vdata.parent);
 
     data.outliers = modelReals(outliersInd, ok);

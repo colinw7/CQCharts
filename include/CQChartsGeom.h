@@ -2165,8 +2165,24 @@ namespace CQChartsGeom {
 
 // point on circle perimeter (center (c), radius(r), radian angle (a))
 inline CQChartsGeom::Point circlePoint(const CQChartsGeom::Point &c, double r, double a) {
-  return CQChartsGeom::Point(c.x + r*cos(a), c.y + r*sin(a));
+  double ca = cos(a); double sa = sin(a);
+
+  return CQChartsGeom::Point(c.x + r*ca, c.y + r*sa);
 }
+
+#if 0
+inline CQChartsGeom::Point ellipsePoint(const CQChartsGeom::Point &c,
+                                        double xr, double yr, double a) {
+  double ca = cos(a); double sa = sin(a);
+
+  double n = xr*yr;
+  double d = std::hypot(xr*sa, yr*ca);
+
+  double rt = (d > 0.0 ? n/d : 0.0);
+
+  return CQChartsGeom::Point(c.x + rt*ca, c.y + rt*sa);
+}
+#endif
 
 }
 

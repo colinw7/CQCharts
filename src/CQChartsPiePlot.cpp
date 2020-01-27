@@ -214,14 +214,14 @@ void
 CQChartsPiePlot::
 setExplodeSelected(bool b)
 {
-  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(explodeData_.selected, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeRadius(double r)
 {
-  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(explodeData_.radius, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -274,6 +274,7 @@ addProperties()
   addLineProperties("grid/stroke", "gridLines", "Grid");
 
   // explode
+  addProp("explode", "explodeStyle"   , "style"   , "Explode style");
   addProp("explode", "explodeSelected", "selected", "Explode selected segments");
   addProp("explode", "explodeRadius"  , "radius"  , "Explode radius")->setMinValue(0.0);
 
@@ -283,11 +284,9 @@ addProperties()
   addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at")->setMinValue(0.0);
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
+  textBox_->addTextDataProperties(propertyModel(), "labels/text", "Labels", /*addVisible*/true);
 
-  QString labelBoxPath = "labels/box";
-
-  textBox_->addBoxProperties(propertyModel(), labelBoxPath, "Labels");
+  textBox_->addBoxProperties(propertyModel(), "labels/box", "Labels");
 
   // color map
   addColorMapProperties();
@@ -316,8 +315,8 @@ calcRange() const
   double angle2 = angle1 + alen;
 
   // add segment outside points
-  dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
-  dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
+  dataRange.updateRange(CQChartsGeom::circlePoint(c, r, CMathUtil::Deg2Rad(angle1)));
+  dataRange.updateRange(CQChartsGeom::circlePoint(c, r, CMathUtil::Deg2Rad(angle2)));
 
   // add intermediate points (every 90 degree point between outside points)
   double a1 = 90.0*CMathRound::RoundDownF(angle1/90.0);
@@ -325,13 +324,13 @@ calcRange() const
   if (angle1 < angle2) {
     for (double a = a1; a < angle2; a += 90.0) {
       if (a > angle1 && a < angle2)
-        dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+        dataRange.updateRange(CQChartsGeom::circlePoint(c, r, CMathUtil::Deg2Rad(a)));
     }
   }
   else {
     for (double a = a1; a > angle2; a -= 90.0) {
       if (a > angle2 && a < angle1)
-        dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+        dataRange.updateRange(CQChartsGeom::circlePoint(c, r, CMathUtil::Deg2Rad(a)));
     }
   }
 
@@ -1296,6 +1295,7 @@ annotationBBox() const
 
   //---
 
+  // get pie center (adjusted if exploded)
   CQChartsGeom::Point c = getCenter();
 
   //---
@@ -1347,24 +1347,18 @@ annotationBBox() const
       // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
-      double tc = cos(tangle);
-      double ts = sin(tangle);
-
-      double tx = c.x + lr1*tc;
-      double ty = c.y + lr1*ts;
-
-      CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
+      CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, lr1, tangle);
 
       // calc text angle
       double angle = 0.0;
 
       if (plot_->isRotatedText())
-        angle = (tc >= 0 ? ta : 180.0 + ta);
+        angle = (cos(tangle) >= 0 ? ta : 180.0 + ta);
 
       // calc text box
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      bbox = plot_->textBox()->bbox(pt, label(), angle, align);
+      bbox = plot_->textBox()->bbox(plot_->windowToPixel(pt), label(), angle, align);
     }
   }
 
@@ -1383,21 +1377,18 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // get pie center, radii and angles
+  // get pie center (adjusted if exploded), radii and angles
   CQChartsGeom::Point c = getCenter();
 
   double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
   double ro = outerRadius();
   double rv = valueRadius();
 
-  double a1 = angle1().value();
-  double a2 = angle2().value();
-
 //double ga = plot_->gapAngle().value()/2.0;
   double ga = 0.0;
 
-  double aa1 = a1 + ga;
-  double aa2 = a2 - ga;
+  CQChartsAngle aa1(angle1().value() + ga);
+  CQChartsAngle aa2(angle2().value() - ga);
 
   //---
 
@@ -1416,8 +1407,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsGeom::Point c(0.0, 0.0);
 
-    CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, CQChartsAngle(a1), CQChartsAngle(a2),
-                                   isInvertX, isInvertY);
+    CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, angle1(), angle2(), isInvertX, isInvertY);
   }
 
   //---
@@ -1425,9 +1415,7 @@ draw(CQChartsPaintDevice *device)
   // calc stroke and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = device->isInteractive();
-
-  calcPenBrush(penBrush, updateState);
+  calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
 
   //---
 
@@ -1436,10 +1424,24 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, CQChartsAngle(aa1), CQChartsAngle(aa2),
-                                 isInvertX, isInvertY);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, aa1, aa2, isInvertX, isInvertY);
 
   device->resetColorNames();
+
+  //---
+
+  if (isInside() && plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    CQChartsPenBrush penBrush;
+
+    calcPenBrush(penBrush, /*updateState*/false, /*inside*/true);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    double r1 = rv + plot_->insideOffset();
+    double r2 = r1 + plot_->insideRadius();
+
+    CQChartsDrawUtil::drawPieSlice(device, c, r1, r2, aa1, aa2, isInvertX, isInvertY);
+  }
 }
 
 void
@@ -1449,9 +1451,10 @@ drawFg(CQChartsPaintDevice *device) const
   if (! visible())
     return;
 
-  // draw segment label
+  // get pie center (adjusted if exploded)
   CQChartsGeom::Point c = getCenter();
 
+  // draw segment label
   drawSegmentLabel(device, c);
 }
 
@@ -1517,25 +1520,16 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
                                                 lpen, plot_->isRotatedText());
     }
     else {
-    //plot_->textBox()->drawConnectedRadialText(device, c, rv, lr1, ta, label(),
-    //                                          lpen, plot_->isRotatedText());
-
       // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
-      double tc = cos(tangle);
-      double ts = sin(tangle);
-
-      double tx = c.x + lr1*tc;
-      double ty = c.y + lr1*ts;
-
-      CQChartsGeom::Point pt(tx, ty);
+      CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, lr1, tangle);
 
       // calc text angle
       double angle = 0.0;
 
       if (plot_->isRotatedText())
-        angle = (tc >= 0 ? ta : 180.0 + ta);
+        angle = (cos(tangle) >= 0 ? ta : 180.0 + ta);
 
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -1547,18 +1541,19 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
 
 void
 CQChartsPieObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState, bool inside) const
 {
   // calc stroke and brush
   ColorInd colorInd = this->calcColorInd();
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = fillColor();
+  QColor        pc = plot_->interpStrokeColor(colorInd);
+  CQChartsAlpha pa = (inside ? CQChartsAlpha(0.0) : plot_->strokeAlpha());
+  QColor        fc = fillColor();
+  CQChartsAlpha fa = (inside ? CQChartsAlpha(0.7) : plot_->fillAlpha());
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+    CQChartsPenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(plot_->isFilled(), fc, fa, plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1568,7 +1563,7 @@ void
 CQChartsPieObj::
 writeScriptData(CQChartsScriptPainter *device) const
 {
-  calcPenBrush(penBrush_, /*updateState*/ false);
+  calcPenBrush(penBrush_, /*updateState*/false, /*inside*/false);
 
   CQChartsPlotObj::writeScriptData(device);
 
@@ -1628,13 +1623,9 @@ getCenter() const
 
   double er = std::max(plot_->explodeRadius(), 0.0);
 
-  double dx = er*rv*cos(angle);
-  double dy = er*rv*sin(angle);
+  CQChartsGeom::Point ec = CQChartsGeom::circlePoint(c, er*rv, angle);
 
-  c.x += dx;
-  c.y += dy;
-
-  return c;
+  return ec;
 }
 
 double
@@ -1776,13 +1767,10 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  double a1 = startAngle().value();
-  double a2 = endAngle  ().value();
-
   double ga = plot_->gapAngle().value()/2.0;
 
-  double aa1 = a1 + ga;
-  double aa2 = a2 - ga;
+  CQChartsAngle aa1(startAngle().value() + ga);
+  CQChartsAngle aa2(endAngle  ().value() - ga);
 
   //---
 
@@ -1803,8 +1791,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw pie slice
-  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, CQChartsAngle(aa1), CQChartsAngle(aa2),
-                                 isInvertX, isInvertY);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, aa1, aa2, isInvertX, isInvertY);
 }
 
 void
@@ -1823,13 +1810,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   double tangle = CMathUtil::Deg2Rad(ta);
 
-  double tc = cos(tangle);
-  double ts = sin(tangle);
-
-  double tx = c.getX() + 0.5*tc;
-  double ty = c.getY() + 0.5*ts;
-
-  CQChartsGeom::Point pt(tx, ty);
+  CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, 0.5, tangle);
 
   QString label = QString("%1").arg(numValues());
 

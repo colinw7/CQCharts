@@ -1030,3 +1030,8 @@
  + Fix bad rect adjust swapped test
 # 01/22/2020
  + clang tidy fixes
+# 01/29/2020
+ + Improve column checks so all bad columns are checked
+ + Add border higlight for pie chart
+ + Optimize object visible checks in draw
+ + Move all circle/ellipse calc code to CQChartsGeom

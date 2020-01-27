@@ -1700,22 +1700,31 @@ class CQChartsPlot : public CQChartsObj,
   // draw background layer plot parts
   virtual void drawBackgroundParts(QPainter *painter) const;
 
-  void drawBackgroundDeviceParts(CQChartsPaintDevice *device) const;
+  // draw background layer plot device parts
+  void drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+                                 bool bgKey) const;
 
   // draw middle layer plot parts
   virtual void drawMiddleParts(QPainter *painter) const;
 
-  void drawMiddleDeviceParts(CQChartsPaintDevice *device) const;
+  // draw middle layer plot device parts
+  void drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg,
+                             bool annotations) const;
 
   // draw foreground layer plot parts
   virtual void drawForegroundParts(QPainter *painter) const;
 
-  void drawForegroundDeviceParts(CQChartsPaintDevice *device) const;
+  // draw foreground layer plot device parts
+  void drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+                                 bool title, bool foreground) const;
 
   // draw overlay layer plot parts
   virtual void drawOverlayParts(QPainter *painter) const;
 
-  void drawOverlayDeviceParts(CQChartsPaintDevice *device) const;
+  // draw overlay layer plot device parts
+  void drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_annotations,
+                              bool boxes, bool edit_handles, bool over_objs,
+                              bool over_annotations) const;
 
   //---
 

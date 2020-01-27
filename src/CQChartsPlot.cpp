@@ -7014,7 +7014,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
   int ind = updateData_.drawBusy.ind/updateData_.drawBusy.multiple;
 
   double a  = 0.0;
-  double da = 2*M_PI/updateData_.drawBusy.count;
+  double da = 2.0*M_PI/updateData_.drawBusy.count;
 
   double r1 = 32;
   double r2 = 4;
@@ -7152,7 +7152,7 @@ drawBackgroundParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    drawBackgroundDeviceParts(&device);
+    drawBackgroundDeviceParts(&device, bgLayer, bgAxes, bgKey);
 
     //---
 
@@ -7170,19 +7170,20 @@ drawBackgroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawBackgroundDeviceParts(CQChartsPaintDevice *device) const
+drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+                          bool bgKey) const
 {
   // draw background (plot/data fill)
-  if (hasBackgroundLayer())
+  if (bgLayer)
     drawBackgroundLayer(device);
 
   //---
 
   // draw axes/key below plot
-  if (hasGroupedBgAxes())
+  if (bgAxes)
     drawGroupedBgAxes(device);
 
-  if (hasGroupedBgKey())
+  if (bgKey)
     drawBgKey(device);
 }
 
@@ -7218,7 +7219,7 @@ drawMiddleParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    drawMiddleDeviceParts(&device);
+    drawMiddleDeviceParts(&device, bg, mid, fg, annotations);
   }
 
   //---
@@ -7228,15 +7229,16 @@ drawMiddleParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawMiddleDeviceParts(CQChartsPaintDevice *device) const
+drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg,
+                      bool annotations) const
 {
   // draw objects (background, mid, foreground)
-  drawGroupedObjs(device, CQChartsLayer::Type::BG_PLOT );
-  drawGroupedObjs(device, CQChartsLayer::Type::MID_PLOT);
-  drawGroupedObjs(device, CQChartsLayer::Type::FG_PLOT );
+  if (bg ) drawGroupedObjs(device, CQChartsLayer::Type::BG_PLOT );
+  if (mid) drawGroupedObjs(device, CQChartsLayer::Type::MID_PLOT);
+  if (fg ) drawGroupedObjs(device, CQChartsLayer::Type::FG_PLOT );
 
   // draw annotations
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION))
+  if (annotations)
     drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
 }
 
@@ -7268,7 +7270,7 @@ drawForegroundParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    drawForegroundDeviceParts(&device);
+    drawForegroundDeviceParts(&device, fgAxes, fgKey, title, foreground);
   }
 
   //---
@@ -7278,25 +7280,26 @@ drawForegroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawForegroundDeviceParts(CQChartsPaintDevice *device) const
+drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+                          bool title, bool foreground) const
 {
   // draw axes/key above plot
-  if (hasGroupedFgAxes())
+  if (fgAxes)
     drawGroupedFgAxes(device);
 
-  if (hasGroupedFgKey())
+  if (fgKey)
     drawFgKey(device);
 
   //---
 
   // draw title
-  if (hasTitle())
+  if (title)
     drawTitle(device);
 
   //---
 
   // draw foreground
-  if (hasForeground())
+  if (foreground)
     execDrawForeground(device);
 }
 
@@ -7331,7 +7334,8 @@ drawOverlayParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    drawOverlayDeviceParts(&device);
+    drawOverlayDeviceParts(&device, sel_objs, sel_annotations, boxes, edit_handles,
+                           over_objs, over_annotations);
   }
 
   //---
@@ -7341,24 +7345,25 @@ drawOverlayParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawOverlayDeviceParts(CQChartsPaintDevice *device) const
+drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_annotations,
+                       bool boxes, bool edit_handles, bool over_objs, bool over_annotations) const
 {
   // draw selection
-  if (hasGroupedObjs(CQChartsLayer::Type::SELECTION))
+  if (sel_objs)
     drawGroupedObjs(device, CQChartsLayer::Type::SELECTION);
 
-  if (hasGroupedAnnotations(CQChartsLayer::Type::SELECTION))
+  if (sel_annotations)
     drawGroupedAnnotations(device, CQChartsLayer::Type::SELECTION);
 
   //---
 
   // draw debug boxes
-  if (hasGroupedBoxes())
+  if (boxes)
     drawGroupedBoxes(device);
 
   //---
 
-  if (hasGroupedEditHandles()) {
+  if (edit_handles) {
     if (device->isInteractive()) {
       auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
@@ -7369,10 +7374,10 @@ drawOverlayDeviceParts(CQChartsPaintDevice *device) const
   //---
 
   // draw mouse over
-  if (hasGroupedObjs(CQChartsLayer::Type::MOUSE_OVER))
+  if (over_objs)
     drawGroupedObjs(device, CQChartsLayer::Type::MOUSE_OVER);
 
-  if (hasGroupedAnnotations(CQChartsLayer::Type::MOUSE_OVER))
+  if (over_annotations)
     drawGroupedAnnotations(device, CQChartsLayer::Type::MOUSE_OVER);
 }
 

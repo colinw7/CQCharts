@@ -425,9 +425,8 @@ createObjs(PlotObjs &objs) const
                       th->namePairColumnType_, /*required*/true))
       columnsValid = false;
 
-    if (! checkColumn(groupIdColumn(), "Group Id") ||
-        ! checkColumn(nameColumn   (), "Name"))
-      columnsValid = false;
+    if (! checkColumn(groupIdColumn(), "Group Id")) columnsValid = false;
+    if (! checkColumn(nameColumn   (), "Name"    )) columnsValid = false;
   }
   else if (connectionsColumn().isValid()) {
     // connection required
@@ -436,10 +435,9 @@ createObjs(PlotObjs &objs) const
                       th->connectionsColumnType_, /*required*/true))
       columnsValid = false;
 
-    if (! checkColumn(groupIdColumn(), "Group Id") ||
-        ! checkColumn(nodeColumn   (), "Node") ||
-        ! checkColumn(nameColumn   (), "Name"))
-      columnsValid = false;
+    if (! checkColumn(groupIdColumn(), "Group Id")) columnsValid = false;
+    if (! checkColumn(nodeColumn   (), "Node"    )) columnsValid = false;
+    if (! checkColumn(nameColumn   (), "Name"    )) columnsValid = false;
   }
   else {
     return th->addError("Required columns not specified");

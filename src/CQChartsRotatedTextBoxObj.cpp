@@ -105,6 +105,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
   device->restore();
 }
 
+// center in pixels
 CQChartsGeom::BBox
 CQChartsRotatedTextBoxObj::
 bbox(const CQChartsGeom::Point &center, const QString &text,

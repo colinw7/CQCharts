@@ -175,7 +175,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState, bool inside) const;
 
   void writeScriptData(CQChartsScriptPainter *device) const override;
 
@@ -372,7 +372,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   // options
   //  donut, count, inner radius, outer radius, label radius, start angle, end angle,
-  //  explode/explode radius
   Q_PROPERTY(bool          donut       READ isDonut       WRITE setDonut      )
   Q_PROPERTY(bool          count       READ isCount       WRITE setCount      )
   Q_PROPERTY(double        innerRadius READ innerRadius   WRITE setInnerRadius)
@@ -381,17 +380,28 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAngle startAngle  READ startAngle    WRITE setStartAngle )
   Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent   WRITE setAngleExtent)
   Q_PROPERTY(CQChartsAngle gapAngle    READ gapAngle      WRITE setGapAngle   )
-  Q_PROPERTY(bool          rotatedText READ isRotatedText WRITE setRotatedText)
+
+  // rotated text
+  Q_PROPERTY(bool rotatedText READ isRotatedText WRITE setRotatedText)
 
   // explode
-  Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
-  Q_PROPERTY(double explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
+  Q_PROPERTY(ExplodeStyle explodeStyle    READ explodeStyle      WRITE setExplodeStyle   )
+  Q_PROPERTY(bool         explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(double       explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
 
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
+
+  Q_ENUMS(ExplodeStyle)
+
+ public:
+  enum class ExplodeStyle {
+    OUTSET,
+    EDGE
+  };
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
@@ -444,11 +454,21 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool isRotatedText() const { return rotatedText_; }
   void setRotatedText(bool b);
 
-  bool isExplodeSelected() const { return explodeSelected_; }
+  //---
+
+  const ExplodeStyle &explodeStyle() const { return explodeData_.style; }
+  void setExplodeStyle(const ExplodeStyle &v) { explodeData_.style = v; }
+
+  bool isExplodeSelected() const { return explodeData_.selected; }
   void setExplodeSelected(bool b);
 
-  double explodeRadius() const { return explodeRadius_; }
+  double explodeRadius() const { return explodeData_.radius; }
   void setExplodeRadius(double r);
+
+  //---
+
+  double insideOffset() const { return insideData_.offset; }
+  double insideRadius() const { return insideData_.radius; }
 
   //---
 
@@ -525,6 +545,17 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   using GroupDatas = std::map<int,GroupData>;
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
+  struct ExplodeData {
+    ExplodeStyle style    { ExplodeStyle::OUTSET }; //!< explode style
+    bool         selected { true };                 //!< explode selected pie
+    double       radius   { 0.05 };                 //!< expose radius
+  };
+
+  struct InsideData {
+    double offset { 0.02 };
+    double radius { 0.03 };
+  };
+
   CQChartsColumn      labelColumn_;                 //!< label column
   CQChartsColumns     valueColumns_;                //!< value columns
   CQChartsColumn      radiusColumn_;                //!< radius value column
@@ -538,8 +569,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   CQChartsAngle       angleExtent_     { 360.0 };   //!< pie angle extent
   CQChartsAngle       gapAngle_        { 0.0 };     //!< angle gap between segments
   bool                rotatedText_     { false };   //!< is label rotated
-  bool                explodeSelected_ { true };    //!< explode selected pie
-  double              explodeRadius_   { 0.05 };    //!< expose radius
+  ExplodeData         explodeData_;                 //!< explode data
+  InsideData          insideData_;                  //!< inside data
   CQChartsPieTextObj* textBox_         { nullptr }; //!< text box
   CQChartsGeom::Point center_;                      //!< center point
   GroupDatas          groupDatas_;                  //!< data per group

@@ -353,11 +353,10 @@ calcRange() const
   if (! checkColumns(valueColumns(), "Values", /*required*/true))
     columnsValid = false;
 
-  if (! checkColumn(nameColumn (), "Name" ) ||
-      ! checkColumn(labelColumn(), "Label") ||
-      ! checkColumn(groupColumn(), "Group") ||
-      ! checkColumn(colorColumn(), "Color"))
-    columnsValid = false;
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
+  if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
   if (! columnsValid)
     return dataRange;
@@ -461,9 +460,7 @@ calcRange() const
     updateRange(0.5, 1.0);
   }
 
-  //---
-
-  //dataRange = adjustDataRange(dataRange);
+  dataRange.makeNonZero();
 
   //---
 
