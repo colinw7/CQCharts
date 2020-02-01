@@ -1,6 +1,7 @@
 #include <CQChartsColorEdit.h>
 #include <CQColors.h>
 #include <CQChartsObj.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
@@ -480,25 +481,22 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, typeCombo_  , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, indEdit_    , SIGNAL(valueChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, paletteEdit_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, rEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, rNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, gEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, gNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, bEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, bNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
-  connectDisconnect(b, valueEdit_  , SIGNAL(valueChanged(double)), SLOT(widgetsToColor()));
-  connectDisconnect(b, colorEdit_  , SIGNAL(colorChanged(const QColor &)), SLOT(widgetsToColor()));
-  connectDisconnect(b, scaleCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(typeCombo_  , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(indEdit_    , SIGNAL(valueChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(paletteEdit_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(rEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(rNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(gEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(gNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(bEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(bNeg_       , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(valueEdit_  , SIGNAL(valueChanged(double)), SLOT(widgetsToColor()));
+  connectDisconnect(colorEdit_  , SIGNAL(colorChanged(const QColor &)), SLOT(widgetsToColor()));
+  connectDisconnect(scaleCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
 }
 
 void

@@ -140,7 +140,7 @@ void
 CQChartsViewKey::
 doLayout()
 {
-  if (location() == CQChartsKeyLocation::Type::ABS_POSITION)
+  if (location() == CQChartsKeyLocation::Type::ABSOLUTE_POSITION)
     return;
 
   //----
@@ -534,7 +534,7 @@ editMove(const CQChartsGeom::Point &w)
   double dx = w.x - dragPos.x;
   double dy = w.y - dragPos.y;
 
-  location_ = CQChartsKeyLocation::Type::ABS_POSITION;
+  location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
   wposition_ = wposition_ + CQChartsGeom::Point(dx, dy);
   pposition_ = view()->windowToPixel(wposition_);
@@ -751,7 +751,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
       kx = fitBBox.getXMid() - ks.width ()/2;
       ky = fitBBox.getYMid() + ks.height()/2;
 
-      location_.setType(CQChartsKeyLocation::Type::ABS_POSITION);
+      location_.setType(CQChartsKeyLocation::Type::ABSOLUTE_POSITION);
 
       setAbsolutePlotPosition(CQChartsGeom::Point(kx, ky));
     }
@@ -815,11 +815,11 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   CQChartsKeyLocation::Type locationType = this->location().type();
 
-  if      (locationType == CQChartsKeyLocation::Type::ABS_POSITION) {
+  if      (locationType == CQChartsKeyLocation::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
   }
-  else if (locationType == CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-    CQChartsGeom::BBox bbox = absolutePlotRect();
+  else if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    CQChartsGeom::BBox bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
       kp = CQChartsGeom::Point(bbox.getUL());
@@ -1230,7 +1230,7 @@ setAbsolutePlotPosition(const CQChartsGeom::Point &p)
 
 CQChartsGeom::BBox
 CQChartsPlotKey::
-absolutePlotRect() const
+absolutePlotRectangle() const
 {
   CQChartsGeom::BBox bbox = absoluteRectangle();
 
@@ -1242,7 +1242,7 @@ absolutePlotRect() const
 
 void
 CQChartsPlotKey::
-setAbsolutePlotRect(const CQChartsGeom::BBox &bbox)
+setAbsolutePlotRectangle(const CQChartsGeom::BBox &bbox)
 {
   setAbsoluteRectangle(plot()->windowToView(bbox));
 }
@@ -1355,9 +1355,9 @@ editPress(const CQChartsGeom::Point &p)
 
   CQChartsKeyLocation::Type locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-    location_ = CQChartsKeyLocation::Type::ABS_POSITION;
+  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
+      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
     setAbsolutePlotPosition(position_);
   }
@@ -1376,18 +1376,18 @@ editMove(const CQChartsGeom::Point &p)
   double dy = p.y - dragPos.y;
 
   if (dragSide == CQChartsResizeSide::MOVE) {
-    location_ = CQChartsKeyLocation::Type::ABS_POSITION;
+    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
     setAbsolutePlotPosition(absolutePlotPosition() + CQChartsGeom::Point(dx, dy));
   }
   else {
-    location_ = CQChartsKeyLocation::Type::ABS_RECTANGLE;
+    location_ = CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE;
 
     editHandles_->updateBBox(dx, dy);
 
     wbbox_ = editHandles_->bbox();
 
-    setAbsolutePlotRect(wbbox_);
+    setAbsolutePlotRectangle(wbbox_);
 
     CQChartsLength width (wbbox_.getWidth ()                           , CQChartsUnits::PLOT);
     CQChartsLength height(wbbox_.getHeight() - layoutData_.headerHeight, CQChartsUnits::PLOT);
@@ -1425,9 +1425,9 @@ editMoveBy(const CQChartsGeom::Point &f)
 {
   CQChartsKeyLocation::Type locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-    location_ = CQChartsKeyLocation::Type::ABS_POSITION;
+  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
+      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
 
     setAbsolutePlotPosition(position_ + f);
   }
@@ -1538,8 +1538,8 @@ draw(CQChartsPaintDevice *device) const
   double w = layoutData_.size.width ();
   double h = layoutData_.size.height();
 
-  if (locationType ==CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-    CQChartsGeom::BBox bbox = absolutePlotRect();
+  if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+    CQChartsGeom::BBox bbox = absolutePlotRectangle();
 
     if (bbox.isValid()) {
       w = bbox.getWidth ();
@@ -1558,11 +1558,11 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // set displayed bbox
-  if (locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
+  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
     wbbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
   }
   else {
-    CQChartsGeom::BBox bbox = absolutePlotRect();
+    CQChartsGeom::BBox bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
       wbbox_ = bbox;
@@ -1710,8 +1710,8 @@ draw(CQChartsPaintDevice *device) const
     clipRect = CQChartsGeom::BBox(p1.x, p1.y + phh, p2.x - vspw, p2.y - hsph);
   }
   else {
-    if      (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
-             locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
+    if      (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
+             locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
       if (isInsideX()) {
         clipRect.setXMin(dataRect.getXMin());
         clipRect.setXMax(dataRect.getXMax());
@@ -1722,8 +1722,8 @@ draw(CQChartsPaintDevice *device) const
         clipRect.setYMax(dataRect.getYMax());
       }
     }
-    else if (locationType == CQChartsKeyLocation::Type::ABS_RECTANGLE) {
-      CQChartsGeom::BBox bbox = absolutePlotRect();
+    else if (locationType == CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
+      CQChartsGeom::BBox bbox = absolutePlotRectangle();
 
       if (bbox.isValid()) {
         clipped  = true;
@@ -1898,8 +1898,8 @@ interpBgColor() const
 
   CQChartsKeyLocation::Type locationType = this->location().type();
 
-  if (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
-      locationType != CQChartsKeyLocation::Type::ABS_RECTANGLE) {
+  if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
+      locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
     if      (isInsideX() && isInsideY()) {
       if (plot()->isDataFilled())
         return plot()->interpDataFillColor(ColorInd());

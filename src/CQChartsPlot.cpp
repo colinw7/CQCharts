@@ -24,6 +24,7 @@
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -265,10 +266,7 @@ connectDisconnectModel(bool isConnect)
   //---
 
   auto connectDisconnect = [&](bool b, QObject *obj, const char *from, const char *to) {
-    if (b)
-      connect(obj, from, this, to);
-    else
-      disconnect(obj, from, this, to);
+    CQChartsWidgetUtil::connectDisconnect(b, obj, from, this, to);
   };
 
   //---

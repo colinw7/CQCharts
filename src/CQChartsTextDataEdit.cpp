@@ -1,5 +1,4 @@
 #include <CQChartsTextDataEdit.h>
-
 #include <CQChartsFontEdit.h>
 #include <CQChartsColorEdit.h>
 #include <CQChartsAlphaEdit.h>
@@ -9,6 +8,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsAngleEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -398,25 +398,22 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   if (groupBox_)
-    connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+    connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
 
-  connectDisconnect(b, fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, contrastEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), SLOT(widgetsToData()));
-  connectDisconnect(b, formattedEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, scaledEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, htmlEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
+  connectDisconnect(colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
+  connectDisconnect(angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
+  connectDisconnect(contrastEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), SLOT(widgetsToData()));
+  connectDisconnect(formattedEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(scaledEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(htmlEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
 }
 
 void

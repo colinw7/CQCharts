@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Box Shape (circle ....)
  + Output or string list result does not match echo !
  + Grouped Axis Ranges
    + Multiple Ranges, tick label per group.

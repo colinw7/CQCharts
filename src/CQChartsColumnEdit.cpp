@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -524,10 +525,7 @@ CQChartsColumnEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, columnGroup_, SIGNAL(clicked(bool)),

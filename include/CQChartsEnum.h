@@ -9,6 +9,7 @@
  * \brief Enum base class
  * \ingroup Charts
  */
+template<typename TYPE>
 class CQChartsEnum {
  public:
   CQChartsEnum() { }
@@ -23,6 +24,27 @@ class CQChartsEnum {
   //---
 
   virtual QStringList enumNames() const = 0;
+
+  //---
+
+  friend bool operator<(const TYPE &lhs, const TYPE &rhs) {
+    return (lhs.type() < rhs.type());
+  }
+
+  friend bool operator==(const TYPE &lhs, const TYPE &rhs) {
+    return (lhs.type() == rhs.type());
+  }
+
+  friend bool operator!=(const TYPE &lhs, const TYPE &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
+  //---
+
+  friend std::ostream &operator<<(std::ostream &os, const TYPE &t) {
+    t.print(os);
+    return os;
+  }
 
   void print(std::ostream &os) const {
     os << toString().toStdString();

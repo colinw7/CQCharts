@@ -1,5 +1,6 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsUnitsEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
@@ -133,15 +134,12 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, edit_, SIGNAL(valueChanged(double)), SLOT(editChanged()));
-  connectDisconnect(b, unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
+  connectDisconnect(edit_, SIGNAL(valueChanged(double)), SLOT(editChanged()));
+  connectDisconnect(unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
 }
 
 //------

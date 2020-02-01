@@ -3,6 +3,7 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -647,20 +648,15 @@ void
 CQChartsColumnsEdit::
 connectSlots(bool b)
 {
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
-  };
-
   if (isBasic_) {
     for (auto &edit : columnCombos_)
-      connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+      CQChartsWidgetUtil::connectDisconnect(b,
+        edit, SIGNAL(columnChanged()), this, SLOT(widgetsToColumn()));
   }
   else {
     for (auto &edit : columnEdits_)
-      connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+      CQChartsWidgetUtil::connectDisconnect(b,
+        edit, SIGNAL(columnChanged()), this, SLOT(widgetsToColumn()));
   }
 }
 

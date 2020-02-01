@@ -1,6 +1,7 @@
 #include <CQChartsRectEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsGeomBBoxEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -59,7 +60,7 @@ editChanged()
 
   CQChartsRect rect(bbox, units);
 
-  if (! rect_.isValid())
+  if (! rect.isValid())
     return;
 
   rect_ = rect;
@@ -76,7 +77,7 @@ unitsChanged()
 
   CQChartsRect rect(bbox, units);
 
-  if (! rect_.isValid())
+  if (! rect.isValid())
     return;
 
   rect_ = rect;
@@ -125,15 +126,12 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, edit_, SIGNAL(valueChanged()), SLOT(editChanged()));
-  connectDisconnect(b, unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
+  connectDisconnect(edit_, SIGNAL(valueChanged()), SLOT(editChanged()));
+  connectDisconnect(unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
 }
 
 //------

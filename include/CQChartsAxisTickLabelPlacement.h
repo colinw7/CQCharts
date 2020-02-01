@@ -7,7 +7,7 @@
  * \brief class for axis tick label placement
  * \ingroup Charts
  */
-class CQChartsAxisTickLabelPlacement : public CQChartsEnum {
+class CQChartsAxisTickLabelPlacement : public CQChartsEnum<CQChartsAxisTickLabelPlacement> {
  public:
   enum class Type {
     NONE,
@@ -48,28 +48,6 @@ class CQChartsAxisTickLabelPlacement : public CQChartsEnum {
   QStringList enumNames() const override;
 
   //---
-
-  friend bool operator<(const CQChartsAxisTickLabelPlacement &lhs,
-                        const CQChartsAxisTickLabelPlacement &rhs) {
-    return (lhs.type_ < rhs.type_);
-  }
-
-  friend bool operator==(const CQChartsAxisTickLabelPlacement &lhs,
-                         const CQChartsAxisTickLabelPlacement &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsAxisTickLabelPlacement &lhs,
-                         const CQChartsAxisTickLabelPlacement &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsAxisTickLabelPlacement &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &s);

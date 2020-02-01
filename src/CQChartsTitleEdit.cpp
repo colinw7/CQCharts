@@ -175,19 +175,16 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, locationEdit_, SIGNAL(titleLocationChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, positionEdit_, SIGNAL(positionChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, rectEdit_, SIGNAL(rectChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, insideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(locationEdit_, SIGNAL(titleLocationChanged()), SLOT(widgetsToData()));
+  connectDisconnect(positionEdit_, SIGNAL(positionChanged()), SLOT(widgetsToData()));
+  connectDisconnect(rectEdit_, SIGNAL(rectChanged()), SLOT(widgetsToData()));
+  connectDisconnect(insideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
 }
 
 void

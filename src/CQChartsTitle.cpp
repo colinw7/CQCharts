@@ -129,10 +129,14 @@ updateLocation()
 
   CQChartsGeom::Point kp(kx, ky);
 
-  if      (location == CQChartsTitleLocation::Type::ABS_POSITION) {
+  if      (location == CQChartsTitleLocation::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
   }
-  else if (location == CQChartsTitleLocation::Type::ABS_RECTANGLE) {
+  else if (location == CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
+    CQChartsGeom::BBox bbox = absolutePlotRectangle();
+
+    if (bbox.isValid())
+      kp = CQChartsGeom::Point(bbox.getUL());
   }
 
   setPosition(kp);
@@ -163,6 +167,20 @@ CQChartsTitle::
 setAbsolutePlotPosition(const CQChartsGeom::Point &p)
 {
   setAbsolutePosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
+}
+
+CQChartsGeom::BBox
+CQChartsTitle::
+absolutePlotRectangle() const
+{
+  return plot_->rectToPlot(absoluteRectangle());
+}
+
+void
+CQChartsTitle::
+setAbsolutePlotRectangle(const CQChartsGeom::BBox &bbox)
+{
+  setAbsoluteRectangle(CQChartsRect(plot_->windowToView(bbox), CQChartsUnits::VIEW));
 }
 
 CQChartsGeom::Size
@@ -220,9 +238,9 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_->setDragPos(p);
 
-  if (location() != CQChartsTitleLocation::Type::ABS_POSITION &&
-      location() != CQChartsTitleLocation::Type::ABS_RECTANGLE) {
-    setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
+  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_POSITION &&
+      location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
+    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
 
     setAbsolutePlotPosition(position_);
   }
@@ -240,20 +258,18 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (location() == CQChartsTitleLocation::Type::ABS_POSITION &&
+  if (location() == CQChartsTitleLocation::Type::ABSOLUTE_POSITION &&
       dragSide == CQChartsResizeSide::MOVE) {
-    setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
+    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
 
     setAbsolutePlotPosition(absolutePlotPosition() + CQChartsGeom::Point(dx, dy));
   }
   else {
-    setLocation(CQChartsTitleLocation::Type::ABS_RECTANGLE);
+    setLocation(CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE);
 
     editHandles_->updateBBox(dx, dy);
 
-    bbox_ = editHandles_->bbox();
-
-    setAbsoluteRectangle(bbox_);
+    setAbsolutePlotRectangle(editHandles_->bbox());
   }
 
   editHandles_->setDragPos(p);
@@ -281,7 +297,7 @@ void
 CQChartsTitle::
 editMoveBy(const CQChartsGeom::Point &d)
 {
-  setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
+  setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
 
   setAbsolutePlotPosition(position_ + d);
 
@@ -323,14 +339,14 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE)
+  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
     updateLocation();
 
   //---
 
-  double x, y, w, h;
+  double x { 0 }, y { 0 }, w { 1 }, h { 1 };
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE) {
+  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
     x = position_.x; // bottom
     y = position_.y; // top
     w = size_.width ();
@@ -339,10 +355,14 @@ draw(CQChartsPaintDevice *device)
     bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
   }
   else {
-    x = bbox_.getXMin  ();
-    y = bbox_.getYMin  ();
-    w = bbox_.getWidth ();
-    h = bbox_.getHeight();
+    bbox_ = absolutePlotRectangle();
+
+    if (bbox_.isValid()) {
+      x = bbox_.getXMin  ();
+      y = bbox_.getYMin  ();
+      w = bbox_.getWidth ();
+      h = bbox_.getHeight();
+    }
   }
 
   CQChartsGeom::Size paddingSize =
@@ -419,7 +439,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE)
+  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
     const_cast<CQChartsTitle *>(this)->editHandles_->setBBox(this->bbox());
 
   editHandles_->draw(painter);

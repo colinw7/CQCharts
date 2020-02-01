@@ -1,4 +1,5 @@
 #include <CQChartsAngleEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -67,16 +68,8 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  //---
-
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
-  };
-
-  connectDisconnect(b, this, SIGNAL(angleChanged(const CAngle &)), SLOT(editChanged()));
+  CQChartsWidgetUtil::connectDisconnect(connected_,
+    this, SIGNAL(angleChanged(const CAngle &)), this, SLOT(editChanged()));
 }
 
 //------

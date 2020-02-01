@@ -373,8 +373,8 @@ class CQChartsPlotKey : public CQChartsKey {
   Point absolutePlotPosition() const;
   void setAbsolutePlotPosition(const Point &p);
 
-  BBox absolutePlotRect() const;
-  void setAbsolutePlotRect(const BBox &bbox);
+  BBox absolutePlotRectangle() const;
+  void setAbsolutePlotRectangle(const BBox &bbox);
 
   //---
 

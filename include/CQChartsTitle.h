@@ -67,6 +67,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   CQChartsGeom::Point absolutePlotPosition() const;
   void setAbsolutePlotPosition(const CQChartsGeom::Point &p);
 
+  CQChartsGeom::BBox absolutePlotRectangle() const;
+  void setAbsolutePlotRectangle(const CQChartsGeom::BBox &r);
+
   //---
 
   const CQChartsGeom::BBox &bbox() const { return bbox_; }

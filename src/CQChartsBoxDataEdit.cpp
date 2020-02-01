@@ -331,18 +331,15 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, marginEdit_, SIGNAL(marginChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, paddingEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
-  connectDisconnect(b, shapeEdit_, SIGNAL(shapeDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, sidesEdit_, SIGNAL(sidesChanged()), SLOT(widgetsToData()));
+  connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(marginEdit_, SIGNAL(marginChanged()), SLOT(widgetsToData()));
+  connectDisconnect(paddingEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(shapeEdit_, SIGNAL(shapeDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(sidesEdit_, SIGNAL(sidesChanged()), SLOT(widgetsToData()));
 }
 
 void

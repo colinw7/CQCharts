@@ -1,5 +1,4 @@
 #include <CQChartsTextBoxDataEdit.h>
-
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsBoxDataEdit.h>
 #include <CQChartsDrawUtil.h>
@@ -7,6 +6,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -337,10 +337,7 @@ CQChartsTextBoxDataEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      QObject::connect(w, from, this, to);
-    else
-      QObject::disconnect(w, from, this, to);
+    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));

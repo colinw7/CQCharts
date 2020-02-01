@@ -377,40 +377,36 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
-  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, horizontalEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, autoHideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, clippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, aboveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, locationEdit_, SIGNAL(keyLocationChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, hiddenAlphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, maxRowsEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, interactiveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()),
-                    SLOT(widgetsToData()));
-  connectDisconnect(b, headerEdit_, SIGNAL(textChanged(const QString &)), SLOT(widgetsToData()));
-  connectDisconnect(b, headerTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(horizontalEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(autoHideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(clippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(aboveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(locationEdit_, SIGNAL(keyLocationChanged()), SLOT(widgetsToData()));
+  connectDisconnect(hiddenAlphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
+  connectDisconnect(maxRowsEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(interactiveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(headerEdit_, SIGNAL(textChanged(const QString &)), SLOT(widgetsToData()));
+  connectDisconnect(headerTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
 
   if (plotKey) {
-    connectDisconnect(b, absolutePositionEdit_, SIGNAL(valueChanged()), SLOT(widgetsToData()));
-    connectDisconnect(b, insideXEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-    connectDisconnect(b, insideYEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-    connectDisconnect(b, spacingEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-    connectDisconnect(b, flippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-    connectDisconnect(b, scrollWidthEdit_, SIGNAL(textChanged(const QString &)),
+    connectDisconnect(absolutePositionEdit_, SIGNAL(valueChanged()), SLOT(widgetsToData()));
+    connectDisconnect(insideXEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(insideYEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(spacingEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+    connectDisconnect(flippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(scrollWidthEdit_, SIGNAL(textChanged(const QString &)),
                       SLOT(widgetsToData()));
-    connectDisconnect(b, scrollHeightEdit_, SIGNAL(textChanged(const QString &)),
+    connectDisconnect(scrollHeightEdit_, SIGNAL(textChanged(const QString &)),
                       SLOT(widgetsToData()));
-    connectDisconnect(b, textBoxEdit_, SIGNAL(textBoxDataChanged()), SLOT(widgetsToData()));
+    connectDisconnect(textBoxEdit_, SIGNAL(textBoxDataChanged()), SLOT(widgetsToData()));
   }
 }
 

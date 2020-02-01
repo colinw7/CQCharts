@@ -1,4 +1,5 @@
 #include <CQChartsFillUnderEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQWidgetMenu.h>
 #include <CQPropertyView.h>
@@ -35,14 +36,8 @@ void
 CQChartsFillUnderSideEdit::
 connectSlots(bool b)
 {
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      QObject::connect(w, from, this, to);
-    else
-      QObject::disconnect(w, from, this, to);
-  };
-
-  connectDisconnect(b, combo_, SIGNAL(currentIndexChanged(int)), SLOT(comboChanged()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
 }
 
 const CQChartsFillUnderSide &
@@ -582,10 +577,7 @@ CQChartsFillUnderPosEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, xtypeCombo_, SIGNAL(currentIndexChanged(int)),

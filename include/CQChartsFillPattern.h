@@ -7,7 +7,7 @@
  * \brief fill pattern
  * \ingroup Charts
  */
-class CQChartsFillPattern : public CQChartsEnum {
+class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
  public:
   enum class Type {
     NONE,
@@ -36,10 +36,10 @@ class CQChartsFillPattern : public CQChartsEnum {
 
   //---
 
-  bool isValid() const { return type_ != Type::NONE; }
-
   Type type() const { return type_; }
   void setType(Type type) { type_  = type; }
+
+  bool isValid() const { return type() != Type::NONE; }
 
   //---
 
@@ -63,21 +63,6 @@ class CQChartsFillPattern : public CQChartsEnum {
   Qt::BrushStyle style() const { return typeToStyle(type_); }
 
   //---
-
-  friend bool operator==(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillPattern &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &str);

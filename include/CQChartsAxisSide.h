@@ -7,7 +7,7 @@
  * \brief Axis side
  * \ingroup Charts
  */
-class CQChartsAxisSide : public CQChartsEnum {
+class CQChartsAxisSide : public CQChartsEnum<CQChartsAxisSide> {
  public:
   enum class Type {
     NONE,
@@ -46,25 +46,6 @@ class CQChartsAxisSide : public CQChartsEnum {
   QStringList enumNames() const override;
 
   //---
-
-  friend bool operator<(const CQChartsAxisSide &lhs, const CQChartsAxisSide &rhs) {
-    return (lhs.type_ < rhs.type_);
-  }
-
-  friend bool operator==(const CQChartsAxisSide &lhs, const CQChartsAxisSide &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsAxisSide &lhs, const CQChartsAxisSide &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsAxisSide &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &s);

@@ -1,6 +1,7 @@
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsGeomPointEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQPixmapCache.h>
@@ -371,16 +372,8 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  //---
-
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
-  };
-
-  connectDisconnect(b, unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
+  CQChartsWidgetUtil::connectDisconnect(connected_,
+    unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 
 void

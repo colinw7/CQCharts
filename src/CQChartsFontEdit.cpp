@@ -430,10 +430,7 @@ CQChartsFontEdit::
 connectSlots(bool b)
 {
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+    CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
   };
 
   connectDisconnect(b, typeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToFont()));

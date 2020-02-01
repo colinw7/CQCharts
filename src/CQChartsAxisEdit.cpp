@@ -394,28 +394,25 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, valueTypeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, formatEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
-  connectDisconnect(b, tickIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, majorIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, startEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
-  connectDisconnect(b, endEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
-  connectDisconnect(b, includeZeroEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, positionEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
-  connectDisconnect(b, lineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, tickLabelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, labelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, majorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, minorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, gridFillDataEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(valueTypeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(formatEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
+  connectDisconnect(tickIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(majorIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(startEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(endEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(includeZeroEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(positionEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
+  connectDisconnect(lineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(labelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(majorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(minorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(gridFillDataEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
 }
 
 void

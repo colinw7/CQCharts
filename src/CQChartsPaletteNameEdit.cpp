@@ -1,6 +1,7 @@
 #include <CQChartsPaletteNameEdit.h>
 #include <CQCharts.h>
 #include <CQChartsPlot.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQColorsTheme.h>
@@ -48,14 +49,8 @@ void
 CQChartsPaletteNameEdit::
 connectSlots(bool b)
 {
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      QObject::connect(w, from, this, to);
-    else
-      QObject::disconnect(w, from, this, to);
-  };
-
-  connectDisconnect(b, combo_, SIGNAL(currentIndexChanged(int)), SLOT(comboChanged()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
 }
 
 const CQChartsPaletteName &

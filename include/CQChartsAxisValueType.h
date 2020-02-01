@@ -7,7 +7,7 @@
  * \brief Axis value type
  * \ingroup Charts
  */
-class CQChartsAxisValueType : public CQChartsEnum {
+class CQChartsAxisValueType : public CQChartsEnum<CQChartsAxisValueType> {
  public:
   enum class Type {
     NONE,
@@ -49,25 +49,6 @@ class CQChartsAxisValueType : public CQChartsEnum {
   QStringList enumNames() const override;
 
   //---
-
-  friend bool operator<(const CQChartsAxisValueType &lhs, const CQChartsAxisValueType &rhs) {
-    return (lhs.type_ < rhs.type_);
-  }
-
-  friend bool operator==(const CQChartsAxisValueType &lhs, const CQChartsAxisValueType &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsAxisValueType &lhs, const CQChartsAxisValueType &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsAxisValueType &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &str);

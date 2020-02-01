@@ -320,21 +320,18 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-//connectDisconnect(b, relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, lengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, backAngleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, fheadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, theadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, lineEndsEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, lineWidthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+//connectDisconnect(relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(lengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
+  connectDisconnect(backAngleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
+  connectDisconnect(fheadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(theadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(lineEndsEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(lineWidthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
 }
 
 void

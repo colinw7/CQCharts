@@ -7,14 +7,15 @@
  * \brief title location
  * \ingroup Charts
  */
-class CQChartsTitleLocation : public CQChartsEnum {
+class CQChartsTitleLocation : public CQChartsEnum<CQChartsTitleLocation> {
  public:
   enum Type {
+    NONE,
     TOP,
     CENTER,
     BOTTOM,
-    ABS_POSITION,
-    ABS_RECTANGLE
+    ABSOLUTE_POSITION,
+    ABSOLUTE_RECTANGLE
   };
 
  public:
@@ -41,26 +42,13 @@ class CQChartsTitleLocation : public CQChartsEnum {
   QString toString() const override;
   bool fromString(const QString &s) override;
 
+  static bool decodeString(const QString &str, CQChartsTitleLocation::Type &type);
+
   //---
 
   QStringList enumNames() const override;
 
   //---
-
-  friend bool operator==(const CQChartsTitleLocation &lhs, const CQChartsTitleLocation &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsTitleLocation &lhs, const CQChartsTitleLocation &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsTitleLocation &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &s);

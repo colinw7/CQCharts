@@ -2,6 +2,7 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPlot.h>
 #include <CQChartsVariant.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
@@ -101,16 +102,8 @@ connectSlots(bool b)
 
   connected_ = b;
 
-  //---
-
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
-  };
-
-  connectDisconnect(b, combo_, SIGNAL(columnChanged()), SLOT(columnComboChanged()));
+  CQChartsWidgetUtil::connectDisconnect(connected_,
+    combo_, SIGNAL(columnChanged()), this, SLOT(columnComboChanged()));
 }
 
 //------

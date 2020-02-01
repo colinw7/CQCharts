@@ -19,12 +19,12 @@ CQChartsTitleLocation::
 toString() const
 {
   switch (type_) {
-    case Type::TOP:           return "TOP";
-    case Type::CENTER:        return "CENTER";
-    case Type::BOTTOM:        return "BOTTOM";
-    case Type::ABS_POSITION:  return "ABS_POSITION";
-    case Type::ABS_RECTANGLE: return "ABS_RECTANGLE";
-    default:                  return "NONE";
+    case Type::TOP:                return "TOP";
+    case Type::CENTER:             return "CENTER";
+    case Type::BOTTOM:             return "BOTTOM";
+    case Type::ABSOLUTE_POSITION:  return "ABSOLUTE_POSITION";
+    case Type::ABSOLUTE_RECTANGLE: return "ABSOLUTE_RECTANGLE";
+    default:                       return "NONE";
   }
 }
 
@@ -39,18 +39,28 @@ bool
 CQChartsTitleLocation::
 setValue(const QString &str)
 {
-  Type type { Type::TOP };
+  Type type = Type::NONE;
 
-  QString lstr = str.toLower();
-
-  if      (lstr == "top"          ) type = Type::TOP;
-  else if (lstr == "center"       ) type = Type::CENTER;
-  else if (lstr == "bottom"       ) type = Type::BOTTOM;
-  else if (lstr == "abs_position" ) type = Type::ABS_POSITION;
-  else if (lstr == "abs_rectangle") type = Type::ABS_RECTANGLE;
-  else                              return false;
+  if (! decodeString(str, type))
+    return false;
 
   type_ = type;
+
+  return true;
+}
+
+bool
+CQChartsTitleLocation::
+decodeString(const QString &str, Type &type)
+{
+  QString ustr = str.toUpper().replace(' ', '_');
+
+  if      (ustr == "TOP"               ) type = Type::TOP;
+  else if (ustr == "CENTER"            ) type = Type::CENTER;
+  else if (ustr == "BOTTOM"            ) type = Type::BOTTOM;
+  else if (ustr == "ABSOLUTE_POSITION" ) type = Type::ABSOLUTE_POSITION;
+  else if (ustr == "ABSOLUTE_RECTANGLE") type = Type::ABSOLUTE_RECTANGLE;
+  else                                   return false;
 
   return true;
 }
@@ -60,7 +70,7 @@ CQChartsTitleLocation::
 enumNames() const
 {
   static QStringList names = QStringList() <<
-    "TOP" << "CENTER" << "BOTTOM" << "ABS_POSITION" << "ABS_RECTANGLE";
+    "TOP" << "CENTER" << "BOTTOM" << "ABSOLUTE_POSITION" << "ABSOLUTE_RECTANGLE";
 
   return names;
 }

@@ -7,7 +7,7 @@
  * \brief key press behavior
  * \ingroup Charts
  */
-class CQChartsKeyPressBehavior : public CQChartsEnum {
+class CQChartsKeyPressBehavior : public CQChartsEnum<CQChartsKeyPressBehavior> {
  public:
   enum class Type {
     NONE,
@@ -46,25 +46,6 @@ class CQChartsKeyPressBehavior : public CQChartsEnum {
   QStringList enumNames() const override;
 
   //---
-
-  friend bool operator<(const CQChartsKeyPressBehavior &lhs, const CQChartsKeyPressBehavior &rhs) {
-    return (lhs.type_ < rhs.type_);
-  }
-
-  friend bool operator==(const CQChartsKeyPressBehavior &lhs, const CQChartsKeyPressBehavior &rhs) {
-    return (lhs.type_ == rhs.type_);
-  }
-
-  friend bool operator!=(const CQChartsKeyPressBehavior &lhs, const CQChartsKeyPressBehavior &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsKeyPressBehavior &l) {
-    l.print(os);
-    return os;
-  }
 
  private:
   bool setValue(const QString &s);

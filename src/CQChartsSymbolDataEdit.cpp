@@ -1,5 +1,4 @@
 #include <CQChartsSymbolDataEdit.h>
-
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsLengthEdit.h>
 #include <CQChartsStrokeDataEdit.h>
@@ -9,6 +8,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -354,20 +354,17 @@ connectSlots(bool b)
 
   //---
 
-  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
-    if (b)
-      connect(w, from, this, to);
-    else
-      disconnect(w, from, this, to);
+  auto connectDisconnect = [&](QWidget *w, const char *from, const char *to) {
+    CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
   if (groupBox_)
-    connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+    connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
 
-  connectDisconnect(b, symbolEdit_, SIGNAL(symbolChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, sizeEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, strokeEdit_, SIGNAL(strokeDataChanged()), SLOT(widgetsToData()));
-  connectDisconnect(b, fillEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(symbolEdit_, SIGNAL(symbolChanged()), SLOT(widgetsToData()));
+  connectDisconnect(sizeEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(strokeEdit_, SIGNAL(strokeDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(fillEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
 }
 
 void

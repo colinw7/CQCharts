@@ -7,7 +7,7 @@
  * \brief key location
  * \ingroup Charts
  */
-class CQChartsKeyLocation : public CQChartsEnum {
+class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
  public:
   enum Type {
     NONE,
@@ -21,8 +21,8 @@ class CQChartsKeyLocation : public CQChartsEnum {
     BOTTOM_LEFT,
     BOTTOM_CENTER,
     BOTTOM_RIGHT,
-    ABS_POSITION,
-    ABS_RECTANGLE
+    ABSOLUTE_POSITION,
+    ABSOLUTE_RECTANGLE
   };
 
  public:
@@ -68,6 +68,8 @@ class CQChartsKeyLocation : public CQChartsEnum {
     return true;
   }
 
+  static bool decodeString(const QString &str, Type &type);
+
   //---
 
   bool isAuto() const { return (type_ == Type::AUTO); }
@@ -105,29 +107,6 @@ class CQChartsKeyLocation : public CQChartsEnum {
   }
 
   //---
-
-  friend bool operator==(const CQChartsKeyLocation &lhs, const CQChartsKeyLocation &rhs) {
-    if (lhs.type_ != rhs.type_) return false;
-
-    return true;
-  }
-
-  friend bool operator!=(const CQChartsKeyLocation &lhs, const CQChartsKeyLocation &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsKeyLocation &l) {
-    l.print(os);
-
-    return os;
-  }
-
-  //---
-
- private:
-  bool decodeString(const QString &str, Type &type);
 
  private:
   Type type_ { Type::TOP_RIGHT };

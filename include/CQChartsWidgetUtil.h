@@ -17,6 +17,14 @@ QFont getMonospaceFont();
 
 void setTextColor(QWidget *w, const QColor &c);
 
+inline void connectDisconnect(bool b, QObject *from, const char *fromName,
+                              QObject *to, const char *toName) {
+  if (b)
+    QObject::connect(from, fromName, to, toName);
+  else
+    QObject::disconnect(from, fromName, to, toName);
+}
+
 }
 
 //------
