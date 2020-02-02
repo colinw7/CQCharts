@@ -853,120 +853,136 @@ class CQChartsPlot : public CQChartsObj,
 
   QString idColumnString(int row, const QModelIndex &parent, bool &ok) const;
 
-  //---
+  //----
 
   QModelIndex modelIndex(const CQChartsModelIndex &ind) const;
 
   QModelIndex modelIndex(int row, const CQChartsColumn &column,
                          const QModelIndex &parent=QModelIndex()) const;
 
+  //----
+
+#if 0
+  QVariant modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
+  QVariant modelHHeaderValue(const CQChartsColumn &column, bool &ok) const;
+
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     int role, bool &ok) const;
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     bool &ok) const;
+#endif
+
   //---
 
 #if 0
-  QVariant modelHHeaderValue(const CQChartsColumn &column, bool &ok) const;
-  QVariant modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
-
-  QVariant modelVHeaderValue(int section, Qt::Orientation orient, bool &ok) const;
   QVariant modelVHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const;
+  QVariant modelVHeaderValue(int section, Qt::Orientation orient, bool &ok) const;
+
+  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, int role, bool &ok) const;
+  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, bool &ok) const;
 #endif
-
-  QString modelHHeaderString(const CQChartsColumn &column, bool &ok) const;
-  QString modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
-
-  QString modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const;
-  QString modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
 
   //---
 
+  QString modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
+  QString modelHHeaderString(const CQChartsColumn &column, bool &ok) const;
+
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     int role, bool &ok) const;
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     bool &ok) const;
+
+  //---
+
+  QString modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
+  QString modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const;
+
+  virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orientation, int role, bool &ok) const;
+  virtual QString modelVHeaderString(QAbstractItemModel *model,  int section,
+                                     Qt::Orientation orientation, bool &ok) const;
+
+  //---
+
+  QVariant modelValue(const CQChartsModelIndex &ind, int role, bool &ok) const;
   QVariant modelValue(const CQChartsModelIndex &ind, bool &ok) const;
 
   QVariant modelValue(int row, const CQChartsColumn &column,
-                      const QModelIndex &parent, bool &ok) const;
-  QVariant modelValue(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, int role, bool &ok) const;
+  QVariant modelValue(int row, const CQChartsColumn &column,
+                      const QModelIndex &parent, bool &ok) const;
 
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, int role, bool &ok) const;
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, bool &ok) const;
+
+  //---
+
+  QString modelString(const CQChartsModelIndex &ind, int role, bool &ok) const;
   QString modelString(const CQChartsModelIndex &ind, bool &ok) const;
 
   QString modelString(int row, const CQChartsColumn &column,
-                      const QModelIndex &parent, bool &ok) const;
-  QString modelString(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, int role, bool &ok) const;
+  QString modelString(int row, const CQChartsColumn &column,
+                      const QModelIndex &parent, bool &ok) const;
 
-  double modelReal(const CQChartsModelIndex &ind, bool &ok) const;
+  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, int role, bool &ok) const;
+  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, bool &ok) const;
 
-  double modelReal(int row, const CQChartsColumn &column,
-                   const QModelIndex &parent, bool &ok) const;
+  //---
+
   double modelReal(int row, const CQChartsColumn &column,
                    const QModelIndex &parent, int role, bool &ok) const;
+  double modelReal(int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, bool &ok) const;
 
-  long modelInteger(const CQChartsModelIndex &ind, bool &ok) const;
+  double modelReal(const CQChartsModelIndex &ind, int role, bool &ok) const;
+  double modelReal(const CQChartsModelIndex &ind, bool &ok) const;
 
-  long modelInteger(int row, const CQChartsColumn &column,
-                    const QModelIndex &parent, bool &ok) const;
+  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, int role, bool &ok) const;
+  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, bool &ok) const;
+
+  //---
+
   long modelInteger(int row, const CQChartsColumn &column,
                     const QModelIndex &parent, int role, bool &ok) const;
+  long modelInteger(int row, const CQChartsColumn &column,
+                    const QModelIndex &parent, bool &ok) const;
 
-#if 0
-  CQChartsColor modelColor(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, bool &ok) const;
-  CQChartsColor modelColor(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, int role, bool &ok) const;
-#endif
-
-  std::vector<double> modelReals(const CQChartsModelIndex &ind, bool &ok) const;
-  std::vector<double> modelReals(int row, const CQChartsColumn &column,
-                                 const QModelIndex &parent, bool &ok) const;
-
-  //---
-
-#if 0
-  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                     bool &ok) const;
-  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                     int role, bool &ok) const;
-  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
-                                     Qt::Orientation orient, int role, bool &ok) const;
-  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
-                                     Qt::Orientation orient, bool &ok) const;
-#endif
-
-  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                     bool &ok) const;
-  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                     int role, bool &ok) const;
-  virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
-                                     Qt::Orientation orient, int role, bool &ok) const;
-  virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
-                                     Qt::Orientation orient, bool &ok) const;
-
-  //---
-
-  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                              const QModelIndex &parent, int role, bool &ok) const;
-  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                              const QModelIndex &parent, bool &ok) const;
-
-  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                              const QModelIndex &parent, int role, bool &ok) const;
-  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                              const QModelIndex &parent, bool &ok) const;
-
-  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, int role, bool &ok) const;
-  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, bool &ok) const;
+  long modelInteger(const CQChartsModelIndex &ind, int role, bool &ok) const;
+  long modelInteger(const CQChartsModelIndex &ind, bool &ok) const;
 
   virtual long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                             const QModelIndex &parent, int role, bool &ok) const;
   virtual long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                             const QModelIndex &parent, bool &ok) const;
 
+  //---
+
 #if 0
+  CQChartsColor modelColor(int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, bool &ok) const;
+  CQChartsColor modelColor(int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, int role, bool &ok) const;
+
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, int role, bool &ok) const;
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, bool &ok) const;
 #endif
+
+  //---
+
+  std::vector<double> modelReals(const CQChartsModelIndex &ind, bool &ok) const;
+  std::vector<double> modelReals(int row, const CQChartsColumn &column,
+                                 const QModelIndex &parent, bool &ok) const;
 
   //---
 
@@ -983,11 +999,15 @@ class CQChartsPlot : public CQChartsObj,
   QVariant modelHierValue(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, bool &ok) const;
 
+  //---
+
   QString modelHierString(const CQChartsModelIndex &ind, bool &ok) const;
   QString modelHierString(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, int role, bool &ok) const;
   QString modelHierString(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, bool &ok) const;
+
+  //---
 
 #if 0
   double modelHierReal(int row, const CQChartsColumn &column,
@@ -995,6 +1015,8 @@ class CQChartsPlot : public CQChartsObj,
   double modelHierReal(int row, const CQChartsColumn &column,
                        const QModelIndex &parent, bool &ok) const;
 #endif
+
+  //---
 
 #if 0
   long modelHierInteger(int row, const CQChartsColumn &column,
@@ -1401,6 +1423,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   bool columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const;
+  bool columnColor(const CQChartsModelIndex &ind, CQChartsColor &color) const;
 
   //---
 

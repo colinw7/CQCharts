@@ -861,7 +861,7 @@ drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
   double a = CMathUtil::Deg2Rad(data_.transformAngle);
 
   *os_ << "  " << context() << ".drawRotatedText(" << pt.x << ", " << pt.y << ", \"" <<
-     text.toStdString() << "\", " << a << ");\n";
+    text.toStdString() << "\", " << a << ");\n";
 }
 
 void
@@ -915,7 +915,7 @@ CQChartsScriptPainter::
 setFont(const QFont &f)
 {
   if (! data_.hasFont || f.pointSizeF() != data_.font.pointSizeF())
-    *os_ << "  " << context() << ".gc.font = \"" << f.pointSizeF() << "px Sans\";\n";
+    *os_ << "  " << context() << ".setFont(" << f.pointSizeF() << ");\n";
 
   data_.font    = f;
   data_.hasFont = true;
@@ -932,9 +932,9 @@ setTransform(const QTransform &t, bool combine)
 
 #if 0
   *os_ << "  " << context() << ".gc.setTransform(" <<
-     data_.transform.m11() << ", " << data_.transform.m21() << ", " <<
-     data_.transform.m12() << ", " << data_.transform.m22() << ", " <<
-     data_.transform.dx () << ", " << data_.transform.dy () << ");\n";
+    data_.transform.m11() << ", " << data_.transform.m21() << ", " <<
+    data_.transform.m12() << ", " << data_.transform.m22() << ", " <<
+    data_.transform.dx () << ", " << data_.transform.dy () << ");\n";
 #endif
 }
 
@@ -1393,7 +1393,7 @@ startGroup(const QString &id, const GroupData &groupData)
 
   if (groupData.onclick)
     *os_ << " onclick=\"" <<
-       groupData.clickProc.toStdString() << "('" << id.toStdString() << "')\"";
+      groupData.clickProc.toStdString() << "('" << id.toStdString() << "')\"";
 
   if (groupData.hasTip) {
     *os_ << " onmousemove=\"showTooltip(evt, '" << groupData.tipStr.toStdString() << "')\"";

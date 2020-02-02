@@ -122,6 +122,7 @@ CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
 CQChartsModelDetailsWidget.cpp \
+CQChartsModelChooser.cpp \
 \
 CQChartsLoader.cpp \
 \
@@ -435,6 +436,7 @@ HEADERS += \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
 ../include/CQChartsModelDetailsWidget.h \
+../include/CQChartsModelChooser.h \
 \
 ../include/CQChartsLoader.h \
 \
@@ -484,6 +486,9 @@ HEADERS += \
 ../include/CQChartsOptPosition.h \
 ../include/CQChartsOptReal.h \
 ../include/CQChartsOptRect.h \
+\
+../include/CQChartsHtml.h \
+../include/CQChartsJS.h \
 \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \

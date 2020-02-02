@@ -613,24 +613,24 @@ CQChartsColumnType(Type type) :
  type_(type)
 {
   addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false)->
-   setDesc("Is Column a key for grouping");
+    setDesc("Is Column a key for grouping");
 
   // preferred width
   addParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
-   setDesc("Preferred column width");
+    setDesc("Preferred column width");
 
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
-   setDesc("Base color for table value coloring");
+    setDesc("Base color for table value coloring");
 
   // draw type for table view
   addParam("draw_type", Type::ENUM, "Table Draw Type", "")->
-   setDesc("Table value draw type (heatmap or barchart)").
-   addValue("heatmap").addValue("barchart");
+    setDesc("Table value draw type (heatmap or barchart)").
+    addValue("heatmap").addValue("barchart");
 
   // draw stops for table view
   addParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
-   setDesc("Table value draw stop values");
+    setDesc("Table value draw stop values");
 }
 
 CQChartsColumnType::
@@ -876,14 +876,14 @@ CQChartsColumnRealType() :
  CQChartsColumnType(Type::REAL)
 {
   addParam("format", Type::STRING, "Output Format", "")->
-   setDesc("Format string for output value display");
+    setDesc("Format string for output value display");
   addParam("format_scale", Type::REAL, "Format Scale Factor", 1.0)->
-   setDesc("Scale factor; to apply to value before output");
+    setDesc("Scale factor; to apply to value before output");
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 }
 
 QString
@@ -1016,12 +1016,12 @@ CQChartsColumnIntegerType() :
  CQChartsColumnType(Type::INTEGER)
 {
   addParam("format", Type::INTEGER, "Output Format", "")->
-   setDesc("Format string for output value display");
+    setDesc("Format string for output value display");
 
   addParam("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 }
 
 QString
@@ -1148,11 +1148,11 @@ CQChartsColumnTimeType() :
  CQChartsColumnType(Type::TIME)
 {
   addParam("format", Type::STRING, "Input/Output Format", "")->
-   setDesc("Format string for input value conversion and output value display");
+    setDesc("Format string for input value conversion and output value display");
   addParam("iformat", Type::STRING, "Input Format", "")->
-   setDesc("Format string for input value conversion");
+    setDesc("Format string for input value conversion");
   addParam("oformat", Type::STRING, "Output Format", "")->
-   setDesc("Format string for output value display");
+    setDesc("Format string for output value display");
 }
 
 QString
@@ -1724,16 +1724,16 @@ CQChartsColumnColorType() :
 {
   // specific palette to get color from
   addParam("palette", Type::STRING, "Color Palette", "")->
-   setDesc("Color Palette Name");
+    setDesc("Color Palette Name");
 
   // map from model value to 0.0 -> 1.0
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
-   setDesc("Does value need to be remapped to 0.0->1.0");
+    setDesc("Does value need to be remapped to 0.0->1.0");
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 }
 
 QString
@@ -1959,12 +1959,12 @@ CQChartsColumnSymbolTypeType() :
 {
   // map from model value to fixed symbol type range
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
-   setDesc("Does value need to be remapped to 0.0->1.0");
+    setDesc("Does value need to be remapped to 0.0->1.0");
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 }
 
 QString
@@ -2081,17 +2081,17 @@ CQChartsColumnSymbolSizeType() :
 {
   // map from model value to symbol size min/max
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
-   setDesc("Does value need to be remapped to 0.0->1.0");
+    setDesc("Does value need to be remapped to 0.0->1.0");
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 
   addParam("size_min", Type::REAL, "Symbol Size Min", 0.0)->
-   setDesc("Min size for mapped size value");
+    setDesc("Min size for mapped size value");
   addParam("size_max", Type::REAL, "Symbol Size Max", 1.0)->
-   setDesc("Max size for mapped size value");
+    setDesc("Max size for mapped size value");
 }
 
 QString
@@ -2219,17 +2219,17 @@ CQChartsColumnFontSizeType() :
 {
   // map from model value to font size min/max
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
-   setDesc("Does value need to be remapped to 0.0->1.0");
+    setDesc("Does value need to be remapped to 0.0->1.0");
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0)->
-   setDesc("Override min value for column");
+    setDesc("Override min value for column");
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0)->
-   setDesc("Override max value for column");
+    setDesc("Override max value for column");
 
   addParam("size_min", Type::REAL, "Font Size Min", 0.0)->
-   setDesc("Min size for mapped size value");
+    setDesc("Min size for mapped size value");
   addParam("size_max", Type::REAL, "Font Size Max", 1.0)->
-   setDesc("Max size for mapped size value");
+    setDesc("Max size for mapped size value");
 }
 
 QString

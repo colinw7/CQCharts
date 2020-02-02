@@ -523,11 +523,4 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   options.contrastAlpha = data.contrastAlpha();
 
   CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, options);
-
-#if 0
-  if (data.isContrast())
-    CQChartsDrawUtil::drawContrastText(&device, pt, text, data.contrastAlpha());
-  else
-    CQChartsDrawUtil::drawSimpleText(&device, pt, text);
-#endif
 }

@@ -21,6 +21,13 @@ setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
 
 void
 drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+                   const CQChartsLength &len, const CQChartsSides &sides)
+{
+  drawRoundedPolygon(device, bbox, len, len, sides);
+}
+
+void
+drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                    const CQChartsLength &xlen, const CQChartsLength &ylen,
                    const CQChartsSides &sides)
 {
@@ -68,6 +75,13 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
 
 void
 drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
+                   const CQChartsLength &len)
+{
+  drawRoundedPolygon(device, poly, len, len);
+}
+
+void
+drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
                    const CQChartsLength &xlen, const CQChartsLength &ylen)
 {
   static double minSize = 2.5; // pixels
@@ -106,6 +120,7 @@ drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
 
   //---
 
+  // handle html separately
   if (options.html) {
     if (options.scaled)
       CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);

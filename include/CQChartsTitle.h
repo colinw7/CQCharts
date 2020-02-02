@@ -120,6 +120,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
  private:
   void updateLocation();
 
+  void textBoxDataInvalidate() override;
+
  private:
   CQChartsTitleLocation      location_;                      //!< location type
   CQChartsPosition           absolutePosition_;              //!< position (relative to plot box)

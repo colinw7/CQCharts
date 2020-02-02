@@ -339,18 +339,34 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::calcRange");
 
-  CQChartsGeom::Range dataRange;
+  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   //---
 
-  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
+  // check columns
+  bool columnsValid = true;
 
-  th->connectionsColumnType_ = columnValueType(connectionsColumn());
-  th->namePairColumnType_    = columnValueType(namePairColumn   ());
+  th->clearErrors();
+
+  // node, connections, name/pair, count, name and groupId columns optional
+  if (! checkColumn(connectionsColumn(), "Connections", th->connectionsColumnType_))
+    columnsValid = false;
+  if (! checkColumn(namePairColumn(), "Name/Pair", th->namePairColumnType_))
+    columnsValid = false;
+
+  if (! checkColumn(nodeColumn   (), "Node"    )) columnsValid = false;
+  if (! checkColumn(countColumn  (), "Count"   )) columnsValid = false;
+  if (! checkColumn(nameColumn   (), "Name"    )) columnsValid = false;
+  if (! checkColumn(groupIdColumn(), "Group Id")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
   // TODO: calculate good range size from data or auto scale/fit ?
+  CQChartsGeom::Range dataRange;
+
   dataRange.updateRange(-rangeSize_, -rangeSize_);
   dataRange.updateRange( rangeSize_,  rangeSize_);
 
@@ -381,9 +397,11 @@ createObjs(PlotObjs &) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex groupModelInd(data.row, plot_->groupIdColumn(), data.parent);
+
       bool ok1;
 
-      int group = (int) plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
+      int group = (int) plot_->modelInteger(groupModelInd, ok1);
 
       if (! ok1) group = data.row;
 
@@ -504,24 +522,28 @@ getRowConnections(int group, const ModelVisitor::VisitData &data,
                   ConnectionsData &connectionsData) const
 {
   // get node
+  CQChartsModelIndex nodeModelInd(data.row, nodeColumn(), data.parent);
+
   bool ok2;
 
-  int id = (int) modelInteger(data.row, nodeColumn(), data.parent, ok2);
+  int id = (int) modelInteger(nodeModelInd, ok2);
 
   if (! ok2) id = data.row;
 
   //---
 
   // get connections
+  CQChartsModelIndex connectionsModelInd(data.row, connectionsColumn(), data.parent);
+
   bool ok3;
 
   if (connectionsColumnType_ == ColumnType::CONNECTION_LIST) {
-    QVariant connectionsVar = modelValue(data.row, connectionsColumn(), data.parent, ok3);
+    QVariant connectionsVar = modelValue(connectionsModelInd, ok3);
 
     connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
   }
   else {
-    QString connectionsStr = modelString(data.row, connectionsColumn(), data.parent, ok3);
+    QString connectionsStr = modelString(connectionsModelInd, ok3);
 
     if (! ok3)
       return false;
@@ -532,9 +554,11 @@ getRowConnections(int group, const ModelVisitor::VisitData &data,
   //---
 
   // get name
+  CQChartsModelIndex nameModelInd(data.row, nameColumn(), data.parent);
+
   bool ok4;
 
-  QString name = modelString(data.row, nameColumn(), data.parent, ok4);
+  QString name = modelString(nameModelInd, ok4);
 
   if (! name.length())
     name = QString("%1").arg(id);
@@ -542,7 +566,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data,
   //---
 
   // return connections data
-  QModelIndex nodeInd  = modelIndex(data.row, nodeColumn(), data.parent);
+  QModelIndex nodeInd  = modelIndex(nodeModelInd);
   QModelIndex nodeInd1 = normalizeIndex(nodeInd);
 
   connectionsData.ind   = nodeInd1;
@@ -558,12 +582,14 @@ CQChartsForceDirectedPlot::
 getNameConnections(int group, const ModelVisitor::VisitData &data,
                    ConnectionsData &connections, int &destId, int &count) const
 {
+  CQChartsModelIndex namePairModelInd(data.row, namePairColumn(), data.parent);
+
   bool ok2;
 
   CQChartsNamePair namePair;
 
   if (namePairColumnType_ == ColumnType::NAME_PAIR) {
-    QVariant namePairVar = modelValue(data.row, namePairColumn(), data.parent, ok2);
+    QVariant namePairVar = modelValue(namePairModelInd, ok2);
 
     if (! ok2)
       return false;
@@ -571,7 +597,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
     namePair = namePairVar.value<CQChartsNamePair>();
   }
   else {
-    QString namePairStr = modelString(data.row, namePairColumn(), data.parent, ok2);
+    QString namePairStr = modelString(namePairModelInd, ok2);
 
     if (! ok2)
       return false;
@@ -584,9 +610,11 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
   //---
 
+  CQChartsModelIndex countModelInd(data.row, countColumn(), data.parent);
+
   bool ok3;
 
-  count = (int) modelInteger(data.row, countColumn(), data.parent, ok3);
+  count = (int) modelInteger(countModelInd, ok3);
 
   if (! ok3)
     count = 0;
@@ -601,7 +629,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
   //---
 
-  QModelIndex nameInd  = modelIndex(data.row, namePairColumn(), data.parent);
+  QModelIndex nameInd  = modelIndex(namePairModelInd);
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
   connections.ind   = nameInd1;

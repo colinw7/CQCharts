@@ -191,13 +191,6 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
         options.contrastAlpha = textContrastAlpha();
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options);
-
-#if 0
-        if (isTextContrast())
-          CQChartsDrawUtil::drawContrastText(device, p1, ystr, textContrastAlpha());
-        else
-          CQChartsDrawUtil::drawSimpleText(device, p1, ystr);
-#endif
       }
     }
   }

@@ -295,12 +295,33 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
-
   //---
+
+  CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
 
   // init value sets
   //initValueSets();
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name, id, color columns optional
+
+  if (! checkColumns(nameColumns(), "Name", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_))
+    columnsValid = false;
+
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+
+  if (! columnsValid)
+    return false;
 
   //---
 
@@ -522,31 +543,49 @@ loadHier(CQChartsSunburstHierNode *root) const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(data.row, plot_->nameColumns().column(), data.parent);
+      CQChartsModelIndex nameModelInd(data.row, plot_->nameColumns().column(), data.parent);
+
+      nameInd = plot_->modelIndex(nameModelInd);
 
       bool ok;
 
-      name = plot_->modelString(data.row, plot_->nameColumns().column(), data.parent, ok);
+      name = plot_->modelString(nameModelInd, ok);
 
       return ok;
     }
 
-    bool getSize(const VisitData &data, double size, QModelIndex &valueInd) const {
-      valueInd = plot_->modelIndex(data.row, plot_->valueColumn(), data.parent);
-
+    bool getSize(const VisitData &data, double &size, QModelIndex &valueInd) const {
       size = 1.0;
 
       if (! plot_->valueColumn().isValid())
         return true;
 
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      valueInd = plot_->modelIndex(valueModelInd);
+
       bool ok = true;
 
-      size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
-
-      if (ok && size <= 0.0)
+      if      (plot_->valueColumnType() == ColumnType::REAL)
+        size = plot_->modelReal(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::INTEGER)
+        size = (double) plot_->modelInteger(valueModelInd, ok);
+      else
         ok = false;
 
+      if (! ok)
+        return addDataError(valueModelInd, "Invalid numeric value");
+
+      if (size <= 0.0)
+        return addDataError(valueModelInd, "Non-positive value");
+
       return ok;
+    }
+
+   private:
+    bool addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsSunburstPlot *>(plot_)->addDataError(ind, msg);
+      return false;
     }
 
    private:
@@ -607,7 +646,6 @@ loadFlat(CQChartsSunburstHierNode *root) const
    public:
     RowVisitor(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
      plot_(plot), root_(root) {
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -622,28 +660,32 @@ loadFlat(CQChartsSunburstHierNode *root) const
 
       //---
 
+      CQChartsModelIndex valueModelInd;
+
       double size = 1.0;
 
       if (plot_->valueColumn().isValid()) {
         bool ok2 = true;
 
-        if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
-        else if (valueColumnType_ == ColumnType::INTEGER)
-          size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
+        valueModelInd = CQChartsModelIndex(data.row, plot_->valueColumn(), data.parent);
+
+        if      (plot_->valueColumnType() == ColumnType::REAL)
+          size = plot_->modelReal(valueModelInd, ok2);
+        else if (plot_->valueColumnType() == ColumnType::INTEGER)
+          size = (double) plot_->modelInteger(valueModelInd, ok2);
         else
           ok2 = false;
 
-        if (ok2 && size <= 0.0)
-          ok2 = false;
-
         if (! ok2)
-          return State::SKIP;
+          return addDataError(valueModelInd, "Invalid numeric value");
+
+        if (size <= 0.0)
+          return addDataError(valueModelInd, "Non-positive value");
       }
 
       //---
 
-      QModelIndex valueInd = plot_->modelIndex(data.row, plot_->valueColumn(), data.parent);
+      QModelIndex valueInd = plot_->modelIndex(valueModelInd);
 
       CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
@@ -657,10 +699,15 @@ loadFlat(CQChartsSunburstHierNode *root) const
       return State::OK;
     }
 
+  private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsSunburstPlot *>(plot_)->addDataError(ind, msg);
+      return State::SKIP;
+    }
+
    private:
-    const CQChartsSunburstPlot *plot_            { nullptr };
-    CQChartsSunburstHierNode   *root_            { nullptr };
-    ColumnType                  valueColumnType_ { ColumnType::NONE };
+    const CQChartsSunburstPlot *plot_ { nullptr };
+    CQChartsSunburstHierNode   *root_ { nullptr };
   };
 
   RowVisitor visitor(this, root);
@@ -1286,9 +1333,11 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
+    CQChartsModelIndex colorModelInd(ind1.row(), plot_->colorColumn(), ind1.parent());
+
     bool ok;
 
-    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(colorModelInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

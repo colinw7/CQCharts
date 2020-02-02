@@ -227,9 +227,11 @@ calcRange() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int col = 0; col < numCols(); ++col) {
+        CQChartsModelIndex columnModelInd(data.row, CQChartsColumn(col), data.parent);
+
         bool ok;
 
-        double value = plot_->modelReal(data.row, CQChartsColumn(col), data.parent, ok);
+        double value = plot_->modelReal(columnModelInd, ok);
 
         if (ok && ! CMathUtil::isNaN(value))
           valueRange_.add(value);
@@ -301,13 +303,13 @@ createObjs(PlotObjs &objs) const
       x_ = 0.0;
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        CQChartsColumn col(ic);
+        CQChartsModelIndex columnModelInd(data.row, CQChartsColumn(ic), data.parent);
 
-        QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
+        QModelIndex ind = plot_->modelIndex(columnModelInd);
 
         bool ok;
 
-        double value = plot_->modelReal(data.row, col, data.parent, ok);
+        double value = plot_->modelReal(columnModelInd, ok);
 
         //---
 

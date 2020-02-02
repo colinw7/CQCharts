@@ -636,6 +636,28 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn(xColumn(), "X", th->xColumnType_, /*required*/true))
+    columnsValid = false;
+  if (! checkColumn(yColumn(), "Y", th->yColumnType_, /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   initGroupData(CQChartsColumns(), CQChartsColumn());
 
   //---
@@ -646,19 +668,17 @@ calcRange() const
     RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
       hasGroups_ = (plot_->numGroups() > 1);
-
-      xColumnType_ = plot_->columnValueType(plot_->xColumn());
-      yColumnType_ = plot_->columnValueType(plot_->yColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       if (plot_->isInterrupt())
         return State::TERMINATE;
 
-      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
 
       // init group
-      int groupInd = plot_->rowGroupInd(ind);
+      int groupInd = plot_->rowGroupInd(xModelInd);
 
       bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
 
@@ -666,29 +686,33 @@ calcRange() const
         double x   { 0.0  }, y   { 0.0 };
         bool   okx { true }, oky { true };
 
-        if      (xColumnType_ == CQBaseModelType::REAL ||
-                 xColumnType_ == CQBaseModelType::INTEGER) {
-          okx = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                       x, plot_->isLogX(), data.row);
+        //---
+
+        if      (plot_->xColumnType() == CQBaseModelType::REAL ||
+                 plot_->xColumnType() == CQBaseModelType::INTEGER) {
+          okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
         }
-        else if (xColumnType_ == CQBaseModelType::TIME) {
-          x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, okx);
+        else if (plot_->xColumnType() == CQBaseModelType::TIME) {
+          x = plot_->modelReal(xModelInd, okx);
         }
         else {
           x = uniqueId(data, plot_->xColumn()); ++uniqueX_;
         }
 
-        if      (yColumnType_ == CQBaseModelType::REAL ||
-                 yColumnType_ == CQBaseModelType::INTEGER) {
-          oky = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                       y, plot_->isLogY(), data.row);
+        //---
+
+        if      (plot_->yColumnType() == CQBaseModelType::REAL ||
+                 plot_->yColumnType() == CQBaseModelType::INTEGER) {
+          oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
         }
-        else if (yColumnType_ == CQBaseModelType::TIME) {
-          y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, oky);
+        else if (plot_->yColumnType() == CQBaseModelType::TIME) {
+          y = plot_->modelReal(yModelInd, oky);
         }
         else {
           y = uniqueId(data, plot_->yColumn()); ++uniqueY_;
         }
+
+        //---
 
         if (plot_->isSkipBad() && (! okx || ! oky))
           return State::SKIP;
@@ -703,9 +727,11 @@ calcRange() const
     }
 
     int uniqueId(const VisitData &data, const CQChartsColumn &column) {
+      CQChartsModelIndex columnInd(data.row, column, data.parent);
+
       bool ok;
 
-      QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
+      QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
@@ -729,14 +755,12 @@ calcRange() const
     bool isUniqueY() const { return uniqueY_ == numRows(); }
 
    private:
-    const CQChartsScatterPlot* plot_        { nullptr };
-    int                        hasGroups_   { false };
+    const CQChartsScatterPlot* plot_      { nullptr };
+    int                        hasGroups_ { false };
     CQChartsGeom::Range        range_;
-    CQChartsModelDetails*      details_     { nullptr };
-    CQBaseModelType            xColumnType_ { ColumnType::NONE };
-    CQBaseModelType            yColumnType_ { ColumnType::NONE };
-    int                        uniqueX_     { 0 };
-    int                        uniqueY_     { 0 };
+    CQChartsModelDetails*      details_   { nullptr };
+    int                        uniqueX_   { 0 };
+    int                        uniqueY_   { 0 };
   };
 
   RowVisitor visitor(this);
@@ -787,8 +811,6 @@ calcRange() const
   dataRange.makeNonZero();
 
   //---
-
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
   th->initGridData(dataRange);
 
@@ -875,13 +897,10 @@ initAxes(bool uniqueX, bool uniqueY)
 
   //---
 
-  ColumnType xColumnType = columnValueType(xColumn());
-  ColumnType yColumnType = columnValueType(yColumn());
-
-  if (xColumnType == CQBaseModelType::TIME)
+  if (xColumnType_ == CQBaseModelType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 
-  if (yColumnType == CQBaseModelType::TIME)
+  if (yColumnType_ == CQBaseModelType::TIME)
     yAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 }
 
@@ -1111,7 +1130,7 @@ addPointObjects(PlotObjs &objs) const
 
         if (symbolTypeColumn().isValid()) {
           if (! columnSymbolType(valuePoint.row, valuePoint.ind.parent(), symbolType))
-             symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
+            symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
         }
 
         if (symbolType.isValid())
@@ -1137,7 +1156,7 @@ addPointObjects(PlotObjs &objs) const
 
         if (colorColumn().isValid()) {
           if (! columnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
-             symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
+            symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -1151,10 +1170,16 @@ addPointObjects(PlotObjs &objs) const
         if (labelColumn().isValid() || nameColumn().isValid()) {
           bool ok;
 
-          if (labelColumn().isValid())
-            pointName = modelString(valuePoint.row, labelColumn(), valuePoint.ind.parent(), ok);
-          else
-            pointName = modelString(valuePoint.row, nameColumn(), valuePoint.ind.parent(), ok);
+          if (labelColumn().isValid()) {
+            CQChartsModelIndex labelInd(valuePoint.row, labelColumn(), valuePoint.ind.parent());
+
+            pointName = modelString(labelInd, ok);
+          }
+          else {
+            CQChartsModelIndex nameInd(valuePoint.row, nameColumn(), valuePoint.ind.parent());
+
+            pointName = modelString(nameInd, ok);
+          }
 
           if (! ok)
             pointName = "";
@@ -1169,10 +1194,11 @@ addPointObjects(PlotObjs &objs) const
         QImage image;
 
         if (imageColumn().isValid()) {
+          CQChartsModelIndex imageModelInd(valuePoint.row, imageColumn(), valuePoint.ind.parent());
+
           bool ok;
 
-          QVariant imageVar =
-            modelValue(valuePoint.row, imageColumn(), valuePoint.ind.parent(), ok);
+          QVariant imageVar = modelValue(imageModelInd, ok);
 
           if (ok && imageVar.type() == QVariant::Image)
             image = imageVar.value<QImage>();
@@ -1285,48 +1311,51 @@ addNameValues() const
    public:
     RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
-      xColumnType_ = plot_->columnValueType(plot_->xColumn());
-      yColumnType_ = plot_->columnValueType(plot_->yColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
 
       // get group
-      int groupInd = plot_->rowGroupInd(ind);
+      int groupInd = plot_->rowGroupInd(xModelInd);
 
       //---
 
       // get x, y value
-      QModelIndex xInd  = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
+      QModelIndex xInd  = plot_->modelIndex(xModelInd);
       QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
       double x   { 0.0  }, y   { 0.0 };
       bool   okx { true }, oky { true };
 
-      if      (xColumnType_ == CQBaseModelType::REAL ||
-               xColumnType_ == CQBaseModelType::INTEGER) {
-        okx = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                     x, plot_->isLogX(), data.row);
+      //---
+
+      if      (plot_->xColumnType() == CQBaseModelType::REAL ||
+               plot_->xColumnType() == CQBaseModelType::INTEGER) {
+        okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
       }
-      else if (xColumnType_ == CQBaseModelType::TIME) {
-        x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, okx);
+      else if (plot_->xColumnType() == CQBaseModelType::TIME) {
+        x = plot_->modelReal(xModelInd, okx);
       }
       else {
         x = uniqueId(data, plot_->xColumn());
       }
 
-      if      (yColumnType_ == CQBaseModelType::REAL ||
-               yColumnType_ == CQBaseModelType::INTEGER) {
-        oky = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                     y, plot_->isLogY(), data.row);
+      //---
+
+      if      (plot_->yColumnType() == CQBaseModelType::REAL ||
+               plot_->yColumnType() == CQBaseModelType::INTEGER) {
+        oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
       }
-      else if (yColumnType_ == CQBaseModelType::TIME) {
-        y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, oky);
+      else if (plot_->yColumnType() == CQBaseModelType::TIME) {
+        y = plot_->modelReal(yModelInd, oky);
       }
       else {
         y = uniqueId(data, plot_->yColumn());
       }
+
+      //---
 
       if (plot_->isSkipBad() && (! okx || ! oky))
         return State::SKIP;
@@ -1340,9 +1369,11 @@ addNameValues() const
       QString name;
 
       if (plot_->nameColumn().isValid()) {
+        CQChartsModelIndex nameColumnInd(data.row, plot_->nameColumn(), data.parent);
+
         bool ok;
 
-        name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+        name = plot_->modelString(nameColumnInd, ok);
       }
 
       if (! name.length() && plot_->title())
@@ -1371,9 +1402,11 @@ addNameValues() const
     }
 
     int uniqueId(const VisitData &data, const CQChartsColumn &column) {
+      CQChartsModelIndex columnInd(data.row, column, data.parent);
+
       bool ok;
 
-      QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
+      QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
@@ -1392,10 +1425,8 @@ addNameValues() const
     }
 
    private:
-    const CQChartsScatterPlot* plot_        { nullptr };
-    CQChartsModelDetails*      details_     { nullptr };
-    CQBaseModelType            xColumnType_ { ColumnType::NONE };
-    CQBaseModelType            yColumnType_ { ColumnType::NONE };
+    const CQChartsScatterPlot* plot_    { nullptr };
+    CQChartsModelDetails*      details_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -2767,8 +2798,6 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
     options.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, p2, text, options);
-
-//  CQChartsDrawUtil::drawSimpleText(device, p2, text);
   };
 
   drawText(CQChartsGeom::Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
@@ -2907,9 +2936,11 @@ calcTipId() const
   auto addColumnRowValue = [&](const CQChartsColumn &column) {
     if (! column.isValid()) return;
 
+    CQChartsModelIndex columnInd(modelInd().row(), column, modelInd().parent());
+
     bool ok;
 
-    QString str = plot_->modelString(modelInd().row(), column, modelInd().parent(), ok);
+    QString str = plot_->modelString(columnInd, ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);
@@ -3532,8 +3563,6 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     options.align = Qt::AlignLeft;
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options);
-
-//  CQChartsDrawUtil::drawSimpleText(device, p1, text);
   };
 
   double x1 = rprect.getXMin();

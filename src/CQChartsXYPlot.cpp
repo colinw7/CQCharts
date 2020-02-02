@@ -657,6 +657,25 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsXYPlot::calcRange");
 
+  CQChartsXYPlot *th = const_cast<CQChartsXYPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn (xColumn(), "X", th->xColumnType_, /*required*/true))
+    columnsValid = false;
+  if (! checkColumns(yColumns(), "Y", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
   //---
 
   initGroupData(CQChartsColumns(), CQChartsColumn());
@@ -789,9 +808,7 @@ initAxes()
       xAxis()->setLabel(xname);
     }
 
-    ColumnType xColumnType = columnValueType(xColumn());
-
-    if (xColumnType == CQBaseModelType::TIME)
+    if (xColumnType_ == CQBaseModelType::TIME)
       xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
   }
 
@@ -1245,7 +1262,9 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
     QModelIndex parent; // TODO: parent
 
-    QModelIndex xind  = modelIndex(ip, xColumn(), parent);
+    CQChartsModelIndex xModelInd(ip, xColumn(), parent);
+
+    QModelIndex xind  = modelIndex(xModelInd);
     QModelIndex xind1 = normalizeIndex(xind);
 
     //---
@@ -1425,6 +1444,10 @@ bool
 CQChartsXYPlot::
 addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &objs) const
 {
+  CQChartsXYPlot *th = const_cast<CQChartsXYPlot *>(this);
+
+  //---
+
   initSymbolTypeData();
   initSymbolSizeData();
   initFontSizeData  ();
@@ -1593,7 +1616,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         if (symbolTypeColumn().isValid()) {
           if (! columnSymbolType(ip, xind1.parent(), symbolType))
-             symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
+            symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
         }
 
         if (symbolType.isValid())
@@ -1619,7 +1642,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         if (colorColumn().isValid()) {
           if (! columnColor(ip, xind1.parent(), symbolColor))
-             symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
+            symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -1631,9 +1654,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         QString pointName;
 
         if (labelColumn().isValid()) {
+          CQChartsModelIndex labelModelInd(ip, labelColumn(), xind1.parent());
+
           bool ok;
 
-          pointName = modelString(ip, labelColumn(), xind1.parent(), ok);
+          pointName = modelString(labelModelInd, ok);
 
           if (! ok)
             pointName = "";
@@ -1657,9 +1682,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         QImage image;
 
         if (imageColumn().isValid()) {
+          CQChartsModelIndex imageColumnInd(ip, imageColumn(), xind1.parent());
+
           bool ok;
 
-          QVariant imageVar = modelValue(ip, imageColumn(), xind1.parent(), ok);
+          QVariant imageVar = modelValue(imageColumnInd, ok);
 
           if (ok && imageVar.type() == QVariant::Image)
             image = imageVar.value<QImage>();
@@ -1672,22 +1699,30 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         // set vector data
         if (isVectors()) {
+          QModelIndex parent; // TODO: parent
+
           double vx = 0.0, vy = 0.0;
 
           if (vectorXColumn().isValid()) {
             bool ok;
 
-            QModelIndex parent; // TODO: parent
+            CQChartsModelIndex vectorXInd(ip, vectorXColumn(), parent);
 
-            vx = modelReal(ip, vectorXColumn(), parent, ok);
+            vx = modelReal(vectorXInd, ok);
+
+            if (! ok)
+              th->addDataError(vectorXInd, "Invalid Vector X");
           }
 
           if (vectorYColumn().isValid()) {
             bool ok;
 
-            QModelIndex parent; // TODO: parent
+            CQChartsModelIndex vectorYInd(ip, vectorYColumn(), parent);
 
-            vy = modelReal(ip, vectorYColumn(), parent, ok);
+            vy = modelReal(vectorYInd, ok);
+
+            if (! ok)
+              th->addDataError(vectorYInd, "Invalid Vector Y");
           }
 
           pointObj->setVector(CQChartsGeom::Point(vx, vy));
@@ -1798,9 +1833,11 @@ CQChartsXYPlot::
 rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
-  ind = modelIndex(data.row, xColumn(), data.parent);
+  CQChartsModelIndex xModelInd(data.row, xColumn(), data.parent);
 
-  bool ok1 = modelMappedReal(data.row, xColumn(), data.parent, x, isLogX(), data.row);
+  ind = modelIndex(xModelInd);
+
+  bool ok1 = modelMappedReal(xModelInd, x, isLogX(), data.row);
 
   //---
 
@@ -1811,9 +1848,11 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   for (int i = 0; i < ns; ++i) {
     CQChartsColumn yColumn = yColumns().getColumn(i);
 
+    CQChartsModelIndex yModelInd(data.row, yColumn, data.parent);
+
     double y1;
 
-    bool ok3 = modelMappedReal(data.row, yColumn, data.parent, y1, isLogY(), data.row);
+    bool ok3 = modelMappedReal(yModelInd, y1, isLogY(), data.row);
 
     if (! ok3) {
       if (skipBad)
@@ -1924,9 +1963,11 @@ valueName(int is, int ns, int irow) const
   if (labelColumn().isValid()) {
     QModelIndex parent; // TODO: parent
 
+    CQChartsModelIndex labelModelInd(irow, labelColumn(), parent);
+
     bool ok;
 
-    QString name1 = modelString(irow, labelColumn(), parent, ok);
+    QString name1 = modelString(labelModelInd, ok);
 
     if (ok)
       return name1;
@@ -2732,9 +2773,11 @@ calcTipId() const
   auto addColumnRowValue = [&](const CQChartsColumn &column) {
     if (! column.isValid()) return;
 
+    CQChartsModelIndex columnModelInd(modelInd().row(), column, modelInd().parent());
+
     bool ok;
 
-    QString str = plot_->modelString(modelInd().row(), column, modelInd().parent(), ok);
+    QString str = plot_->modelString(columnModelInd, ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);

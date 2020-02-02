@@ -424,5 +424,5 @@ draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
   CQChartsPixelPainter device(painter);
 
   CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
-                                       data.stroke().cornerSize(), data.stroke().cornerSize());
+                                       data.stroke().cornerSize());
 }

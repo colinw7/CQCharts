@@ -632,7 +632,7 @@ void
 CQChartsGroupPlot::
 getGroupInds(std::vector<int> &inds) const
 {
-  if (groupBucket_ && groupBucket_->dataType() != CQChartsColumnBucket::DataType::NONE) {
+  if (groupBucket_ && groupBucket_->isValid()) {
     for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
       inds.push_back(groupInd);
   }

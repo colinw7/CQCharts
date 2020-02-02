@@ -380,9 +380,11 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
   if (! symbolTypeData_.valid)
     return false;
 
+  CQChartsModelIndex symbolTypeModelInd(row, symbolTypeColumn(), parent);
+
   bool ok;
 
-  QVariant var = modelValue(row, symbolTypeColumn(), parent, ok);
+  QVariant var = modelValue(symbolTypeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (symbolTypeData_.mapped) {
@@ -503,9 +505,11 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
 
   (void) CQChartsUtil::decodeUnits(symbolSizeMapUnits(), units);
 
+  CQChartsModelIndex symbolSizeModelInd(row, symbolSizeColumn(), parent);
+
   bool ok;
 
-  QVariant var = modelValue(row, symbolSizeColumn(), parent, ok);
+  QVariant var = modelValue(symbolSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (symbolSizeData_.mapped) {
@@ -624,9 +628,11 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
 
   (void) CQChartsUtil::decodeUnits(fontSizeMapUnits(), units);
 
+  CQChartsModelIndex fontSizeModelInd(row, fontSizeColumn(), parent);
+
   bool ok;
 
-  QVariant var = modelValue(row, fontSizeColumn(), parent, ok);
+  QVariant var = modelValue(fontSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (fontSizeData_.mapped) {

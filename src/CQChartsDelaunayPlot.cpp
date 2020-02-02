@@ -226,6 +226,25 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
 
+  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn(xColumn    (), "X"    )) columnsValid = false;
+  if (! checkColumn(yColumn    (), "Y"    )) columnsValid = false;
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -234,16 +253,21 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex xInd(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex yInd(data.row, plot_->yColumn(), data.parent);
+
       bool ok1, ok2;
 
-      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
-      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
+      double x = plot_->modelReal(xInd, ok1);
+      double y = plot_->modelReal(yInd, ok2);
 
-      if (! ok1) x = data.row;
-      if (! ok2) y = data.row;
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
+
+      //---
 
       range_.updateRange(x, y);
 
@@ -251,6 +275,11 @@ calcRange() const
     }
 
     const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    void addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
+    }
 
    private:
     const CQChartsDelaunayPlot* plot_ { nullptr };
@@ -327,29 +356,47 @@ createObjs(PlotObjs &objs) const
     const CQChartsGeom::RMinMax &valueRange() const { return valueRange_; }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      bool ok1, ok2, ok3;
+      CQChartsModelIndex xInd(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex yInd(data.row, plot_->yColumn(), data.parent);
 
-      double x = plot_->modelReal(data.row, plot_->xColumn    (), data.parent, ok1);
-      double y = plot_->modelReal(data.row, plot_->yColumn    (), data.parent, ok2);
+      bool ok1, ok2;
 
-      if (! ok1) x = data.row;
-      if (! ok2) y = data.row;
+      double x = plot_->modelReal(xInd, ok1);
+      double y = plot_->modelReal(yInd, ok2);
 
-      double value = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok3);
-
-      if (ok3)
-        valueRange_.add(value);
-      else
-        value = 0.0;
+      if (! ok1) { addDataError(xInd, "Bad X Value"); x = data.row; }
+      if (! ok2) { addDataError(yInd, "Bad Y Value"); y = data.row; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
 
-      QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
+      //---
 
-      plot_->addPointObj(x, y, value, xind, ModelVisitor::row(), nr_, objs_);
+      CQChartsModelIndex valueInd(data.row, plot_->valueColumn(), data.parent);
+
+      bool ok3;
+
+      double value = plot_->modelReal(valueInd, ok3);
+
+      if (ok3)
+        valueRange_.add(value);
+      else {
+        addDataError(xInd, "Bad Value");
+        value = 0.0;
+      }
+
+      //---
+
+      QModelIndex xInd1 = plot_->modelIndex(xInd);
+
+      plot_->addPointObj(x, y, value, xInd1, ModelVisitor::row(), nr_, objs_);
 
       return State::OK;
+    }
+
+   private:
+    void addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
     }
 
    private:
@@ -646,7 +693,9 @@ calcId() const
   if (plot_->nameColumn().isValid()) {
     bool ok;
 
-    name1 = plot_->modelString(modelInd().row(), plot_->nameColumn(), modelInd().parent(), ok);
+    CQChartsModelIndex nameInd(modelInd().row(), plot_->nameColumn(), modelInd().parent());
+
+    name1 = plot_->modelString(nameInd, ok);
   }
   else
     name1 = plot_->yname();
@@ -664,10 +713,11 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (plot_->nameColumn().isValid()) {
+    CQChartsModelIndex nameInd(modelInd().row(), plot_->nameColumn(), modelInd().parent());
+
     bool ok;
 
-    QString name =
-      plot_->modelString(modelInd().row(), plot_->nameColumn(), modelInd().parent(), ok);
+    QString name = plot_->modelString(nameInd, ok);
 
     if (ok && name.length())
       tableTip.addTableRow("Name", name);

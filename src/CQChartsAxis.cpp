@@ -724,9 +724,11 @@ valueStr(const CQChartsPlot *plot, double pos) const
 
       QModelIndex parent; // TODO: support parent
 
+      CQChartsModelIndex columnInd(row, column(), parent);
+
       bool ok;
 
-      QVariant header = plot->modelValue(row, column(), parent, ok);
+      QVariant header = plot->modelValue(columnInd, ok);
 
       if (header.isValid()) {
         QString headerStr;
@@ -2160,13 +2162,6 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     options.formatted     = isAxesTickLabelTextFormatted();
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
-
-#if 0
-    if (CMathUtil::isZero(data.angle.value()))
-      CQChartsDrawUtil::drawSimpleText(device, p1, data.text);
-    else
-      CQChartsRotatedText::draw(device, p1, data.text, options, /*alignBox*/true);
-#endif
   }
 
   if (plot->showBoxes()) {
@@ -2246,8 +2241,6 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
 
-    //CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
-
       if (! plot_->isInvertY()) {
         bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos - (ath      ));
         bbox += CQChartsGeom::Point((amin + amax)/2 + atw, apos - (ath - wfh));
@@ -2276,8 +2269,6 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
-
-    //CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
 
       if (! plot_->isInvertY()) {
         bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos + (ath      ));

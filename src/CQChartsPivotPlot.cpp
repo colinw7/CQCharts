@@ -279,7 +279,7 @@ updatePivot()
     pivotModel()->setValueType(CQPivotModel::ValueType::COUNT_UNIQUE);
   else if (valueType() == ValueType::SUM)
     pivotModel()->setValueType(CQPivotModel::ValueType::SUM);
-  else if (valueType() == ValueType::AVERAGE)
+  else if (valueType() == ValueType::MEAN)
     pivotModel()->setValueType(CQPivotModel::ValueType::MEAN);
   else if (valueType() == ValueType::MIN)
     pivotModel()->setValueType(CQPivotModel::ValueType::MIN);
@@ -294,6 +294,25 @@ CQChartsPivotPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsPivotPlot::calcRange");
+
+  CQChartsPivotPlot *th = const_cast<CQChartsPivotPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumns(xColumns(), "X", /*required*/true))
+    columnsValid = false;
+  if (! checkColumns(yColumns(), "Y", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -493,8 +512,8 @@ createObjs(PlotObjs &objs) const
         yAxis->setLabel("Minimum");
       else if (valueType() == ValueType::MAX)
         yAxis->setLabel("Maximum");
-      else if (valueType() == ValueType::AVERAGE)
-        yAxis->setLabel("Average");
+      else if (valueType() == ValueType::MEAN)
+        yAxis->setLabel("Mean");
     }
     else {
       yAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
@@ -1046,7 +1065,7 @@ valueTypeName(const ValueType &valueType) const
     case ValueType::COUNT       : return "Count";
     case ValueType::COUNT_UNIQUE: return "Count Unique";
     case ValueType::SUM         : return "Sum";
-    case ValueType::AVERAGE     : return "Average";
+    case ValueType::MEAN        : return "Mean";
     case ValueType::MIN         : return "Min";
     case ValueType::MAX         : return "Max";
     default                     : assert(false); return "";

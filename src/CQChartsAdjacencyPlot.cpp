@@ -32,7 +32,7 @@ addParameters()
   addColumnParameter("node", "Node", "nodeColumn").setBasic().
     setNumeric().setTip("Node Id Column");
   addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
-   setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
+    setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
 
   endParameterGroup();
 
@@ -42,9 +42,9 @@ addParameters()
   startParameterGroup("Name Pair/Count");
 
   addColumnParameter("namePair", "Name Pair", "namePairColumn").setBasic().
-   setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
+    setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
   addColumnParameter("count", "Count", "countColumn").setBasic().
-   setNumeric().setTip("Connection Count");
+    setNumeric().setTip("Connection Count");
 
   endParameterGroup();
 
@@ -53,10 +53,10 @@ addParameters()
   startParameterGroup("General");
 
   addColumnParameter("name", "Name", "nameColumn").
-   setString().setTip("Name For Node Id");
+    setString().setTip("Name For Node Id");
 
   addColumnParameter("groupId", "Group Id", "groupIdColumn").
-   setNumeric().setTip("Group Id for Color");
+    setNumeric().setTip("Group Id for Color");
 
   endParameterGroup();
 
@@ -1020,8 +1020,6 @@ execDrawBackground(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(pt), str,
                                       options, /*centered*/false);
 
-  //CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(pt), str);
-
     py += pys;
   }
 
@@ -1046,9 +1044,6 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p1), node->name(),
                                       options, /*centered*/ true);
-
-//  CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), options,
-//                            /*alignBox*/true);
 
     px += pxs;
   }
@@ -1103,7 +1098,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox, cornerSize, cornerSize);
+        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox, cornerSize);
       }
 
       px += pxs;

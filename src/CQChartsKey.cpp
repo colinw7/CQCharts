@@ -414,9 +414,6 @@ draw(CQChartsPaintDevice *device) const
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(rect1), name, textOptions);
 
-    //CQChartsDrawUtil::drawSimpleText(device,
-    //  CQChartsGeom::Point(px2, py1 + fm.ascent() + dth), name);
-
     //---
 
     // save view key item (plot) rect
@@ -2072,8 +2069,6 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   textOptions = plot->adjustTextOptions(textOptions);
 
   CQChartsDrawUtil::drawTextInBox(device, rect, text_, textOptions);
-
-  //CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text_);
 }
 
 //------
@@ -2138,8 +2133,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   device->setPen  (bc);
   device->setBrush(brush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device,
-    device->pixelToWindow(prect1), cornerRadius(), cornerRadius());
+  CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(prect1), cornerRadius());
 }
 
 QBrush

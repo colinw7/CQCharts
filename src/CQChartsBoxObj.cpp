@@ -112,7 +112,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
     //---
 
     // fill box
-    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), borderSides());
   }
 
   if (isStroked()) {
@@ -126,7 +126,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
     //---
 
     // stroke box
-    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), borderSides());
   }
 }
 
@@ -155,7 +155,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
+    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize());
   }
 
   if (isStroked()) {
@@ -169,7 +169,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
+    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize());
   }
 }
 

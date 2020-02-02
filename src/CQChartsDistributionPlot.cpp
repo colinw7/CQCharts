@@ -345,11 +345,13 @@ addProperties()
   addProp("options", "plotType" , "plotType" , "Plot type");
   addProp("options", "valueType", "valueType", "Bar value type");
 
-  addProp("options", "percent"   , "", "Show value as percentage");
-  addProp("options", "skipEmpty" , "", "Skip empty buckets");
-  addProp("options", "sorted"    , "", "Sort by count");
-  addProp("options", "minBarSize", "", "Minimum bar size in pixels")->
+  addProp("options", "percent"      , "", "Show value as percentage");
+  addProp("options", "skipEmpty"    , "", "Skip empty buckets");
+  addProp("options", "sorted"       , "", "Sort by count");
+  addProp("options", "minBarSize"   , "", "Minimum bar size in pixels")->
    setMinValue(0.0).setHidden(true);
+  addProp("options", "scatterMargin", "", "Scatter bar margin")->
+   setMinValue(0.0).setMaxValue(1.0).setHidden(true);
 
   // density
   addProp("density", "density"        , "visible" , "Show density plot");
@@ -392,48 +394,47 @@ void
 CQChartsDistributionPlot::
 setPlotType(PlotType type)
 {
-  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
+  switch (type) {
+    case PlotType::NORMAL      : setNormal    (true); break;
+    case PlotType::STACKED     : setStacked   (true); break;
+    case PlotType::SIDE_BY_SIDE: setSideBySide(true); break;
+    case PlotType::OVERLAY     : setOverlay   (true); break;
+    default                    : assert(false); break;
+  }
 }
 
 void
 CQChartsDistributionPlot::
-setNormal(bool b)
+setNormal(bool)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setStacked(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_,
+    (b ? PlotType::STACKED : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setSideBySide(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::SIDE_BY_SIDE, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_,
+    (b ? PlotType::SIDE_BY_SIDE : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setOverlay(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::OVERLAY, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_,
+    (b ? PlotType::OVERLAY : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
 }
+
+//---
 
 void
 CQChartsDistributionPlot::
@@ -455,67 +456,62 @@ void
 CQChartsDistributionPlot::
 setValueType(ValueType type)
 {
-  CQChartsUtil::testAndSet(valueType_, type, [&]() { updateRangeAndObjs(); } );
+  switch (type) {
+    case ValueType::COUNT: setValueCount(true); break;
+    case ValueType::RANGE: setValueRange(true); break;
+    case ValueType::MIN  : setValueMin  (true); break;
+    case ValueType::MAX  : setValueMax  (true); break;
+    case ValueType::MEAN : setValueMean (true); break;
+    case ValueType::SUM  : setValueSum  (true); break;
+    default              : assert(false); break;
+  }
 }
 
 void
 CQChartsDistributionPlot::
-setValueCount(bool b)
+setValueCount(bool)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueRange(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_,
+    (b ? ValueType::RANGE : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueMin(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_,
+    (b ? ValueType::MIN : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueMax(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_,
+    (b ? ValueType::MAX : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueMean(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_,
+    (b ? ValueType::MEAN : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setValueSum(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::SUM, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_,
+    (b ? ValueType::SUM : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -533,10 +529,8 @@ void
 CQChartsDistributionPlot::
 setDensity(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::DENSITY, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_,
+    (b ? PlotType::DENSITY : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -573,10 +567,8 @@ void
 CQChartsDistributionPlot::
 setScatter(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::SCATTER, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_,
+    (b ? PlotType::SCATTER : PlotType::NORMAL), [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -668,6 +660,32 @@ CQChartsDistributionPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::calcRange");
+
+  NoUpdate noUpdate(this);
+
+  //---
+
+  auto th = const_cast<CQChartsDistributionPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value columns required
+  // name, data, color columns optional
+
+  if (! checkColumns(valueColumns(), "Values", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(dataColumn (), "Data" )) columnsValid = false;
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range();
 
   //---
 
@@ -3066,9 +3084,11 @@ calcTipId() const
   QModelIndex parent;
 
   for (const auto &row : colorData_.colorRows) {
+    CQChartsModelIndex colorColumnInd(row, plot_->colorColumn(), parent);
+
     bool ok;
 
-    QString str = plot_->modelString(row, plot_->colorColumn(), parent, ok);
+    QString str = plot_->modelString(colorColumnInd, ok);
 
     if (ok)
       strs.push_back(str);
@@ -3595,8 +3615,7 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
   if (! plot_->isDotLines()) {
     // draw rect
     if (! useLine) {
-      CQChartsDrawUtil::drawRoundedPolygon(device, bbox, plot_->barCornerSize(),
-                                           plot_->barCornerSize());
+      CQChartsDrawUtil::drawRoundedPolygon(device, bbox, plot_->barCornerSize());
     }
     else {
       if (pbbox.getWidth() < pbbox.getHeight()) { // vertical
@@ -4158,7 +4177,7 @@ CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const CQCha
   int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
 
   // generate random points in box (0.0->1.0) with margin
-  double m = plot_->scatterMargin();
+  double m = std::min(std::max(plot_->scatterMargin(), 0.0), 1.0);
 
   // TODO: constant seed ?
   CQChartsRand::RealInRange rand(m, 1.0 - m);

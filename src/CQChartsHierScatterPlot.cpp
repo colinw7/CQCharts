@@ -248,6 +248,28 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
 
+  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn(xColumn(), "X", /*required*/true))
+    columnsValid = false;
+  if (! checkColumn(yColumn(), "Y", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn (nameColumn  (), "Name" )) columnsValid = false;
+  if (! checkColumns(groupColumns(), "Group")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -268,12 +290,13 @@ calcRange() const
       //---
 
       // get x, y value
+      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+
       double x, y;
 
-      bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                        x, plot_->isLogX(), data.row);
-      bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                        y, plot_->isLogY(), data.row);
+      bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
+      bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
 
       if (! ok1) x = data.row;
       if (! ok2) y = data.row;
@@ -311,8 +334,6 @@ calcRange() const
 
   //---
 
-  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
-
   th->initAxes();
 
   //---
@@ -329,9 +350,11 @@ acceptsRow(int row, const QModelIndex &parent) const
   for (int i = 0; i < depth; ++i) {
     const CQChartsColumn &column = groupValues_.getColumn(i);
 
+    CQChartsModelIndex modelInd(row, column, parent);
+
     bool ok;
 
-    QString name = modelString(row, column, parent, ok);
+    QString name = modelString(modelInd, ok);
 
     if (! ok)
       return false;
@@ -433,9 +456,11 @@ addRowGroupValueSets(const ModelVisitor::VisitData &data) const
     CQChartsColumn    groupColumn = groupValueSet.first;
     CQChartsValueSet *valueSet    = groupValueSet.second;
 
+    CQChartsModelIndex groupModelInd(data.row, groupColumn, data.parent);
+
     bool ok;
 
-    QVariant value = modelValue(data.row, groupColumn, data.parent, ok);
+    QVariant value = modelValue(groupModelInd, ok);
 
     if (! ok)
       continue;
@@ -490,12 +515,13 @@ createObjs(PlotObjs &objs) const
         //---
 
         // get x, y value
+        CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+        CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+
         double x, y;
 
-        bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                          x, plot_->isLogX(), data.row);
-        bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                          y, plot_->isLogY(), data.row);
+        bool ok1 = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
+        bool ok2 = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
 
         if (! ok1) x = data.row;
         if (! ok2) y = data.row;
@@ -508,7 +534,9 @@ createObjs(PlotObjs &objs) const
         // get optional name
         bool ok;
 
-        QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+        CQChartsModelIndex nameModelInd(data.row, plot_->nameColumn(), data.parent);
+
+        QString name = plot_->modelString(nameModelInd, ok);
 
         //---
 
@@ -591,9 +619,11 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
     if (pv != groupValueSets_.end())
       groupData.valueSet = (*pv).second;
 
+    CQChartsModelIndex groupModelInd(data.row, groupData.column, data.parent);
+
     bool ok3;
 
-    groupData.str = modelString(data.row, groupData.column, data.parent, ok3);
+    groupData.str = modelString(groupModelInd, ok3);
 
     groupData.ind = groupData.valueSet->sind(groupData.str);
 
@@ -617,7 +647,9 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
   //---
 
-  QModelIndex xInd  = modelIndex(data.row, xColumn(), data.parent);
+  CQChartsModelIndex xModelInd(data.row, xColumn(), data.parent);
+
+  QModelIndex xInd  = modelIndex(xModelInd);
   QModelIndex xInd1 = normalizeIndex(xInd);
 
   CQChartsHierScatterPoint point(group, x, y, name, data.row, xInd1);

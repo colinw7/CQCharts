@@ -49,6 +49,18 @@ class CQChartsColumnBucket {
   const CQBucketer &bucketer() const { return bucketer_; }
   void setBucketer(const CQBucketer &v);
 
+  //---
+
+  bool isValid() const {
+    if (dataType() == DataType::NONE)
+      return false;
+
+    if (dataType() == DataType::COLUMN && columnType() == ColumnType::NONE)
+      return false;
+
+    return true;
+  }
+
   void reset();
 
   void clear();

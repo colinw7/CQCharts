@@ -31,6 +31,7 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(QString id             READ id                                      )
   Q_PROPERTY(QString name           READ name             WRITE setName          )
   Q_PROPERTY(QString filename       READ filename         WRITE setFilename      )
+  Q_PROPERTY(QString desc           READ desc)
   Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
   Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
@@ -99,6 +100,11 @@ class CQChartsModelData : public QObject {
   // get/set file name
   QString filename() const;
   void setFilename(const QString &s);
+
+  //---
+
+  // get description
+  QString desc() const;
 
   //---
 

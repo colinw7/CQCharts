@@ -1244,7 +1244,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     auto ps = setWhiskerMap.find(setId);
 
     if (ps == setWhiskerMap.end()) {
-      auto setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
+      SetWhiskerMap &setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
 
       auto ps1 = setWhiskerMap1.find(setId);
 
@@ -3077,8 +3077,6 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   options.contrastAlpha = plot_->textContrastAlpha();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
-
-//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void
@@ -3118,8 +3116,6 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   options.contrastAlpha = plot_->textContrastAlpha();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
-
-//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void

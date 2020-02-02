@@ -406,6 +406,27 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name, id, color columns optional
+
+  if (! checkColumns(nameColumns(), "Name", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_))
+    columnsValid = false;
+
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+
+  if (! columnsValid)
+    return false;
+
+  //---
+
   // init value sets
   //initValueSets();
 
@@ -625,8 +646,6 @@ loadHier() const
     RowVisitor(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *root) :
      plot_(plot) {
       hierStack_.push_back(root);
-
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
@@ -679,10 +698,12 @@ loadHier() const
 
       CQChartsTreeMapNode *node = plot_->addNode(parentHier(), name, size, nameInd);
 
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+
+        if (plot_->columnColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -697,11 +718,13 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(data.row, plot_->nameColumns().column(), data.parent);
+      CQChartsModelIndex nameModelInd(data.row, plot_->nameColumns().column(), data.parent);
+
+      nameInd = plot_->modelIndex(nameModelInd);
 
       bool ok;
 
-      name = plot_->modelString(data.row, plot_->nameColumns().column(), data.parent, ok);
+      name = plot_->modelString(nameModelInd, ok);
 
       return ok;
     }
@@ -712,26 +735,36 @@ loadHier() const
       if (! plot_->valueColumn().isValid())
         return true;
 
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
       bool ok = true;
 
-      if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
-      else if (valueColumnType_ == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
+      if      (plot_->valueColumnType() == ColumnType::REAL)
+        size = plot_->modelReal(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::INTEGER)
+        size = (double) plot_->modelInteger(valueModelInd, ok);
       else
         ok = false;
 
-      if (ok && size <= 0.0)
-        ok = false;
+      if (! ok)
+        return addDataError(valueModelInd, "Invalid numeric value");
 
-      return ok;
+      if (size <= 0.0)
+        return addDataError(valueModelInd, "Non-positive value");
+
+      return true;
+    }
+
+   private:
+    bool addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsTreeMapPlot *>(plot_)->addDataError(ind, msg);
+      return false;
     }
 
    private:
     using HierStack = std::vector<CQChartsTreeMapHierNode *>;
 
-    const CQChartsTreeMapPlot* plot_            { nullptr };
-    ColumnType                 valueColumnType_ { ColumnType::NONE };
+    const CQChartsTreeMapPlot* plot_ { nullptr };
     HierStack                  hierStack_;
   };
 
@@ -803,7 +836,6 @@ loadFlat() const
    public:
     RowVisitor(const CQChartsTreeMapPlot *plot) :
      plot_(plot) {
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -823,28 +855,34 @@ loadFlat() const
       if (plot_->valueColumn().isValid()) {
         bool ok2 = true;
 
-        if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
-        else if (valueColumnType_ == ColumnType::INTEGER)
-          size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        if      (plot_->valueColumnType() == ColumnType::REAL)
+          size = plot_->modelReal(valueModelInd, ok2);
+        else if (plot_->valueColumnType() == ColumnType::INTEGER)
+          size = (double) plot_->modelInteger(valueModelInd, ok2);
         else
           ok2 = false;
 
-        if (ok2 && size <= 0.0)
-          ok2 = false;
-
         if (! ok2)
-          return State::SKIP;
+          return addDataError(valueModelInd, "Invalid numeric value");
+
+        if (size <= 0.0)
+          return addDataError(valueModelInd, "Non-positive value");
+
+        return State::OK;
       }
 
       //---
 
       CQChartsTreeMapNode *node = plot_->addNode(nameStrs, size, nameInd1);
 
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+
+        if (plot_->columnColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -852,8 +890,13 @@ loadFlat() const
     }
 
    private:
-    const CQChartsTreeMapPlot* plot_            { nullptr };
-    ColumnType                 valueColumnType_ { ColumnType::NONE };
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsTreeMapPlot *>(plot_)->addDataError(ind, msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsTreeMapPlot* plot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -950,10 +993,14 @@ addExtraNodes(CQChartsTreeMapHierNode *hier) const
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
-    CQChartsColor color;
+    if (colorColumn().isValid()) {
+      CQChartsColor color;
 
-    if (columnColor(ind1.row(), ind1.parent(), color))
-      node->setColor(color);
+      CQChartsModelIndex colorInd(ind1.row(), colorColumn(), ind1.parent());
+
+      if (columnColor(colorInd, color))
+        node->setColor(color);
+    }
 
     node->setDepth (hier->depth() + 1);
     node->setFiller(true);
@@ -1426,9 +1473,11 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
+    CQChartsModelIndex colorInd1(ind1.row(), plot_->colorColumn(), ind1.parent());
+
     bool ok;
 
-    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1486,7 +1535,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point point;
 
   if (isPoint)
-    point = CQChartsGeom::Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+    point = CQChartsGeom::Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
   else
     bbox = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
 

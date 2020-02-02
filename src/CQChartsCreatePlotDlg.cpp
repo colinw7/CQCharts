@@ -14,6 +14,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetailsWidget.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelChooser.h>
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
@@ -63,7 +64,7 @@ init()
 {
 #if 0
   auto createSep = [](const QString &name) -> QFrame * {
-    QFrame *sep = CQUtil::makeWidget<QFrame>(name);
+    auto sep = CQUtil::makeWidget<QFrame>(name);
 
     sep->setFixedHeight(4);
     sep->setFrameStyle(QFrame::Panel | QFrame::Sunken);
@@ -81,17 +82,26 @@ init()
 
   //----
 
-  if (! CQChartsModelUtil::isHierarchical(model_.data())) {
-    (void) modelData_->addSummaryModel();
-  }
-
-  //----
-
   auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //----
 
-  CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
+  auto modelChooserFrame  = CQUtil::makeWidget<QFrame>("modelChooserFrame");
+  auto modelChooserLayout = CQUtil::makeLayout<QHBoxLayout>(modelChooserFrame, 2, 2);
+
+  modelChooser_ = new CQChartsModelChooser(charts_);
+
+  connect(modelChooser_, SIGNAL(currentModelChanged()), this, SLOT(modelChangeSlot()));
+
+  modelChooserLayout->addWidget (CQUtil::makeLabelWidget<QLabel>("Model", "modelLabel"));
+  modelChooserLayout->addWidget (modelChooser_);
+  modelChooserLayout->addStretch(1);
+
+  layout->addWidget(modelChooserFrame);
+
+  //----
+
+  auto area = CQUtil::makeWidget<CQTabSplit>("area");
 
   area->setOrientation(Qt::Vertical);
   area->setGrouped(true);
@@ -102,13 +112,13 @@ init()
   //----
 
   // add data frame
-  QFrame *dataFrame = createDataFrame();
+  auto dataFrame = createDataFrame();
 
   area->addWidget(dataFrame, "Plot Data");
 
   //----
 
-  CQTabSplit *dataArea = CQUtil::makeWidget<CQTabSplit>("dataArea");
+  auto dataArea = CQUtil::makeWidget<CQTabSplit>("dataArea");
 
   dataArea->setOrientation(Qt::Vertical);
   dataArea->setGrouped(true);
@@ -119,27 +129,27 @@ init()
   //---
 
   // add summary frame
-  QFrame *summaryFrame = createSummaryFrame();
+  auto summaryFrame = createSummaryFrame();
 
   dataArea->addWidget(summaryFrame, "Model Data");
 
   //----
 
   // add details frame
-  QFrame *detailsFrame = createDetailsFrame();
+  auto detailsFrame = createDetailsFrame();
 
   dataArea->addWidget(detailsFrame, "Model Details");
 
   //----
 
   // add preview frame
-  QFrame *previewFrame = createPreviewFrame();
+  auto previewFrame = createPreviewFrame();
 
   dataArea->addWidget(previewFrame, "Plot Preview");
 
   //----
 
-  //QFrame *sep1 = createSep("sep1");
+  //auto sep1 = createSep("sep1");
 
   //layout->addWidget(sep1);
 
@@ -151,14 +161,14 @@ init()
 
   //----
 
-  //QFrame *sep2 = createSep("sep2");
+  //auto sep2 = createSep("sep2");
 
   //layout->addWidget(sep2);
 
   //-------
 
   // OK, Apply, Cancel Buttons
-  CQChartsDialogButtons *buttons = new CQChartsDialogButtons(this);
+  auto buttons = new CQChartsDialogButtons(this);
 
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
@@ -178,6 +188,10 @@ init()
 
   initialized_ = true;
 
+  //---
+
+  updateModelData();
+
   validateSlot();
 }
 
@@ -185,8 +199,7 @@ QFrame *
 CQChartsCreatePlotDlg::
 createDataFrame()
 {
-  QFrame *dataFrame = CQUtil::makeWidget<QFrame>("data");
-
+  auto dataFrame  = CQUtil::makeWidget<QFrame>("data");
   auto dataLayout = CQUtil::makeLayout<QVBoxLayout>(dataFrame, 2, 2);
 
   //----
@@ -196,7 +209,7 @@ createDataFrame()
   dataLayout->addLayout(typeLayout);
 
   // create type combo
-  QFrame *typeComboFrame = createTypeCombo();
+  auto typeComboFrame = createTypeCombo();
 
   typeLayout->addWidget(typeComboFrame);
 
@@ -215,13 +228,13 @@ createDataFrame()
 
   //----
 
-  QTabWidget *dataTab = CQUtil::makeWidget<QTabWidget>("dataTab");
+  auto dataTab = CQUtil::makeWidget<QTabWidget>("dataTab");
 
-  QFrame *typeFrame = createTypeDataFrame();
+  auto typeFrame = createTypeDataFrame();
 
   dataTab->addTab(typeFrame, "Type");
 
-  QFrame *genFrame = createGeneralDataFrame();
+  auto genFrame = createGeneralDataFrame();
 
   dataTab->addTab(genFrame, "General");
 
@@ -236,8 +249,7 @@ QFrame *
 CQChartsCreatePlotDlg::
 createTypeDataFrame()
 {
-  QFrame *typeFrame = CQUtil::makeWidget<QFrame>("type");
-
+  auto typeFrame  = CQUtil::makeWidget<QFrame>("type");
   auto typeLayout = CQUtil::makeLayout<QVBoxLayout>(typeFrame, 2, 2);
 
   //----
@@ -247,16 +259,15 @@ createTypeDataFrame()
 
   sortedPlotTypes(plotTypes);
 
-  QTabWidget *typeTab = CQUtil::makeWidget<QTabWidget>("typeTab");
+  auto typeTab = CQUtil::makeWidget<QTabWidget>("typeTab");
 
   typeLayout->addWidget(typeTab);
 
   // plot type widgets in stack (one per type)
-  QFrame *plotDataFrame = CQUtil::makeWidget<QFrame>("plotDataFrame");
-
+  auto plotDataFrame  = CQUtil::makeWidget<QFrame>("plotDataFrame");
   auto plotDataLayout = CQUtil::makeLayout<QVBoxLayout>(plotDataFrame, 2, 2);
 
-  QCheckBox *plotDataCheck = CQUtil::makeLabelWidget<QCheckBox>("Advanced", "plotDataCheck");
+  auto plotDataCheck = CQUtil::makeLabelWidget<QCheckBox>("Advanced", "plotDataCheck");
 
   plotDataCheck->setToolTip("Show advanced plot options");
 
@@ -295,7 +306,7 @@ createTypeDataFrame()
 
   typeLayout->addWidget(whereFrame_);
 
-  QLabel *whereLabel = CQUtil::makeLabelWidget<QLabel>("Where", "whereLabel");
+  auto whereLabel = CQUtil::makeLabelWidget<QLabel>("Where", "whereLabel");
 
   whereLayout->addWidget(whereLabel);
 
@@ -321,15 +332,15 @@ CQChartsCreatePlotDlg::
 createTypeCombo()
 {
   // type combo
-  QFrame *typeComboFrame = CQUtil::makeWidget<QFrame>("typeComboFrame");
+  auto typeComboFrame = CQUtil::makeWidget<QFrame>("typeComboFrame");
 
   auto typeComboLayout = CQUtil::makeLayout<QHBoxLayout>(typeComboFrame, 0, 2);
 
-  QLabel *typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
+  auto typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
 
   typeComboLayout->addWidget(typeLabel);
 
-  CQCustomCombo *typeCombo = CQUtil::makeWidget<CQCustomCombo>("typeCombo");
+  auto typeCombo = CQUtil::makeWidget<CQCustomCombo>("typeCombo");
 
   typeComboLayout->addWidget(typeCombo);
 
@@ -384,6 +395,143 @@ createTypeCombo()
   typeComboLayout->addStretch(1);
 
   return typeComboFrame;
+}
+
+void
+CQChartsCreatePlotDlg::
+modelChangeSlot()
+{
+  updateModelData();
+
+  validateSlot();
+}
+
+void
+CQChartsCreatePlotDlg::
+updateModelData()
+{
+  disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
+  disconnect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+
+  disconnect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
+            this, SLOT(summaryEnabledSlot()));
+  disconnect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
+             this, SLOT(updatePreviewSlot()));
+  disconnect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
+             this, SLOT(updateSummaryTypeSlot()));
+  disconnect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
+             this, SLOT(updatePreviewSlot()));
+  disconnect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
+             this, SLOT(updatePreviewSlot()));
+  disconnect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
+             this, SLOT(updatePreviewSlot()));
+
+  //---
+
+  modelData_ = charts_->currentModelData();
+  assert(modelData_);
+
+  model_ = modelData_->currentModel();
+
+  //---
+
+  if (! CQChartsModelUtil::isHierarchical(model_.data()))
+    (void) modelData_->addSummaryModel();
+
+  //---
+
+  // update summary model
+  auto summaryModel = modelData_->summaryModel();
+
+  int nr = model_.data()->rowCount();
+  int nc = model_.data()->columnCount();
+
+  summaryEditData_.enabledCheck->setChecked(modelData_->isSummaryEnabled());
+
+  summaryEditData_.maxRows->setRange(1, nr);
+  summaryEditData_.maxRows->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
+
+  if (summaryModel)
+    summaryEditData_.maxRows->setValue(summaryModel->maxRows());
+  else
+    summaryEditData_.maxRows->setValue(nr);
+
+  if (summaryModel) {
+    if      (summaryModel->mode() == CQSummaryModel::Mode::RANDOM)
+      summaryEditData_.typeCombo->setCurrentIndex(1);
+    else if (summaryModel->mode() == CQSummaryModel::Mode::SORTED)
+      summaryEditData_.typeCombo->setCurrentIndex(2);
+    else if (summaryModel->mode() == CQSummaryModel::Mode::PAGED)
+      summaryEditData_.typeCombo->setCurrentIndex(3);
+  }
+
+  summaryEditData_.sortedColEdit->setRange(0, nc - 1);
+  summaryEditData_.sortedColEdit->setToolTip(
+    QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
+
+  if (summaryModel)
+    summaryEditData_.sortedColEdit->setValue(summaryModel->sortColumn());
+
+  summaryEditData_.pageSizeEdit->setRange(1, nr);
+  summaryEditData_.pageSizeEdit->setToolTip(QString("Set Preview Page Size (1 -> %1)").arg(nr));
+
+  if (summaryModel)
+    summaryEditData_.pageSizeEdit->setValue(summaryModel->pageSize());
+
+  int np = (nr + summaryEditData_.pageSizeEdit->value() - 1)/
+           summaryEditData_.pageSizeEdit->value();
+
+  summaryEditData_.currentPageEdit->setRange(0, np - 1);
+  summaryEditData_.currentPageEdit->setToolTip(
+    QString("Set Preview Page Count (0 -> %1)").arg(np - 1));
+
+  if (summaryModel)
+    summaryEditData_.currentPageEdit->setValue(summaryModel->currentPage());
+
+  //--
+
+  if (modelData_->isSummaryEnabled() && summaryModel) {
+    ModelP summaryModelP = modelData_->summaryModelP();
+
+    summaryEditData_.modelView->setModel(summaryModelP,
+      CQChartsModelUtil::isHierarchical(summaryModel));
+  }
+  else {
+    summaryEditData_.modelView->setModel(model_,
+      CQChartsModelUtil::isHierarchical(model_.data()));
+  }
+
+  summaryEditData_.maxRows        ->setEnabled(summaryModel);
+  summaryEditData_.typeCombo      ->setEnabled(summaryModel);
+  summaryEditData_.typeStack      ->setEnabled(summaryModel);
+  summaryEditData_.sortedColEdit  ->setEnabled(summaryModel);
+  summaryEditData_.pageSizeEdit   ->setEnabled(summaryModel);
+  summaryEditData_.currentPageEdit->setEnabled(summaryModel);
+
+  //---
+
+  // update model details
+  auto details = modelData_->details();
+
+  detailsWidget_->setDetails(details);
+
+  //---
+
+  connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
+          this, SLOT(summaryEnabledSlot()));
+  connect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
+  connect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(updateSummaryTypeSlot()));
+  connect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
+  connect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
+  connect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
+
+  connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
+  connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
 }
 
 void
@@ -641,17 +789,12 @@ QFrame *
 CQChartsCreatePlotDlg::
 createDetailsFrame()
 {
-  QFrame *detailsFrame = CQUtil::makeWidget<QFrame>("details");
-
+  auto detailsFrame  = CQUtil::makeWidget<QFrame>("details");
   auto detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 0, 2);
 
   detailsWidget_ = new CQChartsModelDetailsWidget(charts_);
 
   detailsLayout->addWidget(detailsWidget_);
-
-  CQChartsModelDetails *details = modelData_->details();
-
-  detailsWidget_->setDetails(details);
 
   return detailsFrame;
 }
@@ -660,7 +803,7 @@ QFrame *
 CQChartsCreatePlotDlg::
 createSummaryFrame()
 {
-  QFrame *summaryFrame = CQUtil::makeWidget<QFrame>("summary");
+  auto summaryFrame = CQUtil::makeWidget<QFrame>("summary");
 
   summaryFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -668,171 +811,124 @@ createSummaryFrame()
 
   //--
 
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
+  auto summaryControl = CQUtil::makeWidget<QFrame>("summaryControl");
 
-  if (summaryModel) {
-    int nr = model_.data()->rowCount();
-    int nc = model_.data()->columnCount();
+  summaryControl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QFrame *summaryControl = CQUtil::makeWidget<QFrame>("summaryControl");
+  auto summaryControlLayout = CQUtil::makeLayout<QHBoxLayout>(summaryControl, 2, 2);
 
-    summaryControl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  //---
 
-    auto summaryControlLayout = CQUtil::makeLayout<QHBoxLayout>(summaryControl, 2, 2);
+  summaryEditData_.enabledCheck =
+    CQUtil::makeLabelWidget<QCheckBox>("Summary", "summaryEnabled");
 
-    //---
+  summaryEditData_.enabledCheck->setToolTip("Enable summary of model data");
 
-    summaryEditData_.enabledCheck =
-      CQUtil::makeLabelWidget<QCheckBox>("Summary", "summaryEnabled");
+  connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
+          this, SLOT(summaryEnabledSlot()));
 
-    summaryEditData_.enabledCheck->setChecked(modelData_->isSummaryEnabled());
-    summaryEditData_.enabledCheck->setToolTip("Enable summary of model data");
+  summaryControlLayout->addWidget(summaryEditData_.enabledCheck);
 
-    connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
-            this, SLOT(summaryEnabledSlot()));
+  //---
 
-    summaryControlLayout->addWidget(summaryEditData_.enabledCheck);
+  summaryEditData_.maxRows = CQUtil::makeWidget<CQIntegerSpin>("summaryMaxRows");
 
-    //---
+  connect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    summaryEditData_.maxRows = CQUtil::makeWidget<CQIntegerSpin>("summaryMaxRows");
+  summaryControlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Max Rows", "maxRows"));
+  summaryControlLayout->addWidget(summaryEditData_.maxRows);
 
-    summaryEditData_.maxRows->setRange(1, nr);
-    summaryEditData_.maxRows->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
-    summaryEditData_.maxRows->setValue(summaryModel->maxRows());
+  //---
 
-    connect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+  summaryEditData_.typeCombo = CQUtil::makeWidget<QComboBox>("summaryTypeCombo");
 
-    summaryControlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Max Rows", "maxRows"));
-    summaryControlLayout->addWidget(summaryEditData_.maxRows);
+  summaryEditData_.typeCombo->addItems(
+    QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
 
-    //---
+  summaryEditData_.typeCombo->setToolTip("Summary data selection type");
 
-    summaryEditData_.typeCombo = CQUtil::makeWidget<QComboBox>("summaryTypeCombo");
+  connect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(updateSummaryTypeSlot()));
 
-    summaryEditData_.typeCombo->addItems(
-      QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
+  summaryControlLayout->addWidget(summaryEditData_.typeCombo);
 
-    summaryEditData_.typeCombo->setToolTip("Summary data selection type");
+  //----
 
-    if      (summaryModel->mode() == CQSummaryModel::Mode::RANDOM)
-      summaryEditData_.typeCombo->setCurrentIndex(1);
-    else if (summaryModel->mode() == CQSummaryModel::Mode::SORTED)
-      summaryEditData_.typeCombo->setCurrentIndex(2);
-    else if (summaryModel->mode() == CQSummaryModel::Mode::PAGED)
-      summaryEditData_.typeCombo->setCurrentIndex(3);
+  summaryEditData_.typeStack = CQUtil::makeWidget<QStackedWidget>("summaryTypeStack");
 
-    connect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(updateSummaryTypeSlot()));
+  summaryControlLayout->addWidget(summaryEditData_.typeStack);
 
-    summaryControlLayout->addWidget(summaryEditData_.typeCombo);
+  //---
 
-    //----
+  auto normalTypeFrame = CQUtil::makeWidget<QFrame>("normalTypeFrame");
 
-    summaryEditData_.typeStack = CQUtil::makeWidget<QStackedWidget>("summaryTypeStack");
+  summaryEditData_.typeStack->addWidget(normalTypeFrame);
 
-    summaryControlLayout->addWidget(summaryEditData_.typeStack);
+  //---
 
-    //---
+  auto randomTypeFrame = CQUtil::makeWidget<QFrame>("randomTypeFrame");
 
-    QFrame *normalTypeFrame = CQUtil::makeWidget<QFrame>("normalTypeFrame");
+  summaryEditData_.typeStack->addWidget(randomTypeFrame);
 
-    summaryEditData_.typeStack->addWidget(normalTypeFrame);
+  //---
 
-    //---
+  auto sortedTypeFrame = CQUtil::makeWidget<QFrame>("sortedTypeFrame");
 
-    QFrame *randomTypeFrame = CQUtil::makeWidget<QFrame>("randomTypeFrame");
+  summaryEditData_.typeStack->addWidget(sortedTypeFrame);
 
-    summaryEditData_.typeStack->addWidget(randomTypeFrame);
+  auto sortedTypeLayout = CQUtil::makeLayout<QHBoxLayout>(sortedTypeFrame, 0, 2);
 
-    //---
+  //--
 
-    QFrame *sortedTypeFrame = CQUtil::makeWidget<QFrame>("sortedTypeFrame");
+  summaryEditData_.sortedColEdit = CQUtil::makeWidget<CQIntegerSpin>("summarySortedColEdit");
 
-    summaryEditData_.typeStack->addWidget(sortedTypeFrame);
+  connect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
 
-    auto sortedTypeLayout = CQUtil::makeLayout<QHBoxLayout>(sortedTypeFrame, 0, 2);
+  sortedTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Sort Column", "sortCol"));
+  sortedTypeLayout->addWidget(summaryEditData_.sortedColEdit);
 
-    //--
+  sortedTypeLayout->addStretch(1);
 
-    summaryEditData_.sortedColEdit = CQUtil::makeWidget<CQIntegerSpin>("summarySortedColEdit");
+  //---
 
-    summaryEditData_.sortedColEdit->setRange(0, nc - 1);
-    summaryEditData_.sortedColEdit->setValue(summaryModel->sortColumn());
-    summaryEditData_.sortedColEdit->setToolTip(
-      QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
+  auto pageSizeTypeFrame = CQUtil::makeWidget<QFrame>("pageSizeTypeFrame");
 
-    connect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
-            this, SLOT(updatePreviewSlot()));
+  summaryEditData_.typeStack->addWidget(pageSizeTypeFrame);
 
-    sortedTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Sort Column", "sortCol"));
-    sortedTypeLayout->addWidget(summaryEditData_.sortedColEdit);
+  auto pageSizeTypeLayout = CQUtil::makeLayout<QHBoxLayout>(pageSizeTypeFrame, 0, 2);
 
-    sortedTypeLayout->addStretch(1);
+  //--
 
-    //---
+  summaryEditData_.pageSizeEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryPageSizeEdit");
 
-    QFrame *pageSizeTypeFrame = CQUtil::makeWidget<QFrame>("pageSizeTypeFrame");
+  connect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
 
-    summaryEditData_.typeStack->addWidget(pageSizeTypeFrame);
+  pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Page Size", "pointSize"));
+  pageSizeTypeLayout->addWidget(summaryEditData_.pageSizeEdit);
 
-    auto pageSizeTypeLayout = CQUtil::makeLayout<QHBoxLayout>(pageSizeTypeFrame, 0, 2);
+  //--
 
-    //--
+  summaryEditData_.currentPageEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryCurrentPageEdit");
 
-    summaryEditData_.pageSizeEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryPageSizeEdit");
+  connect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
+          this, SLOT(updatePreviewSlot()));
 
-    summaryEditData_.pageSizeEdit->setRange(1, nr);
-    summaryEditData_.pageSizeEdit->setValue(summaryModel->pageSize());
-    summaryEditData_.pageSizeEdit->setToolTip(QString("Set Preview Page Size (1 -> %1)").arg(nr));
+  pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Current Page", "currentPage"));
+  pageSizeTypeLayout->addWidget(summaryEditData_.currentPageEdit);
 
-    connect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
-            this, SLOT(updatePreviewSlot()));
+  pageSizeTypeLayout->addStretch(1);
 
-    pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Page Size", "pointSize"));
-    pageSizeTypeLayout->addWidget(summaryEditData_.pageSizeEdit);
+  //---
 
-    //--
+  summaryControlLayout->addStretch(1);
 
-    summaryEditData_.currentPageEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryCurrentPageEdit");
-
-    int np = (nr + summaryEditData_.pageSizeEdit->value() - 1)/
-             summaryEditData_.pageSizeEdit->value();
-
-    summaryEditData_.currentPageEdit->setRange(0, np - 1);
-    summaryEditData_.currentPageEdit->setValue(summaryModel->currentPage());
-    summaryEditData_.currentPageEdit->setToolTip(
-      QString("Set Preview Page Count (0 -> %1)").arg(np - 1));
-
-    connect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
-            this, SLOT(updatePreviewSlot()));
-
-    pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Current Page", "currentPage"));
-    pageSizeTypeLayout->addWidget(summaryEditData_.currentPageEdit);
-
-    pageSizeTypeLayout->addStretch(1);
-
-    //---
-
-    summaryControlLayout->addStretch(1);
-
-    summaryLayout->addWidget(summaryControl);
-  }
+  summaryLayout->addWidget(summaryControl);
 
   //--
 
   summaryEditData_.modelView = new CQChartsModelViewHolder(charts_);
-
-  if (modelData_->isSummaryEnabled() && summaryModel) {
-    ModelP summaryModelP = modelData_->summaryModelP();
-
-    summaryEditData_.modelView->setModel(summaryModelP,
-      CQChartsModelUtil::isHierarchical(summaryModel));
-  }
-  else {
-    summaryEditData_.modelView->setModel(model_,
-      CQChartsModelUtil::isHierarchical(model_.data()));
-  }
 
   summaryLayout->addWidget(summaryEditData_.modelView);
 
@@ -845,14 +941,12 @@ QFrame *
 CQChartsCreatePlotDlg::
 createPreviewFrame()
 {
-  QFrame *previewFrame = CQUtil::makeWidget<QFrame>("preview");
-
+  auto previewFrame  = CQUtil::makeWidget<QFrame>("preview");
   auto previewLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 0, 2);
 
   //--
 
-  QFrame *previewControl = CQUtil::makeWidget<QFrame>("previewControl");
-
+  auto previewControl       = CQUtil::makeWidget<QFrame>("previewControl");
   auto previewControlLayout = CQUtil::makeLayout<QHBoxLayout>(previewControl, 2, 2);
 
   previewEnabledCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Enabled", "previewEnabled");
@@ -869,7 +963,7 @@ createPreviewFrame()
 
   //--
 
-  //QTabWidget *previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
+  //auto previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
 
   //previewLayout->addWidget(previewTab);
 
@@ -891,7 +985,7 @@ CQChartsCreatePlotDlg::
 addPlotWidgets(CQChartsPlotType *type, int ind)
 {
   // add widgets for type
-  QFrame *basicFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
+  auto basicFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
 
   basicPlotDataStack_->addWidget(basicFrame);
 
@@ -909,7 +1003,7 @@ addPlotWidgets(CQChartsPlotType *type, int ind)
   //------
 
   // add widgets for type
-  QFrame *advancedFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
+  auto advancedFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
 
   advancedPlotDataStack_->addWidget(advancedFrame);
 
@@ -941,7 +1035,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
   ChildGroups childGroups;
 
   for (const auto &p : type->parameterGroups()) {
-    CQChartsPlotParameterGroup *parameterGroup = p.second;
+    auto parameterGroup = p.second;
 
     if (parameterGroup->isHidden())
       continue;
@@ -970,7 +1064,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
     auto pg = groupTab.find(-1);
 
     if (pg == groupTab.end()) {
-      QTabWidget *parameterGroupTab = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
+      auto parameterGroupTab = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
 
       layout->addWidget(parameterGroupTab, row, 0, 1, 5);
 
@@ -979,13 +1073,12 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
       pg = groupTab.insert(pg, GroupTab::value_type(-1, parameterGroupTab));
     }
 
-    QTabWidget *parameterGroupTab = (*pg).second;
+    auto parameterGroupTab = (*pg).second;
 
     //---
 
     // create frame for widgets and add to tab widget
-    QFrame *parameterGroupFrame = CQUtil::makeWidget<QFrame>(parameterGroup->name());
-
+    auto parameterGroupFrame  = CQUtil::makeWidget<QFrame>(parameterGroup->name());
     auto parameterGroupLayout = CQUtil::makeLayout<QGridLayout>(parameterGroupFrame, 2, 2);
 
     int row1 = 0;
@@ -1024,7 +1117,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
         auto pg = groupTab.find(parameterGroup->groupId());
 
         if (pg == groupTab.end()) {
-          QTabWidget *parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
+          auto parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
 
           parameterGroupLayout->addWidget(parameterGroupTab1, row1, 0);
 
@@ -1041,7 +1134,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
 
       int row2 = 0;
 
-      QFrame *parameterGroupFrame1 = CQUtil::makeWidget<QFrame>(parameterGroup1->name());
+      auto parameterGroupFrame1 = CQUtil::makeWidget<QFrame>(parameterGroup1->name());
 
       auto parameterGroupLayout1 = CQUtil::makeLayout<QGridLayout>(parameterGroupFrame1, 2, 2);
 
@@ -1260,9 +1353,9 @@ addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 {
   QString objName = parameter->name() + "Column";
 
-  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
+  auto label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
 
-  CQChartsColumnCombo *columnCombo = CQUtil::makeWidget<CQChartsColumnCombo>(objName + "Combo");
+  auto columnCombo = CQUtil::makeWidget<CQChartsColumnCombo>(objName + "Combo");
 
   CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
@@ -1346,7 +1439,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   // add attributes tip label
   QSize is = formatEditData.formatUpdate->iconSize();
 
-  QLabel *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
+  auto attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
   attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
   attributesLabel->setToolTip(parameter->attributes().summary());
@@ -1471,7 +1564,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
     // add attributes tip label
     QSize is = formatEditData.formatUpdate->iconSize();
 
-    QLabel *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
+    auto attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
     attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
     attributesLabel->setToolTip(parameter->attributes().summary());
@@ -1495,7 +1588,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   auto editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
+  auto label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   auto edit = CQUtil::makeWidget<CQChartsLineEdit>(parameter->name() + "_edit");
 
@@ -1527,7 +1620,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   auto editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
+  auto label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   editLayout->addWidget(label);
 
@@ -1578,7 +1671,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   auto editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
+  auto label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   editLayout->addWidget(label);
 
@@ -1623,7 +1716,7 @@ CQChartsCreatePlotDlg::
 addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
                      CQChartsPlotParameter *parameter)
 {
-  CQChartsEnumParameter *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
+  auto eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
 
   bool ok;
@@ -1637,7 +1730,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   editLayout->addWidget(label);
 
-  QComboBox *combo = CQUtil::makeWidget<QComboBox>(eparameter->name() + "_combo");
+  auto combo = CQUtil::makeWidget<QComboBox>(eparameter->name() + "_combo");
 
   QStringList names = eparameter->names();
 
@@ -1666,7 +1759,7 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
 {
   bool b = parameter->defValue().toBool();
 
-  QCheckBox *checkBox = CQUtil::makeLabelWidget<QCheckBox>(parameter->desc(), parameter->name());
+  auto checkBox = CQUtil::makeLabelWidget<QCheckBox>(parameter->desc(), parameter->name());
 
   checkBox->setChecked(b);
 
@@ -1761,7 +1854,7 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
   if (name != "")
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
 
-  CQChartsColumnLineEdit *edit = CQUtil::makeWidget<CQChartsColumnLineEdit>(objName + "Edit" );
+  auto edit = CQUtil::makeWidget<CQChartsColumnLineEdit>(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
 
@@ -1795,7 +1888,7 @@ addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
   if (name != "")
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
 
-  CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit(nullptr, isBasic);
+  auto edit = new CQChartsColumnsLineEdit(nullptr, isBasic);
   edit->setObjectName(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
@@ -1906,7 +1999,7 @@ setXYMin(const QString &id)
   if (! model_)
     return;
 
-  CQChartsPlotType *type = getPlotType();
+  auto type = getPlotType();
   if (! type) return;
 
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
@@ -1958,14 +2051,14 @@ setXYMin(const QString &id)
   if (! modelData_)
     return;
 
-  CQChartsModelDetails *details = modelData_->details();
+  auto details = modelData_->details();
   if (! details) return;
 
   if (column.type() != CQChartsColumn::Type::DATA &&
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+  auto columnDetails = details->columnDetails(column);
   if (! columnDetails) return;
 
   if      (id == "xmin") {
@@ -1992,32 +2085,6 @@ setXYMin(const QString &id)
 
 void
 CQChartsCreatePlotDlg::
-updateModelData()
-{
-  summaryEditData_.enabledCheck->setChecked(modelData_->isSummaryEnabled());
-
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
-
-  if (summaryModel) {
-    summaryEditData_.maxRows->setValue(summaryModel->maxRows());
-
-    if      (summaryModel->mode() == CQSummaryModel::Mode::RANDOM)
-      summaryEditData_.typeCombo->setCurrentIndex(1);
-    else if (summaryModel->mode() == CQSummaryModel::Mode::SORTED)
-      summaryEditData_.typeCombo->setCurrentIndex(2);
-    else if (summaryModel->mode() == CQSummaryModel::Mode::PAGED)
-      summaryEditData_.typeCombo->setCurrentIndex(3);
-    else
-      summaryEditData_.typeCombo->setCurrentIndex(0);
-
-    summaryEditData_.sortedColEdit  ->setValue(summaryModel->sortColumn());
-    summaryEditData_.pageSizeEdit   ->setValue(summaryModel->pageSize());
-    summaryEditData_.currentPageEdit->setValue(summaryModel->currentPage());
-  }
-}
-
-void
-CQChartsCreatePlotDlg::
 autoPlaceSlot(int state)
 {
   posEdit_->setEnabled(! state);
@@ -2030,7 +2097,7 @@ validateSlot()
   if (! initialized_)
     return;
 
-  CQChartsPlotType *type = getPlotType();
+  auto type = getPlotType();
   if (! type) return;
 
   //---
@@ -2194,12 +2261,12 @@ updatePreviewPlot(bool valid)
 {
   if (valid && previewEnabledCheck_->isChecked()) {
     // create plot for typename of current tab
-    CQChartsPlotType *type = getPlotType();
+    auto type = getPlotType();
     assert(type);
 
     ModelP previewModel;
 
-    CQSummaryModel *summaryModel = modelData_->summaryModel();
+    auto summaryModel = modelData_->summaryModel();
 
     if (modelData_->isSummaryEnabled() && summaryModel)
       previewModel = modelData_->summaryModelP();
@@ -2240,12 +2307,10 @@ void
 CQChartsCreatePlotDlg::
 updateFormatSlot()
 {
-  QToolButton *formatUpdate = qobject_cast<QToolButton *>(sender());
+  auto formatUpdate = qobject_cast<QToolButton *>(sender());
+  if (! formatUpdate) return;
 
-  if (! formatUpdate)
-    return;
-
-  CQChartsPlotType *type = getPlotType();
+  auto type = getPlotType();
   if (! type) return;
 
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
@@ -2297,7 +2362,7 @@ updateFormatSlot()
 
   QString typeStr;
 
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
+  auto summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
     if (! CQChartsModelUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
@@ -2320,7 +2385,7 @@ validate(QStringList &msgs)
 
   CQChartsModelData *modelData = nullptr;
 
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
+  auto summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel)
     modelData = modelData_->summaryModelData();
@@ -2329,12 +2394,12 @@ validate(QStringList &msgs)
 
   if (! modelData) { msgs << "no model data"; return false; }
 
-  const CQChartsModelDetails *details = modelData->details();
+  auto details = modelData->details();
 
   //---
 
   // create plot for typename of current tab
-  CQChartsPlotType *type = getPlotType();
+  auto type = getPlotType();
 
   if (! type) {
     msgs << "invalid plot type";
@@ -2384,7 +2449,7 @@ validate(QStringList &msgs)
 
       if (column.type() == CQChartsColumn::Type::DATA ||
           column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+        auto columnDetails = details->columnDetails(column);
         assert(columnDetails);
 
         if (parameter->isMonotonic()) {
@@ -2489,7 +2554,7 @@ void
 CQChartsCreatePlotDlg::
 updatePreviewSlot()
 {
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
+  auto summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
     disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
@@ -2559,18 +2624,18 @@ applySlot()
   plot_ = nullptr;
 
   // create plot for typename of current tab
-  CQChartsPlotType *type = getPlotType();
+  auto type = getPlotType();
   if (! type) return false;
 
   // get or create view
   QString viewId = viewEdit_->text();
 
-  CQChartsView *view = charts()->getView(viewId);
+  auto view = charts()->getView(viewId);
 
   if (! view) {
     view = charts()->addView();
 
-    CQChartsWindow *window = charts()->createWindow(view);
+    auto window = charts()->createWindow(view);
 
     window->show();
 
@@ -2631,7 +2696,7 @@ getPlotType() const
   if (p == stackIndexPlotType_.end())
     return nullptr;
 
-  CQChartsPlotType *type = (*p).second;
+  auto type = (*p).second;
 
   return type;
 }
@@ -2642,7 +2707,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
 {
   ModelP model = plot->model();
 
-  CQChartsPlotType *type = plot->type();
+  auto type = plot->type();
 
   // set plot property for widgets for plot parameters
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
@@ -3028,10 +3093,10 @@ parseParameterRealEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
   auto p = plotData.realEdits.find(parameter->name());
   assert(p != plotData.realEdits.end());
 
-  QWidget *edit = (*p).second;
+  auto edit = (*p).second;
 
-  CQRealSpin       *spinEdit = qobject_cast<CQRealSpin       *>(edit);
-  CQChartsLineEdit *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
+  auto spinEdit = qobject_cast<CQRealSpin       *>(edit);
+  auto lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
 
   if (spinEdit)
     r = spinEdit->value();
@@ -3051,10 +3116,10 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
   auto p = plotData.intEdits.find(parameter->name());
   assert(p != plotData.intEdits.end());
 
-  QWidget *edit = (*p).second;
+  auto edit = (*p).second;
 
-  CQIntegerSpin    *spinEdit = qobject_cast<CQIntegerSpin    *>(edit);
-  CQChartsLineEdit *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
+  auto spinEdit = qobject_cast<CQIntegerSpin    *>(edit);
+  auto lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
 
   if (spinEdit)
     i = spinEdit->value();
@@ -3071,7 +3136,7 @@ bool
 CQChartsCreatePlotDlg::
 parseParameterEnumEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, int &i)
 {
-  CQChartsEnumParameter *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
+  auto eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
 
   auto p = plotData.enumEdits.find(eparameter->name());

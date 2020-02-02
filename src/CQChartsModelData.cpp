@@ -159,6 +159,19 @@ setFilename(const QString &s)
   }
 }
 
+QString
+CQChartsModelData::
+desc() const
+{
+  if (name().length())
+    return name();
+
+  if (filename().length())
+    return filename();
+
+  return id();
+}
+
 CQChartsModelDetails *
 CQChartsModelData::
 details()

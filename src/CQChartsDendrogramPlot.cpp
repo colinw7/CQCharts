@@ -154,6 +154,21 @@ calcRange() const
 
   CQChartsDendrogramPlot *th = const_cast<CQChartsDendrogramPlot *>(this);
 
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   delete th->dendrogram_;
 
   th->dendrogram_ = new CQChartsDendrogram;
@@ -172,14 +187,17 @@ calcRange() const
 
       //---
 
-      //QModelIndex nameInd  = modelIndex(data.row, plot_->nameColumn(), data.parent);
-      //QModelIndex nameInd1 = normalizeIndex(nameInd);
+      CQChartsModelIndex nameModelInd (data.row, plot_->nameColumn (), data.parent);
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+    //QModelIndex nameInd  = modelIndex(nameModelInd);
+    //QModelIndex nameInd1 = normalizeIndex(nameInd);
 
       //---
 
       bool ok1;
 
-      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok1);
+      QString name = plot_->modelString(nameModelInd, ok1);
 
       if (path.length())
         name = path + "/" + name;
@@ -188,7 +206,9 @@ calcRange() const
 
       bool ok2;
 
-      double value = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
+      double value = plot_->modelReal(valueModelInd, ok2);
+
+      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
 
       if (CMathUtil::isNaN(value))
         return State::SKIP;
@@ -201,6 +221,12 @@ calcRange() const
     }
 
     const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsDendrogramPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
 
    private:
     const CQChartsDendrogramPlot* plot_ { nullptr };
@@ -644,6 +670,4 @@ draw(CQChartsPaintDevice *device)
   options.contrastAlpha = plot_->textContrastAlpha();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p), name, options);
-
-//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(p), name);
 }

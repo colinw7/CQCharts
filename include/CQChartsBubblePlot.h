@@ -362,11 +362,17 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get/set name column
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
+  //! get/set value column
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
+
+  //---
+
+  ColumnType valueColumnType() const { return valueColumnType_; }
 
   //---
 
@@ -506,8 +512,13 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
  private:
   using GroupHierNodes = std::map<int,HierNode *>;
 
-  CQChartsColumn nameColumn_;            //!< name column
-  CQChartsColumn valueColumn_;           //!< value column
+  // columns
+  CQChartsColumn nameColumn_;  //!< name column
+  CQChartsColumn valueColumn_; //!< value column
+
+  ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
+
+  // options
   bool           valueLabel_  { false }; //!< draw value with name
   bool           sorted_      { false }; //!< sort nodes by value
   NodeData       nodeData_;              //!< node data

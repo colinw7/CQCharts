@@ -118,12 +118,16 @@ namespace CQChartsDrawUtil {
 void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush);
 
 void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
-                        const CQChartsLength &xsize=CQChartsLength(),
-                        const CQChartsLength &ysize=CQChartsLength(),
+                        const CQChartsLength &size=CQChartsLength(),
                         const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
+void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+                        const CQChartsLength &xsize, const CQChartsLength &ysize,
+                        const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
+
 void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
-                        const CQChartsLength &xsize=CQChartsLength(),
-                        const CQChartsLength &ysize=CQChartsLength());
+                        const CQChartsLength &size=CQChartsLength());
+void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
+                        const CQChartsLength &xsize, const CQChartsLength &ysize);
 
 void drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
                    const QString &text, const CQChartsTextOptions &options);

@@ -356,10 +356,10 @@ CQChartsModelColumnDetails::
 getLongNamedValues()
 {
   static QStringList namedValues = QStringList() <<
-   "name" << "type" << "minimum" << "maximum" << "average" << "standard_deviation" <<
-   "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
-   "num_null" << "median" << "lower_median" << "upper_median" <<
-   "outliers";
+    "name" << "type" << "minimum" << "maximum" << "mean" << "standard_deviation" <<
+    "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
+    "num_null" << "median" << "lower_median" << "upper_median" <<
+    "outliers";
 
   return namedValues;
 }
@@ -369,7 +369,7 @@ CQChartsModelColumnDetails::
 getShortNamedValues()
 {
   static QStringList namedValues = QStringList() <<
-   "min" << "max" << "mean" << "avg" << "stddev" << "std_dev";
+    "min" << "max" << "mean" << "avg" << "stddev" << "std_dev";
 
   return namedValues;
 }

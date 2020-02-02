@@ -260,9 +260,22 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+
   //---
 
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
+  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+
+  if (! columnsValid)
+    return false;
+
+  //---
 
   th->clearNodesAndEdges();
 
@@ -282,13 +295,18 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent, ok1);
-      double  value   = plot_->modelReal  (data.row, plot_->valueColumn(), data.parent, ok2);
+      QString linkStr = plot_->modelString(linkModelInd , ok1);
+      double  value   = plot_->modelReal  (valueModelInd, ok2);
 
-      if (! ok1 || ! ok2)
-        return State::SKIP;
+      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
+      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
+
+      //---
 
       QChar separator = (plot_->separator().length() ? plot_->separator()[0] : '/');
 
@@ -309,6 +327,12 @@ createObjs(PlotObjs &objs) const
       destNode->addSrcEdge (edge);
 
       return State::OK;
+    }
+
+  private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsSankeyPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
     }
 
    private:
@@ -1174,13 +1198,6 @@ drawFg(CQChartsPaintDevice *device) const
   options.contrastAlpha = plot_->textContrastAlpha();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
-
-#if 0
-  if (plot_->isTextContrast())
-    CQChartsDrawUtil::drawContrastText(device, pt, str, plot_->textContrastAlpha());
-  else
-    CQChartsDrawUtil::drawSimpleText(device, pt, str);
-#endif
 }
 
 void

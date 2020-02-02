@@ -396,6 +396,26 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  CQChartsChordPlot *th = const_cast<CQChartsChordPlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // link, value and group columns optional
+
+  if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
+  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+  if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
+
+  if (! columnsValid)
+    return false;
+
+  //---
+
   if (valueColumn().isValid())
     return initHierObjs(objs);
 
@@ -429,16 +449,16 @@ initTableObjs(PlotObjs &objs) const
       indRowData.rowData.resize(nc);
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        CQChartsColumn col(ic);
+        CQChartsModelIndex columnInd(data.row, CQChartsColumn(ic), data.parent);
 
-        QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
+        QModelIndex ind = plot_->modelIndex(columnInd);
 
         if (ic == 0)
           indRowData.ind = ind;
 
         bool ok;
 
-        indRowData.rowData[ic] = plot_->modelValue(data.row, col, data.parent, ok);
+        indRowData.rowData[ic] = plot_->modelValue(columnInd, ok);
       }
 
       indRowDatas_.push_back(indRowData);
@@ -512,7 +532,9 @@ initTableObjs(PlotObjs &objs) const
 
     // set link
     if (linkColumn().isValid() && linkColumn().column() < nv) {
-      QModelIndex linkInd  = modelIndex(ind.row(), linkColumn(), ind.parent());
+      CQChartsModelIndex linkModelInd(ind.row(), linkColumn(), ind.parent());
+
+      QModelIndex linkInd  = modelIndex(linkModelInd);
       QModelIndex linkInd1 = normalizeIndex(linkInd);
 
       QVariant var = indRowDatas[row].rowData[linkColumn().column()];
@@ -530,9 +552,11 @@ initTableObjs(PlotObjs &objs) const
 
     // set group
     if (groupColumn().isValid() && groupColumn().column() < nv) {
+      CQChartsModelIndex groupColumnInd(ind.row(), groupColumn(), ind.parent());
+
       int igroup = groupColumn().column();
 
-      QModelIndex groupInd  = modelIndex(ind.row(), groupColumn(), ind.parent());
+      QModelIndex groupInd  = modelIndex(groupColumnInd);
       QModelIndex groupInd1 = normalizeIndex(groupInd);
 
       QVariant groupVar = indRowDatas[row].rowData[igroup];
@@ -679,13 +703,16 @@ initHierObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent , ok1);
-      double  value   = plot_->modelReal  (data.row, plot_->valueColumn(), data.parent, ok2);
+      QString linkStr = plot_->modelString(linkModelInd , ok1);
+      double  value   = plot_->modelReal  (valueModelInd, ok2);
 
-      if (! ok1 || ! ok2)
-        return State::SKIP;
+      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
+      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
 
       //---
 
@@ -695,7 +722,7 @@ initHierObjs(PlotObjs &objs) const
       if (! linkPair.isValid())
         return State::SKIP;
 
-      QModelIndex linkInd  = plot_->modelIndex(data.row, plot_->linkColumn(), data.parent);
+      QModelIndex linkInd  = plot_->modelIndex(linkModelInd);
       QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
       QString srcStr  = linkPair.name1();
@@ -732,9 +759,11 @@ initHierObjs(PlotObjs &objs) const
       if (plot_->groupColumn().isValid()) {
         //int igroup = plot_->groupColumn().column();
 
+        CQChartsModelIndex groupColumnInd(data.row, plot_->groupColumn(), data.parent);
+
         bool ok;
 
-        QVariant groupVar = plot_->modelValue(data.row, plot_->groupColumn(), data.parent, ok);
+        QVariant groupVar = plot_->modelValue(groupColumnInd, ok);
 
         QString groupStr;
 
@@ -750,6 +779,12 @@ initHierObjs(PlotObjs &objs) const
     }
 
     const NameDataMap &nameDataMap() const { return nameDataMap_; }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
 
    private:
     const CQChartsChordPlot* plot_ { nullptr };

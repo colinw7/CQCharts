@@ -300,6 +300,30 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPiePlot::calcRange");
 
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name, id, color columns optional
+
+  if (! checkColumns(valueColumns(), "Value", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(labelColumn   (), "Label"    )) columnsValid = false;
+  if (! checkColumn(radiusColumn  (), "Radius"   )) columnsValid = false;
+  if (! checkColumn(keyLabelColumn(), "Key Label")) columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
+  //---
+
   CQChartsGeom::Range dataRange;
 
   CQChartsGeom::Point c(0.0, 0.0);
@@ -833,7 +857,10 @@ bool
 CQChartsPiePlot::
 getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) const
 {
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+
   missing = false;
+  value   = 1.0;
 
   ColumnType columnType = columnValueType(ind.column);
 
@@ -845,18 +872,14 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
     // allow missing value in numeric column
     if (! ok) {
       missing = true;
-      value   = 1.0;
-
       return true;
     }
 
     // TODO: check allow nan
-    if (CMathUtil::isNaN(value))
+    if (CMathUtil::isNaN(value)) {
+      th->addDataError(ind, "Invalid value");
       return false;
-
-    // size must be positive
-    if (value <= 0.0)
-      return false;
+    }
   }
   else {
     // try convert model string to real
@@ -866,15 +889,16 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
 
     // string non-real -> 1.0
     if (! ok) {
-      value = 1.0;
-      return true;
+      th->addDataError(ind, "Invalid value");
+      return false;
     }
+  }
 
-    // string bad size -> 1.0 (assume bad conversion)
-    if (value <= 0.0) {
-      value = 1.0;
-      return true;
-    }
+  // size must be positive
+  if (value <= 0.0) {
+    th->addDataError(ind, "Non-positive value");
+    value = 1.0;
+    return false;
   }
 
   return true;

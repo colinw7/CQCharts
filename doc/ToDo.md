@@ -3,7 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + Box Shape (circle ....)
+ + Better javascript font rendering (device scaling, alignment ?)
+ + Move to thread crash for key with scrollbar ?
+ + Box Shape (circle, path, ....)
  + Output or string list result does not match echo !
  + Grouped Axis Ranges
    + Multiple Ranges, tick label per group.

@@ -900,6 +900,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsColumn  vectorXColumn_; //!< vector x direction column
   CQChartsColumn  vectorYColumn_; //!< vector y direction column
 
+  ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
+
   // point data
   bool pointLineSelect_ { false }; //!< select line of point
   int  pointDelta_      { -1 };    //!< point delta

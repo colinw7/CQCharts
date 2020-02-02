@@ -394,11 +394,35 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
 
   argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
+  argv.addCmdArg("-debug", CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
 
   bool rc;
 
   if (! argv.parse(rc))
     return rc;
+
+  //---
+
+  class AutoExprDebug {
+   public:
+    AutoExprDebug(CQChartsExprModel *exprModel, bool debug) :
+     exprModel_(exprModel) {
+      if (exprModel_) {
+        oldDebug_ = exprModel_->isDebug();
+
+        exprModel_->setDebug(debug);
+      }
+    }
+
+   ~AutoExprDebug() {
+      if (exprModel_)
+        exprModel_->setDebug(oldDebug_);
+    }
+
+   private:
+    CQChartsExprModel *exprModel_ { nullptr };
+    bool               oldDebug_  { false };
+  };
 
   //---
 
@@ -420,6 +444,10 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   ModelP model = modelData->currentModel();
 
   CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
+
+  bool debug = argv.getParseBool("debug");
+
+  AutoExprDebug autoExprDebug(exprModel, debug);
 
   //---
 

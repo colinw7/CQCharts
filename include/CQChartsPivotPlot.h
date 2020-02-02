@@ -302,7 +302,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
     COUNT,
     COUNT_UNIQUE,
     SUM,
-    AVERAGE,
+    MEAN,
     MIN,
     MAX
   };
@@ -395,7 +395,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   std::vector<ValueType> valueTypes() const { return
     {{ ValueType::COUNT, ValueType::COUNT_UNIQUE, ValueType::SUM,
-       ValueType::AVERAGE, ValueType::MIN, ValueType::MAX }};
+       ValueType::MEAN, ValueType::MIN, ValueType::MAX }};
   };
 
   QString plotTypeName (const PlotType  &plotType ) const;

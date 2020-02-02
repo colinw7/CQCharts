@@ -499,6 +499,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // min bar size
   Q_PROPERTY(double minBarSize READ minBarSize WRITE setMinBarSize)
 
+  // scatter margin
+  Q_PROPERTY(double scatterMargin READ scatterMargin WRITE setScatterMargin)
+
   // dot line (bar with dot)
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)

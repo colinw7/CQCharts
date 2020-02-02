@@ -97,6 +97,8 @@ setDetails(const CQChartsModelDetails *details, bool invalidate)
 
     details_ = const_cast<CQChartsModelDetails *>(details);
 
+    detailsTable_->clear();
+
     if (details_)
       connect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
   }

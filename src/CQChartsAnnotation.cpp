@@ -882,7 +882,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
 
   //---
 
@@ -1917,7 +1917,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
 
   //---
 
@@ -2381,7 +2381,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
 
   //---
 

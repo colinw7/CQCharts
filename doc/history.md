@@ -1039,3 +1039,8 @@
  + Fix title absolute rectangle placement
  + cleanup conversion between title/key location and string for menu
  + cleanup enum classes with CRTP base class
+# 02/02/2020
+ + Add more error handling to plots
+ + Use CQChartsModelIndex for model data access
+ + Move Javascript code to separate namespace
+ + Auto scale Javascript font to match original pixel size

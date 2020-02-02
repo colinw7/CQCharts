@@ -40,6 +40,10 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //---
 
+  ColumnType valueColumnType() const { return valueColumnType_; }
+
+  //---
+
   //! get/set separator
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
@@ -61,10 +65,15 @@ class CQChartsHierPlot : public CQChartsPlot {
   void addHierProperties();
 
  protected:
-  CQChartsColumns nameColumns_;                //!< multiple name columns
-  CQChartsColumn  valueColumn_;                //!< value column
-  QString         separator_        { "/" };   //!< hierarchical name separator
-  bool            followViewExpand_ { false }; //!< follow view expand
+  // columns
+  CQChartsColumns nameColumns_; //!< multiple name columns
+  CQChartsColumn  valueColumn_; //!< value column
+
+  ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
+
+  // options
+  QString separator_        { "/" };   //!< hierarchical name separator
+  bool    followViewExpand_ { false }; //!< follow view expand
 };
 
 #endif

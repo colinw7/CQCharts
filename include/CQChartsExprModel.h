@@ -13,6 +13,7 @@ class CQChartsModelFilter;
 class CQChartsExprModelFn;
 class CQChartsModelData;
 class CQCharts;
+class CQChartsExprCmdValues;
 
 class CQChartsExprTcl;
 class CQTcl;
@@ -26,7 +27,7 @@ class CQTcl;
 class CQChartsExprModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(bool debug READ debug WRITE setDebug)
+  Q_PROPERTY(bool debug READ isDebug WRITE setDebug)
 
  public:
   enum class Function {
@@ -52,7 +53,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   //---
 
-  int debug() const { return debug_; }
+  int isDebug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
 
   //---
@@ -83,7 +84,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool assignExtraColumn(int column, const QString &expr);
   bool assignExtraColumn(const QString &header, int column, const QString &expr);
 
-  void calcColumn(int column, const QString &expr, Values &values) const;
+  bool calcColumn(int column, const QString &expr, Values &values) const;
 
   bool queryColumn(int column, const QString &expr, Rows &rows) const;
 
@@ -187,11 +188,11 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   ExtraColumn &extraColumn(int i) { return *extraColumns_[i]; }
 
-  void calcExtraColumn(int column, int ecolumn);
+  bool calcExtraColumn(int column, int ecolumn);
 
-  QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
+  QVariant getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const;
 
-  QVariant calcExtraColumnValue(int row, int column, int ecolumn);
+  QVariant calcExtraColumnValue(int row, int column, int ecolumn, bool &rc);
 
   //---
 
@@ -250,6 +251,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool getTclResult(QVariant &rc) const;
 
   bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax);
+
+  bool getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const;
+  bool getRowValue   (CQChartsExprCmdValues &cmdValues, int &col) const;
 
   QVariant getCmdData(int row, int col) const;
   bool     setCmdData(int row, int col, const QVariant &var);

@@ -245,12 +245,33 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
-
   //---
+
+  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   // init value sets
 //initValueSets();
+
+  //---
+
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  // value column required
+  // name, id, color columns optional
+
+  if (! checkColumns(nameColumns(), "Name", /*required*/true))
+    columnsValid = false;
+
+  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_))
+    columnsValid = false;
+
+  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+
+  if (! columnsValid)
+    return false;
 
   //---
 
@@ -496,8 +517,6 @@ loadHier() const
     RowVisitor(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *root) :
      plot_(plot) {
       hierStack_.push_back(root);
-
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
@@ -560,17 +579,22 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      if (plot_->nameColumns().column().isValid())
-        nameInd = plot_->modelIndex(data.row, plot_->nameColumns().column(), data.parent);
-      else
-        nameInd = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
-
       bool ok;
 
-      if (plot_->nameColumns().column().isValid())
-        name = plot_->modelString(data.row, plot_->nameColumns().column(), data.parent, ok);
-      else
-        name = plot_->modelString(data.row, plot_->idColumn(), data.parent, ok);
+      if (plot_->nameColumns().column().isValid()) {
+        CQChartsModelIndex nameColumnInd(data.row, plot_->nameColumns().column(), data.parent);
+
+        nameInd = plot_->modelIndex(nameColumnInd);
+
+        name = plot_->modelString(nameColumnInd, ok);
+      }
+      else {
+        CQChartsModelIndex idColumnInd(data.row, plot_->idColumn(), data.parent);
+
+        nameInd = plot_->modelIndex(idColumnInd);
+
+        name = plot_->modelString(idColumnInd, ok);
+      }
 
       return ok;
     }
@@ -583,11 +607,13 @@ loadHier() const
 
       bool ok = true;
 
-      if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
-      else if (valueColumnType_ == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
-      else if (valueColumnType_ == ColumnType::STRING)
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      if      (plot_->valueColumnType() == ColumnType::REAL)
+        size = plot_->modelReal(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::INTEGER)
+        size = (double) plot_->modelInteger(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::STRING)
         size = 1.0;
       else
         ok = false;
@@ -601,8 +627,7 @@ loadHier() const
    private:
     using HierStack = std::vector<CQChartsHierBubbleHierNode *>;
 
-    const CQChartsHierBubblePlot* plot_            { nullptr };
-    ColumnType                    valueColumnType_ { ColumnType::NONE };
+    const CQChartsHierBubblePlot* plot_ { nullptr };
     HierStack                     hierStack_;
   };
 
@@ -663,7 +688,6 @@ loadFlat() const
    public:
     RowVisitor(const CQChartsHierBubblePlot *plot) :
      plot_(plot) {
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -704,10 +728,14 @@ loadFlat() const
 
       bool ok = true;
 
-      if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
-      else if (valueColumnType_ == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      if      (plot_->valueColumnType() == ColumnType::REAL)
+        size = plot_->modelReal(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::INTEGER)
+        size = (double) plot_->modelInteger(valueModelInd, ok);
+      else if (plot_->valueColumnType() == ColumnType::STRING)
+        size = 1.0;
       else
         ok = false;
 
@@ -718,8 +746,7 @@ loadFlat() const
     }
 
    private:
-    const CQChartsHierBubblePlot* plot_            { nullptr };
-    ColumnType                    valueColumnType_ { ColumnType::NONE };
+    const CQChartsHierBubblePlot* plot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1247,9 +1274,11 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node()->ind());
 
+    CQChartsModelIndex colorColumnInd(ind1.row(), plot_->colorColumn(), ind1.parent());
+
     bool ok;
 
-    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(colorColumnInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

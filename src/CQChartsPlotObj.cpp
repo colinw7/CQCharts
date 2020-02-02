@@ -199,7 +199,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize, cornerSize);
+  CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize);
 }
 
 void

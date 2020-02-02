@@ -275,7 +275,7 @@ createObjs(PlotObjs &objs) const
   // value column required
   // name, id, color columns optional
 
-  if (! checkColumn(valueColumn(), "Value", /*required*/true))
+  if (! checkColumn(valueColumn(), "Value", th->valueColumnType_, /*required*/true))
     columnsValid = false;
 
   if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
@@ -516,7 +516,6 @@ loadModel() const
    public:
     RowVisitor(const CQChartsBubblePlot *plot) :
      plot_(plot) {
-      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -592,11 +591,11 @@ loadModel() const
 
       CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
 
-      if      (valueColumnType_ == ColumnType::REAL)
+      if      (plot_->valueColumnType() == ColumnType::REAL)
         size = plot_->modelReal(valueModelInd, ok);
-      else if (valueColumnType_ == ColumnType::INTEGER)
+      else if (plot_->valueColumnType() == ColumnType::INTEGER)
         size = (double) plot_->modelInteger(valueModelInd, ok);
-      else if (valueColumnType_ == ColumnType::STRING)
+      else if (plot_->valueColumnType() == ColumnType::STRING)
         size = 1.0;
       else
         ok = false;
@@ -608,8 +607,7 @@ loadModel() const
     }
 
    private:
-    const CQChartsBubblePlot* plot_            { nullptr };
-    ColumnType                valueColumnType_ { ColumnType::NONE };
+    const CQChartsBubblePlot* plot_ { nullptr };
   };
 
   RowVisitor visitor(this);

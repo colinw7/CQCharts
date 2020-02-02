@@ -704,7 +704,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     //---
 
     // get associated model index
-    QModelIndex valInd  = modelIndex(data.row, valueColumn, data.parent);
+    QModelIndex valInd  = modelIndex(valueModelInd);
     QModelIndex valInd1 = normalizeIndex(valInd);
 
     // add value and index

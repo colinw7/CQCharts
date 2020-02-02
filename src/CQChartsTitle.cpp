@@ -444,3 +444,11 @@ drawEditHandles(QPainter *painter) const
 
   editHandles_->draw(painter);
 }
+
+void
+CQChartsTitle::
+textBoxDataInvalidate()
+{
+  if (! isDrawn())
+    bbox_ = CQChartsGeom::BBox();
+}

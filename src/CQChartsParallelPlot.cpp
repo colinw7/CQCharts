@@ -311,6 +311,19 @@ calcRange() const
 
   //---
 
+  // check columns
+  bool columnsValid = true;
+
+  th->clearErrors();
+
+  if (! checkColumn (xColumn(), "X", /*required*/true))
+    columnsValid = false;
+  if (! checkColumns(yColumns(), "Y", /*required*/true))
+    columnsValid = false;
+
+  if (! columnsValid)
+    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+
   //---
 
   // create axes
@@ -490,9 +503,11 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+
       CQChartsGeom::Polygon poly;
 
-      QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
+      QModelIndex xind = plot_->modelIndex(xModelInd);
 
       xinds_.push_back(xind);
 
@@ -562,9 +577,11 @@ createObjs(PlotObjs &objs) const
     //---
 
     // add poly line object
+    CQChartsModelIndex xModelInd(xind.row(), CQChartsColumn(xind.column()), xind.parent());
+
     bool ok;
 
-    QString xname = modelString(xind.row(), CQChartsColumn(xind.column()), xind.parent(), ok);
+    QString xname = modelString(xModelInd, ok);
 
     CQChartsGeom::BBox bbox =
       CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
@@ -585,7 +602,9 @@ createObjs(PlotObjs &objs) const
     for (int j = 0; j < nl; ++j) {
       const CQChartsColumn &setColumn = yColumns().getColumn(j);
 
-      QModelIndex yind  = modelIndex(i, setColumn, xind.parent());
+      CQChartsModelIndex setColumnInd(i, setColumn, xind.parent());
+
+      QModelIndex yind  = modelIndex(setColumnInd);
       QModelIndex yind1 = normalizeIndex(yind);
 
       //---
@@ -909,8 +928,6 @@ drawFgAxes(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), label,
                                       options, /*centered*/false);
 
-//  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), label);
-
     //---
 
     th->axesBBox_ += windowToPixel(axis->fitBBox());
@@ -1010,9 +1027,11 @@ QString
 CQChartsParallelLineObj::
 calcId() const
 {
+  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+
   bool ok;
 
-  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
+  QString xname = plot_->modelString(xModelInd, ok);
 
   return QString("%1:%2").arg(typeName()).arg(xname);
 }
@@ -1021,9 +1040,11 @@ QString
 CQChartsParallelLineObj::
 calcTipId() const
 {
+  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+
   bool ok;
 
-  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
+  QString xname = plot_->modelString(xModelInd, ok);
 
   CQChartsTableTip tableTip;
 
@@ -1230,9 +1251,11 @@ QString
 CQChartsParallelPointObj::
 calcId() const
 {
+  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+
   bool ok;
 
-  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
+  QString xname = plot_->modelString(xModelInd, ok);
 
   const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
@@ -1245,11 +1268,13 @@ QString
 CQChartsParallelPointObj::
 calcTipId() const
 {
+  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+
   CQChartsTableTip tableTip;
 
   bool ok;
 
-  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
+  QString xname = plot_->modelString(xModelInd, ok);
 
   tableTip.addBoldLine(xname);
 

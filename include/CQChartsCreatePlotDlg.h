@@ -18,6 +18,7 @@ class CQChartsColumnsLineEdit;
 class CQChartsModelViewHolder;
 class CQChartsModelData;
 class CQChartsModelDetailsWidget;
+class CQChartsModelChooser;
 class CQChartsLineEdit;
 
 class CQSummaryModel;
@@ -219,6 +220,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   void xmaxSlot();
   void ymaxSlot();
 
+  void modelChangeSlot();
   void updateModelData();
 
   void validateSlot();
@@ -264,6 +266,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   CQCharts*                charts_                 { nullptr }; //!< parent charts
   CQChartsModelData*       modelData_              { nullptr }; //!< model data
   ModelP                   model_;                              //!< model
+
+  CQChartsModelChooser*    modelChooser_           { nullptr }; //!< model chooser
 
   // plot type widgets
   QStackedWidget*          plotDataStack_          { nullptr }; //!< plot widget stack

@@ -315,6 +315,8 @@ assignColumn(const QString &header, int column, const QString &expr)
   if (column < 0 || column >= numNonExtra)
     return false;
 
+  int numErrors = 0;
+
   int role = Qt::EditRole;
 
   nr_ = rowCount();
@@ -334,6 +336,8 @@ assignColumn(const QString &header, int column, const QString &expr)
 
       setData(ind, var, role);
     }
+    else
+      ++numErrors;
   }
 
   if (header != "")
@@ -346,7 +350,7 @@ assignColumn(const QString &header, int column, const QString &expr)
 
   emit dataChanged(index1, index2);
 
-  return true;
+  return (numErrors == 0);
 }
 
 bool
@@ -406,11 +410,13 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   return true;
 }
 
-void
+bool
 CQChartsExprModel::
 calcColumn(int column, const QString &expr, Values &values) const
 {
   CQPerfTrace trace("CQChartsExprModel::calcColumn");
+
+  int numErrors = 0;
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -420,10 +426,13 @@ calcColumn(int column, const QString &expr, Values &values) const
 
     QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
-    (void) evaluateExpression(expr1, var);
+    if (! evaluateExpression(expr1, var))
+      ++numErrors;
 
     values.push_back(var);
   }
+
+  return (numErrors == 0);
 }
 
 bool
@@ -434,7 +443,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 
   initCalc();
 
-  bool rc = true;
+  int numErrors = 0;
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -445,7 +454,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
     QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     if (! evaluateExpression(expr1, var)) {
-      rc = false;
+      ++numErrors;
       continue;
     }
 
@@ -453,7 +462,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
       rows.push_back(r);
   }
 
-  return rc;
+  return (numErrors == 0);
 }
 
 bool
@@ -532,7 +541,7 @@ initCalc()
   qtcl_->traceVar("NaN"   );
 }
 
-void
+bool
 CQChartsExprModel::
 calcExtraColumn(int column, int ecolumn)
 {
@@ -540,12 +549,21 @@ calcExtraColumn(int column, int ecolumn)
   nc_ = columnCount();
 
   // ensure all values are evaluated
+  int numErrors = 0;
+
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
     currentCol_ = column;
 
-    (void) getExtraColumnValue(r, column, ecolumn);
+    bool rc = true;
+
+    (void) getExtraColumnValue(r, column, ecolumn, rc);
+
+    if (! rc)
+      ++numErrors;
   }
+
+  return (numErrors == 0);
 }
 
 bool
@@ -556,7 +574,7 @@ processExpr(const QString &expr)
 
   initCalc();
 
-  bool rc = true;
+  int numErrors = 0;
 
   QString expr1 = replaceExprColumns(expr, -1, -1);
 
@@ -566,12 +584,12 @@ processExpr(const QString &expr)
     QVariant var;
 
     if (! evaluateExpression(expr1, var)) {
-      rc = false;
+      ++numErrors;
       continue;
     }
   }
 
-  return rc;
+  return (numErrors == 0);
 }
 
 bool
@@ -762,31 +780,37 @@ data(const QModelIndex &index, int role) const
 
   //---
 
+  QVariant var;
+
+  bool rc = true;
+
   int column = index.column() - nc;
 
   if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     currentRow_ = index.row();
     currentCol_ = index.column();
 
-    return getExtraColumnValue(currentRow_, currentCol_, column);
+    var = getExtraColumnValue(currentRow_, currentCol_, column, rc);
   }
   else if (role == Qt::TextAlignmentRole) {
     const ExtraColumn &extraColumn = this->extraColumn(column);
 
     if (extraColumn.type == CQBaseModelType::INTEGER ||
         extraColumn.type == CQBaseModelType::REAL)
-      return QVariant(Qt::AlignRight | Qt::AlignVCenter);
+      var = QVariant(Qt::AlignRight | Qt::AlignVCenter);
     else
-      return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
+      var = QVariant(Qt::AlignLeft | Qt::AlignVCenter);
   }
   else if (role == Qt::ToolTipRole) {
     currentRow_ = index.row();
     currentCol_ = index.column();
 
-    return getExtraColumnValue(currentRow_, currentCol_, column);
+    var = getExtraColumnValue(currentRow_, currentCol_, column, rc);
   }
+  else
+    return QVariant();
 
-  return QVariant();
+  return var;
 }
 
 bool
@@ -867,7 +891,7 @@ decodeExpression(const QString &exprStr, QString &header, QString &expr) const
 
 QVariant
 CQChartsExprModel::
-getExtraColumnValue(int row, int column, int ecolumn) const
+getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
 {
   const ExtraColumn &extraColumn = this->extraColumn(ecolumn);
 
@@ -892,12 +916,19 @@ getExtraColumnValue(int row, int column, int ecolumn) const
 
   CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
 
-  return th->calcExtraColumnValue(row, column, ecolumn);
+  bool rc1 = true;
+
+  QVariant var = th->calcExtraColumnValue(row, column, ecolumn, rc1);
+
+  if (! rc1)
+    rc = false;
+
+  return var;
 }
 
 QVariant
 CQChartsExprModel::
-calcExtraColumnValue(int row, int column, int ecolumn)
+calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
@@ -945,6 +976,8 @@ calcExtraColumnValue(int row, int column, int ecolumn)
         extraColumn.type = CQBaseModelType::STRING;
     }
   }
+  else
+    rc = false;
 
   auto p = extraColumn.variantMap.insert(extraColumn.variantMap.end(),
                                          VariantMap::value_type(row, var));
@@ -1234,13 +1267,16 @@ columnCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
-  int row = currentRow();
-  int col = currentCol();
-
   if (! cmdValues.hasValues())
-    return col;
+    return currentCol();
 
-  if (! cmdValues.getInt(col))
+  //---
+
+  int row = currentRow();
+
+  int col;
+
+  if (! getColumnValue(cmdValues, col))
     return QVariant();
 
   //---
@@ -1269,14 +1305,17 @@ rowCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
-  int row = currentRow();
-  int col = currentCol();
-
   if (! cmdValues.hasValues())
-    return row;
+    return currentRow();
 
-  if (! cmdValues.getInt(row))
+  //---
+
+  int row;
+
+  if (! getRowValue(cmdValues, row))
     return QVariant();
+
+  int col = currentCol();
 
   //---
 
@@ -1304,18 +1343,21 @@ cellCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
-  int row = currentRow();
-  int col = currentCol();
-
   if (cmdValues.numValues() < 2) {
     // TODO: row and column string value ?
     return QVariant();
   }
 
-  if (! cmdValues.getInt(row))
+  //---
+
+  int row;
+
+  if (! getRowValue(cmdValues, row))
     return QVariant();
 
-  if (! cmdValues.getInt(col))
+  int col;
+
+  if (! getColumnValue(cmdValues, col))
     return QVariant();
 
   //---
@@ -1352,9 +1394,10 @@ setColumnCmd(const Values &values)
   //---
 
   int row = currentRow();
-  int col = currentCol();
 
-  (void) cmdValues.getInt(col);
+  int col;
+
+  (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1385,10 +1428,9 @@ setRowCmd(const Values &values)
 
   //---
 
-  int row = currentRow();
-  int col = currentCol();
+  int row; (void) getRowValue(cmdValues, row);
 
-  (void) cmdValues.getInt(row);
+  int col = currentCol();
 
   //---
 
@@ -1419,11 +1461,8 @@ setCellCmd(const Values &values)
 
   //---
 
-  int row = currentRow();
-  int col = currentCol();
-
-  (void) cmdValues.getInt(row);
-  (void) cmdValues.getInt(col);
+  int row; (void) getRowValue   (cmdValues, row);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1447,9 +1486,7 @@ headerCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
-  int col = currentCol();
-
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1478,9 +1515,7 @@ setHeaderCmd(const Values &values)
 
   //---
 
-  int col = currentCol();
-
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1502,9 +1537,7 @@ typeCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
-  int col = currentCol();
-
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1544,9 +1577,7 @@ setTypeCmd(const Values &values)
 
   //---
 
-  int col = currentCol();
-
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -1617,10 +1648,11 @@ bucketCmd(const Values &values) const
   if (cmdValues.numValues() == 0)
     return QVariant(0);
 
-  int row = currentRow();
-  int col = currentCol();
+  //---
 
-  (void) cmdValues.getInt(col);
+  int row = currentRow();
+
+  int col; (void) getColumnValue(cmdValues, col);
 
   if (col < 0 || col >= columnCount())
     return QVariant(0);
@@ -1707,9 +1739,9 @@ normCmd(const Values &values) const
   if (cmdValues.numValues() == 0)
     return QVariant(0.0);
 
-  int col = currentCol();
+  //---
 
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   if (col < 0 || col >= columnCount())
     return QVariant(0.0);
@@ -1800,9 +1832,7 @@ scaleCmd(const Values &values) const
   if (cmdValues.numValues() == 0)
     return QVariant(0.0);
 
-  int col = currentCol();
-
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   if (col < 0 || col >= columnCount())
     return QVariant(0.0);
@@ -2004,7 +2034,7 @@ remapCmd(const Values &values)
   double r1 = 0.0, r2 = 1.0;
 
   if (cmdValues.numValues() >= 1) {
-    (void) cmdValues.getInt(col);
+    (void) getColumnValue(cmdValues, col);
 
     if      (cmdValues.numValues() >= 3) {
       (void) cmdValues.getReal(r1);
@@ -2059,9 +2089,8 @@ timevalCmd(const Values &values)
   //---
 
   int row = currentRow();
-  int col = currentCol();
 
-  (void) cmdValues.getInt(col);
+  int col; (void) getColumnValue(cmdValues, col);
 
   //---
 
@@ -2090,6 +2119,43 @@ timevalCmd(const Values &values)
   if (! ok) return QVariant();
 
   return CQChartsUtil::timeToString(fmt, t);
+}
+
+//---
+
+bool
+CQChartsExprModel::
+getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const
+{
+  col = currentCol();
+
+  if (! cmdValues.getInt(col)) {
+    QString name;
+
+    if (! cmdValues.getStr(name))
+      return false;
+
+    auto p = nameColumns_.find(name);
+
+    if (p == nameColumns_.end())
+      return false;
+
+    col = (*p).second;
+  }
+
+  return true;
+}
+
+bool
+CQChartsExprModel::
+getRowValue(CQChartsExprCmdValues &cmdValues, int &row) const
+{
+  row = currentRow();
+
+  if (! cmdValues.getInt(row))
+    return false;
+
+  return true;
 }
 
 //---
