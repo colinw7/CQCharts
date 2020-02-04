@@ -440,31 +440,27 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
 
 //------
 
-namespace {
+namespace CQChartsUtil {
 
-void findStringSplits1(const QString &str, std::vector<int> &splits) {
-  int len = str.length();
-  assert(len);
-
-  for (int i = 1; i < len; ++i) {
-    if (str[i].isSpace())
-      splits.push_back(i);
-  }
-}
-
-void findStringSplits2(const QString &str, std::vector<int> &splits) {
+// split at spaces
+void findStringSpaceSplits(const QString &str, std::vector<int> &splits) {
   int len = str.length();
   assert(len);
 
   for (int i = 0; i < len; ++i) {
-    if (str[i].isPunct()) {
-      int i1 = i;
+    if (str[i] == '\n') {
+      splits.push_back(i);
+      continue;
+    }
 
-      // keep consecutive punctuation together (::, ..., etc)
-      while (i < len - 1 && str[i].isPunct())
+    if (i > 0 && str[i].isSpace()) {
+      // skip consecutive spaces
+      while (i < len - 1 && str[i + 1].isSpace())
         ++i;
 
-      if (i1 == 0 || i >= len) // don't break if at start or end
+      int i1 = i + 1;
+
+      if (i1 >= len - 1) // don't break if at start or end
         continue;
 
       splits.push_back(i1);
@@ -472,13 +468,77 @@ void findStringSplits2(const QString &str, std::vector<int> &splits) {
   }
 }
 
-void findStringSplits3(const QString &str, std::vector<int> &splits) {
+// split at format separators
+void findStringCustomSplits(const QString &str, std::vector<int> &splits,
+                            const FormatData &formatData) {
   int len = str.length();
   assert(len);
 
-  for (int i = 1; i < len; ++i) {
-    if (str[i - 1].isLower() && str[i].isUpper())
+  for (int i = 0; i < len; ++i) {
+    if (str[i] == '\n') {
       splits.push_back(i);
+      continue;
+    }
+
+    if (i > 0 && formatData.isSep(str[i])) {
+      // keep consecutive separators together
+      while (i < len - 1 && formatData.isSep(str[i + 1]))
+        ++i;
+
+      int i1 = i + 1;
+
+      if (i1 >= len - 1) // don't break if at start or end
+        continue;
+
+      splits.push_back(i1);
+    }
+  }
+}
+
+// split at punctuation
+void findStringPunctSplits(const QString &str, std::vector<int> &splits) {
+  int len = str.length();
+  assert(len);
+
+  for (int i = 0; i < len; ++i) {
+    if (str[i] == '\n') {
+      splits.push_back(i);
+      continue;
+    }
+
+    if (i > 0 && str[i].isPunct()) {
+      // keep consecutive punctuation together (::, ..., etc)
+      while (i < len - 1 && str[i + 1].isPunct())
+        ++i;
+
+      int i1 = i + 1;
+
+      if (i1 >= len - 1) // don't break if at start or end
+        continue;
+
+      splits.push_back(i1);
+    }
+  }
+}
+
+// lower to upper
+void findStringCaseSplits(const QString &str, std::vector<int> &splits) {
+  int len = str.length();
+  assert(len);
+
+  for (int i = 0; i < len; ++i) {
+    if (str[i] == '\n') {
+      splits.push_back(i);
+      continue;
+    }
+
+    if (i > 0) {
+      const QChar &c1 = str[i - 1];
+      const QChar &c2 = str[i];
+
+      if (c1.isLower() && c2.isUpper())
+        splits.push_back(i);
+    }
   }
 }
 
@@ -939,7 +999,7 @@ namespace CQChartsUtil {
 
 bool
 formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BBox &bbox,
-                   QStringList &strs) {
+                   QStringList &strs, const FormatData &formatData) {
   auto addStr = [&](const QString &str) {
     assert(str.length());
     strs.push_back(str);
@@ -947,7 +1007,7 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
   //---
 
-  QString sstr = str.simplified();
+  QString sstr = str.trimmed();
 
   if (! sstr.length()) { // empty
     addStr(sstr);
@@ -956,24 +1016,29 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
   //---
 
+  std::size_t nl = str.count('\n');
+
+  //---
+
   QFontMetricsF fm(font);
-
-  double w = fm.width(sstr);
-
-  double dw = (bbox.getWidth() - w);
-
-  if (dw > 0 || CMathUtil::isZero(dw)) { // fits
-    addStr(sstr);
-    return false;
-  }
 
   double h = fm.height();
 
-  double dh = (bbox.getHeight() - h);
+  if (nl == 0) {
+    double w  = fm.width(sstr);
+    double dw = (bbox.getWidth() - w);
 
-  if (dh < 0 || CMathUtil::isZero(dh)) { // bbox can only fit single line of text (TODO: factor)
-    addStr(sstr);
-    return false;
+    if (dw > 0 || CMathUtil::isZero(dw)) { // fits
+      addStr(sstr);
+      return false;
+    }
+
+    double dh = (bbox.getHeight() - h);
+
+    if (dh < 0 || CMathUtil::isZero(dh)) { // bbox can only fit single line of text (TODO: factor)
+      addStr(sstr);
+      return false;
+    }
   }
 
   //---
@@ -981,18 +1046,21 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
   // get potential split points
   std::vector<int> splits;
 
-  findStringSplits1(sstr, splits);
+  if (formatData.isValid())
+    findStringCustomSplits(sstr, splits, formatData);
+
+  if (splits.size() < nl)
+    findStringSpaceSplits(sstr, splits);
+
+  if (splits.size() < nl)
+    findStringPunctSplits(sstr, splits);
+
+  if (splits.size() < nl)
+    findStringCaseSplits(sstr, splits);
 
   if (splits.empty()) {
-    findStringSplits2(sstr, splits);
-
-    if (splits.empty())
-      findStringSplits3(sstr, splits);
-
-    if (splits.empty()) {
-      addStr(sstr);
-      return false;
-    }
+    addStr(sstr);
+    return false;
   }
 
   //---
@@ -1021,14 +1089,37 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
   // split at best and measure
   int split = splits[bestInd];
 
-  QString str1 = sstr.mid(0, split).simplified();
-  QString str2 = sstr.mid(split   ).simplified();
+  QChar c = splits[split];
 
-  double w1 = fm.width(str1);
-  double w2 = fm.width(str2);
+  QString str1 = sstr.mid(0, split).trimmed();
+
+  QString str2;
+
+  if (c == '\n')
+    str2 = sstr.mid(split + 1).trimmed();
+  else
+    str2 = sstr.mid(split).trimmed();
+
+  std::size_t nl1 = str1.count('\n');
+  std::size_t nl2 = str2.count('\n');
+
+  bool fit1 = false;
+  bool fit2 = false;
+
+  if (nl1 == 0) {
+    double w1 = fm.width(str1);
+
+    fit1 = (w1 <= bbox.getWidth());
+  }
+
+  if (nl2 == 0) {
+    double w2 = fm.width(str2);
+
+    fit2 = (w2 <= bbox.getWidth());
+  }
 
   // both fit so we are done
-  if (w1 <= bbox.getWidth() && w2 <= bbox.getWidth()) {
+  if (fit1 && fit2) {
     addStr(str1);
     addStr(str2);
 
@@ -1038,7 +1129,7 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
   //---
 
   // if one or both still wider then divide bbox and refit
-  if      (w1 > bbox.getWidth() && w2 > bbox.getWidth()) {
+  if      (! fit1 && ! fit2) {
     double splitHeight = bbox.getHeight()/2.0;
 
     CQChartsGeom::BBox bbox1(bbox.getXMin(), bbox.getYMin(),
@@ -1048,13 +1139,13 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
     QStringList strs1, strs2;
 
-    formatStringInRect(str1, font, bbox1, strs1);
-    formatStringInRect(str2, font, bbox2, strs2);
+    formatStringInRect(str1, font, bbox1, strs1, formatData);
+    formatStringInRect(str2, font, bbox2, strs2, formatData);
 
     strs += strs1;
     strs += strs2;
   }
-  else if (w1 > bbox.getWidth()) {
+  else if (! fit1) {
     double splitHeight = bbox.getHeight() - h;
 
     CQChartsGeom::BBox bbox1(bbox.getXMin(), bbox.getYMin(),
@@ -1062,7 +1153,7 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
     QStringList strs1;
 
-    formatStringInRect(str1, font, bbox1, strs1);
+    formatStringInRect(str1, font, bbox1, strs1, formatData);
 
     strs += strs1;
 
@@ -1074,7 +1165,7 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
     QStringList strs2;
 
-    formatStringInRect(str2, font, bbox2, strs2);
+    formatStringInRect(str2, font, bbox2, strs2, formatData);
 
     addStr(str1);
 

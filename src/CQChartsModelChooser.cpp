@@ -10,6 +10,8 @@ CQChartsModelChooser::
 CQChartsModelChooser(CQCharts *charts) :
  charts_(charts)
 {
+  setObjectName("modelChooser");
+
   auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
@@ -29,13 +31,18 @@ connectSlots(bool b)
 {
   CQChartsWidgetUtil::connectDisconnect(b,
     combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(setCurrentModel(int)));
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    charts_, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    charts_, SIGNAL(modelDataDataChanged()), this, SLOT(updateModels()));
 }
 
 int
 CQChartsModelChooser::
 currentModelInd() const
 {
-  CQChartsModelData *modelData = charts_->currentModelData();
+  auto modelData = charts_->currentModelData();
 
   return (modelData ? modelData->ind() : -1);
 }

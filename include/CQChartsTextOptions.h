@@ -19,18 +19,19 @@ struct CQChartsTextOptions {
     ALL    = (ANGLE | ALIGN | CONTRAST | FORMATTED | SCALED | HTML)
   };
 
-  CQChartsAngle angle;                      //!< text angle
-  Qt::Alignment align            { Qt::AlignHCenter | Qt::AlignVCenter }; //!< text align
-  bool          contrast         { false }; //!< text contrast
-  CQChartsAlpha contrastAlpha    { 0.5 };   //!< text contrast alpha
-  bool          formatted        { false }; //!< text formatted
-  bool          scaled           { false }; //!< text scaled
-  double        scale            { -1.0 };  //!< text fixed scale
-  bool          html             { false }; //!< text html
-  bool          clipped          { true };  //!< text clipped
-  int           margin           { 0 };     //!< text margin (pixels)
-  double        minScaleFontSize { 6.0 };   //!< min scaled font size
-  double        maxScaleFontSize { 48.0 };  //!< max scaled font size
+  CQChartsAngle angle;                                                  //!< angle
+  Qt::Alignment align            { Qt::AlignHCenter|Qt::AlignVCenter }; //!< align
+  bool          contrast         { false };                             //!< contrast
+  CQChartsAlpha contrastAlpha    { 0.5 };                               //!< contrast alpha
+  bool          formatted        { false };                             //!< formatted
+  QString       formatSeps;                                             //!< format separators
+  bool          scaled           { false };                             //!< scaled
+  double        scale            { -1.0 };                              //!< fixed scale
+  bool          html             { false };                             //!< html
+  bool          clipped          { true };                              //!< clipped
+  int           margin           { 0 };                                 //!< margin (pixels)
+  double        minScaleFontSize { 6.0 };                               //!< min scaled font size
+  double        maxScaleFontSize { 48.0 };                              //!< max scaled font size
 
   CQChartsTextOptions() = default;
 };

@@ -322,13 +322,13 @@ currentRoot() const
   if (names.empty())
     return firstHier();
 
-  CQChartsTreeMapHierNode *currentRoot = root();
+  auto currentRoot = root();
 
   if (! currentRoot)
     return nullptr;
 
   for (int i = 0; i < names.size(); ++i) {
-    CQChartsTreeMapHierNode *hier = childHierNode(currentRoot, names[i]);
+    auto hier = childHierNode(currentRoot, names[i]);
 
     if (! hier)
       return currentRoot;
@@ -402,7 +402,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -454,8 +454,8 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (auto &obj : objs) {
-    CQChartsTreeMapHierObj *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
-    CQChartsTreeMapNodeObj *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
 
     if      (hierObj) {
       if (hierObj->parent())
@@ -483,7 +483,7 @@ CQChartsTreeMapPlot::
 initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
              int depth, PlotObjs &objs) const
 {
-  CQChartsTreeMapHierObj *hierObj = 0;
+  CQChartsTreeMapHierObj *hierObj = nullptr;
 
   if (hier != root()) {
     CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
@@ -528,7 +528,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    CQChartsTreeMapNodeObj *obj = new CQChartsTreeMapNodeObj(this, node, parentObj, rect, is);
+    auto obj = new CQChartsTreeMapNodeObj(this, node, parentObj, rect, is);
 
     obj->setInd(in_);
 
@@ -557,7 +557,7 @@ void
 CQChartsTreeMapPlot::
 initNodes() const
 {
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -591,13 +591,13 @@ void
 CQChartsTreeMapPlot::
 replaceNodes() const
 {
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   th->windowHeaderHeight_ = pixelToWindowHeight(calcTitleHeight());
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
   th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
-  CQChartsTreeMapHierNode *hier = currentRoot();
+  auto hier = currentRoot();
 
   if (hier)
     placeNodes(hier);
@@ -631,7 +631,7 @@ CQChartsTreeMapPlot::
 colorNode(CQChartsTreeMapNode *node) const
 {
   if (! node->color().isValid()) {
-    CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+    auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -656,7 +656,7 @@ loadHier() const
 
       //---
 
-      CQChartsTreeMapHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto hier = plot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -666,14 +666,14 @@ loadHier() const
     }
 
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
-      CQChartsTreeMapHierNode *node = hierStack_.back();
+      auto node = hierStack_.back();
 
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
 
       if (node->hierSize() == 0) {
-        CQChartsTreeMapPlot *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+        auto plot = const_cast<CQChartsTreeMapPlot *>(plot_);
 
         plot->removeHierNode(node);
       }
@@ -691,12 +691,19 @@ loadHier() const
 
       double size = 1.0;
 
-      if (! getSize(data, size))
-        return State::SKIP;
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
+
+        if (size == 0.0)
+          return State::SKIP;
+      }
 
       //---
 
-      CQChartsTreeMapNode *node = plot_->addNode(parentHier(), name, size, nameInd);
+      auto node = plot_->addNode(parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -729,38 +736,6 @@ loadHier() const
       return ok;
     }
 
-    bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
-      if (! plot_->valueColumn().isValid())
-        return true;
-
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      bool ok = true;
-
-      if      (plot_->valueColumnType() == ColumnType::REAL)
-        size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(valueModelInd, ok);
-      else
-        ok = false;
-
-      if (! ok)
-        return addDataError(valueModelInd, "Invalid numeric value");
-
-      if (size <= 0.0)
-        return addDataError(valueModelInd, "Non-positive value");
-
-      return true;
-    }
-
-   private:
-    bool addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsTreeMapPlot *>(plot_)->addDataError(ind, msg);
-      return false;
-    }
-
    private:
     using HierStack = std::vector<CQChartsTreeMapHierNode *>;
 
@@ -777,7 +752,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -785,7 +760,7 @@ addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelInde
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsTreeMapHierNode *hier1 = new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
+  auto hier1 = new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
@@ -809,7 +784,7 @@ CQChartsTreeMapPlot::
 addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
         const QModelIndex &nameInd) const
 {
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -817,7 +792,7 @@ addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsTreeMapNode *node = new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
+  auto node = new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 
@@ -853,29 +828,18 @@ loadFlat() const
       double size = 1.0;
 
       if (plot_->valueColumn().isValid()) {
-        bool ok2 = true;
-
         CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
 
-        if      (plot_->valueColumnType() == ColumnType::REAL)
-          size = plot_->modelReal(valueModelInd, ok2);
-        else if (plot_->valueColumnType() == ColumnType::INTEGER)
-          size = (double) plot_->modelInteger(valueModelInd, ok2);
-        else
-          ok2 = false;
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
 
-        if (! ok2)
-          return addDataError(valueModelInd, "Invalid numeric value");
-
-        if (size <= 0.0)
-          return addDataError(valueModelInd, "Non-positive value");
-
-        return State::OK;
+        if (size == 0.0)
+          return State::SKIP;
       }
 
       //---
 
-      CQChartsTreeMapNode *node = plot_->addNode(nameStrs, size, nameInd1);
+      auto node = plot_->addNode(nameStrs, size, nameInd1);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -887,12 +851,6 @@ loadFlat() const
       }
 
       return State::OK;
-    }
-
-   private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsTreeMapPlot *>(plot_)->addDataError(ind, msg);
-      return State::SKIP;
     }
 
    private:
@@ -912,7 +870,7 @@ CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
 addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
 {
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -922,17 +880,17 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   //---
 
-  CQChartsTreeMapHierNode *parent = root();
+  auto parent = root();
 
   for (int j = 0; j < nameStrs.length() - 1; ++j) {
-    CQChartsTreeMapHierNode *child = childHierNode(parent, nameStrs[j]);
+    auto child = childHierNode(parent, nameStrs[j]);
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
       QModelIndex nameInd1;
       double      size1 = 0.0;
 
-      CQChartsTreeMapNode *node = childNode(parent, nameStrs[j]);
+      auto node = childNode(parent, nameStrs[j]);
 
       if (node) {
         nameInd1 = node->ind();
@@ -960,11 +918,11 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   QString name = nameStrs[nameStrs.length() - 1];
 
-  CQChartsTreeMapNode *node = childNode(parent, name);
+  auto node = childNode(parent, name);
 
   if (! node) {
     // use hier node if already created
-    CQChartsTreeMapHierNode *child = childHierNode(parent, name);
+    auto child = childHierNode(parent, name);
 
     if (child) {
       child->setSize(size);
@@ -1036,6 +994,38 @@ childNode(CQChartsTreeMapHierNode *parent, const QString &name) const
   return nullptr;
 }
 
+bool
+CQChartsTreeMapPlot::
+getValueSize(const CQChartsModelIndex &ind, double &size) const
+{
+  auto addDataError = [&](const QString &msg) {
+    const_cast<CQChartsTreeMapPlot *>(this)->addDataError(ind, msg);
+    return false;
+  };
+
+  size = 1.0;
+
+  if (! ind.isValid())
+    return false;
+
+  bool ok = true;
+
+  if      (valueColumnType() == ColumnType::REAL)
+    size = modelReal(ind, ok);
+  else if (valueColumnType() == ColumnType::INTEGER)
+    size = (double) modelInteger(ind, ok);
+  else
+    ok = false;
+
+  if (! ok)
+    return addDataError("Invalid numeric value");
+
+  if (size < 0.0)
+    return addDataError("Non-positive value");
+
+  return true;
+}
+
 //------
 
 bool
@@ -1043,7 +1033,7 @@ CQChartsTreeMapPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+    auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -1060,9 +1050,9 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
-  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
-  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
+  auto pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  auto popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  auto popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != firstHier());
@@ -1092,22 +1082,22 @@ pushSlot()
     return;
 
   for (const auto &obj : objs) {
-    CQChartsTreeMapHierObj *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
 
     if (hierObj) {
-      CQChartsTreeMapHierNode *hnode = hierObj->hierNode();
+      auto hnode = hierObj->hierNode();
 
       setCurrentRoot(hnode, /*update*/true);
 
       break;
     }
 
-    CQChartsTreeMapNodeObj *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
 
     if (nodeObj) {
-      CQChartsTreeMapNode *node = nodeObj->node();
+      auto node = nodeObj->node();
 
-      CQChartsTreeMapHierNode *hnode = node->parent();
+      auto hnode = node->parent();
 
       if (hnode) {
         setCurrentRoot(hnode, /*update*/true);
@@ -1122,7 +1112,7 @@ void
 CQChartsTreeMapPlot::
 popSlot()
 {
-  CQChartsTreeMapHierNode *root = currentRoot();
+  auto root = currentRoot();
 
   if (root && root->parent()) {
     setCurrentRoot(root->parent(), /*update*/true);
@@ -1133,7 +1123,7 @@ void
 CQChartsTreeMapPlot::
 popTopSlot()
 {
-  CQChartsTreeMapHierNode *root = currentRoot();
+  auto root = currentRoot();
 
   if (root != firstHier()) {
     setCurrentRoot(firstHier(), /*update*/true);
@@ -1262,7 +1252,7 @@ void
 CQChartsTreeMapHierObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsTreeMapHierNode *pnode = node()->parent();
+  auto pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -1334,7 +1324,8 @@ draw(CQChartsPaintDevice *device)
   // check if text visible (font dependent)
   CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
 
-  bool visible = plot_->isTextVisible();
+  //bool visible = plot_->isTextVisible();
+  bool visible = true;
 
   if (visible) {
     QFontMetricsF fm(device->font());
@@ -1517,7 +1508,7 @@ void
 CQChartsTreeMapNodeObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsTreeMapHierNode *pnode = node()->parent();
+  auto pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -1589,9 +1580,8 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
   strs.push_back(name);
 
-  if (plot_->isValueLabel() && ! node_->isFiller()) {
+  if (plot_->isValueLabel())
     strs.push_back(QString("%1").arg(node_->size()));
-  }
 
   //---
 
@@ -1640,6 +1630,9 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
     textOptions.clipped       = plot_->isTextClipped();
     textOptions.align         = plot_->textAlign();
 
+    if (plot_->isHierName())
+      textOptions.formatSeps = plot_->separator();
+
     textOptions = plot_->adjustTextOptions(textOptions);
 
     device->setPen(tPenBrush.pen);
@@ -1648,13 +1641,22 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
     CQChartsGeom::BBox bbox1 = device->pixelToWindow(ibbox);
 
-    if      (strs.size() == 1) {
+    if (! plot_->isValueLabel()) {
       CQChartsDrawUtil::drawTextInBox(device, bbox1, name, textOptions);
     }
-    else if (strs.size() == 2) {
+    else {
       if (plot_->isTextClipped())
         device->setClipRect(bbox1);
 
+      if (textOptions.formatted) {
+        QString str1 = strs.join('\n');
+
+        CQChartsDrawUtil::drawTextInBox(device, bbox1, str1, textOptions);
+      }
+      else
+        CQChartsDrawUtil::drawStringsInBox(device, bbox1, strs, textOptions);
+
+#if 0
       double th = fm.height();
 
       CQChartsGeom::Point pc = ibbox.getCenter();
@@ -1664,9 +1666,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);
-    }
-    else {
-      assert(false);
+#endif
     }
   }
 
@@ -1962,7 +1962,7 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
     }
   }
   else {
-    CQChartsTreeMapNode *node = nodes[0];
+    auto node = nodes[0];
 
     node->setPosition(x, y, w, h);
   }
@@ -2074,7 +2074,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapNode::
 rootNode(CQChartsTreeMapHierNode *root) const
 {
-  CQChartsTreeMapHierNode *parent = this->parent();
+  auto parent = this->parent();
 
   while (parent && parent->parent() && parent->parent() != root)
     parent = parent->parent();

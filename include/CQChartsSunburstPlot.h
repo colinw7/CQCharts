@@ -461,6 +461,10 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void resetNodeExpansion();
   void resetNodeExpansion(CQChartsSunburstHierNode *hierNode);
 
+  //---
+
+  bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
+
  public slots:
   void pushSlot();
   void popSlot();

@@ -132,6 +132,9 @@ void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon
 void drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
                    const QString &text, const CQChartsTextOptions &options);
 
+void drawStringsInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
+                       const QStringList &strs, const CQChartsTextOptions &options);
+
 void drawRotatedTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
                           const QString &text, const QPen &pen, const CQChartsTextOptions &options);
 

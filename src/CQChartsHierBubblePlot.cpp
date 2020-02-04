@@ -554,17 +554,26 @@ loadHier() const
 
       double size = 1.0;
 
-      if (! getSize(data, size))
-        return State::SKIP;
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
+
+        if (size == 0.0)
+          return State::SKIP;
+      }
 
       //---
 
-      CQChartsHierBubbleNode *node = plot_->addNode(parentHier(), name, size, nameInd);
+      auto node = plot_->addNode(parentHier(), name, size, nameInd);
 
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+
+        if (plot_->columnColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -595,31 +604,6 @@ loadHier() const
 
         name = plot_->modelString(idColumnInd, ok);
       }
-
-      return ok;
-    }
-
-    bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
-      if (! plot_->valueColumn().isValid())
-        return true;
-
-      bool ok = true;
-
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      if      (plot_->valueColumnType() == ColumnType::REAL)
-        size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::STRING)
-        size = 1.0;
-      else
-        ok = false;
-
-      if (ok && size <= 0.0)
-        ok = false;
 
       return ok;
     }
@@ -702,47 +686,30 @@ loadFlat() const
 
       double size = 1.0;
 
-      if (! getSize(data, size))
-        return State::SKIP;
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
+
+        if (size == 0.0)
+          return State::SKIP;
+      }
 
       //---
 
-      CQChartsHierBubbleNode *node = plot_->addNode(nameStrs, size, nameInds[0]);
+      auto node = plot_->addNode(nameStrs, size, nameInds[0]);
 
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+
+        if (plot_->columnColor(colorInd, color))
           node->setColor(color);
       }
 
       return State::OK;
-    }
-
-   private:
-    bool getSize(const VisitData &data, double &size) const {
-      size = 1.0;
-
-      if (! plot_->valueColumn().isValid())
-        return true;
-
-      bool ok = true;
-
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      if      (plot_->valueColumnType() == ColumnType::REAL)
-        size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::STRING)
-        size = 1.0;
-      else
-        ok = false;
-
-      if (ok && size <= 0.0)
-        ok = false;
-
-      return ok;
     }
 
    private:
@@ -882,6 +849,40 @@ childNode(CQChartsHierBubbleHierNode *parent, const QString &name) const
       return node;
 
   return nullptr;
+}
+
+bool
+CQChartsHierBubblePlot::
+getValueSize(const CQChartsModelIndex &ind, double &size) const
+{
+  auto addDataError = [&](const QString &msg) {
+    const_cast<CQChartsHierBubblePlot *>(this)->addDataError(ind, msg);
+    return false;
+  };
+
+  size = 1.0;
+
+  if (! ind.isValid())
+    return false;
+
+  bool ok = true;
+
+  if      (valueColumnType() == ColumnType::REAL)
+    size = modelReal(ind, ok);
+  else if (valueColumnType() == ColumnType::INTEGER)
+    size = (double) modelInteger(ind, ok);
+  else if (valueColumnType() == ColumnType::STRING)
+    size = 1.0;
+  else
+    ok = false;
+
+  if (! ok)
+    return addDataError("Invalid numeric value");
+
+  if (size < 0.0)
+    return addDataError("Non-positive value");
+
+  return true;
 }
 
 //------

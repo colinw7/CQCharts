@@ -1044,3 +1044,6 @@
  + Use CQChartsModelIndex for model data access
  + Move Javascript code to separate namespace
  + Auto scale Javascript font to match original pixel size
+# 02/03/2020
+ + Better formatting of hier separated and newline separated string for formatted/scaled text
+ + cleanup hier value calcs

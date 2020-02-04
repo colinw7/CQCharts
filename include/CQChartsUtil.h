@@ -205,10 +205,42 @@ bool stringToStyle(const QString &str, CQChartsStyle &style);
 QString timeToString(const QString &fmt, double r);
 bool    stringToTime(const QString &fmt, const QString &str, double &t);
 
+}
+
 //------
 
+namespace CQChartsUtil {
+
+struct FormatData {
+  QString seps;
+
+  FormatData() { }
+
+  FormatData(const QString &s) :
+   seps(s) {
+  }
+
+  bool isValid() const {
+    return (seps.length() > 0);
+  }
+
+  bool isSep(const QChar &c) const {
+    return seps.contains(c);
+  }
+};
+
 bool formatStringInRect(const QString &str, const QFont &font,
-                        const CQChartsGeom::BBox &rect, QStringList &strs);
+                        const CQChartsGeom::BBox &rect, QStringList &strs,
+                        const FormatData &formatData=FormatData());
+
+void findStringCustomSplits(const QString &str, std::vector<int> &splits,
+                            const CQChartsUtil::FormatData &formatData);
+
+void findStringSpaceSplits(const QString &str, std::vector<int> &splits);
+
+void findStringPunctSplits(const QString &str, std::vector<int> &splits);
+
+void findStringCaseSplits(const QString &str, std::vector<int> &splits);
 
 }
 

@@ -137,11 +137,7 @@ drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
   if (options.clipped)
     device->save();
 
-  auto prect = device->windowToPixel(rect);
-
   if (CMathUtil::isZero(options.angle.value())) {
-    QFontMetricsF fm(device->font());
-
     if (options.clipped)
       device->setClipRect(rect, Qt::IntersectClip);
 
@@ -151,74 +147,18 @@ drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
 
     QStringList strs;
 
-    if (options.formatted)
-      CQChartsUtil::formatStringInRect(text, device->font(), prect, strs);
+    if (options.formatted) {
+      auto prect = device->windowToPixel(rect);
+
+      CQChartsUtil::formatStringInRect(text, device->font(), prect, strs,
+                                       CQChartsUtil::FormatData(options.formatSeps));
+    }
     else
       strs << text;
 
     //---
 
-    double th = strs.size()*fm.height() + 2*options.margin;
-
-    if (options.scaled) {
-      // calc text scale
-      double s = options.scale;
-
-      if (s <= 0.0) {
-        double tw = 0;
-
-        for (int i = 0; i < strs.size(); ++i)
-          tw = std::max(tw, fm.width(strs[i]));
-
-        tw += 2*options.margin;
-
-        double sx = (tw > 0 ? prect.getWidth ()/tw : 1);
-        double sy = (th > 0 ? prect.getHeight()/th : 1);
-
-        s = std::min(sx, sy);
-      }
-
-      // scale font
-      device->setFont(CQChartsUtil::scaleFontSize(
-        device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
-
-      fm = QFontMetricsF(device->font());
-
-      th = strs.size()*fm.height();
-    }
-
-    //---
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignVCenter)
-      dy = (prect.getHeight() - th)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = prect.getHeight() - th;
-
-    double y = prect.getYMin() + dy + fm.ascent();
-
-    for (int i = 0; i < strs.size(); ++i) {
-      double dx = 0.0;
-
-      double tw = fm.width(strs[i]);
-
-      if      (options.align & Qt::AlignHCenter)
-        dx = (prect.getWidth() - tw)/2;
-      else if (options.align & Qt::AlignRight)
-        dx = prect.getWidth() - tw;
-
-      double x = prect.getXMin() + dx;
-
-      CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(x, y));
-
-      if (options.contrast)
-        drawContrastText(device, pt, strs[i], options.contrastAlpha);
-      else
-        drawSimpleText(device, pt, strs[i]);
-
-      y += fm.height();
-    }
+    drawStringsInBox(device, rect, strs, options);
   }
   else {
     if (options.clipped)
@@ -229,6 +169,77 @@ drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
 
   if (options.clipped)
     device->restore();
+}
+
+void
+drawStringsInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
+                 const QStringList &strs, const CQChartsTextOptions &options)
+{
+  auto prect = device->windowToPixel(rect);
+
+  QFontMetricsF fm(device->font());
+
+  double th = strs.size()*fm.height() + 2*options.margin;
+
+  if (options.scaled) {
+    // calc text scale
+    double s = options.scale;
+
+    if (s <= 0.0) {
+      double tw = 0;
+
+      for (int i = 0; i < strs.size(); ++i)
+        tw = std::max(tw, fm.width(strs[i]));
+
+      tw += 2*options.margin;
+
+      double sx = (tw > 0 ? prect.getWidth ()/tw : 1);
+      double sy = (th > 0 ? prect.getHeight()/th : 1);
+
+      s = std::min(sx, sy);
+    }
+
+    // scale font
+    device->setFont(CQChartsUtil::scaleFontSize(
+      device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
+
+    fm = QFontMetricsF(device->font());
+
+    th = strs.size()*fm.height();
+  }
+
+  //---
+
+  double dy = 0.0;
+
+  if      (options.align & Qt::AlignVCenter)
+    dy = (prect.getHeight() - th)/2.0;
+  else if (options.align & Qt::AlignBottom)
+    dy = prect.getHeight() - th;
+
+  double y = prect.getYMin() + dy + fm.ascent();
+
+  for (int i = 0; i < strs.size(); ++i) {
+    double dx = 0.0;
+
+    double tw = fm.width(strs[i]);
+
+    if      (options.align & Qt::AlignHCenter)
+      dx = (prect.getWidth() - tw)/2;
+    else if (options.align & Qt::AlignRight)
+      dx = prect.getWidth() - tw;
+
+    double x = prect.getXMin() + dx;
+
+    CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(x, y));
+
+    if (options.contrast)
+      drawContrastText(device, pt, strs[i], options.contrastAlpha);
+    else
+      drawSimpleText(device, pt, strs[i]);
+
+    y += fm.height();
+  }
 }
 
 void

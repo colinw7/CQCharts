@@ -636,7 +636,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+  auto th = const_cast<CQChartsScatterPlot *>(this);
 
   //---
 
@@ -958,7 +958,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+  auto th = const_cast<CQChartsScatterPlot *>(this);
 
   //---
 
@@ -1048,7 +1048,7 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     // get group points
-    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    auto th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pg = th->groupPoints_.find(groupInd);
 
@@ -1830,7 +1830,7 @@ CQChartsScatterPlot::
 initGroupBestFit(int groupInd) const
 {
   // init best fit data
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+  auto th = const_cast<CQChartsScatterPlot *>(this);
 
   CQChartsFitData &fitData = th->groupFitData_[groupInd];
 
@@ -1875,7 +1875,7 @@ CQChartsScatterPlot::
 initGroupStats(int groupInd) const
 {
   // init stats data
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+  auto th = const_cast<CQChartsScatterPlot *>(this);
 
   StatData &statData = th->groupStatData_[groupInd];
 
@@ -2117,7 +2117,7 @@ drawHull(CQChartsPaintDevice *device) const
     // get hull for group (add if needed)
     int groupInd = groupNameValue.first;
 
-    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    auto th = const_cast<CQChartsScatterPlot *>(this);
 
     auto ph = th->groupHull_.find(groupInd);
 
@@ -2614,7 +2614,7 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = groupNameValue.first;
 
-    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    auto th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 
@@ -2671,7 +2671,7 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = pg.first;
 
-    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    auto th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 

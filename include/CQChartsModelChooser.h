@@ -6,6 +6,10 @@
 class CQCharts;
 class QComboBox;
 
+/*!
+ * \brief Model Chooser Combo
+ * \ingroup Charts
+ */
 class CQChartsModelChooser : public QFrame {
   Q_OBJECT
 
@@ -22,10 +26,10 @@ class CQChartsModelChooser : public QFrame {
  private:
   void connectSlots(bool b);
 
-  void updateModels();
-
  private slots:
   void setCurrentModel(int ind);
+
+  void updateModels();
 
  private:
   CQCharts*  charts_ { nullptr };

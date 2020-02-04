@@ -576,6 +576,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void resetNodeExpansion();
   void resetNodeExpansion(CQChartsTreeMapHierNode *hierNode);
 
+  //---
+
+  bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
+
  public slots:
   void pushSlot();
   void popSlot();

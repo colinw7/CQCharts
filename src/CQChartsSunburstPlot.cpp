@@ -522,11 +522,21 @@ loadHier(CQChartsSunburstHierNode *root) const
 
       //---
 
-      double      size = 1.0;
+      double size = 1.0;
+
       QModelIndex valueInd;
 
-      if (! getSize(data, size, valueInd))
-        return State::SKIP;
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        valueInd = plot_->modelIndex(valueModelInd);
+
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
+
+        if (size == 0.0)
+          return State::SKIP;
+      }
 
       //---
 
@@ -552,40 +562,6 @@ loadHier(CQChartsSunburstHierNode *root) const
       name = plot_->modelString(nameModelInd, ok);
 
       return ok;
-    }
-
-    bool getSize(const VisitData &data, double &size, QModelIndex &valueInd) const {
-      size = 1.0;
-
-      if (! plot_->valueColumn().isValid())
-        return true;
-
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      valueInd = plot_->modelIndex(valueModelInd);
-
-      bool ok = true;
-
-      if      (plot_->valueColumnType() == ColumnType::REAL)
-        size = plot_->modelReal(valueModelInd, ok);
-      else if (plot_->valueColumnType() == ColumnType::INTEGER)
-        size = (double) plot_->modelInteger(valueModelInd, ok);
-      else
-        ok = false;
-
-      if (! ok)
-        return addDataError(valueModelInd, "Invalid numeric value");
-
-      if (size <= 0.0)
-        return addDataError(valueModelInd, "Non-positive value");
-
-      return ok;
-    }
-
-   private:
-    bool addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsSunburstPlot *>(plot_)->addDataError(ind, msg);
-      return false;
     }
 
    private:
@@ -660,39 +636,32 @@ loadFlat(CQChartsSunburstHierNode *root) const
 
       //---
 
-      CQChartsModelIndex valueModelInd;
-
       double size = 1.0;
 
+      QModelIndex valueInd;
+
       if (plot_->valueColumn().isValid()) {
-        bool ok2 = true;
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
 
-        valueModelInd = CQChartsModelIndex(data.row, plot_->valueColumn(), data.parent);
+        valueInd = plot_->modelIndex(valueModelInd);
 
-        if      (plot_->valueColumnType() == ColumnType::REAL)
-          size = plot_->modelReal(valueModelInd, ok2);
-        else if (plot_->valueColumnType() == ColumnType::INTEGER)
-          size = (double) plot_->modelInteger(valueModelInd, ok2);
-        else
-          ok2 = false;
+        if (! plot_->getValueSize(valueModelInd, size))
+          return State::SKIP;
 
-        if (! ok2)
-          return addDataError(valueModelInd, "Invalid numeric value");
-
-        if (size <= 0.0)
-          return addDataError(valueModelInd, "Non-positive value");
+        if (size == 0.0)
+          return State::SKIP;
       }
 
       //---
 
-      QModelIndex valueInd = plot_->modelIndex(valueModelInd);
+      auto node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
-      CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
-
-      if (node) {
+      if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+
+        if (plot_->columnColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -893,6 +862,38 @@ childNode(CQChartsSunburstHierNode *parent, const QString &name) const
       return node;
 
   return nullptr;
+}
+
+bool
+CQChartsSunburstPlot::
+getValueSize(const CQChartsModelIndex &ind, double &size) const
+{
+  auto addDataError = [&](const QString &msg) {
+    const_cast<CQChartsSunburstPlot *>(this)->addDataError(ind, msg);
+    return false;
+  };
+
+  size = 1.0;
+
+  if (! ind.isValid())
+    return false;
+
+  bool ok = true;
+
+  if      (valueColumnType() == ColumnType::REAL)
+    size = modelReal(ind, ok);
+  else if (valueColumnType() == ColumnType::INTEGER)
+    size = (double) modelInteger(ind, ok);
+  else
+    ok = false;
+
+  if (! ok)
+    return addDataError("Invalid numeric value");
+
+  if (size < 0.0)
+    return addDataError("Non-positive value");
+
+  return true;
 }
 
 //------

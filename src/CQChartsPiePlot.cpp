@@ -300,7 +300,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPiePlot::calcRange");
 
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  auto th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 
@@ -408,7 +408,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  auto th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 
@@ -733,7 +733,7 @@ void
 CQChartsPiePlot::
 calcDataTotal() const
 {
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  auto th = const_cast<CQChartsPiePlot *>(this);
 
   th->groupDatas_.clear();
 
@@ -774,7 +774,7 @@ void
 CQChartsPiePlot::
 addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 {
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  auto th = const_cast<CQChartsPiePlot *>(this);
 
   // get group ind
   int groupInd = rowGroupInd(ind);
@@ -857,7 +857,7 @@ bool
 CQChartsPiePlot::
 getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) const
 {
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  auto th = const_cast<CQChartsPiePlot *>(this);
 
   missing = false;
   value   = 1.0;

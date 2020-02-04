@@ -383,7 +383,7 @@ removeSelectionModel(QItemSelectionModel *model)
   ++i;
 
   for ( ; i < len; ++i)
-    selectionModels_[i - i] = selectionModels_[i];
+    selectionModels_[i - 1] = selectionModels_[i];
 
   selectionModels_.pop_back();
 }

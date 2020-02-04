@@ -492,6 +492,10 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   void resetNodeExpansion();
   void resetNodeExpansion(CQChartsHierBubbleHierNode *hierNode);
 
+  //---
+
+  bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
+
  public slots:
   void pushSlot();
   void popSlot();

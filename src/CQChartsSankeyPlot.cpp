@@ -260,7 +260,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -354,7 +354,7 @@ void
 CQChartsSankeyPlot::
 createGraph(PlotObjs &objs) const
 {
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -515,7 +515,7 @@ void
 CQChartsSankeyPlot::
 updateMaxDepth() const
 {
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -544,7 +544,7 @@ void
 CQChartsSankeyPlot::
 adjustNodes() const
 {
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -805,7 +805,7 @@ findNode(const QString &name) const
 
   node->setInd(nameNodeMap_.size());
 
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
 
@@ -820,7 +820,7 @@ createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode
 {
   CQChartsSankeyPlotEdge *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
 
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+  auto th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->edges_.push_back(edge);
 
@@ -893,7 +893,7 @@ srcDepth(NodeSet &visited) const
   if (srcDepth_ >= 0)
     return srcDepth_;
 
-  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   if (srcEdges_.empty())
     th->srcDepth_ = 0;
@@ -936,7 +936,7 @@ destDepth(NodeSet &visited) const
   if (destDepth_ >= 0)
     return destDepth_;
 
-  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   if (destEdges_.empty())
     th->destDepth_ = 0;
@@ -986,7 +986,7 @@ calcXPos() const
     }
   }
 
-  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   th->xpos_ = xpos;
 
