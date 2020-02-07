@@ -184,7 +184,7 @@ void
 CQChartsSymbolDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(symbolDataChanged()), obj, method);
@@ -194,7 +194,7 @@ QVariant
 CQChartsSymbolDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->symbolData());
@@ -204,7 +204,7 @@ void
 CQChartsSymbolDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
   CQChartsSymbolData data = var.value<CQChartsSymbolData>();
@@ -220,7 +220,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 {
   setObjectName("symbolDataEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -236,13 +236,13 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   if (! optional)
     layout->addLayout(groupLayout);
 
   // symbol
-  QLabel *symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
+  auto symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
 
   symbolEdit_ = new CQChartsSymbolEdit;
 
@@ -250,7 +250,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(symbolEdit_, 0, 1);
 
   // size
-  QLabel *sizeLabel = CQUtil::makeLabelWidget<QLabel>("Size", "sizeLabel");
+  auto sizeLabel = CQUtil::makeLabelWidget<QLabel>("Size", "sizeLabel");
 
   sizeEdit_ = new CQChartsLengthEdit;
 

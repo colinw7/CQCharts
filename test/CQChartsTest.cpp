@@ -265,7 +265,7 @@ main(int argc, char **argv)
       appWindow->window()->raise();
   }
   else if (mainData.showModel) {
-    CQChartsLoadModelDlg *dlg = new CQChartsLoadModelDlg(test.charts());
+    auto dlg = new CQChartsLoadModelDlg(test.charts());
 
     dlg->show();
   }
@@ -955,7 +955,7 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
   // create plot from init (argument) data
   if (initData.filterStr.length()) {
-    CQSortModel *sortModel = new CQSortModel(model.data());
+    auto sortModel = new CQSortModel(model.data());
 
     ModelP sortModelP(sortModel);
 
@@ -1088,7 +1088,7 @@ loop()
 {
   int rlTimeout = 10;
 
-  CQChartsReadLine *readLine = new CQChartsReadLine(this);
+  auto readLine = new CQChartsReadLine(this);
 
   readLine->enableTimeoutHook(rlTimeout);
 

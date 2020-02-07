@@ -15,7 +15,7 @@ CQChartsOptEdit(QWidget *parent, const char *type) :
 
   //---
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -145,7 +145,7 @@ void
 CQChartsOptPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsOptEdit *edit = qobject_cast<CQChartsOptEdit *>(w);
+  auto edit = qobject_cast<CQChartsOptEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(valueChanged()), obj, method);
@@ -155,7 +155,7 @@ QVariant
 CQChartsOptPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsOptEdit *edit = qobject_cast<CQChartsOptEdit *>(w);
+  auto edit = qobject_cast<CQChartsOptEdit *>(w);
   assert(edit);
 
   return edit->toVariant();
@@ -165,7 +165,7 @@ void
 CQChartsOptPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsOptEdit *edit = qobject_cast<CQChartsOptEdit *>(w);
+  auto edit = qobject_cast<CQChartsOptEdit *>(w);
   assert(edit);
 
   edit->fromVariant(var);

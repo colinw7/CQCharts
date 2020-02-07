@@ -163,7 +163,7 @@ void
 CQChartsTextBoxDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsTextBoxDataLineEdit *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(textBoxDataChanged()), obj, method);
@@ -173,7 +173,7 @@ QVariant
 CQChartsTextBoxDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsTextBoxDataLineEdit *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w); assert(edit);
+  auto edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w); assert(edit);
 
   return QVariant::fromValue(edit->textBoxData());
 }
@@ -182,7 +182,7 @@ void
 CQChartsTextBoxDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsTextBoxDataLineEdit *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
   assert(edit);
 
   CQChartsTextBoxData data = var.value<CQChartsTextBoxData>();
@@ -198,23 +198,22 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
 {
   setObjectName("textBoxDataEdit");
 
-  QGridLayout *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   int row = 0;
 
   //---
 
   if (tabbed_) {
-    QTabWidget *tab = CQUtil::makeWidget<QTabWidget>("tab");
+    auto tab = CQUtil::makeWidget<QTabWidget>("tab");
 
     layout->addWidget(tab, row, 0, 1, 2); ++row;
 
     //----
 
     // text frame
-    QFrame *textFrame = CQUtil::makeWidget<QFrame>("textFrame");
-
-    QVBoxLayout *textFrameLayout = CQUtil::makeLayout<QVBoxLayout>(textFrame, 0, 2);
+    auto textFrame       = CQUtil::makeWidget<QFrame>("textFrame");
+    auto textFrameLayout = CQUtil::makeLayout<QVBoxLayout>(textFrame, 0, 2);
 
     tab->addTab(textFrame, "Text");
 
@@ -230,9 +229,8 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     //----
 
     // box frame
-    QFrame *boxFrame = CQUtil::makeWidget<QFrame>("boxFrame");
-
-    QVBoxLayout *boxFrameLayout = CQUtil::makeLayout<QVBoxLayout>(boxFrame, 0, 2);
+    auto boxFrame       = CQUtil::makeWidget<QFrame>("boxFrame");
+    auto boxFrameLayout = CQUtil::makeLayout<QVBoxLayout>(boxFrame, 0, 2);
 
     tab->addTab(boxFrame, "Box");
 

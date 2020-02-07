@@ -31,7 +31,7 @@ CQChartsEditKeyDlg(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -82,7 +82,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   setObjectName("keyEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -104,7 +104,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //-
 
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey) {
     data_.flipped          = plotKey->isFlipped();
@@ -129,7 +129,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 
@@ -177,9 +177,8 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  CQGroupBox *placementGroup = CQUtil::makeLabelWidget<CQGroupBox>("Placement", "placementGroup");
-
-  QGridLayout *placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
+  auto placementGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Placement", "placementGroup");
+  auto placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
 
   groupLayout->addWidget(placementGroup, row, 0, 1, 2); ++row;
 
@@ -314,9 +313,8 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  CQGroupBox *headerGroup = CQUtil::makeLabelWidget<CQGroupBox>("Header", "headerGroup");
-
-  QGridLayout *headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
+  auto headerGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Header", "headerGroup");
+  auto headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
 
   groupLayout->addWidget(headerGroup, row, 0, 1, 2); ++row;
 
@@ -381,7 +379,7 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
   connectDisconnect(horizontalEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
@@ -416,7 +414,7 @@ dataToWidgets()
 {
   connectSlots(false);
 
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   groupBox_          ->setChecked(data_.visible);
   horizontalEdit_    ->setChecked(data_.horizontal);
@@ -450,7 +448,7 @@ void
 CQChartsKeyEdit::
 widgetsToData()
 {
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   data_.visible        = groupBox_->isChecked();
   data_.horizontal     = horizontalEdit_->isChecked();
@@ -484,7 +482,7 @@ void
 CQChartsKeyEdit::
 applyData()
 {
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   key_->setVisible      (data_.visible);
   key_->setHorizontal   (data_.horizontal);

@@ -28,7 +28,6 @@
 #include <QComboBox>
 #include <QRadioButton>
 #include <QLabel>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 CQChartsCreateAnnotationDlg::

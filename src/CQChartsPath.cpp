@@ -58,7 +58,7 @@ setValue(const QString &str)
 
   CQStrParse parse(str);
 
-  auto parseChar = [&]() -> QChar {
+  auto parseChar = [&]() {
     parse.skipSpace();
 
     QChar c = parse.getChar();

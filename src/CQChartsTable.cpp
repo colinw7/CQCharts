@@ -81,7 +81,7 @@ addMenuActions(QMenu *menu)
   //---
 
   auto addMenu = [&](const QString &name) {
-    QMenu *subMenu = new QMenu(name);
+    QMenu *subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
 
@@ -193,7 +193,7 @@ void
 CQChartsTable::
 setFilterAnd(bool b)
 {
-  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter)
     modelFilter->setFilterCombine(b ? CQChartsModelFilter::Combine::AND :
@@ -221,7 +221,7 @@ addReplaceFilter(const QString &filter, bool add)
   if (! model_)
     return;
 
-  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter) {
     if (sm_)
@@ -245,7 +245,7 @@ addReplaceFilter(const QString &filter, bool add)
     }
   }
   else {
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+    auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
     assert(proxyModel);
 
     QAbstractItemModel *model = proxyModel->sourceModel();
@@ -267,7 +267,7 @@ QString
 CQChartsTable::
 filterDetails() const
 {
-  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter)
     return modelFilter->filterDetails();
@@ -303,7 +303,7 @@ addReplaceSearch(const QString &text, bool add)
   if (! model_)
     return;
 
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
   //---

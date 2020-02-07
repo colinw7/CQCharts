@@ -1341,7 +1341,7 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 
   auto th = const_cast<CQChartsDistributionPlot *>(this);
 
-  CQChartsValueSet *valueSet = new CQChartsValueSet(this);
+  auto valueSet = new CQChartsValueSet(this);
 
   valueSet->setColumn(ind.column);
 
@@ -2412,8 +2412,8 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const CQChartsGeom::RangeValue &xv,
                        const CQChartsGeom::RangeValue &yv, const QString &name) {
-    CQChartsDistKeyColorBox *keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
-    CQChartsDistKeyText     *keyText  = new CQChartsDistKeyText    (this, name, iv);
+    auto keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
+    auto keyText  = new CQChartsDistKeyText    (this, name, iv);
 
     if (! key->isHorizontal()) {
       key->addItem(keyColor, row, 0);
@@ -2719,9 +2719,8 @@ bool
 CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -2733,12 +2732,12 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
-  auto addAction = [&](const QString &name, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addAction = [&](const QString &name, const char *slot) {
+    auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered(bool)), this, slot);
 
@@ -2757,7 +2756,7 @@ addMenuItems(QMenu *menu)
 
   if (hasGroups()) {
     if (! typeMenu)
-      typeMenu = new QMenu("Plot Type");
+      typeMenu = new QMenu("Plot Type", menu);
 
     (void) addMenuCheckedAction(typeMenu, "Normal"    , isNormal    (), SLOT(setNormal    (bool)));
     (void) addMenuCheckedAction(typeMenu, "Stacked"   , isStacked   (), SLOT(setStacked   (bool)));
@@ -2766,14 +2765,14 @@ addMenuItems(QMenu *menu)
   }
 
   if (! typeMenu)
-    typeMenu = new QMenu("Plot Type");
+    typeMenu = new QMenu("Plot Type", menu);
 
   (void) addMenuCheckedAction(typeMenu, "Scatter", isScatter(), SLOT(setScatter(bool)));
   (void) addMenuCheckedAction(typeMenu, "Density", isDensity(), SLOT(setDensity(bool)));
 
   menu->addMenu(typeMenu);
 
-  QMenu *valueMenu = new QMenu("Value Type");
+  auto valueMenu = new QMenu("Value Type", menu);
 
   (void) addMenuCheckedAction(valueMenu, "Count", isValueCount(), SLOT(setValueCount(bool)));
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));

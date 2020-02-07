@@ -205,7 +205,7 @@ void
 CQChartsGeomPointPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsGeomPointEdit *edit = qobject_cast<CQChartsGeomPointEdit *>(w);
+  auto edit = qobject_cast<CQChartsGeomPointEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(valueChanged()), obj, method);
@@ -215,7 +215,7 @@ QVariant
 CQChartsGeomPointPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsGeomPointEdit *edit = qobject_cast<CQChartsGeomPointEdit *>(w);
+  auto edit = qobject_cast<CQChartsGeomPointEdit *>(w);
   assert(edit);
 
   return CQChartsVariant::fromPoint(edit->getValue());
@@ -225,7 +225,7 @@ void
 CQChartsGeomPointPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsGeomPointEdit *edit = qobject_cast<CQChartsGeomPointEdit *>(w);
+  auto edit = qobject_cast<CQChartsGeomPointEdit *>(w);
   assert(edit);
 
   bool ok;

@@ -295,7 +295,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPivotPlot::calcRange");
 
-  CQChartsPivotPlot *th = const_cast<CQChartsPivotPlot *>(this);
+  auto th = const_cast<CQChartsPivotPlot *>(this);
 
   //---
 
@@ -461,7 +461,7 @@ calcAnnotationBBox() const
 
   if (dataLabel()->isVisible()) {
     for (const auto &plotObj : plotObjs_) {
-      CQChartsPivotBarObj *barObj = dynamic_cast<CQChartsPivotBarObj *>(plotObj);
+      auto barObj = dynamic_cast<CQChartsPivotBarObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -730,7 +730,7 @@ createObjs(PlotObjs &objs) const
       else
         rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nh, maxValue);
 
-      CQChartsPivotLineObj *obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
+      auto obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
 
       objs.push_back(obj);
     }
@@ -907,8 +907,8 @@ addKeyItems(CQChartsPlotKey *key)
     int row = 0;
 
     auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
-      CQChartsPivotKeyColor *keyColor = new CQChartsPivotKeyColor(this, ic);
-      CQChartsPivotKeyText  *keyText  = new CQChartsPivotKeyText (this, name);
+      auto keyColor = new CQChartsPivotKeyColor(this, ic);
+      auto keyText  = new CQChartsPivotKeyText (this, name);
 
       key->addItem(keyColor, row, 0);
       key->addItem(keyText , row, 1);
@@ -948,9 +948,8 @@ bool
 CQChartsPivotPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -962,7 +961,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
@@ -972,7 +971,7 @@ addMenuItems(QMenu *menu)
 
   (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
-  QMenu *typeMenu = new QMenu("Plot Type");
+  auto typeMenu = new QMenu("Plot Type", menu);
 
   for (const auto &plotType : plotTypes())
     (void) addMenuCheckedAction(typeMenu, plotTypeName(plotType), this->plotType() == plotType,
@@ -980,7 +979,7 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(typeMenu);
 
-  QMenu *valueMenu = new QMenu("Value Type");
+  auto valueMenu = new QMenu("Value Type", menu);
 
   for (const auto &valueType : valueTypes())
     (void) addMenuCheckedAction(valueMenu, valueTypeName(valueType), this->valueType() == valueType,
@@ -1010,7 +1009,7 @@ setPlotTypeSlot(bool b)
 {
   if (! b) return;
 
-  QAction *action = qobject_cast<QAction *>(sender());
+  auto action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->text();
@@ -1029,7 +1028,7 @@ setValueTypeSlot(bool b)
 {
   if (! b) return;
 
-  QAction *action = qobject_cast<QAction *>(sender());
+  auto action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->text();
@@ -1813,7 +1812,7 @@ QBrush
 CQChartsPivotKeyColor::
 fillBrush() const
 {
-  CQChartsPivotPlot *plot = qobject_cast<CQChartsPivotPlot *>(this->plot());
+  auto plot = qobject_cast<CQChartsPivotPlot *>(this->plot());
 
   QColor fc = plot->interpBarFillColor(ig_);
 

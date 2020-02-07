@@ -165,7 +165,7 @@ void
 CQChartsStrokeDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsStrokeDataLineEdit *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(strokeDataChanged()), obj, method);
@@ -175,7 +175,7 @@ QVariant
 CQChartsStrokeDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsStrokeDataLineEdit *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->strokeData());
@@ -185,7 +185,7 @@ void
 CQChartsStrokeDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsStrokeDataLineEdit *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   CQChartsStrokeData data = var.value<CQChartsStrokeData>();
@@ -205,7 +205,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -219,10 +219,10 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
+  auto colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -230,7 +230,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
+  auto alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -238,7 +238,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // width
-  QLabel *widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "widthLabel");
+  auto widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "widthLabel");
 
   widthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("widthEdit");
 
@@ -246,7 +246,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(widthEdit_, 2, 1);
 
   // dash
-  QLabel *dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dashLabel");
+  auto dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dashLabel");
 
   dashEdit_ = new CQChartsLineDashEdit;
 
@@ -255,7 +255,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   // corner size
   if (config_.cornerSize) {
-    QLabel *cornerLabel = CQUtil::makeLabelWidget<QLabel>("Corner", "cornerLabel");
+    auto cornerLabel = CQUtil::makeLabelWidget<QLabel>("Corner", "cornerLabel");
 
     cornerEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("cornerEdit");
 

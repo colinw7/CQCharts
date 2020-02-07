@@ -21,7 +21,7 @@ CQChartsFillUnderSideEdit(QWidget *parent) :
 
   setToolTip("Fill Under Side");
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
@@ -151,7 +151,7 @@ void
 CQChartsFillUnderSidePropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsFillUnderSideEdit *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillUnderSideChanged()), obj, method);
@@ -161,7 +161,7 @@ QVariant
 CQChartsFillUnderSidePropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsFillUnderSideEdit *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillUnderSide());
@@ -171,7 +171,7 @@ void
 CQChartsFillUnderSidePropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsFillUnderSideEdit *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   CQChartsFillUnderSide fillUnderSide = var.value<CQChartsFillUnderSide>();
@@ -366,7 +366,7 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillUnderPosChanged()), obj, method);
@@ -376,7 +376,7 @@ QVariant
 CQChartsFillUnderPosPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillUnderPos());
@@ -386,7 +386,7 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   CQChartsFillUnderPos fillUnderPos = var.value<CQChartsFillUnderPos>();
@@ -402,15 +402,15 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 {
   setObjectName("fillUnderPos");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
-  CQGroupBox *xGroup = CQUtil::makeLabelWidget<CQGroupBox>("X", "xGroup");
+  auto xGroup = CQUtil::makeLabelWidget<CQGroupBox>("X", "xGroup");
 
   layout->addWidget(xGroup);
 
-  QGridLayout *xlayout = CQUtil::makeLayout<QGridLayout>(xGroup, 2, 2);
+  auto xlayout = CQUtil::makeLayout<QGridLayout>(xGroup, 2, 2);
 
   //--
 
@@ -420,14 +420,14 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  QLabel *xtypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "xtypeLabel");
+  auto xtypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "xtypeLabel");
 
   xlayout->addWidget(xtypeLabel , 0, 0);
   xlayout->addWidget(xtypeCombo_, 0, 1);
 
   //---
 
-  QLabel *xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
+  auto xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
 
   xposEdit_ = CQUtil::makeWidget<CQRealSpin>("xposEdit");
 
@@ -440,11 +440,11 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   //----
 
-  CQGroupBox *yGroup = CQUtil::makeLabelWidget<CQGroupBox>("Y", "yGroup");
+  auto yGroup = CQUtil::makeLabelWidget<CQGroupBox>("Y", "yGroup");
 
   layout->addWidget(yGroup);
 
-  QGridLayout *ylayout = CQUtil::makeLayout<QGridLayout>(yGroup, 2, 2);
+  auto ylayout = CQUtil::makeLayout<QGridLayout>(yGroup, 2, 2);
 
   //--
 
@@ -454,14 +454,14 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  QLabel *ytypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "ytypeLabel");
+  auto ytypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "ytypeLabel");
 
   ylayout->addWidget(ytypeLabel , 0, 0);
   ylayout->addWidget(ytypeCombo_, 0, 1);
 
   //---
 
-  QLabel *yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
+  auto yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
 
   yposEdit_ = CQUtil::makeWidget<CQRealSpin>("yposEdit");
 

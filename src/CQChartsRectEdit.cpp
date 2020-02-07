@@ -243,7 +243,7 @@ void
 CQChartsRectPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsRectEdit *edit = qobject_cast<CQChartsRectEdit *>(w);
+  auto edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(rectChanged()), obj, method);
@@ -253,7 +253,7 @@ QVariant
 CQChartsRectPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsRectEdit *edit = qobject_cast<CQChartsRectEdit *>(w);
+  auto edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->rect());
@@ -263,7 +263,7 @@ void
 CQChartsRectPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsRectEdit *edit = qobject_cast<CQChartsRectEdit *>(w);
+  auto edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
   CQChartsRect rect = var.value<CQChartsRect>();

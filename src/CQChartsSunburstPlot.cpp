@@ -297,7 +297,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
+  auto th = const_cast<CQChartsSunburstPlot *>(this);
 
   // init value sets
   //initValueSets();
@@ -374,13 +374,13 @@ createObjs(PlotObjs &objs) const
   int in = 0;
 
   for (auto &obj : objs) {
-    CQChartsSunburstNodeObj *nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
 
     if (nodeObj) { nodeObj->setInd(in); ++in; }
   }
 
   for (auto &obj : objs) {
-    CQChartsSunburstNodeObj *nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
 
     if (nodeObj)
       nodeObj->setIv(ColorInd(nodeObj->ind(), in));
@@ -472,7 +472,7 @@ CQChartsSunburstPlot::
 colorNode(CQChartsSunburstNode *node) const
 {
   if (! node->color().isValid()) {
-    CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
+    auto th = const_cast<CQChartsSunburstPlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -582,7 +582,7 @@ addHierNode(CQChartsSunburstHierNode *hier, const QString &name, const QModelInd
 {
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsSunburstHierNode *hier1 = new CQChartsSunburstHierNode(this, hier, name);
+  auto hier1 = new CQChartsSunburstHierNode(this, hier, name);
 
   hier1->setInd(nameInd1);
 
@@ -594,7 +594,7 @@ CQChartsSunburstPlot::
 addNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
         const QModelIndex &nameInd, const QModelIndex &valueInd) const
 {
-  CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, name);
+  auto node = new CQChartsSunburstNode(this, hier, name);
 
   node->setSize(size);
 
@@ -703,7 +703,7 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
       CQChartsSunburstRootNode *root = rootNode(nameStrs[i]);
 
       if (! root) {
-        CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
+        auto th = const_cast<CQChartsSunburstPlot *>(this);
 
         root = th->createRootNode(nameStrs[i]);
 
@@ -784,7 +784,7 @@ CQChartsSunburstPlot::
 addExtraNodes(CQChartsSunburstHierNode *hier) const
 {
   if (hier->size() > 0) {
-    CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, "");
+    auto node = new CQChartsSunburstNode(this, hier, "");
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
@@ -811,7 +811,7 @@ CQChartsSunburstRootNode *
 CQChartsSunburstPlot::
 createRootNode(const QString &name)
 {
-  CQChartsSunburstRootNode *root = new CQChartsSunburstRootNode(this, name);
+  auto root = new CQChartsSunburstRootNode(this, name);
 
   roots_.push_back(root);
 
@@ -922,7 +922,7 @@ addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs, const ColorInd &ir) const
 
   CQChartsGeom::BBox bbox(-r2, -r2, r2, r2);
 
-  CQChartsSunburstNodeObj *obj = new CQChartsSunburstNodeObj(this, bbox, node);
+  auto obj = new CQChartsSunburstNodeObj(this, bbox, node);
 
   obj->setIs(ir);
 
@@ -937,8 +937,8 @@ bool
 CQChartsSunburstPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
+    auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -988,12 +988,12 @@ pushSlot()
     return;
 
   for (const auto &obj : objs) {
-    CQChartsSunburstNodeObj *sobj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
+    auto sobj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
     if (! sobj) continue;
 
     CQChartsSunburstNode *node = sobj->node();
 
-    CQChartsSunburstHierNode *hnode = dynamic_cast<CQChartsSunburstHierNode *>(node);
+    auto hnode = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
     if (! hnode && node)
       hnode = node->parent();
@@ -1122,8 +1122,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   if (! node->placed())
     return;
 
-  CQChartsSunburstRootNode *root = dynamic_cast<CQChartsSunburstRootNode *>(node);
-//CQChartsSunburstHierNode *hier = dynamic_cast<CQChartsSunburstHierNode *>(node);
+  auto root = dynamic_cast<CQChartsSunburstRootNode *>(node);
+//auto hier = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
   //---
 
@@ -1563,7 +1563,7 @@ packSubNodes(CQChartsSunburstHierNode *root, double ri, double dr,
 
     node->setPosition(ri, CQChartsAngle(a1), dr, CQChartsAngle(s*da.value()));
 
-    CQChartsSunburstHierNode *hierNode = dynamic_cast<CQChartsSunburstHierNode *>(node);
+    auto hierNode = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
     if (hierNode)
       hierNode->packSubNodes(root, ri + dr, dr, CQChartsAngle(a1), da, order, sort);

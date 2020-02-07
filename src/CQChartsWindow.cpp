@@ -109,7 +109,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
@@ -119,7 +119,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QSplitter *settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
+  auto settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
 
   settingsSplitter->setOrientation(Qt::Horizontal);
 
@@ -133,7 +133,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //----
 
-  CQTabSplit *viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
+  auto viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
   viewSplitter->setState(CQTabSplit::State::VSPLIT);
 //viewSplitter->setGrouped(true);
@@ -151,11 +151,11 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QFrame *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
+  auto viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
   viewFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  QGridLayout *viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
+  auto viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
 
   viewSplitter->addWidget(viewFrame, "View");
 
@@ -184,7 +184,7 @@ CQChartsWindow(CQChartsView *view) :
 
   tableFrame_->setAutoFillBackground(true);
 
-  QVBoxLayout *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
+  auto tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
 
   filterEdit_ = new CQChartsFilterEdit;
 
@@ -645,7 +645,7 @@ objectPlot(QObject *obj) const
   QObject *obj1 = obj;
 
   while (obj1) {
-    CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj1);
+    auto plot = qobject_cast<CQChartsPlot *>(obj1);
 
     if (plot)
       return plot;

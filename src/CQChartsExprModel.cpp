@@ -114,8 +114,9 @@ addBuiltinFunctions()
   // time
   addFunction("timeval");
 
-//addFunction("key"      );
-//addFunction("concat"   );
+//addFunction("key");
+
+  addFunction("concat");
 }
 
 CQTcl *
@@ -167,7 +168,7 @@ bool
 CQChartsExprModel::
 isReadOnly() const
 {
-  CQDataModel *dataModel = qobject_cast<CQDataModel *>(model_);
+  auto dataModel = qobject_cast<CQDataModel *>(model_);
 
   return (dataModel ? dataModel->isReadOnly() : true);
 }
@@ -176,7 +177,7 @@ void
 CQChartsExprModel::
 setReadOnly(bool b)
 {
-  CQDataModel *dataModel = qobject_cast<CQDataModel *>(model_);
+  auto dataModel = qobject_cast<CQDataModel *>(model_);
 
   if (dataModel)
     dataModel->setReadOnly(b);
@@ -490,7 +491,7 @@ void
 CQChartsExprModel::
 initCalc() const
 {
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+  auto th = const_cast<CQChartsExprModel *>(this);
 
   th->initCalc();
 }
@@ -611,7 +612,7 @@ columnRange(int column, double &minVal, double &maxVal) const
 
   //---
 
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+  auto th = const_cast<CQChartsExprModel *>(this);
 
   return th->calcColumnRange(column, minVal, maxVal);
 }
@@ -670,7 +671,7 @@ columnRange(int column, int &minVal, int &maxVal) const
 
   //---
 
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+  auto th = const_cast<CQChartsExprModel *>(this);
 
   return th->calcColumnRange(column, minVal, maxVal);
 }
@@ -914,7 +915,7 @@ getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
 
   //---
 
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+  auto th = const_cast<CQChartsExprModel *>(this);
 
   bool rc1 = true;
 
@@ -1251,8 +1252,9 @@ processCmd(const QString &name, const Values &values)
   // time
   else if (name == "timeval") return timevalCmd(values);
 
-//else if (name == "key"   ) return keyCmd   (values);
-//else if (name == "concat") return concatCmd(values);
+//else if (name == "key") return keyCmd(values);
+
+  else if (name == "concat") return concatCmd(values);
 
   else return QVariant(false);
 }
@@ -1965,7 +1967,6 @@ keyCmd(const Values &values) const
 
 //---
 
-#if 0
 // concat values:
 //   concat(str1,str2,...)
 QVariant
@@ -1979,7 +1980,6 @@ concatCmd(const Values &values) const
 
   return QVariant(str);
 }
-#endif
 
 //---
 
@@ -2077,7 +2077,7 @@ remapCmd(const Values &values)
 //   timeval(col,fmt) - timeval fmt for specified column
 QVariant
 CQChartsExprModel::
-timevalCmd(const Values &values)
+timevalCmd(const Values &values) const
 {
   CQChartsExprCmdValues cmdValues(values);
 
@@ -2099,18 +2099,20 @@ timevalCmd(const Values &values)
 
   //---
 
+  auto th = const_cast<CQChartsExprModel *>(this);
+
   QModelIndex ind = index(row, col, QModelIndex());
 
   bool ok;
 
-  QVariant var = CQChartsModelUtil::modelValue(this, ind, Qt::EditRole, ok);
+  QVariant var = CQChartsModelUtil::modelValue(th, ind, Qt::EditRole, ok);
   if (! ok) return QVariant();
 
   CQChartsColumn column(col);
 
   bool converted;
 
-  QVariant var1 = CQChartsModelUtil::columnUserData(charts_, this, column, var, converted);
+  QVariant var1 = CQChartsModelUtil::columnUserData(charts_, th, column, var, converted);
 
   if (var1.isValid())
     var = var1;

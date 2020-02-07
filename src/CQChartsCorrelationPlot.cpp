@@ -189,7 +189,7 @@ preDrawObjs(CQChartsPaintDevice *device) const
     CQChartsGeom::Size cellSize;
 
     for (auto &plotObj : plotObjects()) {
-      CQChartsCellObj *cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
+      auto cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
       if (! cellObj) continue;
 
       CQChartsGeom::Size s = cellObj->calcTextSize();
@@ -292,7 +292,7 @@ addCellObj(int row, int col, double x, double y, double dx, double dy, double va
 
   ColorInd colorInd(value);
 
-  CQChartsCellObj *cellObj = new CQChartsCellObj(this, bbox, row, col, value, ind, colorInd);
+  auto cellObj = new CQChartsCellObj(this, bbox, row, col, value, ind, colorInd);
 
   objs.push_back(cellObj);
 }
@@ -325,9 +325,8 @@ bool
 CQChartsCorrelationPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -339,7 +338,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 

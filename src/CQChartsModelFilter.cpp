@@ -506,9 +506,9 @@ data(const QModelIndex &ind, int role) const
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);
 
-        CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
+        auto th = const_cast<CQChartsModelFilter *>(this);
 
-        CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+        auto dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
           if (dataModel->isReadOnly()) {
@@ -530,9 +530,9 @@ data(const QModelIndex &ind, int role) const
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);
 
-        CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
+        auto th = const_cast<CQChartsModelFilter *>(this);
 
-        CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+        auto dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
           if (dataModel->isReadOnly()) {

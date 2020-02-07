@@ -13,7 +13,7 @@ CQChartsEnumEdit(QWidget *parent) :
 {
   setObjectName("enumEdit");
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
@@ -121,7 +121,7 @@ void
 CQChartsEnumPropertyViewEditorFactory::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsEnumEdit *edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   edit->connect(obj, method);
@@ -131,7 +131,7 @@ QVariant
 CQChartsEnumPropertyViewEditorFactory::
 getValue(QWidget *w)
 {
-  CQChartsEnumEdit *edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   return edit->getVariantFromEnum();
@@ -141,7 +141,7 @@ void
 CQChartsEnumPropertyViewEditorFactory::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsEnumEdit *edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   edit->setEnumFromVariant(var);

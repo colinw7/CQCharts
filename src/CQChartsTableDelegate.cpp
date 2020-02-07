@@ -332,7 +332,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
   if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = modelP()->data(index);
 
-    QCheckBox *check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
+    auto check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
 
     check->setChecked(var.toBool());
 
@@ -389,7 +389,7 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 
   data.details = (details ? details->columnDetails(CQChartsColumn(index.column())) : nullptr);
 
-  CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+  auto th = const_cast<CQChartsTableDelegate *>(this);
 
   th->columnDataMap_[index.column()] = data;
 }
@@ -400,7 +400,7 @@ resetColumnData()
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+  auto th = const_cast<CQChartsTableDelegate *>(this);
 
   th->columnDataMap_.clear();
 }
@@ -526,7 +526,7 @@ void
 CQChartsTableDelegate::
 updateBoolean()
 {
-  QCheckBox *check = qobject_cast<QCheckBox *>(sender());
+  auto check = qobject_cast<QCheckBox *>(sender());
   assert(check);
 
   check->setText(check->isChecked() ? "true" : "false");

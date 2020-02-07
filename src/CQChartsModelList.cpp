@@ -14,7 +14,7 @@ CQChartsModelList(CQCharts *charts) :
 {
   setObjectName("modelList");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 

@@ -211,7 +211,7 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
 
     auto createItem = [&](const QString &name) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -285,7 +285,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
     setHorizontalHeaderItem(2, new QTableWidgetItem("Connect"));
 
     auto createItem = [&](const QString &name) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -392,7 +392,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
     auto createItem = [&](const QString &name) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -466,7 +466,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
     auto createItem = [&](const QString &name) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -563,7 +563,7 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect"  ));
 
     auto createItem = [&](const QString &name) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -666,7 +666,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
 
     auto createItem = [&](const QString &name, bool editable=false) {
-      QTableWidgetItem *item = new QTableWidgetItem(name);
+      auto item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
 
@@ -933,9 +933,9 @@ initPropertiesFrame(QFrame *propertiesFrame)
   auto viewEditFrame       = CQUtil::makeWidget<QFrame>("viewEditFrame");
   auto viewEditFrameLayout = CQUtil::makeLayout<QHBoxLayout>(viewEditFrame, 2, 2);
 
-  QPushButton *viewKeyButton =
+  auto viewKeyButton =
     createPushButton("Edit Key...", "key"  , "Edit View Key"    , SLOT(editViewKeySlot()));
-  QPushButton *viewWriteButton =
+  auto viewWriteButton =
     createPushButton("Write", "write", "Write View Script", SLOT(writeViewSlot()));
 
   viewEditFrameLayout->addWidget(viewKeyButton);
@@ -966,15 +966,15 @@ initPropertiesFrame(QFrame *propertiesFrame)
   auto plotEditFrame       = CQUtil::makeWidget<QFrame>("plotEditFrame");
   auto plotEditFrameLayout = CQUtil::makeLayout<QHBoxLayout>(plotEditFrame, 2, 2);
 
-  QPushButton *plotTitleButton =
+  auto plotTitleButton =
     createPushButton("Edit Title..." , "title", "Edit Plot Title"  , SLOT(editPlotTitleSlot()));
-  QPushButton *plotKeyButton   =
+  auto plotKeyButton   =
     createPushButton("Edit Key..."   , "key"  , "Edit Plot Key"    , SLOT(editPlotKeySlot()));
-  QPushButton *plotXAxisButton =
+  auto plotXAxisButton =
     createPushButton("Edit X Axis...", "xaxis", "Edit Plot X Axis" , SLOT(editPlotXAxisSlot()));
-  QPushButton *plotYAxisButton =
+  auto plotYAxisButton =
     createPushButton("Edit Y Axis...", "yaxis", "Edit Plot Y Axis" , SLOT(editPlotYAxisSlot()));
-  QPushButton *plotWriteButton =
+  auto plotWriteButton =
     createPushButton("Write"         , "write", "Write Plot Script", SLOT(writePlotSlot()));
 
   plotEditFrameLayout->addWidget(plotTitleButton);
@@ -1168,14 +1168,10 @@ initPlotsFrame(QFrame *plotsFrame)
   auto editFrame  = CQUtil::makeWidget<QFrame>("editFrame");
   auto editLayout = CQUtil::makeLayout<QHBoxLayout>(editFrame, 2, 2);
 
-  QPushButton *titleButton = createButton("Title" , "title", "Edit Title",
-                                          SLOT(editPlotTitleSlot()));
-  QPushButton *keyButton   = createButton("Key"   , "key"  , "Edit Key",
-                                          SLOT(editPlotKeySlot()));
-  QPushButton *xAxisButton = createButton("X Axis", "xaxis", "Edit Key",
-                                          SLOT(editPlotXAxisSlot()));
-  QPushButton *yAxisButton = createButton("Y Axis", "yaxis", "Edit Key",
-                                          SLOT(editPlotYAxisSlot()));
+  auto titleButton = createButton("Title" , "title", "Edit Title" , SLOT(editPlotTitleSlot()));
+  auto keyButton   = createButton("Key"   , "key"  , "Edit Key"   , SLOT(editPlotKeySlot()));
+  auto xAxisButton = createButton("X Axis", "xaxis", "Edit X Axis", SLOT(editPlotXAxisSlot()));
+  auto yAxisButton = createButton("Y Axis", "yaxis", "Edit Y Axis", SLOT(editPlotYAxisSlot()));
 
   editLayout->addWidget(titleButton);
   editLayout->addWidget(keyButton);
@@ -1326,11 +1322,12 @@ initPlotsFrame(QFrame *plotsFrame)
 
   auto controlPlotsGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlPlotsGroup, 2, 2);
 
-  plotsWidgets_.raiseButton     = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
-  plotsWidgets_.lowerButton     = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
-  plotsWidgets_.createButton    = createPushButton("Create", "create", SLOT(createPlotSlot()));
-  plotsWidgets_.removeButton    = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
-//QPushButton*  writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
+  plotsWidgets_.raiseButton  = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
+  plotsWidgets_.lowerButton  = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
+  plotsWidgets_.createButton = createPushButton("Create", "create", SLOT(createPlotSlot()));
+  plotsWidgets_.removeButton = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
+
+//auto writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
   plotsWidgets_.raiseButton ->setToolTip("Raise selected plot");
   plotsWidgets_.lowerButton ->setToolTip("Lower selected plot");
@@ -1427,8 +1424,8 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   auto controlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlGroup, 2, 2);
 
-  QPushButton *createButton =
-    createPushButton("Create...", "create", SLOT(createAnnotationSlot()));
+  auto createButton = createPushButton("Create...", "create", SLOT(createAnnotationSlot()));
+
   annotationsWidgets_.editButton =
     createPushButton("Edit...", "edit", SLOT(editAnnotationSlot()));
   annotationsWidgets_.removeButton =

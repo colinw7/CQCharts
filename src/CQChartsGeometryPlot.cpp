@@ -309,7 +309,7 @@ calcRange() const
 
   //---
 
-  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
+  auto th = const_cast<CQChartsGeometryPlot *>(this);
 
   th->geometries_.clear();
 
@@ -374,7 +374,7 @@ CQChartsGeometryPlot::
 addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
        CQChartsGeom::Range &dataRange) const
 {
-  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
+  auto th = const_cast<CQChartsGeometryPlot *>(this);
 
   //---
 

@@ -19,7 +19,7 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
@@ -175,7 +175,7 @@ void
 CQChartsSymbolPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsSymbolEdit *edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(symbolChanged()), obj, method);
@@ -185,7 +185,7 @@ QVariant
 CQChartsSymbolPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsSymbolEdit *edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->symbol());
@@ -195,7 +195,7 @@ void
 CQChartsSymbolPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsSymbolEdit *edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   CQChartsSymbol symbol = var.value<CQChartsSymbol>();

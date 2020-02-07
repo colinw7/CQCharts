@@ -3970,7 +3970,7 @@ addNoDataObj()
   noData_ = false;
 
   if (type()->hasObjs() && plotObjs_.empty()) {
-    CQChartsNoDataObj *obj = new CQChartsNoDataObj(this);
+    auto obj = new CQChartsNoDataObj(this);
 
     addPlotObject(obj);
 
@@ -8648,7 +8648,7 @@ CQChartsArrowAnnotation *
 CQChartsPlot::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  CQChartsArrowAnnotation *annotation = new CQChartsArrowAnnotation(this, start, end);
+  auto annotation = new CQChartsArrowAnnotation(this, start, end);
 
   addAnnotation(annotation);
 
@@ -8672,7 +8672,7 @@ CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 {
-  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, pos, image);
+  auto annotation = new CQChartsImageAnnotation(this, pos, image);
 
   addAnnotation(annotation);
 
@@ -8683,7 +8683,7 @@ CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 {
-  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, rect, image);
+  auto annotation = new CQChartsImageAnnotation(this, rect, image);
 
   addAnnotation(annotation);
 
@@ -8708,7 +8708,7 @@ CQChartsPointAnnotation *
 CQChartsPlot::
 addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
-  CQChartsPointAnnotation *annotation = new CQChartsPointAnnotation(this, pos, type);
+  auto annotation = new CQChartsPointAnnotation(this, pos, type);
 
   addAnnotation(annotation);
 
@@ -8719,7 +8719,7 @@ CQChartsPointSetAnnotation *
 CQChartsPlot::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  CQChartsPointSetAnnotation *annotation = new CQChartsPointSetAnnotation(this, values);
+  auto annotation = new CQChartsPointSetAnnotation(this, values);
 
   addAnnotation(annotation);
 
@@ -8730,7 +8730,7 @@ CQChartsPolygonAnnotation *
 CQChartsPlot::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolygonAnnotation *annotation = new CQChartsPolygonAnnotation(this, points);
+  auto annotation = new CQChartsPolygonAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -8741,7 +8741,7 @@ CQChartsPolylineAnnotation *
 CQChartsPlot::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolylineAnnotation *annotation = new CQChartsPolylineAnnotation(this, points);
+  auto annotation = new CQChartsPolylineAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -8752,7 +8752,7 @@ CQChartsRectangleAnnotation *
 CQChartsPlot::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectangleAnnotation *annotation = new CQChartsRectangleAnnotation(this, rect);
+  auto annotation = new CQChartsRectangleAnnotation(this, rect);
 
   addAnnotation(annotation);
 
@@ -8763,7 +8763,7 @@ CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, pos, text);
+  auto annotation = new CQChartsTextAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -8774,7 +8774,7 @@ CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, rect, text);
+  auto annotation = new CQChartsTextAnnotation(this, rect, text);
 
   addAnnotation(annotation);
 
@@ -8797,7 +8797,7 @@ CQChartsButtonAnnotation *
 CQChartsPlot::
 addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsButtonAnnotation *annotation = new CQChartsButtonAnnotation(this, pos, text);
+  auto annotation = new CQChartsButtonAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -8962,7 +8962,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
   auto pb = buffers_.find(buffer);
 
   if (pb == buffers_.end()) {
-    CQChartsBuffer *layerBuffer = new CQChartsBuffer(buffer);
+    auto layerBuffer = new CQChartsBuffer(buffer);
 
     pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
   }
@@ -8974,7 +8974,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
   auto pl = layers_.find(type);
 
   if (pl == layers_.end()) {
-    CQChartsLayer *layer = new CQChartsLayer(type, buffer);
+    auto layer = new CQChartsLayer(type, buffer);
 
     pl = layers_.insert(pl, Layers::value_type(type, layer));
   }

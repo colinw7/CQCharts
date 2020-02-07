@@ -248,7 +248,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
 
-  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
+  auto th = const_cast<CQChartsHierScatterPlot *>(this);
 
   //---
 
@@ -491,7 +491,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
+  auto th = const_cast<CQChartsHierScatterPlot *>(this);
 
   //---
 
@@ -686,7 +686,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
-    CQChartsHierScatterPointObj *pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
+    auto pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
 
     //---
 
@@ -716,7 +716,7 @@ addKeyItems(CQChartsPlotKey *key)
     CQChartsHierScatterKeyColor *color =
       new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
 
-    CQChartsKeyText *text = new CQChartsKeyText(this, name, ColorInd(i, n));
+    auto text = new CQChartsKeyText(this, name, ColorInd(i, n));
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);
@@ -753,8 +753,8 @@ bool
 CQChartsHierScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *popAction   = new QAction("Pop Filter"  , menu);
-  QAction *resetAction = new QAction("Reset Filter", menu);
+  auto popAction   = new QAction("Pop Filter"  , menu);
+  auto resetAction = new QAction("Reset Filter", menu);
 
   connect(popAction  , SIGNAL(triggered()), this, SLOT(popCurrentGroup()));
   connect(resetAction, SIGNAL(triggered()), this, SLOT(resetCurrentGroup()));
@@ -904,7 +904,7 @@ bool
 CQChartsHierScatterKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
-  CQChartsHierScatterPlot *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
   //plot->setSetHidden(ic_.i, ! plot->isSetHidden(ic_.i));
 
@@ -922,7 +922,7 @@ fillBrush() const
 {
   QColor c = CQChartsKeyColorBox::fillBrush().color();
 
-  //CQChartsHierScatterPlot *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
+  //auto plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
   //if (plot->isSetHidden(ic_.i))
   //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

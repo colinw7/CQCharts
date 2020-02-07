@@ -62,9 +62,6 @@ class CQChartsTextData {
   bool isFormatted() const { return formatted_; }
   void setFormatted(bool b) { formatted_ = b; }
 
-  const QString &formatSeparators() const { return formatSeps_; }
-  void setFormatSeparators(const QString &s) { formatSeps_ = s; }
-
   bool isScaled() const { return scaled_; }
   void setScaled(bool b) { scaled_ = b; }
 
@@ -93,7 +90,6 @@ class CQChartsTextData {
   CQChartsAlpha contrastAlpha_ { 0.5 };                              //!< contrast alpha
   Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter }; //!< align
   bool          formatted_     { false };                            //!< formatted
-  QString       formatSeps_;                                         //!< format separators
   bool          scaled_        { false };                            //!< scaled
   bool          html_          { false };                            //!< html
 };

@@ -371,7 +371,7 @@ initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    CQChartsBubbleNodeObj *obj = new CQChartsBubbleNodeObj(this, node, parentObj, rect, is);
+    auto obj = new CQChartsBubbleNodeObj(this, node, parentObj, rect, is);
 
     objs.push_back(obj);
   }
@@ -651,7 +651,7 @@ addHierNode(CQChartsBubbleHierNode *hier, const QString &name, const QModelIndex
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsBubbleHierNode *hier1 = new CQChartsBubbleHierNode(this, hier, name, nameInd1);
+  auto hier1 = new CQChartsBubbleHierNode(this, hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
@@ -673,7 +673,7 @@ addNode(CQChartsBubbleHierNode *hier, const QString &name, double size,
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsBubbleNode *node = new CQChartsBubbleNode(this, hier, name, size, nameInd1);
+  auto node = new CQChartsBubbleNode(this, hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 

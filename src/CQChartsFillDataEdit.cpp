@@ -164,7 +164,7 @@ void
 CQChartsFillDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsFillDataLineEdit *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillDataChanged()), obj, method);
@@ -174,7 +174,7 @@ QVariant
 CQChartsFillDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsFillDataLineEdit *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillData());
@@ -184,7 +184,7 @@ void
 CQChartsFillDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsFillDataLineEdit *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
   CQChartsFillData data = var.value<CQChartsFillData>();
@@ -204,7 +204,7 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -218,10 +218,10 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
+  auto colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -229,7 +229,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
+  auto alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -237,7 +237,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // pattern
-  QLabel *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
+  auto patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
 
   patternEdit_ = new CQChartsFillPatternEdit;
 

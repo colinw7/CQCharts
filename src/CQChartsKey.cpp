@@ -326,7 +326,7 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsViewKey *th = const_cast<CQChartsViewKey *>(this);
+  auto th = const_cast<CQChartsViewKey *>(this);
 
   th->doLayout();
 
@@ -436,7 +436,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  CQChartsViewKey *th = const_cast<CQChartsViewKey *>(this);
+  auto th = const_cast<CQChartsViewKey *>(this);
 
   th->editHandles_->setMode(CQChartsEditHandles::Mode::MOVE);
 
@@ -1519,7 +1519,7 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
+  auto th = const_cast<CQChartsPlotKey *>(this);
 
   th->doLayout();
 
@@ -1873,7 +1873,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
+  auto th = const_cast<CQChartsPlotKey *>(this);
 
   if (scrollData_.height.isSet() || scrollData_.width.isSet() ||
       layoutData_.vscrolled || layoutData_.hscrolled)

@@ -165,7 +165,7 @@ void
 CQChartsLineDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsLineDataLineEdit *edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(lineDataChanged()), obj, method);
@@ -175,7 +175,7 @@ QVariant
 CQChartsLineDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsLineDataLineEdit *edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->lineData());
@@ -185,7 +185,7 @@ void
 CQChartsLineDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsLineDataLineEdit *edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
   assert(edit);
 
   CQChartsLineData data = var.value<CQChartsLineData>();
@@ -201,7 +201,7 @@ CQChartsLineDataEdit(QWidget *parent) :
 {
   setObjectName("lineDataEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -215,10 +215,10 @@ CQChartsLineDataEdit(QWidget *parent) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "color");
+  auto colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "color");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -226,7 +226,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alpha");
+  auto alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alpha");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -234,7 +234,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // width
-  QLabel *widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "width");
+  auto widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "width");
 
   widthEdit_ = new CQChartsLengthEdit;
 
@@ -242,7 +242,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(widthEdit_, 2, 1);
 
   // dash
-  QLabel *dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dash");
+  auto dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dash");
 
   dashEdit_ = new CQChartsLineDashEdit;
 

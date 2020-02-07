@@ -26,30 +26,28 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 {
   setObjectName("modelData");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //--
 
   // model/details tab
-  QTabWidget *tableTab = CQUtil::makeWidget<QTabWidget>("tableTab");
+  auto tableTab = CQUtil::makeWidget<QTabWidget>("tableTab");
 
   layout->addWidget(tableTab);
 
   //---
 
   // model frame
-  QFrame *viewFrame = CQUtil::makeWidget<QFrame>("view");
-
-  QVBoxLayout *viewLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
+  auto viewFrame  = CQUtil::makeWidget<QFrame>("view");
+  auto viewLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
 
   tableTab->addTab(viewFrame, "Model");
 
   //---
 
   // details frame
-  QFrame *detailsFrame = CQUtil::makeWidget<QFrame>("details");
-
-  QVBoxLayout *detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 2, 2);
+  auto detailsFrame  = CQUtil::makeWidget<QFrame>("details");
+  auto detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 2, 2);
 
   tableTab->addTab(detailsFrame, "Details");
 

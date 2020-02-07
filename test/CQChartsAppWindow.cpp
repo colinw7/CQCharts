@@ -45,7 +45,7 @@ addMenus()
 
   QMenu *fileMenu = menuBar->addMenu("&File");
 
-  QAction *loadAction = new QAction("Load Model", menuBar);
+  auto loadAction = new QAction("Load Model", menuBar);
 
   loadAction->setShortcut(QKeySequence("Ctrl+L"));
 
@@ -53,7 +53,7 @@ addMenus()
 
   fileMenu->addAction(loadAction);
 
-  QAction *closeAction = new QAction("Close", menuBar);
+  auto closeAction = new QAction("Close", menuBar);
 
   connect(closeAction, SIGNAL(triggered()), this, SLOT(closeSlot()));
 
@@ -63,7 +63,7 @@ addMenus()
 
   QMenu *plotMenu = menuBar->addMenu("&Plot");
 
-  QAction *createAction = new QAction("Create Plot", menuBar);
+  auto createAction = new QAction("Create Plot", menuBar);
 
   createAction->setShortcut(QKeySequence("Ctrl+P"));
 
@@ -75,7 +75,7 @@ addMenus()
 
   QMenu *helpMenu = menuBar->addMenu("&Help");
 
-  QAction *helpAction = new QAction("Help"  , menuBar);
+  auto helpAction = new QAction("Help"  , menuBar);
 
   helpMenu->addAction(helpAction);
 }
@@ -118,7 +118,7 @@ createPlotSlot()
 
   //---
 
-  CQChartsCreatePlotDlg *createPlotDlg = new CQChartsCreatePlotDlg(charts_, modelData);
+  auto createPlotDlg = new CQChartsCreatePlotDlg(charts_, modelData);
 
   if (! createPlotDlg->exec())
     return;

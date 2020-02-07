@@ -502,8 +502,8 @@ initRangeAxesI()
   //---
 
   // set axis column and labels
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto xAxis = mappedXAxis();
+  auto yAxis = mappedYAxis();
 
   xAxis->setColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
 
@@ -854,7 +854,7 @@ groupValueSetI(int groupInd)
 
   valueData_.valueGroupInd[groupInd] = ind;
 
-  CQChartsBarChartValueSet *valueSet = &valueData_.valueSets.back();
+  auto valueSet = &valueData_.valueSets.back();
 
   valueSet->setGroupInd(groupInd);
 
@@ -1128,8 +1128,8 @@ CQChartsBarChartPlot::
 initObjAxesI()
 {
   // init axes
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto xAxis = mappedXAxis();
+  auto yAxis = mappedYAxis();
 
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
@@ -1244,8 +1244,8 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
-    CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
-    CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, name, iv);
+    auto keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
+    auto keyText  = new CQChartsBarKeyText (this, name, iv);
 
     if (c.isValid())
       keyColor->setColor(c);
@@ -1453,9 +1453,8 @@ bool
 CQChartsBarChartPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -1467,7 +1466,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
@@ -1477,14 +1476,14 @@ addMenuItems(QMenu *menu)
 
   (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
-  QMenu *typeMenu = new QMenu("Plot Type");
+  auto typeMenu = new QMenu("Plot Type", menu);
 
   (void) addMenuCheckedAction(typeMenu, "Normal" , isNormal (), SLOT(setNormal (bool)));
   (void) addMenuCheckedAction(typeMenu, "Stacked", isStacked(), SLOT(setStacked(bool)));
 
   menu->addMenu(typeMenu);
 
-  QMenu *valueMenu = new QMenu("Value Type");
+  auto valueMenu = new QMenu("Value Type", menu);
 
   (void) addMenuCheckedAction(valueMenu, "Value", isValueValue(), SLOT(setValueValue(bool)));
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
@@ -1567,7 +1566,7 @@ calcTipId() const
     tableTip.addTableRow(headerStr, valueStr);
   }
 
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   for (const auto &nameValue : value->nameValues()) {
     const QString &name  = nameValue.first;
@@ -1590,7 +1589,7 @@ QString
 CQChartsBarChartObj::
 groupStr() const
 {
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   return value->groupName();
 }
@@ -1599,7 +1598,7 @@ QString
 CQChartsBarChartObj::
 nameStr() const
 {
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   return value->valueName();
 }
@@ -1610,7 +1609,7 @@ valueStr() const
 {
   QString valueStr;
 
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
@@ -1644,7 +1643,7 @@ dataLabelRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   QString label = value->getNameValue("Label");
 
@@ -1849,7 +1848,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   //---
 
-  const CQChartsBarChartValue *value = this->value();
+  auto value = this->value();
 
   QString minLabel = value->getNameValue("Label");
   QString maxLabel = minLabel;

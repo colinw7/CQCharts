@@ -20,7 +20,7 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
   view = qobject_cast<CQChartsView *>(obj);
   if (view) return;
 
-  CQChartsAxis *axis = qobject_cast<CQChartsAxis *>(obj);
+  auto axis = qobject_cast<CQChartsAxis *>(obj);
 
   if (axis) {
     plot = axis->plot();
@@ -31,7 +31,7 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
     return;
   }
 
-  CQChartsKey *key = qobject_cast<CQChartsKey *>(obj);
+  auto key = qobject_cast<CQChartsKey *>(obj);
 
   if (key) {
     plot = key->plot();
@@ -45,7 +45,7 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
     return;
   }
 
-  CQChartsBoxObj *boxObj = qobject_cast<CQChartsBoxObj *>(obj);
+  auto boxObj = qobject_cast<CQChartsBoxObj *>(obj);
 
   if (boxObj) {
     plot = boxObj->plot();
@@ -59,7 +59,7 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
     return;
   }
 
-  CQChartsArrow *arrow = qobject_cast<CQChartsArrow *>(obj);
+  auto arrow = qobject_cast<CQChartsArrow *>(obj);
 
   if (arrow) {
     plot = arrow->plot();
@@ -84,7 +84,7 @@ void
 CQChartsInvalidator::
 invalidate(bool reload)
 {
-  CQChartsAxis *axis = qobject_cast<CQChartsAxis *>(obj_);
+  auto axis = qobject_cast<CQChartsAxis *>(obj_);
 
   if (axis) {
     if (axis->isUpdatesEnabled())

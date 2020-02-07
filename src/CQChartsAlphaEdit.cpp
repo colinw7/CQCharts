@@ -141,7 +141,7 @@ void
 CQChartsAlphaPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsAlphaEdit *edit = qobject_cast<CQChartsAlphaEdit *>(w);
+  auto edit = qobject_cast<CQChartsAlphaEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(alphaChanged()), obj, method);
@@ -151,7 +151,7 @@ QVariant
 CQChartsAlphaPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsAlphaEdit *edit = qobject_cast<CQChartsAlphaEdit *>(w);
+  auto edit = qobject_cast<CQChartsAlphaEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->alpha());
@@ -161,7 +161,7 @@ void
 CQChartsAlphaPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsAlphaEdit *edit = qobject_cast<CQChartsAlphaEdit *>(w);
+  auto edit = qobject_cast<CQChartsAlphaEdit *>(w);
   assert(edit);
 
   CQChartsAlpha alpha = var.value<CQChartsAlpha>();

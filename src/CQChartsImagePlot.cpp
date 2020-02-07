@@ -214,7 +214,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsImagePlot::calcRange");
 
-  CQChartsImagePlot *th = const_cast<CQChartsImagePlot *>(this);
+  auto th = const_cast<CQChartsImagePlot *>(this);
 
   //---
 
@@ -356,7 +356,7 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   ColorInd colorInd(rv);
 
-  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
+  auto imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
 
   objs.push_back(imageObj);
 }
@@ -389,9 +389,8 @@ bool
 CQChartsImagePlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -403,7 +402,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
@@ -411,7 +410,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QMenu *styleMenu = new QMenu("Cell Style");
+  auto styleMenu = new QMenu("Cell Style", menu);
 
   (void) addMenuCheckedAction(styleMenu, "Rect"   , isRectStyle   (), SLOT(setRectStyle   (bool)));
   (void) addMenuCheckedAction(styleMenu, "Balloon", isBalloonStyle(), SLOT(setBalloonStyle(bool)));

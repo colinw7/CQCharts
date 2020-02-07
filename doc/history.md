@@ -1047,3 +1047,8 @@
 # 02/03/2020
  + Better formatting of hier separated and newline separated string for formatted/scaled text
  + cleanup hier value calcs
+# 02/06/2020
+ + restore concat function in expr model
+ + support id column in tree map for custom name
+ + allow supress auto hide of title 
+ + fix bad placement of boxplot when set is defined

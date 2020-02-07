@@ -13,7 +13,7 @@ CQChartsTextDlg(QWidget *parent) :
 
   setObjectName("textDlg");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 2, 2);
 
   canvas_ = new CQChartsTextCanvas;
 

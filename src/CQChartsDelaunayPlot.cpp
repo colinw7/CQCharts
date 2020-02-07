@@ -226,7 +226,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
 
-  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto th = const_cast<CQChartsDelaunayPlot *>(this);
 
   //---
 
@@ -329,7 +329,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto th = const_cast<CQChartsDelaunayPlot *>(this);
 
   //---
 
@@ -428,7 +428,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 {
   assert(delaunayData_);
 
-  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto th = const_cast<CQChartsDelaunayPlot *>(this);
 
   CQChartsDelaunay::PVertex v = th->delaunayData_->addVertex(x, y);
 
@@ -462,7 +462,7 @@ bool
 CQChartsDelaunayPlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *voronoiAction = new QAction("Voronoi", menu);
+  auto voronoiAction = new QAction("Voronoi", menu);
 
   voronoiAction->setCheckable(true);
   voronoiAction->setChecked(isVoronoi());

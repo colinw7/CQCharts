@@ -184,7 +184,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   // draw color if can be directly determined
   if (color.isDirect()) {
-    CQChartsObj *obj = qobject_cast<CQChartsObj *>(item->object());
+    auto obj = qobject_cast<CQChartsObj *>(item->object());
 
     if (obj) {
       QRect rect = option.rect;
@@ -249,7 +249,7 @@ void
 CQChartsColorPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsColorLineEdit *edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   // TODO: why do we need direct connection for plot object to work ?
@@ -260,7 +260,7 @@ QVariant
 CQChartsColorPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsColorLineEdit *edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->color());
@@ -270,7 +270,7 @@ void
 CQChartsColorPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsColorLineEdit *edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   CQChartsColor color = var.value<CQChartsColor>();
@@ -288,14 +288,14 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QGridLayout *layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
 
   //---
 
   int row = 0;
 
   auto addLabelWidget = [&](const QString &label, QWidget *edit) {
-    QLabel *labelW = CQUtil::makeLabelWidget<QLabel>(label, "label");
+    auto labelW = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
     layout->addWidget(labelW, row, 0);
     layout->addWidget(edit  , row, 1);
@@ -359,8 +359,8 @@ CQChartsColorEdit(QWidget *parent) :
   //---
 
   rFrame_ = CQUtil::makeWidget<QFrame>("rFrame");
-  QHBoxLayout *rLayout = new QHBoxLayout(rFrame_);
-  rLayout->setMargin(0); rLayout->setSpacing(2);
+
+  auto rLayout = CQUtil::makeLayout<QHBoxLayout>(rFrame_, 0, 2);
 
   rEdit_ = CQUtil::makeWidget<CQColorsEditModel>("rEdit");
   rNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");
@@ -376,8 +376,8 @@ CQChartsColorEdit(QWidget *parent) :
   //---
 
   gFrame_ = CQUtil::makeWidget<QFrame>("gFrame");
-  QHBoxLayout *gLayout = new QHBoxLayout(gFrame_);
-  gLayout->setMargin(0); gLayout->setSpacing(2);
+
+  auto gLayout = CQUtil::makeLayout<QHBoxLayout>(gFrame_, 0, 2);
 
   gEdit_ = CQUtil::makeWidget<CQColorsEditModel>("gEdit");
   gNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");
@@ -393,8 +393,8 @@ CQChartsColorEdit(QWidget *parent) :
   //---
 
   bFrame_ = CQUtil::makeWidget<QFrame>("bFrame");
-  QHBoxLayout *bLayout = new QHBoxLayout(bFrame_);
-  bLayout->setMargin(0); bLayout->setSpacing(2);
+
+  auto bLayout = CQUtil::makeLayout<QHBoxLayout>(bFrame_, 0, 2);
 
   bEdit_ = CQUtil::makeWidget<CQColorsEditModel>("bEdit");
   bNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");

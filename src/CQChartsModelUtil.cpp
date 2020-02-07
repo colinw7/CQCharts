@@ -725,7 +725,7 @@ CQChartsExprModel *
 getExprModel(QAbstractItemModel *model)
 {
 //std::cerr << (model ? model->objectName().toStdString() : "null") << "\n";
-  CQChartsExprModel *exprModel = qobject_cast<CQChartsExprModel *>(model);
+  auto exprModel = qobject_cast<CQChartsExprModel *>(model);
 
   if (exprModel)
     return exprModel;
@@ -741,7 +741,7 @@ getExprModel(QAbstractItemModel *model)
   if (exprModel)
     return exprModel;
 
-  QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+  auto proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
 
   if (! proxyModel)
     return nullptr;
@@ -775,7 +775,7 @@ getExprModel(QAbstractItemModel *model)
 CQHierSepModel *
 getHierSepModel(QAbstractItemModel *model)
 {
-  CQHierSepModel *hierSepModel = qobject_cast<CQHierSepModel *>(model);
+  auto hierSepModel = qobject_cast<CQHierSepModel *>(model);
 
   if (hierSepModel)
     return hierSepModel;
@@ -797,7 +797,7 @@ getHierSepModel(QAbstractItemModel *model)
 QSortFilterProxyModel *
 getSortFilterProxyModel(QAbstractItemModel *model)
 {
-  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+  auto sortModel = qobject_cast<QSortFilterProxyModel *>(model);
   if (! sortModel) return nullptr;
 
   return sortModel;
@@ -812,10 +812,10 @@ getDataModel(const QAbstractItemModel *model)
 CQDataModel *
 getDataModel(QAbstractItemModel *model)
 {
-  CQChartsModelFilter *modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
+  auto modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
   if (! modelFilter) return nullptr;
 
-  CQDataModel *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
+  auto dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
   if (! dataModel) return nullptr;
 
   return dataModel;
@@ -836,7 +836,7 @@ getProperty(const QAbstractItemModel *model, const QString &name, QVariant &valu
   if (CQUtil::getTclProperty(model, name, value))
     return true;
 
-  const QAbstractItemModel *baseModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
+  auto baseModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
 
   if (baseModel && baseModel != model) {
     if (CQUtil::getTclProperty(baseModel, name, value))
@@ -1612,7 +1612,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
 {
   assert(model);
 
-  auto quoteStr = [](const QString &str, bool doQuote) -> QString {
+  auto quoteStr = [](const QString &str, bool doQuote) {
     return (doQuote ? "\"" + str + "\"" : str);
   };
 

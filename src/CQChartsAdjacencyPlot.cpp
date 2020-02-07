@@ -527,8 +527,8 @@ initHierObjs(PlotObjs &objs) const
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
-      CQChartsAdjacencyNode *srcNode  = plot_->getNodeByName(srcStr );
-      CQChartsAdjacencyNode *destNode = plot_->getNodeByName(destStr);
+      auto srcNode  = plot_->getNodeByName(srcStr );
+      auto destNode = plot_->getNodeByName(destStr);
 
       srcNode->addNode(destNode, count);
 
@@ -569,7 +569,7 @@ initHierObjs(PlotObjs &objs) const
   auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   for (const auto &nameNode : nameNodeMap_) {
-    CQChartsAdjacencyNode *node = nameNode.second;
+    auto node = nameNode.second;
 
     th->nodes_[node->id()] = node;
   }
@@ -677,7 +677,7 @@ initConnectionObjs(PlotObjs &objs) const
     const QString&            name  = idConnections.second.name;
     int                       group = idConnections.second.group;
 
-    CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, name, group, ind);
+    auto node = new CQChartsAdjacencyNode(id, name, group, ind);
 
     th->nodes_[id] = node;
   }
@@ -688,10 +688,10 @@ initConnectionObjs(PlotObjs &objs) const
     int                    id          = idConnections.first;
     const ConnectionsData &connections = idConnections.second;
 
-    CQChartsAdjacencyNode *node = th->nodes_[id];
+    auto node = th->nodes_[id];
 
     for (const auto &connection : connections.connections) {
-      CQChartsAdjacencyNode *node1 = th->nodes_[connection.node];
+      auto node1 = th->nodes_[connection.node];
 
       node->addNode(node1, connection.count);
     }
@@ -914,7 +914,7 @@ getNodeByName(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
+  auto node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
 
   auto th = const_cast<CQChartsAdjacencyPlot *>(this);
 

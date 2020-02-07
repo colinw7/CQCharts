@@ -363,11 +363,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   // title/header shown and height
   Q_PROPERTY(bool              titles           READ isTitles           WRITE setTitles          )
+  Q_PROPERTY(bool              titleAutoHide    READ isTitleAutoHide    WRITE setTitleAutoHide   )
   Q_PROPERTY(CQChartsOptReal   titleMaxExtent   READ titleMaxExtent     WRITE setTitleMaxExtent  )
   Q_PROPERTY(CQChartsOptLength titleHeight      READ titleHeight        WRITE setTitleHeight     )
   Q_PROPERTY(bool              titleHierName    READ isTitleHierName    WRITE setTitleHierName   )
   Q_PROPERTY(bool              titleTextClipped READ isTitleTextClipped WRITE setTitleTextClipped)
   Q_PROPERTY(double            titleMargin      READ titleMargin        WRITE setTitleMargin     )
+  Q_PROPERTY(int               titleDepth       READ titleDepth         WRITE setTitleDepth      )
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -407,6 +409,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool isTitles() const { return titleData_.visible; }
   void setTitles(bool b);
 
+  bool isTitleAutoHide() const { return titleData_.autoHide; }
+  void setTitleAutoHide(bool b);
+
   const CQChartsOptReal &titleMaxExtent() const { return titleData_.maxExtent; }
   void setTitleMaxExtent(const CQChartsOptReal &r);
 
@@ -440,9 +445,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool isTitleTextClipped() const { return titleData_.textClipped; }
   void setTitleTextClipped(bool b);
 
-  // get/src title margin
+  // get/set title margin
   double titleMargin() const { return titleData_.margin; }
   void setTitleMargin(double r);
+
+  // get/set title depth
+  int titleDepth() const { return titleData_.depth; }
+  void setTitleDepth(int d);
 
   //---
 
@@ -545,13 +554,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void removeHierNode(CQChartsTreeMapHierNode *hier);
 
-  CQChartsTreeMapNode *addNode(CQChartsTreeMapHierNode *parent, const QString &name,
-                               double size, const QModelIndex &nameInd) const;
+  CQChartsTreeMapNode *hierAddNode(CQChartsTreeMapHierNode *parent, const QString &name,
+                                   double size, const QModelIndex &nameInd) const;
 
   void loadFlat() const;
 
-  CQChartsTreeMapNode *addNode(const QStringList &nameStrs, double size,
-                               const QModelIndex &nameInd) const;
+  CQChartsTreeMapNode *flatAddNode(const QStringList &nameStrs, double size,
+                                   const QModelIndex &nameInd, const QString &name) const;
 
   void addExtraNodes(CQChartsTreeMapHierNode *hier) const;
 
@@ -592,11 +601,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   struct TitleData {
     bool              visible     { true };  //!< show title bar (header)
+    bool              autoHide    { true };  //!< auto hide title if larger than max extent
     CQChartsOptReal   maxExtent;             //!< user specified title bar max extent (0-1)
     CQChartsOptLength height;                //!< user specified title height
     bool              hierName    { false }; //!< title hierarchical name
     bool              textClipped { true };  //!< title text clipped
     double            margin      { 3 };     //!< title margin (pixels)
+    int               depth       { -1 };    //!< max depth for header
   };
 
   TitleData      titleData_;                      //!< title data

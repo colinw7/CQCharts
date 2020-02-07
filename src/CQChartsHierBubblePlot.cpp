@@ -247,7 +247,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   // init value sets
 //initValueSets();
@@ -293,16 +293,16 @@ createObjs(PlotObjs &objs) const
   int ig = 0, in = 0;
 
   for (auto &obj : objs) {
-    CQChartsHierBubbleHierObj *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
-    CQChartsHierBubbleNodeObj *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if      (hierObj) { hierObj->setInd(ig); ++ig; }
     else if (nodeObj) { nodeObj->setInd(in); ++in; }
   }
 
   for (auto &obj : objs) {
-    CQChartsHierBubbleHierObj *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
-    CQChartsHierBubbleNodeObj *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if      (hierObj) {
       if (hierObj->parent())
@@ -359,7 +359,7 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    CQChartsHierBubbleNodeObj *obj = new CQChartsHierBubbleNodeObj(this, node, parentObj, rect, is);
+    auto obj = new CQChartsHierBubbleNodeObj(this, node, parentObj, rect, is);
 
     objs.push_back(obj);
   }
@@ -378,7 +378,7 @@ void
 CQChartsHierBubblePlot::
 initNodes() const
 {
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -419,7 +419,7 @@ void
 CQChartsHierBubblePlot::
 placeNodes(CQChartsHierBubbleHierNode *hier) const
 {
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -502,7 +502,7 @@ CQChartsHierBubblePlot::
 colorNode(CQChartsHierBubbleNode *node) const
 {
   if (! node->color().isValid()) {
-    CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+    auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -625,13 +625,13 @@ CQChartsHierBubblePlot::
 addHierNode(CQChartsHierBubbleHierNode *hier, const QString &name,
             const QModelIndex &nameInd) const
 {
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsHierBubbleHierNode *hier1 = new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
+  auto hier1 = new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
@@ -647,13 +647,13 @@ CQChartsHierBubblePlot::
 addNode(CQChartsHierBubbleHierNode *hier, const QString &name, double size,
         const QModelIndex &nameInd) const
 {
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  CQChartsHierBubbleNode *node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
+  auto node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 
@@ -729,7 +729,7 @@ CQChartsHierBubbleNode *
 CQChartsHierBubblePlot::
 addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
 {
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -891,8 +891,8 @@ bool
 CQChartsHierBubblePlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
+    auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -941,7 +941,7 @@ pushSlot()
     return;
 
   for (const auto &obj : objs) {
-    CQChartsHierBubbleHierObj *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
 
     if (hierObj) {
       CQChartsHierBubbleHierNode *hnode = hierObj->hierNode();
@@ -951,7 +951,7 @@ pushSlot()
       break;
     }
 
-    CQChartsHierBubbleNodeObj *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if (nodeObj) {
       CQChartsHierBubbleNode *node = nodeObj->node();

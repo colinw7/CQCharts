@@ -55,7 +55,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 {
   auto clamp = [](double x) { return CMathUtil::clamp(x, 0.0, 255.0); };
 
-  CQChartsEval *eval = static_cast<CQChartsEval *>(clientData);
+  auto eval = static_cast<CQChartsEval *>(clientData);
 
   std::vector<QVariant> vars;
 

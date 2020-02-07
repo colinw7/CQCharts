@@ -197,9 +197,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  CQChartsView   *view = qobject_cast<CQChartsView   *>(item->object());
-  CQChartsPlot   *plot = qobject_cast<CQChartsPlot   *>(item->object());
-  CQChartsBoxObj *box  = qobject_cast<CQChartsBoxObj *>(item->object());
+  auto view = qobject_cast<CQChartsView   *>(item->object());
+  auto plot = qobject_cast<CQChartsPlot   *>(item->object());
+  auto box  = qobject_cast<CQChartsBoxObj *>(item->object());
 
   if (box) {
     plot = box->plot();
@@ -268,7 +268,7 @@ void
 CQChartsFontPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsFontLineEdit *edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fontChanged()), obj, method);
@@ -278,7 +278,7 @@ QVariant
 CQChartsFontPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsFontLineEdit *edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->font());
@@ -288,7 +288,7 @@ void
 CQChartsFontPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsFontLineEdit *edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   CQChartsFont font = var.value<CQChartsFont>();
@@ -304,7 +304,7 @@ CQChartsFontEdit(QWidget *parent) :
 {
   setObjectName("fontEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -318,9 +318,9 @@ CQChartsFontEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *fontLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto fontLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
+  auto fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
 
   fontEdit_ = CQUtil::makeWidget<CQFontEdit>("fontEdit");
 
@@ -335,7 +335,7 @@ CQChartsFontEdit(QWidget *parent) :
 
   int inheritedRow = 0;
 
-  QGridLayout *inheritedLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
+  auto inheritedLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   auto addInheritedWidget = [&](const QString &label, QWidget *w) {
     CQChartsWidgetUtil::addGridLabelWidget(inheritedLayout, label, w, inheritedRow);

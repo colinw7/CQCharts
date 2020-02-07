@@ -133,7 +133,14 @@ void
 CQChartsTreeMapPlot::
 setTitleMargin(double m)
 {
-  CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { updateCurrentRoot(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleDepth(int d)
+{
+  CQChartsUtil::testAndSet(titleData_.depth, d, [&]() { updateCurrentRoot(); } );
 }
 
 //---
@@ -163,9 +170,16 @@ setTitles(bool b)
 
 void
 CQChartsTreeMapPlot::
+setTitleAutoHide(bool b)
+{
+  CQChartsUtil::testAndSet(titleData_.autoHide, b, [&]() { updateCurrentRoot(); } );
+}
+
+void
+CQChartsTreeMapPlot::
 setTitleMaxExtent(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(titleData_.maxExtent, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(titleData_.maxExtent, r, [&]() { updateCurrentRoot(); } );
 }
 
 void
@@ -268,12 +282,17 @@ addProperties()
   // header
   addProp("header", "titles"        , "visible"  ,
           "Header title visible for each hierarchical group");
+  addProp("header", "titleAutoHide", "autoHide",
+          "Auto hide header if extent too large");
   addProp("header", "titleMaxExtent", "maxExtent",
-          "Max extent of hierarchical group header (0.0 - 1.0)");
+          "Max extent of hierarchical group header (0.0 - 1.0)")->
+    setMinValue(0.0).setMaxValue(1.0);
   addProp("header", "titleHeight"  , "height"   ,
           "Explicit hierarchical group header height");
   addProp("header", "titleMargin"  , "margin"   ,
           "Hierarchical group header margin in pixels")->setMinValue(0.0);
+  addProp("header", "titleDepth"   , "depth"   ,
+          "Maximum depth to show header")->setMinValue(-1);
 
   // header/fill
   addProp("header/fill", "headerFilled", "visible", "Header fill visible");
@@ -411,8 +430,8 @@ createObjs(PlotObjs &objs) const
 
   th->clearErrors();
 
-  // value column required
-  // name, id, color columns optional
+  // name column required
+  // value, color columns optional
 
   if (! checkColumns(nameColumns(), "Name", /*required*/true))
     columnsValid = false;
@@ -703,7 +722,7 @@ loadHier() const
 
       //---
 
-      auto node = plot_->addNode(parentHier(), name, size, nameInd);
+      auto node = plot_->hierAddNode(parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -781,8 +800,8 @@ removeHierNode(CQChartsTreeMapHierNode *hier)
 
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
-addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
-        const QModelIndex &nameInd) const
+hierAddNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
+            const QModelIndex &nameInd) const
 {
   auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
@@ -814,6 +833,7 @@ loadFlat() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get hier names from name columns
       QStringList  nameStrs;
       ModelIndices nameInds;
 
@@ -821,7 +841,27 @@ loadFlat() const
                                       plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInds[0]);
+      QString     name;
+      QModelIndex nameInd;
+
+      if (plot_->idColumn().isValid()) {
+        CQChartsModelIndex idModelInd(data.row, plot_->idColumn(), data.parent);
+
+        bool ok;
+
+        name = plot_->modelString(idModelInd, ok);
+
+        if (! ok)
+          name = nameStrs.back();
+
+        nameInd = plot_->modelIndex(idModelInd);
+      }
+      else {
+        name    = nameStrs.back();
+        nameInd = nameInds[0];
+      }
+
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       //---
 
@@ -839,7 +879,7 @@ loadFlat() const
 
       //---
 
-      auto node = plot_->addNode(nameStrs, size, nameInd1);
+      auto node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -868,7 +908,8 @@ loadFlat() const
 
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
-addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
+flatAddNode(const QStringList &nameStrs, double size,
+            const QModelIndex &nameInd, const QString &name) const
 {
   auto th = const_cast<CQChartsTreeMapPlot *>(this);
 
@@ -887,8 +928,8 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
-      QModelIndex nameInd1;
-      double      size1 = 0.0;
+      QModelIndex nameInd1 = nameInd;
+      double      size1    = 0.0;
 
       auto node = childNode(parent, nameStrs[j]);
 
@@ -907,7 +948,7 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
       child->setSize(size1);
 
-      child->setDepth(depth);
+      child->setDepth(j + 1);
       child->setHierInd(th->hierInd_++);
     }
 
@@ -915,8 +956,6 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
   }
 
   //---
-
-  QString name = nameStrs[nameStrs.length() - 1];
 
   auto node = childNode(parent, name);
 
@@ -1032,7 +1071,7 @@ bool
 CQChartsTreeMapPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
     auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
@@ -1436,8 +1475,8 @@ QString
 CQChartsTreeMapNodeObj::
 calcId() const
 {
-  if (node_->isFiller())
-    return hierObj_->calcId();
+//if (node_->isFiller())
+//  return hierObj_->calcId();
 
   QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
@@ -1446,23 +1485,31 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("%1:%2:%3").arg(typeName()).arg(node_->name()).arg(node_->hierSize());
+  return QString("%1:%2:%3").arg(typeName()).
+    arg(node_->isFiller() ? node_->parent()->name() : node_->name()).arg(node_->hierSize());
 }
 
 QString
 CQChartsTreeMapNodeObj::
 calcTipId() const
 {
-  if (node_->isFiller())
-    return hierObj_->calcTipId();
+//if (node_->isFiller())
+//  return hierObj_->calcTipId();
 
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name", node_->hierName());
+  if (plot_->idColumn().isValid())
+    tableTip.addTableRow("Name", (node_->isFiller() ?
+      node_->parent()->name() : node_->name()));
+  else
+    tableTip.addTableRow("Name", (node_->isFiller() ?
+      node_->parent()->hierName() : node_->hierName()));
+
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+    QModelIndex ind1 =
+      plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
 
     CQChartsModelIndex colorInd1(ind1.row(), plot_->colorColumn(), ind1.parent());
 
@@ -1629,9 +1676,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
     textOptions.html          = plot_->isTextHtml();
     textOptions.clipped       = plot_->isTextClipped();
     textOptions.align         = plot_->textAlign();
-
-    if (plot_->isHierName())
-      textOptions.formatSeps = plot_->separator();
+    textOptions.formatSeps    = plot_->separator();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1847,17 +1892,26 @@ packNodes(double x, double y, double w, double h)
 
   //---
 
-  double maxExtent = 0.2;
+  // check if title bar should be shown
+  showTitle_ = plot()->isTitles();
 
-  if (plot()->titleMaxExtent().isSet())
-    maxExtent = CMathUtil::clamp(*plot()->titleMaxExtent().value(), 0.0, 1.0);
+  if (plot()->isTitleAutoHide()) {
+    double maxExtent = 0.2;
 
-  //---
+    if (plot()->titleMaxExtent().isSet())
+      maxExtent = CMathUtil::clamp(*plot()->titleMaxExtent().value(), 0.0, 1.0);
 
-  showTitle_ = (plot()->isTitles() && h*maxExtent > whh);
+    if (whh > h*maxExtent)
+      showTitle_ = false;
+  }
 
   if (! parent())
     showTitle_ = false;
+
+  if (plot()->titleDepth() > 0 && depth() > plot()->titleDepth())
+    showTitle_ = false;
+
+  //---
 
   double dh = (showTitle_ ? whh : 0.0);
   double m  = (w > wmw ? wmw : 0.0);

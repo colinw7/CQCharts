@@ -32,7 +32,7 @@ addParameters()
 
   //---
 
-  CQChartsPlotParameterGroup *primaryGroup = startParameterGroup("Raw Values");
+  auto primaryGroup = startParameterGroup("Raw Values");
 
   addColumnsParameter("value", "Value", "valueColumns").
     setNumeric().setRequired().setTip("Value column(s)");
@@ -45,7 +45,7 @@ addParameters()
 
   //---
 
-  CQChartsPlotParameterGroup *secondaryGroup = startParameterGroup("Calculated Values");
+  auto secondaryGroup = startParameterGroup("Calculated Values");
 
   addColumnParameter("x"          , "X"           , "xColumn"          ).
     setNumeric().setTip("X Value");
@@ -142,7 +142,7 @@ void
 CQChartsBoxPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  CQChartsModelDetails *details = modelData->details();
+  auto details = modelData->details();
   if (! details) return;
 
   CQChartsColumns columns;
@@ -150,7 +150,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   int nc = details->numColumns();
 
   for (int i = 0; i < nc; ++i) {
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
+    auto columnDetails = details->columnDetails(CQChartsColumn(i));
 
     if (columnDetails && columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -570,8 +570,8 @@ calcRange() const
   //---
 
   // x-axis must be integer, y-axis must be real
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto xAxis = mappedXAxis();
+  auto yAxis = mappedYAxis();
 
   xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
   xAxis->setMajorIncrement(1);
@@ -622,8 +622,8 @@ updateRawRange() const
 
   //---
 
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto xAxis = mappedXAxis();
+  auto yAxis = mappedYAxis();
 
   th->forceNoYAxis_ = false;
 
@@ -670,8 +670,8 @@ updateRawRange() const
 
       for (auto &setWhiskers : setWhiskerMap) {
         if (isWhiskersGrouped() || ! isSetHidden(is)) {
-          int                     setId   = setWhiskers.first;
-          CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+          int  setId   = setWhiskers.first;
+          auto whisker = setWhiskers.second;
 
           //---
 
@@ -697,7 +697,9 @@ updateRawRange() const
 
           int x;
 
-          if (hasSets && isConnected())
+          if      (hasSets && isConnected())
+            x = setId;
+          else if (hasSets && ! hasGroups)
             x = setId;
           else
             x = ig;
@@ -906,8 +908,8 @@ updateCalcRange() const
 
   //---
 
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto xAxis = mappedXAxis();
+  auto yAxis = mappedYAxis();
 
   th->forceNoYAxis_ = true;
 
@@ -1088,17 +1090,24 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   bool nameValid = true;
 
   if (! data.name.length()) {
-    CQChartsModelIndex idInd(vdata.row, idColumn(), vdata.parent);
+    if (idColumn().isValid()) {
+      CQChartsModelIndex idInd(vdata.row, idColumn(), vdata.parent);
 
-    data.name = modelString(idInd, ok);
+      QString id = modelString(idInd, ok);
+
+      if (ok)
+        data.name = id;
+      else
+        th->addDataError(idInd, "Invalid id value");
+    }
+  }
+
+  if (! data.name.length()) {
+    data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok); // ignore fail
 
     if (! data.name.length()) {
-      data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok);
-
-      if (! data.name.length()) {
-        data.name = QString("%1").arg(vdata.row);
-        nameValid = false;
-      }
+      data.name = QString("%1").arg(vdata.row);
+      nameValid = false;
     }
   }
 
@@ -1249,7 +1258,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
       auto ps1 = setWhiskerMap1.find(setId);
 
       if (ps1 == setWhiskerMap1.end()) {
-        CQChartsBoxPlotWhisker *whisker = new CQChartsBoxPlotWhisker;
+        auto whisker = new CQChartsBoxPlotWhisker;
 
         whisker->setRange(whiskerRange());
 
@@ -1336,6 +1345,9 @@ bool
 CQChartsBoxPlot::
 initRawObjs(PlotObjs &objs) const
 {
+  bool hasSets   = this->hasSets();
+  bool hasGroups = this->hasGroups();
+
   double bw2 = lengthPlotSize(boxWidth   (), ! isHorizontal())/2.0;
   double vw2 = lengthPlotSize(violinWidth(), ! isHorizontal())/2.0;
 
@@ -1358,21 +1370,27 @@ initRawObjs(PlotObjs &objs) const
         bool hidden = (isWhiskersGrouped() ? isSetHidden(ig) : isSetHidden(is));
         if (hidden) { ++is; continue; }
 
-        int                           setId   = setWhiskers.first;
-        const CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+        int  setId   = setWhiskers.first;
+        auto whisker = setWhiskers.second;
 
+        if (whisker->values().empty())
+          continue;
+#if 0
         if (whisker->lowerMedian() >= whisker->upperMedian())
           continue;
+#endif
 
         //----
 
         double pos = ig;
         double sbw = (isViolin() ? vw2 : bw2);
 
-        if (ns > 1) {
+        if      (hasSets && hasGroups) {
           pos += (is + 1.0)/(ns + 1.0) - 0.5;
           sbw *= sf;
         }
+        else if (hasSets)
+          pos = setId;
 
         //---
 
@@ -1733,15 +1751,15 @@ addKeyItems(CQChartsPlotKey *key)
       int ns = setWhiskerMap.size();
 
       for (const auto &setWhiskers : setWhiskerMap) {
-        int                           setId   = setWhiskers.first;
-      //const CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+        int  setId   = setWhiskers.first;
+      //auto whisker = setWhiskers.second;
 
         QString setName = setIdName(setId);
 
         ColorInd sc(is, ns), gc;
 
-        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, setName, sc, gc);
+        auto color = new CQChartsBoxKeyColor(this, sc, gc);
+        auto text  = new CQChartsBoxKeyText (this, setName, sc, gc);
 
         key->addItem(color, is, 0);
         key->addItem(text , is, 1);
@@ -1760,8 +1778,8 @@ addKeyItems(CQChartsPlotKey *key)
 
         ColorInd sc, gc(ig, ng);
 
-        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, groupName, sc, gc);
+        auto color = new CQChartsBoxKeyColor(this, sc, gc);
+        auto text  = new CQChartsBoxKeyText (this, groupName, sc, gc);
 
         key->addItem(color, ig, 0);
         key->addItem(text , ig, 1);
@@ -1783,15 +1801,15 @@ addKeyItems(CQChartsPlotKey *key)
     int ns = setWhiskerMap.size();
 
     for (const auto &setWhiskers : setWhiskerMap) {
-    //int                           setId   = setWhiskers.first;
-      const CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+    //int  setId   = setWhiskers.first;
+      auto whisker = setWhiskers.second;
 
       QString name = whisker->name();
 
       ColorInd sc(is, ns), gc;
 
-      CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
-      CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, name, sc, gc);
+      auto color = new CQChartsBoxKeyColor(this, sc, gc);
+      auto text  = new CQChartsBoxKeyText (this, name, sc, gc);
 
       key->addItem(color, is, 0);
       key->addItem(text , is, 1);
@@ -1832,9 +1850,8 @@ bool
 CQChartsBoxPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -1846,7 +1863,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) {
     return addMenuCheckedAction(menu, name, isSet, slot);
   };
 
@@ -1861,7 +1878,7 @@ addMenuItems(QMenu *menu)
 
   // following items only allowed if we have individual data points
   if (! isPreCalc()) {
-    QMenu *pointsMenu = new QMenu("Points");
+    auto pointsMenu = new QMenu("Points", menu);
 
     (void) addMenuCheckedAction(pointsMenu, "Jitter" , isPointsJitter(),
                                 SLOT(setPointsJitter(bool)));
@@ -2926,8 +2943,8 @@ initPolygon()
   const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
 
   for (const auto &setWhiskers : setWhiskerMap) {
-    int                           setId   = setWhiskers.first;
-    const CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+    int  setId   = setWhiskers.first;
+    auto whisker = setWhiskers.second;
 
     double min    = whisker->min   ();
     double max    = whisker->max   ();
@@ -3322,7 +3339,7 @@ double
 CQChartsBoxKeyColor::
 xColorValue(bool relative) const
 {
-  CQChartsBoxPlotWhiskerObj *boxObj = this->boxObj();
+  auto boxObj = this->boxObj();
 
   return (boxObj ? boxObj->xColorValue(relative) : 0.0);
 }
@@ -3331,7 +3348,7 @@ double
 CQChartsBoxKeyColor::
 yColorValue(bool relative) const
 {
-  CQChartsBoxPlotWhiskerObj *boxObj = this->boxObj();
+  auto boxObj = this->boxObj();
 
   return (boxObj ? boxObj->yColorValue(relative) : 0.0);
 }

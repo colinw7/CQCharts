@@ -2180,8 +2180,7 @@ bool
 CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
     auto action = new QAction(name, menu);
 
     action->setCheckable(true);

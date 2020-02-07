@@ -34,7 +34,6 @@
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QCheckBox>
-#include <QPushButton>
 #include <QToolButton>
 #include <QLabel>
 #include <cassert>
@@ -63,7 +62,7 @@ CQChartsCreatePlotDlg::
 init()
 {
 #if 0
-  auto createSep = [](const QString &name) -> QFrame * {
+  auto createSep = [](const QString &name) {
     auto sep = CQUtil::makeWidget<QFrame>(name);
 
     sep->setFixedHeight(4);

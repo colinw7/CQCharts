@@ -320,7 +320,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
   if (columns.isValid()) {
     str = columns.toString();
 
-    CQChartsPlot *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
+    auto plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
 
     if (plot) {
       QString str1;
@@ -364,7 +364,7 @@ createEdit(QWidget *parent)
 
   //---
 
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
+  auto plot = qobject_cast<CQChartsPlot *>(obj);
 
   if (plot)
     edit->setModel(plot->model().data());
@@ -376,7 +376,7 @@ void
 CQChartsColumnsPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(columnsChanged()), obj, method);
@@ -386,7 +386,7 @@ QVariant
 CQChartsColumnsPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->columns());
@@ -396,7 +396,7 @@ void
 CQChartsColumnsPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   CQChartsColumns columns = var.value<CQChartsColumns>();
@@ -412,11 +412,11 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 {
   setObjectName("columnsEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   controlFrame_ = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  QHBoxLayout *controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 2, 2);
+  auto controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 2, 2);
 
   countLabel_ = CQUtil::makeLabelWidget<QLabel>("", "countLabel");
 
@@ -424,7 +424,7 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
+    auto button = CQUtil::makeWidget<QToolButton>(name);
 
     button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
@@ -437,10 +437,8 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   //--
 
-  QToolButton *addButton    =
-    createButton("add"   , "ADD"   , "Add column"   , SLOT(addSlot()));
-  QToolButton *removeButton =
-    createButton("remove", "REMOVE", "Remove column", SLOT(removeSlot()));
+  auto addButton    = createButton("add"   , "ADD"   , "Add column"   , SLOT(addSlot()));
+  auto removeButton = createButton("remove", "REMOVE", "Remove column", SLOT(removeSlot()));
 
   controlFrameLayout->addWidget(countLabel_);
   controlFrameLayout->addStretch(1);

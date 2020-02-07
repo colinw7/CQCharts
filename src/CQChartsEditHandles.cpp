@@ -32,7 +32,7 @@ void
 CQChartsEditHandles::
 init()
 {
-  auto createHandle = [&](CQChartsResizeSide side) -> CQChartsResizeHandle * {
+  auto createHandle = [&](CQChartsResizeSide side) {
     if (plot_)
       return new CQChartsResizeHandle(plot_, side);
     else

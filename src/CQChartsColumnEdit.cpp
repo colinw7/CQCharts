@@ -240,7 +240,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
   if (column.isValid()) {
     str = column.toString();
 
-    CQChartsPlot *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
+    auto plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
 
     if (plot) {
       QString str1 = plot->columnHeaderName(column);
@@ -274,7 +274,7 @@ createEdit(QWidget *parent)
 
   QObject *obj = (item ? item->object() : nullptr);
 
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
+  auto plot = qobject_cast<CQChartsPlot *>(obj);
 
   //---
 
@@ -290,7 +290,7 @@ void
 CQChartsColumnPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsColumnLineEdit *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(columnChanged()), obj, method);
@@ -300,7 +300,7 @@ QVariant
 CQChartsColumnPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsColumnLineEdit *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->column());
@@ -310,7 +310,7 @@ void
 CQChartsColumnPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsColumnLineEdit *edit = qobject_cast<CQChartsColumnLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnLineEdit *>(w);
   assert(edit);
 
   CQChartsColumn column = var.value<CQChartsColumn>();
@@ -326,7 +326,7 @@ CQChartsColumnEdit(QWidget *parent) :
 {
   setObjectName("columnEdit");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -342,7 +342,7 @@ CQChartsColumnEdit(QWidget *parent) :
   //--
 
   // column name/number and role
-  QVBoxLayout *menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
+  auto menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
 
   columnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>();
 
@@ -350,9 +350,8 @@ CQChartsColumnEdit(QWidget *parent) :
 
   menuColumnGroupLayout->addWidget(columnCombo_);
 
-  QFrame *roleFrame = CQUtil::makeWidget<QFrame>("roleFrame");
-
-  QHBoxLayout *roleLayout = CQUtil::makeLayout<QHBoxLayout>(roleFrame, 2, 2);
+  auto roleFrame  = CQUtil::makeWidget<QFrame>("roleFrame");
+  auto roleLayout = CQUtil::makeLayout<QHBoxLayout>(roleFrame, 2, 2);
 
   roleLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Role", "roleLabel"));
 
@@ -381,7 +380,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //--
 
-  QVBoxLayout *menuExprGroupLayout = CQUtil::makeLayout<QVBoxLayout>(menuExprGroup_, 2, 2);
+  auto menuExprGroupLayout = CQUtil::makeLayout<QVBoxLayout>(menuExprGroup_, 2, 2);
 
   expressionEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 

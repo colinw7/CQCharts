@@ -624,7 +624,7 @@ CQChartsAnnotation::
 drawInit(CQChartsPaintDevice *device)
 {
   if (device->type() == CQChartsPaintDevice::Type::SVG) {
-    CQChartsSVGPainter *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+    auto painter = dynamic_cast<CQChartsSVGPainter *>(device);
 
     CQChartsSVGPainter::GroupData groupData;
 
@@ -640,7 +640,7 @@ CQChartsAnnotation::
 drawTerm(CQChartsPaintDevice *device)
 {
   if (device->type() == CQChartsPaintDevice::Type::SVG) {
-    CQChartsSVGPainter *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+    auto painter = dynamic_cast<CQChartsSVGPainter *>(device);
 
     painter->endGroup();
   }
@@ -1313,7 +1313,7 @@ initSmooth() const
 {
   // init smooth if needed
   if (! smooth_) {
-    CQChartsPolygonAnnotation *th = const_cast<CQChartsPolygonAnnotation *>(this);
+    auto th = const_cast<CQChartsPolygonAnnotation *>(this);
 
     const CQChartsGeom::Polygon &polygon = polygon_.polygon();
 
@@ -1537,7 +1537,7 @@ initSmooth() const
 {
   // init smooth if needed
   if (! smooth_) {
-    CQChartsPolylineAnnotation *th = const_cast<CQChartsPolylineAnnotation *>(this);
+    auto th = const_cast<CQChartsPolylineAnnotation *>(this);
 
     const CQChartsGeom::Polygon &polygon = polygon_.polygon();
 
@@ -3964,7 +3964,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (device->isInteractive()) {
-    CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+    auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
     QImage img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
 

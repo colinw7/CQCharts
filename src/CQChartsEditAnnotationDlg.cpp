@@ -26,7 +26,6 @@
 #include <QFrame>
 #include <QRadioButton>
 #include <QLabel>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 CQChartsEditAnnotationDlg::
@@ -49,11 +48,11 @@ initWidgets()
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   layout->addLayout(gridLayout);
 
@@ -128,11 +127,11 @@ createRectFrame()
 
   frameLayout_->addWidget(rectWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
 
   //---
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -184,7 +183,7 @@ void
 CQChartsEditAnnotationDlg::
 createEllipseFrame()
 {
-  CQChartsEllipseAnnotation *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -193,7 +192,7 @@ createEllipseFrame()
 
   frameLayout_->addWidget(ellipseWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(ellipseWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(ellipseWidgets_.frame, 2, 2);
 
   //---
 
@@ -211,7 +210,7 @@ createEllipseFrame()
 
   //---
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -239,7 +238,7 @@ void
 CQChartsEditAnnotationDlg::
 createPolygonFrame()
 {
-  CQChartsPolygonAnnotation *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -248,7 +247,7 @@ createPolygonFrame()
 
   frameLayout_->addWidget(polygonWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
 
   //---
 
@@ -274,7 +273,7 @@ void
 CQChartsEditAnnotationDlg::
 createPolyLineFrame()
 {
-  CQChartsPolylineAnnotation *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -283,7 +282,7 @@ createPolyLineFrame()
 
   frameLayout_->addWidget(polylineWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
 
   //---
 
@@ -309,7 +308,7 @@ void
 CQChartsEditAnnotationDlg::
 createTextFrame()
 {
-  CQChartsTextAnnotation *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -318,13 +317,12 @@ createTextFrame()
 
   frameLayout_->addWidget(textWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(textWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(textWidgets_.frame, 2, 2);
 
   //---
 
-  QFrame *positionRectFrame = CQUtil::makeWidget<QFrame>("positionRectFrame");
-
-  QHBoxLayout *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
+  auto positionRectFrame  = CQUtil::makeWidget<QFrame>("positionRectFrame");
+  auto positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
   textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
   textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
@@ -359,7 +357,7 @@ createTextFrame()
 
   //---
 
-  QGridLayout *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -379,7 +377,7 @@ createTextFrame()
 
   //---
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -417,7 +415,7 @@ void
 CQChartsEditAnnotationDlg::
 createArrowFrame()
 {
-  CQChartsArrowAnnotation *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
   assert(annotation);
 
   CQChartsArrow *arrow = annotation->arrow();
@@ -431,11 +429,11 @@ createArrowFrame()
 
   frameLayout_->addWidget(arrowWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(arrowWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(arrowWidgets_.frame, 2, 2);
 
   //----
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -466,7 +464,7 @@ createArrowFrame()
 
   //---
 
-  QGridLayout *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -505,7 +503,7 @@ void
 CQChartsEditAnnotationDlg::
 createPointFrame()
 {
-  CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -514,11 +512,11 @@ createPointFrame()
 
   frameLayout_->addWidget(pointWidgets_.frame);
 
-  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(pointWidgets_.frame, 2, 2);
+  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(pointWidgets_.frame, 2, 2);
 
   //---
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -602,7 +600,7 @@ addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 
   //---
 
-  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   playout->addLayout(gridLayout);
 
@@ -617,9 +615,9 @@ QHBoxLayout *
 CQChartsEditAnnotationDlg::
 addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget)
 {
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
+  auto qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
   layout->addWidget (qlabel);
   layout->addWidget (widget);
@@ -751,7 +749,7 @@ updateEllipseAnnotation()
 
   //---
 
-  CQChartsEllipseAnnotation *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -792,7 +790,7 @@ updatePolygonAnnotation()
 
   //---
 
-  CQChartsPolygonAnnotation *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -831,7 +829,7 @@ updatePolylineAnnotation()
 
   //---
 
-  CQChartsPolylineAnnotation *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -881,7 +879,7 @@ updateTextAnnotation()
 
   //---
 
-  CQChartsTextAnnotation *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -930,7 +928,7 @@ updateArrowAnnotation()
 
   //---
 
-  CQChartsArrowAnnotation *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -958,7 +956,7 @@ updatePointAnnotation()
 
   //---
 
-  CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  auto annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
   assert(annotation);
 
   //---

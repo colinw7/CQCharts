@@ -11,7 +11,7 @@ namespace CQChartsWidgetUtil {
 void
 addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *widget, int &row)
 {
-  QLabel *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
+  auto qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
   qlabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 
@@ -71,7 +71,7 @@ CQChartsDialogButtons(QWidget *parent) :
 {
   setObjectName("dialogButtons");
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 2, 2);
 
   okButton_     = CQUtil::makeLabelWidget<QPushButton>("OK"    , "ok"    );
   applyButton_  = CQUtil::makeLabelWidget<QPushButton>("Apply" , "apply" );

@@ -2545,7 +2545,7 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
+  auto proxyModel = new QSortFilterProxyModel;
 
   proxyModel->setObjectName("foldProxyModel");
 
@@ -2554,14 +2554,14 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
   if (separator == "") {
     CQFoldData foldData(icolumn);
 
-    CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
+    auto foldedModel = new CQFoldedModel(model.data(), foldData);
 
     proxyModel->setSourceModel(foldedModel);
   }
   else {
     CQHierSepData data(icolumn, separator[0]);
 
-    CQHierSepModel *hierSepModel = new CQHierSepModel(model.data(), data);
+    auto hierSepModel = new CQHierSepModel(model.data(), data);
 
     proxyModel->setSourceModel(hierSepModel);
   }
@@ -2756,9 +2756,9 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQDataModel *dataModel = new CQDataModel(nc + nh, nr);
+  auto dataModel = new CQDataModel(nc + nh, nr);
 
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
+  auto filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   // set hierarchical column
   if (flattenVisitor.isHierarchical()) {
@@ -2873,11 +2873,11 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
   CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
   if (! modelData) return errorMsg("No model data");
 
-  QAbstractItemModel *newModel = modelData->copy();
+  auto newModel = modelData->copy();
 
   ModelP newModelP(newModel);
 
-  CQChartsModelData *newModelData = charts_->initModelData(newModelP);
+  auto newModelData = charts_->initModelData(newModelP);
 
   //---
 
@@ -3438,11 +3438,11 @@ createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
     }
   }
 
-  CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
+  auto foldedModel = new CQFoldedModel(model.data(), foldData);
 
   //---
 
-  QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+  auto foldProxyModel = new QSortFilterProxyModel;
 
   foldProxyModel->setObjectName("foldProxyModel");
 
@@ -3507,7 +3507,7 @@ createChartsBucketModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQBucketModel *bucketModel = new CQBucketModel(model.data());
+  auto bucketModel = new CQBucketModel(model.data());
 
   if (argv.getParseBool("multi"))
     bucketModel->setMultiColumn(true);
@@ -3622,7 +3622,7 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQSubSetModel *subsetModel = new CQSubSetModel(model);
+  auto subsetModel = new CQSubSetModel(model);
 
   QModelIndex tlIndex = model->index(top   , left .column());
   QModelIndex brIndex = model->index(bottom, right.column());
@@ -3674,7 +3674,7 @@ createChartsTransposeModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQTransposeModel *transposeModel = new CQTransposeModel(model);
+  auto transposeModel = new CQTransposeModel(model);
 
   ModelP transposeModelP(transposeModel);
 
@@ -3732,7 +3732,7 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQSummaryModel *summaryModel = new CQSummaryModel(model);
+  auto summaryModel = new CQSummaryModel(model);
 
   //---
 
@@ -3859,7 +3859,7 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQCollapseModel *collapseModel = new CQCollapseModel(model.data());
+  auto collapseModel = new CQCollapseModel(model.data());
 
   //------
 
@@ -3899,7 +3899,7 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  QSortFilterProxyModel *collapseProxyModel = new QSortFilterProxyModel;
+  auto collapseProxyModel = new QSortFilterProxyModel;
 
   collapseProxyModel->setObjectName("collapseProxyModel");
 
@@ -3992,7 +3992,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQPivotModel *pivotModel = new CQPivotModel(model.data());
+  auto pivotModel = new CQPivotModel(model.data());
 
   pivotModel->setHColumns(hColumns);
   pivotModel->setVColumns(vColumns);
@@ -4001,7 +4001,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QSortFilterProxyModel *pivotProxyModel = new QSortFilterProxyModel;
+  auto pivotProxyModel = new QSortFilterProxyModel;
 
   pivotProxyModel->setObjectName("pivotProxyModel");
 
@@ -4175,7 +4175,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   int nc1 = columnNames.size();
   int nr1 = columnDatas.size();
 
-  CQDataModel *statsModel = new CQDataModel(nc1, nr1);
+  auto statsModel = new CQDataModel(nc1, nr1);
 
   for (int c = 0; c < nc1; ++c) {
     CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
@@ -4204,7 +4204,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  QSortFilterProxyModel *statsProxyModel = new QSortFilterProxyModel;
+  auto statsProxyModel = new QSortFilterProxyModel;
 
   statsProxyModel->setObjectName("statsProxyModel");
 
@@ -7757,7 +7757,7 @@ showChartsLoadModelDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsLoadModelDlg *dlg = new CQChartsLoadModelDlg(charts_);
+  auto dlg = new CQChartsLoadModelDlg(charts_);
 
   if (modal)
     dlg->exec();
@@ -7788,7 +7788,7 @@ showChartsManageModelsDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsManageModelsDlg *dlg = new CQChartsManageModelsDlg(charts_);
+  auto dlg = new CQChartsManageModelsDlg(charts_);
 
   if (modal)
     dlg->exec();
@@ -7837,7 +7837,7 @@ showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsCreatePlotDlg *dlg = new CQChartsCreatePlotDlg(charts_, modelData);
+  auto dlg = new CQChartsCreatePlotDlg(charts_, modelData);
 
   dlg->setViewName(viewName);
 
@@ -7982,9 +7982,9 @@ testEditCmd(CQChartsCmdArgs &argv)
   //---
 
   // create parent dialog
-  QDialog *dialog = new QDialog;
+  auto dialog = new QDialog;
 
-  QGridLayout *layout = new QGridLayout(dialog);
+  auto layout = new QGridLayout(dialog);
 
   //---
 
@@ -8016,121 +8016,121 @@ testEditCmd(CQChartsCmdArgs &argv)
     const QString &type = types[i];
 
     if      (type == "alpha") {
-      CQChartsAlphaEdit *edit = new CQChartsAlphaEdit; addEdit(edit, type);
+      auto edit = new CQChartsAlphaEdit; addEdit(edit, type);
     }
     else if (type == "arrow_data") {
-      CQChartsArrowDataEdit *edit = new CQChartsArrowDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsArrowDataEdit; addEdit(edit, type);
     }
     else if (type == "arrow_data_line") {
-      CQChartsArrowDataLineEdit *edit = new CQChartsArrowDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsArrowDataLineEdit; addEdit(edit, type);
     }
     else if (type == "box_data") {
-      CQChartsBoxDataEdit *edit = new CQChartsBoxDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsBoxDataEdit; addEdit(edit, type);
     }
     else if (type == "box_data_line") {
-      CQChartsBoxDataLineEdit *edit = new CQChartsBoxDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsBoxDataLineEdit; addEdit(edit, type);
     }
     else if (type == "color") {
-      CQChartsColorEdit *edit = new CQChartsColorEdit; addEdit(edit, type);
+      auto edit = new CQChartsColorEdit; addEdit(edit, type);
     }
     else if (type == "color_line") {
-      CQChartsColorLineEdit *edit = new CQChartsColorLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsColorLineEdit; addEdit(edit, type);
     }
     else if (type == "column") {
-      CQChartsColumnEdit *edit = new CQChartsColumnEdit; addEdit(edit, type);
+      auto edit = new CQChartsColumnEdit; addEdit(edit, type);
     }
     else if (type == "column_line") {
-      CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsColumnLineEdit; addEdit(edit, type);
     }
     else if (type == "columns") {
-      CQChartsColumnsEdit *edit = new CQChartsColumnsEdit; addEdit(edit, type);
+      auto edit = new CQChartsColumnsEdit; addEdit(edit, type);
     }
     else if (type == "columns_line") {
-      CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsColumnsLineEdit; addEdit(edit, type);
     }
     else if (type == "fill_data") {
-      CQChartsFillDataEdit *edit = new CQChartsFillDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillDataEdit; addEdit(edit, type);
     }
     else if (type == "fill_data_line") {
-      CQChartsFillDataLineEdit *edit = new CQChartsFillDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillDataLineEdit; addEdit(edit, type);
     }
     else if (type == "fill_pattern") {
-      CQChartsFillPatternEdit *edit = new CQChartsFillPatternEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillPatternEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_side") {
-      CQChartsFillUnderSideEdit *edit = new CQChartsFillUnderSideEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillUnderSideEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_pos") {
-      CQChartsFillUnderPosEdit *edit = new CQChartsFillUnderPosEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillUnderPosEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_pos_line") {
-      CQChartsFillUnderPosLineEdit *edit = new CQChartsFillUnderPosLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsFillUnderPosLineEdit; addEdit(edit, type);
     }
     else if (type == "filter") {
-      CQChartsFilterEdit *edit = new CQChartsFilterEdit; addEdit(edit, type);
+      auto edit = new CQChartsFilterEdit; addEdit(edit, type);
     }
     else if (type == "key_location") {
-      CQChartsKeyLocationEdit *edit = new CQChartsKeyLocationEdit; addEdit(edit, type);
+      auto edit = new CQChartsKeyLocationEdit; addEdit(edit, type);
     }
     else if (type == "length") {
-      CQChartsLengthEdit *edit = new CQChartsLengthEdit; addEdit(edit, type);
+      auto edit = new CQChartsLengthEdit; addEdit(edit, type);
     }
     else if (type == "line_dash") {
-      CQChartsLineDashEdit *edit = new CQChartsLineDashEdit; addEdit(edit, type);
+      auto edit = new CQChartsLineDashEdit; addEdit(edit, type);
     }
     else if (type == "line_data") {
-      CQChartsLineDataEdit *edit = new CQChartsLineDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsLineDataEdit; addEdit(edit, type);
     }
     else if (type == "line_data_line") {
-      CQChartsLineDataLineEdit *edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
     }
     else if (type == "polygon") {
-      CQChartsPolygonEdit *edit = new CQChartsPolygonEdit; addEdit(edit, type);
+      auto edit = new CQChartsPolygonEdit; addEdit(edit, type);
     }
     else if (type == "polygon_line") {
-      CQChartsPolygonLineEdit *edit = new CQChartsPolygonLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsPolygonLineEdit; addEdit(edit, type);
     }
     else if (type == "position") {
-      CQChartsPositionEdit *edit = new CQChartsPositionEdit; addEdit(edit, type);
+      auto edit = new CQChartsPositionEdit; addEdit(edit, type);
     }
     else if (type == "rectangle") {
-      CQChartsRectEdit *edit = new CQChartsRectEdit; addEdit(edit, type);
+      auto edit = new CQChartsRectEdit; addEdit(edit, type);
     }
     else if (type == "shape_data") {
-      CQChartsShapeDataEdit *edit = new CQChartsShapeDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsShapeDataEdit; addEdit(edit, type);
     }
     else if (type == "shape_data_line") {
-      CQChartsShapeDataLineEdit *edit = new CQChartsShapeDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsShapeDataLineEdit; addEdit(edit, type);
     }
     else if (type == "sides") {
-      CQChartsSidesEdit *edit = new CQChartsSidesEdit; addEdit(edit, type);
+      auto edit = new CQChartsSidesEdit; addEdit(edit, type);
     }
     else if (type == "stroke_data") {
-      CQChartsStrokeDataEdit *edit = new CQChartsStrokeDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsStrokeDataEdit; addEdit(edit, type);
     }
     else if (type == "stroke_data_line") {
-      CQChartsStrokeDataLineEdit *edit = new CQChartsStrokeDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsStrokeDataLineEdit; addEdit(edit, type);
     }
     else if (type == "symbol_data") {
-      CQChartsSymbolDataEdit *edit = new CQChartsSymbolDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsSymbolDataEdit; addEdit(edit, type);
     }
     else if (type == "symbol_data_line") {
-      CQChartsSymbolDataLineEdit *edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
     }
     else if (type == "symbol_type") {
-      CQChartsSymbolEdit *edit = new CQChartsSymbolEdit; addEdit(edit, type);
+      auto edit = new CQChartsSymbolEdit; addEdit(edit, type);
     }
     else if (type == "text_box_data") {
-      CQChartsTextBoxDataEdit *edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);
     }
     else if (type == "text_box_data_line") {
-      CQChartsTextBoxDataLineEdit *edit = new CQChartsTextBoxDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsTextBoxDataLineEdit; addEdit(edit, type);
     }
     else if (type == "text_data") {
-      CQChartsTextDataEdit *edit = new CQChartsTextDataEdit; addEdit(edit, type);
+      auto edit = new CQChartsTextDataEdit; addEdit(edit, type);
     }
     else if (type == "text_data_line") {
-      CQChartsTextDataLineEdit *edit = new CQChartsTextDataLineEdit; addEdit(edit, type);
+      auto edit = new CQChartsTextDataLineEdit; addEdit(edit, type);
     }
     else
       return errorMsg("Bad edit type '" + type + "'");

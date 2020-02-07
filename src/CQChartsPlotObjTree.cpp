@@ -107,7 +107,7 @@ CQChartsPlotObjTree::
 waitTree() const
 {
   if (plotObjTreeFuture_.valid()) {
-    CQChartsPlotObjTree *th = const_cast<CQChartsPlotObjTree *>(this);
+    auto th = const_cast<CQChartsPlotObjTree *>(this);
 
     th->plotObjTree_ = th->plotObjTreeFuture_.get();
 

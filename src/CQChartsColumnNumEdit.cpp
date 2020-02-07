@@ -186,7 +186,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
   if (columnNum.isValid()) {
     str = columnNum.toString();
 
-    CQChartsPlot *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
+    auto plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
 
     if (plot) {
       QString str1 = plot->columnHeaderName(CQChartsColumn(columnNum.column()));
@@ -220,7 +220,7 @@ createEdit(QWidget *parent)
 
   QObject *obj = (item ? item->object() : nullptr);
 
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
+  auto plot = qobject_cast<CQChartsPlot *>(obj);
 
   //---
 
@@ -236,7 +236,7 @@ void
 CQChartsColumnNumPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsColumnNumLineEdit *edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(columnChanged()), obj, method);
@@ -246,7 +246,7 @@ QVariant
 CQChartsColumnNumPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsColumnNumLineEdit *edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->columnNum());
@@ -256,7 +256,7 @@ void
 CQChartsColumnNumPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsColumnNumLineEdit *edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
   assert(edit);
 
   CQChartsColumnNum columnNum = var.value<CQChartsColumnNum>();

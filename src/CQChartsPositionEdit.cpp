@@ -16,7 +16,7 @@ CQChartsPositionEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -216,7 +216,7 @@ void
 CQChartsPositionPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsPositionEdit *edit = qobject_cast<CQChartsPositionEdit *>(w);
+  auto edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(positionChanged()), obj, method);
@@ -226,7 +226,7 @@ QVariant
 CQChartsPositionPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsPositionEdit *edit = qobject_cast<CQChartsPositionEdit *>(w);
+  auto edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->position());
@@ -236,7 +236,7 @@ void
 CQChartsPositionPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsPositionEdit *edit = qobject_cast<CQChartsPositionEdit *>(w);
+  auto edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
   CQChartsPosition position = var.value<CQChartsPosition>();

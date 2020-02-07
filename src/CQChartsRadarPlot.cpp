@@ -208,7 +208,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsRadarPlot::calcRange");
 
-  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+  auto th = const_cast<CQChartsRadarPlot *>(this);
 
   // get values for each row
   class RowVisitor : public ModelVisitor {
@@ -300,7 +300,7 @@ calcAnnotationBBox() const
 
   // add corner labels
   if (nv > 2) {
-    CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+    auto th = const_cast<CQChartsRadarPlot *>(this);
 
     CQChartsPlotPainter device(th, nullptr);
 
@@ -351,7 +351,7 @@ calcAnnotationBBox() const
 
   // add objects
   for (const auto &plotObj : plotObjs_) {
-    CQChartsRadarObj *obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
+    auto obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
 
     if (obj)
       bbox += obj->annotationBBox();
@@ -370,7 +370,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+  auto th = const_cast<CQChartsRadarPlot *>(this);
 
   //---
 
@@ -430,7 +430,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   if (hidden)
     return false;
 
-  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+  auto th = const_cast<CQChartsRadarPlot *>(this);
 
   //---
 
@@ -592,12 +592,12 @@ addKeyItems(CQChartsPlotKey *key)
 
       //---
 
-      CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
+      auto plot = const_cast<CQChartsRadarPlot *>(plot_);
 
       ColorInd ic(data.row, numRows());
 
-      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
-      CQChartsKeyText     *text  = new CQChartsKeyText(plot, name, ic);
+      auto color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
+      auto text  = new CQChartsKeyText(plot, name, ic);
 
       color->setClickable(true);
 

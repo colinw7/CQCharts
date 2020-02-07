@@ -163,7 +163,7 @@ void
 CQChartsShapeDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsShapeDataLineEdit *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(shapeDataChanged()), obj, method);
@@ -173,7 +173,7 @@ QVariant
 CQChartsShapeDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsShapeDataLineEdit *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->shapeData());
@@ -183,7 +183,7 @@ void
 CQChartsShapeDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsShapeDataLineEdit *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   CQChartsShapeData data = var.value<CQChartsShapeData>();
@@ -203,23 +203,22 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
 
   //---
 
-  QGridLayout *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   int row = 0;
 
   //---
 
   if (tabbed_) {
-    QTabWidget *tab = CQUtil::makeWidget<QTabWidget>("tab");
+    auto tab = CQUtil::makeWidget<QTabWidget>("tab");
 
     layout->addWidget(tab, row, 0, 1, 2); ++row;
 
     //----
 
     // fill frame
-    QFrame *fillFrame = CQUtil::makeWidget<QFrame>("fillFrame");
-
-    QVBoxLayout *fillFrameLayout = CQUtil::makeLayout<QVBoxLayout>(fillFrame, 0, 2);
+    auto fillFrame       = CQUtil::makeWidget<QFrame>("fillFrame");
+    auto fillFrameLayout = CQUtil::makeLayout<QVBoxLayout>(fillFrame, 0, 2);
 
     tab->addTab(fillFrame, "Fill");
 
@@ -235,9 +234,8 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
     //----
 
     // stroke frame
-    QFrame *strokeFrame = CQUtil::makeWidget<QFrame>("strokeFrame");
-
-    QVBoxLayout *strokeFrameLayout = CQUtil::makeLayout<QVBoxLayout>(strokeFrame, 0, 2);
+    auto strokeFrame       = CQUtil::makeWidget<QFrame>("strokeFrame");
+    auto strokeFrameLayout = CQUtil::makeLayout<QVBoxLayout>(strokeFrame, 0, 2);
 
     tab->addTab(strokeFrame, "Stroke");
 

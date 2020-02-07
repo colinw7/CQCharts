@@ -15,7 +15,7 @@ CQChartsLengthEdit(QWidget *parent) :
 {
   setObjectName("lengthEdit");
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -220,7 +220,7 @@ void
 CQChartsLengthPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsLengthEdit *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto edit = qobject_cast<CQChartsLengthEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(lengthChanged()), obj, method);
@@ -230,7 +230,7 @@ QVariant
 CQChartsLengthPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsLengthEdit *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto edit = qobject_cast<CQChartsLengthEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->length());
@@ -240,7 +240,7 @@ void
 CQChartsLengthPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsLengthEdit *edit = qobject_cast<CQChartsLengthEdit *>(w);
+  auto edit = qobject_cast<CQChartsLengthEdit *>(w);
   assert(edit);
 
   CQChartsLength length = var.value<CQChartsLength>();

@@ -18,7 +18,6 @@
 #include <CTsv.h>
 
 #include <QComboBox>
-#include <QPushButton>
 #include <QRadioButton>
 #include <QCheckBox>
 #include <QTextBrowser>
@@ -533,7 +532,7 @@ updateColumns()
   //---
 
   auto createTypeEdit = [&](const QString &type, const QString &colName) {
-    QComboBox *typeCombo = CQUtil::makeWidget<QComboBox>("typeCombo");
+    auto typeCombo = CQUtil::makeWidget<QComboBox>("typeCombo");
 
     typeCombo->addItems(typeNames);
     typeCombo->setToolTip("Column Type");
@@ -748,7 +747,7 @@ void
 CQChartsLoadModelDlg::
 typeChangedSlot(int)
 {
-  QComboBox *combo = qobject_cast<QComboBox *>(sender());
+  auto combo = qobject_cast<QComboBox *>(sender());
   if (! combo) return;
 
   QString type = combo->currentText();

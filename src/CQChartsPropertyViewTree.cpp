@@ -30,7 +30,7 @@ void
 CQChartsPropertyViewTree::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
     QAction *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
@@ -40,8 +40,7 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
     QAction *action = new QAction(name, menu);
 
     action->setCheckable(true);
@@ -80,8 +79,8 @@ printItem(CQPropertyViewItem *item) const
   QString dataStr = item->dataStr();
   QString path    = item->path(".", /*alias*/true);
 
-  CQChartsPlot       *plot       = qobject_cast<CQChartsPlot       *>(object);
-  CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(object);
+  auto plot       = qobject_cast<CQChartsPlot       *>(object);
+  auto annotation = qobject_cast<CQChartsAnnotation *>(object);
 
   if      (plot) {
     if (path.startsWith(plot->id()))
@@ -141,9 +140,9 @@ editSlot()
 
   //---
 
-  CQChartsTitle *title = qobject_cast<CQChartsTitle *>(obj);
-  CQChartsKey   *key   = qobject_cast<CQChartsKey   *>(obj);
-  CQChartsAxis  *axis  = qobject_cast<CQChartsAxis  *>(obj);
+  auto title = qobject_cast<CQChartsTitle *>(obj);
+  auto key   = qobject_cast<CQChartsKey   *>(obj);
+  auto axis  = qobject_cast<CQChartsAxis  *>(obj);
 
   bool modal = CQChartsEnv::getBool("CQ_CHARTS_MODAL_DLG", true);
 

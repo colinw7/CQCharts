@@ -13,11 +13,11 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("modelWidgets");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
-  CQTabSplit *split = CQUtil::makeWidget<CQTabSplit>("split");
+  auto split = CQUtil::makeWidget<CQTabSplit>("split");
 
   split->setOrientation(Qt::Vertical);
   split->setGrouped(true);

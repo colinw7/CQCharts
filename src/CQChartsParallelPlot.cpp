@@ -307,7 +307,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcRange");
 
-  CQChartsParallelPlot *th =  const_cast<CQChartsParallelPlot *>(this);
+  auto th =  const_cast<CQChartsParallelPlot *>(this);
 
   //---
 
@@ -340,7 +340,7 @@ calcRange() const
     th->axes_.clear();
 
     for (int j = 0; j < ns; ++j) {
-      CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
+      auto axis = new CQChartsAxis(this, adir_, 0, 1);
 
       axis->moveToThread(th->thread());
 
@@ -698,7 +698,7 @@ probe(ProbeData &probeData) const
     const CQChartsGeom::Range &range2 = setRanges_[x2];
 
     for (const auto &plotObj : plotObjs_) {
-      CQChartsParallelLineObj *obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
+      auto obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
       if (! obj) continue;
 
       std::vector<double> yvals;
@@ -760,7 +760,7 @@ bool
 CQChartsParallelPlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *horizontalAction = new QAction("Horizontal", menu);
+  auto horizontalAction = new QAction("Horizontal", menu);
 
   horizontalAction->setCheckable(true);
   horizontalAction->setChecked(isHorizontal());
@@ -827,7 +827,7 @@ void
 CQChartsParallelPlot::
 drawFgAxes(CQChartsPaintDevice *device) const
 {
-  CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
+  auto th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setObjRange(device);
 
@@ -870,7 +870,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
       //---
 
       if (! device->isInteractive()) {
-        CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+        auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
         writeScriptRange(painter);
       }
@@ -944,7 +944,7 @@ void
 CQChartsParallelPlot::
 postDraw()
 {
-  //CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
+  //auto th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setNormalizedRange(device);
 
@@ -977,7 +977,7 @@ setObjRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
     writeScriptRange(painter);
   }
@@ -1003,7 +1003,7 @@ setNormalizedRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
     writeScriptRange(painter);
   }
@@ -1339,7 +1339,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsParallelPlot *plot = const_cast<CQChartsParallelPlot *>(plot_);
+  auto plot = const_cast<CQChartsParallelPlot *>(plot_);
 
   plot->setObjRange(device);
 

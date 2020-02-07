@@ -138,7 +138,7 @@ void
 CQChartsAnglePropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsAngleEdit *edit = qobject_cast<CQChartsAngleEdit *>(w);
+  auto edit = qobject_cast<CQChartsAngleEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(angleChanged()), obj, method);
@@ -148,7 +148,7 @@ QVariant
 CQChartsAnglePropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsAngleEdit *edit = qobject_cast<CQChartsAngleEdit *>(w);
+  auto edit = qobject_cast<CQChartsAngleEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->angle());
@@ -158,7 +158,7 @@ void
 CQChartsAnglePropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsAngleEdit *edit = qobject_cast<CQChartsAngleEdit *>(w);
+  auto edit = qobject_cast<CQChartsAngleEdit *>(w);
   assert(edit);
 
   CQChartsAngle angle = var.value<CQChartsAngle>();

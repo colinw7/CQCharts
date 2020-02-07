@@ -389,7 +389,7 @@ namespace CQChartsJS {
 
     os <<
     "Charts.prototype.setFont = function(size) {\n"
-    "  this.gc.font = \"\" + (size*window.innerWidth/this.pwidth) + \"px Sans\";\n"
+    "  this.gc.font = \"\" + (size*window.innerWidth/this.pwidth) + \"px sans-serif\";\n"
     "}\n"
     "\n";
 

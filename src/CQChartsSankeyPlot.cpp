@@ -506,7 +506,7 @@ createEdge(CQChartsSankeyPlotEdge *edge) const
   CQChartsGeom::BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
                           bbox_.getXMax() + xm, bbox_.getYMax() + ym);
 
-  CQChartsSankeyEdgeObj *edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
+  auto edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
 
   edge->setObj(edgeObj);
 }
@@ -801,7 +801,7 @@ findNode(const QString &name) const
 
   //---
 
-  CQChartsSankeyPlotNode *node = new CQChartsSankeyPlotNode(this, name);
+  auto node = new CQChartsSankeyPlotNode(this, name);
 
   node->setInd(nameNodeMap_.size());
 
@@ -818,7 +818,7 @@ CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
 createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) const
 {
-  CQChartsSankeyPlotEdge *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
+  auto edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
 
   auto th = const_cast<CQChartsSankeyPlot *>(this);
 

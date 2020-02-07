@@ -169,7 +169,7 @@ void
 CQChartsBoxDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsBoxDataLineEdit *edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(boxDataChanged()), obj, method);
@@ -179,7 +179,7 @@ QVariant
 CQChartsBoxDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsBoxDataLineEdit *edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->boxData());
@@ -189,7 +189,7 @@ void
 CQChartsBoxDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsBoxDataLineEdit *edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
+  auto edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
   assert(edit);
 
   CQChartsBoxData data = var.value<CQChartsBoxData>();
@@ -209,7 +209,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -224,7 +224,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 

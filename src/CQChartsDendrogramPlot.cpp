@@ -152,7 +152,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDendrogramPlot::calcRange");
 
-  CQChartsDendrogramPlot *th = const_cast<CQChartsDendrogramPlot *>(this);
+  auto th = const_cast<CQChartsDendrogramPlot *>(this);
 
   //---
 
@@ -335,7 +335,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    CQChartsDendrogramNodeObj *nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
+    auto nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
 
     if (nodeObj)
       bbox += nodeObj->textRect();
@@ -407,7 +407,7 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
 
   CQChartsGeom::BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
 
-  CQChartsDendrogramNodeObj *obj = new CQChartsDendrogramNodeObj(this, node, rect);
+  auto obj = new CQChartsDendrogramNodeObj(this, node, rect);
 
   objs.push_back(obj);
 }

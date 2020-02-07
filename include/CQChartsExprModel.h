@@ -241,7 +241,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QVariant colorCmd(const Values &values) const;
 
   // time
-  QVariant timevalCmd(const Values &values);
+  QVariant timevalCmd(const Values &values) const;
+
+  // concat
+  QVariant concatCmd(const Values &values) const;
 
   //---
 
@@ -285,7 +288,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   ColumnDatas          columnDatas_;            //!< cached column datas
   ColumnNames          columnNames_;            //!< cached column names
   NameColumns          nameColumns_;            //!< cached named columns
-  mutable std::mutex   mutex_;
+  mutable std::mutex   mutex_;                  //!< update mutex
 };
 
 #endif

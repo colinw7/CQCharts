@@ -274,7 +274,7 @@ setSymbols(bool)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      CQChartsScatterPlot *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+      auto splot = qobject_cast<CQChartsScatterPlot *>(plot);
 
       if (splot)
         splot->plotType_ = PlotType::SYMBOLS;
@@ -293,7 +293,7 @@ setGridCells(bool b)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      CQChartsScatterPlot *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+      auto splot = qobject_cast<CQChartsScatterPlot *>(plot);
 
       if (splot)
         splot->plotType_ = (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS);
@@ -1394,7 +1394,7 @@ addNameValues() const
 
       //---
 
-      CQChartsScatterPlot *plot = const_cast<CQChartsScatterPlot *>(plot_);
+      auto plot = const_cast<CQChartsScatterPlot *>(plot_);
 
       plot->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
 
@@ -1502,8 +1502,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
       ColorInd ic(ig, ng);
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
-      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName, ic);
+      auto colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
+      auto textItem  = new CQChartsKeyText        (this, groupName, ic);
 
       key->addItem(colorItem, ig, 0);
       key->addItem(textItem , ig, 1);
@@ -1542,8 +1542,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
         ColorInd ic(is, ns);
 
-        CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
-        CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, ic);
+        auto colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
+        auto textItem  = new CQChartsKeyText        (this, name, ic);
 
         key->addItem(colorItem, is, 0);
         key->addItem(textItem , is, 1);
@@ -1575,7 +1575,7 @@ void
 CQChartsScatterPlot::
 addGridKeyItems(CQChartsPlotKey *key)
 {
-  CQChartsScatterGridKeyItem *item = new CQChartsScatterGridKeyItem(this);
+  auto item = new CQChartsScatterGridKeyItem(this);
 
   key->addItem(item, 0, 0);
 }
@@ -1608,9 +1608,8 @@ bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                                  bool isSet, const char *slot) -> QAction *{
-    QAction *action = new QAction(name, menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -1626,7 +1625,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QMenu *typeMenu = new QMenu("Plot Type");
+  auto typeMenu = new QMenu("Plot Type", menu);
 
   (void) addMenuCheckedAction(typeMenu, "Symbols"   , isSymbols  (), SLOT(setSymbols(bool)));
   (void) addMenuCheckedAction(typeMenu, "Grid Cells", isGridCells(), SLOT(setGridCells(bool)));
@@ -1635,7 +1634,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  QMenu *overlaysMenu = new QMenu("Overlays");
+  auto overlaysMenu = new QMenu("Overlays", menu);
 
   (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
                               isBestFit   (), SLOT(setBestFit       (bool)));
@@ -1650,8 +1649,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  QMenu *xMenu = new QMenu("X Axis Annotation");
-  QMenu *yMenu = new QMenu("Y Axis Annotation");
+  auto xMenu = new QMenu("X Axis Annotation", menu);
+  auto yMenu = new QMenu("Y Axis Annotation", menu);
 
   (void) addMenuCheckedAction(xMenu, "Rug"    , isXRug    (), SLOT(setXRug    (bool)));
   (void) addMenuCheckedAction(xMenu, "Density", isXDensity(), SLOT(setXDensity(bool)));
@@ -2173,8 +2172,8 @@ drawXRug(CQChartsPaintDevice *device) const
     if (isInterrupt())
       return;
 
-    const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
-    const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
+    auto pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+    auto cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
       pointObj->drawDir(device, CQChartsScatterPointObj::Dir::X, xRugSide() == YSide::TOP);
@@ -2192,8 +2191,8 @@ drawYRug(CQChartsPaintDevice *device) const
     if (isInterrupt())
       return;
 
-    const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
-    const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
+    auto pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+    auto cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
       pointObj->drawDir(device, CQChartsScatterPointObj::Dir::Y, yRugSide() == XSide::RIGHT);
@@ -2636,7 +2635,7 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+          auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
           whiskerData1->xWhisker.addValue(pointObj->point().x);
         }
@@ -2652,7 +2651,7 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+          auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
           whiskerData1->yWhisker.addValue(pointObj->point().y);
         }
@@ -2697,7 +2696,7 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+            auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
             whiskerData1->xWhisker.addValue(p.x);
           }
@@ -2718,7 +2717,7 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+            auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
             whiskerData1->yWhisker.addValue(p.y);
           }
@@ -3393,7 +3392,7 @@ bool
 CQChartsScatterKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
-  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   int ih = hideIndex();
 
@@ -3415,7 +3414,7 @@ QBrush
 CQChartsScatterKeyColor::
 fillBrush() const
 {
-  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+  auto plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   QColor c;
 

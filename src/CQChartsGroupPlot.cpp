@@ -177,7 +177,7 @@ addGroupingProperties()
 
   //---
 
-  CQChartsGroupPlotType *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
+  auto type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
   assert(type);
 
   addProp("dataGrouping", "groupColumn", "group", "Group column");
@@ -279,7 +279,7 @@ CQChartsColumnBucket *
 CQChartsGroupPlot::
 initGroup(CQChartsGroupData &data) const
 {
-  CQChartsColumnBucket *columnBucket = new CQChartsColumnBucket;
+  auto columnBucket = new CQChartsColumnBucket;
 
   //---
 
@@ -456,7 +456,7 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
   int groupInd = inds[0];
 
-  CQChartsGroupPlot *th = const_cast<CQChartsGroupPlot *>(this);
+  auto th = const_cast<CQChartsGroupPlot *>(this);
 
   th->setModelGroupInd(ind, groupInd);
 

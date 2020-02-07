@@ -1,0 +1,14 @@
+Path,Size,Owner
+A/B,200,bill
+A/B/C1,100,fred
+A/B/C2,100,harry
+A/B/C3,100,george
+A/B/C1/D1,50,fred
+A/B/C1/D2,80,harry
+A/B/C1/D3,30,william
+A/B/C1/D4,10,bert
+A/B/C2/D1,74,bill
+A/B/C2/D2,83,harry
+A/B/C2/D3,11,fred
+A/B/C3/D1,15,william
+A/B/C3/D2,23,orville

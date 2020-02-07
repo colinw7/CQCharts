@@ -72,7 +72,7 @@ addMenuActions(QMenu *menu)
   //---
 
   auto addMenu = [&](const QString &name) {
-    QMenu *subMenu = new QMenu(name);
+    QMenu *subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
 
@@ -177,7 +177,7 @@ setFilter(const QString &filter)
   if (! model_)
     return;
 
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
   QAbstractItemModel *model = proxyModel->sourceModel();

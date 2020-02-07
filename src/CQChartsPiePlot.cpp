@@ -387,7 +387,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    CQChartsPieObj *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+    auto pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
     if (! pieObj || ! pieObj->visible())
       continue;
@@ -535,7 +535,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (auto &plotObj : objs) {
-    CQChartsPieObj *obj = dynamic_cast<CQChartsPieObj *>(plotObj);
+    auto obj = dynamic_cast<CQChartsPieObj *>(plotObj);
     if (! obj) continue;
 
     CQChartsPieGroupObj *groupObj = obj->groupObj();
@@ -1063,8 +1063,8 @@ addKeyItems(CQChartsPlotKey *key)
   int row = 0;
 
   auto addKeyRow = [&](CQChartsPlotObj *obj) {
-    CQChartsPieKeyColor *keyColor = new CQChartsPieKeyColor(this, obj);
-    CQChartsPieKeyText  *keyText  = new CQChartsPieKeyText (this, obj);
+    auto keyColor = new CQChartsPieKeyColor(this, obj);
+    auto keyText  = new CQChartsPieKeyText (this, obj);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -1083,7 +1083,7 @@ addKeyItems(CQChartsPlotKey *key)
     }
     else {
       for (auto &plotObj : plotObjs_) {
-        CQChartsPieObj *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+        auto pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
         if (pieObj)
           addKeyRow(plotObj);
@@ -1113,7 +1113,7 @@ bool
 CQChartsPiePlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *donutAction = new QAction("Donut", menu);
+  auto donutAction = new QAction("Donut", menu);
 
   donutAction->setCheckable(true);
   donutAction->setChecked(isDonut());
@@ -1122,7 +1122,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  QAction *countAction = new QAction("Count", menu);
+  auto countAction = new QAction("Count", menu);
 
   countAction->setCheckable(true);
   countAction->setChecked(isCount());
@@ -1875,7 +1875,7 @@ bool
 CQChartsPieKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
-  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   int is = setIndex();
 
@@ -1890,10 +1890,10 @@ QBrush
 CQChartsPieKeyColor::
 fillBrush() const
 {
-  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   QColor c;
 
@@ -1923,8 +1923,8 @@ int
 CQChartsPieKeyColor::
 setIndex() const
 {
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     return group->groupInd();
@@ -1940,8 +1940,8 @@ CQChartsPieKeyText::
 CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
  CQChartsKeyText(plot, "", ColorInd()), obj_(plotObj)
 {
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     setText(group->name());
@@ -1953,7 +1953,7 @@ QColor
 CQChartsPieKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   QColor c = CQChartsKeyText::interpTextColor(ind);
 
@@ -1969,8 +1969,8 @@ int
 CQChartsPieKeyText::
 setIndex() const
 {
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     return group->groupInd();

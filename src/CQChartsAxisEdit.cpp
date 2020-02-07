@@ -47,7 +47,7 @@ CQChartsEditAxisDlg(QWidget *parent, CQChartsAxis *axis) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -113,7 +113,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   setToolTip("Axis Data");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -149,7 +149,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //---
 
-  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 
@@ -268,16 +268,15 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //------
 
-  QTabWidget *labelTab = CQUtil::makeWidget<QTabWidget>("labelTab");
+  auto labelTab = CQUtil::makeWidget<QTabWidget>("labelTab");
 
   layout->addWidget(labelTab);
 
   //--
 
   // label
-  QFrame *labelFrame = CQUtil::makeWidget<QFrame>("labelFrame");
-
-  QVBoxLayout *labelLayout = CQUtil::makeLayout<QVBoxLayout>(labelFrame, 0, 2);
+  auto labelFrame  = CQUtil::makeWidget<QFrame>("labelFrame");
+  auto labelLayout = CQUtil::makeLayout<QVBoxLayout>(labelFrame, 0, 2);
 
   labelTab->addTab(labelFrame, "Axis Label");
 
@@ -294,9 +293,8 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // tick label
-  QFrame *tickLabelFrame = CQUtil::makeWidget<QFrame>("tickLabelFrame");
-
-  QVBoxLayout *tickLabelLayout = CQUtil::makeLayout<QVBoxLayout>(tickLabelFrame, 0, 2);
+  auto tickLabelFrame  = CQUtil::makeWidget<QFrame>("tickLabelFrame");
+  auto tickLabelLayout = CQUtil::makeLayout<QVBoxLayout>(tickLabelFrame, 0, 2);
 
   labelTab->addTab(tickLabelFrame, "Tick Label");
 
@@ -312,16 +310,15 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //---
 
-  QTabWidget *gridTab = CQUtil::makeWidget<QTabWidget>("gridTab");
+  auto gridTab = CQUtil::makeWidget<QTabWidget>("gridTab");
 
   layout->addWidget(gridTab);
 
   //--
 
   // major grid line
-  QFrame *majorGridLineFrame = CQUtil::makeWidget<QFrame>("majorGridLineFrame");
-
-  QVBoxLayout *majorGridLineLayout = CQUtil::makeLayout<QVBoxLayout>(majorGridLineFrame, 0, 2);
+  auto majorGridLineFrame  = CQUtil::makeWidget<QFrame>("majorGridLineFrame");
+  auto majorGridLineLayout = CQUtil::makeLayout<QVBoxLayout>(majorGridLineFrame, 0, 2);
 
   gridTab->addTab(majorGridLineFrame, "Major Grid Line");
 
@@ -338,9 +335,8 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //---
 
   // minor grid line
-  QFrame *minorGridLineFrame = CQUtil::makeWidget<QFrame>("minorGridLineFrame");
-
-  QVBoxLayout *minorGridLineLayout = CQUtil::makeLayout<QVBoxLayout>(minorGridLineFrame, 0, 2);
+  auto minorGridLineFrame  = CQUtil::makeWidget<QFrame>("minorGridLineFrame");
+  auto minorGridLineLayout = CQUtil::makeLayout<QVBoxLayout>(minorGridLineFrame, 0, 2);
 
   gridTab->addTab(minorGridLineFrame, "Minor Grid Line");
 
@@ -357,9 +353,8 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //---
 
   // grid fill
-  QFrame *gridFillFrame = CQUtil::makeWidget<QFrame>("gridFillFrame");
-
-  QVBoxLayout *gridFillLayout = CQUtil::makeLayout<QVBoxLayout>(gridFillFrame, 0, 2);
+  auto gridFillFrame  = CQUtil::makeWidget<QFrame>("gridFillFrame");
+  auto gridFillLayout = CQUtil::makeLayout<QVBoxLayout>(gridFillFrame, 0, 2);
 
   gridTab->addTab(gridFillFrame, "Grid Fill");
 

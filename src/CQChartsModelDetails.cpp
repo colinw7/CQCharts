@@ -56,7 +56,7 @@ const CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c) const
 {
-  CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+  auto th = const_cast<CQChartsModelDetails *>(this);
 
   return th->columnDetails(c);
 }
@@ -98,7 +98,7 @@ initSimpleData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ == Initialized::NONE) {
-      CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+      auto th = const_cast<CQChartsModelDetails *>(this);
 
       th->updateSimple();
     }
@@ -113,7 +113,7 @@ initFullData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ != Initialized::FULL) {
-      CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+      auto th = const_cast<CQChartsModelDetails *>(this);
 
       th->updateFull();
     }
@@ -1051,7 +1051,7 @@ initCache() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! initialized_) {
-      CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+      auto th = const_cast<CQChartsModelColumnDetails *>(this);
 
       (void) th->initData();
     }
@@ -1477,7 +1477,7 @@ initType() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! typeInitialized_) {
-      CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+      auto th = const_cast<CQChartsModelColumnDetails *>(this);
 
       (void) th->calcType();
     }

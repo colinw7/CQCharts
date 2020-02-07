@@ -41,7 +41,6 @@
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QScrollBar>
-#include <QToolButton>
 #include <QMenu>
 
 #include <svg/models_light_svg.h>
@@ -1094,7 +1093,7 @@ CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  CQChartsArrowAnnotation *annotation = new CQChartsArrowAnnotation(this, start, end);
+  auto annotation = new CQChartsArrowAnnotation(this, start, end);
 
   addAnnotation(annotation);
 
@@ -1118,7 +1117,7 @@ CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 {
-  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, pos, image);
+  auto annotation = new CQChartsImageAnnotation(this, pos, image);
 
   addAnnotation(annotation);
 
@@ -1129,7 +1128,7 @@ CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 {
-  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, rect, image);
+  auto annotation = new CQChartsImageAnnotation(this, rect, image);
 
   addAnnotation(annotation);
 
@@ -1154,7 +1153,7 @@ CQChartsPointAnnotation *
 CQChartsView::
 addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
-  CQChartsPointAnnotation *annotation = new CQChartsPointAnnotation(this, pos, type);
+  auto annotation = new CQChartsPointAnnotation(this, pos, type);
 
   addAnnotation(annotation);
 
@@ -1165,7 +1164,7 @@ CQChartsPointSetAnnotation *
 CQChartsView::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  CQChartsPointSetAnnotation *annotation = new CQChartsPointSetAnnotation(this, values);
+  auto annotation = new CQChartsPointSetAnnotation(this, values);
 
   addAnnotation(annotation);
 
@@ -1176,7 +1175,7 @@ CQChartsPolygonAnnotation *
 CQChartsView::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolygonAnnotation *annotation = new CQChartsPolygonAnnotation(this, points);
+  auto annotation = new CQChartsPolygonAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -1187,7 +1186,7 @@ CQChartsPolylineAnnotation *
 CQChartsView::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolylineAnnotation *annotation = new CQChartsPolylineAnnotation(this, points);
+  auto annotation = new CQChartsPolylineAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -1198,7 +1197,7 @@ CQChartsRectangleAnnotation *
 CQChartsView::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectangleAnnotation *annotation = new CQChartsRectangleAnnotation(this, rect);
+  auto annotation = new CQChartsRectangleAnnotation(this, rect);
 
   addAnnotation(annotation);
 
@@ -1209,7 +1208,7 @@ CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, pos, text);
+  auto annotation = new CQChartsTextAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -1220,7 +1219,7 @@ CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, rect, text);
+  auto annotation = new CQChartsTextAnnotation(this, rect, text);
 
   addAnnotation(annotation);
 
@@ -1243,7 +1242,7 @@ CQChartsButtonAnnotation *
 CQChartsView::
 addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsButtonAnnotation *annotation = new CQChartsButtonAnnotation(this, pos, text);
+  auto annotation = new CQChartsButtonAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -1536,7 +1535,7 @@ void
 CQChartsView::
 plotModelChanged()
 {
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(sender());
+  auto plot = qobject_cast<CQChartsPlot *>(sender());
 
   if (plot == currentPlot(/*remap*/false))
     emit currentPlotChanged();
@@ -1546,7 +1545,7 @@ void
 CQChartsView::
 plotConnectDataChangedSlot()
 {
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(sender());
+  auto plot = qobject_cast<CQChartsPlot *>(sender());
 
   if (plot)
     emit plotConnectDataChanged(plot->id());
@@ -2533,7 +2532,7 @@ showProbeLines(const QPointF &p)
   auto addVerticalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
                                   double px, double py1, double py2) -> void {
     while (ind >= int(probeBands_.size())) {
-      CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
+      auto probeBand = new CQChartsProbeBand(this);
 
       probeBands_.push_back(probeBand);
     }
@@ -2546,7 +2545,7 @@ showProbeLines(const QPointF &p)
   auto addHorizontalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
                                     double px1, double px2, double py) -> void {
     while (ind >= int(probeBands_.size())) {
-      CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
+      auto probeBand = new CQChartsProbeBand(this);
 
       probeBands_.push_back(probeBand);
     }
@@ -3393,7 +3392,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      CQChartsView *th = const_cast<CQChartsView *>(this);
+      auto th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3428,7 +3427,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      CQChartsView *th = const_cast<CQChartsView *>(this);
+      auto th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3455,7 +3454,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      CQChartsView *th = const_cast<CQChartsView *>(this);
+      auto th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3625,7 +3624,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
         if (device->isInteractive()) {
-          CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+          auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
           annotation->drawEditHandles(painter->painter());
         }
@@ -3655,7 +3654,7 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
   if (layerType == CQChartsLayer::Type::SELECTION) {
     if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
       if (device->isInteractive()) {
-        CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+        auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
         key()->drawEditHandles(painter->painter());
       }
@@ -4078,7 +4077,7 @@ showMenu(const QPoint &p)
   //---
 
   auto addSubMenu = [](QMenu *menu, const QString &name) {
-    QMenu *subMenu = new QMenu(name, menu);
+    auto subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
 
@@ -4090,7 +4089,7 @@ showMenu(const QPoint &p)
   };
 
   auto addAction = [&](QMenu *menu, const QString &name, const char *slotName) {
-    QAction *action = new QAction(name, menu);
+    auto action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slotName);
 
@@ -4100,7 +4099,7 @@ showMenu(const QPoint &p)
   };
 
   auto addCheckAction = [&](QMenu *menu, const QString &name, bool checked, const char *slotName) {
-    QAction *action = new QAction(name, menu);
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(checked);
@@ -4114,9 +4113,9 @@ showMenu(const QPoint &p)
 
   auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
                                  const char *slotName) {
-    QMenu *menu = qobject_cast<QMenu *>(group->parent());
+    auto menu = qobject_cast<QMenu *>(group->parent());
 
-    QAction *action = new QAction(name, menu);
+    auto action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(checked);
@@ -4173,10 +4172,10 @@ showMenu(const QPoint &p)
     allSelectedObjs(objs);
 
     if (objs.size() == 1) {
-      CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-      CQChartsAxis       *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-      CQChartsKey        *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-      CQChartsTitle      *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+      auto annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+      auto axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+      auto key        = qobject_cast<CQChartsKey        *>(objs[0]);
+      auto title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
       if (annotation || axis || key || title)
         addAction(popupMenu_, "Edit", SLOT(editObjectSlot()));
@@ -4220,7 +4219,7 @@ showMenu(const QPoint &p)
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      QAction *action = new QAction(label, keyLocationMenu);
+      auto action = new QAction(label, keyLocationMenu);
 
       action->setCheckable(true);
 
@@ -4298,7 +4297,7 @@ showMenu(const QPoint &p)
     //---
 
     auto addKeyCheckAction = [&](const QString &label, bool checked, const char *slot) {
-      QAction *action = new QAction(label, plotKeyMenu);
+      auto action = new QAction(label, plotKeyMenu);
 
       action->setCheckable(true);
       action->setChecked(checked);
@@ -4338,7 +4337,7 @@ showMenu(const QPoint &p)
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      QAction *action = new QAction(label, keyLocationMenu);
+      auto action = new QAction(label, keyLocationMenu);
 
       action->setCheckable(true);
 
@@ -4424,7 +4423,7 @@ showMenu(const QPoint &p)
     QActionGroup *xAxisSideGroup = createActionGroup(xAxisMenu);
 
     auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      QAction *action = new QAction(label, xAxisSideMenu);
+      auto action = new QAction(label, xAxisSideMenu);
 
       action->setCheckable(true);
 
@@ -4477,7 +4476,7 @@ showMenu(const QPoint &p)
     QActionGroup *yAxisSideGroup = createActionGroup(yAxisMenu);
 
     auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      QAction *action = new QAction(label, yAxisSideMenu);
+      auto action = new QAction(label, yAxisSideMenu);
 
       action->setCheckable(true);
 
@@ -4524,7 +4523,7 @@ showMenu(const QPoint &p)
 
     auto addTitleLocationGroupAction =
      [&](const QString &label, const CQChartsTitleLocation::Type &location) {
-      QAction *action = new QAction(label, titleLocationMenu);
+      auto action = new QAction(label, titleLocationMenu);
 
       action->setCheckable(true);
 
@@ -4587,7 +4586,7 @@ showMenu(const QPoint &p)
   QActionGroup *themeGroup     = createActionGroup(themeMenu);
 
   auto addInterfaceAction = [&](const QString &label, const char *slotName) {
-    QAction *action = new QAction(label, themeMenu);
+    auto action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
 
@@ -4599,7 +4598,7 @@ showMenu(const QPoint &p)
   };
 
   auto addThemeAction = [&](const QString &label, const char *slotName) {
-    QAction *action = new QAction(label, themeMenu);
+    auto action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
 
@@ -4688,10 +4687,10 @@ editObjectSlot()
 
   allSelectedObjs(objs);
 
-  CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-  CQChartsAxis       *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-  CQChartsKey        *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-  CQChartsTitle      *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+  auto annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+  auto axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+  auto key        = qobject_cast<CQChartsKey        *>(objs[0]);
+  auto title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
   if (annotation) {
     delete editAnnotationDlg_;
@@ -5093,7 +5092,7 @@ void
 CQChartsView::
 themeNameSlot()
 {
-  QAction *action = qobject_cast<QAction *>(sender());
+  auto action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->data().toString();
@@ -5364,7 +5363,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   //---
 
-  CQChartsView *th = const_cast<CQChartsView *>(this);
+  auto th = const_cast<CQChartsView *>(this);
 
   CQChartsSVGPainter device(th, os);
 
@@ -5839,7 +5838,7 @@ void
 CQChartsView::
 currentPlotSlot()
 {
-  QAction *action = qobject_cast<QAction *>(sender());
+  auto action = qobject_cast<QAction *>(sender());
 
   bool ok;
 

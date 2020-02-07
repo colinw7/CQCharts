@@ -56,13 +56,13 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver, bool checkable=false, bool checked=false) {
-    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
+    auto button = CQUtil::makeWidget<QToolButton>(name);
 
     if (CQPixmapCacheInst->hasPixmap(iconName + "_LIGHT"))
       button->setIcon(CQPixmapCacheInst->getIcon(iconName + "_LIGHT", iconName + "_DARK"));
@@ -114,11 +114,11 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   layout->addWidget(controlsStack_);
 
-  QFrame *selectControls = CQUtil::makeWidget<QFrame>("select");
-  QFrame *zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
-  QFrame *panControls    = CQUtil::makeWidget<QFrame>("pan");
-  QFrame *probeControls  = CQUtil::makeWidget<QFrame>("probe");
-  QFrame *editControls   = CQUtil::makeWidget<QFrame>("edit");
+  auto selectControls = CQUtil::makeWidget<QFrame>("select");
+  auto zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
+  auto panControls    = CQUtil::makeWidget<QFrame>("pan");
+  auto probeControls  = CQUtil::makeWidget<QFrame>("probe");
+  auto editControls   = CQUtil::makeWidget<QFrame>("edit");
 
   controlsStack_->addWidget(selectControls);
   controlsStack_->addWidget(zoomControls);
@@ -130,7 +130,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
+  auto selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
   QButtonGroup *selectButtonGroup = new QButtonGroup(this);
 
@@ -176,9 +176,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *zoomControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomControls, 0, 2);
+  auto zoomControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomControls, 0, 2);
 
-  QPushButton *zoomButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
+  auto zoomButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
 
   zoomButton->setFocusPolicy(Qt::NoFocus);
   zoomButton->setToolTip("Reset Zoom");
@@ -189,9 +189,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
+  auto panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
 
-  QPushButton *panButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
+  auto panButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
 
   panButton->setFocusPolicy(Qt::NoFocus);
   panButton->setToolTip("Reset Pan");
@@ -242,7 +242,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  QToolButton *helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
+  auto helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
 
   layout->addWidget(helpButton);
 

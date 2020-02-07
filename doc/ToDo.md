@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Test for extra nodes in tree map (hier with size and child with size)
  + Better javascript font rendering (device scaling, alignment ?)
  + Move to thread crash for key with scrollbar ?
  + Box Shape (circle, path, ....)

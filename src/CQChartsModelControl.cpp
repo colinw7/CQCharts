@@ -185,11 +185,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 {
   setObjectName("control");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
-  QTabWidget *controlTab = CQUtil::makeWidget<QTabWidget>("tab");
+  auto controlTab = CQUtil::makeWidget<QTabWidget>("tab");
 
   controlTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -197,21 +197,21 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  QFrame *exprFrame = addExprFrame();
+  auto exprFrame = addExprFrame();
 
   controlTab->addTab(exprFrame, "Expression");
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  QFrame *foldFrame = addFoldFrame();
+  auto foldFrame = addFoldFrame();
 
   controlTab->addTab(foldFrame, "Fold");
 #endif
 
-  QFrame *columnDataFrame = addColumnDataFrame();
+  auto columnDataFrame = addColumnDataFrame();
 
   controlTab->addTab(columnDataFrame, "Column Data");
 
-  QFrame *propertiesFrame = addPropertiesFrame();
+  auto propertiesFrame = addPropertiesFrame();
 
   controlTab->addTab(propertiesFrame, "Properties");
 
@@ -234,15 +234,13 @@ QFrame *
 CQChartsModelControl::
 addExprFrame()
 {
-  QFrame *exprFrame = CQUtil::makeWidget<QFrame>("exprFrame");
-
-  QVBoxLayout *exprFrameLayout = CQUtil::makeLayout<QVBoxLayout>(exprFrame, 0, 2);
+  auto exprFrame       = CQUtil::makeWidget<QFrame>("exprFrame");
+  auto exprFrameLayout = CQUtil::makeLayout<QVBoxLayout>(exprFrame, 0, 2);
 
   //--
 
-  QFrame *exprModeFrame = CQUtil::makeWidget<QFrame>("exprMode");
-
-  QHBoxLayout *exprModeLayout = CQUtil::makeLayout<QHBoxLayout>(exprModeFrame, 0, 2);
+  auto exprModeFrame  = CQUtil::makeWidget<QFrame>("exprMode");
+  auto exprModeLayout = CQUtil::makeLayout<QHBoxLayout>(exprModeFrame, 0, 2);
 
   exprFrameLayout->addWidget(exprModeFrame);
 
@@ -271,7 +269,7 @@ addExprFrame()
 
   //--
 
-  QGridLayout *exprGridLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
+  auto exprGridLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   exprFrameLayout->addLayout(exprGridLayout);
 
@@ -338,11 +336,11 @@ addExprFrame()
 
   //--
 
-  QHBoxLayout *exprButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto exprButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   exprFrameLayout->addLayout(exprButtonLayout);
 
-  QPushButton *exprApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "exprApply");
+  auto exprApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "exprApply");
 
   connect(exprApplyButton, SIGNAL(clicked()), this, SLOT(exprApplySlot()));
 
@@ -359,13 +357,12 @@ QFrame *
 CQChartsModelControl::
 addFoldFrame()
 {
-  QFrame *foldFrame = CQUtil::makeWidget<QFrame>("foldFrame");
-
-  QVBoxLayout *foldFrameLayout = CQUtil::makeLayout<QVBoxLayout>(foldFrame, 0, 2);
+  auto foldFrame       = CQUtil::makeWidget<QFrame>("foldFrame");
+  auto foldFrameLayout = CQUtil::makeLayout<QVBoxLayout>(foldFrame, 0, 2);
 
   //---
 
-  QGridLayout *foldWidgetsLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
+  auto foldWidgetsLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   foldFrameLayout->addLayout(foldWidgetsLayout);
 
@@ -437,15 +434,15 @@ addFoldFrame()
 
   //--
 
-  QHBoxLayout *foldButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto foldButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   foldFrameLayout->addLayout(foldButtonLayout);
 
-  QPushButton *foldApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "foldApply");
+  auto foldApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "foldApply");
 
   connect(foldApplyButton, SIGNAL(clicked()), this, SLOT(foldApplySlot()));
 
-  QPushButton *foldClearButton = CQUtil::makeLabelWidget<QPushButton>("Clear", "foldClear");
+  auto foldClearButton = CQUtil::makeLabelWidget<QPushButton>("Clear", "foldClear");
 
   connect(foldClearButton, SIGNAL(clicked()), this, SLOT(foldClearSlot()));
 
@@ -463,9 +460,8 @@ QFrame *
 CQChartsModelControl::
 addColumnDataFrame()
 {
-  QFrame *columnDataFrame = CQUtil::makeWidget<QFrame>("columnDataFrame");
-
-  QVBoxLayout *columnDataLayout = CQUtil::makeLayout<QVBoxLayout>(columnDataFrame, 2, 2);
+  auto columnDataFrame  = CQUtil::makeWidget<QFrame>("columnDataFrame");
+  auto columnDataLayout = CQUtil::makeLayout<QVBoxLayout>(columnDataFrame, 2, 2);
 
   //---
 
@@ -507,11 +503,11 @@ addColumnDataFrame()
 
   //---
 
-  QHBoxLayout *columnButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto columnButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   columnDataLayout->addLayout(columnButtonLayout);
 
-  QPushButton *typeApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "typeApply");
+  auto typeApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "typeApply");
 
   connect(typeApplyButton, SIGNAL(clicked()), this, SLOT(typeApplySlot()));
 
@@ -527,9 +523,8 @@ QFrame *
 CQChartsModelControl::
 addPropertiesFrame()
 {
-  QFrame *propertiesFrame = CQUtil::makeWidget<QFrame>("propertiesFrame");
-
-  QVBoxLayout *propertiesFrameLayout = CQUtil::makeLayout<QVBoxLayout>(propertiesFrame, 2, 2);
+  auto propertiesFrame       = CQUtil::makeWidget<QFrame>("propertiesFrame");
+  auto propertiesFrameLayout = CQUtil::makeLayout<QVBoxLayout>(propertiesFrame, 2, 2);
 
   //---
 
@@ -565,8 +560,8 @@ QComboBox *
 CQChartsModelControl::
 addComboBox(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel    *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-  QComboBox *combo = CQUtil::makeWidget<QComboBox>(objName + "Combo");
+  auto label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
+  auto combo = CQUtil::makeWidget<QComboBox>(objName + "Combo");
 
   label->setText(name);
 
