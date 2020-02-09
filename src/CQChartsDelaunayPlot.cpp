@@ -226,7 +226,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
 
-  auto th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto *th = const_cast<CQChartsDelaunayPlot *>(this);
 
   //---
 
@@ -290,7 +290,7 @@ calcRange() const
 
   visitModel(visitor);
 
-  CQChartsGeom::Range dataRange = visitor.range();
+  auto dataRange = visitor.range();
 
   //---
 
@@ -329,7 +329,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto *th = const_cast<CQChartsDelaunayPlot *>(this);
 
   //---
 
@@ -428,7 +428,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 {
   assert(delaunayData_);
 
-  auto th = const_cast<CQChartsDelaunayPlot *>(this);
+  auto *th = const_cast<CQChartsDelaunayPlot *>(this);
 
   CQChartsDelaunay::PVertex v = th->delaunayData_->addVertex(x, y);
 
@@ -436,7 +436,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
   double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
@@ -450,8 +450,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
   if (nr > 0)
     iv = ColorInd(r, nr);
 
-  CQChartsDelaunayPointObj *pointObj =
-    new CQChartsDelaunayPointObj(this, bbox, x, y, value, xind1, iv);
+  auto *pointObj = new CQChartsDelaunayPointObj(this, bbox, x, y, value, xind1, iv);
 
   objs.push_back(pointObj);
 }
@@ -462,7 +461,7 @@ bool
 CQChartsDelaunayPlot::
 addMenuItems(QMenu *menu)
 {
-  auto voronoiAction = new QAction("Voronoi", menu);
+  auto *voronoiAction = new QAction("Voronoi", menu);
 
   voronoiAction->setCheckable(true);
   voronoiAction->setChecked(isVoronoi());
@@ -761,7 +760,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
+  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
 
   double sx, sy;
 
@@ -769,7 +768,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp = plot_->windowToPixel(p);
+  auto pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }

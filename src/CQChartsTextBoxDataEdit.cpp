@@ -198,22 +198,22 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
 {
   setObjectName("textBoxDataEdit");
 
-  auto layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   int row = 0;
 
   //---
 
   if (tabbed_) {
-    auto tab = CQUtil::makeWidget<QTabWidget>("tab");
+    auto *tab = CQUtil::makeWidget<QTabWidget>("tab");
 
     layout->addWidget(tab, row, 0, 1, 2); ++row;
 
     //----
 
     // text frame
-    auto textFrame       = CQUtil::makeWidget<QFrame>("textFrame");
-    auto textFrameLayout = CQUtil::makeLayout<QVBoxLayout>(textFrame, 0, 2);
+    auto *textFrame       = CQUtil::makeWidget<QFrame>("textFrame");
+    auto *textFrameLayout = CQUtil::makeLayout<QVBoxLayout>(textFrame, 0, 2);
 
     tab->addTab(textFrame, "Text");
 
@@ -229,8 +229,8 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     //----
 
     // box frame
-    auto boxFrame       = CQUtil::makeWidget<QFrame>("boxFrame");
-    auto boxFrameLayout = CQUtil::makeLayout<QVBoxLayout>(boxFrame, 0, 2);
+    auto *boxFrame       = CQUtil::makeWidget<QFrame>("boxFrame");
+    auto *boxFrameLayout = CQUtil::makeLayout<QVBoxLayout>(boxFrame, 0, 2);
 
     tab->addTab(boxFrame, "Box");
 

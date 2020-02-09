@@ -365,7 +365,7 @@ bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Poi
     return false;
   }
   else {
-    CQChartsGeom::Point intersection = lineStart + u*CQChartsGeom::Point(dx1, dy1);
+    auto intersection = lineStart + u*CQChartsGeom::Point(dx1, dy1);
 
     *dist = PointPointDistance(point, intersection);
 
@@ -666,7 +666,7 @@ QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList) 
   QStringList strs;
 
   for (int i = 0; i < np; ++i) {
-    const CQChartsGeom::Polygon &poly = polyList[i];
+    const auto &poly = polyList[i];
 
     strs += polygonToString(poly);
   }
@@ -739,7 +739,7 @@ QString polygonToString(const CQChartsGeom::Polygon &poly) {
   QStringList strs;
 
   for (int i = 0; i < np; ++i) {
-    CQChartsGeom::Point p = poly.point(i);
+    auto p = poly.point(i);
 
     strs += pointToString(p);
   }
@@ -810,8 +810,8 @@ QString bboxToString(const CQChartsGeom::BBox &bbox) {
   if (bbox.isSet()) {
     QStringList strs;
 
-    const CQChartsGeom::Point &pmin = bbox.getMin();
-    const CQChartsGeom::Point &pmax = bbox.getMax();
+    const auto &pmin = bbox.getMin();
+    const auto &pmax = bbox.getMax();
 
     strs += pointToString(pmin);
     strs += pointToString(pmax);

@@ -14,7 +14,7 @@ CQChartsRectEdit(QWidget *parent) :
 {
   setObjectName("rectEdit");
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -55,8 +55,8 @@ void
 CQChartsRectEdit::
 editChanged()
 {
-  CQChartsGeom::BBox   bbox  = edit_->getValue();
-  const CQChartsUnits &units = rect_.units();
+  auto        bbox  = edit_->getValue();
+  const auto &units = rect_.units();
 
   CQChartsRect rect(bbox, units);
 
@@ -72,8 +72,8 @@ void
 CQChartsRectEdit::
 unitsChanged()
 {
-  const CQChartsGeom::BBox &bbox  = rect_.bbox();
-  CQChartsUnits             units = unitsEdit_->units();
+  const auto &bbox  = rect_.bbox();
+  auto        units = unitsEdit_->units();
 
   CQChartsRect rect(bbox, units);
 
@@ -91,8 +91,8 @@ rectToWidgets()
 {
   connectSlots(false);
 
-  const CQChartsGeom::BBox &bbox  = rect_.bbox();
-  const CQChartsUnits      &units = rect_.units();
+  const auto &bbox  = rect_.bbox();
+  const auto &units = rect_.units();
 
   edit_->setValue(bbox);
 
@@ -105,8 +105,8 @@ void
 CQChartsRectEdit::
 widgetsToRect()
 {
-  CQChartsGeom::BBox bbox  = edit_->getValue();
-  CQChartsUnits      units = unitsEdit_->units();
+  auto bbox  = edit_->getValue();
+  auto units = unitsEdit_->units();
 
   CQChartsRect rect(bbox, units);
 

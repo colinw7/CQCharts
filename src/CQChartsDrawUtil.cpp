@@ -34,7 +34,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
   static double minSize1 = 2.5; // pixels
   static double minSize2 = 1.5; // pixels
 
-  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
+  auto pbbox = device->windowToPixel(bbox);
 
   double minSize = std::min(pbbox.getWidth(), pbbox.getHeight());
 
@@ -86,7 +86,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &pol
 {
   static double minSize = 2.5; // pixels
 
-  CQChartsGeom::BBox bbox = poly.boundingBox();
+  auto bbox = poly.boundingBox();
 
   double xsize = device->lengthPixelWidth (xlen);
   double ysize = device->lengthPixelHeight(ylen);
@@ -231,7 +231,7 @@ drawStringsInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
 
     double x = prect.getXMin() + dx;
 
-    CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(x, y));
+    auto pt = device->pixelToWindow(CQChartsGeom::Point(x, y));
 
     if (options.contrast)
       drawContrastText(device, pt, strs[i], options.contrastAlpha);
@@ -284,7 +284,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &point, c
     else if (options.align & Qt::AlignBottom ) dy1 = -td - dy;
     else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
-    CQChartsGeom::Point tp = point;
+    auto tp = point;
 
     if (dx1 != 0.0 || dy1 != 0.0) {
       // apply delta (pixels)
@@ -301,7 +301,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &point, c
   else {
     // calc dx : point is left or hcenter of text
     // CQChartsRotatedText::draw wants center aligned
-    CQChartsGeom::Point tp = point;
+    auto tp = point;
 
     if (! centered) {
       double dx1 = -tw()/2.0;
@@ -337,8 +337,8 @@ drawAlignedText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const
   else if (align & Qt::AlignBottom ) dy1 = -td - dy;
   else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
-  CQChartsGeom::Point pp = device->windowToPixel(p);
-  CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(pp.x + dx1, pp.y + dy1));
+  auto pp = device->windowToPixel(p);
+  auto pt = device->pixelToWindow(CQChartsGeom::Point(pp.x + dx1, pp.y + dy1));
 
   drawSimpleText(device, pt, text);
 }
@@ -365,8 +365,8 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const CQChar
   else if (align & Qt::AlignBottom ) dy1 = - td - dy;
   else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
-  CQChartsGeom::Point pp = device->windowToPixel(p);
-  CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(pp.x + dx1, pp.y + dy1));
+  auto pp = device->windowToPixel(p);
+  auto pt = device->pixelToWindow(CQChartsGeom::Point(pp.x + dx1, pp.y + dy1));
 
   CQChartsGeom::BBox pbbox(pt.x, pt.y - ta, pt.x + tw, pt.y + td);
 
@@ -392,7 +392,7 @@ drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
 
   //---
 
-  CQChartsGeom::Point pp = device->windowToPixel(p);
+  auto pp = device->windowToPixel(p);
 
   // draw contrast outline
   device->setPen(icolor);
@@ -438,7 +438,7 @@ drawCenteredText(CQChartsPaintDevice *device, const CQChartsGeom::Point &pos, co
 {
   QFontMetricsF fm(device->font());
 
-  CQChartsGeom::Point ppos = device->windowToPixel(pos);
+  auto ppos = device->windowToPixel(pos);
 
   CQChartsGeom::Point ppos1(ppos.x - fm.width(text)/2, ppos.y + (fm.ascent() - fm.descent())/2);
 
@@ -479,7 +479,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
 {
   assert(bbox.isValid());
 
-  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
+  auto pbbox = device->windowToPixel(bbox);
 
   double cx = bbox.getXMid();
   double cy = bbox.getYMid();
@@ -513,10 +513,10 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
     double ra1 = da*CMathUtil::Deg2Rad(a1.value());
     double ra2 = da*CMathUtil::Deg2Rad(a2.value());
 
-    CQChartsGeom::Point p1 = CQChartsGeom::circlePoint(c, ri, ra1);
-    CQChartsGeom::Point p2 = CQChartsGeom::circlePoint(c, ro, ra1);
-    CQChartsGeom::Point p3 = CQChartsGeom::circlePoint(c, ri, ra2);
-    CQChartsGeom::Point p4 = CQChartsGeom::circlePoint(c, ro, ra2);
+    auto p1 = CQChartsGeom::circlePoint(c, ri, ra1);
+    auto p2 = CQChartsGeom::circlePoint(c, ro, ra1);
+    auto p3 = CQChartsGeom::circlePoint(c, ri, ra2);
+    auto p4 = CQChartsGeom::circlePoint(c, ro, ra2);
 
     path.moveTo(p1.x, p1.y);
     path.lineTo(p2.x, p2.y);
@@ -550,7 +550,7 @@ void
 drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
         const CQChartsAngle &angle, const CQChartsAngle &dangle)
 {
-  CQChartsGeom::Point c = bbox.getCenter();
+  auto c = bbox.getCenter();
 
   QRectF rect = bbox.qrect();
 
@@ -669,12 +669,12 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
   double s = options.scale;
 
   if (s <= 0.0) {
-    CQChartsGeom::Size psize = calcHtmlTextSize(text, device->font(), options.margin);
+    auto psize = calcHtmlTextSize(text, device->font(), options.margin);
 
     double pw = psize.width ();
     double ph = psize.height();
 
-    CQChartsGeom::BBox ptbbox = device->windowToPixel(tbbox);
+    auto ptbbox = device->windowToPixel(tbbox);
 
     double xs = ptbbox.getWidth ()/pw;
     double ys = ptbbox.getHeight()/ph;
@@ -698,11 +698,11 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
 {
   assert(tbbox.isValid());
 
-  CQChartsGeom::BBox ptbbox = device->windowToPixel(tbbox);
+  auto ptbbox = device->windowToPixel(tbbox);
 
   //---
 
-  CQChartsGeom::Size psize = calcHtmlTextSize(text, device->font(), options.margin);
+  auto psize = calcHtmlTextSize(text, device->font(), options.margin);
 
   double dx = 0.0, dy = 0.0;
 
@@ -753,7 +753,7 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
   td.setHtml(text);
   td.setDefaultFont(device->font());
 
-  CQChartsGeom::BBox ptbbox1 = ptbbox.translated(-ptbbox.getXMin(), -ptbbox.getYMin());
+  auto ptbbox1 = ptbbox.translated(-ptbbox.getXMin(), -ptbbox.getYMin());
 
   if (device->isInteractive())
     painter->translate(ptbbox.getXMin(), ptbbox.getYMin());

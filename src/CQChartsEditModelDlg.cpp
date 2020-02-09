@@ -45,11 +45,11 @@ init()
   else
     setWindowTitle("Edit Model");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
-  auto split = CQUtil::makeWidget<CQTabSplit>("split");
+  auto *split = CQUtil::makeWidget<CQTabSplit>("split");
 
   split->setOrientation(Qt::Vertical);
   split->setGrouped(true);
@@ -75,7 +75,7 @@ init()
   // Bottom Buttons
   auto createButton = [&](const QString &label, const QString &name, const QString &tip,
                           const char *slotName) {
-    auto button = CQUtil::makeLabelWidget<QPushButton>(label, name);
+    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, name);
 
     button->setToolTip(tip);
 
@@ -84,7 +84,7 @@ init()
     return button;
   };
 
-  auto buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   auto writeButton = createButton("Write", "write", "Write Model" , SLOT(writeSlot()));
   auto plotButton  = createButton("Plot" , "plot" , "Create Plot" , SLOT(plotSlot()));

@@ -14,10 +14,10 @@ void
 CQChartsNoDataObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsView *view = plot()->view();
+  auto view = plot()->view();
 
   // get plot inside bbox in view coords
-  CQChartsGeom::BBox bbox = plot()->innerViewBBox();
+  auto bbox = plot()->innerViewBBox();
 
   // get position of center
   double xm = bbox.getXMid();

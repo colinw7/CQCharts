@@ -403,7 +403,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   th->clearNodes();
 
@@ -542,7 +542,7 @@ initHierObjs(PlotObjs &objs) const
       if (plot_->nameColumn().isValid()) {
         CQChartsModelIndex nameInd(data.row, plot_->nameColumn(), data.parent);
 
-        CQChartsModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+        auto nameInd1 = plot_->normalizeIndex(nameInd);
 
         srcNode->setInd(nameInd1);
       }
@@ -566,10 +566,10 @@ initHierObjs(PlotObjs &objs) const
 
   //---
 
-  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   for (const auto &nameNode : nameNodeMap_) {
-    auto node = nameNode.second;
+    const auto &node = nameNode.second;
 
     th->nodes_[node->id()] = node;
   }
@@ -616,8 +616,7 @@ initHierObjs(PlotObjs &objs) const
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        CQChartsAdjacencyObj *obj =
-          new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
+        auto *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -665,19 +664,19 @@ initConnectionObjs(PlotObjs &objs) const
 
   visitModel(visitor);
 
-  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   const IdConnectionsData &idConnectionsData = visitor.idConnections();
 
   //---
 
   for (const auto &idConnections : idConnectionsData) {
-    int                       id    = idConnections.first;
-    const CQChartsModelIndex& ind   = idConnections.second.ind;
-    const QString&            name  = idConnections.second.name;
-    int                       group = idConnections.second.group;
+    int         id    = idConnections.first;
+    const auto &ind   = idConnections.second.ind;
+    const auto &name  = idConnections.second.name;
+    int         group = idConnections.second.group;
 
-    auto node = new CQChartsAdjacencyNode(id, name, group, ind);
+    auto *node = new CQChartsAdjacencyNode(id, name, group, ind);
 
     th->nodes_[id] = node;
   }
@@ -739,8 +738,7 @@ initConnectionObjs(PlotObjs &objs) const
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        CQChartsAdjacencyObj *obj =
-          new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
+        auto *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -836,7 +834,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
 
   // return connections data
   if (nodeInd.isValid()) {
-    CQChartsModelIndex nodeInd1 = normalizeIndex(nodeInd);
+    auto nodeInd1 = normalizeIndex(nodeInd);
 
     connections.ind = nodeInd1;
   }
@@ -859,7 +857,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   nodeData.maxNode  = 0;
 
   for (auto &pnode : nodes) {
-    auto node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
+    auto *node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
 
     sortedNodes.push_back(node);
 
@@ -914,9 +912,9 @@ getNodeByName(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  auto node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
+  auto *node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
 
-  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(str, node));
 
@@ -961,7 +959,7 @@ CQChartsAdjacencyPlot::
 execDrawBackground(CQChartsPaintDevice *device) const
 {
   // calc text size
-  CQChartsGeom::Point po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
+  auto po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
 
   double pxs = windowToPixelWidth (scale());
   double pys = windowToPixelHeight(scale());
@@ -1024,7 +1022,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   }
 
   // save draw factor
-  auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   th->nodeData_.drawFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
 
@@ -1080,7 +1078,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
                       emptyCellStrokeDash()),
     CQChartsBrushData(true, bc, emptyCellFillAlpha(), emptyCellFillPattern()));
 
-  CQChartsLength cornerSize = emptyCellCornerSize();
+  auto cornerSize = emptyCellCornerSize();
 
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
@@ -1108,7 +1106,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   }
 
   if (insideObject()) {
-    auto th = const_cast<CQChartsAdjacencyPlot *>(this);
+    auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
     th->setInsideObj(nullptr);
 
@@ -1209,7 +1207,7 @@ draw(CQChartsPaintDevice *device)
   // draw inside object
   if (isInside()) {
     if (plot_->insideObj() != this) {
-      auto plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
+      auto *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
 
       plot->setInsideObj(const_cast<CQChartsAdjacencyObj *>(this));
 

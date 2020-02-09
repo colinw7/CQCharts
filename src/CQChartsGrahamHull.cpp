@@ -142,11 +142,11 @@ findLowest()
 {
   int num_points = ipoints_.size();
 
-  int                 min_i = 0;
-  CQChartsGeom::Point min_p = points_[ipoints_[min_i]];
+  int  min_i = 0;
+  auto min_p = points_[ipoints_[min_i]];
 
   for (int i = 1; i < num_points; ++i) {
-    const CQChartsGeom::Point &p = points_[ipoints_[i]];
+    const auto &p = points_[ipoints_[i]];
 
     if (p.y < min_p.y || (p.y == min_p.y && p.x > min_p.x)) {
       min_i = i;
@@ -174,9 +174,9 @@ sortLowestClockwise()
   int i0 = ipoints_[0];
 
   std::sort(p1, p2, [&](const int &i1, const int &i2) {
-    const CQChartsGeom::Point &p0 = points_[i0];
-    const CQChartsGeom::Point &p1 = points_[i1];
-    const CQChartsGeom::Point &p2 = points_[i2];
+    const auto &p0 = points_[i0];
+    const auto &p1 = points_[i1];
+    const auto &p2 = points_[i2];
 
     int as = areaSign(p0, p1, p2);
 

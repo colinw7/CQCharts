@@ -28,7 +28,7 @@ init(const BBox &value)
 
   setFrameStyle(QFrame::NoFrame | QFrame::Plain);
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
   //---
 
@@ -174,7 +174,7 @@ QString
 CQChartsGeomBBoxPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(value, ok);
+  auto bbox = CQChartsVariant::toBBox(value, ok);
 
   QString str;
 
@@ -230,7 +230,7 @@ setValue(QWidget *w, const QVariant &var)
   assert(edit);
 
   bool ok;
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(var, ok);
+  auto bbox = CQChartsVariant::toBBox(var, ok);
   if (! ok) return;
 
   edit->setValue(bbox);

@@ -41,7 +41,7 @@ xColorValue(bool relative) const
   double x = rect().getXMid();
 
   if (relative) {
-    const CQChartsGeom::Range &dataRange = plot()->dataRange();
+    const auto &dataRange = plot()->dataRange();
 
     return CMathUtil::map(x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
   }
@@ -56,7 +56,7 @@ yColorValue(bool relative) const
   double y = rect().getYMid();
 
   if (relative) {
-    const CQChartsGeom::Range &dataRange = plot()->dataRange();
+    const auto &dataRange = plot()->dataRange();
 
     return CMathUtil::map(y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
   }
@@ -229,7 +229,7 @@ writeObjScriptData(CQChartsScriptPainter *device) const
   os << "  this.id    = \"" << this->id().toStdString() << "\";\n";
   os << "  this.tipId = \"" << encodeString(this->tipId()) << "\";\n";
 
-  const CQChartsGeom::BBox &rect = this->rect();
+  const auto &rect = this->rect();
 
   os << "\n";
   os << "  this.xmin = " << rect.getXMin() << ";\n";
@@ -243,7 +243,7 @@ writeObjScriptData(CQChartsScriptPainter *device) const
   writeScriptGC(device, penBrush_);
 
   if      (this->isPolygon()) {
-    CQChartsGeom::Polygon poly = this->polygon();
+    auto poly = this->polygon();
 
     int np = poly.size();
 

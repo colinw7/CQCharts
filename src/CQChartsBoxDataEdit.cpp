@@ -209,7 +209,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -224,7 +224,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   //---
 
-  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 

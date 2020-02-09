@@ -375,7 +375,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto obj = dynamic_cast<CQChartsChordObj *>(plotObj);
+    auto *obj = dynamic_cast<CQChartsChordObj *>(plotObj);
     if (! obj) continue;
 
     bbox += obj->textBBox();
@@ -396,7 +396,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto th = const_cast<CQChartsChordPlot *>(this);
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
   //---
 
@@ -636,7 +636,7 @@ initTableObjs(PlotObjs &objs) const
   }
 
   // divide remaining degrees by total to get value->degrees factor
-  auto th = const_cast<CQChartsChordPlot *>(this);
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
   th->valueToDegrees_ = drange/total;
 
@@ -671,7 +671,7 @@ initTableObjs(PlotObjs &objs) const
     ColorInd ig(data.group().i, data.group().n);
     ColorInd iv(row, nv);
 
-    auto obj = new CQChartsChordObj(this, rect, data, ig, iv);
+    auto *obj = new CQChartsChordObj(this, rect, data, ig, iv);
 
     objs.push_back(obj);
   }
@@ -857,7 +857,7 @@ initHierObjs(PlotObjs &objs) const
   }
 
   // divide remaining degrees by total to get value->degrees factor
-  auto th = const_cast<CQChartsChordPlot *>(this);
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
   th->valueToDegrees_ = drange/total;
 
@@ -892,7 +892,7 @@ initHierObjs(PlotObjs &objs) const
     ColorInd ig(data.group().i, data.group().n);
     ColorInd iv(row, nv);
 
-    auto obj = new CQChartsChordObj(this, rect, data, ig, iv);
+    auto *obj = new CQChartsChordObj(this, rect, data, ig, iv);
 
     objs.push_back(obj);
   }
@@ -1059,7 +1059,7 @@ draw(CQChartsPaintDevice *device)
     if (CMathUtil::isZero(da1))
       continue;
 
-    auto toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
+    auto *toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
 
     double a2, da2;
 
@@ -1290,7 +1290,7 @@ CQChartsChordObj::
 plotObject(int ind) const
 {
   for (int i = 0; i < plot_->numPlotObjects(); ++i) {
-    auto obj = dynamic_cast<CQChartsChordObj *>(plot_->plotObject(i));
+    auto *obj = dynamic_cast<CQChartsChordObj *>(plot_->plotObject(i));
 
     if (obj->data().from() == ind)
       return obj;

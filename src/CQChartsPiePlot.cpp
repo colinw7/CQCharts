@@ -300,7 +300,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPiePlot::calcRange");
 
-  auto th = const_cast<CQChartsPiePlot *>(this);
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 
@@ -387,7 +387,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+    auto *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
     if (! pieObj || ! pieObj->visible())
       continue;
@@ -408,7 +408,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsPiePlot *>(this);
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 
@@ -454,8 +454,8 @@ createObjs(PlotObjs &objs) const
     // create group obj
     CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
-    CQChartsPieGroupObj *groupObj =
-      new CQChartsPieGroupObj(this, rect, groupInd, groupData.name, ColorInd(ig, ng));
+    auto *groupObj = new CQChartsPieGroupObj(this, rect, groupInd, groupData.name,
+                                             ColorInd(ig, ng));
 
     groupObj->setColorIndex(groupInd);
 
@@ -535,7 +535,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (auto &plotObj : objs) {
-    auto obj = dynamic_cast<CQChartsPieObj *>(plotObj);
+    auto *obj = dynamic_cast<CQChartsPieObj *>(plotObj);
     if (! obj) continue;
 
     CQChartsPieGroupObj *groupObj = obj->groupObj();
@@ -733,7 +733,7 @@ void
 CQChartsPiePlot::
 calcDataTotal() const
 {
-  auto th = const_cast<CQChartsPiePlot *>(this);
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   th->groupDatas_.clear();
 
@@ -774,7 +774,7 @@ void
 CQChartsPiePlot::
 addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 {
-  auto th = const_cast<CQChartsPiePlot *>(this);
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   // get group ind
   int groupInd = rowGroupInd(ind);
@@ -857,7 +857,7 @@ bool
 CQChartsPiePlot::
 getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) const
 {
-  auto th = const_cast<CQChartsPiePlot *>(this);
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   missing = false;
   value   = 1.0;
@@ -1063,8 +1063,8 @@ addKeyItems(CQChartsPlotKey *key)
   int row = 0;
 
   auto addKeyRow = [&](CQChartsPlotObj *obj) {
-    auto keyColor = new CQChartsPieKeyColor(this, obj);
-    auto keyText  = new CQChartsPieKeyText (this, obj);
+    auto *keyColor = new CQChartsPieKeyColor(this, obj);
+    auto *keyText  = new CQChartsPieKeyText (this, obj);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -1083,7 +1083,7 @@ addKeyItems(CQChartsPlotKey *key)
     }
     else {
       for (auto &plotObj : plotObjs_) {
-        auto pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+        auto *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
         if (pieObj)
           addKeyRow(plotObj);
@@ -1113,7 +1113,7 @@ bool
 CQChartsPiePlot::
 addMenuItems(QMenu *menu)
 {
-  auto donutAction = new QAction("Donut", menu);
+  auto *donutAction = new QAction("Donut", menu);
 
   donutAction->setCheckable(true);
   donutAction->setChecked(isDonut());
@@ -1122,7 +1122,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto countAction = new QAction("Count", menu);
+  auto *countAction = new QAction("Count", menu);
 
   countAction->setCheckable(true);
   countAction->setChecked(isCount());
@@ -1320,7 +1320,7 @@ annotationBBox() const
   //---
 
   // get pie center (adjusted if exploded)
-  CQChartsGeom::Point c = getCenter();
+  auto c = getCenter();
 
   //---
 
@@ -1332,7 +1332,7 @@ annotationBBox() const
 
   // if full circle always draw text at center
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
-    CQChartsGeom::Point pc = plot_->windowToPixel(c);
+    auto pc = plot_->windowToPixel(c);
 
     bbox = plot_->textBox()->bbox(pc, label(), 0.0);
   }
@@ -1371,7 +1371,7 @@ annotationBBox() const
       // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
-      CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, lr1, tangle);
+      auto pt = CQChartsGeom::circlePoint(c, lr1, tangle);
 
       // calc text angle
       double angle = 0.0;
@@ -1402,7 +1402,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get pie center (adjusted if exploded), radii and angles
-  CQChartsGeom::Point c = getCenter();
+  auto c = getCenter();
 
   double ri = std::min(std::max(innerRadius(), 0.0), 1.0);
   double ro = outerRadius();
@@ -1476,7 +1476,7 @@ drawFg(CQChartsPaintDevice *device) const
     return;
 
   // get pie center (adjusted if exploded)
-  CQChartsGeom::Point c = getCenter();
+  auto c = getCenter();
 
   // draw segment label
   drawSegmentLabel(device, c);
@@ -1547,7 +1547,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
       // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
-      CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, lr1, tangle);
+      auto pt = CQChartsGeom::circlePoint(c, lr1, tangle);
 
       // calc text angle
       double angle = 0.0;
@@ -1647,7 +1647,7 @@ getCenter() const
 
   double er = std::max(plot_->explodeRadius(), 0.0);
 
-  CQChartsGeom::Point ec = CQChartsGeom::circlePoint(c, er*rv, angle);
+  auto ec = CQChartsGeom::circlePoint(c, er*rv, angle);
 
   return ec;
 }
@@ -1834,7 +1834,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   double tangle = CMathUtil::Deg2Rad(ta);
 
-  CQChartsGeom::Point pt = CQChartsGeom::circlePoint(c, 0.5, tangle);
+  auto pt = CQChartsGeom::circlePoint(c, 0.5, tangle);
 
   QString label = QString("%1").arg(numValues());
 
@@ -1875,7 +1875,7 @@ bool
 CQChartsPieKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
-  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   int is = setIndex();
 
@@ -1890,10 +1890,10 @@ QBrush
 CQChartsPieKeyColor::
 fillBrush() const
 {
-  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   QColor c;
 
@@ -1923,8 +1923,8 @@ int
 CQChartsPieKeyColor::
 setIndex() const
 {
-  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     return group->groupInd();
@@ -1940,8 +1940,8 @@ CQChartsPieKeyText::
 CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
  CQChartsKeyText(plot, "", ColorInd()), obj_(plotObj)
 {
-  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     setText(group->name());
@@ -1953,7 +1953,7 @@ QColor
 CQChartsPieKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  auto plot = qobject_cast<CQChartsPiePlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   QColor c = CQChartsKeyText::interpTextColor(ind);
 
@@ -1969,8 +1969,8 @@ int
 CQChartsPieKeyText::
 setIndex() const
 {
-  auto group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  auto obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  auto *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  auto *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
   if      (group)
     return group->groupInd();

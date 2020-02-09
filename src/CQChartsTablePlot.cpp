@@ -445,7 +445,7 @@ CQChartsGeom::Range
 CQChartsTablePlot::
 calcRange() const
 {
-  auto th = const_cast<CQChartsTablePlot *>(this);
+  auto *th = const_cast<CQChartsTablePlot *>(this);
 
   const int pxm = 2;
 
@@ -659,7 +659,7 @@ CQChartsTablePlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -683,7 +683,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  auto modeMenu = new QMenu("Table Mode", menu);
+  auto *modeMenu = new QMenu("Table Mode", menu);
 
   for (const auto &mode : modes())
     (void) addMenuCheckedAction(modeMenu, modeName(mode), this->mode() == mode,
@@ -693,7 +693,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto maxRowsMenu = new QMenu("Max Rows", menu);
+  auto *maxRowsMenu = new QMenu("Max Rows", menu);
 
   maxRowsSpin_ = new CQIntegerSpin;
 
@@ -710,7 +710,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto sortColumnMenu = new QMenu("Sort Column", menu);
+  auto *sortColumnMenu = new QMenu("Sort Column", menu);
 
   sortColumnSpin_ = new CQIntegerSpin;
 
@@ -727,7 +727,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto pageSizeMenu = new QMenu("Page Size", menu);
+  auto *pageSizeMenu = new QMenu("Page Size", menu);
 
   pageSizeSpin_ = new CQIntegerSpin;
 
@@ -744,7 +744,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto pageNumMenu = new QMenu("Page Number", menu);
+  auto *pageNumMenu = new QMenu("Page Number", menu);
 
   pageNumSpin_ = new CQIntegerSpin;
 
@@ -772,7 +772,7 @@ setModeSlot(bool b)
 {
   if (! b) return;
 
-  auto action = qobject_cast<QAction *>(sender());
+  auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->text();
@@ -851,7 +851,7 @@ void
 CQChartsTablePlot::
 drawTable(CQChartsPaintDevice *device) const
 {
-  auto th = const_cast<CQChartsTablePlot *>(this);
+  auto *th = const_cast<CQChartsTablePlot *>(this);
 
   th->tableData_.font = view()->viewFont(this->font());
 
@@ -861,7 +861,7 @@ drawTable(CQChartsPaintDevice *device) const
 
   th->tableData_.rh = pixelToWindowHeight(th->tableData_.prh);
 
-  const CQChartsGeom::BBox pixelRect = this->calcPlotPixelRect();
+  auto pixelRect = this->calcPlotPixelRect();
 
   const double pdx = (pixelRect.getWidth () - 2*pxm -
                       th->tableData_.pcw                         )/2.0;

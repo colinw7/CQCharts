@@ -15,7 +15,7 @@ CQChartsLengthEdit(QWidget *parent) :
 {
   setObjectName("lengthEdit");
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 

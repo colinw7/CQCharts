@@ -84,16 +84,16 @@ void
 CQChartsTitle::
 updateLocation()
 {
-  CQChartsGeom::BBox bbox = plot_->calcGroupedDataRange();
+  auto bbox = plot_->calcGroupedDataRange();
 
   //---
 
   // calc title size
-  CQChartsGeom::Size ts = calcSize();
+  auto ts = calcSize();
 
   CQChartsTitleLocation location = this->location();
 
-  CQChartsGeom::Size marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
+  auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
 
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
@@ -133,7 +133,7 @@ updateLocation()
     kp = absolutePlotPosition();
   }
   else if (location == CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
-    CQChartsGeom::BBox bbox = absolutePlotRectangle();
+    auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
       kp = CQChartsGeom::Point(bbox.getUL());
@@ -196,10 +196,10 @@ calcSize()
 
     textOptions.html = isTextHtml();
 
-    CQChartsGeom::Size psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
+    auto psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
 
     // convert to window size
-    CQChartsGeom::Size wsize = plot_->pixelToWindowSize(psize);
+    auto wsize = plot_->pixelToWindowSize(psize);
 
     // add padding and margin
     double xlm = lengthParentWidth (margin().left  ());
@@ -252,8 +252,8 @@ bool
 CQChartsTitle::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point& dragPos  = editHandles_->dragPos();
-  const CQChartsResizeSide&  dragSide = editHandles_->dragSide();
+  const auto &dragPos  = editHandles_->dragPos();
+  const auto &dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -333,7 +333,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // clip to plot
-  CQChartsGeom::BBox clipRect = plot_->calcPlotRect();
+  auto clipRect = plot_->calcPlotRect();
 
   device->setClipRect(clipRect);
 

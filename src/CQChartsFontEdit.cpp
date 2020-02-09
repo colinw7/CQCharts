@@ -304,7 +304,7 @@ CQChartsFontEdit(QWidget *parent) :
 {
   setObjectName("fontEdit");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -318,9 +318,9 @@ CQChartsFontEdit(QWidget *parent) :
 
   //---
 
-  auto fontLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *fontLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  auto fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
+  auto *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
 
   fontEdit_ = CQUtil::makeWidget<CQFontEdit>("fontEdit");
 
@@ -335,7 +335,7 @@ CQChartsFontEdit(QWidget *parent) :
 
   int inheritedRow = 0;
 
-  auto inheritedLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
+  auto *inheritedLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   auto addInheritedWidget = [&](const QString &label, QWidget *w) {
     CQChartsWidgetUtil::addGridLabelWidget(inheritedLayout, label, w, inheritedRow);

@@ -15,7 +15,7 @@ CQChartsOptEdit(QWidget *parent, const char *type) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 

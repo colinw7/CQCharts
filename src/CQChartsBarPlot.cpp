@@ -150,7 +150,7 @@ bool
 CQChartsBarPlot::
 probe(ProbeData &probeData) const
 {
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   if (! dataRange.isSet())
     return false;

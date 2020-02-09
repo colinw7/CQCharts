@@ -181,7 +181,7 @@ writePoints(std::ostream &os, const CQChartsGeom::Polygon &polygon) const
     for (int i = 0; i < polygon.size(); ++i) {
       if (i > 0) os << " ";
 
-      CQChartsGeom::Point p1 = polygon.point(i);
+      auto p1 = polygon.point(i);
 
       os << "{" << p1.x << " " << p1.y << "}";
     }
@@ -562,8 +562,8 @@ bool
 CQChartsAnnotation::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
-  const CQChartsResizeSide& dragSide = editHandles_->dragSide();
+  const auto &dragPos  = editHandles_->dragPos();
+  const auto &dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -727,8 +727,8 @@ void
 CQChartsRectangleAnnotation::
 setStart(const CQChartsPosition &p)
 {
-  CQChartsGeom::Point start = positionToParent(p);
-  CQChartsGeom::Point end   = positionToParent(this->end());
+  auto start = positionToParent(p);
+  auto end   = positionToParent(this->end());
 
   if      (plot())
     rectangle_ = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::PLOT);
@@ -753,8 +753,8 @@ void
 CQChartsRectangleAnnotation::
 setEnd(const CQChartsPosition &p)
 {
-  CQChartsGeom::Point start = positionToParent(this->start());
-  CQChartsGeom::Point end   = positionToParent(p);
+  auto start = positionToParent(this->start());
+  auto end   = positionToParent(p);
 
   if      (plot())
     rectangle_ = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::PLOT);
@@ -798,8 +798,8 @@ void
 CQChartsRectangleAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  CQChartsGeom::Point start = positionToParent(this->start());
-  CQChartsGeom::Point end   = positionToParent(this->end  ());
+  auto start = positionToParent(this->start());
+  auto end   = positionToParent(this->end  ());
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
@@ -835,8 +835,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc box
-  CQChartsGeom::Point start = positionToParent(this->start());
-  CQChartsGeom::Point end   = positionToParent(this->end  ());
+  auto start = positionToParent(this->start());
+  auto end   = positionToParent(this->end  ());
 
   // external margin
   double xlm = lengthParentWidth (margin().left  ());
@@ -1017,7 +1017,7 @@ bool
 CQChartsEllipseAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point center = positionToParent(center_);
+  auto center = positionToParent(center_);
 
   double dx = p.getX() - center.x;
   double dy = p.getY() - center.y;
@@ -1039,7 +1039,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::Point center = positionToParent(center_);
+  auto center = positionToParent(center_);
 
   double xr = lengthParentWidth (xRadius_);
   double yr = lengthParentHeight(yRadius_);
@@ -1206,7 +1206,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
 
-  CQChartsGeom::Polygon poly = polygon_.polygon();
+  auto poly = polygon_.polygon();
 
   for (int i = 0; i < poly.size(); ++i) {
     double x = sx*(poly.point(i).x - x1) + x1 + dx;
@@ -1229,7 +1229,7 @@ bool
 CQChartsPolygonAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+  const auto &polygon = polygon_.polygon();
 
   return (polygon.containsPoint(p, Qt::OddEvenFill));
 }
@@ -1238,7 +1238,7 @@ void
 CQChartsPolygonAnnotation::
 draw(CQChartsPaintDevice *device)
 {
-  const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+  const auto &polygon = polygon_.polygon();
   if (! polygon.size()) return;
 
   //---
@@ -1315,7 +1315,7 @@ initSmooth() const
   if (! smooth_) {
     auto th = const_cast<CQChartsPolygonAnnotation *>(this);
 
-    const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+    const auto &polygon = polygon_.polygon();
 
     th->smooth_ = new CQChartsSmooth(polygon, /*sorted*/false);
   }
@@ -1423,7 +1423,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
 
-  CQChartsGeom::Polygon qpoly = polygon_.polygon();
+  auto qpoly = polygon_.polygon();
 
   for (int i = 0; i < qpoly.size(); ++i) {
     double x = sx*(qpoly.point(i).x - x1) + x1 + dx;
@@ -1446,17 +1446,17 @@ bool
 CQChartsPolylineAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+  const auto &polygon = polygon_.polygon();
 
   if (! polygon.size())
     return false;
 
-  CQChartsGeom::Point pp = windowToPixel(p);
+  auto pp = windowToPixel(p);
 
-  CQChartsGeom::Point pl1 = windowToPixel(polygon.point(0));
+  auto pl1 = windowToPixel(polygon.point(0));
 
   for (int i = 1; i < polygon.size(); ++i) {
-    CQChartsGeom::Point pl2 = windowToPixel(polygon.point(i));
+    auto pl2 = windowToPixel(polygon.point(i));
 
     double d;
 
@@ -1473,7 +1473,7 @@ void
 CQChartsPolylineAnnotation::
 draw(CQChartsPaintDevice *device)
 {
-  const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+  const auto &polygon = polygon_.polygon();
   if (! polygon.size()) return;
 
   //---
@@ -1539,7 +1539,7 @@ initSmooth() const
   if (! smooth_) {
     auto th = const_cast<CQChartsPolylineAnnotation *>(this);
 
-    const CQChartsGeom::Polygon &polygon = polygon_.polygon();
+    const auto &polygon = polygon_.polygon();
 
     th->smooth_ = new CQChartsSmooth(polygon, /*sorted*/false);
   }
@@ -1779,7 +1779,7 @@ void
 CQChartsTextAnnotation::
 positionToLL(double w, double h, double &x, double &y) const
 {
-  CQChartsGeom::Point p = positionToParent(positionValue());
+  auto p = positionToParent(positionValue());
 
   x = 0.0;
   y = 0.0;
@@ -1964,7 +1964,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set box
-//CQChartsGeom::BBox pbbox = windowToPixel(bbox_);
+//auto pbbox = windowToPixel(bbox_);
 
   // get internal padding
   double xp = pixelToWindowWidth (padding());
@@ -2294,7 +2294,7 @@ void
 CQChartsImageAnnotation::
 positionToLL(double w, double h, double &x, double &y) const
 {
-  CQChartsGeom::Point p = positionToParent(positionValue());
+  auto p = positionToParent(positionValue());
 
   x = p.x - w/2;
   y = p.y - h/2;
@@ -2386,7 +2386,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set box
-//CQChartsGeom::BBox pbbox = windowToPixel(bbox_);
+//auto pbbox = windowToPixel(bbox_);
 
   // get external margin
   double xp = pixelToWindowWidth (padding());
@@ -2698,8 +2698,8 @@ void
 CQChartsArrowAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  CQChartsGeom::Point start = positionToParent(start_);
-  CQChartsGeom::Point end   = positionToParent(end_  );
+  auto start = positionToParent(start_);
+  auto end   = positionToParent(end_  );
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
@@ -2733,7 +2733,7 @@ bool
 CQChartsArrowAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1 = windowToPixel(p);
+  auto p1 = windowToPixel(p);
 
   return arrow()->contains(p1);
 }
@@ -2747,8 +2747,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc box
-  CQChartsGeom::Point start = positionToParent(start_);
-  CQChartsGeom::Point end   = positionToParent(end_  );
+  auto start = positionToParent(start_);
+  auto end   = positionToParent(end_  );
 
   // get internal padding
   double xp = pixelToWindowWidth (padding());
@@ -3038,7 +3038,7 @@ void
 CQChartsPointAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  CQChartsGeom::Point position = positionToParent(position_);
+  auto position = positionToParent(position_);
 
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -3067,7 +3067,7 @@ draw(CQChartsPaintDevice *device)
 
   const CQChartsSymbolData &symbolData = this->symbolData();
 
-  CQChartsGeom::Point position = positionToParent(position_);
+  auto position = positionToParent(position_);
 
   // get internal padding
   double xp = pixelToWindowWidth (padding());
@@ -3248,7 +3248,7 @@ void
 CQChartsPieSliceAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  CQChartsGeom::Point position = positionToParent(position_);
+  auto position = positionToParent(position_);
 
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -3266,7 +3266,7 @@ inside(const CQChartsGeom::Point &p) const
 {
   CQChartsArcData arcData;
 
-  CQChartsGeom::Point c = positionToParent(position_);
+  auto c = positionToParent(position_);
 
   arcData.setCenter(CQChartsGeom::Point(c));
 
@@ -3288,7 +3288,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc box
-  CQChartsGeom::Point position = positionToParent(position_);
+  auto position = positionToParent(position_);
 
   double xri = lengthParentWidth (innerRadius());
   double yri = lengthParentHeight(innerRadius());
@@ -3401,7 +3401,7 @@ updateValues()
   hull_.clear();
 
   for (auto &p : values_.points()) {
-    CQChartsGeom::Point p1 = positionToParent(p);
+    auto p1 = positionToParent(p);
 
     hull_.addPoint(p1);
 
@@ -3443,9 +3443,9 @@ CQChartsPointSetAnnotation::
 setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &)
 {
 #if 0
-  CQChartsGeom::BBox hbbox = hull_.bbox();
+  auto hbbox = hull_.bbox();
 
-  CQChartsGeom::Point ll = positionToParent(hbbox.getUL());
+  auto ll = positionToParent(hbbox.getUL());
 
   double dx = hbbox.getXMin() - rect_.getXMin();
   double dy = hbbox.getYMin() - rect_.getYMin();
@@ -3500,7 +3500,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsSymbolData symbolData;
 
     for (const auto &p : values_.points()) {
-      CQChartsGeom::Point p1 = positionToParent(p);
+      auto p1 = positionToParent(p);
 
       CQChartsDrawUtil::drawSymbol(device, symbolData.type(),
                                    CQChartsGeom::Point(p1), symbolData.size());
@@ -3518,7 +3518,7 @@ draw(CQChartsPaintDevice *device)
     data.delta    = 0.0;
 
     for (const auto &p : values_.points()) {
-      CQChartsGeom::Point p1 = positionToParent(p);
+      auto p1 = positionToParent(p);
 
       data.values.push_back(p1);
     }
@@ -3535,7 +3535,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::Polygon poly;
 
     for (const auto &p : values_.points()) {
-      CQChartsGeom::Point p1 = positionToParent(p);
+      auto p1 = positionToParent(p);
 
       poly.addPoint(p1);
     }
@@ -3554,7 +3554,7 @@ draw(CQChartsPaintDevice *device)
     for (int i = 0; i <= 100; ++i) {
       double px = p1.x + i*dx;
 
-      CQChartsGeom::Point p = device->pixelToWindow(CQChartsGeom::Point(px, 0.0));
+      auto p = device->pixelToWindow(CQChartsGeom::Point(px, 0.0));
 
       double y = fitData.interp(p.x);
 
@@ -3575,7 +3575,7 @@ draw(CQChartsPaintDevice *device)
     gridCell_.resetPoints();
 
     for (const auto &p : values_.points()) {
-      CQChartsGeom::Point p1 = positionToParent(p);
+      auto p1 = positionToParent(p);
 
       gridCell_.addPoint(CQChartsGeom::Point(p1));
     }
@@ -3737,9 +3737,9 @@ void
 CQChartsValueSetAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  CQChartsGeom::BBox bbox1 = rectangle_.bbox();
+  auto bbox1 = rectangle_.bbox();
 
-  CQChartsGeom::Point ll = positionToParent(bbox1.getMin());
+  auto ll = positionToParent(bbox1.getMin());
 
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -3767,7 +3767,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::BBox bbox = rectangle_.bbox();
+  auto bbox = rectangle_.bbox();
 
   bbox_ = density_->bbox(bbox);
 
@@ -4041,7 +4041,7 @@ calcPixelRect() const
   int w = fm.width(textStr()) + 4;
   int h = fm.height() + 4;
 
-  CQChartsGeom::Point p = positionToPixel(position());
+  auto p = positionToPixel(position());
 
   return QRect(int(p.x), int(p.y), w, h);
 }

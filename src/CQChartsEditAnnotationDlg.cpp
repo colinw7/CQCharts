@@ -48,11 +48,11 @@ initWidgets()
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   layout->addLayout(gridLayout);
 
@@ -127,11 +127,11 @@ createRectFrame()
 
   frameLayout_->addWidget(rectWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
 
   //---
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -192,7 +192,7 @@ createEllipseFrame()
 
   frameLayout_->addWidget(ellipseWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(ellipseWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(ellipseWidgets_.frame, 2, 2);
 
   //---
 
@@ -210,7 +210,7 @@ createEllipseFrame()
 
   //---
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -247,7 +247,7 @@ createPolygonFrame()
 
   frameLayout_->addWidget(polygonWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
 
   //---
 
@@ -282,7 +282,7 @@ createPolyLineFrame()
 
   frameLayout_->addWidget(polylineWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
 
   //---
 
@@ -317,12 +317,12 @@ createTextFrame()
 
   frameLayout_->addWidget(textWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(textWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(textWidgets_.frame, 2, 2);
 
   //---
 
-  auto positionRectFrame  = CQUtil::makeWidget<QFrame>("positionRectFrame");
-  auto positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
+  auto *positionRectFrame  = CQUtil::makeWidget<QFrame>("positionRectFrame");
+  auto *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
   textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
   textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
@@ -357,7 +357,7 @@ createTextFrame()
 
   //---
 
-  auto gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -377,7 +377,7 @@ createTextFrame()
 
   //---
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -429,11 +429,11 @@ createArrowFrame()
 
   frameLayout_->addWidget(arrowWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(arrowWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(arrowWidgets_.frame, 2, 2);
 
   //----
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -464,7 +464,7 @@ createArrowFrame()
 
   //---
 
-  auto gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -512,11 +512,11 @@ createPointFrame()
 
   frameLayout_->addWidget(pointWidgets_.frame);
 
-  auto frameLayout = CQUtil::makeLayout<QVBoxLayout>(pointWidgets_.frame, 2, 2);
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(pointWidgets_.frame, 2, 2);
 
   //---
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -600,7 +600,7 @@ addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 
   //---
 
-  auto gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   playout->addLayout(gridLayout);
 
@@ -615,9 +615,9 @@ QHBoxLayout *
 CQChartsEditAnnotationDlg::
 addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget)
 {
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  auto qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
+  auto *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
   layout->addWidget (qlabel);
   layout->addWidget (widget);

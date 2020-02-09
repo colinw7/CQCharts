@@ -838,7 +838,7 @@ bool
 CQChartsAxis::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
+  const auto &dragPos = editHandles_->dragPos();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -911,7 +911,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::BBox dataRange = plot->calcDataRange();
+  auto dataRange = plot->calcDataRange();
 
   double amin = start();
   double amax = end  ();
@@ -927,8 +927,8 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     dmax = dataRange.getXMax();
   }
 
-  CQChartsGeom::Point a1 = windowToPixel(plot, amin, dmin);
-  CQChartsGeom::Point a2 = windowToPixel(plot, amax, dmax);
+  auto a1 = windowToPixel(plot, amin, dmin);
+  auto a2 = windowToPixel(plot, amax, dmax);
 
   //---
 
@@ -943,7 +943,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   // draw fill
   if (isMajorGridFilled()) {
-    CQChartsGeom::BBox dataRect = plot->calcDataPixelRect();
+    auto dataRect = plot->calcDataPixelRect();
 
     device->setClipRect(dataRect);
 
@@ -982,8 +982,8 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
             double pos3 = std::max(pos1, amin);
             double pos4 = std::min(pos2, amax);
 
-            CQChartsGeom::Point pp1 = plot->windowToPixel(CQChartsGeom::Point(pos3, pos1));
-            CQChartsGeom::Point pp2 = plot->windowToPixel(CQChartsGeom::Point(pos4, pos2));
+            auto pp1 = plot->windowToPixel(CQChartsGeom::Point(pos3, pos1));
+            auto pp2 = plot->windowToPixel(CQChartsGeom::Point(pos4, pos2));
 
             CQChartsGeom::BBox bbox;
 
@@ -1226,8 +1226,8 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   // fix range if not set
   if (! lbbox_.isSet()) {
-    CQChartsGeom::Point a1 = windowToPixel(plot, amin, apos1);
-    CQChartsGeom::Point a2 = windowToPixel(plot, amax, apos1);
+    auto a1 = windowToPixel(plot, amin, apos1);
+    auto a2 = windowToPixel(plot, amax, apos1);
 
     if (isHorizontal()) {
       bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
@@ -1293,7 +1293,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     if (f1 <= extent && f2 <= extent)
       return bbox;
 
-    CQChartsGeom::BBox bbox1 = bbox;
+    auto bbox1 = bbox;
 
     if (f1 > extent)
       bbox1.setMinExtent(isHorizontal(), fitMin - extent*fitLen);
@@ -1364,7 +1364,7 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 
   //---
 
-  CQChartsGeom::BBox dataRange = plot->calcDataRange();
+  auto dataRange = plot->calcDataRange();
 
   if (dataRange.isSet())
     dataRange += plot->annotationBBox();
@@ -1574,7 +1574,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
   int tlen1 = majorTickLen();
   int tlen2 = minorTickLen();
 
-  CQChartsGeom::Point pp = windowToPixel(plot, tpos, apos);
+  auto pp = windowToPixel(plot, tpos, apos);
 
   QString text = valueStr(plot, tpos);
 
@@ -2105,8 +2105,8 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
   // clip overlapping labels
   if (isTickLabelAutoHide()) {
     if (n > 1) {
-      const CQChartsGeom::BBox &firstBBox = axisTickLabelDrawDatas_[0    ].bbox;
-      const CQChartsGeom::BBox &lastBBox  = axisTickLabelDrawDatas_[n - 1].bbox;
+      const auto &firstBBox = axisTickLabelDrawDatas_[0    ].bbox;
+      const auto &lastBBox  = axisTickLabelDrawDatas_[n - 1].bbox;
 
       // if first and last labels overlap then only draw first
       if (lastBBox.overlaps(firstBBox)) {
@@ -2115,7 +2115,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
       }
       // otherwise draw first and last and clip others
       else {
-        CQChartsGeom::BBox prevBBox = firstBBox;
+        auto prevBBox = firstBBox;
 
         for (int i = 1; i < n - 1; ++i) {
           AxisTickLabelDrawData &data = axisTickLabelDrawDatas_[i];
@@ -2150,7 +2150,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     if (! data.visible)
       continue;
 
-    CQChartsGeom::Point p1 = plot_->pixelToWindow(data.p);
+    auto p1 = plot_->pixelToWindow(data.p);
 
     CQChartsTextOptions options;
 
@@ -2186,9 +2186,9 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   int tgap = 2;
 
-  CQChartsGeom::Point a1 = windowToPixel(plot, amin, apos);
-  CQChartsGeom::Point a2 = windowToPixel(plot, amax, apos);
-  CQChartsGeom::Point a3 = windowToPixel(plot, amin, apos);
+  auto a1 = windowToPixel(plot, amin, apos);
+  auto a2 = windowToPixel(plot, amax, apos);
+  auto a3 = windowToPixel(plot, amin, apos);
 
   //---
 
@@ -2303,7 +2303,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMin() - tgap - td;
 
-      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
+      auto p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2334,7 +2334,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + td;
 
-      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
+      auto p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2349,7 +2349,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + ta + td;
 
-      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
+      auto p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 

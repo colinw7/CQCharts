@@ -19,7 +19,7 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 

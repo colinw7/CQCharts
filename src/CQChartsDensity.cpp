@@ -159,7 +159,7 @@ calc()
   opoints_.resize(np);
 
   for (int i = 0; i < np; ++i) {
-    CQChartsGeom::Point p = poly.point(i);
+    auto p = poly.point(i);
 
     opoints_[i] = CQChartsGeom::Point(p.x*xl + xmin1_, p.y/area_);
   }
@@ -403,7 +403,7 @@ calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
 {
   assert(rect.isSet());
 
-  const CQChartsGeom::Range &dataRange = plot->dataRange();
+  const auto &dataRange = plot->dataRange();
 
   const CQChartsDensity::Points &opoints = this->opoints();
 

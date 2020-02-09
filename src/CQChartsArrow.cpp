@@ -190,9 +190,9 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
   //---
 
-  CQChartsGeom::Point from = from_;
-  CQChartsGeom::Point to   = to_;
-//CQChartsGeom::Point to   = (isRelative() ? from_ + to_ : to_);
+  auto from = from_;
+  auto to   = to_;
+//auto to   = (isRelative() ? from_ + to_ : to_);
 
   if (from.x > to.x)
     std::swap(from, to);
@@ -200,8 +200,8 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // convert start/end point to pixel start/end point
-  CQChartsGeom::Point p1 = windowToPixel(from);
-  CQChartsGeom::Point p4 = windowToPixel(to  );
+  auto p1 = windowToPixel(from);
+  auto p4 = windowToPixel(to  );
 
 #if DEBUG_LABELS
   if (isDebugLabels()) {
@@ -249,8 +249,8 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // calc front/tail arrow end point (along line)
-  CQChartsGeom::Point p2 = movePointOnLine(p1, a,  fpl1);
-  CQChartsGeom::Point p3 = movePointOnLine(p4, a, -tpl1);
+  auto p2 = movePointOnLine(p1, a,  fpl1);
+  auto p3 = movePointOnLine(p4, a, -tpl1);
 
 #if DEBUG_LABELS
   if (isDebugLabels()) {
@@ -267,8 +267,8 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // calc front/tail head mid point (on line)
-  CQChartsGeom::Point fHeadMid = p1;
-  CQChartsGeom::Point tHeadMid = p4;
+  auto fHeadMid = p1;
+  auto tHeadMid = p4;
 
   if (isFrontVisible()) {
     if (! isFrontLineEnds)
@@ -332,11 +332,11 @@ drawContents(const CQChartsPenBrush &penBrush) const
         Angle a2 = a.angle - faa.angle;
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
-        CQChartsGeom::Point pf11 = movePointPerpLine(pf1, a1,  lpw);
-        CQChartsGeom::Point pf21 = movePointPerpLine(pf2, a2, -lpw);
+        auto pf11 = movePointPerpLine(pf1, a1,  lpw);
+        auto pf21 = movePointPerpLine(pf2, a2, -lpw);
 
         // calc point at line width from start point along line
-        CQChartsGeom::Point pf31 = movePointOnLine(p1, a, lpw);
+        auto pf31 = movePointOnLine(p1, a, lpw);
 
         // intersect front head lines to line offset by width
         bool inside;
@@ -368,13 +368,13 @@ drawContents(const CQChartsPenBrush &penBrush) const
       }
     }
     else {
-      CQChartsGeom::Point pf3 = p2;
+      auto pf3 = p2;
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (fba.angle > faa.angle && fba.angle < M_PI) {
         Angle a3 = a.angle + fba.angle;
 
-        CQChartsGeom::Point pf1t = movePointOnLine(pf1, a3, -10);
+        auto pf1t = movePointOnLine(pf1, a3, -10);
 
         bool inside;
         intersectLine(p1, p2, pf1, pf1t, pf3, inside);
@@ -439,11 +439,11 @@ drawContents(const CQChartsPenBrush &penBrush) const
         Angle a2 = a.angle + M_PI + taa.angle;
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
-        CQChartsGeom::Point pt11 = movePointPerpLine(pt1, a1, -lpw);
-        CQChartsGeom::Point pt21 = movePointPerpLine(pt2, a2,  lpw);
+        auto pt11 = movePointPerpLine(pt1, a1, -lpw);
+        auto pt21 = movePointPerpLine(pt2, a2,  lpw);
 
         // calc point at line width from start point along line
-        CQChartsGeom::Point pt31 = movePointOnLine(p4, a, -lpw);
+        auto pt31 = movePointOnLine(p4, a, -lpw);
 
         // intersect tail head lines to line offset by width
         bool inside;
@@ -475,13 +475,13 @@ drawContents(const CQChartsPenBrush &penBrush) const
       }
     }
     else {
-      CQChartsGeom::Point pt3 = p3;
+      auto pt3 = p3;
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (tba.angle > taa.angle && tba.angle < M_PI) {
         Angle a3 = a.angle + M_PI - tba.angle;
 
-        CQChartsGeom::Point pt1t = movePointOnLine(pt1, a3, -10);
+        auto pt1t = movePointOnLine(pt1, a3, -10);
 
         bool inside;
         intersectLine(p3, p4, pt1, pt1t, pt3, inside);
@@ -517,8 +517,8 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
       int np = fHeadPoints.size();
 
-      CQChartsGeom::Point pi1 = pl1;
-      CQChartsGeom::Point pi2 = pl2;
+      auto pi1 = pl1;
+      auto pi2 = pl2;
 
       for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
         bool inside;
@@ -548,8 +548,8 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
       int np = tHeadPoints.size();
 
-      CQChartsGeom::Point pi3 = pl3;
-      CQChartsGeom::Point pi4 = pl4;
+      auto pi3 = pl3;
+      auto pi4 = pl4;
 
       for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
         bool inside;
@@ -701,12 +701,12 @@ drawPolygon(const CQChartsGeom::Polygon &points, double width, bool filled, bool
 {
   QPainterPath path;
 
-  CQChartsGeom::Point p0 = device_->pixelToWindow(points.point(0));
+  auto p0 = device_->pixelToWindow(points.point(0));
 
   path.moveTo(p0.qpoint());
 
   for (int i = 1; i < points.size(); ++i) {
-    CQChartsGeom::Point p1 = device_->pixelToWindow(points.point(i));
+    auto p1 = device_->pixelToWindow(points.point(i));
 
     path.lineTo(p1.qpoint());
   }
@@ -769,8 +769,8 @@ drawLine(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2, d
 
   device_->setPen(pen1);
 
-  CQChartsGeom::Point p1 = pixelToWindow(point1);
-  CQChartsGeom::Point p2 = pixelToWindow(point2);
+  auto p1 = pixelToWindow(point1);
+  auto p2 = pixelToWindow(point2);
 
   device_->drawLine(CQChartsGeom::Point(p1), CQChartsGeom::Point(p2));
 }

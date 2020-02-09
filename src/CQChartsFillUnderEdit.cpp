@@ -21,7 +21,7 @@ CQChartsFillUnderSideEdit(QWidget *parent) :
 
   setToolTip("Fill Under Side");
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
@@ -402,15 +402,15 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 {
   setObjectName("fillUnderPos");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
-  auto xGroup = CQUtil::makeLabelWidget<CQGroupBox>("X", "xGroup");
+  auto *xGroup = CQUtil::makeLabelWidget<CQGroupBox>("X", "xGroup");
 
   layout->addWidget(xGroup);
 
-  auto xlayout = CQUtil::makeLayout<QGridLayout>(xGroup, 2, 2);
+  auto *xlayout = CQUtil::makeLayout<QGridLayout>(xGroup, 2, 2);
 
   //--
 
@@ -420,14 +420,14 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  auto xtypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "xtypeLabel");
+  auto *xtypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "xtypeLabel");
 
   xlayout->addWidget(xtypeLabel , 0, 0);
   xlayout->addWidget(xtypeCombo_, 0, 1);
 
   //---
 
-  auto xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
+  auto *xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
 
   xposEdit_ = CQUtil::makeWidget<CQRealSpin>("xposEdit");
 
@@ -440,11 +440,11 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   //----
 
-  auto yGroup = CQUtil::makeLabelWidget<CQGroupBox>("Y", "yGroup");
+  auto *yGroup = CQUtil::makeLabelWidget<CQGroupBox>("Y", "yGroup");
 
   layout->addWidget(yGroup);
 
-  auto ylayout = CQUtil::makeLayout<QGridLayout>(yGroup, 2, 2);
+  auto *ylayout = CQUtil::makeLayout<QGridLayout>(yGroup, 2, 2);
 
   //--
 
@@ -454,14 +454,14 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  auto ytypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "ytypeLabel");
+  auto *ytypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "ytypeLabel");
 
   ylayout->addWidget(ytypeLabel , 0, 0);
   ylayout->addWidget(ytypeCombo_, 0, 1);
 
   //---
 
-  auto yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
+  auto *yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
 
   yposEdit_ = CQUtil::makeWidget<CQRealSpin>("yposEdit");
 

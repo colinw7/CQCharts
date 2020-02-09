@@ -203,22 +203,22 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   int row = 0;
 
   //---
 
   if (tabbed_) {
-    auto tab = CQUtil::makeWidget<QTabWidget>("tab");
+    auto *tab = CQUtil::makeWidget<QTabWidget>("tab");
 
     layout->addWidget(tab, row, 0, 1, 2); ++row;
 
     //----
 
     // fill frame
-    auto fillFrame       = CQUtil::makeWidget<QFrame>("fillFrame");
-    auto fillFrameLayout = CQUtil::makeLayout<QVBoxLayout>(fillFrame, 0, 2);
+    auto *fillFrame       = CQUtil::makeWidget<QFrame>("fillFrame");
+    auto *fillFrameLayout = CQUtil::makeLayout<QVBoxLayout>(fillFrame, 0, 2);
 
     tab->addTab(fillFrame, "Fill");
 
@@ -234,8 +234,8 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
     //----
 
     // stroke frame
-    auto strokeFrame       = CQUtil::makeWidget<QFrame>("strokeFrame");
-    auto strokeFrameLayout = CQUtil::makeLayout<QVBoxLayout>(strokeFrame, 0, 2);
+    auto *strokeFrame       = CQUtil::makeWidget<QFrame>("strokeFrame");
+    auto *strokeFrameLayout = CQUtil::makeLayout<QVBoxLayout>(strokeFrame, 0, 2);
 
     tab->addTab(strokeFrame, "Stroke");
 

@@ -12,7 +12,7 @@ CQChartsModelChooser(CQCharts *charts) :
 {
   setObjectName("modelChooser");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
 

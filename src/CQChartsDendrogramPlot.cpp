@@ -152,7 +152,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDendrogramPlot::calcRange");
 
-  auto th = const_cast<CQChartsDendrogramPlot *>(this);
+  auto *th = const_cast<CQChartsDendrogramPlot *>(this);
 
   //---
 
@@ -237,7 +237,7 @@ calcRange() const
 
   visitModel(visitor);
 
-  CQChartsGeom::Range dataRange = visitor.range();
+  auto dataRange = visitor.range();
 
   //---
 
@@ -335,7 +335,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
+    auto *nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
 
     if (nodeObj)
       bbox += nodeObj->textRect();
@@ -407,7 +407,7 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
 
   CQChartsGeom::BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
 
-  auto obj = new CQChartsDendrogramNodeObj(this, node, rect);
+  auto *obj = new CQChartsDendrogramNodeObj(this, node, rect);
 
   objs.push_back(obj);
 }
@@ -464,7 +464,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 {
   if (! node->isPlaced()) return;
 
-  CQChartsGeom::Point pn = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
+  auto pn = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
 
   double cs = std::max(circleSize(), 1.0);
 //double tm = std::max(textMargin(), 1.0);
@@ -473,7 +473,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
   // draw edge
   if (hier) {
-    CQChartsGeom::Point ph = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
+    auto ph = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
 
 //  double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
     double x1 = ph.x + cs/2.0;      double y1 = ph.y;
@@ -495,10 +495,10 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     QPainterPath path;
 
-    CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(x1, y1));
-    CQChartsGeom::Point p2 = device->pixelToWindow(CQChartsGeom::Point(x2, y2));
-    CQChartsGeom::Point p3 = device->pixelToWindow(CQChartsGeom::Point(x3, y3));
-    CQChartsGeom::Point p4 = device->pixelToWindow(CQChartsGeom::Point(x4, y4));
+    auto p1 = device->pixelToWindow(CQChartsGeom::Point(x1, y1));
+    auto p2 = device->pixelToWindow(CQChartsGeom::Point(x2, y2));
+    auto p3 = device->pixelToWindow(CQChartsGeom::Point(x3, y3));
+    auto p4 = device->pixelToWindow(CQChartsGeom::Point(x4, y4));
 
     path.moveTo (p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
@@ -549,7 +549,7 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
-  CQChartsGeom::Point pn = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
+  auto pn = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
 
   double cs = plot_->circleSize();
 
@@ -579,7 +579,7 @@ textRect() const
 
   CQChartsGeom::BBox pbbox(p1, p2);
 
-  CQChartsGeom::BBox wbbox = plot_->pixelToWindow(pbbox);
+  auto wbbox = plot_->pixelToWindow(pbbox);
 
   return wbbox;
 }
@@ -596,7 +596,7 @@ draw(CQChartsPaintDevice *device)
 {
   if (! node_->isPlaced()) return;
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
+  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
 
   double cs = std::max(plot_->circleSize(), 1.0);
   double tm = std::max(plot_->textMargin(), 1.0);

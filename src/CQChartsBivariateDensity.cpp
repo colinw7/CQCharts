@@ -38,10 +38,10 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   // calc pixel grid
   CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
-  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
+  auto pbbox = device->windowToPixel(bbox);
 
-  CQChartsGeom::Point ll = pbbox.getLL();
-  CQChartsGeom::Point ur = pbbox.getUR();
+  auto ll = pbbox.getLL();
+  auto ur = pbbox.getUR();
 
   int x1 = CMathRound::RoundDown(ll.x);
   int x2 = CMathRound::RoundUp  (ur.x);
@@ -57,7 +57,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   for (int y = y1; y <= y2; y += dy) {
     for (int x = x1; x <= x2; x += dx) {
       // calc value at normalized pixel sample point (use box center ?)
-      CQChartsGeom::Point p = device->pixelToWindow(CQChartsGeom::Point(x, y));
+      auto p = device->pixelToWindow(CQChartsGeom::Point(x, y));
 
       double x1 = (xmax > xmin ? CMathUtil::norm(p.x, xmin, xmax) : 0.0);
       double y1 = (ymax > ymin ? CMathUtil::norm(p.y, ymin, ymax) : 0.0);

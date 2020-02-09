@@ -179,11 +179,11 @@ drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QStri
 
   //---
 
-  CQChartsGeom::Point pp = device->windowToPixel(p);
+  auto pp = device->windowToPixel(p);
 
   CQChartsGeom::Point pt(pp.x + tx - ax, pp.y + ty - ay);
 
-  CQChartsGeom::Point pt1 = device->pixelToWindow(pt);
+  auto pt1 = device->pixelToWindow(pt);
 
   device->setTransformRotate(pt1, options.angle.value());
 

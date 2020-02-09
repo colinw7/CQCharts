@@ -16,6 +16,7 @@ namespace CQChartsJS {
 
   void writeToolTipCSS(std::ostream &os) {
     os << "#tooltip {\n";
+    os << " font: 28pt sans-serif;\n";
     os << " background: cornsilk;\n";
     os << " border: 1px solid black;\n";
     os << " border-radius: 5px;\n";
@@ -26,6 +27,7 @@ namespace CQChartsJS {
 
   void writeCanvasCSS(std::ostream &os) {
     os << "#canvas {\n";
+    os << " font: 14pt sans-serif;\n";
     os << " position: fixed;\n";
     os << " left: 0;\n";
     os << " top: 0;\n";

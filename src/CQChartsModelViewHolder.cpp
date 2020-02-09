@@ -18,7 +18,7 @@ CQChartsModelViewHolder(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("modelViewHolder");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
 #ifdef CQCHARTS_MODEL_VIEW
   view_ = new CQChartsModelView(charts_, this);

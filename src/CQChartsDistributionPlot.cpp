@@ -665,7 +665,7 @@ calcRange() const
 
   //---
 
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   //---
 
@@ -732,7 +732,7 @@ bucketGroupValues() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::bucketGroupValues");
 
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   // initialize bucketers to value range
   if (isConsistentBucketer()) {
@@ -924,7 +924,7 @@ calcBucketRanges() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::calcBucketRanges");
 
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   //---
 
@@ -1279,7 +1279,7 @@ void
 CQChartsDistributionPlot::
 clearGroupValues() const
 {
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   for (auto &groupValues : th->groupData_.groupValues)
     delete groupValues.second;
@@ -1332,16 +1332,16 @@ CQChartsDistributionPlot::Values *
 CQChartsDistributionPlot::
 getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 {
-  auto values = const_cast<Values *>(getGroupValues(groupInd));
+  auto *values = const_cast<Values *>(getGroupValues(groupInd));
 
   if (values)
     return values;
 
   //---
 
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
-  auto valueSet = new CQChartsValueSet(this);
+  auto *valueSet = new CQChartsValueSet(this);
 
   valueSet->setColumn(ind.column);
 
@@ -1381,7 +1381,7 @@ calcAnnotationBBox() const
   if (position == CQChartsDataLabel::TOP_OUTSIDE ||
       position == CQChartsDataLabel::BOTTOM_OUTSIDE) {
     for (const auto &plotObj : plotObjs_) {
-      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -1394,7 +1394,7 @@ calcAnnotationBBox() const
 
     plotSymbolSize(rugSymbolSize(), sx, sy);
 
-    const CQChartsGeom::Range &dataRange = this->dataRange();
+    const auto &dataRange = this->dataRange();
 
     CQChartsGeom::Point p1, p2;
 
@@ -1483,7 +1483,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::createObjs");
 
-  auto th = const_cast<CQChartsDistributionPlot *>(this);
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   NoUpdate noUpdate(this);
 
@@ -1524,7 +1524,7 @@ createObjs(PlotObjs &objs) const
   countAxis()->clearTickLabels();
 
 #if 0
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   double size = dataRange.size(! isHorizontal());
 
@@ -1812,8 +1812,8 @@ createObjs(PlotObjs &objs) const
       }
 
       if (bbox.isSet()) {
-        CQChartsDistributionDensityObj *barObj =
-          new CQChartsDistributionDensityObj(this, bbox, groupInd, data, doffset, ColorInd(ig, ng));
+        auto *barObj = new CQChartsDistributionDensityObj(this, bbox, groupInd, data,
+                                                          doffset, ColorInd(ig, ng));
 
         objs.push_back(barObj);
       }
@@ -1856,11 +1856,10 @@ createObjs(PlotObjs &objs) const
 
         int n = pVarsData->inds.size();
 
-        CQChartsGeom::BBox bbox = makeBBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
+        auto bbox = makeBBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
-        CQChartsDistributionScatterObj *scatterObj =
-          new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
-                                             ColorInd(ig, ng), ColorInd(iv, nv));
+        auto *scatterObj = new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
+                                                              ColorInd(ig, ng), ColorInd(iv, nv));
 
         objs.push_back(scatterObj);
 
@@ -1881,7 +1880,7 @@ createObjs(PlotObjs &objs) const
       if (groupData_.groupBucketRange.empty())
         continue;
 
-      const CQChartsGeom::IMinMax &bucketRange = (*pb).second;
+      const auto &bucketRange = (*pb).second;
 
       int bucketMin = bucketRange.min(0);
       int bucketMax = bucketRange.max(0);
@@ -2061,9 +2060,8 @@ createObjs(PlotObjs &objs) const
           values->yValueRange.min(), values->yValueRange.max());
 
         if (bbox.isValid()) {
-          CQChartsDistributionBarObj *barObj =
-            new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, isLine,
-                                           ColorInd(ig, ng), ColorInd(iv, nv));
+          auto *barObj = new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue,
+                                                        isLine, ColorInd(ig, ng), ColorInd(iv, nv));
 
           objs.push_back(barObj);
         }
@@ -2412,8 +2410,8 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const CQChartsGeom::RangeValue &xv,
                        const CQChartsGeom::RangeValue &yv, const QString &name) {
-    auto keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
-    auto keyText  = new CQChartsDistKeyText    (this, name, iv);
+    auto *keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
+    auto *keyText  = new CQChartsDistKeyText    (this, name, iv);
 
     if (! key->isHorizontal()) {
       key->addItem(keyColor, row, 0);
@@ -2683,7 +2681,7 @@ posStr(const CQChartsGeom::Point &w) const
     QString xstr = xStr(int(w.x));
 
     for (const auto &plotObj : plotObjs_) {
-      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       double value;
 
@@ -2699,7 +2697,7 @@ posStr(const CQChartsGeom::Point &w) const
     QString ystr = yStr(int(w.y));
 
     for (const auto &plotObj : plotObjs_) {
-      auto barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       double value;
 
@@ -2720,7 +2718,7 @@ CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -2737,7 +2735,7 @@ addMenuItems(QMenu *menu)
   };
 
   auto addAction = [&](const QString &name, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered(bool)), this, slot);
 
@@ -2772,7 +2770,7 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(typeMenu);
 
-  auto valueMenu = new QMenu("Value Type", menu);
+  auto *valueMenu = new QMenu("Value Type", menu);
 
   (void) addMenuCheckedAction(valueMenu, "Count", isValueCount(), SLOT(setValueCount(bool)));
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
@@ -2860,7 +2858,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   int ig = 0;
   int ng = groupData_.groupValues.size();
@@ -2940,7 +2938,7 @@ pushSlot()
     QPointF gpos = view()->menuPos();
     QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -2951,7 +2949,7 @@ pushSlot()
   Filters filters;
 
   for (const auto &obj : objs) {
-    auto distObj = qobject_cast<CQChartsDistributionBarObj *>(obj);
+    auto *distObj = qobject_cast<CQChartsDistributionBarObj *>(obj);
 
     double value1, value2;
 
@@ -3234,7 +3232,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  CQChartsGeom::BBox rect = calcRect();
+  auto rect = calcRect();
 
   QString ystr;
 
@@ -3286,7 +3284,7 @@ void
 CQChartsDistributionBarObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsGeom::BBox pbbox = calcRect();
+  auto pbbox = calcRect();
 
   //---
 
@@ -3393,7 +3391,7 @@ CQChartsDistributionBarObj::
 drawFg(CQChartsPaintDevice *device) const
 {
   if (! isLine()) {
-    CQChartsGeom::BBox pbbox = calcRect();
+    auto pbbox = calcRect();
 
     //---
 
@@ -3445,7 +3443,7 @@ drawRug(CQChartsPaintDevice *device) const
   //---
 
   // draw symbols
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  const auto &dataRange = plot_->dataRange();
 
   std::vector<double> xvals;
 
@@ -3461,7 +3459,7 @@ drawRug(CQChartsPaintDevice *device) const
     else
       p = CQChartsGeom::Point(dataRange.xmin(), x1);
 
-    CQChartsGeom::Point ps = plot_->windowToPixel(p);
+    auto ps = plot_->windowToPixel(p);
 
     if (! plot_->isHorizontal())
       ps.setY(ps.y + sy);
@@ -3594,7 +3592,7 @@ CQChartsDistributionBarObj::
 drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
          const CQChartsColor &color, bool useLine) const
 {
-  CQChartsGeom::BBox bbox = device->pixelToWindow(pbbox);
+  auto bbox = device->pixelToWindow(pbbox);
 
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
@@ -3647,7 +3645,7 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
 
         CQChartsGeom::BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
 
-        CQChartsGeom::BBox bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = device->pixelToWindow(pbbox1);
 
         CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
       }
@@ -3664,7 +3662,7 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
 
         CQChartsGeom::BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
 
-        CQChartsGeom::BBox bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = device->pixelToWindow(pbbox1);
 
         CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
       }
@@ -3747,7 +3745,7 @@ isUseLine() const
   bool useLine = false;
 
   if (! plot_->isDotLines()) {
-    CQChartsGeom::BBox pbbox = calcRect();
+    auto pbbox = calcRect();
 
     double s = (! plot_->isHorizontal() ? pbbox.getWidth() : pbbox.getHeight());
 
@@ -3783,7 +3781,7 @@ calcRect() const
 
   //---
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
+  auto prect = plot_->windowToPixel(rect_);
 
   //---
 
@@ -3992,7 +3990,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsGeom::BBox bbox(value1, 0, value2, y);
 
-      CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
+      auto pbbox = plot_->windowToPixel(bbox);
 
       device->drawRect(device->pixelToWindow(pbbox));
     }
@@ -4033,7 +4031,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
 
   //---
 
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  const auto &dataRange = plot_->dataRange();
 
   auto drawStatLine = [&](double value) {
     CQChartsGeom::Point p1, p2;
@@ -4086,7 +4084,7 @@ drawRug(CQChartsPaintDevice *device) const
 
   //---
 
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  const auto &dataRange = plot_->dataRange();
 
   std::vector<double> xvals;
   CQStatData          statData;
@@ -4101,7 +4099,7 @@ drawRug(CQChartsPaintDevice *device) const
     else
       p1 = CQChartsGeom::Point(dataRange.xmin(), x1);
 
-    CQChartsGeom::Point ps = plot_->windowToPixel(p1);
+    auto ps = plot_->windowToPixel(p1);
 
     if (! plot_->isHorizontal())
       ps.setY(ps.y + sy);
@@ -4129,7 +4127,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   // adjust brush for gradient
   if (plot_->isDensityGradient()) {
-    CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
+    auto pixelRect = plot_->calcPlotPixelRect();
 
     CQChartsGeom::Point pg1, pg2;
 
@@ -4237,7 +4235,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   //device->drawRect(rect());
 
@@ -4246,7 +4244,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsSymbol symbolType(CQChartsSymbol::Type::CIRCLE);
   CQChartsLength symbolSize(6, CQChartsUnits::PIXEL);
 
-  CQChartsGeom::Point pc = prect.getCenter();
+  auto pc = prect.getCenter();
 
   if (! plot_->isHorizontal()) {
     for (const auto &point : points_) {

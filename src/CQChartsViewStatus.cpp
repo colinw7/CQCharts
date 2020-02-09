@@ -27,7 +27,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   statusLabel_ = new CQChartsViewStatusStatus(this);
   posLabel_    = new CQChartsViewStatusPos   (this);
@@ -151,7 +151,7 @@ void
 CQChartsViewStatusStatus::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  auto menu = new QMenu;
+  auto *menu = new QMenu;
 
   //---
 
@@ -205,7 +205,7 @@ void
 CQChartsViewStatusPos::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  auto menu = new QMenu;
+  auto *menu = new QMenu;
 
   //---
 
@@ -222,7 +222,7 @@ contextMenuEvent(QContextMenuEvent *e)
 
   //---
 
-  auto actionGroup = new QActionGroup(menu);
+  auto *actionGroup = new QActionGroup(menu);
 
   QAction *plotAction  = menu->addAction("Plot" );
   QAction *viewAction  = menu->addAction("View" );
@@ -308,7 +308,7 @@ void
 CQChartsViewStatusSel::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  auto menu = new QMenu;
+  auto *menu = new QMenu;
 
   //---
 

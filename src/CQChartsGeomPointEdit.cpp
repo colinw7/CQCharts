@@ -28,7 +28,7 @@ init(const Point &value)
 
   setFrameStyle(QFrame::NoFrame | QFrame::Plain);
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
   //---
 
@@ -173,7 +173,7 @@ QString
 CQChartsGeomPointPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsGeom::Point point = CQChartsVariant::toPoint(value, ok);
+  auto point = CQChartsVariant::toPoint(value, ok);
 
   QString str;
 
@@ -229,7 +229,7 @@ setValue(QWidget *w, const QVariant &var)
   assert(edit);
 
   bool ok;
-  CQChartsGeom::Point point = CQChartsVariant::toPoint(var, ok);
+  auto point = CQChartsVariant::toPoint(var, ok);
   if (! ok) return;
 
   edit->setValue(point);

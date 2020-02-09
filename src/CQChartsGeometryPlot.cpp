@@ -309,7 +309,7 @@ calcRange() const
 
   //---
 
-  auto th = const_cast<CQChartsGeometryPlot *>(this);
+  auto *th = const_cast<CQChartsGeometryPlot *>(this);
 
   th->geometries_.clear();
 
@@ -374,7 +374,7 @@ CQChartsGeometryPlot::
 addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
        CQChartsGeom::Range &dataRange) const
 {
-  auto th = const_cast<CQChartsGeometryPlot *>(this);
+  auto *th = const_cast<CQChartsGeometryPlot *>(this);
 
   //---
 
@@ -414,12 +414,12 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     bool ok3;
 
     if      (geometryColumnType_ == ColumnType::RECT) {
-      CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(rvar, ok3);
+      auto bbox = CQChartsVariant::toBBox(rvar, ok3);
 
       geometry.polygons.push_back(CQChartsGeom::Polygon(bbox));
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
-      CQChartsGeom::Polygon poly = CQChartsVariant::toPolygon(rvar, ok3);
+      auto poly = CQChartsVariant::toPolygon(rvar, ok3);
 
       geometry.polygons.push_back(poly);
     }
@@ -432,7 +432,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else if (geometryColumnType_ == ColumnType::PATH) {
       CQChartsPath path = CQChartsVariant::toPath(rvar, ok3);
 
-      CQChartsGeom::Polygon poly = CQChartsGeom::Polygon(path.path().toFillPolygon());
+      auto poly = CQChartsGeom::Polygon(path.path().toFillPolygon());
 
       geometry.polygons.push_back(poly);
     }
@@ -459,7 +459,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else if (shape.type == CQChartsGeometryShape::Type::POLYGON_LIST)
       geometry.polygons = shape.polygonList;
     else if (shape.type == CQChartsGeometryShape::Type::PATH) {
-      CQChartsGeom::Polygon poly = CQChartsGeom::Polygon(shape.path.qpoly());
+      auto poly = CQChartsGeom::Polygon(shape.path.qpoly());
 
       geometry.polygons.push_back(poly);
     }
@@ -470,7 +470,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   // update range from polygons
   for (auto &poly : geometry.polygons) {
     for (int j = 0; j < poly.size(); ++j) {
-      CQChartsGeom::Point p = poly.point(j);
+      auto p = poly.point(j);
 
       dataRange.updateRange(p.x, p.y);
 
@@ -620,12 +620,11 @@ createObjs(PlotObjs &objs) const
   for (int i = 0; i < n; ++i) {
     const Geometry &geometry = geometries_[i];
 
-    CQChartsGeom::BBox bbox = geometry.bbox;
+    auto bbox = geometry.bbox;
 
     ColorInd iv(i, n);
 
-    CQChartsGeometryObj *geomObj =
-      new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv);
+    auto *geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv);
 
     geomObj->setName (geometry.name);
     geomObj->setColor(geometry.color);
@@ -653,7 +652,7 @@ probe(ProbeData &probeData) const
   if (! objNearestPoint(probeData.p, obj))
     return false;
 
-  CQChartsGeom::Point c = obj->rect().getCenter();
+  auto c = obj->rect().getCenter();
 
   probeData.p    = c;
   probeData.both = true;
@@ -724,7 +723,7 @@ bool
 CQChartsGeometryObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1 = p;
+  auto p1 = p;
 
   for (const auto &poly : polygons_) {
     if (poly.containsPoint(p1, Qt::OddEvenFill))

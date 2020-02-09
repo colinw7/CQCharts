@@ -412,11 +412,11 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 {
   setObjectName("columnsEdit");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   controlFrame_ = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  auto controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 2, 2);
+  auto *controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 2, 2);
 
   countLabel_ = CQUtil::makeLabelWidget<QLabel>("", "countLabel");
 
@@ -424,7 +424,7 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<QToolButton>(name);
 
     button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 

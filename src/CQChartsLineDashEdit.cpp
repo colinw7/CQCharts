@@ -79,7 +79,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
   //---
 

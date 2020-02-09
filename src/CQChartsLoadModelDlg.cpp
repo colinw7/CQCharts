@@ -35,11 +35,11 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   setWindowTitle("Load Model");
 //setWindowIcon(QIcon()); TODO
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
-  auto area = CQUtil::makeWidget<CQTabSplit>("area");
+  auto *area = CQUtil::makeWidget<CQTabSplit>("area");
 
   area->setOrientation(Qt::Vertical);
   area->setGrouped(true);
@@ -48,8 +48,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  auto fileFrame       = CQUtil::makeWidget<QFrame>("file");
-  auto fileFrameLayout = CQUtil::makeLayout<QGridLayout>(fileFrame, 2, 2);
+  auto *fileFrame       = CQUtil::makeWidget<QFrame>("file");
+  auto *fileFrameLayout = CQUtil::makeLayout<QGridLayout>(fileFrame, 2, 2);
 
   area->addWidget(fileFrame, "File");
 
@@ -107,8 +107,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   fileFrameLayout->addWidget(
     CQUtil::makeLabelWidget<QLabel>("Horizontal Header", "hheaderLabel"), row, 0);
 
-  auto hheaderFrame  = CQUtil::makeWidget<QFrame>("hheaderFrame");
-  auto hheaderLayout = CQUtil::makeLayout<QHBoxLayout>(hheaderFrame, 0, 2);
+  auto *hheaderFrame  = CQUtil::makeWidget<QFrame>("hheaderFrame");
+  auto *hheaderLayout = CQUtil::makeLayout<QHBoxLayout>(hheaderFrame, 0, 2);
 
   noHeaderCheck_ = CQUtil::makeLabelWidget<QRadioButton>("None", "noneHeaderCheck");
 
@@ -173,7 +173,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  auto dataArea = CQUtil::makeWidget<CQTabSplit>("dataArea");
+  auto *dataArea = CQUtil::makeWidget<CQTabSplit>("dataArea");
 
   dataArea->setState(CQTabSplit::State::TAB);
 
@@ -185,8 +185,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //--
 
-  auto previewFrame       = CQUtil::makeWidget<QFrame>("preview");
-  auto previewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 2, 2);
+  auto *previewFrame       = CQUtil::makeWidget<QFrame>("preview");
+  auto *previewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 2, 2);
 
   dataArea->addWidget(previewFrame, "Preview");
 
@@ -203,8 +203,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //--
 
-  auto columnsFrame       = CQUtil::makeWidget<QFrame>("columnsFrame");
-  auto columnsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(columnsFrame, 2, 2);
+  auto *columnsFrame       = CQUtil::makeWidget<QFrame>("columnsFrame");
+  auto *columnsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(columnsFrame, 2, 2);
 
   columnsTable_ = CQUtil::makeWidget<CQTableWidget>("columnsTable");
 
@@ -214,8 +214,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //--
 
-  auto metaFrame       = CQUtil::makeWidget<QFrame>("metaFrame");
-  auto metaFrameLayout = CQUtil::makeLayout<QVBoxLayout>(metaFrame, 2, 2);
+  auto *metaFrame       = CQUtil::makeWidget<QFrame>("metaFrame");
+  auto *metaFrameLayout = CQUtil::makeLayout<QVBoxLayout>(metaFrame, 2, 2);
 
   dataArea->addWidget(metaFrame, "Meta");
 
@@ -532,7 +532,7 @@ updateColumns()
   //---
 
   auto createTypeEdit = [&](const QString &type, const QString &colName) {
-    auto typeCombo = CQUtil::makeWidget<QComboBox>("typeCombo");
+    auto *typeCombo = CQUtil::makeWidget<QComboBox>("typeCombo");
 
     typeCombo->addItems(typeNames);
     typeCombo->setToolTip("Column Type");

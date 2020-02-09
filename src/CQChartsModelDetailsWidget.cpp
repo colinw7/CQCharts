@@ -18,12 +18,12 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
 {
   setObjectName("modelDetailsWidget");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
   // update button
-  auto controlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto *controlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   modelLabel_   = CQUtil::makeLabelWidget<QLabel>("");
   updateButton_ = CQUtil::makeLabelWidget<QPushButton>("Update", "update");
@@ -43,7 +43,7 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
 
   // sumary labels
 
-  auto summaryLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto *summaryLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   numColumnsLabel_ = CQUtil::makeLabelWidget<QLabel>("0");
   numRowsLabel_    = CQUtil::makeLabelWidget<QLabel>("0");

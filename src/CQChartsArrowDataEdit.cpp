@@ -209,7 +209,7 @@ CQChartsArrowDataEdit(QWidget *parent) :
 
   int row = 0;
 
-  auto layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   //---
 

@@ -332,7 +332,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
   if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = modelP()->data(index);
 
-    auto check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
+    auto *check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
 
     check->setChecked(var.toBool());
 

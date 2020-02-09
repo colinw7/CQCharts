@@ -16,7 +16,7 @@ CQChartsPositionEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -59,8 +59,8 @@ void
 CQChartsPositionEdit::
 editChanged()
 {
-  CQChartsGeom::Point  point = edit_->getValue();
-  const CQChartsUnits &units = position_.units();
+  auto        point = edit_->getValue();
+  const auto &units = position_.units();
 
   CQChartsPosition position(point, units);
 
@@ -76,8 +76,8 @@ void
 CQChartsPositionEdit::
 unitsChanged()
 {
-  CQChartsGeom::Point value = position_.p();
-  CQChartsUnits       units = unitsEdit_->units();
+  auto value = position_.p();
+  auto units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 
@@ -95,8 +95,8 @@ positionToWidgets()
 {
   connectSlots(false);
 
-  CQChartsGeom::Point  point = position_.p();
-  const CQChartsUnits &units = position_.units();
+  auto        point = position_.p();
+  const auto &units = position_.units();
 
   edit_->setValue(point);
 
@@ -109,8 +109,8 @@ void
 CQChartsPositionEdit::
 widgetsToPosition()
 {
-  CQChartsGeom::Point value = edit_->getValue();
-  CQChartsUnits       units = unitsEdit_->units();
+  auto value = edit_->getValue();
+  auto units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 

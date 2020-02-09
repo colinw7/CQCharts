@@ -248,7 +248,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
 
-  auto th = const_cast<CQChartsHierScatterPlot *>(this);
+  auto *th = const_cast<CQChartsHierScatterPlot *>(this);
 
   //---
 
@@ -322,7 +322,7 @@ calcRange() const
 
   visitModel(visitor);
 
-  CQChartsGeom::Range dataRange = visitor.range();
+  auto dataRange = visitor.range();
 
   if (isInterrupt())
     return dataRange;
@@ -491,7 +491,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsHierScatterPlot *>(this);
+  auto *th = const_cast<CQChartsHierScatterPlot *>(this);
 
   //---
 
@@ -680,13 +680,13 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
   int i = baseGroup->i();
 
   for (const auto &point : group->points()) {
-    const CQChartsGeom::Point &p = point.p;
+    const auto &p = point.p;
 
     CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
     ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
-    auto pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
+    auto *pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
 
     //---
 
@@ -713,10 +713,9 @@ addKeyItems(CQChartsPlotKey *key)
 
     const QString &name = group->name();
 
-    CQChartsHierScatterKeyColor *color =
-      new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
+    auto *color = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
 
-    auto text = new CQChartsKeyText(this, name, ColorInd(i, n));
+    auto *text = new CQChartsKeyText(this, name, ColorInd(i, n));
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);
@@ -736,7 +735,7 @@ probe(ProbeData &probeData) const
   if (! objNearestPoint(probeData.p, obj))
     return false;
 
-  CQChartsGeom::Point c = obj->rect().getCenter();
+  auto c = obj->rect().getCenter();
 
   probeData.p    = c;
   probeData.both = true;
@@ -753,8 +752,8 @@ bool
 CQChartsHierScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto popAction   = new QAction("Pop Filter"  , menu);
-  auto resetAction = new QAction("Reset Filter", menu);
+  auto *popAction   = new QAction("Pop Filter"  , menu);
+  auto *resetAction = new QAction("Reset Filter", menu);
 
   connect(popAction  , SIGNAL(triggered()), this, SLOT(popCurrentGroup()));
   connect(resetAction, SIGNAL(triggered()), this, SLOT(resetCurrentGroup()));
@@ -825,11 +824,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(p_);
+  auto p1 = plot_->windowToPixel(p_);
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp = plot_->windowToPixel(p);
+  auto pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -879,7 +878,7 @@ draw(CQChartsPaintDevice *device)
   if (plot_->isTextLabels()) {
     const CQChartsDataLabel *dataLabel = plot_->dataLabel();
 
-    CQChartsGeom::Point ps = plot_->windowToPixel(p_);
+    auto ps = plot_->windowToPixel(p_);
 
     double sx, sy;
 
@@ -904,7 +903,7 @@ bool
 CQChartsHierScatterKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
-  auto plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
   //plot->setSetHidden(ic_.i, ! plot->isSetHidden(ic_.i));
 
@@ -922,7 +921,7 @@ fillBrush() const
 {
   QColor c = CQChartsKeyColorBox::fillBrush().color();
 
-  //auto plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
+  //auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
   //if (plot->isSetHidden(ic_.i))
   //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

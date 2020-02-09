@@ -204,7 +204,7 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -218,10 +218,10 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   //---
 
-  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  auto colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
+  auto *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -229,7 +229,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  auto alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
+  auto *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -237,7 +237,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // pattern
-  auto patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
+  auto *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
 
   patternEdit_ = new CQChartsFillPatternEdit;
 

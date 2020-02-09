@@ -96,7 +96,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
   //---
 
   if (CMathUtil::isZero(textAngle().value())) {
-    CQChartsGeom::BBox pbbox  = device->windowToPixel(bbox);
+    auto pbbox = device->windowToPixel(bbox);
 
     double xm = 2; // pixels
     double ym = 2; // pixels
@@ -181,7 +181,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
       if (ystr.length()) {
         device->setPen(tpen);
 
-        CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
+        auto p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
 
         CQChartsTextOptions options;
 
@@ -268,7 +268,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     device->setPen(tpen);
 
     if (ystr.length()) {
-      CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(x, y));
+      auto p1 = device->pixelToWindow(CQChartsGeom::Point(x, y));
 
       CQChartsTextOptions options;
 
@@ -335,7 +335,7 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
   CQChartsGeom::BBox wbbox;
 
   if (CMathUtil::isZero(textAngle().value())) {
-    CQChartsGeom::BBox pbbox  = plot()->windowToPixel(bbox);
+    auto pbbox = plot()->windowToPixel(bbox);
 
     //---
 

@@ -321,7 +321,7 @@ void
 CQChartsPointPlot::
 initSymbolTypeData() const
 {
-  auto th = const_cast<CQChartsPointPlot *>(this);
+  auto *th = const_cast<CQChartsPointPlot *>(this);
 
   th->symbolTypeData_.valid = false;
 
@@ -436,7 +436,7 @@ void
 CQChartsPointPlot::
 initSymbolSizeData() const
 {
-  auto th = const_cast<CQChartsPointPlot *>(this);
+  auto *th = const_cast<CQChartsPointPlot *>(this);
 
   th->symbolSizeData_.valid = false;
 
@@ -565,7 +565,7 @@ void
 CQChartsPointPlot::
 initFontSizeData() const
 {
-  auto th = const_cast<CQChartsPointPlot *>(this);
+  auto *th = const_cast<CQChartsPointPlot *>(this);
 
   th->fontSizeData_.valid = false;
 

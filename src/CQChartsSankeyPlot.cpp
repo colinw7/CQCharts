@@ -260,7 +260,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -354,7 +354,7 @@ void
 CQChartsSankeyPlot::
 createGraph(PlotObjs &objs) const
 {
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -485,8 +485,7 @@ createNodes(const IndNodeMap &nodes) const
 
     ColorInd iv(node->ind(), numNodes);
 
-    CQChartsSankeyNodeObj *nodeObj =
-      new CQChartsSankeyNodeObj(this, rect, node, iv);
+    auto *nodeObj = new CQChartsSankeyNodeObj(this, rect, node, iv);
 
     node->setObj(nodeObj);
 
@@ -506,7 +505,7 @@ createEdge(CQChartsSankeyPlotEdge *edge) const
   CQChartsGeom::BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
                           bbox_.getXMax() + xm, bbox_.getYMax() + ym);
 
-  auto edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
+  auto *edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
 
   edge->setObj(edgeObj);
 }
@@ -515,7 +514,7 @@ void
 CQChartsSankeyPlot::
 updateMaxDepth() const
 {
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -544,7 +543,7 @@ void
 CQChartsSankeyPlot::
 adjustNodes() const
 {
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
@@ -642,7 +641,7 @@ removeOverlaps() const
     for (const auto &idNode : indNodeMap) {
       CQChartsSankeyPlotNode *node = idNode.second;
 
-      const CQChartsGeom::BBox &rect = node->obj()->rect();
+      const auto &rect = node->obj()->rect();
 
       double y = bbox_.getYMax() - rect.getYMid();
 
@@ -666,8 +665,8 @@ removeOverlaps() const
       CQChartsSankeyPlotNode *node2 = posNode.second;
 
       if (node1) {
-        const CQChartsGeom::BBox &rect1 = node1->obj()->rect();
-        const CQChartsGeom::BBox &rect2 = node2->obj()->rect();
+        const auto &rect1 = node1->obj()->rect();
+        const auto &rect2 = node2->obj()->rect();
 
         if (rect2.getYMax() >= rect1.getYMin() - ym) {
           double dy = rect1.getYMin() - ym - rect2.getYMax();
@@ -681,7 +680,7 @@ removeOverlaps() const
 
     // move back inside bbox
     if (node1) {
-      const CQChartsGeom::BBox &rect1 = node1->obj()->rect();
+      const auto &rect1 = node1->obj()->rect();
 
       if (rect1.getYMin() < bbox_.getYMin()) {
         double dy = bbox_.getYMin() - rect1.getYMin();
@@ -713,7 +712,7 @@ reorderNodeEdges() const
     for (const auto &edge : node->srcEdges()) {
       CQChartsSankeyPlotNode *srcNode = edge->srcNode();
 
-      const CQChartsGeom::BBox &rect = srcNode->obj()->rect();
+      const auto &rect = srcNode->obj()->rect();
 
       double y = bbox_.getYMax() - rect.getYMid();
 
@@ -740,7 +739,7 @@ reorderNodeEdges() const
     for (const auto &edge : node->destEdges()) {
       CQChartsSankeyPlotNode *destNode = edge->destNode();
 
-      const CQChartsGeom::BBox &rect = destNode->obj()->rect();
+      const auto &rect = destNode->obj()->rect();
 
       double y = bbox_.getYMax() - rect.getYMid();
 
@@ -801,11 +800,11 @@ findNode(const QString &name) const
 
   //---
 
-  auto node = new CQChartsSankeyPlotNode(this, name);
+  auto *node = new CQChartsSankeyPlotNode(this, name);
 
   node->setInd(nameNodeMap_.size());
 
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
 
@@ -818,9 +817,9 @@ CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
 createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) const
 {
-  auto edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
+  auto *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
 
-  auto th = const_cast<CQChartsSankeyPlot *>(this);
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->edges_.push_back(edge);
 
@@ -893,7 +892,7 @@ srcDepth(NodeSet &visited) const
   if (srcDepth_ >= 0)
     return srcDepth_;
 
-  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   if (srcEdges_.empty())
     th->srcDepth_ = 0;
@@ -936,7 +935,7 @@ destDepth(NodeSet &visited) const
   if (destDepth_ >= 0)
     return destDepth_;
 
-  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   if (destEdges_.empty())
     th->destDepth_ = 0;
@@ -986,7 +985,7 @@ calcXPos() const
     }
   }
 
-  auto th = const_cast<CQChartsSankeyPlotNode *>(this);
+  auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
   th->xpos_ = xpos;
 
@@ -1158,7 +1157,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (! plot_->isTextVisible())
     return;
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
+  auto prect = plot_->windowToPixel(rect_);
 
   //---
 
@@ -1187,7 +1186,7 @@ drawFg(CQChartsPaintDevice *device) const
   double tx = (rect_.getXMid() < 0.5 ? prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
   double ty = prect.getYMid() + fm.ascent()/2;
 
-  CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
+  auto pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;
@@ -1251,7 +1250,7 @@ bool
 CQChartsSankeyEdgeObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1 = plot_->windowToPixel(p);
+  auto p1 = plot_->windowToPixel(p);
 
   return path_.contains(p1.qpoint());
 }
@@ -1276,8 +1275,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw edge
-  const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
-  const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
+  const auto &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
+  const auto &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
   double x1  = srcRect .getXMax(), x2  = destRect.getXMin();
   double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();

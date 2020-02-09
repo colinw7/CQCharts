@@ -258,7 +258,7 @@ void
 CQChartsView::
 expansionChangeSlot()
 {
-  CQChartsPlot *plot = currentPlot(/*remap*/false);
+  auto *plot = currentPlot(/*remap*/false);
 
   if (plot)
     plot->modelViewExpansionChanged();
@@ -285,7 +285,7 @@ addProperties()
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -391,7 +391,7 @@ void
 CQChartsView::
 maximizePlotsSlot()
 {
-  CQChartsPlot *plot = currentPlot(/*remap*/false);
+  auto *plot = currentPlot(/*remap*/false);
 
   maximizePlot(plot);
 }
@@ -689,7 +689,7 @@ setCurrentPlotInd(int ind)
     return;
 
   // disconnect previous plot
-  CQChartsPlot *currentPlot = getPlotForInd(currentPlotInd_);
+  auto currentPlot = getPlotForInd(currentPlotInd_);
 
   if (currentPlot)
     disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
@@ -1093,7 +1093,7 @@ CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  auto annotation = new CQChartsArrowAnnotation(this, start, end);
+  auto *annotation = new CQChartsArrowAnnotation(this, start, end);
 
   addAnnotation(annotation);
 
@@ -1105,8 +1105,7 @@ CQChartsView::
 addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
                      const CQChartsLength &yRadius)
 {
-  CQChartsEllipseAnnotation *annotation =
-    new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
+  auto *annotation = new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
 
   addAnnotation(annotation);
 
@@ -1117,7 +1116,7 @@ CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 {
-  auto annotation = new CQChartsImageAnnotation(this, pos, image);
+  auto *annotation = new CQChartsImageAnnotation(this, pos, image);
 
   addAnnotation(annotation);
 
@@ -1128,7 +1127,7 @@ CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 {
-  auto annotation = new CQChartsImageAnnotation(this, rect, image);
+  auto *annotation = new CQChartsImageAnnotation(this, rect, image);
 
   addAnnotation(annotation);
 
@@ -1141,8 +1140,8 @@ addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRa
                       const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
                       const CQChartsAngle &spanAngle)
 {
-  CQChartsPieSliceAnnotation *annotation =
-    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
+  auto *annotation = new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius,
+                                                    startAngle, spanAngle);
 
   addAnnotation(annotation);
 
@@ -1153,7 +1152,7 @@ CQChartsPointAnnotation *
 CQChartsView::
 addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
-  auto annotation = new CQChartsPointAnnotation(this, pos, type);
+  auto *annotation = new CQChartsPointAnnotation(this, pos, type);
 
   addAnnotation(annotation);
 
@@ -1164,7 +1163,7 @@ CQChartsPointSetAnnotation *
 CQChartsView::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  auto annotation = new CQChartsPointSetAnnotation(this, values);
+  auto *annotation = new CQChartsPointSetAnnotation(this, values);
 
   addAnnotation(annotation);
 
@@ -1175,7 +1174,7 @@ CQChartsPolygonAnnotation *
 CQChartsView::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  auto annotation = new CQChartsPolygonAnnotation(this, points);
+  auto *annotation = new CQChartsPolygonAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -1186,7 +1185,7 @@ CQChartsPolylineAnnotation *
 CQChartsView::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  auto annotation = new CQChartsPolylineAnnotation(this, points);
+  auto *annotation = new CQChartsPolylineAnnotation(this, points);
 
   addAnnotation(annotation);
 
@@ -1197,7 +1196,7 @@ CQChartsRectangleAnnotation *
 CQChartsView::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  auto annotation = new CQChartsRectangleAnnotation(this, rect);
+  auto *annotation = new CQChartsRectangleAnnotation(this, rect);
 
   addAnnotation(annotation);
 
@@ -1208,7 +1207,7 @@ CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  auto annotation = new CQChartsTextAnnotation(this, pos, text);
+  auto *annotation = new CQChartsTextAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -1219,7 +1218,7 @@ CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  auto annotation = new CQChartsTextAnnotation(this, rect, text);
+  auto *annotation = new CQChartsTextAnnotation(this, rect, text);
 
   addAnnotation(annotation);
 
@@ -1230,8 +1229,7 @@ CQChartsValueSetAnnotation *
 CQChartsView::
 addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values)
 {
-  CQChartsValueSetAnnotation *annotation =
-    new CQChartsValueSetAnnotation(this, rectangle, values);
+  auto *annotation = new CQChartsValueSetAnnotation(this, rectangle, values);
 
   addAnnotation(annotation);
 
@@ -1242,7 +1240,7 @@ CQChartsButtonAnnotation *
 CQChartsView::
 addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  auto annotation = new CQChartsButtonAnnotation(this, pos, text);
+  auto *annotation = new CQChartsButtonAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -1343,7 +1341,7 @@ void
 CQChartsView::
 addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 {
-  CQChartsGeom::BBox bbox1 = bbox;
+  auto bbox1 = bbox;
 
   if (! bbox1.isSet())
     bbox1 = CQChartsGeom::BBox(0, 0, viewportRange(), viewportRange());
@@ -1535,7 +1533,7 @@ void
 CQChartsView::
 plotModelChanged()
 {
-  auto plot = qobject_cast<CQChartsPlot *>(sender());
+  auto *plot = qobject_cast<CQChartsPlot *>(sender());
 
   if (plot == currentPlot(/*remap*/false))
     emit currentPlotChanged();
@@ -1545,7 +1543,7 @@ void
 CQChartsView::
 plotConnectDataChangedSlot()
 {
-  auto plot = qobject_cast<CQChartsPlot *>(sender());
+  auto *plot = qobject_cast<CQChartsPlot *>(sender());
 
   if (plot)
     emit plotConnectDataChanged(plot->id());
@@ -1610,7 +1608,7 @@ initOverlay()
   if (! numPlots())
     return;
 
-  CQChartsPlot *firstPlot = plot(0)->firstPlot();
+  auto firstPlot = plot(0)->firstPlot();
 
   initOverlayPlot(firstPlot);
 }
@@ -1633,21 +1631,21 @@ initOverlay(const Plots &plots, bool reset)
 
 #if 0
   for (std::size_t i = 0; i < plots.size(); ++i) {
-    CQChartsPlot *plot = plots[i];
+    auto plot = plots[i];
 
     plot->syncRange();
   }
 #endif
 
-  CQChartsPlot *rootPlot = plots[0]->firstPlot();
+  auto rootPlot = plots[0]->firstPlot();
 
   for (std::size_t i = 0; i < plots.size(); ++i) {
-    CQChartsPlot *plot = plots[i];
+    auto plot = plots[i];
 
     plot->setOverlay(true, /*notify*/false);
 
     if (i > 0) {
-      CQChartsPlot *prevPlot = plots[i - 1];
+      auto prevPlot = plots[i - 1];
 
       plot    ->setPrevPlot(prevPlot);
       prevPlot->setNextPlot(plot);
@@ -1682,8 +1680,8 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
     //---
 
-    CQChartsAxis *xaxis = plot->xAxis();
-    CQChartsAxis *yaxis = plot->yAxis();
+    auto xaxis = plot->xAxis();
+    auto yaxis = plot->yAxis();
 
     if (xaxis)
       xaxis->setVisible(false);
@@ -1832,7 +1830,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
   PlotSet basePlotSet;
 
   for (const auto &plot : plots) {
-    CQChartsPlot *plot1 = this->basePlot(plot);
+    auto plot1 = this->basePlot(plot);
 
     basePlotSet.insert(plot1);
   }
@@ -1894,7 +1892,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
-      CQChartsPlot *plot = basePlots[i];
+      auto plot = basePlots[i];
 
       CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
@@ -1915,7 +1913,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
         if (i >= int(basePlots.size()))
           break;
 
-        CQChartsPlot *plot = basePlots[i];
+        auto plot = basePlots[i];
 
         CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
 
@@ -2048,7 +2046,7 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.selMod     = modifiersToSelMod(me->modifiers());
   mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
+  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2130,7 +2128,7 @@ mouseMoveEvent(QMouseEvent *me)
   }
 
   // get plots at point
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2176,7 +2174,7 @@ mouseReleaseEvent(QMouseEvent *me)
 
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
-  //CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+  //auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
   if      (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
@@ -2287,7 +2285,7 @@ keyPressEvent(QKeyEvent *ke)
 
   QPointF pos = mapFromGlobal(gpos);
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+  auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
   Plots         plots;
   CQChartsPlot *plot;
@@ -2306,7 +2304,7 @@ editMousePress()
 {
   QPointF p = mousePressPoint();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(CQChartsGeom::Point(p));
 
   //---
 
@@ -2320,7 +2318,7 @@ editMousePress()
 
   // start drag on already selected annotation handle
   if (! selAnnotations.empty() && selAnnotations[0]->isSelected()) {
-    CQChartsAnnotation *annotation = selAnnotations[0];
+    auto annotation = selAnnotations[0];
 
     mouseData_.dragSide = annotation->editHandles()->inside(w);
 
@@ -2424,7 +2422,7 @@ editMouseMove()
 {
   QPointF p = mouseMovePoint();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(CQChartsGeom::Point(p));
 
   if      (mouseData_.dragObj == DragObj::KEY) {
     if (key()->editMove(w))
@@ -2466,7 +2464,7 @@ editMouseMotion()
 {
   QPointF p = mouseMovePoint();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(CQChartsGeom::Point(p));
 
   //---
 
@@ -2532,7 +2530,7 @@ showProbeLines(const QPointF &p)
   auto addVerticalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
                                   double px, double py1, double py2) -> void {
     while (ind >= int(probeBands_.size())) {
-      auto probeBand = new CQChartsProbeBand(this);
+      auto *probeBand = new CQChartsProbeBand(this);
 
       probeBands_.push_back(probeBand);
     }
@@ -2545,7 +2543,7 @@ showProbeLines(const QPointF &p)
   auto addHorizontalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
                                     double px1, double px2, double py) -> void {
     while (ind >= int(probeBands_.size())) {
-      auto probeBand = new CQChartsProbeBand(this);
+      auto *probeBand = new CQChartsProbeBand(this);
 
       probeBands_.push_back(probeBand);
     }
@@ -2557,7 +2555,7 @@ showProbeLines(const QPointF &p)
 
   //int px = p.x();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(CQChartsGeom::Point(p));
 
   Plots         plots;
   CQChartsPlot *plot;
@@ -2567,7 +2565,7 @@ showProbeLines(const QPointF &p)
   int probeInd = 0;
 
   for (auto &plot : plots) {
-    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(p));
+    auto w = plot->pixelToWindow(CQChartsGeom::Point(p));
 
     //---
 
@@ -2581,7 +2579,7 @@ showProbeLines(const QPointF &p)
     if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x);
     if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y);
 
-    CQChartsGeom::BBox dataRange = plot->calcDataRange();
+    auto dataRange = plot->calcDataRange();
 
     if      (probeData.both) {
       // add probe lines from xmin to probed x values and from ymin to probed y values
@@ -2664,7 +2662,7 @@ void
 CQChartsView::
 selectPointPress()
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
+  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
 
   //---
 
@@ -2758,7 +2756,7 @@ selectMouseMove()
 {
   if      (isPointSelectMode()) {
     if (key()) {
-      CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
+      auto w = pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
 
       bool handled = key()->selectMove(w);
 
@@ -2820,7 +2818,7 @@ selectMouseRelease()
 
   // release pressed annotations
   for (const auto &annotation : pressAnnotations_) {
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
+    auto w = pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
 
     annotation->mouseRelease(w);
   }
@@ -2833,7 +2831,7 @@ isRectSelectMode() const
   if (selectMode_ != SelectMode::RECT)
     return false;
 
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+  auto *currentPlot = this->currentPlot(/*remap*/false);
 
   if (currentPlot && ! currentPlot->type()->canRectSelect())
     return false;
@@ -2849,7 +2847,7 @@ isPointSelectMode() const
     return true;
 
   if (selectMode_ == SelectMode::RECT) {
-    CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+    auto *currentPlot = this->currentPlot(/*remap*/false);
 
     if (currentPlot && ! currentPlot->type()->canRectSelect())
       return true;
@@ -2920,14 +2918,14 @@ updatePosText(const QPointF &pos)
   QString posStr;
 
   if (posTextType() == PosTextType::PLOT) {
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
-    CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+    auto *currentPlot = this->currentPlot(/*remap*/false);
 
     PlotSet plots;
 
     if (currentPlot) {
-      const CQChartsGeom::BBox &bbox = currentPlot->viewBBox();
+      const auto &bbox = currentPlot->viewBBox();
 
       if ( bbox.inside(w))
         plots.insert(currentPlot);
@@ -2937,7 +2935,7 @@ updatePosText(const QPointF &pos)
       basePlotsAt(w, plots);
 
     for (const auto &plot : plots) {
-      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(pos));
+      auto w = plot->pixelToWindow(CQChartsGeom::Point(pos));
 
       if (posStr.length())
         posStr += " ";
@@ -2946,7 +2944,7 @@ updatePosText(const QPointF &pos)
     }
   }
   else if (posTextType() == PosTextType::VIEW) {
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
     posStr = QString("%1 %2").arg(w.x).arg(w.y);
   }
@@ -3043,7 +3041,7 @@ updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &mov
     int w = regionBand_->width ();
     int h = regionBand_->height();
 
-    CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
+    auto pixelRect = plot->calcPlotPixelRect();
 
     if (! plot->allowZoomX()) {
       x = int(pixelRect.getXMin());
@@ -3392,7 +3390,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      auto th = const_cast<CQChartsView *>(this);
+      auto *th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3427,7 +3425,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      auto th = const_cast<CQChartsView *>(this);
+      auto *th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3454,7 +3452,7 @@ drawPlots(QPainter *painter)
     QPainter *painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      auto th = const_cast<CQChartsView *>(this);
+      auto *th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPainter device(th, painter1);
 
@@ -3528,7 +3526,7 @@ drawNoData(CQChartsPaintDevice *)
 
   int is = int(4*p_fm.height());
 
-  CQChartsModelData *modelData = charts()->currentModelData();
+  auto modelData = charts()->currentModelData();
 
   noDataText_->move(0, 0);
   noDataText_->resize(width(), height());
@@ -3624,7 +3622,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
         if (device->isInteractive()) {
-          auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+          auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
           annotation->drawEditHandles(painter->painter());
         }
@@ -3654,7 +3652,7 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
   if (layerType == CQChartsLayer::Type::SELECTION) {
     if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
       if (device->isInteractive()) {
-        auto painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+        auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
         key()->drawEditHandles(painter->painter());
       }
@@ -3935,7 +3933,7 @@ void
 CQChartsView::
 searchSlot()
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(searchPos_));
+  auto w = pixelToWindow(CQChartsGeom::Point(searchPos_));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot, /*clear*/true, /*first*/true);
 
@@ -3946,7 +3944,7 @@ searchSlot()
   bool handled = false;
 
   processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
-    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = plot->pixelToWindow(CQChartsGeom::Point(pos));
 
     if (plot->selectMove(w, ! handled))
       handled = true;
@@ -4058,7 +4056,7 @@ showMenu(const QPoint &p)
   //---
 
   // get current plot
-  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(CQChartsGeom::Point(p));
 
   Plots         plots;
   CQChartsPlot* plot { nullptr };
@@ -4068,16 +4066,15 @@ showMenu(const QPoint &p)
   if (plot)
     setCurrentPlot(plot);
 
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+  auto *currentPlot = this->currentPlot(/*remap*/false);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsPlotType *plotType = (currentPlot ? currentPlot->type() : nullptr);
+  auto plotType = (currentPlot ? currentPlot->type() : nullptr);
 
   //---
 
   auto addSubMenu = [](QMenu *menu, const QString &name) {
-    auto subMenu = new QMenu(name, menu);
+    auto *subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
 
@@ -4089,7 +4086,7 @@ showMenu(const QPoint &p)
   };
 
   auto addAction = [&](QMenu *menu, const QString &name, const char *slotName) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slotName);
 
@@ -4099,7 +4096,7 @@ showMenu(const QPoint &p)
   };
 
   auto addCheckAction = [&](QMenu *menu, const QString &name, bool checked, const char *slotName) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(checked);
@@ -4113,9 +4110,9 @@ showMenu(const QPoint &p)
 
   auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
                                  const char *slotName) {
-    auto menu = qobject_cast<QMenu *>(group->parent());
+    auto *menu = qobject_cast<QMenu *>(group->parent());
 
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(checked);
@@ -4143,7 +4140,7 @@ showMenu(const QPoint &p)
 
     QMenu *modeMenu = addSubMenu(popupMenu_, "Mode");
 
-    QActionGroup *modeActionGroup = createActionGroup(modeMenu);
+    auto *modeActionGroup = createActionGroup(modeMenu);
 
     addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
     addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
@@ -4172,10 +4169,10 @@ showMenu(const QPoint &p)
     allSelectedObjs(objs);
 
     if (objs.size() == 1) {
-      auto annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-      auto axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-      auto key        = qobject_cast<CQChartsKey        *>(objs[0]);
-      auto title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+      auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+      auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+      auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
+      auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
       if (annotation || axis || key || title)
         addAction(popupMenu_, "Edit", SLOT(editObjectSlot()));
@@ -4215,11 +4212,11 @@ showMenu(const QPoint &p)
 
     QMenu *keyLocationMenu = addSubMenu(viewKeyMenu, "Location");
 
-    QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
+    auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      auto action = new QAction(label, keyLocationMenu);
+      auto *action = new QAction(label, keyLocationMenu);
 
       action->setCheckable(true);
 
@@ -4270,12 +4267,12 @@ showMenu(const QPoint &p)
   if (allPlots.size() > 1) {
     QMenu *plotsMenu = addSubMenu(popupMenu_, "Plots");
 
-    QActionGroup *plotsGroup = createActionGroup(plotsMenu);
+    auto *plotsGroup = createActionGroup(plotsMenu);
 
     for (const auto &plot : allPlots) {
       int ind = getIndForPlot(plot);
 
-      QAction *plotAction =
+      auto *plotAction =
         addGroupCheckAction(plotsGroup, plot->id(), false, SLOT(currentPlotSlot()));
 
       if (currentPlot)
@@ -4297,7 +4294,7 @@ showMenu(const QPoint &p)
     //---
 
     auto addKeyCheckAction = [&](const QString &label, bool checked, const char *slot) {
-      auto action = new QAction(label, plotKeyMenu);
+      auto *action = new QAction(label, plotKeyMenu);
 
       action->setCheckable(true);
       action->setChecked(checked);
@@ -4311,11 +4308,11 @@ showMenu(const QPoint &p)
 
     //---
 
-    CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
+    auto plotKey = (basePlot ? basePlot->key() : nullptr);
 
     bool visibleChecked = (plotKey && plotKey->isVisible());
 
-    QAction *keyVisibleAction =
+    auto *keyVisibleAction =
       addKeyCheckAction("Visible", visibleChecked, SLOT(plotKeyVisibleSlot(bool)));
 
     if (plotKey) {
@@ -4333,11 +4330,11 @@ showMenu(const QPoint &p)
 
     QMenu *keyLocationMenu = addSubMenu(plotKeyMenu, "Location");
 
-    QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
+    auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
-      auto action = new QAction(label, keyLocationMenu);
+      auto *action = new QAction(label, keyLocationMenu);
 
       action->setCheckable(true);
 
@@ -4395,13 +4392,13 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasXAxis()) {
-    CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+    auto xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
     QMenu *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
 
     //---
 
-    QAction *xAxisVisibleAction =
+    auto *xAxisVisibleAction =
       addCheckAction(xAxisMenu, "Visible", false, SLOT(xAxisVisibleSlot(bool)));
 
     if (xAxis)
@@ -4409,7 +4406,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    QAction *xAxisGridAction = addCheckAction(xAxisMenu, "Grid", false, SLOT(xAxisGridSlot(bool)));
+    auto *xAxisGridAction = addCheckAction(xAxisMenu, "Grid", false, SLOT(xAxisGridSlot(bool)));
 
     if (xAxis)
       xAxisGridAction->setChecked(xAxis->isMajorGridLinesDisplayed());
@@ -4420,10 +4417,10 @@ showMenu(const QPoint &p)
 
     QMenu *xAxisSideMenu = addSubMenu(xAxisMenu, "Side");
 
-    QActionGroup *xAxisSideGroup = createActionGroup(xAxisMenu);
+    auto *xAxisSideGroup = createActionGroup(xAxisMenu);
 
     auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      auto action = new QAction(label, xAxisSideMenu);
+      auto *action = new QAction(label, xAxisSideMenu);
 
       action->setCheckable(true);
 
@@ -4448,13 +4445,13 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasYAxis()) {
-    CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+    auto yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
     QMenu *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
 
     //---
 
-    QAction *yAxisVisibleAction =
+    auto *yAxisVisibleAction =
       addCheckAction(yAxisMenu, "Visible", false, SLOT(yAxisVisibleSlot(bool)));
 
     if (yAxis)
@@ -4462,7 +4459,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    QAction *yAxisGridAction = addCheckAction(yAxisMenu, "Grid", false, SLOT(yAxisGridSlot(bool)));
+    auto *yAxisGridAction = addCheckAction(yAxisMenu, "Grid", false, SLOT(yAxisGridSlot(bool)));
 
     if (yAxis)
       yAxisGridAction->setChecked(yAxis->isMajorGridLinesDisplayed());
@@ -4473,10 +4470,10 @@ showMenu(const QPoint &p)
 
     QMenu *yAxisSideMenu = addSubMenu(yAxisMenu, "Side");
 
-    QActionGroup *yAxisSideGroup = createActionGroup(yAxisMenu);
+    auto *yAxisSideGroup = createActionGroup(yAxisMenu);
 
     auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
-      auto action = new QAction(label, yAxisSideMenu);
+      auto *action = new QAction(label, yAxisSideMenu);
 
       action->setCheckable(true);
 
@@ -4501,11 +4498,11 @@ showMenu(const QPoint &p)
   //---
 
   if (plotType && plotType->hasTitle()) {
-    CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+    auto title = (basePlot ? basePlot->title() : nullptr);
 
     QMenu *titleMenu = addSubMenu(popupMenu_, "Title");
 
-    QAction *titleVisibleAction =
+    auto *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
 
     if (title)
@@ -4519,11 +4516,11 @@ showMenu(const QPoint &p)
 
     QMenu *titleLocationMenu = addSubMenu(titleMenu, "Location");
 
-    QActionGroup *titleLocationGroup = createActionGroup(titleMenu);
+    auto *titleLocationGroup = createActionGroup(titleMenu);
 
     auto addTitleLocationGroupAction =
      [&](const QString &label, const CQChartsTitleLocation::Type &location) {
-      auto action = new QAction(label, titleLocationMenu);
+      auto *action = new QAction(label, titleLocationMenu);
 
       action->setCheckable(true);
 
@@ -4558,8 +4555,8 @@ showMenu(const QPoint &p)
   //------
 
   if (hasPlots) {
-    QAction *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
-    QAction *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
+    auto *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
+    auto *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
 
     if (basePlot) {
       invertXAction->setChecked(basePlot->isInvertX());
@@ -4582,11 +4579,11 @@ showMenu(const QPoint &p)
 
   QMenu *themeMenu = addSubMenu(popupMenu_, "Theme");
 
-  QActionGroup *interfaceGroup = createActionGroup(themeMenu);
-  QActionGroup *themeGroup     = createActionGroup(themeMenu);
+  auto *interfaceGroup = createActionGroup(themeMenu);
+  auto *themeGroup     = createActionGroup(themeMenu);
 
   auto addInterfaceAction = [&](const QString &label, const char *slotName) {
-    auto action = new QAction(label, themeMenu);
+    auto *action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
 
@@ -4598,7 +4595,7 @@ showMenu(const QPoint &p)
   };
 
   auto addThemeAction = [&](const QString &label, const char *slotName) {
-    auto action = new QAction(label, themeMenu);
+    auto *action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
 
@@ -4609,8 +4606,8 @@ showMenu(const QPoint &p)
     return action;
   };
 
-  QAction *lightPaletteAction = addInterfaceAction("Light", SLOT(lightPaletteSlot()));
-  QAction *darkPaletteAction  = addInterfaceAction("Dark" , SLOT(darkPaletteSlot()));
+  auto *lightPaletteAction = addInterfaceAction("Light", SLOT(lightPaletteSlot()));
+  auto *darkPaletteAction  = addInterfaceAction("Dark" , SLOT(darkPaletteSlot()));
 
   lightPaletteAction->setChecked(! isDark());
   darkPaletteAction ->setChecked(  isDark());
@@ -4624,9 +4621,9 @@ showMenu(const QPoint &p)
   CQColorsMgrInst->getThemeNames(themeNames);
 
   for (const auto &themeName : themeNames) {
-    CQColorsTheme *theme = CQColorsMgrInst->getNamedTheme(themeName) ;
+    auto theme = CQColorsMgrInst->getNamedTheme(themeName) ;
 
-    QAction *themeAction = addThemeAction(theme->desc(), SLOT(themeNameSlot()));
+    auto *themeAction = addThemeAction(theme->desc(), SLOT(themeNameSlot()));
 
     themeAction->setData(theme->name());
 
@@ -4660,7 +4657,7 @@ showMenu(const QPoint &p)
 
   if (hasPlots) {
     if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-      QAction *showBoxesAction =
+      auto *showBoxesAction =
         addCheckAction(popupMenu_, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
       if (basePlot)
@@ -4687,10 +4684,10 @@ editObjectSlot()
 
   allSelectedObjs(objs);
 
-  auto annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-  auto axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-  auto key        = qobject_cast<CQChartsKey        *>(objs[0]);
-  auto title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+  auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+  auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+  auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
+  auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
   if (annotation) {
     delete editAnnotationDlg_;
@@ -4745,7 +4742,7 @@ void
 CQChartsView::
 viewKeyPositionSlot(QAction *action)
 {
-  CQChartsViewKey *viewKey = key();
+  auto viewKey = key();
   if (! viewKey) return;
 
   CQChartsKeyLocation::Type location;
@@ -4766,11 +4763,10 @@ void
 CQChartsView::
 plotKeyVisibleSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
+  auto *plotKey = (basePlot ? basePlot->key() : nullptr);
 
   if (! plotKey)
     return;
@@ -4787,11 +4783,10 @@ void
 CQChartsView::
 plotKeyPositionSlot(QAction *action)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
+  auto *plotKey = (basePlot ? basePlot->key() : nullptr);
 
   if (plotKey) {
     CQChartsKeyLocation::Type location;
@@ -4807,11 +4802,10 @@ void
 CQChartsView::
 plotKeyInsideXSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
+  auto *plotKey = (basePlot ? basePlot->key() : nullptr);
 
   if (! plotKey)
     return;
@@ -4828,11 +4822,10 @@ void
 CQChartsView::
 plotKeyInsideYSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
+  auto *plotKey = (basePlot ? basePlot->key() : nullptr);
 
   if (! plotKey)
     return;
@@ -4849,11 +4842,10 @@ void
 CQChartsView::
 xAxisVisibleSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+  auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
   if (xAxis)
     xAxis->setVisible(b);
@@ -4863,11 +4855,10 @@ void
 CQChartsView::
 xAxisGridSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+  auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
   if (xAxis)
     xAxis->setGridLinesDisplayed(b ? CQChartsAxis::GridLinesDisplayed::MAJOR :
@@ -4878,11 +4869,10 @@ void
 CQChartsView::
 xAxisSideSlot(QAction *action)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+  auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
   if (xAxis) {
     if      (action->text() == "Bottom")
@@ -4896,11 +4886,10 @@ void
 CQChartsView::
 yAxisVisibleSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+  auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
   if (yAxis)
     yAxis->setVisible(b);
@@ -4910,11 +4899,10 @@ void
 CQChartsView::
 yAxisGridSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+  auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
   if (yAxis)
     yAxis->setGridLinesDisplayed(b ? CQChartsAxis::GridLinesDisplayed::MAJOR :
@@ -4925,11 +4913,10 @@ void
 CQChartsView::
 yAxisSideSlot(QAction *action)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+  auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
   if (yAxis) {
     if      (action->text() == "Left")
@@ -4943,11 +4930,10 @@ void
 CQChartsView::
 titleVisibleSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+  auto *title = (basePlot ? basePlot->title() : nullptr);
 
   if (title)
     title->setVisible(b);
@@ -4957,11 +4943,10 @@ void
 CQChartsView::
 titleLocationSlot(QAction *action)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
-
-  CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+  auto *title = (basePlot ? basePlot->title() : nullptr);
 
   if (title) {
     CQChartsTitleLocation::Type location;
@@ -4977,9 +4962,8 @@ void
 CQChartsView::
 invertXSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setInvertX(b);
@@ -4989,9 +4973,8 @@ void
 CQChartsView::
 invertYSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setInvertY(b);
@@ -5003,9 +4986,8 @@ void
 CQChartsView::
 fitSlot()
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->autoFit();
@@ -5015,9 +4997,8 @@ void
 CQChartsView::
 zoomFullSlot()
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->zoomFull();
@@ -5041,7 +5022,7 @@ void
 CQChartsView::
 manageModelsSlot()
 {
-  CQChartsModelData *modelData = charts()->currentModelData();
+  auto modelData = charts()->currentModelData();
 
   if (! modelData)
     (void) charts()->loadModelDlg();
@@ -5053,12 +5034,12 @@ void
 CQChartsView::
 addPlotSlot()
 {
-  CQCharts *charts = this->charts();
+  auto charts = this->charts();
 
-  CQChartsModelData *modelData = charts->currentModelData();
+  auto modelData = charts->currentModelData();
   if (! modelData) return;
 
-  CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
+  auto createPlotDlg = charts->createPlotDlg(modelData);
 
   createPlotDlg->setViewName(this->id());
 }
@@ -5067,7 +5048,7 @@ void
 CQChartsView::
 helpSlot()
 {
-  CQCharts *charts = this->charts();
+  auto charts = this->charts();
 
   CQChartsHelpDlgMgrInst->showDialog(charts);
 }
@@ -5092,7 +5073,7 @@ void
 CQChartsView::
 themeNameSlot()
 {
-  auto action = qobject_cast<QAction *>(sender());
+  auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->data().toString();
@@ -5273,7 +5254,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   painter.end();
 
   if (plot) {
-    CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
+    auto pixelRect = plot->calcPlotPixelRect();
 
     image = image.copy(pixelRect.qrecti());
   }
@@ -5363,7 +5344,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   //---
 
-  auto th = const_cast<CQChartsView *>(this);
+  auto *th = const_cast<CQChartsView *>(this);
 
   CQChartsSVGPainter device(th, os);
 
@@ -5750,9 +5731,8 @@ void
 CQChartsView::
 showBoxesSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  CQChartsPlot *basePlot = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
   if (basePlot)
     basePlot->setShowBoxes(b);
@@ -5838,7 +5818,7 @@ void
 CQChartsView::
 currentPlotSlot()
 {
-  auto action = qobject_cast<QAction *>(sender());
+  auto *action = qobject_cast<QAction *>(sender());
 
   bool ok;
 
@@ -5953,7 +5933,7 @@ addBasePlots(PlotSet &plots, bool clear) const
     plots.clear();
 
   for (const auto &plot : this->plots()) {
-    CQChartsPlot *plot1 = this->basePlot(plot);
+    auto plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }
@@ -5975,18 +5955,18 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
 
   plot = nullptr;
 
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+  auto *currentPlot = this->currentPlot(/*remap*/false);
 
   for (const auto &plot1 : this->plots()) {
     if (! plot1->isVisible())
       continue;
 
-    const CQChartsGeom::BBox &bbox = plot1->viewBBox();
+    const auto &bbox = plot1->viewBBox();
 
     if (! bbox.inside(p))
       continue;
 
-    CQChartsPlot *plot2 = (first && plot1->isOverlay() ? plot1->firstPlot() : plot1);
+    auto plot2 = (first && plot1->isOverlay() ? plot1->firstPlot() : plot1);
 
     if (plot1 == currentPlot)
       plot = plot2;
@@ -6037,12 +6017,12 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     if (! plot->isVisible())
       continue;
 
-    const CQChartsGeom::BBox &bbox = plot->viewBBox();
+    const auto &bbox = plot->viewBBox();
 
     if (! bbox.inside(p))
       continue;
 
-    CQChartsPlot *plot1 = this->basePlot(plot);
+    auto plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }
@@ -6058,7 +6038,7 @@ plotBBox(CQChartsPlot *plot) const
     if (plot1 != plot)
       continue;
 
-    const CQChartsGeom::BBox &bbox = plot1->viewBBox();
+    const auto &bbox = plot1->viewBBox();
 
     return bbox;
   }
@@ -6077,7 +6057,7 @@ currentPlot(bool remap) const
 
   int ind = currentPlotInd();
 
-  CQChartsPlot *plot = getPlotForInd(ind);
+  auto plot = getPlotForInd(ind);
 
   if (! plot)
     return nullptr;
@@ -6099,7 +6079,7 @@ getPlotForInd(int ind) const
   if (ind < 0 || ind >= np)
     return nullptr;
 
-  CQChartsPlot *plot = plots_[ind];
+  auto plot = plots_[ind];
 
   return plot;
 }
@@ -6249,7 +6229,7 @@ writeAll(std::ostream &os) const
   PlotVars  plotVars;
 
   for (const auto &plot : plots) {
-    CQChartsModelData *modelData = plot->getModelData();
+    auto modelData = plot->getModelData();
 
     QString modelVarName;
 
@@ -6373,9 +6353,9 @@ CQChartsGeom::Point
 CQChartsView::
 positionToView(const CQChartsPosition &pos) const
 {
-  CQChartsGeom::Point p = CQChartsGeom::Point(pos.p());
+  auto p = CQChartsGeom::Point(pos.p());
 
-  CQChartsGeom::Point p1 = p;
+  auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = pixelToWindow(p);
@@ -6393,9 +6373,9 @@ CQChartsGeom::Point
 CQChartsView::
 positionToPixel(const CQChartsPosition &pos) const
 {
-  CQChartsGeom::Point p = CQChartsGeom::Point(pos.p());
+  auto p = CQChartsGeom::Point(pos.p());
 
-  CQChartsGeom::Point p1 = p;
+  auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = p;
@@ -6415,8 +6395,8 @@ CQChartsGeom::BBox
 CQChartsView::
 rectToView(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r  = rect.bbox();
-  CQChartsGeom::BBox r1 = r;
+  auto r  = rect.bbox();
+  auto r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
     r1 = pixelToWindow(r);
@@ -6436,8 +6416,8 @@ CQChartsGeom::BBox
 CQChartsView::
 rectToPixel(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r  = rect.bbox();
-  CQChartsGeom::BBox r1 = r;
+  auto r  = rect.bbox();
+  auto r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
     r1 = r;
@@ -6691,12 +6671,12 @@ windowToPixel(const QPainterPath &path) const
     const QPainterPath::Element &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
+      auto p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
       ppath.moveTo(p1.qpoint());
     }
     else if (e.isLineTo()) {
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
+      auto p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
       ppath.lineTo(p1.qpoint());
     }
@@ -6705,7 +6685,7 @@ windowToPixel(const QPainterPath &path) const
       QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
       QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
+      auto p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
       if (i < n - 1) {
         e1  = path.elementAt(i + 1);
@@ -6718,10 +6698,10 @@ windowToPixel(const QPainterPath &path) const
       }
 
       if (e1t == QPainterPath::CurveToDataElement) {
-        CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(e1.x, e1.y)); ++i;
+        auto p2 = windowToPixel(CQChartsGeom::Point(e1.x, e1.y)); ++i;
 
         if (e2t == QPainterPath::CurveToDataElement) {
-          CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::Point(e2.x, e2.y)); ++i;
+          auto p3 = windowToPixel(CQChartsGeom::Point(e2.x, e2.y)); ++i;
 
           ppath.cubicTo(p1.qpoint(), p2.qpoint(), p3.qpoint());
         }

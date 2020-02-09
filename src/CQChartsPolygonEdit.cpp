@@ -218,7 +218,7 @@ QWidget *
 CQChartsPolygonPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  auto edit = new CQChartsPolygonLineEdit(parent);
+  auto *edit = new CQChartsPolygonLineEdit(parent);
 
   return edit;
 }
@@ -265,13 +265,13 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   setToolTip("Polygon Points");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
   controlFrame_ = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  auto controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 0, 2);
+  auto *controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 0, 2);
 
   layout->addWidget(controlFrame_);
 
@@ -283,7 +283,7 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<QToolButton>(name);
 
     button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
@@ -488,7 +488,7 @@ updatePointEdits()
   int ne = pointEdits_.size();
 
   while (ne < n) {
-    auto edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");
+    auto *edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");
 
     connect(edit, SIGNAL(valueChanged()), this, SLOT(pointSlot()));
 

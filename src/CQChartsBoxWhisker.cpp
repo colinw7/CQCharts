@@ -62,11 +62,11 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
       return CQChartsGeom::Point(value, pos);
   };
 
-  CQChartsGeom::Point p1 = pointPosValue(pos - ww/2, statData.min        );
-  CQChartsGeom::Point p2 = pointPosValue(pos - bw/2, statData.lowerMedian);
-  CQChartsGeom::Point p3 = pointPosValue(pos       , statData.median     );
-  CQChartsGeom::Point p4 = pointPosValue(pos + bw/2, statData.upperMedian);
-  CQChartsGeom::Point p5 = pointPosValue(pos + ww/2, statData.max        );
+  auto p1 = pointPosValue(pos - ww/2, statData.min        );
+  auto p2 = pointPosValue(pos - bw/2, statData.lowerMedian);
+  auto p3 = pointPosValue(pos       , statData.median     );
+  auto p4 = pointPosValue(pos + bw/2, statData.upperMedian);
+  auto p5 = pointPosValue(pos + ww/2, statData.max        );
 
   //---
 
@@ -74,8 +74,8 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
     double lnotch = std::max(statData.lnotch, statData.lowerMedian);
     double unotch = std::min(statData.unotch, statData.upperMedian);
 
-    CQChartsGeom::Point p6 = pointPosValue(pos - ww/4, lnotch);
-    CQChartsGeom::Point p7 = pointPosValue(pos + ww/4, unotch);
+    auto p6 = pointPosValue(pos - ww/4, lnotch);
+    auto p7 = pointPosValue(pos + ww/4, unotch);
 
     CQChartsGeom::Polygon poly;
 

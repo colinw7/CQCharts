@@ -31,7 +31,7 @@ CQChartsEditKeyDlg(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -82,7 +82,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   setObjectName("keyEdit");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -129,7 +129,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 
@@ -177,8 +177,8 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  auto placementGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Placement", "placementGroup");
-  auto placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
+  auto *placementGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Placement", "placementGroup");
+  auto *placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
 
   groupLayout->addWidget(placementGroup, row, 0, 1, 2); ++row;
 
@@ -313,8 +313,8 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  auto headerGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Header", "headerGroup");
-  auto headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
+  auto *headerGroup       = CQUtil::makeLabelWidget<CQGroupBox>("Header", "headerGroup");
+  auto *headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
 
   groupLayout->addWidget(headerGroup, row, 0, 1, 2); ++row;
 

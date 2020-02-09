@@ -20,7 +20,7 @@ CQChartsManageModelsDlg(CQCharts *charts) :
 
   setWindowTitle("Manage Models");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -34,7 +34,7 @@ CQChartsManageModelsDlg(CQCharts *charts) :
   // Bottom Buttons
   auto createButton = [&](const QString &label, const QString &objName,
                           const QString &tip, const char *slotName) {
-    auto button  = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+    auto *button  = CQUtil::makeLabelWidget<QPushButton>(label, objName);
 
     button->setToolTip(tip);
 
@@ -48,7 +48,7 @@ CQChartsManageModelsDlg(CQCharts *charts) :
   auto plotButton  = createButton("Create Plot...", "plot" , "Create Plot" , SLOT(plotSlot())  );
   auto doneButton  = createButton("Done"          , "done" , "Close Dialog", SLOT(cancelSlot()));
 
-  auto buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   buttonLayout->addWidget(loadButton);
   buttonLayout->addWidget(writeButton);

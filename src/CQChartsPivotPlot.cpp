@@ -295,7 +295,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPivotPlot::calcRange");
 
-  auto th = const_cast<CQChartsPivotPlot *>(this);
+  auto *th = const_cast<CQChartsPivotPlot *>(this);
 
   //---
 
@@ -461,7 +461,7 @@ calcAnnotationBBox() const
 
   if (dataLabel()->isVisible()) {
     for (const auto &plotObj : plotObjs_) {
-      auto barObj = dynamic_cast<CQChartsPivotBarObj *>(plotObj);
+      auto *barObj = dynamic_cast<CQChartsPivotBarObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -730,7 +730,7 @@ createObjs(PlotObjs &objs) const
       else
         rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nh, maxValue);
 
-      auto obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
+      auto *obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
 
       objs.push_back(obj);
     }
@@ -773,8 +773,7 @@ createObjs(PlotObjs &objs) const
 
         CQChartsGeom::BBox rect(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        CQChartsPivotPointObj *obj =
-          new CQChartsPivotPointObj(this, rect, ind, ir, ic, p, value);
+        auto *obj = new CQChartsPivotPointObj(this, rect, ind, ir, ic, p, value);
 
         objs.push_back(obj);
       }
@@ -816,11 +815,11 @@ createObjs(PlotObjs &objs) const
         ColorInd ir(iv, nv);
         ColorInd ic(ih, nh);
 
-        CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-          iv - 0.5, ih - 0.5, iv + 0.5, ih + 0.5);
+        auto rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+                      iv - 0.5, ih - 0.5, iv + 0.5, ih + 0.5);
 
-        CQChartsPivotCellObj *obj =
-          new CQChartsPivotCellObj(this, rect, ind, ir, ic, name, value, hnorm, vnorm, ok);
+        auto *obj = new CQChartsPivotCellObj(this, rect, ind, ir, ic, name, value,
+                                             hnorm, vnorm, ok);
 
         objs.push_back(obj);
       }
@@ -907,8 +906,8 @@ addKeyItems(CQChartsPlotKey *key)
     int row = 0;
 
     auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
-      auto keyColor = new CQChartsPivotKeyColor(this, ic);
-      auto keyText  = new CQChartsPivotKeyText (this, name);
+      auto *keyColor = new CQChartsPivotKeyColor(this, ic);
+      auto *keyText  = new CQChartsPivotKeyText (this, name);
 
       key->addItem(keyColor, row, 0);
       key->addItem(keyText , row, 1);
@@ -949,7 +948,7 @@ CQChartsPivotPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -971,7 +970,7 @@ addMenuItems(QMenu *menu)
 
   (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
-  auto typeMenu = new QMenu("Plot Type", menu);
+  auto *typeMenu = new QMenu("Plot Type", menu);
 
   for (const auto &plotType : plotTypes())
     (void) addMenuCheckedAction(typeMenu, plotTypeName(plotType), this->plotType() == plotType,
@@ -979,7 +978,7 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(typeMenu);
 
-  auto valueMenu = new QMenu("Value Type", menu);
+  auto *valueMenu = new QMenu("Value Type", menu);
 
   for (const auto &valueType : valueTypes())
     (void) addMenuCheckedAction(valueMenu, valueTypeName(valueType), this->valueType() == valueType,
@@ -1009,7 +1008,7 @@ setPlotTypeSlot(bool b)
 {
   if (! b) return;
 
-  auto action = qobject_cast<QAction *>(sender());
+  auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->text();
@@ -1028,7 +1027,7 @@ setValueTypeSlot(bool b)
 {
   if (! b) return;
 
-  auto action = qobject_cast<QAction *>(sender());
+  auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
   QString name = action->text();
@@ -1142,7 +1141,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   QString label = QString("%1").arg(value());
 
@@ -1270,7 +1269,7 @@ inside(const CQChartsGeom::Point &p) const
                    plot_->plotType() == CQChartsPivotPlot::PlotType::AREA);
   bool isPoints = (plot_->plotType() == CQChartsPivotPlot::PlotType::LINES);
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   if      (isFilled) {
     return polygon_.containsPoint(p, Qt::OddEvenFill);
@@ -1279,11 +1278,11 @@ inside(const CQChartsGeom::Point &p) const
     int np = polygon_.size();
 
     for (int i = 1; i < np; ++i) {
-      CQChartsGeom::Point p1 = polygon_.point(i - 1);
-      CQChartsGeom::Point p2 = polygon_.point(i    );
+      auto p1 = polygon_.point(i - 1);
+      auto p2 = polygon_.point(i    );
 
-      CQChartsGeom::Point pl1 = plot()->windowToPixel(p1);
-      CQChartsGeom::Point pl2 = plot()->windowToPixel(p2);
+      auto pl1 = plot()->windowToPixel(p1);
+      auto pl2 = plot()->windowToPixel(p2);
 
       double d;
 
@@ -1295,9 +1294,9 @@ inside(const CQChartsGeom::Point &p) const
     int np = polygon_.size();
 
     for (int i = 0; i < np; ++i) {
-      CQChartsGeom::Point p1 = polygon_.point(i);
+      auto p1 = polygon_.point(i);
 
-      CQChartsGeom::Point pl1 = plot()->windowToPixel(p1);
+      auto pl1 = plot()->windowToPixel(p1);
 
       if (CQChartsUtil::PointPointDistance(p, pl1) < 4)
         return true;
@@ -1454,8 +1453,8 @@ bool
 CQChartsPivotPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1 = plot()->windowToPixel(p);
-  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(p_));
+  auto p1 = plot()->windowToPixel(p);
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(p_));
 
   return (CQChartsUtil::PointPointDistance(p1, p2) < 4);
 }
@@ -1588,7 +1587,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc bar box
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   double m  = 4;
   double bs = std::min(std::min(prect.getWidth()/2 - 2*m, prect.getHeight()/2 - 2*m), 32.0);
@@ -1812,7 +1811,7 @@ QBrush
 CQChartsPivotKeyColor::
 fillBrush() const
 {
-  auto plot = qobject_cast<CQChartsPivotPlot *>(this->plot());
+  auto *plot = qobject_cast<CQChartsPivotPlot *>(this->plot());
 
   QColor fc = plot->interpBarFillColor(ig_);
 

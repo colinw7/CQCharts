@@ -186,12 +186,12 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     //---
 
     // use defined column type if available
-    CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+    auto *columnTypeMgr = charts->columnTypeMgr();
 
     if (columnTypeMgr->getModelColumnType(model, CQChartsColumn(icolumn), columnType,
                                           columnBaseType, nameValues)) {
       if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+        const auto *typeData = columnTypeMgr->getType(columnType);
 
         if (typeData) {
           columnType = typeData->indexType(column.index());
@@ -233,9 +233,9 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
 #if 0
   CQChartsNameValues nameValues;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(formatStr, nameValues);
+  const auto *typeData = columnTypeMgr->decodeTypeData(formatStr, nameValues);
 
   if (! typeData)
     return false;
@@ -247,9 +247,9 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
   if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
     return false;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+  const auto *typeData = columnTypeMgr->getType(columnType);
 
   if (! typeData)
     return false;
@@ -272,9 +272,9 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQCha
   if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
     return false;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+  const auto *typeData = columnTypeMgr->getType(columnType);
 
   if (! typeData)
     return false;
@@ -302,7 +302,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
 QVariant
 columnDisplayData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const QVariant &var, bool &converted) {
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
   QVariant var1 = columnTypeMgr->getDisplayData(model, column, var, converted);
@@ -314,7 +314,7 @@ columnDisplayData(CQCharts *charts, const QAbstractItemModel *model, const CQCha
 QVariant
 columnUserData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                const QVariant &var, bool &converted) {
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
   QVariant var1 = columnTypeMgr->getUserData(model, column, var, converted);
@@ -334,7 +334,7 @@ columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
   if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
     return false;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   typeStr = columnTypeMgr->encodeTypeData(columnType, nameValues);
 
@@ -471,12 +471,12 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                  const QString &typeStr) {
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   // decode to type name and name values
   CQChartsNameValues nameValues;
 
-  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+  const auto *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
   if (! typeData)
     return false;
@@ -513,9 +513,9 @@ setColumnTypeI(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn
     nameValues.setNameValue(strs1[0], strs1[1]);
   }
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(CQBaseModel::nameType(typeName));
+  const auto *typeData = columnTypeMgr->getType(CQBaseModel::nameType(typeName));
 
   if (! typeData) {
     errorMsg = QString("Invalid column type '%1'").arg(typeName);
@@ -620,7 +620,7 @@ namespace CQChartsModelUtil {
 void
 processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQChartsExprModel *exprModel = getExprModel(model);
+  auto *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -635,7 +635,7 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 int
 processExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQChartsExprModel *exprModel = getExprModel(model);
+  auto *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -660,7 +660,7 @@ int
 processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
                   const CQChartsColumn &column, const QString &expr)
 {
-  CQChartsExprModel *exprModel = getExprModel(model);
+  auto *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -725,7 +725,7 @@ CQChartsExprModel *
 getExprModel(QAbstractItemModel *model)
 {
 //std::cerr << (model ? model->objectName().toStdString() : "null") << "\n";
-  auto exprModel = qobject_cast<CQChartsExprModel *>(model);
+  auto *exprModel = qobject_cast<CQChartsExprModel *>(model);
 
   if (exprModel)
     return exprModel;
@@ -741,7 +741,7 @@ getExprModel(QAbstractItemModel *model)
   if (exprModel)
     return exprModel;
 
-  auto proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
 
   if (! proxyModel)
     return nullptr;
@@ -775,7 +775,7 @@ getExprModel(QAbstractItemModel *model)
 CQHierSepModel *
 getHierSepModel(QAbstractItemModel *model)
 {
-  auto hierSepModel = qobject_cast<CQHierSepModel *>(model);
+  auto *hierSepModel = qobject_cast<CQHierSepModel *>(model);
 
   if (hierSepModel)
     return hierSepModel;
@@ -797,7 +797,7 @@ getHierSepModel(QAbstractItemModel *model)
 QSortFilterProxyModel *
 getSortFilterProxyModel(QAbstractItemModel *model)
 {
-  auto sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+  auto *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
   if (! sortModel) return nullptr;
 
   return sortModel;
@@ -812,10 +812,10 @@ getDataModel(const QAbstractItemModel *model)
 CQDataModel *
 getDataModel(QAbstractItemModel *model)
 {
-  auto modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
+  auto *modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
   if (! modelFilter) return nullptr;
 
-  auto dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
+  auto *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
   if (! dataModel) return nullptr;
 
   return dataModel;
@@ -836,7 +836,7 @@ getProperty(const QAbstractItemModel *model, const QString &name, QVariant &valu
   if (CQUtil::getTclProperty(model, name, value))
     return true;
 
-  auto baseModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
+  auto *baseModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
 
   if (baseModel && baseModel != model) {
     if (CQUtil::getTclProperty(baseModel, name, value))
@@ -868,7 +868,7 @@ setProperty(QAbstractItemModel *model, const QString &name, const QVariant &valu
 QVariant
 getModelMetaValue(const QAbstractItemModel *model, const QString &name)
 {
-  const CQDataModel *dataModel = getDataModel(model);
+  const auto *dataModel = getDataModel(model);
   if (! dataModel) return QVariant();
 
   return dataModel->nameValue(name);
@@ -877,7 +877,7 @@ getModelMetaValue(const QAbstractItemModel *model, const QString &name)
 bool
 setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVariant &value)
 {
-  CQDataModel *dataModel = getDataModel(model);
+  auto *dataModel = getDataModel(model);
   if (! dataModel) return false;
 
   dataModel->setNameValue(name, value);
@@ -1055,9 +1055,9 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
       return var;
 
-    CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+    auto *columnTypeMgr = charts->columnTypeMgr();
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const auto *typeData = columnTypeMgr->getType(columnType);
 
     return typeData->indexVar(var, column.index());
   }

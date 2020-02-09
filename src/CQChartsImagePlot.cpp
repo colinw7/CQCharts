@@ -214,7 +214,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsImagePlot::calcRange");
 
-  auto th = const_cast<CQChartsImagePlot *>(this);
+  auto *th = const_cast<CQChartsImagePlot *>(this);
 
   //---
 
@@ -356,7 +356,7 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   ColorInd colorInd(rv);
 
-  auto imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
+  auto *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
 
   objs.push_back(imageObj);
 }
@@ -372,7 +372,7 @@ probe(ProbeData &probeData) const
   if (! objNearestPoint(probeData.p, obj))
     return false;
 
-  CQChartsGeom::Point c = obj->rect().getCenter();
+  auto c = obj->rect().getCenter();
 
   probeData.p    = c;
   probeData.both = true;
@@ -390,7 +390,7 @@ CQChartsImagePlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -410,7 +410,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  auto styleMenu = new QMenu("Cell Style", menu);
+  auto *styleMenu = new QMenu("Cell Style", menu);
 
   (void) addMenuCheckedAction(styleMenu, "Rect"   , isRectStyle   (), SLOT(setRectStyle   (bool)));
   (void) addMenuCheckedAction(styleMenu, "Balloon", isBalloonStyle(), SLOT(setBalloonStyle(bool)));
@@ -519,7 +519,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     CQChartsGeom::Point p(c + 0.5, 0);
 
-    CQChartsGeom::Point p1 = windowToPixel(p);
+    auto p1 = windowToPixel(p);
 
     auto trect = colRects[c];
 
@@ -606,7 +606,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     CQChartsGeom::Point p(0, row + 0.5);
 
-    CQChartsGeom::Point p1 = windowToPixel(p);
+    auto p1 = windowToPixel(p);
 
     auto trect = rowRects[row];
 
@@ -811,7 +811,7 @@ draw(CQChartsPaintDevice *device)
     }
   }
   else if  (plot_->cellStyle() == CQChartsImagePlot::CellStyle::BALLOON) {
-    CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+    auto prect = plot_->windowToPixel(rect());
 
     double s = std::min(prect.getWidth(), prect.getHeight());
 

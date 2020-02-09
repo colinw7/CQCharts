@@ -220,7 +220,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 {
   setObjectName("symbolDataEdit");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -236,13 +236,13 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 
   //---
 
-  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   if (! optional)
     layout->addLayout(groupLayout);
 
   // symbol
-  auto symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
+  auto *symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
 
   symbolEdit_ = new CQChartsSymbolEdit;
 
@@ -250,7 +250,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(symbolEdit_, 0, 1);
 
   // size
-  auto sizeLabel = CQUtil::makeLabelWidget<QLabel>("Size", "sizeLabel");
+  auto *sizeLabel = CQUtil::makeLabelWidget<QLabel>("Size", "sizeLabel");
 
   sizeEdit_ = new CQChartsLengthEdit;
 

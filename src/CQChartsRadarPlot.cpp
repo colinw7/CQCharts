@@ -208,7 +208,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsRadarPlot::calcRange");
 
-  auto th = const_cast<CQChartsRadarPlot *>(this);
+  auto *th = const_cast<CQChartsRadarPlot *>(this);
 
   // get values for each row
   class RowVisitor : public ModelVisitor {
@@ -300,7 +300,7 @@ calcAnnotationBBox() const
 
   // add corner labels
   if (nv > 2) {
-    auto th = const_cast<CQChartsRadarPlot *>(this);
+    auto *th = const_cast<CQChartsRadarPlot *>(this);
 
     CQChartsPlotPainter device(th, nullptr);
 
@@ -351,7 +351,7 @@ calcAnnotationBBox() const
 
   // add objects
   for (const auto &plotObj : plotObjs_) {
-    auto obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
+    auto *obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
 
     if (obj)
       bbox += obj->annotationBBox();
@@ -370,7 +370,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsRadarPlot *>(this);
+  auto *th = const_cast<CQChartsRadarPlot *>(this);
 
   //---
 
@@ -430,7 +430,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   if (hidden)
     return false;
 
-  auto th = const_cast<CQChartsRadarPlot *>(this);
+  auto *th = const_cast<CQChartsRadarPlot *>(this);
 
   //---
 
@@ -527,8 +527,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 
   ColorInd is(data.row, nr);
 
-  CQChartsRadarObj *radarObj =
-    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, is);
+  auto *radarObj = new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, is);
 
   objs.push_back(radarObj);
 
@@ -592,12 +591,12 @@ addKeyItems(CQChartsPlotKey *key)
 
       //---
 
-      auto plot = const_cast<CQChartsRadarPlot *>(plot_);
+      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
       ColorInd ic(data.row, numRows());
 
-      auto color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
-      auto text  = new CQChartsKeyText(plot, name, ic);
+      auto *color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
+      auto *text  = new CQChartsKeyText(plot, name, ic);
 
       color->setClickable(true);
 
@@ -671,7 +670,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
       //---
 
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(0.0, 0.0));
+      auto p1 = windowToPixel(CQChartsGeom::Point(0.0, 0.0));
 
       double a = angleStart().value();
 
@@ -681,7 +680,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
         double x = valueRadius_*cos(ra);
         double y = valueRadius_*sin(ra);
 
-        CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(x, y));
+        auto p2 = windowToPixel(CQChartsGeom::Point(x, y));
 
         device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
 
@@ -863,7 +862,7 @@ inside(const CQChartsGeom::Point &p) const
 
   // point
   if      (poly_.size() == 1) {
-    CQChartsGeom::Point p1 = poly_.point(0); // circle radius p1.x
+    auto p1 = poly_.point(0); // circle radius p1.x
 
     double r  = std::hypot(p .x, p .y);
     double r1 = std::hypot(p1.x, p1.x);
@@ -872,8 +871,8 @@ inside(const CQChartsGeom::Point &p) const
   }
   // line
   else if (poly_.size() == 2) {
-    CQChartsGeom::Point p1 = poly_.point(0); // circle radius p1.x and p2.y
-    CQChartsGeom::Point p2 = poly_.point(1);
+    auto p1 = poly_.point(0); // circle radius p1.x and p2.y
+    auto p2 = poly_.point(1);
 
     double r  = std::hypot(p .x, p .y);
     double r1 = std::hypot(p1.x, p2.y);
@@ -920,12 +919,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get pixel origin
-  CQChartsGeom::Point po = plot_->windowToPixel(CQChartsGeom::Point(0.0, 0.0));
+  auto po = plot_->windowToPixel(CQChartsGeom::Point(0.0, 0.0));
 
   //---
 
   // create pixel polygon
-  CQChartsGeom::Polygon ppoly = plot_->windowToPixel(poly_);
+  auto ppoly = plot_->windowToPixel(poly_);
 
   ppoly.addPoint(ppoly.point(0)); // close
 
@@ -946,7 +945,7 @@ draw(CQChartsPaintDevice *device)
 
   // draw point
   if      (poly_.size() == 1) {
-    CQChartsGeom::Point p1 = ppoly.point(0); // circle radius p1.x
+    auto p1 = ppoly.point(0); // circle radius p1.x
 
     double r = p1.x - po.x;
 
@@ -956,8 +955,8 @@ draw(CQChartsPaintDevice *device)
   }
   // draw line
   else if (poly_.size() == 2) {
-    CQChartsGeom::Point p1 = ppoly.point(0); // circle radius p1.x and p2.y
-    CQChartsGeom::Point p2 = ppoly.point(1);
+    auto p1 = ppoly.point(0); // circle radius p1.x and p2.y
+    auto p2 = ppoly.point(1);
 
     double xr = p1.x - po.x;
     double yr = p2.y - po.y;

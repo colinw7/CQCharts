@@ -31,7 +31,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
   double tw1 = tw + xlm + xrm;
   double th1 = fm.height() + ybm + ytm;
 
-  CQChartsGeom::Point pcenter = device->windowToPixel(center);
+  auto pcenter = device->windowToPixel(center);
 
   double cx = pcenter.x;
   double cy = pcenter.y - th1/2;
@@ -199,7 +199,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
   double tx = center.x + lr*tc;
   double ty = center.y + lr*ts;
 
-  CQChartsGeom::Point pt = windowToPixel(CQChartsGeom::Point(tx, ty));
+  auto pt = windowToPixel(CQChartsGeom::Point(tx, ty));
 
   //---
 
@@ -213,8 +213,8 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
     double lx2 = center.x + lr*tc;
     double ly2 = center.y + lr*ts;
 
-    CQChartsGeom::Point lp1 = windowToPixel(CQChartsGeom::Point(lx1, ly1));
-    CQChartsGeom::Point lp2 = windowToPixel(CQChartsGeom::Point(lx2, ly2));
+    auto lp1 = windowToPixel(CQChartsGeom::Point(lx1, ly1));
+    auto lp2 = windowToPixel(CQChartsGeom::Point(lx2, ly2));
 
     int tickSize = 16;
 
@@ -237,9 +237,9 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
 
       CQChartsGeom::Point lp3(lp2.x + dx, lp2.y);
 
-      CQChartsGeom::Point l1 = device->pixelToWindow(lp1);
-      CQChartsGeom::Point l2 = device->pixelToWindow(lp2);
-      CQChartsGeom::Point l3 = device->pixelToWindow(lp3);
+      auto l1 = device->pixelToWindow(lp1);
+      auto l2 = device->pixelToWindow(lp2);
+      auto l3 = device->pixelToWindow(lp3);
 
       device->drawLine(l1, l2);
       device->drawLine(l2, l3);
@@ -256,7 +256,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
   if (isRotated)
     angle = (tc >= 0 ? ta : 180.0 + ta);
 
-  CQChartsGeom::Point t1 = (device ? device->pixelToWindow(pt1) : pt1);
+  auto t1 = (device ? device->pixelToWindow(pt1) : pt1);
 
   if (device)
     draw(device, t1, text, angle, align);

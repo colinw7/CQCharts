@@ -1305,7 +1305,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   bool ok;
 
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(var, ok);
+  auto bbox = CQChartsVariant::toBBox(var, ok);
   if (! ok) return var;
 
   return CQChartsVariant::fromBBox(bbox);
@@ -1318,7 +1318,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 {
   bool ok;
 
-  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(var, ok);
+  auto bbox = CQChartsVariant::toBBox(var, ok);
   if (! ok) return var;
 
   converted = true;

@@ -338,7 +338,7 @@ calcRange() const
 
   //---
 
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   //---
 
@@ -434,7 +434,7 @@ calcRange() const
         numVisible += ! isSetHidden(iv);
     }
     else if (nv == 1) {
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
+      auto valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
@@ -475,7 +475,7 @@ void
 CQChartsBarChartPlot::
 initRangeAxes() const
 {
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->initRangeAxesI();
 }
@@ -574,7 +574,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
       dataRange.updateRange(y, x);
   };
 
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   //---
 
@@ -583,7 +583,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   if (isValueValue()) {
     assert(valueColumns.count() > 0);
 
-    const CQChartsColumn &valueColumn = valueColumns.column();
+    auto valueColumn = valueColumns.column();
 
     ind = CQChartsModelIndex(data.row, valueColumn, data.parent);
   }
@@ -744,7 +744,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     if (! isGroupHeaders()) {
       assert(valueColumns.count() > 0);
 
-      const CQChartsColumn &valueColumn = valueColumns.column();
+      auto valueColumn = valueColumns.column();
 
       bool ok;
 
@@ -816,7 +816,7 @@ void
 CQChartsBarChartPlot::
 initGroupValueSet() const
 {
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->valueData_.clear();
 }
@@ -825,7 +825,7 @@ const CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd) const
 {
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   return th->groupValueSetI(groupInd);
 }
@@ -871,14 +871,14 @@ calcAnnotationBBox() const
 
   CQChartsGeom::BBox bbox;
 
-  CQChartsDataLabel::Position position = dataLabel()->position();
+  auto position = dataLabel()->position();
 
   if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
     return bbox;
 
   if (dataLabel()->isVisible()) {
     for (const auto &plotObj : plotObjs_) {
-      auto barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
+      auto *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
 
       if (barObj)
         bbox += barObj->dataLabelRect();
@@ -925,7 +925,7 @@ createObjs(PlotObjs &objs) const
 
     //---
 
-    const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+    auto valueSet = this->valueSet(iv);
 
     //const QString &setName = valueSet.name;
 
@@ -976,7 +976,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      const CQChartsBarChartValue &ivalue = valueSet.value(ivs);
+      auto ivalue = valueSet.value(ivs);
 
       CQChartsBarChartValue::ValueInd minInd, maxInd;
 
@@ -1118,7 +1118,7 @@ void
 CQChartsBarChartPlot::
 initObjAxes() const
 {
-  auto th = const_cast<CQChartsBarChartPlot *>(this);
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
 
   th->initObjAxesI();
 }
@@ -1160,7 +1160,7 @@ initObjAxesI()
       if (isSetHidden(iv))
         continue;
 
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+      auto valueSet = this->valueSet(iv);
 
       xAxis->setTickLabel(numVisible, valueSet.name());
 
@@ -1175,7 +1175,7 @@ initObjAxesI()
         if (isSetHidden(iv))
           continue;
 
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+        auto valueSet = this->valueSet(iv);
 
         xAxis->setTickLabel(numVisible, valueSet.name());
 
@@ -1187,7 +1187,7 @@ initObjAxesI()
 
       xAxis->getTickLabelsPositions(positions);
 
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
+      auto valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
@@ -1196,7 +1196,7 @@ initObjAxesI()
           continue;
 
         if (positions.find(numVisible) != positions.end()) {
-          const CQChartsBarChartValue &value = valueSet.value(ivs);
+          auto value = valueSet.value(ivs);
 
           xAxis->setTickLabel(numVisible, value.valueName());
         }
@@ -1244,8 +1244,8 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
-    auto keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
-    auto keyText  = new CQChartsBarKeyText (this, name, iv);
+    auto *keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
+    auto *keyText  = new CQChartsBarKeyText (this, name, iv);
 
     if (c.isValid())
       keyColor->setColor(c);
@@ -1272,18 +1272,18 @@ addKeyItems(CQChartsPlotKey *key)
     // iv is 'value set' value index
     if (isColorBySet()) {
       for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+        auto valueSet = this->valueSet(iv);
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name());
       }
     }
     else {
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
+      auto valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
       for (int ivs = 0; ivs < nvs; ++ivs) {
-        const CQChartsBarChartValue &value = valueSet.value(ivs);
+        auto value = valueSet.value(ivs);
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), value.valueName());
       }
@@ -1296,17 +1296,17 @@ addKeyItems(CQChartsPlotKey *key)
       }
       else {
         for (int iv = 0; iv < nv; ++iv) {
-          const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+          auto valueSet = this->valueSet(iv);
 
           QColor c;
 
           if (valueSet.numValues() == 1) {
-            const CQChartsBarChartValue &ivalue = valueSet.value(0);
+            auto ivalue = valueSet.value(0);
 
-            const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+            auto valueInds = ivalue.valueInds();
             assert(! valueInds.empty());
 
-            const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
+            auto ind0 = valueInds[0];
 
             QModelIndex   parent; // TODO
             CQChartsColor color;
@@ -1320,17 +1320,17 @@ addKeyItems(CQChartsPlotKey *key)
       }
     }
     else if (nv == 1) {
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
+      auto valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
       for (int ivs = 0; ivs < nvs; ++ivs) {
-        const CQChartsBarChartValue &ivalue = valueSet.value(ivs);
+        auto ivalue = valueSet.value(ivs);
 
-        const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+        auto valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
 
-        const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
+        auto ind0 = valueInds[0];
 
         QColor c;
 
@@ -1347,17 +1347,17 @@ addKeyItems(CQChartsPlotKey *key)
 #if 0
     if (isGroupHeaders()) {
       for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+        auto valueSet = this->valueSet(iv);
 
         QColor c;
 
         if (valueSet.numValues() == 1) {
-          const CQChartsBarChartValue &ivalue = valueSet.value(0);
+          auto ivalue = valueSet.value(0);
 
-          const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+          auto valueInds = ivalue.valueInds();
           assert(! valueInds.empty());
 
-          const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
+          auto ind0 = valueInds[0];
 
           QModelIndex   parent; // TODO
           CQChartsColor color;
@@ -1454,7 +1454,7 @@ CQChartsBarChartPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -1476,14 +1476,14 @@ addMenuItems(QMenu *menu)
 
   (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
-  auto typeMenu = new QMenu("Plot Type", menu);
+  auto *typeMenu = new QMenu("Plot Type", menu);
 
   (void) addMenuCheckedAction(typeMenu, "Normal" , isNormal (), SLOT(setNormal (bool)));
   (void) addMenuCheckedAction(typeMenu, "Stacked", isStacked(), SLOT(setStacked(bool)));
 
   menu->addMenu(typeMenu);
 
-  auto valueMenu = new QMenu("Value Type", menu);
+  auto *valueMenu = new QMenu("Value Type", menu);
 
   (void) addMenuCheckedAction(valueMenu, "Value", isValueValue(), SLOT(setValueValue(bool)));
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
@@ -1641,14 +1641,14 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   auto value = this->value();
 
   QString label = value->getNameValue("Label");
 
   if (! plot_->labelColumn().isValid()) {
-    const CQChartsBarChartValue::ValueInds &valueInds = value->valueInds();
+    auto valueInds = value->valueInds();
     assert(! valueInds.empty());
 
     double value = valueInds[0].value;
@@ -1742,7 +1742,7 @@ draw(CQChartsPaintDevice *device)
   // adjust border sizes and rect
   static double minSize = 3.0;
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   double rs = prect.getSize(! plot_->isHorizontal());
 
@@ -1755,7 +1755,7 @@ draw(CQChartsPaintDevice *device)
 
   prect.expandExtent(-m1, -m2, ! plot_->isHorizontal());
 
-  CQChartsGeom::BBox rect = plot_->pixelToWindow(prect);
+  auto rect = plot_->pixelToWindow(prect);
 
   //---
 
@@ -1820,8 +1820,8 @@ draw(CQChartsPaintDevice *device)
     // draw dot
     device->setColorNames();
 
-    CQChartsSymbol symbolType = plot_->dotSymbolType();
-    CQChartsLength symbolSize = plot_->dotSymbolSize();
+    auto symbolType = plot_->dotSymbolType();
+    auto symbolSize = plot_->dotSymbolSize();
 
     CQChartsDrawUtil::setPenBrush(device, barPenBrush);
 
@@ -1862,7 +1862,7 @@ drawFg(CQChartsPaintDevice *device) const
     maxLabel = plot_->valueStr(maxInd.value);
   }
 
-  CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
+  auto pos = plot_->dataLabel()->position();
 
   if (minLabel == maxLabel) {
     if (! plot_->labelColumn().isValid() && minInd.value < 0)
@@ -1873,15 +1873,15 @@ drawFg(CQChartsPaintDevice *device) const
   }
   else {
     if (plot_->dataLabel()->isPositionOutside()) {
-      CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
-      CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
+      auto minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
+      auto maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
 
       plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
       plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
     else {
-      CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
-      CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
+      auto minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
+      auto maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
 
       plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
       plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
@@ -1895,7 +1895,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   static double minBorderSize = 5.0;
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect());
 
   double rs = prect.getSize(! plot_->isHorizontal());
 
@@ -1979,16 +1979,14 @@ CQChartsBarChartObj::
 value() const
 {
   if (is_.n > 1) {
-    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ig_.i);
-
-    const CQChartsBarChartValue &ivalue = valueSet.value(is_.i);
+    auto &valueSet = plot_->valueSet(ig_.i);
+    auto &ivalue   = valueSet.value(is_.i);
 
     return &ivalue;
   }
   else {
-    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ig_.i);
-
-    const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
+    auto &valueSet = plot_->valueSet(ig_.i);
+    auto &ivalue   = valueSet.value(iv_.i);
 
     return &ivalue;
   }
@@ -2095,7 +2093,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {
-      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(iv_.i);
+      auto valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
@@ -2105,11 +2103,11 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
       count = plot_->numSetValues();
 
       for (int i = 0; i < nv; ++i) {
-        const CQChartsBarChartValueSet &valueSet = plot_->valueSet(i);
+        auto valueSet = plot_->valueSet(i);
 
-        const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
+        auto ivalue = valueSet.value(iv_.i);
 
-        const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+        auto valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
 
         double value = valueInds[0].value;
@@ -2121,18 +2119,18 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   }
   else {
     if      (nv > 1) {
-      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(iv_.i);
+      auto valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
       count = valueSet.numValues();
     }
     else if (nv == 1) {
-      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(0);
+      auto valueSet = plot_->valueSet(0);
 
-      const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
+      auto ivalue = valueSet.value(iv_.i);
 
-      const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+      auto valueInds = ivalue.valueInds();
       assert(! valueInds.empty());
 
       value  = valueInds[0].value;

@@ -247,7 +247,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   // init value sets
 //initValueSets();
@@ -293,16 +293,16 @@ createObjs(PlotObjs &objs) const
   int ig = 0, in = 0;
 
   for (auto &obj : objs) {
-    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
-    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if      (hierObj) { hierObj->setInd(ig); ++ig; }
     else if (nodeObj) { nodeObj->setInd(in); ++in; }
   }
 
   for (auto &obj : objs) {
-    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
-    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if      (hierObj) {
       if (hierObj->parent())
@@ -359,7 +359,7 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    auto obj = new CQChartsHierBubbleNodeObj(this, node, parentObj, rect, is);
+    auto *obj = new CQChartsHierBubbleNodeObj(this, node, parentObj, rect, is);
 
     objs.push_back(obj);
   }
@@ -378,7 +378,7 @@ void
 CQChartsHierBubblePlot::
 initNodes() const
 {
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -419,7 +419,7 @@ void
 CQChartsHierBubblePlot::
 placeNodes(CQChartsHierBubbleHierNode *hier) const
 {
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -502,7 +502,7 @@ CQChartsHierBubblePlot::
 colorNode(CQChartsHierBubbleNode *node) const
 {
   if (! node->color().isValid()) {
-    auto th = const_cast<CQChartsHierBubblePlot *>(this);
+    auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -625,13 +625,13 @@ CQChartsHierBubblePlot::
 addHierNode(CQChartsHierBubbleHierNode *hier, const QString &name,
             const QModelIndex &nameInd) const
 {
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  auto hier1 = new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
+  auto *hier1 = new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
@@ -647,13 +647,13 @@ CQChartsHierBubblePlot::
 addNode(CQChartsHierBubbleHierNode *hier, const QString &name, double size,
         const QModelIndex &nameInd) const
 {
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  auto node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
+  auto *node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 
@@ -729,7 +729,7 @@ CQChartsHierBubbleNode *
 CQChartsHierBubblePlot::
 addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
 {
-  auto th = const_cast<CQChartsHierBubblePlot *>(this);
+  auto *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 
@@ -807,8 +807,7 @@ CQChartsHierBubblePlot::
 addExtraNodes(CQChartsHierBubbleHierNode *hier) const
 {
   if (hier->size() > 0) {
-    CQChartsHierBubbleNode *node =
-      new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
+    auto *node = new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
@@ -892,7 +891,7 @@ CQChartsHierBubblePlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -932,7 +931,7 @@ pushSlot()
     QPointF gpos = view()->menuPos();
     QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -941,7 +940,7 @@ pushSlot()
     return;
 
   for (const auto &obj : objs) {
-    auto hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
+    auto *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
 
     if (hierObj) {
       CQChartsHierBubbleHierNode *hnode = hierObj->hierNode();
@@ -951,7 +950,7 @@ pushSlot()
       break;
     }
 
-    auto nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
+    auto *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if (nodeObj) {
       CQChartsHierBubbleNode *node = nodeObj->node();
@@ -1426,7 +1425,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
     //---
 
     // calc scale factor
-    CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
+    auto pbbox = device->windowToPixel(bbox);
 
     double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
     double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
@@ -1442,7 +1441,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
   //---
 
   // calc text position
-  CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(node()->x(), node()->y()));
+  auto pc = plot_->windowToPixel(CQChartsGeom::Point(node()->x(), node()->y()));
 
   //---
 
@@ -1460,7 +1459,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
   device->setPen(tPenBrush.pen);
 
-  CQChartsGeom::Point tp = pc;
+  auto tp = pc;
 
   if      (strs.size() == 1) {
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), name, textOptions);
@@ -1470,8 +1469,8 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
     double th = fm.height();
 
-    CQChartsGeom::Point tp1 = device->pixelToWindow(CQChartsGeom::Point(pc.x, pc.y - th/2));
-    CQChartsGeom::Point tp2 = device->pixelToWindow(CQChartsGeom::Point(pc.x, pc.y + th/2));
+    auto tp1 = device->pixelToWindow(CQChartsGeom::Point(pc.x, pc.y - th/2));
+    auto tp2 = device->pixelToWindow(CQChartsGeom::Point(pc.x, pc.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);

@@ -55,7 +55,7 @@ addObjectsThread()
   CQChartsPlot::PlotObjs plotObjs = plot_->plotObjects();
 
   if (! plotObjs.empty() && ! plot_->isNoData()) {
-    const CQChartsGeom::Range &range = plot_->dataRange();
+    const auto &range = plot_->dataRange();
 
     if (range.isSet()) {
       CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
@@ -107,7 +107,7 @@ CQChartsPlotObjTree::
 waitTree() const
 {
   if (plotObjTreeFuture_.valid()) {
-    auto th = const_cast<CQChartsPlotObjTree *>(this);
+    auto *th = const_cast<CQChartsPlotObjTree *>(this);
 
     th->plotObjTree_ = th->plotObjTreeFuture_.get();
 
@@ -197,7 +197,7 @@ findEmptyBBox(double w, double h) const
   if (! waitTree())
     return CQChartsGeom::BBox();
 
-  CQChartsGeom::BBox rect = plotObjTree_->fitRect(w, h);
+  auto rect = plotObjTree_->fitRect(w, h);
 
   return rect;
 }
@@ -209,7 +209,7 @@ draw(QPainter *painter)
   if (! waitTree()) return;
 
   auto drawRect = [&](const CQChartsGeom::BBox &bbox, int n) {
-    CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
+    auto pbbox = plot_->windowToPixel(bbox);
 
     double g = 1.0 - std::min(std::max((n/16.0), 0.0), 1.0);
 

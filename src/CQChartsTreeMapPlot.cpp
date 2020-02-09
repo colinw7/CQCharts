@@ -36,8 +36,8 @@ description() const
     h3("Summary").
      p("Draw hierarchical data values using sized boxes.").
      p("Each level of the tree map can have an optional title (if large enough) "
-       "and can be separatel colored.").
-     p("The use can push into, or pop out of, a level of hierarchy by selecting the node "
+       "and can be separately colored.").
+     p("The user can push into, or pop out of, a level of hierarchy by selecting the node "
        "and using the Push and Pop operations on the context menu.").
     h3("Columns").
      p("The hierarchical data comes from the " + B("Name") + " columns and " +
@@ -104,61 +104,6 @@ CQChartsTreeMapPlot::
   delete root_;
 }
 
-//----
-
-void
-CQChartsTreeMapPlot::
-setValueLabel(bool b)
-{
-  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
-}
-
-//----
-
-void
-CQChartsTreeMapPlot::
-setTitleHierName(bool b)
-{
-  CQChartsUtil::testAndSet(titleData_.hierName, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsTreeMapPlot::
-setTitleTextClipped(bool b)
-{
-  CQChartsUtil::testAndSet(titleData_.textClipped, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsTreeMapPlot::
-setTitleMargin(double m)
-{
-  CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { updateCurrentRoot(); } );
-}
-
-void
-CQChartsTreeMapPlot::
-setTitleDepth(int d)
-{
-  CQChartsUtil::testAndSet(titleData_.depth, d, [&]() { updateCurrentRoot(); } );
-}
-
-//---
-
-void
-CQChartsTreeMapPlot::
-setHierName(bool b)
-{
-  CQChartsUtil::testAndSet(hierName_, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsTreeMapPlot::
-setTextClipped(bool b)
-{
-  CQChartsUtil::testAndSet(textClipped_, b, [&]() { drawObjs(); } );
-}
-
 //---
 
 void
@@ -189,7 +134,35 @@ setTitleHeight(const CQChartsOptLength &l)
   CQChartsUtil::testAndSet(titleData_.height, l, [&]() { updateCurrentRoot(); } );
 }
 
-//----
+void
+CQChartsTreeMapPlot::
+setTitleHierName(bool b)
+{
+  CQChartsUtil::testAndSet(titleData_.hierName, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleTextClipped(bool b)
+{
+  CQChartsUtil::testAndSet(titleData_.textClipped, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleMargin(double m)
+{
+  CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { updateCurrentRoot(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleDepth(int d)
+{
+  CQChartsUtil::testAndSet(titleData_.depth, d, [&]() { updateCurrentRoot(); } );
+}
+
+//--
 
 double
 CQChartsTreeMapPlot::
@@ -212,9 +185,37 @@ calcTitleHeight() const
 
 void
 CQChartsTreeMapPlot::
+setHierName(bool b)
+{
+  CQChartsUtil::testAndSet(nodeData_.hierName, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setNumSkipHier(int n)
+{
+  CQChartsUtil::testAndSet(nodeData_.numSkipHier, n, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTextClipped(bool b)
+{
+  CQChartsUtil::testAndSet(nodeData_.textClipped, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(nodeData_.valueLabel, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
 setMarginWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(marginWidth_, l, [&]() { updateCurrentRoot(); } );
+  CQChartsUtil::testAndSet(nodeData_.marginWidth, l, [&]() { updateCurrentRoot(); } );
 }
 
 //----
@@ -324,8 +325,9 @@ addProperties()
   // text
   addProp("text", "textVisible", "visible", "Text visible");
 
-  addProp("text", "hierName"   , "hierName", "Show hierarchical name in box");
-  addProp("text", "textClipped", "clipped" , "Clip text to box");
+  addProp("text", "hierName"   , "hierName"   , "Show hierarchical name in box");
+  addProp("text", "numSkipHier", "numSkipHier", "Number of hierarchical name levels to skip");
+  addProp("text", "textClipped", "clipped"    , "Clip text to box");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::ALL);
 }
@@ -421,7 +423,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -473,8 +475,8 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (auto &obj : objs) {
-    auto hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
-    auto nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+    auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+    auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
 
     if      (hierObj) {
       if (hierObj->parent())
@@ -547,7 +549,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    auto obj = new CQChartsTreeMapNodeObj(this, node, parentObj, rect, is);
+    auto *obj = new CQChartsTreeMapNodeObj(this, node, parentObj, rect, is);
 
     obj->setInd(in_);
 
@@ -576,7 +578,7 @@ void
 CQChartsTreeMapPlot::
 initNodes() const
 {
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -610,7 +612,7 @@ void
 CQChartsTreeMapPlot::
 replaceNodes() const
 {
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   th->windowHeaderHeight_ = pixelToWindowHeight(calcTitleHeight());
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
@@ -650,7 +652,7 @@ CQChartsTreeMapPlot::
 colorNode(CQChartsTreeMapNode *node) const
 {
   if (! node->color().isValid()) {
-    auto th = const_cast<CQChartsTreeMapPlot *>(this);
+    auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
     node->setColorId(th->nextColorId());
   }
@@ -692,7 +694,7 @@ loadHier() const
       assert(! hierStack_.empty());
 
       if (node->hierSize() == 0) {
-        auto plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+        auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
 
         plot->removeHierNode(node);
       }
@@ -771,7 +773,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -779,7 +781,7 @@ addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelInde
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  auto hier1 = new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
+  auto *hier1 = new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
 
   hier1->setDepth(depth1);
 
@@ -803,7 +805,7 @@ CQChartsTreeMapPlot::
 hierAddNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
             const QModelIndex &nameInd) const
 {
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -811,7 +813,7 @@ hierAddNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-  auto node = new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
+  auto *node = new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
 
   node->setDepth(depth1);
 
@@ -911,7 +913,7 @@ CQChartsTreeMapPlot::
 flatAddNode(const QStringList &nameStrs, double size,
             const QModelIndex &nameInd, const QString &name) const
 {
-  auto th = const_cast<CQChartsTreeMapPlot *>(this);
+  auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 
@@ -957,11 +959,13 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   //---
 
-  auto node = childNode(parent, name);
+  QString nodeName = nameStrs.back();
+
+  auto node = childNode(parent, nodeName);
 
   if (! node) {
     // use hier node if already created
-    auto child = childHierNode(parent, name);
+    auto child = childHierNode(parent, nodeName);
 
     if (child) {
       child->setSize(size);
@@ -985,8 +989,7 @@ CQChartsTreeMapPlot::
 addExtraNodes(CQChartsTreeMapHierNode *hier) const
 {
   if (hier->size() > 0) {
-    CQChartsTreeMapNode *node =
-      new CQChartsTreeMapNode(this, hier, "", hier->size(), hier->ind());
+    auto *node = new CQChartsTreeMapNode(this, hier, "", hier->size(), hier->ind());
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
@@ -1072,7 +1075,7 @@ CQChartsTreeMapPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -1112,7 +1115,7 @@ pushSlot()
     QPointF gpos = view()->menuPos();
     QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -1121,7 +1124,7 @@ pushSlot()
     return;
 
   for (const auto &obj : objs) {
-    auto hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
+    auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
 
     if (hierObj) {
       auto hnode = hierObj->hierNode();
@@ -1131,7 +1134,7 @@ pushSlot()
       break;
     }
 
-    auto nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
+    auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
 
     if (nodeObj) {
       auto node = nodeObj->node();
@@ -1361,7 +1364,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // check if text visible (font dependent)
-  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
+  auto pbbox = device->windowToPixel(bbox);
 
   //bool visible = plot_->isTextVisible();
   bool visible = true;
@@ -1620,8 +1623,26 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
   QString name;
 
-  if (plot_->isHierName())
-    name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+  if (plot_->isHierName()) {
+    QChar sep = '/';
+
+    name = (! node_->isFiller() ? node_->hierName(sep) : node_->parent()->hierName(sep));
+
+    int nh = plot_->numSkipHier();
+
+    if (nh > 0) {
+      QStringList strs = name.split(sep);
+
+      int ns = strs.size();
+
+      QStringList strs1;
+
+      for (int i = nh; i < ns; ++i)
+        strs1 += strs[i];
+
+      name = strs1.join(sep);
+    }
+  }
   else
     name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
@@ -1682,9 +1703,9 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
     device->setPen(tPenBrush.pen);
 
-    CQChartsGeom::BBox ibbox = bbox.adjusted(3, 3, -3, -3);
+    auto ibbox = bbox.adjusted(3, 3, -3, -3);
 
-    CQChartsGeom::BBox bbox1 = device->pixelToWindow(ibbox);
+    auto bbox1 = device->pixelToWindow(ibbox);
 
     if (! plot_->isValueLabel()) {
       CQChartsDrawUtil::drawTextInBox(device, bbox1, name, textOptions);
@@ -1704,7 +1725,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 #if 0
       double th = fm.height();
 
-      CQChartsGeom::Point pc = ibbox.getCenter();
+      auto pc = ibbox.getCenter();
 
       CQChartsGeom::Point tp1(pc.x, pc.y - th/2);
       CQChartsGeom::Point tp2(pc.x, pc.y + th/2);
@@ -2093,12 +2114,16 @@ CQChartsTreeMapNode(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *pa
 
 QString
 CQChartsTreeMapNode::
-hierName() const
+hierName(QChar sep) const
 {
+  QString hname;
+
   if (parent() && parent() != plot_->root())
-    return parent()->hierName() + "/" + name();
+    hname = parent()->hierName(sep) + sep + name();
   else
-    return name();
+    hname = name();
+
+  return hname;
 }
 
 void

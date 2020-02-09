@@ -189,10 +189,10 @@ preDrawObjs(CQChartsPaintDevice *device) const
     CQChartsGeom::Size cellSize;
 
     for (auto &plotObj : plotObjects()) {
-      auto cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
+      auto *cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
       if (! cellObj) continue;
 
-      CQChartsGeom::Size s = cellObj->calcTextSize();
+      auto s = cellObj->calcTextSize();
 
       maxWidth  = std::max(maxWidth , s.width ());
       maxHeight = std::max(maxHeight, s.height());
@@ -292,7 +292,7 @@ addCellObj(int row, int col, double x, double y, double dx, double dy, double va
 
   ColorInd colorInd(value);
 
-  auto cellObj = new CQChartsCellObj(this, bbox, row, col, value, ind, colorInd);
+  auto *cellObj = new CQChartsCellObj(this, bbox, row, col, value, ind, colorInd);
 
   objs.push_back(cellObj);
 }
@@ -308,7 +308,7 @@ probe(ProbeData &probeData) const
   if (! objNearestPoint(probeData.p, obj))
     return false;
 
-  CQChartsGeom::Point c = obj->rect().getCenter();
+  auto c = obj->rect().getCenter();
 
   probeData.p    = c;
   probeData.both = true;
@@ -326,7 +326,7 @@ CQChartsCorrelationPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -449,7 +449,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     CQChartsGeom::Point p(c + 0.5, 0);
 
-    CQChartsGeom::Point p1 = windowToPixel(p);
+    auto p1 = windowToPixel(p);
 
     auto trect = colRects[c];
 
@@ -539,7 +539,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     CQChartsGeom::Point p(0, c + 0.5);
 
-    CQChartsGeom::Point p1 = windowToPixel(p);
+    auto p1 = windowToPixel(p);
 
     auto trect = colRects[c];
 

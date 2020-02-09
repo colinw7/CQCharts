@@ -339,7 +339,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::calcRange");
 
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   //---
 
@@ -388,7 +388,7 @@ createObjs(PlotObjs &) const
 
   //---
 
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   class RowVisitor : public ModelVisitor {
    public:
@@ -422,7 +422,7 @@ createObjs(PlotObjs &) const
         if (! plot_->getNameConnections(group, data, connectionsData, destId, count))
           return State::SKIP;
 
-        auto plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
+        auto *plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
 
         ConnectionsData &srcConnectionsData = plot->getConnections(connectionsData.node);
 
@@ -644,7 +644,7 @@ const CQChartsForceDirectedPlot::ConnectionsData &
 CQChartsForceDirectedPlot::
 getConnections(int id) const
 {
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   return th->getConnections(id);
 }
@@ -673,7 +673,7 @@ void
 CQChartsForceDirectedPlot::
 addConnections(int id, const ConnectionsData &connections) const
 {
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   th->idConnections_[id] = connections;
 }
@@ -698,7 +698,7 @@ getStringId(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), StringIndMap::value_type(str, id));
 
@@ -848,7 +848,7 @@ void
 CQChartsForceDirectedPlot::
 drawParts(QPainter *painter) const
 {
-  auto th = const_cast<CQChartsForceDirectedPlot *>(this);
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   CQChartsPlotPainter device(th, painter);
 

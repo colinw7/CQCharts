@@ -288,14 +288,14 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
 
   //---
 
   int row = 0;
 
   auto addLabelWidget = [&](const QString &label, QWidget *edit) {
-    auto labelW = CQUtil::makeLabelWidget<QLabel>(label, "label");
+    auto *labelW = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
     layout->addWidget(labelW, row, 0);
     layout->addWidget(edit  , row, 1);
@@ -360,7 +360,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   rFrame_ = CQUtil::makeWidget<QFrame>("rFrame");
 
-  auto rLayout = CQUtil::makeLayout<QHBoxLayout>(rFrame_, 0, 2);
+  auto *rLayout = CQUtil::makeLayout<QHBoxLayout>(rFrame_, 0, 2);
 
   rEdit_ = CQUtil::makeWidget<CQColorsEditModel>("rEdit");
   rNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");
@@ -377,7 +377,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   gFrame_ = CQUtil::makeWidget<QFrame>("gFrame");
 
-  auto gLayout = CQUtil::makeLayout<QHBoxLayout>(gFrame_, 0, 2);
+  auto *gLayout = CQUtil::makeLayout<QHBoxLayout>(gFrame_, 0, 2);
 
   gEdit_ = CQUtil::makeWidget<CQColorsEditModel>("gEdit");
   gNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");
@@ -394,7 +394,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   bFrame_ = CQUtil::makeWidget<QFrame>("bFrame");
 
-  auto bLayout = CQUtil::makeLayout<QHBoxLayout>(bFrame_, 0, 2);
+  auto *bLayout = CQUtil::makeLayout<QHBoxLayout>(bFrame_, 0, 2);
 
   bEdit_ = CQUtil::makeWidget<CQColorsEditModel>("bEdit");
   bNeg_  = CQUtil::makeLabelWidget<QCheckBox>("Negate", "negate");

@@ -307,7 +307,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcRange");
 
-  auto th =  const_cast<CQChartsParallelPlot *>(this);
+  auto *th =  const_cast<CQChartsParallelPlot *>(this);
 
   //---
 
@@ -340,7 +340,7 @@ calcRange() const
     th->axes_.clear();
 
     for (int j = 0; j < ns; ++j) {
-      auto axis = new CQChartsAxis(this, adir_, 0, 1);
+      auto *axis = new CQChartsAxis(this, adir_, 0, 1);
 
       axis->moveToThread(th->thread());
 
@@ -368,7 +368,7 @@ calcRange() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int i = 0; i < ns_; ++i) {
-        CQChartsGeom::Range &range = setRanges_[i];
+        auto &range = setRanges_[i];
 
         const CQChartsColumn &setColumn = plot_->yColumns().getColumn(i);
 
@@ -408,7 +408,7 @@ calcRange() const
 
   // set range from data
   for (int j = 0; j < ns; ++j) {
-    CQChartsGeom::Range &range = th->setRanges_[j];
+    auto &range = th->setRanges_[j];
 
     if (! range.isSet())
       continue;
@@ -448,8 +448,8 @@ calcRange() const
   for (int j = 0; j < ns; ++j) {
     CQChartsAxis *axis = axes_[j];
 
-    const CQChartsGeom::Range &range     = setRange(j);
-    const CQChartsColumn      &setColumn = yColumns().getColumn(j);
+    const auto &range     = setRange(j);
+    const auto &setColumn = yColumns().getColumn(j);
 
     bool ok;
 
@@ -557,7 +557,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   // TODO: use actual symbol size
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   double sw = 0.01, sh = 0.01;
 
@@ -569,8 +569,8 @@ createObjs(PlotObjs &objs) const
   int n = polys.size();
 
   for (int i = 0; i < n; ++i) {
-    const CQChartsGeom::Polygon &poly = polys[i];
-    const QModelIndex           &xind = xinds[i];
+    const auto &poly = polys[i];
+    const auto &xind = xinds[i];
 
     QModelIndex xind1 = normalizeIndex(xind);
 
@@ -589,8 +589,7 @@ createObjs(PlotObjs &objs) const
 
     ColorInd is(i, n);
 
-    CQChartsParallelLineObj *lineObj =
-      new CQChartsParallelLineObj(this, bbox, poly, xind1, is);
+    auto *lineObj = new CQChartsParallelLineObj(this, bbox, poly, xind1, is);
 
     objs.push_back(lineObj);
 
@@ -609,9 +608,9 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      const CQChartsGeom::Range &range = setRange(j);
+      const auto &range = setRange(j);
 
-      CQChartsGeom::Point p = poly.point(j);
+      auto p = poly.point(j);
 
       // scale point to range
       double pos = 0.0;
@@ -645,8 +644,7 @@ createObjs(PlotObjs &objs) const
       ColorInd is(i, n);
       ColorInd iv(j, nl);
 
-      CQChartsParallelPointObj *pointObj =
-        new CQChartsParallelPointObj(this, bbox, p.y, x, y, yind1, is, iv);
+      auto *pointObj = new CQChartsParallelPointObj(this, bbox, p.y, x, y, yind1, is, iv);
 
       //bool ok;
 
@@ -694,11 +692,11 @@ probe(ProbeData &probeData) const
     int x1 = std::min(std::max(CMathRound::RoundDown(probeData.p.x), 0), n - 1);
     int x2 = std::min(std::max(CMathRound::RoundUp  (probeData.p.x), 0), n - 1);
 
-    const CQChartsGeom::Range &range1 = setRanges_[x1];
-    const CQChartsGeom::Range &range2 = setRanges_[x2];
+    const auto &range1 = setRanges_[x1];
+    const auto &range2 = setRanges_[x2];
 
     for (const auto &plotObj : plotObjs_) {
-      auto obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
+      auto *obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
       if (! obj) continue;
 
       std::vector<double> yvals;
@@ -729,7 +727,7 @@ probe(ProbeData &probeData) const
 
     x = std::min(std::max(x, 0), n - 1);
 
-    const CQChartsGeom::Range &range = setRanges_[x];
+    const auto &range = setRanges_[x];
 
     probeData.p.x = x;
 
@@ -743,7 +741,7 @@ probe(ProbeData &probeData) const
     y = std::max(y, 0    );
     y = std::min(y, n - 1);
 
-    const CQChartsGeom::Range &range = setRanges_[y];
+    const auto &range = setRanges_[y];
 
     probeData.p.y = y;
 
@@ -760,7 +758,7 @@ bool
 CQChartsParallelPlot::
 addMenuItems(QMenu *menu)
 {
-  auto horizontalAction = new QAction("Horizontal", menu);
+  auto *horizontalAction = new QAction("Horizontal", menu);
 
   horizontalAction->setCheckable(true);
   horizontalAction->setChecked(isHorizontal());
@@ -827,7 +825,7 @@ void
 CQChartsParallelPlot::
 drawFgAxes(CQChartsPaintDevice *device) const
 {
-  auto th = const_cast<CQChartsParallelPlot *>(this);
+  auto *th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setObjRange(device);
 
@@ -855,7 +853,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     //---
 
-    const CQChartsGeom::Range &range = setRange(j);
+    const auto &range = setRange(j);
 
     const_cast<CQChartsParallelPlot *>(this)->dataRange_ = range;
   //setDataRange(range); // will clear objects
@@ -870,7 +868,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
       //---
 
       if (! device->isInteractive()) {
-        auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
+        auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
         writeScriptRange(painter);
       }
@@ -944,7 +942,7 @@ void
 CQChartsParallelPlot::
 postDraw()
 {
-  //auto th = const_cast<CQChartsParallelPlot *>(this);
+  //auto *th = const_cast<CQChartsParallelPlot *>(this);
 
   //th->setNormalizedRange(device);
 
@@ -965,7 +963,7 @@ setObjRange(CQChartsPaintDevice *device)
   //---
 
   // set display range to data range
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   if (dataRange.isSet()) {
     if (! isHorizontal())
@@ -977,7 +975,7 @@ setObjRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
     writeScriptRange(painter);
   }
@@ -1003,7 +1001,7 @@ setNormalizedRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
     writeScriptRange(painter);
   }
@@ -1209,7 +1207,7 @@ getPolyLine(CQChartsGeom::Polygon &poly) const
 {
   // create unnormalized polyline
   for (int i = 0; i < poly_.size(); ++i) {
-    const CQChartsGeom::Range &range = plot_->setRange(i);
+    const auto &range = plot_->setRange(i);
 
     double x, y;
 
@@ -1310,7 +1308,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
+  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
 
   double sx, sy;
 
@@ -1318,7 +1316,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp = plot_->windowToPixel(p);
+  auto pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -1339,7 +1337,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  auto plot = const_cast<CQChartsParallelPlot *>(plot_);
+  auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
 
   plot->setObjRange(device);
 

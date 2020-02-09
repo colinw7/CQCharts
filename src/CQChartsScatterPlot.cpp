@@ -274,7 +274,7 @@ setSymbols(bool)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      auto splot = qobject_cast<CQChartsScatterPlot *>(plot);
+      auto *splot = qobject_cast<CQChartsScatterPlot *>(plot);
 
       if (splot)
         splot->plotType_ = PlotType::SYMBOLS;
@@ -293,7 +293,7 @@ setGridCells(bool b)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      auto splot = qobject_cast<CQChartsScatterPlot *>(plot);
+      auto *splot = qobject_cast<CQChartsScatterPlot *>(plot);
 
       if (splot)
         splot->plotType_ = (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS);
@@ -636,7 +636,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
-  auto th = const_cast<CQChartsScatterPlot *>(this);
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
 
   //---
 
@@ -767,7 +767,7 @@ calcRange() const
 
   visitModel(visitor);
 
-  CQChartsGeom::Range dataRange = visitor.range();
+  auto dataRange = visitor.range();
 
   bool uniqueX = visitor.isUniqueX();
   bool uniqueY = visitor.isUniqueY();
@@ -958,7 +958,7 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsScatterPlot *>(this);
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
 
   //---
 
@@ -1048,7 +1048,7 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     // get group points
-    auto th = const_cast<CQChartsScatterPlot *>(this);
+    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pg = th->groupPoints_.find(groupInd);
 
@@ -1086,7 +1086,7 @@ addPointObjects(PlotObjs &objs) const
         // get point position
         const ValueData &valuePoint = values[iv];
 
-        const CQChartsGeom::Point &p = valuePoint.p;
+        const auto &p = valuePoint.p;
 
         //---
 
@@ -1111,8 +1111,7 @@ addPointObjects(PlotObjs &objs) const
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, groupInd, bbox, p, is1, ig1, iv1);
+        auto *pointObj = new CQChartsScatterPointObj(this, groupInd, bbox, p, is1, ig1, iv1);
 
         pointObj->setModelInd(valuePoint.ind);
 
@@ -1287,8 +1286,8 @@ addGridObjects(PlotObjs &objs) const
 
           CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
-          CQChartsScatterCellObj *cellObj =
-            new CQChartsScatterCellObj(this, groupInd, bbox, is1, ig1, ix, iy, points, maxN);
+          auto *cellObj = new CQChartsScatterCellObj(this, groupInd, bbox, is1, ig1,
+                                                     ix, iy, points, maxN);
 
           objs.push_back(cellObj);
         }
@@ -1394,7 +1393,7 @@ addNameValues() const
 
       //---
 
-      auto plot = const_cast<CQChartsScatterPlot *>(plot_);
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
 
       plot->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
 
@@ -1502,8 +1501,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
       ColorInd ic(ig, ng);
 
-      auto colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
-      auto textItem  = new CQChartsKeyText        (this, groupName, ic);
+      auto *colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
+      auto *textItem  = new CQChartsKeyText        (this, groupName, ic);
 
       key->addItem(colorItem, ig, 0);
       key->addItem(textItem , ig, 1);
@@ -1542,8 +1541,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
         ColorInd ic(is, ns);
 
-        auto colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
-        auto textItem  = new CQChartsKeyText        (this, name, ic);
+        auto *colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
+        auto *textItem  = new CQChartsKeyText        (this, name, ic);
 
         key->addItem(colorItem, is, 0);
         key->addItem(textItem , is, 1);
@@ -1575,7 +1574,7 @@ void
 CQChartsScatterPlot::
 addGridKeyItems(CQChartsPlotKey *key)
 {
-  auto item = new CQChartsScatterGridKeyItem(this);
+  auto *item = new CQChartsScatterGridKeyItem(this);
 
   key->addItem(item, 0, 0);
 }
@@ -1591,7 +1590,7 @@ probe(ProbeData &probeData) const
   if (! objNearestPoint(probeData.p, obj))
     return false;
 
-  CQChartsGeom::Point c = obj->rect().getCenter();
+  auto c = obj->rect().getCenter();
 
   probeData.p    = c;
   probeData.both = true;
@@ -1609,7 +1608,7 @@ CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -1625,7 +1624,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  auto typeMenu = new QMenu("Plot Type", menu);
+  auto *typeMenu = new QMenu("Plot Type", menu);
 
   (void) addMenuCheckedAction(typeMenu, "Symbols"   , isSymbols  (), SLOT(setSymbols(bool)));
   (void) addMenuCheckedAction(typeMenu, "Grid Cells", isGridCells(), SLOT(setGridCells(bool)));
@@ -1634,7 +1633,7 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto overlaysMenu = new QMenu("Overlays", menu);
+  auto *overlaysMenu = new QMenu("Overlays", menu);
 
   (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
                               isBestFit   (), SLOT(setBestFit       (bool)));
@@ -1649,8 +1648,8 @@ addMenuItems(QMenu *menu)
 
   //---
 
-  auto xMenu = new QMenu("X Axis Annotation", menu);
-  auto yMenu = new QMenu("Y Axis Annotation", menu);
+  auto *xMenu = new QMenu("X Axis Annotation", menu);
+  auto *yMenu = new QMenu("Y Axis Annotation", menu);
 
   (void) addMenuCheckedAction(xMenu, "Rug"    , isXRug    (), SLOT(setXRug    (bool)));
   (void) addMenuCheckedAction(xMenu, "Density", isXDensity(), SLOT(setXDensity(bool)));
@@ -1677,7 +1676,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   if (isXRug() || isYRug() || isXDensity() || isYDensity() || isXWhisker() || isYWhisker()) {
-    const CQChartsGeom::Range &dataRange = this->dataRange();
+    const auto &dataRange = this->dataRange();
 
     //---
 
@@ -1829,7 +1828,7 @@ CQChartsScatterPlot::
 initGroupBestFit(int groupInd) const
 {
   // init best fit data
-  auto th = const_cast<CQChartsScatterPlot *>(this);
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
 
   CQChartsFitData &fitData = th->groupFitData_[groupInd];
 
@@ -1874,7 +1873,7 @@ CQChartsScatterPlot::
 initGroupStats(int groupInd) const
 {
   // init stats data
-  auto th = const_cast<CQChartsScatterPlot *>(this);
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
 
   StatData &statData = th->groupStatData_[groupInd];
 
@@ -1936,18 +1935,18 @@ drawBestFit(CQChartsPaintDevice *device) const
     // calc fit shape at each pixel
     CQChartsGeom::Polygon bpoly, poly, tpoly;
 
-    CQChartsGeom::Point pl = CQChartsGeom::Point(fitData.xmin(), 0);
-    CQChartsGeom::Point pr = CQChartsGeom::Point(fitData.xmax(), 0);
+    auto pl = CQChartsGeom::Point(fitData.xmin(), 0);
+    auto pr = CQChartsGeom::Point(fitData.xmax(), 0);
 
     for (int px = int(pl.x); px <= int(pr.x); ++px) {
       if (isInterrupt())
         return;
 
-      CQChartsGeom::Point p1 = CQChartsGeom::Point(px, 0.0);
+      auto p1 = CQChartsGeom::Point(px, 0.0);
 
       double y2 = fitData.interp(p1.x);
 
-      CQChartsGeom::Point p2 = CQChartsGeom::Point(p1.x, y2);
+      auto p2 = CQChartsGeom::Point(p1.x, y2);
 
       poly.addPoint(p2);
 
@@ -1990,13 +1989,13 @@ drawBestFit(CQChartsPaintDevice *device) const
         CQChartsGeom::Polygon dpoly;
 
         for (int i = 0; i < bpoly.size(); ++i) {
-          CQChartsGeom::Point p = bpoly.point(i);
+          auto p = bpoly.point(i);
 
           dpoly.addPoint(p);
         }
 
         for (int i = tpoly.size() - 1; i >= 0; --i) {
-          CQChartsGeom::Point p = tpoly.point(i);
+          auto p = tpoly.point(i);
 
           dpoly.addPoint(p);
         }
@@ -2116,7 +2115,7 @@ drawHull(CQChartsPaintDevice *device) const
     // get hull for group (add if needed)
     int groupInd = groupNameValue.first;
 
-    auto th = const_cast<CQChartsScatterPlot *>(this);
+    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto ph = th->groupHull_.find(groupInd);
 
@@ -2172,8 +2171,8 @@ drawXRug(CQChartsPaintDevice *device) const
     if (isInterrupt())
       return;
 
-    auto pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
-    auto cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
+    auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+    auto *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
       pointObj->drawDir(device, CQChartsScatterPointObj::Dir::X, xRugSide() == YSide::TOP);
@@ -2191,8 +2190,8 @@ drawYRug(CQChartsPaintDevice *device) const
     if (isInterrupt())
       return;
 
-    auto pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
-    auto cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
+    auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+    auto *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
       pointObj->drawDir(device, CQChartsScatterPointObj::Dir::Y, yRugSide() == XSide::RIGHT);
@@ -2327,7 +2326,7 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   const CQChartsDensity &density = whiskerData.xWhisker.density();
 
@@ -2362,7 +2361,7 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   const CQChartsDensity &density = whiskerData.yWhisker.density();
 
@@ -2556,7 +2555,7 @@ drawXWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
   double ww = lengthPlotHeight(whiskerWidth ());
   double wm = lengthPlotHeight(whiskerMargin());
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   double pos = (xWhiskerSide() == YSide::BOTTOM ?
     dataRange.ymin() - (ig.i + 1)*ww - wm : dataRange.ymax() + ig.i*ww + wm);
@@ -2589,7 +2588,7 @@ drawYWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
   double ww = lengthPlotWidth(whiskerWidth());
   double wm = lengthPlotWidth(whiskerMargin());
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   double pos = (yWhiskerSide() == XSide::LEFT ?
     dataRange.xmin() - ig.i*ww - wm : dataRange.xmax() + (ig.i + 1)*ww + wm);
@@ -2613,7 +2612,7 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = groupNameValue.first;
 
-    auto th = const_cast<CQChartsScatterPlot *>(this);
+    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 
@@ -2635,7 +2634,7 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+          auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
           whiskerData1->xWhisker.addValue(pointObj->point().x);
         }
@@ -2651,7 +2650,7 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+          auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
           whiskerData1->yWhisker.addValue(pointObj->point().y);
         }
@@ -2670,7 +2669,7 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = pg.first;
 
-    auto th = const_cast<CQChartsScatterPlot *>(this);
+    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 
@@ -2696,7 +2695,7 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+            auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
             whiskerData1->xWhisker.addValue(p.x);
           }
@@ -2717,7 +2716,7 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            auto whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
+            auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
             whiskerData1->yWhisker.addValue(p.y);
           }
@@ -2743,14 +2742,14 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   double mean = symbolSizeData_.data_mean;
   double max  = symbolSizeData_.data_max;
 
-  CQChartsGeom::BBox pbbox = calcPlotPixelRect();
+  auto pbbox = calcPlotPixelRect();
 
   //double px, py;
 
   //double vx = view()->viewportRange();
   //double vy = 0.0;
 
-  //CQChartsGeom::Point p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
+  //auto p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
 
   double px = pbbox.getXMax();
   double py = pbbox.getYMax();
@@ -2790,7 +2789,7 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 
     CQChartsGeom::Point p1(p.x - fm.width(text)/2, p.y);
 
-    CQChartsGeom::Point p2 = device->pixelToWindow(p1);
+    auto p2 = device->pixelToWindow(p1);
 
     CQChartsTextOptions options;
 
@@ -2979,11 +2978,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(pos_);
+  auto p1 = plot_->windowToPixel(pos_);
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp = plot_->windowToPixel(p);
+  auto pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -3052,11 +3051,11 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // get point
-  CQChartsGeom::Point ps = plot_->windowToPixel(pos_);
+  auto ps = plot_->windowToPixel(pos_);
 
   if (dir != Dir::XY) {
     // Dir::X and Dir::Y are X/Y Rug Symbols
-    CQChartsGeom::BBox pbbox = plot_->calcDataPixelRect();
+    auto pbbox = plot_->calcDataPixelRect();
 
     if      (dir == Dir::X) {
       if (! flip)
@@ -3078,7 +3077,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   QImage image = this->image();
 
   if (image.isNull()) {
-    CQChartsGeom::Point ps1 = plot_->pixelToWindow(ps);
+    auto ps1 = plot_->pixelToWindow(ps);
 
     plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
   }
@@ -3183,7 +3182,7 @@ double
 CQChartsScatterPointObj::
 xColorValue(bool relative) const
 {
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  const auto &dataRange = plot_->dataRange();
 
   if (relative)
     return CMathUtil::map(pos_.x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
@@ -3195,7 +3194,7 @@ double
 CQChartsScatterPointObj::
 yColorValue(bool relative) const
 {
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  const auto &dataRange = plot_->dataRange();
 
   if (relative)
     return CMathUtil::map(pos_.y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
@@ -3343,10 +3342,10 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     if (plot_->isInterrupt())
       return;
 
-    CQChartsGeom::Point ps = plot_->windowToPixel(p);
+    auto ps = plot_->windowToPixel(p);
 
     // Dir::X and Dir::Y are X/Y Rug Symbols
-    CQChartsGeom::BBox pbbox = plot_->calcDataPixelRect();
+    auto pbbox = plot_->calcDataPixelRect();
 
     if      (dir == Dir::X) {
       if (! flip)
@@ -3392,7 +3391,7 @@ bool
 CQChartsScatterKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
-  auto plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   int ih = hideIndex();
 
@@ -3414,7 +3413,7 @@ QBrush
 CQChartsScatterKeyColor::
 fillBrush() const
 {
-  auto plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+  auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   QColor c;
 
@@ -3498,8 +3497,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   CQChartsGeom::BBox rrect(rect.getXMax() - wtw - wxm, rect.getYMin() + wym,
                            rect.getXMax() - wxm, rect.getYMax() - wym);
 
-  CQChartsGeom::BBox lprect = plot_->windowToPixel(lrect);
-  CQChartsGeom::BBox rprect = plot_->windowToPixel(rrect);
+  auto lprect = plot_->windowToPixel(lrect);
+  auto rprect = plot_->windowToPixel(rrect);
 
   //---
 
@@ -3553,7 +3552,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   // draw key labels
   auto drawTextLabel = [&](const CQChartsGeom::Point &p, int n) {
-    CQChartsGeom::Point p1 = device->pixelToWindow(p);
+    auto p1 = device->pixelToWindow(p);
 
     QString text = QString("%1").arg(n);
 

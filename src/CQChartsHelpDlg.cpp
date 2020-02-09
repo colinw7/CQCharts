@@ -53,15 +53,15 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 {
   setWindowTitle("Charts Help");
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
-  auto controlFrame = CQUtil::makeWidget<QFrame>("controlFrame");
+  auto *controlFrame = CQUtil::makeWidget<QFrame>("controlFrame");
 
   controlFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  auto controlLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame, 2, 2);
+  auto *controlLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame, 2, 2);
 
   layout->addWidget(controlFrame);
 
@@ -69,7 +69,7 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver) {
-    auto button = CQUtil::makeWidget<QToolButton>(name);
+    auto *button = CQUtil::makeWidget<QToolButton>(name);
 
     button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
@@ -91,7 +91,7 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  auto splitter = CQUtil::makeWidget<QSplitter>("splitter");
+  auto *splitter = CQUtil::makeWidget<QSplitter>("splitter");
 
   splitter->setOrientation(Qt::Horizontal);
 

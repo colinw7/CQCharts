@@ -205,7 +205,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -219,10 +219,10 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   //---
 
-  auto groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
+  auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  auto colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
+  auto *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -230,7 +230,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  auto alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
+  auto *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -238,7 +238,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // width
-  auto widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "widthLabel");
+  auto *widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "widthLabel");
 
   widthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("widthEdit");
 
@@ -246,7 +246,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupLayout->addWidget(widthEdit_, 2, 1);
 
   // dash
-  auto dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dashLabel");
+  auto *dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dashLabel");
 
   dashEdit_ = new CQChartsLineDashEdit;
 
@@ -255,7 +255,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   // corner size
   if (config_.cornerSize) {
-    auto cornerLabel = CQUtil::makeLabelWidget<QLabel>("Corner", "cornerLabel");
+    auto *cornerLabel = CQUtil::makeLabelWidget<QLabel>("Corner", "cornerLabel");
 
     cornerEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("cornerEdit");
 

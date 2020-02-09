@@ -37,7 +37,7 @@ adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
   double r = plotViewWidth (right_ );
   double b = plotViewHeight(bottom_);
 
-  CQChartsGeom::BBox bbox1 = bbox;
+  auto bbox1 = bbox;
 
   if (inside) {
     bbox1.setLeft  (bbox1.getLeft  () - l);
@@ -90,7 +90,7 @@ adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
   double r = lengthViewWidth (right_ );
   double b = lengthViewHeight(bottom_);
 
-  CQChartsGeom::BBox bbox1 = bbox;
+  auto bbox1 = bbox;
 
   if (inside) {
     bbox1.setLeft  (bbox1.getLeft  () - l);

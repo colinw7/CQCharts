@@ -109,7 +109,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
@@ -119,7 +119,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  auto settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
+  auto *settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
 
   settingsSplitter->setOrientation(Qt::Horizontal);
 
@@ -133,7 +133,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //----
 
-  auto viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
+  auto *viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
   viewSplitter->setState(CQTabSplit::State::VSPLIT);
 //viewSplitter->setGrouped(true);
@@ -151,11 +151,11 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  auto viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
+  auto *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
   viewFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  auto viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
+  auto *viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
 
   viewSplitter->addWidget(viewFrame, "View");
 
@@ -184,7 +184,7 @@ CQChartsWindow(CQChartsView *view) :
 
   tableFrame_->setAutoFillBackground(true);
 
-  auto tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
+  auto *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
 
   filterEdit_ = new CQChartsFilterEdit;
 
@@ -283,8 +283,8 @@ updateRangeMap()
   disconnect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
   disconnect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 
-  CQChartsGeom::BBox bbox1 = plot->getDataRange ();
-  CQChartsGeom::BBox bbox2 = plot->calcDataRange();
+  auto bbox1 = plot->getDataRange ();
+  auto bbox2 = plot->calcDataRange();
 
   double xsize = bbox2.getWidth ()/bbox1.getWidth ();
   double xpos  = (bbox2.getXMin() - bbox1.getXMin())/bbox1.getWidth();
@@ -355,7 +355,7 @@ rangeScrollSlot()
   CQChartsPlot *plot = view()->currentPlot();
   if (! plot) return;
 
-  CQChartsGeom::BBox dataRange = plot->getDataRange();
+  auto dataRange = plot->getDataRange();
 
   if (xrangeScroll_->isVisible()) {
     double pos = xrangeScroll_->pos();

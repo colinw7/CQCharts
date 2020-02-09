@@ -105,7 +105,7 @@ class CQChartsTreeMapNode {
 
   virtual double hierSize() const { return size(); }
 
-  virtual QString hierName() const;
+  virtual QString hierName(QChar sep='/') const;
 
   virtual void setPosition(double x, double y, double w, double h);
 
@@ -393,6 +393,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_PROPERTY(bool hierName    READ isHierName    WRITE setHierName   )
+  Q_PROPERTY(int  numSkipHier READ numSkipHier   WRITE setNumSkipHier)
   Q_PROPERTY(bool textClipped READ isTextClipped WRITE setTextClipped)
 
  public:
@@ -418,25 +419,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   const CQChartsOptLength &titleHeight() const { return titleData_.height; }
   void setTitleHeight(const CQChartsOptLength &l);
 
-  double calcTitleHeight() const;
-
-  //---
-
-  bool isColorById() const { return colorById_; }
-  void setColorById(bool b);
-
-  //---
-
-  void setHeaderTextFontSize(double s);
-
-  //---
-
-  // get/set value label
-  bool isValueLabel() const { return valueLabel_; }
-  void setValueLabel(bool b);
-
-  //---
-
   // get/set title hierarchical name
   bool isTitleHierName() const { return titleData_.hierName; }
   void setTitleHierName(bool b);
@@ -453,25 +435,43 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   int titleDepth() const { return titleData_.depth; }
   void setTitleDepth(int d);
 
+  //--
+
+  double calcTitleHeight() const;
+
   //---
 
   // get/set node hierarchical name
-  bool isHierName() const { return hierName_; }
+  bool isHierName() const { return nodeData_.hierName; }
   void setHierName(bool b);
 
+  // num of levels to skip (from the start) for hierarchical name
+  int numSkipHier() const { return nodeData_.numSkipHier; }
+  void setNumSkipHier(int n);
+
   // get/set node text clipped
-  bool isTextClipped() const { return textClipped_; }
+  bool isTextClipped() const { return nodeData_.textClipped; }
   void setTextClipped(bool b);
 
-  //---
+  // get/set value label
+  bool isValueLabel() const { return nodeData_.valueLabel; }
+  void setValueLabel(bool b);
 
-  // box margin, stroke, fill, font
-  const CQChartsLength &marginWidth() const { return marginWidth_; }
+  // box margin
+  const CQChartsLength &marginWidth() const { return nodeData_.marginWidth; }
   void setMarginWidth(const CQChartsLength &l);
 
   //---
 
+  void setHeaderTextFontSize(double s);
+
   void setTextFontSize(double s);
+
+  //---
+
+  // is color by id
+  bool isColorById() const { return colorById_; }
+  void setColorById(bool b);
 
   //------
 
@@ -601,32 +601,37 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   struct TitleData {
     bool              visible     { true };  //!< show title bar (header)
-    bool              autoHide    { true };  //!< auto hide title if larger than max extent
-    CQChartsOptReal   maxExtent;             //!< user specified title bar max extent (0-1)
-    CQChartsOptLength height;                //!< user specified title height
-    bool              hierName    { false }; //!< title hierarchical name
-    bool              textClipped { true };  //!< title text clipped
-    double            margin      { 3 };     //!< title margin (pixels)
+    bool              autoHide    { true };  //!< auto hide if larger than max extent
+    CQChartsOptReal   maxExtent;             //!< user specified max height extent (0-1)
+    CQChartsOptLength height;                //!< user specified height
+    bool              hierName    { false }; //!< show hierarchical name
+    bool              textClipped { true };  //!< is text clipped
+    double            margin      { 3 };     //!< margin (pixels)
     int               depth       { -1 };    //!< max depth for header
   };
 
-  TitleData      titleData_;                      //!< title data
-  bool           valueLabel_         { false };   //!< draw value with name
-  bool           hierName_           { false };   //!< node hierarchical name
-  bool           textClipped_        { true };    //!< node text clipped
-  CQChartsLength marginWidth_        { "2px" };   //!< box margin
-  bool           colorById_          { true };    //!< color by id
-  Node*          root_               { nullptr }; //!< root node
-  Node*          firstHier_          { nullptr }; //!< first hier node
-  QString        currentRootName_;                //!< current root name
-  int            colorId_            { -1 };      //!< current color id
-  int            numColorIds_        { 0 };       //!< num used color ids
-  int            maxDepth_           { 1 };       //!< max hier depth
-  int            hierInd_            { 0 };       //!< current hier ind
-  mutable int    ig_                 { 0 };       //!< current group index
-  mutable int    in_                 { 0 };       //!< current node index
-  double         windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
-  double         windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+  struct NodeData {
+    bool           hierName    { false }; //!< show hierarchical name
+    bool           textClipped { true };  //!< is text clipped
+    int            numSkipHier { 0 };     //!< number of levels of hier name to skip
+    bool           valueLabel  { false }; //!< draw value with name
+    CQChartsLength marginWidth { "2px" }; //!< box margin
+  };
+
+  TitleData   titleData_;                      //!< title data
+  NodeData    nodeData_;                       //!< node data
+  bool        colorById_          { true };    //!< color by id
+  Node*       root_               { nullptr }; //!< root node
+  Node*       firstHier_          { nullptr }; //!< first hier node
+  QString     currentRootName_;                //!< current root name
+  int         colorId_            { -1 };      //!< current color id
+  int         numColorIds_        { 0 };       //!< num used color ids
+  int         maxDepth_           { 1 };       //!< max hier depth
+  int         hierInd_            { 0 };       //!< current hier ind
+  mutable int ig_                 { 0 };       //!< current group index
+  mutable int in_                 { 0 };       //!< current node index
+  double      windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
+  double      windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
 };
 
 #endif

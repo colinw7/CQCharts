@@ -337,7 +337,7 @@ CQChartsXYPlot::
 resetBestFit()
 {
   for (const auto &plotObj : plotObjs_) {
-    auto polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
 
     if (polyObj)
       polyObj->resetBestFit();
@@ -657,7 +657,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsXYPlot::calcRange");
 
-  auto th = const_cast<CQChartsXYPlot *>(this);
+  auto *th = const_cast<CQChartsXYPlot *>(this);
 
   //---
 
@@ -756,7 +756,7 @@ calcRange() const
 
   visitModel(visitor);
 
-  CQChartsGeom::Range dataRange = visitor.range();
+  auto dataRange = visitor.range();
 
   if (isInterrupt())
     return dataRange;
@@ -849,7 +849,7 @@ initAxes()
     else if (isStacked()) {
     }
     else {
-      CQChartsColumn yColumn = yColumns().getColumn(0);
+      auto yColumn = yColumns().getColumn(0);
 
       if (isOverlay()) {
         if (isFirstPlot() || isY1Y2())
@@ -915,7 +915,7 @@ yAxisName(const QString &def) const
     name = titleStr();
 
     if (! name.length()) {
-      CQChartsColumn yColumn1 = yColumns().getColumn(0);
+      auto yColumn1 = yColumns().getColumn(0);
 
       CQChartsColumn yColumn2;
 
@@ -939,7 +939,7 @@ yAxisName(const QString &def) const
     for (int j = 0; j < ns; ++j) {
       bool ok;
 
-      CQChartsColumn yColumn = yColumns().getColumn(j);
+      auto yColumn = yColumns().getColumn(j);
 
       QString name1 = modelHHeaderString(yColumn, ok);
 
@@ -991,11 +991,11 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  auto th = const_cast<CQChartsXYPlot *>(this);
+  auto *th = const_cast<CQChartsXYPlot *>(this);
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
   if (! dataRange.isSet()) return false;
 
   // TODO: use actual symbol size
@@ -1079,18 +1079,18 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
         SetIndPoly &setPoly = p.second;
 
         for (int i = 1; i < ns_; ++i) {
-          CQChartsGeom::Polygon &poly1 = setPoly[i - 1].poly;
-          CQChartsGeom::Polygon &poly2 = setPoly[i    ].poly;
+          auto &poly1 = setPoly[i - 1].poly;
+          auto &poly2 = setPoly[i    ].poly;
 
           int np = poly1.size();
           assert(poly2.size() == np);
 
           for (int j = 0; j < np; ++j) {
-            CQChartsGeom::Point p1 = poly1.point(j);
+            auto p1 = poly1.point(j);
 
             double y1 = p1.y;
 
-            CQChartsGeom::Point p2 = poly2.point(j);
+            auto p2 = poly2.point(j);
 
             double x2 = p2.x, y2 = p2.y;
 
@@ -1109,13 +1109,13 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
         SetIndPoly &setPoly = p.second;
 
         for (int i = 0; i < ns_; ++i) {
-          CQChartsGeom::Polygon &poly = setPoly[i].poly;
+          auto &poly = setPoly[i].poly;
 
           int np = poly.size();
 
           for (int j = 1; j < np; ++j) {
-            CQChartsGeom::Point p1 = poly.point(j - 1);
-            CQChartsGeom::Point p2 = poly.point(j    );
+            auto p1 = poly.point(j - 1);
+            auto p2 = poly.point(j    );
 
             double y1 = p1.y;
             double x2 = p2.x, y2 = p2.y;
@@ -1213,7 +1213,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
   polygons1.resize(ns - 1);
   polygons2.resize(ns - 1);
 
-  const CQChartsGeom::Polygon &poly = setPoly[0].poly;
+  const auto &poly = setPoly[0].poly;
 
   int np = poly.size();
 
@@ -1234,9 +1234,9 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       //---
 
-      const CQChartsGeom::Polygon &poly = setPoly[j].poly;
+      const auto &poly = setPoly[j].poly;
 
-      CQChartsGeom::Point p = poly.point(ip);
+      auto p = poly.point(ip);
 
       if (CMathUtil::isNaN(p.y) || CMathUtil::isInf(p.y))
         continue;
@@ -1286,14 +1286,13 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         ColorInd is(j - 1, ny1 - 1);
         ColorInd iv(ip, np);
 
-        CQChartsXYBiLineObj *lineObj =
-          new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1, is, iv);
+        auto *lineObj = new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1, is, iv);
 
         objs.push_back(lineObj);
       }
       else {
-        CQChartsGeom::Polygon &poly1 = polygons1[j - 1].poly;
-        CQChartsGeom::Polygon &poly2 = polygons2[j - 1].poly;
+        auto &poly1 = polygons1[j - 1].poly;
+        auto &poly2 = polygons2[j - 1].poly;
 
         // build lower and upper poly line for fill under polygon
         poly1.addPoint(CQChartsGeom::Point(x, y1));
@@ -1311,7 +1310,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
     QString name = titleStr();
 
     if (! name.length()) {
-      CQChartsColumn yColumn1 = yColumns().getColumn(0);
+      auto yColumn1 = yColumns().getColumn(0);
 
       CQChartsColumn yColumn2;
 
@@ -1345,8 +1344,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       //---
 
-      CQChartsGeom::Polygon &poly1 = polygons1[j - 1].poly;
-      CQChartsGeom::Polygon &poly2 = polygons2[j - 1].poly;
+      auto &poly1 = polygons1[j - 1].poly;
+      auto &poly2 = polygons2[j - 1].poly;
 
       ColorInd is1(j - 1, ns - 1);
 
@@ -1355,7 +1354,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       int len = poly1.size();
 
-      CQChartsFillUnderSide::Type fillUnderSideType = fillUnderSide().type();
+      auto fillUnderSideType = fillUnderSide().type();
 
       if      (fillUnderSideType == CQChartsFillUnderSide::Type::BOTH) {
         // add upper poly line to lower one (points reversed) to build fill polygon
@@ -1364,12 +1363,13 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
       }
       else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
         CQChartsGeom::Polygon poly3, poly4;
+        CQChartsGeom::Point   pa1, pb1;
 
-        CQChartsGeom::Point pa1, pb1; bool above1 = true;
+        bool above1 = true;
 
         for (int k = 0; k < len; ++k) {
-          CQChartsGeom::Point pa2 = poly1.point(k);
-          CQChartsGeom::Point pb2 = poly2.point(k);
+          auto pa2 = poly1.point(k);
+          auto pb2 = poly2.point(k);
 
           bool above2 = (pa2.y > pb2.y);
 
@@ -1399,12 +1399,13 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
       }
       else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
         CQChartsGeom::Polygon poly3, poly4;
+        CQChartsGeom::Point   pa1, pb1;
 
-        CQChartsGeom::Point pa1, pb1; bool below1 = true;
+        bool below1 = true;
 
         for (int k = 0; k < len; ++k) {
-          CQChartsGeom::Point pa2 = poly1.point(k);
-          CQChartsGeom::Point pb2 = poly2.point(k);
+          auto pa2 = poly1.point(k);
+          auto pb2 = poly2.point(k);
 
           bool below2 = (pa2.y < pb2.y);
 
@@ -1444,7 +1445,7 @@ bool
 CQChartsXYPlot::
 addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &objs) const
 {
-  auto th = const_cast<CQChartsXYPlot *>(this);
+  auto *th = const_cast<CQChartsXYPlot *>(this);
 
   //---
 
@@ -1461,7 +1462,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
   //---
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   // convert lines into set polygon and set poly lines (more than one if NaNs)
   int ns = yColumns().count();
@@ -1478,7 +1479,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     //---
 
     // get column name
-    CQChartsColumn yColumn = yColumns().getColumn(is);
+    auto yColumn = yColumns().getColumn(is);
 
     bool ok;
 
@@ -1491,12 +1492,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     const IndPoly &setPoly1 = setPoly[is];
 
-    const CQChartsGeom::Polygon &poly = setPoly1.poly;
-    const IndPoly::Inds         &inds = setPoly1.inds;
+    const auto &poly = setPoly1.poly;
+    const auto &inds = setPoly1.inds;
 
     const IndPoly &setPoly2 = setPoly[is - 1];
 
-    const CQChartsGeom::Polygon &prevPoly = (is > 0 ? setPoly2.poly : poly);
+    const auto &prevPoly = (is > 0 ? setPoly2.poly : poly);
 
     //---
 
@@ -1544,7 +1545,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       //---
 
       // get polygon point
-      CQChartsGeom::Point p = poly.point(ip);
+      auto p = poly.point(ip);
 
       double x = p.x, y = p.y;
 
@@ -1597,8 +1598,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, groupInd, bbox, p, is1, ig, iv1);
+        auto *pointObj = new CQChartsXYPointObj(this, groupInd, bbox, p, is1, ig, iv1);
 
         pointObj->setModelInd(xind1);
 
@@ -1667,8 +1667,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         if (pointName.length()) {
           CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
-          CQChartsXYLabelObj *labelObj =
-            new CQChartsXYLabelObj(this, groupInd, bbox, x, y, pointName, xind1, is1, iv1);
+          auto *labelObj = new CQChartsXYLabelObj(this, groupInd, bbox, x, y, pointName,
+                                                  xind1, is1, iv1);
 
           objs.push_back(labelObj);
 
@@ -1739,8 +1739,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           CQChartsGeom::BBox bbox(x - w/2, ys, x + w/2, ye);
 
-          CQChartsXYImpulseLineObj *impulseObj =
-            new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye, xind1, is1, iv1);
+          auto *impulseObj = new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye,
+                                                          xind1, is1, iv1);
 
           objs.push_back(impulseObj);
         }
@@ -1846,7 +1846,7 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   int ns = yColumns().count();
 
   for (int i = 0; i < ns; ++i) {
-    CQChartsColumn yColumn = yColumns().getColumn(i);
+    auto yColumn = yColumns().getColumn(i);
 
     CQChartsModelIndex yModelInd(data.row, yColumn, data.parent);
 
@@ -1877,12 +1877,12 @@ CQChartsGeom::Point
 CQChartsXYPlot::
 calcFillUnderPos(double x, double y) const
 {
-  const CQChartsFillUnderPos &pos = fillUnderPos();
+  const auto &pos = fillUnderPos();
 
   double x1 = x;
   double y1 = y;
 
-  const CQChartsGeom::Range &dataRange = this->dataRange();
+  const auto &dataRange = this->dataRange();
 
   if      (pos.xtype() == CQChartsFillUnderPos::Type::MIN) {
     if (dataRange.isSet())
@@ -1914,13 +1914,13 @@ CQChartsXYPlot::
 addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd, const ColorInd &is,
             const ColorInd &ig, const QString &name, PlotObjs &pointObjs, PlotObjs &objs) const
 {
-  CQChartsGeom::BBox bbox = polyLine.boundingBox();
+  auto bbox = polyLine.boundingBox();
   if (! bbox.isSet()) return nullptr;
 
-  auto lineObj = new CQChartsXYPolylineObj(this, groupInd, bbox, polyLine, name, is, ig);
+  auto *lineObj = new CQChartsXYPolylineObj(this, groupInd, bbox, polyLine, name, is, ig);
 
   for (auto &pointObj : pointObjs) {
-    auto pointObj1 = dynamic_cast<CQChartsXYPointObj *>(pointObj);
+    auto *pointObj1 = dynamic_cast<CQChartsXYPointObj *>(pointObj);
 
     if (pointObj1)
       pointObj1->setLineObj(lineObj);
@@ -1936,11 +1936,10 @@ CQChartsXYPlot::
 addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
            const ColorInd &ig, const QString &name, PlotObjs &objs) const
 {
-  CQChartsGeom::BBox bbox = poly.boundingBox();
+  auto bbox = poly.boundingBox();
   if (! bbox.isSet()) return;
 
-  CQChartsXYPolygonObj *polyObj =
-    new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig);
+  auto *polyObj = new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig);
 
   objs.push_back(polyObj);
 }
@@ -1952,7 +1951,7 @@ valueName(int is, int ns, int irow) const
   QString name;
 
   if (ns > 1 && is >= 0) {
-    CQChartsColumn yColumn = yColumns().getColumn(is);
+    auto yColumn = yColumns().getColumn(is);
 
     bool ok;
 
@@ -1983,8 +1982,8 @@ addKeyItems(CQChartsPlotKey *key)
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
-    auto color = new CQChartsXYKeyColor(this, is, ig);
-    auto text  = new CQChartsXYKeyText (this, name, is, ig);
+    auto *color = new CQChartsXYKeyColor(this, is, ig);
+    auto *text  = new CQChartsXYKeyText (this, name, is, ig);
 
     if (! key->isHorizontal()) {
       key->addItem(color, row, col    );
@@ -2007,7 +2006,7 @@ addKeyItems(CQChartsPlotKey *key)
     QString name = titleStr();
 
     if (! name.length()) {
-      CQChartsColumn yColumn1 = yColumns().getColumn(0);
+      auto yColumn1 = yColumns().getColumn(0);
 
       CQChartsColumn yColumn2;
 
@@ -2028,7 +2027,7 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
-      CQChartsColumn yColumn = yColumns().getColumn(i);
+      auto yColumn = yColumns().getColumn(i);
 
       bool ok;
 
@@ -2042,7 +2041,7 @@ addKeyItems(CQChartsPlotKey *key)
   else {
     if      (ns > 1) {
       for (int i = 0; i < ns; ++i) {
-        CQChartsColumn yColumn = yColumns().getColumn(i);
+        auto yColumn = yColumns().getColumn(i);
 
         bool ok;
 
@@ -2120,7 +2119,7 @@ interpY(double x, std::vector<double> &yvals) const
   }
 
   for (const auto &plotObj : plotObjs_) {
-    auto polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
 
     if (! polyObj)
       continue;
@@ -2143,7 +2142,7 @@ CQChartsXYPlot::
 getGroupObj(int ig) const
 {
   for (const auto &plotObj : plotObjs_) {
-    auto polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
 
     if (polyObj) {
       if (polyObj->is().n == 1 && polyObj->ig().n > 1 && polyObj->ig().i == ig)
@@ -2160,10 +2159,10 @@ CQChartsGeom::BBox
 CQChartsXYPlot::
 dataFitBBox() const
 {
-  CQChartsGeom::BBox bbox = CQChartsPlot::dataFitBBox();
+  auto bbox = CQChartsPlot::dataFitBBox();
 
   for (const auto &plotObj : plotObjs_) {
-    auto labelObj = dynamic_cast<CQChartsXYLabelObj *>(plotObj);
+    auto *labelObj = dynamic_cast<CQChartsXYLabelObj *>(plotObj);
 
     if (! labelObj)
       continue;
@@ -2181,7 +2180,7 @@ CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    auto action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);
@@ -2322,8 +2321,8 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   double sx, sy;
 
@@ -2331,7 +2330,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p2.x + sx, p2.y + sy);
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2355,8 +2354,8 @@ draw(CQChartsPaintDevice *device)
   if (! visible())
     return;
 
-  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   if (plot()->isLines()) {
     // calc pen and brush
@@ -2381,7 +2380,7 @@ draw(CQChartsPaintDevice *device)
 
   if (plot()->isPoints()) {
     // get symbol and size
-    CQChartsSymbol symbol = plot()->symbolType();
+    auto symbol = plot()->symbolType();
 
     double sx, sy;
 
@@ -2475,8 +2474,8 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   double b = 2;
 
@@ -2484,7 +2483,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::BBox pbbox(p1.x - lw/2, p1.y - b, p2.x + lw/2, p2.y + b);
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2540,8 +2539,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw impulse
-  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   if (lw <= 1) {
     device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
@@ -2815,11 +2814,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot()->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y()));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y()));
 
   CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2873,7 +2872,7 @@ draw(CQChartsPaintDevice *device)
   plot()->setSymbolPenBrush(penBrush, ic);
 
   // override symbol fill color for custom color
-  CQChartsColor color = this->color();
+  auto color = this->color();
 
   if (color.isValid()) {
     QColor c = plot()->interpColor(color, ic);
@@ -2891,8 +2890,8 @@ draw(CQChartsPaintDevice *device)
 
   if (visible()) {
     // override symbol type for custom symbol
-    CQChartsSymbol symbolType = this->symbolType();
-    CQChartsLength symbolSize = this->symbolSize();
+    auto symbolType = this->symbolType();
+    auto symbolSize = this->symbolSize();
 
     // draw symbol or image
     QImage image = this->image();
@@ -2902,7 +2901,7 @@ draw(CQChartsPaintDevice *device)
     }
     else {
       // get point
-      CQChartsGeom::Point ps = plot()->windowToPixel(pos_);
+      auto ps = plot()->windowToPixel(pos_);
 
       double sx, sy;
 
@@ -2919,8 +2918,8 @@ draw(CQChartsPaintDevice *device)
   // draw optional vector
   // TODO: custom color for this sets what ?
   if (isVector) {
-    CQChartsGeom::Point p1 = pos_;
-    CQChartsGeom::Point p2 = p1 + this->vector();
+    auto p1 = pos_;
+    auto p2 = p1 + this->vector();
 
     plot()->drawArrow(device, p1, p2);
   }
@@ -2991,7 +2990,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point ppos = plot()->windowToPixel(CQChartsGeom::Point(pos_));
+  auto ppos = plot()->windowToPixel(CQChartsGeom::Point(pos_));
 
   // TODO: better text bounding box
   double sx = 16;
@@ -2999,7 +2998,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::BBox pbbox(ppos.x - sx, ppos.y - sy, ppos.x + sx, ppos.y + sy);
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -3040,12 +3039,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get font size
-  CQChartsLength fontSize = pointObj()->fontSize();
+  auto fontSize = pointObj()->fontSize();
 
   //---
 
   // set (temp) font
-  CQChartsFont font = dataLabel->textFont();
+  auto font = dataLabel->textFont();
 
   if (fontSize.isValid()) {
     double fontPixelSize = plot_->lengthPixelHeight(fontSize);
@@ -3053,7 +3052,7 @@ draw(CQChartsPaintDevice *device)
     // scale to font size
     fontPixelSize = plot_->limitFontSize(fontPixelSize);
 
-    CQChartsFont font1 = font;
+    auto font1 = font;
 
     font1.setPointSizeF(fontPixelSize);
 
@@ -3063,7 +3062,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw text
-  CQChartsGeom::Point ps = plot()->windowToPixel(pos_);
+  auto ps = plot()->windowToPixel(pos_);
 
   // TODO: better symbol bounding box
   double sx = 16.0;
@@ -3146,14 +3145,14 @@ inside(const CQChartsGeom::Point &p) const
   if (! plot()->isLinesSelectable())
     return false;
 
-  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+  auto pp = plot()->windowToPixel(p);
 
   for (int i = 1; i < poly_.size(); ++i) {
-    CQChartsGeom::Point p1 = poly_.point(i - 1);
-    CQChartsGeom::Point p2 = poly_.point(i    );
+    auto p1 = poly_.point(i - 1);
+    auto p2 = poly_.point(i    );
 
-    CQChartsGeom::Point pl1 = plot()->windowToPixel(p1);
-    CQChartsGeom::Point pl2 = plot()->windowToPixel(p2);
+    auto pl1 = plot()->windowToPixel(p1);
+    auto pl2 = plot()->windowToPixel(p2);
 
     double d;
 
@@ -3231,7 +3230,7 @@ initSmooth() const
 {
   // init smooth if needed
   if (! smooth_) {
-    auto th = const_cast<CQChartsXYPolylineObj *>(this);
+    auto *th = const_cast<CQChartsXYPolylineObj *>(this);
 
     th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
   }
@@ -3349,18 +3348,18 @@ draw(CQChartsPaintDevice *device)
     // calc fit shape at each pixel
     CQChartsGeom::Polygon bpoly, poly, tpoly;
 
-    CQChartsGeom::Point pl = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmin(), 0));
-    CQChartsGeom::Point pr = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmax(), 0));
+    auto pl = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmin(), 0));
+    auto pr = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmax(), 0));
 
     for (int px = int(pl.x); px <= int(pr.x); ++px) {
       if (plot()->isInterrupt())
         return;
 
-      CQChartsGeom::Point p1 = plot()->pixelToWindow(CQChartsGeom::Point(px, 0.0));
+      auto p1 = plot()->pixelToWindow(CQChartsGeom::Point(px, 0.0));
 
       double y2 = bestFit_.interp(p1.x);
 
-      CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2));
+      auto p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2));
 
       poly.addPoint(p2);
 
@@ -3407,7 +3406,7 @@ draw(CQChartsPaintDevice *device)
           if (plot()->isInterrupt())
             return;
 
-          CQChartsGeom::Point p = bpoly.point(i);
+          auto p = bpoly.point(i);
 
           dpoly.addPoint(p);
         }
@@ -3416,7 +3415,7 @@ draw(CQChartsPaintDevice *device)
           if (plot()->isInterrupt())
             return;
 
-          CQChartsGeom::Point p = tpoly.point(i);
+          auto p = tpoly.point(i);
 
           dpoly.addPoint(p);
         }
@@ -3458,7 +3457,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    const CQChartsGeom::Range &dataRange = plot()->dataRange();
+    const auto &dataRange = plot()->dataRange();
 
     auto drawStatLine = [&](double y) {
       CQChartsGeom::Point p1(dataRange.xmin(), y);
@@ -3593,7 +3592,7 @@ initSmooth() const
   // init smooth if needed
   // (not first point and last point are the extra points to make the square protrusion
   if (! smooth_) {
-    auto th = const_cast<CQChartsXYPolygonObj *>(this);
+    auto *th = const_cast<CQChartsXYPolygonObj *>(this);
 
     th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
   }
@@ -3770,7 +3769,7 @@ CQChartsGeom::Size
 CQChartsXYKeyLine::
 size() const
 {
-  auto keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
+  auto *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
 
   if (! keyPlot)
     keyPlot = plot();
@@ -3823,16 +3822,16 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
   device->save();
 
-  auto keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
+  auto *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
 
-  //auto xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
+  //auto *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
   //if (! xyKeyPlot) xyKeyPlot = plot();
 
-  CQChartsGeom::BBox prect = keyPlot->windowToPixel(rect);
+  auto prect = keyPlot->windowToPixel(rect);
 
   bool swapped;
-  CQChartsGeom::BBox pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
-  if (swapped) rertunr;
+  auto pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
+  if (swapped) rerurn;
 
   device->setClipRect(pbbox1, Qt::IntersectClip);
 
@@ -3923,8 +3922,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     double x2 = rect.getXMax() - dx;
     double y  = rect.getYMid();
 
-    CQChartsGeom::Point p1 = keyPlot->windowToPixel(CQChartsGeom::Point(x1, y));
-    CQChartsGeom::Point p2 = keyPlot->windowToPixel(CQChartsGeom::Point(x2, y));
+    auto p1 = keyPlot->windowToPixel(CQChartsGeom::Point(x1, y));
+    auto p2 = keyPlot->windowToPixel(CQChartsGeom::Point(x2, y));
 
     //---
 
@@ -3953,8 +3952,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
     //---
 
-    CQChartsSymbol symbolType = plot()->symbolType();
-    CQChartsLength symbolSize = plot()->symbolSize();
+    auto symbolType = plot()->symbolType();
+    auto symbolSize = plot()->symbolSize();
 
     CQChartsGeom::Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 

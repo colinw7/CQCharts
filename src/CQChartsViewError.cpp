@@ -13,7 +13,7 @@ CQChartsViewError::
 CQChartsViewError(CQChartsView *view) :
  view_(view)
 {
-  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   tab_ = CQUtil::makeWidget<CQTabSplit>("area");
 
@@ -34,7 +34,7 @@ updatePlots()
     if (! plot->hasErrors())
       continue;
 
-    auto text = CQUtil::makeWidget<QTextBrowser>("text");
+    auto *text = CQUtil::makeWidget<QTextBrowser>("text");
 
     tab_->addWidget(text, plot->id());
 
