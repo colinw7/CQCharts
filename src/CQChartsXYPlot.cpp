@@ -348,6 +348,13 @@ resetBestFit()
 
 void
 CQChartsXYPlot::
+setSkipBad(bool b)
+{
+  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
 setStacked(bool b)
 {
   CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
@@ -707,7 +714,7 @@ calcRange() const
       // get x and y values
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      if (! plot_->rowData(data, x, y, rowInd, /*skipBad*/true))
+      if (! plot_->rowData(data, x, y, rowInd, plot_->isSkipBad()))
         return State::SKIP;
 
       int ny = y.size();
@@ -1061,7 +1068,9 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
 
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      (void) plot_->rowData(data, x, y, rowInd, /*skipBad*/false);
+      if (! plot_->rowData(data, x, y, rowInd, plot_->isSkipBad()))
+        return State::SKIP;
+
       assert(int(y.size()) == ns_);
 
       for (int i = 0; i < ns_; ++i) {
@@ -1833,14 +1842,26 @@ CQChartsXYPlot::
 rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
+  auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  //---
+
+  // get x value (must be valid)
   CQChartsModelIndex xModelInd(data.row, xColumn(), data.parent);
 
   ind = modelIndex(xModelInd);
 
   bool ok1 = modelMappedReal(xModelInd, x, isLogX(), data.row);
 
+  if (! ok1) {
+    th->addDataError(xModelInd, "Invalid X Value");
+    return false;
+  }
+
   //---
 
+  // get y values (optionally skip bad)
+  // TODO: differentiate between bad value and empty value
   bool ok2 = true;
 
   int ns = yColumns().count();

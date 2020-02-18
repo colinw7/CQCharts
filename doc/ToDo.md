@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Filter as prompt in plot (common expression handling)
+ + Header bar to switch data ?
  + Test for extra nodes in tree map (hier with size and child with size)
  + Better javascript font rendering (device scaling, alignment ?)
  + Move to thread crash for key with scrollbar ?

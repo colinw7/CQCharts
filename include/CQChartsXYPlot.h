@@ -616,6 +616,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // bivariate
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
 
+  // skip bad
+  Q_PROPERTY(bool skipBad READ isSkipBad WRITE setSkipBad)
+
   // stacked, cumulative
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
   Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
@@ -691,6 +694,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   const CQChartsColumn &vectorYColumn() const { return vectorYColumn_; }
   void setVectorYColumn(const CQChartsColumn &c);
+
+  //---
+
+  // get/set skip bad
+  bool isSkipBad() const { return skipBad_; }
+  void setSkipBad(bool b);
 
   //---
 
@@ -909,6 +918,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   int  pointStart_      { 0 };     //!< point start (0=start, -1=end, -2=middle)
 
   // plot type
+  bool skipBad_         { false }; //!< skip bad
   bool stacked_         { false }; //!< is stacked
   bool cumulative_      { false }; //!< cumulate values
   bool roundedLines_    { false }; //!< draw rounded (smooth) lines
