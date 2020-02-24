@@ -17,6 +17,9 @@
 #include <QSortFilterProxyModel>
 #include <QMenu>
 #include <QActionGroup>
+#include <QFileDialog>
+#include <QDir>
+
 #include <cassert>
 
 CQChartsTable::
@@ -504,17 +507,42 @@ exportSlot(QAction *action)
 {
   QString type = action->text();
 
+  bool hheader = true;
+  bool vheader = false;
+
+  QString dir = QDir::current().dirName();
+  QString pattern;
+
+  if      (type == "CSV") {
+    dir     += "/model.csv";
+    pattern  = "Files (*.csv)";
+  }
+  else if (type == "TSV") {
+    dir     += "/model.tsv";
+    pattern  = "Files (*.tsv)";
+  }
+  else if (type == "JSON") {
+    dir     += "/model.json";
+    pattern  = "Files (*.json)";
+  }
+  else {
+    std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
+    return;
+  }
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
+  if (! fileName.length()) return; // cancelled
+
   CQChartsModelData *modelData = getModelData();
 
   if      (type == "CSV")
-    modelData->exportModel("-", CQBaseModelDataType::CSV);
+    modelData->exportModel(fileName, CQBaseModelDataType::CSV, hheader, vheader);
   else if (type == "TSV")
-    modelData->exportModel("-", CQBaseModelDataType::TSV);
+    modelData->exportModel(fileName, CQBaseModelDataType::TSV, hheader, vheader);
   else if (type == "JSON")
-    modelData->exportModel("-", CQBaseModelDataType::JSON);
-  else {
-    std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
-  }
+    modelData->exportModel(fileName, CQBaseModelDataType::JSON, hheader, vheader);
+  else
+    assert(false);
 }
 
 void

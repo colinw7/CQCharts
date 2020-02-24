@@ -1,7 +1,12 @@
 #include <CQChartsModelView.h>
 #include <CQChartsTableDelegate.h>
+#include <CQChartsModelFilter.h>
+#include <CQChartsModelExprMatch.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsRegExp.h>
+#include <CQChartsVariant.h>
+#include <CQChartsModelVisitor.h>
 #include <CQChartsSelectionModel.h>
 #include <CQCharts.h>
 
@@ -50,6 +55,7 @@ CQChartsModelView::
     modelData_->removeSelectionModel(sm_);
 
   delete delegate_;
+  delete match_;
 }
 
 void
@@ -85,6 +91,14 @@ addMenuActions(QMenu *menu)
     connect(actionGroup, SIGNAL(triggered(QAction *)), this, slotName);
 
     return actionGroup;
+  };
+
+  auto addAction = [&](const QString &name, const char *slotName) {
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+
+    menu->addAction(action);
   };
 
   //---
@@ -129,6 +143,10 @@ addMenuActions(QMenu *menu)
   addExportAction("JSON");
 
   exportMenu->addActions(exportActionGroup->actions());
+
+  //---
+
+  addAction("Edit", SLOT(editSlot()));
 }
 
 void
@@ -172,26 +190,266 @@ setModelP(const ModelP &model)
 
 void
 CQChartsModelView::
+setFilterAnd(bool b)
+{
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+
+  if (modelFilter)
+    modelFilter->setFilterCombine(b ? CQChartsModelFilter::Combine::AND :
+                                      CQChartsModelFilter::Combine::OR);
+}
+
+void
+CQChartsModelView::
 setFilter(const QString &filter)
 {
+  addReplaceFilter(filter, /*add*/false);
+}
+
+void
+CQChartsModelView::
+addFilter(const QString &filter)
+{
+  addReplaceFilter(filter, /*add*/true);
+}
+
+void
+CQChartsModelView::
+addReplaceFilter(const QString &filter, bool add)
+{
+  if (! model_)
+    return;
+
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+
+  if (modelFilter) {
+    if (sm_)
+      modelFilter->setSelectionModel(sm_);
+
+    if (add)
+      modelFilter->pushFilterData();
+    else
+      modelFilter->resetFilterData();
+
+    if      (filter == "selected" || filter == "non-selected") {
+      bool invert = (filter == "non-selected");
+
+      modelFilter->setSelectionFilter(invert);
+    }
+    else if (isExprFilter()) {
+      modelFilter->setExpressionFilter(filter);
+    }
+    else {
+      modelFilter->setRegExpFilter(filter);
+    }
+  }
+  else {
+    auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+    assert(proxyModel);
+
+    QAbstractItemModel *model = proxyModel->sourceModel();
+    assert(model);
+
+    QString filter1;
+    int     column { -1 };
+
+    if (CQChartsModelUtil::decodeModelFilterStr(model, filter, filter1, column))
+      proxyModel->setFilterKeyColumn(column);
+
+    proxyModel->setFilterWildcard(filter1);
+  }
+
+  emit filterChanged();
+}
+
+QString
+CQChartsModelView::
+filterDetails() const
+{
+  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+
+  if (modelFilter)
+    return modelFilter->filterDetails();
+
+  return "";
+}
+
+void
+CQChartsModelView::
+setSearch(const QString &text)
+{
+  addReplaceSearch(text, /*add*/false);
+}
+
+void
+CQChartsModelView::
+addSearch(const QString &text)
+{
+  addReplaceSearch(text, /*add*/true);
+}
+
+void
+CQChartsModelView::
+addReplaceSearch(const QString &text, bool add)
+{
+  if (! add)
+    matches_.clear();
+
+  matches_.push_back(text);
+
+  //---
+
   if (! model_)
     return;
 
   auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
-  QAbstractItemModel *model = proxyModel->sourceModel();
-  assert(model);
+  //---
 
-  QString filter1;
-  int     column { -1 };
+  int oldKeyColumn = proxyModel->filterKeyColumn();
 
-  if (CQChartsModelUtil::decodeModelFilterStr(model, filter, filter1, column))
-    proxyModel->setFilterKeyColumn(column);
+  int keyColumn = oldKeyColumn;
 
-  proxyModel->setFilterWildcard(filter1);
+  // get matching items
+  using Rows = std::vector<QModelIndex>;
 
-  emit filterChanged();
+  Rows rows;
+
+  if (! isExprFilter()) {
+    QString text1;
+    int     column = -1;
+
+    if (CQChartsModelUtil::decodeModelFilterStr(model_.data(), text, text1, column))
+      proxyModel->setFilterKeyColumn(column);
+
+    keyColumn = proxyModel->filterKeyColumn();
+
+    class RowVisitor : public CQChartsModelVisitor {
+     public:
+      RowVisitor(CQChartsModelView *view, const QString &text, int column, Rows &rows) :
+       view_(view), regexp_(text), column_(column), rows_(rows) {
+      }
+
+      CQChartsModelView *view() const { return view_; }
+
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
+        QModelIndex ind = model->index(data.row, column_, data.parent);
+
+        bool ok;
+
+        QString str = CQChartsModelUtil::modelString(model, ind, ok);
+        if (! ok) return State::SKIP;
+
+        if (regexp_.match(str))
+          rows_.push_back(ind);
+
+        return State::OK;
+      }
+
+     private:
+      CQChartsModelView* view_   { nullptr };
+      CQChartsRegExp     regexp_;
+      int                column_ { 0 };
+      Rows&              rows_;
+    };
+
+    RowVisitor visitor(this, text1, keyColumn, rows);
+
+    (void) CQChartsModelVisit::exec(charts_, model_.data(), visitor);
+  }
+  else {
+    if (! match_)
+      match_ = new CQChartsModelExprMatch;
+
+    if (modelData_) {
+      match_->setModelData(modelData_);
+    }
+    else {
+      QAbstractItemModel *model = proxyModel->sourceModel();
+
+      match_->setModel(model);
+    }
+
+    match_->initColumns();
+
+    class RowVisitor : public CQChartsModelVisitor {
+     public:
+      RowVisitor(CQChartsModelView *view, CQChartsModelExprMatch *match, const Matches &matches,
+                 int column, Rows &rows) :
+       view_(view), match_(match), matches_(matches), column_(column), rows_(rows) {
+      }
+
+      CQChartsModelView *view() const { return view_; }
+
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
+        QModelIndex ind = model->index(data.row, column_, data.parent);
+
+        bool isMatch = false;
+
+        for (const auto &matchText : matches_) {
+          match_->initMatch(matchText); // TODO: eval once
+
+          bool ok;
+
+          if (match_->match(ind, ok) && ok) {
+            isMatch = true;
+            break;
+          }
+        }
+
+        if (isMatch)
+          rows_.push_back(ind);
+
+        return State::OK;
+      }
+
+     private:
+      CQChartsModelView*      view_   { nullptr };
+      CQChartsModelExprMatch* match_  { nullptr };
+      const Matches&          matches_;
+      int                     column_ { 0 };
+      Rows&                   rows_;
+    };
+
+    RowVisitor visitor(this, match_, matches_, keyColumn, rows);
+
+    (void) CQChartsModelVisit::exec(charts_, model_.data(), visitor);
+  }
+
+  //---
+
+  // select matching items
+  QItemSelection sel;
+
+  for (auto &r : rows) {
+    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
+
+    sel.select(ind, ind);
+  }
+
+  QItemSelectionModel *sm = this->selectionModel();
+
+  sm->clear();
+
+  sm->select(sel, QItemSelectionModel::Select);
+
+  //---
+
+  // make item visible
+  for (auto &r : rows) {
+    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
+
+    scrollTo(ind);
+
+    break;
+  }
+
+  //---
+
+  // reset key column (if changed)
+  if (oldKeyColumn != keyColumn)
+    proxyModel->setFilterKeyColumn(oldKeyColumn);
 }
 
 void
@@ -218,6 +476,16 @@ selectionSlot()
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
 
   emit selectionHasChanged();
+}
+
+void
+CQChartsModelView::
+scrollTo(const QModelIndex &index, ScrollHint hint)
+{
+  if (hint == QAbstractItemView::EnsureVisible)
+    return;
+
+  CQModelView::scrollTo(index, hint);
 }
 
 void
@@ -280,6 +548,16 @@ exportSlot(QAction *action)
     modelData->exportModel(fileName, CQBaseModelDataType::JSON, hheader, vheader);
   else
     assert(false);
+}
+
+void
+CQChartsModelView::
+editSlot()
+{
+  CQChartsModelData *modelData = getModelData();
+
+  if (modelData)
+    charts_->editModelDlg(modelData);
 }
 
 CQChartsModelData *

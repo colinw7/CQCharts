@@ -8,6 +8,7 @@
 class CQCharts;
 class CQChartsTableDelegate;
 class CQChartsSelectionModel;
+class CQChartsModelExprMatch;
 class CQChartsModelData;
 class CQChartsModelDetails;
 
@@ -17,6 +18,8 @@ class CQChartsModelDetails;
  */
 class CQChartsModelView : public CQModelView {
   Q_OBJECT
+
+  Q_PROPERTY(bool exprFilter READ isExprFilter WRITE setIsExprFilter)
 
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
@@ -30,13 +33,29 @@ class CQChartsModelView : public CQModelView {
   ModelP modelP() const { return model_; }
   void setModelP(const ModelP &model);
 
+  bool isExprFilter() const { return isExprFilter_; }
+  void setIsExprFilter(bool b) { isExprFilter_ = b; }
+
+  void setFilterAnd(bool b);
+
   void setFilter(const QString &filter);
+  void addFilter(const QString &filter);
+
+  QString filterDetails() const;
+
+  void setSearch(const QString &text);
+  void addSearch(const QString &text);
 
   CQChartsModelDetails *getDetails();
+
+  void scrollTo(const QModelIndex &index, ScrollHint hint=EnsureVisible) override;
 
   QSize sizeHint() const override;
 
  private:
+  void addReplaceFilter(const QString &filter, bool add);
+  void addReplaceSearch(const QString &text, bool add);
+
   void addMenuActions(QMenu *menu) override;
 
   CQChartsModelData *getModelData();
@@ -60,14 +79,21 @@ class CQChartsModelView : public CQModelView {
 
   void exportSlot(QAction *action);
 
+  void editSlot();
+
   void resetModelData();
 
  private:
-  CQCharts*               charts_    { nullptr };
+  using Matches = std::vector<QString>;
+
+  CQCharts*               charts_       { nullptr };
   ModelP                  model_;
-  CQChartsSelectionModel* sm_        { nullptr };
-  CQChartsTableDelegate*  delegate_  { nullptr };
-  CQChartsModelData*      modelData_ { nullptr };
+  CQChartsSelectionModel* sm_           { nullptr };
+  CQChartsTableDelegate*  delegate_     { nullptr };
+  CQChartsModelData*      modelData_    { nullptr };
+  bool                    isExprFilter_ { true };
+  CQChartsModelExprMatch* match_        { nullptr };
+  Matches                 matches_;
 };
 
 #endif

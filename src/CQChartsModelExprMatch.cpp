@@ -1,10 +1,13 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsExprCmdValues.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsVariant.h>
 
 #include <COSNaN.h>
 
+#include <QSortFilterProxyModel>
 #include <QAbstractItemModel>
 #include <QVariant>
 
@@ -127,6 +130,32 @@ addBuiltinFunctions()
 
 void
 CQChartsModelExprMatch::
+setModelData(CQChartsModelData *modelData)
+{
+  modelData_ = modelData;
+
+  auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(modelData_->model().data());
+
+  if (proxyModel)
+    model_ = proxyModel->sourceModel();
+  else
+    model_ = modelData_->model().data();
+
+  if (! detailsFns_) {
+    addFunction("min"         );
+    addFunction("max"         );
+    addFunction("mean"        );
+    addFunction("stddev"      );
+    addFunction("median"      );
+    addFunction("lower_median");
+    addFunction("upper_median");
+
+    detailsFns_ = true;
+  }
+}
+
+void
+CQChartsModelExprMatch::
 addFunction(const QString &name)
 {
   assert(name.length());
@@ -228,6 +257,15 @@ processCmd(const QString &name, const Values &values)
   // match
   else if (name == "isnan") return isnanCmd(values);
 
+  // details
+  else if (name == "min"         ) return detailsCmd(name, values);
+  else if (name == "max"         ) return detailsCmd(name, values);
+  else if (name == "mean"        ) return detailsCmd(name, values);
+  else if (name == "stddev"      ) return detailsCmd(name, values);
+  else if (name == "median"      ) return detailsCmd(name, values);
+  else if (name == "lower_median") return detailsCmd(name, values);
+  else if (name == "upper_median") return detailsCmd(name, values);
+
   else return QVariant(false);
 }
 
@@ -246,7 +284,7 @@ columnCmd(const Values &values) const
   if (! cmdValues.hasValues())
     return col;
 
-  if (! cmdValues.getInt(col))
+  if (! getColumn(cmdValues, col))
     return QVariant();
 
   //---
@@ -319,7 +357,7 @@ cellCmd(const Values &values) const
   if (! cmdValues.getInt(row))
     return QVariant();
 
-  if (! cmdValues.getInt(col))
+  if (! getColumn(cmdValues, col))
     return QVariant();
 
   //---
@@ -349,7 +387,7 @@ headerCmd(const Values &values) const
 
   int col = currentCol();
 
-  (void) cmdValues.getInt(col);
+  (void) getColumn(cmdValues, col);
 
   //---
 
@@ -403,6 +441,56 @@ isnanCmd(const Values &values) const
   //---
 
   return CMathUtil::isNaN(r);
+}
+
+//---
+
+QVariant
+CQChartsModelExprMatch::
+detailsCmd(const QString &name, const Values &values) const
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  int col = currentCol();
+
+  if (! getColumn(cmdValues, col))
+    return QVariant();
+
+  if (! modelData_)
+    return QVariant();
+
+  auto *details = modelData_->details();
+
+  auto *columnDetails = details->columnDetails(CQChartsColumn(col));
+
+  return columnDetails->getNamedValue(name);
+}
+
+//---
+
+bool
+CQChartsModelExprMatch::
+getColumn(CQChartsExprCmdValues &cmdValues, int &col) const
+{
+  if (cmdValues.getInt(col))
+    return true;
+
+  QString name;
+
+  if (! cmdValues.getStr(name))
+    return false;
+
+  if (name == "")
+    return false;
+
+  auto p = nameColumns_.find(name);
+
+  if (p == nameColumns_.end())
+    return false;
+
+  col = (*p).second;
+
+  return true;
 }
 
 //------

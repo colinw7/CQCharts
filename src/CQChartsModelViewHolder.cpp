@@ -56,7 +56,7 @@ CQChartsModelViewHolder::
 setFilterAnd(bool b)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  Q_UNUSED(b)
+  view_->setFilterAnd(b);
 #else
   table_->setFilterAnd(b);
 #endif
@@ -67,7 +67,7 @@ CQChartsModelViewHolder::
 setFilter(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  Q_UNUSED(text)
+  view_->setFilter(text);
 #else
   table_->setFilter(text);
 #endif
@@ -78,7 +78,7 @@ CQChartsModelViewHolder::
 addFilter(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  Q_UNUSED(text)
+  view_->addFilter(text);
 #else
   table_->addFilter(text);
 #endif
@@ -89,7 +89,7 @@ CQChartsModelViewHolder::
 filterDetails() const
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  return "";
+  return view_->filterDetails();
 #else
   return table_->filterDetails();
 #endif
@@ -100,7 +100,7 @@ CQChartsModelViewHolder::
 setSearch(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  Q_UNUSED(text)
+  view_->setSearch(text);
 #else
   table_->setSearch(text);
 #endif
@@ -111,7 +111,7 @@ CQChartsModelViewHolder::
 addSearch(const QString &text)
 {
 #ifdef CQCHARTS_MODEL_VIEW
-  Q_UNUSED(text)
+  view_->addSearch(text);
 #else
   table_->addSearch(text);
 #endif

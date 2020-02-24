@@ -8,6 +8,8 @@
 
 class CQChartsModelExprMatchFn;
 class CQChartsModelExprTcl;
+class CQChartsModelData;
+class CQChartsExprCmdValues;
 
 class QAbstractItemModel;
 
@@ -22,11 +24,13 @@ class CQChartsModelExprMatch {
   using Values = std::vector<QVariant>;
 
  public:
-  CQChartsModelExprMatch(QAbstractItemModel *model=0);
-
+  CQChartsModelExprMatch(QAbstractItemModel *model=nullptr);
  ~CQChartsModelExprMatch();
 
   //---
+
+  CQChartsModelData *modelData() const { return modelData_; }
+  void setModelData(CQChartsModelData *modelData);
 
   QAbstractItemModel *model() const { return model_; }
   void setModel(QAbstractItemModel *model) { model_ = model; }
@@ -84,10 +88,15 @@ class CQChartsModelExprMatch {
   // math
   QVariant isnanCmd(const Values &values) const;
 
+  // details
+  QVariant detailsCmd(const QString &name, const Values &values) const;
+
   //---
 
   int currentRow() const { return currentRow_; }
   int currentCol() const { return currentCol_; }
+
+  bool getColumn(CQChartsExprCmdValues &cmdValues, int &col) const;
 
   bool evaluateExpression(const QString &expr, const QModelIndex &ind,
                           QVariant &value, bool replace);
@@ -105,6 +114,7 @@ class CQChartsModelExprMatch {
   using ColumnNames = std::map<int,QString>;
   using NameColumns = std::map<QString,int>;
 
+  CQChartsModelData*    modelData_  { nullptr };
   QAbstractItemModel*   model_      { nullptr };
   CQChartsModelExprTcl* qtcl_       { nullptr };
   TclCmds               tclCmds_;
@@ -116,6 +126,7 @@ class CQChartsModelExprMatch {
   QString               matchExpr_;
   int                   nr_         { 0 };
   int                   nc_         { 0 };
+  bool                  detailsFns_ { false };
 };
 
 #endif

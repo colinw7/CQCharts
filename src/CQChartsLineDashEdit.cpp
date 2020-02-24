@@ -161,9 +161,9 @@ CQChartsLineDashEdit(QWidget *parent) :
   addDashOption("2,1,0.5,1", CQChartsLineDash("2,1,0.5,1"));
   addDashOption("4,2,1,2"  , CQChartsLineDash("4,2,1,2"));
   addDashOption("8,2,1,2"  , CQChartsLineDash("8,2,1,2"));
-  addDashOption("0.5,0.5"  , CQChartsLineDash("0.5,0.5"));
-  addDashOption("0.25,0.25", CQChartsLineDash("0.25,0.25"));
-  addDashOption("0.1,0.1"  , CQChartsLineDash("0.1,0.1"));
+//addDashOption("0.5,0.5"  , CQChartsLineDash("0.5,0.5"));
+//addDashOption("0.25,0.25", CQChartsLineDash("0.25,0.25"));
+//addDashOption("0.1,0.1"  , CQChartsLineDash("0.1,0.1"));
 
   //---
 
@@ -173,7 +173,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 CQChartsLineDashEdit::
 ~CQChartsLineDashEdit()
 {
-  delete menu_;
+  //delete menu_;
 }
 
 void

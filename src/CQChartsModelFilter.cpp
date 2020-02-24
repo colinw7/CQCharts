@@ -431,10 +431,17 @@ initFilter()
   if (selectionModel_)
     selectionModel_->clear();
 
-  QAbstractItemModel *model = this->sourceModel();
-  assert(model);
+  auto *modelData = charts_->getModelData(this);
 
-  exprMatch()->setModel(model);
+  if (modelData) {
+    exprMatch()->setModelData(modelData);
+  }
+  else {
+    QAbstractItemModel *model = this->sourceModel();
+    assert(model);
+
+    exprMatch()->setModel(model);
+  }
 
   exprMatch()->initColumns();
 
