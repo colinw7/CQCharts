@@ -121,6 +121,77 @@ double toReal(const QVariant &var, bool &ok) {
 
 //---
 
+int cmp(const QVariant &var1, const QVariant &var2)
+{
+  bool isNumber1 = (var1.type() == QVariant::Int || var1.type() == QVariant::Double);
+  bool isNumber2 = (var2.type() == QVariant::Int || var2.type() == QVariant::Double);
+
+  if (isNumber1 && isNumber2) {
+    bool ok1; double r1 = toReal(var1, ok1);
+    bool ok2; double r2 = toReal(var2, ok2);
+
+    if (r1 < r2) return -1;
+    if (r1 > r2) return  1;
+
+    return 0;
+  }
+
+  //---
+
+  if (var1.type() != var2.type()) {
+    if (var1.type() < var2.type()) return -1;
+    if (var1.type() > var2.type()) return  1;
+
+    assert(false);
+  }
+
+  if      (var1.type() == QVariant::Int) {
+    int i1 = var1.value<int>();
+    int i2 = var2.value<int>();
+
+    if (i1 < i2) return -1;
+    if (i1 > i2) return  1;
+
+    return 0;
+  }
+  else if (var1.type() == QVariant::Double) {
+    double r1 = var1.value<double>();
+    double r2 = var2.value<double>();
+
+    if (r1 < r2) return -1;
+    if (r1 > r2) return  1;
+
+    return 0;
+  }
+  else if (var1.type() == QVariant::UserType) {
+    if (var1.userType() != var2.userType()) {
+      if (var1.userType() < var2.userType()) return -1;
+      if (var1.userType() > var2.userType()) return  1;
+
+      assert(false);
+    }
+
+    if (var1.userType() == CQChartsColor::metaTypeId) {
+      CQChartsColor color1 = var1.value<CQChartsColor>();
+      CQChartsColor color2 = var2.value<CQChartsColor>();
+
+      return CQChartsColor::cmp(color1, color2);
+    }
+  }
+
+  //---
+
+  QString str1 = var1.toString();
+  QString str2 = var2.toString();
+
+  if (str1 < str2) return -1;
+  if (str1 > str2) return  1;
+
+  return 0;
+}
+
+//---
+
 long toInt(const QVariant &var, bool &ok) {
   ok = true;
 

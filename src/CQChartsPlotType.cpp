@@ -117,8 +117,12 @@ addParameters()
   addColumnParameter("image", "Image", "imageColumn").
    setTip("Row Image Column").setMapped();
 
-  if (hasKey())
+  if (hasKey()) {
     addBoolParameter("key", "Key", "keyVisible", true).setTip("Show Key");
+
+    addBoolParameter("colorKey", "Use Color Column for Key", "colorKey").
+      setTip("Use color column for key");
+  }
 
   endParameterGroup();
 }

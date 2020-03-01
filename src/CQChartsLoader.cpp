@@ -5,6 +5,7 @@
 #include <CQChartsFilterModel.h>
 #include <CQChartsExprModel.h>
 #include <CQChartsVarsModel.h>
+#include <CQChartsTclModel.h>
 #include <CQChartsExprDataModel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
@@ -98,6 +99,16 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
   }
   else if (type == CQChartsFileType::VARS) {
     CQChartsFilterModel *model = createVarsModel(inputData);
+
+    if (! model) {
+      charts_->errorMsg("Failed to load '" + filename + "'");
+      return nullptr;
+    }
+
+    return model;
+  }
+  else if (type == CQChartsFileType::TCL) {
+    CQChartsFilterModel *model = createTclModel(inputData);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -249,16 +260,16 @@ createVarsModel(const CQChartsInputData &inputData)
 
   //---
 
-  int nv = inputData.vars.size();
-
   QStringList varNames;
 
-  for (int i = 0; i < nv; ++i)
-    varNames << inputData.vars[i].toString();
+  for (const auto &var : inputData.vars)
+    varNames << var.toString();
 
   //---
 
   int nr = -1;
+
+  int nv = varNames.length();
 
   if (nv == 1) {
     QString varName = varNames[0];
@@ -412,6 +423,79 @@ createVarsModel(const CQChartsInputData &inputData)
   varsModel->setFirstLineHeader  (inputData.firstLineHeader);
 
   varsModel->setVarNames(varNames);
+
+  return filterModel;
+}
+
+CQChartsFilterModel *
+CQChartsLoader::
+createTclModel(const CQChartsInputData &inputData)
+{
+  CQPerfTrace trace("CQChartsLoader::createTclModel");
+
+  int nr = 0, nc = 0;
+
+  using ColumnStrs = std::vector<QStringList>;
+
+  ColumnStrs columnStrs;
+
+  if (! inputData.transpose) {
+    // var per column
+    for (const auto &var : inputData.vars) {
+      QStringList strs = var.toStringList();
+
+      nr = std::max(nr, strs.length());
+    }
+
+    nc = inputData.vars.size();
+
+    for (const auto &var : inputData.vars) {
+      QStringList strs = var.toStringList();
+
+      while (strs.length() < nr)
+        strs << "";
+
+      columnStrs.push_back(strs);
+    }
+  }
+  else {
+    // var per row
+    for (const auto &var : inputData.vars) {
+      QStringList strs = var.toStringList();
+
+      nc = std::max(nc, strs.length());
+    }
+
+    nr = inputData.vars.size();
+
+    columnStrs.resize(nc);
+
+    for (const auto &var : inputData.vars) {
+      QStringList strs = var.toStringList();
+
+      while (strs.length() < nc)
+        strs << "";
+
+      for (int i = 0; i < nc; ++i)
+        columnStrs[i].push_back(strs[i]);
+    }
+  }
+
+  CQChartsTclModel *tclModel = new CQChartsTclModel(nc, nr);
+
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, tclModel);
+
+  QModelIndex parent;
+
+  for (int c = 0; c < nc; ++c) {
+    const QStringList &strs = columnStrs[c];
+
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex ind = tclModel->index(r, c, parent);
+
+      tclModel->setData(ind, strs[r]);
+    }
+  }
 
   return filterModel;
 }

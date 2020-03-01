@@ -8,6 +8,7 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
+#include <CMathCorrelation.h>
 
 #include <QAbstractItemModel>
 
@@ -312,6 +313,27 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
   return rows;
 }
 
+double
+CQChartsModelDetails::
+correlation(const CQChartsColumn &column1, const CQChartsColumn &column2) const
+{
+  const auto *details1 = columnDetails(column1);
+  const auto *details2 = columnDetails(column2);
+
+  if (! details1 || ! details2)
+    return 0.0;
+
+  details1->initCache();
+  details2->initCache();
+
+  std::vector<double> r1, r2;
+
+  details1->valueSet()->reals(r1);
+  details2->valueSet()->reals(r2);
+
+  return CMathCorrelation::calc(r1, r2);
+}
+
 CQCharts *
 CQChartsModelDetails::
 charts() const
@@ -347,7 +369,7 @@ bool
 CQChartsModelColumnDetails::
 isNamedValue(const QString &name)
 {
-  return getLongNamedValues().contains(name) ||
+  return getLongNamedValues ().contains(name) ||
          getShortNamedValues().contains(name);
 }
 
@@ -369,7 +391,7 @@ CQChartsModelColumnDetails::
 getShortNamedValues()
 {
   static QStringList namedValues = QStringList() <<
-    "min" << "max" << "mean" << "avg" << "stddev" << "std_dev";
+    "min" << "max" << "mean" << "avg" << "stdev" << "stddev" << "std_dev";
 
   return namedValues;
 }
@@ -388,7 +410,8 @@ getNamedValue(const QString &name) const
     return this->maxValue();
   else if (name == "mean" || name == "avg" || name == "average")
     return this->meanValue();
-  else if (name == "stddev" || name == "std_dev" || name == "standard_deviation")
+  else if (name == "stdev"   || name == "stddev" ||
+           name == "std_dev" || name == "standard_deviation")
     return this->stdDevValue();
 
   else if (name == "monotonic")

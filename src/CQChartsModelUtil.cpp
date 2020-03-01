@@ -1047,6 +1047,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     QModelIndex ind = model->index(row, column.column(), parent);
 
     QVariant var = modelValue(model, ind, role, ok);
+    if (! ok) return QVariant();
 
     CQBaseModelType    columnType;
     CQBaseModelType    columnBaseType;
@@ -1060,6 +1061,11 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     const auto *typeData = columnTypeMgr->getType(columnType);
 
     return typeData->indexVar(var, column.index());
+  }
+  else if (column.type() == CQChartsColumn::Type::ROW) {
+    ok = true;
+
+    return row + column.rowOffset();
   }
   else if (column.type() == CQChartsColumn::Type::VHEADER) {
     bool ok;

@@ -62,7 +62,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

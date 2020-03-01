@@ -394,6 +394,17 @@ CQChartsColumnEdit(QWidget *parent) :
   //---
 
   // vertical header
+  rowCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Row Number", "rowCheck");
+
+  rowCheck_->setToolTip("Get value from row number");
+
+  connect(rowCheck_, SIGNAL(clicked(bool)), this, SLOT(rowCheckClicked(bool)));
+
+  layout->addWidget(rowCheck_);
+
+  //---
+
+  // vertical header
   vheaderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Vertical Header", "vheaderCheck");
 
   vheaderCheck_->setToolTip("Get value from vertical header");
@@ -450,6 +461,7 @@ columnToWidgets()
   columnCombo_   ->setCurrentIndex(0);
   menuExprGroup_ ->setChecked(false);
   expressionEdit_->setText("");
+  rowCheck_      ->setChecked(false);
   vheaderCheck_  ->setChecked(false);
 
   if (column_.isValid()) {
@@ -466,6 +478,9 @@ columnToWidgets()
     else if (column_.type() == CQChartsColumn::Type::EXPR) {
       menuExprGroup_ ->setChecked(true);
       expressionEdit_->setText(column_.expr());
+    }
+    else if (column_.type() == CQChartsColumn::Type::ROW) {
+      rowCheck_->setChecked(true);
     }
     else if (column_.type() == CQChartsColumn::Type::VHEADER) {
       vheaderCheck_->setChecked(true);
@@ -506,6 +521,9 @@ widgetsToColumn()
 
     column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
   }
+  else if (rowCheck_->isChecked()) {
+    column = CQChartsColumn(CQChartsColumn::Type::ROW, -1, "", -1);
+  }
   else if (vheaderCheck_->isChecked()) {
     column = CQChartsColumn(CQChartsColumn::Type::VHEADER, -1, "", -1);
   }
@@ -537,6 +555,8 @@ connectSlots(bool b)
                     SLOT(menuExprGroupClicked(bool)));
   connectDisconnect(b, expressionEdit_, SIGNAL(textChanged(const QString &)),
                     SLOT(expressionTextChanged(const QString &)));
+  connectDisconnect(b, rowCheck_, SIGNAL(clicked(bool)),
+                    SLOT(rowCheckClicked(bool)));
   connectDisconnect(b, vheaderCheck_, SIGNAL(clicked(bool)),
                     SLOT(vheaderCheckClicked(bool)));
 }
@@ -556,14 +576,9 @@ menuColumnGroupClicked(bool b)
 
   //---
 
-  if (! b) {
-    menuExprGroup_->setChecked(true);
-    vheaderCheck_ ->setChecked(false);
-  }
-  else {
-    menuExprGroup_->setChecked(false);
-    vheaderCheck_ ->setChecked(false);
-  }
+  menuExprGroup_->setChecked(! b);
+  rowCheck_     ->setChecked(false);
+  vheaderCheck_ ->setChecked(false);
 
   widgetsToColumn();
 
@@ -584,14 +599,31 @@ menuExprGroupClicked(bool b)
 
   //---
 
-  if (! b) {
-    columnGroup_ ->setChecked(true);
-    vheaderCheck_->setChecked(false);
-  }
-  else {
-    columnGroup_ ->setChecked(false);
-    vheaderCheck_->setChecked(false);
-  }
+  columnGroup_ ->setChecked(! b);
+  rowCheck_    ->setChecked(false);
+  vheaderCheck_->setChecked(false);
+
+  widgetsToColumn();
+
+  updateState();
+
+  //---
+
+  connectSlots(true);
+
+  emit columnChanged();
+}
+
+void
+CQChartsColumnEdit::
+rowCheckClicked(bool b)
+{
+  connectSlots(false);
+
+  //---
+
+  columnGroup_  ->setChecked(false);
+  menuExprGroup_->setChecked(! b);
 
   widgetsToColumn();
 
@@ -612,14 +644,8 @@ vheaderCheckClicked(bool b)
 
   //---
 
-  if (! b) {
-    columnGroup_  ->setChecked(false);
-    menuExprGroup_->setChecked(true);
-  }
-  else {
-    columnGroup_  ->setChecked(false);
-    menuExprGroup_->setChecked(false);
-  }
+  columnGroup_  ->setChecked(false);
+  menuExprGroup_->setChecked(! b);
 
   widgetsToColumn();
 

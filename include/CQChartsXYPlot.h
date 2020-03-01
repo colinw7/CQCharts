@@ -83,7 +83,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -140,7 +140,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -246,7 +246,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -328,7 +328,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -388,7 +388,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -447,7 +447,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  public:
   CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                        const CQChartsGeom::Polygon &poly, const QString &name,
-                       const ColorInd &is, const ColorInd &ig);
+                       const ColorInd &is, const ColorInd &ig, bool under);
 
  ~CQChartsXYPolygonObj();
 
@@ -473,7 +473,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  bool visible() const override;
+  bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -502,6 +502,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   int                   groupInd_ { -1 };      //!< group ind
   CQChartsGeom::Polygon poly_;                 //!< polygon
   QString               name_;                 //!< name
+  bool                  under_    { false };   //!< has under points
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
 };
 
@@ -800,7 +801,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
                                      PlotObjs &pointObjs, PlotObjs &objs) const;
 
   void addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
-                  const ColorInd &ig, const QString &name, PlotObjs &objs) const;
+                  const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const;
 
   QString valueName(int is, int ns, int irow) const;
 

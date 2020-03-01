@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsTip.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
@@ -389,7 +390,7 @@ calcAnnotationBBox() const
   for (const auto &plotObj : plotObjs_) {
     auto *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
-    if (! pieObj || ! pieObj->visible())
+    if (! pieObj || ! pieObj->isVisible())
       continue;
 
     bbox += pieObj->annotationBBox();
@@ -570,19 +571,6 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 {
   assert(! isCount());
 
-  // get group ind
-  int groupInd = rowGroupInd(ind);
-
-  //---
-
-  // hide all objects of group or individual objects of single group
-  bool hidden = false;
-
-  if (numGroups() > 1)
-    hidden = isSetHidden(groupInd);
-  else
-    hidden = isSetHidden(ind.row);
-
   //---
 
   // get column value
@@ -644,6 +632,8 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get group obj
+  int groupInd = rowGroupInd(ind);
+
   auto pg = groupDatas_.find(groupInd);
   assert(pg != groupDatas_.end());
 
@@ -664,6 +654,10 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
     rv = ri + s*dr;
   }
+
+  //---
+
+  bool hidden = isIndexHidden(ind);
 
   //---
 
@@ -776,27 +770,15 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 {
   auto *th = const_cast<CQChartsPiePlot *>(this);
 
-  // get group ind
-  int groupInd = rowGroupInd(ind);
-
   //---
 
-  // hide all objects of group or individual objects of single group
-  bool hidden = false;
-
-  if (! isCount()) {
-    if (numGroups() > 1)
-      hidden = isSetHidden(groupInd);
-    else
-      hidden = isSetHidden(ind.row);
-  }
-  else {
-    hidden = isSetHidden(groupInd);
-  }
+  bool hidden = isIndexHidden(ind);
 
   //---
 
   // get group data for group ind (add if new)
+  int groupInd = rowGroupInd(ind);
+
   auto pg = groupDatas_.find(groupInd);
 
   if (pg == groupDatas_.end()) {
@@ -1056,6 +1038,35 @@ adjustObjAngles() const
   }
 }
 
+bool
+CQChartsPiePlot::
+isIndexHidden(const CQChartsModelIndex &ind) const
+{
+  // hide all objects of group or individual objects of single group
+  bool hidden = false;
+
+  if (isColorKey() && colorColumn().isValid()) {
+    CQChartsModelIndex colorInd(ind.row, colorColumn(), ind.parent);
+
+    bool ok;
+
+    QVariant colorValue = modelValue(colorInd, ok);
+
+    hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
+  }
+  else {
+    if (numGroups() > 1) {
+      int groupInd = rowGroupInd(ind);
+
+      hidden = isSetHidden(groupInd);
+    }
+    else
+      hidden = isSetHidden(ind.row);
+  }
+
+  return hidden;
+}
+
 void
 CQChartsPiePlot::
 addKeyItems(CQChartsPlotKey *key)
@@ -1277,7 +1288,7 @@ bool
 CQChartsPieObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   return arcData().inside(p);
@@ -1393,7 +1404,7 @@ void
 CQChartsPieObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   bool isInvertX = plot()->isInvertX();
@@ -1472,7 +1483,7 @@ void
 CQChartsPieObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   // get pie center (adjusted if exploded)
@@ -1734,7 +1745,7 @@ bool
 CQChartsPieGroupObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   CQChartsGeom::Point center(0, 0);
@@ -1776,7 +1787,7 @@ void
 CQChartsPieGroupObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   bool isInvertX = plot()->isInvertX();
@@ -1822,7 +1833,7 @@ void
 CQChartsPieGroupObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   CQChartsGeom::Point c(0, 0);

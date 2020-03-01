@@ -21,6 +21,10 @@ inline QString toString(const QVariant &var, bool &ok) {
 
 //---
 
+int cmp(const QVariant &var1, const QVariant &var2);
+
+//---
+
 inline bool isReal(const QVariant &var) {
   return (var.type() == QVariant::Double);
 }

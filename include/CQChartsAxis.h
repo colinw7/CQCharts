@@ -50,7 +50,6 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
 
   // options
-  Q_PROPERTY(bool             visible          READ isVisible          WRITE setVisible         )
   Q_PROPERTY(CQChartsAxisSide side             READ side               WRITE setSide            )
   Q_PROPERTY(CQChartsOptReal  position         READ position           WRITE setPosition        )
   Q_PROPERTY(bool             requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
@@ -164,8 +163,9 @@ class CQChartsAxis : public CQChartsObj,
   //---
 
   // get/set visible
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b);
+  void setVisible(bool b) override;
+
+  //---
 
   // get/set updates enabled
   bool isUpdatesEnabled() const { return updatesEnabled_; }
@@ -505,7 +505,6 @@ class CQChartsAxis : public CQChartsObj,
   Qt::Orientation       direction_           { Qt::Horizontal }; //!< direction
 
   // general
-  bool                  visible_             { true };  //!< axis is visible
   bool                  updatesEnabled_      { true };  //!< axis updates enabled
   bool                  drawAll_             { false }; //!< axis updates enabled
   CQChartsAxisSide      side_;                          //!< axis plot placement side

@@ -127,6 +127,12 @@ toString() const
   }
   else if (type_ == Type::EXPR)
     return QString("(%1)").arg(expr_);
+  else if (type_ == Type::ROW) {
+    if (role_ > 0)
+      return "@ROW1";
+    else
+      return "@ROW";
+  }
   else if (type_ == Type::VHEADER)
     return "@VH";
   else if (type_ == Type::GROUP)
@@ -267,16 +273,20 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     return true;
   }
 
-  if (strcmp(&c_str[i], "@VH") == 0 || strcmp(&c_str[i], "@VHEADER") == 0) {
-    type = Type::VHEADER;
+  if (strcmp(&c_str[i], "@R") == 0 || strcmp(&c_str[i], "@ROW") == 0) {
+    type = Type::ROW; return true;
+  }
 
-    return true;
+  if (strcmp(&c_str[i], "@R1") == 0 || strcmp(&c_str[i], "@ROW1") == 0) {
+    role = 1; type = Type::ROW; return true;
+  }
+
+  if (strcmp(&c_str[i], "@VH") == 0 || strcmp(&c_str[i], "@VHEADER") == 0) {
+    type = Type::VHEADER; return true;
   }
 
   if (strcmp(&c_str[i], "@GROUP") == 0) {
-    type = Type::GROUP;
-
-    return true;
+    type = Type::GROUP; return true;
   }
 
   // TODO: support column name (need model)

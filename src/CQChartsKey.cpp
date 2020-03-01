@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
@@ -1960,16 +1961,18 @@ doShow(CQChartsSelMod selMod)
 {
   CQChartsPlot *plot = key_->plot();
 
+  const auto &ic = colorIndex();
+
   if      (selMod == CQChartsSelMod::REPLACE) {
-    for (int i = 0; i < ic_.n; ++i)
-      plot->setSetHidden(i, i != ic_.i);
+    for (int i = 0; i < ic.n; ++i)
+      plot->setSetHidden(i, i != ic.i);
   }
   else if (selMod == CQChartsSelMod::ADD)
-    plot->setSetHidden(ic_.i, false);
+    plot->setSetHidden(ic.i, false);
   else if (selMod == CQChartsSelMod::REMOVE)
-    plot->setSetHidden(ic_.i, true);
+    plot->setSetHidden(ic.i, true);
   else if (selMod == CQChartsSelMod::TOGGLE)
-    plot->setSetHidden(ic_.i, ! plot->isSetHidden(ic_.i));
+    plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
 
   plot->updateObjs();
 }
@@ -2110,6 +2113,31 @@ size() const
   return CQChartsGeom::Size(ww, wh);
 }
 
+bool
+CQChartsKeyColorBox::
+selectPress(const Point &w, CQChartsSelMod selMod)
+{
+  if (! value_.isValid())
+    return CQChartsKeyItem::selectPress(w, selMod);
+
+  if (isClickable()) {
+    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
+      CQChartsPlot *plot = key_->plot();
+
+      if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+        plot->setHideValue(value_);
+      else
+        plot->setHideValue(QVariant());
+
+      plot->updateRangeAndObjs();
+    }
+    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT) {
+    }
+  }
+
+  return true;
+}
+
 void
 CQChartsKeyColorBox::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
@@ -2144,9 +2172,21 @@ fillBrush() const
 
   ColorInd ic = calcColorInd();
 
-  QColor c = plot->interpPaletteColor(ic);
+  QColor c;
 
-  if (plot->isSetHidden(ic.i))
+  if (color_.isValid())
+    c = plot_->interpColor(color_, ic);
+  else
+    c = plot->interpPaletteColor(ic);
+
+  bool hidden = false;
+
+  if (value_.isValid())
+    hidden = (CQChartsVariant::cmp(value_, plot->hideValue()) == 0);
+  else
+    hidden = plot->isSetHidden(ic.i);
+
+  if (hidden)
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;

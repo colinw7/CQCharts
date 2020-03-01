@@ -36,6 +36,8 @@ class CQChartsLoader {
 
   CQChartsFilterModel *createVarsModel(const CQChartsInputData &inputData);
 
+  CQChartsFilterModel *createTclModel(const CQChartsInputData &inputData);
+
   CQChartsFilterModel *createCorrelationModel(QAbstractItemModel *model, bool flip=false);
 
  private:

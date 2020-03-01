@@ -242,6 +242,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-data", CQChartsCmdArg::Type::Boolean, "load gnuplot file");
   argv.addCmdArg("-expr", CQChartsCmdArg::Type::Boolean, "use expression model");
   argv.addCmdArg("-var" , CQChartsCmdArg::Type::String , "load from tcl variable(s)");
+  argv.addCmdArg("-tcl" , CQChartsCmdArg::Type::String , "load from tcl data");
   argv.endCmdGroup();
 
   // input data control
@@ -288,6 +289,30 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
     fileType = CQChartsFileType::VARS;
   }
+  else if (argv.hasParseArg ("tcl") ) {
+    QStringList strs = argv.getParseStrs("tcl");
+
+    // { { <column_values> } { <column_values> } ... }
+    for (int i = 0; i < strs.length(); ++i) {
+      QStringList columnsStrs;
+
+      // split into strings per column
+      if (! CQTcl::splitList(strs[i], columnsStrs))
+        continue;
+
+      // split into strings per column
+      for (int j = 0; j < columnsStrs.length(); ++j) {
+        QStringList columnStrs;
+
+        if (! CQTcl::splitList(columnsStrs[j], columnStrs))
+          continue;
+
+        inputData.vars.push_back(QVariant(columnStrs));
+      }
+    }
+
+    fileType = CQChartsFileType::TCL;
+  }
 
   inputData.commentHeader     = argv.getParseBool("comment_header"     );
   inputData.firstLineHeader   = argv.getParseBool("first_line_header"  );
@@ -325,7 +350,9 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   if (fileType == CQChartsFileType::NONE)
     return errorMsg("No file type");
 
-  if (fileType != CQChartsFileType::EXPR && fileType != CQChartsFileType::VARS) {
+  if (fileType != CQChartsFileType::EXPR &&
+      fileType != CQChartsFileType::VARS &&
+      fileType != CQChartsFileType::TCL) {
     if (filename == "")
       return errorMsg("No filename");
   }
@@ -356,9 +383,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   if (name.length())
     modelData->setName(name);
 
-  cmdBase_->setCmdRc(modelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData->ind());
 }
 
 //------
@@ -472,7 +497,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
         return errorMsg(QString("Invalid column type '%1'").arg(type));
     }
 
-    cmdBase_->setCmdRc(column);
+    return cmdBase_->setCmdRc(column);
   }
   // remove column (must be an added one)
   else if (argv.getParseBool("delete")) {
@@ -484,7 +509,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! exprModel->removeExtraColumn(column.column()))
       return errorMsg("Failed to delete column");
 
-    cmdBase_->setCmdRc(-1);
+    return cmdBase_->setCmdRc(-1);
   }
   // modify column (values from result of expression)
   else if (argv.getParseBool("modify")) {
@@ -528,7 +553,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
         return errorMsg(QString("Invalid column type '%1'").arg(type));
     }
 
-    cmdBase_->setCmdRc(column.column());
+    return cmdBase_->setCmdRc(column.column());
   }
   // calculate values from result of expression
   else if (argv.getParseBool("calc")) {
@@ -549,7 +574,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     for (const auto &var : values)
       vars.push_back(var);
 
-    cmdBase_->setCmdRc(vars);
+    return cmdBase_->setCmdRc(vars);
   }
   // query rows where result of expression is true
   else if (argv.getParseBool("query")) {
@@ -572,7 +597,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     for (const auto &row : rows)
       vars.push_back(row);
 
-    cmdBase_->setCmdRc(vars);
+    return cmdBase_->setCmdRc(vars);
   }
   else if (argv.getParseBool("analyze")) {
     CQChartsAnalyzeModel analyzeModel(charts_, modelData);
@@ -602,7 +627,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
         tncvars.push_back(ncvars);
       }
 
-      cmdBase_->setCmdRc(tncvars);
+      return cmdBase_->setCmdRc(tncvars);
     }
     else {
       analyzeModel.analyze();
@@ -640,7 +665,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
         tvars.push_back(cvars);
       }
 
-      cmdBase_->setCmdRc(tvars);
+      return cmdBase_->setCmdRc(tvars);
     }
 
     analyzeModel.print();
@@ -802,33 +827,33 @@ measureChartsTextCmd(CQChartsCmdArgs &argv)
 
   if      (name == "width") {
     if      (plot)
-      cmdBase_->setCmdRc(plot->pixelToWindowWidth(tw));
+      return cmdBase_->setCmdRc(plot->pixelToWindowWidth(tw));
     else if (view)
-      cmdBase_->setCmdRc(view->pixelToWindowWidth(tw));
+      return cmdBase_->setCmdRc(view->pixelToWindowWidth(tw));
   }
   else if (name == "height") {
     if      (plot)
-      cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta + td));
+      return cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta + td));
     else if (view)
-      cmdBase_->setCmdRc(view->pixelToWindowHeight(ta + td));
+      return cmdBase_->setCmdRc(view->pixelToWindowHeight(ta + td));
   }
   else if (name == "ascent") {
     if      (plot)
-      cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta));
+      return cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta));
     else if (view)
-      cmdBase_->setCmdRc(view->pixelToWindowHeight(ta));
+      return cmdBase_->setCmdRc(view->pixelToWindowHeight(ta));
   }
   else if (name == "descent") {
     if      (plot)
-      cmdBase_->setCmdRc(plot->pixelToWindowHeight(td));
+      return cmdBase_->setCmdRc(plot->pixelToWindowHeight(td));
     else if (view)
-      cmdBase_->setCmdRc(view->pixelToWindowHeight(td));
+      return cmdBase_->setCmdRc(view->pixelToWindowHeight(td));
   }
   else if (name == "?") {
     QStringList names = QStringList() <<
       "width" << "height" << "ascent" << "descent";
 
-    cmdBase_->setCmdRc(names);
+    return cmdBase_->setCmdRc(names);
   }
   else {
     return errorMsg(QString("Invalid value name '%1'").arg(name));
@@ -870,9 +895,7 @@ encodeChartsTextCmd(CQChartsCmdArgs &argv)
   else if (tsv)
     text1 = CQTsvModel::encodeString(text);
 
-  cmdBase_->setCmdRc(text1);
-
-  return true;
+  return cmdBase_->setCmdRc(text1);
 }
 
 //------
@@ -894,9 +917,7 @@ createChartsViewCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(view->id());
-
-  return true;
+  return cmdBase_->setCmdRc(view->id());
 }
 
 //------
@@ -1244,9 +1265,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(plot->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(plot->pathId());
 }
 
 //------
@@ -1364,7 +1383,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
       view->getPropertyNames(names, hidden);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (argv.hasParseArg("data")) {
       QString data = argv.getParseStr("data");
@@ -1375,7 +1394,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyDesc(name, desc, /*hidden*/true))
           return errorMsg("Failed to get view parameter description '" + name + "'");
 
-        cmdBase_->setCmdRc(desc);
+        return cmdBase_->setCmdRc(desc);
       }
       else if (data == "type") {
         QString type;
@@ -1383,7 +1402,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyType(name, type, /*hidden*/true))
           return errorMsg("Failed to get view parameter type '" + name + "'");
 
-        cmdBase_->setCmdRc(type);
+        return cmdBase_->setCmdRc(type);
       }
       else if (data == "user_type") {
         QString type;
@@ -1391,7 +1410,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyUserType(name, type, /*hidden*/true))
           return errorMsg("Failed to get view parameter user type '" + name + "'");
 
-        cmdBase_->setCmdRc(type);
+        return cmdBase_->setCmdRc(type);
       }
       else if (data == "owner") {
         QObject *obj = nullptr;
@@ -1399,7 +1418,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyObject(name, obj, /*hidden*/true))
           return errorMsg("Failed to get view parameter owner '" + name + "'");
 
-        cmdBase_->setCmdRc(objToType(obj));
+        return cmdBase_->setCmdRc(objToType(obj));
       }
       else if (data == "is_hidden") {
         bool hidden = false;
@@ -1407,7 +1426,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyIsHidden(name, hidden))
           return errorMsg("Failed to get view parameter hidden '" + name + "'");
 
-        cmdBase_->setCmdRc(hidden);
+        return cmdBase_->setCmdRc(hidden);
       }
       else if (data == "is_style") {
         bool is_style = false;
@@ -1415,13 +1434,13 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! view->getPropertyIsStyle(name, is_style))
           return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-        cmdBase_->setCmdRc(is_style);
+        return cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
         QStringList names = QStringList() <<
           "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else
         return errorMsg("Invalid view property name data '" + data + "'");
@@ -1432,7 +1451,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       if (! view->getTclProperty(name, value))
         return errorMsg("Failed to get view parameter '" + name + "'");
 
-      cmdBase_->setCmdRc(value);
+      return cmdBase_->setCmdRc(value);
     }
   }
   else if (argv.hasParseArg("plot")) {
@@ -1455,7 +1474,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
         plot->getObjectPropertyNames(plotObj, names);
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else {
         QVariant value;
@@ -1463,7 +1482,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! CQUtil::getTclProperty(plotObj, name, value))
           return errorMsg("Failed to get plot parameter '" + name + "'");
 
-        cmdBase_->setCmdRc(value);
+        return cmdBase_->setCmdRc(value);
       }
     }
     // plot property
@@ -1473,7 +1492,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
         plot->getPropertyNames(names, hidden);
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else if (argv.hasParseArg("data")) {
         QString data = argv.getParseStr("data");
@@ -1484,7 +1503,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyDesc(name, desc, /*hidden*/true))
             return errorMsg("Failed to get plot parameter description '" + name + "'");
 
-          cmdBase_->setCmdRc(desc);
+          return cmdBase_->setCmdRc(desc);
         }
         else if (data == "type") {
           QString type;
@@ -1492,7 +1511,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyType(name, type, /*hidden*/true))
             return errorMsg("Failed to get plot parameter type '" + name + "'");
 
-          cmdBase_->setCmdRc(type);
+          return cmdBase_->setCmdRc(type);
         }
         else if (data == "user_type") {
           QString type;
@@ -1500,7 +1519,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyUserType(name, type, /*hidden*/true))
             return errorMsg("Failed to get plot parameter user type '" + name + "'");
 
-          cmdBase_->setCmdRc(type);
+          return cmdBase_->setCmdRc(type);
         }
         else if (data == "owner") {
           QObject *obj = nullptr;
@@ -1508,7 +1527,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyObject(name, obj, /*hidden*/true))
             return errorMsg("Failed to get plot parameter owner '" + name + "'");
 
-          cmdBase_->setCmdRc(objToType(obj));
+          return cmdBase_->setCmdRc(objToType(obj));
         }
         else if (data == "is_hidden") {
           bool hidden = false;
@@ -1516,7 +1535,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyIsHidden(name, hidden))
             return errorMsg("Failed to get plot parameter is_hidden '" + name + "'");
 
-          cmdBase_->setCmdRc(hidden);
+          return cmdBase_->setCmdRc(hidden);
         }
         else if (data == "is_style") {
           bool is_style = false;
@@ -1524,13 +1543,13 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           if (! plot->getPropertyIsStyle(name, is_style))
             return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-          cmdBase_->setCmdRc(is_style);
+          return cmdBase_->setCmdRc(is_style);
         }
         else if (data == "?") {
           QStringList names = QStringList() <<
             "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
 
-          cmdBase_->setCmdRc(names);
+          return cmdBase_->setCmdRc(names);
         }
         else
           return errorMsg("Invalid plot property name data '" + data + "'");
@@ -1541,7 +1560,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! plot->getTclProperty(name, value))
           return errorMsg("Failed to get plot parameter '" + name + "'");
 
-        cmdBase_->setCmdRc(value);
+        return cmdBase_->setCmdRc(value);
       }
     }
   }
@@ -1556,7 +1575,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
       annotation->getPropertyNames(names, hidden);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (argv.hasParseArg("data")) {
       QString data = argv.getParseStr("data");
@@ -1567,7 +1586,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyDesc(name, desc, /*hidden*/true))
           return errorMsg("Failed to get annotation parameter description '" + name + "'");
 
-        cmdBase_->setCmdRc(desc);
+        return cmdBase_->setCmdRc(desc);
       }
       else if (data == "type") {
         QString type;
@@ -1575,7 +1594,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyType(name, type, /*hidden*/true))
           return errorMsg("Failed to get annotation parameter type '" + name + "'");
 
-        cmdBase_->setCmdRc(type);
+        return cmdBase_->setCmdRc(type);
       }
       else if (data == "user_type") {
         QString type;
@@ -1583,7 +1602,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyUserType(name, type, /*hidden*/true))
           return errorMsg("Failed to get annotation parameter user type '" + name + "'");
 
-        cmdBase_->setCmdRc(type);
+        return cmdBase_->setCmdRc(type);
       }
       else if (data == "owner") {
         QObject *obj = nullptr;
@@ -1591,7 +1610,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyObject(name, obj, /*hidden*/true))
           return errorMsg("Failed to get annotation parameter owner '" + name + "'");
 
-        cmdBase_->setCmdRc(objToType(obj));
+        return cmdBase_->setCmdRc(objToType(obj));
       }
       else if (data == "is_hidden") {
         bool hidden = false;
@@ -1599,7 +1618,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyIsHidden(name, hidden))
           return errorMsg("Failed to get annotation parameter hidden '" + name + "'");
 
-        cmdBase_->setCmdRc(hidden);
+        return cmdBase_->setCmdRc(hidden);
       }
       else if (data == "is_style") {
         bool is_style = false;
@@ -1607,13 +1626,13 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         if (! annotation->getPropertyIsStyle(name, is_style))
           return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-        cmdBase_->setCmdRc(is_style);
+        return cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
         QStringList names = QStringList() <<
           "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else
         return errorMsg("Invalid annotation property name data '" + data + "'");
@@ -1624,7 +1643,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       if (! annotation->getTclProperty(name, value))
         return errorMsg("Failed to get annotation property '" + name + "'");
 
-      cmdBase_->setCmdRc(value);
+      return cmdBase_->setCmdRc(value);
     }
   }
   else if (argv.hasParseArg("model")) {
@@ -1638,7 +1657,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
       modelData->getPropertyNames(names);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else {
       QVariant value;
@@ -1646,7 +1665,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       if (! modelData->getPropertyData(name, value))
         return errorMsg("Failed to get model property '" + name + "'");
 
-      cmdBase_->setCmdRc(value);
+      return cmdBase_->setCmdRc(value);
     }
   }
 
@@ -1770,7 +1789,7 @@ createChartsPaletteCmd(CQChartsCmdArgs &argv)
 
     (void) CQColorsMgrInst->createTheme(themeStr);
 
-    cmdBase_->setCmdRc(themeStr);
+    return cmdBase_->setCmdRc(themeStr);
   }
   else if (paletteFlag) {
     if (CQColorsMgrInst->getNamedPalette(paletteStr))
@@ -1778,7 +1797,7 @@ createChartsPaletteCmd(CQChartsCmdArgs &argv)
 
     (void) CQColorsMgrInst->createPalette(paletteStr);
 
-    cmdBase_->setCmdRc(paletteStr);
+    return cmdBase_->setCmdRc(paletteStr);
   }
 
   return true;
@@ -1835,14 +1854,14 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       CQColorsMgrInst->getPaletteNames(names);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "themes") {
       QStringList names;
 
       CQColorsMgrInst->getThemeNames(names);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "color_models") {
       int n = CQColorsPalette::numModels();
@@ -1852,13 +1871,13 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       for (int i = 0; i < n; ++i)
         names << CQColorsPalette::modelName(i).c_str();
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "?") {
       QStringList names = QStringList() <<
         "palettes" << "themes" << "color_models";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
@@ -1869,10 +1888,10 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     if (! theme) return errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
     if      (nameStr == "name") {
-      cmdBase_->setCmdRc(theme->name());
+      return cmdBase_->setCmdRc(theme->name());
     }
     else if (nameStr == "desc") {
-      cmdBase_->setCmdRc(theme->desc());
+      return cmdBase_->setCmdRc(theme->desc());
     }
     else if (nameStr == "palettes") {
       int n = theme->numPalettes();
@@ -1882,12 +1901,16 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       for (int i = 0; i < n; ++i)
         names << theme->palette(i)->name();
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
 
 #if 0
-    else if (nameStr == "select_color") { cmdBase_->setCmdRc(theme->selectColor()); }
-    else if (nameStr == "inside_color") { cmdBase_->setCmdRc(theme->insideColor()); }
+    else if (nameStr == "select_color") {
+      return cmdBase_->setCmdRc(theme->selectColor());
+    }
+    else if (nameStr == "inside_color") {
+      return cmdBase_->setCmdRc(theme->insideColor());
+    }
 #endif
 
     else if (nameStr == "?") {
@@ -1899,7 +1922,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
         "name" << "desc" << "palettes";
 #endif
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
@@ -1909,30 +1932,34 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteStr);
     if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(themeStr));
 
-    if      (nameStr == "name") { cmdBase_->setCmdRc(palette->name()); }
-    else if (nameStr == "desc") { cmdBase_->setCmdRc(palette->desc()); }
+    if      (nameStr == "name") {
+      return cmdBase_->setCmdRc(palette->name());
+    }
+    else if (nameStr == "desc") {
+      return cmdBase_->setCmdRc(palette->desc());
+    }
 
     else if (nameStr == "color_type") {
-      cmdBase_->setCmdRc(CQColorsPalette::colorTypeToString(palette->colorType()));
+      return cmdBase_->setCmdRc(CQColorsPalette::colorTypeToString(palette->colorType()));
     }
     else if (nameStr == "color_model") {
-      cmdBase_->setCmdRc(CQColorsPalette::colorModelToString(palette->colorModel()));
+      return cmdBase_->setCmdRc(CQColorsPalette::colorModelToString(palette->colorModel()));
     }
 
     // model
-    else if (nameStr == "red_model"     ) { cmdBase_->setCmdRc(palette->redModel       ()); }
-    else if (nameStr == "green_model"   ) { cmdBase_->setCmdRc(palette->greenModel     ()); }
-    else if (nameStr == "blue_model"    ) { cmdBase_->setCmdRc(palette->blueModel      ()); }
-    else if (nameStr == "gray"          ) { cmdBase_->setCmdRc(palette->isGray         ()); }
-    else if (nameStr == "red_negative"  ) { cmdBase_->setCmdRc(palette->isRedNegative  ()); }
-    else if (nameStr == "green_negative") { cmdBase_->setCmdRc(palette->isGreenNegative()); }
-    else if (nameStr == "blue_negative" ) { cmdBase_->setCmdRc(palette->isBlueNegative ()); }
-    else if (nameStr == "red_min"       ) { cmdBase_->setCmdRc(palette->redMin         ()); }
-    else if (nameStr == "red_max"       ) { cmdBase_->setCmdRc(palette->redMax         ()); }
-    else if (nameStr == "green_min"     ) { cmdBase_->setCmdRc(palette->greenMin       ()); }
-    else if (nameStr == "green_max"     ) { cmdBase_->setCmdRc(palette->greenMax       ()); }
-    else if (nameStr == "blue_min"      ) { cmdBase_->setCmdRc(palette->blueMin        ()); }
-    else if (nameStr == "blue_max"      ) { cmdBase_->setCmdRc(palette->blueMax        ()); }
+    else if (nameStr == "red_model"     ) { return cmdBase_->setCmdRc(palette->redModel       ()); }
+    else if (nameStr == "green_model"   ) { return cmdBase_->setCmdRc(palette->greenModel     ()); }
+    else if (nameStr == "blue_model"    ) { return cmdBase_->setCmdRc(palette->blueModel      ()); }
+    else if (nameStr == "gray"          ) { return cmdBase_->setCmdRc(palette->isGray         ()); }
+    else if (nameStr == "red_negative"  ) { return cmdBase_->setCmdRc(palette->isRedNegative  ()); }
+    else if (nameStr == "green_negative") { return cmdBase_->setCmdRc(palette->isGreenNegative()); }
+    else if (nameStr == "blue_negative" ) { return cmdBase_->setCmdRc(palette->isBlueNegative ()); }
+    else if (nameStr == "red_min"       ) { return cmdBase_->setCmdRc(palette->redMin         ()); }
+    else if (nameStr == "red_max"       ) { return cmdBase_->setCmdRc(palette->redMax         ()); }
+    else if (nameStr == "green_min"     ) { return cmdBase_->setCmdRc(palette->greenMin       ()); }
+    else if (nameStr == "green_max"     ) { return cmdBase_->setCmdRc(palette->greenMax       ()); }
+    else if (nameStr == "blue_min"      ) { return cmdBase_->setCmdRc(palette->blueMin        ()); }
+    else if (nameStr == "blue_max"      ) { return cmdBase_->setCmdRc(palette->blueMax        ()); }
 
     // defined colors
     else if (nameStr == "defined_colors") {
@@ -1949,7 +1976,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
         vars << strs;
       }
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (nameStr == "color") {
       if (! dataFlag) return errorMsg("Missing data for palette color");
@@ -1963,10 +1990,12 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       if (i < 0 || i >= n) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
-      cmdBase_->setCmdRc(palette->definedColor(i));
+      return cmdBase_->setCmdRc(palette->definedColor(i));
     }
 
-    else if (nameStr == "distinct") { cmdBase_->setCmdRc(palette->isDistinct()); }
+    else if (nameStr == "distinct") {
+      return cmdBase_->setCmdRc(palette->isDistinct());
+     }
 
     else if (nameStr == "interp_color") {
       if (! dataFlag) return errorMsg("Missing data for palette interp color");
@@ -1980,17 +2009,17 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       QColor c = palette->getColor(r, scale);
 
-      cmdBase_->setCmdRc(c);
+      return cmdBase_->setCmdRc(c);
     }
 
-    else if (nameStr == "red_function"  ) { cmdBase_->setCmdRc(palette->redFunction  ()); }
-    else if (nameStr == "green_function") { cmdBase_->setCmdRc(palette->greenFunction()); }
-    else if (nameStr == "blue_function" ) { cmdBase_->setCmdRc(palette->blueFunction ()); }
+    else if (nameStr == "red_function"  ) { return cmdBase_->setCmdRc(palette->redFunction  ()); }
+    else if (nameStr == "green_function") { return cmdBase_->setCmdRc(palette->greenFunction()); }
+    else if (nameStr == "blue_function" ) { return cmdBase_->setCmdRc(palette->blueFunction ()); }
 
-    else if (nameStr == "cube_start"     ) { cmdBase_->setCmdRc(palette->cbStart       ()); }
-    else if (nameStr == "cube_cycles"    ) { cmdBase_->setCmdRc(palette->cbCycles      ()); }
-    else if (nameStr == "cube_saturation") { cmdBase_->setCmdRc(palette->cbSaturation  ()); }
-    else if (nameStr == "cube_negative"  ) { cmdBase_->setCmdRc(palette->isCubeNegative()); }
+    else if (nameStr == "cube_start"     ) { return cmdBase_->setCmdRc(palette->cbStart       ()); }
+    else if (nameStr == "cube_cycles"    ) { return cmdBase_->setCmdRc(palette->cbCycles      ()); }
+    else if (nameStr == "cube_saturation") { return cmdBase_->setCmdRc(palette->cbSaturation  ()); }
+    else if (nameStr == "cube_negative"  ) { return cmdBase_->setCmdRc(palette->isCubeNegative()); }
 
     else if (nameStr == "?") {
       QStringList names = QStringList() <<
@@ -2002,7 +2031,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
         "red_function" << "green_function" << "blue_function" <<
         "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid palette value name '%1'").arg(nameStr));
@@ -2013,7 +2042,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     assert(interface);
 
     if      (nameStr == "is_dark") {
-      cmdBase_->setCmdRc(interface->isDark());
+      return cmdBase_->setCmdRc(interface->isDark());
     }
     else if (nameStr == "interp_color") {
       if (! dataFlag) return errorMsg("Missing data for interface interp color");
@@ -2027,13 +2056,13 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       QColor c = interface->interpColor(r, scale);
 
-      cmdBase_->setCmdRc(c);
+      return cmdBase_->setCmdRc(c);
     }
     else if (nameStr == "?") {
       QStringList names = QStringList() <<
         "is_dark" << "interp_color";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid interface value name '%1'").arg(nameStr));
@@ -2093,7 +2122,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     if (nameStr == "?") {
       QStringList names;
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid value name '%1'").arg(nameStr));
@@ -2132,7 +2161,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
         "name" << "desc";
 #endif
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
@@ -2322,7 +2351,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
         "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative" <<
         "defined_colors";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid palette value name '%1'").arg(nameStr));
@@ -2345,7 +2374,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
       QStringList names = QStringList() <<
         "dark";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg(QString("Invalid interface value name '%1'").arg(nameStr));
@@ -2572,9 +2601,7 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   CQChartsModelData *proxyModelData = charts_->initModelData(proxyModelP);
 
-  cmdBase_->setCmdRc(proxyModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(proxyModelData->ind());
 }
 
 //------
@@ -2836,9 +2863,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(dataModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(dataModelData->ind());
 }
 
 //------
@@ -2881,9 +2906,7 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(newModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(newModelData->ind());
 }
 
 //------
@@ -3293,7 +3316,7 @@ filterChartsModelCmd(CQChartsCmdArgs &argv)
     QStringList names = QStringList() <<
       "expression" << "regexp" << "wildcard" << "simple" << "selected" << "non-selected";
 
-    cmdBase_->setCmdRc(names);
+    return cmdBase_->setCmdRc(names);
   }
   else
     return errorMsg(QString("Invalid type '%1'").arg(type));
@@ -3348,9 +3371,7 @@ createChartsCorrelationModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(modelData1->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
@@ -3456,9 +3477,7 @@ createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(foldedModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(foldedModelData->ind());
 }
 
 //------
@@ -3565,9 +3584,7 @@ createChartsBucketModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(modelData1->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
@@ -3635,9 +3652,7 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(modelData1->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
@@ -3682,9 +3697,7 @@ createChartsTransposeModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(modelData1->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
@@ -3751,10 +3764,8 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("sort_role")) {
     QString roleName = argv.getParseStr("sort_role");
 
-    if (roleName == "?") {
-      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
-      return true;
-    }
+    if (roleName == "?")
+      return cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
 
     int sortRole = CQChartsModelUtil::nameToRole(roleName);
 
@@ -3787,9 +3798,7 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(modelData1->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
@@ -3913,9 +3922,7 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(collapseModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(collapseModelData->ind());
 }
 
 //------
@@ -4015,9 +4022,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(pivotModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(pivotModelData->ind());
 }
 
 
@@ -4218,9 +4223,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(statsModelData->ind());
-
-  return true;
+  return cmdBase_->setCmdRc(statsModelData->ind());
 }
 
 //------
@@ -4286,7 +4289,7 @@ exportChartsModelCmd(CQChartsCmdArgs &argv)
   else if (toName.toLower() == "?") {
     QStringList names = QStringList() << "csv" << "tsv";
 
-    cmdBase_->setCmdRc(names);
+    return cmdBase_->setCmdRc(names);
   }
   else
     return errorMsg("Invalid output format");
@@ -4397,10 +4400,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   int role = Qt::EditRole;
 
   if (roleName != "") {
-    if (roleName == "?") {
-      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
-      return true;
-    }
+    if (roleName == "?")
+      return cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
 
     role = CQChartsModelUtil::nameToRole(roleName);
 
@@ -4472,7 +4473,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           return errorMsg("Invalid model value");
       }
 
-      cmdBase_->setCmdRc(var);
+      return cmdBase_->setCmdRc(var);
     }
     // get meta data
     else if (name == "meta") {
@@ -4483,18 +4484,18 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       if (! var.isValid())
         return errorMsg("Invalid meta data");
 
-      cmdBase_->setCmdRc(var);
+      return cmdBase_->setCmdRc(var);
     }
     // number of rows, number of columns, hierarchical
     else if (name == "num_rows" || name == "num_columns" || name == "hierarchical") {
       CQChartsModelDetails *details = modelData->details();
 
       if      (name == "num_rows")
-        cmdBase_->setCmdRc(details->numRows());
+        return cmdBase_->setCmdRc(details->numRows());
       else if (name == "num_columns")
-        cmdBase_->setCmdRc(details->numColumns());
+        return cmdBase_->setCmdRc(details->numColumns());
       else if (name == "hierarchical")
-        cmdBase_->setCmdRc(details->isHierarchical());
+        return cmdBase_->setCmdRc(details->isHierarchical());
     }
     // header value
     else if (name == "header") {
@@ -4514,7 +4515,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           vars.push_back(var);
         }
 
-        cmdBase_->setCmdRc(vars);
+        return cmdBase_->setCmdRc(vars);
       }
       else {
         if (column.column() < 0 || column.column() >= nc)
@@ -4524,7 +4525,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
         auto var = CQChartsModelUtil::modelHeaderValue(model.data(), column, role, ok);
 
-        cmdBase_->setCmdRc(var);
+        return cmdBase_->setCmdRc(var);
       }
     }
     // row value
@@ -4550,7 +4551,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         vars.push_back(var);
       }
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     // column value
     else if (name == "column") {
@@ -4575,7 +4576,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         vars.push_back(var);
       }
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     // column named value
     else if (name.left(8) == "details.") {
@@ -4590,7 +4591,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
           auto columnDetails = details->columnDetails(column);
 
-          cmdBase_->setCmdRc(columnDetails->getNamedValue(name));
+          return cmdBase_->setCmdRc(columnDetails->getNamedValue(name1));
         }
         else {
           int nc = details->numColumns();
@@ -4600,11 +4601,34 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           for (int c = 0; c < nc; ++c) {
             auto columnDetails = details->columnDetails(CQChartsColumn(c));
 
-            vars.push_back(columnDetails->getNamedValue(name));
+            vars.push_back(columnDetails->getNamedValue(name1));
           }
 
-          cmdBase_->setCmdRc(vars);
+          return cmdBase_->setCmdRc(vars);
         }
+      }
+      else if (name1 == "correlation") {
+        if (! argv.hasParseArg("column"))
+          return errorMsg("No columns specified");
+
+        if (! argv.hasParseArg("data"))
+          return errorMsg("No data specified");
+
+        QString data = argv.getParseStr("data");
+
+        CQChartsColumn column1;
+
+        if (! CQChartsModelUtil::stringToColumn(model.data(), data, column1))
+          column1 = CQChartsColumn();
+
+        if (! column1.isValid())
+          return errorMsg("Invalid data column specified");
+
+        const CQChartsModelDetails *details = modelData->details();
+
+        double c = details->correlation(column, column1);
+
+        return cmdBase_->setCmdRc(c);
       }
       else {
         return errorMsg(QString("Invalid column details name '%1'").arg(name));
@@ -4632,7 +4656,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double r = columnDetails->map(var);
 
-      cmdBase_->setCmdRc(r);
+      return cmdBase_->setCmdRc(r);
     }
     // duplicate rows
     else if (name == "duplicates") {
@@ -4654,7 +4678,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (std::size_t i = 0; i < inds.size(); ++i)
         vars.push_back(inds[i]);
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     // get index for column name
     else if (name == "column_index") {
@@ -4665,7 +4689,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       if (! CQChartsModelUtil::stringToColumn(model.data(), data, column))
         column = CQChartsColumn();
 
-      cmdBase_->setCmdRc(column.column());
+      return cmdBase_->setCmdRc(column.column());
     }
     // get title
     else if (name == "title") {
@@ -4676,7 +4700,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       if (dataModel)
         title = dataModel->title();
 
-      cmdBase_->setCmdRc(title);
+      return cmdBase_->setCmdRc(title);
     }
 #if 0
     // model property
@@ -4688,7 +4712,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
         modelData->getPropertyNames(names);
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else {
         QVariant value;
@@ -4696,7 +4720,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         if (! modelData->getPropertyData(name1, value))
           return errorMsg("Failed to get model property '" + name1 + "'");
 
-        cmdBase_->setCmdRc(value);
+        return cmdBase_->setCmdRc(value);
       }
     }
 #endif
@@ -4704,7 +4728,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "name") {
       QString name = modelData->name();
 
-      cmdBase_->setCmdRc(name);
+      return cmdBase_->setCmdRc(name);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
@@ -4717,7 +4741,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &detailsName : detailsNames)
         names << QString("details.%1").arg(detailsName);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid model name '" + name + "' specified");
@@ -4739,7 +4763,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &plot : plots)
         vars.push_back(plot->pathId());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "annotations") {
       QVariantList vars;
@@ -4749,7 +4773,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "selected_objects") {
       CQChartsView::Objs objs;
@@ -4765,12 +4789,12 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           ids.push_back(plotObj->plot()->id() + ":" + plotObj->id());
       }
 
-      cmdBase_->setCmdRc(ids);
+      return cmdBase_->setCmdRc(ids);
     }
     else if (name == "key_obj") {
       CQChartsViewKey *key = view->key();
 
-      cmdBase_->setCmdRc(key ? key->id() : "");
+      return cmdBase_->setCmdRc(key ? key->id() : "");
     }
     else if (name == "view_width") {
       QString data = argv.getParseStr("data");
@@ -4779,7 +4803,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double w = view->lengthViewWidth(len);
 
-      cmdBase_->setCmdRc(w);
+      return cmdBase_->setCmdRc(w);
     }
     else if (name == "view_height") {
       QString data = argv.getParseStr("data");
@@ -4788,7 +4812,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double h = view->lengthViewHeight(len);
 
-      cmdBase_->setCmdRc(h);
+      return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       QString data = argv.getParseStr("data");
@@ -4797,7 +4821,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double w = view->lengthPixelWidth(len);
 
-      cmdBase_->setCmdRc(w);
+      return cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       QString data = argv.getParseStr("data");
@@ -4806,7 +4830,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double h = view->lengthPixelHeight(len);
 
-      cmdBase_->setCmdRc(h);
+      return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_position") {
       QString data = argv.getParseStr("data");
@@ -4815,24 +4839,24 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       CQChartsGeom::Point p = view->positionToPixel(pos);
 
-      cmdBase_->setCmdRc(p.qpoint());
+      return cmdBase_->setCmdRc(p.qpoint());
     }
     else if (name == "properties") {
       QStringList names;
 
       view->getPropertyNames(names, hidden);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "script_select_proc") {
       QString str = view->scriptSelectProc();
 
-      cmdBase_->setCmdRc(str);
+      return cmdBase_->setCmdRc(str);
     }
     else if (name == "mouse_press") {
       QPoint p = view->mousePressPoint();
 
-      cmdBase_->setCmdRc(p);
+      return cmdBase_->setCmdRc(p);
     }
     else if (name == "mouse_modifier") {
       CQChartsSelMod mod = view->mouseClickMod();
@@ -4845,14 +4869,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       else if (mod == CQChartsSelMod::TOGGLE ) res = "toggle";
       else                                     res = "none";
 
-      cmdBase_->setCmdRc(res);
+      return cmdBase_->setCmdRc(res);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "plots" << "annotations" << "selected_objects" << "view_width" << "view_height" <<
        "pixel_width" << "pixel_height" << "pixel_position" << "properties";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid view name '" + name + "' specified");
@@ -4876,7 +4900,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       type->propertyNames(names);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "parameters") {
       const CQChartsPlotType::Parameters &parameters = type->parameters();
@@ -4886,7 +4910,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (auto &parameter : parameters)
         names.push_back(parameter->name());
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name.left(10) == "parameter.") {
       QString data = argv.getParseStr("data");
@@ -4903,22 +4927,22 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
         parameter.propertyNames(names);
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else if (parameter.hasProperty(name1)) {
-        cmdBase_->setCmdRc(parameter.getPropertyValue(name1));
+        return cmdBase_->setCmdRc(parameter.getPropertyValue(name1));
       }
       else
         return errorMsg("Invalid type name 'parameter." + name1 + "' specified");
     }
     else if (type->hasProperty(name)) {
-      cmdBase_->setCmdRc(type->getPropertyValue(name));
+      return cmdBase_->setCmdRc(type->getPropertyValue(name));
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "properties" << "parameters" << "parameter.<parameter_name>" << "<property_name>";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid type name '" + name + "' specified");
@@ -4946,13 +4970,13 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       CQChartsModelData *modelData = charts_->getModelData(plot->model().data());
       if (! modelData) return errorMsg("No model data");
 
-      cmdBase_->setCmdRc(modelData->ind());
+      return cmdBase_->setCmdRc(modelData->ind());
     }
     // get view ind
     else if (name == "view") {
       CQChartsView *view = plot->view();
 
-      cmdBase_->setCmdRc(view->id());
+      return cmdBase_->setCmdRc(view->id());
     }
     // get column header or row, column value
     else if (name == "value") {
@@ -4982,7 +5006,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
         bool rc;
 
-        cmdBase_->setCmdRc(CQChartsVariant::toString(var, rc));
+        return cmdBase_->setCmdRc(CQChartsVariant::toString(var, rc));
       }
     }
     else if (name == "map") {
@@ -5008,7 +5032,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double r = columnDetails->map(var);
 
-      cmdBase_->setCmdRc(r);
+      return cmdBase_->setCmdRc(r);
     }
     else if (name == "annotations") {
       QVariantList vars;
@@ -5018,7 +5042,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "objects") {
       QVariantList vars;
@@ -5028,7 +5052,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &obj : objs)
         vars.push_back(obj->id());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "selected_objects") {
       CQChartsPlot::PlotObjs objs;
@@ -5040,27 +5064,27 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (const auto &obj : objs)
         ids.push_back(obj->id());
 
-      cmdBase_->setCmdRc(ids);
+      return cmdBase_->setCmdRc(ids);
     }
     else if (name == "key_obj") {
       CQChartsPlotKey *key = plot->key();
 
-      cmdBase_->setCmdRc(key ? key->id() : "");
+      return cmdBase_->setCmdRc(key ? key->id() : "");
     }
     else if (name == "xaxis_obj") {
       CQChartsAxis *axis = plot->xAxis();
 
-      cmdBase_->setCmdRc(axis ? axis->id() : "");
+      return cmdBase_->setCmdRc(axis ? axis->id() : "");
     }
     else if (name == "yaxis_obj") {
       CQChartsAxis *axis = plot->yAxis();
 
-      cmdBase_->setCmdRc(axis ? axis->id() : "");
+      return cmdBase_->setCmdRc(axis ? axis->id() : "");
     }
     else if (name == "title_obj") {
       CQChartsTitle *title = plot->title();
 
-      cmdBase_->setCmdRc(title ? title->id() : "");
+      return cmdBase_->setCmdRc(title ? title->id() : "");
     }
     // get model indices or rows for object
     else if (name == "inds" || name == "rows") {
@@ -5085,7 +5109,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           vars.push_back(QVariant(r));
       }
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "plot_width") {
       QString data = argv.getParseStr("data");
@@ -5094,7 +5118,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double w = plot->lengthPlotWidth(len);
 
-      cmdBase_->setCmdRc(w);
+      return cmdBase_->setCmdRc(w);
     }
     else if (name == "plot_height") {
       QString data = argv.getParseStr("data");
@@ -5103,7 +5127,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double h = plot->lengthPlotHeight(len);
 
-      cmdBase_->setCmdRc(h);
+      return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       QString data = argv.getParseStr("data");
@@ -5112,7 +5136,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double w = plot->lengthPixelWidth(len);
 
-      cmdBase_->setCmdRc(w);
+      return cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       QString data = argv.getParseStr("data");
@@ -5121,7 +5145,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       double h = plot->lengthPixelHeight(len);
 
-      cmdBase_->setCmdRc(h);
+      return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_position") {
       QString data = argv.getParseStr("data");
@@ -5130,14 +5154,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       CQChartsGeom::Point p = plot->positionToPixel(pos);
 
-      cmdBase_->setCmdRc(p.qpoint());
+      return cmdBase_->setCmdRc(p.qpoint());
     }
     else if (name == "properties") {
       QStringList names;
 
       plot->getPropertyNames(names, hidden);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "set_hidden") {
       int id = argv.getParseInt("data", -1);
@@ -5145,14 +5169,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       if (id < 0)
         return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
 
-      cmdBase_->setCmdRc(plot->isSetHidden(id));
+      return cmdBase_->setCmdRc(plot->isSetHidden(id));
     }
     else if (name == "errors") {
       QStringList strs;
 
       plot->getErrors(strs);
 
-      cmdBase_->setCmdRc(strs);
+      return cmdBase_->setCmdRc(strs);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
@@ -5160,7 +5184,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
        "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
        "pixel_height" << "pixel_position" << "properties" << "set_hidden" << "errors";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid plot name '" + name + "' specified");
@@ -5177,18 +5201,18 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       CQChartsView *view = annotation->view();
 
       if (view)
-        cmdBase_->setCmdRc(view->id());
+        return cmdBase_->setCmdRc(view->id());
       else
-        cmdBase_->setCmdRc(QString());
+        return cmdBase_->setCmdRc(QString());
     }
     // get plot ind
     else if (name == "plot") {
       CQChartsPlot *plot = annotation->plot();
 
       if (plot)
-        cmdBase_->setCmdRc(plot->id());
+        return cmdBase_->setCmdRc(plot->id());
       else
-        cmdBase_->setCmdRc(QString());
+        return cmdBase_->setCmdRc(QString());
     }
     // get column header or row, column value
     else if (name == "properties") {
@@ -5196,13 +5220,13 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       annotation->getPropertyNames(names, hidden);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "view" << "plot" << "properties";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid annotation name '" + name + "' specified");
@@ -5219,7 +5243,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (auto &modelData : modelDatas)
         vars.push_back(modelData->ind());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "views") {
       QVariantList vars;
@@ -5231,14 +5255,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (auto &view : views)
         vars.push_back(view->id());
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "plot_types") {
       QStringList names, descs;
 
       charts_->getPlotTypeNames(names, descs);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "plots") {
       QVariantList vars;
@@ -5256,13 +5280,13 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           vars.push_back(plot->pathId());
       }
 
-      cmdBase_->setCmdRc(vars);
+      return cmdBase_->setCmdRc(vars);
     }
     else if (name == "current_model") {
       CQChartsModelData *modelData = charts_->currentModelData();
       if (! modelData) return errorMsg("No model data");
 
-      cmdBase_->setCmdRc(modelData->ind());
+      return cmdBase_->setCmdRc(modelData->ind());
     }
     else if (name == "column_types") {
       CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
@@ -5271,7 +5295,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       columnTypeMgr->typeNames(names);
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "column_type.names" || name == "column_type.descs") {
        if (! argv.hasParseArg("model"))
@@ -5295,24 +5319,24 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
           names << param->tip();
       }
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "annotation_types") {
       QStringList names = CQChartsAnnotation::typeNames();
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else if (name == "symbols") {
       QStringList typeNames = CQChartsSymbol::typeNames();
 
-      cmdBase_->setCmdRc(typeNames);
+      return cmdBase_->setCmdRc(typeNames);
     }
     else if (name == "procs") {
       QStringList procs;
 
       charts_->getProcNames(CQCharts::ProcType::TCL, procs);
 
-      cmdBase_->setCmdRc(procs);
+      return cmdBase_->setCmdRc(procs);
     }
     else if (name == "proc_data") {
        if (! argv.hasParseArg("model"))
@@ -5326,14 +5350,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       QStringList strs = QStringList() << args << body;
 
-      cmdBase_->setCmdRc(strs);
+      return cmdBase_->setCmdRc(strs);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "models" << "views" << "plot_types" << "plots" << "current_model" <<
        "column_types" << "column_type.names" << "column_type.descs" << "annotation_types";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid global name '" + name + "' specified");
@@ -5403,10 +5427,8 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   int role = Qt::EditRole;
 
   if (roleName != "") {
-    if (roleName == "?") {
-      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
-      return true;
-    }
+    if (roleName == "?")
+      return cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
 
     role = CQChartsModelUtil::nameToRole(roleName);
 
@@ -5499,7 +5521,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
         modelData->getPropertyNames(names);
 
-        cmdBase_->setCmdRc(names);
+        return cmdBase_->setCmdRc(names);
       }
       else {
         if (! modelData->setPropertyData(name1, value))
@@ -5512,7 +5534,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
        "value" << "column_type" << "meta" << "name" <<
        "process_expression" /* << "property.<name>" */;
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid model name '" + name + "' specified");
@@ -5537,7 +5559,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       QStringList names = QStringList() <<
        "fit";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid view name '" + name + "' specified");
@@ -5601,7 +5623,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       QStringList names = QStringList() <<
        "updates_enabled" << "set_hidden";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid plot name '" + name + "' specified");
@@ -5895,9 +5917,7 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6041,9 +6061,7 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6165,9 +6183,7 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6273,9 +6289,7 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6365,9 +6379,7 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
     if (typeStr == "?") {
       QStringList typeNames = CQChartsSymbol::typeNames();
 
-      cmdBase_->setCmdRc(typeNames);
-
-      return true;
+      return cmdBase_->setCmdRc(typeNames);
     }
 
     CQChartsSymbol::Type type = CQChartsSymbol::nameToType(typeStr);
@@ -6419,9 +6431,7 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6515,9 +6525,7 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6652,9 +6660,7 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6789,9 +6795,7 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -6974,9 +6978,7 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -7157,9 +7159,7 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -7254,9 +7254,7 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -7371,9 +7369,7 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
+  return cmdBase_->setCmdRc(annotation->pathId());
 }
 
 //------
@@ -7546,7 +7542,7 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
     else
       names = QStringList() << "objIdPressed" << "annotationIdPressed" << "selectionChanged";
 
-    cmdBase_->setCmdRc(names);
+    return cmdBase_->setCmdRc(names);
   }
   else
     return errorMsg("unknown slot");
@@ -7705,7 +7701,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
     else if (type == "?") {
       QStringList names = QStringList() << "" << "annotations";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else
       return errorMsg("Invalid write type");
@@ -7728,7 +7724,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
     else if (type == "?") {
       QStringList names = QStringList() << "plots" << "annotations";
 
-      cmdBase_->setCmdRc(names);
+      return cmdBase_->setCmdRc(names);
     }
     else {
       return errorMsg("Invalid write type");
@@ -7764,9 +7760,7 @@ showChartsLoadModelDlgCmd(CQChartsCmdArgs &argv)
   else
     dlg->show();
 
-  cmdBase_->setCmdRc(dlg->modelInd());
-
-  return true;
+  return cmdBase_->setCmdRc(dlg->modelInd());
 }
 
 //------
@@ -7848,9 +7842,7 @@ showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
 
   CQChartsPlot *plot = dlg->plot();
 
-  cmdBase_->setCmdRc(plot ? plot->pathId() : "");
-
-  return true;
+  return cmdBase_->setCmdRc(plot ? plot->pathId() : "");
 }
 
 //------

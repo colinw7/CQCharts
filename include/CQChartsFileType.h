@@ -11,7 +11,8 @@ enum class CQChartsFileType {
   JSON,
   DATA,
   EXPR,
-  VARS
+  VARS,
+  TCL
 };
 
 namespace CQChartsFileTypeUtil {
@@ -29,6 +30,7 @@ inline CQChartsFileType stringToFileType(const QString &str) {
   else if (lstr == "data") return CQChartsFileType::DATA;
   else if (lstr == "expr") return CQChartsFileType::EXPR;
   else if (lstr == "vars") return CQChartsFileType::VARS;
+  else if (lstr == "tcl" ) return CQChartsFileType::TCL;
   else                     return CQChartsFileType::NONE;
 }
 
@@ -39,6 +41,7 @@ inline QString fileTypeToString(CQChartsFileType type) {
   else if (type == CQChartsFileType::DATA) return "data";
   else if (type == CQChartsFileType::EXPR) return "expr";
   else if (type == CQChartsFileType::VARS) return "vars";
+  else if (type == CQChartsFileType::TCL ) return "tcl";
   else                                     return "";
 }
 

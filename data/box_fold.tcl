@@ -21,4 +21,4 @@ foreach tvar $tvars {
 
 echo $columns
 
-set plot [create_charts_plot -type barchart -model $fold_model -columns $columns]
+set plot [create_charts_plot -type barchart -model $fold_model -columns $tvars]

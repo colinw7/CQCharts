@@ -25,6 +25,7 @@ class CQChartsColumn {
   enum class Type {
     NONE,
     DATA,       // model row data
+    ROW,        // model row number
     VHEADER,    // model vertical header data
     GROUP,      // model row group id
     EXPR,       // expression
@@ -86,6 +87,12 @@ class CQChartsColumn {
   bool hasIndex() const { return (type_ == Type::DATA_INDEX && expr_); }
 
   QString index() const { return QString(hasIndex() ? expr_ : ""); }
+
+  //--
+
+  bool isRow() const { return (type_ == Type::ROW); }
+
+  int rowOffset() const { return (role_ > 0 ? role_ : 0); }
 
   //--
 

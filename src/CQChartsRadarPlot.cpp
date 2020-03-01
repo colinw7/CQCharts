@@ -857,7 +857,7 @@ bool
 CQChartsRadarObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   // point
@@ -893,7 +893,7 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (! visible())
+  if (! isVisible())
     return bbox;
 
   return bbox;

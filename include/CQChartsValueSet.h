@@ -696,11 +696,18 @@ class CQChartsValueSet : public QObject {
   // (for integers and reals this is the mean value, otherwise this is imax/2)
   double rmean() const;
 
-  int    rid(double r) const;
+  // get real index
+  int rid(double r) const;
+
+  // get indexed real
   double idr(int i) const;
 
+  // get integer index
   int iid(int i) const;
+  // get indexed integer
   int idi(int i) const;
+
+  void reals(std::vector<double> &reals) const;
 
  private:
   void init() const;

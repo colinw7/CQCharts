@@ -1023,7 +1023,7 @@ class Range {
 
   CQChartsGeom::BBox bbox() const {
      if (isSet())
-      return CQChartsGeom::BBox(xmin(), ymin(), xmax(), ymin());
+      return CQChartsGeom::BBox(xmin(), ymin(), xmax(), ymax());
     else
       return CQChartsGeom::BBox();
   }

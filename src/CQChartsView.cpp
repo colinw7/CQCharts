@@ -1677,22 +1677,70 @@ initOverlayPlot(CQChartsPlot *firstPlot)
       continue;
 
     plot->setOverlay(true, /*notify*/false);
-
-    //---
-
-    auto xaxis = plot->xAxis();
-    auto yaxis = plot->yAxis();
-
-    if (xaxis)
-      xaxis->setVisible(false);
-
-    if (yaxis)
-      yaxis->setVisible(false);
   }
 
   //---
 
   firstPlot->updateOverlay();
+
+  //---
+
+  initOverlayAxes();
+}
+
+void
+CQChartsView::
+initOverlayAxes()
+{
+  auto *firstPlot = plots_[0]->firstPlot();
+
+  if      (firstPlot->isOverlay()) {
+    CQChartsPlot::Plots plots;
+
+    firstPlot->overlayPlots(plots);
+
+    for (auto &plot : plots) {
+      auto xaxis = plot->xAxis();
+      auto yaxis = plot->yAxis();
+
+      if (xaxis)
+        xaxis->setVisible(plot == firstPlot);
+
+      if (yaxis)
+        yaxis->setVisible(plot == firstPlot);
+    }
+
+    if      (firstPlot->isX1X2()) {
+      auto *plot2 = firstPlot->nextPlot();
+
+      plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+    }
+    else if (firstPlot->isY1Y2()) {
+      auto *plot2 = firstPlot->nextPlot();
+
+      plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+    }
+  }
+  else if (firstPlot->isOverlay(/*checkVisible*/false)) {
+    CQChartsPlot::Plots plots;
+
+    firstPlot->overlayPlots(plots);
+
+    for (auto &plot : plots) {
+      auto xaxis = plot->xAxis();
+      auto yaxis = plot->yAxis();
+
+      xaxis->setVisible(true);
+      yaxis->setVisible(true);
+
+      if      (firstPlot->isX1X2(/*checkVisible*/false)) {
+        plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      }
+      else if (firstPlot->isY1Y2(/*checkVisible*/false)) {
+        plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      }
+    }
+  }
 }
 
 void
@@ -5864,7 +5912,7 @@ getDrawPlots(Plots &plots) const
 {
   for (const auto &plot : this->plots()) {
     if (plot->isOverlay()) {
-      if (! plot->firstPlot())
+      if (! plot->isFirstPlot())
         continue;
 
       if      (plot->isX1X2()) {

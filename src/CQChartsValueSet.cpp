@@ -504,6 +504,46 @@ idi(int i) const
 
 void
 CQChartsValueSet::
+reals(std::vector<double> &reals) const
+{
+  if      (ivals_.isValid()) {
+    int n = ivals_.size();
+
+    for (int i = 0; i < n; ++i) {
+      OptInt ival = ivals_.value(i);
+      if (! ival) continue;
+
+      reals.push_back(*ival);
+    }
+  }
+  else if (rvals_.isValid()) {
+    int n = rvals_.size();
+
+    for (int i = 0; i < n; ++i) {
+      OptReal rval = rvals_.value(i);
+      if (! rval) continue;
+
+      reals.push_back(*rval);
+    }
+  }
+  else if (svals_.isValid()) {
+    int n = svals_.size();
+
+    for (int i = 0; i < n; ++i) {
+      OptString sval = svals_.value(i);
+      if (! sval) continue;
+
+      bool ok;
+      double r = (*sval).toDouble(&ok);
+      if (! ok) continue;
+
+      reals.push_back(r);
+    }
+  }
+}
+
+void
+CQChartsValueSet::
 init() const
 {
   if (initialized_)

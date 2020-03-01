@@ -705,6 +705,10 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void initOverlayAxes();
+
+  //---
+
   // convert plot to/from index
   CQChartsPlot *getPlotForInd(int ind) const;
   int getIndForPlot(const CQChartsPlot *plot) const;

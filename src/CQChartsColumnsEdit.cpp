@@ -326,13 +326,18 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
       QString str1;
 
       for (const auto &column : columns.columns()) {
-        if (str1.length())
-          str1 += ", ";
+        QString headerName = plot->columnHeaderName(column);
 
-        str1 += plot->columnHeaderName(column);
+        if (headerName.length()) {
+          if (str1.length())
+            str1 += ", ";
+
+          str1 += headerName;
+        }
       }
 
-      str += " (" + str1 + ")";
+      if (str1.length())
+        str += " (" + str1 + ")";
     }
 
     ok = true;

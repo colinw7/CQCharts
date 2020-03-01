@@ -1306,9 +1306,6 @@ class CQChartsObjBoxData {
 
   //---
 
-  bool isVisible() const { return boxData_.isVisible(); }
-  void setVisible(bool b) { boxData_.setVisible(b); boxDataInvalidate(); }
-
   const CQChartsMargin &margin() const { return boxData_.margin(); }
   void setMargin(const CQChartsMargin &m) { boxData_.setMargin(m); boxDataInvalidate(); }
 

@@ -85,6 +85,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
 
   void menuColumnGroupClicked(bool b);
   void menuExprGroupClicked  (bool b);
+  void rowCheckClicked       (bool b);
   void vheaderCheckClicked   (bool b);
 
   void menuColumnChanged();
@@ -107,6 +108,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   CQChartsLineEdit*    roleEdit_       { nullptr };
   CQGroupBox*          menuExprGroup_  { nullptr };
   CQChartsLineEdit*    expressionEdit_ { nullptr };
+  QCheckBox*           rowCheck_       { nullptr };
   QCheckBox*           vheaderCheck_   { nullptr };
 };
 

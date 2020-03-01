@@ -77,8 +77,8 @@ set nr [get_charts_data -model $modelId -name num_rows]
 set nc [get_charts_data -model $modelId -name num_columns]
 #puts $nc
 
-set ::minYear [get_charts_data -model $modelId -column 0 -name min]
-set ::maxYear [get_charts_data -model $modelId -column 0 -name max]
+set ::minYear [get_charts_data -model $modelId -column 0 -name details.min]
+set ::maxYear [get_charts_data -model $modelId -column 0 -name details.max]
 
 set ::year $::minYear
 

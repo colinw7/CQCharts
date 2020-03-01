@@ -532,6 +532,9 @@ class CQChartsKeyItem : public QObject {
   const CQChartsPlotKey *key() const { return key_; }
   void setKey(CQChartsPlotKey *p) { key_ = p; }
 
+  const ColorInd &colorIndex() const { return ic_; }
+  void setColorIndex(const ColorInd &v) { ic_ = v; }
+
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
@@ -646,8 +649,6 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   Size size() const override;
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
-
   virtual QBrush fillBrush() const;
 
   virtual const CQChartsColor &strokeColor() const { return boxData_.shape().stroke().color(); }
@@ -660,6 +661,20 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   virtual double xColorValue(bool relative=true) const;
   virtual double yColorValue(bool relative=true) const;
 
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &color) { color_ = color; }
+
+  const QVariant &value() const { return value_; }
+  void setValue(const QVariant &v) { value_ = v; }
+
+  //---
+
+  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+
+  //---
+
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+
  protected:
   CQChartsPlot*   plot_     { nullptr }; //!< parent plot
   CQChartsBoxData boxData_;              //!< box data
@@ -668,6 +683,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   ColorInd        iv_;                   //!< number of groups
   RangeValue      xv_;                   //!< x value
   RangeValue      yv_;                   //!< y value
+  CQChartsColor   color_;                //!< custom color
+  QVariant        value_;                //!< associated value
 };
 
 #endif

@@ -5,7 +5,8 @@ set model [load_charts_model -tsv data/monthly_sales.tsv -comment_header \
                 {{2 real} {format $%gK} {format_scale 0.001}} \
                 {{3 real} {format $%gK} {format_scale 0.001}}}]
 
-set plot1 [create_charts_plot -type barchart -columns {{group 0} {value 1} {label 4}} -title "Actual Sales" -ymax 80000]
+set plot1 [create_charts_plot -type barchart -columns \
+  {{name 0} {value 1} {group 0} {label 4}} -title "Actual Sales" -ymax 80000]
 
 set view [get_charts_property -plot $plot1 -name viewId]
 
@@ -13,10 +14,13 @@ set_charts_property -view $view -name title.string -value "Monthly Sales Data"
 
 ###---
 
-set_charts_palette -theme default -name palettes -value [list default palette1 palette2 set2 set1 set3 plasma chromajs distinct1 distinct2]
+set_charts_palette -theme default -name palettes \
+  -value [list default palette1 palette2 set2 set1 set3 plasma chromajs distinct1 distinct2]
 
-set_charts_palette -palette default -name defined_colors -value {{0 "#6d78ad"} {1 "#51cda0"} {2 "#df7970"}}
-#set_charts_palette -palette default -name defined_colors -value {{0 "#4d81bc"} {1 "#c0504e"} {2 "#9bbb58"}}
+set_charts_palette -palette default -name defined_colors \
+  -value {{0 "#6d78ad"} {1 "#51cda0"} {2 "#df7970"}}
+#set_charts_palette -palette default -name defined_colors \
+# -value {{0 "#4d81bc"} {1 "#c0504e"} {2 "#9bbb58"}}
 
 #set_charts_palette -interface -name defined_colors {{0 #ffffff} {1 #000000} {2 #808080}}
 #set_charts_palette -interface -name defined_colors {{0 #2a2a2a} {1 #ffffff} {2 #808080}}
@@ -59,7 +63,7 @@ set_charts_property -plot $plot1 -name title.text.font            -value "FreeSa
 
 ###---
 
-set plot2 [create_charts_plot -type xy -columns {{x 0} {y 2}} -title "Expected Sales"]
+set plot2 [create_charts_plot -type xy -columns {{x @R} {y 2}} -title "Expected Sales"]
 
 set_charts_property -plot $plot2 -name points.symbol.type           -value circle
 set_charts_property -plot $plot2 -name points.symbol.size           -value 6px
@@ -73,7 +77,7 @@ set_charts_property -plot $plot2 -name lines.stroke.color -value {palette 1 s}
 
 ###---
 
-set plot3 [create_charts_plot -type xy -columns {{x 0} {y 3}} -title "Profit"]
+set plot3 [create_charts_plot -type xy -columns {{x @R} {y 3}} -title "Profit"]
 
 set_charts_property -plot $plot3 -name fillUnder.visible    -value 1
 set_charts_property -plot $plot3 -name fillUnder.fill.color -value {palette 2 s}

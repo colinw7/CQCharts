@@ -261,9 +261,6 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
                       const ColorInd &iv);
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &color) { color_ = color; }
-
   bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
@@ -276,7 +273,6 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
  private:
   CQChartsBarChartPlot* plot_  { nullptr }; //!< plot
-  CQChartsColor         color_;             //!< custom color
 };
 
 /*!

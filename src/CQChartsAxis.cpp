@@ -85,7 +85,6 @@ void
 CQChartsAxis::
 swap(CQChartsAxis *lhs, CQChartsAxis *rhs)
 {
-  std::swap(lhs->visible_     , rhs->visible_     );
   std::swap(lhs->side_        , rhs->side_        );
   std::swap(lhs->position_    , rhs->position_    );
   std::swap(lhs->valueType_   , rhs->valueType_   );
@@ -165,6 +164,8 @@ view() const
   return plot()->view();
 }
 
+//---
+
 void
 CQChartsAxis::
 setVisible(bool b)
@@ -178,6 +179,8 @@ setSelected(bool b)
 {
   CQChartsUtil::testAndSet(selected_, b, [&]() { emitSelectionChanged(); } );
 }
+
+//---
 
 void
 CQChartsAxis::

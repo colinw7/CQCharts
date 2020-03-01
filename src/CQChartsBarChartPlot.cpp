@@ -1,6 +1,7 @@
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
@@ -55,7 +56,8 @@ addParameters()
   addBoolParameter("percent" , "Percent"  , "percent" ).setTip("Show value is percentage");
   addBoolParameter("dotLines", "Dot Lines", "dotLines").setTip("Draw bars as lines with dot");
 
-  addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
+  addBoolParameter("colorBySet", "Color by Set", "colorBySet").
+    setTip("Color by value set");
 
   endParameterGroup();
 
@@ -567,6 +569,21 @@ CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
              CQChartsGeom::Range &dataRange) const
 {
+  if (isColorKey() && colorColumn().isValid()) {
+    CQChartsModelIndex colorModelInd(data.row, colorColumn(), data.parent);
+
+    bool ok;
+
+    QVariant colorValue = modelValue(colorModelInd, ok);
+
+    bool hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
+
+    if (hidden)
+      return;
+  }
+
+  //---
+
   auto updateRange = [&](double x, double y) {
     if (! isHorizontal())
       dataRange.updateRange(x, y);
@@ -1274,7 +1291,9 @@ addKeyItems(CQChartsPlotKey *key)
       for (int iv = 0; iv < nv; ++iv) {
         auto valueSet = this->valueSet(iv);
 
-        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name());
+        QString name = valueSet.name();
+
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name);
       }
     }
     else {
@@ -1285,14 +1304,18 @@ addKeyItems(CQChartsPlotKey *key)
       for (int ivs = 0; ivs < nvs; ++ivs) {
         auto value = valueSet.value(ivs);
 
-        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), value.valueName());
+        QString name = value.valueName();
+
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), name);
       }
     }
   }
   else {
     if      (nv > 1) {
       if (isColorBySet()) {
-        addKeyRow(ColorInd(), ColorInd(), ColorInd(), valueName());
+        QString name = this->valueName();
+
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(), name);
       }
       else {
         for (int iv = 0; iv < nv; ++iv) {
@@ -1315,7 +1338,9 @@ addKeyItems(CQChartsPlotKey *key)
               c = interpColor(color, ColorInd());
           }
 
-          addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
+          QString name = valueSet.name();
+
+          addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
         }
       }
     }
@@ -1340,7 +1365,9 @@ addKeyItems(CQChartsPlotKey *key)
         if (columnColor(ind0.vrow, parent, color))
           c = interpColor(color, ColorInd());
 
-        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), ivalue.valueName(), c);
+        QString iname = ivalue.valueName();
+
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), iname, c);
       }
     }
 
@@ -1366,7 +1393,9 @@ addKeyItems(CQChartsPlotKey *key)
             c = interpColor(color, ColorInd());
         }
 
-        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
+        QString name = valueSet.name();
+
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
       }
     }
     else {
@@ -1688,10 +1717,16 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->groupColumn());
 
-  if (plot_->isStacked())
-    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(ig_.i));
-  else
-    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(is_.i));
+  int nv = plot_->valueColumns().count();
+
+  if (plot_->isStacked()) {
+    if (ig_.i < nv)
+      addColumnSelectIndex(inds, plot_->valueColumns().getColumn(ig_.i));
+  }
+  else {
+    if (is_.i < nv)
+      addColumnSelectIndex(inds, plot_->valueColumns().getColumn(is_.i));
+  }
 
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());

@@ -13,7 +13,7 @@ set view [create_charts_view]
 set plot1 [create_charts_plot -view $view -model $model -type distribution -columns {{value cut}}]
 connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
-set plot2 [create_charts_plot -view $view -model $model -type pie -columns {{group cut}}]
+set plot2 [create_charts_plot -view $view -model $model -type pie -columns {{value @ROW1} {group cut}}]
 set_charts_property -plot $plot2 -name options.count -value 1
 connect_charts_signal -plot $plot2 -from objIdPressed -to objPressed
 

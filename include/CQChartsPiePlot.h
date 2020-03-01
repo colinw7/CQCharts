@@ -488,6 +488,12 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   void adjustObjAngles() const;
 
+  //---
+
+  bool isIndexHidden(const CQChartsModelIndex &ind) const;
+
+  //---
+
   void addKeyItems(CQChartsPlotKey *key) override;
 
   bool addMenuItems(QMenu *menu) override;

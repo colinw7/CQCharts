@@ -745,19 +745,19 @@ calcTipId() const
 
 bool
 CQChartsDelaunayPointObj::
-visible() const
+isVisible() const
 {
   if (! plot_->isPoints())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsDelaunayPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
@@ -785,7 +785,7 @@ void
 CQChartsDelaunayPointObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   // calc pen and brush

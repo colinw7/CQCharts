@@ -399,6 +399,7 @@ setPlotType(PlotType type)
     case PlotType::STACKED     : setStacked   (true); break;
     case PlotType::SIDE_BY_SIDE: setSideBySide(true); break;
     case PlotType::OVERLAY     : setOverlay   (true); break;
+    case PlotType::DENSITY     : setDensity   (true); break;
     default                    : assert(false); break;
   }
 }
@@ -3946,7 +3947,7 @@ bool
 CQChartsDistributionDensityObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   return poly_.containsPoint(p, Qt::OddEvenFill);

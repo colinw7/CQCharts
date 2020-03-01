@@ -65,16 +65,6 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  //! get/set visible
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; }
-
-  //---
-
-  virtual bool visible() const { return isVisible(); }
-
-  //---
-
   // shapes
   virtual bool isPolygon() const { return false; }
   virtual CQChartsGeom::Polygon polygon() const { return CQChartsGeom::Polygon(); }
@@ -208,7 +198,6 @@ class CQChartsPlotObj : public CQChartsObj {
  protected:
   CQChartsPlot*            plot_       { nullptr };           //!< parent plot
   DetailHint               detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
-  bool                     visible_    { true };              //!< is visible
   ColorInd                 is_;                               //!< set index
   ColorInd                 ig_;                               //!< group index
   ColorInd                 iv_;                               //!< value index

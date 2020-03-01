@@ -23,6 +23,7 @@ CQChartsFilterModel.cpp \
 CQChartsExprModel.cpp \
 CQChartsExprModelFn.cpp \
 CQChartsVarsModel.cpp \
+CQChartsTclModel.cpp \
 CQChartsExprDataModel.cpp \
 CQChartsSelectionModel.cpp \
 \
@@ -305,6 +306,7 @@ HEADERS += \
 ../include/CQChartsExprModel.h \
 ../include/CQChartsExprModelFn.h \
 ../include/CQChartsVarsModel.h \
+../include/CQChartsTclModel.h \
 ../include/CQChartsExprDataModel.h \
 ../include/CQChartsSelectionModel.h \
 \

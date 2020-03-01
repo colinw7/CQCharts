@@ -1071,19 +1071,19 @@ calcTipId() const
 
 bool
 CQChartsParallelLineObj::
-visible() const
+isVisible() const
 {
   if (! plot_->isLines())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsParallelLineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   if (! plot_->isLinesSelectable())
@@ -1120,7 +1120,7 @@ bool
 CQChartsParallelLineObj::
 interpY(double x, std::vector<double> &yvals) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   CQChartsGeom::Polygon poly;
@@ -1158,7 +1158,7 @@ void
 CQChartsParallelLineObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   //---
@@ -1293,19 +1293,19 @@ calcTipId() const
 
 bool
 CQChartsParallelPointObj::
-visible() const
+isVisible() const
 {
   if (! plot_->isPoints())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsParallelPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
@@ -1332,7 +1332,7 @@ void
 CQChartsParallelPointObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   //---

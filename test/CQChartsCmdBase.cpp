@@ -324,10 +324,31 @@ shellCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmdBase::
-helpCmd(CQChartsCmdArgs &)
+helpCmd(CQChartsCmdArgs &argv)
 {
-  for (auto &p : commandProcs_)
-    std::cout << p.first.toStdString() << "\n";
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  const Vars &pargs = argv.getParseArgs();
+
+  QString pattern = (! pargs.empty() ? pargs[0].toString() : "");
+
+  //---
+
+  if (pattern.length()) {
+    QRegExp re(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+
+    for (auto &p : commandProcs_) {
+      if (re.exactMatch(p.first))
+        std::cout << p.first.toStdString() << "\n";
+    }
+  }
+  else {
+    for (auto &p : commandProcs_)
+      std::cout << p.first.toStdString() << "\n";
+  }
 
   return true;
 }
@@ -361,62 +382,78 @@ valueToStrs(const QString &str, QStringList &strs) const
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(int rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(double rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(const QString &rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(const std::string &rc)
 {
   qtcl()->setResult(QString(rc.c_str()));
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(const QVariant &rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(const QStringList &rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdRc(const QVariantList &rc)
 {
   qtcl()->setResult(rc);
+
+  return true;
 }
 
-void
+bool
 CQChartsCmdBase::
 setCmdError(const QString &msg)
 {
   errorMsg(msg);
 
   setCmdRc(QString());
+
+  return false;
 }
 
 //------

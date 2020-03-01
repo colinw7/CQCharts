@@ -49,6 +49,8 @@ class CQChartsModelDetails : public QObject {
   std::vector<int> duplicates() const;
   std::vector<int> duplicates(const CQChartsColumn &column) const;
 
+  double correlation(const CQChartsColumn &column1, const CQChartsColumn &column2) const;
+
   CQCharts *charts() const;
 
   QAbstractItemModel *model() const;
@@ -176,6 +178,12 @@ class CQChartsModelColumnDetails {
   bool isOutlier(const QVariant &value) const;
 
   double map(const QVariant &var) const;
+
+  //---
+
+  CQChartsValueSet *valueSet() const { return valueSet_; }
+
+  //---
 
   int preferredWidth() const { return preferredWidth_; }
   void setPreferredWidth(int w) { preferredWidth_ = w; }

@@ -1052,3 +1052,9 @@
  + support id column in tree map for custom name
  + allow supress auto hide of title 
  + fix bad placement of boxplot when set is defined
+# 03/01/2020
+ + add color key
+ + add row value for column definition
+ + handle visible in overlay, x1x2, y1y2 plots
+ + add tcl model
+ + Add variant compare

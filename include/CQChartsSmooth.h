@@ -1044,6 +1044,11 @@ class CQChartsSmooth {
 
   //---
 
+  bool isUnder() const { return under_; }
+  void setUnder(bool b) { under_ = b; }
+
+  //---
+
   void clearPoints() {
     points_.clear();
 
@@ -1120,23 +1125,26 @@ class CQChartsSmooth {
     QPainterPath path;
 
     int np = numPoints();
+    if (! np) return path;
 
-    if (closed) {
-      if (np > 0) {
-        const CQChartsGeom::Point &p = point(0);
+    const auto &ps = point(0);
+    const auto &pe = point(np - 1);
 
-        path.moveTo(p.qpoint());
-      }
+    int is = 0;
+    int ie = np - 1;
+
+    if (isUnder()) {
+      path.moveTo(ps.qpoint());
+
+      ++is;
+      --ie;
     }
 
-    for (int i = 0; i < np; ++i) {
+    for (int i = is; i <= ie; ++i) {
       const CQChartsGeom::Point &p = point(i);
 
       if (i == 0) {
-        if (closed)
-          path.lineTo(p.qpoint());
-        else
-          path.moveTo(p.qpoint());
+        path.moveTo(p.qpoint());
       }
       else {
         SegmentType type = segmentType(i - 1);
@@ -1158,15 +1166,11 @@ class CQChartsSmooth {
       }
     }
 
-    if (closed) {
-      if (np > 0) {
-        const CQChartsGeom::Point &p = point(np - 1);
+    if (isUnder())
+      path.lineTo(pe.qpoint());
 
-        path.lineTo(p.qpoint());
-      }
-
+    if (closed)
       path.closeSubpath();
-    }
 
     return path;
   }
@@ -1183,18 +1187,30 @@ class CQChartsSmooth {
     if (sorted_)
       sort();
 
-    if (points_.size() < 2)
+    int np = numPoints();
+
+    if (np < 2)
       return;
 
-    if (points_.size() == 2) {
+    if (np == 2) {
       segments_.push_back(new Line(0));
       return;
+    }
+
+    int is = 0;
+    int ie = np - 1;
+
+    if (isUnder()) {
+      segments_.push_back(new Line(is));
+
+      ++is;
+      --ie;
     }
 
     // generate beziers for each point pair
     double g1 = 0.0, c1 = 0.0, g2, c2;
 
-    for (int i1 = 0, i2 = 1, i3 = 2; i3 < int(points_.size()); i1 = i2, i2 = i3++) {
+    for (int i1 = is, i2 = i1 + 1, i3 = i2 + 1; i3 <= ie; i1 = i2, i2 = i3++) {
       if (points_[i1].x == points_[i2].x || points_[i2].x == points_[i3].x) {
         segments_.push_back(new Line(i1));
         continue;
@@ -1206,7 +1222,7 @@ class CQChartsSmooth {
       g2 = (gl1 + gl2)/2.0;
       c2 = points_[i2].y - points_[i2].x*g2;
 
-      if (i1 > 0) {
+      if (i1 > is) {
         double dx = (points_[i2].x - points_[i1].x)/3;
 
         double mx1 = points_[i1].x + dx;
@@ -1232,26 +1248,29 @@ class CQChartsSmooth {
     }
 
     // add last segment
-    int i1 = points_.size() - 3;
+    int i1 = ie - 2;
     int i2 = i1 + 1;
     int i3 = i2 + 1;
 
     if (points_[i1].x == points_[i2].x || points_[i2].x == points_[i3].x) {
       segments_.push_back(new Line(i2));
-      return;
+    }
+    else {
+      double gl1 = (points_[i2].y - points_[i1].y)/(points_[i2].x - points_[i1].x);
+      double gl2 = (points_[i3].y - points_[i2].y)/(points_[i3].x - points_[i2].x);
+
+      double g = (gl1 + gl2)/2.0;
+      double c = points_[i2].y - points_[i2].x*g;
+
+      double mx = (points_[i2].x + points_[i3].x)/2;
+
+      CQChartsGeom::Point mp(mx, g*mx + c);
+
+      segments_.push_back(new Curve2(i2, mp));
     }
 
-    double gl1 = (points_[i2].y - points_[i1].y)/(points_[i2].x - points_[i1].x);
-    double gl2 = (points_[i3].y - points_[i2].y)/(points_[i3].x - points_[i2].x);
-
-    double g = (gl1 + gl2)/2.0;
-    double c = points_[i2].y - points_[i2].x*g;
-
-    double mx = (points_[i2].x + points_[i3].x)/2;
-
-    CQChartsGeom::Point mp(mx, g*mx + c);
-
-    segments_.push_back(new Curve2(i2, mp));
+    if (isUnder())
+      segments_.push_back(new Line(np - 1));
   }
 
  private:
@@ -1260,6 +1279,7 @@ class CQChartsSmooth {
   Points   points_;
   Segments segments_;
   bool     sorted_ { true };
+  bool     under_  { false };
 };
 
 #endif

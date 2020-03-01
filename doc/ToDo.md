@@ -3,6 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + handle overlay, x1x2, y1y2, when plot hidden
+   + use firstPlot data if overlay (don't propagate values)
+ + monthly_sales.tcl (overlay) broken range
+ + fill under broken ?
+ + fit with bad margins
+ + Nominal, Ordinal, Continuous Variables
+ + Mapping of Values (Name->Number, Number->Name, Value->Color/Symbol Type/Size)
  + Filter as prompt in plot (common expression handling)
  + Header bar to switch data ?
  + Test for extra nodes in tree map (hier with size and child with size)
@@ -416,6 +423,9 @@ Distribution Plot
 
 Force Directed Plot
  + Crash on Preview Resize
+
+Geometry Plot
+ + Color Key
 
 Hier Bubble Plot
  + Pop to top

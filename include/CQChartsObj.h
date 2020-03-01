@@ -19,6 +19,7 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(QString            id       READ id         WRITE setId      )
   Q_PROPERTY(CQChartsGeom::BBox rect     READ rect       WRITE setRect    )
   Q_PROPERTY(QString            tipId    READ tipId      WRITE setTipId   )
+  Q_PROPERTY(bool               visible  READ isVisible  WRITE setVisible )
   Q_PROPERTY(bool               selected READ isSelected WRITE setSelected)
   Q_PROPERTY(bool               inside   READ isInside   WRITE setInside  )
 
@@ -60,14 +61,16 @@ class CQChartsObj : public QObject {
 
   //---
 
+  //! get/set visible
+  virtual bool isVisible() const { return visible_; }
+  virtual void setVisible(bool b) { visible_ = b; }
+
   //! set/get selected
-  bool isSelected() const { return selected_; }
+  virtual bool isSelected() const { return selected_; }
   virtual void setSelected(bool b) { selected_ = b; }
 
-  //---
-
   //! set/get inside
-  bool isInside() const { return inside_; }
+  virtual bool isInside() const { return inside_; }
   virtual void setInside(bool b) { inside_ = b; }
 
   //---
@@ -85,6 +88,7 @@ class CQChartsObj : public QObject {
   OptString          id_;                   //!< id
   CQChartsGeom::BBox rect_;                 //!< bbox
   OptString          tipId_;                //!< tip id
+  bool               visible_  { true };    //!< is visible
   bool               selected_ { false };   //!< is selected
   bool               inside_   { false };   //!< is mouse inside
   mutable std::mutex mutex_;                //!< mutex

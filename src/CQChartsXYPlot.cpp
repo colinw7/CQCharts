@@ -1443,7 +1443,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         poly1 = poly3;
       }
 
-      addPolygon(poly1, groupInd, is1, ig, name1, objs);
+      addPolygon(poly1, groupInd, is1, ig, name1, objs, /*under*/false);
     }
   }
 
@@ -1516,7 +1516,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     assert(prevPoly.size() == np);
 
     auto pointStartIndex = [&]() {
-      if (pointStart_ == 0)
+      if      (pointStart_ == 0)
         return 0;
       else if (pointStart_ == -1)
         return np - 1;
@@ -1774,8 +1774,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           polyShape.addPoint(CQChartsGeom::Point(x, y1));
         }
-        else
+        else {
           polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
+        }
       }
 
       polyShape.addPoint(p);
@@ -1790,8 +1791,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           polyShape.addPoint(CQChartsGeom::Point(x, y1));
         }
-        else
+        else {
           polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
+        }
       }
     }
 
@@ -1831,7 +1833,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     ColorInd is1(is, ns);
 
-    addPolygon(polyShape, groupInd, is1, ig, name, objs);
+    addPolygon(polyShape, groupInd, is1, ig, name, objs, /*under*/true);
   }
 
   return true;
@@ -1955,12 +1957,12 @@ addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd, const ColorInd 
 void
 CQChartsXYPlot::
 addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
-           const ColorInd &ig, const QString &name, PlotObjs &objs) const
+           const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const
 {
   auto bbox = poly.boundingBox();
   if (! bbox.isSet()) return;
 
-  auto *polyObj = new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig);
+  auto *polyObj = new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig, under);
 
   objs.push_back(polyObj);
 }
@@ -2327,19 +2329,19 @@ calcTipId() const
 
 bool
 CQChartsXYBiLineObj::
-visible() const
+isVisible() const
 {
   if (! plot()->isLines() && ! plot()->isPoints())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsXYBiLineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
@@ -2360,7 +2362,7 @@ void
 CQChartsXYBiLineObj::
 getSelectIndices(Indices &inds) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
@@ -2372,7 +2374,7 @@ void
 CQChartsXYBiLineObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
@@ -2483,16 +2485,16 @@ calcTipId() const
 
 bool
 CQChartsXYImpulseLineObj::
-visible() const
+isVisible() const
 {
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsXYImpulseLineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
@@ -2513,7 +2515,7 @@ void
 CQChartsXYImpulseLineObj::
 getSelectIndices(Indices &inds) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
@@ -2525,7 +2527,7 @@ void
 CQChartsXYImpulseLineObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   //---
@@ -2714,12 +2716,12 @@ extraData() const
 
 bool
 CQChartsXYPointObj::
-visible() const
+isVisible() const
 {
   if (! plot()->isPoints())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 //---
@@ -2828,7 +2830,7 @@ bool
 CQChartsXYPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   double sx, sy;
@@ -2848,7 +2850,7 @@ void
 CQChartsXYPointObj::
 getSelectIndices(Indices &inds) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
@@ -2868,7 +2870,7 @@ draw(CQChartsPaintDevice *device)
 {
   bool isVector = this->isVector();
 
-  if (! visible() && ! isVector)
+  if (! isVisible() && ! isVector)
     return;
 
   //---
@@ -2909,7 +2911,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  if (visible()) {
+  if (isVisible()) {
     // override symbol type for custom symbol
     auto symbolType = this->symbolType();
     auto symbolSize = this->symbolSize();
@@ -2996,19 +2998,19 @@ calcTipId() const
 
 bool
 CQChartsXYLabelObj::
-visible() const
+isVisible() const
 {
   if (! plot()->dataLabel()->isVisible())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsXYLabelObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   auto ppos = plot()->windowToPixel(CQChartsGeom::Point(pos_));
@@ -3028,7 +3030,7 @@ void
 CQChartsXYLabelObj::
 getSelectIndices(Indices &inds) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
@@ -3041,7 +3043,7 @@ void
 CQChartsXYLabelObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   auto dataLabel = plot_->dataLabel();
@@ -3148,19 +3150,19 @@ calcTipId() const
 
 bool
 CQChartsXYPolylineObj::
-visible() const
+isVisible() const
 {
   if (! plot()->isLines())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsXYPolylineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   if (! plot()->isLinesSelectable())
@@ -3198,7 +3200,7 @@ bool
 CQChartsXYPolylineObj::
 interpY(double x, std::vector<double> &yvals) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   if (plot()->isRoundedLines()) {
@@ -3239,7 +3241,7 @@ void
 CQChartsXYPolylineObj::
 getSelectIndices(Indices &) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   // all objects part of line (don't support select)
@@ -3312,13 +3314,13 @@ void
 CQChartsXYPolylineObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible() && ! plot()->isBestFit() && ! plot()->isStatsLines())
+  if (! isVisible() && ! plot()->isBestFit() && ! plot()->isStatsLines())
     return;
 
   //---
 
   // draw lines
-  if (visible()) {
+  if (isVisible()) {
     // calc pen and brush
     CQChartsPenBrush penBrush;
 
@@ -3525,9 +3527,9 @@ writeScriptData(CQChartsScriptPainter *device) const
 CQChartsXYPolygonObj::
 CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      const CQChartsGeom::Polygon &poly, const QString &name, const ColorInd &is,
-                     const ColorInd &ig) :
+                     const ColorInd &ig, bool under) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
- groupInd_(groupInd), poly_(poly), name_(name)
+ groupInd_(groupInd), poly_(poly), name_(name), under_(under)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -3565,19 +3567,19 @@ calcTipId() const
 
 bool
 CQChartsXYPolygonObj::
-visible() const
+isVisible() const
 {
   if (! plot()->isFillUnderFilled())
     return false;
 
-  return isVisible();
+  return CQChartsPlotObj::isVisible();
 }
 
 bool
 CQChartsXYPolygonObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
+  if (! isVisible())
     return false;
 
   if (! plot()->isFillUnderSelectable())
@@ -3600,7 +3602,7 @@ void
 CQChartsXYPolygonObj::
 getSelectIndices(Indices &) const
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   // all objects part of polygon (don't support select)
@@ -3616,6 +3618,8 @@ initSmooth() const
     auto *th = const_cast<CQChartsXYPolygonObj *>(this);
 
     th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
+
+    th->smooth_->setUnder(under_);
   }
 }
 
@@ -3625,7 +3629,7 @@ void
 CQChartsXYPolygonObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
+  if (! isVisible())
     return;
 
   //---
