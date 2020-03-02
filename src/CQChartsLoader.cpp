@@ -371,8 +371,7 @@ createVarsModel(const CQChartsInputData &inputData)
 
   //---
 
-  int ic = 0;
-  int ir = 0;
+  int ic = 0, ir = 0;
 
   if (inputData.firstColumnHeader) ++ic;
   if (inputData.firstLineHeader  ) ++ir;
@@ -394,7 +393,7 @@ createVarsModel(const CQChartsInputData &inputData)
   QModelIndex parent;
 
   if (inputData.firstColumnHeader) {
-    const ColumnValues &columnValues = varColumns[0];
+    const auto &columnValues = varColumns[0];
 
     for (int r = ir; r < nr; ++r)
       varsModel->setHeaderData(r - ir, Qt::Vertical, columnValues[r]);
@@ -402,14 +401,14 @@ createVarsModel(const CQChartsInputData &inputData)
 
   if (inputData.firstLineHeader) {
     for (int c = ic; c < nc; ++c) {
-      const ColumnValues &columnValues = varColumns[c];
+      const auto &columnValues = varColumns[c];
 
       varsModel->setHeaderData(c - ic, Qt::Horizontal, columnValues[0]);
     }
   }
 
   for (int c = ic; c < nc; ++c) {
-    const ColumnValues &columnValues = varColumns[c];
+    const auto &columnValues = varColumns[c];
 
     for (int r = ir; r < nr; ++r) {
       QModelIndex ind = varsModel->index(r - ir, c - ic, parent);
@@ -481,19 +480,45 @@ createTclModel(const CQChartsInputData &inputData)
     }
   }
 
+  //---
+
+  int ic = 0, ir = 0;
+
+  if (inputData.firstColumnHeader) ++ic;
+  if (inputData.firstLineHeader  ) ++ir;
+
+  //---
+
   CQChartsTclModel *tclModel = new CQChartsTclModel(nc, nr);
 
   CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, tclModel);
 
   QModelIndex parent;
 
-  for (int c = 0; c < nc; ++c) {
-    const QStringList &strs = columnStrs[c];
+  for (int c = ic; c < nc; ++c) {
+    const auto &strs = columnStrs[c];
 
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex ind = tclModel->index(r, c, parent);
+    for (int r = ir; r < nr; ++r) {
+      QModelIndex ind = tclModel->index(r - ir, c - ic, parent);
 
       tclModel->setData(ind, strs[r]);
+    }
+  }
+
+  //---
+
+  if (inputData.firstColumnHeader) {
+    const auto &strs = columnStrs[0];
+
+    for (int r = ir; r < nr; ++r)
+      tclModel->setHeaderData(r - ir, Qt::Vertical, strs[r]);
+  }
+
+  if (inputData.firstLineHeader) {
+    for (int c = ic; c < nc; ++c) {
+      const auto &strs = columnStrs[c];
+
+      tclModel->setHeaderData(c - ic, Qt::Horizontal, strs[0]);
     }
   }
 

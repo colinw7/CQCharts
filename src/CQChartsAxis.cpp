@@ -221,7 +221,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(path, "end"           , "", "Axis end position");
   addProp(path, "includeZero"   , "", "Axis force include zero")->setHidden(true);
 
-  addProp(path, "tickLabels", "", "Tick Labels")->setHidden(true);
+  addProp(path, "tickLabels"      , "", "Indexed Tick Labels")->setHidden(true);
+  addProp(path, "customTickLabels", "", "Custom Tick Labels")->setHidden(true);
 
   addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit")->
     setMinValue(0.0);
@@ -288,7 +289,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString labelPath     = path + "/label";
   QString labelTextPath = labelPath + "/text";
 
-  addProp(labelTextPath, "label", "string", "Axis label text string");
+  addProp(labelTextPath, "userLabel", "string", "Axis label text string");
 
   addStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                "Axis label text style", true);
@@ -428,7 +429,7 @@ setTickLabelsStr(const QString &str)
     if (! CQTcl::splitList(str1, strs1))
       continue;
 
-    if (strs1.length() != 2)
+    if (strs1.length() < 1)
       continue;
 
     bool ok;
@@ -436,7 +437,10 @@ setTickLabelsStr(const QString &str)
     int value = strs1[0].toInt(&ok);
     if (! ok) continue;
 
-    setTickLabel(value, strs1[1]);
+    if (strs1.length() > 1)
+      setTickLabel(value, strs1[1]);
+    else
+      setTickLabel(value, strs1[0]);
   }
 }
 
@@ -469,6 +473,62 @@ tickLabel(long i) const
   assert(p != tickLabels_.end());
 
   return (*p).second;
+}
+
+//---
+
+QString
+CQChartsAxis::
+customTickLabelsStr() const
+{
+  QStringList strs;
+
+  for (const auto &p : customTickLabels_) {
+    QStringList strs1;
+
+    strs1 << QString("%1").arg(p.first );
+    strs1 << QString("%1").arg(p.second);
+
+    QString str1 = CQTcl::mergeList(strs1);
+
+    strs << str1;
+  }
+
+  return CQTcl::mergeList(strs);
+}
+
+void
+CQChartsAxis::
+setCustomTickLabelsStr(const QString &str)
+{
+  customTickLabels_.clear();
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return;
+
+  for (int i = 0; i < strs.length(); ++i) {
+    const QString &str1 = strs[i];
+
+    QStringList strs1;
+
+    if (! CQTcl::splitList(str1, strs1))
+      continue;
+
+    if (strs1.length() < 1)
+      continue;
+
+    bool ok;
+
+    double value = strs1[0].toDouble(&ok);
+    if (! ok) continue;
+
+    if (strs1.length() > 1)
+      customTickLabels_[value] = strs1[1];
+    else
+      customTickLabels_[value] = strs1[0];
+  }
 }
 
 //---
@@ -1139,7 +1199,29 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   axisTickLabelDrawDatas_.clear();
 
-  if (isRequireTickLabel() && tickLabels_.size()) {
+  if      (customTickLabels_.size()) {
+    for (const auto &p : customTickLabels_) {
+      double pos = p.first;
+
+      if (pos < amin || pos > amax)
+        continue;
+
+      // draw major line (grid and tick)
+      if (isMajorTicksDisplayed()) {
+        drawMajorTickLine(plot, device, apos1, pos, isTickInside());
+
+        if (isMirrorTicks())
+          drawMajorTickLine(plot, device, apos2, pos, ! isTickInside());
+      }
+
+      //---
+
+      // draw major tick label
+      if (isAxesTickLabelTextVisible())
+        drawTickLabel(plot, device, apos1, pos, isTickInside());
+    }
+  }
+  else if (isRequireTickLabel() && tickLabels_.size()) {
     for (const auto &p : tickLabels_) {
       double pos = p.first;
 
@@ -1259,7 +1341,10 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
   //---
 
   if (isAxesLabelTextVisible()) {
-    QString text = label();
+    QString text = userLabel();
+
+    if (! text.length())
+      text = label();
 
     drawAxisLabel(plot, device, apos1, amin, amax, text);
   }

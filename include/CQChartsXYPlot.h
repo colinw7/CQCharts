@@ -92,6 +92,12 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
  private:
+  void drawLines(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
+                 const CQChartsGeom::Point &p2);
+  void drawPoints(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
+                  const CQChartsGeom::Point &p2);
+
+ private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
   int                   groupInd_ { -1 };      //!< group ind
   double                x_        { 0.0 };     //!< x

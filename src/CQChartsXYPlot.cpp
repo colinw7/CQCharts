@@ -1456,6 +1456,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 {
   auto *th = const_cast<CQChartsXYPlot *>(this);
 
+  PlotObjs polyLineObjs, pointObjs, labelObjs, impulseLineObjs, polygonObjs;
+
   //---
 
   initSymbolTypeData();
@@ -1464,7 +1466,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
   //---
 
-  PlotObjs pointObjs;
+  PlotObjs linePointObjs;
 
   double sw = symbolWidth ();
   double sh = symbolHeight();
@@ -1566,9 +1568,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         if (polyLine.size()) {
           ColorInd is1(is, ns);
 
-          addPolyLine(polyLine, groupInd, is1, ig, name, pointObjs, objs);
+          addPolyLine(polyLine, groupInd, is1, ig, name, linePointObjs, polyLineObjs);
 
-          pointObjs.clear();
+          linePointObjs.clear();
 
           polyLine = CQChartsGeom::Polygon();
         }
@@ -1614,9 +1616,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
 
-        objs.push_back(pointObj);
-
         pointObjs.push_back(pointObj);
+
+        linePointObjs.push_back(pointObj);
 
         //---
 
@@ -1679,7 +1681,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           auto *labelObj = new CQChartsXYLabelObj(this, groupInd, bbox, x, y, pointName,
                                                   xind1, is1, iv1);
 
-          objs.push_back(labelObj);
+          labelObjs.push_back(labelObj);
 
           labelObj->setPointObj(pointObj);
           pointObj->setLabelObj(labelObj);
@@ -1751,7 +1753,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           auto *impulseObj = new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye,
                                                           xind1, is1, iv1);
 
-          objs.push_back(impulseObj);
+          impulseLineObjs.push_back(impulseObj);
         }
       }
 
@@ -1822,9 +1824,9 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     if (polyLine.size()) {
       ColorInd is1(is, ns);
 
-      addPolyLine(polyLine, groupInd, is1, ig, name, pointObjs, objs);
+      addPolyLine(polyLine, groupInd, is1, ig, name, linePointObjs, polyLineObjs);
 
-      pointObjs.clear();
+      linePointObjs.clear();
 
       //polyLine = CQChartsGeom::Polygon();
     }
@@ -1833,8 +1835,25 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     ColorInd is1(is, ns);
 
-    addPolygon(polyShape, groupInd, is1, ig, name, objs, /*under*/true);
+    addPolygon(polyShape, groupInd, is1, ig, name, polygonObjs, /*under*/true);
   }
+
+  //---
+
+  for (auto &obj : polygonObjs)
+    objs.push_back(obj);
+
+  for (auto &obj : polyLineObjs)
+    objs.push_back(obj);
+
+  for (auto &obj : impulseLineObjs)
+    objs.push_back(obj);
+
+  for (auto &obj : pointObjs)
+    objs.push_back(obj);
+
+  for (auto &obj : labelObjs)
+    objs.push_back(obj);
 
   return true;
 }
@@ -2380,52 +2399,66 @@ draw(CQChartsPaintDevice *device)
   auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
   auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
-  if (plot()->isLines()) {
-    // calc pen and brush
-    CQChartsPenBrush penBrush;
+  if (plot()->isLines())
+    drawLines(device, p1, p2);
 
-    QColor lc = plot()->interpBivariateLinesColor(is_);
+  if (plot()->isPoints())
+    drawPoints(device, p1, p2);
+}
 
-    plot()->setPenBrush(penBrush,
-      CQChartsPenData  (true, lc, plot()->bivariateLinesAlpha(),
-                        plot()->bivariateLinesWidth(), plot()->bivariateLinesDash()),
-      CQChartsBrushData(false));
+void
+CQChartsXYBiLineObj::
+drawLines(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
+          const CQChartsGeom::Point &p2)
+{
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-    plot()->updateObjPenBrushState(this, penBrush);
+  QColor lc = plot()->interpBivariateLinesColor(is_);
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  plot()->setPenBrush(penBrush,
+    CQChartsPenData  (true, lc, plot()->bivariateLinesAlpha(),
+                      plot()->bivariateLinesWidth(), plot()->bivariateLinesDash()),
+    CQChartsBrushData(false));
 
-    //--
+  plot()->updateObjPenBrushState(this, penBrush);
 
-    // draw line
-    device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
-  }
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if (plot()->isPoints()) {
-    // get symbol and size
-    auto symbol = plot()->symbolType();
+  //--
 
-    double sx, sy;
+  // draw line
+  device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
+}
 
-    plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
+void
+CQChartsXYBiLineObj::
+drawPoints(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
+           const CQChartsGeom::Point &p2)
+{
+  // get symbol and size
+  auto symbol = plot()->symbolType();
 
-    //---
+  double sx, sy;
 
-    // calc pen and brush
-    CQChartsPenBrush penBrush;
+  plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
-    plot_->setSymbolPenBrush(penBrush, is_);
+  //---
 
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  plot_->setSymbolPenBrush(penBrush, is_);
 
-    //---
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-    // draw symbols
-    plot()->drawSymbol(device, p1, symbol, CMathUtil::avg(sx, sy), penBrush);
-    plot()->drawSymbol(device, p2, symbol, CMathUtil::avg(sx, sy), penBrush);
-  }
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw symbols
+  plot()->drawSymbol(device, p1, symbol, CMathUtil::avg(sx, sy), penBrush);
+  plot()->drawSymbol(device, p2, symbol, CMathUtil::avg(sx, sy), penBrush);
 }
 
 //------

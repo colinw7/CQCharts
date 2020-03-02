@@ -84,6 +84,8 @@ class CQChartsAxis : public CQChartsObj,
 
   Q_PROPERTY(QString tickLabels READ tickLabelsStr WRITE setTickLabelsStr);
 
+  Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr);
+
   // label
   Q_PROPERTY(QString label     READ label     WRITE setLabel    )
   Q_PROPERTY(QString userLabel READ userLabel WRITE setUserLabel)
@@ -367,6 +369,11 @@ class CQChartsAxis : public CQChartsObj,
   bool isRequireTickLabel() const { return requireTickLabel_; }
   void setRequireTickLabel(bool b) { requireTickLabel_ = b; }
 
+  //--
+
+  QString customTickLabelsStr() const;
+  void setCustomTickLabelsStr(const QString &str);
+
   //---
 
   QString valueStr(double pos) const;
@@ -495,7 +502,8 @@ class CQChartsAxis : public CQChartsObj,
 
  private:
   using TickSpaces         = std::vector<double>;
-  using TickLabels         = std::map<int,QString>;
+  using ITickLabels        = std::map<int,QString>;
+  using RTickLabels        = std::map<double,QString>;
   using TickLabelPlacement = CQChartsAxisTickLabelPlacement;
 
   using CQChartsEditHandlesP = std::unique_ptr<CQChartsEditHandles>;
@@ -557,8 +565,9 @@ class CQChartsAxis : public CQChartsObj,
 
   // tick customization
   TickSpaces            tickSpaces_;                    //!< tick spaces (?)
-  TickLabels            tickLabels_;                    //!< tick labels
+  ITickLabels           tickLabels_;                    //!< tick labels
   bool                  requireTickLabel_    { false }; //!< use tick label values even if empty
+  RTickLabels           customTickLabels_;              //!< custom tick labels
 
   // edit state
   CQChartsEditHandlesP  editHandles_; //!< edit handles
