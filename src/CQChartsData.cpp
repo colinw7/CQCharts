@@ -252,8 +252,8 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (! isVisible())
     nameValues.setNameValue("visible", isVisible());
 
-  nameValues.setNameValue("margin" , margin().toString());
-  nameValues.setNameValue("padding", padding());
+  nameValues.setNameValue("margin" , margin ().toString());
+  nameValues.setNameValue("padding", padding().toString());
 
   shape_.setNameValues(nameValues);
 
@@ -280,7 +280,8 @@ getNameValues(const CQChartsNameValues &nameValues)
   if (nameValues.nameValueString("margin", str))
     margin_ = CQChartsMargin(str);
 
-  nameValues.nameValueReal("padding", padding_);
+  if (nameValues.nameValueString("padding", str))
+    padding_ = CQChartsMargin(str);
 
   shape_.getNameValues(nameValues);
 

@@ -169,17 +169,15 @@ createRectFrame()
 
   //--
 
-  // margin
+  // outer margin
   rectWidgets_.marginEdit  = CQUtil::makeWidget<CQChartsMarginEdit>("marginEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Margin", rectWidgets_.marginEdit, row);
 
   //--
 
-  // padding
-  rectWidgets_.paddingEdit = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
-
-  rectWidgets_.paddingEdit->setToolTip("Padding in pixels");
+  // inner padding
+  rectWidgets_.paddingEdit = CQUtil::makeWidget<CQChartsMarginEdit>("paddingEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
 
@@ -659,7 +657,7 @@ createRectangleAnnotation()
     return setErrorMsg("Invalid rectangle geometry");
 
   boxData.setMargin (rectWidgets_.marginEdit ->margin());
-  boxData.setPadding(rectWidgets_.paddingEdit->value ());
+  boxData.setPadding(rectWidgets_.paddingEdit->margin());
 
   auto fill   = rectWidgets_.backgroundDataEdit->data();
   auto stroke = rectWidgets_.strokeDataEdit    ->data();

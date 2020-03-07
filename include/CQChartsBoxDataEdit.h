@@ -89,8 +89,8 @@ class CQChartsBoxDataEdit : public CQChartsEditBase {
  private:
   CQChartsBoxData             data_;                    //!< box data
   CQGroupBox*                 groupBox_    { nullptr }; //!< group box
-  CQChartsMarginEdit*         marginEdit_  { nullptr }; //!< margin edit
-  CQRealSpin*                 paddingEdit_ { nullptr }; //!< padding edit
+  CQChartsMarginEdit*         marginEdit_  { nullptr }; //!< outer margin edit
+  CQChartsMarginEdit*         paddingEdit_ { nullptr }; //!< inner padding edit
   CQChartsShapeDataEdit*      shapeEdit_   { nullptr }; //!< shape edit
   CQChartsSidesEdit*          sidesEdit_   { nullptr }; //!< sides edit
   CQChartsBoxDataEditPreview* preview_     { nullptr }; //!< preview widget

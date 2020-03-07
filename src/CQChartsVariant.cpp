@@ -105,24 +105,9 @@ bool toString(const QVariant &var, QString &str) {
   return true;
 }
 
-double toReal(const QVariant &var, bool &ok) {
-  ok = true;
-
-  if (var.type() == QVariant::Double)
-    return var.value<double>();
-
-  QString str = toString(var, ok);
-
-  if (! ok)
-    return CMathUtil::getNaN();
-
-  return CQChartsUtil::toReal(str, ok);
-}
-
 //---
 
-int cmp(const QVariant &var1, const QVariant &var2)
-{
+int cmp(const QVariant &var1, const QVariant &var2) {
   bool isNumber1 = (var1.type() == QVariant::Int || var1.type() == QVariant::Double);
   bool isNumber2 = (var2.type() == QVariant::Int || var2.type() == QVariant::Double);
 
@@ -188,6 +173,22 @@ int cmp(const QVariant &var1, const QVariant &var2)
   if (str1 > str2) return  1;
 
   return 0;
+}
+
+//---
+
+double toReal(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Double)
+    return var.value<double>();
+
+  QString str = toString(var, ok);
+
+  if (! ok)
+    return CMathUtil::getNaN();
+
+  return CQChartsUtil::toReal(str, ok);
 }
 
 //---

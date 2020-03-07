@@ -50,7 +50,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   struct RectWidgets : public Widgets {
     CQChartsRectEdit*   rectEdit    { nullptr };
     CQChartsMarginEdit* marginEdit  { nullptr };
-    CQRealSpin*         paddingEdit { nullptr };
+    CQChartsMarginEdit* paddingEdit { nullptr };
   };
 
   struct EllipseWidgets : public Widgets {

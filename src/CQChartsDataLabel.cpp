@@ -101,9 +101,13 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     double xm = 2; // pixels
     double ym = 2; // pixels
 
-    double padding = CQChartsBoxObj::padding(); // pixels
+    // get inner padding
+    double pxlp = lengthPixelWidth (CQChartsBoxObj::padding().left  ());
+    double pxrp = lengthPixelWidth (CQChartsBoxObj::padding().right ());
+    double pytp = lengthPixelHeight(CQChartsBoxObj::padding().top   ());
+    double pybp = lengthPixelHeight(CQChartsBoxObj::padding().bottom());
 
-    // get external margin
+    // get outer margin
     double pxlm = lengthPixelWidth (CQChartsBoxObj::margin().left  ());
     double pxrm = lengthPixelWidth (CQChartsBoxObj::margin().right ());
     double pytm = lengthPixelHeight(CQChartsBoxObj::margin().top   ());
@@ -120,34 +124,34 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
     if      (position1 == Position::TOP_INSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() + fm.ascent () + ym + padding;
+      py = pbbox.getYMin() + fm.ascent () + ym + pytp;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() - fm.descent() - ym - padding;
+      py = pbbox.getYMin() - fm.descent() - ym - pytp;
     }
     else if (position1 == Position::BOTTOM_INSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() - fm.descent() - ym - padding;
+      py = pbbox.getYMax() - fm.descent() - ym - pybp;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() + fm.ascent () + ym + padding;
+      py = pbbox.getYMax() + fm.ascent () + ym + pybp;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      px = pbbox.getXMin() + xm + padding;
+      px = pbbox.getXMin() + xm + pxlp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pbbox.getXMin() - tw - xm - padding;
+      px = pbbox.getXMin() - tw - xm - pxlp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      px = pbbox.getXMax() - tw - xm - padding;
+      px = pbbox.getXMax() - tw - xm - pxrp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pbbox.getXMax() + xm + padding;
+      px = pbbox.getXMax() + xm + pxrp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::CENTER) {
@@ -316,13 +320,17 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
   double xm = 2;
   double ym = 2;
 
-  // get external margin
+  // get inner padding
+  double xlp = lengthParentWidth (CQChartsBoxObj::padding().left  ());
+  double xrp = lengthParentWidth (CQChartsBoxObj::padding().right ());
+  double ytp = lengthParentHeight(CQChartsBoxObj::padding().top   ());
+  double ybp = lengthParentHeight(CQChartsBoxObj::padding().bottom());
+
+  // get outer margin
   double xlm = lengthParentWidth (CQChartsBoxObj::margin().left  ());
   double xrm = lengthParentWidth (CQChartsBoxObj::margin().right ());
   double ytm = lengthParentHeight(CQChartsBoxObj::margin().top   ());
   double ybm = lengthParentHeight(CQChartsBoxObj::margin().bottom());
-
-  double padding = CQChartsBoxObj::padding();
 
   //---
 
@@ -348,33 +356,33 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
 
     if      (position1 == Position::TOP_INSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() + fm.ascent () + ym + padding;
+      py = pbbox.getYMin() + fm.ascent () + ym + ytp;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMin() - fm.descent() - ym - padding;
+      py = pbbox.getYMin() - fm.descent() - ym - ytp;
     } else if (position1 == Position::BOTTOM_INSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() - fm.descent() - ym - padding;
+      py = pbbox.getYMax() - fm.descent() - ym - ybp;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
       px = pbbox.getXMid() - tw/2;
-      py = pbbox.getYMax() + fm.ascent () + ym + padding;
+      py = pbbox.getYMax() + fm.ascent () + ym + ybp;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      px = pbbox.getXMin() + xm + padding;
+      px = pbbox.getXMin() + xm + xlp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pbbox.getXMin() - tw - xm - padding;
+      px = pbbox.getXMin() - tw - xm - xlp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      px = pbbox.getXMax() - tw - xm - padding;
+      px = pbbox.getXMax() - tw - xm - xrp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pbbox.getXMax() + xm + padding;
+      px = pbbox.getXMax() + xm + xrp;
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::CENTER) {

@@ -1,5 +1,5 @@
 Abstract Painter/Javascript
- + Support javascript callback in generated code (select)
+ + Support Javascript callback in generated code (select)
  + JS Polygon List inside support
 
 High

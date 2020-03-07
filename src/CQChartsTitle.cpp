@@ -56,6 +56,34 @@ setSelected(bool b)
 
 void
 CQChartsTitle::
+setLocation(const CQChartsTitleLocation &l)
+{
+  CQChartsUtil::testAndSet(location_, l, [&]() { redraw(); } );
+}
+
+void
+CQChartsTitle::
+setAbsolutePosition(const CQChartsPosition &p)
+{
+  CQChartsUtil::testAndSet(absolutePosition_, p, [&]() { redraw(); } );
+}
+
+void
+CQChartsTitle::
+setAbsoluteRectangle(const CQChartsRect &r)
+{
+  CQChartsUtil::testAndSet(absoluteRectangle_, r, [&]() { redraw(); } );
+}
+
+void
+CQChartsTitle::
+setInsidePlot(bool b)
+{
+  CQChartsUtil::testAndSet(insidePlot_, b, [&]() { updateLocation(); redraw(); } );
+}
+
+void
+CQChartsTitle::
 redraw(bool wait)
 {
   if (wait)
@@ -201,17 +229,19 @@ calcSize()
     // convert to window size
     auto wsize = plot_->pixelToWindowSize(psize);
 
-    // add padding and margin
+    // add outer margin and inner padding
     double xlm = lengthParentWidth (margin().left  ());
     double xrm = lengthParentWidth (margin().right ());
     double ytm = lengthParentHeight(margin().top   ());
     double ybm = lengthParentHeight(margin().bottom());
 
-    CQChartsGeom::Size paddingSize =
-      plot_->pixelToWindowSize(CQChartsGeom::Size(padding(), padding()));
+    double xlp = lengthParentWidth (padding().left  ());
+    double xrp = lengthParentWidth (padding().right ());
+    double ytp = lengthParentHeight(padding().top   ());
+    double ybp = lengthParentHeight(padding().bottom());
 
-    size_ = CQChartsGeom::Size(wsize.width () + 2*paddingSize.width () + xlm + xrm,
-                               wsize.height() + 2*paddingSize.height() + ybm + ytm);
+    size_ = CQChartsGeom::Size(wsize.width () + xlp + xrp + xlm + xrm,
+                               wsize.height() + ybp + ytp + + ybm + ytm);
   }
   else {
     size_ = CQChartsGeom::Size();
@@ -365,21 +395,22 @@ draw(CQChartsPaintDevice *device)
     }
   }
 
-  CQChartsGeom::Size paddingSize =
-    device->pixelToWindowSize(CQChartsGeom::Size(padding(), padding()));
-
+  // add outer margin and inner padding
   double xlm = device->lengthWindowWidth (margin().left  ());
   double xrm = device->lengthWindowWidth (margin().right ());
   double ytm = device->lengthWindowHeight(margin().top   ());
   double ybm = device->lengthWindowHeight(margin().bottom());
 
-  CQChartsGeom::BBox ibbox(x     + paddingSize.width(), y     + paddingSize.height(),
-                           x + w - paddingSize.width(), y + h - paddingSize.height());
+  double xlp = device->lengthWindowWidth (padding().left  ());
+  double xrp = device->lengthWindowWidth (padding().right ());
+  double ytp = device->lengthWindowHeight(padding().top   ());
+  double ybp = device->lengthWindowHeight(padding().bottom());
 
-  CQChartsGeom::BBox tbbox(x + paddingSize.width () + xlm,
-                           y + paddingSize.height() + ybm,
-                           x + w - paddingSize.width () - xlm - xrm,
-                           y + h - paddingSize.height() - ybm - ytm);
+  CQChartsGeom::BBox ibbox(x     + xlp, y     + ybp,
+                           x + w - xrp, y + h - ytp);
+
+  CQChartsGeom::BBox tbbox(x     + xlp + xlm, y     + ybp + ybm,
+                           x + w - xrp - xrm, y + h - ytp - ytm);
 
   //---
 

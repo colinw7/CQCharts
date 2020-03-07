@@ -350,9 +350,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsAlpha symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
   Q_PROPERTY(double        symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
 
-  // text labels
-  Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
-
   Q_ENUMS(PlotType)
 
   Q_ENUMS(XSide)

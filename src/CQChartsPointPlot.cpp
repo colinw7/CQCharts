@@ -695,7 +695,9 @@ void
 CQChartsPointPlot::
 setPointLabels(bool b)
 {
-  if (b != isPointLabels()) { dataLabel()->setVisible(b); drawObjs(); }
+  if (b != isPointLabels()) {
+    dataLabel()->setVisible(b); updateRangeAndObjs();
+  }
 }
 
 void

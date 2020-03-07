@@ -84,7 +84,7 @@ void
 CQChartsInvalidator::
 invalidate(bool reload)
 {
-  auto axis = qobject_cast<CQChartsAxis *>(obj_);
+  auto *axis = qobject_cast<CQChartsAxis *>(obj_);
 
   if (axis) {
     if (axis->isUpdatesEnabled())
@@ -106,6 +106,11 @@ invalidate(bool reload)
       plot->updateRangeAndObjs();
     else
       plot->drawObjs();
+
+    auto *key = qobject_cast<CQChartsPlotKey *>(obj_);
+
+    if (key)
+      key->updatePositionAndLayout();
   }
   else if (view) {
     view->invalidateObjects();

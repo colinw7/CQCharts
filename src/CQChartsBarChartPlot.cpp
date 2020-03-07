@@ -436,7 +436,7 @@ calcRange() const
         numVisible += ! isSetHidden(iv);
     }
     else if (nv == 1) {
-      auto valueSet = this->valueSet(0);
+      const auto &valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
@@ -600,7 +600,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   if (isValueValue()) {
     assert(valueColumns.count() > 0);
 
-    auto valueColumn = valueColumns.column();
+    const auto &valueColumn = valueColumns.column();
 
     ind = CQChartsModelIndex(data.row, valueColumn, data.parent);
   }
@@ -761,7 +761,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     if (! isGroupHeaders()) {
       assert(valueColumns.count() > 0);
 
-      auto valueColumn = valueColumns.column();
+      const auto &valueColumn = valueColumns.column();
 
       bool ok;
 
@@ -871,7 +871,7 @@ groupValueSetI(int groupInd)
 
   valueData_.valueGroupInd[groupInd] = ind;
 
-  auto valueSet = &valueData_.valueSets.back();
+  const auto &valueSet = &valueData_.valueSets.back();
 
   valueSet->setGroupInd(groupInd);
 
@@ -942,7 +942,7 @@ createObjs(PlotObjs &objs) const
 
     //---
 
-    auto valueSet = this->valueSet(iv);
+    const auto &valueSet = this->valueSet(iv);
 
     //const QString &setName = valueSet.name;
 
@@ -993,7 +993,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      auto ivalue = valueSet.value(ivs);
+      const auto &ivalue = valueSet.value(ivs);
 
       CQChartsBarChartValue::ValueInd minInd, maxInd;
 
@@ -1145,8 +1145,8 @@ CQChartsBarChartPlot::
 initObjAxesI()
 {
   // init axes
-  auto xAxis = mappedXAxis();
-  auto yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
@@ -1177,7 +1177,7 @@ initObjAxesI()
       if (isSetHidden(iv))
         continue;
 
-      auto valueSet = this->valueSet(iv);
+      const auto &valueSet = this->valueSet(iv);
 
       xAxis->setTickLabel(numVisible, valueSet.name());
 
@@ -1192,7 +1192,7 @@ initObjAxesI()
         if (isSetHidden(iv))
           continue;
 
-        auto valueSet = this->valueSet(iv);
+        const auto &valueSet = this->valueSet(iv);
 
         xAxis->setTickLabel(numVisible, valueSet.name());
 
@@ -1204,7 +1204,7 @@ initObjAxesI()
 
       xAxis->getTickLabelsPositions(positions);
 
-      auto valueSet = this->valueSet(0);
+      const auto &valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
@@ -1213,7 +1213,7 @@ initObjAxesI()
           continue;
 
         if (positions.find(numVisible) != positions.end()) {
-          auto value = valueSet.value(ivs);
+          const auto &value = valueSet.value(ivs);
 
           xAxis->setTickLabel(numVisible, value.valueName());
         }
@@ -1289,7 +1289,7 @@ addKeyItems(CQChartsPlotKey *key)
     // iv is 'value set' value index
     if (isColorBySet()) {
       for (int iv = 0; iv < nv; ++iv) {
-        auto valueSet = this->valueSet(iv);
+        const auto &valueSet = this->valueSet(iv);
 
         QString name = valueSet.name();
 
@@ -1297,12 +1297,12 @@ addKeyItems(CQChartsPlotKey *key)
       }
     }
     else {
-      auto valueSet = this->valueSet(0);
+      const auto &valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
       for (int ivs = 0; ivs < nvs; ++ivs) {
-        auto value = valueSet.value(ivs);
+        const auto &value = valueSet.value(ivs);
 
         QString name = value.valueName();
 
@@ -1319,17 +1319,17 @@ addKeyItems(CQChartsPlotKey *key)
       }
       else {
         for (int iv = 0; iv < nv; ++iv) {
-          auto valueSet = this->valueSet(iv);
+          const auto &valueSet = this->valueSet(iv);
 
           QColor c;
 
           if (valueSet.numValues() == 1) {
-            auto ivalue = valueSet.value(0);
+            const auto &ivalue = valueSet.value(0);
 
-            auto valueInds = ivalue.valueInds();
+            const auto &valueInds = ivalue.valueInds();
             assert(! valueInds.empty());
 
-            auto ind0 = valueInds[0];
+            const auto &ind0 = valueInds[0];
 
             QModelIndex   parent; // TODO
             CQChartsColor color;
@@ -1345,17 +1345,17 @@ addKeyItems(CQChartsPlotKey *key)
       }
     }
     else if (nv == 1) {
-      auto valueSet = this->valueSet(0);
+      const auto &valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
 
       for (int ivs = 0; ivs < nvs; ++ivs) {
-        auto ivalue = valueSet.value(ivs);
+        const auto &ivalue = valueSet.value(ivs);
 
-        auto valueInds = ivalue.valueInds();
+        const auto &valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
 
-        auto ind0 = valueInds[0];
+        const auto &ind0 = valueInds[0];
 
         QColor c;
 
@@ -1374,17 +1374,17 @@ addKeyItems(CQChartsPlotKey *key)
 #if 0
     if (isGroupHeaders()) {
       for (int iv = 0; iv < nv; ++iv) {
-        auto valueSet = this->valueSet(iv);
+        const auto &valueSet = this->valueSet(iv);
 
         QColor c;
 
         if (valueSet.numValues() == 1) {
-          auto ivalue = valueSet.value(0);
+          const auto &ivalue = valueSet.value(0);
 
-          auto valueInds = ivalue.valueInds();
+          const auto &valueInds = ivalue.valueInds();
           assert(! valueInds.empty());
 
-          auto ind0 = valueInds[0];
+          const auto &ind0 = valueInds[0];
 
           QModelIndex   parent; // TODO
           CQChartsColor color;
@@ -1595,7 +1595,7 @@ calcTipId() const
     tableTip.addTableRow(headerStr, valueStr);
   }
 
-  auto value = this->value();
+  const auto &value = this->value();
 
   for (const auto &nameValue : value->nameValues()) {
     const QString &name  = nameValue.first;
@@ -1618,7 +1618,7 @@ QString
 CQChartsBarChartObj::
 groupStr() const
 {
-  auto value = this->value();
+  const auto &value = this->value();
 
   return value->groupName();
 }
@@ -1627,7 +1627,7 @@ QString
 CQChartsBarChartObj::
 nameStr() const
 {
-  auto value = this->value();
+  const auto &value = this->value();
 
   return value->valueName();
 }
@@ -1638,7 +1638,7 @@ valueStr() const
 {
   QString valueStr;
 
-  auto value = this->value();
+  const auto &value = this->value();
 
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
@@ -1672,12 +1672,12 @@ dataLabelRect() const
 
   auto prect = plot_->windowToPixel(rect());
 
-  auto value = this->value();
+  const auto &value = this->value();
 
   QString label = value->getNameValue("Label");
 
   if (! plot_->labelColumn().isValid()) {
-    auto valueInds = value->valueInds();
+    const auto &valueInds = value->valueInds();
     assert(! valueInds.empty());
 
     double value = valueInds[0].value;
@@ -1883,7 +1883,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   //---
 
-  auto value = this->value();
+  const auto &value = this->value();
 
   QString minLabel = value->getNameValue("Label");
   QString maxLabel = minLabel;
@@ -2014,14 +2014,14 @@ CQChartsBarChartObj::
 value() const
 {
   if (is_.n > 1) {
-    auto &valueSet = plot_->valueSet(ig_.i);
-    auto &ivalue   = valueSet.value(is_.i);
+    const auto &valueSet = plot_->valueSet(ig_.i);
+    const auto &ivalue   = valueSet.value(is_.i);
 
     return &ivalue;
   }
   else {
-    auto &valueSet = plot_->valueSet(ig_.i);
-    auto &ivalue   = valueSet.value(iv_.i);
+    const auto &valueSet = plot_->valueSet(ig_.i);
+    const auto &ivalue   = valueSet.value(iv_.i);
 
     return &ivalue;
   }
@@ -2128,7 +2128,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {
-      auto valueSet = plot_->valueSet(iv_.i);
+      const auto &valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
@@ -2138,11 +2138,11 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
       count = plot_->numSetValues();
 
       for (int i = 0; i < nv; ++i) {
-        auto valueSet = plot_->valueSet(i);
+        const auto &valueSet = plot_->valueSet(i);
 
-        auto ivalue = valueSet.value(iv_.i);
+        const auto &ivalue = valueSet.value(iv_.i);
 
-        auto valueInds = ivalue.valueInds();
+        const auto &valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
 
         double value = valueInds[0].value;
@@ -2154,18 +2154,18 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   }
   else {
     if      (nv > 1) {
-      auto valueSet = plot_->valueSet(iv_.i);
+      const auto &valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
       count = valueSet.numValues();
     }
     else if (nv == 1) {
-      auto valueSet = plot_->valueSet(0);
+      const auto &valueSet = plot_->valueSet(0);
 
-      auto ivalue = valueSet.value(iv_.i);
+      const auto &ivalue = valueSet.value(iv_.i);
 
-      auto valueInds = ivalue.valueInds();
+      const auto &valueInds = ivalue.valueInds();
       assert(! valueInds.empty());
 
       value  = valueInds[0].value;

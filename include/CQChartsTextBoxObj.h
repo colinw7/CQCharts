@@ -27,6 +27,10 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
+  void setVisible(bool b) override { CQChartsBoxObj::setVisible(b); textBoxDataInvalidate(); }
+
+  //---
+
   const QString &textStr() const { return textStr_; }
   void setTextStr(const QString &s) { textStr_ = s; textBoxDataInvalidate(); }
 

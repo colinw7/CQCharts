@@ -1277,7 +1277,7 @@ Q_PROPERTY(CQChartsBoxData boxData READ boxData WRITE setBoxData) \
 \
 Q_PROPERTY(bool           visible READ isVisible WRITE setVisible) \
 Q_PROPERTY(CQChartsMargin margin  READ margin    WRITE setMargin ) \
-Q_PROPERTY(double         padding READ padding   WRITE setPadding) \
+Q_PROPERTY(CQChartsMargin padding READ padding   WRITE setPadding) \
 \
 Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
 Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
@@ -1309,8 +1309,8 @@ class CQChartsObjBoxData {
   const CQChartsMargin &margin() const { return boxData_.margin(); }
   void setMargin(const CQChartsMargin &m) { boxData_.setMargin(m); boxDataInvalidate(); }
 
-  double padding() const { return boxData_.padding(); }
-  void setPadding(double r) { boxData_.setPadding(r); boxDataInvalidate(); }
+  const CQChartsMargin &padding() const { return boxData_.padding(); }
+  void setPadding(const CQChartsMargin &m) { boxData_.setPadding(m); boxDataInvalidate(); }
 
   //---
 

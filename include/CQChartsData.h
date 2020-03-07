@@ -329,7 +329,7 @@ CQUTIL_DCL_META_TYPE(CQChartsShapeData)
  * \brief Box Properties
  * \ingroup Charts
  *
- *  visible, inner margin, outer margin, shape, sides
+ *  visible, inner padding, outer margin, shape, sides
  *
  *  \todo border corners
  */
@@ -352,8 +352,8 @@ class CQChartsBoxData {
   const CQChartsMargin &margin() const { return margin_; }
   void setMargin(const CQChartsMargin &m) { margin_ = m; }
 
-  double padding() const { return padding_; }
-  void setPadding(double r) { padding_ = r; }
+  const CQChartsMargin &padding() const { return padding_; }
+  void setPadding(const CQChartsMargin &m) { padding_ = m; }
 
   CQChartsShapeData &shape() { return shape_; }
   const CQChartsShapeData &shape() const { return shape_; }
@@ -374,8 +374,8 @@ class CQChartsBoxData {
 
  private:
   bool              visible_     { true };              //!< draw box
-  CQChartsMargin    margin_      { "4px 0px 4px 0px" }; //!< inside margin (pixels)
-  double            padding_     { 0 };                 //!< outside margin (pixels)
+  CQChartsMargin    margin_      { "4px 0px 4px 0px" }; //!< outer margin
+  CQChartsMargin    padding_     { "0px" };             //!< inner padding
   CQChartsShapeData shape_;                             //!< shape data
   CQChartsSides     borderSides_ { "tlbr" };            //!< border sides to draw
 };

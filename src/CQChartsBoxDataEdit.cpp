@@ -230,17 +230,15 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   //--
 
-  // margin
+  // outer margin
   marginEdit_ = CQUtil::makeWidget<CQChartsMarginEdit>("marginEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Margin", marginEdit_, row);
 
   //--
 
-  // padding
-  paddingEdit_ = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
-
-  paddingEdit_->setToolTip("Padding in Pixels");
+  // inner padding
+  paddingEdit_ = CQUtil::makeWidget<CQChartsMarginEdit>("paddingEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Padding", paddingEdit_, row);
 
@@ -337,7 +335,7 @@ connectSlots(bool b)
 
   connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
   connectDisconnect(marginEdit_, SIGNAL(marginChanged()), SLOT(widgetsToData()));
-  connectDisconnect(paddingEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(paddingEdit_, SIGNAL(marginChanged()), SLOT(widgetsToData()));
   connectDisconnect(shapeEdit_, SIGNAL(shapeDataChanged()), SLOT(widgetsToData()));
   connectDisconnect(sidesEdit_, SIGNAL(sidesChanged()), SLOT(widgetsToData()));
 }
@@ -350,7 +348,7 @@ dataToWidgets()
 
   groupBox_   ->setChecked(data_.isVisible());
   marginEdit_ ->setMargin (data_.margin());
-  paddingEdit_->setValue  (data_.padding());
+  paddingEdit_->setMargin (data_.padding());
   shapeEdit_  ->setData   (data_.shape());
   sidesEdit_  ->setSides  (data_.borderSides());
 
@@ -365,7 +363,7 @@ widgetsToData()
 {
   data_.setVisible    (groupBox_   ->isChecked());
   data_.setMargin     (marginEdit_ ->margin());
-  data_.setPadding    (paddingEdit_->value());
+  data_.setPadding    (paddingEdit_->margin());
   data_.setShape      (shapeEdit_  ->data());
   data_.setBorderSides(sidesEdit_  ->sides());
 

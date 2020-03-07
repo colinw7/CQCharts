@@ -1739,8 +1739,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(textPath, "textScaled"   , "scaled"   , "Text scaled to fit box");
   addStyleProp(textPath, "textHtml"     , "html"     , "Text is HTML");
 
-  addProp(path1, "margin" , "", "Text rectangle inner margin");
-  addProp(path1, "padding", "", "Text rectangle outer padding");
+  addProp(path1, "padding", "", "Text rectangle inner padding");
+  addProp(path1, "margin" , "", "Text rectangle outer margin");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1814,11 +1814,13 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     setRectangle(rect);
   }
   else {
-    // get internal padding
-    double xp = pixelToWindowWidth (padding());
-    double yp = pixelToWindowHeight(padding());
+    // get inner padding
+    double xlp = lengthParentWidth (padding().left  ());
+    double xrp = lengthParentWidth (padding().right ());
+    double ytp = lengthParentHeight(padding().top   ());
+    double ybp = lengthParentHeight(padding().bottom());
 
-    // get external margin
+    // get outer margin
     double xlm = lengthParentWidth (margin().left  ());
     double xrm = lengthParentWidth (margin().right ());
     double ytm = lengthParentHeight(margin().top   ());
@@ -1830,23 +1832,23 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     double x1, y1;
 
     if      (textAlign() & Qt::AlignLeft)
-      x1 = bbox.getXMin() + xp + xlm;
+      x1 = bbox.getXMin() + xlp + xlm;
     else if (textAlign() & Qt::AlignRight)
-      x1 = bbox.getXMax() - xp - xrm;
+      x1 = bbox.getXMax() - xrp - xrm;
     else
       x1 = bbox.getXMid();
 
     if      (textAlign() & Qt::AlignBottom)
-      y1 = bbox.getYMin() + yp + ybm;
+      y1 = bbox.getYMin() + ybp + ybm;
     else if (textAlign() & Qt::AlignTop)
-      y1 = bbox.getYMax() - yp - ytm;
+      y1 = bbox.getYMax() - ytp - ytm;
     else
       y1 = bbox.getYMid();
 
     CQChartsGeom::Point ll(x1, y1);
 
-    //double x2 = x1 + bbox.getWidth () - 2*xp - xlm - xrm;
-    //double y2 = y1 + bbox.getHeight() - 2*yp - ybm - xtm;
+    //double x2 = x1 + bbox.getWidth () - xlp - xrp - xlm - xrm;
+    //double y2 = y1 + bbox.getHeight() - ybp - ytp - ybm - xtm;
 
     //CQChartsGeom::Point ur(x2, y2);
 
@@ -1966,20 +1968,22 @@ draw(CQChartsPaintDevice *device)
   // set box
 //auto pbbox = windowToPixel(bbox_);
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          bbox_.getXMin  () +       xlm +   xp;
-  double ty =          bbox_.getYMin  () +       ybm +   yp;
-  double tw = std::max(bbox_.getWidth () - xlm - xrm - 2*xp, 0.0);
-  double th = std::max(bbox_.getHeight() - ybm - ytm - 2*yp, 0.0);
+  double tx =          bbox_.getXMin  () +       xlm + xlp;
+  double ty =          bbox_.getYMin  () +       ybm + ybp;
+  double tw = std::max(bbox_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(bbox_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   CQChartsGeom::BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2024,11 +2028,13 @@ positionToBBox()
 {
   assert(! rectangle().isSet());
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
@@ -2042,8 +2048,8 @@ positionToBBox()
 
   positionToLL(wsize.width(), wsize.height(), x, y);
 
-  CQChartsGeom::Point ll(x                 - xp - xlm, y                  - yp - ybm);
-  CQChartsGeom::Point ur(x + wsize.width() + xp + xrm, y + wsize.height() + yp + ytm);
+  CQChartsGeom::Point ll(x                 - xlp - xlm, y                  - ybp - ybm);
+  CQChartsGeom::Point ur(x + wsize.width() + xrp + xrm, y + wsize.height() + ytp + ytm);
 
   bbox_ = CQChartsGeom::BBox(ll, ur);
 }
@@ -2262,8 +2268,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp(imagePath, "name", "image", "Image name");
 
-  addProp(path1, "margin" , "", "Image rectangle inner margin");
-  addProp(path1, "padding", "", "Image rectangle outer padding");
+  addProp(path1, "padding", "", "Image rectangle inner padding");
+  addProp(path1, "margin" , "", "Image rectangle outer margin");
 
   addStrokeFillProperties(model, path1);
 }
@@ -2388,19 +2394,22 @@ draw(CQChartsPaintDevice *device)
   // set box
 //auto pbbox = windowToPixel(bbox_);
 
-  // get external margin
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          bbox_.getXMin  () +       xlm +   xp;
-  double ty =          bbox_.getYMin  () +       ybm +   yp;
-  double tw = std::max(bbox_.getWidth () - xlm - xrm - 2*xp, 0.0);
-  double th = std::max(bbox_.getHeight() - ybm - ytm - 2*yp, 0.0);
+  double tx =          bbox_.getXMin  () +       xlm + xlp;
+  double ty =          bbox_.getYMin  () +       ybm + ybp;
+  double tw = std::max(bbox_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(bbox_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   CQChartsGeom::BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2474,11 +2483,13 @@ positionToBBox()
 {
   assert(! rectangle().isSet());
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
@@ -2492,8 +2503,8 @@ positionToBBox()
 
   positionToLL(wsize.width(), wsize.height(), x, y);
 
-  CQChartsGeom::Point ll(x                 - xp - xlm, y                  - yp - ybm);
-  CQChartsGeom::Point ur(x + wsize.width() + xp + xrm, y + wsize.height() + yp + ytm);
+  CQChartsGeom::Point ll(x                 - xlp - xlm, y                  - ybp - ybm);
+  CQChartsGeom::Point ur(x + wsize.width() + xrp + xrm, y + wsize.height() + ytp + ytm);
 
   bbox_ = CQChartsGeom::BBox(ll, ur);
 }
@@ -2704,18 +2715,20 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  x1 += xp + xlm; y1 += yp + ybm;
-  x2 -= xp + xrm; y2 -= yp + ytm;
+  x1 += xlp + xlm; y1 += ybp + ybm;
+  x2 -= xrp + xrm; y2 -= ytp + ytm;
 
   if (start.x > end.x) std::swap(x1, x2);
   if (start.y > end.y) std::swap(y1, y2);
@@ -2750,11 +2763,13 @@ draw(CQChartsPaintDevice *device)
   auto start = positionToParent(start_);
   auto end   = positionToParent(end_  );
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
@@ -2765,10 +2780,10 @@ draw(CQChartsPaintDevice *device)
   double x2 = std::max(start.x, end.x);
   double y2 = std::max(start.y, end.y);
 
-  double x = x1 - xp - xlm; // left
-  double y = y1 - yp - ybm; // bottom
-  double w = (x2 - x1) + 2*xp + xlm + xrm;
-  double h = (y2 - y1) + 2*yp + ybm + ytm;
+  double x = x1 - xlp - xlm; // left
+  double y = y1 - ybp - ybm; // bottom
+  double w = (x2 - x1) + xlp + xrp + xlm + xrm;
+  double h = (y2 - y1) + ybp + ytp + ybm + ytm;
 
   bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
 
@@ -3069,11 +3084,13 @@ draw(CQChartsPaintDevice *device)
 
   auto position = positionToParent(position_);
 
-  // get internal padding
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
 
-  // get external margin
+  // get outer margin
   double xlm = lengthParentWidth (margin().left  ());
   double xrm = lengthParentWidth (margin().right ());
   double ytm = lengthParentHeight(margin().top   ());
@@ -3082,8 +3099,8 @@ draw(CQChartsPaintDevice *device)
   double sw = lengthParentWidth (symbolData.size());
   double sh = lengthParentHeight(symbolData.size());
 
-  double w = sw + 2*xp + xlm + xrm;
-  double h = sh + 2*yp + ybm + ytm;
+  double w = sw + xlp + xrp + xlm + xrm;
+  double h = sh + ybp + ytp + ybm + ytm;
   double x = position.x - w/2.0; // left
   double y = position.y - h/2.0; // bottom
 

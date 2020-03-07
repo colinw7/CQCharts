@@ -208,6 +208,8 @@ class CQChartsViewKey : public CQChartsKey {
 
   void updateLayout() override;
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
@@ -357,9 +359,15 @@ class CQChartsPlotKey : public CQChartsKey {
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
 
+  //---
+
   void updatePosition(bool queued=true) override;
 
   void updateLocation(const BBox &bbox);
+
+  void updatePositionAndLayout(bool queued=true);
+
+  //---
 
   void invalidateLayout();
 
@@ -386,7 +394,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   bool contains(const Point &p) const override;
 
-  void boxDataInvalidate() override { redraw(); }
+  void boxDataInvalidate() override;
 
   void redraw(bool queued=true) override;
 
@@ -478,29 +486,34 @@ class CQChartsPlotKey : public CQChartsKey {
   using RowHeights = std::map<int,double>;
   using ColWidths  = std::map<int,double>;
 
-  Location           locationData_;              //!< key location data
-  int                spacing_       { 2 };       //!< key item spacing
-  bool               flipped_       { false };   //!< key order flipped
-  Items              items_;                     //!< key items
-  int                maxRow_        { 0 };       //!< maximum key row
-  int                maxCol_        { 0 };       //!< maximum key column
-  bool               needsLayout_   { true };    //!< needs layout
-  Point              position_      { 0, 0 };    //!< explicit position
-  LayoutData         layoutData_;                //!< layout data
-  int                numRows_       { 0 };       //!< number of rows
-  int                numCols_       { 0 };       //!< number of columns
-  mutable BBox       wbbox_;                     //!< window bounding box
-  mutable RowHeights rowHeights_;                //!< row heights
-  mutable ColWidths  colWidths_;                 //!< column widths
-  mutable RowColCell rowColCell_;                //!< cells (per row/col)
-  mutable double     xs_            { 0.0 };     //!< x spacing (pixels)
-  mutable double     ys_            { 0.0 };     //!< y spacing (pixels)
-  mutable double     xlm_           { 0.0 };     //!< x left margin (pixels)
-  mutable double     xrm_           { 0.0 };     //!< x right margin (pixels)
-  mutable double     ytm_           { 0.0 };     //!< y top margin (pixels)
-  mutable double     ybm_           { 0.0 };     //!< y bottom margin (pixels)
-  mutable double     sx_            { 0.0 };     //!< scroll x offset
-  mutable double     sy_            { 0.0 };     //!< scroll y offset
+  struct Margin {
+    double xl { 0.0 }; //!< x left margin (pixels)
+    double xr { 0.0 }; //!< x right margin (pixels)
+    double yt { 0.0 }; //!< y top margin (pixels)
+    double yb { 0.0 }; //!< y bottom margin (pixels)
+  };
+
+  Location           locationData_;            //!< key location data
+  int                spacing_       { 2 };     //!< key item spacing
+  bool               flipped_       { false }; //!< key order flipped
+  Items              items_;                   //!< key items
+  int                maxRow_        { 0 };     //!< maximum key row
+  int                maxCol_        { 0 };     //!< maximum key column
+  bool               needsLayout_   { true };  //!< needs layout
+  Point              position_      { 0, 0 };  //!< explicit position
+  LayoutData         layoutData_;              //!< layout data
+  int                numRows_       { 0 };     //!< number of rows
+  int                numCols_       { 0 };     //!< number of columns
+  mutable BBox       wbbox_;                   //!< window bounding box
+  mutable RowHeights rowHeights_;              //!< row heights
+  mutable ColWidths  colWidths_;               //!< column widths
+  mutable RowColCell rowColCell_;              //!< cells (per row/col)
+  mutable double     xs_            { 0.0 };   //!< x spacing (pixels)
+  mutable double     ys_            { 0.0 };   //!< y spacing (pixels)
+  mutable Margin     pmargin_;                 //!< margin (pixels)
+  mutable Margin     ppadding_;                //!< padding (pixels)
+  mutable double     sx_            { 0.0 };   //!< scroll x offset
+  mutable double     sy_            { 0.0 };   //!< scroll y offset
 };
 
 //------

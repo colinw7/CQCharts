@@ -6199,8 +6199,12 @@ columnValueColor(const QVariant &var, CQChartsColor &color) const
       if (r1 < 0.0 || r1 > 1.0)
         return false;
 
-      if (colorColumnData_.palette != "")
-        color = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r1);
+      if (colorColumnData_.palette != "") {
+        auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
+
+        if (palette)
+          color = palette->getColor(r1);
+      }
       else
         color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
     }
@@ -6220,8 +6224,12 @@ columnValueColor(const QVariant &var, CQChartsColor &color) const
 
         double r = (n > 1 ? double(i)/(n - 1) : 0.0);
 
-        if (colorColumnData_.palette != "")
-          color = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r);
+        if (colorColumnData_.palette != "") {
+          auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
+
+          if (palette)
+            color = palette->getColor(r);
+        }
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
       }

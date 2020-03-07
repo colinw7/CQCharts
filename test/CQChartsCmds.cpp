@@ -6882,7 +6882,7 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsBoxData boxData;
 
   boxData.setMargin (CQChartsMargin());
-  boxData.setPadding(0);
+  boxData.setPadding(CQChartsMargin());
 
   CQChartsFillData   &fill   = boxData.shape().fill  ();
   CQChartsStrokeData &stroke = boxData.shape().stroke();
@@ -6892,8 +6892,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  boxData.setMargin (argv.getParseMargin(view, plot, "margin", boxData.margin ()));
-  boxData.setPadding(argv.getParseReal  ("padding", boxData.padding()));
+  boxData.setMargin (argv.getParseMargin(view, plot, "margin" , boxData.margin ()));
+  boxData.setPadding(argv.getParseMargin(view, plot, "padding", boxData.padding()));
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));

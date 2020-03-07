@@ -538,7 +538,7 @@ addProperties()
 
   // options
   addProp("options", "plotType", "plotType", "Plot type");
-  addProp("options", "skipBad" , "skipbad" , "Skip bad values");
+  addProp("options", "skipBad" , "skipBad" , "Skip bad values");
 
   // best fit line and deviation fill
   addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");

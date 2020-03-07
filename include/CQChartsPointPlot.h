@@ -48,6 +48,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double  fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
   Q_PROPERTY(QString fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
 
+  // text labels
+  Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
+
  public:
   CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
 

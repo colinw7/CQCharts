@@ -21,12 +21,12 @@ class QPainter;
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsTitleLocation location          READ location     WRITE setLocation  )
-  Q_PROPERTY(CQChartsPosition      absolutePosition  READ absolutePosition
-                                                     WRITE setAbsolutePosition)
-  Q_PROPERTY(CQChartsRect          absoluteRectangle READ absoluteRectangle
-                                                     WRITE setAbsoluteRectangle)
-  Q_PROPERTY(bool                  insidePlot        READ isInsidePlot WRITE setInsidePlot)
+  Q_PROPERTY(CQChartsTitleLocation location READ location WRITE setLocation)
+
+  Q_PROPERTY(CQChartsPosition absolutePosition  READ absolutePosition  WRITE setAbsolutePosition)
+  Q_PROPERTY(CQChartsRect     absoluteRectangle READ absoluteRectangle WRITE setAbsoluteRectangle)
+
+  Q_PROPERTY(bool insidePlot READ isInsidePlot WRITE setInsidePlot)
 
  public:
   CQChartsTitle(CQChartsPlot *plot);
@@ -34,21 +34,25 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   QString calcId() const override;
 
+  //---
+
+  void setVisible(bool b) override { CQChartsTextBoxObj::setVisible(b); redraw(); }
+
   void setSelected(bool b) override;
 
   //---
 
   const CQChartsTitleLocation &location() const { return location_; }
-  void setLocation(const CQChartsTitleLocation &l) { location_ = l; redraw(); }
+  void setLocation(const CQChartsTitleLocation &l);
 
   const CQChartsPosition &absolutePosition() const { return absolutePosition_; }
-  void setAbsolutePosition(const CQChartsPosition &p) { absolutePosition_ = p; redraw(); }
+  void setAbsolutePosition(const CQChartsPosition &p);
 
   const CQChartsRect &absoluteRectangle() const { return absoluteRectangle_; }
-  void setAbsoluteRectangle(const CQChartsRect &r) { absoluteRectangle_ = r; redraw(); }
+  void setAbsoluteRectangle(const CQChartsRect &r);
 
   bool isInsidePlot() const { return insidePlot_; }
-  void setInsidePlot(bool b) { insidePlot_ = b; }
+  void setInsidePlot(bool b);
 
   //---
 

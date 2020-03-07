@@ -40,7 +40,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //--
 
-  //! data label
+  void setVisible(bool b) override {
+    CQChartsTextBoxObj::setVisible(b); textBoxDataInvalidate();
+  }
+
+  //! position
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; textBoxDataInvalidate(); }
 

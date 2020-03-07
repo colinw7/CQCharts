@@ -180,6 +180,12 @@ doLayout()
   double ytm = view()->lengthViewHeight(margin().top   ());
   double ybm = view()->lengthViewHeight(margin().bottom());
 
+  // get internal padding
+//double xlp = view()->lengthViewWidth (padding().left  ());
+//double xrp = view()->lengthViewWidth (padding().right ());
+//double ytp = view()->lengthViewHeight(padding().top   ());
+//double ybp = view()->lengthViewHeight(padding().bottom());
+
   //---
 
   numPlots_ = view()->numPlots();
@@ -365,6 +371,12 @@ draw(CQChartsPaintDevice *device) const
   double xrm = view()->lengthViewWidth (margin().right ());
   double ytm = view()->lengthViewHeight(margin().top   ());
   double ybm = view()->lengthViewHeight(margin().bottom());
+
+  // get internal padding
+//double xlp = view()->lengthViewWidth (padding().left  ());
+//double xrp = view()->lengthViewWidth (padding().right ());
+//double ytp = view()->lengthViewHeight(padding().top   ());
+//double ybp = view()->lengthViewHeight(padding().bottom());
 
   //---
 
@@ -729,6 +741,17 @@ updatePosition(bool queued)
 
 void
 CQChartsPlotKey::
+updatePositionAndLayout(bool queued)
+{
+  invalidateLayout();
+
+  plot()->updateKeyPosition();
+
+  redraw(queued);
+}
+
+void
+CQChartsPlotKey::
 updateLocation(const CQChartsGeom::BBox &bbox)
 {
   // get external margin
@@ -737,9 +760,22 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   double ytm = plot()->lengthPlotHeight(margin().top   ());
   double ybm = plot()->lengthPlotHeight(margin().bottom());
 
-  // calc key size
+  // get internal padding
+  double xlp = plot()->lengthPlotWidth (padding().left  ());
+  double xrp = plot()->lengthPlotWidth (padding().right ());
+  double ytp = plot()->lengthPlotHeight(padding().top   ());
+  double ybp = plot()->lengthPlotHeight(padding().bottom());
+
+  //---
+
+  CQChartsAxis *xAxis = plot()->xAxis();
+  CQChartsAxis *yAxis = plot()->yAxis();
+
+  // get key contents size
   auto ks = calcSize();
 
+  // calc key contents position
+  // (bbox is plot bbox)
   double kx { 0.0 }, ky { 0.0 };
 
   if (location().isAuto()) {
@@ -757,14 +793,13 @@ updateLocation(const CQChartsGeom::BBox &bbox)
       location_.setType(CQChartsKeyLocation::Type::TOP_RIGHT);
   }
 
-  CQChartsAxis *yAxis = plot()->yAxis();
-
   if      (location().onLeft()) {
     if (isInsideX())
-      kx = bbox.getXMin() + xlm;
+      kx = bbox.getXMin() + xlm + xlp;
     else {
-      kx = bbox.getXMin() - ks.width() - xlm;
+      kx = bbox.getXMin() - ks.width() - xrm - xrp;
 
+      // offset by left y axis width
       if (yAxis)
         kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getWidth() + xlm;
     }
@@ -774,23 +809,23 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   }
   else if (location().onRight()) {
     if (isInsideX())
-      kx = bbox.getXMax() - ks.width() - xrm;
+      kx = bbox.getXMax() - ks.width() - xrm - xrp;
     else {
-      kx = bbox.getXMax() + xrm;
+      kx = bbox.getXMax() + xrm + xrp;
 
+      // offset by right y axis width
       if (yAxis)
         kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getWidth() + xrm;
     }
   }
 
-  CQChartsAxis *xAxis = plot()->xAxis();
-
   if      (location().onTop()) {
     if (isInsideY())
-      ky = bbox.getYMax() - ytm;
+      ky = bbox.getYMax() - ytm - ytp;
     else {
-      ky = bbox.getYMax() + ks.height() + ytm;
+      ky = bbox.getYMax() + ks.height() + ytm + ytp;
 
+      // offset by bottom x axis height
       if (xAxis)
         ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight() + ytm;
     }
@@ -800,10 +835,11 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   }
   else if (location().onBottom()) {
     if (isInsideY())
-      ky = bbox.getYMin() + ks.height() + ybm;
+      ky = bbox.getYMin() + ks.height() + ybm + ybp;
     else {
-      ky = bbox.getYMin() - ybm;
+      ky = bbox.getYMin() - ybm - ybp;
 
+      // offset by top x axis height
       if (xAxis)
         ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight() + ybm;
     }
@@ -811,6 +847,9 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   CQChartsGeom::Point kp(kx, ky);
 
+  //---
+
+  // update location for absolute position/rectangle
   CQChartsKeyLocation::Type locationType = this->location().type();
 
   if      (locationType == CQChartsKeyLocation::Type::ABSOLUTE_POSITION) {
@@ -822,6 +861,8 @@ updateLocation(const CQChartsGeom::BBox &bbox)
     if (bbox.isValid())
       kp = CQChartsGeom::Point(bbox.getUL());
   }
+
+  //---
 
   setPosition(kp);
 }
@@ -1042,14 +1083,19 @@ doLayout()
 
   //---
 
-  // get spacing and margin in plot coords
+  // get spacing, margin and padding in plot coords
   xs_ = plot()->pixelToWindowWidth (spacing());
   ys_ = plot()->pixelToWindowHeight(spacing());
 
-  xlm_ = plot()->lengthPlotWidth (margin().left  ());
-  xrm_ = plot()->lengthPlotWidth (margin().right ());
-  ytm_ = plot()->lengthPlotHeight(margin().top   ());
-  ybm_ = plot()->lengthPlotHeight(margin().bottom());
+  pmargin_.xl = plot()->lengthPlotWidth (margin().left  ());
+  pmargin_.xr = plot()->lengthPlotWidth (margin().right ());
+  pmargin_.yt = plot()->lengthPlotHeight(margin().top   ());
+  pmargin_.yb = plot()->lengthPlotHeight(margin().bottom());
+
+  ppadding_.xl = plot()->lengthPlotWidth (padding().left  ());
+  ppadding_.xr = plot()->lengthPlotWidth (padding().right ());
+  ppadding_.yt = plot()->lengthPlotHeight(padding().top   ());
+  ppadding_.yb = plot()->lengthPlotHeight(padding().bottom());
 
   //---
 
@@ -1089,12 +1135,12 @@ doLayout()
   //---
 
   // update cell positions and sizes
-  double y = -ybm_;
+  double y = -(pmargin_.yb + ppadding_.yb);
 
   y -= layoutData_.headerHeight;
 
   for (int r = 0; r < numRows; ++r) {
-    double x = xlm_;
+    double x = pmargin_.xl + ppadding_.xl;
 
     double rh = rowHeights_[r] + 2*ys_;
 
@@ -1125,7 +1171,7 @@ doLayout()
     w += cell.width;
   }
 
-  w += xlm_ + xrm_;
+  w += pmargin_.xl + ppadding_.xl + pmargin_.xr + ppadding_.xr;
 
   for (int r = 0; r < numRows; ++r) {
     Cell &cell = rowColCell_[r][0];
@@ -1133,7 +1179,7 @@ doLayout()
     h += cell.height;
   }
 
-  h += ybm_ + ytm_ + layoutData_.headerHeight;
+  h += pmargin_.yb + ppadding_.yb + pmargin_.yt + ppadding_.yt + layoutData_.headerHeight;
 
   w = std::max(w, layoutData_.headerWidth);
 
@@ -1278,6 +1324,13 @@ contains(const CQChartsGeom::Point &p) const
     return false;
 
   return bbox().inside(p);
+}
+
+void
+CQChartsPlotKey::
+boxDataInvalidate()
+{
+  redraw();
 }
 
 CQChartsKeyItem *
@@ -1569,8 +1622,8 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // calc pixel bounding box
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x    , y    ));
-  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x + w, y - h));
+  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x     + pmargin_.xl, y     - pmargin_.yt));
+  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x + w - pmargin_.xl, y - h + pmargin_.yb));
 
   CQChartsGeom::BBox pixelRect(p1, p2);
 
@@ -1634,7 +1687,8 @@ draw(CQChartsPaintDevice *device) const
 
     // count number of rows in height
     int    scrollRows   = 0;
-    double scrollHeight = sh - ybm_ - ytm_ - layoutData_.hbarHeight;
+    double scrollHeight = sh - pmargin_.yb - ppadding_.yb -
+                               pmargin_.yt - ppadding_.yt - layoutData_.hbarHeight;
 
     for (int i = 0; i < numRows; ++i) {
       if (scrollHeight <= 0)
@@ -1782,6 +1836,12 @@ draw(CQChartsPaintDevice *device) const
   //double xrm = plot()->lengthPlotWidth (margin().right ());
     double ytm = plot()->lengthPlotHeight(margin().top   ());
     double ybm = plot()->lengthPlotHeight(margin().bottom());
+
+    // get internal padding
+  //double xlp = plot()->lengthPlotWidth (padding().left  ());
+  //double xrp = plot()->lengthPlotWidth (padding().right ());
+  //double ytp = plot()->lengthPlotHeight(padding().top   ());
+  //double ybp = plot()->lengthPlotHeight(padding().bottom());
 
     //---
 

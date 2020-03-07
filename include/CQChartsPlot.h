@@ -2426,15 +2426,15 @@ class CQChartsPlot : public CQChartsObj,
   CQPropertyViewModel* propertyModel_ { nullptr }; //!< property model
 
   // ranges
-  CQChartsGeom::BBox    viewBBox_         { 0, 0, 1, 1 };     //!< view box
-  CQChartsGeom::BBox    innerViewBBox_    { 0, 0, 1, 1 };     //!< inner view box
-  CQChartsPlotMargin    innerMargin_      { 0, 0, 0, 0 };     //!< inner margin
-  CQChartsPlotMargin    outerMargin_      { 10, 10, 10, 10 }; //!< outer margin
-  CQChartsDisplayRange* displayRange_     { nullptr };        //!< value range mapping
-  CQChartsGeom::Range   calcDataRange_;                       //!< calc data range
-  CQChartsGeom::Range   dataRange_;                           //!< data range
-  CQChartsGeom::Range   outerDataRange_;                      //!< outer data range
-  ZoomData              zoomData_;                            //!< zoom data
+  CQChartsGeom::BBox    viewBBox_        { 0, 0, 1, 1 };     //!< view box
+  CQChartsGeom::BBox    innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
+  CQChartsPlotMargin    innerMargin_     { 0, 0, 0, 0 };     //!< inner margin
+  CQChartsPlotMargin    outerMargin_     { 10, 10, 10, 10 }; //!< outer margin
+  CQChartsDisplayRange* displayRange_    { nullptr };        //!< value range mapping
+  CQChartsGeom::Range   calcDataRange_;                      //!< calc data range
+  CQChartsGeom::Range   dataRange_;                          //!< data range
+  CQChartsGeom::Range   outerDataRange_;                     //!< outer data range
+  ZoomData              zoomData_;                           //!< zoom data
 
   // override range
   CQChartsOptReal xmin_; //!< xmin override
@@ -2467,19 +2467,19 @@ class CQChartsPlot : public CQChartsObj,
   bool             colorKey_ { false };   //!< use color column for key
 
   // columns
-  CQChartsColumn     xValueColumn_;  //!< x axis value column
-  CQChartsColumn     yValueColumn_;  //!< y axis value column
-  CQChartsColumn     idColumn_;      //!< unique data id column (signalled)
-  CQChartsColumns    tipColumns_;    //!< tip columns
-  CQChartsColumn     visibleColumn_; //!< visible column
-  CQChartsColumn     imageColumn_;   //!< image column
+  CQChartsColumn  xValueColumn_;  //!< x axis value column
+  CQChartsColumn  yValueColumn_;  //!< y axis value column
+  CQChartsColumn  idColumn_;      //!< unique data id column (signalled)
+  CQChartsColumns tipColumns_;    //!< tip columns
+  CQChartsColumn  visibleColumn_; //!< visible column
+  CQChartsColumn  imageColumn_;   //!< image column
 
   // color data
   ColorColumnData    colorColumnData_; //!< color color data
   mutable std::mutex colorMutex_;      //!< color mutex
 
   // cached column names
-  ColumnNames  columnNames_; //!< column header names
+  ColumnNames columnNames_; //!< column header names
 
   // font
   CQChartsFont font_;                      //!< font

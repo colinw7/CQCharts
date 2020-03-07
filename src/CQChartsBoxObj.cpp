@@ -45,8 +45,8 @@ addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString 
 
   //---
 
-  addProp(path, "margin" , "", desc.length() ? desc + " inner margin" : "Inner margin");
-  addProp(path, "padding", "", desc.length() ? desc + " outer padding" : "Outer padding");
+  addProp(path, "margin" , "", desc.length() ? desc + " outer margin" : "Outer margin");
+  addProp(path, "padding", "", desc.length() ? desc + " inner padding" : "Inner padding");
 
   QString bgPath = path + "/fill";
 
