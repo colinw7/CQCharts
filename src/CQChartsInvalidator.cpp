@@ -121,6 +121,7 @@ invalidate(bool reload)
 
 //---
 
+#if 0
 QColor
 CQChartsInterpolator::
 interpColor(const CQChartsColor &c, int i, int n) const
@@ -138,6 +139,7 @@ interpColor(const CQChartsColor &c, double r) const
 
   return interpColor(c, ic);
 }
+#endif
 
 QColor
 CQChartsInterpolator::

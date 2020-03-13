@@ -1577,7 +1577,7 @@ draw(CQChartsPaintDevice *device)
   QColor hbg, vbg;
 
   if (color_.isValid()) {
-    QColor bg1 = plot_->charts()->interpColor(color_, 0, 1);
+    QColor bg1 = plot_->charts()->interpColor(color_, ColorInd());
     QColor bg2 = plot_->interpPlotFillColor(ColorInd());
 
     hbg = CQChartsUtil::blendColors(bg1, bg2, hnorm_);

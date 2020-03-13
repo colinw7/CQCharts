@@ -112,6 +112,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
   CQColorsEditModel* bEdit_         { nullptr }; //!< b edit
   QCheckBox*         bNeg_          { nullptr }; //!< b negate
   CQRealSpin*        valueEdit_     { nullptr }; //!< value edit
+  QCheckBox*         valueCheck_    { nullptr }; //!< value check
   CQColorEdit*       colorEdit_     { nullptr }; //!< color edit
   CQCheckBox*        scaleCheck_    { nullptr }; //!< scale check
   WidgetLabels       widgetLabels_;              //!< widget labels

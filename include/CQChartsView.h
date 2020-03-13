@@ -493,26 +493,19 @@ class CQChartsView : public QFrame,
 
   //---
 
+ public:
   // interp palette/theme color
   QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
-  QColor interpPaletteColor(int i, int n, bool scale=false) const;
-  QColor interpPaletteColor(double r, bool scale=false) const;
 
   QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const;
-  QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const;
-
-  QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
 
   QColor interpThemeColor(const ColorInd &ind) const;
-  QColor interpThemeColor(int i, int n) const;
-  QColor interpThemeColor(double r) const;
 
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
-  QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double r) const;
 
   //---
 
+ public:
   // Qt event handling
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;

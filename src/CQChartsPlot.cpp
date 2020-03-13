@@ -3956,13 +3956,17 @@ updateOverlayRanges()
   if (! isFirstPlot())
     return firstPlot()->updateOverlayRanges();
 
-  processOverlayPlots([&](CQChartsPlot *plot) {
-    if (plot != this) {
-      plot->setDataRange(dataRange(), /*update*/false);
+  if (isOverlay()) {
+    if (! isX1X2() && ! isY1Y2()) {
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        if (plot != this) {
+          plot->setDataRange(dataRange(), /*update*/false);
 
-      plot->applyDataRange(/*propagate*/false);
+          plot->applyDataRange(/*propagate*/false);
+        }
+      });
     }
-  });
+  }
 }
 
 void
@@ -7301,7 +7305,7 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
   if (text.length()) {
     CQChartsColor color(CQChartsColor::Type::INTERFACE_VALUE, 1.0);
 
-    QColor tc = charts()->interpColor(color, 0.0);
+    QColor tc = charts()->interpColor(color, ColorInd());
 
     painter->setPen(tc);
 
@@ -8888,6 +8892,17 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
   return annotation;
 }
 
+CQChartsAxisAnnotation *
+CQChartsPlot::
+addAxisAnnotation(Qt::Orientation direction, double start, double end)
+{
+  auto *annotation = new CQChartsAxisAnnotation(this, direction, start, end);
+
+  addAnnotation(annotation);
+
+  return annotation;
+}
+
 CQChartsEllipseAnnotation *
 CQChartsPlot::
 addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
@@ -9737,38 +9752,14 @@ QColor
 CQChartsPlot::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  return (ind.isInt ?
-    interpPaletteColorI(ind.i, ind.n, scale) : interpPaletteColorI(ind.r, scale));
+  return view()->interpPaletteColor(ind, scale);
 }
-
-QColor
-CQChartsPlot::
-interpPaletteColorI(int i, int n, bool scale) const
-{
-  return view()->interpPaletteColor(i, n, scale);
-}
-
-QColor
-CQChartsPlot::
-interpPaletteColorI(double r, bool scale) const
-{
-  return view()->interpPaletteColor(r, scale);
-}
-
-//---
 
 QColor
 CQChartsPlot::
 interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
 {
   return view()->interpGroupPaletteColor(ig, iv, scale);
-}
-
-QColor
-CQChartsPlot::
-interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale) const
-{
-  return view()->interpGroupPaletteColor(ig, ng, i, n, scale);
 }
 
 QColor

@@ -454,8 +454,14 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
     if      (shape.type == CQChartsGeometryShape::Type::RECT)
       geometry.polygons.push_back(CQChartsGeom::Polygon(shape.rect));
-    else if (shape.type == CQChartsGeometryShape::Type::POLYGON)
+    else if (shape.type == CQChartsGeometryShape::Type::POLYGON) {
+      if (shape.polygon.size() < 2) {
+        th->addDataError(geometryInd, "Too few points for polygon '" + geomStr + "'");
+        return;
+      }
+
       geometry.polygons.push_back(shape.polygon);
+    }
     else if (shape.type == CQChartsGeometryShape::Type::POLYGON_LIST)
       geometry.polygons = shape.polygonList;
     else if (shape.type == CQChartsGeometryShape::Type::PATH) {
@@ -551,59 +557,6 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   // add to list
   th->geometries_.push_back(geometry);
 }
-
-#if 0
-bool
-CQChartsGeometryPlot::
-decodeGeometry(const QString &geomStr, CQChartsGeom::Polygons &polygons) const
-{
-  if (geomStr.simplified() == "")
-    return true;
-
-  // count leading braces
-  int n = CQChartsUtil::countLeadingBraces(geomStr);
-
-  //---
-
-  // no braces - single polygon x1 y1 x2 y2 ...
-  if      (n == 0) {
-    CQChartsGeom::Polygon poly;
-
-    if (! CQChartsUtil::stringToPolygon("{{" + geomStr + "}}", poly))
-      return false;
-
-    polygons.push_back(CQChartsGeom::Polygon(poly));
-  }
-  // single brace - single polygon {x1 y1} {x2 y2} ...
-  else if (n == 1) {
-    CQChartsGeom::Polygon poly;
-
-    if (! CQChartsUtil::stringToPolygon("{" + geomStr + "}", poly))
-      return false;
-
-    polygons.push_back(CQChartsGeom::Polygon(poly));
-  }
-  // two braces - single polygon {{x1 y1} {x2 y2} ...}
-  else if (n == 2) {
-    CQChartsGeom::Polygon poly;
-
-    if (! CQChartsUtil::stringToPolygon(geomStr, poly))
-      return false;
-
-    polygons.push_back(CQChartsGeom::Polygon(poly));
-  }
-  // three braces - list of polygons {{{x1 y1} {x2 y2} ...} ... }
-  else if (n == 3) {
-    if (! CQChartsUtil::stringToPolygons(geomStr, polygons))
-      return false;
-  }
-  else {
-    return false;
-  }
-
-  return true;
-}
-#endif
 
 bool
 CQChartsGeometryPlot::

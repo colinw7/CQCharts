@@ -2,8 +2,8 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsColumnEval.h>
 #include <CQChartsVariant.h>
-#include <CQChartsEval.h>
 #include <CQCharts.h>
 
 #include <CQCsvModel.h>
@@ -1085,7 +1085,12 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
   else if (column.type() == CQChartsColumn::Type::EXPR) {
     QVariant var;
 
-    ok = CQChartsEvalInst->evalExpr(row, column.expr(), var);
+    auto *eval = CQChartsColumnEvalInst;
+
+    eval->setModel(model);
+    eval->setRow  (row);
+
+    ok = eval->evaluateExpression(column.expr(), var);
 
     return var;
   }

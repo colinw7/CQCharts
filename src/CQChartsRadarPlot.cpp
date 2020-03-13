@@ -664,7 +664,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     if (isGridLines()) {
       QPen gpen1;
 
-      setGridLineDataPen(gpen1, 0, 1);
+      setGridLineDataPen(gpen1, ColorInd(0, 1));
 
       device->setPen(gpen1);
 
@@ -692,7 +692,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     QPen gpen2;
 
-    setGridLineDataPen(gpen2, 0, 1);
+    setGridLineDataPen(gpen2, ColorInd(0, 1));
 
     //---
 

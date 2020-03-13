@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + key annotation
+ + delayed load of errors
  + handle overlay, x1x2, y1y2, when plot hidden
    + use firstPlot data if overlay (don't propagate values)
  + monthly_sales.tcl (overlay) broken range

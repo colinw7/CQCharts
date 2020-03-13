@@ -49,6 +49,7 @@ class CQChartsKeyColorBox;
 
 class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
+class CQChartsAxisAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
 class CQChartsPieSliceAnnotation;
@@ -1642,6 +1643,8 @@ class CQChartsPlot : public CQChartsObj,
 
   CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
                                                       const CQChartsPosition &end);
+  CQChartsAxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction,
+                                                      double start, double end);
   CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
                                                       const CQChartsLength &xRadius,
                                                       const CQChartsLength &yRadius);
@@ -1956,18 +1959,11 @@ class CQChartsPlot : public CQChartsObj,
   // get palette color for index
   virtual QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
 
- private:
-  QColor interpPaletteColorI(int i, int n, bool scale=false) const;
-  QColor interpPaletteColorI(double r, bool scale=false) const;
-
  public:
   virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
                                          bool scale=false) const;
 
   QColor blendGroupPaletteColor(double r1, double r2, double dr) const;
-
- private:
-  QColor interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale=false) const;
 
  public:
   QColor interpThemeColor(const ColorInd &ind) const;

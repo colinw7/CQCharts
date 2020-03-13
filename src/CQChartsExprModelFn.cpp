@@ -17,7 +17,7 @@ int
 CQChartsExprModelFn::
 commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 {
-  CQChartsExprModelFn *command = (CQChartsExprModelFn *) clientData;
+  auto *command = (CQChartsExprModelFn *) clientData;
 
   Values values;
 

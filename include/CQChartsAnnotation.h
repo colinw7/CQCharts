@@ -44,6 +44,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     ARROW,
     POINT,
     PIE_SLICE,
+    AXIS,
     POINT_SET,
     VALUE_SET,
     BUTTON
@@ -834,6 +835,53 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
  * \ingroup Charts
  *
  * Set of points draw as symbols, convext jull, best fit line, desitty gradie or density grid
+ *
+ * TODO: support column
+ */
+class CQChartsAxisAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+ public:
+  CQChartsAxisAnnotation(CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
+                         double start=0.0, double end=1.0);
+
+  virtual ~CQChartsAxisAnnotation();
+
+  const char *typeName() const override { return "axis"; }
+
+  double position() const;
+  void setPosition(double r);
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private:
+  CQChartsAxis *axis_ { nullptr };
+};
+
+//---
+
+/*!
+ * \brief point set annotation
+ * \ingroup Charts
+ *
+ * Set of points draw as symbols, convext jull, best fit line, desitty gradie or density grid
+ *
+ * TODO: support column
  */
 class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT

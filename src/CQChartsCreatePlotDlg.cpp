@@ -27,6 +27,7 @@
 #include <CQUtil.h>
 #include <CQCustomCombo.h>
 #include <CQGroupBox.h>
+#include <CQTclUtil.h>
 
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -2950,7 +2951,10 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 {
   QString posStr = posEdit_->text();
 
-  QStringList posStrs = posStr.split(" ", QString::SkipEmptyParts);
+  QStringList posStrs;
+
+  if (! CQTcl::splitList(posStr, posStrs))
+    return false;
 
   if (posStrs.length() == 4) {
     bool ok1; xmin = CQChartsUtil::toReal(posStrs[0], ok1); if (! ok1) xmin = 0.0;

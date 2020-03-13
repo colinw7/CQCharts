@@ -129,7 +129,7 @@ CQChartsLoader.cpp \
 \
 CQChartsModelViewHolder.cpp \
 CQChartsModelView.cpp \
-CQChartsEval.cpp \
+CQChartsColumnEval.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -444,7 +444,7 @@ HEADERS += \
 \
 ../include/CQChartsModelViewHolder.h \
 ../include/CQChartsModelView.h \
-../include/CQChartsEval.h \
+../include/CQChartsColumnEval.h \
 \
 ../include/CQChartsFilterEdit.h \
 \

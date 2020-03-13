@@ -145,15 +145,16 @@ class CQCharts : public QObject {
 
   //---
 
+ public:
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
-  QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double value) const;
 
-  QColor interpColorValue(const CQChartsColor &c, int ig, int ng, int i, int n) const;
-  QColor interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const;
+ private:
+  QColor interpColorValueI(const CQChartsColor &c, int ig, int ng,
+                           double value, const QColor &ic) const;
 
   //---
 
+ public:
   const CQChartsInterfaceTheme *interfaceTheme() const { return interfaceTheme_; }
   CQChartsInterfaceTheme *interfaceTheme() { return interfaceTheme_; }
 
@@ -166,15 +167,11 @@ class CQCharts : public QObject {
 
  public:
   QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
-  QColor interpPaletteColor(int i, int n, bool scale=false) const;
-  QColor interpPaletteColor(double r, bool scale=false) const;
 
   QColor interpIndPaletteColor(int ind, int i, int n, bool scale=false) const;
   QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
 
   QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale=false) const;
-  QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
-  QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale=false) const;
 
   QColor interpPaletteColorValue(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpPaletteColorValue(int ig, int ng, double r, bool scale=false) const;
@@ -185,9 +182,8 @@ class CQCharts : public QObject {
   //---
 
   QColor interpThemeColor(const ColorInd &ind) const;
-  QColor interpThemeColor(int i, int n) const;
-  QColor interpThemeColor(double r) const;
 
+ public:
   CQColorsPalette *themeGroupPalette(int i, int n) const;
 
   CQColorsPalette *themePalette(int ind) const;

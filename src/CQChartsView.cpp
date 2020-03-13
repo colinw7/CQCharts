@@ -1982,20 +1982,6 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
 QColor
 CQChartsView::
-interpPaletteColor(int i, int n, bool scale) const
-{
-  return charts()->interpPaletteColor(i, n, scale);
-}
-
-QColor
-CQChartsView::
-interpPaletteColor(double r, bool scale) const
-{
-  return charts()->interpPaletteColor(r, scale);
-}
-
-QColor
-CQChartsView::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
   return charts()->interpPaletteColor(ind, scale);
@@ -2010,70 +1996,22 @@ interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) cons
 
 QColor
 CQChartsView::
-interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
-{
-  return charts()->interpGroupPaletteColor(ig, ng, i, n, scale);
-}
-
-QColor
-CQChartsView::
-interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
-{
-  return charts()->interpGroupPaletteColor(ig, ng, r, scale);
-}
-
-QColor
-CQChartsView::
 interpThemeColor(const ColorInd &ind) const
 {
-  return (ind.isInt ? interpThemeColor(ind.i, ind.n) : interpThemeColor(ind.r));
-}
-
-QColor
-CQChartsView::
-interpThemeColor(int i, int n) const
-{
-  return charts()->interpThemeColor(i, n);
-}
-
-QColor
-CQChartsView::
-interpThemeColor(double r) const
-{
-  return charts()->interpThemeColor(r);
+  return charts()->interpThemeColor(ind);
 }
 
 QColor
 CQChartsView::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
-  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
-}
-
-QColor
-CQChartsView::
-interpColor(const CQChartsColor &c, int i, int n) const
-{
   if (defaultPalette_ != "") {
     CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
 
-    return charts()->interpColor(c1, i, n);
+    return charts()->interpColor(c1, ind);
   }
 
-  return charts()->interpColor(c, i, n);
-}
-
-QColor
-CQChartsView::
-interpColor(const CQChartsColor &c, double r) const
-{
-  if (defaultPalette_ != "") {
-    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
-
-    return charts()->interpColor(c1, r);
-  }
-
-  return charts()->interpColor(c, r);
+  return charts()->interpColor(c, ind);
 }
 
 //------
@@ -3847,8 +3785,11 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
 
       QColor ibc;
 
-      if (isInsideFilled())
-        ibc = interpInsideFillColor(ic);
+      if (isInsideFilled()) {
+        ColorInd ic1 = ic; ic1.c = bc;
+
+        ibc = interpInsideFillColor(ic1);
+      }
       else
         ibc = insideColor(bc);
 

@@ -413,11 +413,16 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
 
 bool
 CQChartsExprModel::
-calcColumn(int column, const QString &expr, Values &values) const
+calcColumn(int column, const QString &expr, Values &values, const NameValues &nameValues) const
 {
   CQPerfTrace trace("CQChartsExprModel::calcColumn");
 
+  initCalc();
+
   int numErrors = 0;
+
+  for (const auto &nv : nameValues)
+    qtcl_->createVar(nv.first, nv.second);
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -508,6 +513,8 @@ initCalc()
   columnNames_.clear();
   nameColumns_.clear();
 
+  lastValue_ = QVariant();
+
   //---
 
   // add user defined functions
@@ -538,8 +545,9 @@ initCalc()
   qtcl_->traceVar("row"   );
   qtcl_->traceVar("column");
   qtcl_->traceVar("col"   );
-  qtcl_->traceVar("pi"    );
+  qtcl_->traceVar("PI"    );
   qtcl_->traceVar("NaN"   );
+  qtcl_->traceVar("_"     );
 }
 
 bool
@@ -1289,6 +1297,11 @@ columnCmd(const Values &values) const
     if (! cmdValues.getStr(defStr))
       return QVariant();
 
+    bool ok; double r = defStr.toDouble(&ok);
+
+    if (ok)
+      return QVariant(r);
+
     return QVariant(defStr);
   }
 
@@ -1326,6 +1339,11 @@ rowCmd(const Values &values) const
 
     if (! cmdValues.getStr(defStr))
       return QVariant();
+
+    bool ok; double r = defStr.toDouble(&ok);
+
+    if (ok)
+      return QVariant(r);
 
     return QVariant(defStr);
   }
@@ -1369,6 +1387,11 @@ cellCmd(const Values &values) const
 
     if (! cmdValues.getStr(defStr))
       return QVariant();
+
+    bool ok; double r = defStr.toDouble(&ok);
+
+    if (ok)
+      return QVariant(r);
 
     return QVariant(defStr);
   }
@@ -1639,7 +1662,62 @@ mapCmd(const Values &values) const
 
 //---
 
-// bucket value (for row/column):
+// remap column value range to min/max
+//   remap()            - current column, 0.0, 1.0
+//   remap(col)         - specified column, 0.0, 1.0
+//   remap(col,max)     - specified column, 0.0, max
+//   remap(col,min,max) - specified column, min, max
+QVariant
+CQChartsExprModel::
+remapCmd(const Values &values)
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  double r1 = 0.0, r2 = 1.0;
+
+  if (cmdValues.numValues() >= 1) {
+    (void) getColumnValue(cmdValues, col);
+
+    if      (cmdValues.numValues() >= 3) {
+      (void) cmdValues.getReal(r1);
+      (void) cmdValues.getReal(r2);
+    }
+    else if (cmdValues.numValues() >= 2) {
+      (void) cmdValues.getReal(r2);
+    }
+  }
+
+  //---
+
+  if (! this->checkIndex(row, col))
+    return QVariant(0.0);
+
+  QModelIndex ind = this->index(row, col, QModelIndex());
+
+  //---
+
+  double rmin = 0.0, rmax = 1.0;
+
+  getColumnRange(ind, rmin, rmax);
+
+  //---
+
+  bool ok;
+
+  double r = CQChartsModelUtil::modelReal(this, ind, ok);
+  if (! ok) return QVariant(0.0);
+
+  double rm = CMathUtil::map(r, rmin, rmax, r1, r2);
+
+  return QVariant(rm);
+}
+
+//---
+
+// bucket value (for row/column)
 //   bucket(col,delta), bucket(col,start,delta)
 QVariant
 CQChartsExprModel::
@@ -1895,7 +1973,7 @@ scaleCmd(const Values &values) const
 
 //---
 
-// random value:
+// random value
 //   rand(min=0,max=1)
 QVariant
 CQChartsExprModel::
@@ -1918,7 +1996,7 @@ randCmd(const Values &values) const
 
 //---
 
-// random normalized value:
+// random normalized value
 //   rnorm(mean=0,stddev=1)
 QVariant
 CQChartsExprModel::
@@ -1967,7 +2045,7 @@ keyCmd(const Values &values) const
 
 //---
 
-// concat values:
+// concat values
 //   concat(str1,str2,...)
 QVariant
 CQChartsExprModel::
@@ -1983,7 +2061,7 @@ concatCmd(const Values &values) const
 
 //---
 
-// match string to regexp:
+// match string to regexp
 //   match(name, regexp)
 QVariant
 CQChartsExprModel::
@@ -2003,7 +2081,7 @@ matchCmd(const Values &values) const
 
 //---
 
-// string to color:
+// string to color
 //   color(name)
 QVariant
 CQChartsExprModel::
@@ -2017,62 +2095,7 @@ colorCmd(const Values &values) const
 
 //---
 
-// remap column value range to min/max:
-//   remap()            - current column, 0.0, 1.0
-//   remap(col)         - specified column, 0.0, 1.0
-//   remap(col,max)     - specified column, 0.0, max
-//   remap(col,min,max) - specified column, min, max
-QVariant
-CQChartsExprModel::
-remapCmd(const Values &values)
-{
-  CQChartsExprCmdValues cmdValues(values);
-
-  int row = currentRow();
-  int col = currentCol();
-
-  double r1 = 0.0, r2 = 1.0;
-
-  if (cmdValues.numValues() >= 1) {
-    (void) getColumnValue(cmdValues, col);
-
-    if      (cmdValues.numValues() >= 3) {
-      (void) cmdValues.getReal(r1);
-      (void) cmdValues.getReal(r2);
-    }
-    else if (cmdValues.numValues() >= 2) {
-      (void) cmdValues.getReal(r2);
-    }
-  }
-
-  //---
-
-  if (! this->checkIndex(row, col))
-    return QVariant(0.0);
-
-  QModelIndex ind = this->index(row, col, QModelIndex());
-
-  //---
-
-  double rmin = 0.0, rmax = 1.0;
-
-  getColumnRange(ind, rmin, rmax);
-
-  //---
-
-  bool ok;
-
-  double r = CQChartsModelUtil::modelReal(this, ind, ok);
-  if (! ok) return QVariant(0.0);
-
-  double rm = CMathUtil::map(r, rmin, rmax, r1, r2);
-
-  return QVariant(rm);
-}
-
-//---
-
-// time value from column value:
+// time value from column value
 //   timeval(fmt)     - timeval fmt for current column
 //   timeval(col,fmt) - timeval fmt for specified column
 QVariant
@@ -2198,7 +2221,7 @@ setCmdData(int row, int col, const QVariant &var)
 
 bool
 CQChartsExprModel::
-evaluateExpression(const QString &expr, QVariant &var) const
+evaluateExpression(const QString &expr, QVariant &value) const
 {
   if (expr.length() == 0)
     return false;
@@ -2206,24 +2229,32 @@ evaluateExpression(const QString &expr, QVariant &var) const
   qtcl_->setRow   (currentRow());
   qtcl_->setColumn(currentCol());
 
-  int rc = qtcl_->evalExpr(expr);
+  bool showError = isDebug();
+
+  int rc = qtcl_->evalExpr(expr, showError);
 
   if (rc != TCL_OK) {
     if (qtcl_->isDomainError(rc)) {
       double x = CMathUtil::getNaN();
 
-      var = QVariant(x);
+      value      = QVariant(x);
+      lastValue_ = value;
 
       return true;
     }
 
-    if (debug_)
+    if (isDebug())
       std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
 
     return false;
   }
 
-  return getTclResult(var);
+  if (! getTclResult(value))
+    return false;
+
+  lastValue_ = value;
+
+  return true;
 }
 
 void
@@ -2232,7 +2263,7 @@ setVar(const QString &name, int row, int column)
 {
   auto p = nameColumns_.find(name);
 
-  if (p != nameColumns_.end()) {
+  if      (p != nameColumns_.end()) {
     int col = (*p).second;
 
     // get model value
@@ -2252,6 +2283,12 @@ setVar(const QString &name, int row, int column)
   }
   else if (name == "NaN") {
     qtcl_->createVar(name, QVariant(CMathUtil::getNaN()));
+  }
+  else if (name == "_") {
+    if (lastValue_.isValid())
+      qtcl_->createVar(name, QVariant(lastValue_));
+    else
+      qtcl_->createVar(name, QVariant(0.0));
   }
 }
 
@@ -2295,6 +2332,9 @@ CQChartsExprModel::
 replaceExprColumns(const QString &expr, int row, int column) const
 {
   QModelIndex ind = this->index(row, column, QModelIndex());
+
+  if (! ind.isValid())
+    ind = this->index(row, 0, QModelIndex());
 
   return CQChartsModelUtil::replaceModelExprVars(expr, this, ind, nr_, nc_);
 }

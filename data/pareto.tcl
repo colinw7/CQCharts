@@ -23,7 +23,7 @@ set_charts_property -view $view -name title.string -value "Popular Fast Food Cha
 
 set_charts_property -plot $plot1 -name "yaxis.grid.lines" -value MAJOR
 
-set plot2 [create_charts_plot -model $model -type xy -columns {{x ($x)} {y 3}} -ymin 0]
+set plot2 [create_charts_plot -model $model -type xy -columns {{x ($x)} {y 3}} -ymin 0 -ymax 100]
 
 set_charts_data -plot $plot2 -name updates_enabled -value 0
 

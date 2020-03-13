@@ -1058,3 +1058,8 @@
  + handle visible in overlay, x1x2, y1y2 plots
  + add tcl model
  + Add variant compare
+# 03/13/20202
+ + add axis annotation
+ + improve column expression support and add name
+ + add lighter/darker support in color
+ + improve color editor

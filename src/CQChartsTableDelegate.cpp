@@ -192,7 +192,9 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       if (drawColor.isValid()) {
         if (drawColor.isDirect()) {
           // blend fixed color with background color using normalized value
-          QColor bg1 = charts()->interpColor(drawColor, 0, 1);
+          CQChartsUtil::ColorInd colorInd;
+
+          QColor bg1 = charts()->interpColor(drawColor, colorInd);
           QColor bg2 = option.palette.color(QPalette::Window);
 
           bg = CQChartsUtil::blendColors(bg1, bg2, norm);
@@ -210,7 +212,9 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
           }
           else {
             // use interpolated color directly
-            bg = charts()->interpColor(drawColor, norm);
+            CQChartsUtil::ColorInd colorInd(norm);
+
+            bg = charts()->interpColor(drawColor, colorInd);
           }
         }
       }
@@ -252,8 +256,11 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       QColor bg1(160, 160, 160);
       QColor bg2 = option.palette.color(QPalette::Window);
 
-      if (drawColor.isValid())
-        bg1 = charts()->interpColor(drawColor, 0, 1);
+      if (drawColor.isValid()) {
+        CQChartsUtil::ColorInd colorInd;
+
+        bg1 = charts()->interpColor(drawColor, colorInd);
+      }
 
       QRectF lrect(option.rect.left()     , option.rect.top(), lw, option.rect.height());
       QRectF rrect(option.rect.left() + lw, option.rect.top(), rw, option.rect.height());

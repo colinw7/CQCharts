@@ -1,6 +1,8 @@
 #include <CQChartsFillUnder.h>
 #include <CQChartsUtil.h>
+
 #include <CQPropertyView.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsFillUnderSide, toString, fromString)
 
@@ -103,7 +105,10 @@ decodeString(const QString &str, Type &xtype, double &xpos, Type &ytype, double 
   xtype = Type::NONE;
   ytype = Type::NONE;
 
-  QStringList strs = str.split(" ", QString::KeepEmptyParts);
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
 
   if (! strs.length())
     return true;

@@ -33,8 +33,9 @@ class CQChartsInterpolator {
     obj_(obj) {
   }
 
-  QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double r) const;
+//QColor interpColor(const CQChartsColor &c, int i, int n) const;
+//QColor interpColor(const CQChartsColor &c, double r) const;
+
   QColor interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const;
 
  private:

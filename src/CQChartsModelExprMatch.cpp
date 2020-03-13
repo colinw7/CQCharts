@@ -18,21 +18,25 @@
 class CQChartsModelExprTcl : public CQTcl {
  public:
   CQChartsModelExprTcl(CQChartsModelExprMatch *match) :
-   match_(match), row_(-1) {
+   match_(match) {
   }
 
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
+  int column() const { return column_; }
+  void setColumn(int i) { column_ = i; }
+
   void handleTrace(const char *name, int flags) override {
     if (flags & TCL_TRACE_READS) {
-      match_->setVar(name, row());
+      match_->setVar(name, row(), column());
     }
   }
 
  private:
-  CQChartsModelExprMatch *match_ { nullptr };
-  int                     row_   { -1 };
+  CQChartsModelExprMatch *match_  { nullptr };
+  int                     row_    { -1 };
+  int                     column_ { -1 };
 };
 
 //------
@@ -172,6 +176,10 @@ initMatch(const QString &expr)
   nr_ = (model_ ? model_->rowCount   () : 0);
   nc_ = (model_ ? model_->columnCount() : 0);
 
+  lastValue_ = QVariant();
+
+  //---
+
   matchExpr_ = replaceExprColumns(expr, QModelIndex());
 }
 
@@ -199,6 +207,13 @@ initColumns()
 
     qtcl_->traceVar(name);
   }
+
+  qtcl_->traceVar("row"   );
+  qtcl_->traceVar("column");
+  qtcl_->traceVar("col"   );
+  qtcl_->traceVar("pi"    );
+  qtcl_->traceVar("NaN"   );
+  qtcl_->traceVar("_"     );
 }
 
 bool
@@ -505,41 +520,74 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
   currentRow_ = ind.row   ();
   currentCol_ = ind.column();
 
-  qtcl_->createVar("row"   , currentRow_);
-  qtcl_->createVar("column", currentCol_);
+  qtcl_->setRow   (currentRow_);
+  qtcl_->setColumn(currentCol_);
+
+  bool showError = isDebug();
 
   //---
 
   QString expr1 = (replace ? replaceExprColumns(expr, ind) : expr);
 
-  qtcl_->setRow(ind.row());
-
-  int rc = qtcl_->evalExpr(expr1);
+  int rc = qtcl_->evalExpr(expr1, showError);
 
   if (rc != TCL_OK) {
-    std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+    if (qtcl_->isDomainError(rc)) {
+      double x = CMathUtil::getNaN();
+
+      value      = QVariant(x);
+      lastValue_ = value;
+
+      return true;
+    }
+
+    if (isDebug())
+      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+
     return false;
   }
 
-  return getTclResult(value);
+  if (! getTclResult(value))
+    return false;
+
+  lastValue_ = value;
+
+  return true;
 }
 
 void
 CQChartsModelExprMatch::
-setVar(const QString &name, int row)
+setVar(const QString &name, int row, int column)
 {
   auto p = nameColumns_.find(name);
 
-  if (p == nameColumns_.end())
-    return;
+  if      (p != nameColumns_.end()) {
+    int col = (*p).second;
 
-  int col = (*p).second;
+    // get model value
+    QVariant var = getCmdData(row, col);
 
-  // get model value
-  QVariant var = getCmdData(row, col);
-
-  // store value in column variable
-  qtcl_->createVar(name, var);
+    // store value in column variable
+    qtcl_->createVar(name, var);
+  }
+  else if (name == "row") {
+    qtcl_->createVar(name, row);
+  }
+  else if (name == "column" || name == "col") {
+    qtcl_->createVar(name, column);
+  }
+  else if (name == "pi") {
+    qtcl_->createVar(name, QVariant(M_PI));
+  }
+  else if (name == "NaN") {
+    qtcl_->createVar(name, QVariant(CMathUtil::getNaN()));
+  }
+  else if (name == "_") {
+    if (lastValue_.isValid())
+      qtcl_->createVar(name, QVariant(lastValue_));
+    else
+      qtcl_->createVar(name, QVariant(0.0));
+  }
 }
 
 void

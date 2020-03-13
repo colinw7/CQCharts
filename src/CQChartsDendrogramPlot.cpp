@@ -485,7 +485,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     CQChartsPenBrush lPenBrush;
 
-    setEdgeLineDataPen(lPenBrush.pen, 0, 1);
+    setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
 
     setBrush(lPenBrush.brush, false);
 

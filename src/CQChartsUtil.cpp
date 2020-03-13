@@ -1,11 +1,11 @@
 #include <CQChartsUtil.h>
-#include <CQChartsEval.h>
 #include <CQChartsVariant.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
 #include <CQCharts.h>
 
+#include <CQTclUtil.h>
 #include <CQUtil.h>
 #include <CQStrUtil.h>
 #include <CQStrParse.h>
@@ -63,7 +63,10 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
 
   columns.clear();
 
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
 
   for (int i = 0; i < strs.size(); ++i) {
     bool ok1;

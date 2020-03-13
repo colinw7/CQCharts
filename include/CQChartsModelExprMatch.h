@@ -37,7 +37,7 @@ class CQChartsModelExprMatch {
 
   //---
 
-  int debug() const { return debug_; }
+  int isDebug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
 
   //---
@@ -58,7 +58,7 @@ class CQChartsModelExprMatch {
   bool checkColumn(int col) const;
   bool checkIndex(int row, int col) const;
 
-  void setVar(const QString &name, int row);
+  void setVar(const QString &name, int row, int column);
 
  private:
   using TclCmds = std::vector<CQChartsModelExprMatchFn *>;
@@ -118,15 +118,16 @@ class CQChartsModelExprMatch {
   QAbstractItemModel*   model_      { nullptr };
   CQChartsModelExprTcl* qtcl_       { nullptr };
   TclCmds               tclCmds_;
+  bool                  detailsFns_ { false };
   bool                  debug_      { false };
-  ColumnNames           columnNames_;
-  NameColumns           nameColumns_;
-  mutable int           currentRow_ { 0 };
-  mutable int           currentCol_ { 0 };
   QString               matchExpr_;
   int                   nr_         { 0 };
   int                   nc_         { 0 };
-  bool                  detailsFns_ { false };
+  mutable int           currentRow_ { 0 };
+  mutable int           currentCol_ { 0 };
+  ColumnNames           columnNames_;
+  NameColumns           nameColumns_;
+  mutable QVariant      lastValue_;
 };
 
 #endif

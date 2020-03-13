@@ -508,98 +508,108 @@ QColor
 CQCharts::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
-  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
+  return interpColorValueI(c, /*ig*/0, /*ng*/1, ind.value(), ind.c);
 }
 
 QColor
 CQCharts::
-interpColor(const CQChartsColor &c, int i, int n) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpColorValue(c, /*ig*/i, /*ng*/n, r);
-}
-
-QColor
-CQCharts::
-interpColor(const CQChartsColor &c, double value) const
-{
-  return interpColorValue(c, /*ig*/0, /*ng*/1, value);
-}
-
-QColor
-CQCharts::
-interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
+interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QColor &ic) const
 {
   if (! c.isValid())
     return QColor();
 
   if      (c.type() == CQChartsColor::Type::COLOR)
     return c.color();
-  else if (c.type() == CQChartsColor::Type::PALETTE) {
-    if      (c.hasPaletteIndex())
-      return interpIndPaletteColorValue(c.ind(), ig, ng, value, c.isScale());
+  else if (c.type() == CQChartsColor::Type::PALETTE ||
+           c.type() == CQChartsColor::Type::PALETTE_VALUE) {
+    if      (c.hasPaletteIndex()) {
+      if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+        return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
+      else
+        return interpIndPaletteColorValue(c.ind(), ig, ng, value, c.isScale());
+    }
     else if (c.hasPaletteName()) {
       QString name;
 
-      if (c.getPaletteName(name))
-        return interpNamePaletteColorValue(name, ig, ng, value, c.isScale());
+      if (c.getPaletteName(name)) {
+        if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+          return interpNamePaletteColor(name, c.value(), c.isScale());
+        else
+          return interpNamePaletteColorValue(name, ig, ng, value, c.isScale());
+      }
+      else {
+        if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+          return interpPaletteColor(ColorInd(c.value()), c.isScale());
+        else
+          return interpPaletteColorValue(ig, ng, value, c.isScale());
+      }
+    }
+    else {
+      if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
+        return interpPaletteColor(ColorInd(c.value()), c.isScale());
       else
         return interpPaletteColorValue(ig, ng, value, c.isScale());
     }
-    else
-      return interpPaletteColorValue(ig, ng, value, c.isScale());
   }
-  else if (c.type() == CQChartsColor::Type::PALETTE_VALUE) {
-    if      (c.hasPaletteIndex())
-      return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
-    else if (c.hasPaletteName()) {
-      QString name;
-
-      if (c.getPaletteName(name))
-        return interpNamePaletteColor(name, c.value(), c.isScale());
+  else if (c.type() == CQChartsColor::Type::INDEXED ||
+           c.type() == CQChartsColor::Type::INDEXED_VALUE) {
+    if      (c.hasPaletteIndex()) {
+      if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+        return indexIndPaletteColor(c.ind(), int(c.value()), ng);
       else
-        return interpPaletteColor(c.value(), c.isScale());
+        return indexIndPaletteColor(c.ind(), ig, ng);
     }
-    else
-      return interpPaletteColor(c.value(), c.isScale());
-  }
-  else if (c.type() == CQChartsColor::Type::INDEXED) {
-    if      (c.hasPaletteIndex())
-      return indexIndPaletteColor(c.ind(), ig, ng);
     else if (c.hasPaletteName()) {
       QString name;
 
-      if (c.getPaletteName(name))
-        return indexNamePaletteColor(name, ig, ng);
+      if (c.getPaletteName(name)) {
+        if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+          return indexNamePaletteColor(name, int(c.value()), ng);
+        else
+          return indexNamePaletteColor(name, ig, ng);
+      }
+      else {
+        if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+          return indexPaletteColor(int(c.value()), ng);
+        else
+          return indexPaletteColor(ig, ng);
+      }
+    }
+    else {
+      if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
+        return indexPaletteColor(int(c.value()), ng);
       else
         return indexPaletteColor(ig, ng);
     }
-    else
-      return indexPaletteColor(ig, ng);
   }
-  else if (c.type() == CQChartsColor::Type::INDEXED_VALUE) {
-    if      (c.hasPaletteIndex())
-      return indexIndPaletteColor(c.ind(), int(c.value()), ng);
-    else if (c.hasPaletteName()) {
-      QString name;
-
-      if (c.getPaletteName(name))
-        return indexNamePaletteColor(name, int(c.value()), ng);
-      else
-        return indexPaletteColor(int(c.value()), ng);
-    }
+  else if (c.type() == CQChartsColor::Type::INTERFACE ||
+           c.type() == CQChartsColor::Type::INTERFACE_VALUE) {
+    if (c.type() == CQChartsColor::Type::INTERFACE_VALUE)
+      return interpThemeColor(ColorInd(c.value()));
     else
-      return indexPaletteColor(int(c.value()), ng);
+      return interpThemeColor(ColorInd(value));
   }
-  else if (c.type() == CQChartsColor::Type::INTERFACE)
-    return interpThemeColor(value);
-  else if (c.type() == CQChartsColor::Type::INTERFACE_VALUE)
-    return interpThemeColor(c.value());
-  else if (c.type() == CQChartsColor::Type::MODEL)
-    return interpModelColor(c, value);
-  else if (c.type() == CQChartsColor::Type::MODEL_VALUE)
-    return interpModelColor(c, c.value());
+  else if (c.type() == CQChartsColor::Type::MODEL ||
+           c.type() == CQChartsColor::Type::MODEL_VALUE) {
+    if (c.type() == CQChartsColor::Type::MODEL_VALUE)
+      return interpModelColor(c, c.value());
+    else
+      return interpModelColor(c, value);
+  }
+  else if (c.type() == CQChartsColor::Type::LIGHTER ||
+           c.type() == CQChartsColor::Type::LIGHTER_VALUE) {
+    if (c.type() == CQChartsColor::Type::LIGHTER_VALUE)
+      return ic.lighter(150 + c.value());
+    else
+      return ic.lighter();
+  }
+  else if (c.type() == CQChartsColor::Type::DARKER ||
+           c.type() == CQChartsColor::Type::DARKER_VALUE) {
+    if (c.type() == CQChartsColor::Type::DARKER_VALUE)
+      return ic.darker(150 + c.value());
+    else
+      return ic.darker();
+  }
 
   return QColor(0, 0, 0);
 }
@@ -619,23 +629,7 @@ QColor
 CQCharts::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  return (ind.isInt ? interpPaletteColor(ind.i, ind.n, scale) : interpPaletteColor(ind.r, scale));
-}
-
-QColor
-CQCharts::
-interpPaletteColor(int i, int n, bool scale) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpPaletteColor(r, scale);
-}
-
-QColor
-CQCharts::
-interpPaletteColor(double r, bool scale) const
-{
-  return interpIndPaletteColor(/*palette_ind*/-1, r, scale);
+  return interpIndPaletteColor(/*palette_ind*/-1, ind.value(), scale);
 }
 
 QColor
@@ -665,23 +659,7 @@ QColor
 CQCharts::
 interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
 {
-  return interpGroupPaletteColor(ig.i, ig.n, iv.value(), scale);
-}
-
-QColor
-CQCharts::
-interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpGroupPaletteColor(ig, ng, r, scale);
-}
-
-QColor
-CQCharts::
-interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
-{
-  return themeGroupPalette(ig, ng)->getColor(r, scale);
+  return themeGroupPalette(ig.i, ig.n)->getColor(iv.value(), scale);
 }
 
 QColor
@@ -771,23 +749,7 @@ QColor
 CQCharts::
 interpThemeColor(const ColorInd &ind) const
 {
-  return (ind.isInt ? interpThemeColor(ind.i, ind.n) : interpThemeColor(ind.r));
-}
-
-QColor
-CQCharts::
-interpThemeColor(int i, int n) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return this->interfaceTheme()->interpColor(r, /*scale*/true);
-}
-
-QColor
-CQCharts::
-interpThemeColor(double r) const
-{
-  return this->interfaceTheme()->interpColor(r, /*scale*/true);
+  return this->interfaceTheme()->interpColor(ind.value(), /*scale*/true);
 }
 
 CQColorsPalette *

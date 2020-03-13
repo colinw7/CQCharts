@@ -8,6 +8,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQPixmapCache.h>
+#include <CQTclUtil.h>
 
 #include <QToolButton>
 #include <QHBoxLayout>
@@ -146,10 +147,12 @@ bool
 CQChartsColumnsLineEdit::
 textToColumns(const QString &str, CQChartsColumns &columns) const
 {
-  bool ok = true;
+  QStringList strs;
 
-  // TODO: better split to handle spaces in column names/expressions
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  bool ok = true;
 
   for (int i = 0; i < strs.size(); ++i) {
     const QString &str = strs[i];

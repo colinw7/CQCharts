@@ -27,21 +27,7 @@ colorStr() const
 
   QStringList strs;
 
-  if      (type() == Type::PALETTE) {
-    if      (hasPaletteIndex())
-      strs << QString("palette#%1").arg(ind());
-    else if (hasPaletteName()) {
-      QString name;
-
-      if (getPaletteName(name))
-        strs << QString("palette#%1").arg(name);
-      else
-        strs << "palette";
-    }
-    else
-      strs << "palette";
-  }
-  else if (type() == Type::PALETTE_VALUE) {
+  if      (type() == Type::PALETTE || type() == Type::PALETTE_VALUE) {
     if      (hasPaletteIndex())
       strs << QString("palette#%1").arg(ind());
     else if (hasPaletteName()) {
@@ -55,12 +41,14 @@ colorStr() const
     else
       strs << "palette";
 
-    strs << QString::number(value());
+    if (type() == Type::PALETTE_VALUE) {
+      strs << QString::number(value());
 
-    if (isScale())
-      strs << "s";
+      if (isScale())
+        strs << "s";
+    }
   }
-  else if (type() == Type::INDEXED) {
+  else if (type() == Type::INDEXED || type() == Type::INDEXED_VALUE) {
     if      (hasPaletteIndex())
       strs << QString("ind_palette#%1").arg(ind());
     else if (hasPaletteName()) {
@@ -73,46 +61,41 @@ colorStr() const
     }
     else
       strs << "ind_palette";
-  }
-  else if (type() == Type::INDEXED_VALUE) {
-    if      (hasPaletteIndex())
-      strs << QString("ind_palette#%1").arg(ind());
-    else if (hasPaletteName()) {
-      QString name;
 
-      if (getPaletteName(name))
-        strs << QString("ind_palette#%1").arg(name);
-      else
-        strs << "ind_palette";
+    if (type() == Type::INDEXED_VALUE) {
+      strs << QString::number(value());
+
+      if (isScale())
+        strs << "s";
     }
-    else
-      strs << "ind_palette";
-
-    strs << QString::number(value());
-
-    if (isScale())
-      strs << "s";
   }
-  else if (type() == Type::INTERFACE) {
+  else if (type() == Type::INTERFACE || type() == Type::INTERFACE_VALUE) {
     strs << "interface";
+
+    if (type() == Type::INTERFACE_VALUE)
+      strs << QString::number(value());
   }
-  else if (type() == Type::INTERFACE_VALUE) {
-    strs << "interface" << QString::number(value());
-  }
-  else if (type() == Type::MODEL) {
+  else if (type() == Type::MODEL || type() == Type::MODEL_VALUE) {
     int r, g, b;
 
     decodeModelRGB(ind(), r, g, b);
 
     strs << "model" << QString::number(r) << QString::number(g) << QString::number(b);
+
+    if (type() == Type::MODEL_VALUE)
+      strs << QString::number(value());
   }
-  else if (type() == Type::MODEL_VALUE) {
-    int r, g, b;
+  else if (type() == Type::LIGHTER || type() == Type::LIGHTER_VALUE) {
+    strs << "lighter";
 
-    decodeModelRGB(ind(), r, g, b);
+    if (type() == Type::LIGHTER_VALUE)
+      strs << QString::number(value());
+  }
+  else if (type() == Type::DARKER || type() == Type::DARKER_VALUE) {
+    strs << "darker";
 
-    strs << "model" << QString::number(r) << QString::number(g) << QString::number(b) <<
-            QString::number(value());
+    if (type() == Type::DARKER_VALUE)
+      strs << QString::number(value());
   }
   else {
     strs << color().name();
@@ -280,6 +263,30 @@ setColorStr(const QString &str)
     }
     else
       setIndValue(Type::MODEL, rgb, 0.0);
+  }
+  else if (strs[0] == "lighter") {
+    if (strs.length() > 1) {
+      bool ok;
+
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
+
+      setValue(Type::LIGHTER_VALUE, value);
+    }
+    else
+      setValue(Type::LIGHTER, 0.0);
+  }
+  else if (strs[0] == "darker") {
+    if (strs.length() > 1) {
+      bool ok;
+
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
+
+      setValue(Type::DARKER_VALUE, value);
+    }
+    else
+      setValue(Type::DARKER, 0.0);
   }
   else {
     QColor c(strs[0]);

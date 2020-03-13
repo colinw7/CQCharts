@@ -34,7 +34,11 @@ class CQChartsColor {
     INTERFACE_VALUE,
     MODEL,
     MODEL_VALUE,
-    COLOR
+    COLOR,
+    LIGHTER,
+    LIGHTER_VALUE,
+    DARKER,
+    DARKER_VALUE
   };
 
  public:

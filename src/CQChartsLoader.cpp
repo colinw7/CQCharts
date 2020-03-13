@@ -487,9 +487,15 @@ createTclModel(const CQChartsInputData &inputData)
   if (inputData.firstColumnHeader) ++ic;
   if (inputData.firstLineHeader  ) ++ir;
 
+  int nc1 = nc - ic;
+  int nr1 = nr - ir;
+
+  if (nc1 < 0 || nr1 < 0)
+    return nullptr;
+
   //---
 
-  CQChartsTclModel *tclModel = new CQChartsTclModel(nc, nr);
+  CQChartsTclModel *tclModel = new CQChartsTclModel(nc1, nr1);
 
   CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, tclModel);
 

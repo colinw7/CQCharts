@@ -23,6 +23,52 @@ class CQTcl;
 /*!
  * \brief Expression model
  * \ingroup Charts
+ *
+ * Evaluates expression in a model.
+ *
+ * Supports functions:
+ *   column    : get column value for current row
+ *   row       : get row value for current column
+ *   cell      : get cell (row and column) value
+ *   setColumn : set column value for current row (if editable)
+ *   setRow    : set row value for current column (if editable)
+ *   setCell   : set cell (row and column) value (if editable)
+ *
+ *   // get/set header data
+ *   header    : get header value for current column
+ *   setHeader : set header value for current column
+ *
+ *   // get/set column type
+ *   type     : get type for current column
+ *   setType  : set type for current column
+ *
+ *   // map values
+ *   map     : map row value to min/max
+ *   remap   : remap column value range to min/max
+ *   bucket  : bucket value (for row/column)
+ *   norm    : normalized column value
+ *   scale   : scaled column value
+ *
+ *   // random
+ *   rand  : random value
+ *   rnorm : random normalized value
+ *
+ *   // string
+ *   concat : concat values
+ *   match  : match string to regexp
+ *
+ *   // color
+ *   color : string to color
+ *
+ *   // time
+ *   timeval : time value from column value
+ *
+ *  Supports variables:
+ *    row        : current row
+ *    column/col : current column
+ *    PI         : PI
+ *    NaN        : Not A Number real
+ *    _          : last value (real)
  */
 class CQChartsExprModel : public QAbstractProxyModel {
   Q_OBJECT
@@ -37,8 +83,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
     ASSIGN
   };
 
-  using Values = std::vector<QVariant>;
-  using Rows   = std::vector<int>;
+  using Values     = std::vector<QVariant>;
+  using Rows       = std::vector<int>;
+  using NameValues = std::map<QString,QVariant>;
 
  public:
   CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model);
@@ -84,7 +131,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool assignExtraColumn(int column, const QString &expr);
   bool assignExtraColumn(const QString &header, int column, const QString &expr);
 
-  bool calcColumn(int column, const QString &expr, Values &values) const;
+  bool calcColumn(int column, const QString &expr, Values &values,
+                  const NameValues &varNameValues=NameValues()) const;
 
   bool queryColumn(int column, const QString &expr, Rows &rows) const;
 
@@ -147,7 +195,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
   using VariantMap = std::map<int,QVariant>;
-  using NameValues = std::map<QString,QVariant>;
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
@@ -288,6 +335,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   ColumnDatas          columnDatas_;            //!< cached column datas
   ColumnNames          columnNames_;            //!< cached column names
   NameColumns          nameColumns_;            //!< cached named columns
+  mutable QVariant     lastValue_;              //!< last evaluated value
   mutable std::mutex   mutex_;                  //!< update mutex
 };
 

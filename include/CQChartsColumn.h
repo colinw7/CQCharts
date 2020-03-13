@@ -104,6 +104,13 @@ class CQChartsColumn {
 
   //--
 
+  bool hasName() const { return name_ && strlen(name_); }
+
+  QString name() const { return (hasName() ? QString(name_) : QString()); }
+  void setName(const QString &name);
+
+  //---
+
   bool setValue(const QString &str);
 
   //---
@@ -148,13 +155,15 @@ class CQChartsColumn {
   static QString columnsToString(const Columns &columns);
 
  private:
-  bool decodeString(const QString &str, Type &type, int &column, int &role, QString &expr);
+  bool decodeString(const QString &str, Type &type, int &column, int &role,
+                    QString &expr, QString &name);
 
  private:
   Type  type_   { Type::NONE };
   int   column_ { -1 };
   int   role_   { -1 };
   char* expr_   { nullptr };
+  char* name_   { nullptr };
 };
 
 //---

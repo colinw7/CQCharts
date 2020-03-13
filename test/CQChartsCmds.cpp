@@ -153,6 +153,8 @@ addCommands()
     // annotations
     addCommand("create_charts_arrow_annotation"    ,
                new CQChartsCreateChartsArrowAnnotationCmd    (this));
+    addCommand("create_charts_axis_annotation"     ,
+               new CQChartsCreateChartsAxisAnnotationCmd     (this));
     addCommand("create_charts_ellipse_annotation"  ,
                new CQChartsCreateChartsEllipseAnnotationCmd  (this));
     addCommand("create_charts_image_annotation"    ,
@@ -417,6 +419,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "type data for add/modify");
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
+  argv.addCmdArg("-vars"  , CQChartsCmdArg::Type::String, "variables for expression");
 
   argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
   argv.addCmdArg("-debug", CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
@@ -473,6 +476,34 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   bool debug = argv.getParseBool("debug");
 
   AutoExprDebug autoExprDebug(exprModel, debug);
+
+  //---
+
+  CQChartsExprModel::NameValues varNameValues;
+
+  if (! argv.hasParseArg("vars")) {
+    if (! exprModel)
+      return errorMsg("Vars not supported for model");
+
+    QString vars = argv.getParseStr("vars");
+
+    QStringList varsStrs;
+
+    if (! CQTcl::splitList(vars, varsStrs))
+      varsStrs = QStringList();
+
+    for (auto &varStr : varsStrs) {
+      QStringList nameValueStrs;
+
+      if (! CQTcl::splitList(varStr, nameValueStrs))
+        nameValueStrs = QStringList();
+
+      if (nameValueStrs.length() != 2)
+        return errorMsg(QString("Invalid variable name/value '%1'").arg(varStr));
+
+      varNameValues[nameValueStrs[0]] = nameValueStrs[1];
+    }
+  }
 
   //---
 
@@ -567,7 +598,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
     CQChartsExprModel::Values values;
 
-    exprModel->calcColumn(column.column(), expr, values);
+    exprModel->calcColumn(column.column(), expr, values, varNameValues);
 
     QVariantList vars;
 
@@ -5905,6 +5936,104 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   annotation->setArrowData(arrowData);
 
   annotation->arrow()->setShapeData(shapeData);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsAxisAnnotationCmd");
+
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-start", CQChartsCmdArg::Type::Real, "start");
+  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Real, "end");
+
+  argv.addCmdArg("-position", CQChartsCmdArg::Type::Real, "position");
+
+  argv.addCmdArg("-direction", CQChartsCmdArg::Type::String, "Direction");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsPlot *plot = nullptr;
+
+  if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  double start = argv.getParseReal("start");
+  double end   = argv.getParseReal("end"  );
+
+  double position = argv.getParseReal("position", 0.0);
+
+  QString directionStr = argv.getParseStr("direction", "horizontal").toLower();
+
+  Qt::Orientation direction = Qt::Horizontal;
+
+  if      (directionStr == "h" || directionStr == "horiz" || directionStr == "horizontal")
+    direction = Qt::Horizontal;
+  else if (directionStr == "v" || directionStr == "vert"  || directionStr == "vertical"  )
+    direction = Qt::Vertical;
+
+  //---
+
+  if (start == end)
+    return errorMsg("Axis is zero length");
+
+  CQChartsAxisAnnotation *annotation = nullptr;
+
+  if (plot)
+    annotation = plot->addAxisAnnotation(direction, start, end);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setPosition(position);
 
   //---
 

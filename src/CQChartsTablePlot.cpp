@@ -15,6 +15,7 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CQIntegerSpin.h>
+#include <CQTclUtil.h>
 #include <CMathRound.h>
 
 #include <QMenu>
@@ -331,7 +332,10 @@ void
 CQChartsTablePlot::
 setRowNumsStr(const QString &str)
 {
-  const QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return;
 
   RowNums rowNums;
 
