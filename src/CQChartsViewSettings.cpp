@@ -49,6 +49,7 @@
 #include <QPainter>
 #include <QFileDialog>
 #include <QDir>
+#include <QTimer>
 
 #include <svg/info_svg.h>
 #include <fstream>
@@ -792,12 +793,20 @@ CQChartsViewSettings(CQChartsWindow *window) :
   setAutoFillBackground(true);
 
   addWidgets();
+
+  //--
+
+  updateErrorsTimer_ = new QTimer;
+
+  connect(updateErrorsTimer_, SIGNAL(timeout()), this, SLOT(updateErrors()));
 }
 
 CQChartsViewSettings::
 ~CQChartsViewSettings()
 {
 //delete propertiesWidgets_.plotTip;
+
+  delete updateErrorsTimer_;
 }
 
 void
@@ -1681,7 +1690,14 @@ initErrorsFrame(QFrame *errorsFrame)
 
   //---
 
-  connect(view, SIGNAL(updateErrors()), this, SLOT(updateErrors()));
+  connect(view, SIGNAL(updateErrors()), this, SLOT(updateErrorsSlot()));
+}
+
+void
+CQChartsViewSettings::
+updateErrorsSlot()
+{
+  updateErrorsTimer_->start(250);
 }
 
 void

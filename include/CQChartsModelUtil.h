@@ -284,6 +284,31 @@ bool exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
 
 //------
 
+class CQChartsFilterModel;
+
+namespace CQChartsModelUtil {
+
+enum class FlattenOp {
+  NONE,
+  SUM,
+  MEAN
+};
+
+struct FlattenData {
+  using ColumnOp = std::map<CQChartsColumn, FlattenOp>;
+
+  CQChartsColumn groupColumn;
+  FlattenOp      defOp { FlattenOp::NONE };
+  ColumnOp       columnOp;
+};
+
+CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
+                                  const FlattenData &flattenData);
+
+}
+
+//------
+
 namespace CQChartsModelUtil {
 
 const QStringList &roleNames();

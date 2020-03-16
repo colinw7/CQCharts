@@ -16,6 +16,7 @@ class CQFoldedModel;
 #endif
 class CQSummaryModel;
 class CQPropertyViewModel;
+class CQChartsColumn;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -206,7 +207,17 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  QAbstractItemModel *copy();
+  struct CopyData {
+    QString filter;
+  };
+
+  QAbstractItemModel *copy(const CopyData &copyData);
+
+  QAbstractItemModel *join(CQChartsModelData *joinModel, const CQChartsColumn &joinColumn);
+
+  void copyHeaderRoles(QAbstractItemModel *toModel) const;
+
+  void copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const;
 
  private:
   void updatePropertyModel();

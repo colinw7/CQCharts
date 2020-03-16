@@ -3,7 +3,10 @@
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsColumnEval.h>
+#include <CQChartsExprTcl.h>
 #include <CQChartsVariant.h>
+#include <CQChartsValueSet.h>
+#include <CQChartsFilterModel.h>
 #include <CQCharts.h>
 
 #include <CQCsvModel.h>
@@ -898,6 +901,9 @@ QVariant modelHeaderValueI(const QAbstractItemModel *model, const CQChartsColumn
   if (! column.isValid())
     return QVariant();
 
+  if (column.hasName())
+    return column.name();
+
   if (column.type() != CQChartsColumn::Type::DATA &&
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return QVariant();
@@ -1032,6 +1038,8 @@ QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, boo
 QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const CQChartsColumn &column, const QModelIndex &parent,
                     int role, bool &ok) {
+  static bool showError = false;
+
   if (! column.isValid()) {
     ok = false;
 
@@ -1085,12 +1093,21 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
   else if (column.type() == CQChartsColumn::Type::EXPR) {
     QVariant var;
 
-    auto *eval = CQChartsColumnEvalInst;
+    CQChartsExprTcl *qtcl = const_cast<CQChartsExprTcl *>(charts->currentExpr());
 
-    eval->setModel(model);
-    eval->setRow  (row);
+    if (! qtcl) {
+      auto *eval = CQChartsColumnEvalInst;
 
-    ok = eval->evaluateExpression(column.expr(), var);
+      eval->setModel(model);
+      eval->setRow  (row);
+
+      ok = eval->evaluateExpression(column.expr(), var);
+    }
+    else {
+      qtcl->setRow(row);
+
+      ok = qtcl->evaluateExpression(column.expr(), var, showError);
+    }
 
     return var;
   }
@@ -1870,6 +1887,243 @@ exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
   }
 
   return true;
+}
+
+}
+
+//------
+
+namespace CQChartsModelUtil {
+
+CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
+                                  const FlattenData &flattenData) {
+  class FlattenVisitor : public CQChartsModelVisitor {
+   public:
+    FlattenVisitor(CQCharts *charts, const CQChartsColumn &groupColumn) :
+     charts_(charts), groupColumn_(groupColumn) {
+    }
+
+    State hierVisit(const QAbstractItemModel *model, const VisitData &data) override {
+      ++hierRow_;
+
+      bool ok;
+
+      groupValue_[hierRow_] =
+        CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                      CQChartsColumn(0), data.parent, ok);
+
+      return State::OK;
+    }
+
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
+      int nc = numCols();
+
+      if (isHierarchical()) {
+        for (int c = 1; c < nc; ++c) {
+          bool ok;
+
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
+
+          if (ok)
+            rowColValueSet_[hierRow_][c - 1].addValue(var);
+        }
+      }
+      else if (groupColumn_.isValid()) {
+        bool ok;
+
+        auto groupVar =
+          CQChartsModelUtil::modelValue(charts_, model, data.row, groupColumn_, data.parent, ok);
+
+        auto p = valueGroup_.find(groupVar);
+
+        if (p == valueGroup_.end()) {
+          int group = valueGroup_.size();
+
+          p = valueGroup_.insert(p, ValueGroup::value_type(groupVar, group));
+
+          groupValue_[group] = groupVar;
+        }
+
+        int group = (*p).second;
+
+        for (int c = 0; c < nc; ++c) {
+          bool ok;
+
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
+
+          if (ok)
+            rowColValueSet_[group][c].addValue(var);
+        }
+      }
+      else {
+        for (int c = 0; c < nc; ++c) {
+          bool ok;
+
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
+
+          if (ok)
+            rowColValueSet_[0][c].addValue(var);
+        }
+      }
+
+      return State::OK;
+    }
+
+    int numHierColumns() const { return (isHierarchical() ? 1 : 0); }
+
+    int numFlatColumns() const { return numCols() - numHierColumns(); }
+
+    int numHierRows() const { return rowColValueSet_.size(); }
+
+    QVariant groupValue(int row) {
+      assert(row >= 0 && row <= int(groupValue_.size()));
+
+      return groupValue_[row];
+    }
+
+    double hierSum(int r, int c) const {
+      return valueSet(r, c).rsum();
+    }
+
+    double hierMean(int r, int c) const {
+      return valueSet(r, c).rmean();
+    }
+
+    QVariant uniqueValue(int r, int c) const {
+      return valueSet(r, c).uniqueValue();
+    }
+
+   private:
+    CQChartsValueSet &valueSet(int r, int c) const {
+      assert(r >= 0 && r <= int(rowColValueSet_.size()));
+      assert(c >= 0 && c <= numFlatColumns());
+
+      FlattenVisitor *th = const_cast<FlattenVisitor *>(this);
+
+      return th->rowColValueSet_[r][c];
+    }
+
+   private:
+    using ValueGroup     = std::map<QVariant,int>;
+    using GroupValue     = std::map<int,QVariant>;
+    using ColValueSet    = std::map<int,CQChartsValueSet>;
+    using RowColValueSet = std::map<QVariant,ColValueSet>;
+
+    CQCharts*      charts_ { nullptr };
+    CQChartsColumn groupColumn_;        // grouping column
+    int            hierRow_ { -1 };
+    ValueGroup     valueGroup_;         // map group column value to group number
+    GroupValue     groupValue_;         // map group number to group column value
+    RowColValueSet rowColValueSet_;     // values per hier row or group
+  };
+
+  FlattenVisitor flattenVisitor(charts, flattenData.groupColumn);
+
+  CQChartsModelVisit::exec(charts, model, flattenVisitor);
+
+  int nh = flattenVisitor.numHierColumns();
+  int nc = flattenVisitor.numFlatColumns();
+  int nr = flattenVisitor.numHierRows();
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  auto dataModel = new CQDataModel(nc + nh, nr);
+
+  auto filterModel = new CQChartsFilterModel(charts, dataModel);
+
+  //---
+
+  auto initModelColumn = [&](int c, bool isGroup) {
+    bool ok;
+
+    QString name = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal, name);
+
+    CQChartsColumn column(c);
+
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsModelUtil::columnValueType(charts, model, column, columnType,
+                                             columnBaseType, nameValues))
+      return;
+
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+    if (! typeData)
+      return;
+
+    if (isGroup || typeData->isNumeric()) {
+      if (! columnTypeMgr->setModelColumnType(dataModel, column, columnType, nameValues))
+        return;
+    }
+  };
+
+  //---
+
+  // set hierarchical column
+  if (flattenVisitor.isHierarchical()) {
+    initModelColumn(0, /*isGroup*/ true);
+  }
+
+  // set other columns and types
+  for (int c = 0; c < nc; ++c) {
+    bool isGroup = (flattenData.groupColumn.column() == c);
+
+    initModelColumn(c + nh, isGroup);
+  }
+
+  //--
+
+  for (int r = 0; r < nr; ++r) {
+    if (flattenVisitor.isHierarchical()) {
+      QVariant var = flattenVisitor.groupValue(r);
+
+      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
+    }
+
+    for (int c = 0; c < nc; ++c) {
+      QVariant v;
+
+      bool isGroup = (flattenData.groupColumn.column() == c);
+
+      if (! isGroup) {
+        CQChartsColumn column(c);
+
+        auto po = flattenData.columnOp.find(column);
+
+        if (po != flattenData.columnOp.end()) {
+          auto flattenOp = (*po).second;
+
+          double rv = 0.0;
+
+          if      (flattenOp == FlattenOp::SUM)
+            rv = flattenVisitor.hierSum(r, c);
+          else if (flattenOp == FlattenOp::MEAN)
+            rv = flattenVisitor.hierMean(r, c);
+
+          v = QVariant(rv);
+        }
+        else {
+          v = flattenVisitor.uniqueValue(r, c);
+        }
+      }
+      else {
+        v = flattenVisitor.groupValue(r);
+      }
+
+      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
+    }
+  }
+
+  return filterModel;
 }
 
 }

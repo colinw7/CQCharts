@@ -156,10 +156,21 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
   Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
 
+  // cell
+  Q_PROPERTY(ValueStyle valueStyle READ valueStyle WRITE setValueStyle)
+
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
+  Q_ENUMS(ValueStyle)
+
  public:
+  enum class ValueStyle {
+    NONE,
+    COLOR,
+    BALLOON
+  };
+
   using OptReal = boost::optional<double>;
 
   //! geometry data
@@ -194,16 +205,29 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
-  bool isColorByValue() const { return colorByValue_; }
+  bool isColorByValue() const { return valueStyle_ == ValueStyle::COLOR; }
   void setColorByValue(bool b);
 
   //---
 
+  // value range
   double minValue() const;
   void setMinValue(double r);
 
   double maxValue() const;
   void setMaxValue(double r);
+
+  //---
+
+  // value style
+  const ValueStyle &valueStyle() const { return valueStyle_; }
+
+  // balloon min/max size
+  double minBalloonSize() const { return minBalloonSize_; }
+  void setMinBalloonSize(double r) { minBalloonSize_ = r; }
+
+  double maxBalloonSize() const { return maxBalloonSize_; }
+  void setMaxBalloonSize(double r) { maxBalloonSize_ = r; }
 
   //---
 
@@ -231,6 +255,9 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
+ public slots:
+  void setValueStyle(const ValueStyle &style);
+
  private:
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
               CQChartsGeom::Range &dataRange) const;
@@ -240,19 +267,29 @@ class CQChartsGeometryPlot : public CQChartsPlot,
  private:
   using Geometries = std::vector<Geometry>;
 
-  CQChartsColumn        nameColumn_;                              //!< name column
-  CQChartsColumn        geometryColumn_;                          //!< geometry column
-  CQChartsColumn        valueColumn_;                             //!< value column
-  CQChartsColumn        styleColumn_;                             //!< style column
-  CQChartsDataLabel*    dataLabel_          { nullptr };          //!< data label style
-  bool                  colorByValue_       { true };             //!< color by value
-  OptReal               minValue_;                                //!< user min value
-  OptReal               maxValue_;                                //!< user max value
-  CQChartsGeom::RMinMax valueRange_;                              //!< data value range
-  ColumnType            geometryColumnType_ { ColumnType::NONE }; //!< geometry column type
-  ColumnType            colorColumnType_    { ColumnType::NONE }; //!< color column type
-  ColumnType            styleColumnType_    { ColumnType::NONE }; //!< style column type
-  Geometries            geometries_;                              //!< geometry shapes
+  // columns
+  CQChartsColumn nameColumn_;                              //!< name column
+  CQChartsColumn geometryColumn_;                          //!< geometry column
+  CQChartsColumn valueColumn_;                             //!< value column
+  CQChartsColumn styleColumn_;                             //!< style column
+  ColumnType     geometryColumnType_ { ColumnType::NONE }; //!< geometry column type
+  ColumnType     colorColumnType_    { ColumnType::NONE }; //!< color column type
+  ColumnType     styleColumnType_    { ColumnType::NONE }; //!< style column type
+
+  // labels
+  CQChartsDataLabel*  dataLabel_  { nullptr }; //!< data label style
+
+  // value
+  OptReal               minValue_;                         //!< user min value
+  OptReal               maxValue_;                         //!< user max value
+  CQChartsGeom::RMinMax valueRange_;                       //!< data value range
+  ValueStyle            valueStyle_ { ValueStyle::COLOR }; //!< value style
+
+  double minBalloonSize_ { 0.01 }; //!< min balloon size (fraction of height)
+  double maxBalloonSize_ { 0.25 }; //!< max balloon size (fraction of height)
+
+  // shapes
+  Geometries geometries_;  //!< geometry shapes
 };
 
 #endif

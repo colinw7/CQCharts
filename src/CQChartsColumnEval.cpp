@@ -1,33 +1,8 @@
 #include <CQChartsColumnEval.h>
+#include <CQChartsExprTcl.h>
 #include <CQChartsVariant.h>
 #include <CMathUtil.h>
 #include <QColor>
-
-//------
-
-class CQChartsColumnEvalTcl : public CQTcl {
- public:
-  CQChartsColumnEvalTcl(CQChartsColumnEval *eval) :
-   eval_(eval) {
-  }
-
-  int row() const { return row_; }
-  void setRow(int i) { row_ = i; }
-
-  int column() const { return column_; }
-  void setColumn(int i) { column_ = i; }
-
-  void handleTrace(const char *name, int flags) override {
-    if (flags & TCL_TRACE_READS) {
-      eval_->setVar(name, row(), column());
-    }
-  }
-
- private:
-  CQChartsColumnEval *eval_   { nullptr };
-  int                 row_    { -1 };
-  int                 column_ { -1 };
-};
 
 //------
 
@@ -46,18 +21,12 @@ instance()
 CQChartsColumnEval::
 CQChartsColumnEval()
 {
-  qtcl_ = new CQChartsColumnEvalTcl(this);
+  qtcl_ = new CQChartsExprTcl();
 
   addFunc("column", (CQTcl::ObjCmdProc) &CQChartsColumnEval::columnCmd);
   addFunc("color" , (CQTcl::ObjCmdProc) &CQChartsColumnEval::colorCmd );
 
-  qtcl_->traceVar("row"   );
-  qtcl_->traceVar("x"     );
-  qtcl_->traceVar("column");
-  qtcl_->traceVar("col"   );
-  qtcl_->traceVar("PI"    );
-  qtcl_->traceVar("NaN"   );
-  qtcl_->traceVar("_"     );
+  qtcl_->initVars();
 }
 
 CQChartsColumnEval::
@@ -95,76 +64,10 @@ evaluateExpression(const QString &expr, QVariant &value)
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  qtcl_->setRow(row());
+  qtcl_->setModel(const_cast<QAbstractItemModel *>(model()));
+  qtcl_->setRow  (row());
 
-  bool showError = isDebug();
-
-  int rc = qtcl()->evalExpr(expr, showError);
-
-  if (rc != TCL_OK) {
-    if (qtcl_->isDomainError(rc)) {
-      double x = CMathUtil::getNaN();
-
-      value      = QVariant(x);
-      lastValue_ = value;
-
-      return true;
-    }
-
-    if (isDebug())
-      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
-
-    return false;
-  }
-
-  if (! getTclResult(value))
-    return false;
-
-  lastValue_ = value;
-
-  return true;
-}
-
-bool
-CQChartsColumnEval::
-setTclResult(const QVariant &rc)
-{
-  qtcl_->setResult(rc);
-
-  return true;
-}
-
-bool
-CQChartsColumnEval::
-getTclResult(QVariant &var) const
-{
-  var = qtcl_->getResult();
-
-  return true;
-}
-
-void
-CQChartsColumnEval::
-setVar(const QString &name, int row, int column)
-{
-  if      (name == "row" || name == "x") {
-    qtcl_->createVar(name, row);
-  }
-  else if (name == "column" || name == "col") {
-    qtcl_->createVar(name, column);
-  }
-  else if (name == "pi") {
-    qtcl_->createVar(name, QVariant(M_PI));
-  }
-  else if (name == "NaN") {
-    qtcl_->createVar(name, QVariant(CMathUtil::getNaN()));
-  }
-  else if (name == "_") {
-    if (lastValue_.isValid())
-      qtcl_->createVar(name, QVariant(lastValue_));
-    else
-      qtcl_->createVar(name, QVariant(0.0));
-  }
+  return qtcl_->evaluateExpression(expr, value, isDebug());
 }
 
 int

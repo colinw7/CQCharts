@@ -282,21 +282,24 @@ data(const QModelIndex &index, int role) const
   if (! index.isValid())
     return QVariant();
 
+  int r = index.row();
+  int c = index.column();
+
   int nr = data_.size();
 
-  if (index.row() < 0 || index.row() >= nr)
+  if (r < 0 || r >= nr)
     return QVariant();
 
-  const Cells &cells = data_[index.row()];
+  const Cells &cells = data_[r];
 
   int nc = int(cells.size());
 
-  if (index.column() < 0 || index.column() >= nc)
+  if (c < 0 || c >= nc)
     return QVariant();
 
   //---
 
-  const ColumnData &columnData = getColumnData(index.column());
+  const ColumnData &columnData = getColumnData(c);
 
   //---
 
@@ -323,21 +326,21 @@ data(const QModelIndex &index, int role) const
   //---
 
   if      (role == Qt::DisplayRole) {
-    return cells[index.column()];
+    return cells[c];
   }
   else if (role == Qt::EditRole) {
-    CQBaseModelType type = columnType(index.column());
+    CQBaseModelType type = columnType(c);
 
     // check in cached values
     QVariant var;
 
-    if (getRowRoleValue(index.row(), int(CQBaseModelRole::CachedValue), var)) {
+    if (getRowRoleValue(r, int(CQBaseModelRole::CachedValue), var)) {
       if (type == CQBaseModelType::NONE || isSameType(var, type))
         return var;
     }
 
     // not cached so get raw value
-    var = cells[index.column()];
+    var = cells[c];
 
     // column has no type or already correct type then just return
     if (type == CQBaseModelType::NONE || isSameType(var, type))
@@ -349,7 +352,7 @@ data(const QModelIndex &index, int role) const
 
       std::unique_lock<std::mutex> lock(mutex_);
 
-      setRowRoleValue(index.row(), int(CQBaseModelRole::CachedValue), var1);
+      setRowRoleValue(r, int(CQBaseModelRole::CachedValue), var1);
 
       return var1;
     }
@@ -357,7 +360,7 @@ data(const QModelIndex &index, int role) const
     return var;
   }
   else if (role == Qt::ToolTipRole) {
-    return cells[index.column()];
+    return cells[c];
   }
   else if (role == int(CQBaseModelRole::RawValue) ||
            role == int(CQBaseModelRole::IntermediateValue) ||
@@ -365,11 +368,11 @@ data(const QModelIndex &index, int role) const
            role == int(CQBaseModelRole::OutputValue)) {
     QVariant var;
 
-    if (getRowRoleValue(index.row(), role, var))
+    if (getRowRoleValue(r, role, var))
       return var;
 
     if (role == int(CQBaseModelRole::RawValue)) {
-      return cells[index.column()];
+      return cells[c];
     }
 
     return QVariant();
@@ -377,7 +380,7 @@ data(const QModelIndex &index, int role) const
   else {
     QVariant var;
 
-    if (getRowRoleValue(index.row(), role, var))
+    if (getRowRoleValue(r, role, var))
       return var;
 
     return QVariant();
@@ -398,17 +401,22 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (! index.isValid())
     return false;
 
-  if (index.row() >= int(data_.size()))
+  int r = index.row();
+  int c = index.column();
+
+  int nr = data_.size();
+
+  if (r >= nr)
     return false;
 
-  Cells &cells = data_[index.row()];
+  Cells &cells = data_[r];
 
-  if (index.column() >= int(cells.size()))
+  if (c >= int(cells.size()))
     return false;
 
   //---
 
-  ColumnData &columnData = getColumnData(index.column());
+  ColumnData &columnData = getColumnData(c);
 
   //---
 
@@ -433,21 +441,21 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   //---
 
   if      (role == Qt::DisplayRole) {
-    //CQBaseModelType type = columnType(index.column());
+    //CQBaseModelType type = columnType(c);
 
-    cells[index.column()] = value;
+    cells[c] = value;
 
     emit dataChanged(index, index, QVector<int>(1, role));
   }
   else if (role == Qt::EditRole) {
-    //CQBaseModelType type = columnType(index.column());
+    //CQBaseModelType type = columnType(c);
 
-    cells[index.column()] = value;
+    cells[c] = value;
 
-    clearRowRoleValue(index.row(), int(CQBaseModelRole::RawValue));
-    clearRowRoleValue(index.row(), int(CQBaseModelRole::IntermediateValue));
-    clearRowRoleValue(index.row(), int(CQBaseModelRole::CachedValue));
-    clearRowRoleValue(index.row(), int(CQBaseModelRole::OutputValue));
+    clearRowRoleValue(r, int(CQBaseModelRole::RawValue));
+    clearRowRoleValue(r, int(CQBaseModelRole::IntermediateValue));
+    clearRowRoleValue(r, int(CQBaseModelRole::CachedValue));
+    clearRowRoleValue(r, int(CQBaseModelRole::OutputValue));
 
     emit dataChanged(index, index, QVector<int>(1, role));
   }
@@ -457,12 +465,12 @@ setData(const QModelIndex &index, const QVariant &value, int role)
            role == int(CQBaseModelRole::OutputValue)) {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    setRowRoleValue(index.row(), role, value);
+    setRowRoleValue(r, role, value);
   }
   else {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    setRowRoleValue(index.row(), role, value);
+    setRowRoleValue(r, role, value);
 
     emit dataChanged(index, index, QVector<int>(1, role));
   }

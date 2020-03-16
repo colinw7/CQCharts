@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Allow invert defined palette
+ + Column Editor support name
  + key annotation
  + delayed load of errors
  + handle overlay, x1x2, y1y2, when plot hidden

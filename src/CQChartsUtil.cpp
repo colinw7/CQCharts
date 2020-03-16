@@ -592,6 +592,12 @@ namespace CQChartsUtil {
 int countLeadingBraces(const QString &str) {
   CQStrParse parse(str);
 
+  return countLeadingBraces(parse);
+}
+
+int countLeadingBraces(CQStrParse &parse) {
+  int pos = parse.getPos();
+
   int n = 0;
 
   while (! parse.eof()) {
@@ -605,6 +611,8 @@ int countLeadingBraces(const QString &str) {
     ++n;
   }
 
+  parse.setPos(pos);
+
   return n;
 }
 
@@ -613,24 +621,43 @@ int countLeadingBraces(const QString &str) {
 bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &polygons) {
   CQStrParse parse(str);
 
-  parse.skipSpace();
+  //---
 
-  int pos = parse.getPos();
+  // count if brace around list of polygons (max 3 braces but allow more, min 2 braces)
+  int nbraces = countLeadingBraces(parse);
 
-  bool braced = false;
+  if      (nbraces > 3) {
+    QString polyStr;
 
-  if (parse.isChar('{')) {
-    parse.skipChar();
+    if (! parse.readBracedString(polyStr))
+      return false;
 
-    parse.skipSpace();
-
-    if (parse.isChar('{')) {
-      braced = true;
-    }
-    else
-      parse.setPos(pos);
+    return stringToPolygons(polyStr, polygons);
   }
 
+  //---
+
+  if (nbraces == 3) {
+    int pos = parse.getPos();
+
+    if (parsePolygons(parse, polygons))
+      return true;
+
+    parse.setPos(pos);
+
+    QString polyStr;
+
+    if (! parse.readBracedString(polyStr))
+      return false;
+
+    return stringToPolygons(polyStr, polygons);
+  }
+  else {
+    return parsePolygons(parse, polygons);
+  }
+}
+
+bool parsePolygons(CQStrParse &parse, std::vector<CQChartsGeom::Polygon> &polygons) {
   while (! parse.eof()) {
     parse.skipSpace();
 
@@ -650,14 +677,6 @@ bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &po
     polygons.push_back(poly);
 
     parse.skipSpace();
-
-    if (braced && parse.isChar('}')) {
-      parse.skipChar();
-
-      parse.skipSpace();
-
-      break;
-    }
   }
 
   return true;
@@ -682,28 +701,43 @@ QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList) 
 bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly) {
   CQStrParse parse(str);
 
-  return parsePolygon(parse, poly);
+  //---
+
+  // count if brace around polygons (max 2 braces but allow more, min 1 brace)
+  int nbraces = countLeadingBraces(parse);
+
+  if      (nbraces > 2) {
+    QString polyStr;
+
+    if (! parse.readBracedString(polyStr))
+      return false;
+
+    return stringToPolygon(polyStr, poly);
+  }
+
+  //---
+
+  if (nbraces == 2) {
+    int pos = parse.getPos();
+
+    if (parsePolygon(parse, poly))
+      return true;
+
+    parse.setPos(pos);
+
+    QString polyStr;
+
+    if (! parse.readBracedString(polyStr))
+      return false;
+
+    return stringToPolygon(polyStr, poly);
+  }
+  else {
+    return parsePolygon(parse, poly);
+  }
 }
 
 bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly) {
-  parse.skipSpace();
-
-  int pos = parse.getPos();
-
-  bool braced = false;
-
-  if (parse.isChar('{')) {
-    parse.skipChar();
-
-    parse.skipSpace();
-
-    if (parse.isChar('{')) {
-      braced = true;
-    }
-    else
-      parse.setPos(pos);
-  }
-
   while (! parse.eof()) {
     parse.skipSpace();
 
@@ -723,14 +757,6 @@ bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly) {
     poly.addPoint(point);
 
     parse.skipSpace();
-
-    if (braced && parse.isChar('}')) {
-      parse.skipChar();
-
-      parse.skipSpace();
-
-      break;
-    }
   }
 
   return true;

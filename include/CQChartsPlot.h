@@ -1,6 +1,7 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
+#include <CQChartsPlotModelVisitor.h>
 #include <CQChartsView.h>
 #include <CQChartsObj.h>
 #include <CQChartsColor.h>
@@ -10,7 +11,6 @@
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsPolygon.h>
-#include <CQChartsModelVisitor.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
 #include <CQChartsUtil.h>
@@ -42,10 +42,10 @@ class CQChartsPlot;
 class CQChartsAxis;
 class CQChartsPlotKey;
 class CQChartsKeyItem;
+class CQChartsKeyColorBox;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
-class CQChartsKeyColorBox;
 
 class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
@@ -66,7 +66,6 @@ class CQChartsPlotParameter;
 class CQChartsDisplayRange;
 class CQChartsValueSet;
 class CQChartsModelColumnDetails;
-class CQChartsModelExprMatch;
 class CQChartsModelData;
 class CQChartsEditHandles;
 class CQChartsTableTip;
@@ -174,6 +173,8 @@ class CQChartsPlot : public CQChartsObj,
 
   // filter
   Q_PROPERTY(QString filterStr READ filterStr WRITE setFilterStr)
+
+  Q_PROPERTY(bool skipBad READ isSkipBad WRITE setSkipBad)
 
   // inner margin
   Q_PROPERTY(CQChartsLength innerMarginLeft   READ innerMarginLeft   WRITE setInnerMarginLeft  )
@@ -455,6 +456,11 @@ class CQChartsPlot : public CQChartsObj,
 
   const QString &filterStr() const { return filterStr_; }
   void setFilterStr(const QString &s);
+
+  //---
+
+  bool isSkipBad() const { return skipBad_; }
+  void setSkipBad(bool b);
 
   //---
 
@@ -821,25 +827,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  //! plot model visitor
-  class ModelVisitor : public CQChartsModelVisitor {
-   public:
-    ModelVisitor();
-
-    virtual ~ModelVisitor();
-
-    const CQChartsPlot *plot() const { return plot_; }
-    void setPlot(const CQChartsPlot *p) { plot_ = p; }
-
-    void init();
-
-    State preVisit(const QAbstractItemModel *model, const VisitData &data) override;
-
-   private:
-    const CQChartsPlot*     plot_ { nullptr };
-    int                     vrow_ { 0 };
-    CQChartsModelExprMatch* expr_ { nullptr };
-  };
+  using ModelVisitor = CQChartsPlotModelVisitor;
 
   void visitModel(ModelVisitor &visitor) const;
 
@@ -2441,6 +2429,8 @@ class CQChartsPlot : public CQChartsObj,
   // filter
   EveryData everyData_; //!< every data
   QString   filterStr_; //!< filter
+
+  bool skipBad_ { true }; //!< skip bad values
 
   // borders
   CQChartsSides plotBorderSides_  { "tlbr" }; //!< plot border sides

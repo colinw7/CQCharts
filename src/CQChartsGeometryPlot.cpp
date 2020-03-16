@@ -204,7 +204,7 @@ void
 CQChartsGeometryPlot::
 setColorByValue(bool b)
 {
-  CQChartsUtil::testAndSet(colorByValue_, b, [&]() { drawObjs(); } );
+  setValueStyle(b ? ValueStyle::COLOR : ValueStyle::NONE);
 }
 
 //---
@@ -241,6 +241,13 @@ setMaxValue(double r)
   }
 }
 
+void
+CQChartsGeometryPlot::
+setValueStyle(const ValueStyle &valueStyle)
+{
+  CQChartsUtil::testAndSet(valueStyle_, valueStyle, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -262,9 +269,6 @@ addProperties()
   addProp("columns", "valueColumn"   , "value"   , "Value column");
   addProp("columns", "styleColumn"   , "style"   , "Style column");
 
-  // coloring
-  addProp("coloring", "colorByValue", "colorByValue", "Color shapes by value");
-
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
 
@@ -277,6 +281,9 @@ addProperties()
 
   // data label
   dataLabel_->addPathProperties("labels", "Labels");
+
+  // value balloon
+  addProp("value", "valueStyle", "style", "Value Style");
 
   // value normalization
   addProp("value", "minValue", "min", "Min value for color map");
@@ -421,13 +428,29 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else if (geometryColumnType_ == ColumnType::POLYGON) {
       auto poly = CQChartsVariant::toPolygon(rvar, ok3);
 
+      if (poly.size() < 2 || ! poly.boundingBox().isValid()) {
+        th->addDataError(geometryInd, "Too few points for polygon");
+        return;
+      }
+
       geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON_LIST) {
       CQChartsPolygonList polyList = CQChartsVariant::toPolygonList(rvar, ok3);
 
-      for (const auto &poly : polyList.polygons())
-        geometry.polygons.push_back(poly);
+      bool rc = true;
+
+      for (const auto &poly : polyList.polygons()) {
+        if (poly.size() > 2 && poly.boundingBox().isValid())
+          geometry.polygons.push_back(poly);
+        else
+          rc = false;
+      }
+
+      if (! rc) {
+        th->addDataError(geometryInd, "Too few points for polygon(s) in list");
+        return;
+      }
     }
     else if (geometryColumnType_ == ColumnType::PATH) {
       CQChartsPath path = CQChartsVariant::toPath(rvar, ok3);
@@ -438,6 +461,11 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     }
     else {
       assert(false);
+    }
+
+    if (geometry.polygons.empty()) {
+      th->addDataError(geometryInd, "Invalid geometry");
+      return;
     }
   }
   else {
@@ -462,12 +490,18 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
       geometry.polygons.push_back(shape.polygon);
     }
-    else if (shape.type == CQChartsGeometryShape::Type::POLYGON_LIST)
+    else if (shape.type == CQChartsGeometryShape::Type::POLYGON_LIST) {
       geometry.polygons = shape.polygonList;
+    }
     else if (shape.type == CQChartsGeometryShape::Type::PATH) {
       auto poly = CQChartsGeom::Polygon(shape.path.qpoly());
 
       geometry.polygons.push_back(poly);
+    }
+
+    if (geometry.polygons.empty()) {
+      th->addDataError(geometryInd, "Invalid geometry '" + geomStr + "'");
+      return;
     }
   }
 
@@ -495,8 +529,12 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     double value = modelReal(valueInd, ok3);
 
     if (! ok3) {
-      th->addDataError(geometryInd, "Invalid value real");
-      return;
+      if (! isSkipBad()) {
+        th->addDataError(geometryInd, "Invalid value real");
+        return;
+      }
+
+      value = 0;
     }
 
     if (! CMathUtil::isNaN(value))
@@ -729,6 +767,45 @@ CQChartsGeometryObj::
 drawFg(CQChartsPaintDevice *device) const
 {
   plot_->dataLabel()->draw(device, rect(), name());
+
+  //---
+
+  if (plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::BALLOON && value() > 0) {
+    auto prect = plot_->windowToPixel(rect());
+
+    auto pbbox = plot_->calcPlotPixelRect();
+
+    double minSize = plot_->minBalloonSize()*pbbox.getHeight();
+    double maxSize = plot_->maxBalloonSize()*pbbox.getHeight();
+
+    double v1    = sqrt(value());
+    double minV1 = sqrt(plot_->minValue());
+    double maxV1 = sqrt(plot_->maxValue());
+
+    double s = CMathUtil::map(v1, minV1, maxV1, minSize, maxSize);
+
+    //---
+
+    ColorInd colorInd;
+
+    QColor pc = QColor(Qt::black);
+    QColor bc = QColor(Qt::red);
+
+    CQChartsPenBrush penBrush;
+
+    plot_->setPenBrush(penBrush,
+      CQChartsPenData  (/*stroke*/true, pc),
+      CQChartsBrushData(/*filled*/true, bc, CQChartsAlpha(0.5)));
+
+    plot_->updateObjPenBrushState(this, penBrush);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    CQChartsGeom::BBox ebbox(prect.getXMid() - s/2, prect.getYMid() - s/2,
+                             prect.getXMid() + s/2, prect.getYMid() + s/2);
+
+    device->drawEllipse(device->pixelToWindow(ebbox));
+  }
 }
 
 void
@@ -743,16 +820,16 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   ColorInd colorInd = calcColorInd();
 
   if (color().isValid()) {
-    if (! hasValue_ || ! plot_->isColorByValue())
-      fc = plot_->interpColor(color(), colorInd);
-    else
+    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR)
       fc = plot_->interpColor(color(), ColorInd(dv));
+    else
+      fc = plot_->interpColor(color(), colorInd);
   }
   else {
-    if (! hasValue_ || ! plot_->isColorByValue())
-      fc = plot_->interpFillColor(colorInd);
-    else
+    if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR)
       fc = plot_->interpColor(plot_->fillColor(), ColorInd(dv));
+    else
+      fc = plot_->interpFillColor(colorInd);
   }
 
   QColor bc = plot_->interpStrokeColor(colorInd);

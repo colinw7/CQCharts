@@ -348,13 +348,6 @@ resetBestFit()
 
 void
 CQChartsXYPlot::
-setSkipBad(bool b)
-{
-  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsXYPlot::
 setStacked(bool b)
 {
   CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );

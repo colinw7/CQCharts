@@ -111,6 +111,7 @@ class CQChartsCmds : public QObject {
   bool filterChartsModelCmd (CQChartsCmdArgs &args);
   bool flattenChartsModelCmd(CQChartsCmdArgs &args);
   bool copyChartsModelCmd   (CQChartsCmdArgs &args);
+  bool joinChartsModelCmd   (CQChartsCmdArgs &args);
   bool writeChartsModelCmd  (CQChartsCmdArgs &args);
   bool removeChartsModelCmd (CQChartsCmdArgs &args);
 
@@ -235,6 +236,7 @@ CQCHARTS_DEF_CMD(FoldChartsModel   , foldChartsModelCmd)
 CQCHARTS_DEF_CMD(FilterChartsModel , filterChartsModelCmd)
 CQCHARTS_DEF_CMD(FlattenChartsModel, flattenChartsModelCmd)
 CQCHARTS_DEF_CMD(CopyChartsModel   , copyChartsModelCmd)
+CQCHARTS_DEF_CMD(JoinChartsModel   , joinChartsModelCmd)
 CQCHARTS_DEF_CMD(WriteChartsModel  , writeChartsModelCmd)
 CQCHARTS_DEF_CMD(RemoveChartsModel , removeChartsModelCmd)
 

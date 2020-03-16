@@ -7,8 +7,8 @@
 #include <vector>
 
 class CQChartsModelExprMatchFn;
-class CQChartsModelExprTcl;
 class CQChartsModelData;
+class CQChartsExprTcl;
 class CQChartsExprCmdValues;
 
 class QAbstractItemModel;
@@ -33,12 +33,16 @@ class CQChartsModelExprMatch {
   void setModelData(CQChartsModelData *modelData);
 
   QAbstractItemModel *model() const { return model_; }
-  void setModel(QAbstractItemModel *model) { model_ = model; }
+  void setModel(QAbstractItemModel *model);
 
   //---
 
   int isDebug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
+
+  //---
+
+  CQChartsExprTcl *qtcl() const { return qtcl_; }
 
   //---
 
@@ -58,8 +62,6 @@ class CQChartsModelExprMatch {
   bool checkColumn(int col) const;
   bool checkIndex(int row, int col) const;
 
-  void setVar(const QString &name, int row, int column);
-
  private:
   using TclCmds = std::vector<CQChartsModelExprMatchFn *>;
 
@@ -67,8 +69,6 @@ class CQChartsModelExprMatch {
 
  private:
   void addBuiltinFunctions();
-
-  CQChartsModelExprTcl *qtcl() const { return qtcl_; }
 
   void setVar(const QModelIndex &ind);
 
@@ -101,9 +101,6 @@ class CQChartsModelExprMatch {
   bool evaluateExpression(const QString &expr, const QModelIndex &ind,
                           QVariant &value, bool replace);
 
-  bool setTclResult(const QVariant &rc);
-  bool getTclResult(QVariant &rc) const;
-
   QString replaceExprColumns(const QString &expr, const QModelIndex &ind) const;
 
   QVariant getCmdData(int row, int col) const;
@@ -114,20 +111,19 @@ class CQChartsModelExprMatch {
   using ColumnNames = std::map<int,QString>;
   using NameColumns = std::map<QString,int>;
 
-  CQChartsModelData*    modelData_  { nullptr };
-  QAbstractItemModel*   model_      { nullptr };
-  CQChartsModelExprTcl* qtcl_       { nullptr };
-  TclCmds               tclCmds_;
-  bool                  detailsFns_ { false };
-  bool                  debug_      { false };
-  QString               matchExpr_;
-  int                   nr_         { 0 };
-  int                   nc_         { 0 };
-  mutable int           currentRow_ { 0 };
-  mutable int           currentCol_ { 0 };
-  ColumnNames           columnNames_;
-  NameColumns           nameColumns_;
-  mutable QVariant      lastValue_;
+  CQChartsModelData*  modelData_  { nullptr };
+  QAbstractItemModel* model_      { nullptr };
+  CQChartsExprTcl*    qtcl_       { nullptr };
+  TclCmds             tclCmds_;
+  bool                detailsFns_ { false };
+  bool                debug_      { false };
+  QString             matchExpr_;
+  int                 nr_         { 0 };
+  int                 nc_         { 0 };
+  mutable int         currentRow_ { 0 };
+  mutable int         currentCol_ { 0 };
+  ColumnNames         columnNames_;
+  NameColumns         nameColumns_;
 };
 
 #endif

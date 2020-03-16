@@ -238,15 +238,6 @@ setPlotType(PlotType type)
 
 void
 CQChartsScatterPlot::
-setSkipBad(bool b)
-{
-  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsScatterPlot::
 setSymbolMapKey(bool b)
 {
   CQChartsUtil::testAndSet(symbolMapKeyData_.displayed, b, [&]() { drawObjs(); } );
@@ -538,7 +529,6 @@ addProperties()
 
   // options
   addProp("options", "plotType", "plotType", "Plot type");
-  addProp("options", "skipBad" , "skipBad" , "Skip bad values");
 
   // best fit line and deviation fill
   addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");

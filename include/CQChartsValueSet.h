@@ -102,6 +102,12 @@ class CQChartsRValues {
   // number of unique values
   int numUnique() const { return valset_.size(); }
 
+  QVariant uniqueValue() const {
+    if (valset_.size() != 1) return QVariant();
+
+    return QVariant(valset_.begin()->first);
+  }
+
   void uniqueValues(Values &values) {
     for (const auto &vi : valset_)
       values.push_back(vi.first);
@@ -248,6 +254,12 @@ class CQChartsIValues {
   // number of unique values
   int numUnique() const { return valset_.size(); }
 
+  QVariant uniqueValue() const {
+    if (valset_.size() != 1) return QVariant();
+
+    return QVariant(valset_.begin()->first);
+  }
+
   void uniqueValues(Values &values) {
     for (const auto &vi : valset_)
       values.push_back(vi.first);
@@ -378,6 +390,12 @@ class CQChartsSValues {
   // number of unique values
   int numUnique() const { return valset_.size(); }
 
+  QVariant uniqueValue() const {
+    if (valset_.size() != 1) return QVariant();
+
+    return QVariant(valset_.begin()->first);
+  }
+
   void uniqueValues(Values &values) {
     for (const auto &sv : setvals_)
       values.push_back(sv.second);
@@ -501,6 +519,12 @@ class CQChartsCValues {
 
   // number of unique values
   int numUnique() const { return valset_.size(); }
+
+  QVariant uniqueValue() const {
+    if (valset_.size() != 1) return QVariant();
+
+    return QVariant::fromValue<CQChartsColor>(valset_.begin()->first);
+  }
 
   void uniqueValues(Values &values) {
     for (const auto &vi : valset_)
@@ -645,6 +669,9 @@ class CQChartsValueSet : public QObject {
 
   // number of unique values
   int numUnique() const;
+
+  // single unique value
+  QVariant uniqueValue() const;
 
   // map value to index
   double imap(const QVariant &value) const;

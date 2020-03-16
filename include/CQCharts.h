@@ -19,6 +19,7 @@ class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
 class CQChartsInterfaceTheme;
+class CQChartsExprTcl;
 class CQColorsPalette;
 class CQChartsColor;
 
@@ -304,6 +305,11 @@ class CQCharts : public QObject {
 
   //---
 
+  const CQChartsExprTcl *currentExpr() const { return currentExpr_; }
+  void setCurrentExpr(CQChartsExprTcl *p) { currentExpr_ = p; }
+
+  //---
+
   void errorMsg(const QString &msg) const;
 
  signals:
@@ -355,6 +361,7 @@ class CQCharts : public QObject {
   CQChartsManageModelsDlg* manageModelsDlg_ { nullptr }; //!< manage models dialog
   CQChartsEditModelDlg*    editModelDlg_    { nullptr }; //!< edit model dialog
   CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
+  CQChartsExprTcl*         currentExpr_     { nullptr }; //!< current expression evaluator
 };
 
 #endif

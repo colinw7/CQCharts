@@ -208,15 +208,6 @@ setPlotType(PlotType type)
 
 void
 CQChartsBarChartPlot::
-setSkipBad(bool b)
-{
-  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsBarChartPlot::
 setNormal(bool b)
 {
   if (b)

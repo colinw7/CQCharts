@@ -1,6 +1,7 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsExprModelFn.h>
 #include <CQChartsExprCmdValues.h>
+#include <CQChartsExprTcl.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelFilter.h>
@@ -9,38 +10,10 @@
 #include <CQChartsRand.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
-#include <CQTclUtil.h>
 #include <CQPerfMonitor.h>
 
-#include <COSNaN.h>
 #include <QColor>
 #include <iostream>
-
-//------
-
-class CQChartsExprTcl : public CQTcl {
- public:
-  CQChartsExprTcl(CQChartsExprModel *model) :
-   model_(model) {
-  }
-
-  int row() const { return row_; }
-  void setRow(int i) { row_ = i; }
-
-  int column() const { return column_; }
-  void setColumn(int i) { column_ = i; }
-
-  void handleTrace(const char *name, int flags) override {
-    if (flags & TCL_TRACE_READS) {
-      model_->setVar(name, row(), column());
-    }
-  }
-
- private:
-  CQChartsExprModel *model_  { nullptr };
-  int                row_    { -1 };
-  int                column_ { -1 };
-};
 
 //------
 
@@ -513,7 +486,8 @@ initCalc()
   columnNames_.clear();
   nameColumns_.clear();
 
-  lastValue_ = QVariant();
+  qtcl_->resetLastValue();
+  qtcl_->resetColumns();
 
   //---
 
@@ -522,8 +496,7 @@ initCalc()
   for (const auto &np : charts_->procs(CQCharts::ProcType::TCL)) {
     const auto &proc = np.second;
 
-    qtcl_->eval(QString("proc ::tcl::mathfunc::%1 {%2} {%3}").
-                 arg(proc.name).arg(proc.args).arg(proc.body));
+    qtcl_->defineProc(proc.name, proc.args, proc.body);
   }
 
   //---
@@ -539,15 +512,10 @@ initCalc()
     columnNames_[column] = name;
     nameColumns_[name  ] = column;
 
-    qtcl_->traceVar(name);
+    qtcl_->setNameColumn(name, column);
   }
 
-  qtcl_->traceVar("row"   );
-  qtcl_->traceVar("column");
-  qtcl_->traceVar("col"   );
-  qtcl_->traceVar("PI"    );
-  qtcl_->traceVar("NaN"   );
-  qtcl_->traceVar("_"     );
+  qtcl_->initVars();
 }
 
 bool
@@ -2161,9 +2129,7 @@ getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const
       return false;
 
     auto p = nameColumns_.find(name);
-
-    if (p == nameColumns_.end())
-      return false;
+    if (p == nameColumns_.end()) return false;
 
     col = (*p).second;
   }
@@ -2229,67 +2195,7 @@ evaluateExpression(const QString &expr, QVariant &value) const
   qtcl_->setRow   (currentRow());
   qtcl_->setColumn(currentCol());
 
-  bool showError = isDebug();
-
-  int rc = qtcl_->evalExpr(expr, showError);
-
-  if (rc != TCL_OK) {
-    if (qtcl_->isDomainError(rc)) {
-      double x = CMathUtil::getNaN();
-
-      value      = QVariant(x);
-      lastValue_ = value;
-
-      return true;
-    }
-
-    if (isDebug())
-      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
-
-    return false;
-  }
-
-  if (! getTclResult(value))
-    return false;
-
-  lastValue_ = value;
-
-  return true;
-}
-
-void
-CQChartsExprModel::
-setVar(const QString &name, int row, int column)
-{
-  auto p = nameColumns_.find(name);
-
-  if      (p != nameColumns_.end()) {
-    int col = (*p).second;
-
-    // get model value
-    QVariant var = getCmdData(row, col);
-
-    // store value in column variable
-    qtcl_->createVar(name, var);
-  }
-  else if (name == "row") {
-    qtcl_->createVar(name, row);
-  }
-  else if (name == "column" || name == "col") {
-    qtcl_->createVar(name, column);
-  }
-  else if (name == "pi") {
-    qtcl_->createVar(name, QVariant(M_PI));
-  }
-  else if (name == "NaN") {
-    qtcl_->createVar(name, QVariant(CMathUtil::getNaN()));
-  }
-  else if (name == "_") {
-    if (lastValue_.isValid())
-      qtcl_->createVar(name, QVariant(lastValue_));
-    else
-      qtcl_->createVar(name, QVariant(0.0));
-  }
+  return qtcl_->evaluateExpression(expr, value, isDebug());
 }
 
 bool
@@ -2308,22 +2214,6 @@ checkIndex(int row, int col) const
   if (row < 0 || row >= rowCount   ()) return false;
   if (col < 0 || col >= columnCount()) return false;
 
-  return true;
-}
-
-bool
-CQChartsExprModel::
-setTclResult(const QVariant &rc)
-{
-  qtcl_->setResult(rc);
-  return true;
-}
-
-bool
-CQChartsExprModel::
-getTclResult(QVariant &var) const
-{
-  var = qtcl_->getResult();
   return true;
 }
 

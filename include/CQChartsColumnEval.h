@@ -4,7 +4,7 @@
 #include <CQTclUtil.h>
 #include <mutex>
 
-class CQChartsColumnEvalTcl;
+class CQChartsExprTcl;
 
 #define CQChartsColumnEvalInst CQChartsColumnEval::instance()
 
@@ -42,9 +42,6 @@ class CQChartsColumnEval {
 
   void addFunc(const QString &name, CQTcl::ObjCmdProc proc);
 
-  bool setTclResult(const QVariant &rc);
-  bool getTclResult(QVariant &rc) const;
-
  private:
   using Values = std::vector<QVariant>;
 
@@ -63,11 +60,10 @@ class CQChartsColumnEval {
   QVariant getModelData(int row, int col) const;
 
  private:
-  CQChartsColumnEvalTcl*    qtcl_  { nullptr }; //!< tcl expressio
+  CQChartsExprTcl*          qtcl_  { nullptr }; //!< tcl expressio
   bool                      debug_ { false };   //!< is debug
   const QAbstractItemModel* model_ { nullptr }; //!< model
   int                       row_   { 0 };       //!< current row
-  mutable QVariant          lastValue_;         //!< last evaluated value
   mutable std::mutex        mutex_;             //!< mutex
 };
 

@@ -650,7 +650,7 @@ calcFontScale(const CQChartsGeom::Size &size) const
   double sx = (size.width () > 0 ? size.width ()/defSizeHint().width () : 1.0);
   double sy = (size.height() > 0 ? size.height()/defSizeHint().height() : 1.0);
 
-  return std::max(fontFactor()*std::min(sx, sy), 0.01);
+  return std::max(fontFactor()*std::max(sx, sy), 0.01);
 }
 
 QFont

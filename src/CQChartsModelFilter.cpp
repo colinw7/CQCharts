@@ -504,7 +504,7 @@ data(const QModelIndex &ind, int role) const
     // convert variant using column type data
     bool converted;
 
-    QVariant var1;
+    QVariant var1 = var;
 
     if (role == Qt::DisplayRole) {
       var1 = CQChartsModelUtil::columnDisplayData(charts_, this,
@@ -513,9 +513,8 @@ data(const QModelIndex &ind, int role) const
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);
 
-        auto th = const_cast<CQChartsModelFilter *>(this);
-
-        auto dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+        auto *th        = const_cast<CQChartsModelFilter *>(this);
+        auto *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
           if (dataModel->isReadOnly()) {
@@ -537,9 +536,8 @@ data(const QModelIndex &ind, int role) const
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);
 
-        auto th = const_cast<CQChartsModelFilter *>(this);
-
-        auto dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+        auto *th        = const_cast<CQChartsModelFilter *>(this);
+        auto *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
           if (dataModel->isReadOnly()) {

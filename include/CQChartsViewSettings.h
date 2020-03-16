@@ -43,6 +43,7 @@ class QToolButton;
 class QRadioButton;
 class QCheckBox;
 class QLabel;
+class QTimer;
 
 /*!
  * \brief View settings widget
@@ -86,6 +87,7 @@ class CQChartsViewSettings : public QFrame {
 
   void updateLayers();
 
+  void updateErrorsSlot();
   void updateErrors();
 
   void viewLayerImageSlot();
@@ -258,17 +260,17 @@ class CQChartsViewSettings : public QFrame {
     PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
   };
 
-  CQChartsWindow*              window_              { nullptr }; //!< parent window
+  CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
-  CQTabWidget*                 tab_                 { nullptr }; //!< settings/palette tab
-  PropertiesWidgets            propertiesWidgets_;               //!< properties widgets
-  ModelsWidgets                modelsWidgets_;                   //!< models widgets
-  PlotsWidgets                 plotsWidgets_;                    //!< plots widgets
-  AnnotationsWidgets           annotationsWidgets_;              //!< annotations widgets
-  ThemeWidgets                 themeWidgets_;                    //!< theme widgets
-  LayersWidgets                layersWidgets_;                   //!< layers widgets
-  CQChartsViewError*           error_               { nullptr }; //!< error widget
+  CQTabWidget*       tab_                 { nullptr }; //!< settings/palette tab
+  PropertiesWidgets  propertiesWidgets_;               //!< properties widgets
+  ModelsWidgets      modelsWidgets_;                   //!< models widgets
+  PlotsWidgets       plotsWidgets_;                    //!< plots widgets
+  AnnotationsWidgets annotationsWidgets_;              //!< annotations widgets
+  ThemeWidgets       themeWidgets_;                    //!< theme widgets
+  LayersWidgets      layersWidgets_;                   //!< layers widgets
+  CQChartsViewError* error_               { nullptr }; //!< error widget
 
   // dialogs
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
@@ -278,7 +280,9 @@ class CQChartsViewSettings : public QFrame {
   CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
   CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
 
-  QString                      plotId_;                          //!< current plot id
+  QString plotId_; //!< current plot id
+
+  QTimer *updateErrorsTimer_ { nullptr }; // update error delay timer
 };
 
 //---

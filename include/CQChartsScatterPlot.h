@@ -288,7 +288,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // options
   Q_PROPERTY(PlotType plotType READ plotType  WRITE setPlotType)
-  Q_PROPERTY(bool     skipBad  READ isSkipBad WRITE setSkipBad )
 
   // best fit
   Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
@@ -435,11 +434,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS    ); }
   bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS ); }
-
-  //---
-
-  bool isSkipBad() const { return skipBad_; }
-  void setSkipBad(bool b);
 
   //---
 
@@ -762,7 +756,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // options
   PlotType plotType_ { PlotType::SYMBOLS }; //!< plot type
-  bool     skipBad_  { true };              //!< skip bad values
 
   // axis annotation data
   AxisRugData     axisRugData_;     //!< axis rug data

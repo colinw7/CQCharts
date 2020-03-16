@@ -625,32 +625,19 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return model->headerData(c, orientation, role);
     }
 
-    if      (role == static_cast<int>(CQBaseModelRole::Type)) {
+    int c = mapColumnToSource(section);
+    if (c < 0) return QVariant();
+
+    QVariant value = model->headerData(c, orientation, role);
+
+    if (value.isValid())
+      return value;
+
+    if (role == static_cast<int>(CQBaseModelRole::Type)) {
       return QVariant((int) CQBaseModelType::STRING);
     }
-    else if (role == static_cast<int>(CQBaseModelRole::TypeValues)) {
-      return QVariant();
-    }
-    else if (role == static_cast<int>(CQBaseModelRole::Min)) {
-      return QVariant();
-    }
-    else if (role == static_cast<int>(CQBaseModelRole::Max)) {
-      return QVariant();
-    }
-    else if (role == static_cast<int>(CQBaseModelRole::Sorted)) {
-      int c = mapColumnToSource(section);
-      if (c < 0) return QVariant();
-
-      return model->headerData(c, orientation, role);
-    }
-    else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
-      int c = mapColumnToSource(section);
-      if (c < 0) return QVariant();
-
-      return model->headerData(c, orientation, role);
-    }
     else {
-      assert(false);
+      return value;
     }
   }
   else if (role == static_cast<int>(CQBaseModelRole::Key)) {
@@ -663,7 +650,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
   int c = mapColumnToSource(section);
   if (c < 0) return QVariant();
 
-  return model->headerData(c, orientation, role);
+  QVariant var = model->headerData(c, orientation, role);
+
+  if (var.isValid())
+    return var;
+
+  return QVariant();
 }
 
 bool
@@ -689,7 +681,10 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   int c = mapColumnToSource(section);
   if (c < 0) return false;
 
-  return model->setHeaderData(c, orientation, value, role);
+  if (model->setHeaderData(c, orientation, value, role))
+    return true;
+
+  return false;
 }
 
 Qt::ItemFlags

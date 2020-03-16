@@ -162,32 +162,39 @@ QString
 CQChartsColumn::
 toString() const
 {
+  QString str;
+
+  if (hasName())
+    str = "#" + name() + " ";
+
   if      (type_ == Type::DATA) {
+    str += QString("%1").arg(column_);
+
     if (role_ >= 0)
-      return QString("%1@%2").arg(column_).arg(role_);
-    else
-      return QString("%1").arg(column_);
+      str += QString("@%1").arg(role_);
   }
   else if (type_ == Type::EXPR)
-    return QString("(%1)").arg(expr_);
+    str += QString("(%1)").arg(expr_);
   else if (type_ == Type::ROW) {
     if (role_ > 0)
-      return "@ROW1";
+      str += "@ROW1";
     else
-      return "@ROW";
+      str += "@ROW";
   }
   else if (type_ == Type::VHEADER)
-    return "@VH";
+    str += "@VH";
   else if (type_ == Type::GROUP)
-    return "@GROUP";
+    str += "@GROUP";
   else if (type_ == Type::DATA_INDEX) {
+    str += QString("%1").arg(column_);
+
     if (role_ >= 0)
-      return QString("%1@%2[%3]").arg(column_).arg(role_).arg(expr_);
-    else
-      return QString("%1[%2]").arg(column_).arg(expr_);
+      str += QString("@%1").arg(role_);
+
+    str += QString("[%1]").arg(expr_);
   }
 
-  return "";
+  return str;
 }
 
 bool
@@ -304,7 +311,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
         parse.skipChar();
     }
 
-    name = parse.getAt(pos);
+    name = parse.getBefore(pos);
 
     parse.skipSpace();
   }
@@ -332,10 +339,10 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
       parse.skipChar();
     }
 
+    QString str = parse.getBefore(pos);
+
     if (parse.isChar(')'))
       parse.skipChar();
-
-    QString str = parse.getAt(pos);
 
     expr = str.simplified();
     type = Type::EXPR;
@@ -418,7 +425,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     if (parse.isChar(']'))
       parse.skipChar();
 
-    indexStr = parse.getAt(pos);
+    indexStr = parse.getBefore(pos);
   }
 
   //---

@@ -4,6 +4,8 @@
 #include <CQChartsFilterModel.h>
 #include <CQChartsVarsModel.h>
 #include <CQChartsExprDataModel.h>
+#include <CQChartsExprTcl.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
 
@@ -425,7 +427,7 @@ foldModel(const FoldData &foldData)
   //---
 
   if      (foldData.foldType == FoldData::FoldType::BUCKET) {
-    CQChartsModelDetails *details = this->details();
+    auto *details = this->details();
 
     using FoldDatas = std::vector<CQFoldData>;
 
@@ -519,7 +521,7 @@ foldModel(const FoldData &foldData)
       }
       else {
         // get type from column
-        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+        const auto *columnDetails = details->columnDetails(column);
 
         if      (columnDetails->type() == CQBaseModelType::REAL) {
           if (foldData.isAuto)
@@ -557,10 +559,10 @@ foldModel(const FoldData &foldData)
 
     // create folded models
     for (const auto &foldData : foldDatas) {
-      QAbstractItemModel *model = modelp.data();
+      auto *model = modelp.data();
       assert(model);
 
-      CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
+      auto *foldedModel = new CQFoldedModel(model, foldData);
 
       modelp = ModelP(foldedModel);
 
@@ -571,13 +573,13 @@ foldModel(const FoldData &foldData)
 
     if (! foldedModels_.empty()) {
       // add sort/filter proxy if needed
-      QAbstractItemModel *model = modelp.data();
+      auto *model = modelp.data();
       assert(model);
 
       auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
       if (! proxyModel) {
-        QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+        auto *foldProxyModel = new QSortFilterProxyModel;
 
         foldProxyModel->setObjectName("foldProxyModel");
 
@@ -617,7 +619,7 @@ foldModel(const FoldData &foldData)
       column = CQChartsColumn(icolumn);
     }
 
-    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
+    auto *proxyModel = new QSortFilterProxyModel;
 
     proxyModel->setObjectName("foldProxyModel");
 
@@ -625,7 +627,7 @@ foldModel(const FoldData &foldData)
 
     CQHierSepData data(column.column(), foldData.separator[0]);
 
-    CQHierSepModel *hierSepModel = new CQHierSepModel(model().data(), data);
+    auto *hierSepModel = new CQHierSepModel(model().data(), data);
 
     proxyModel->setSourceModel(hierSepModel);
 
@@ -682,7 +684,7 @@ foldedModels() const
   auto foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
 
   if (! foldedModel) {
-    QAbstractItemModel *sourceModel = proxyModel->sourceModel();
+    auto *sourceModel = proxyModel->sourceModel();
 
     foldedModel = qobject_cast<CQFoldedModel *>(sourceModel);
   }
@@ -784,7 +786,7 @@ getPropertyData(const QString &name, QVariant &value) const
 {
   auto th = const_cast<CQChartsModelData *>(this);
 
-  CQPropertyViewModel *propertyModel = th->propertyViewModel();
+  auto *propertyModel = th->propertyViewModel();
 
   //---
 
@@ -825,7 +827,7 @@ setPropertyData(const QString &name, const QVariant &value)
 {
   auto th = const_cast<CQChartsModelData *>(this);
 
-  CQPropertyViewModel *propertyModel = th->propertyViewModel();
+  auto *propertyModel = th->propertyViewModel();
 
   //---
 
@@ -874,14 +876,14 @@ getPropertyNameData(IdModelNames &names) const
 
   ModelP model = this->currentModel();
 
-  QAbstractItemModel *absModel = CQChartsModelUtil::getBaseModel(model.data());
+  auto *absModel = CQChartsModelUtil::getBaseModel(model.data());
 
   auto baseModel = qobject_cast<CQBaseModel *>(absModel);
 
   if (baseModel)
     names["base"][baseModel] << "dataType" << "title" << "maxTypeRows";
 
-  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+  auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
 
   if (dataModel)
     names["data"][dataModel] << "readOnly" << "filter" /* << "filename" */;
@@ -889,7 +891,7 @@ getPropertyNameData(IdModelNames &names) const
   //---
 
   // proxy models
-  CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(absModel);
+  auto *exprModel = CQChartsModelUtil::getExprModel(absModel);
 
   if (exprModel)
     names["expr"][exprModel] << "debug";
@@ -904,13 +906,13 @@ getPropertyNameData(IdModelNames &names) const
   if (pivotModel)
     names["pivot"][pivotModel] << "valueType" << "includeTotals";
 
-  CQHierSepModel *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
+  auto *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
 
   if (hierSepModel)
     names["hierSep"][hierSepModel] <<
       NameAlias("foldSeparator", "separator") << "foldColumn" << "propagateValue";
 
-  CQSummaryModel *summaryModel = summaryModel_;
+  auto *summaryModel = summaryModel_;
 
   if (! summaryModel)
     summaryModel = qobject_cast<CQSummaryModel *>(model.data());
@@ -973,7 +975,7 @@ bool
 CQChartsModelData::
 write(std::ostream &os, const QString &varName) const
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return false;
 
   auto exprModel = CQChartsModelUtil::getExprModel(model);
@@ -1060,7 +1062,7 @@ write(std::ostream &os, const QString &varName) const
 
   //---
 
-  const CQChartsModelDetails *details = this->details();
+  const auto *details = this->details();
 
   int nc = details->numColumns();
 
@@ -1069,7 +1071,7 @@ write(std::ostream &os, const QString &varName) const
   if (exprModel)
     numExtra = exprModel->numExtraColumns();
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   for (int i = 0; i < nc - numExtra; ++i) {
     CQChartsColumn column(i);
@@ -1082,7 +1084,7 @@ write(std::ostream &os, const QString &varName) const
       continue;
 
     if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
-      const CQChartsColumnType *columnTypePtr = columnTypeMgr->getType(columnType);
+      const auto *columnTypePtr = columnTypeMgr->getType(columnType);
 
       os << " -column_type {{";
 
@@ -1095,7 +1097,7 @@ write(std::ostream &os, const QString &varName) const
         if (! var.isValid())
           continue;
 
-        const CQChartsColumnTypeParam *param = columnTypePtr->getParam(name);
+        const auto *param = columnTypePtr->getParam(name);
 
         if (var != param->def()) {
           QStringList strs;
@@ -1148,7 +1150,7 @@ write(std::ostream &os, const QString &varName) const
         continue;
 
       if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
-        const CQChartsColumnType *columnTypePtr = columnTypeMgr->getType(columnType);
+        const auto *columnTypePtr = columnTypeMgr->getType(columnType);
 
         os << " -type {";
 
@@ -1161,7 +1163,7 @@ write(std::ostream &os, const QString &varName) const
           if (! var.isValid())
             continue;
 
-          const CQChartsColumnTypeParam *param = columnTypePtr->getParam(name);
+          const auto *param = columnTypePtr->getParam(name);
 
           if (var != param->def()) {
             QStringList strs;
@@ -1235,12 +1237,12 @@ bool
 CQChartsModelData::
 writeCSV(std::ostream &fs) const
 {
-  const CQChartsModelDetails *details = this->details();
+  const auto *details = this->details();
 
   if (details->isHierarchical())
     return false;
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return false;
 
   //---
@@ -1257,7 +1259,7 @@ writeCSV(std::ostream &fs) const
   fs << "#META_DATA\n";
 
   for (int c = 0; c < nc; ++c) {
-    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
 
     QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
 
@@ -1280,10 +1282,10 @@ writeCSV(std::ostream &fs) const
 
     writeMetaColumnData("type", typeName);
 
-    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
+    const auto &drawColor = columnDetails->tableDrawColor();
 
-    CQChartsModelColumnDetails::TableDrawType tableDrawType  = columnDetails->tableDrawType();
-    CQChartsColorStops                        tableDrawStops = columnDetails->tableDrawStops();
+    auto tableDrawType  = columnDetails->tableDrawType();
+    auto tableDrawStops = columnDetails->tableDrawStops();
 
     writeMetaColumnData("key", "1");
 
@@ -1365,7 +1367,7 @@ writeCSV(std::ostream &fs) const
 
       QVariant var;
 
-      auto columnDetails = details->columnDetails(CQChartsColumn(c));
+      const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
 
       CQBaseModelType type = columnDetails->type();
 
@@ -1380,7 +1382,7 @@ writeCSV(std::ostream &fs) const
           double r = var.toDouble(&ok);
 
           if (ok) {
-            const CQChartsColumnTimeType *timeType =
+            const auto *timeType =
               dynamic_cast<const CQChartsColumnTimeType *>(columnDetails->columnType());
             assert(timeType);
 
@@ -1418,17 +1420,330 @@ writeCSV(std::ostream &fs) const
 
 QAbstractItemModel *
 CQChartsModelData::
-copy()
+copy(const CopyData &copyData)
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return nullptr;
 
-  CQChartsModelDetails *details = this->details();
+  CQChartsExprTcl *expr = nullptr;
+
+  if (copyData.filter.size())
+    expr = new CQChartsExprTcl(model);
+
+  auto *details = this->details();
 
   int nc = details->numColumns();
   int nr = details->numRows();
 
-  std::vector<int> hroles = {{
+  //---
+
+  // get visible rows
+  using RowVisible = std::map<int,bool>;
+
+  RowVisible rowVisible;
+
+  int nr1 = 0;
+
+  if (expr) {
+    bool showError = false;
+
+    // set column name variables
+    for (int c = 0; c < nc; ++c) {
+      QVariant var = model_->headerData(c, Qt::Horizontal);
+
+      bool ok;
+
+      QString name = CQChartsVariant::toString(var, ok);
+
+      expr->setNameColumn(name, c);
+
+      //---
+
+      const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+
+      if (columnDetails) {
+        CQBaseModelType type = columnDetails->type();
+
+        if (type == CQBaseModelType::TIME)
+          expr->setColumnRole(c, Qt::DisplayRole);
+      }
+    }
+
+    expr->initVars();
+
+    //---
+
+    // check each row visible
+    for (int r = 0; r < nr; ++r) {
+      bool visible = true;
+
+      expr->setRow   (r);
+      expr->setColumn(0);
+
+      QVariant value;
+
+      if (expr->evaluateExpression(copyData.filter, value, showError))
+        visible = value.toBool();
+
+      rowVisible[r] = visible;
+
+      if (visible)
+        ++nr1;
+    }
+  }
+  else {
+    for (int r = 0; r < nr; ++r) {
+      rowVisible[r] = true;
+
+      ++nr1;
+    }
+  }
+
+  //---
+
+  auto *dataModel = new CQDataModel(nc, nr1);
+
+  //---
+
+  // copy horizontal header data
+  for (int c = 0; c < nc; ++c) {
+    QVariant var = model->headerData(c, Qt::Horizontal, Qt::DisplayRole);
+
+    if (var.isValid())
+      dataModel->setHeaderData(c, Qt::Horizontal, var, Qt::DisplayRole);
+  }
+
+  // copy vertical header data
+  int r1 = 0;
+
+  for (int r = 0; r < nr; ++r) {
+    if (! rowVisible[r])
+      continue;
+
+    QVariant var = model->headerData(r, Qt::Vertical, Qt::DisplayRole);
+
+    if (var.isValid()) {
+      QVariant var1 = dataModel->headerData(r1, Qt::Vertical, Qt::DisplayRole);
+
+      if (var != var1)
+        dataModel->setHeaderData(r1, Qt::Vertical, var, Qt::DisplayRole);
+    }
+
+    ++r1;
+  }
+
+  //---
+
+  // copy model data
+  r1 = 0;
+
+  for (int r = 0; r < nr; ++r) {
+    if (! rowVisible[r])
+      continue;
+
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind1 = model->index(r, c);
+
+      QVariant var = model->data(ind1);
+
+      if (var.isValid()) {
+        QModelIndex ind2 = dataModel->index(r1, c);
+
+        dataModel->setData(ind2, var);
+      }
+    }
+
+    ++r1;
+  }
+
+  //---
+
+  // copy horizontal header data
+  copyHeaderRoles(dataModel);
+
+  //---
+
+  // create model
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
+
+  filterModel->setObjectName("copyModel");
+
+  //---
+
+  delete expr;
+
+  return filterModel;
+}
+
+//------
+
+QAbstractItemModel *
+CQChartsModelData::
+join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
+{
+  auto *details = this->details();
+
+  int nc = details->numColumns();
+  int nr = details->numRows();
+
+  if (joinColumn.column() < 0 || joinColumn.column() >= nc)
+    return nullptr;
+
+  //---
+
+  auto *joinDetails = joinModelData->details();
+
+  int joinNc = joinDetails->numColumns();
+  int joinNr = joinDetails->numRows();
+
+  //---
+
+  auto *model = this->model().data();
+  if (! model) return nullptr;
+
+  auto *joinModel = joinModelData->model().data();
+  if (! joinModel) return nullptr;
+
+  //---
+
+  // get name of join column
+  QString columnName =
+    model->headerData(joinColumn.column(), Qt::Horizontal, Qt::DisplayRole).toString();
+
+  // find column with matching name in join model
+  int ijoinColumn = -1;
+
+  for (int c = 0; c < joinNc; ++c) {
+    QString joinColumnName = joinModel->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    if (joinColumnName == columnName) {
+      ijoinColumn = c;
+      break;
+    }
+  }
+
+  if (ijoinColumn < 0)
+    return nullptr;
+
+  //---
+
+  // build map of join column variant to row
+  using VariantRowMap = std::map<QVariant,int>;
+
+  VariantRowMap variantRowMap;
+
+  for (int r = 0; r < joinNr; ++r) {
+    QModelIndex ind1 = joinModel->index(r, ijoinColumn);
+
+    QVariant var = joinModel->data(ind1, Qt::EditRole);
+
+    if (! var.isValid())
+      var = joinModel->data(ind1, Qt::DisplayRole);
+
+    variantRowMap[var] = r;
+  }
+
+  //---
+
+  auto *dataModel = new CQDataModel(nc + joinNc - 1, nr);
+
+  //---
+
+  // copy model data
+  for (int r = 0; r < nr; ++r) {
+    QVariant joinVar;
+
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind1 = model->index(r, c);
+
+      QVariant var = model->data(ind1);
+
+      if (c == joinColumn.column())
+        joinVar = var;
+
+      if (var.isValid()) {
+        QModelIndex ind2 = dataModel->index(r, c);
+
+        dataModel->setData(ind2, var);
+      }
+    }
+
+    auto p = variantRowMap.find(joinVar);
+
+    if (p != variantRowMap.end()) {
+      int joinRow = (*p).second;
+
+      int c1 = nc;
+
+      for (int c = 0; c < joinNc; ++c) {
+        if (ijoinColumn == c)
+          continue;
+
+        QModelIndex ind1 = joinModel->index(joinRow, c);
+
+        QVariant var = joinModel->data(ind1, Qt::EditRole);
+
+        if (! var.isValid())
+          var = joinModel->data(ind1, Qt::DisplayRole);
+
+        if (var.isValid()) {
+          QModelIndex ind2 = dataModel->index(r, c1);
+
+          dataModel->setData(ind2, var);
+        }
+
+        ++c1;
+      }
+    }
+  }
+
+  //---
+
+  // copy horizontal header data
+  copyHeaderRoles(dataModel);
+
+  int c1 = nc;
+
+  for (int c = 0; c < joinNc; ++c) {
+    if (ijoinColumn == c)
+      continue;
+
+    joinModelData->copyColumnHeaderRoles(dataModel, c, c1);
+
+    ++c1;
+  }
+
+  //---
+
+  // create model
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
+
+  filterModel->setObjectName("joinModel");
+
+  //---
+
+  return filterModel;
+}
+
+//------
+
+void
+CQChartsModelData::
+copyHeaderRoles(QAbstractItemModel *toModel) const
+{
+  const auto *details = this->details();
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c)
+    copyColumnHeaderRoles(toModel, c, c);
+}
+
+void
+CQChartsModelData::
+copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const
+{
+  static std::vector<int> hroles = {{
     static_cast<int>(Qt::DisplayRole),
     static_cast<int>(CQBaseModelRole::Type),
     static_cast<int>(CQBaseModelRole::BaseType),
@@ -1440,46 +1755,14 @@ copy()
     static_cast<int>(CQBaseModelRole::SortOrder)
   }};
 
-  std::vector<int> vroles;
-  vroles.push_back(static_cast<int>(Qt::DisplayRole)); // clang complains {{}} with single value
-
-  CQDataModel *dataModel = new CQDataModel(nc, nr);
+  auto *model = this->model().data();
+  if (! model) return;
 
   // copy horizontal header data
-  for (int c = 0; c < nc; ++c) {
-    for (const auto &role : hroles) {
-      QVariant var = model->headerData(c, Qt::Horizontal, role);
+  for (const auto &role : hroles) {
+    QVariant var = model->headerData(c1, Qt::Horizontal, role);
 
-      if (var.isValid())
-        dataModel->setHeaderData(c, Qt::Horizontal, var, role);
-    }
+    if (var.isValid())
+      toModel->setHeaderData(c2, Qt::Horizontal, var, role);
   }
-
-  // copy vertical header data
-  for (int r = 0; r < nr; ++r) {
-    for (const auto &role : vroles) {
-      QVariant var = model->headerData(r, Qt::Vertical, role);
-
-      if (var.isValid())
-        dataModel->setHeaderData(r, Qt::Vertical, var, role);
-    }
-  }
-
-  // copy model data
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind1 = model    ->index(r, c);
-      QModelIndex ind2 = dataModel->index(r, c);
-
-      QVariant var = model->data(ind1);
-
-      if (var.isValid())
-        dataModel->setData(ind2, var);
-    }
-  }
-
-  // create model
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
-
-  return filterModel;
 }

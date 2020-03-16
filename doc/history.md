@@ -1058,8 +1058,13 @@
  + handle visible in overlay, x1x2, y1y2 plots
  + add tcl model
  + Add variant compare
-# 03/13/20202
+# 03/13/2020
  + add axis annotation
  + improve column expression support and add name
  + add lighter/darker support in color
  + improve color editor
+# 03/16/2020
+ + Support ballon for value in geometry plot
+ + Add join for models by column
+ + clean up common expr eval code
+ + add scrollbar to table plot

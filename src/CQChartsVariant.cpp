@@ -222,8 +222,15 @@ bool toBool(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Bool)
     return var.toBool();
 
-  if (var.type() == QVariant::String)
-    return var.toBool();
+  if (var.type() == QVariant::Int)
+    return var.toInt();
+
+  if (var.type() == QVariant::String) {
+    QString str = var.toString();
+
+    if (str == "yes" || str == "true"  || str == "1") { ok = true ; return true; }
+    if (str == "no"  || str == "false" || str == "0") { ok = false; return true; }
+  }
 
   ok = false;
 

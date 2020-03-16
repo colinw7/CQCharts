@@ -8,4 +8,5 @@ for {set i 0} {$i < 100} {incr i} {
 
 set modelId [load_charts_model -tcl [list $x $y] -first_line_header]
 
-set plotId [create_charts_plot -type xy -columns {{x X} {y (cos($row/10.0)}} -title "X/Y"]
+set plotId [create_charts_plot -type xy \
+  -columns {{x X} {y {{#COS (cos($row/10.0))}}}} -title "X/Y"]

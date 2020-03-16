@@ -131,6 +131,7 @@ class CQChartsImagePlot : public CQChartsPlot,
     BALLOON
   };
 
+ public:
   CQChartsImagePlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsImagePlot();

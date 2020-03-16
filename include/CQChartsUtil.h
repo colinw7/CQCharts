@@ -170,13 +170,14 @@ std::vector<double> stringToReals(const QString &str, bool &ok);
 //---
 
 int countLeadingBraces(const QString &str);
+int countLeadingBraces(CQStrParse &parse);
 
 QString polygonListToString(const CQChartsGeom::Polygons &polyList);
 bool stringToPolygons(const QString &str, CQChartsGeom::Polygons &polyList);
+bool parsePolygons(CQStrParse &parse, CQChartsGeom::Polygons &polyList);
 
 QString polygonToString(const CQChartsGeom::Polygon &poly);
 bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly );
-
 bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly);
 
 QString bboxToString(const CQChartsGeom::BBox &bbox);

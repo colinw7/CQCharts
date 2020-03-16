@@ -8,6 +8,8 @@
 #include <CQChartsColumnNum.h>
 #include <CQSummaryModel.h>
 
+class QScrollBar;
+
 //---
 
 /*!
@@ -214,6 +216,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   QString modeName(const Mode &mode) const;
 
  private slots:
+  void hscrollSlot(int);
+  void vscrollSlot(int);
+
   void setModeSlot(bool b);
 
   void maxRowsSlot();
@@ -237,23 +242,33 @@ class CQChartsTablePlot : public CQChartsPlot {
   struct TableData {
     QFont           font;
     QModelIndexList expandInds;
-    int             nc       { 0 };
-    int             nr       { 0 };
-    int             nvr      { 0 };
-    int             maxDepth { 0 };
-    double          prh      { 0.0 };
-    double          rh       { 0.0 };
-    double          pcw      { 0.0 };
-    double          dx       { 0.0 };
-    double          dy       { 0.0 };
-    double          xo       { 0.0 };
-    double          yo       { 0.0 };
-    double          rcw      { 0.0 };
+    int             nc       { 0 };   // number of columns
+    int             nr       { 0 };   // number of rows
+    int             nvr      { 0 };   // number of visible rows
+    int             maxDepth { 0 };   // max model item depth
+    double          prh      { 0.0 }; // pixel row height
+    double          rh       { 0.0 }; // row height
+    double          pcw      { 0.0 }; // pixel columns width
+    double          dx       { 0.0 }; // overflow width
+    double          dy       { 0.0 }; // overflow height
+    double          xo       { 0.0 }; // x offset
+    double          yo       { 0.0 }; // y offset
+    int             pmargin  { 2 };   // pixel margin
     ColumnData      rowColumnData;
     ColumnDataMap   columnDataMap;
   };
 
+  struct ScrollData {
+    bool        scrolled     { false };   //!< scrolled
+    int         hpos         { 0 };       //!< horizontal scroll position
+    int         vpos         { 0 };       //!< vertical scroll position
+    double      pixelBarSize { 13 };      //!< scroll bar pixel size
+    QScrollBar* hbar         { nullptr }; //!< horizontal scroll bar
+    QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
+  };
+
   TableData       tableData_;                //!< cached table data
+  ScrollData      scrollData_;               //!< scroll bar data
   CQChartsColumns columns_;                  //!< columns
   CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
   bool            rowColumn_    { false };   //!< draw row numbers column

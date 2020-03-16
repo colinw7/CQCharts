@@ -137,6 +137,8 @@ CQChartsModelData.cpp \
 CQChartsModelDetails.cpp \
 CQChartsModelExprMatch.cpp \
 CQChartsModelFilter.cpp \
+\
+CQChartsPlotModelVisitor.cpp \
 CQChartsModelVisitor.cpp \
 \
 CQChartsData.cpp \
@@ -452,6 +454,8 @@ HEADERS += \
 ../include/CQChartsModelDetails.h \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelFilter.h \
+\
+../include/CQChartsPlotModelVisitor.h \
 ../include/CQChartsModelVisitor.h \
 \
 ../include/CQChartsObjData.h \

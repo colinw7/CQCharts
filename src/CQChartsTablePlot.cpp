@@ -19,6 +19,7 @@
 #include <CMathRound.h>
 
 #include <QMenu>
+#include <QScrollBar>
 #include <QMetaMethod>
 
 CQChartsTablePlotType::
@@ -128,12 +129,48 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
   setOuterMargin(0, 0, 0, 0);
 
   addTitle();
+
+  //---
+
+  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view);
+  scrollData_.vbar = new QScrollBar(Qt::Vertical  , view);
+
+  scrollData_.hbar->hide();
+  scrollData_.vbar->hide();
+
+  connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hscrollSlot(int)));
+  connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
+
+  scrollData_.pixelBarSize = view->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
 }
 
 CQChartsTablePlot::
 ~CQChartsTablePlot()
 {
   delete summaryModel_;
+
+  delete scrollData_.hbar;
+  delete scrollData_.vbar;
+}
+
+//---
+
+void
+CQChartsTablePlot::
+hscrollSlot(int v)
+{
+  scrollData_.hpos = v;
+
+  drawObjs();
+}
+
+void
+CQChartsTablePlot::
+vscrollSlot(int v)
+{
+  scrollData_.vpos = v;
+
+  drawObjs();
 }
 
 //---
@@ -451,8 +488,6 @@ calcRange() const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
-  const int pxm = 2;
-
   //---
 
   QModelIndexList expandInds;
@@ -479,7 +514,7 @@ calcRange() const
                                 th->tableData_.maxDepth);
   }
 
-  th->tableData_.prh = fm.height() + 2*pxm;
+  th->tableData_.prh = fm.height() + 2*tableData_.pmargin;
 
   // calc column widths
   if (isRowColumn()) {
@@ -487,7 +522,7 @@ calcRange() const
 
     const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
-    data.pwidth  = power*fm.width("X") + 2*pxm;
+    data.pwidth  = power*fm.width("X") + 2*tableData_.pmargin;
     data.numeric = false;
   }
 
@@ -510,7 +545,7 @@ calcRange() const
 
     if (! ok) continue;
 
-    double cw = fm.width(str) + 2*pxm;
+    double cw = fm.width(str) + 2*tableData_.pmargin;
 
     if (i == 0)
       cw += tableData_.maxDepth*indent();
@@ -564,8 +599,6 @@ calcRange() const
 
       //---
 
-      const int pxm = 2;
-
       for (int i = 0; i < tableData_.nc; ++i) {
         const CQChartsColumn &c = plot_->columns().getColumn(i);
 
@@ -577,7 +610,7 @@ calcRange() const
 
         ColumnData &data = tableData_.columnDataMap[c];
 
-        double cw = fm_.width(str) + 2*pxm;
+        double cw = fm_.width(str) + 2*tableData_.pmargin;
 
         if (i == 0)
           cw += tableData_.maxDepth*plot_->indent();
@@ -613,7 +646,6 @@ calcRange() const
 
   // set full table width
   th->tableData_.pcw = 0.0;
-  th->tableData_.rcw = 0.0;
 
   if (isRowColumn()) {
     const ColumnData &data = th->tableData_.rowColumnData;
@@ -627,7 +659,7 @@ calcRange() const
     const ColumnData &data = th->tableData_.columnDataMap[c];
 
     if (data.prefWidth > 0)
-      th->tableData_.pcw += data.prefWidth + 2*pxm;
+      th->tableData_.pcw += data.prefWidth + 2*tableData_.pmargin;
     else
       th->tableData_.pcw += data.pwidth;
   }
@@ -861,22 +893,59 @@ drawTable(CQChartsPaintDevice *device) const
 
   //---
 
-  const int pxm = 2;
-
   th->tableData_.rh = pixelToWindowHeight(th->tableData_.prh);
 
   auto pixelRect = this->calcPlotPixelRect();
 
-  const double pdx = (pixelRect.getWidth () - 2*pxm -
-                      th->tableData_.pcw                         )/2.0;
-  const double pdy = (pixelRect.getHeight() - 2*pxm -
-                      th->tableData_.prh*(th->tableData_.nvr + 1))/2.0;
+  const double pdx = (pixelRect.getWidth () - 2*tableData_.pmargin -
+                      th->tableData_.pcw                         );
+  const double pdy = (pixelRect.getHeight() - 2*tableData_.pmargin -
+                      th->tableData_.prh*(th->tableData_.nvr + 1));
 
-  th->tableData_.dx = pixelToSignedWindowWidth (pdx);
-  th->tableData_.dy = pixelToSignedWindowHeight(pdy);
+  //---
 
-  th->tableData_.xo = std::max(th->tableData_.dx, 0.0);
-  th->tableData_.yo = std::max(th->tableData_.dy, 0.0);
+  scrollData_.hbar->setVisible(pdx < 0.0);
+  scrollData_.vbar->setVisible(pdy < 0.0);
+
+  if (scrollData_.hbar->isVisible()) {
+    scrollData_.hbar->move  (0, pixelRect.getHeight() - scrollData_.pixelBarSize);
+    scrollData_.hbar->resize(pixelRect.getWidth(), scrollData_.pixelBarSize);
+
+    scrollData_.hbar->setRange(0, -pdx);
+    scrollData_.hbar->setPageStep(pixelRect.getWidth());
+  }
+  else
+    th->scrollData_.hpos = 0;
+
+  if (scrollData_.vbar->isVisible()) {
+    scrollData_.vbar->move(pixelRect.getWidth() - scrollData_.pixelBarSize, 0);
+    scrollData_.vbar->resize(scrollData_.pixelBarSize, pixelRect.getHeight());
+
+    scrollData_.vbar->setRange(0, -pdy);
+    scrollData_.vbar->setPageStep(pixelRect.getHeight());
+  }
+  else
+    th->scrollData_.vpos = 0;
+
+  //---
+
+  if (scrollData_.hbar->isVisible()) {
+    th->tableData_.dx = pixelToSignedWindowWidth(-scrollData_.hpos);
+    th->tableData_.xo = th->tableData_.dx;
+  }
+  else {
+    th->tableData_.dx = pixelToSignedWindowWidth(pdx/2.0);
+    th->tableData_.xo = std::max(th->tableData_.dx, 0.0);
+  }
+
+  if (scrollData_.vbar->isVisible()) {
+    th->tableData_.dy = pixelToSignedWindowHeight(-scrollData_.vpos);
+    th->tableData_.yo = pixelToSignedWindowHeight(pdy) - th->tableData_.dy;
+  }
+  else {
+    th->tableData_.dy = pixelToSignedWindowHeight(pdy/2.0);
+    th->tableData_.yo = std::max(th->tableData_.dy, 0.0);
+  }
 
   //---
 
@@ -905,7 +974,7 @@ drawTable(CQChartsPaintDevice *device) const
     data.drawWidth = data.width;
 
     if (data.prefWidth > 0)
-      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2*pxm);
+      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2*tableData_.pmargin);
 
     th->tableData_.columnDataMap[c] = data;
 
@@ -1012,9 +1081,7 @@ drawTable(CQChartsPaintDevice *device) const
     RowVisitor(const CQChartsTablePlot *plot, CQChartsPaintDevice *device,
                const TableData &tableData_) :
      plot_(plot), device_(device), tableData_(tableData_) {
-      const int pxm = 2;
-
-      xm_ = plot_->pixelToWindowWidth(pxm);
+      xm_ = plot_->pixelToWindowWidth(tableData_.pmargin);
       xd_ = plot_->pixelToWindowWidth(plot_->indent());
     }
 

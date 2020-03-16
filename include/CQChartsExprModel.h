@@ -12,10 +12,10 @@
 class CQChartsModelFilter;
 class CQChartsExprModelFn;
 class CQChartsModelData;
-class CQCharts;
-class CQChartsExprCmdValues;
-
 class CQChartsExprTcl;
+class CQChartsExprCmdValues;
+class CQCharts;
+
 class CQTcl;
 
 //---
@@ -185,8 +185,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   virtual QVariant processCmd(const QString &name, const Values &values);
 
-  void setVar(const QString &name, int row, int column);
-
  private:
   bool calcColumnRange(int column, double &minVal, double &maxVal);
   bool calcColumnRange(int column, int &minVal, int &maxVal);
@@ -297,9 +295,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   QString replaceExprColumns(const QString &expr, int row, int column) const;
 
-  bool setTclResult(const QVariant &rc);
-  bool getTclResult(QVariant &rc) const;
-
   bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax);
 
   bool getColumnValue(CQChartsExprCmdValues &cmdValues, int &col) const;
@@ -335,7 +330,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
   ColumnDatas          columnDatas_;            //!< cached column datas
   ColumnNames          columnNames_;            //!< cached column names
   NameColumns          nameColumns_;            //!< cached named columns
-  mutable QVariant     lastValue_;              //!< last evaluated value
   mutable std::mutex   mutex_;                  //!< update mutex
 };
 

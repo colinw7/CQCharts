@@ -1400,6 +1400,15 @@ setFilterStr(const QString &s)
 
 void
 CQChartsPlot::
+setSkipBad(bool b)
+{
+  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
 setTitleStr(const QString &s)
 {
   if (title()) {
@@ -2294,6 +2303,8 @@ addBaseProperties()
 
   // filter
   addProp("filter", "filterStr", "expression", "Filter expression", true);
+
+  addProp("filter", "skipBad", "skipBad", "Skip bad values");
 
   //---
 
@@ -3254,7 +3265,7 @@ updateAndApplyPlotRange1(bool updateObjs)
 
     // start update range thread
     updateData_.updateObjs   = updateObjs;
-    updateData_.drawBusy.ind = 0;
+    updateData_.drawBusy.ind = -100;
 
     setUpdateState(UpdateState::CALC_RANGE);
 
@@ -3504,7 +3515,7 @@ updatePlotObjs()
     //---
 
     // start update objs thread
-    updateData_.drawBusy.ind = 0;
+    updateData_.drawBusy.ind = -100;
 
     setUpdateState(UpdateState::CALC_OBJS);
 
@@ -7120,7 +7131,7 @@ updateDraw()
     getBuffer(CQChartsBuffer::Type::MIDDLE    )->setValid(false);
     getBuffer(CQChartsBuffer::Type::FOREGROUND)->setValid(false);
 
-    updateData_.drawBusy.ind = 0;
+    updateData_.drawBusy.ind = -100;
 
     setUpdateState(UpdateState::DRAW_OBJS);
 
@@ -7245,6 +7256,13 @@ void
 CQChartsPlot::
 drawBusy(QPainter *painter, const UpdateState &updateState) const
 {
+  if (updateData_.drawBusy.ind < 0) {
+    ++updateData_.drawBusy.ind;
+    return;
+  }
+
+  //---
+
   CQChartsGeom::Point p1 =
     view()->windowToPixel(CQChartsGeom::Point(viewBBox().getXMin(), viewBBox().getYMin()));
   CQChartsGeom::Point p2 =
@@ -10261,6 +10279,8 @@ visitModel(ModelVisitor &visitor) const
   //  visitor.setMaxRows(previewMaxRows());
 
   (void) CQChartsModelVisit::exec(charts(), model().data(), visitor);
+
+  visitor.term();
 }
 
 //------
@@ -11850,91 +11870,4 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
-}
-
-//------
-
-CQChartsPlot::ModelVisitor::
-ModelVisitor()
-{
-}
-
-CQChartsPlot::ModelVisitor::
-~ModelVisitor()
-{
-  delete expr_;
-}
-
-void
-CQChartsPlot::ModelVisitor::
-init()
-{
-  assert(plot_);
-
-  if (plot_->filterStr().length()) {
-    expr_ = new CQChartsModelExprMatch;
-
-    expr_->setModel(plot_->model().data());
-
-    expr_->initMatch(plot_->filterStr());
-
-    expr_->initColumns();
-  }
-}
-
-CQChartsPlot::ModelVisitor::State
-CQChartsPlot::ModelVisitor::
-preVisit(const QAbstractItemModel *model, const VisitData &data)
-{
-  if (plot_->isInterrupt())
-    return State::TERMINATE;
-
-  //---
-
-  int vrow = vrow_++;
-
-  //---
-
-  if (expr_) {
-    bool ok;
-
-    QModelIndex ind = model->index(data.row, 0, data.parent);
-
-    if (! expr_->match(ind, ok))
-      return State::SKIP;
-  }
-
-  //---
-
-  if (plot_->isEveryEnabled()) {
-    int start = plot_->everyStart();
-    int end   = plot_->everyEnd();
-
-    if (vrow < start || vrow > end)
-      return State::SKIP;
-
-    int step = plot_->everyStep();
-
-    if (step > 1) {
-      int n = (vrow - start) % step;
-
-      if (n != 0)
-        return State::SKIP;
-    }
-  }
-
-  //---
-
-  if (plot_->visibleColumn().isValid()) {
-    CQChartsModelIndex visibleColumnInd(data.row, plot_->visibleColumn(), data.parent);
-
-    bool ok;
-
-    QVariant value = plot_->modelValue(visibleColumnInd, ok);
-
-    if (ok && ! CQChartsVariant::toBool(value, ok))
-      return State::SKIP;
-  }
-
-  return State::OK;
 }

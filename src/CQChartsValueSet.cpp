@@ -147,6 +147,24 @@ numUnique() const
   return 0;
 }
 
+QVariant
+CQChartsValueSet::
+uniqueValue() const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.uniqueValue();
+  else if (type() == Type::REAL)
+    return rvals_.uniqueValue();
+  else if (type() == Type::STRING)
+    return svals_.uniqueValue();
+  else if (type() == Type::COLOR)
+    return cvals_.uniqueValue();
+  else if (type() == Type::TIME)
+    return rvals_.uniqueValue();
+
+  return QVariant();
+}
+
 double
 CQChartsValueSet::
 imap(const QVariant &value) const
