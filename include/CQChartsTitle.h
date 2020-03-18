@@ -28,6 +28,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   Q_PROPERTY(bool insidePlot READ isInsidePlot WRITE setInsidePlot)
 
+  Q_PROPERTY(bool fitHorizontal READ isFitHorizontal WRITE setFitHorizontal)
+  Q_PROPERTY(bool fitVertical   READ isFitVertical   WRITE setFitVertical  )
+
  public:
   CQChartsTitle(CQChartsPlot *plot);
  ~CQChartsTitle();
@@ -53,6 +56,12 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   bool isInsidePlot() const { return insidePlot_; }
   void setInsidePlot(bool b);
+
+  bool isFitHorizontal() const { return fitData_.horizontal; }
+  void setFitHorizontal(bool b) { fitData_.horizontal = b; }
+
+  bool isFitVertical() const { return fitData_.vertical; }
+  void setFitVertical(bool b) { fitData_.vertical = b; }
 
   //---
 
@@ -92,6 +101,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   CQChartsGeom::Size calcSize();
 
+  CQChartsGeom::BBox fitBBox() const;
+
   //---
 
   void redraw(bool wait=true);
@@ -127,14 +138,24 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void textBoxDataInvalidate() override;
 
  private:
-  CQChartsTitleLocation      location_;                      //!< location type
-  CQChartsPosition           absolutePosition_;              //!< position (relative to plot box)
-  CQChartsRect               absoluteRectangle_;             //!< rect (relative to plot box)
-  bool                       insidePlot_        { false };   //!< is placed inside plot
-  CQChartsGeom::Point        position_          { 0, 0 };    //!< position
-  CQChartsGeom::Size         size_;                          //!< size
-  mutable CQChartsGeom::BBox bbox_;                          //!< bbox
-  CQChartsEditHandles*       editHandles_       { nullptr }; //!< edit handles
+  using BBox  = CQChartsGeom::BBox;
+  using Size  = CQChartsGeom::Size;
+  using Point = CQChartsGeom::Point;
+
+  struct FitData {
+    bool horizontal { true };
+    bool vertical   { true };
+  };
+
+  CQChartsTitleLocation location_;                      //!< location type
+  CQChartsPosition      absolutePosition_;              //!< position (relative to plot box)
+  CQChartsRect          absoluteRectangle_;             //!< rect (relative to plot box)
+  bool                  insidePlot_        { false };   //!< is placed inside plot
+  Point                 position_          { 0, 0 };    //!< position
+  Size                  size_;                          //!< size
+  mutable BBox          bbox_;                          //!< bbox
+  CQChartsEditHandles*  editHandles_       { nullptr }; //!< edit handles
+  FitData               fitData_;                       //!< fit data
 };
 
 #endif

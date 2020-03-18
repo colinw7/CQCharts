@@ -64,9 +64,9 @@ paintEvent(QPaintEvent *)
   CQChartsTextOptions options;
 
   options.angle            = angle();
+  options.align            = align();
   options.contrast         = isContrast();
   options.contrastAlpha    = contrastAlpha();
-  options.align            = align();
   options.formatted        = isFormatted();
   options.scaled           = isScaled();
   options.html             = isHtml();

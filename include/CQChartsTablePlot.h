@@ -59,21 +59,22 @@ class CQChartsTablePlot : public CQChartsPlot {
   // columns
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
-  Q_PROPERTY(Mode              mode        READ mode         WRITE setMode       )
-  Q_PROPERTY(int               maxRows     READ maxRows      WRITE setMaxRows    )
-  Q_PROPERTY(CQChartsColumnNum sortColumn  READ sortColumn   WRITE setSortColumn )
-  Q_PROPERTY(int               sortRole    READ sortRole     WRITE setSortRole   )
-  Q_PROPERTY(Qt::SortOrder     sortOrder   READ sortOrder    WRITE setSortOrder  )
-  Q_PROPERTY(int               pageSize    READ pageSize     WRITE setPageSize   )
-  Q_PROPERTY(int               currentPage READ currentPage  WRITE setCurrentPage)
-  Q_PROPERTY(QString           rowNums     READ rowNumsStr   WRITE setRowNumsStr )
-  Q_PROPERTY(bool              rowColumn   READ isRowColumn  WRITE setRowColumn  )
-  Q_PROPERTY(CQChartsColor     gridColor   READ gridColor    WRITE setGridColor  )
-  Q_PROPERTY(CQChartsColor     textColor   READ textColor    WRITE setTextColor  )
-  Q_PROPERTY(CQChartsColor     headerColor READ headerColor  WRITE setHeaderColor)
-  Q_PROPERTY(CQChartsColor     cellColor   READ cellColor    WRITE setCellColor  )
-  Q_PROPERTY(double            indent      READ indent       WRITE setIndent     )
-  Q_PROPERTY(bool              followView  READ isFollowView WRITE setFollowView )
+  Q_PROPERTY(Mode              mode          READ mode            WRITE setMode         )
+  Q_PROPERTY(int               maxRows       READ maxRows         WRITE setMaxRows      )
+  Q_PROPERTY(CQChartsColumnNum sortColumn    READ sortColumn      WRITE setSortColumn   )
+  Q_PROPERTY(int               sortRole      READ sortRole        WRITE setSortRole     )
+  Q_PROPERTY(Qt::SortOrder     sortOrder     READ sortOrder       WRITE setSortOrder    )
+  Q_PROPERTY(int               pageSize      READ pageSize        WRITE setPageSize     )
+  Q_PROPERTY(int               currentPage   READ currentPage     WRITE setCurrentPage  )
+  Q_PROPERTY(QString           rowNums       READ rowNumsStr      WRITE setRowNumsStr   )
+  Q_PROPERTY(bool              rowColumn     READ isRowColumn     WRITE setRowColumn    )
+  Q_PROPERTY(bool              headerVisible READ isHeaderVisible WRITE setHeaderVisible)
+  Q_PROPERTY(CQChartsColor     headerColor   READ headerColor     WRITE setHeaderColor  )
+  Q_PROPERTY(CQChartsColor     gridColor     READ gridColor       WRITE setGridColor    )
+  Q_PROPERTY(CQChartsColor     textColor     READ textColor       WRITE setTextColor    )
+  Q_PROPERTY(CQChartsColor     cellColor     READ cellColor       WRITE setCellColor    )
+  Q_PROPERTY(double            indent        READ indent          WRITE setIndent       )
+  Q_PROPERTY(bool              followView    READ isFollowView    WRITE setFollowView   )
 
   Q_ENUMS(Mode)
 
@@ -156,14 +157,19 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  bool isHeaderVisible() const { return headerData_.visible; }
+  void setHeaderVisible(bool b);
+
+  const CQChartsColor &headerColor() const { return headerData_.color; }
+  void setHeaderColor(const CQChartsColor &c);
+
+  //---
+
   const CQChartsColor &gridColor() const { return gridColor_; }
   void setGridColor(const CQChartsColor &c);
 
   const CQChartsColor &textColor() const { return textColor_; }
   void setTextColor(const CQChartsColor &c);
-
-  const CQChartsColor &headerColor() const { return headerColor_; }
-  void setHeaderColor(const CQChartsColor &c);
 
   const CQChartsColor &cellColor() const { return cellColor_; }
   void setCellColor(const CQChartsColor &c);
@@ -267,14 +273,19 @@ class CQChartsTablePlot : public CQChartsPlot {
     QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
   };
 
+  struct HeaderData {
+    bool          visible { true }; //!< header visible
+    CQChartsColor color;            //!< header color
+  };
+
   TableData       tableData_;                //!< cached table data
   ScrollData      scrollData_;               //!< scroll bar data
   CQChartsColumns columns_;                  //!< columns
   CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
   bool            rowColumn_    { false };   //!< draw row numbers column
+  HeaderData      headerData_;               //!< header data
   CQChartsColor   gridColor_;                //!< grid color
   CQChartsColor   textColor_;                //!< text color
-  CQChartsColor   headerColor_;              //!< header color
   CQChartsColor   cellColor_;                //!< cell color
   double          indent_       { 8.0 };     //!< hier indent
   bool            followView_   { false };   //!< follow view

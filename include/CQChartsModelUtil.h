@@ -252,6 +252,9 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
 bool stringToColumns(const QAbstractItemModel *model, const QString &str,
                      std::vector<CQChartsColumn> &columns);
 
+bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
+                      CQChartsModelIndex &ind);
+
 }
 
 //------

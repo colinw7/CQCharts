@@ -110,7 +110,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   //---
 
   bool isOrigColumn (int column) const;
-  bool isExtraColumn(int column) const;
+  bool isExtraColumn(int column, int &ecolumn) const;
 
   bool isReadOnly() const;
   void setReadOnly(bool b);

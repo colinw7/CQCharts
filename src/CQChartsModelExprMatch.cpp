@@ -245,7 +245,7 @@ processCmd(const QString &name, const Values &values)
   // string
   else if (name == "match") return matchCmd(values);
 
-  // match
+  // math
   else if (name == "isnan") return isnanCmd(values);
 
   // details

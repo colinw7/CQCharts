@@ -2645,8 +2645,8 @@ propertyItemSelected(QObject *obj, const QString &)
 
     changed = true;
   }
-  else if (obj == titleObj_) {
-    titleObj_->setSelected(true);
+  else if (obj == title()) {
+    title()->setSelected(true);
 
     drawForeground();
 
@@ -2877,9 +2877,11 @@ void
 CQChartsPlot::
 addTitle()
 {
+  assert(! titleObj_);
+
   titleObj_ = new CQChartsTitle(this);
 
-  titleObj_->setTextStr(titleStr());
+  title()->setTextStr(titleStr());
 }
 
 //------
@@ -8868,7 +8870,7 @@ titleFitBBox() const
   CQChartsGeom::BBox bbox;
 
   if (title() && title()->isVisible())
-    bbox += title()->bbox();
+    bbox += title()->fitBBox();
 
   return bbox;
 }

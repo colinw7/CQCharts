@@ -124,7 +124,7 @@ class CQChartsExprTcl : public CQTcl {
     else if (name == "column" || name == "col") {
       createVar(name, column);
     }
-    else if (name == "pi") {
+    else if (name == "PI") {
       createVar(name, QVariant(M_PI));
     }
     else if (name == "NaN") {

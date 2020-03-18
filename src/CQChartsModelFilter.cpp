@@ -453,6 +453,24 @@ initFilter()
   //expandMatches();
 }
 
+bool
+CQChartsModelFilter::
+lessThan(const QModelIndex &lhs, const QModelIndex &rhs) const
+{
+  QVariant ldata = sourceModel()->data(lhs, Qt::EditRole);
+
+  if (! ldata.isValid())
+    ldata = sourceModel()->data(lhs, Qt::DisplayRole);
+
+  QVariant rdata = sourceModel()->data(rhs, Qt::EditRole);
+
+  if (! rdata.isValid())
+    rdata = sourceModel()->data(rhs, Qt::DisplayRole);
+
+  return (CQChartsVariant::cmp(ldata, rdata) < 0);
+//return QSortFilterProxyModel::lessThan(lhs, rhs);
+}
+
 QVariant
 CQChartsModelFilter::
 data(const QModelIndex &ind, int role) const

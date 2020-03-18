@@ -70,8 +70,6 @@ class CQChartsModelExprMatch {
  private:
   void addBuiltinFunctions();
 
-  void setVar(const QModelIndex &ind);
-
   //---
 
   // get model data

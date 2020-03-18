@@ -1068,3 +1068,7 @@
  + Add join for models by column
  + clean up common expr eval code
  + add scrollbar to table plot
+# 03/18/2020
+ + Improve alignment support for formatted html text
+ + support column name in tcl model index arg
+ + allow table plot header to be hidden and improve title support

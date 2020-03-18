@@ -116,8 +116,10 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
   if (! CQChartsModelUtil::isHierarchical(model.data()))
     summaryModel_ = new CQSummaryModel(model.data());
 
-  setMaxRows (60);
-  setPageSize(60);
+  int pageSize = 1024;
+
+  setMaxRows (10*pageSize);
+  setPageSize(pageSize);
 
   setGridColor  (QColor(128, 128, 128));
   setTextColor  (QColor(  0,   0,   0));
@@ -401,6 +403,22 @@ setRowColumn(bool b)
 
 void
 CQChartsTablePlot::
+setHeaderVisible(bool b)
+{
+  CQChartsUtil::testAndSet(headerData_.visible, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsTablePlot::
+setHeaderColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(headerData_.color, c, [&]() { updateObjs(); } );
+}
+
+//---
+
+void
+CQChartsTablePlot::
 setGridColor(const CQChartsColor &c)
 {
   CQChartsUtil::testAndSet(gridColor_, c, [&]() { updateObjs(); } );
@@ -411,13 +429,6 @@ CQChartsTablePlot::
 setTextColor(const CQChartsColor &c)
 {
   CQChartsUtil::testAndSet(textColor_, c, [&]() { updateObjs(); } );
-}
-
-void
-CQChartsTablePlot::
-setHeaderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(headerColor_, c, [&]() { updateObjs(); } );
 }
 
 void
@@ -473,9 +484,11 @@ addProperties()
   addProp("options", "rowNums"    , "rowNums"    , "Set row numbers" );
   addProp("options", "rowColumn"  , "rowColumn"  , "Display row number column" );
 
+  addProp("header", "headerVisible", "visible", "Header visible");
+  addProp("header", "headerColor"  , "color"  , "Header color"  );
+
   addProp("options", "gridColor"  , "gridColor"  , "Grid color"  );
   addProp("options", "textColor"  , "textColor"  , "Text color"  );
-  addProp("options", "headerColor", "headerColor", "Header color");
   addProp("options", "cellColor"  , "cellColor"  , "Cell color"  );
 
   addProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
@@ -895,12 +908,13 @@ drawTable(CQChartsPaintDevice *device) const
 
   th->tableData_.rh = pixelToWindowHeight(th->tableData_.prh);
 
-  auto pixelRect = this->calcPlotPixelRect();
+  auto pixelRect = this->calcDataPixelRect();
 
-  const double pdx = (pixelRect.getWidth () - 2*tableData_.pmargin -
-                      th->tableData_.pcw                         );
-  const double pdy = (pixelRect.getHeight() - 2*tableData_.pmargin -
-                      th->tableData_.prh*(th->tableData_.nvr + 1));
+  double pdx = pixelRect.getWidth () - 2*tableData_.pmargin - tableData_.pcw;
+  double pdy = pixelRect.getHeight() - 2*tableData_.pmargin - tableData_.prh*tableData_.nvr;
+
+  if (isHeaderVisible())
+    pdy -= tableData_.prh;
 
   //---
 
@@ -908,7 +922,7 @@ drawTable(CQChartsPaintDevice *device) const
   scrollData_.vbar->setVisible(pdy < 0.0);
 
   if (scrollData_.hbar->isVisible()) {
-    scrollData_.hbar->move  (0, pixelRect.getHeight() - scrollData_.pixelBarSize);
+    scrollData_.hbar->move  (pixelRect.getXMin(), pixelRect.getYMax() - scrollData_.pixelBarSize);
     scrollData_.hbar->resize(pixelRect.getWidth(), scrollData_.pixelBarSize);
 
     scrollData_.hbar->setRange(0, -pdx);
@@ -918,7 +932,7 @@ drawTable(CQChartsPaintDevice *device) const
     th->scrollData_.hpos = 0;
 
   if (scrollData_.vbar->isVisible()) {
-    scrollData_.vbar->move(pixelRect.getWidth() - scrollData_.pixelBarSize, 0);
+    scrollData_.vbar->move(pixelRect.getXMax() - scrollData_.pixelBarSize, pixelRect.getYMin());
     scrollData_.vbar->resize(scrollData_.pixelBarSize, pixelRect.getHeight());
 
     scrollData_.vbar->setRange(0, -pdy);
@@ -983,27 +997,40 @@ drawTable(CQChartsPaintDevice *device) const
 
   //---
 
+  device->save();
+
+  device->setClipRect(pixelToWindow(pixelRect));
+
+  //---
+
+  // size of all rows
   const double trh = tableData_.nvr*th->tableData_.rh;
 
-  const double x1 = th->tableData_.xo;                       // left
-  const double y1 = th->tableData_.yo + trh + tableData_.rh; // top
-  const double x2 = x;                                       // right
-  const double y2 = th->tableData_.yo;                       // bottom
+  double x1 = th->tableData_.xo;       // left
+  double y1 = th->tableData_.yo + trh; // top
+  double x2 = x;                       // right
+  double y2 = th->tableData_.yo;       // bottom
+
+  // add optional header height
+  if (isHeaderVisible())
+    y1 += tableData_.rh;
 
   //---
 
   // draw header background
-  QBrush headerBrush;
+  if (isHeaderVisible()) {
+    QBrush headerBrush;
 
-  setBrush(headerBrush, true, interpColor(headerColor(), ColorInd()),
-           CQChartsAlpha(), CQChartsFillPattern());
+    setBrush(headerBrush, true, interpColor(headerColor(), ColorInd()),
+             CQChartsAlpha(), CQChartsFillPattern());
 
-  device->setBrush(headerBrush);
+    device->setBrush(headerBrush);
 
-  if (x2 > x1) {
-    CQChartsGeom::BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
+    if (x2 > x1) {
+      CQChartsGeom::BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
 
-    device->fillRect(bbox, device->brush());
+      device->fillRect(bbox, device->brush());
+    }
   }
 
   // draw cells background
@@ -1055,10 +1082,16 @@ drawTable(CQChartsPaintDevice *device) const
   // right edge
   device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
 
-  // draw row lines
+  // draw header and row lines
   double y = th->tableData_.yo;
 
-  for (int i = 0; i < tableData_.nvr + 1; ++i) {
+  if (isHeaderVisible()) {
+    device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
+
+    y += tableData_.rh;
+  }
+
+  for (int i = 0; i < tableData_.nvr; ++i) {
     device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
 
     y += tableData_.rh;
@@ -1092,8 +1125,10 @@ drawTable(CQChartsPaintDevice *device) const
       //---
 
       // draw header
-      if (data.vrow == 0)
-        drawHeader();
+      if (plot_->isHeaderVisible())
+        if (data.vrow == 0) {
+          drawHeader();
+      }
 
       //---
 
@@ -1148,8 +1183,10 @@ drawTable(CQChartsPaintDevice *device) const
       //---
 
       // draw header
-      if (data.vrow == 0)
-        drawHeader();
+      if (plot_->isHeaderVisible())
+        if (data.vrow == 0) {
+          drawHeader();
+      }
 
       //---
 
@@ -1296,6 +1333,10 @@ drawTable(CQChartsPaintDevice *device) const
     CQChartsModelVisit::exec(charts(), summaryModel_, visitor);
   else
     CQChartsModelVisit::exec(charts(), model().data(), visitor);
+
+  //---
+
+  device->restore();
 }
 
 void

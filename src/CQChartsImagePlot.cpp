@@ -467,14 +467,13 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   CQChartsTextOptions textOptions;
 
+  textOptions.angle         = xLabelTextAngle();
+  textOptions.align         = xLabelTextAlign();
   textOptions.contrast      = isXLabelTextContrast();
   textOptions.contrastAlpha = xLabelTextContrastAlpha();
   textOptions.formatted     = isXLabelTextFormatted();
   textOptions.scaled        = isXLabelTextScaled();
   textOptions.html          = isXLabelTextHtml();
-  textOptions.align         = xLabelTextAlign();
-  textOptions.angle         = xLabelTextAngle();
-  textOptions.scaled        = isXLabelTextScaled();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -556,14 +555,13 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   CQChartsTextOptions textOptions;
 
+  textOptions.angle         = yLabelTextAngle();
+  textOptions.align         = yLabelTextAlign();
   textOptions.contrast      = isYLabelTextContrast();
   textOptions.contrastAlpha = yLabelTextContrastAlpha();
   textOptions.formatted     = isYLabelTextFormatted();
   textOptions.scaled        = isYLabelTextScaled();
   textOptions.html          = isYLabelTextHtml();
-  textOptions.align         = yLabelTextAlign();
-  textOptions.angle         = yLabelTextAngle();
-  textOptions.scaled        = isYLabelTextScaled();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -797,13 +795,12 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsTextOptions textOptions;
 
+      textOptions.align         = plot_->cellLabelTextAlign();
       textOptions.contrast      = plot_->isCellLabelTextContrast();
       textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
       textOptions.formatted     = plot_->isCellLabelTextFormatted();
       textOptions.scaled        = plot_->isCellLabelTextScaled();
       textOptions.html          = plot_->isCellLabelTextHtml();
-      textOptions.align         = plot_->cellLabelTextAlign();
-      textOptions.scaled        = plot_->isCellLabelTextScaled();
 
       textOptions = plot_->adjustTextOptions(textOptions);
 

@@ -1950,12 +1950,13 @@ draw(CQChartsPaintDevice *device)
   CQChartsTextOptions textOptions;
 
   textOptions.angle         = textAngle();
+  textOptions.align         = textAlign();
   textOptions.contrast      = isTextContrast();
   textOptions.contrastAlpha = textContrastAlpha();
-  textOptions.formatted     = true;
+  textOptions.formatted     = isTextFormatted();
+  textOptions.scaled        = isTextScaled();
   textOptions.html          = isTextHtml();
   textOptions.clipped       = false;
-  textOptions.align         = textAlign();
 
   adjustTextOptions(textOptions);
 

@@ -180,6 +180,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectangle");
   model->addProperty(path, this, "insidePlot"       )->setDesc("Title is inside plot");
 
+  QString fitPath = path + "/fit";
+
+  model->addProperty(fitPath, this, "fitHorizontal", "horizontal")->
+    setDesc("Fit title horizontally");
+  model->addProperty(fitPath, this, "fitVertical"  , "vertical"  )->
+    setDesc("Fit title vertically");
+
   CQChartsTextBoxObj::addProperties(model, path, "");
 }
 
@@ -248,6 +255,24 @@ calcSize()
   }
 
   return size_;
+}
+
+CQChartsGeom::BBox
+CQChartsTitle::
+fitBBox() const
+{
+  CQChartsGeom::BBox bbox = this->bbox();
+
+  if (isFitHorizontal() && isFitVertical())
+    return bbox;
+
+  if (isFitHorizontal())
+    return CQChartsGeom::BBox(bbox.getXMin(), bbox.getYMid(), bbox.getXMax(), bbox.getYMid());
+
+  if (isFitVertical())
+    return CQChartsGeom::BBox(bbox.getXMid(), bbox.getYMin(), bbox.getXMid(), bbox.getYMax());
+
+  return CQChartsGeom::BBox();
 }
 
 bool
@@ -433,12 +458,13 @@ draw(CQChartsPaintDevice *device)
   CQChartsTextOptions textOptions;
 
   textOptions.angle         = textAngle();
+  textOptions.align         = textAlign();
   textOptions.contrast      = isTextContrast();
   textOptions.contrastAlpha = textContrastAlpha();
   textOptions.formatted     = true;
+  textOptions.scaled        = false;
   textOptions.html          = isTextHtml();
   textOptions.clipped       = false;
-  textOptions.align         = textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -482,4 +508,6 @@ textBoxDataInvalidate()
 {
   if (! isDrawn())
     bbox_ = CQChartsGeom::BBox();
+
+  plot_->drawObjs();
 }

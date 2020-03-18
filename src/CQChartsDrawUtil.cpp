@@ -706,15 +706,17 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
 
   double dx = 0.0, dy = 0.0;
 
-  if      (options.align & Qt::AlignHCenter)
-    dx = (ptbbox.getWidth() - psize.width())/2.0;
-  else if (options.align & Qt::AlignRight)
-    dx = ptbbox.getWidth() - psize.width();
+  if (! options.formatted) {
+    if      (options.align & Qt::AlignHCenter)
+      dx = (ptbbox.getWidth() - psize.width())/2.0;
+    else if (options.align & Qt::AlignRight)
+      dx = ptbbox.getWidth() - psize.width();
 
-  if      (options.align & Qt::AlignVCenter)
-    dy = (ptbbox.getHeight() - psize.height())/2.0;
-  else if (options.align & Qt::AlignBottom)
-    dy = ptbbox.getHeight() - psize.height();
+    if      (options.align & Qt::AlignVCenter)
+      dy = (ptbbox.getHeight() - psize.height())/2.0;
+    else if (options.align & Qt::AlignBottom)
+      dy = ptbbox.getHeight() - psize.height();
+  }
 
   ptbbox = ptbbox.translated(dx, dy);
 
@@ -759,6 +761,24 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
     painter->translate(ptbbox.getXMin(), ptbbox.getYMin());
 
   painter->setClipRect(ptbbox1.qrect(), Qt::IntersectClip);
+
+  int pm = 8;
+
+  td.setPageSize(QSizeF(ptbbox.getWidth() + pm, ptbbox.getHeight() + pm));
+
+  //---
+
+  QTextCursor cursor(&td);
+
+  cursor.select(QTextCursor::Document);
+
+  QTextBlockFormat f;
+
+  f.setAlignment(options.align);
+
+  cursor.setBlockFormat(f);
+
+  //---
 
   QAbstractTextDocumentLayout::PaintContext ctx;
 

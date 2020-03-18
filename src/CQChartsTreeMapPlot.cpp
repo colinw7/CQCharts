@@ -1385,13 +1385,13 @@ draw(CQChartsPaintDevice *device)
     CQChartsTextOptions textOptions;
 
     textOptions.angle         = plot_->headerTextAngle();
+    textOptions.align         = plot_->headerTextAlign();
     textOptions.contrast      = plot_->isHeaderTextContrast();
     textOptions.contrastAlpha = plot_->headerTextContrastAlpha();
     textOptions.formatted     = plot_->isHeaderTextFormatted();
     textOptions.scaled        = plot_->isHeaderTextScaled();
     textOptions.html          = plot_->isHeaderTextHtml();
     textOptions.clipped       = plot_->isTitleTextClipped();
-    textOptions.align         = plot_->headerTextAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1690,14 +1690,14 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
     CQChartsTextOptions textOptions;
 
     textOptions.angle         = plot_->textAngle();
+    textOptions.align         = plot_->textAlign();
     textOptions.contrast      = plot_->isTextContrast();
     textOptions.contrastAlpha = plot_->textContrastAlpha();
     textOptions.formatted     = plot_->isTextFormatted();
+    textOptions.formatSeps    = plot_->separator();
     textOptions.scaled        = plot_->isTextScaled();
     textOptions.html          = plot_->isTextHtml();
     textOptions.clipped       = plot_->isTextClipped();
-    textOptions.align         = plot_->textAlign();
-    textOptions.formatSeps    = plot_->separator();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

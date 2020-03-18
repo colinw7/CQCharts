@@ -1628,6 +1628,41 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
   return rc;
 }
 
+bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
+                      CQChartsModelIndex &ind) {
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  if (strs.length() < 2)
+    return false;
+
+  bool ok;
+
+  int row = strs[0].toInt(&ok);
+
+  if (! ok)
+    return false;
+
+  CQChartsColumn column;
+
+  if (! stringToColumn(model, strs[1], column)) {
+    bool ok;
+
+    int icol = strs[1].toInt(&ok);
+
+    if (! ok)
+      return false;
+
+    column = CQChartsColumn(icol);
+  }
+
+  ind = CQChartsModelIndex(row, column);
+
+  return true;
+}
+
 }
 
 //------

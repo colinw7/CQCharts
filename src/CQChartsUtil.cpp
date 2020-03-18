@@ -1045,6 +1045,7 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
   //---
 
+  // number of newlines
   std::size_t nl = str.count('\n');
 
   //---
@@ -1078,13 +1079,13 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
   if (formatData.isValid())
     findStringCustomSplits(sstr, splits, formatData);
 
-  if (splits.size() < nl)
+  if (splits.size() < nl + 1)
     findStringSpaceSplits(sstr, splits);
 
-  if (splits.size() < nl)
+  if (splits.size() < nl + 1)
     findStringPunctSplits(sstr, splits);
 
-  if (splits.size() < nl)
+  if (splits.size() < nl + 1)
     findStringCaseSplits(sstr, splits);
 
   if (splits.empty()) {

@@ -1623,6 +1623,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsTextOptions textOptions;
 
     textOptions.angle         = CQChartsAngle(0.0);
+    textOptions.align         = Qt::AlignHCenter | Qt::AlignVCenter;
     textOptions.contrast      = plot_->dataLabel()->isTextContrast();
     textOptions.contrastAlpha = plot_->dataLabel()->textContrastAlpha();
     textOptions.formatted     = false;
@@ -1630,7 +1631,6 @@ draw(CQChartsPaintDevice *device)
     textOptions.html          = false;
     textOptions.clipped       = false;
     textOptions.margin        = 0;
-    textOptions.align         = Qt::AlignHCenter | Qt::AlignVCenter;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

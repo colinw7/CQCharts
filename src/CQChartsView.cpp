@@ -36,6 +36,8 @@
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
 
+#include <CQPerfMonitor.h>
+
 #include <QSvgGenerator>
 #include <QFileDialog>
 #include <QRubberBand>
@@ -2020,6 +2022,8 @@ void
 CQChartsView::
 mousePressEvent(QMouseEvent *me)
 {
+  CQPerfTrace trace("CQChartsView::mousePressEvent");
+
   if (isPreview())
     return;
 
@@ -2071,6 +2075,8 @@ void
 CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
+  CQPerfTrace trace("CQChartsView::mouseMoveEvent");
+
   if (isPreview())
     return;
 
@@ -2152,6 +2158,8 @@ void
 CQChartsView::
 mouseReleaseEvent(QMouseEvent *me)
 {
+  CQPerfTrace trace("CQChartsView::mouseReleaseEvent");
+
   if (isPreview())
     return;
 
