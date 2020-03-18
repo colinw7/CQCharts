@@ -121,7 +121,7 @@ void
 CQChartsEnumPropertyViewEditorFactory::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto *edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   edit->connect(obj, method);
@@ -131,7 +131,7 @@ QVariant
 CQChartsEnumPropertyViewEditorFactory::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto *edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   return edit->getVariantFromEnum();
@@ -141,7 +141,7 @@ void
 CQChartsEnumPropertyViewEditorFactory::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsEnumEdit *>(w);
+  auto *edit = qobject_cast<CQChartsEnumEdit *>(w);
   assert(edit);
 
   edit->setEnumFromVariant(var);

@@ -42,7 +42,7 @@ int
 CQChartsModelChooser::
 currentModelInd() const
 {
-  auto modelData = charts_->currentModelData();
+  auto *modelData = charts_->currentModelData();
 
   return (modelData ? modelData->ind() : -1);
 }

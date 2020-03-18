@@ -645,7 +645,7 @@ objectPlot(QObject *obj) const
   QObject *obj1 = obj;
 
   while (obj1) {
-    auto plot = qobject_cast<CQChartsPlot *>(obj1);
+    auto *plot = qobject_cast<CQChartsPlot *>(obj1);
 
     if (plot)
       return plot;

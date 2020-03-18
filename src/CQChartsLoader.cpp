@@ -70,7 +70,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
       return nullptr;
     }
 
-    auto jsonModel = qobject_cast<CQJsonModel *>(json->baseModel());
+    auto *jsonModel = qobject_cast<CQJsonModel *>(json->baseModel());
     assert(jsonModel);
 
     hierarchical = jsonModel->isHierarchical();

@@ -134,7 +134,7 @@ createEdit(QWidget *parent)
 
   QObject *obj = (item ? item->object() : nullptr);
 
-  auto plot = qobject_cast<CQChartsPlot *>(obj);
+  auto *plot = qobject_cast<CQChartsPlot *>(obj);
 
   //---
 
@@ -150,7 +150,7 @@ void
 CQChartsPaletteNamePropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(nameChanged()), obj, method);
@@ -160,7 +160,7 @@ QVariant
 CQChartsPaletteNamePropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->paletteName());
@@ -170,7 +170,7 @@ void
 CQChartsPaletteNamePropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
   CQChartsPaletteName name = var.value<CQChartsPaletteName>();

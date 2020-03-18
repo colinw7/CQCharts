@@ -180,7 +180,7 @@ void
 CQChartsTextDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
   assert(edit);
 
   edit->setEditable(false);
@@ -192,7 +192,7 @@ QVariant
 CQChartsTextDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->textData());
@@ -202,7 +202,7 @@ void
 CQChartsTextDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
   assert(edit);
 
   CQChartsTextData data = var.value<CQChartsTextData>();

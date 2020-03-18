@@ -142,7 +142,7 @@ void
 CQChartsBoxPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  auto details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumns columns;
@@ -570,8 +570,8 @@ calcRange() const
   //---
 
   // x-axis must be integer, y-axis must be real
-  auto xAxis = mappedXAxis();
-  auto yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
   xAxis->setMajorIncrement(1);
@@ -622,8 +622,8 @@ updateRawRange() const
 
   //---
 
-  auto xAxis = mappedXAxis();
-  auto yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   th->forceNoYAxis_ = false;
 
@@ -908,8 +908,8 @@ updateCalcRange() const
 
   //---
 
-  auto xAxis = mappedXAxis();
-  auto yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   th->forceNoYAxis_ = true;
 
@@ -3333,7 +3333,7 @@ double
 CQChartsBoxKeyColor::
 xColorValue(bool relative) const
 {
-  auto boxObj = this->boxObj();
+  auto *boxObj = this->boxObj();
 
   return (boxObj ? boxObj->xColorValue(relative) : 0.0);
 }
@@ -3342,7 +3342,7 @@ double
 CQChartsBoxKeyColor::
 yColorValue(bool relative) const
 {
-  auto boxObj = this->boxObj();
+  auto *boxObj = this->boxObj();
 
   return (boxObj ? boxObj->yColorValue(relative) : 0.0);
 }

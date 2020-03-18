@@ -197,21 +197,21 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  auto exprFrame = addExprFrame();
+  auto *exprFrame = addExprFrame();
 
   controlTab->addTab(exprFrame, "Expression");
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  auto foldFrame = addFoldFrame();
+  auto *foldFrame = addFoldFrame();
 
   controlTab->addTab(foldFrame, "Fold");
 #endif
 
-  auto columnDataFrame = addColumnDataFrame();
+  auto *columnDataFrame = addColumnDataFrame();
 
   controlTab->addTab(columnDataFrame, "Column Data");
 
-  auto propertiesFrame = addPropertiesFrame();
+  auto *propertiesFrame = addPropertiesFrame();
 
   controlTab->addTab(propertiesFrame, "Properties");
 

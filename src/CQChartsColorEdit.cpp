@@ -184,7 +184,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   // draw color if can be directly determined
   if (color.isDirect()) {
-    auto obj = qobject_cast<CQChartsObj *>(item->object());
+    auto *obj = qobject_cast<CQChartsObj *>(item->object());
 
     if (obj) {
       QRect rect = option.rect;
@@ -249,7 +249,7 @@ void
 CQChartsColorPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   // TODO: why do we need direct connection for plot object to work ?
@@ -260,7 +260,7 @@ QVariant
 CQChartsColorPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->color());
@@ -270,7 +270,7 @@ void
 CQChartsColorPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsColorLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
   CQChartsColor color = var.value<CQChartsColor>();
@@ -334,8 +334,6 @@ CQChartsColorEdit(QWidget *parent) :
 
   indPalCombo_->addItems(QStringList() << "Index" << "Palette");
 
-  connect(indPalCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(indPalSlot(int)));
-
   indPalStack_ = CQUtil::makeWidget<QStackedWidget>(this, "indPaletteStack");
 
   //-
@@ -343,7 +341,7 @@ CQChartsColorEdit(QWidget *parent) :
   indEdit_ = CQUtil::makeWidget<QSpinBox>("indEdit");
 
   indEdit_->setRange(-1, 99);
-  indEdit_->setToolTip("Palette index in theme");
+  indEdit_->setToolTip("Palette index in theme (-1 is unset)");
 
   //-
 
@@ -500,6 +498,7 @@ connectSlots(bool b)
   };
 
   connectDisconnect(typeCombo_  , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(indPalCombo_, SIGNAL(currentIndexChanged(int)), SLOT(indPalSlot(int)));
   connectDisconnect(indEdit_    , SIGNAL(valueChanged(int)), SLOT(widgetsToColor()));
   connectDisconnect(paletteEdit_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
   connectDisconnect(rEdit_      , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
@@ -527,19 +526,28 @@ colorToWidgets()
              color_.type() == CQChartsColor::Type::PALETTE_VALUE) {
       typeCombo_->setCurrentIndex(1);
 
-      if (indPalStack_->currentIndex() == 0) {
-        if (color_.hasPaletteIndex())
-          indEdit_->setValue(color_.ind());
-        else
-          indEdit_->setValue(-1);
+      if      (color_.hasPaletteIndex()) {
+        indPalStack_->setCurrentIndex(0);
+        indPalCombo_->setCurrentIndex(0);
+
+        indEdit_ ->setValue(color_.ind());
       }
-      else {
+      else if (color_.hasPaletteName()) {
+        indPalStack_->setCurrentIndex(1);
+        indPalCombo_->setCurrentIndex(1);
+
         QString name;
 
-        if (color_.hasPaletteName() && color_.getPaletteName(name))
+        if (color_.getPaletteName(name))
           paletteEdit_->setCurrentIndex(paletteEdit_->findText(name));
         else
           paletteEdit_->setCurrentIndex(0);
+      }
+      else {
+        indPalStack_->setCurrentIndex(0);
+        indPalCombo_->setCurrentIndex(0);
+
+        indEdit_ ->setValue(-1);
       }
 
       hasValue = (color_.type() == CQChartsColor::Type::PALETTE_VALUE);
@@ -555,19 +563,28 @@ colorToWidgets()
              color_.type() == CQChartsColor::Type::INDEXED_VALUE) {
       typeCombo_->setCurrentIndex(2);
 
-      if (indPalStack_->currentIndex() == 0) {
-        if (color_.hasPaletteIndex())
-          indEdit_->setValue(color_.ind());
-        else
-          indEdit_->setValue(-1);
+      if      (color_.hasPaletteIndex()) {
+        indPalStack_->setCurrentIndex(0);
+        indPalCombo_->setCurrentIndex(0);
+
+        indEdit_ ->setValue(color_.ind());
       }
-      else {
+      else if (color_.hasPaletteName()) {
+        indPalStack_->setCurrentIndex(1);
+        indPalCombo_->setCurrentIndex(1);
+
         QString name;
 
-        if (color_.hasPaletteName() && color_.getPaletteName(name))
+        if (color_.getPaletteName(name))
           paletteEdit_->setCurrentIndex(paletteEdit_->findText(name));
         else
           paletteEdit_->setCurrentIndex(0);
+      }
+      else {
+        indPalStack_->setCurrentIndex(0);
+        indPalCombo_->setCurrentIndex(0);
+
+        indEdit_ ->setValue(-1);
       }
 
       hasValue = (color_.type() == CQChartsColor::Type::INDEXED_VALUE);
@@ -630,7 +647,7 @@ colorToWidgets()
     else
       valueEdit_->setValue(0.0);
 
-    valueEdit_->setEnabled(hasValue);
+    valueEdit_->setEnabled(valueCheck_->isChecked());
   }
   else {
     typeCombo_->setCurrentIndex(0);
@@ -801,6 +818,8 @@ updateState()
       setEditVisible(colorEdit_, true);
     }
   }
+
+  valueEdit_->setEnabled(valueCheck_->isChecked());
 }
 
 QSize

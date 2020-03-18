@@ -112,7 +112,7 @@ init()
   //----
 
   // add data frame
-  auto dataFrame = createDataFrame();
+  auto *dataFrame = createDataFrame();
 
   area->addWidget(dataFrame, "Plot Data");
 
@@ -129,27 +129,27 @@ init()
   //---
 
   // add summary frame
-  auto summaryFrame = createSummaryFrame();
+  auto *summaryFrame = createSummaryFrame();
 
   dataArea->addWidget(summaryFrame, "Model Data");
 
   //----
 
   // add details frame
-  auto detailsFrame = createDetailsFrame();
+  auto *detailsFrame = createDetailsFrame();
 
   dataArea->addWidget(detailsFrame, "Model Details");
 
   //----
 
   // add preview frame
-  auto previewFrame = createPreviewFrame();
+  auto *previewFrame = createPreviewFrame();
 
   dataArea->addWidget(previewFrame, "Plot Preview");
 
   //----
 
-  //auto sep1 = createSep("sep1");
+  //auto *sep1 = createSep("sep1");
 
   //layout->addWidget(sep1);
 
@@ -161,7 +161,7 @@ init()
 
   //----
 
-  //auto sep2 = createSep("sep2");
+  //auto *sep2 = createSep("sep2");
 
   //layout->addWidget(sep2);
 
@@ -209,7 +209,7 @@ createDataFrame()
   dataLayout->addLayout(typeLayout);
 
   // create type combo
-  auto typeComboFrame = createTypeCombo();
+  auto *typeComboFrame = createTypeCombo();
 
   typeLayout->addWidget(typeComboFrame);
 
@@ -230,11 +230,11 @@ createDataFrame()
 
   auto *dataTab = CQUtil::makeWidget<QTabWidget>("dataTab");
 
-  auto typeFrame = createTypeDataFrame();
+  auto *typeFrame = createTypeDataFrame();
 
   dataTab->addTab(typeFrame, "Type");
 
-  auto genFrame = createGeneralDataFrame();
+  auto *genFrame = createGeneralDataFrame();
 
   dataTab->addTab(genFrame, "General");
 
@@ -440,7 +440,7 @@ updateModelData()
   //---
 
   // update summary model
-  auto summaryModel = modelData_->summaryModel();
+  auto *summaryModel = modelData_->summaryModel();
 
   int nr = model_.data()->rowCount();
   int nc = model_.data()->columnCount();
@@ -510,7 +510,7 @@ updateModelData()
   //---
 
   // update model details
-  auto details = modelData_->details();
+  auto *details = modelData_->details();
 
   detailsWidget_->setDetails(details);
 
@@ -749,7 +749,7 @@ createGeneralDataFrame()
 
   //--
 
-  auto xySpacer = CQChartsWidgetUtil::createHSpacer(1, "xySpacer");
+  auto *xySpacer = CQChartsWidgetUtil::createHSpacer(1, "xySpacer");
 
   xyFrameLayout->addWidget(xySpacer);
 
@@ -1995,7 +1995,7 @@ setXYMin(const QString &id)
   if (! model_)
     return;
 
-  auto type = getPlotType();
+  auto *type = getPlotType();
   if (! type) return;
 
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
@@ -2047,7 +2047,7 @@ setXYMin(const QString &id)
   if (! modelData_)
     return;
 
-  auto details = modelData_->details();
+  auto *details = modelData_->details();
   if (! details) return;
 
   if (column.type() != CQChartsColumn::Type::DATA &&
@@ -2093,7 +2093,7 @@ validateSlot()
   if (! initialized_)
     return;
 
-  auto type = getPlotType();
+  auto *type = getPlotType();
   if (! type) return;
 
   //---
@@ -2107,8 +2107,8 @@ validateSlot()
       isInitialized = basicTypeInitialzed_[type->description()];
 
     if (! isInitialized) {
-      auto plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
-                                      basicTypePlotData_   [type->name()]);
+      auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
+                                       basicTypePlotData_   [type->name()]);
 
       CQChartsAnalyzeModel analyzeModel(charts_, modelData_);
 
@@ -2257,12 +2257,12 @@ updatePreviewPlot(bool valid)
 {
   if (valid && previewEnabledCheck_->isChecked()) {
     // create plot for typename of current tab
-    auto type = getPlotType();
+    auto *type = getPlotType();
     assert(type);
 
     ModelP previewModel;
 
-    auto summaryModel = modelData_->summaryModel();
+    auto *summaryModel = modelData_->summaryModel();
 
     if (modelData_->isSummaryEnabled() && summaryModel)
       previewModel = modelData_->summaryModelP();
@@ -2306,7 +2306,7 @@ updateFormatSlot()
   auto *formatUpdate = qobject_cast<QToolButton *>(sender());
   if (! formatUpdate) return;
 
-  auto type = getPlotType();
+  auto *type = getPlotType();
   if (! type) return;
 
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
@@ -2358,7 +2358,7 @@ updateFormatSlot()
 
   QString typeStr;
 
-  auto summaryModel = modelData_->summaryModel();
+  auto *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
     if (! CQChartsModelUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
@@ -2381,7 +2381,7 @@ validate(QStringList &msgs)
 
   CQChartsModelData *modelData = nullptr;
 
-  auto summaryModel = modelData_->summaryModel();
+  auto *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel)
     modelData = modelData_->summaryModelData();
@@ -2390,12 +2390,12 @@ validate(QStringList &msgs)
 
   if (! modelData) { msgs << "no model data"; return false; }
 
-  auto details = modelData->details();
+  auto *details = modelData->details();
 
   //---
 
   // create plot for typename of current tab
-  auto type = getPlotType();
+  auto *type = getPlotType();
 
   if (! type) {
     msgs << "invalid plot type";
@@ -2550,7 +2550,7 @@ void
 CQChartsCreatePlotDlg::
 updatePreviewSlot()
 {
-  auto summaryModel = modelData_->summaryModel();
+  auto *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
     disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
@@ -2620,18 +2620,18 @@ applySlot()
   plot_ = nullptr;
 
   // create plot for typename of current tab
-  auto type = getPlotType();
+  auto *type = getPlotType();
   if (! type) return false;
 
   // get or create view
   QString viewId = viewEdit_->text();
 
-  auto view = charts()->getView(viewId);
+  auto *view = charts()->getView(viewId);
 
   if (! view) {
     view = charts()->addView();
 
-    auto window = charts()->createWindow(view);
+    auto *window = charts()->createWindow(view);
 
     window->show();
 
@@ -2703,7 +2703,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
 {
   ModelP model = plot->model();
 
-  auto type = plot->type();
+  auto *type = plot->type();
 
   // set plot property for widgets for plot parameters
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :

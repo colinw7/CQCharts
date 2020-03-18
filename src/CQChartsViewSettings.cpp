@@ -297,7 +297,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
     };
 
     for (int i = 0; i < np; ++i) {
-      auto plot = view->plot(i);
+      auto *plot = view->plot(i);
 
       //--
 
@@ -361,7 +361,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
       QString id = item->text();
 
-      auto plot = view->getPlotForId(id);
+      auto *plot = view->getPlotForId(id);
 
       plots.push_back(plot);
     }
@@ -404,7 +404,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     };
 
     for (int i = 0; i < nv; ++i) {
-      auto annotation = viewAnnotations[i];
+      auto *annotation = viewAnnotations[i];
 
       QTableWidgetItem *idItem = createItem(annotation->id());
 
@@ -431,7 +431,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
       long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-      auto annotation = view->getAnnotationByInd(int(ind));
+      auto *annotation = view->getAnnotationByInd(int(ind));
 
       if (annotation)
         annotations.push_back(annotation);
@@ -478,7 +478,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     };
 
     for (int i = 0; i < np; ++i) {
-      auto annotation = plotAnnotations[i];
+      auto *annotation = plotAnnotations[i];
 
       QTableWidgetItem *idItem = createItem(annotation->id());
 
@@ -505,7 +505,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
 
       long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
-      auto annotation = plot->getAnnotationByInd(int(ind));
+      auto *annotation = plot->getAnnotationByInd(int(ind));
 
       if (annotation)
         annotations.push_back(annotation);
@@ -641,10 +641,10 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     long l = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
     if (! ok) return nullptr;
 
-    auto layer = plot->getLayer((CQChartsLayer::Type) l);
+    auto *layer = plot->getLayer((CQChartsLayer::Type) l);
     if (! layer) return nullptr;
 
-    auto buffer = plot->getBuffer(layer->buffer());
+    auto *buffer = plot->getBuffer(layer->buffer());
     if (! buffer) return nullptr;
 
     QImage *image = buffer->image();
@@ -714,7 +714,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       CQChartsLayer::Type type = (CQChartsLayer::Type) l;
 
-      auto layer = plot->getLayer(type);
+      auto *layer = plot->getLayer(type);
 
       const CQChartsBuffer *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
 
@@ -747,7 +747,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
     type = CQChartsLayer::nameType(name);
 
-    auto layer = plot->getLayer(type);
+    auto *layer = plot->getLayer(type);
     if (! layer) return false;
 
     QTableWidgetItem *stateItem = item(row, 1);
@@ -764,9 +764,8 @@ CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :
  QFrame(window), window_(window)
 {
-  auto view = window_->view();
-
-  auto charts = view->charts();
+  auto *view   = window_->view();
+  auto *charts = view->charts();
 
   connect(charts, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
   connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(invalidateModelDetails()));
@@ -912,7 +911,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   auto *propertiesLayout = CQUtil::makeLayout<QVBoxLayout>(propertiesFrame, 2, 2);
 
@@ -1063,8 +1062,8 @@ initModelsFrame(QFrame *modelsFrame)
 
   //--
 
-  auto view   = window_->view();
-  auto charts = view->charts();
+  auto *view   = window_->view();
+  auto *charts = view->charts();
 
   modelsWidgets_.detailsWidget = new CQChartsModelDetailsWidget(charts);
 
@@ -1179,10 +1178,10 @@ initPlotsFrame(QFrame *plotsFrame)
   auto *editFrame  = CQUtil::makeWidget<QFrame>("editFrame");
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(editFrame, 2, 2);
 
-  auto titleButton = createButton("Title" , "title", "Edit Title" , SLOT(editPlotTitleSlot()));
-  auto keyButton   = createButton("Key"   , "key"  , "Edit Key"   , SLOT(editPlotKeySlot()));
-  auto xAxisButton = createButton("X Axis", "xaxis", "Edit X Axis", SLOT(editPlotXAxisSlot()));
-  auto yAxisButton = createButton("Y Axis", "yaxis", "Edit Y Axis", SLOT(editPlotYAxisSlot()));
+  auto *titleButton = createButton("Title" , "title", "Edit Title" , SLOT(editPlotTitleSlot()));
+  auto *keyButton   = createButton("Key"   , "key"  , "Edit Key"   , SLOT(editPlotKeySlot()));
+  auto *xAxisButton = createButton("X Axis", "xaxis", "Edit X Axis", SLOT(editPlotXAxisSlot()));
+  auto *yAxisButton = createButton("Y Axis", "yaxis", "Edit Y Axis", SLOT(editPlotYAxisSlot()));
 
   editLayout->addWidget(titleButton);
   editLayout->addWidget(keyButton);
@@ -1338,7 +1337,7 @@ initPlotsFrame(QFrame *plotsFrame)
   plotsWidgets_.createButton = createPushButton("Create", "create", SLOT(createPlotSlot()));
   plotsWidgets_.removeButton = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
 
-//auto writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
+//auto *writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
   plotsWidgets_.raiseButton ->setToolTip("Raise selected plot");
   plotsWidgets_.lowerButton ->setToolTip("Lower selected plot");
@@ -1435,7 +1434,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   auto *controlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlGroup, 2, 2);
 
-  auto createButton = createPushButton("Create...", "create", SLOT(createAnnotationSlot()));
+  auto *createButton = createPushButton("Create...", "create", SLOT(createAnnotationSlot()));
 
   annotationsWidgets_.editButton =
     createPushButton("Edit...", "edit", SLOT(editAnnotationSlot()));
@@ -1520,8 +1519,8 @@ initThemeFrame(QFrame *themeFrame)
 
   //--
 
-  auto view  = window_->view();
-  auto theme = view->theme();
+  auto *view  = window_->view();
+  auto *theme = view->theme();
 
   //--
 
@@ -1682,7 +1681,7 @@ initErrorsFrame(QFrame *errorsFrame)
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   error_ = new CQChartsViewError(view);
 
@@ -1704,7 +1703,7 @@ void
 CQChartsViewSettings::
 updateErrors()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   bool hasErrors = false;
 
@@ -1762,7 +1761,7 @@ viewLayerImageSlot()
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
   if (! view) return;
 
   QImage *image = layersWidgets_.viewLayerTable->selectedImage(view);
@@ -1786,7 +1785,7 @@ plotLayerImageSlot()
 
   //---
 
-  auto plot = window_->view()->currentPlot();
+  auto *plot = window_->view()->currentPlot();
   if (! plot) return;
 
   QImage *image = layersWidgets_.plotLayerTable->selectedImage(plot);
@@ -1835,7 +1834,7 @@ void
 CQChartsViewSettings::
 updateModels()
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
   modelsWidgets_.modelTable->updateModels(charts);
 
@@ -1849,7 +1848,7 @@ void
 CQChartsViewSettings::
 updateModelsData()
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
   modelsWidgets_.modelTable->updateModels(charts);
 
@@ -1862,10 +1861,10 @@ void
 CQChartsViewSettings::
 invalidateModelDetails(bool changed)
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
-  auto modelData = charts->currentModelData();
-  auto details   = (modelData ? modelData->details() : nullptr);
+  auto *modelData = charts->currentModelData();
+  auto *details   = (modelData ? modelData->details() : nullptr);
 
   modelsWidgets_.detailsWidget->setDetails(details, /*invalidate*/changed);
 }
@@ -1874,7 +1873,7 @@ void
 CQChartsViewSettings::
 modelsSelectionChangeSlot()
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
   long ind = modelsWidgets_.modelTable->selectedModel();
 
@@ -1890,7 +1889,7 @@ void
 CQChartsViewSettings::
 loadModelSlot()
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
   (void) charts->loadModelDlg();
 }
@@ -1904,9 +1903,9 @@ editModelSlot()
   if (ind < 0)
     return;
 
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
-  auto modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
   charts->editModelDlg(modelData);
@@ -1921,9 +1920,9 @@ removeModelSlot()
   if (ind < 0)
     return;
 
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
-  auto modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
   charts->removeModelData(modelData);
@@ -1938,12 +1937,12 @@ createPlotModelSlot()
   if (ind < 0)
     return;
 
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
-  auto modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelData(int(ind));
   if (! modelData) return;
 
-  auto createPlotDlg = charts->createPlotDlg(modelData);
+  auto *createPlotDlg = charts->createPlotDlg(modelData);
 
   createPlotDlg->setViewName(window_->view()->id());
 }
@@ -1954,12 +1953,12 @@ void
 CQChartsViewSettings::
 createPlotSlot()
 {
-  auto charts = window_->view()->charts();
+  auto *charts = window_->view()->charts();
 
-  auto modelData = charts->currentModelData();
+  auto *modelData = charts->currentModelData();
   if (! modelData) return;
 
-  auto createPlotDlg = charts->createPlotDlg(modelData);
+  auto *createPlotDlg = charts->createPlotDlg(modelData);
 
   createPlotDlg->setViewName(window_->view()->id());
 }
@@ -1970,7 +1969,7 @@ void
 CQChartsViewSettings::
 writeViewSlot()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
   if (! view) return;
 
   QString dir = QDir::current().dirName() + "/view.tcl";
@@ -2008,7 +2007,7 @@ void
 CQChartsViewSettings::
 updatePlots()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   //---
 
@@ -2044,7 +2043,7 @@ updatePlots()
 
   // add new plots to tabbed property view
   for (int i = 0; i < np; ++i) {
-    auto plot = view->plot(i);
+    auto *plot = view->plot(i);
 
     int ind = findPlotTab(plot);
 
@@ -2096,11 +2095,11 @@ void
 CQChartsViewSettings::
 updateCurrentPlot()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
   assert(view);
 
   if (plotId_.length()) {
-    auto plot = view->getPlotForId(plotId_);
+    auto *plot = view->getPlotForId(plotId_);
 
     if (plot) {
       disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
@@ -2116,7 +2115,7 @@ updateCurrentPlot()
 
   //---
 
-  auto plot = view->currentPlot();
+  auto *plot = view->currentPlot();
 
   plotId_ = (plot ? plot->id() : "");
 
@@ -2164,7 +2163,7 @@ void
 CQChartsViewSettings::
 getSelectedPlots(Plots &plots) const
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   plotsWidgets_.plotTable->getSelectedPlots(view, plots);
 }
@@ -2184,7 +2183,7 @@ plotsSelectionChangeSlot()
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   view->startSelection();
 
@@ -2220,7 +2219,7 @@ void
 CQChartsViewSettings::
 editViewKeySlot()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   if (! view->key())
     return;
@@ -2238,8 +2237,8 @@ void
 CQChartsViewSettings::
 editPlotTitleSlot()
 {
-//auto plot = getSelectedPlot();
-  auto plot = getPropertiesPlot();
+//auto *plot = getSelectedPlot();
+  auto *plot = getPropertiesPlot();
 
   if (! plot || ! plot->title())
     return;
@@ -2257,8 +2256,8 @@ void
 CQChartsViewSettings::
 editPlotKeySlot()
 {
-//auto plot = getSelectedPlot();
-  auto plot = getPropertiesPlot();
+//auto *plot = getSelectedPlot();
+  auto *plot = getPropertiesPlot();
 
   if (! plot || ! plot->key())
     return;
@@ -2276,8 +2275,8 @@ void
 CQChartsViewSettings::
 editPlotXAxisSlot()
 {
-//auto plot = getSelectedPlot();
-  auto plot = getPropertiesPlot();
+//auto *plot = getSelectedPlot();
+  auto *plot = getPropertiesPlot();
 
   if (! plot || ! plot->xAxis())
     return;
@@ -2295,8 +2294,8 @@ void
 CQChartsViewSettings::
 editPlotYAxisSlot()
 {
-//auto plot = getSelectedPlot();
-  auto plot = getPropertiesPlot();
+//auto *plot = getSelectedPlot();
+  auto *plot = getPropertiesPlot();
 
   if (! plot || ! plot->yAxis())
     return;
@@ -2314,8 +2313,8 @@ void
 CQChartsViewSettings::
 groupPlotsSlot()
 {
-  auto view   = window_->view();
-  auto charts = view->charts();
+  auto *view   = window_->view();
+  auto *charts = view->charts();
 
   // get selected plots ?
   Plots plots;
@@ -2359,7 +2358,7 @@ void
 CQChartsViewSettings::
 placePlotsSlot()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   // get selected plots ?
   Plots plots;
@@ -2378,8 +2377,8 @@ void
 CQChartsViewSettings::
 raisePlotSlot()
 {
-  auto view = window_->view();
-  auto plot = getSelectedPlot();
+  auto *view = window_->view();
+  auto *plot = getSelectedPlot();
 
   if (plot)
     view->raisePlot(plot);
@@ -2389,8 +2388,8 @@ void
 CQChartsViewSettings::
 lowerPlotSlot()
 {
-  auto view = window_->view();
-  auto plot = getSelectedPlot();
+  auto *view = window_->view();
+  auto *plot = getSelectedPlot();
 
   if (plot)
     view->lowerPlot(plot);
@@ -2404,7 +2403,7 @@ removePlotsSlot()
 
   getSelectedPlots(plots);
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   for (auto &plot : plots)
     view->removePlot(plot);
@@ -2416,7 +2415,7 @@ void
 CQChartsViewSettings::
 writePlotSlot()
 {
-  auto plot = getPropertiesPlot();
+  auto *plot = getPropertiesPlot();
   if (! plot) return;
 
   QString dir = QDir::current().dirName() + "/plot.tcl";
@@ -2428,11 +2427,11 @@ writePlotSlot()
 
   //---
 
-  auto view = plot->view();
+  auto *view = plot->view();
 
   view->write(fs);
 
-  auto modelData = plot->getModelData();
+  auto *modelData = plot->getModelData();
 
   if (modelData)
     modelData->write(fs);
@@ -2446,13 +2445,13 @@ void
 CQChartsViewSettings::
 updateAnnotations()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   annotationsWidgets_.viewTable->updateAnnotations(view);
 
   //---
 
-  auto plot = view->currentPlot();
+  auto *plot = view->currentPlot();
 
   annotationsWidgets_.plotTable->updateAnnotations(plot);
 }
@@ -2482,7 +2481,7 @@ viewAnnotationSelectionChangeSlot()
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   view->startSelection();
 
@@ -2519,7 +2518,7 @@ plotAnnotationSelectionChangeSlot()
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   view->startSelection();
 
@@ -2535,13 +2534,13 @@ void
 CQChartsViewSettings::
 getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   annotationsWidgets_.viewTable->getSelectedAnnotations(view, viewAnnotations);
 
   //---
 
-  auto plot = view->currentPlot();
+  auto *plot = view->currentPlot();
 
   if (plot)
     annotationsWidgets_.plotTable->getSelectedAnnotations(plot, plotAnnotations);
@@ -2551,8 +2550,8 @@ void
 CQChartsViewSettings::
 createAnnotationSlot()
 {
-  auto view = window_->view();
-  auto plot = view->currentPlot();
+  auto *view = window_->view();
+  auto *plot = view->currentPlot();
 
   if (! plot)
     return;
@@ -2601,12 +2600,12 @@ removeAnnotationsSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   for (const auto &annotation : viewAnnotations)
     view->removeAnnotation(annotation);
 
-  auto plot = view->currentPlot();
+  auto *plot = view->currentPlot();
 
   if (plot) {
     for (const auto &annotation : plotAnnotations)
@@ -2620,7 +2619,7 @@ void
 CQChartsViewSettings::
 writeAnnotationSlot()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
   if (! view) return;
 
   QString dir = QDir::current().dirName() + "/annotation.tcl";
@@ -2668,7 +2667,7 @@ palettesComboSlot(int)
 {
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  auto palette = CQColorsMgrInst->getNamedPalette(name);
+  auto *palette = CQColorsMgrInst->getNamedPalette(name);
 
   themeWidgets_.palettesPlot->setPalette(palette);
 
@@ -2681,7 +2680,7 @@ palettesResetSlot()
 {
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  auto palette = CQColorsMgrInst->getNamedPalette(name);
+  auto *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return;
 
   CQColorsMgrInst->resetPalette(name);
@@ -2704,7 +2703,7 @@ updatePalettes()
 
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  auto palette = CQColorsMgrInst->getNamedPalette(name);
+  auto *palette = CQColorsMgrInst->getNamedPalette(name);
 
   themeWidgets_.palettesPlot->setPalette(palette);
 
@@ -2724,7 +2723,7 @@ void
 CQChartsViewSettings::
 updateView()
 {
-  auto view = window_->view();
+  auto *view = window_->view();
 
   view->updatePlots();
 }
@@ -2733,9 +2732,8 @@ void
 CQChartsViewSettings::
 updateInterface()
 {
-  auto view = window_->view();
-
-  auto palette = view->interfacePalette();
+  auto *view    = window_->view();
+  auto *palette = view->interfacePalette();
 
   themeWidgets_.interfacePlot->setPalette(palette);
 
@@ -2753,12 +2751,12 @@ updateLayers()
 
   //---
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   if (view)
     layersWidgets_.viewLayerTable->updateLayers(view);
 
-  auto plot = (view ? view->currentPlot() : nullptr);
+  auto *plot = (view ? view->currentPlot() : nullptr);
 
   if (plot)
     layersWidgets_.plotLayerTable->updateLayers(plot);
@@ -2777,7 +2775,7 @@ viewLayersClickedSlot(int row, int column)
   if (column != 1)
     return;
 
-  auto view = window_->view();
+  auto *view = window_->view();
 
   if (row == 0)
     view->invalidateObjects();
@@ -2798,8 +2796,8 @@ plotLayersClickedSlot(int row, int column)
   if (column != 1)
     return;
 
-  auto view = window_->view();
-  auto plot = (view ? view->currentPlot() : nullptr);
+  auto *view = window_->view();
+  auto *plot = (view ? view->currentPlot() : nullptr);
   if (! plot) return;
 
   CQChartsLayer::Type type;
@@ -2808,7 +2806,7 @@ plotLayersClickedSlot(int row, int column)
   if (! layersWidgets_.plotLayerTable->getLayerState(plot, row, type, active))
     return;
 
-  auto layer = plot->getLayer(type);
+  auto *layer = plot->getLayer(type);
   if (! layer) return;
 
   plot->setLayerActive(type, active);

@@ -104,7 +104,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //-
 
-  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey) {
     data_.flipped          = plotKey->isFlipped();
@@ -379,7 +379,7 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
   connectDisconnect(horizontalEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
@@ -414,7 +414,7 @@ dataToWidgets()
 {
   connectSlots(false);
 
-  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   groupBox_          ->setChecked(data_.visible);
   horizontalEdit_    ->setChecked(data_.horizontal);
@@ -448,7 +448,7 @@ void
 CQChartsKeyEdit::
 widgetsToData()
 {
-  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   data_.visible        = groupBox_->isChecked();
   data_.horizontal     = horizontalEdit_->isChecked();
@@ -482,7 +482,7 @@ void
 CQChartsKeyEdit::
 applyData()
 {
-  auto plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   key_->setVisible      (data_.visible);
   key_->setHorizontal   (data_.horizontal);

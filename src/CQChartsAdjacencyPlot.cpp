@@ -134,11 +134,11 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   if (hasConnections || hasNamePair)
     return;
 
-  auto details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
-  auto charts = modelData->charts();
-  auto model  = modelData->model().data();
+  auto *charts = modelData->charts();
+  auto *model  = modelData->model().data();
 
   CQChartsColumn connectionsColumn;
   CQChartsColumn namePairColumn;
@@ -527,8 +527,8 @@ initHierObjs(PlotObjs &objs) const
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
-      auto srcNode  = plot_->getNodeByName(srcStr );
-      auto destNode = plot_->getNodeByName(destStr);
+      auto *srcNode  = plot_->getNodeByName(srcStr );
+      auto *destNode = plot_->getNodeByName(destStr);
 
       srcNode->addNode(destNode, count);
 

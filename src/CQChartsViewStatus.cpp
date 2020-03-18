@@ -36,7 +36,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   QFontMetricsF fm(font());
 
-  auto selSpacer = CQChartsWidgetUtil::createHSpacer(1, "selSpacer");
+  auto *selSpacer = CQChartsWidgetUtil::createHSpacer(1, "selSpacer");
 
   layout->addWidget (statusLabel_);
   layout->addStretch(1);

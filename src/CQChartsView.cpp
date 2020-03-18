@@ -287,7 +287,7 @@ addProperties()
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    auto item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -691,7 +691,7 @@ setCurrentPlotInd(int ind)
     return;
 
   // disconnect previous plot
-  auto currentPlot = getPlotForInd(currentPlotInd_);
+  auto *currentPlot = getPlotForInd(currentPlotInd_);
 
   if (currentPlot)
     disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
@@ -1633,7 +1633,7 @@ initOverlay(const Plots &plots, bool reset)
 
 #if 0
   for (std::size_t i = 0; i < plots.size(); ++i) {
-    auto plot = plots[i];
+    auto *plot = plots[i];
 
     plot->syncRange();
   }
@@ -1642,7 +1642,7 @@ initOverlay(const Plots &plots, bool reset)
   auto rootPlot = plots[0]->firstPlot();
 
   for (std::size_t i = 0; i < plots.size(); ++i) {
-    auto plot = plots[i];
+    auto *plot = plots[i];
 
     plot->setOverlay(true, /*notify*/false);
 
@@ -1702,8 +1702,8 @@ initOverlayAxes()
     firstPlot->overlayPlots(plots);
 
     for (auto &plot : plots) {
-      auto xaxis = plot->xAxis();
-      auto yaxis = plot->yAxis();
+      auto *xaxis = plot->xAxis();
+      auto *yaxis = plot->yAxis();
 
       if (xaxis)
         xaxis->setVisible(plot == firstPlot);
@@ -1729,8 +1729,8 @@ initOverlayAxes()
     firstPlot->overlayPlots(plots);
 
     for (auto &plot : plots) {
-      auto xaxis = plot->xAxis();
-      auto yaxis = plot->yAxis();
+      auto *xaxis = plot->xAxis();
+      auto *yaxis = plot->yAxis();
 
       xaxis->setVisible(true);
       yaxis->setVisible(true);
@@ -1880,7 +1880,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
   PlotSet basePlotSet;
 
   for (const auto &plot : plots) {
-    auto plot1 = this->basePlot(plot);
+    auto *plot1 = this->basePlot(plot);
 
     basePlotSet.insert(plot1);
   }
@@ -1942,7 +1942,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
-      auto plot = basePlots[i];
+      auto *plot = basePlots[i];
 
       CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
@@ -1963,7 +1963,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
         if (i >= int(basePlots.size()))
           break;
 
-        auto plot = basePlots[i];
+        auto *plot = basePlots[i];
 
         CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
 
@@ -2312,7 +2312,7 @@ editMousePress()
 
   // start drag on already selected annotation handle
   if (! selAnnotations.empty() && selAnnotations[0]->isSelected()) {
-    auto annotation = selAnnotations[0];
+    auto *annotation = selAnnotations[0];
 
     mouseData_.dragSide = annotation->editHandles()->inside(w);
 
@@ -3520,7 +3520,7 @@ drawNoData(CQChartsPaintDevice *)
 
   int is = int(4*p_fm.height());
 
-  auto modelData = charts()->currentModelData();
+  auto *modelData = charts()->currentModelData();
 
   noDataText_->move(0, 0);
   noDataText_->resize(width(), height());
@@ -4066,7 +4066,7 @@ showMenu(const QPoint &p)
   auto *currentPlot = this->currentPlot(/*remap*/false);
   auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
 
-  auto plotType = (currentPlot ? currentPlot->type() : nullptr);
+  auto *plotType = (currentPlot ? currentPlot->type() : nullptr);
 
   //---
 
@@ -4305,7 +4305,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    auto plotKey = (basePlot ? basePlot->key() : nullptr);
+    auto *plotKey = (basePlot ? basePlot->key() : nullptr);
 
     bool visibleChecked = (plotKey && plotKey->isVisible());
 
@@ -4389,7 +4389,7 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasXAxis()) {
-    auto xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+    auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
     QMenu *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
 
@@ -4442,7 +4442,7 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasYAxis()) {
-    auto yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+    auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
     QMenu *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
 
@@ -4495,7 +4495,7 @@ showMenu(const QPoint &p)
   //---
 
   if (plotType && plotType->hasTitle()) {
-    auto title = (basePlot ? basePlot->title() : nullptr);
+    auto *title = (basePlot ? basePlot->title() : nullptr);
 
     QMenu *titleMenu = addSubMenu(popupMenu_, "Title");
 
@@ -4739,7 +4739,7 @@ void
 CQChartsView::
 viewKeyPositionSlot(QAction *action)
 {
-  auto viewKey = key();
+  auto *viewKey = key();
   if (! viewKey) return;
 
   CQChartsKeyLocation::Type location;
@@ -5019,7 +5019,7 @@ void
 CQChartsView::
 manageModelsSlot()
 {
-  auto modelData = charts()->currentModelData();
+  auto *modelData = charts()->currentModelData();
 
   if (! modelData)
     (void) charts()->loadModelDlg();
@@ -5031,12 +5031,12 @@ void
 CQChartsView::
 addPlotSlot()
 {
-  auto charts = this->charts();
+  auto *charts = this->charts();
 
-  auto modelData = charts->currentModelData();
+  auto *modelData = charts->currentModelData();
   if (! modelData) return;
 
-  auto createPlotDlg = charts->createPlotDlg(modelData);
+  auto *createPlotDlg = charts->createPlotDlg(modelData);
 
   createPlotDlg->setViewName(this->id());
 }
@@ -5045,7 +5045,7 @@ void
 CQChartsView::
 helpSlot()
 {
-  auto charts = this->charts();
+  auto *charts = this->charts();
 
   CQChartsHelpDlgMgrInst->showDialog(charts);
 }
@@ -5930,7 +5930,7 @@ addBasePlots(PlotSet &plots, bool clear) const
     plots.clear();
 
   for (const auto &plot : this->plots()) {
-    auto plot1 = this->basePlot(plot);
+    auto *plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }
@@ -5963,7 +5963,7 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
     if (! bbox.inside(p))
       continue;
 
-    auto plot2 = (first && plot1->isOverlay() ? plot1->firstPlot() : plot1);
+    auto *plot2 = (first && plot1->isOverlay() ? plot1->firstPlot() : plot1);
 
     if (plot1 == currentPlot)
       plot = plot2;
@@ -6019,7 +6019,7 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     if (! bbox.inside(p))
       continue;
 
-    auto plot1 = this->basePlot(plot);
+    auto *plot1 = this->basePlot(plot);
 
     plots.insert(plot1);
   }
@@ -6054,7 +6054,7 @@ currentPlot(bool remap) const
 
   int ind = currentPlotInd();
 
-  auto plot = getPlotForInd(ind);
+  auto *plot = getPlotForInd(ind);
 
   if (! plot)
     return nullptr;
@@ -6076,7 +6076,7 @@ getPlotForInd(int ind) const
   if (ind < 0 || ind >= np)
     return nullptr;
 
-  auto plot = plots_[ind];
+  auto *plot = plots_[ind];
 
   return plot;
 }
@@ -6226,7 +6226,7 @@ writeAll(std::ostream &os) const
   PlotVars  plotVars;
 
   for (const auto &plot : plots) {
-    auto modelData = plot->getModelData();
+    auto *modelData = plot->getModelData();
 
     QString modelVarName;
 

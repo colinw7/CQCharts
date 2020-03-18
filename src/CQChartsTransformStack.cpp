@@ -138,7 +138,7 @@ CQChartsTransformStack::
 getTransform() const
 {
   if (! tValid_) {
-    auto th = const_cast<CQChartsTransformStack *>(this);
+    auto *th = const_cast<CQChartsTransformStack *>(this);
 
     th->t_ = QTransform();
 

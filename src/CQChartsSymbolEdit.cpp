@@ -175,7 +175,7 @@ void
 CQChartsSymbolPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(symbolChanged()), obj, method);
@@ -185,7 +185,7 @@ QVariant
 CQChartsSymbolPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->symbol());
@@ -195,7 +195,7 @@ void
 CQChartsSymbolPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsSymbolEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
   CQChartsSymbol symbol = var.value<CQChartsSymbol>();

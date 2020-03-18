@@ -165,7 +165,7 @@ void
 CQChartsStrokeDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(strokeDataChanged()), obj, method);
@@ -175,7 +175,7 @@ QVariant
 CQChartsStrokeDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->strokeData());
@@ -185,7 +185,7 @@ void
 CQChartsStrokeDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
   CQChartsStrokeData data = var.value<CQChartsStrokeData>();

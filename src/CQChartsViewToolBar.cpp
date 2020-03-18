@@ -242,7 +242,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  auto helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
+  auto *helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
 
   layout->addWidget(helpButton);
 

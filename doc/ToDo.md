@@ -3,10 +3,10 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + custom title fit (directional, allow formatted/scaled)
  + Allow invert defined palette
  + Column Editor support name
  + key annotation
- + delayed load of errors
  + handle overlay, x1x2, y1y2, when plot hidden
    + use firstPlot data if overlay (don't propagate values)
  + monthly_sales.tcl (overlay) broken range

@@ -97,11 +97,11 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
                       analyzeModelData.parameterNameColumn.end());
   if (hasGeometry) return;
 
-  auto details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
-  auto charts = modelData->charts();
-  auto model  = modelData->model().data();
+  auto *charts = modelData->charts();
+  auto *model  = modelData->model().data();
 
   CQChartsColumn geometryColumn;
 

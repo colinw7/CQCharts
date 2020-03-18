@@ -571,7 +571,7 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
 
   if (! modelData) {
     if (! charts_->getModelInd(model, modelInd)) {
-      auto model1 = const_cast<QAbstractItemModel *>(model);
+      auto *model1 = const_cast<QAbstractItemModel *>(model);
 
       if (! charts_->assignModelInd(model1, modelInd)) {
         static CQChartsColumnTypeMgr::CacheData dummyCacheData;
@@ -596,7 +596,7 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
   auto pm = modelCacheData_.find(modelInd);
 
   if (pm == modelCacheData_.end()) {
-    auto th = const_cast<CQChartsColumnTypeMgr *>(this);
+    auto *th = const_cast<CQChartsColumnTypeMgr *>(this);
 
     pm = th->modelCacheData_.insert(pm, ModelCacheData::value_type(modelInd, CacheData()));
   }

@@ -151,7 +151,7 @@ void
 CQChartsFillUnderSidePropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillUnderSideChanged()), obj, method);
@@ -161,7 +161,7 @@ QVariant
 CQChartsFillUnderSidePropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillUnderSide());
@@ -171,7 +171,7 @@ void
 CQChartsFillUnderSidePropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
   CQChartsFillUnderSide fillUnderSide = var.value<CQChartsFillUnderSide>();
@@ -366,7 +366,7 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillUnderPosChanged()), obj, method);
@@ -376,7 +376,7 @@ QVariant
 CQChartsFillUnderPosPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillUnderPos());
@@ -386,7 +386,7 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   CQChartsFillUnderPos fillUnderPos = var.value<CQChartsFillUnderPos>();

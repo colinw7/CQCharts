@@ -136,7 +136,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   auto px   = analyzeModelData.parameterNameColumn.find("x");
   bool hasX = (px != analyzeModelData.parameterNameColumn.end());
 
-  auto details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   // set x column
@@ -476,7 +476,7 @@ addProperties()
 
   auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                                const QString &desc) {
-    auto item = addArrowProp(path, name, alias, desc);
+    auto *item = addArrowProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -625,8 +625,8 @@ interpPaletteColor(const ColorInd &ind, bool scale) const
     int n = ind.n;
 
     if (prevPlot() || nextPlot()) {
-      auto plot1 = prevPlot();
-      auto plot2 = nextPlot();
+      auto *plot1 = prevPlot();
+      auto *plot2 = nextPlot();
 
       while (plot1) { ++n; plot1 = plot1->prevPlot(); }
       while (plot2) { ++n; plot2 = plot2->nextPlot(); }
@@ -634,7 +634,7 @@ interpPaletteColor(const ColorInd &ind, bool scale) const
 
     //---
 
-    auto plot1 = prevPlot();
+    auto *plot1 = prevPlot();
 
     while (plot1) {
       ++i;
@@ -3072,7 +3072,7 @@ draw(CQChartsPaintDevice *device)
   if (! isVisible())
     return;
 
-  auto dataLabel = plot_->dataLabel();
+  auto *dataLabel = plot_->dataLabel();
 
   //---
 
@@ -3736,12 +3736,12 @@ void
 CQChartsXYKeyColor::
 doSelect(CQChartsSelMod selMod)
 {
-  auto obj = plotObj();
+  auto *obj = plotObj();
   if (! obj) return;
 
   if      (selMod == CQChartsSelMod::REPLACE) {
     for (int ig = 0; ig < ig_.n; ++ig) {
-      auto obj1 = plot()->getGroupObj(ig);
+      auto *obj1 = plot()->getGroupObj(ig);
 
       if (obj1)
         obj1->setSelected(obj1 == obj);
@@ -3801,7 +3801,7 @@ plotObj() const
   if (ig_.n <= 1)
     return nullptr;
 
-  auto obj = plot()->getGroupObj(ig_.i);
+  auto *obj = plot()->getGroupObj(ig_.i);
 
   return obj;
 }
@@ -3842,12 +3842,12 @@ void
 CQChartsXYKeyLine::
 doSelect(CQChartsSelMod selMod)
 {
-  auto obj = plotObj();
+  auto *obj = plotObj();
   if (! obj) return;
 
   if      (selMod == CQChartsSelMod::REPLACE) {
     for (int ig = 0; ig < ig_.n; ++ig) {
-      auto obj1 = plot()->getGroupObj(ig);
+      auto *obj1 = plot()->getGroupObj(ig);
 
       if (obj1)
         obj1->setSelected(obj1 == obj);
@@ -3952,7 +3952,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
     linePenBrush.brush = QBrush(Qt::NoBrush);
 
-    auto obj = plotObj();
+    auto *obj = plotObj();
 
     if (obj)
       plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
@@ -3996,7 +3996,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
       CQChartsBrushData(plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),
                         plot()->symbolFillPattern()));
 
-    auto obj = plotObj();
+    auto *obj = plotObj();
 
     if (obj)
       plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
@@ -4021,7 +4021,7 @@ plotObj() const
   if (ig_.n <= 1)
     return nullptr;
 
-  auto obj = plot()->getGroupObj(ig_.i);
+  auto *obj = plot()->getGroupObj(ig_.i);
 
   return obj;
 }

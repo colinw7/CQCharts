@@ -227,7 +227,7 @@ void
 CQChartsPolygonPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(polygonChanged()), obj, method);
@@ -237,7 +237,7 @@ QVariant
 CQChartsPolygonPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->polygon());
@@ -247,7 +247,7 @@ void
 CQChartsPolygonPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsPolygonLineEdit *>(w);
   assert(edit);
 
   auto polygon = var.value<CQChartsPolygon>();

@@ -146,7 +146,7 @@ void
 CQChartsModelDataWidget::
 filterSlot()
 {
-  auto filterEdit = qobject_cast<CQChartsLineEdit *>(sender());
+  auto *filterEdit = qobject_cast<CQChartsLineEdit *>(sender());
 
 #ifdef CQCHARTS_MODEL_VIEW
   view_->setFilter(filterEdit->text());

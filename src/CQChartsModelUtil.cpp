@@ -2067,9 +2067,9 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  auto dataModel = new CQDataModel(nc + nh, nr);
+  auto *dataModel = new CQDataModel(nc + nh, nr);
 
-  auto filterModel = new CQChartsFilterModel(charts, dataModel);
+  auto *filterModel = new CQChartsFilterModel(charts, dataModel);
 
   //---
 

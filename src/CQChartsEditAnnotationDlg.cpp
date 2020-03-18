@@ -182,7 +182,7 @@ void
 CQChartsEditAnnotationDlg::
 createEllipseFrame()
 {
-  auto annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -237,7 +237,7 @@ void
 CQChartsEditAnnotationDlg::
 createPolygonFrame()
 {
-  auto annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -272,7 +272,7 @@ void
 CQChartsEditAnnotationDlg::
 createPolyLineFrame()
 {
-  auto annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -307,7 +307,7 @@ void
 CQChartsEditAnnotationDlg::
 createTextFrame()
 {
-  auto annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -414,7 +414,7 @@ void
 CQChartsEditAnnotationDlg::
 createArrowFrame()
 {
-  auto annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
   assert(annotation);
 
   CQChartsArrow *arrow = annotation->arrow();
@@ -502,7 +502,7 @@ void
 CQChartsEditAnnotationDlg::
 createPointFrame()
 {
-  auto annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -748,7 +748,7 @@ updateEllipseAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -789,7 +789,7 @@ updatePolygonAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -828,7 +828,7 @@ updatePolylineAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -878,7 +878,7 @@ updateTextAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -927,7 +927,7 @@ updateArrowAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);
@@ -955,7 +955,7 @@ updatePointAnnotation()
 
   //---
 
-  auto annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
   assert(annotation);
 
   //---

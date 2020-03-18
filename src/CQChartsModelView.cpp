@@ -192,7 +192,7 @@ void
 CQChartsModelView::
 setFilterAnd(bool b)
 {
-  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter)
     modelFilter->setFilterCombine(b ? CQChartsModelFilter::Combine::AND :
@@ -220,7 +220,7 @@ addReplaceFilter(const QString &filter, bool add)
   if (! model_)
     return;
 
-  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter) {
     if (sm_)
@@ -244,7 +244,7 @@ addReplaceFilter(const QString &filter, bool add)
     }
   }
   else {
-    auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+    auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
     assert(proxyModel);
 
     QAbstractItemModel *model = proxyModel->sourceModel();
@@ -266,7 +266,7 @@ QString
 CQChartsModelView::
 filterDetails() const
 {
-  auto modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+  auto *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter)
     return modelFilter->filterDetails();
@@ -302,7 +302,7 @@ addReplaceSearch(const QString &text, bool add)
   if (! model_)
     return;
 
-  auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
   //---

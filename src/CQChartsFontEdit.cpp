@@ -197,9 +197,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  auto view = qobject_cast<CQChartsView   *>(item->object());
-  auto plot = qobject_cast<CQChartsPlot   *>(item->object());
-  auto box  = qobject_cast<CQChartsBoxObj *>(item->object());
+  auto *view = qobject_cast<CQChartsView   *>(item->object());
+  auto *plot = qobject_cast<CQChartsPlot   *>(item->object());
+  auto *box  = qobject_cast<CQChartsBoxObj *>(item->object());
 
   if (box) {
     plot = box->plot();
@@ -268,7 +268,7 @@ void
 CQChartsFontPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fontChanged()), obj, method);
@@ -278,7 +278,7 @@ QVariant
 CQChartsFontPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->font());
@@ -288,7 +288,7 @@ void
 CQChartsFontPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsFontLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
   CQChartsFont font = var.value<CQChartsFont>();

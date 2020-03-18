@@ -163,7 +163,7 @@ void
 CQChartsShapeDataPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(shapeDataChanged()), obj, method);
@@ -173,7 +173,7 @@ QVariant
 CQChartsShapeDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->shapeData());
@@ -183,7 +183,7 @@ void
 CQChartsShapeDataPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
+  auto *edit = qobject_cast<CQChartsShapeDataLineEdit *>(w);
   assert(edit);
 
   CQChartsShapeData data = var.value<CQChartsShapeData>();

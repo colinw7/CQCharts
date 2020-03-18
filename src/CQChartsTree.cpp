@@ -173,7 +173,7 @@ setFilter(const QString &filter)
   if (! model_)
     return;
 
-  auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
   QAbstractItemModel *model = proxyModel->sourceModel();

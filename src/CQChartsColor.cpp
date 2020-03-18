@@ -304,7 +304,7 @@ bool
 CQChartsColor::
 getPaletteName(QString &name) const
 {
-  int paletteInd = -ind() - 2;
+  int paletteInd = getPaletteInd();
 
   CQColorsPalette *palette = CQColorsMgrInst->getIndPalette(paletteInd);
   if (! palette) return false;

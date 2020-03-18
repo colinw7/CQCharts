@@ -747,7 +747,7 @@ void
 CQChartsLoadModelDlg::
 typeChangedSlot(int)
 {
-  auto combo = qobject_cast<QComboBox *>(sender());
+  auto *combo = qobject_cast<QComboBox *>(sender());
   if (! combo) return;
 
   QString type = combo->currentText();

@@ -161,7 +161,7 @@ void
 CQChartsMarginPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsMarginEdit *>(w);
+  auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(marginChanged()), obj, method);
@@ -171,7 +171,7 @@ QVariant
 CQChartsMarginPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsMarginEdit *>(w);
+  auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->margin());
@@ -181,7 +181,7 @@ void
 CQChartsMarginPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsMarginEdit *>(w);
+  auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
   CQChartsMargin margin = var.value<CQChartsMargin>();

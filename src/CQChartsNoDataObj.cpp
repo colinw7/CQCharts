@@ -14,7 +14,7 @@ void
 CQChartsNoDataObj::
 draw(CQChartsPaintDevice *device)
 {
-  auto view = plot()->view();
+  auto *view = plot()->view();
 
   // get plot inside bbox in view coords
   auto bbox = plot()->innerViewBBox();

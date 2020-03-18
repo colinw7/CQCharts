@@ -495,8 +495,8 @@ initRangeAxesI()
   //---
 
   // set axis column and labels
-  auto xAxis = mappedXAxis();
-  auto yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   xAxis->setColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
 

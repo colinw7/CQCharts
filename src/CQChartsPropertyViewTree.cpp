@@ -79,8 +79,8 @@ printItem(CQPropertyViewItem *item) const
   QString dataStr = item->dataStr();
   QString path    = item->path(".", /*alias*/true);
 
-  auto plot       = qobject_cast<CQChartsPlot       *>(object);
-  auto annotation = qobject_cast<CQChartsAnnotation *>(object);
+  auto *plot       = qobject_cast<CQChartsPlot       *>(object);
+  auto *annotation = qobject_cast<CQChartsAnnotation *>(object);
 
   if      (plot) {
     if (path.startsWith(plot->id()))
@@ -140,9 +140,9 @@ editSlot()
 
   //---
 
-  auto title = qobject_cast<CQChartsTitle *>(obj);
-  auto key   = qobject_cast<CQChartsKey   *>(obj);
-  auto axis  = qobject_cast<CQChartsAxis  *>(obj);
+  auto *title = qobject_cast<CQChartsTitle *>(obj);
+  auto *key   = qobject_cast<CQChartsKey   *>(obj);
+  auto *axis  = qobject_cast<CQChartsAxis  *>(obj);
 
   bool modal = CQChartsEnv::getBool("CQ_CHARTS_MODAL_DLG", true);
 

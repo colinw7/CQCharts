@@ -206,7 +206,7 @@ void
 CQChartsGeomBBoxPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
+  auto *edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(valueChanged()), obj, method);
@@ -216,7 +216,7 @@ QVariant
 CQChartsGeomBBoxPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
+  auto *edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
   assert(edit);
 
   return CQChartsVariant::fromBBox(edit->getValue());
@@ -226,7 +226,7 @@ void
 CQChartsGeomBBoxPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
+  auto *edit = qobject_cast<CQChartsGeomBBoxEdit *>(w);
   assert(edit);
 
   bool ok;

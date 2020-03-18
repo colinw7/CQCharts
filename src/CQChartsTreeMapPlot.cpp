@@ -343,13 +343,13 @@ currentRoot() const
   if (names.empty())
     return firstHier();
 
-  auto currentRoot = root();
+  auto *currentRoot = root();
 
   if (! currentRoot)
     return nullptr;
 
   for (int i = 0; i < names.size(); ++i) {
-    auto hier = childHierNode(currentRoot, names[i]);
+    auto *hier = childHierNode(currentRoot, names[i]);
 
     if (! hier)
       return currentRoot;
@@ -618,7 +618,7 @@ replaceNodes() const
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
   th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
-  auto hier = currentRoot();
+  auto *hier = currentRoot();
 
   if (hier)
     placeNodes(hier);
@@ -677,7 +677,7 @@ loadHier() const
 
       //---
 
-      auto hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -687,7 +687,7 @@ loadHier() const
     }
 
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
-      auto node = hierStack_.back();
+      auto *node = hierStack_.back();
 
       hierStack_.pop_back();
 
@@ -724,7 +724,7 @@ loadHier() const
 
       //---
 
-      auto node = plot_->hierAddNode(parentHier(), name, size, nameInd);
+      auto *node = plot_->hierAddNode(parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -881,7 +881,7 @@ loadFlat() const
 
       //---
 
-      auto node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
+      auto *node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -923,17 +923,17 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   //---
 
-  auto parent = root();
+  auto *parent = root();
 
   for (int j = 0; j < nameStrs.length() - 1; ++j) {
-    auto child = childHierNode(parent, nameStrs[j]);
+    auto *child = childHierNode(parent, nameStrs[j]);
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
       QModelIndex nameInd1 = nameInd;
       double      size1    = 0.0;
 
-      auto node = childNode(parent, nameStrs[j]);
+      auto *node = childNode(parent, nameStrs[j]);
 
       if (node) {
         nameInd1 = node->ind();
@@ -961,11 +961,11 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   QString nodeName = nameStrs.back();
 
-  auto node = childNode(parent, nodeName);
+  auto *node = childNode(parent, nodeName);
 
   if (! node) {
     // use hier node if already created
-    auto child = childHierNode(parent, nodeName);
+    auto *child = childHierNode(parent, nodeName);
 
     if (child) {
       child->setSize(size);
@@ -1092,9 +1092,9 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  auto pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
-  auto popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
-  auto popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
+  auto *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  auto *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != firstHier());
@@ -1127,7 +1127,7 @@ pushSlot()
     auto *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
 
     if (hierObj) {
-      auto hnode = hierObj->hierNode();
+      auto *hnode = hierObj->hierNode();
 
       setCurrentRoot(hnode, /*update*/true);
 
@@ -1137,9 +1137,9 @@ pushSlot()
     auto *nodeObj = dynamic_cast<CQChartsTreeMapNodeObj *>(obj);
 
     if (nodeObj) {
-      auto node = nodeObj->node();
+      auto *node = nodeObj->node();
 
-      auto hnode = node->parent();
+      auto *hnode = node->parent();
 
       if (hnode) {
         setCurrentRoot(hnode, /*update*/true);
@@ -1154,7 +1154,7 @@ void
 CQChartsTreeMapPlot::
 popSlot()
 {
-  auto root = currentRoot();
+  auto *root = currentRoot();
 
   if (root && root->parent()) {
     setCurrentRoot(root->parent(), /*update*/true);
@@ -1165,7 +1165,7 @@ void
 CQChartsTreeMapPlot::
 popTopSlot()
 {
-  auto root = currentRoot();
+  auto *root = currentRoot();
 
   if (root != firstHier()) {
     setCurrentRoot(firstHier(), /*update*/true);
@@ -1294,7 +1294,7 @@ void
 CQChartsTreeMapHierObj::
 draw(CQChartsPaintDevice *device)
 {
-  auto pnode = node()->parent();
+  auto *pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -1558,7 +1558,7 @@ void
 CQChartsTreeMapNodeObj::
 draw(CQChartsPaintDevice *device)
 {
-  auto pnode = node()->parent();
+  auto *pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -2037,7 +2037,7 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
     }
   }
   else {
-    auto node = nodes[0];
+    auto *node = nodes[0];
 
     node->setPosition(x, y, w, h);
   }
@@ -2153,7 +2153,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapNode::
 rootNode(CQChartsTreeMapHierNode *root) const
 {
-  auto parent = this->parent();
+  auto *parent = this->parent();
 
   while (parent && parent->parent() && parent->parent() != root)
     parent = parent->parent();

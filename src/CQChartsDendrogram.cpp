@@ -235,7 +235,7 @@ placeSubNodes(RootNode *root, int depth, double row)
     root->placeNode(n, depth, row1, maxNodes);
 
     // place child nodes
-    auto hierNode = dynamic_cast<HierNode *>(n);
+    auto *hierNode = dynamic_cast<HierNode *>(n);
 
     if (hierNode && hierNode->isOpen())
       hierNode->placeSubNodes(root, depth + 1, row1);
@@ -549,7 +549,7 @@ canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
     Node *node1 = dnodes[i];
 
     if (node1->isOpen() && node1->hasChildren()) {
-      auto hierNode = dynamic_cast<HierNode *>(node1);
+      auto *hierNode = dynamic_cast<HierNode *>(node1);
 
       Node *child = getLowestChild(hierNode);
 

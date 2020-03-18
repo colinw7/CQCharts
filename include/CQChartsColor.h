@@ -34,11 +34,11 @@ class CQChartsColor {
     INTERFACE_VALUE,
     MODEL,
     MODEL_VALUE,
-    COLOR,
     LIGHTER,
     LIGHTER_VALUE,
     DARKER,
-    DARKER_VALUE
+    DARKER_VALUE,
+    COLOR
   };
 
  public:
@@ -152,6 +152,8 @@ class CQChartsColor {
 
     return (ind() <= -2);
   }
+
+  int getPaletteInd() const { return -ind() - 2; }
 
   bool getPaletteName(QString &name) const;
   bool setPaletteName(const QString &name);

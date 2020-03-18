@@ -409,7 +409,7 @@ void
 CQChartsModelData::
 selectionSlot()
 {
-  auto sm = qobject_cast<QItemSelectionModel *>(sender());
+  auto *sm = qobject_cast<QItemSelectionModel *>(sender());
   assert(sm);
 
   emit selectionChanged(sm);
@@ -576,7 +576,7 @@ foldModel(const FoldData &foldData)
       auto *model = modelp.data();
       assert(model);
 
-      auto proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+      auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
       if (! proxyModel) {
         auto *foldProxyModel = new QSortFilterProxyModel;
@@ -681,7 +681,7 @@ foldedModels() const
     qobject_cast<QSortFilterProxyModel *>(foldProxyModel_.data());
   if (! proxyModel) return FoldedModels();
 
-  auto foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
+  auto *foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
 
   if (! foldedModel) {
     auto *sourceModel = proxyModel->sourceModel();
@@ -784,7 +784,7 @@ bool
 CQChartsModelData::
 getPropertyData(const QString &name, QVariant &value) const
 {
-  auto th = const_cast<CQChartsModelData *>(this);
+  auto *th = const_cast<CQChartsModelData *>(this);
 
   auto *propertyModel = th->propertyViewModel();
 
@@ -825,7 +825,7 @@ bool
 CQChartsModelData::
 setPropertyData(const QString &name, const QVariant &value)
 {
-  auto th = const_cast<CQChartsModelData *>(this);
+  auto *th = const_cast<CQChartsModelData *>(this);
 
   auto *propertyModel = th->propertyViewModel();
 
@@ -866,7 +866,7 @@ void
 CQChartsModelData::
 getPropertyNameData(IdModelNames &names) const
 {
-  auto th = const_cast<CQChartsModelData *>(this);
+  auto *th = const_cast<CQChartsModelData *>(this);
 
   names[""][th] << "ind" << "id" << "name" << "filename" << "currentColumn";
 
@@ -878,7 +878,7 @@ getPropertyNameData(IdModelNames &names) const
 
   auto *absModel = CQChartsModelUtil::getBaseModel(model.data());
 
-  auto baseModel = qobject_cast<CQBaseModel *>(absModel);
+  auto *baseModel = qobject_cast<CQBaseModel *>(absModel);
 
   if (baseModel)
     names["base"][baseModel] << "dataType" << "title" << "maxTypeRows";
@@ -896,12 +896,12 @@ getPropertyNameData(IdModelNames &names) const
   if (exprModel)
     names["expr"][exprModel] << "debug";
 
-  auto modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
+  auto *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
 
   if (modelFilter)
     names["filter"][modelFilter] << "filter" << "type" << "invert";
 
-  auto pivotModel = qobject_cast<CQPivotModel *>(baseModel);
+  auto *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
 
   if (pivotModel)
     names["pivot"][pivotModel] << "valueType" << "includeTotals";
@@ -924,25 +924,25 @@ getPropertyNameData(IdModelNames &names) const
   //---
 
   // data models
-  auto csvModel = qobject_cast<CQCsvModel *>(absModel);
+  auto *csvModel = qobject_cast<CQCsvModel *>(absModel);
 
   if (csvModel)
     names["csv"][csvModel] << "commentHeader" << "firstLineHeader" <<
                               "firstColumnHeader" << "separator";
 
-  auto tsvModel = qobject_cast<CQTsvModel *>(absModel);
+  auto *tsvModel = qobject_cast<CQTsvModel *>(absModel);
 
   if (tsvModel)
     names["tsv"][tsvModel] << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
 
-  auto gnuModel = qobject_cast<CQGnuDataModel *>(absModel);
+  auto *gnuModel = qobject_cast<CQGnuDataModel *>(absModel);
 
   if (gnuModel)
     names["gnu"][gnuModel] << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
                               "commentChars" << "missingStr" << "separator" << "parseStrings" <<
                               "setBlankLines" << "subSetBlankLines" << "keepQuotes";
 
-  auto jsonModel = qobject_cast<CQJsonModel *>(absModel);
+  auto *jsonModel = qobject_cast<CQJsonModel *>(absModel);
 
   if (jsonModel)
     names["json"][jsonModel] << "hierarchical" << "flat";
@@ -978,16 +978,16 @@ write(std::ostream &os, const QString &varName) const
   auto *model = this->model().data();
   if (! model) return false;
 
-  auto exprModel = CQChartsModelUtil::getExprModel(model);
-  auto dataModel = CQChartsModelUtil::getDataModel(model);
-  auto baseModel = CQChartsModelUtil::getBaseModel(model);
+  auto *exprModel = CQChartsModelUtil::getExprModel(model);
+  auto *dataModel = CQChartsModelUtil::getDataModel(model);
+  auto *baseModel = CQChartsModelUtil::getBaseModel(model);
 
-  auto varsModel     = dynamic_cast<const CQChartsVarsModel     *>(dataModel);
-  auto exprDataModel = dynamic_cast<const CQChartsExprDataModel *>(dataModel);
-  auto csvModel      = dynamic_cast<const CQCsvModel            *>(dataModel);
-  auto tsvModel      = dynamic_cast<const CQTsvModel            *>(dataModel);
-  auto gnuModel      = dynamic_cast<const CQGnuDataModel        *>(dataModel);
-  auto jsonModel     = dynamic_cast<const CQJsonModel           *>(baseModel);
+  auto *varsModel     = dynamic_cast<const CQChartsVarsModel     *>(dataModel);
+  auto *exprDataModel = dynamic_cast<const CQChartsExprDataModel *>(dataModel);
+  auto *csvModel      = dynamic_cast<const CQCsvModel            *>(dataModel);
+  auto *tsvModel      = dynamic_cast<const CQTsvModel            *>(dataModel);
+  auto *gnuModel      = dynamic_cast<const CQGnuDataModel        *>(dataModel);
+  auto *jsonModel     = dynamic_cast<const CQJsonModel           *>(baseModel);
 
   if (varName != "")
     os << "set " << varName.toStdString();

@@ -334,7 +334,7 @@ void
 CQChartsSidesPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsSidesEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(sidesChanged()), obj, method);
@@ -344,7 +344,7 @@ QVariant
 CQChartsSidesPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsSidesEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->sides());
@@ -354,7 +354,7 @@ void
 CQChartsSidesPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsSidesEdit *>(w);
+  auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
   CQChartsSides sides = var.value<CQChartsSides>();

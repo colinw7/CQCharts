@@ -586,7 +586,7 @@ setFormat(const QString &formatStr)
   CQChartsUtil::testAndSet(formatStr_, formatStr, [&]() {
 #if 0
     if (column().isValid()) {
-      auto plot = const_cast<CQChartsPlot *>(plot_);
+      auto *plot = const_cast<CQChartsPlot *>(plot_);
 
       if (! plot->setColumnTypeStr(column(), typeStr))
         return false;
@@ -689,7 +689,7 @@ CQChartsAxis::
 updateCalc() const
 {
   if (needsCalc_) {
-    auto th = const_cast<CQChartsAxis *>(this);
+    auto *th = const_cast<CQChartsAxis *>(this);
 
     th->needsCalc_ = false;
 
@@ -813,7 +813,7 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  auto plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<CQChartsPlot *>(plot_);
 
   plot->updateMargins();
 }
@@ -832,7 +832,7 @@ void
 CQChartsAxis::
 redraw(bool wait)
 {
-  auto plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<CQChartsPlot *>(plot_);
   if (! plot) return;
 
   if (wait) {
@@ -859,7 +859,7 @@ void
 CQChartsAxis::
 updatePlotRange()
 {
-  auto plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<CQChartsPlot *>(plot_);
 
   plot->updateRange();
 }
@@ -868,7 +868,7 @@ void
 CQChartsAxis::
 updatePlotRangeAndObjs()
 {
-  auto plot = const_cast<CQChartsPlot *>(plot_);
+  auto *plot = const_cast<CQChartsPlot *>(plot_);
 
   plot->updateRangeAndObjs();
 }
@@ -1407,7 +1407,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  auto th = const_cast<CQChartsAxis *>(this);
+  auto *th = const_cast<CQChartsAxis *>(this);
 
   th->editHandles_->setBBox(this->bbox());
 

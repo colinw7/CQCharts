@@ -450,7 +450,7 @@ void
 CQChartsLineDashPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  auto edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(valueChanged(const CQChartsLineDash &)), obj, method);
@@ -460,7 +460,7 @@ QVariant
 CQChartsLineDashPropertyViewEditor::
 getValue(QWidget *w)
 {
-  auto edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->getLineDash());
@@ -470,7 +470,7 @@ void
 CQChartsLineDashPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  auto edit = qobject_cast<CQChartsLineDashEdit *>(w);
+  auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
   CQChartsLineDash dash = var.value<CQChartsLineDash>();

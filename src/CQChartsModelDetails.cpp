@@ -57,7 +57,7 @@ const CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c) const
 {
-  auto th = const_cast<CQChartsModelDetails *>(this);
+  auto *th = const_cast<CQChartsModelDetails *>(this);
 
   return th->columnDetails(c);
 }
@@ -99,7 +99,7 @@ initSimpleData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ == Initialized::NONE) {
-      auto th = const_cast<CQChartsModelDetails *>(this);
+      auto *th = const_cast<CQChartsModelDetails *>(this);
 
       th->updateSimple();
     }
@@ -114,7 +114,7 @@ initFullData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ != Initialized::FULL) {
-      auto th = const_cast<CQChartsModelDetails *>(this);
+      auto *th = const_cast<CQChartsModelDetails *>(this);
 
       th->updateFull();
     }
@@ -262,10 +262,10 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
   std::vector<int> rows;
 
-  auto charts = this->charts();
+  auto *charts = this->charts();
   if (! charts) return rows;
 
-  auto model = this->model();
+  auto *model = this->model();
 
   std::vector<QVariant> rowValues1, rowValues2;
 
@@ -1074,7 +1074,7 @@ initCache() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! initialized_) {
-      auto th = const_cast<CQChartsModelColumnDetails *>(this);
+      auto *th = const_cast<CQChartsModelColumnDetails *>(this);
 
       (void) th->initData();
     }
@@ -1500,7 +1500,7 @@ initType() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! typeInitialized_) {
-      auto th = const_cast<CQChartsModelColumnDetails *>(this);
+      auto *th = const_cast<CQChartsModelColumnDetails *>(this);
 
       (void) th->calcType();
     }
