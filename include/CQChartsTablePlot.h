@@ -89,6 +89,45 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   using RowNums = CQSummaryModel::RowNums;
 
+  struct HeaderObjData {
+    CQChartsColumn     c;
+    CQChartsGeom::BBox rect;
+    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString            str;
+
+    HeaderObjData() = default;
+
+    HeaderObjData(const CQChartsColumn &c) :
+     c(c) {
+    }
+  };
+
+  struct RowObjData {
+    int                r { 0 };
+    CQChartsGeom::BBox rect;
+    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString            str;
+
+    RowObjData() = default;
+
+    RowObjData(int r) :
+     r(r) {
+    }
+  };
+
+  struct CellObjData {
+    CQChartsModelIndex ind;
+    CQChartsGeom::BBox rect;
+    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString            str;
+
+    CellObjData() = default;
+
+    CellObjData(const CQChartsModelIndex &ind) :
+     ind(ind) {
+    }
+  };
+
  public:
   CQChartsTablePlot(CQChartsView *view, const ModelP &model);
 
@@ -196,13 +235,23 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  void calcTableSize() const;
+
+  void autoFit() override;
+
+  //---
+
   bool addMenuItems(QMenu *menu) override;
 
   //---
 
-  bool hasForeground() const override;
+  void postResize() override;
 
-  void execDrawForeground(CQChartsPaintDevice *device) const override;
+  //---
+
+  bool hasBackground() const override;
+
+  void execDrawBackground(CQChartsPaintDevice *device) const override;
 
   //---
 
@@ -212,8 +261,25 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   void modelViewExpansionChanged() override;
 
+  //---
+
+  const QFont &tableFont() const { return tableData_.font; }
+
+  double scrollX() const;
+  double scrollY() const;
+
  private:
   void drawTable(CQChartsPaintDevice *device) const;
+
+  void initDrawData() const;
+
+  void updateScrollBars() const;
+
+  void updatePosition() const;
+
+  void drawTableBackground(CQChartsPaintDevice *device) const;
+
+  void createTableObjData() const;
 
   std::vector<Mode> modes() const { return
     {{ Mode::NORMAL, Mode::RANDOM, Mode::SORTED, Mode::PAGED, Mode::ROWS }};
@@ -255,6 +321,8 @@ class CQChartsTablePlot : public CQChartsPlot {
     double          prh      { 0.0 }; // pixel row height
     double          rh       { 0.0 }; // row height
     double          pcw      { 0.0 }; // pixel columns width
+    double          sx       { 0.0 }; // scroll x
+    double          sy       { 0.0 }; // scroll y
     double          dx       { 0.0 }; // overflow width
     double          dy       { 0.0 }; // overflow height
     double          xo       { 0.0 }; // x offset
@@ -278,22 +346,129 @@ class CQChartsTablePlot : public CQChartsPlot {
     CQChartsColor color;            //!< header color
   };
 
+  struct FitData {
+    bool fitHorizontal { true };
+    bool fitVertical   { false };
+  };
+
+  using HeaderObjMap = std::map<int,HeaderObjData>;
+  using RowObjMap    = std::map<int,RowObjData>;
+  using CellObjMap   = std::map<QModelIndex,CellObjData>;
+
+ private:
+  HeaderObjData& getHeaderObjData(const CQChartsColumn &c) const;
+  RowObjData&    getRowObjData   (int row) const;
+  CellObjData&   getCellObjData  (const CQChartsModelIndex &ind) const;
+
+ private:
   TableData       tableData_;                //!< cached table data
   ScrollData      scrollData_;               //!< scroll bar data
   CQChartsColumns columns_;                  //!< columns
   CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
   bool            rowColumn_    { false };   //!< draw row numbers column
   HeaderData      headerData_;               //!< header data
+  FitData         fitData_;                  //!< fit data
   CQChartsColor   gridColor_;                //!< grid color
   CQChartsColor   textColor_;                //!< text color
   CQChartsColor   cellColor_;                //!< cell color
   double          indent_       { 8.0 };     //!< hier indent
+  double          fontScale_    { 1.0 };     //!< font scale
   bool            followView_   { false };   //!< follow view
   QMenu*          menu_         { nullptr }; //!< menu
   CQIntegerSpinP  maxRowsSpin_;              //!< max rows menu edit
   CQIntegerSpinP  sortColumnSpin_;           //!< sort column menu edit
   CQIntegerSpinP  pageSizeSpin_;             //!< page size menu edit
   CQIntegerSpinP  pageNumSpin_;              //!< page number menu edit
+
+  HeaderObjMap headerObjMap_;
+  RowObjMap    rowObjMap_;
+  CellObjMap   cellObjMap_;
+};
+
+/*!
+ * \brief Table Header object
+ * \ingroup Charts
+ */
+class CQChartsTableHeaderObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsTableHeaderObj(const CQChartsTablePlot *plot,
+                         const CQChartsTablePlot::HeaderObjData &headerObjData);
+
+  QString typeName() const override { return "header"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+
+ private:
+  const CQChartsTablePlot*         plot_ { nullptr }; //!< parent plot
+  CQChartsTablePlot::HeaderObjData headerObjData_;
+};
+
+/*!
+ * \brief Table Row object
+ * \ingroup Charts
+ */
+class CQChartsTableRowObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsTableRowObj(const CQChartsTablePlot *plot,
+                      const CQChartsTablePlot::RowObjData &rowObjData);
+
+  QString typeName() const override { return "row"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+
+ private:
+  const CQChartsTablePlot*      plot_ { nullptr }; //!< parent plot
+  CQChartsTablePlot::RowObjData rowObjData_;
+};
+
+/*!
+ * \brief Table Cell object
+ * \ingroup Charts
+ */
+class CQChartsTableCellObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsTableCellObj(const CQChartsTablePlot *plot,
+                       const CQChartsTablePlot::CellObjData &cellObjData);
+
+  QString typeName() const override { return "cell"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+
+ private:
+  const CQChartsTablePlot*       plot_ { nullptr }; //!< parent plot
+  CQChartsTablePlot::CellObjData cellObjData_;
 };
 
 #endif

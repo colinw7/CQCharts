@@ -54,8 +54,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 #include <CQChartsEditBase.h>
 
 class CQChartsLineEdit;
-class CQGroupBox;
-class QCheckBox;
+class QComboBox;
 
 /*!
  * \brief Column edit
@@ -75,6 +74,8 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
 
+  QSize sizeHint() const override;
+
  signals:
   void columnChanged();
 
@@ -83,33 +84,29 @@ class CQChartsColumnEdit : public CQChartsEditBase {
 
   void updateState();
 
-  void menuColumnGroupClicked(bool b);
-  void menuExprGroupClicked  (bool b);
-  void rowCheckClicked       (bool b);
-  void vheaderCheckClicked   (bool b);
-
-  void menuColumnChanged();
-  void roleTextChanged(const QString &str);
-
-  void expressionTextChanged(const QString &str);
+  void widgetsToColumnSlot();
 
  private:
+  void connectSlots(bool b);
+
   void columnToWidgets();
 
   void updateColumnsFromModel();
 
-  void connectSlots(bool b);
-
  private:
-  QAbstractItemModel*  model_          { nullptr };
-  CQChartsColumn       column_;
-  CQGroupBox*          columnGroup_    { nullptr };
-  CQChartsColumnCombo* columnCombo_    { nullptr };
-  CQChartsLineEdit*    roleEdit_       { nullptr };
-  CQGroupBox*          menuExprGroup_  { nullptr };
-  CQChartsLineEdit*    expressionEdit_ { nullptr };
-  QCheckBox*           rowCheck_       { nullptr };
-  QCheckBox*           vheaderCheck_   { nullptr };
+  using WidgetLabels = std::map<QWidget*,QWidget*>;
+
+  QAbstractItemModel*  model_          { nullptr }; //!< model
+  CQChartsColumn       column_;                     //!< column
+  CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
+  QComboBox*           typeCombo_      { nullptr }; //!< type combo
+  CQChartsColumnCombo* columnCombo_    { nullptr }; //!< column combo
+  CQChartsLineEdit*    roleEdit_       { nullptr }; //!< role edit
+  CQChartsLineEdit*    indexEdit_      { nullptr }; //!< index edit
+  CQChartsLineEdit*    expressionEdit_ { nullptr }; //!< expression edit
+  WidgetLabels         widgetLabels_;               //!< widget labels
+  int                  widgetHeight_   { 100 };
+  bool                 connected_      { false };   //!< is connected
 };
 
 //------

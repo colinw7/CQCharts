@@ -57,7 +57,7 @@ CQChartsColumn(const CQChartsColumn &rhs) :
     memcpy(expr_, rhs.expr_, len + 1);
   }
 
-  if (rhs.name_) {
+  if (rhs.hasName()) {
     int len = strlen(rhs.name_);
 
     name_ = new char [len + 1];
@@ -94,7 +94,7 @@ operator=(const CQChartsColumn &rhs)
     memcpy(expr_, rhs.expr_, len + 1);
   }
 
-  if (rhs.name_) {
+  if (rhs.hasName()) {
     int len = strlen(rhs.name_);
 
     name_ = new char [len + 1];
@@ -181,6 +181,8 @@ toString() const
     else
       str += "@ROW";
   }
+  else if (type_ == Type::HHEADER)
+    str += "@HH";
   else if (type_ == Type::VHEADER)
     str += "@VH";
   else if (type_ == Type::GROUP)
@@ -225,6 +227,13 @@ cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
     if (! rhs.expr_) return  1;
 
     return strcmp(lhs.expr_, rhs.expr_);
+  }
+
+  if (lhs.name_ != rhs.name_) {
+    if (! lhs.name_) return -1;
+    if (! rhs.name_) return  1;
+
+    return strcmp(lhs.name_, rhs.name_);
   }
 
   return 0;
@@ -368,6 +377,11 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     }
 
     //---
+
+    // horizontal header
+    if (parse.isWord("@HH") || parse.isWord("@HHEADER")) {
+      type = Type::HHEADER; return true;
+    }
 
     // vertical header
     if (parse.isWord("@VH") || parse.isWord("@VHEADER")) {

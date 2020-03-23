@@ -25,11 +25,12 @@ class CQChartsColumn {
   enum class Type {
     NONE,
     DATA,       // model row data
-    ROW,        // model row number
-    VHEADER,    // model vertical header data
-    GROUP,      // model row group id
+    DATA_INDEX, // model row data sub value (e.g. time sub value)
     EXPR,       // expression
-    DATA_INDEX  // model row data sub value (e.g. time sub value)
+    ROW,        // model row number
+    HHEADER,    // model horizontal header data
+    VHEADER,    // model vertical header data
+    GROUP       // model row group id
   };
 
  public:
@@ -61,7 +62,8 @@ class CQChartsColumn {
   //--
 
   bool hasColumn() const {
-    return ((type_ == Type::DATA || type_ == Type::DATA_INDEX) && column_ >= 0);
+    return ((type_ == Type::DATA || type_ == Type::DATA_INDEX ||
+             type_ == Type::HHEADER) && column_ >= 0);
   }
 
   int column() const { return (hasColumn() ? column_ : -1); }
@@ -96,6 +98,7 @@ class CQChartsColumn {
 
   //--
 
+  bool isHHeader() const { return (type_ == Type::HHEADER); }
   bool isVHeader() const { return (type_ == Type::VHEADER); }
 
   //--
@@ -106,7 +109,7 @@ class CQChartsColumn {
 
   bool hasName() const { return name_ && strlen(name_); }
 
-  QString name() const { return (hasName() ? QString(name_) : QString()); }
+  QString name() const { return QString(hasName() ? name_ : ""); }
   void setName(const QString &name);
 
   //---

@@ -1,7 +1,7 @@
 #ifndef CQChartsModelData_H
 #define CQChartsModelData_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>
@@ -209,6 +209,7 @@ class CQChartsModelData : public QObject {
 
   struct CopyData {
     QString filter;
+    bool    debug { false };
   };
 
   QAbstractItemModel *copy(const CopyData &copyData);

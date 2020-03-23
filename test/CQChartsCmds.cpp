@@ -2756,11 +2756,14 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-filter", CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-debug" , CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
 
   bool rc;
 
   if (! argv.parse(rc))
     return rc;
+
+  bool debug = argv.getParseBool("debug");
 
   //---
 
@@ -2769,6 +2772,7 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
   CQChartsModelData::CopyData copyData;
 
   copyData.filter = argv.getParseStr("filter");
+  copyData.debug  = debug;
 
   //------
 
@@ -3403,15 +3407,12 @@ createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
-    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
-                                           columnBaseType, nameValues)) {
+    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnTypeData)) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
       if (typeData) {
         if (typeData->isNumeric()) {
@@ -3508,15 +3509,12 @@ createChartsBucketModelCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
-    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
-                                           columnBaseType, nameValues)) {
+    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnTypeData)) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
       if (typeData) {
         if (typeData->isNumeric()) {
@@ -3847,15 +3845,13 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   for (int c = 0; c < model->columnCount(); ++c) {
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     if (! CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(c),
-                                             columnType, columnBaseType, nameValues))
+                                             columnTypeData))
       continue;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
     if (! typeData) continue;
 
     if (typeData->isNumeric()) {
@@ -4106,15 +4102,13 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
 
     //---
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     if (! CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(c),
-                                             columnType, columnBaseType, nameValues))
+                                             columnTypeData))
       continue;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
     if (! typeData) continue;
 
     if (! typeData->isNumeric() || typeData->isTime())
@@ -4618,22 +4612,19 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         return cmdBase_->setCmdRc(c);
       }
       else {
-        CQBaseModelType    columnType;
-        CQBaseModelType    columnBaseType;
-        CQChartsNameValues nameValues;
+        CQChartsModelTypeData columnTypeData;
 
-        if (CQChartsModelUtil::columnValueType(charts_, model.data(), column,
-                                               columnType, columnBaseType, nameValues)) {
+        if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnTypeData)) {
           CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-          const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+          const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
           if (typeData) {
             for (const auto &param : typeData->params()) {
               if (name1 == param->name()) {
                 QVariant var;
 
-                nameValues.nameValue(param->name(), var);
+                columnTypeData.nameValues.nameValue(param->name(), var);
 
                 if (var.isValid())
                   return cmdBase_->setCmdRc(var);
@@ -5513,6 +5504,17 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       else {
         if (! CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), value))
           return errorMsg(QString("Invalid column type string '%1'").arg(value));
+      }
+    }
+    // set header type
+    else if (name == "header_type") {
+      if (column.isValid()) {
+        if (! CQChartsModelUtil::setHeaderTypeStr(charts_, model.data(), column, value))
+          return errorMsg(QString("Invalid header type '%1'").arg(value));
+      }
+      else {
+        if (! CQChartsModelUtil::setHeaderTypeStrs(charts_, model.data(), value))
+          return errorMsg(QString("Invalid header type string '%1'").arg(value));
       }
     }
     // set meta data

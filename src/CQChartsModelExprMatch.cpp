@@ -176,17 +176,17 @@ initColumns()
   nr_ = (model_ ? model_->rowCount   () : 0);
   nc_ = (model_ ? model_->columnCount() : 0);
 
-  for (int column = 0; column < nc_; ++column) {
-    QVariant var = model_->headerData(column, Qt::Horizontal);
+  for (int ic = 0; ic < nc_; ++ic) {
+    CQChartsColumn c(ic);
 
     bool ok;
 
-    QString name = CQChartsVariant::toString(var, ok);
+    QString name = CQChartsModelUtil::modelHeaderString(model_, c, ok);
 
-    columnNames_[column] = name;
-    nameColumns_[name  ] = column;
+    columnNames_[ic  ] = name;
+    nameColumns_[name] = ic;
 
-    qtcl_->setNameColumn(name, column);
+    qtcl_->setNameColumn(qtcl_->encodeColumnName(name), ic);
   }
 
   qtcl_->initVars();
@@ -387,7 +387,9 @@ headerCmd(const Values &values) const
 
   //---
 
-  return model()->headerData(col, Qt::Horizontal, Qt::DisplayRole);
+  bool ok;
+
+  return CQChartsModelUtil::modelHeaderString(model(), CQChartsColumn(col), ok);
 }
 
 //---

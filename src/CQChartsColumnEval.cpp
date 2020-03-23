@@ -57,7 +57,7 @@ addFunc(const QString &name, CQTcl::ObjCmdProc proc)
 
 bool
 CQChartsColumnEval::
-evaluateExpression(const QString &expr, QVariant &value)
+evaluateExpression(const QString &expr, QVariant &value, bool showError)
 {
   if (expr.length() == 0)
     return false;
@@ -67,7 +67,7 @@ evaluateExpression(const QString &expr, QVariant &value)
   qtcl_->setModel(const_cast<QAbstractItemModel *>(model()));
   qtcl_->setRow  (row());
 
-  return qtcl_->evaluateExpression(expr, value, isDebug());
+  return qtcl_->evaluateExpression(expr, value, (showError || isDebug()));
 }
 
 int

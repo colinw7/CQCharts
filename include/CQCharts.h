@@ -3,8 +3,7 @@
 
 #include <CQChartsThemeName.h>
 #include <CQChartsUtil.h>
-
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 
 #include <QObject>
 #include <QAbstractItemModel>

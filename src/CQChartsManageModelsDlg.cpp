@@ -94,15 +94,12 @@ writeSlot()
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
-    if (! CQChartsModelUtil::columnValueType(charts_, model, column, columnType,
-                                             columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model, column, columnTypeData))
       continue;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
     QString value = typeData->name();
 
@@ -111,7 +108,7 @@ writeSlot()
     for (const auto &param : typeData->params()) {
       QVariant var;
 
-      if (! nameValues.nameValue(param->name(), var))
+      if (! columnTypeData.nameValues.nameValue(param->name(), var))
         continue;
 
       if (! var.isValid())

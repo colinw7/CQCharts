@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + get plot model in interface
+ + stablize auto fit call with threads !
  + custom title fit (directional, allow formatted/scaled)
  + Allow invert defined palette
  + Column Editor support name

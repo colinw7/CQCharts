@@ -12,6 +12,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 #include <CQUtil.h>
@@ -44,8 +45,11 @@ addParameters()
   //---
 
   // options
-  addBoolParameter("lines"     , "Lines"     , "lines", true    ).setTip("Draw Lines");
-  addBoolParameter("points"    , "Points"    , "points"         ).setTip("Draw Points");
+  addBoolParameter("lines" , "Lines" , "lines", true).setTip("Draw Lines");
+  addBoolParameter("points", "Points", "points"     ).setTip("Draw Points");
+
+  addBoolParameter("columnSeries", "Column Series", "columnSeries").setTip("Columns are series");
+
   addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).setTip("Draw Bivariate Lines");
   addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).setTip("Stack Points");
   addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
@@ -504,6 +508,9 @@ addProperties()
   // cumulative
   addProp("cumulative", "cumulative", "enabled", "Cumulative values");
 
+  // column series
+  addProp("options", "columnSeries", "timeSeries", "Are y column values a series");
+
   // points
   addProp("points", "points"         , "visible", "Point symbol visible");
   addProp("points", "pointLineSelect", "lineSelect", "Select point selects line");
@@ -687,9 +694,12 @@ calcRange() const
    public:
     RowVisitor(const CQChartsXYPlot *plot) :
      plot_(plot) {
-      int ns = plot_->yColumns().count();
+      int ns = plot_->numSets();
 
       sum_.resize(ns);
+
+      if (plot_->isColumnSeries())
+        plot_->headerSeriesData(sx_);
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -725,17 +735,25 @@ calcRange() const
         range_.updateRange(x, sum1);
       }
       else if (plot_->isCumulative()) {
-        for (int i = 0; i < ny; ++i) {
-          double y1 = y[i] + lastSum_[i];
+        if (! plot_->isColumnSeries()) {
+          for (int i = 0; i < ny; ++i) {
+            double y1 = y[i] + lastSum_[i];
 
-          sum_[i] += y[i];
+            sum_[i] += y[i];
 
-          range_.updateRange(x, y1);
+            range_.updateRange(x, y1);
+          }
         }
       }
       else {
-        for (int i = 0; i < ny; ++i)
-          range_.updateRange(x, y[i]);
+        if (! plot_->isColumnSeries()) {
+          for (int i = 0; i < ny; ++i)
+            range_.updateRange(x, y[i]);
+        }
+        else {
+          for (int i = 0; i < ny; ++i)
+            range_.updateRange(sx_[i], y[i]);
+        }
       }
 
       return State::OK;
@@ -750,6 +768,7 @@ calcRange() const
     CQChartsGeom::Range   range_;
     Reals                 sum_;
     Reals                 lastSum_;
+    std::vector<double>   sx_;
   };
 
   RowVisitor visitor(this);
@@ -788,15 +807,26 @@ initAxes()
 
   //---
 
-  // set x axis name
+  // set x axis column and name
   if (xAxis()) {
+    CQChartsColumn xAxisColumn;
+
+    if (! isColumnSeries())
+      xAxisColumn = xColumn();
+    else {
+      xAxisColumn =
+        CQChartsColumn(CQChartsColumn::Type::HHEADER, yColumns().getColumn(0).column(), "");
+    }
+
     if (isOverlay()) {
       if (isFirstPlot() || isX1X2())
-        xAxis()->setColumn(xColumn());
+        xAxis()->setColumn(xAxisColumn);
     }
     else {
-      xAxis()->setColumn(xColumn());
+      xAxis()->setColumn(xAxisColumn);
     }
+
+    //--
 
     QString xname = xAxisName();
 
@@ -816,7 +846,7 @@ initAxes()
   if (yAxis()) {
     QString yname = yAxisName();
 
-    int ns = yColumns().count();
+    int ns = numSets();
 
     if      (isBivariateLines() && ns > 1) {
       if (isOverlay()) {
@@ -909,7 +939,7 @@ yAxisName(const QString &def) const
   QString name;
   bool    ok = true;
 
-  int ns = yColumns().count();
+  int ns = numSets();
 
   if      (isBivariateLines() && ns > 1) {
     name = titleStr();
@@ -936,17 +966,19 @@ yAxisName(const QString &def) const
     ok = false;
   }
   else {
-    for (int j = 0; j < ns; ++j) {
-      bool ok;
+    if (! isColumnSeries()) {
+      for (int j = 0; j < ns; ++j) {
+        bool ok;
 
-      auto yColumn = yColumns().getColumn(j);
+        auto yColumn = yColumns().getColumn(j);
 
-      QString name1 = modelHHeaderString(yColumn, ok);
+        QString name1 = modelHHeaderString(yColumn, ok);
 
-      if (name.length())
-        name += ", ";
+        if (name.length())
+          name += ", ";
 
-      name += name1;
+        name += name1;
+      }
     }
 
     ok = name.length();
@@ -1043,7 +1075,10 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
    public:
     RowVisitor(const CQChartsXYPlot *plot) :
      plot_(plot) {
-      ns_ = plot_->yColumns().count();
+      ns_ = plot_->numSets();
+
+      if (plot_->isColumnSeries())
+        plot_->headerSeriesData(sx_);
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1059,17 +1094,33 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
 
       //---
 
+      // get x and y values
       double x; std::vector<double> y; QModelIndex rowInd;
 
       if (! plot_->rowData(data, x, y, rowInd, plot_->isSkipBad()))
         return State::SKIP;
 
-      assert(int(y.size()) == ns_);
+      int ny = y.size();
 
-      for (int i = 0; i < ns_; ++i) {
-        setPoly[i].inds.push_back(rowInd);
+      //---
 
-        setPoly[i].poly.addPoint(CQChartsGeom::Point(x, y[i]));
+      if (! plot_->isColumnSeries()) {
+        assert(ny == ns_);
+      }
+
+      if (! plot_->isColumnSeries()) {
+        for (int i = 0; i < ny; ++i) {
+          setPoly[i].inds.push_back(rowInd);
+
+          setPoly[i].poly.addPoint(CQChartsGeom::Point(x, y[i]));
+        }
+      }
+      else {
+        for (int i = 0; i < ny; ++i) {
+          setPoly[data.row].inds.push_back(rowInd);
+
+          setPoly[data.row].poly.addPoint(CQChartsGeom::Point(sx_[i], y[i]));
+        }
       }
 
       return State::OK;
@@ -1136,6 +1187,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
    private:
     const CQChartsXYPlot* plot_ { nullptr };
     int                   ns_;
+    std::vector<double>   sx_;
     GroupSetIndPoly       groupSetPoly_;
   };
 
@@ -1161,7 +1213,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
 
   //---
 
-  int ns = yColumns().count();
+  int ns = numSets();
 
   int ig = 0;
   int ng = groupSetIndPoly.size();
@@ -1327,7 +1379,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
 
-    int ns = yColumns().count();
+    int ns = numSets();
 
     for (int j = 1; j < ns; ++j) {
       bool hidden = isSetHidden(j);
@@ -1469,7 +1521,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
   const auto &dataRange = this->dataRange();
 
   // convert lines into set polygon and set poly lines (more than one if NaNs)
-  int ns = yColumns().count();
+  int ns = numSets();
 
   for (int is = 0; is < ns; ++is) {
     if (isInterrupt())
@@ -1483,11 +1535,15 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     //---
 
     // get column name
-    auto yColumn = yColumns().getColumn(is);
+    QString name;
 
-    bool ok;
+    if (! isColumnSeries()) {
+      auto yColumn = yColumns().getColumn(is);
 
-    QString name = modelHHeaderString(yColumn, ok);
+      bool ok;
+
+      name = modelHHeaderString(yColumn, ok);
+    }
 
     if (ig.n > 1)
       name = groupIndName(groupInd);
@@ -1853,6 +1909,33 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
 bool
 CQChartsXYPlot::
+headerSeriesData(std::vector<double> &x) const
+{
+  int nc = yColumns().count();
+
+  for (int i = 0; i < nc; ++i) {
+    auto yColumn = yColumns().getColumn(i);
+
+    bool ok;
+
+    QVariant var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::EditRole, ok);
+
+    if (! ok)
+      var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::DisplayRole, ok);
+
+    double r = CQChartsVariant::toReal(var, ok);
+
+    if (! ok)
+      r = i;
+
+    x.push_back(r);
+  }
+
+  return true;
+}
+
+bool
+CQChartsXYPlot::
 rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
@@ -1878,9 +1961,9 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   // TODO: differentiate between bad value and empty value
   bool ok2 = true;
 
-  int ns = yColumns().count();
+  int nc = yColumns().count();
 
-  for (int i = 0; i < ns; ++i) {
+  for (int i = 0; i < nc; ++i) {
     auto yColumn = yColumns().getColumn(i);
 
     CQChartsModelIndex yModelInd(data.row, yColumn, data.parent);
@@ -1890,11 +1973,10 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
     bool ok3 = modelMappedReal(yModelInd, y1, isLogY(), data.row);
 
     if (! ok3) {
-      if (skipBad)
-        continue;
+      y1 = CMathUtil::getNaN();
 
-      y1  = CMathUtil::getNaN();
-      ok2 = false;
+      if (! skipBad)
+        ok2 = false;
     }
 
     //---
@@ -1902,10 +1984,20 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
     y.push_back(y1);
   }
 
-  if (ns && y.empty())
+  if (nc && y.empty())
     return false;
 
   return (ok1 && ok2);
+}
+
+int
+CQChartsXYPlot::
+numSets() const
+{
+  if (isColumnSeries())
+    return model()->rowCount();
+  else
+    return yColumns().count();
 }
 
 CQChartsGeom::Point
@@ -1986,11 +2078,13 @@ valueName(int is, int ns, int irow) const
   QString name;
 
   if (ns > 1 && is >= 0) {
-    auto yColumn = yColumns().getColumn(is);
+    if (! isColumnSeries()) {
+      auto yColumn = yColumns().getColumn(is);
 
-    bool ok;
+      bool ok;
 
-    name = modelHHeaderString(yColumn, ok);
+      name = modelHHeaderString(yColumn, ok);
+    }
   }
 
   if (labelColumn().isValid()) {
@@ -2034,7 +2128,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   //---
 
-  int ns = yColumns().count();
+  int ns = numSets();
   int ng = numGroups();
 
   if      (isBivariateLines()) {
@@ -2062,11 +2156,15 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
-      auto yColumn = yColumns().getColumn(i);
+      QString name;
 
-      bool ok;
+      if (! isColumnSeries()) {
+        auto yColumn = yColumns().getColumn(i);
 
-      QString name = modelHHeaderString(yColumn, ok);
+        bool ok;
+
+        name = modelHHeaderString(yColumn, ok);
+      }
 
       ColorInd is(i, ns), ig;
 
@@ -2076,11 +2174,15 @@ addKeyItems(CQChartsPlotKey *key)
   else {
     if      (ns > 1) {
       for (int i = 0; i < ns; ++i) {
-        auto yColumn = yColumns().getColumn(i);
+        QString name;
 
-        bool ok;
+        if (! isColumnSeries()) {
+          auto yColumn = yColumns().getColumn(i);
 
-        QString name = modelHHeaderString(yColumn, ok);
+          bool ok;
+
+          name = modelHHeaderString(yColumn, ok);
+        }
 
 #if 0
         if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
@@ -2118,6 +2220,9 @@ addKeyItems(CQChartsPlotKey *key)
 
       if (name == "")
         name = yAxisName();
+
+      if (name == "")
+        name = titleStr();
 
       ColorInd is, ig;
 
@@ -2229,7 +2334,7 @@ addMenuItems(QMenu *menu)
 
   //--
 
-  int ns = yColumns().count();
+  int ns = numSets();
 
   menu->addSeparator();
 
@@ -3216,10 +3321,14 @@ bool
 CQChartsXYPolylineObj::
 rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
 {
-  if (! plot()->isLinesSelectable())
-    return false;
-
   return CQChartsPlotObj::rectIntersect(r, inside);
+}
+
+bool
+CQChartsXYPolylineObj::
+canSelect() const
+{
+  return plot()->isLinesSelectable();
 }
 
 bool
@@ -3618,10 +3727,14 @@ bool
 CQChartsXYPolygonObj::
 rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
 {
-  if (! plot()->isFillUnderSelectable())
-    return false;
-
   return CQChartsPlotObj::rectIntersect(r, inside);
+}
+
+bool
+CQChartsXYPolygonObj::
+canSelect() const
+{
+  return plot()->isFillUnderSelectable();
 }
 
 void

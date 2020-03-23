@@ -477,48 +477,51 @@ typeName() const
   return typeName_;
 }
 
+const CQChartsModelTypeData &
+CQChartsModelColumnDetails::
+typeData() const
+{
+  initType();
+
+  return typeData_;
+}
+
 CQBaseModelType
 CQChartsModelColumnDetails::
 type() const
 {
-  initType();
-
-  return type_;
+  return typeData().type;
 }
 
 void
 CQChartsModelColumnDetails::
 setType(CQBaseModelType type)
 {
-  type_ = type;
+  typeData_.type = type;
 
-  if (baseType_ == CQBaseModelType::NONE)
-    baseType_ = type_;
+  if (typeData_.baseType == CQBaseModelType::NONE)
+    typeData_.baseType = typeData_.type;
 }
 
 CQBaseModelType
 CQChartsModelColumnDetails::
 baseType() const
 {
-  initType();
-
-  return baseType_;
+  return typeData().baseType;
 }
 
 void
 CQChartsModelColumnDetails::
 setBaseType(CQBaseModelType type)
 {
-  baseType_ = type;
+  typeData_.baseType = type;
 }
 
 const CQChartsNameValues &
 CQChartsModelColumnDetails::
 nameValues() const
 {
-  initType();
-
-  return nameValues_;
+  return typeData().nameValues;
 }
 
 QVariant
@@ -607,7 +610,7 @@ dataName(const QVariant &v) const
 
   bool converted;
 
-  QVariant v1 = columnType->dataName(charts, model, column_, v, nameValues_, converted);
+  QVariant v1 = columnType->dataName(charts, model, column_, v, typeData(), converted);
 
   return v1;
 }
@@ -1540,10 +1543,9 @@ calcType()
   CQCharts *charts = details_->charts();
   if (! charts) return false;
 
-  if (! CQChartsModelUtil::columnValueType(charts, model, column_, type_,
-                                           baseType_, nameValues_)) {
-    type_     = CQBaseModelType::NONE;
-    baseType_ = CQBaseModelType::NONE;
+  if (! CQChartsModelUtil::columnValueType(charts, model, column_, typeData_)) {
+    typeData_.type     = CQBaseModelType::NONE;
+    typeData_.baseType = CQBaseModelType::NONE;
   }
 
   //---
@@ -1554,19 +1556,21 @@ calcType()
     typeName_ = columnType->name();
   }
   else {
-    type_     = CQBaseModelType::STRING;
-    baseType_ = CQBaseModelType::STRING;
-    typeName_ = "string";
+    typeData_.type     = CQBaseModelType::STRING;
+    typeData_.baseType = CQBaseModelType::STRING;
+    typeName_          = "string";
   }
 
   //---
 
   if (columnType) {
-    preferredWidth_ = columnType->preferredWidth(nameValues_);
+    const CQChartsNameValues &nameValues = this->typeData_.nameValues;
 
-    tableDrawColor_ = columnType->drawColor(nameValues_);
-    tableDrawType_  = columnType->drawType (nameValues_);
-    tableDrawStops_ = columnType->drawStops(nameValues_);
+    preferredWidth_ = columnType->preferredWidth(nameValues);
+
+    tableDrawColor_ = columnType->drawColor(nameValues);
+    tableDrawType_  = columnType->drawType (nameValues);
+    tableDrawStops_ = columnType->drawStops(nameValues);
   }
 
   //---
@@ -1643,7 +1647,7 @@ columnColor(const QVariant &var, CQChartsColor &color) const
 
   bool converted;
 
-  QVariant cvar = colorType->userData(charts, model, column_, var, nameValues_, converted);
+  QVariant cvar = colorType->userData(charts, model, column_, var, typeData(), converted);
 
   bool ok;
 
@@ -1664,7 +1668,7 @@ columnNameValue(const QString &name, QString &value) const
   if (! columnType)
     return false;
 
-  if (! columnType->nameValueString(nameValues_, name, value))
+  if (! columnType->nameValueString(nameValues(), name, value))
     return false;
 
   return true;
@@ -1679,5 +1683,5 @@ columnType() const
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  return columnTypeMgr->getType(type_);
+  return columnTypeMgr->getType(typeData_.type);
 }

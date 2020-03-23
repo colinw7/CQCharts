@@ -62,6 +62,7 @@ class CQChartsModelControl : public QFrame {
 #endif
 
   void typeChangedSlot();
+  void headerTypeChangedSlot();
   void typeApplySlot();
 
  private:
@@ -90,16 +91,13 @@ class CQChartsModelControl : public QFrame {
   using ParamEdits = std::vector<ParamEdit>;
 
   struct ColumnEditData {
-    QFrame*           editFrame  { nullptr };
-    QGridLayout*      editLayout { nullptr };
-    CQChartsLineEdit* numEdit    { nullptr };
-    CQChartsLineEdit* nameEdit   { nullptr };
-#if 0
-    CQChartsLineEdit* typeEdit   { nullptr };
-#else
-    QComboBox*        typeCombo  { nullptr };
-#endif
-    int               row        { 0 };
+    QFrame*           editFrame       { nullptr };
+    QGridLayout*      editLayout      { nullptr };
+    CQChartsLineEdit* numEdit         { nullptr };
+    CQChartsLineEdit* nameEdit        { nullptr };
+    QComboBox*        typeCombo       { nullptr };
+    QComboBox*        headerTypeCombo { nullptr };
+    int               row             { 0 };
     ParamEdits        paramEdits;
   };
 

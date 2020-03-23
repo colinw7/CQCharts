@@ -21,7 +21,7 @@
 #include <CQChartsColorStops.h>
 #include <CQChartsPaletteName.h>
 #include <CQChartsDrawUtil.h>
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <CHRTime.h>
 
 #include <QAbstractItemModel>
@@ -226,17 +226,17 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
 
   // connect
-  Q_PROPERTY(bool overlay        READ isOverlay      WRITE setOverlay       )
-  Q_PROPERTY(bool x1x2           READ isX1X2         WRITE setX1X2          )
-  Q_PROPERTY(bool y1y2           READ isY1Y2         WRITE setY1Y2          )
+  Q_PROPERTY(bool overlay READ isOverlay WRITE setOverlay)
+  Q_PROPERTY(bool x1x2    READ isX1X2    WRITE setX1X2   )
+  Q_PROPERTY(bool y1y2    READ isY1Y2    WRITE setY1Y2   )
 
   // misc
-  Q_PROPERTY(bool followMouse    READ isFollowMouse  WRITE setFollowMouse   )
-  Q_PROPERTY(bool invertX        READ isInvertX      WRITE setInvertX       )
-  Q_PROPERTY(bool invertY        READ isInvertY      WRITE setInvertY       )
-//Q_PROPERTY(bool logX           READ isLogX         WRITE setLogX          )
-//Q_PROPERTY(bool logY           READ isLogY         WRITE setLogY          )
-  Q_PROPERTY(bool autoFit        READ isAutoFit      WRITE setAutoFit       )
+  Q_PROPERTY(bool followMouse READ isFollowMouse WRITE setFollowMouse)
+  Q_PROPERTY(bool invertX     READ isInvertX     WRITE setInvertX    )
+  Q_PROPERTY(bool invertY     READ isInvertY     WRITE setInvertY    )
+//Q_PROPERTY(bool logX        READ isLogX        WRITE setLogX       )
+//Q_PROPERTY(bool logY        READ isLogY        WRITE setLogY       )
+  Q_PROPERTY(bool autoFit     READ isAutoFit     WRITE setAutoFit    )
 
   // preview
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
@@ -1983,8 +1983,7 @@ class CQChartsPlot : public CQChartsObj,
   ColumnType columnValueType(const CQChartsColumn &column,
                              const ColumnType &defType=ColumnType::STRING) const;
 
-  bool columnValueType(const CQChartsColumn &column, ColumnType &columnType,
-                       ColumnType &columnBaseType, CQChartsNameValues &nameValues,
+  bool columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData,
                        const ColumnType &defType=ColumnType::STRING) const;
 
 #if 0
@@ -2175,7 +2174,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const;
 
-  void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
+  void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs,
+                         bool inside, bool select=false) const;
 
   bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
 

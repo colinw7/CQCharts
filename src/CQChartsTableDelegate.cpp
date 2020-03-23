@@ -83,7 +83,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     QVariant cvar =
       colorType->userData(charts(), modelP().data(), CQChartsColumn(index.column()),
-                          var, columnData.details->nameValues(), converted);
+                          var, columnData.details->typeData(), converted);
 
     // get color
     bool ok;

@@ -1,7 +1,7 @@
 #ifndef CQChartsColumnBucket_H
 #define CQChartsColumnBucket_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <CQChartsColumn.h>
 #include <CQBucketer.h>
 

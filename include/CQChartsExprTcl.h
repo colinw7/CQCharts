@@ -37,6 +37,31 @@ class CQChartsExprTcl : public CQTcl {
     traceVar(name);
   }
 
+  QString encodeColumnName(const QString &name) {
+    assert(name.length());
+
+    QString name1;
+
+    for (int i = 0; i < name.length(); ++i) {
+      const auto &c = name[i];
+
+      if (i == 0) {
+        if (c.isLetter() || c == '_')
+          name1 += c;
+        else
+          name1 += '_';
+      }
+      else {
+        if (c.isLetter() || c.isNumber() || c == '_')
+          name1 += c;
+        else
+          name1 += '_';
+      }
+    }
+
+    return name1;
+  }
+
   void setColumnRole(int column, int role) {
     columnRoles_[column] = role;
   }

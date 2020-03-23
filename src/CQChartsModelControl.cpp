@@ -479,6 +479,8 @@ addColumnDataFrame()
     addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Name"  , "name"  );
   columnEditData_.typeCombo =
     addComboBox(columnEditData_.editLayout, columnEditData_.row, "Type"  , "type"  );
+  columnEditData_.headerTypeCombo =
+    addComboBox(columnEditData_.editLayout, columnEditData_.row, "Header Type", "headerType");
 
   QStringList typeNames;
 
@@ -486,16 +488,20 @@ addColumnDataFrame()
 
   columnTypeMgr->typeNames(typeNames);
 
-  columnEditData_.typeCombo->addItems(typeNames);
+  columnEditData_.typeCombo      ->addItems(typeNames);
+  columnEditData_.headerTypeCombo->addItems(typeNames);
 
-  columnEditData_.numEdit  ->setToolTip("Column Number");
-  columnEditData_.nameEdit ->setToolTip("Column Name");
-  columnEditData_.typeCombo->setToolTip("Column Type");
+  columnEditData_.numEdit        ->setToolTip("Column Number");
+  columnEditData_.nameEdit       ->setToolTip("Column Name");
+  columnEditData_.typeCombo      ->setToolTip("Column Type");
+  columnEditData_.headerTypeCombo->setToolTip("Header Column Type");
 
   columnEditData_.editLayout->setRowStretch(columnEditData_.row, 1);
 
   connect(columnEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
           this, SLOT(typeChangedSlot()));
+  connect(columnEditData_.headerTypeCombo, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(headerTypeChangedSlot()));
 
   //---
 
@@ -763,6 +769,12 @@ typeChangedSlot()
 
 void
 CQChartsModelControl::
+headerTypeChangedSlot()
+{
+}
+
+void
+CQChartsModelControl::
 typeApplySlot()
 {
   if (! modelData_)
@@ -776,32 +788,36 @@ typeApplySlot()
 
   bool ok;
 
-  long column = CQChartsUtil::toInt(numStr, ok);
+  int icolumn = (int) CQChartsUtil::toInt(numStr, ok);
 
   if (! ok) {
     charts_->errorMsg("Invalid column number '" + numStr + "'");
     return;
   }
 
+  CQChartsColumn column(icolumn);
+
   //--
 
   QString nameStr = columnEditData_.nameEdit->text();
 
   if (nameStr.length())
-    model->setHeaderData(int(column), Qt::Horizontal, nameStr, Qt::DisplayRole);
+    model->setHeaderData(icolumn, Qt::Horizontal, nameStr, Qt::DisplayRole);
 
   //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  //--
 
   QString typeStr = columnEditData_.typeCombo->currentText();
 
 #if 0
-  if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
+  if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), icolumn, typeStr)) {
     charts_->errorMsg("Invalid type '" + typeStr + "'");
     return;
   }
 #endif
-
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
 
@@ -843,11 +859,22 @@ typeApplySlot()
         nameValues.setNameValue(name, value);
     }
 
-    columnTypeMgr->setModelColumnType(model.data(), CQChartsColumn(int(column)),
-                                      columnType, nameValues);
+    columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
   }
 
-  setColumnData(int(column));
+  //--
+
+  QString headerTypeStr = columnEditData_.headerTypeCombo->currentText();
+
+  CQBaseModelType headerColumnType = CQBaseModel::nameType(headerTypeStr);
+
+  const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(headerColumnType);
+
+  if (headerTypeData) {
+    columnTypeMgr->setModelHeaderType(model.data(), column, columnType);
+  }
+
+  setColumnData(icolumn);
 }
 
 void
@@ -871,22 +898,34 @@ setColumnData(int column)
 
   //---
 
-  CQBaseModelType    columnType;
-  CQBaseModelType    columnBaseType;
-  CQChartsNameValues nameValues;
+  CQChartsModelTypeData columnTypeData;
 
   if (CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(column),
-                                         columnType, columnBaseType, nameValues)) {
+                                         columnTypeData)) {
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    //--
 
-    //QString typeStr = columnTypeMgr->encodeTypeData(columnType, nameValues);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+
+  //QString typeStr =
+  //  columnTypeMgr->encodeTypeData(columnTypeData.type, columnTypeData.nameValues);
 
     int typeInd = columnEditData_.typeCombo->findText(typeData->name());
 
     if (typeInd >= 0)
       columnEditData_.typeCombo->setCurrentIndex(typeInd);
+
+    //--
+
+    const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
+
+    int headerTypeInd = columnEditData_.typeCombo->findText(headerTypeData->name());
+
+    if (headerTypeInd >= 0)
+      columnEditData_.headerTypeCombo->setCurrentIndex(headerTypeInd);
+
+    //---
 
     int paramInd = 0;
 
@@ -912,7 +951,7 @@ setColumnData(int column)
 
       QVariant var;
 
-      nameValues.nameValue(param->name(), var);
+      columnTypeData.nameValues.nameValue(param->name(), var);
 
       if      (param->type() == CQBaseModelType::BOOLEAN)
         paramEdit.edit->setBool(var.toBool());
@@ -948,6 +987,7 @@ setColumnData(int column)
     columnEditData_.editLayout->invalidate();
   }
   else {
-    columnEditData_.typeCombo->setCurrentIndex(-1);
+    columnEditData_.typeCombo      ->setCurrentIndex(-1);
+    columnEditData_.headerTypeCombo->setCurrentIndex(-1);
   }
 }

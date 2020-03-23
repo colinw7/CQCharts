@@ -1,7 +1,7 @@
 #ifndef CQChartsValueInd_H
 #define CQChartsValueInd_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <CQChartsUtil.h>
 
 /*!
@@ -24,7 +24,7 @@ class CQChartsValueInd {
     setName_ .clear();
   }
 
-  int calcId(const QVariant &var, CQBaseModelType type);
+  int calcId(const QVariant &var, Type type);
 
   int calcId(int i) {
     assert(type_ == Type::NONE || type_ == Type::INTEGER);

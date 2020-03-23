@@ -2,7 +2,7 @@
 #define CQChartsTableDelegate_H
 
 #include <CQChartsUtil.h>
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <QItemDelegate>
 #include <future>
 

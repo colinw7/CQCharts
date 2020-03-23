@@ -45,7 +45,7 @@ class CQChartsObj : public QObject {
 
   //! get set rect
   const CQChartsGeom::BBox &rect() const { return rect_; }
-  virtual void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
+  virtual void setRect(const CQChartsGeom::BBox &r) { rect_ = r; dataInvalidate(); }
 
   //---
 
@@ -53,8 +53,8 @@ class CQChartsObj : public QObject {
   bool hasTipId() const { return !!tipId_; }
 
   const QString &tipId() const;
-  void setTipId(const QString &s) { tipId_ = s; }
-  void resetTipId() { tipId_ = OptString(); }
+  void setTipId(const QString &s) { tipId_ = s; dataInvalidate(); }
+  void resetTipId() { tipId_ = OptString(); dataInvalidate(); }
 
   // calculate tip id (on demand)
   virtual QString calcTipId() const { return calcId(); }
@@ -63,19 +63,23 @@ class CQChartsObj : public QObject {
 
   //! get/set visible
   virtual bool isVisible() const { return visible_; }
-  virtual void setVisible(bool b) { visible_ = b; }
+  virtual void setVisible(bool b) { visible_ = b; dataInvalidate(); }
 
   //! set/get selected
   virtual bool isSelected() const { return selected_; }
-  virtual void setSelected(bool b) { selected_ = b; }
+  virtual void setSelected(bool b) { selected_ = b; dataInvalidate(); }
 
   //! set/get inside
   virtual bool isInside() const { return inside_; }
-  virtual void setInside(bool b) { inside_ = b; }
+  virtual void setInside(bool b) { inside_ = b; dataInvalidate(); }
 
   //---
 
   virtual bool contains(const CQChartsGeom::Point &p) const = 0;
+
+  //---
+
+  virtual void dataInvalidate() { }
 
  signals:
   //! emitted when object id changed

@@ -3,7 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQStatData.h>
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <vector>
 #include <set>
 #include <map>

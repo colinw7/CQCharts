@@ -1076,21 +1076,20 @@ write(std::ostream &os, const QString &varName) const
   for (int i = 0; i < nc - numExtra; ++i) {
     CQChartsColumn column(i);
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
-    if (! columnTypeMgr->getModelColumnType(model, column, columnType, columnBaseType, nameValues))
+    if (! columnTypeMgr->getModelColumnType(model, column, columnTypeData))
       continue;
 
-    if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
-      const auto *columnTypePtr = columnTypeMgr->getType(columnType);
+    if (columnTypeData.type != CQBaseModelType::STRING ||
+        ! columnTypeData.nameValues.nameValues().empty()) {
+      const auto *columnTypePtr = columnTypeMgr->getType(columnTypeData.type);
 
       os << " -column_type {{";
 
       os << "{" << i << " " << columnTypePtr->name().toStdString() << "}";
 
-      for (const auto &nv : nameValues.nameValues()) {
+      for (const auto &nv : columnTypeData.nameValues.nameValues()) {
         const QString  &name = nv.first;
         const QVariant &var  = nv.second;
 
@@ -1141,22 +1140,20 @@ write(std::ostream &os, const QString &varName) const
 
       //---
 
-      CQBaseModelType    columnType;
-      CQBaseModelType    columnBaseType;
-      CQChartsNameValues nameValues;
+      CQChartsModelTypeData columnTypeData;
 
-      if (! columnTypeMgr->getModelColumnType(model, column, columnType, columnBaseType,
-                                              nameValues))
+      if (! columnTypeMgr->getModelColumnType(model, column, columnTypeData))
         continue;
 
-      if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
-        const auto *columnTypePtr = columnTypeMgr->getType(columnType);
+      if (columnTypeData.type != CQBaseModelType::STRING ||
+          ! columnTypeData.nameValues.nameValues().empty()) {
+        const auto *columnTypePtr = columnTypeMgr->getType(columnTypeData.type);
 
         os << " -type {";
 
         os << "{" << columnTypePtr->name().toStdString() << "}";
 
-        for (const auto &nv : nameValues.nameValues()) {
+        for (const auto &nv : columnTypeData.nameValues.nameValues()) {
           const QString  &name = nv.first;
           const QVariant &var  = nv.second;
 
@@ -1258,10 +1255,14 @@ writeCSV(std::ostream &fs) const
   // write meta data
   fs << "#META_DATA\n";
 
-  for (int c = 0; c < nc; ++c) {
-    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+  for (int ic = 0; ic < nc; ++ic) {
+    CQChartsColumn c(ic);
 
-    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+    const auto *columnDetails = details->columnDetails(c);
+
+    bool ok;
+
+    QString header = CQChartsModelUtil::modelHeaderString(model, c, ok);
 
     auto writeMetaColumnData = [&](const QString &name, const QString &value) {
       fs << "#  column," << header.toStdString() << "," <<
@@ -1347,10 +1348,14 @@ writeCSV(std::ostream &fs) const
   //---
 
   // write header
-  for (int c = 0; c < nc; ++c) {
-    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+  for (int ic = 0; ic < nc; ++ic) {
+    CQChartsColumn c(ic);
 
-    if (c > 0)
+    bool ok;
+
+    QString header = CQChartsModelUtil::modelHeaderString(model, c, ok);
+
+    if (ic > 0)
       fs << ",";
 
     fs << CQCsvModel::encodeString(header).toStdString();
@@ -1362,12 +1367,14 @@ writeCSV(std::ostream &fs) const
 
   // write data
   for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
+    for (int ic = 0; ic < nc; ++ic) {
+      CQChartsColumn c(ic);
+
+      QModelIndex ind = model->index(r, ic);
 
       QVariant var;
 
-      const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+      const auto *columnDetails = details->columnDetails(c);
 
       CQBaseModelType type = columnDetails->type();
 
@@ -1404,7 +1411,7 @@ writeCSV(std::ostream &fs) const
           var = model->data(ind, Qt::DisplayRole);
       }
 
-      if (c > 0)
+      if (ic > 0)
         fs << ",";
 
       fs << CQCsvModel::encodeString(var.toString()).toStdString();
@@ -1445,27 +1452,27 @@ copy(const CopyData &copyData)
   int nr1 = 0;
 
   if (expr) {
-    bool showError = false;
+    bool showError = copyData.debug;
 
     // set column name variables
-    for (int c = 0; c < nc; ++c) {
-      QVariant var = model_->headerData(c, Qt::Horizontal);
+    for (int ic = 0; ic < nc; ++ic) {
+      CQChartsColumn c(ic);
 
       bool ok;
 
-      QString name = CQChartsVariant::toString(var, ok);
+      QString name = CQChartsModelUtil::modelHeaderString(model_.data(), c, ok);
 
-      expr->setNameColumn(name, c);
+      expr->setNameColumn(expr->encodeColumnName(name), ic);
 
       //---
 
-      const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+      const auto *columnDetails = details->columnDetails(c);
 
       if (columnDetails) {
         CQBaseModelType type = columnDetails->type();
 
         if (type == CQBaseModelType::TIME)
-          expr->setColumnRole(c, Qt::DisplayRole);
+          expr->setColumnRole(ic, Qt::DisplayRole);
       }
     }
 
@@ -1506,11 +1513,15 @@ copy(const CopyData &copyData)
   //---
 
   // copy horizontal header data
-  for (int c = 0; c < nc; ++c) {
-    QVariant var = model->headerData(c, Qt::Horizontal, Qt::DisplayRole);
+  for (int ic = 0; ic < nc; ++ic) {
+    CQChartsColumn c(ic);
+
+    bool ok;
+
+    QVariant var = CQChartsModelUtil::modelHeaderString(model, c, ok);
 
     if (var.isValid())
-      dataModel->setHeaderData(c, Qt::Horizontal, var, Qt::DisplayRole);
+      dataModel->setHeaderData(ic, Qt::Horizontal, var, Qt::DisplayRole);
   }
 
   // copy vertical header data
@@ -1541,13 +1552,13 @@ copy(const CopyData &copyData)
     if (! rowVisible[r])
       continue;
 
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind1 = model->index(r, c);
+    for (int ic = 0; ic < nc; ++ic) {
+      QModelIndex ind1 = model->index(r, ic);
 
       QVariant var = model->data(ind1);
 
       if (var.isValid()) {
-        QModelIndex ind2 = dataModel->index(r1, c);
+        QModelIndex ind2 = dataModel->index(r1, ic);
 
         dataModel->setData(ind2, var);
       }
@@ -1607,17 +1618,22 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
   //---
 
   // get name of join column
-  QString columnName =
-    model->headerData(joinColumn.column(), Qt::Horizontal, Qt::DisplayRole).toString();
+  bool ok;
+
+  QString columnName = CQChartsModelUtil::modelHeaderString(model, joinColumn, ok);
 
   // find column with matching name in join model
   int ijoinColumn = -1;
 
-  for (int c = 0; c < joinNc; ++c) {
-    QString joinColumnName = joinModel->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+  for (int ic = 0; ic < joinNc; ++ic) {
+    CQChartsColumn c(ic);
+
+    bool ok;
+
+    QString joinColumnName = CQChartsModelUtil::modelHeaderString(joinModel, c, ok);
 
     if (joinColumnName == columnName) {
-      ijoinColumn = c;
+      ijoinColumn = ic;
       break;
     }
   }
@@ -1653,16 +1669,16 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
   for (int r = 0; r < nr; ++r) {
     QVariant joinVar;
 
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind1 = model->index(r, c);
+    for (int ic = 0; ic < nc; ++ic) {
+      QModelIndex ind1 = model->index(r, ic);
 
       QVariant var = model->data(ind1);
 
-      if (c == joinColumn.column())
+      if (ic == joinColumn.column())
         joinVar = var;
 
       if (var.isValid()) {
-        QModelIndex ind2 = dataModel->index(r, c);
+        QModelIndex ind2 = dataModel->index(r, ic);
 
         dataModel->setData(ind2, var);
       }
@@ -1675,11 +1691,11 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
 
       int c1 = nc;
 
-      for (int c = 0; c < joinNc; ++c) {
-        if (ijoinColumn == c)
+      for (int ic = 0; ic < joinNc; ++ic) {
+        if (ijoinColumn == ic)
           continue;
 
-        QModelIndex ind1 = joinModel->index(joinRow, c);
+        QModelIndex ind1 = joinModel->index(joinRow, ic);
 
         QVariant var = joinModel->data(ind1, Qt::EditRole);
 
@@ -1704,11 +1720,11 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
 
   int c1 = nc;
 
-  for (int c = 0; c < joinNc; ++c) {
-    if (ijoinColumn == c)
+  for (int ic = 0; ic < joinNc; ++ic) {
+    if (ijoinColumn == ic)
       continue;
 
-    joinModelData->copyColumnHeaderRoles(dataModel, c, c1);
+    joinModelData->copyColumnHeaderRoles(dataModel, ic, c1);
 
     ++c1;
   }
@@ -1735,8 +1751,8 @@ copyHeaderRoles(QAbstractItemModel *toModel) const
 
   int nc = details->numColumns();
 
-  for (int c = 0; c < nc; ++c)
-    copyColumnHeaderRoles(toModel, c, c);
+  for (int ic = 0; ic < nc; ++ic)
+    copyColumnHeaderRoles(toModel, ic, ic);
 }
 
 void
@@ -1752,7 +1768,9 @@ copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const
     static_cast<int>(CQBaseModelRole::Max),
     static_cast<int>(CQBaseModelRole::Key),
     static_cast<int>(CQBaseModelRole::Sorted),
-    static_cast<int>(CQBaseModelRole::SortOrder)
+    static_cast<int>(CQBaseModelRole::SortOrder),
+    static_cast<int>(CQBaseModelRole::HeaderType),
+    static_cast<int>(CQBaseModelRole::HeaderTypeValues)
   }};
 
   auto *model = this->model().data();

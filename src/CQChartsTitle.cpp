@@ -263,6 +263,9 @@ fitBBox() const
 {
   CQChartsGeom::BBox bbox = this->bbox();
 
+  if (! bbox.isValid())
+    return bbox;
+
   if (isFitHorizontal() && isFitVertical())
     return bbox;
 

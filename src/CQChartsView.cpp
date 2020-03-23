@@ -1570,7 +1570,14 @@ void
 CQChartsView::
 resetPlotGrouping()
 {
-  for (auto &plot : plots()) {
+  resetPlotGrouping(plots());
+}
+
+void
+CQChartsView::
+resetPlotGrouping(const Plots &plots)
+{
+  for (auto &plot : plots) {
     if (plot->xAxis()) {
       plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
       plot->xAxis()->setVisible(true);
@@ -1595,7 +1602,14 @@ void
 CQChartsView::
 resetConnections(bool notify)
 {
-  for (const auto &plot : plots())
+  resetConnections(plots(), notify);
+}
+
+void
+CQChartsView::
+resetConnections(const Plots &plots, bool notify)
+{
+  for (const auto &plot : plots)
     plot->resetConnectData(/*notify*/false);
 
   if (notify)
@@ -1626,9 +1640,9 @@ initOverlay(const Plots &plots, bool reset)
     if (isScrolled())
       setScrolled(false);
 
-    resetPlotGrouping();
+    resetPlotGrouping(plots);
 
-    resetConnections(/*notify*/false);
+    resetConnections(plots, /*notify*/false);
   }
 
 #if 0
@@ -1753,9 +1767,11 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
     if (isScrolled())
       setScrolled(false);
 
-    resetPlotGrouping();
+    Plots plots {{ plot1, plot2 }};
 
-    resetConnections(/*notify*/false);
+    resetPlotGrouping(plots);
+
+    resetConnections(plots, /*notify*/false);
   }
 
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
@@ -1805,9 +1821,11 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
     if (isScrolled())
       setScrolled(false);
 
-    resetPlotGrouping();
+    Plots plots {{ plot1, plot2 }};
 
-    resetConnections(/*notify*/false);
+    resetPlotGrouping(plots);
+
+    resetConnections(plots, /*notify*/false);
   }
 
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
@@ -1872,7 +1890,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
     if (isScrolled())
       setScrolled(false);
 
-    resetConnections(/*notify*/false);
+    resetConnections(plots, /*notify*/false);
   }
 
   //---

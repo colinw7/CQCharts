@@ -29,7 +29,9 @@ class CQChartsLayer {
   };
 
  public:
-  static const char *typeName(const Type &type);
+  static QStringList typeNames();
+
+  static QString typeName(const Type &type);
 
   static Type nameType(const QString &name);
 

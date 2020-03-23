@@ -8,9 +8,8 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
-#include <CQGroupBox.h>
 
-#include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -145,10 +144,8 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  if (b)
-    connect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
-  else
-    disconnect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
 }
 
 void
@@ -326,94 +323,95 @@ CQChartsColumnEdit(QWidget *parent) :
 {
   setObjectName("columnEdit");
 
-  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto *layout = CQUtil::makeLayout<QGridLayout>(this, 2, 2);
 
   //---
 
-  columnGroup_ = CQUtil::makeLabelWidget<CQGroupBox>("Column", "columnGroup");
+  int row = 0;
 
-  columnGroup_->setCheckable(true);
-  columnGroup_->setChecked(true);
+  auto addLabelWidget = [&](const QString &id, const QString &label, QWidget *edit) {
+    auto *labelW = CQUtil::makeLabelWidget<QLabel>(label, id + "Label");
 
-  connect(columnGroup_, SIGNAL(clicked(bool)), this, SLOT(menuColumnGroupClicked(bool)));
+    layout->addWidget(labelW, row, 0);
+    layout->addWidget(edit  , row, 1);
 
-  layout->addWidget(columnGroup_);
+    widgetLabels_[edit] = labelW;
 
-  //--
+    ++row;
+  };
 
-  // column name/number and role
-  auto *menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
+  auto createLabelCombo = [&](const QString &id, const QString &label, const QString &tipStr) {
+    auto *combo = CQUtil::makeWidget<QComboBox>(id + "Combo");
 
-  columnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>();
+    combo->setToolTip(tipStr);
 
-  connect(columnCombo_, SIGNAL(columnChanged()), this, SLOT(menuColumnChanged()));
+    addLabelWidget(id, label, combo);
 
-  menuColumnGroupLayout->addWidget(columnCombo_);
+    return combo;
+  };
 
-  auto *roleFrame  = CQUtil::makeWidget<QFrame>("roleFrame");
-  auto *roleLayout = CQUtil::makeLayout<QHBoxLayout>(roleFrame, 2, 2);
+  auto createLabelEdit = [&](const QString &id, const QString &label, const QString &tipStr) {
+    auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(id + "Edit");
 
-  roleLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Role", "roleLabel"));
+    edit->setToolTip(tipStr);
 
-  roleEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
+    addLabelWidget(id, label, edit);
 
-  roleEdit_->setToolTip("Column Role");
+    return edit;
+  };
 
-  connect(roleEdit_, SIGNAL(textChanged(const QString &)),
-          this, SLOT(roleTextChanged(const QString &)));
+  auto createColumnEdit = [&](const QString &id, const QString &label, const QString &tipStr) {
+    auto *combo = CQUtil::makeWidget<CQChartsColumnCombo>(id + "Combo");
 
-  roleLayout->addWidget(roleEdit_);
+    combo->setToolTip(tipStr);
 
-  menuColumnGroupLayout->addWidget(roleFrame);
+    addLabelWidget(id, label, combo);
+
+    return combo;
+  };
+
+  //---
+
+  // column custom name
+  nameEdit_ = createLabelEdit("name", "Name", "Column Custom Name");
+
+  //---
+
+  // type combo
+  typeCombo_ = createLabelCombo("type", "Type", "Column Type");
+
+  typeCombo_->addItems(QStringList() <<
+    "Column" << "Expression" << "Row Number" << "Vertical Header" << "Group");
+
+  //---
+
+  // column name/number
+  columnCombo_ = createColumnEdit("column", "Column", "Column Name or Number");
+
+  // column role
+  roleEdit_ = createLabelEdit("role", "Role", "Column Role");
+
+  // column index
+  indexEdit_ = createLabelEdit("index", "Index", "Column Index");
 
   //---
 
   // column expression
-  menuExprGroup_ = CQUtil::makeLabelWidget<CQGroupBox>("Expression", "menuExprGroup");
-
-  menuExprGroup_->setCheckable(true);
-  menuExprGroup_->setChecked(false);
-
-  connect(menuExprGroup_, SIGNAL(clicked(bool)), this, SLOT(menuExprGroupClicked(bool)));
-
-  layout->addWidget(menuExprGroup_);
-
-  //--
-
-  auto *menuExprGroupLayout = CQUtil::makeLayout<QVBoxLayout>(menuExprGroup_, 2, 2);
-
-  expressionEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-
-  expressionEdit_->setToolTip("Column Expression");
-
-  connect(expressionEdit_, SIGNAL(textChanged(const QString &)),
-          this, SLOT(expressionTextChanged(const QString &)));
-
-  menuExprGroupLayout->addWidget(expressionEdit_);
+  expressionEdit_ = createLabelEdit("expr", "Expr", "Column Expression");
 
   //---
 
-  // vertical header
-  rowCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Row Number", "rowCheck");
+  layout->setRowStretch(row, 1);
 
-  rowCheck_->setToolTip("Get value from row number");
-
-  connect(rowCheck_, SIGNAL(clicked(bool)), this, SLOT(rowCheckClicked(bool)));
-
-  layout->addWidget(rowCheck_);
+  layout->setColumnStretch(1, 1);
 
   //---
 
-  // vertical header
-  vheaderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Vertical Header", "vheaderCheck");
+  connectSlots(true);
 
-  vheaderCheck_->setToolTip("Get value from vertical header");
+  widgetHeight_ = CQChartsColumnEdit::minimumSizeHint().height();
 
-  connect(vheaderCheck_, SIGNAL(clicked(bool)), this, SLOT(vheaderCheckClicked(bool)));
-
-  layout->addWidget(vheaderCheck_);
-
-  //---
+  setFixedHeight(widgetHeight_);
 
   updateState();
 }
@@ -457,37 +455,48 @@ columnToWidgets()
 {
   connectSlots(false);
 
-  columnGroup_   ->setChecked(false);
+  nameEdit_      ->setText("");
   columnCombo_   ->setCurrentIndex(0);
-  menuExprGroup_ ->setChecked(false);
+  roleEdit_      ->setText("");
+  indexEdit_     ->setText("");
   expressionEdit_->setText("");
-  rowCheck_      ->setChecked(false);
-  vheaderCheck_  ->setChecked(false);
 
   if (column_.isValid()) {
-    if      (column_.type() == CQChartsColumn::Type::DATA) {
-      columnGroup_->setChecked(true);
+    nameEdit_->setText(column_.name());
+
+    if      (column_.type() == CQChartsColumn::Type::DATA ||
+             column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+      typeCombo_->setCurrentIndex(0);
 
       columnCombo_->setColumn(column_);
 
       if (column_.role() >= 0)
         roleEdit_->setText(QString("%1").arg(column_.role()));
-      else
-        roleEdit_->setText("");
+
+      if (column_.type() == CQChartsColumn::Type::DATA_INDEX)
+        indexEdit_->setText(column_.expr());
     }
     else if (column_.type() == CQChartsColumn::Type::EXPR) {
-      menuExprGroup_ ->setChecked(true);
+      typeCombo_->setCurrentIndex(1);
+
       expressionEdit_->setText(column_.expr());
     }
     else if (column_.type() == CQChartsColumn::Type::ROW) {
-      rowCheck_->setChecked(true);
+      typeCombo_->setCurrentIndex(2);
     }
     else if (column_.type() == CQChartsColumn::Type::VHEADER) {
-      vheaderCheck_->setChecked(true);
+      typeCombo_->setCurrentIndex(3);
+    }
+    else if (column_.type() == CQChartsColumn::Type::GROUP) {
+      typeCombo_->setCurrentIndex(4);
     }
   }
   else {
-    columnGroup_->setChecked(true);
+    typeCombo_->setCurrentIndex(0);
+
+    columnCombo_->setColumn(column_);
+
+    expressionEdit_->setText("");
   }
 
   connectSlots(true);
@@ -499,7 +508,7 @@ widgetsToColumn()
 {
   CQChartsColumn column;
 
-  if      (columnGroup_->isChecked()) {
+  if      (typeCombo_->currentIndex() == 0) {
     CQChartsColumn icolumn = columnCombo_->getColumn();
 
     bool ok;
@@ -509,24 +518,33 @@ widgetsToColumn()
     if (! ok)
       role = -1;
 
-    column = CQChartsColumn(icolumn.column(), int(role));
+    if (indexEdit_->text().simplified().length())
+      column = CQChartsColumn(CQChartsColumn::Type::DATA_INDEX, icolumn.column(),
+                              indexEdit_->text().simplified(), int(role));
+    else
+      column = CQChartsColumn(CQChartsColumn::Type::DATA, icolumn.column(),
+                              "", int(role));
   }
-  else if (menuExprGroup_->isChecked()) {
+  else if (typeCombo_->currentIndex() == 1) {
     QString str;
 
     if (expressionEdit_->text().simplified().length())
       str = QString("%1").arg(expressionEdit_->text());
-    else
-      str = "";
 
     column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
   }
-  else if (rowCheck_->isChecked()) {
+  else if (typeCombo_->currentIndex() == 2) {
     column = CQChartsColumn(CQChartsColumn::Type::ROW, -1, "", -1);
   }
-  else if (vheaderCheck_->isChecked()) {
+  else if (typeCombo_->currentIndex() == 3) {
     column = CQChartsColumn(CQChartsColumn::Type::VHEADER, -1, "", -1);
   }
+  else if (typeCombo_->currentIndex() == 4) {
+    column = CQChartsColumn(CQChartsColumn::Type::GROUP, -1, "", -1);
+  }
+
+  if (nameEdit_->text().simplified().length())
+    column.setName(nameEdit_->text().simplified());
 
   column_ = column;
 
@@ -541,24 +559,46 @@ void
 CQChartsColumnEdit::
 connectSlots(bool b)
 {
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
     CQChartsWidgetUtil::connectDisconnect(b, w, from, this, to);
   };
 
-  connectDisconnect(b, columnGroup_, SIGNAL(clicked(bool)),
-                    SLOT(menuColumnGroupClicked(bool)));
+  connectDisconnect(b, typeCombo_, SIGNAL(currentIndexChanged(int)),
+                    SLOT(widgetsToColumnSlot()));
+
+  connectDisconnect(b, nameEdit_, SIGNAL(textChanged(const QString &)),
+                    SLOT(widgetsToColumnSlot()));
+
   connectDisconnect(b, columnCombo_, SIGNAL(columnChanged()),
-                    SLOT(menuColumnChanged()));
+                    SLOT(widgetsToColumnSlot()));
   connectDisconnect(b, roleEdit_, SIGNAL(textChanged(const QString &)),
-                    SLOT(roleTextChanged(const QString &)));
-  connectDisconnect(b, menuExprGroup_, SIGNAL(clicked(bool)),
-                    SLOT(menuExprGroupClicked(bool)));
+                    SLOT(widgetsToColumnSlot()));
+  connectDisconnect(b, indexEdit_, SIGNAL(textChanged(const QString &)),
+                    SLOT(widgetsToColumnSlot()));
+
   connectDisconnect(b, expressionEdit_, SIGNAL(textChanged(const QString &)),
-                    SLOT(expressionTextChanged(const QString &)));
-  connectDisconnect(b, rowCheck_, SIGNAL(clicked(bool)),
-                    SLOT(rowCheckClicked(bool)));
-  connectDisconnect(b, vheaderCheck_, SIGNAL(clicked(bool)),
-                    SLOT(vheaderCheckClicked(bool)));
+                    SLOT(widgetsToColumnSlot()));
+}
+
+void
+CQChartsColumnEdit::
+widgetsToColumnSlot()
+{
+  connectSlots(false);
+
+  widgetsToColumn();
+
+  updateState();
+
+  connectSlots(true);
+
+  emit columnChanged();
 }
 
 void
@@ -570,149 +610,25 @@ updateColumnsFromModel()
 
 void
 CQChartsColumnEdit::
-menuColumnGroupClicked(bool b)
-{
-  connectSlots(false);
-
-  //---
-
-  menuExprGroup_->setChecked(! b);
-  rowCheck_     ->setChecked(false);
-  vheaderCheck_ ->setChecked(false);
-
-  widgetsToColumn();
-
-  updateState();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-menuExprGroupClicked(bool b)
-{
-  connectSlots(false);
-
-  //---
-
-  columnGroup_ ->setChecked(! b);
-  rowCheck_    ->setChecked(false);
-  vheaderCheck_->setChecked(false);
-
-  widgetsToColumn();
-
-  updateState();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-rowCheckClicked(bool b)
-{
-  connectSlots(false);
-
-  //---
-
-  columnGroup_  ->setChecked(false);
-  menuExprGroup_->setChecked(! b);
-
-  widgetsToColumn();
-
-  updateState();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-vheaderCheckClicked(bool b)
-{
-  connectSlots(false);
-
-  //---
-
-  columnGroup_  ->setChecked(false);
-  menuExprGroup_->setChecked(! b);
-
-  widgetsToColumn();
-
-  updateState();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-menuColumnChanged()
-{
-  connectSlots(false);
-
-  //---
-
-  widgetsToColumn();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-roleTextChanged(const QString &)
-{
-  connectSlots(false);
-
-  //---
-
-  widgetsToColumn();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
-expressionTextChanged(const QString &)
-{
-  connectSlots(false);
-
-  //---
-
-  widgetsToColumn();
-
-  //---
-
-  connectSlots(true);
-
-  emit columnChanged();
-}
-
-void
-CQChartsColumnEdit::
 updateState()
 {
-  columnCombo_   ->setEnabled(columnGroup_  ->isChecked());
-  expressionEdit_->setEnabled(menuExprGroup_->isChecked());
+  auto setEditVisible = [&](QWidget *w, bool visible) {
+    w->setVisible(visible);
+
+    widgetLabels_[w]->setVisible(visible);
+  };
+
+  setEditVisible(columnCombo_   , typeCombo_->currentIndex() == 0);
+  setEditVisible(roleEdit_      , typeCombo_->currentIndex() == 0);
+  setEditVisible(indexEdit_     , typeCombo_->currentIndex() == 0);
+  setEditVisible(expressionEdit_, typeCombo_->currentIndex() == 1);
+}
+
+QSize
+CQChartsColumnEdit::
+sizeHint() const
+{
+  int w = width();
+
+  return QSize(w, widgetHeight_);
 }

@@ -404,6 +404,64 @@ setColumnTitle(int column, const QString &s)
   return true;
 }
 
+CQBaseModelType
+CQBaseModel::
+columnHeaderType(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return CQBaseModelType::NONE;
+
+  const ColumnData &columnData = getColumnData(column);
+
+  return columnData.headerType;
+}
+
+bool
+CQBaseModel::
+setColumnHeaderType(int column, CQBaseModelType type)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  if (columnData.headerType != type) {
+    columnData.headerType = type;
+
+    emit columnHeaderTypeChanged(column);
+  }
+
+  return true;
+}
+
+QString
+CQBaseModel::
+headerTypeValues(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return QString();
+
+  const ColumnData &columnData = getColumnData(column);
+
+  return columnData.headerTypeValues;
+}
+
+bool
+CQBaseModel::
+setHeaderTypeValues(int column, const QString &str)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.headerTypeValues = str;
+
+  emit columnTypeChanged(column);
+
+  return true;
+}
+
 QVariant
 CQBaseModel::
 columnNameValue(int column, const QString &name) const
@@ -570,23 +628,24 @@ QVariant
 CQBaseModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
+  auto typeVariant = [](const CQBaseModelType &type) {
+    if (type == CQBaseModelType::NONE)
+      return QVariant();
+
+    return QVariant((int) type);
+  };
+
   // generic column data
   if      (orientation == Qt::Horizontal) {
     if      (role == static_cast<int>(CQBaseModelRole::Type)) {
       CQBaseModelType type = columnType(section);
 
-      if (type == CQBaseModelType::NONE)
-        return QVariant();
-
-      return QVariant((int) type);
+      return typeVariant(type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
       CQBaseModelType type = columnBaseType(section);
 
-      if (type == CQBaseModelType::NONE)
-        return QVariant();
-
-      return QVariant((int) type);
+      return typeVariant(type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::TypeValues)) {
       return QVariant(columnTypeValues(section));
@@ -614,6 +673,14 @@ headerData(int section, Qt::Orientation orientation, int role) const
     }
     else if (role == static_cast<int>(CQBaseModelRole::DataMax)) {
       return columnMax(section);
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
+      CQBaseModelType type = columnHeaderType(section);
+
+      return typeVariant(type);
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::HeaderTypeValues)) {
+      return QVariant(headerTypeValues(section));
     }
     else {
       return QAbstractItemModel::headerData(section, orientation, role);
@@ -685,6 +752,19 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     }
     else if (role == static_cast<int>(CQBaseModelRole::DataMax)) {
       assert(false);
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
+      bool ok { false };
+
+      CQBaseModelType type = variantToType(value, &ok);
+      if (! ok) return false;
+
+      return setColumnHeaderType(section, type);
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::HeaderTypeValues)) {
+      QString str = value.toString();
+
+      return setHeaderTypeValues(section, str);
     }
     else {
       return QAbstractItemModel::setHeaderData(section, orientation, role);

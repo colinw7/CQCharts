@@ -1,7 +1,7 @@
 #ifndef CQChartsPlotParameter_H
 #define CQChartsPlotParameter_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <QObject>
 #include <QString>
 #include <QStringList>

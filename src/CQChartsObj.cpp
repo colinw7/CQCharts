@@ -32,6 +32,8 @@ setId(const QString &s)
 {
   id_ = s;
 
+  dataInvalidate();
+
   emit idChanged();
 }
 

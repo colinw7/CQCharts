@@ -8,7 +8,7 @@ proc objPressed { view plot id } {
 
 set model [load_charts_model -tsv data/scatter.tsv -first_line_header]
 
-set groups [get_charts_data -model $model -column species -name unique_values]
+set groups [get_charts_data -model $model -column species -name details.unique_values]
 
 echo $groups
 

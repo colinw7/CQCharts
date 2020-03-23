@@ -473,31 +473,50 @@ lessThan(const QModelIndex &lhs, const QModelIndex &rhs) const
 
 QVariant
 CQChartsModelFilter::
+headerData(int section, Qt::Orientation orientation, int role) const
+{
+  QVariant var = QSortFilterProxyModel::headerData(section, orientation, role);
+
+  if (! var.isValid())
+    return var;
+
+  if (role == Qt::EditRole) {
+    if (orientation == Qt::Horizontal) {
+      bool converted;
+
+      var = CQChartsModelUtil::columnHeaderUserData(charts_, this, section, var, converted);
+    }
+  }
+
+  return var;
+}
+
+QVariant
+CQChartsModelFilter::
 data(const QModelIndex &ind, int role) const
 {
   if (! ind.isValid())
     return QVariant();
 
+  QVariant var;
+
+  //---
+
+  // get cached display or edit value
   if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
-    if (role == Qt::DisplayRole) {
-      QVariant var =
-        QSortFilterProxyModel::data(ind, int(CQBaseModelRole::OutputValue));
+    if (role == Qt::DisplayRole)
+      var = QSortFilterProxyModel::data(ind, int(CQBaseModelRole::OutputValue));
+    else
+      var = QSortFilterProxyModel::data(ind, int(CQBaseModelRole::IntermediateValue));
 
-      if (var.isValid())
-        return var;
-    }
-    else {
-      QVariant var =
-        QSortFilterProxyModel::data(ind, int(CQBaseModelRole::IntermediateValue));
-
-      if (var.isValid())
-        return var;
-    }
+    if (var.isValid())
+      return var;
   }
 
   //---
 
-  QVariant var = QSortFilterProxyModel::data(ind, role);
+  // get model value
+  var = QSortFilterProxyModel::data(ind, role);
 
   if (role == Qt::EditRole && ! var.isValid())
     var = QSortFilterProxyModel::data(ind, Qt::DisplayRole);
@@ -507,6 +526,7 @@ data(const QModelIndex &ind, int role) const
 
   //---
 
+  // convert value to display or edit value using column type data
   if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
     assert(ind.model() == this);
 
@@ -519,6 +539,25 @@ data(const QModelIndex &ind, int role) const
 
     //---
 
+    auto storeColumnData = [&](const QVariant &var, int role) {
+      std::unique_lock<std::mutex> lock(mutex_);
+
+      auto *th        = const_cast<CQChartsModelFilter *>(this);
+      auto *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+
+      if (dataModel) {
+        if (dataModel->isReadOnly()) {
+          dataModel->setReadOnly(false);
+
+          th->setData(ind, var, role);
+
+          dataModel->setReadOnly(true);
+        }
+        else
+          th->setData(ind, var, role);
+      }
+    };
+
     // convert variant using column type data
     bool converted;
 
@@ -528,47 +567,15 @@ data(const QModelIndex &ind, int role) const
       var1 = CQChartsModelUtil::columnDisplayData(charts_, this,
                CQChartsColumn(ind1.column()), var, converted);
 
-      if (converted) {
-        std::unique_lock<std::mutex> lock(mutex_);
-
-        auto *th        = const_cast<CQChartsModelFilter *>(this);
-        auto *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
-
-        if (dataModel) {
-          if (dataModel->isReadOnly()) {
-            dataModel->setReadOnly(false);
-
-            th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
-
-            dataModel->setReadOnly(true);
-          }
-          else
-            th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
-        }
-      }
+      if (converted)
+        storeColumnData(var1, int(CQBaseModelRole::OutputValue));
     }
     else {
       var1 = CQChartsModelUtil::columnUserData(charts_, this,
                CQChartsColumn(ind1.column()), var, converted);
 
-      if (converted) {
-        std::unique_lock<std::mutex> lock(mutex_);
-
-        auto *th        = const_cast<CQChartsModelFilter *>(this);
-        auto *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
-
-        if (dataModel) {
-          if (dataModel->isReadOnly()) {
-            dataModel->setReadOnly(false);
-
-            th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
-
-            dataModel->setReadOnly(true);
-          }
-          else
-            th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
-        }
-      }
+      if (converted)
+        storeColumnData(var1, int(CQBaseModelRole::IntermediateValue));
     }
 
     return var1;

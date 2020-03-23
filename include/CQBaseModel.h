@@ -111,6 +111,16 @@ class CQBaseModel : public QAbstractItemModel {
   QString columnTitle(int column) const;
   bool setColumnTitle(int column, const QString &v);
 
+  //! get/set column header type
+  CQBaseModelType columnHeaderType(int column) const;
+  bool setColumnHeaderType(int column, CQBaseModelType t);
+
+  //! get/set column values
+  QString headerTypeValues(int column) const;
+  bool setHeaderTypeValues(int column, const QString &str);
+
+  //---
+
   //! get/set column name, value
   QVariant columnNameValue(int column, const QString &name) const;
   bool setColumnNameValue(int column, const QString &name, const QVariant &value);
@@ -182,13 +192,14 @@ class CQBaseModel : public QAbstractItemModel {
 
  signals:
   //! signals when data changed
-  void columnTypeChanged     (int column);
-  void columnBaseTypeChanged (int column);
-  void columnRangeChanged    (int column);
-  void columnKeyChanged      (int column);
-  void columnSortedChanged   (int column);
-  void columnSortOrderChanged(int column);
-  void columnTitleChanged    (int column);
+  void columnTypeChanged      (int column);
+  void columnBaseTypeChanged  (int column);
+  void columnRangeChanged     (int column);
+  void columnKeyChanged       (int column);
+  void columnSortedChanged    (int column);
+  void columnSortOrderChanged (int column);
+  void columnTitleChanged     (int column);
+  void columnHeaderTypeChanged(int column);
 
  protected:
   using RowValues     = std::map<int,QVariant>;
@@ -213,6 +224,8 @@ class CQBaseModel : public QAbstractItemModel {
     bool            sorted        { false };                 //!< is sorted
     Qt::SortOrder   sortOrder     { Qt::AscendingOrder };    //!< sort ortder
     QString         title;                                   //!< title
+    CQBaseModelType headerType    { CQBaseModelType::NONE }; //!< header type
+    QString         headerTypeValues;                        //!< header type values
     RoleRowValues   roleRowValues;                           //!< row role values
   };
 

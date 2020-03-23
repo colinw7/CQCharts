@@ -349,21 +349,21 @@ initSymbolTypeData() const
       if (! ok) th->symbolTypeData_.data_max = 1;
     }
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolTypeColumn(),
-                                              columnType, columnBaseType, nameValues);
+                                              columnTypeData);
 
-    if (columnType == CQBaseModelType::SYMBOL) {
+    if (columnTypeData.type == CQBaseModelType::SYMBOL) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      const CQChartsColumnSymbolTypeType *symbolTypeType =
-        dynamic_cast<const CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
+      const auto *symbolTypeType =
+        dynamic_cast<const CQChartsColumnSymbolTypeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
       assert(symbolTypeType);
 
-      symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(), nameValues,
+      symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(),
+                                 columnTypeData.nameValues,
                                  th->symbolTypeData_.mapped,
                                  th->symbolTypeData_.map_min, th->symbolTypeData_.map_max,
                                  th->symbolTypeData_.data_min, th->symbolTypeData_.data_max);
@@ -470,21 +470,21 @@ initSymbolSizeData() const
                   CMathUtil::avg(symbolSizeData_.data_min, symbolSizeData_.data_max);
     }
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolSizeColumn(),
-                                              columnType, columnBaseType, nameValues);
+                                              columnTypeData);
 
-    if (columnType == CQBaseModelType::SYMBOL_SIZE) {
+    if (columnTypeData.type == CQBaseModelType::SYMBOL_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      const CQChartsColumnSymbolSizeType *symbolSizeType =
-        dynamic_cast<const CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
+      const auto *symbolSizeType =
+        dynamic_cast<const CQChartsColumnSymbolSizeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
       assert(symbolSizeType);
 
-      symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(), nameValues,
+      symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(),
+                                 columnTypeData.nameValues,
                                  th->symbolSizeData_.mapped,
                                  th->symbolSizeData_.map_min, th->symbolSizeData_.map_max,
                                  th->symbolSizeData_.data_min, th->symbolSizeData_.data_max);
@@ -593,21 +593,21 @@ initFontSizeData() const
       if (! ok) th->fontSizeData_.data_max = 1.0;
     }
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), fontSizeColumn(),
-                                              columnType, columnBaseType, nameValues);
+                                              columnTypeData);
 
-    if (columnType == CQBaseModelType::FONT_SIZE) {
+    if (columnTypeData.type == CQBaseModelType::FONT_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      const CQChartsColumnFontSizeType *fontSizeType =
-        dynamic_cast<const CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
+      const auto *fontSizeType =
+        dynamic_cast<const CQChartsColumnFontSizeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
       assert(fontSizeType);
 
-      fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(), nameValues,
+      fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(),
+                               columnTypeData.nameValues,
                                th->fontSizeData_.mapped,
                                th->fontSizeData_.map_min, th->fontSizeData_.map_max,
                                th->fontSizeData_.data_min, th->fontSizeData_.data_max);

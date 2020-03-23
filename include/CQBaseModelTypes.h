@@ -32,7 +32,9 @@ enum class CQBaseModelRole {
   Group             = Type + 13,        //!< group role
   Format            = Type + 14,        //!< output format
   DataMin           = Type + 15,        //!< calculated data min
-  DataMax           = Type + 16         //!< calculated data max
+  DataMax           = Type + 16,        //!< calculated data max
+  HeaderType        = Type + 17,        //!< column header type role
+  HeaderTypeValues  = Type + 18         //!< column header type values role
 };
 
 //! model value types supported by CQBaseModel

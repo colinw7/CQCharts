@@ -400,6 +400,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
+  bool canSelect() const override;
+
   bool interpY(double x, std::vector<double> &yvals) const;
 
   bool isOutlier(double y) const;
@@ -484,6 +486,8 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+
+  bool canSelect() const override;
 
   //---
 
@@ -627,6 +631,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
   Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
 
+  // column series
+  Q_PROPERTY(bool columnSeries READ isColumnSeries WRITE setColumnSeries);
+
   // best fit
   Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
   Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
@@ -708,6 +715,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  // time series
+  bool isColumnSeries() const { return columnSeries_; }
+  void setColumnSeries(bool b) { columnSeries_ = b; }
+
+  //---
+
   // select lines when point selected
   bool isPointLineSelect() const { return pointLineSelect_; }
   void setPointLineSelect(bool b) { pointLineSelect_ = b; }
@@ -761,8 +774,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   const CQChartsFillUnderSide &fillUnderSide() const { return fillUnderData_.side; }
   void setFillUnderSide(const CQChartsFillUnderSide &s);
 
-  CQChartsGeom::Point calcFillUnderPos(double x, double y) const;
-
   //---
 
   // vectors
@@ -787,6 +798,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void updateColumnNames() override;
 
   //---
+
+  bool headerSeriesData(std::vector<double> &x) const;
 
   bool rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &yv,
                QModelIndex &ind, bool skipBad) const;
@@ -899,6 +912,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool addLines(int groupInd, const SetIndPoly &setPoly,
                 const ColorInd &ig, PlotObjs &objs) const;
 
+  CQChartsGeom::Point calcFillUnderPos(double x, double y) const;
+
+  int numSets() const;
+
  private:
   // columns
   CQChartsColumn  xColumn_;       //!< x column
@@ -908,6 +925,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsColumn  vectorYColumn_; //!< vector y direction column
 
   ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
+
+  bool columnSeries_ { false }; //!< are column as series
 
   // point data
   bool pointLineSelect_ { false }; //!< select line of point

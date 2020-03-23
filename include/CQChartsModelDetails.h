@@ -3,7 +3,7 @@
 
 #include <CQChartsColumn.h>
 #include <CQChartsColumnType.h>
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <CQChartsUtil.h>
 #include <future>
 
@@ -124,6 +124,8 @@ class CQChartsModelColumnDetails {
 
   QString typeName() const;
 
+  const CQChartsModelTypeData &typeData() const;
+
   CQBaseModelType type() const;
   void setType(CQBaseModelType type);
 
@@ -234,11 +236,9 @@ class CQChartsModelColumnDetails {
   CQChartsColumn        column_;
 
   // cached type data
-  bool                  typeInitialized_ { false };                 //!< is type data set
-  CQBaseModelType       type_            { CQBaseModelType::NONE }; //!< column data type
-  CQBaseModelType       baseType_        { CQBaseModelType::NONE }; //!< column data base type
-  CQChartsNameValues    nameValues_;                                //!< name values
-  QString               typeName_;                                  //!< type name
+  bool                  typeInitialized_ { false }; //!< is type data set
+  CQChartsModelTypeData typeData_;                  //!< column data type
+  QString               typeName_;                  //!< type name
 
   // cached data
   bool                  initialized_     { false };   //!< is data set

@@ -1072,3 +1072,9 @@
  + Improve alignment support for formatted html text
  + support column name in tcl model index arg
  + allow table plot header to be hidden and improve title support
+# 03/22/2020
+ + Add support for type of column header value
+ + Improve Column Edit Widget to support all options
+ + Ensure column names generate value tcl variable name
+ + cleanup layer type to/from name lookup
+ + Add objects for table plot (select and click)

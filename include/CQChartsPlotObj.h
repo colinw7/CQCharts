@@ -141,6 +141,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void selectPress() { }
 
+  virtual bool canSelect() const { return true; }
+
   //---
 
   bool contains(const CQChartsGeom::Point &p) const override;

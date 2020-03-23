@@ -1,10 +1,10 @@
 #ifndef CQChartsModelUtil_H
 #define CQChartsModelUtil_H
 
+#include <CQChartsModelTypes.h>
 #include <CQChartsExprModel.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
-#include <CQBaseModelTypes.h>
 
 class CQDataModel;
 class CQHierSepModel;
@@ -30,8 +30,7 @@ CQBaseModelType calcColumnType(const QAbstractItemModel *model, int icolumn);
 //------
 
 bool columnValueType(CQCharts *charts, const QAbstractItemModel *model,
-                     const CQChartsColumn &column, CQBaseModelType &columnType,
-                     CQBaseModelType &columnBaseType, CQChartsNameValues &nameValues);
+                     const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData);
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                            const CQChartsColumn &column, const QString &typeStr,
@@ -41,14 +40,19 @@ bool formatColumnValue(CQCharts *charts, const QAbstractItemModel *model,
                        const CQChartsColumn &column, double value, QString &str);
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
-                           const CQChartsColumn &column, const CQChartsColumnType *typeData,
-                           const CQChartsNameValues &nameValues, double value, QString &str);
+                           const CQChartsColumn &column, const CQChartsColumnType *columnType,
+                           const CQChartsModelTypeData &typeData, double value, QString &str);
 
 QVariant columnDisplayData(CQCharts *charts, const QAbstractItemModel *model,
                            const CQChartsColumn &column, const QVariant &var, bool &converted);
 
 QVariant columnUserData(CQCharts *charts, const QAbstractItemModel *model,
                         const CQChartsColumn &column, const QVariant &var, bool &converted);
+
+QVariant columnHeaderUserData(CQCharts *charts, const QAbstractItemModel *model, int section,
+                              const QVariant &var, bool &converted);
+
+//---
 
 bool columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
                    const CQChartsColumn &column, QString &typeStr);
@@ -58,12 +62,28 @@ bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QStrin
 bool setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
                            int i, const QString &columnType);
 
-bool setColumnTypeI(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                    const QString &typeName, const QString &typeStr, const QStringList &strs,
-                    QString &errorMsg);
-
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                       const CQChartsColumn &column, const QString &typeStr);
+
+bool setColumnTypeStrI(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                       const QString &typeName, const QString &typeStr, const QStringList &strs,
+                       QString &errorMsg);
+
+//---
+
+bool setHeaderTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
+
+bool setHeaderTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
+                           int i, const QString &columnType);
+
+bool setHeaderTypeStr(CQCharts *charts, QAbstractItemModel *model,
+                      const CQChartsColumn &column, const QString &typeStr);
+
+bool setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                       const QString &typeName, const QString &typeStr, const QStringList &strs,
+                       QString &errorMsg);
+
+//---
 
 #if 0
 void remapColumnTime(const QAbstractItemModel *model, const CQChartsColumn &column,

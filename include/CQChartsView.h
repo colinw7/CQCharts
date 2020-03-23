@@ -477,6 +477,7 @@ class CQChartsView : public QFrame,
   void resetGrouping();
 
   void resetPlotGrouping();
+  void resetPlotGrouping(const Plots &plots);
 
   void initOverlay(const Plots &plots, bool reset=false);
 
@@ -1012,6 +1013,7 @@ class CQChartsView : public QFrame,
   void panMouseMove();
 
   void resetConnections(bool notify);
+  void resetConnections(const Plots &plots, bool notify);
 
   void initOverlayPlot(CQChartsPlot *firstPlot);
 

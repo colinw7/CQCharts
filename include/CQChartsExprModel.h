@@ -1,8 +1,9 @@
 #ifndef CQChartsExprModel_H
 #define CQChartsExprModel_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <CQBucketer.h>
+
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
 #include <set>
@@ -196,16 +197,15 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
-    QString           expr;                                 //!< expression
-    QString           header;                               //!< header
-    CQBaseModelType   type       { CQBaseModelType::NONE }; //!< value type
-    CQBaseModelType   baseType   { CQBaseModelType::NONE }; //!< value base type
-    QString           typeValues;                           //!< type extra values
-    NameValues        nameValues;                           //!< type named values
-    VariantMap        variantMap;                           //!< calculated values
-    Values            values;                               //!< assign values
-    Function          function   { Function::EVAL };        //!< current eval function
-    std::atomic<bool> evaluating { false };                 //!< is evaluating column
+    QString               expr;                          //!< expression
+    QString               header;                        //!< header
+    CQChartsModelTypeData typeData;                      //!< column type data
+    QString               typeValues;                    //!< type extra values
+    QString               headerTypeValues;              //!< header type extra values
+    VariantMap            variantMap;                    //!< calculated values
+    Values                values;                        //!< assign values
+    Function              function   { Function::EVAL }; //!< current eval function
+    std::atomic<bool>     evaluating { false };          //!< is evaluating column
 
     ExtraColumn(const QString &expr, const QString &header="") :
      expr(expr), header(header) {

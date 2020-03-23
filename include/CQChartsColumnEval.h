@@ -33,7 +33,7 @@ class CQChartsColumnEval {
 
   //---
 
-  bool evaluateExpression(const QString &exprStr, QVariant &var);
+  bool evaluateExpression(const QString &exprStr, QVariant &var, bool showError);
 
   void setVar(const QString &name, int row, int column);
 

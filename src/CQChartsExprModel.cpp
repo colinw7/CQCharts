@@ -497,17 +497,17 @@ initCalc()
   //---
 
   // add traces for column names
-  for (int column = 0; column < nc_; ++column) {
-    QVariant var = this->headerData(column, Qt::Horizontal);
+  for (int ic = 0; ic < nc_; ++ic) {
+    CQChartsColumn c(ic);
 
     bool ok;
 
-    QString name = CQChartsVariant::toString(var, ok);
+    QString name = CQChartsModelUtil::modelHeaderString(this, c, ok);
 
-    columnNames_[column] = name;
-    nameColumns_[name  ] = column;
+    columnNames_[ic  ] = name;
+    nameColumns_[name] = ic;
 
-    qtcl_->setNameColumn(name, column);
+    qtcl_->setNameColumn(qtcl_->encodeColumnName(name), ic);
   }
 
   qtcl_->initVars();
@@ -767,8 +767,8 @@ data(const QModelIndex &index, int role) const
   else if (role == Qt::TextAlignmentRole) {
     const ExtraColumn &extraColumn = this->extraColumn(column);
 
-    if (extraColumn.type == CQBaseModelType::INTEGER ||
-        extraColumn.type == CQBaseModelType::REAL)
+    if (extraColumn.typeData.type == CQBaseModelType::INTEGER ||
+        extraColumn.typeData.type == CQBaseModelType::REAL)
       var = QVariant(Qt::AlignRight | Qt::AlignVCenter);
     else
       var = QVariant(Qt::AlignLeft | Qt::AlignVCenter);
@@ -920,30 +920,30 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 
       bool isInt = CQBaseModel::isInteger(real);
 
-      if      (extraColumn.type == CQBaseModelType::NONE) {
+      if      (extraColumn.typeData.type == CQBaseModelType::NONE) {
         if (CQBaseModel::isInteger(real))
-          extraColumn.type = CQBaseModelType::INTEGER;
+          extraColumn.typeData.type = CQBaseModelType::INTEGER;
         else
-          extraColumn.type = CQBaseModelType::REAL;
+          extraColumn.typeData.type = CQBaseModelType::REAL;
       }
-      else if (extraColumn.type == CQBaseModelType::INTEGER) {
+      else if (extraColumn.typeData.type == CQBaseModelType::INTEGER) {
         if (! isInt)
-          extraColumn.type = CQBaseModelType::REAL;
+          extraColumn.typeData.type = CQBaseModelType::REAL;
       }
-      else if (extraColumn.type == CQBaseModelType::REAL) {
+      else if (extraColumn.typeData.type == CQBaseModelType::REAL) {
       }
     }
     else if (var.type() == QVariant::Int) {
-      if (extraColumn.type == CQBaseModelType::NONE)
-        extraColumn.type = CQBaseModelType::INTEGER;
+      if (extraColumn.typeData.type == CQBaseModelType::NONE)
+        extraColumn.typeData.type = CQBaseModelType::INTEGER;
     }
     else if (var.type() == QVariant::Bool) {
-      if (extraColumn.type == CQBaseModelType::NONE)
-        extraColumn.type = CQBaseModelType::INTEGER;
+      if (extraColumn.typeData.type == CQBaseModelType::NONE)
+        extraColumn.typeData.type = CQBaseModelType::INTEGER;
     }
     else {
-      if (extraColumn.type == CQBaseModelType::NONE)
-        extraColumn.type = CQBaseModelType::STRING;
+      if (extraColumn.typeData.type == CQBaseModelType::NONE)
+        extraColumn.typeData.type = CQBaseModelType::STRING;
     }
   }
   else
@@ -1027,7 +1027,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   else if (role == Qt::ToolTipRole) {
     QString str = extraColumn.header;
 
-    CQBaseModelType type = extraColumn.type;
+    CQBaseModelType type = extraColumn.typeData.type;
 
     str += ":" + CQBaseModel::typeName(type);
 
@@ -1039,37 +1039,51 @@ headerData(int section, Qt::Orientation orientation, int role) const
     return str;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Type)) {
-    return CQBaseModel::typeToVariant(extraColumn.type);
+    return CQBaseModel::typeToVariant(extraColumn.typeData.type);
   }
   else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
-    return CQBaseModel::typeToVariant(extraColumn.baseType);
+    return CQBaseModel::typeToVariant(extraColumn.typeData.baseType);
   }
   else if (role == static_cast<int>(CQBaseModelRole::TypeValues)) {
     return QVariant(extraColumn.typeValues);
   }
   else if (role == static_cast<int>(CQBaseModelRole::Min)) {
-    auto p = extraColumn.nameValues.find("min");
-    if (p == extraColumn.nameValues.end()) return QVariant();
+    QVariant value;
 
-    return (*p).second;
+    if (! extraColumn.typeData.nameValues.nameValue("min", value))
+      return QVariant();
+
+    return value;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Max)) {
-    auto p = extraColumn.nameValues.find("max");
-    if (p == extraColumn.nameValues.end()) return QVariant();
+    QVariant value;
 
-    return (*p).second;
+    if (! extraColumn.typeData.nameValues.nameValue("max", value))
+      return QVariant();
+
+    return value;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Sorted)) {
-    auto p = extraColumn.nameValues.find("sorted");
-    if (p == extraColumn.nameValues.end()) return QVariant();
+    QVariant value;
 
-    return (*p).second;
+    if (! extraColumn.typeData.nameValues.nameValue("sorted", value))
+      return QVariant();
+
+    return value;
   }
   else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
-    auto p = extraColumn.nameValues.find("sort_order");
-    if (p == extraColumn.nameValues.end()) return QVariant();
+    QVariant value;
 
-    return (*p).second;
+    if (! extraColumn.typeData.nameValues.nameValue("sort_order", value))
+      return QVariant();
+
+    return value;
+  }
+  else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
+    return CQBaseModel::typeToVariant(extraColumn.typeData.headerType);
+  }
+  else if (role == static_cast<int>(CQBaseModelRole::HeaderTypeValues)) {
+    return QVariant(extraColumn.headerTypeValues);
   }
 
   return QVariant();
@@ -1104,12 +1118,12 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Type)) {
-    extraColumn.type = CQBaseModel::variantToType(value);
+    extraColumn.typeData.type = CQBaseModel::variantToType(value);
 
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
-    extraColumn.baseType = CQBaseModel::variantToType(value);
+    extraColumn.typeData.baseType = CQBaseModel::variantToType(value);
 
     return true;
   }
@@ -1119,22 +1133,32 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Min)) {
-    extraColumn.nameValues["min"] = value;
+    extraColumn.typeData.nameValues.setNameValue("min", value);
 
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Max)) {
-    extraColumn.nameValues["max"] = value;
+    extraColumn.typeData.nameValues.setNameValue("max", value);
 
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Sorted)) {
-    extraColumn.nameValues["sorted"] = value;
+    extraColumn.typeData.nameValues.setNameValue("sorted", value);
 
     return true;
   }
   else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
-    extraColumn.nameValues["sort_order"] = value;
+    extraColumn.typeData.nameValues.setNameValue("sort_order", value);
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModelRole::HeaderType)) {
+    extraColumn.typeData.headerType = CQBaseModel::variantToType(value);
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModelRole::HeaderTypeValues)) {
+    extraColumn.headerTypeValues = value.toString();
 
     return true;
   }
@@ -2236,9 +2260,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   //---
 
-  CQBaseModelType    type;
-  CQBaseModelType    baseType;
-  CQChartsNameValues nameValues;
+  CQChartsModelTypeData columnTypeData;
 
   if (modelData) {
     CQChartsModelDetails *details = modelData->details();
@@ -2247,12 +2269,12 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
     CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
     assert(columnDetails);
 
-    type       = columnDetails->type();
-    baseType   = columnDetails->baseType();
-    nameValues = columnDetails->nameValues();
+    columnTypeData.type       = columnDetails->type();
+    columnTypeData.baseType   = columnDetails->baseType();
+    columnTypeData.nameValues = columnDetails->nameValues();
   }
   else {
-    if (! CQChartsModelUtil::columnValueType(charts_, this, column, type, baseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, this, column, columnTypeData))
       return false;
   }
 
@@ -2260,13 +2282,13 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(type);
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
   auto *rtypeData = dynamic_cast<const CQChartsColumnRealType    *>(typeData);
   auto *itypeData = dynamic_cast<const CQChartsColumnIntegerType *>(typeData);
 
   if      (rtypeData) {
-    if (! rtypeData->rmin(nameValues, rmin)) {
+    if (! rtypeData->rmin(columnTypeData.nameValues, rmin)) {
       if (modelData) {
         bool ok;
 
@@ -2275,7 +2297,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       }
     }
 
-    if (! rtypeData->rmax(nameValues, rmax)) {
+    if (! rtypeData->rmax(columnTypeData.nameValues, rmax)) {
       if (modelData) {
         bool ok;
 
@@ -2287,7 +2309,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
   else if (itypeData) {
     int imin = 0, imax = 0;
 
-    if (! itypeData->imin(nameValues, imin)) {
+    if (! itypeData->imin(columnTypeData.nameValues, imin)) {
       if (modelData) {
         bool ok;
 
@@ -2296,7 +2318,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       }
     }
 
-    if (! itypeData->imax(nameValues, imax)) {
+    if (! itypeData->imax(columnTypeData.nameValues, imax)) {
       if (modelData) {
         bool ok;
 

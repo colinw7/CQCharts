@@ -1,7 +1,7 @@
 #ifndef CQChartsAnalyzeFile_H
 #define CQChartsAnalyzeFile_H
 
-#include <CQBaseModelTypes.h>
+#include <CQChartsModelTypes.h>
 #include <QString>
 
 /*!

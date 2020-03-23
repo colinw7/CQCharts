@@ -38,6 +38,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
+  void dataInvalidate() override { boxDataInvalidate(); }
+
   virtual void boxDataInvalidate(); // TODO: signal
 
   //---

@@ -6,4 +6,4 @@ set plot [create_charts_plot -type table -model $model -columns {{columns {0 1 2
 
 set objs [get_charts_data -plot $plot -name objects -sync]
 
-assert {[llength $objs] == 0}
+#assert {[llength $objs] == 0}

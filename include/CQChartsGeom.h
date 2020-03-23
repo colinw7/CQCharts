@@ -649,7 +649,7 @@ class BBox {
     return bbox;
   }
 
-  BBox translated(double dx, double dy) {
+  BBox translated(double dx, double dy) const {
     return movedBy(Point(dx, dy));
   }
 
@@ -1157,6 +1157,27 @@ class Range {
     range.print(os);
 
     return os;
+  }
+
+  Range &operator+=(const Range &r) {
+    if (! r.set_) return *this;
+
+    if (set_) {
+      x1_ = std::min(x1_, r.x1_);
+      y1_ = std::min(y1_, r.y1_);
+      x2_ = std::max(x2_, r.x2_);
+      y2_ = std::max(y2_, r.y2_);
+    }
+    else {
+      x1_ = r.x1_;
+      y1_ = r.y1_;
+      x2_ = r.x2_;
+      y2_ = r.y2_;
+    }
+
+    set_ = true;
+
+    return *this;
   }
 
  private:

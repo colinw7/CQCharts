@@ -268,7 +268,8 @@ roleNames()
              "text_color" << "decoration" <<
              "type" << "base_type" << "type_values" << "min" << "max" << "sorted" <<
              "sort_order" << "title" << "key" << "raw_value" << "intermediate_value" <<
-             "cached_value" << "output_value" << "group" << "format" << "data_min" << "data_max";
+             "cached_value" << "output_value" << "group" << "format" << "data_min" << "data_max" <<
+             "header_type" << "header_type_values";
 
   return names;
 };
@@ -305,6 +306,8 @@ nameToRole(const QString &name)
   else if (name == "format"            ) return (int) CQBaseModelRole::Format;
   else if (name == "data_min"          ) return (int) CQBaseModelRole::DataMin;
   else if (name == "data_max"          ) return (int) CQBaseModelRole::DataMax;
+  else if (name == "header_type"       ) return (int) CQBaseModelRole::HeaderType;
+  else if (name == "header_type_values") return (int) CQBaseModelRole::HeaderTypeValues;
 
   bool ok;
 

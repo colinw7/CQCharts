@@ -3971,12 +3971,16 @@ updateOverlayRanges()
 
   if (isOverlay()) {
     if (! isX1X2() && ! isY1Y2()) {
-      processOverlayPlots([&](CQChartsPlot *plot) {
-        if (plot != this) {
-          plot->setDataRange(dataRange(), /*update*/false);
+      CQChartsGeom::Range dataRange;
 
-          plot->applyDataRange(/*propagate*/false);
-        }
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        dataRange += plot->dataRange();
+      });
+
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        plot->setDataRange(dataRange, /*update*/false);
+
+        plot->applyDataRange(/*propagate*/false);
       });
     }
   }
@@ -4221,7 +4225,7 @@ initPlotObjs()
 
   // auto fit
   if (changed && isAutoFit()) {
-    needsAutoFit_ = true;
+    //needsAutoFit_ = true;
   }
 
   //---
@@ -5854,7 +5858,7 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
   // get objects inside/touching rectangle
   Objs objs;
 
-  objsIntersectRect(r, objs, view()->isSelectInside());
+  objsIntersectRect(r, objs, view()->isSelectInside(), /*select*/true);
 
   //---
 
@@ -6148,27 +6152,26 @@ initColorColumnData()
       if (! ok) colorColumnData_.data_max = 1.0;
     }
 
-    CQBaseModelType    columnType;
-    CQBaseModelType    columnBaseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelTypeData columnTypeData;
 
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), colorColumn(),
-                                              columnType, columnBaseType, nameValues);
+                                              columnTypeData);
 
-    if (columnType == CQBaseModelType::COLOR) {
+    if (columnTypeData.type == CQBaseModelType::COLOR) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       const CQChartsColumnColorType *colorType =
-        dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnType));
+        dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnTypeData.type));
       assert(colorType);
 
-      colorType->getMapData(charts(), model().data(), colorColumn(), nameValues,
+      colorType->getMapData(charts(), model().data(), colorColumn(),
+                            columnTypeData.nameValues,
                             colorColumnData_.mapped,
                             colorColumnData_.data_min, colorColumnData_.data_max,
                             colorColumnData_.palette);
     }
 
-    colorColumnData_.modelType = columnType;
+    colorColumnData_.modelType = columnTypeData.type;
   }
 
   colorColumnData_.valid = true;
@@ -6885,7 +6888,7 @@ annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const
 
 void
 CQChartsPlot::
-objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
+objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside, bool select) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
@@ -6898,8 +6901,12 @@ objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 
       plot->objTreeData_.tree->objectsIntersectRect(r1, plotObjs, inside);
 
-      for (const auto &plotObj : plotObjs)
+      for (const auto &plotObj : plotObjs) {
+        if (select && ! plotObj->canSelect())
+          continue;
+
         objs.push_back(plotObj);
+      }
     });
   }
   else {
@@ -6907,8 +6914,12 @@ objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 
     objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
 
-    for (const auto &plotObj : plotObjs)
+    for (const auto &plotObj : plotObjs) {
+      if (select && ! plotObj->canSelect())
+        continue;
+
       objs.push_back(plotObj);
+    }
   }
 }
 
@@ -7051,8 +7062,11 @@ draw(QPainter *painter)
   //---
 
   if (! isSequential()) {
-    if (drawLayers)
+    if (drawLayers) {
       this->drawLayers(painter);
+
+      updateAutoFit();
+    }
     else {
       this->drawLayers(painter);
 
@@ -7984,7 +7998,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
         continue;
     }
 
-    if (! bbox.overlaps(plotObj->rect()))
+    if (! plotObj->rectIntersect(bbox, /*inside*/ false))
       continue;
 
     anyObjs = true;
@@ -8051,7 +8065,7 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
     //---
 
     // skip objects not inside plot
-    if (! bbox.overlaps(plotObj->rect()))
+    if (! plotObj->rectIntersect(bbox, /*inside*/ false))
       continue;
 
     //---
@@ -9953,24 +9967,22 @@ CQChartsPlot::ColumnType
 CQChartsPlot::
 columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
 {
-  ColumnType         columnType;
-  ColumnType         columnBaseType;
-  CQChartsNameValues nameValues;
+  CQChartsModelTypeData columnTypeData;
 
-  if (! columnValueType(column, columnType, columnBaseType, nameValues, defType))
+  if (! columnValueType(column, columnTypeData, defType))
     return ColumnType::NONE;
 
-  return columnType;
+  return columnTypeData.type;
 }
 
 bool
 CQChartsPlot::
-columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType &columnBaseType,
-                CQChartsNameValues &nameValues, const ColumnType &defType) const
+columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData,
+                const ColumnType &defType) const
 {
   if (! column.isValid()) {
-    columnType     = ColumnType::NONE;
-    columnBaseType = ColumnType::NONE;
+    columnTypeData.type     = ColumnType::NONE;
+    columnTypeData.baseType = ColumnType::NONE;
     return false;
   }
 
@@ -9978,25 +9990,24 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
 
   if (columnDetails) {
     // if has details column is valid
-    columnType     = columnDetails->type();
-    columnBaseType = columnDetails->baseType();
-    nameValues     = columnDetails->nameValues();
+    columnTypeData.type       = columnDetails->type();
+    columnTypeData.baseType   = columnDetails->baseType();
+    columnTypeData.nameValues = columnDetails->nameValues();
 
-    if (columnType == ColumnType::NONE) {
+    if (columnTypeData.type == ColumnType::NONE) {
       // if no column type then could not be calculated (still return true)
-      columnType     = defType;
-      columnBaseType = defType;
+      columnTypeData.type     = defType;
+      columnTypeData.baseType = defType;
     }
   }
   else {
     QAbstractItemModel *model = this->model().data();
     assert(model);
 
-    if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnType,
-                                             columnBaseType, nameValues)) {
+    if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnTypeData)) {
       // if fail column is invalid
-      columnType     = ColumnType::NONE;
-      columnBaseType = ColumnType::NONE;
+      columnTypeData.type     = ColumnType::NONE;
+      columnTypeData.baseType = ColumnType::NONE;
       return false;
     }
   }
