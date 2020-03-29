@@ -105,7 +105,7 @@ addFunction(const QString &name)
 {
   assert(name.length());
 
-  CQChartsExprModelFn *fn = new CQChartsExprModelFn(this, name);
+  auto *fn = new CQChartsExprModelFn(this, name);
 
   tclCmds_.push_back(fn);
 }
@@ -606,6 +606,7 @@ calcColumnRange(int column, double &minVal, double &maxVal)
     bool ok;
 
     double value = CQChartsVariant::toReal(var, ok);
+    if (! ok) continue;
 
     if (r == 0) {
       minVal = value;

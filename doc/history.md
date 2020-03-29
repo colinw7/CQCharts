@@ -1078,3 +1078,9 @@
  + Ensure column names generate value tcl variable name
  + cleanup layer type to/from name lookup
  + Add objects for table plot (select and click)
+# 03/29/2020
+ + Add key annotation
+ + Add tcl notification on theme change
+ + Support custom plot name
+ + Add support tabbed plots
+ + Add composite plot to better handle nesting of plots

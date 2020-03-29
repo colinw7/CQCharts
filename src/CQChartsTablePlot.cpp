@@ -159,6 +159,28 @@ CQChartsTablePlot::
 
 void
 CQChartsTablePlot::
+setModel(const ModelP &model)
+{
+  CQChartsPlot::disconnectModel();
+
+  model_ = model;
+
+  delete summaryModel_;
+
+  if (! CQChartsModelUtil::isHierarchical(model.data()))
+    summaryModel_ = new CQSummaryModel(model.data());
+
+  connectModel();
+
+  updateRangeAndObjs();
+
+  emit modelChanged();
+}
+
+//---
+
+void
+CQChartsTablePlot::
 hscrollSlot(int v)
 {
   scrollData_.hpos = v;
@@ -532,6 +554,8 @@ calcTableSize() const
   th->tableData_.font = view()->viewFont(this->font());
   th->tableData_.font = CQChartsUtil::scaleFontSize(th->tableData_.font, fontScale_);
 
+  //th->tabbedFont_ = th->tableData_.font;
+
   QFontMetricsF fm(th->tableData_.font);
 
   th->tableData_.nc = columns_.count();
@@ -748,7 +772,7 @@ autoFit()
   if (fitData_.fitHorizontal || fitData_.fitVertical) {
     calcTableSize();
 
-    auto pixelRect = this->calcDataPixelRect();
+    auto pixelRect = calcTablePixelRect();
 
     double xscale { 1.0 };
     double yscale { 1.0 };
@@ -1057,11 +1081,20 @@ void
 CQChartsTablePlot::
 updateScrollBars() const
 {
+  if (! isVisible()) {
+    scrollData_.hbar->setVisible(false);
+    scrollData_.vbar->setVisible(false);
+
+    return;
+  }
+
+  //---
+
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
   //---
 
-  auto pixelRect = this->calcDataPixelRect();
+  auto pixelRect = calcTablePixelRect();
 
   double pdx = pixelRect.getWidth () - 2*tableData_.pmargin - tableData_.pcw;
   double pdy = pixelRect.getHeight() - 2*tableData_.pmargin - tableData_.prh*tableData_.nvr;
@@ -1120,7 +1153,7 @@ updatePosition() const
 
   //---
 
-  auto pixelRect = this->calcDataPixelRect();
+  auto pixelRect = calcTablePixelRect();
 
   double pdx = pixelRect.getWidth () - 2*tableData_.pmargin - tableData_.pcw;
   double pdy = pixelRect.getHeight() - 2*tableData_.pmargin - tableData_.prh*tableData_.nvr;
@@ -1157,11 +1190,16 @@ void
 CQChartsTablePlot::
 drawTableBackground(CQChartsPaintDevice *device) const
 {
+  if (! isVisible())
+    return;
+
+  //--
+
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
   device->save();
 
-  auto pixelRect = this->calcDataPixelRect();
+  auto pixelRect = calcTablePixelRect();
 
   device->setClipRect(pixelToWindow(pixelRect));
 
@@ -1677,6 +1715,27 @@ scrollY() const
 #endif
 }
 
+CQChartsGeom::BBox
+CQChartsTablePlot::
+calcTablePixelRect() const
+{
+  auto pixelRect = calcDataPixelRect();
+
+  if (! isTabbed())
+    return pixelRect;
+
+  int px1 = pixelRect.getXMin();
+  int px2 = pixelRect.getXMax();
+  int py1 = pixelRect.getYMin();
+  int py2 = pixelRect.getYMax();
+
+  auto tabRect = this->calcTabPixelRect();
+
+  double tph = tabRect.getHeight();
+
+  return CQChartsGeom::BBox(px1, py1, px2, py2 - tph);
+}
+
 //------
 
 CQChartsTableHeaderObj::
@@ -1699,7 +1758,12 @@ QString
 CQChartsTableHeaderObj::
 calcTipId() const
 {
-  return headerObjData_.str;
+  QString id = headerObjData_.str;
+
+  if (! id.length())
+    id = QString("%1").arg(headerObjData_.c.column());
+
+  return id;
 }
 
 void
@@ -1708,7 +1772,7 @@ draw(CQChartsPaintDevice *device)
 {
   device->save();
 
-  auto pixelRect = plot_->calcDataPixelRect();
+  auto pixelRect = plot_->calcTablePixelRect();
 
   device->setClipRect(plot_->pixelToWindow(pixelRect));
 
@@ -1779,7 +1843,12 @@ QString
 CQChartsTableRowObj::
 calcTipId() const
 {
-  return rowObjData_.str;
+  QString id = rowObjData_.str;
+
+  if (! id.length())
+    id = QString("%1").arg(rowObjData_.r);
+
+  return id;
 }
 
 void
@@ -1788,7 +1857,7 @@ draw(CQChartsPaintDevice *device)
 {
   device->save();
 
-  auto pixelRect = plot_->calcDataPixelRect();
+  auto pixelRect = plot_->calcTablePixelRect();
 
   device->setClipRect(plot_->pixelToWindow(pixelRect));
 
@@ -1857,7 +1926,12 @@ QString
 CQChartsTableCellObj::
 calcTipId() const
 {
-  return cellObjData_.str;
+  QString id = cellObjData_.str;
+
+  if (! id.length())
+    id = QString("%1").arg(cellObjData_.ind.column.column());
+
+  return id;
 }
 
 void
@@ -1866,7 +1940,7 @@ draw(CQChartsPaintDevice *device)
 {
   device->save();
 
-  auto pixelRect = plot_->calcDataPixelRect();
+  auto pixelRect = plot_->calcTablePixelRect();
 
   device->setClipRect(plot_->pixelToWindow(pixelRect));
 

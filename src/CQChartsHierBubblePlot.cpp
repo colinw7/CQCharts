@@ -573,7 +573,7 @@ loadHier() const
 
         CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
 
-        if (plot_->columnColor(colorInd, color))
+        if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -705,7 +705,7 @@ loadFlat() const
 
         CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
 
-        if (plot_->columnColor(colorInd, color))
+        if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -813,7 +813,7 @@ addExtraNodes(CQChartsHierBubbleHierNode *hier) const
 
     CQChartsColor color;
 
-    if (columnColor(ind1.row(), ind1.parent(), color))
+    if (colorColumnColor(ind1.row(), ind1.parent(), color))
       node->setColor(color);
 
     node->setDepth (hier->depth() + 1);

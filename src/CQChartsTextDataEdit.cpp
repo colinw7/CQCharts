@@ -169,7 +169,7 @@ CQChartsLineEditBase *
 CQChartsTextDataPropertyViewEditor::
 createPropertyEdit(QWidget *parent)
 {
-  CQChartsTextDataLineEdit *edit = new CQChartsTextDataLineEdit(parent);
+  auto *edit = new CQChartsTextDataLineEdit(parent);
 
   edit->setNoFocus();
 

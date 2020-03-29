@@ -700,7 +700,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
     CQChartsColor color;
 
-    if (columnColor(ind.row, ind.parent, color))
+    if (colorColumnColor(ind.row, ind.parent, color))
       obj->setColor(color);
 
     //---

@@ -234,7 +234,7 @@ QWidget *
 CQChartsRectPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsRectEdit *edit = new CQChartsRectEdit(parent);
+  auto *edit = new CQChartsRectEdit(parent);
 
   return edit;
 }

@@ -110,9 +110,13 @@ acceptsRow(const Cells &cells) const
   //---
 
   if (! isFilterInited()) {
-    CQDataModel *th = const_cast<CQDataModel *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    th->initFilter();
+    if (! isFilterInited()) {
+      CQDataModel *th = const_cast<CQDataModel *>(this);
+
+      th->initFilter();
+    }
   }
 
   //---
@@ -318,6 +322,8 @@ data(const QModelIndex &index, int role) const
   };
 
   auto setRowRoleValue = [&](int row, int role, const QVariant &value) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
     ColumnData &columnData1 = const_cast<ColumnData &>(columnData);
 
     columnData1.roleRowValues[role][row] = value;
@@ -349,8 +355,6 @@ data(const QModelIndex &index, int role) const
     // cache converted value
     if (var.type() == QVariant::String) {
       QVariant var1 = typeStringToVariant(var.toString(), type);
-
-      std::unique_lock<std::mutex> lock(mutex_);
 
       setRowRoleValue(r, int(CQBaseModelRole::CachedValue), var1);
 
@@ -435,6 +439,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   };
 
   auto setRowRoleValue = [&](int row, int role, const QVariant &value) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
     columnData.roleRowValues[role][row] = value;
   };
 
@@ -463,13 +469,9 @@ setData(const QModelIndex &index, const QVariant &value, int role)
            role == int(CQBaseModelRole::IntermediateValue) ||
            role == int(CQBaseModelRole::CachedValue) ||
            role == int(CQBaseModelRole::OutputValue)) {
-    std::unique_lock<std::mutex> lock(mutex_);
-
     setRowRoleValue(r, role, value);
   }
   else {
-    std::unique_lock<std::mutex> lock(mutex_);
-
     setRowRoleValue(r, role, value);
 
     emit dataChanged(index, index, QVector<int>(1, role));
@@ -524,9 +526,13 @@ CQDataModel::
 getDetails() const
 {
   if (! details_) {
-    CQDataModel *th = const_cast<CQDataModel *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    th->details_ = new CQModelDetails(th);
+    if (! details_) {
+      CQDataModel *th = const_cast<CQDataModel *>(this);
+
+      th->details_ = new CQModelDetails(th);
+    }
   }
 
   return details_;

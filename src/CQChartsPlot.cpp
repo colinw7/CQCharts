@@ -191,6 +191,18 @@ typeStr() const
   return type_->name();
 }
 
+QString
+CQChartsPlot::
+calcName() const
+{
+  QString name = this->name();
+
+  if (! name.length())
+    name = this->id();
+
+  return name;
+}
+
 //---
 
 void
@@ -447,6 +459,12 @@ bool
 CQChartsPlot::
 isVisible() const
 {
+  if (parentPlot())
+    return false;
+
+  if (isTabbed() && ! isCurrent())
+    return false;
+
   return CQChartsObj::isVisible();
 }
 
@@ -493,23 +511,23 @@ setUpdatesEnabled(bool b, bool update)
     if (isUpdatesEnabled()) {
       if (update) {
         // calc range and objs
-        if      (updatesData_.updateRangeAndObjs) {
+        if      (isUpdateRangeAndObjs()) {
           updateRangeAndObjs();
 
           drawObjs();
         }
         // calc objs
-        else if (updatesData_.updateObjs) {
+        else if (isUpdateObjs()) {
           updateObjs();
 
           drawObjs();
         }
         // apply range
-        else if (updatesData_.applyDataRange) {
+        else if (isApplyDataRange()) {
           applyDataRangeAndDraw();
         }
         // draw objs
-        else if (updatesData_.invalidateLayers) {
+        else if (isInvalidateLayers()) {
           drawObjs();
         }
       }
@@ -536,6 +554,9 @@ updateRange()
     if (! isUpdatesEnabled())
       return;
 
+    if (parentPlot())
+      return parentPlot()->updateRange();
+
     if (isOverlay() && ! isFirstPlot())
       return firstPlot()->updateRange();
 
@@ -559,6 +580,9 @@ updateRangeAndObjs()
   if (isQueueUpdate()) {
     if (! isUpdatesEnabled())
       return;
+
+    if (parentPlot())
+      return parentPlot()->updateRangeAndObjs();
 
     if (isOverlay() && ! isFirstPlot())
       return firstPlot()->updateRangeAndObjs();
@@ -584,6 +608,9 @@ updateObjs()
   if (isQueueUpdate()) {
     if (! isUpdatesEnabled())
       return;
+
+    if (parentPlot())
+      return parentPlot()->updateObjs();
 
     if (isOverlay() && ! isFirstPlot())
       return firstPlot()->updateObjs();
@@ -654,6 +681,9 @@ drawObjs()
   if (isQueueUpdate()) {
     if (! isUpdatesEnabled())
       return;
+
+    if (parentPlot())
+      return parentPlot()->drawObjs();
 
     if (isOverlay() && ! isFirstPlot())
       return firstPlot()->drawObjs();
@@ -1157,7 +1187,17 @@ void
 CQChartsPlot::
 invalidateOverlay()
 {
-  invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  if (parentPlot())
+    return parentPlot()->invalidateOverlay();
+
+  execInvalidateOverlay();
+}
+
+void
+CQChartsPlot::
+execInvalidateOverlay()
+{
+  execInvalidateLayer(CQChartsBuffer::Type::OVERLAY);
 }
 
 //---
@@ -1210,6 +1250,9 @@ double
 CQChartsPlot::
 dataScaleX() const
 {
+  if (parentPlot())
+    return parentPlot()->dataScaleX();
+
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataScaleX();
@@ -1233,6 +1276,9 @@ double
 CQChartsPlot::
 dataScaleY() const
 {
+  if (parentPlot())
+    return parentPlot()->dataScaleY();
+
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataScaleY();
@@ -1256,6 +1302,9 @@ double
 CQChartsPlot::
 dataOffsetX() const
 {
+  if (parentPlot())
+    return parentPlot()->dataOffsetX();
+
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataOffsetX();
@@ -1279,6 +1328,9 @@ double
 CQChartsPlot::
 dataOffsetY() const
 {
+  if (parentPlot())
+    return parentPlot()->dataOffsetY();
+
   if      (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->dataOffsetY();
@@ -1577,6 +1629,9 @@ void
 CQChartsPlot::
 updateMargins(bool update)
 {
+  if (parentPlot())
+    return parentPlot()->updateMargins(update);
+
   if (isOverlay()) {
     if (! isFirstPlot())
       return firstPlot()->updateMargins(update);
@@ -1610,6 +1665,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRect() const
 {
+  if (parentPlot())
+    return parentPlot()->calcDataRect();
+
   return calcDataRange_.bbox();
 }
 
@@ -1617,6 +1675,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 outerDataRect() const
 {
+  if (parentPlot())
+    return parentPlot()->outerDataRect();
+
   return outerDataRange_.bbox();
 }
 
@@ -1624,6 +1685,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 dataRect() const
 {
+  if (parentPlot())
+    return parentPlot()->dataRect();
+
   return dataRange_.bbox();
 }
 
@@ -1633,6 +1697,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 viewBBox() const
 {
+  if (parentPlot())
+    return parentPlot()->viewBBox();
+
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->viewBBox();
 
@@ -1643,6 +1710,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 innerViewBBox() const
 {
+  if (parentPlot())
+    return parentPlot()->innerViewBBox();
+
   if (isOverlay() && ! isFirstPlot())
     return firstPlot()->innerViewBBox();
 
@@ -1911,6 +1981,34 @@ setY1Y2(bool b, bool notify)
     emit connectDataChanged();
 }
 
+bool
+CQChartsPlot::
+isTabbed(bool checkVisible) const
+{
+  if (! connectData_.tabbed)
+    return false;
+
+  if (checkVisible) {
+    Plots plots;
+
+    tabbedPlots(plots);
+
+    return plots.size() > 1;
+  }
+
+  return true;
+}
+
+void
+CQChartsPlot::
+setTabbed(bool b, bool notify)
+{
+  connectData_.tabbed = b;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
 void
 CQChartsPlot::
 setNextPlot(CQChartsPlot *plot, bool notify)
@@ -1944,7 +2042,7 @@ firstPlot()
 
   CQChartsPlot *plot = this;
 
-  while (plot && ! plot->isVisible())
+  while (plot && ! plot->CQChartsObj::isVisible())
     plot = plot->nextPlot();
 
   if (! plot)
@@ -1969,7 +2067,7 @@ lastPlot()
 
   CQChartsPlot *plot = this;
 
-  while (plot && ! plot->isVisible())
+  while (plot && ! plot->CQChartsObj::isVisible())
     plot = plot->prevPlot();
 
   if (! plot)
@@ -1989,10 +2087,14 @@ void
 CQChartsPlot::
 overlayPlots(Plots &plots, bool visibleOnly) const
 {
-  const CQChartsPlot *plot1 = firstPlot();
+  assert(connectData_.overlay);
+
+  auto *plot1 = firstPlot();
 
   while (plot1) {
-    if (! visibleOnly || plot1->isVisible())
+    assert(plot1->connectData_.overlay);
+
+    if (! visibleOnly || plot1->CQChartsObj::isVisible())
       plots.push_back(const_cast<CQChartsPlot *>(plot1));
 
     plot1 = plot1->nextPlot();
@@ -2005,6 +2107,9 @@ x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
 {
   plot1 = firstPlot();
   plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+
+  assert(plot1->connectData_.x1x2);
+  assert(plot2->connectData_.x1x2);
 }
 
 void
@@ -2013,6 +2118,32 @@ y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
 {
   plot1 = firstPlot();
   plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+
+  assert(plot1->connectData_.y1y2);
+  assert(plot2->connectData_.y1y2);
+}
+
+bool
+CQChartsPlot::
+tabbedPlots(Plots &plots, bool visibleOnly) const
+{
+  assert(connectData_.tabbed);
+
+  bool valid = true;
+
+  auto *plot1 = firstPlot();
+
+  while (plot1) {
+    if (! plot1->connectData_.tabbed)
+      valid = false;
+
+    if (! visibleOnly || plot1->CQChartsObj::isVisible())
+      plots.push_back(const_cast<CQChartsPlot *>(plot1));
+
+    plot1 = plot1->nextPlot();
+  }
+
+  return valid;
 }
 
 void
@@ -2023,6 +2154,112 @@ resetConnectData(bool notify)
 
   if (notify)
     emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+cycleNextPlot()
+{
+  auto *plot = firstPlot();
+
+  while (plot) {
+    if (plot->isCurrent())
+      break;
+
+    plot = plot->nextPlot();
+  }
+
+  if (! plot)
+    plot = firstPlot();
+
+  plot->setCurrent(false);
+
+  plot = plot->nextPlot();
+
+  if (! plot)
+    plot = firstPlot();
+
+  plot->setCurrent(true);
+  plot->updateRangeAndObjs();
+}
+
+void
+CQChartsPlot::
+cyclePrevPlot()
+{
+  auto *plot = lastPlot();
+
+  while (plot) {
+    if (plot->isCurrent())
+      break;
+
+    plot = plot->prevPlot();
+  }
+
+  if (! plot)
+    plot = lastPlot();
+
+  plot->setCurrent(false);
+
+  plot = plot->prevPlot();
+
+  if (! plot)
+    plot = lastPlot();
+
+  plot->setCurrent(true);
+  plot->updateRangeAndObjs();
+}
+
+QString
+CQChartsPlot::
+connectionStateStr() const
+{
+  QStringList states;
+
+  if      (isX1X2()) states += "x1x2";
+  else if (isY1Y2()) states += "y1y2";
+
+  if (isOverlay()) states += "overlay";
+
+  if (isTabbed()) states += "tabbed";
+
+  QString stateStr = states.join("|");
+
+  if (stateStr == "")
+    stateStr = "none";
+
+  return stateStr;
+}
+
+//------
+
+const CQChartsFont &
+CQChartsPlot::
+tabbedFont() const
+{
+  if (isTabbed() && ! isFirstPlot())
+    return firstPlot()->tabbedFont();
+
+  return tabbedFont_;
+}
+
+void
+CQChartsPlot::
+setTabbedFont(const CQChartsFont &f)
+{
+  if (isTabbed()) {
+    Plots plots;
+
+    tabbedPlots(plots);
+
+    for (auto &plot : plots)
+      plot->tabbedFont_ = f;
+
+    if (isFirstPlot())
+      firstPlot()->drawObjs();
+  }
+  else
+    CQChartsUtil::testAndSet(tabbedFont_, f, [&]() { drawObjs(); } );
 }
 
 //------
@@ -2158,6 +2395,8 @@ addBaseProperties()
   addProp("", "visible" , "visible" , "Plot visible"  , true);
   addProp("", "selected", "selected", "Plot selected" , true);
 
+  addProp("", "name", "name", "Plot name", true);
+
   // font
   addStyleProp("font", "font", "font", "Base font");
 
@@ -2195,6 +2434,7 @@ addBaseProperties()
   addProp("grouping", "overlay", "", "Overlay plots to shared range"    , true);
   addProp("grouping", "x1x2"   , "", "Independent x axes, shared y axis", true);
   addProp("grouping", "y1y2"   , "", "Independent y axes, shared x axis", true);
+  addProp("grouping", "tabbed" , "", "Tabbed plots in same region"      , true);
 
   // invert
   addProp("invert", "invertX", "x", "Invert x values");
@@ -3371,20 +3611,20 @@ waitRange()
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      plot->waitRange1();
+      plot->execWaitRange();
     });
   }
   else {
-    waitRange1();
+    execWaitRange();
   }
 }
 
 void
 CQChartsPlot::
-waitRange1()
+execWaitRange()
 {
   if (debugUpdate_)
-    std::cerr << "CQChartsPlot::waitRange1\n";
+    std::cerr << "CQChartsPlot::execWaitRange\n";
 
   UpdateState updateState = this->updateState();
 
@@ -3576,20 +3816,20 @@ waitObjs()
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      plot->waitObjs1();
+      plot->execWaitObjs();
     });
   }
   else {
-    waitObjs1();
+    execWaitObjs();
   }
 }
 
 void
 CQChartsPlot::
-waitObjs1()
+execWaitObjs()
 {
   if (debugUpdate_)
-    std::cerr << "CQChartsPlot::waitObjs1\n";
+    std::cerr << "CQChartsPlot::execWaitObjs\n";
 
   UpdateState updateState = this->updateState();
 
@@ -3599,7 +3839,7 @@ waitObjs1()
 
       assert(! updateData_.objsThread.future.valid());
 
-      updateData_.objsThread.finish(this, debugUpdate_ ? "waitObjs1" : nullptr);
+      updateData_.objsThread.finish(this, debugUpdate_ ? "execWaitObjs" : nullptr);
 
       return;
     }
@@ -3711,7 +3951,7 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
   CQChartsGeom::BBox ibbox;
 
   if (isOverlay()) {
-    const CQChartsPlotMargin &innerMargin = firstPlot()->innerMargin();
+    const auto &innerMargin = firstPlot()->innerMargin();
 
     ibbox = innerMargin.adjustPlotRange(this, bbox1, /*inside*/true);
   }
@@ -3722,7 +3962,7 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
   //--
 
   // restore original range
-  const_cast<CQChartsPlot *>(this)->setDisplayRange(displayRange);
+  th->setDisplayRange(displayRange);
 
   return ibbox;
 }
@@ -3731,6 +3971,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 getDataRange() const
 {
+  if (parentPlot())
+    return parentPlot()->getDataRange();
+
   if (dataRange_.isSet())
     return CQChartsUtil::rangeBBox(dataRange_);
   else
@@ -3840,12 +4083,6 @@ applyDataRange(bool propagate)
   else {
     setWindowRange(adjustedRange);
   }
-
-  if (xAxis())
-    xAxis()->setRange(adjustedRange.getXMin(), adjustedRange.getXMax());
-
-  if (yAxis())
-    yAxis()->setRange(adjustedRange.getYMin(), adjustedRange.getYMax());
 
   if (propagate) {
     if (isOverlay()) {
@@ -3957,9 +4194,22 @@ applyDataRange(bool propagate)
     }
   }
 
+  updateAxisRanges(adjustedRange);
+
   updateKeyPosition(/*force*/true);
 
   emit rangeChanged();
+}
+
+void
+CQChartsPlot::
+updateAxisRanges(const CQChartsGeom::BBox &adjustedRange)
+{
+  if (xAxis())
+    xAxis()->setRange(adjustedRange.getXMin(), adjustedRange.getXMax());
+
+  if (yAxis())
+    yAxis()->setRange(adjustedRange.getYMin(), adjustedRange.getYMax());
 }
 
 void
@@ -4697,6 +4947,11 @@ bool
 CQChartsPlot::
 selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 {
+  if (tabbedSelectPress(w, selMod))
+    return true;
+
+  //---
+
   if (keySelectPress(key(), w, selMod))
     return true;
 
@@ -4713,7 +4968,40 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
   if (objectsSelectPress(w, selMod))
     return true;
 
-  //---
+  return true;
+}
+
+bool
+CQChartsPlot::
+tabbedSelectPress(const CQChartsGeom::Point &w, SelMod)
+{
+  if (! isTabbed() || ! isCurrent())
+    return false;
+
+  Plots plots;
+
+  tabbedPlots(plots);
+
+  CQChartsPlot *pressPlot = nullptr;
+
+  for (const auto &plot : plots) {
+    if (plot->connectData_.tabRect.inside(w)) {
+      if (! plot->connectData_.current) {
+        pressPlot = plot;
+        break;
+      }
+    }
+  }
+
+  if (! pressPlot)
+    return false;
+
+  if (! pressPlot->isCurrent()) {
+    for (auto &plot : plots)
+      plot->setCurrent(plot == pressPlot);
+
+    pressPlot->updateRangeAndObjs();
+  }
 
   return true;
 }
@@ -6179,16 +6467,16 @@ initColorColumnData()
 
 bool
 CQChartsPlot::
-columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
+colorColumnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
 {
   CQChartsModelIndex colorInd(row, colorColumn(), parent);
 
-  return columnColor(colorInd, color);
+  return modelIndexColor(colorInd, color);
 }
 
 bool
 CQChartsPlot::
-columnColor(const CQChartsModelIndex &colorInd, CQChartsColor &color) const
+modelIndexColor(const CQChartsModelIndex &colorInd, CQChartsColor &color) const
 {
   if (! colorColumnData_.valid)
     return false;
@@ -7201,20 +7489,20 @@ waitDraw()
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      plot->waitDraw1();
+      plot->execWaitDraw();
     });
   }
   else {
-    waitDraw1();
+    execWaitDraw();
   }
 }
 
 void
 CQChartsPlot::
-waitDraw1()
+execWaitDraw()
 {
   if (debugUpdate_)
-    std::cerr << "CQChartsPlot::waitDraw1\n";
+    std::cerr << "CQChartsPlot::execWaitDraw\n";
 
   UpdateState updateState = this->updateState();
 
@@ -7386,6 +7674,9 @@ drawParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawParts");
 
+  if (! isVisible())
+    return;
+
   //---
 
   drawBackgroundParts(painter);
@@ -7548,7 +7839,9 @@ drawForegroundParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    drawForegroundDeviceParts(&device, fgAxes, fgKey, title, foreground);
+    bool tabbed = (isTabbed() && isCurrent());
+
+    drawForegroundDeviceParts(&device, fgAxes, fgKey, title, foreground, tabbed);
   }
 
   //---
@@ -7559,7 +7852,7 @@ drawForegroundParts(QPainter *painter) const
 void
 CQChartsPlot::
 drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
-                          bool title, bool foreground) const
+                          bool title, bool foreground, bool tabbed) const
 {
   // draw axes/key above plot
   if (fgAxes)
@@ -7579,6 +7872,77 @@ drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
   // draw foreground
   if (foreground)
     execDrawForeground(device);
+
+  //---
+
+  if (tabbed)
+    drawTabs(device);
+}
+
+void
+CQChartsPlot::
+drawTabs(CQChartsPaintDevice *device) const
+{
+  device->setFont(tabbedFont().font());
+
+  calcTabData();
+
+  QFontMetrics fm(device->font());
+
+  //---
+
+  CQChartsColor textColor       (CQChartsColor::Type::INTERFACE_VALUE, 1.0);
+  CQChartsColor currentTextColor(CQChartsColor::Type::INTERFACE_VALUE, 0.0);
+  CQChartsColor fillColor       (CQChartsColor::Type::INTERFACE_VALUE, 0.3);
+  CQChartsColor currentFillColor(CQChartsColor::Type::INTERFACE_VALUE, 0.6);
+  CQChartsColor borderColor     (CQChartsColor::Type::INTERFACE_VALUE, 0.0);
+
+  auto drawTab = [&](const CQChartsGeom::BBox &rect, bool current) {
+    device->fillRect(rect, QBrush(interpColor(current ? currentFillColor : fillColor, ColorInd())));
+
+    device->setPen(interpColor(borderColor, ColorInd()));
+
+    device->drawRect(rect);
+  };
+
+  auto drawText = [&](const CQChartsGeom::BBox &rect, const QString &text, bool current) {
+    auto xc = rect.getXMid();
+    auto yc = rect.getYMid();
+
+    double tw1 = pixelToWindowWidth(fm.width(text));
+
+    device->setPen(interpColor(current ? currentTextColor : textColor, ColorInd()));
+
+    double tyo = pixelToWindowHeight((fm.ascent() - fm.descent())/2.0);
+    double th  = pixelToWindowHeight(tabData_.pth);
+
+    device->drawText(CQChartsGeom::Point(xc - tw1/2, yc - th/2 + tyo), text);
+  };
+
+  //---
+
+  auto tabRect = this->calcTabPixelRect();
+
+  Plots plots;
+
+  tabbedPlots(plots);
+
+  int px = tabRect.getXMin();
+  int py = tabRect.getYMin();
+
+  for (auto &plot : plots) {
+    double ptw1 = fm.width(plot->calcName()) + 2*tabData_.pxm;
+
+    CQChartsGeom::BBox prect(px, py, px + ptw1, py + tabData_.pth);
+
+    plot->connectData_.tabRect = pixelToWindow(prect);
+
+    drawTab(plot->connectData_.tabRect, plot->connectData_.current);
+
+    drawText(plot->connectData_.tabRect, plot->calcName(), plot->connectData_.current);
+
+    px += ptw1;
+  }
 }
 
 void
@@ -7871,7 +8235,7 @@ hasGroupedBgKey() const
 
   if (isOverlay()) {
     // only draw key under first plot - use first plot key (for overlay)
-    const CQChartsPlot *plot = firstPlot();
+    auto *plot = firstPlot();
 
     if (plot)
       key1 = plot->getFirstPlotKey();
@@ -7906,7 +8270,7 @@ drawBgKey(CQChartsPaintDevice *device) const
 
   if (isOverlay()) {
     // only draw key under first plot - use first plot key (for overlay)
-    //const CQChartsPlot *plot = firstPlot();
+    //auto *plot = firstPlot();
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
       CQChartsPlotKey *key = plot->key();
@@ -8022,11 +8386,6 @@ CQChartsPlot::
 execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::execDrawObjs");
-
-  if (! isVisible())
-    return;
-
-  //---
 
   // set draw layer
   view()->setDrawLayerType(layerType);
@@ -8207,7 +8566,7 @@ hasGroupedFgKey() const
 
   if (isOverlay()) {
     // only draw fg key on last plot - use first plot key (for overlay)
-    const CQChartsPlot *plot = lastPlot();
+    auto *plot = lastPlot();
 
     if (plot)
       key1 = plot->getFirstPlotKey();
@@ -8242,7 +8601,7 @@ drawFgKey(CQChartsPaintDevice *device) const
 
   if (isOverlay()) {
     // only draw key above last plot - use first plot key (for overlay)
-    //const CQChartsPlot *plot = lastPlot();
+    //auto *plot = lastPlot();
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
       CQChartsPlotKey *key = plot->key();
@@ -8580,7 +8939,7 @@ hasEditHandles() const
                    (yAxis() && yAxis()->isSelected()));
 
   if (! selected) {
-    const CQChartsPlotKey *key1 = getFirstPlotKey();
+    auto *key1 = getFirstPlotKey();
 
     selected = (key1 && key1->isSelected());
   }
@@ -8611,7 +8970,7 @@ drawEditHandles(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawEditHandles");
 
-  const CQChartsPlotKey *key1 = getFirstPlotKey();
+  auto *key1 = getFirstPlotKey();
 
   if      (isSelected()) {
     const_cast<CQChartsPlot *>(this)->editHandles_->setBBox(this->viewBBox());
@@ -8651,6 +9010,9 @@ CQChartsGeom::BBox
 CQChartsPlot::
 displayRangeBBox() const
 {
+  if (parentPlot())
+    return parentPlot()->displayRangeBBox();
+
   // calc current (zoomed/panned) data range
   double xmin, ymin, xmax, ymax;
 
@@ -8694,6 +9056,41 @@ calcPixelSize() const
   auto bbox = calcPlotPixelRect();
 
   return CQChartsGeom::Size(bbox.getWidth(), bbox.getHeight());
+}
+
+void
+CQChartsPlot::
+calcTabData() const
+{
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  QFontMetrics fm(tabbedFont().font());
+
+  th->tabData_.pxm = fm.width("X")/2.0;
+  th->tabData_.pym = fm.height()/4.0;
+
+  Plots plots;
+
+  tabbedPlots(plots);
+
+  th->tabData_.ptw = 0.0;
+
+  for (auto &plot : plots)
+    th->tabData_.ptw += fm.width(plot->calcName()) + 2*tabData_.pxm;
+
+  th->tabData_.pth = fm.height() + 2*tabData_.pym;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcTabPixelRect() const
+{
+  auto pixelRect = calcPlotPixelRect();
+
+  int px = pixelRect.getXMid() - tabData_.ptw/2;
+  int py = pixelRect.getYMax() - tabData_.pth - 2*tabData_.pym;
+
+  return CQChartsGeom::BBox(px, py, px + tabData_.ptw, py + tabData_.pth);
 }
 
 //---
@@ -8965,6 +9362,17 @@ CQChartsPlot::
 addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 {
   auto *annotation = new CQChartsImageAnnotation(this, rect, image);
+
+  addAnnotation(annotation);
+
+  return annotation;
+}
+
+CQChartsKeyAnnotation *
+CQChartsPlot::
+addKeyAnnotation()
+{
+  auto *annotation = new CQChartsKeyAnnotation(this);
 
   addAnnotation(annotation);
 
@@ -9303,6 +9711,18 @@ void
 CQChartsPlot::
 invalidateLayers()
 {
+  if (parentPlot())
+    return parentPlot()->invalidateLayers();
+
+  //---
+
+  execInvalidateLayers();
+}
+
+void
+CQChartsPlot::
+execInvalidateLayers()
+{
   if (! isUpdatesEnabled()) {
     updatesData_.invalidateLayers = true;
     return;
@@ -9331,6 +9751,18 @@ invalidateLayers()
 void
 CQChartsPlot::
 invalidateLayer(const CQChartsBuffer::Type &type)
+{
+  if (parentPlot())
+    return parentPlot()->invalidateLayer(type);
+
+  //---
+
+  execInvalidateLayer(type);
+}
+
+void
+CQChartsPlot::
+execInvalidateLayer(const CQChartsBuffer::Type &type)
 {
   if (! isUpdatesEnabled()) {
     updatesData_.invalidateLayers = true;
@@ -9422,7 +9854,7 @@ void
 CQChartsPlot::
 setClipRect(CQChartsPaintDevice *device) const
 {
-  const CQChartsPlot *plot1 = firstPlot();
+  auto *plot1 = firstPlot();
 
   if      (plot1->isDataClip()) {
     auto bbox  = displayRangeBBox();
@@ -9479,7 +9911,7 @@ CQChartsPlotKey *
 CQChartsPlot::
 getFirstPlotKey() const
 {
-  const CQChartsPlot *plot = firstPlot();
+  auto *plot = firstPlot();
 
   while (plot) {
     CQChartsPlotKey *key = plot->key();
@@ -11321,20 +11753,6 @@ lengthPixelHeight(const CQChartsLength &len) const
 
 //------
 
-void
-CQChartsPlot::
-windowToPixelI(double wx, double wy, double &px, double &py) const
-{
-  double vx, vy;
-
-  windowToViewI(wx, wy, vx, vy);
-
-  auto p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
-
-  px = p.x;
-  py = p.y;
-}
-
 double
 CQChartsPlot::
 windowToViewWidth(double wx) const
@@ -11375,14 +11793,58 @@ windowToViewI(double wx, double wy, double &vx, double &vy) const
   }
 }
 
+//------
+
+CQChartsGeom::Point
+CQChartsPlot::
+pixelToWindow(const CQChartsGeom::Point &w) const
+{
+  CQChartsGeom::Point p;
+
+  pixelToWindowI(w.x, w.y, p.x, p.y);
+
+  return p;
+}
+
+void
+CQChartsPlot::
+pixelToWindowI(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const
+{
+  wrect = pixelToWindow(prect);
+}
+
+void
+CQChartsPlot::
+pixelToWindowI(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const
+{
+  pixelToWindowI(p.x, p.y, w.x, w.y);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+pixelToWindow(const CQChartsGeom::BBox &wrect) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  pixelToWindowI(wrect.getXMin(), wrect.getYMin(), wx1, wy1);
+  pixelToWindowI(wrect.getXMax(), wrect.getYMax(), wx2, wy2);
+
+  return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
 void
 CQChartsPlot::
 pixelToWindowI(double px, double py, double &wx, double &wy) const
 {
+  if (parentPlot())
+    return parentPlot()->pixelToWindowI(px, py, wx, wy);
+
   auto pv = view()->pixelToWindow(CQChartsGeom::Point(px, py));
 
   viewToWindowI(pv.x, pv.y, wx, wy);
 }
+
+//-------
 
 void
 CQChartsPlot::
@@ -11424,20 +11886,6 @@ viewToWindowHeight(double vy) const
   return fabs(wy2 - wy1);
 }
 
-void
-CQChartsPlot::
-windowToPixelI(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const
-{
-  windowToPixelI(w.x, w.y, p.x, p.y);
-}
-
-void
-CQChartsPlot::
-pixelToWindowI(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const
-{
-  pixelToWindowI(p.x, p.y, w.x, w.y);
-}
-
 CQChartsGeom::Point
 CQChartsPlot::
 windowToPixel(const CQChartsGeom::Point &w) const
@@ -11447,6 +11895,49 @@ windowToPixel(const CQChartsGeom::Point &w) const
   windowToPixelI(w.x, w.y, p.x, p.y);
 
   return p;
+}
+
+void
+CQChartsPlot::
+windowToPixelI(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const
+{
+  prect = windowToPixel(wrect);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+windowToPixel(const CQChartsGeom::BBox &wrect) const
+{
+  double px1, py1, px2, py2;
+
+  windowToPixelI(wrect.getXMin(), wrect.getYMin(), px1, py2);
+  windowToPixelI(wrect.getXMax(), wrect.getYMax(), px2, py1);
+
+  return CQChartsGeom::BBox(px1, py1, px2, py2);
+}
+
+void
+CQChartsPlot::
+windowToPixelI(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const
+{
+  windowToPixelI(w.x, w.y, p.x, p.y);
+}
+
+void
+CQChartsPlot::
+windowToPixelI(double wx, double wy, double &px, double &py) const
+{
+  if (parentPlot())
+    return parentPlot()->windowToPixelI(wx, wy, px, py);
+
+  double vx, vy;
+
+  windowToViewI(wx, wy, vx, vy);
+
+  auto p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
+
+  px = p.x;
+  py = p.y;
 }
 
 CQChartsGeom::Point
@@ -11462,17 +11953,6 @@ windowToView(const CQChartsGeom::Point &w) const
 
 CQChartsGeom::Point
 CQChartsPlot::
-pixelToWindow(const CQChartsGeom::Point &w) const
-{
-  CQChartsGeom::Point p;
-
-  pixelToWindowI(w.x, w.y, p.x, p.y);
-
-  return p;
-}
-
-CQChartsGeom::Point
-CQChartsPlot::
 viewToWindow(const CQChartsGeom::Point &v) const
 {
   double wx, wy;
@@ -11480,44 +11960,6 @@ viewToWindow(const CQChartsGeom::Point &v) const
   viewToWindowI(v.x, v.y, wx, wy);
 
   return CQChartsGeom::Point(wx, wy);
-}
-
-void
-CQChartsPlot::
-windowToPixelI(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const
-{
-  prect = windowToPixel(wrect);
-}
-
-void
-CQChartsPlot::
-pixelToWindowI(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const
-{
-  wrect = pixelToWindow(prect);
-}
-
-CQChartsGeom::BBox
-CQChartsPlot::
-windowToPixel(const CQChartsGeom::BBox &wrect) const
-{
-  double px1, py1, px2, py2;
-
-  windowToPixelI(wrect.getXMin(), wrect.getYMin(), px1, py2);
-  windowToPixelI(wrect.getXMax(), wrect.getYMax(), px2, py1);
-
-  return CQChartsGeom::BBox(px1, py1, px2, py2);
-}
-
-CQChartsGeom::BBox
-CQChartsPlot::
-pixelToWindow(const CQChartsGeom::BBox &wrect) const
-{
-  double wx1, wy1, wx2, wy2;
-
-  pixelToWindowI(wrect.getXMin(), wrect.getYMin(), wx1, wy1);
-  pixelToWindowI(wrect.getXMax(), wrect.getYMax(), wx2, wy2);
-
-  return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
 
 CQChartsGeom::BBox

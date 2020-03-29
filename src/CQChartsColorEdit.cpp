@@ -240,7 +240,7 @@ QWidget *
 CQChartsColorPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsColorLineEdit *edit = new CQChartsColorLineEdit(parent);
+  auto *edit = new CQChartsColorLineEdit(parent);
 
   return edit;
 }

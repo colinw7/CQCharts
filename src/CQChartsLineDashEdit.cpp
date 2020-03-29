@@ -269,7 +269,7 @@ addDashOption(const std::string &id, const CQChartsLineDash &dash)
 
   QIcon icon = dashIcon(dash);
 
-  CQChartsLineDashEditAction *action = new CQChartsLineDashEditAction(this, id, dash, icon);
+  auto *action = new CQChartsLineDashEditAction(this, id, dash, icon);
 
   actions_[id] = action;
 
@@ -441,7 +441,7 @@ QWidget *
 CQChartsLineDashPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsLineDashEdit *edit = new CQChartsLineDashEdit(parent);
+  auto *edit = new CQChartsLineDashEdit(parent);
 
   return edit;
 }

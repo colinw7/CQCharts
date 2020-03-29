@@ -28,6 +28,7 @@ class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
+class CQChartsKeyAnnotation;
 class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsPointSetAnnotation;
@@ -306,7 +307,7 @@ class CQChartsView : public QFrame,
 
   QFont viewFont(const CQChartsFont &font) const;
 
-  QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const;
+  QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled=true) const;
 
   double calcFontScale(const CQChartsGeom::Size &size) const;
 
@@ -322,7 +323,7 @@ class CQChartsView : public QFrame,
  private:
   QFont viewFont(const QFont &font) const;
 
-  QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
+  QFont plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled=true) const;
 
   QFont scaledFont(const QFont &font, const CQChartsGeom::Size &size) const;
   QFont scaledFont(const QFont &font, double s) const;
@@ -442,6 +443,7 @@ class CQChartsView : public QFrame,
                                                       const QImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
                                                       const QImage &image);
+  CQChartsKeyAnnotation       *addKeyAnnotation      ();
   CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
                                                       const CQChartsLength &innerRadius,
                                                       const CQChartsLength &outerRadius,
@@ -483,6 +485,8 @@ class CQChartsView : public QFrame,
 
   void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
   void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
+
+  void initTabbed(const Plots &plots, bool reset=false);
 
   //---
 
@@ -932,6 +936,11 @@ class CQChartsView : public QFrame,
   void manageModelsSlot();
   void addPlotSlot();
   void helpSlot();
+
+  //---
+
+  void nextSlot();
+  void prevSlot();
 
   //---
 

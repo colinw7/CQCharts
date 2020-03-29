@@ -132,7 +132,7 @@ QWidget *
 CQChartsAlphaPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsAlphaEdit *edit = new CQChartsAlphaEdit(parent);
+  auto *edit = new CQChartsAlphaEdit(parent);
 
   return edit;
 }

@@ -11,8 +11,7 @@
 
 #include <QComboBox>
 #include <QLabel>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
+#include <QGridLayout>
 #include <QAbstractItemModel>
 #include <QPainter>
 
@@ -275,7 +274,7 @@ createEdit(QWidget *parent)
 
   //---
 
-  CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit(parent);
+  auto *edit = new CQChartsColumnLineEdit(parent);
 
   if (plot)
     edit->setModel(plot->model().data());

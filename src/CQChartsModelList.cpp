@@ -59,7 +59,7 @@ addModelData(CQChartsModelData *modelData)
 
   int ind = modelData->ind();
 
-  CQChartsModelDataWidget *modelWidget = new CQChartsModelDataWidget(charts_, modelData);
+  auto *modelWidget = new CQChartsModelDataWidget(charts_, modelData);
 
   viewTab_->addTab(modelWidget, QString("Model %1").arg(ind));
 

@@ -1701,7 +1701,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsColor symbolColor(CQChartsColor::Type::NONE);
 
         if (colorColumn().isValid()) {
-          if (! columnColor(ip, xind1.parent(), symbolColor))
+          if (! colorColumnColor(ip, xind1.parent(), symbolColor))
             symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
         }
 

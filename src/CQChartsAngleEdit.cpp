@@ -129,7 +129,7 @@ QWidget *
 CQChartsAnglePropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsAngleEdit *edit = new CQChartsAngleEdit(parent);
+  auto *edit = new CQChartsAngleEdit(parent);
 
   return edit;
 }

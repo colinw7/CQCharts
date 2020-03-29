@@ -181,6 +181,9 @@ void
 CQChartsCorrelationPlot::
 preDrawObjs(CQChartsPaintDevice *device) const
 {
+  if (! isVisible())
+    return;
+
   if (isCellLabelTextScaled()) {
     bool first = true;
 

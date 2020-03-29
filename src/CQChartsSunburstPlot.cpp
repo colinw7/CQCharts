@@ -661,7 +661,7 @@ loadFlat(CQChartsSunburstHierNode *root) const
 
         CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
 
-        if (plot_->columnColor(colorInd, color))
+        if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -790,7 +790,7 @@ addExtraNodes(CQChartsSunburstHierNode *hier) const
 
     CQChartsColor color;
 
-    if (columnColor(ind1.row(), ind1.parent(), color))
+    if (colorColumnColor(ind1.row(), ind1.parent(), color))
       node->setColor(color);
 
     node->setSize(hier->size());

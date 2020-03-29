@@ -3,11 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + get plot model in interface
+ + more testing of key annotation and allow add items
+ + tab change callback
+ + use tcl expression for load_charts_model filter
+ + column default/fallback value
+ + tab through plots on view (like exitsting next/prev)
  + stablize auto fit call with threads !
  + custom title fit (directional, allow formatted/scaled)
- + Allow invert defined palette
- + Column Editor support name
  + key annotation
  + handle overlay, x1x2, y1y2, when plot hidden
    + use firstPlot data if overlay (don't propagate values)

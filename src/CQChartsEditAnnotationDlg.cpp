@@ -106,7 +106,7 @@ initWidgets()
   //---
 
   // OK, Apply, Cancel Buttons
-  CQChartsDialogButtons *buttons = new CQChartsDialogButtons;
+  auto *buttons = new CQChartsDialogButtons;
 
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 

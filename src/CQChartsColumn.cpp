@@ -436,10 +436,10 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
       parse.skipChar();
     }
 
+    indexStr = parse.getBefore(pos);
+
     if (parse.isChar(']'))
       parse.skipChar();
-
-    indexStr = parse.getBefore(pos);
   }
 
   //---

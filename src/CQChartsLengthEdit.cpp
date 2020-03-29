@@ -211,7 +211,7 @@ QWidget *
 CQChartsLengthPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsLengthEdit *edit = new CQChartsLengthEdit(parent);
+  auto *edit = new CQChartsLengthEdit(parent);
 
   return edit;
 }

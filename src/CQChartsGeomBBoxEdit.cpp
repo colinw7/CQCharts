@@ -197,7 +197,7 @@ QWidget *
 CQChartsGeomBBoxPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsGeomBBoxEdit *edit = new CQChartsGeomBBoxEdit(parent);
+  auto *edit = new CQChartsGeomBBoxEdit(parent);
 
   return edit;
 }

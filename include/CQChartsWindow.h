@@ -80,7 +80,6 @@ class CQChartsWindow : public QFrame {
 
   //---
 
-  void updateInterfacePalette();
   void updateThemePalettes();
 
   void selectPropertyObjects();

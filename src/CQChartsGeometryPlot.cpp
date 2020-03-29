@@ -282,6 +282,9 @@ addProperties()
   // data label
   dataLabel_->addPathProperties("labels", "Labels");
 
+  // selectable
+  addProp("geometry", "geometrySelectable", "selectable", "Geometry selectable");
+
   // value balloon
   addProp("value", "valueStyle", "style", "Value Style");
 
@@ -554,7 +557,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     if (colorColumnType_ == ColumnType::COLOR) {
       CQChartsColor c;
 
-      if (columnColor(data.row, data.parent, c))
+      if (colorColumnColor(data.row, data.parent, c))
         geometry.color = c;
     }
     else {
@@ -714,6 +717,9 @@ bool
 CQChartsGeometryObj::
 inside(const CQChartsGeom::Point &p) const
 {
+  if (! plot_->isGeometrySelectable())
+    return false;
+
   auto p1 = p;
 
   for (const auto &poly : polygons_) {

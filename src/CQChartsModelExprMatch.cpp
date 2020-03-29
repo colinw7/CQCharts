@@ -143,7 +143,7 @@ addFunction(const QString &name)
 {
   assert(name.length());
 
-  CQChartsModelExprMatchFn *fn = new CQChartsModelExprMatchFn(this, name);
+  auto *fn = new CQChartsModelExprMatchFn(this, name);
 
   tclCmds_.push_back(fn);
 }

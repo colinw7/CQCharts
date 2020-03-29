@@ -540,7 +540,7 @@ loadModel() const
       if (node) {
         CQChartsColor color;
 
-        if (plot_->columnColor(data.row, data.parent, color))
+        if (plot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 

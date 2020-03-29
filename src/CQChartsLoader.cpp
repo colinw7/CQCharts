@@ -130,9 +130,9 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadCsv");
 
-  CQCsvModel *csvModel = new CQCsvModel;
+  auto *csvModel = new CQCsvModel;
 
-  CQChartsFilterModel *csv = new CQChartsFilterModel(charts_, csvModel);
+  auto *csv = new CQChartsFilterModel(charts_, csvModel);
 
   csvModel->setCommentHeader    (inputData.commentHeader);
   csvModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -164,9 +164,9 @@ loadTsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadTsv");
 
-  CQTsvModel *tsvModel = new CQTsvModel;
+  auto *tsvModel = new CQTsvModel;
 
-  CQChartsFilterModel *tsv = new CQChartsFilterModel(charts_, tsvModel);
+  auto *tsv = new CQChartsFilterModel(charts_, tsvModel);
 
   tsvModel->setCommentHeader    (inputData.commentHeader);
   tsvModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -189,9 +189,9 @@ loadJson(const QString &filename, const CQChartsInputData &)
 {
   CQPerfTrace trace("CQChartsLoader::loadJson");
 
-  CQJsonModel *jsonModel = new CQJsonModel;
+  auto *jsonModel = new CQJsonModel;
 
-  CQChartsFilterModel *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
+  auto *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
 
   if (! jsonModel->load(filename)) {
     delete json;
@@ -207,9 +207,9 @@ loadData(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadData");
 
-  CQGnuDataModel *dataModel = new CQGnuDataModel;
+  auto *dataModel = new CQGnuDataModel;
 
-  CQChartsFilterModel *data = new CQChartsFilterModel(charts_, dataModel);
+  auto *data = new CQChartsFilterModel(charts_, dataModel);
 
   dataModel->setCommentHeader    (inputData.commentHeader);
   dataModel->setFirstLineHeader  (inputData.firstLineHeader);
@@ -232,7 +232,7 @@ createExprModel(int n)
 {
   CQPerfTrace trace("CQChartsLoader::createExprModel");
 
-  CQChartsExprDataModel *dataModel = new CQChartsExprDataModel(n);
+  auto *dataModel = new CQChartsExprDataModel(n);
 
   QModelIndex parent;
 
@@ -242,7 +242,7 @@ createExprModel(int n)
     dataModel->setData(ind, QVariant(r));
   }
 
-  CQChartsFilterModel *data = new CQChartsFilterModel(charts_, dataModel);
+  auto *data = new CQChartsFilterModel(charts_, dataModel);
 
   return data;
 }
@@ -386,9 +386,9 @@ createVarsModel(const CQChartsInputData &inputData)
   if (nc1 < 0 || nr1 < 0)
     return nullptr;
 
-  CQChartsVarsModel *varsModel = new CQChartsVarsModel(nc1, nr1);
+  auto *varsModel = new CQChartsVarsModel(nc1, nr1);
 
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, varsModel);
+  auto *filterModel = new CQChartsFilterModel(charts_, varsModel);
 
   QModelIndex parent;
 
@@ -495,9 +495,9 @@ createTclModel(const CQChartsInputData &inputData)
 
   //---
 
-  CQChartsTclModel *tclModel = new CQChartsTclModel(nc1, nr1);
+  auto *tclModel = new CQChartsTclModel(nc1, nr1);
 
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, tclModel);
+  auto *filterModel = new CQChartsFilterModel(charts_, tclModel);
 
   QModelIndex parent;
 
@@ -596,9 +596,9 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
   //---
 
-  CQDataModel *dataModel = new CQDataModel(nv, nv);
+  auto *dataModel = new CQDataModel(nv, nv);
 
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 

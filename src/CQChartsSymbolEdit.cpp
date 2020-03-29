@@ -166,7 +166,7 @@ QWidget *
 CQChartsSymbolPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsSymbolEdit *edit = new CQChartsSymbolEdit(parent);
+  auto *edit = new CQChartsSymbolEdit(parent);
 
   return edit;
 }

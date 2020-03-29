@@ -3538,7 +3538,7 @@ getBarColoredRects(ColorData &colorData) const
     // set color from value
     CQChartsColor color;
 
-    if (plot_->columnColor(ind.row, ind.parent, color)) {
+    if (plot_->colorColumnColor(ind.row, ind.parent, color)) {
       QColor c1 = plot_->interpColor(color, ColorInd());
 
       c1.setAlphaF(plot_->barFillAlpha().value());

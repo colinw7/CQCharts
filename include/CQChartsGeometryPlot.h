@@ -159,6 +159,9 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   // cell
   Q_PROPERTY(ValueStyle valueStyle READ valueStyle WRITE setValueStyle)
 
+  // selectable
+  Q_PROPERTY(bool geometrySelectable READ isGeometrySelectable WRITE setGeometrySelectable)
+
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
@@ -221,6 +224,13 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   // value style
   const ValueStyle &valueStyle() const { return valueStyle_; }
+
+  //---
+
+  bool isGeometrySelectable() const { return geometrySelectable_; }
+  void setGeometrySelectable(bool b) { geometrySelectable_ = b; }
+
+  //---
 
   // balloon min/max size
   double minBalloonSize() const { return minBalloonSize_; }
@@ -285,6 +295,10 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQChartsGeom::RMinMax valueRange_;                       //!< data value range
   ValueStyle            valueStyle_ { ValueStyle::COLOR }; //!< value style
 
+  // selectable
+  bool geometrySelectable_ { true }; //!< is geometry object selectable
+
+  // balloon
   double minBalloonSize_ { 0.01 }; //!< min balloon size (fraction of height)
   double maxBalloonSize_ { 0.25 }; //!< max balloon size (fraction of height)
 

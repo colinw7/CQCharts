@@ -163,6 +163,9 @@ class CQCharts : public QObject {
 
   void setPlotTheme(const CQChartsThemeName &themeName);
 
+  bool isDark() const;
+  void setDark(bool b);
+
   //---
 
  public:
@@ -332,6 +335,7 @@ class CQCharts : public QObject {
   void plotAdded(CQChartsPlot *plot);
 
   void themeChanged();
+  void interfaceThemeChanged();
 
  private:
   // add new model data for model

@@ -1011,6 +1011,12 @@ void
 CQChartsScatterPlot::
 addPointObjects(PlotObjs &objs) const
 {
+  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+  columnTypeMgr->startCache(model().data());
+
+  //---
+
   initSymbolTypeData();
   initSymbolSizeData();
   initFontSizeData  ();
@@ -1024,7 +1030,7 @@ addPointObjects(PlotObjs &objs) const
 
   for (const auto &groupNameValue : groupNameValues_) {
     if (isInterrupt())
-      return;
+      break;
 
     int               groupInd   = groupNameValue.first;
     const NameValues &nameValues = groupNameValue.second;
@@ -1054,7 +1060,7 @@ addPointObjects(PlotObjs &objs) const
 
     for (const auto &nameValue : nameValues) {
       if (isInterrupt())
-        return;
+        break;
 
       bool hidden = (! hasGroups && isSetHidden(is));
 
@@ -1069,7 +1075,7 @@ addPointObjects(PlotObjs &objs) const
 
       for (int iv = 0; iv < nv; ++iv) {
         if (isInterrupt())
-          return;
+          break;
 
         //---
 
@@ -1144,7 +1150,7 @@ addPointObjects(PlotObjs &objs) const
         CQChartsColor symbolColor(CQChartsColor::Type::NONE);
 
         if (colorColumn().isValid()) {
-          if (! columnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
+          if (! colorColumnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
             symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
         }
 
@@ -1202,6 +1208,10 @@ addPointObjects(PlotObjs &objs) const
 
     ++ig;
   }
+
+  //---
+
+  columnTypeMgr->endCache(model().data());
 }
 
 void
@@ -1217,7 +1227,7 @@ addGridObjects(PlotObjs &objs) const
 
   for (const auto &pg : groupNameGridData_) {
     if (isInterrupt())
-      return;
+      break;
 
     int                 groupInd     = pg.first;
     const NameGridData &nameGridData = pg.second;
@@ -1235,7 +1245,7 @@ addGridObjects(PlotObjs &objs) const
 
     for (const auto &pn : nameGridData) {
       if (isInterrupt())
-        return;
+        break;
 
       bool hidden = (! hasGroups && isSetHidden(is));
 
@@ -1249,7 +1259,7 @@ addGridObjects(PlotObjs &objs) const
 
       for (const auto &px : cellPointData.xyPoints()) {
         if (isInterrupt())
-          return;
+          break;
 
         int                              ix      = px.first;
         const CQChartsGridCell::YPoints &yPoints = px.second;
@@ -1260,7 +1270,7 @@ addGridObjects(PlotObjs &objs) const
 
         for (const auto &py : yPoints) {
           if (isInterrupt())
-            return;
+            break;
 
           int                             iy     = py.first;
           const CQChartsGridCell::Points &points = py.second;
@@ -1378,7 +1388,7 @@ addNameValues() const
 
       // get color label (needed if not string ?)
       if (plot_->colorColumn().isValid()) {
-        (void) plot_->columnColor(data.row, data.parent, color);
+        (void) plot_->colorColumnColor(data.row, data.parent, color);
       }
 
       //---
@@ -1547,7 +1557,7 @@ addPointKeyItems(CQChartsPlotKey *key)
 
             CQChartsColor color;
 
-            if (columnColor(valuePoint.row, valuePoint.ind.parent(), color))
+            if (colorColumnColor(valuePoint.row, valuePoint.ind.parent(), color))
               colorItem->setColor(color);
           }
         }

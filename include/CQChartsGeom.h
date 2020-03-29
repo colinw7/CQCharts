@@ -17,7 +17,10 @@
 
 namespace CQChartsGeom {
 
-//! Point class
+/*!
+ * \brief Point class
+ * \ingroup Charts
+ */
 class Point {
  public:
   Point() { }
@@ -1255,6 +1258,10 @@ using Polygons = std::vector<Polygon>;
 
 namespace CQChartsGeom {
 
+/*!
+ * \brief Margin class
+ * \ingroup Charts
+ */
 class Margin {
  public:
   Margin() { }
@@ -1348,6 +1355,7 @@ namespace CQChartsGeom {
 /*!
  * \brief Matrix class
  * \ingroup Charts
+ *
  * / a b tx \
  * | c d ty |
  * \ 0 0 1  /

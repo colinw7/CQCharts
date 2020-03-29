@@ -60,6 +60,7 @@ CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
 CQChartsChordPlot.cpp \
+CQChartsCompositePlot.cpp \
 CQChartsCorrelationPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
@@ -345,6 +346,7 @@ HEADERS += \
 ../include/CQChartsBoxPlot.h \
 ../include/CQChartsBubblePlot.h \
 ../include/CQChartsChordPlot.h \
+../include/CQChartsCompositePlot.h \
 ../include/CQChartsCorrelationPlot.h \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \

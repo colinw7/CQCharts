@@ -622,13 +622,13 @@ viewFont(const QFont &font) const
 
 QFont
 CQChartsView::
-plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const
+plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled) const
 {
   // adjust font by plot font and then by view font
   CQChartsFont font1 = font.calcFont(plot->font());
   QFont        font2 = font1.calcFont(font_.font());
 
-  if (isScaleFont())
+  if (scaled && isScaleFont())
     return scaledFont(font2, plot->calcPixelSize());
   else
     return font2;
@@ -636,9 +636,9 @@ plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const
 
 QFont
 CQChartsView::
-plotFont(const CQChartsPlot *plot, const QFont &font) const
+plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled) const
 {
-  if (isScaleFont())
+  if (scaled && isScaleFont())
     return scaledFont(font, plot->calcPixelSize());
   else
     return font;
@@ -1136,6 +1136,17 @@ addImageAnnotation(const CQChartsRect &rect, const QImage &image)
   return annotation;
 }
 
+CQChartsKeyAnnotation *
+CQChartsView::
+addKeyAnnotation()
+{
+  auto *annotation = new CQChartsKeyAnnotation(this);
+
+  addAnnotation(annotation);
+
+  return annotation;
+}
+
 CQChartsPieSliceAnnotation *
 CQChartsView::
 addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
@@ -1624,7 +1635,7 @@ initOverlay()
   if (! numPlots())
     return;
 
-  auto firstPlot = plot(0)->firstPlot();
+  auto *firstPlot = plot(0)->firstPlot();
 
   initOverlayPlot(firstPlot);
 }
@@ -1653,20 +1664,20 @@ initOverlay(const Plots &plots, bool reset)
   }
 #endif
 
-  auto rootPlot = plots[0]->firstPlot();
-
   for (std::size_t i = 0; i < plots.size(); ++i) {
     auto *plot = plots[i];
 
     plot->setOverlay(true, /*notify*/false);
 
     if (i > 0) {
-      auto prevPlot = plots[i - 1];
+      auto *prevPlot = plots[i - 1];
 
       plot    ->setPrevPlot(prevPlot);
       prevPlot->setNextPlot(plot);
     }
   }
+
+  auto *rootPlot = plots[0]->firstPlot();
 
   initOverlayPlot(rootPlot);
 
@@ -1863,6 +1874,47 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   plot1->applyDataRange();
 
   //---
+
+  emit connectDataChanged();
+}
+
+void
+CQChartsView::
+initTabbed(const Plots &plots, bool reset)
+{
+  assert(plots.size() >= 2);
+
+  if (reset) {
+    if (isScrolled())
+      setScrolled(false);
+
+    resetPlotGrouping(plots);
+
+    resetConnections(plots, /*notify*/false);
+  }
+
+#if 0
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
+
+    plot->syncRange();
+  }
+#endif
+
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
+
+    plot->setTabbed(true, /*notify*/false);
+
+    if (i > 0) {
+      auto *prevPlot = plots[i - 1];
+
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
+    }
+
+    plot->setCurrent(i == 0);
+  }
 
   emit connectDataChanged();
 }
@@ -4581,6 +4633,15 @@ showMenu(const QPoint &p)
 
   //------
 
+  if (basePlot && basePlot->isTabbed()) {
+    popupMenu_->addSeparator();
+
+    addAction(popupMenu_, "Next", SLOT(nextSlot()));
+    addAction(popupMenu_, "Prev", SLOT(prevSlot()));
+  }
+
+  //---
+
   if (hasPlots) {
     popupMenu_->addSeparator();
 
@@ -4999,6 +5060,30 @@ invertYSlot(bool b)
 
 void
 CQChartsView::
+nextSlot()
+{
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+
+  if (basePlot)
+    basePlot->cycleNextPlot();
+}
+
+void
+CQChartsView::
+prevSlot()
+{
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+
+  if (basePlot)
+    basePlot->cyclePrevPlot();
+}
+
+//------
+
+void
+CQChartsView::
 fitSlot()
 {
   auto *currentPlot = this->currentPlot(/*remap*/true);
@@ -5130,14 +5215,14 @@ bool
 CQChartsView::
 isDark() const
 {
-  return charts()->interfaceTheme()->isDark();
+  return charts()->isDark();
 }
 
 void
 CQChartsView::
 setDark(bool b)
 {
-  charts()->interfaceTheme()->setDark(b);
+  charts()->setDark(b);
 
   updatePlots();
 
@@ -5145,8 +5230,6 @@ setDark(bool b)
   invalidateOverlay();
 
   update();
-
-  emit interfacePaletteChanged();
 }
 
 //------

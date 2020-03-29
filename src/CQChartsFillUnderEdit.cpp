@@ -142,7 +142,7 @@ QWidget *
 CQChartsFillUnderSidePropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsFillUnderSideEdit *edit = new CQChartsFillUnderSideEdit(parent);
+  auto *edit = new CQChartsFillUnderSideEdit(parent);
 
   return edit;
 }
@@ -357,7 +357,7 @@ QWidget *
 CQChartsFillUnderPosPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsFillUnderPosLineEdit *edit = new CQChartsFillUnderPosLineEdit(parent);
+  auto *edit = new CQChartsFillUnderPosLineEdit(parent);
 
   return edit;
 }

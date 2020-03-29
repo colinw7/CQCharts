@@ -731,7 +731,7 @@ loadHier() const
 
         CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
 
-        if (plot_->columnColor(colorInd, color))
+        if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -888,7 +888,7 @@ loadFlat() const
 
         CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
 
-        if (plot_->columnColor(colorInd, color))
+        if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
       }
 
@@ -998,7 +998,7 @@ addExtraNodes(CQChartsTreeMapHierNode *hier) const
 
       CQChartsModelIndex colorInd(ind1.row(), colorColumn(), ind1.parent());
 
-      if (columnColor(colorInd, color))
+      if (modelIndexColor(colorInd, color))
         node->setColor(color);
     }
 

@@ -196,7 +196,7 @@ QWidget *
 CQChartsGeomPointPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsGeomPointEdit *edit = new CQChartsGeomPointEdit(parent);
+  auto *edit = new CQChartsGeomPointEdit(parent);
 
   return edit;
 }

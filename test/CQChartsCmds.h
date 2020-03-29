@@ -153,6 +153,7 @@ class CQChartsCmds : public QObject {
   bool createChartsAxisAnnotationCmd     (CQChartsCmdArgs &args);
   bool createChartsEllipseAnnotationCmd  (CQChartsCmdArgs &args);
   bool createChartsImageAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsKeyAnnotationCmd      (CQChartsCmdArgs &args);
   bool createChartsPieSliceAnnotationCmd (CQChartsCmdArgs &args);
   bool createChartsPointAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsPointSetAnnotationCmd (CQChartsCmdArgs &args);
@@ -286,6 +287,7 @@ CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation    , createChartsArrowAnnotationCmd
 CQCHARTS_DEF_CMD(CreateChartsAxisAnnotation     , createChartsAxisAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsEllipseAnnotation  , createChartsEllipseAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsImageAnnotation    , createChartsImageAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsKeyAnnotation      , createChartsKeyAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPieSliceAnnotation , createChartsPieSliceAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPointAnnotation    , createChartsPointAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPointSetAnnotation , createChartsPointSetAnnotationCmd)

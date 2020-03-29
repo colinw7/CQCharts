@@ -25,11 +25,17 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
-  bool canProbe() const override { return false; }
+  bool hasObjs() const override { return true; }
 
-  bool hasObjs() const override { return false; }
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
+
+  bool allowXLog() const override { return false; }
+  bool allowYLog() const override { return false; }
 
   QString description() const override;
+
+  bool canProbe() const override { return false; }
 
   //---
 
@@ -135,6 +141,10 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  void setModel(const ModelP &model) override;
+
+  //---
+
   // columns
   const CQChartsColumns &columns() const { return columns_; }
   void setColumns(const CQChartsColumns &c);
@@ -146,6 +156,14 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   void setFont(const CQChartsFont &f) override;
+
+  //---
+
+  bool allowZoomX() const override { return false; }
+  bool allowZoomY() const override { return false; }
+
+  bool allowPanX() const override { return false; }
+  bool allowPanY() const override { return false; }
 
   //---
 
@@ -267,6 +285,8 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   double scrollX() const;
   double scrollY() const;
+
+  CQChartsGeom::BBox calcTablePixelRect() const;
 
  private:
   void drawTable(CQChartsPaintDevice *device) const;

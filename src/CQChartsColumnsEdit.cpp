@@ -368,7 +368,7 @@ createEdit(QWidget *parent)
 
   QObject *obj = (item ? item->object() : nullptr);
 
-  CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit(parent);
+  auto *edit = new CQChartsColumnsLineEdit(parent);
 
   //---
 
@@ -600,7 +600,7 @@ updateEdits()
     ne = columnCombos_.size();
 
     while (ne < n) {
-      CQChartsColumnCombo *combo = new CQChartsColumnCombo;
+      auto *combo = new CQChartsColumnCombo;
 
       combo->setModel(model());
 
@@ -625,7 +625,7 @@ updateEdits()
     ne = columnEdits_.size();
 
     while (ne < n) {
-      CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
+      auto *edit = new CQChartsColumnLineEdit;
 
       edit->setModel(model());
 

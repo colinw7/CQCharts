@@ -152,7 +152,7 @@ QWidget *
 CQChartsMarginPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsMarginEdit *edit = new CQChartsMarginEdit(parent);
+  auto *edit = new CQChartsMarginEdit(parent);
 
   return edit;
 }

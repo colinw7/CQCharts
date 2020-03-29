@@ -447,8 +447,12 @@ class CQTcl : public CTcl {
   CQTcl() { }
 
   virtual ~CQTcl() {
-    for (const auto &name : traces_)
-      untraceVar(name);
+    int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
+
+    for (const auto &name : traces_) {
+      Tcl_UntraceVar(interp(), name.toLatin1().constData(), flags,
+        &CQTcl::traceProc, (ClientData) this);
+    }
   }
 
   void createVar(const QString &name, const QVariant &var) {

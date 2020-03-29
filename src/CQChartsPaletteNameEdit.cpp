@@ -138,7 +138,7 @@ createEdit(QWidget *parent)
 
   //---
 
-  CQChartsPaletteNameEdit *edit = new CQChartsPaletteNameEdit(parent);
+  auto *edit = new CQChartsPaletteNameEdit(parent);
 
   if (plot)
     edit->setCharts(plot->charts());

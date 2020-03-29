@@ -17,6 +17,7 @@
 class CQChartsEditHandles;
 class CQChartsSmooth;
 class CQChartsDensity;
+class CQChartsKey;
 
 class CQPropertyViewItem;
 
@@ -45,6 +46,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     POINT,
     PIE_SLICE,
     AXIS,
+    KEY,
     POINT_SET,
     VALUE_SET,
     BUTTON
@@ -831,12 +833,8 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 //---
 
 /*!
- * \brief point set annotation
+ * \brief axis annotation
  * \ingroup Charts
- *
- * Set of points draw as symbols, convext jull, best fit line, desitty gradie or density grid
- *
- * TODO: support column
  */
 class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -876,10 +874,48 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 //---
 
 /*!
+ * \brief key annotation
+ * \ingroup Charts
+ */
+class CQChartsKeyAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+ public:
+  CQChartsKeyAnnotation(CQChartsView *plot);
+  CQChartsKeyAnnotation(CQChartsPlot *plot);
+
+  virtual ~CQChartsKeyAnnotation();
+
+  const char *typeName() const override { return "key"; }
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private:
+  CQChartsKey *key_ { nullptr };
+};
+
+//---
+
+/*!
  * \brief point set annotation
  * \ingroup Charts
  *
- * Set of points draw as symbols, convext jull, best fit line, desitty gradie or density grid
+ * Set of points draw as symbols, convex hull, best fit line, density gradient or density grid
  *
  * TODO: support column
  */

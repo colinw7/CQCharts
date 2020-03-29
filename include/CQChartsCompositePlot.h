@@ -1,0 +1,133 @@
+#ifndef CQChartsCompositePlot_H
+#define CQChartsCompositePlot_H
+
+#include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
+#include <CQChartsPlotObj.h>
+#include <CQChartsData.h>
+
+//---
+
+/*!
+ * \brief Composite plot type
+ * \ingroup Charts
+ */
+class CQChartsCompositePlotType : public CQChartsPlotType {
+ public:
+  CQChartsCompositePlotType();
+
+  QString name() const override { return "composite"; }
+  QString desc() const override { return "Composite"; }
+
+  void addParameters() override;
+
+  bool canProbe() const override;
+
+  bool hasObjs() const override;
+
+  QString description() const override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
+
+class CQChartsCompositePlot;
+
+//---
+
+/*!
+ * \brief Composite Plot
+ * \ingroup Charts
+ */
+class CQChartsCompositePlot : public CQChartsPlot {
+  Q_OBJECT
+
+ public:
+  enum CompositeType {
+    NONE,
+    X1X2,
+    Y1Y2,
+    TABBED
+  };
+
+ public:
+  CQChartsCompositePlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsCompositePlot();
+
+  //---
+
+  void addPlot(CQChartsPlot *plot);
+
+  //---
+
+  void addProperties() override;
+
+  CQChartsGeom::Range calcRange() const override;
+
+  bool createObjs(PlotObjs &objs) const override;
+
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
+
+  void updateAxisRanges(const CQChartsGeom::BBox &adjustedRange) override;
+
+  //---
+
+  void waitRange() override;
+  void waitDraw() override;
+  void waitObjs() override;
+
+  //---
+
+  bool hasTitle() const override;
+
+  bool hasXAxis() const override;
+  bool hasYAxis() const override;
+
+  bool hasObjs(const CQChartsLayer::Type &layerType) const override;
+
+  //---
+
+  void drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+                                 bool bgKey) const override;
+
+  void drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid,
+                             bool fg, bool annotations) const override;
+
+  void drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+                                 bool title, bool foreground, bool tabbed) const override;
+
+  void drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs,
+                              bool sel_annotations, bool boxes, bool edit_handles,
+                              bool over_objs, bool over_annotations) const override;
+
+  void drawBgAxes(CQChartsPaintDevice *device) const override;
+  void drawFgAxes(CQChartsPaintDevice *device) const override;
+
+  void drawTitle(CQChartsPaintDevice *device) const override;
+
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
+  bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;
+  bool selectMove   (const CQChartsGeom::Point &p, bool first=false) override;
+  bool selectRelease(const CQChartsGeom::Point &p) override;
+
+  //---
+
+  void invalidateOverlay() override;
+  void invalidateLayers() override;
+  void invalidateLayer(const CQChartsBuffer::Type &layerType) override;
+
+ private:
+  using Plots = std::vector<CQChartsPlot*>;
+
+  Plots         plots_;
+  CompositeType compositeType_ { CompositeType::NONE };
+};
+
+#endif

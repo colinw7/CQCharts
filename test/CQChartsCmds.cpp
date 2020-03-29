@@ -8,6 +8,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsCompositePlot.h>
 #include <CQChartsTitle.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
@@ -160,6 +161,8 @@ addCommands()
                new CQChartsCreateChartsEllipseAnnotationCmd  (this));
     addCommand("create_charts_image_annotation"    ,
                new CQChartsCreateChartsImageAnnotationCmd    (this));
+    addCommand("create_charts_key_annotation"      ,
+               new CQChartsCreateChartsKeyAnnotationCmd      (this));
     addCommand("create_charts_pie_slice_annotation",
                new CQChartsCreateChartsPieSliceAnnotationCmd (this));
     addCommand("create_charts_point_annotation"    ,
@@ -2447,9 +2450,11 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
-  argv.addCmdArg("-x1x2"   , CQChartsCmdArg::Type::Boolean, "use shared x axis");
-  argv.addCmdArg("-y1y2"   , CQChartsCmdArg::Type::Boolean, "use shared y axis");
-  argv.addCmdArg("-overlay", CQChartsCmdArg::Type::Boolean, "overlay");
+  argv.addCmdArg("-x1x2"     , CQChartsCmdArg::Type::Boolean, "use shared x range");
+  argv.addCmdArg("-y1y2"     , CQChartsCmdArg::Type::Boolean, "use shared y range");
+  argv.addCmdArg("-overlay"  , CQChartsCmdArg::Type::Boolean, "overlay (shared x and/or y range)");
+  argv.addCmdArg("-tabbed"   , CQChartsCmdArg::Type::Boolean, "tabbed (one shown at a time)");
+  argv.addCmdArg("-composite", CQChartsCmdArg::Type::Boolean, "create composite plot");
 
   bool rc;
 
@@ -2458,10 +2463,12 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString viewName = argv.getParseStr ("view");
-  bool    x1x2     = argv.getParseBool("x1x2");
-  bool    y1y2     = argv.getParseBool("y1y2");
-  bool    overlay  = argv.getParseBool("overlay");
+  QString viewName  = argv.getParseStr ("view");
+  bool    x1x2      = argv.getParseBool("x1x2");
+  bool    y1y2      = argv.getParseBool("y1y2");
+  bool    overlay   = argv.getParseBool("overlay");
+  bool    tabbed    = argv.getParseBool("tabbed");
+  bool    composite = argv.getParseBool("composite");
 
   const Vars &plotNames = argv.getParseArgs();
 
@@ -2478,26 +2485,57 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if      (x1x2) {
-    if (plots.size() != 2)
-      return errorMsg("Need 2 plots for x1x2");
+  if (composite) {
+    CQChartsPlotType *type = charts_->plotType("composite");
+    assert(type);
 
-    view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
-  }
-  else if (y1y2) {
-    if (plots.size() != 2)
-      return errorMsg("Need 2 plots for y1y2");
+    CQChartsPlot *plot = createPlot(view, nullptr, type, true);
 
-    view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
-  }
-  else if (overlay) {
-    if (plots.size() < 2)
-      return errorMsg("Need 2 or more plots for overlay");
+    if (! plot)
+      return errorMsg("Failed to create plot");
 
-    view->initOverlay(plots, /*reset*/true);
+    CQChartsCompositePlot *compositePlot = qobject_cast<CQChartsCompositePlot *>(plot);
+    assert(compositePlot);
+
+    for (auto &plot : plots)
+      compositePlot->addPlot(plot);
+
+    double vr = CQChartsView::viewportRange();
+
+    CQChartsGeom::BBox bbox(0, 0, vr, vr);
+
+    view->addPlot(compositePlot, bbox);
+
+    return cmdBase_->setCmdRc(compositePlot->pathId());
   }
-  else
-    return errorMsg("No grouping specified");
+  else {
+    if      (x1x2) {
+      if (plots.size() != 2)
+        return errorMsg("Need 2 plots for x1x2");
+
+      view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
+    }
+    else if (y1y2) {
+      if (plots.size() != 2)
+        return errorMsg("Need 2 plots for y1y2");
+
+      view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
+    }
+    else if (overlay) {
+      if (plots.size() < 2)
+        return errorMsg("Need 2 or more plots for overlay");
+
+      view->initOverlay(plots, /*reset*/true);
+    }
+    else if (tabbed) {
+      if (plots.size() < 2)
+        return errorMsg("Need 2 or more plots for overlay");
+
+      view->initTabbed(plots, /*reset*/true);
+    }
+    else
+      return errorMsg("No grouping specified");
+  }
 
   return true;
 }
@@ -5618,9 +5656,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "set_hidden") {
       int id = argv.getParseInt("data", -1);
-
-      if (id < 0)
-        return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
+      if (id < 0) return errorMsg("Invalid data '" + argv.getParseStr("data") + "' specified");
 
       bool ok;
 
@@ -5631,12 +5667,22 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "select") {
       if (objectId.length()) {
         CQChartsObj *obj = plot->getObject(objectId);
-
-        if (! obj)
-          return errorMsg("Invalid plot object id '" + objectId + "'");
+        if (! obj) return errorMsg("Invalid plot object id '" + objectId + "'");
 
         plot->selectOneObj(obj, /*allObjs*/false);
       }
+    }
+    else if (name == "model") {
+      bool ok;
+
+      int modelInd = (int) CQChartsUtil::toInt(value, ok);
+      if (! ok) return errorMsg("Invalid model id '" + value + "'");
+
+      // get model
+      CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+      if (! modelData) return errorMsg("No model data");
+
+      plot->setModel(modelData->currentModel());
     }
     // plot object property
     else if (name == "?") {
@@ -6283,6 +6329,92 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (! annotation)
     return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
+{
+#if 0
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+#endif
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsKeyAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  //---
+
+  CQChartsKeyAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addKeyAnnotation();
+  else if (plot)
+    annotation = plot->addKeyAnnotation();
+  else
+    return false;
 
   if (id != "")
     annotation->setId(id);
@@ -7581,7 +7713,7 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
 
   CQPerfTrace trace("CQChartsCmds::connectChartsSignalCmd");
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
@@ -7599,13 +7731,13 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("view")) {
+  if      (argv.hasParseArg("view")) {
     QString viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
-  else {
+  else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
@@ -7624,41 +7756,57 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   };
 
   if      (fromName == "objIdPressed") {
-    if (plot)
+    if      (plot)
       connect(plot, SIGNAL(objIdPressed(const QString &)),
               createCmdsSlot(), SLOT(objIdPressed(const QString &)));
-    else
+    else if (view)
       connect(view, SIGNAL(objIdPressed(const QString &)),
               createCmdsSlot(), SLOT(objIdPressed(const QString &)));
+    else
+      return errorMsg("plot or view required for slot '" + fromName + "'");
   }
   else if (fromName == "annotationIdPressed") {
-    if (plot)
+    if      (plot)
       connect(plot, SIGNAL(annotationIdPressed(const QString &)),
               createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
-    else
+    else if (view)
       connect(view, SIGNAL(annotationIdPressed(const QString &)),
               createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+    else
+      return errorMsg("plot or view required for slot '" + fromName + "'");
   }
   else if (fromName == "plotObjsAdded") {
     if (plot)
       connect(plot, SIGNAL(plotObjsAdded()), createCmdsSlot(), SLOT(plotObjsAdded()));
     else
-      return errorMsg("unknown slot");
+      return errorMsg("plot required for slot '" + fromName + "'");
   }
   else if (fromName == "selectionChanged") {
-    if (plot)
+    if      (plot)
       connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
-    else
+    else if (view)
       connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+    else
+      return errorMsg("plot or view required for slot '" + fromName + "'");
+  }
+  else if (fromName == "themeChanged") {
+    connect(charts_, SIGNAL(themeChanged()), createCmdsSlot(),
+            SLOT(themeChanged()));
+  }
+  else if (fromName == "interfaceThemeChanged") {
+    connect(charts_, SIGNAL(interfaceThemeChanged()),
+            createCmdsSlot(), SLOT(interfaceThemeChanged()));
   }
   else if (fromName == "?") {
     QStringList names;
 
-    if (plot)
+    if      (plot)
       names = QStringList() << "objIdPressed" << "annotationIdPressed" <<
                                "plotObjsAdded" << "selectionChanged";
-    else
+    else if (view)
       names = QStringList() << "objIdPressed" << "annotationIdPressed" << "selectionChanged";
+    else
+      names = QStringList() << "themeChanged" << "interfaceThemeChanged";
 
     return cmdBase_->setCmdRc(names);
   }

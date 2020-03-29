@@ -25,10 +25,12 @@ class CQChartsCmdsSlot : public QObject {
   QString getTclIdCmd(const QString &id) const;
 
  public slots:
-  void objIdPressed       (const QString &);
-  void annotationIdPressed(const QString &);
-  void plotObjsAdded      ();
-  void selectionChanged   ();
+  void objIdPressed         (const QString &);
+  void annotationIdPressed  (const QString &);
+  void plotObjsAdded        ();
+  void selectionChanged     ();
+  void themeChanged         ();
+  void interfaceThemeChanged();
 
  private:
   CQChartsCmds* cmds_ { nullptr };

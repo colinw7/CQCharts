@@ -233,7 +233,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //----
 
   // Bottom Buttons
-  CQChartsDialogButtons *buttons = new CQChartsDialogButtons(this);
+  auto *buttons = new CQChartsDialogButtons(this);
 
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 

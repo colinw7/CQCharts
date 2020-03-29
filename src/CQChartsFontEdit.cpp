@@ -259,7 +259,7 @@ QWidget *
 CQChartsFontPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsFontLineEdit *edit = new CQChartsFontLineEdit(parent);
+  auto *edit = new CQChartsFontLineEdit(parent);
 
   return edit;
 }

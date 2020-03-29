@@ -807,7 +807,7 @@ CQChartsColumnTypeParam *
 CQChartsColumnType::
 addParam(const QString &name, Type type, int role, const QString &tip, const QVariant &def)
 {
-  CQChartsColumnTypeParam *param = new CQChartsColumnTypeParam(name, type, role, tip, def);
+  auto *param = new CQChartsColumnTypeParam(name, type, role, tip, def);
 
   params_.push_back(param);
 
@@ -818,7 +818,7 @@ CQChartsColumnTypeParam *
 CQChartsColumnType::
 addParam(const QString &name, Type type, const QString &tip, const QVariant &def)
 {
-  CQChartsColumnTypeParam *param = new CQChartsColumnTypeParam(name, type, tip, def);
+  auto *param = new CQChartsColumnTypeParam(name, type, tip, def);
 
   params_.push_back(param);
 

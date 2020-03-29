@@ -56,9 +56,9 @@ mousePressEvent(QMouseEvent *e)
   if (! opt.rect.contains(p))
     return;
 
-  CQWidgetMenu *menu = new CQWidgetMenu;
+  auto *menu = new CQWidgetMenu;
 
-  CQChartsSidesEditMenuWidget *widget = new CQChartsSidesEditMenuWidget(this);
+  auto *widget = new CQChartsSidesEditMenuWidget(this);
 
   menu->setWidget(widget);
 
@@ -325,7 +325,7 @@ QWidget *
 CQChartsSidesPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsSidesEdit *edit = new CQChartsSidesEdit(parent);
+  auto *edit = new CQChartsSidesEdit(parent);
 
   return edit;
 }

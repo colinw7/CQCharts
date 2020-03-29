@@ -213,11 +213,13 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"   ));
     setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
 
-    auto createItem = [&](const QString &name) {
+    auto createItem = [&](const QString &name, int r, int c) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      setItem(r, c, item);
 
       return item;
     };
@@ -225,17 +227,13 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     int i = 0;
 
     for (const auto &modelData : modelDatas) {
-      QTableWidgetItem *nameItem = createItem(modelData->id());
-      QTableWidgetItem *indItem  = createItem(QString("%1").arg(modelData->ind()));
-      QTableWidgetItem *fileItem = createItem(modelData->filename());
-      QTableWidgetItem *objItem  = createItem(modelData->model()->objectName());
-
-      setItem(i, 0, nameItem);
-      setItem(i, 1, indItem );
-      setItem(i, 2, fileItem);
-      setItem(i, 3, objItem );
+      auto *nameItem = createItem(modelData->id(), i, 0);
 
       nameItem->setData(Qt::UserRole, modelData->ind());
+
+      (void) createItem(QString("%1").arg(modelData->ind()), i, 1);
+      (void) createItem(modelData->filename()              , i, 2);
+      (void) createItem(modelData->model()->objectName()   , i, 3);
 
       ++i;
     }
@@ -280,18 +278,21 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
     int np = view->numPlots();
 
-    setColumnCount(3);
+    setColumnCount(4);
     setRowCount(np);
 
     setHorizontalHeaderItem(0, new QTableWidgetItem("Id"     ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"   ));
     setHorizontalHeaderItem(2, new QTableWidgetItem("Connect"));
+    setHorizontalHeaderItem(3, new QTableWidgetItem("Model"  ));
 
-    auto createItem = [&](const QString &name) {
+    auto createItem = [&](const QString &name, int r, int c) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      setItem(r, c, item);
 
       return item;
     };
@@ -302,39 +303,21 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       //--
 
       // set id item store plot index in user data
-      QTableWidgetItem *idItem = createItem(plot->id());
+      auto *idItem = createItem(plot->id(), i, 0);
 
-      setItem(i, 0, idItem);
-
-      int ind = view->getIndForPlot(plot);
-
-      idItem->setData(Qt::UserRole, ind);
-
-      //--
+      idItem->setData(Qt::UserRole, view->getIndForPlot(plot));
 
       // set type item
-      QTableWidgetItem *typeItem = createItem(plot->type()->name());
-
-      setItem(i, 1, typeItem);
-
-      //--
+      (void) createItem(plot->type()->name(), i, 1);
 
       // set state item
-      QStringList states;
+      (void) createItem(plot->connectionStateStr(), i, 2);
 
-      if      (plot->isX1X2()) states += "x1x2";
-      else if (plot->isY1Y2()) states += "y1y2";
+      // set model item
+      auto *modelData = plot->getModelData();
 
-      if (plot->isOverlay()) states += "overlay";
-
-      QString stateStr = states.join("|");
-
-      if (stateStr == "")
-        stateStr = "none";
-
-      QTableWidgetItem *stateItem = createItem(stateStr);
-
-      setItem(i, 2, stateItem);
+      if (modelData)
+        (void) createItem(modelData->id(), i, 3);
     }
   }
 
@@ -373,7 +356,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
  public:
   CQChartsViewSettingsViewAnnotationsTable() {
-    setObjectName("viewTable");
+    setObjectName("viewAnnotationsTable");
 
     horizontalHeader()->setStretchLastSection(true);
     verticalHeader()->setVisible(false);
@@ -383,6 +366,9 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
   void updateAnnotations(CQChartsView *view) {
     clear();
+
+    if (! view)
+      return;
 
     const CQChartsView::Annotations &viewAnnotations = view->annotations();
 
@@ -394,11 +380,13 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
-    auto createItem = [&](const QString &name) {
+    auto createItem = [&](const QString &name, int r, int c) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      setItem(r, c, item);
 
       return item;
     };
@@ -406,17 +394,11 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     for (int i = 0; i < nv; ++i) {
       auto *annotation = viewAnnotations[i];
 
-      QTableWidgetItem *idItem = createItem(annotation->id());
+      auto *idItem = createItem(annotation->id(), i, 0);
 
-      setItem(i, 0, idItem);
+      idItem->setData(Qt::UserRole, annotation->ind());
 
-      int ind = annotation->ind();
-
-      idItem->setData(Qt::UserRole, ind);
-
-      QTableWidgetItem *typeItem = createItem(annotation->typeName());
-
-      setItem(i, 1, typeItem);
+      (void) createItem(annotation->typeName(), i, 1);
     }
   }
 
@@ -444,7 +426,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
  public:
   CQChartsViewSettingsPlotAnnotationsTable() {
-    setObjectName("plotTable");
+    setObjectName("plotAnnotationsTable");
 
     horizontalHeader()->setStretchLastSection(true);
     verticalHeader()->setVisible(false);
@@ -468,11 +450,13 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
-    auto createItem = [&](const QString &name) {
+    auto createItem = [&](const QString &name, int r, int c) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      setItem(r, c, item);
 
       return item;
     };
@@ -480,17 +464,11 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     for (int i = 0; i < np; ++i) {
       auto *annotation = plotAnnotations[i];
 
-      QTableWidgetItem *idItem = createItem(annotation->id());
+      auto *idItem = createItem(annotation->id(), i, 0);
 
-      setItem(i, 0, idItem);
+      idItem->setData(Qt::UserRole, annotation->ind());
 
-      int ind = annotation->ind();
-
-      idItem->setData(Qt::UserRole, ind);
-
-      QTableWidgetItem *typeItem = createItem(annotation->typeName());
-
-      setItem(i, 1, typeItem);
+      (void) createItem(annotation->typeName(), i, 1);
     }
   }
 
@@ -565,29 +543,24 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("State" ));
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect"  ));
 
-    auto createItem = [&](const QString &name) {
+    auto createItem = [&](const QString &name, int r, int c) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
       item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
+      setItem(r, c, item);
+
       return item;
     };
 
     for (int l = 0; l < 2; ++l) {
-      QTableWidgetItem *item = createItem(l == 0 ? "Objects" : "Overlay");
-
-      setItem(l, 0, item);
+      auto *item = createItem(l == 0 ? "Objects" : "Overlay", l, 0);
 
       item->setData(Qt::UserRole, l);
 
-      QTableWidgetItem *stateItem = createItem("");
-
-      setItem(l, 1, stateItem);
-
-      QTableWidgetItem *rectItem = createItem("");
-
-      setItem(l, 2, rectItem);
+      (void) createItem("", l, 1);
+      (void) createItem("", l, 2);
     }
   }
 
@@ -668,13 +641,15 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
 
-    auto createItem = [&](const QString &name, bool editable=false) {
+    auto createItem = [&](const QString &name, int r, int c, bool editable=false) {
       auto *item = new QTableWidgetItem(name);
 
       item->setToolTip(name);
 
       if (! editable)
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      setItem(r, c, item);
 
       return item;
     };
@@ -684,24 +659,16 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       CQChartsLayer::Type type = (CQChartsLayer::Type) l;
 
-      QString name = CQChartsLayer::typeName(type);
-
-      QTableWidgetItem *idItem = createItem(name);
-
-      setItem(i, 0, idItem);
+      auto *idItem = createItem(CQChartsLayer::typeName(type), i, 0);
 
       idItem->setData(Qt::UserRole, l);
 
-      QTableWidgetItem *stateItem = createItem("", /*editable*/false);
+      auto *stateItem = createItem("", i, 1, /*editable*/false);
 
     //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
       stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
 
-      setItem(i, 1, stateItem);
-
-      QTableWidgetItem *rectItem = createItem("");
-
-      setItem(i, 2, rectItem);
+      (void) createItem("", i, 2);
     }
   }
 
@@ -783,7 +750,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   connect(view, SIGNAL(selectionChanged()), this, SLOT(updateSelection()));
 
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
-  connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
+  connect(charts, SIGNAL(interfaceThemeChanged()), this, SLOT(updateInterface()));
 
   //--
 
@@ -2483,6 +2450,10 @@ viewAnnotationSelectionChangeSlot()
 
   auto *view = window_->view();
 
+  disconnect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+             this, SLOT(viewAnnotationSelectionChangeSlot()));
+  disconnect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+
   view->startSelection();
 
   view->deselectAll();
@@ -2491,6 +2462,10 @@ viewAnnotationSelectionChangeSlot()
     annotation->setSelected(true);
 
   view->endSelection();
+
+  connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(viewAnnotationSelectionChangeSlot()));
+  connect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 }
 
 void
@@ -2519,6 +2494,11 @@ plotAnnotationSelectionChangeSlot()
   //---
 
   auto *view = window_->view();
+  auto *plot = view->currentPlot();
+
+  disconnect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+             this, SLOT(plotAnnotationSelectionChangeSlot()));
+  disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 
   view->startSelection();
 
@@ -2528,6 +2508,10 @@ plotAnnotationSelectionChangeSlot()
     annotation->setSelected(true);
 
   view->endSelection();
+
+  connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(plotAnnotationSelectionChangeSlot()));
+  connect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 }
 
 void

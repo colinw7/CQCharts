@@ -12,6 +12,7 @@
 #include <CQChartsBivariateDensity.h>
 #include <CQChartsFitData.h>
 #include <CQChartsAxis.h>
+#include <CQChartsKey.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -26,7 +27,7 @@ typeNames()
 {
   static QStringList names = QStringList() <<
     "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "arrow" <<
-    "point" << "pie_slice" << "axis" << "point_set" << "value_set" << "button";
+    "point" << "pie_slice" << "axis" << "key" << "point_set" << "value_set" << "button";
 
   return names;
 }
@@ -3382,7 +3383,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
 CQChartsAxisAnnotation::
 CQChartsAxisAnnotation(CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
- CQChartsAnnotation(plot, Type::POINT_SET)
+ CQChartsAnnotation(plot, Type::AXIS)
 {
   init();
 
@@ -3495,6 +3496,126 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 {
   // -view/-plot -id -tip
   writeKeys(os, "create_charts_axis_annotation", parentVarName, varName);
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//---
+
+CQChartsKeyAnnotation::
+CQChartsKeyAnnotation(CQChartsView *view) :
+ CQChartsAnnotation(view, Type::KEY)
+{
+  init();
+
+  key_ = new CQChartsViewKey(view);
+}
+
+CQChartsKeyAnnotation::
+CQChartsKeyAnnotation(CQChartsPlot *plot) :
+ CQChartsAnnotation(plot, Type::KEY)
+{
+  init();
+
+  key_ = new CQChartsPlotKey(plot);
+}
+
+CQChartsKeyAnnotation::
+~CQChartsKeyAnnotation()
+{
+  delete key_;
+}
+
+void
+CQChartsKeyAnnotation::
+init()
+{
+  setObjectName(QString("key.%1").arg(ind()));
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+}
+
+void
+CQChartsKeyAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addStrokeProperties(model, path1);
+
+  key_->addProperties(model, path1, "");
+}
+
+QString
+CQChartsKeyAnnotation::
+propertyId() const
+{
+  return QString("keyAnnotation%1").arg(ind());
+}
+
+void
+CQChartsKeyAnnotation::
+setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &)
+{
+}
+
+bool
+CQChartsKeyAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return bbox().inside(p);
+}
+
+void
+CQChartsKeyAnnotation::
+draw(CQChartsPaintDevice *device)
+{
+  drawInit(device);
+
+  //---
+
+  // set pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+  CQChartsBrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
+
+  setPenBrush(penBrush, penData, brushData);
+
+  updatePenBrushState(penBrush);
+
+  //---
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  key_->draw(device);
+
+  //---
+
+  drawTerm(device);
+}
+
+void
+CQChartsKeyAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_key_annotation", parentVarName, varName);
 
   os << "]\n";
 

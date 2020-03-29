@@ -207,7 +207,7 @@ QWidget *
 CQChartsPositionPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsPositionEdit *edit = new CQChartsPositionEdit(parent);
+  auto *edit = new CQChartsPositionEdit(parent);
 
   return edit;
 }

@@ -48,7 +48,7 @@ CQChartsWindow *
 CQChartsWindowMgr::
 createWindow(CQChartsView *view)
 {
-  CQChartsWindow *window = new CQChartsWindow(view);
+  auto *window = new CQChartsWindow(view);
 
   windows_.push_back(window);
 
@@ -230,7 +230,6 @@ CQChartsWindow(CQChartsView *view) :
   connect(view_, SIGNAL(modeChanged()), this, SLOT(modeSlot()));
   connect(view_, SIGNAL(selectModeChanged()), this, SLOT(selectModeSlot()));
 
-  connect(view_, SIGNAL(interfacePaletteChanged()), this, SIGNAL(interfacePaletteChanged()));
   connect(view_, SIGNAL(themePalettesChanged()), this, SIGNAL(themePalettesChanged()));
 
   connect(view_, SIGNAL(posTextChanged(const QString &)),
@@ -489,13 +488,6 @@ CQChartsWindow::
 selectModeSlot()
 {
   toolbar_->updateMode();
-}
-
-void
-CQChartsWindow::
-updateInterfacePalette()
-{
-  emit interfacePaletteChanged();
 }
 
 void

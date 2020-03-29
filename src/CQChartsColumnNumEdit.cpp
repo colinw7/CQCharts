@@ -224,7 +224,7 @@ createEdit(QWidget *parent)
 
   //---
 
-  CQChartsColumnNumLineEdit *edit = new CQChartsColumnNumLineEdit(parent);
+  auto *edit = new CQChartsColumnNumLineEdit(parent);
 
   if (plot)
     edit->setPlot(plot);

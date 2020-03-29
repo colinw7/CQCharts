@@ -66,6 +66,32 @@ selectionChanged()
 
 void
 CQChartsCmdsSlot::
+themeChanged()
+{
+  disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));
+
+  QString cmd = getTclCmd();
+
+  evalCmd(cmd);
+
+  connect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));
+}
+
+void
+CQChartsCmdsSlot::
+interfaceThemeChanged()
+{
+  disconnect(cmds_->charts(), SIGNAL(interfaceThemeChanged()), this, SLOT(interfaceThemeChanged()));
+
+  QString cmd = getTclCmd();
+
+  evalCmd(cmd);
+
+  connect(cmds_->charts(), SIGNAL(interfaceThemeChanged()), this, SLOT(interfaceThemeChanged()));
+}
+
+void
+CQChartsCmdsSlot::
 evalCmd(const QString &cmd)
 {
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
@@ -75,11 +101,10 @@ QString
 CQChartsCmdsSlot::
 getTclCmd() const
 {
-  QString viewName = view_->id();
-
   QString cmd = procName_;
 
-  cmd += " \"" + viewName + "\"";
+  if (view_)
+    cmd += " \"" + view_->id() + "\"";
 
   if (plot_)
     cmd += " \"" + plot_->pathId() + "\"";
@@ -91,11 +116,10 @@ QString
 CQChartsCmdsSlot::
 getTclIdCmd(const QString &id) const
 {
-  QString viewName = view_->id();
-
   QString cmd = procName_;
 
-  cmd += " \"" + viewName + "\"";
+  if (view_)
+    cmd += " \"" + view_->id() + "\"";
 
   if (plot_)
     cmd += " \"" + plot_->pathId() + "\"";

@@ -7,6 +7,7 @@
 #include <CQChartsBoxPlot.h>
 #include <CQChartsBubblePlot.h>
 #include <CQChartsChordPlot.h>
+#include <CQChartsCompositePlot.h>
 #include <CQChartsCorrelationPlot.h>
 #include <CQChartsDelaunayPlot.h>
 #include <CQChartsDendrogramPlot.h>
@@ -361,6 +362,7 @@ init()
   plotTypeMgr_->addType("box"          , new CQChartsBoxPlotType          );
   plotTypeMgr_->addType("bubble"       , new CQChartsBubblePlotType       );
   plotTypeMgr_->addType("chord"        , new CQChartsChordPlotType        );
+  plotTypeMgr_->addType("composite"    , new CQChartsCompositePlotType    );
   plotTypeMgr_->addType("correlation"  , new CQChartsCorrelationPlotType  );
   plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
   plotTypeMgr_->addType("dendrogram"   , new CQChartsDendrogramPlotType   );
@@ -621,6 +623,22 @@ CQCharts::
 setPlotTheme(const CQChartsThemeName &themeName)
 {
   CQChartsUtil::testAndSet(plotTheme_, themeName, [&]() { emit themeChanged(); } );
+}
+
+bool
+CQCharts::
+isDark() const
+{
+  return interfaceTheme()->isDark();
+}
+
+void
+CQCharts::
+setDark(bool b)
+{
+  interfaceTheme()->setDark(b);
+
+  emit interfaceThemeChanged();
 }
 
 //---
@@ -892,7 +910,7 @@ int
 CQCharts::
 addModelData(ModelP &model)
 {
-  CQChartsModelData *modelData = new CQChartsModelData(this, model);
+  auto *modelData = new CQChartsModelData(this, model);
 
   int ind;
 
@@ -1080,7 +1098,7 @@ CQChartsView *
 CQCharts::
 createView()
 {
-  CQChartsView *view = new CQChartsView(this);
+  auto *view = new CQChartsView(this);
 
   return view;
 }
