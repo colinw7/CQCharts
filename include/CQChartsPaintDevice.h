@@ -66,7 +66,7 @@ class CQChartsPaintDevice {
   virtual void drawTransformedText(const CQChartsGeom::Point &, const QString &) { }
 
   virtual void drawImage(const CQChartsGeom::Point &, const QImage &) { }
-  virtual void drawImageInRect(const CQChartsGeom::BBox &, const QImage &) { }
+  virtual void drawImageInRect(const CQChartsGeom::BBox &, const CQChartsImage &, bool = true) { }
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f) = 0;
@@ -165,7 +165,8 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
 
   void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
+                       bool stretch=true) override;
 
   const QFont &font() const override;
   void setFont(const QFont &f) override;
@@ -327,7 +328,8 @@ class CQChartsScriptPainter : public CQChartsHtmlPainter {
   void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
 
   void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
+                       bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 
@@ -419,7 +421,8 @@ class CQChartsSVGPainter : public CQChartsHtmlPainter {
   void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
 
   void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
+                       bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 

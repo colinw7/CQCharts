@@ -1054,6 +1054,11 @@ bool
 CQChartsTest::
 exec(const QString &filename)
 {
+  if (! QFile::exists(filename)) {
+    errorMsg("Failed to find file '" + filename + "'");
+    return false;
+  }
+
   return CQChartsInput::processFileLines(filename,
     [&](QString &line, bool &join) { return CQChartsCmdBase::isCompleteLine(line, join); },
     [&](const QString &line) { cmds_->cmdBase()->parseLine(line, /*log*/false); }

@@ -300,13 +300,13 @@ calcRange() const
 
   QString xname = modelHHeaderString(xColumn(), ok);
 
-  xAxis_->setLabel(xname);
+  xAxis_->setLabel(CQChartsOptString(xname));
 
   yAxis_->setColumn(yColumn());
 
   QString yname = modelHHeaderString(yColumn(), ok);
 
-  yAxis_->setLabel(yname);
+  yAxis_->setLabel(CQChartsOptString(yname));
 
   //---
 

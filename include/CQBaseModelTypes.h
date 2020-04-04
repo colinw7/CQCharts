@@ -16,25 +16,25 @@ enum class CQBaseModelDataType {
 
 //! model roles supported by CQBaseModel
 enum class CQBaseModelRole {
-  Type              = Qt::UserRole + 1, //!< column type role
-  BaseType          = Type + 1,         //!< column base type role (calculated)
-  TypeValues        = Type + 2,         //!< column type values role
-  Min               = Type + 3,         //!< column user min role
-  Max               = Type + 4,         //!< column user max role
-  Sorted            = Type + 5,         //!< sorted role
-  SortOrder         = Type + 6,         //!< sort order role
-  Title             = Type + 7,         //!< sort order role
-  Key               = Type + 8,         //!< title role
-  RawValue          = Type + 9,         //!< raw value by role
-  IntermediateValue = Type + 10,        //!< intermediate value role
-  CachedValue       = Type + 11,        //!< cached value role
-  OutputValue       = Type + 12,        //!< output value role
-  Group             = Type + 13,        //!< group role
-  Format            = Type + 14,        //!< output format
-  DataMin           = Type + 15,        //!< calculated data min
-  DataMax           = Type + 16,        //!< calculated data max
-  HeaderType        = Type + 17,        //!< column header type role
-  HeaderTypeValues  = Type + 18         //!< column header type values role
+  Type              = Qt::UserRole + 1, //!< column value's type
+  BaseType          = Type + 1,         //!< column value's base type (calculated)
+  TypeValues        = Type + 2,         //!< column value's type values
+  Min               = Type + 3,         //!< column user value min
+  Max               = Type + 4,         //!< column user value max
+  Sorted            = Type + 5,         //!< column is sorted
+  SortOrder         = Type + 6,         //!< column sort order
+  Title             = Type + 7,         //!< column custom title (used ?)
+  Key               = Type + 8,         //!< column is key (unique)
+  RawValue          = Type + 9,         //!< cell raw value
+  IntermediateValue = Type + 10,        //!< cell intermediate value
+  CachedValue       = Type + 11,        //!< cell cached value
+  OutputValue       = Type + 12,        //!< cell output value
+  Group             = Type + 13,        //!< cell group value
+  Format            = Type + 14,        //!< output format (used ?)
+  DataMin           = Type + 15,        //!< column calculated value min
+  DataMax           = Type + 16,        //!< column calculated value max
+  HeaderType        = Type + 17,        //!< column header type
+  HeaderTypeValues  = Type + 18         //!< column header type values
 };
 
 //! model value types supported by CQBaseModel

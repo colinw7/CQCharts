@@ -520,7 +520,7 @@ initRangeAxesI()
   }
 
   if (xname != "")
-    xAxis->setLabel(xname);
+    xAxis->setLabel(CQChartsOptString(xname));
 
   //---
 
@@ -534,7 +534,7 @@ initRangeAxesI()
     yname = modelHHeaderString(valueColumns().column(), ok);
   }
 
-  yAxis->setLabel(yname);
+  yAxis->setLabel(CQChartsOptString(yname));
 }
 
 void
@@ -1219,7 +1219,7 @@ QString
 CQChartsBarChartPlot::
 valueName() const
 {
-  return mappedYAxis()->label();
+  return mappedYAxis()->label().string();
 }
 
 QString

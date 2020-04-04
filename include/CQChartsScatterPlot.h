@@ -6,6 +6,7 @@
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsFitData.h>
 #include <CQChartsGridCell.h>
+#include <CQChartsImage.h>
 #include <CQStatData.h>
 #include <CInterval.h>
 
@@ -82,8 +83,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // image
-  const QImage &image() const { return image_; }
-  void setImage(const QImage &i) { image_ = i; }
+  const CQChartsImage &image() const { return image_; }
+  void setImage(const CQChartsImage &i) { image_ = i; }
 
   //---
 
@@ -150,7 +151,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   CQChartsGeom::Point        pos_;                    //!< point position
   ExtraData                  edata_;                  //!< extra data
   QString                    name_;                   //!< label name
-  QImage                     image_;                  //!< image name
+  CQChartsImage              image_;                  //!< image data
 };
 
 //---

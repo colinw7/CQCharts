@@ -1296,7 +1296,10 @@ CQChartsPlotKey::
 calcNumRows() const
 {
   // get max number of rows
-  int numRows = numRows_;
+  int numRows = 0;
+
+  for (const auto &item : items_)
+    numRows = std::max(numRows, item->row() + item->rowSpan());
 
 #if 0
   // limit rows if height (and this scrolled) not defined
@@ -2095,30 +2098,6 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   QColor tc = interpTextColor(ColorInd());
 
   device->setPen(tc);
-
-#if 0
-  CQChartsGeom::Point p1 =
-    plot->windowToPixel(CQChartsGeom::Point(rect.getXMin(), rect.getYMin()));
-  CQChartsGeom::Point p2 =
-    plot->windowToPixel(CQChartsGeom::Point(rect.getXMax(), rect.getYMin()));
-
-  if (p1.x > p2.x)
-    std::swap(p1.x, p2.x);
-
-  double px = p1.x + 2;
-
-  QFontMetricsF fm(device->font());
-
-  if (key_->textAlign() & Qt::AlignRight)
-    px = p2.x - 2 - fm.width(text_);
-
-  CQChartsGeom::Point tp;
-
-  if (! plot->isInvertY())
-    tp = CQChartsGeom::Point(px, p1.y - fm.descent() - 2);
-  else
-    tp = CQChartsGeom::Point(px, p1.y + fm.ascent() + 2);
-#endif
 
   CQChartsTextOptions textOptions;
 

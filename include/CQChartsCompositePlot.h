@@ -43,8 +43,12 @@ class CQChartsCompositePlot;
 class CQChartsCompositePlot : public CQChartsPlot {
   Q_OBJECT
 
+  Q_PROPERTY(CompositeType compositeType READ compositeType WRITE setCompositeType)
+
+  Q_ENUMS(CompositeType);
+
  public:
-  enum CompositeType {
+  enum class CompositeType {
     NONE,
     X1X2,
     Y1Y2,
@@ -57,6 +61,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
  ~CQChartsCompositePlot();
 
   //---
+
+  const CompositeType &compositeType() const { return compositeType_; }
+  void setCompositeType(const CompositeType &t);
 
   void addPlot(CQChartsPlot *plot);
 
@@ -71,6 +78,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
   CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   void updateAxisRanges(const CQChartsGeom::BBox &adjustedRange) override;
+
+  //---
+
+  CQChartsGeom::BBox adjustedViewBBox(const CQChartsPlot *plot) const override;
 
   //---
 
@@ -111,6 +122,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
+  void resetKeyItems() override;
+
   //---
 
   bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;
@@ -123,10 +136,22 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void invalidateLayers() override;
   void invalidateLayer(const CQChartsBuffer::Type &layerType) override;
 
+  //---
+
+  CQChartsPlot *currentPlot() const;
+  void setCurrentPlot(CQChartsPlot *plot);
+
+  int childPlotIndex(const CQChartsPlot *) const override;
+  int numChildPlots() const override;
+
+ private:
+  void updatePlots();
+
  private:
   using Plots = std::vector<CQChartsPlot*>;
 
   Plots         plots_;
+  CQChartsPlot* currentPlot_   { nullptr };
   CompositeType compositeType_ { CompositeType::NONE };
 };
 

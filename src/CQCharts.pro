@@ -155,6 +155,7 @@ CQChartsOptLength.cpp \
 CQChartsOptPosition.cpp \
 CQChartsOptReal.cpp \
 CQChartsOptRect.cpp \
+CQChartsOptString.cpp \
 \
 CQChartsAlpha.cpp \
 CQChartsAngle.cpp \
@@ -177,6 +178,7 @@ CQChartsFillUnder.cpp \
 CQChartsPaletteName.cpp \
 \
 CQChartsSymbol.cpp \
+CQChartsImage.cpp \
 CQChartsPath.cpp \
 CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
@@ -246,6 +248,7 @@ CQChartsOptRealEdit.cpp \
 CQChartsOptPositionEdit.cpp \
 CQChartsOptLengthEdit.cpp \
 CQChartsOptRectEdit.cpp \
+CQChartsOptStringEdit.cpp \
 CQChartsOptEdit.cpp \
 CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
@@ -396,6 +399,7 @@ HEADERS += \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
+../include/CQChartsImage.h \
 ../include/CQChartsPath.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsBoxWhisker.h \
@@ -494,6 +498,7 @@ HEADERS += \
 ../include/CQChartsOptPosition.h \
 ../include/CQChartsOptReal.h \
 ../include/CQChartsOptRect.h \
+../include/CQChartsOptString.h \
 \
 ../include/CQChartsHtml.h \
 ../include/CQChartsJS.h \
@@ -536,6 +541,7 @@ HEADERS += \
 ../include/CQChartsOptPositionEdit.h \
 ../include/CQChartsOptLengthEdit.h \
 ../include/CQChartsOptRectEdit.h \
+../include/CQChartsOptStringEdit.h \
 ../include/CQChartsOptEdit.h \
 ../include/CQChartsPaletteNameEdit.h \
 ../include/CQChartsPolygonEdit.h \

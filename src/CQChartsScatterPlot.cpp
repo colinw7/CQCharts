@@ -840,8 +840,8 @@ void
 CQChartsScatterPlot::
 resetAxes()
 {
-  xAxis_->setLabel("");
-  yAxis_->setLabel("");
+  xAxis_->setLabel(CQChartsOptString(""));
+  yAxis_->setLabel(CQChartsOptString(""));
 }
 
 void
@@ -856,16 +856,16 @@ initAxes(bool uniqueX, bool uniqueY)
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  if (xAxis_->label() == "") {
+  if (xAxis_->label().string() == "") {
     QString xname = xColumnName("");
 
-    xAxis_->setLabel(xname);
+    xAxis_->setLabel(CQChartsOptString(xname));
   }
 
-  if (yAxis_->label() == "") {
+  if (yAxis_->label().string() == "") {
     QString yname = yColumnName("");
 
-    yAxis_->setLabel(yname);
+    yAxis_->setLabel(CQChartsOptString(yname));
   }
 
   CQChartsAxisValueType xType = xAxis_->valueType();
@@ -1186,7 +1186,7 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional image
-        QImage image;
+        CQChartsImage image;
 
         if (imageColumn().isValid()) {
           CQChartsModelIndex imageModelInd(valuePoint.row, imageColumn(), valuePoint.ind.parent());
@@ -1195,11 +1195,11 @@ addPointObjects(PlotObjs &objs) const
 
           QVariant imageVar = modelValue(imageModelInd, ok);
 
-          if (ok && imageVar.type() == QVariant::Image)
-            image = imageVar.value<QImage>();
+          if (ok)
+            image = CQChartsVariant::toImage(imageVar, ok);
         }
 
-        if (! image.isNull())
+        if (image.isValid())
           pointObj->setImage(image);
       }
 
@@ -1379,7 +1379,7 @@ addNameValues() const
         name = plot_->title()->textStr();
 
       if (! name.length() && plot_->xAxis())
-        name = plot_->xAxis()->label();
+        name = plot_->xAxis()->label().string();
 
       //---
 
@@ -3074,9 +3074,9 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // draw symbol or image
-  QImage image = this->image();
+  CQChartsImage image = this->image();
 
-  if (image.isNull()) {
+  if (! image.isValid()) {
     auto ps1 = plot_->pixelToWindow(ps);
 
     plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);

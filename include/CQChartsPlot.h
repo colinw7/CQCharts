@@ -13,6 +13,7 @@
 #include <CQChartsPolygon.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
+#include <CQChartsImage.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
@@ -370,7 +371,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool isVisible() const override;
+  bool calcVisible() const;
   void setVisible(bool b) override;
 
   void setSelected(bool b) override;
@@ -592,8 +593,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // get/set bbox in view range
-  CQChartsGeom::BBox viewBBox() const;
+  const CQChartsGeom::BBox &viewBBox() const { return viewBBox_; }
   void setViewBBox(const CQChartsGeom::BBox &bbox);
+
+  CQChartsGeom::BBox calcViewBBox() const;
+  virtual CQChartsGeom::BBox adjustedViewBBox(const CQChartsPlot *plot) const;
 
   // get inner view bbox
   CQChartsGeom::BBox innerViewBBox() const;
@@ -669,10 +673,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // Connection
   CQChartsPlot *parentPlot() const { return connectData_.parent; }
   void setParentPlot(CQChartsPlot *parent) { connectData_.parent = parent; }
 
+  virtual int childPlotIndex(const CQChartsPlot *) const { return -1; }
+  virtual int numChildPlots() const { return 0; }
+
+  int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
+
+  //---
+
+  // Connection
   bool isOverlay(bool checkVisible=true) const;
   void setOverlay(bool b, bool notify=true);
 
@@ -1167,7 +1178,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void addKey();
 
-  void resetKeyItems();
+  virtual void resetKeyItems();
 
   // add items to key
   void doAddKeyItems(CQChartsPlotKey *key);
@@ -1506,6 +1517,8 @@ class CQChartsPlot : public CQChartsObj,
 
   bool tabbedSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
 
+  CQChartsPlot *tabbedPressPlot(const CQChartsGeom::Point &w, Plots &plots) const;
+
   bool keySelectPress  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w, SelMod selMod);
   bool titleSelectPress(CQChartsTitle   *title, const CQChartsGeom::Point &w, SelMod selMod);
 
@@ -1659,7 +1672,7 @@ class CQChartsPlot : public CQChartsObj,
 
   CQChartsGeom::Size calcPixelSize() const;
 
-  void calcTabData() const;
+  void calcTabData(const Plots &plots) const;
 
   CQChartsGeom::BBox calcTabPixelRect() const;
 
@@ -1696,9 +1709,9 @@ class CQChartsPlot : public CQChartsObj,
                                                       const CQChartsLength &xRadius,
                                                       const CQChartsLength &yRadius);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
-                                                      const QImage &image);
+                                                      const CQChartsImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
-                                                      const QImage &image);
+                                                      const CQChartsImage &image);
   CQChartsKeyAnnotation       *addKeyAnnotation      ();
   CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
                                                       const CQChartsLength &innerRadius,
@@ -1824,6 +1837,9 @@ class CQChartsPlot : public CQChartsObj,
                                          bool title, bool foreground, bool tabbed) const;
 
   virtual void drawTabs(CQChartsPaintDevice *device) const;
+
+  void drawTabs(CQChartsPaintDevice *device, const Plots &plots) const;
+  void drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentPlot) const;
 
   // draw overlay layer plot parts
   virtual void drawOverlayParts(QPainter *painter) const;

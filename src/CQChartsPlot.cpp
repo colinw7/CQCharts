@@ -457,7 +457,7 @@ pathId() const
 
 bool
 CQChartsPlot::
-isVisible() const
+calcVisible() const
 {
   if (parentPlot())
     return false;
@@ -465,7 +465,7 @@ isVisible() const
   if (isTabbed() && ! isCurrent())
     return false;
 
-  return CQChartsObj::isVisible();
+  return isVisible();
 }
 
 void
@@ -1654,7 +1654,7 @@ void
 CQChartsPlot::
 updateMargins(const CQChartsPlotMargin &outerMargin)
 {
-  innerViewBBox_ = outerMargin.adjustViewRange(this, viewBBox(), /*inside*/false);
+  innerViewBBox_ = outerMargin.adjustViewRange(this, calcViewBBox(), /*inside*/false);
 
   setPixelRange(innerViewBBox_);
 }
@@ -1695,15 +1695,22 @@ dataRect() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-viewBBox() const
+calcViewBBox() const
 {
   if (parentPlot())
-    return parentPlot()->viewBBox();
+    return parentPlot()->adjustedViewBBox(this);
 
   if (isOverlay() && ! isFirstPlot())
-    return firstPlot()->viewBBox();
+    return firstPlot()->calcViewBBox();
 
-  return viewBBox_;
+  return viewBBox();
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+adjustedViewBBox(const CQChartsPlot *) const
+{
+  return viewBBox();
 }
 
 CQChartsGeom::BBox
@@ -1743,10 +1750,12 @@ double
 CQChartsPlot::
 aspect() const
 {
+  CQChartsGeom::BBox viewBBox = calcViewBBox();
+
   CQChartsGeom::Point p1 =
-    view()->windowToPixel(CQChartsGeom::Point(viewBBox().getXMin(), viewBBox().getYMin()));
+    view()->windowToPixel(CQChartsGeom::Point(viewBBox.getXMin(), viewBBox.getYMin()));
   CQChartsGeom::Point p2 =
-    view()->windowToPixel(CQChartsGeom::Point(viewBBox().getXMax(), viewBBox().getYMax()));
+    view()->windowToPixel(CQChartsGeom::Point(viewBBox.getXMax(), viewBBox.getYMax()));
 
   if (p1.y == p2.y)
     return 1.0;
@@ -2042,7 +2051,7 @@ firstPlot()
 
   CQChartsPlot *plot = this;
 
-  while (plot && ! plot->CQChartsObj::isVisible())
+  while (plot && ! plot->isVisible())
     plot = plot->nextPlot();
 
   if (! plot)
@@ -2067,7 +2076,7 @@ lastPlot()
 
   CQChartsPlot *plot = this;
 
-  while (plot && ! plot->CQChartsObj::isVisible())
+  while (plot && ! plot->isVisible())
     plot = plot->prevPlot();
 
   if (! plot)
@@ -2094,7 +2103,7 @@ overlayPlots(Plots &plots, bool visibleOnly) const
   while (plot1) {
     assert(plot1->connectData_.overlay);
 
-    if (! visibleOnly || plot1->CQChartsObj::isVisible())
+    if (! visibleOnly || plot1->isVisible())
       plots.push_back(const_cast<CQChartsPlot *>(plot1));
 
     plot1 = plot1->nextPlot();
@@ -2137,7 +2146,7 @@ tabbedPlots(Plots &plots, bool visibleOnly) const
     if (! plot1->connectData_.tabbed)
       valid = false;
 
-    if (! visibleOnly || plot1->CQChartsObj::isVisible())
+    if (! visibleOnly || plot1->isVisible())
       plots.push_back(const_cast<CQChartsPlot *>(plot1));
 
     plot1 = plot1->nextPlot();
@@ -2552,16 +2561,16 @@ addBaseProperties()
   if (xAxis()) {
     xAxis()->addProperties(propertyModel(), "xaxis");
 
-    addProperty("xaxis", xAxis(), "userLabel", "userLabel")->
-      setDesc("User defined x axis label");
+//  addProperty("xaxis", xAxis(), "userLabel", "userLabel")->
+//    setDesc("User defined x axis label");
   }
 
   // yaxis
   if (yAxis()) {
     yAxis()->addProperties(propertyModel(), "yaxis");
 
-    addProperty("yaxis", yAxis(), "userLabel", "userLabel")->
-      setDesc("User defined y axis label");
+//  addProperty("yaxis", yAxis(), "userLabel", "userLabel")->
+//    setDesc("User defined y axis label");
   }
 
   // key
@@ -3273,7 +3282,7 @@ threadTimerSlot()
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] = 0;
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] = 0;
 
-      this->invalidateLayers();
+      this->execInvalidateLayers();
 
       updateView = true;
     }
@@ -4982,28 +4991,29 @@ tabbedSelectPress(const CQChartsGeom::Point &w, SelMod)
 
   tabbedPlots(plots);
 
-  CQChartsPlot *pressPlot = nullptr;
+  CQChartsPlot *pressPlot = tabbedPressPlot(w, plots);
+  if (! pressPlot) return false;
 
+  for (auto &plot : plots)
+    plot->setCurrent(plot == pressPlot);
+
+  pressPlot->updateRangeAndObjs();
+
+  return true;
+}
+
+CQChartsPlot *
+CQChartsPlot::
+tabbedPressPlot(const CQChartsGeom::Point &w, Plots &plots) const
+{
   for (const auto &plot : plots) {
     if (plot->connectData_.tabRect.inside(w)) {
-      if (! plot->connectData_.current) {
-        pressPlot = plot;
-        break;
-      }
+      if (! plot->isCurrent())
+        return plot;
     }
   }
 
-  if (! pressPlot)
-    return false;
-
-  if (! pressPlot->isCurrent()) {
-    for (auto &plot : plots)
-      plot->setCurrent(plot == pressPlot);
-
-    pressPlot->updateRangeAndObjs();
-  }
-
-  return true;
+  return nullptr;
 }
 
 bool
@@ -7567,10 +7577,12 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
   //---
 
+  CQChartsGeom::BBox viewBBox = calcViewBBox();
+
   CQChartsGeom::Point p1 =
-    view()->windowToPixel(CQChartsGeom::Point(viewBBox().getXMin(), viewBBox().getYMin()));
+    view()->windowToPixel(CQChartsGeom::Point(viewBBox.getXMin(), viewBBox.getYMin()));
   CQChartsGeom::Point p2 =
-    view()->windowToPixel(CQChartsGeom::Point(viewBBox().getXMax(), viewBBox().getYMax()));
+    view()->windowToPixel(CQChartsGeom::Point(viewBBox.getXMax(), viewBBox.getYMax()));
 
   //---
 
@@ -7674,7 +7686,7 @@ drawParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawParts");
 
-  if (! isVisible())
+  if (! calcVisible())
     return;
 
   //---
@@ -7883,9 +7895,36 @@ void
 CQChartsPlot::
 drawTabs(CQChartsPaintDevice *device) const
 {
+  Plots plots;
+
+  tabbedPlots(plots);
+
+  drawTabs(device, plots);
+}
+
+void
+CQChartsPlot::
+drawTabs(CQChartsPaintDevice *device, const Plots &plots) const
+{
+  CQChartsPlot *currentPlot = nullptr;
+
+  for (auto &plot : plots) {
+    if (plot->connectData_.current) {
+      currentPlot = plot;
+      break;
+    }
+  }
+
+  drawTabs(device, plots, currentPlot);
+}
+
+void
+CQChartsPlot::
+drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentPlot) const
+{
   device->setFont(tabbedFont().font());
 
-  calcTabData();
+  calcTabData(plots);
 
   QFontMetrics fm(device->font());
 
@@ -7923,10 +7962,6 @@ drawTabs(CQChartsPaintDevice *device) const
 
   auto tabRect = this->calcTabPixelRect();
 
-  Plots plots;
-
-  tabbedPlots(plots);
-
   int px = tabRect.getXMin();
   int py = tabRect.getYMin();
 
@@ -7937,9 +7972,9 @@ drawTabs(CQChartsPaintDevice *device) const
 
     plot->connectData_.tabRect = pixelToWindow(prect);
 
-    drawTab(plot->connectData_.tabRect, plot->connectData_.current);
+    drawTab(plot->connectData_.tabRect, plot == currentPlot);
 
-    drawText(plot->connectData_.tabRect, plot->calcName(), plot->connectData_.current);
+    drawText(plot->connectData_.tabRect, plot->calcName(), plot == currentPlot);
 
     px += ptw1;
   }
@@ -8973,7 +9008,7 @@ drawEditHandles(QPainter *painter) const
   auto *key1 = getFirstPlotKey();
 
   if      (isSelected()) {
-    const_cast<CQChartsPlot *>(this)->editHandles_->setBBox(this->viewBBox());
+    const_cast<CQChartsPlot *>(this)->editHandles_->setBBox(this->calcViewBBox());
 
     editHandles_->draw(painter);
   }
@@ -9046,7 +9081,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcPlotPixelRect() const
 {
-  return view()->windowToPixel(viewBBox());
+  return view()->windowToPixel(calcViewBBox());
 }
 
 CQChartsGeom::Size
@@ -9060,7 +9095,7 @@ calcPixelSize() const
 
 void
 CQChartsPlot::
-calcTabData() const
+calcTabData(const Plots &plots) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -9068,10 +9103,6 @@ calcTabData() const
 
   th->tabData_.pxm = fm.width("X")/2.0;
   th->tabData_.pym = fm.height()/4.0;
-
-  Plots plots;
-
-  tabbedPlots(plots);
 
   th->tabData_.ptw = 0.0;
 
@@ -9348,7 +9379,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsImageAnnotation *
 CQChartsPlot::
-addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
+addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
 {
   auto *annotation = new CQChartsImageAnnotation(this, pos, image);
 
@@ -9359,7 +9390,7 @@ addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 
 CQChartsImageAnnotation *
 CQChartsPlot::
-addImageAnnotation(const CQChartsRect &rect, const QImage &image)
+addImageAnnotation(const CQChartsRect &rect, const CQChartsImage &image)
 {
   auto *annotation = new CQChartsImageAnnotation(this, rect, image);
 

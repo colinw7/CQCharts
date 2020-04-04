@@ -2122,7 +2122,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(CQChartsView *view, const CQChartsPosition &position,
-                       const QImage &image) :
+                       const CQChartsImage &image) :
  CQChartsAnnotation(view, Type::IMAGE)
 {
   setPosition(position);
@@ -2132,7 +2132,7 @@ CQChartsImageAnnotation(CQChartsView *view, const CQChartsPosition &position,
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
-                       const QImage &image) :
+                       const CQChartsImage &image) :
  CQChartsAnnotation(plot, Type::IMAGE)
 {
   setPosition(position);
@@ -2141,7 +2141,7 @@ CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
 }
 
 CQChartsImageAnnotation::
-CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &rect, const QImage &image) :
+CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &rect, const CQChartsImage &image) :
  CQChartsAnnotation(view, Type::IMAGE)
 {
   setRectangle(rect);
@@ -2150,7 +2150,7 @@ CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &rect, const QIma
 }
 
 CQChartsImageAnnotation::
-CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsRect &rect, const QImage &image) :
+CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsRect &rect, const CQChartsImage &image) :
  CQChartsAnnotation(plot, Type::IMAGE)
 {
   setRectangle(rect);
@@ -2165,17 +2165,17 @@ CQChartsImageAnnotation::
 
 void
 CQChartsImageAnnotation::
-init(const QImage &image)
+init(const CQChartsImage &image)
 {
   setObjectName(QString("image.%1").arg(ind()));
 
   CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   image_         = image;
-  disabledImage_ = QImage();
+  disabledImage_ = CQChartsImage();
 
-  image_        .setText("id", objectName());
-  disabledImage_.setText("id", objectName() + "_dis");
+  image_        .setId(objectName());
+  disabledImage_.setId(objectName() + "_dis");
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -2422,15 +2422,17 @@ draw(CQChartsPaintDevice *device)
   if (isCheckable() && ! isChecked()) {
     QColor bg = backgroundColor();
 
-    if (disabledImage_.isNull()) {
-      int iw = image_.width ();
-      int ih = image_.height();
+    if (! disabledImage_.isValid()) {
+      const QImage &image = image_.image();
 
-      disabledImage_ = CQChartsUtil::initImage(QSize(iw, ih));
+      int iw = image.width ();
+      int ih = image.height();
+
+      QImage disabledImage = CQChartsUtil::initImage(QSize(iw, ih));
 
       for (int y = 0; y < ih; ++y) {
         for (int x = 0; x < iw; ++x) {
-          QRgb rgba = image_.pixel(x, y);
+          QRgb rgba = image.pixel(x, y);
 
           int r = qRed  (rgba);
           int g = qGreen(rgba);
@@ -2443,9 +2445,11 @@ draw(CQChartsPaintDevice *device)
 
           c1.setAlpha(a);
 
-          disabledImage_.setPixel(x, y, c1.rgba());
+          disabledImage.setPixel(x, y, c1.rgba());
         }
       }
+
+      disabledImage_ = CQChartsImage(disabledImage);
     }
 
     device->drawImageInRect(tbbox, disabledImage_);
@@ -2528,8 +2532,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
       os << " -position {" << positionValue().toString().toStdString() << "}";
   }
 
-  if (! image_.isNull())
-    os << " -image {" << image_.text().toStdString() << "}";
+  if (image_.isValid())
+    os << " -image {" << image_.fileName().toStdString() << "}";
 
   os << "]\n";
 
@@ -3506,6 +3510,20 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
 //---
 
+class CQChartsKeyAnnotationPlotKey : public CQChartsPlotKey {
+ public:
+  CQChartsKeyAnnotationPlotKey(CQChartsPlot *plot, CQChartsKeyAnnotation *annotation) :
+   CQChartsPlotKey(plot), annotation_(annotation) {
+  }
+
+  void redraw(bool) override {
+    annotation_->invalidate();
+  }
+
+ private:
+  CQChartsKeyAnnotation *annotation_ { nullptr };
+};
+
 CQChartsKeyAnnotation::
 CQChartsKeyAnnotation(CQChartsView *view) :
  CQChartsAnnotation(view, Type::KEY)
@@ -3521,7 +3539,7 @@ CQChartsKeyAnnotation(CQChartsPlot *plot) :
 {
   init();
 
-  key_ = new CQChartsPlotKey(plot);
+  key_ = new CQChartsKeyAnnotationPlotKey(plot, this);
 }
 
 CQChartsKeyAnnotation::
@@ -3549,7 +3567,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addStrokeProperties(model, path1);
 
-  key_->addProperties(model, path1, "");
+  QString keyPath = path + "/" + propertyId() + "/key";
+
+  key_->addProperties(model, keyPath, "");
 }
 
 QString

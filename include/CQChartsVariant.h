@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsFont.h>
 #include <CQChartsSymbol.h>
+#include <CQChartsImage.h>
 #include <CQChartsLength.h>
 #include <CQUtil.h>
 
@@ -99,6 +100,25 @@ inline bool isSymbol(const QVariant &var) {
 }
 
 CQChartsSymbol toSymbol(const QVariant &var, bool &ok);
+
+//---
+
+inline bool isImage(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::Image)
+    return true;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsImage::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+CQChartsImage toImage(const QVariant &var, bool &ok);
 
 //---
 

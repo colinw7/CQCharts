@@ -2149,11 +2149,11 @@ createObjs(PlotObjs &objs) const
   //---
 
   auto setXLabel = [&]() {
-    valueAxis()->setLabel(valueColumnName(""));
+    valueAxis()->setLabel(CQChartsOptString(valueColumnName("")));
   };
 
   auto setXGroupLabel = [&]() {
-    valueAxis()->setLabel(valueColumnName(""));
+    valueAxis()->setLabel(CQChartsOptString(valueColumnName("")));
   };
 
   auto setXGroupValuesLabel = [&]() {
@@ -2167,11 +2167,11 @@ createObjs(PlotObjs &objs) const
       groupLabels.push_back(groupName);
     }
 
-    valueAxis()->setLabel(groupLabels.join(", "));
+    valueAxis()->setLabel(CQChartsOptString(groupLabels.join(", ")));
   };
 
   // value axis label (x)
-  valueAxis()->setLabel("");
+  valueAxis()->setLabel(CQChartsOptString(""));
 
   if (isBucketed()) {
     if (groupData_.groupValues.size() > 1) {
@@ -2190,7 +2190,7 @@ createObjs(PlotObjs &objs) const
 
   // count axis label (y)
   if      (isDensity()) {
-    countAxis()->setLabel("Density");
+    countAxis()->setLabel(CQChartsOptString("Density"));
   }
   else {
     auto setCountLabel = [&](const QString &label) {
@@ -2205,7 +2205,7 @@ createObjs(PlotObjs &objs) const
           label1 += " (" + header + ")";
       }
 
-      countAxis()->setLabel(label1);
+      countAxis()->setLabel(CQChartsOptString(label1));
     };
 
     if      (isPercent   ()) setCountLabel("Percent");
@@ -2218,7 +2218,7 @@ createObjs(PlotObjs &objs) const
   }
 
   if (yLabel().length())
-    countAxis()->setLabel(yLabel());
+    countAxis()->setLabel(CQChartsOptString(yLabel()));
 
   //---
 
@@ -3293,7 +3293,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  QImage image;
+  CQChartsImage image;
 
   if (plot_->imageColumn().isValid()) {
     CQChartsDistributionPlot::VariantInds vinds;
@@ -3308,13 +3308,12 @@ draw(CQChartsPaintDevice *device)
       bool ok;
 
       QVariant imageVar = plot_->modelValue(ind, ok);
+      if (! ok) continue;
 
-      if (ok && imageVar.type() == QVariant::Image) {
-        image = imageVar.value<QImage>();
+      image = CQChartsVariant::toImage(imageVar, ok);
+      if (! ok || ! image.isValid()) continue;
 
-        if (! image.isNull())
-          break;
-      }
+      break;
     }
   }
 
@@ -3383,7 +3382,7 @@ draw(CQChartsPaintDevice *device)
     drawRect(device, pbbox, barColor, useLine);
   }
 
-  if (! image.isNull())
+  if (image.isValid())
     device->drawImageInRect(device->pixelToWindow(pbbox), image);
 }
 

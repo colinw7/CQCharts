@@ -603,7 +603,7 @@ setFormat(const QString &formatStr)
 
 void
 CQChartsAxis::
-setLabel(const QString &str)
+setLabel(const CQChartsOptString &str)
 {
   CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
 }
@@ -1344,7 +1344,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     QString text = userLabel();
 
     if (! text.length())
-      text = label();
+      text = label().string();
 
     drawAxisLabel(plot, device, apos1, amin, amax, text);
   }

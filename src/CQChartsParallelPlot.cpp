@@ -460,11 +460,11 @@ calcRange() const
     if (range.isSet()) {
       if (! isHorizontal()) {
         axis->setRange(range.ymin(), range.ymax());
-        axis->setLabel(name);
+        axis->setLabel(CQChartsOptString(name));
       }
       else {
         axis->setRange(range.xmin(), range.xmax());
-        axis->setLabel(name);
+        axis->setLabel(CQChartsOptString(name));
       }
     }
   }
@@ -884,7 +884,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
     //---
 
     // draw set label
-    QString label = axis->label();
+    QString label = axis->label().string();
 
     CQChartsGeom::Point p;
 

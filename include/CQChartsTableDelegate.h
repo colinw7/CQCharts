@@ -12,6 +12,7 @@ class CQChartsTree;
 class CQChartsModelView;
 class CQChartsColor;
 class CQChartsSymbol;
+class CQChartsImage;
 class CQChartsModelDetails;
 class CQChartsModelColumnDetails;
 class QPainter;
@@ -53,6 +54,9 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
                   const CQChartsSymbol &symbol, const QModelIndex &index) const;
+
+  void drawImage(QPainter *painter, const QStyleOptionViewItem &option,
+                 const CQChartsImage &image, const QModelIndex &index) const;
 
   void drawString(QPainter *painter, const QStyleOptionViewItem &option, const QString &str,
                   const QModelIndex &index) const;

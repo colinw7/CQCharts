@@ -3,14 +3,23 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + more testing of key annotation and allow add items
- + tab change callback
+ + common code for composite axis label with user override
+ + key
+   + key grouping item (with layout)
+   + more testing of key annotation and allow add items
+   + key annotation
+   + Move to thread crash for key with scrollbar ?
+   + Auto key placement (quad tree, all plots)
+   + Should be able to create fully functional key from annotations
+ + expand plot with click
+ + tabbed
+   + tab change callback
+   + test nested tab plots
+   + tab through plots on view (like exitsting next/prev)
  + use tcl expression for load_charts_model filter
  + column default/fallback value
- + tab through plots on view (like exitsting next/prev)
  + stablize auto fit call with threads !
  + custom title fit (directional, allow formatted/scaled)
- + key annotation
  + handle overlay, x1x2, y1y2, when plot hidden
    + use firstPlot data if overlay (don't propagate values)
  + monthly_sales.tcl (overlay) broken range
@@ -22,7 +31,6 @@ High
  + Header bar to switch data ?
  + Test for extra nodes in tree map (hier with size and child with size)
  + Better javascript font rendering (device scaling, alignment ?)
- + Move to thread crash for key with scrollbar ?
  + Box Shape (circle, path, ....)
  + Output or string list result does not match echo !
  + Grouped Axis Ranges
@@ -66,7 +74,6 @@ High
  + Generate table in JS output
  + access to model data in JS output (JSON)
  + Write JSON (test, different formats)
- + Auto key placement (quad tree, all plots)
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette
@@ -85,7 +92,6 @@ High
    + More fill variation
    + Key on/off for groups
    + Group on key ?
- + Should be able to create fully functional key from annotations
  + Axis annotation
  + more code in point plot (base class for scatter/xy)
  + plot selection behavior -> select out, select in, none, both

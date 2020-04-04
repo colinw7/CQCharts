@@ -1084,3 +1084,8 @@
  + Support custom plot name
  + Add support tabbed plots
  + Add composite plot to better handle nesting of plots
+# 04/04/2020
+ + Add image variant class
+ + Add optional string class
+ + Update tab draw position for nested tab composite plots
+ + Improve key annotation

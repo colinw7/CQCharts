@@ -184,6 +184,9 @@ addCommands()
     addCommand("remove_charts_annotation"          ,
                new CQChartsRemoveChartsAnnotationCmd         (this));
 
+    // key
+    addCommand("add_charts_key_item", new CQChartsAddChartsKeyItemCmd(this));
+
     // theme/palette
     addCommand("create_charts_palette", new CQChartsCreateChartsPaletteCmd(this));
     addCommand("get_charts_palette"   , new CQChartsGetChartsPaletteCmd   (this));
@@ -2499,6 +2502,13 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
     for (auto &plot : plots)
       compositePlot->addPlot(plot);
+
+    if      (tabbed)
+      compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::TABBED);
+    else if (x1x2)
+      compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::X1X2);
+    else if (y1y2)
+      compositePlot->setCompositeType(CQChartsCompositePlot::CompositeType::Y1Y2);
 
     double vr = CQChartsView::viewportRange();
 
@@ -6288,12 +6298,10 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   QString name = argv.getParseStr("image");
 
-  QImage image(name);
+  CQChartsImage image(name);
 
-  if (image.isNull())
+  if (! image.isValid())
     return errorMsg(QString("Invalid image filename '%1'").arg(name));
-
-  image.setText("", name);
 
   //---
 
@@ -7693,6 +7701,117 @@ removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
       plot->removeAllAnnotations();
     else
       return errorMsg("-view or -plot needed for -all");
+  }
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+addChartsKeyItemCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::addChartsKeyItemCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-text" , CQChartsCmdArg::Type::String, "item text");
+  argv.addCmdArg("-color", CQChartsCmdArg::Type::Color , "item color");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView*          view          = nullptr;
+  CQChartsPlot*          plot          = nullptr;
+  CQChartsKeyAnnotation* keyAnnotation = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+
+    view = plot->view();
+  }
+  else if (argv.hasParseArg("annotation")) {
+    QString annotationName = argv.getParseStr("annotation");
+
+    CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
+    if (! annotation) return false;
+
+    keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
+
+    if (! keyAnnotation)
+      return errorMsg("value must be a key annotation");
+  }
+  else {
+    return errorMsg("-view, -plot or -annotation needed");
+  }
+
+  //---
+
+  CQChartsPlotKey *plotKey  = nullptr;
+
+  if      (view) {
+    CQChartsViewKey *key = view->key();
+    if (! key) return errorMsg("view has no key");
+  }
+  else if (plot) {
+    plotKey = plot->key();
+    if (! plotKey) return errorMsg("plot has no key");
+  }
+  else if (keyAnnotation) {
+    plotKey = dynamic_cast<CQChartsPlotKey *>(keyAnnotation->key());
+    if (! plotKey) return errorMsg("annotation has no key");
+  }
+  else {
+    return errorMsg("-view, -plot or -annotation needed");
+  }
+
+  //---
+
+  QString       text  = argv.getParseStr("text");
+  CQChartsColor color = argv.getParseColor("color");
+
+  CQChartsUtil::ColorInd colorInd;
+
+  int nr = plotKey->calcNumRows();
+
+  if (color.isValid()) {
+    auto *item1 = new CQChartsKeyColorBox(plotKey->plot(), colorInd, colorInd, colorInd);
+    auto *item2 = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+
+    item1->setColor(color);
+
+    plotKey->addItem(item1, nr, 0);
+    plotKey->addItem(item2, nr, 1);
+  }
+  else {
+    auto *item = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+
+    plotKey->addItem(item, nr, 0);
   }
 
   return true;

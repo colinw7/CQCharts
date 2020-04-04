@@ -303,6 +303,32 @@ CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
 
 //---
 
+CQChartsImage toImage(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Image) {
+    QImage image = var.value<QImage>();
+
+    return CQChartsImage(image);
+  }
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsImage::metaTypeId)
+      return var.value<CQChartsImage>();
+  }
+
+  CQChartsImage image(var.toString());
+
+  if (image.isValid())
+    return image;
+
+  ok = false;
+
+  return CQChartsImage();
+}
+
+//---
+
 CQChartsLength toLength(const QVariant &var, bool &ok) {
   ok = true;
 

@@ -308,6 +308,8 @@ data(const QModelIndex &index, int role) const
   //---
 
   auto getRowRoleValue = [&](int row, int role, QVariant &value) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
     auto pr = columnData.roleRowValues.find(role);
     if (pr == columnData.roleRowValues.end()) return false;
 
@@ -425,6 +427,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   //---
 
   auto clearRowRoleValue = [&](int row, int role) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
     auto pr = columnData.roleRowValues.find(role);
     if (pr == columnData.roleRowValues.end()) return false;
 
@@ -516,6 +520,8 @@ void
 CQDataModel::
 resetColumnCache(int column)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   ColumnData &columnData = getColumnData(column);
 
   columnData.roleRowValues.clear();

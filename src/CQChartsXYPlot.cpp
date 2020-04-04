@@ -832,10 +832,10 @@ initAxes()
 
     if (isOverlay()) {
       if (isFirstPlot() || isX1X2())
-        xAxis()->setLabel(xname);
+        xAxis()->setLabel(CQChartsOptString(xname));
     }
     else {
-      xAxis()->setLabel(xname);
+      xAxis()->setLabel(CQChartsOptString(xname));
     }
 
     if (xColumnType_ == CQBaseModelType::TIME)
@@ -851,29 +851,16 @@ initAxes()
     if      (isBivariateLines() && ns > 1) {
       if (isOverlay()) {
         if      (isY1Y2()) {
-          yAxis()->setLabel(yname);
+          yAxis()->setLabel(CQChartsOptString(yname));
         }
         else if (isFirstPlot()) {
-          yAxis()->setLabel(yname);
-
-          Plots plots;
-
-          overlayPlots(plots);
-
-          for (auto &plot : plots) {
-            if (plot == this)
-              continue;
-
-            QString yname = yAxisName();
-
-            plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
-          }
+          setOverlayPlotsYAxisName();
         }
         else
-          yAxis()->setLabel("");
+          yAxis()->setLabel(CQChartsOptString(""));
       }
       else {
-        yAxis()->setLabel(yname);
+        yAxis()->setLabel(CQChartsOptString(yname));
       }
     }
     else if (isStacked()) {
@@ -890,29 +877,16 @@ initAxes()
 
       if (isOverlay()) {
         if      (isY1Y2()) {
-          yAxis()->setLabel(yname);
+          yAxis()->setLabel(CQChartsOptString(yname));
         }
         else if (isFirstPlot()) {
-          yAxis()->setLabel(yname);
-
-          Plots plots;
-
-          overlayPlots(plots);
-
-          for (auto &plot : plots) {
-            if (plot == this)
-              continue;
-
-            QString yname = yAxisName();
-
-            plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
-          }
+          setOverlayPlotsYAxisName();
         }
         else
-          yAxis()->setLabel("");
+          yAxis()->setLabel(CQChartsOptString(""));
       }
       else {
-        yAxis()->setLabel(yname);
+        yAxis()->setLabel(CQChartsOptString(yname));
       }
     }
   }
@@ -988,6 +962,38 @@ yAxisName(const QString &def) const
     name = def;
 
   return name;
+}
+
+void
+CQChartsXYPlot::
+setOverlayPlotsYAxisName()
+{
+  assert(isFirstPlot() && isOverlay());
+
+  QString yname = yAxisName();
+
+  yAxis()->setLabel(CQChartsOptString(yname));
+
+  Plots plots;
+
+  overlayPlots(plots);
+
+  for (auto &plot : plots) {
+    if (plot == this)
+      continue;
+
+    CQChartsXYPlot *xyPlot = dynamic_cast<CQChartsXYPlot *>(plot);
+
+    QString yname;
+
+    if      (xyPlot)
+      yname = xyPlot->yAxisName();
+    else if (plot->yAxis())
+      yname = plot->yAxis()->label().string();
+
+    if (yname != "")
+      yAxis()->setLabel(CQChartsOptString(yAxis()->label().string() + ", " + yname));
+  }
 }
 
 //---
@@ -1218,9 +1224,16 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
   int ig = 0;
   int ng = groupSetIndPoly.size();
 
+  if (ng <= 1 && parentPlot()) {
+    ig = parentPlot()->childPlotIndex(this);
+    ng = parentPlot()->numChildPlots();
+  }
+
   for (auto &p : groupSetIndPoly) {
     if (isInterrupt())
       return false;
+
+    ColorInd colorInd(ig, ng);
 
     bool hidden = (ns <= 1 && isSetHidden(ig));
 
@@ -1229,11 +1242,11 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
       const SetIndPoly &setPoly  = p.second;
 
       if      (isBivariateLines()) {
-        if (! addBivariateLines(groupInd, setPoly, ColorInd(ig, ng), objs))
+        if (! addBivariateLines(groupInd, setPoly, colorInd, objs))
           return false;
       }
       else {
-        if (! addLines(groupInd, setPoly, ColorInd(ig, ng), objs))
+        if (! addLines(groupInd, setPoly, colorInd, objs))
           return false;
       }
     }
@@ -1739,7 +1752,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional image
-        QImage image;
+        CQChartsImage image;
 
         if (imageColumn().isValid()) {
           CQChartsModelIndex imageColumnInd(ip, imageColumn(), xind1.parent());
@@ -1748,11 +1761,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           QVariant imageVar = modelValue(imageColumnInd, ok);
 
-          if (ok && imageVar.type() == QVariant::Image)
-            image = imageVar.value<QImage>();
+          if (ok)
+            image = CQChartsVariant::toImage(imageVar, ok);
         }
 
-        if (! image.isNull())
+        if (image.isValid())
           pointObj->setImage(image);
 
         //---
@@ -2797,11 +2810,11 @@ color() const
   return color;
 }
 
-QImage
+CQChartsImage
 CQChartsXYPointObj::
 image() const
 {
-  QImage image;
+  CQChartsImage image;
 
   if (extraData())
     image = extraData()->image;
@@ -3048,9 +3061,9 @@ draw(CQChartsPaintDevice *device)
     auto symbolSize = this->symbolSize();
 
     // draw symbol or image
-    QImage image = this->image();
+    CQChartsImage image = this->image();
 
-    if (image.isNull()) {
+    if (! image.isValid()) {
       plot()->drawSymbol(device, pos_, symbolType, symbolSize, penBrush);
     }
     else {

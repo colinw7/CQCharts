@@ -449,7 +449,7 @@ setScrolled(bool b, bool update)
       scrollData_.plotBBoxMap.clear();
 
       for (auto &plot : basePlots)
-        scrollData_.plotBBoxMap[plot->id()] = plot->viewBBox();
+        scrollData_.plotBBoxMap[plot->id()] = plot->calcViewBBox();
 
       int pos = 0;
 
@@ -1116,7 +1116,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsImageAnnotation *
 CQChartsView::
-addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
+addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
 {
   auto *annotation = new CQChartsImageAnnotation(this, pos, image);
 
@@ -1127,7 +1127,7 @@ addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 
 CQChartsImageAnnotation *
 CQChartsView::
-addImageAnnotation(const CQChartsRect &rect, const QImage &image)
+addImageAnnotation(const CQChartsRect &rect, const CQChartsImage &image)
 {
   auto *annotation = new CQChartsImageAnnotation(this, rect, image);
 
@@ -2989,7 +2989,7 @@ updatePosText(const QPointF &pos)
     PlotSet plots;
 
     if (currentPlot) {
-      const auto &bbox = currentPlot->viewBBox();
+      const auto &bbox = currentPlot->calcViewBBox();
 
       if ( bbox.inside(w))
         plots.insert(currentPlot);
@@ -6059,12 +6059,20 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
     if (! plot1->isVisible())
       continue;
 
-    const auto &bbox = plot1->viewBBox();
+    const auto &bbox = plot1->calcViewBBox();
 
     if (! bbox.inside(p))
       continue;
 
-    auto *plot2 = (first && plot1->isOverlay() ? plot1->firstPlot() : plot1);
+    auto *plot2 = plot1;
+
+    if (first) {
+      if (plot1->parentPlot())
+        plot2 = plot1->parentPlot();
+
+      if (plot1->isOverlay())
+        plot2 = plot1->firstPlot();
+    }
 
     if (plot1 == currentPlot)
       plot = plot2;
@@ -6115,7 +6123,7 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     if (! plot->isVisible())
       continue;
 
-    const auto &bbox = plot->viewBBox();
+    const auto &bbox = plot->calcViewBBox();
 
     if (! bbox.inside(p))
       continue;
@@ -6136,7 +6144,7 @@ plotBBox(CQChartsPlot *plot) const
     if (plot1 != plot)
       continue;
 
-    const auto &bbox = plot1->viewBBox();
+    const auto &bbox = plot1->calcViewBBox();
 
     return bbox;
   }

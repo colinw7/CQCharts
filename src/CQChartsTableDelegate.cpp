@@ -6,6 +6,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQChartsPlotSymbol.h>
+#include <CQChartsImage.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
@@ -105,6 +106,17 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     if (! ok) return false;
 
     drawSymbol(painter, option, symbol, index);
+  }
+  else if (type == CQBaseModelType::IMAGE) {
+    // get symbol value
+    QVariant var = getModelData(index);
+
+    bool ok;
+
+    CQChartsImage image = CQChartsVariant::toImage(var, ok);
+    if (! ok) return false;
+
+    drawImage(painter, option, image, index);
   }
   else if (type == CQBaseModelType::REAL ||
            type == CQBaseModelType::INTEGER ||
@@ -510,6 +522,32 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
   rect1.setCoords(x, option.rect.top(), option.rect.right(), option.rect.bottom());
 
   QItemDelegate::drawDisplay(painter, option, rect1, symbol.toString());
+}
+
+void
+CQChartsTableDelegate::
+drawImage(QPainter *painter, const QStyleOptionViewItem &option,
+           const CQChartsImage &image, const QModelIndex &index) const
+{
+  QItemDelegate::drawBackground(painter, option, index);
+
+  QRect rect = option.rect;
+
+  rect.setWidth(option.rect.height());
+
+  rect.adjust(4, 4, -4, -4);
+
+  painter->setPen(QColor(0,0,0)); // TODO: contrast border
+
+  if (image.isValid()) {
+    painter->setBrush(Qt::NoBrush);
+
+    CQChartsPixelPainter device(painter);
+
+    CQChartsGeom::BBox pbbox(option.rect);
+
+    device.drawImageInRect(device.pixelToWindow(pbbox), image, /*stretch*/false);
+  }
 }
 
 void

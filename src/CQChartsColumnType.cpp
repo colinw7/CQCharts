@@ -2071,21 +2071,22 @@ CQChartsColumnImageType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid() || var.type() == QVariant::Image)
+  if (! var.isValid())
+    return var;
+
+  if (CQChartsVariant::isImage(var))
     return var;
 
   converted = true;
 
-  QString str = var.toString();
+  bool ok;
 
-  QImage image(str);
+  CQChartsImage image = CQChartsVariant::toImage(var, ok);
 
-  image.setText("filename", str);
-
-  if (image.isNull())
+  if (image.isValid())
     return var;
 
-  return image;
+  return QVariant::fromValue<CQChartsImage>(image);
 }
 
 QVariant
@@ -2093,15 +2094,15 @@ CQChartsColumnImageType::
 dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsModelTypeData &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
-
   converted = true;
 
-  if (var.type() == QVariant::Image) {
-    QImage image = var.value<QImage>();
+  if (CQChartsVariant::isImage(var)) {
+    bool ok;
 
-    return image.text("filename");
+    CQChartsImage image = CQChartsVariant::toImage(var, ok);
+
+    if (ok)
+      return image.toString();
   }
 
   return var; // TODO: other var formats

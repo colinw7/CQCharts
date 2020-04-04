@@ -242,8 +242,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   void setColor(const CQChartsColor &c) { extraData()->color = c; }
 
   // Image
-  QImage image() const;
-  void setImage(const QImage &i) { extraData()->image = i; }
+  CQChartsImage image() const;
+  void setImage(const CQChartsImage &i) { extraData()->image = i; }
 
   // vector
   bool isVector() const;
@@ -269,7 +269,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
     CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
     CQChartsColor  color;                                     //!< symbol fill color
     OptPoint       vector;                                    //!< optional vector
-    QImage         image;                                     //!< image
+    CQChartsImage  image;                                     //!< image
   };
 
  private:
@@ -541,34 +541,6 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
  protected:
   CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
 };
-
-#if 0
-/*!
- * \brief XY Plot Key Line
- * \ingroup Charts
- */
-class CQChartsXYKeyLine : public CQChartsKeyItem {
-  Q_OBJECT
-
- public:
-  CQChartsXYKeyLine(CQChartsXYPlot *plot, const ColorInd &is, const ColorInd &ig);
-
-  CQChartsXYPlot *plot() const { return plot_; }
-
-  void doSelect(CQChartsSelMod selMod) override;
-
-  CQChartsGeom::Size size() const override;
-
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
-
-  CQChartsPlotObj *plotObj() const;
-
- protected:
-  CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
-  ColorInd        is_   { 0 };       //!< set color index
-  ColorInd        ig_   { 0 };       //!< group color index
-};
-#endif
 
 /*!
  * \brief XY Plot Key Text
@@ -847,6 +819,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   QString xAxisName(const QString &def="") const;
   QString yAxisName(const QString &def="") const;
 
+  //---
+
   // object for group
   CQChartsPlotObj *getGroupObj(int ig) const;
 
@@ -915,6 +889,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsGeom::Point calcFillUnderPos(double x, double y) const;
 
   int numSets() const;
+
+  void setOverlayPlotsYAxisName();
 
  private:
   // columns

@@ -165,6 +165,8 @@ class CQChartsCmds : public QObject {
   bool createChartsButtonAnnotationCmd   (CQChartsCmdArgs &args);
   bool removeChartsAnnotationCmd         (CQChartsCmdArgs &args);
 
+  bool addChartsKeyItemCmd(CQChartsCmdArgs &args);
+
   bool connectChartsSignalCmd(CQChartsCmdArgs &args);
 
   bool printChartsImageCmd(CQChartsCmdArgs &args);
@@ -299,6 +301,10 @@ CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation , createChartsValueSetAnnotation
 CQCHARTS_DEF_CMD(CreateChartsButtonAnnotation   , createChartsButtonAnnotationCmd)
 
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation, removeChartsAnnotationCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(AddChartsKeyItem, addChartsKeyItemCmd)
 
 //---
 

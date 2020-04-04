@@ -3,6 +3,7 @@
 
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsSymbol.h>
+#include <CQChartsImage.h>
 #include <CQChartsData.h>
 #include <CQChartsOptRect.h>
 #include <CQChartsOptPosition.h>
@@ -577,14 +578,14 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
  public:
   CQChartsImageAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
-                         const QImage &image=QImage());
+                         const CQChartsImage &image=CQChartsImage());
   CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
-                         const QImage &image=QImage());
+                         const CQChartsImage &image=CQChartsImage());
 
   CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &r=CQChartsRect(),
-                         const QImage &image=QImage());
+                         const CQChartsImage &image=CQChartsImage());
   CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsRect &r=CQChartsRect(),
-                         const QImage &image=QImage());
+                         const CQChartsImage &image=CQChartsImage());
 
   virtual ~CQChartsImageAnnotation();
 
@@ -625,7 +626,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   void initRectangle() override;
 
  private:
-  void init(const QImage &image);
+  void init(const CQChartsImage &image);
 
   void calcImageSize(CQChartsGeom::Size &psize, CQChartsGeom::Size &wsize) const;
 
@@ -638,8 +639,8 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
  private:
   CQChartsOptPosition position_;      //!< image position
   CQChartsOptRect     rectangle_;     //!< image bounding rectangle
-  QImage              image_;         //!< image
-  QImage              disabledImage_; //!< disabled image
+  CQChartsImage       image_;         //!< image
+  CQChartsImage       disabledImage_; //!< disabled image
 };
 
 //---
@@ -887,6 +888,8 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   virtual ~CQChartsKeyAnnotation();
 
   const char *typeName() const override { return "key"; }
+
+  CQChartsKey *key() const { return key_; }
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;

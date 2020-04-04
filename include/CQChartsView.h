@@ -11,6 +11,7 @@
 #include <CQChartsRect.h>
 #include <CQChartsPolygon.h>
 #include <CQChartsLayer.h>
+#include <CQChartsImage.h>
 #include <CQChartsTypes.h>
 #include <QFrame>
 #include <QTimer>
@@ -440,9 +441,9 @@ class CQChartsView : public QFrame,
                                                       const CQChartsLength &xRadius,
                                                       const CQChartsLength &yRadius);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
-                                                      const QImage &image);
+                                                      const CQChartsImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
-                                                      const QImage &image);
+                                                      const CQChartsImage &image);
   CQChartsKeyAnnotation       *addKeyAnnotation      ();
   CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
                                                       const CQChartsLength &innerRadius,

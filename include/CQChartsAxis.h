@@ -8,6 +8,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsOptInt.h>
 #include <CQChartsOptReal.h>
+#include <CQChartsOptString.h>
 #include <CQChartsAxisTickLabelPlacement.h>
 #include <CInterval.h>
 
@@ -87,8 +88,8 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(QString customTickLabels READ customTickLabelsStr WRITE setCustomTickLabelsStr);
 
   // label
-  Q_PROPERTY(QString label     READ label     WRITE setLabel    )
-  Q_PROPERTY(QString userLabel READ userLabel WRITE setUserLabel)
+  Q_PROPERTY(CQChartsOptString label     READ label     WRITE setLabel    )
+  Q_PROPERTY(QString           userLabel READ userLabel WRITE setUserLabel)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel,axesLabel)
 
@@ -235,8 +236,8 @@ class CQChartsAxis : public CQChartsObj,
   //---
 
   // get/set label
-  const QString &label() const { return label_; }
-  void setLabel(const QString &str);
+  const CQChartsOptString &label() const { return label_; }
+  void setLabel(const CQChartsOptString &str);
 
   // get/set user label
   const QString &userLabel() const { return userLabel_; }
@@ -525,7 +526,7 @@ class CQChartsAxis : public CQChartsObj,
 
   // label
   bool                  labelDisplayed_      { true };  //!< show label
-  QString               label_;                         //!< label
+  CQChartsOptString     label_;                         //!< label
   QString               userLabel_;                     //!< user label
 
   // grid (lines and gap fill)

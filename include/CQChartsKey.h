@@ -525,6 +525,8 @@ class CQChartsPlotKey : public CQChartsKey {
 class CQChartsKeyItem : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(int  rowSpan   READ rowSpan     WRITE setRowSpan)
+  Q_PROPERTY(int  colSpan   READ colSpan     WRITE setColSpan)
   Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
 
  public:
@@ -609,6 +611,8 @@ class CQChartsPlot;
  */
 class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
+
+  Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
   using BBox = CQChartsGeom::BBox;

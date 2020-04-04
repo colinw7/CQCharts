@@ -63,12 +63,12 @@ class CQChartsOptInt {
     else {
       bool ok;
 
-      int r = CQChartsUtil::toInt(s, ok);
+      int i = CQChartsUtil::toInt(s, ok);
 
       if (! ok)
         return false;
 
-      value_ = r;
+      value_ = i;
     }
 
     return true;

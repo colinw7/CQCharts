@@ -32,6 +32,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsFileType.h>
+#include <CQChartsImage.h>
 
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsAngleEdit.h>
@@ -70,9 +71,10 @@
 #include <CQChartsTitleLocationEdit.h>
 
 #include <CQChartsOptIntEdit.h>
+#include <CQChartsOptRealEdit.h>
+#include <CQChartsOptStringEdit.h>
 #include <CQChartsOptLengthEdit.h>
 #include <CQChartsOptPositionEdit.h>
-#include <CQChartsOptRealEdit.h>
 #include <CQChartsOptRectEdit.h>
 
 #include <CQChartsPolygonList.h>
@@ -86,9 +88,10 @@
 #include <CQChartsReals.h>
 
 #include <CQChartsOptInt.h>
+#include <CQChartsOptReal.h>
+#include <CQChartsOptString.h>
 #include <CQChartsOptLength.h>
 #include <CQChartsOptPosition.h>
-#include <CQChartsOptReal.h>
 #include <CQChartsOptRect.h>
 
 #include <CQChartsFont.h>
@@ -275,6 +278,7 @@ CQCharts()
   CQChartsFillUnderPos          ::registerMetaType();
   CQChartsFillUnderSide         ::registerMetaType();
   CQChartsFont                  ::registerMetaType();
+  CQChartsImage                 ::registerMetaType();
   CQChartsKeyLocation           ::registerMetaType();
   CQChartsKeyPressBehavior      ::registerMetaType();
   CQChartsTitleLocation         ::registerMetaType();
@@ -302,9 +306,10 @@ CQCharts()
   CQChartsThemeName             ::registerMetaType();
 
   CQChartsOptInt     ::registerMetaType();
+  CQChartsOptReal    ::registerMetaType();
+  CQChartsOptString  ::registerMetaType();
   CQChartsOptLength  ::registerMetaType();
   CQChartsOptPosition::registerMetaType();
-  CQChartsOptReal    ::registerMetaType();
   CQChartsOptRect    ::registerMetaType();
 
   //---
@@ -458,9 +463,10 @@ init()
     viewMgr->addType("CQChartsTextData"        , new CQChartsTextDataPropertyViewType        );
 
     viewMgr->addType("CQChartsOptInt"     , new CQChartsOptIntPropertyViewType     );
+    viewMgr->addType("CQChartsOptReal"    , new CQChartsOptRealPropertyViewType    );
+    viewMgr->addType("CQChartsOptString"  , new CQChartsOptStringPropertyViewType  );
     viewMgr->addType("CQChartsOptLength"  , new CQChartsOptLengthPropertyViewType  );
     viewMgr->addType("CQChartsOptPosition", new CQChartsOptPositionPropertyViewType);
-    viewMgr->addType("CQChartsOptReal"    , new CQChartsOptRealPropertyViewType    );
     viewMgr->addType("CQChartsOptRect"    , new CQChartsOptRectPropertyViewType    );
   }
 }
