@@ -1505,6 +1505,65 @@ setYLabel(const QString &s)
 
 void
 CQChartsPlot::
+setOverlayPlotsAxisNames()
+{
+  assert(isFirstPlot() && isOverlay());
+
+  Plots plots;
+
+  overlayPlots(plots);
+
+  setPlotsAxisNames(plots, this);
+}
+
+void
+CQChartsPlot::
+setPlotsAxisNames(const Plots &plots, CQChartsPlot *axisPlot)
+{
+  assert(axisPlot->yAxis());
+
+  QStringList xAxisLabels, yAxisLabels;
+
+  for (auto &plot : plots) {
+    if (! plot->isVisible())
+      continue;
+
+    if (plot->xAxis()) {
+      QString xAxisLabel;
+
+      if (! plot->xAxisName(xAxisLabel, "X"))
+        xAxisLabel = plot->xAxis()->label().string();
+
+      if (xAxisLabel.length() && ! xAxisLabels.contains(xAxisLabel))
+        xAxisLabels += xAxisLabel;
+    }
+
+    if (plot->yAxis()) {
+      QString yAxisLabel;
+
+      if (! plot->yAxisName(yAxisLabel, "Y"))
+        yAxisLabel = plot->yAxis()->label().string();
+
+      if (yAxisLabel.length() && ! yAxisLabels.contains(yAxisLabel))
+        yAxisLabels += yAxisLabel;
+    }
+  }
+
+  if (! isX1X2()) {
+    if (xAxisLabels.length())
+      axisPlot->xAxis()->setDefLabel(xAxisLabels.join(", "), /*notify*/false);
+  }
+
+  if (! isY1Y2()) {
+    if (yAxisLabels.length())
+      axisPlot->yAxis()->setDefLabel(yAxisLabels.join(", "), /*notify*/false);
+  }
+}
+
+//---
+
+void
+CQChartsPlot::
 setPlotBorderSides(const CQChartsSides &s)
 {
   CQChartsUtil::testAndSet(plotBorderSides_, s, [&]() { drawBackground(); } );

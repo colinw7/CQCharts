@@ -289,7 +289,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString labelPath     = path + "/label";
   QString labelTextPath = labelPath + "/text";
 
-  addProp(labelTextPath, "userLabel", "string", "Axis label text string");
+  addProp(labelTextPath, "labelStr" , "string"   , "Axis label text string");
+  addProp(labelTextPath, "defLabel" , "defString", "Axis label text default string");
+//addProp(labelTextPath, "userLabel", "string"   , "Axis label text user string");
 
   addStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                "Axis label text style", true);
@@ -606,6 +608,27 @@ CQChartsAxis::
 setLabel(const CQChartsOptString &str)
 {
   CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setLabelStr(const QString &str)
+{
+  if (label_.stringOr() != str) {
+    label_.setString(str); redraw();
+  }
+}
+
+void
+CQChartsAxis::
+setDefLabel(const QString &str, bool notify)
+{
+  if (label_.defValue() != str) {
+    label_.setDefValue(str);
+
+    if (notify)
+      redraw();
+  }
 }
 
 void
@@ -1345,6 +1368,9 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     if (! text.length())
       text = label().string();
+
+    if (! text.length())
+      text = label().defValue();
 
     drawAxisLabel(plot, device, apos1, amin, amax, text);
   }

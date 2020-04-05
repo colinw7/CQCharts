@@ -425,8 +425,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  QString xColumnName(const QString &def="x") const;
-  QString yColumnName(const QString &def="y") const;
+  // axis names
+  bool xAxisName(QString &name, const QString &def="") const override;
+  bool yAxisName(QString &name, const QString &def="") const override;
 
   //---
 
@@ -597,8 +598,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
  private:
   void initGridData(const CQChartsGeom::Range &dataRange);
-
-  void resetAxes();
 
   void initAxes(bool uniqueX, bool uniqueY);
 

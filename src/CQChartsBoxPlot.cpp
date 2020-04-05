@@ -774,8 +774,8 @@ updateRawRange() const
 
   //---
 
-  xAxis->setLabel(CQChartsOptString(groupSetColumnName("")));
-  yAxis->setLabel(CQChartsOptString(valueColumnName   ("")));
+  xAxis->setDefLabel(groupSetColumnName(""));
+  yAxis->setDefLabel(valueColumnName   (""));
 
   //---
 
@@ -979,7 +979,7 @@ updateCalcRange() const
 
   QString xname = (xLabel().length() ? xLabel() : modelHHeaderString(xColumn(), ok));
 
-  xAxis->setLabel(CQChartsOptString(xname));
+  xAxis->setDefLabel(xname);
 
   //---
 

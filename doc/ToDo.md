@@ -3,7 +3,6 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + common code for composite axis label with user override
  + key
    + key grouping item (with layout)
    + more testing of key annotation and allow add items
@@ -11,6 +10,7 @@ High
    + Move to thread crash for key with scrollbar ?
    + Auto key placement (quad tree, all plots)
    + Should be able to create fully functional key from annotations
+   + more customization of key line item (others)
  + expand plot with click
  + tabbed
    + tab change callback

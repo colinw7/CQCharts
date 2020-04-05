@@ -195,14 +195,14 @@ void
 CQChartsScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -838,38 +838,37 @@ initGridData(const CQChartsGeom::Range &dataRange)
 
 void
 CQChartsScatterPlot::
-resetAxes()
-{
-  xAxis_->setLabel(CQChartsOptString(""));
-  yAxis_->setLabel(CQChartsOptString(""));
-}
-
-void
-CQChartsScatterPlot::
 initAxes(bool uniqueX, bool uniqueY)
 {
   setXValueColumn(xColumn());
   setYValueColumn(yColumn());
 
+  xAxis()->setDefLabel("", /*notify*/false);
+  yAxis()->setDefLabel("", /*notify*/false);
+
   //---
 
-  xAxis_->setColumn(xColumn());
-  yAxis_->setColumn(yColumn());
+  xAxis()->setColumn(xColumn());
+  yAxis()->setColumn(yColumn());
 
-  if (xAxis_->label().string() == "") {
-    QString xname = xColumnName("");
+  //---
 
-    xAxis_->setLabel(CQChartsOptString(xname));
-  }
+  QString xname;
 
-  if (yAxis_->label().string() == "") {
-    QString yname = yColumnName("");
+  (void) xAxisName(xname, "X");
 
-    yAxis_->setLabel(CQChartsOptString(yname));
-  }
+  xAxis()->setDefLabel(xname);
 
-  CQChartsAxisValueType xType = xAxis_->valueType();
-  CQChartsAxisValueType yType = yAxis_->valueType();
+  QString yname;
+
+  (void) yAxisName(yname, "Y");
+
+  yAxis()->setDefLabel(yname);
+
+  //---
+
+  CQChartsAxisValueType xType = xAxis()->valueType();
+  CQChartsAxisValueType yType = yAxis()->valueType();
 
   if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
     xType = CQChartsAxisValueType::Type::REAL;
@@ -882,8 +881,8 @@ initAxes(bool uniqueX, bool uniqueY)
   if (uniqueX) xType = CQChartsAxisValueType::Type::INTEGER;
   if (uniqueY) yType = CQChartsAxisValueType::Type::INTEGER;
 
-  xAxis_->setValueType(xType, /*notify*/false);
-  yAxis_->setValueType(yType, /*notify*/false);
+  xAxis()->setValueType(xType, /*notify*/false);
+  yAxis()->setValueType(yType, /*notify*/false);
 
   //---
 
@@ -892,40 +891,49 @@ initAxes(bool uniqueX, bool uniqueY)
 
   if (yColumnType_ == CQBaseModelType::TIME)
     yAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+
+  //---
+
+  if (isOverlay() && isFirstPlot())
+    setOverlayPlotsAxisNames();
 }
 
-QString
+bool
 CQChartsScatterPlot::
-xColumnName(const QString &def) const
+xAxisName(QString &name, const QString &def) const
 {
-  if (xLabel().length())
-    return xLabel();
+  if (xLabel().length()) {
+    name = xLabel();
+    return true;
+  }
 
   bool ok;
 
-  QString xname = modelHHeaderString(xColumn(), ok);
+  name = modelHHeaderString(xColumn(), ok);
 
-  if (! ok || ! xname.length())
-    xname = def;
+  if (! ok || ! name.length())
+    name = def;
 
-  return xname;
+  return name.length();
 }
 
-QString
+bool
 CQChartsScatterPlot::
-yColumnName(const QString &def) const
+yAxisName(QString &name, const QString &def) const
 {
-  if (yLabel().length())
-    return yLabel();
+  if (yLabel().length()) {
+    name = yLabel();
+    return true;
+  }
 
   bool ok;
 
-  QString yname = modelHHeaderString(yColumn(), ok);
+  name = modelHHeaderString(yColumn(), ok);
 
-  if (! ok || ! yname.length())
-    yname = def;
+  if (! ok || ! name.length())
+    name = def;
 
-  return yname;
+  return name.length();
 }
 
 //------
@@ -997,8 +1005,13 @@ updateColumnNames()
   // set column header names
   CQChartsPlot::updateColumnNames();
 
-  columnNames_[xColumn()] = xColumnName();
-  columnNames_[yColumn()] = yColumnName();
+  QString xname, yname;
+
+  (void) xAxisName(xname, "X");
+  (void) yAxisName(yname, "Y");
+
+  columnNames_[xColumn()] = xname;
+  columnNames_[yColumn()] = yname;
 
   setColumnHeaderName(nameColumn      (), "Name"      );
   setColumnHeaderName(labelColumn     (), "Label"     );
@@ -1027,6 +1040,11 @@ addPointObjects(PlotObjs &objs) const
 
   int ig = 0;
   int ng = groupNameValues_.size();
+
+  if (ng <= 1 && parentPlot()) {
+    ig = parentPlot()->childPlotIndex(this);
+    ng = parentPlot()->numChildPlots();
+  }
 
   for (const auto &groupNameValue : groupNameValues_) {
     if (isInterrupt())
@@ -1488,6 +1506,18 @@ void
 CQChartsScatterPlot::
 addPointKeyItems(CQChartsPlotKey *key)
 {
+  auto addKeyItem = [&](int ind, const QString &name, int i, int n) {
+    ColorInd ic(i, n);
+
+    auto *colorItem = new CQChartsScatterKeyColor(this, ind , ic);
+    auto *textItem  = new CQChartsKeyText        (this, name, ic);
+
+    key->addItem(colorItem, i, 0);
+    key->addItem(textItem , i, 1);
+
+    return colorItem;
+  };
+
   int ng = groupNameValues_.size();
 
   // multiple group - key item per group
@@ -1495,17 +1525,10 @@ addPointKeyItems(CQChartsPlotKey *key)
     int ig = 0;
 
     for (const auto &groupNameValue : groupNameValues_) {
-      int groupInd = groupNameValue.first;
-
+      int     groupInd  = groupNameValue.first;
       QString groupName = groupIndName(groupInd);
 
-      ColorInd ic(ig, ng);
-
-      auto *colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
-      auto *textItem  = new CQChartsKeyText        (this, groupName, ic);
-
-      key->addItem(colorItem, ig, 0);
-      key->addItem(textItem , ig, 1);
+      auto *colorItem = addKeyItem(groupInd, groupName, ig, ng);
 
       //--
 
@@ -1536,20 +1559,15 @@ addPointKeyItems(CQChartsPlotKey *key)
       int is = 0;
 
       for (const auto &nameValue : nameValues) {
-        const QString &name   = nameValue.first;
-        const Values  &values = nameValue.second.values;
+        const QString &name = nameValue.first;
 
-        ColorInd ic(is, ns);
-
-        auto *colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
-        auto *textItem  = new CQChartsKeyText        (this, name, ic);
-
-        key->addItem(colorItem, is, 0);
-        key->addItem(textItem , is, 1);
+        auto *colorItem = addKeyItem(-1, name, is, ns);
 
         //--
 
         if (colorColumn().isValid()) {
+          const Values &values = nameValue.second.values;
+
           int nv = values.size();
 
           if (nv > 0) {
@@ -1565,6 +1583,16 @@ addPointKeyItems(CQChartsPlotKey *key)
         //--
 
         ++is;
+      }
+    }
+    else {
+      if (parentPlot() && ! nameValues.empty()) {
+        const QString &name = nameValues.begin()->first;
+
+        int ig = parentPlot()->childPlotIndex(this);
+        int ng = parentPlot()->numChildPlots();
+
+        (void) addKeyItem(-1, name, ig, ng);
       }
     }
   }

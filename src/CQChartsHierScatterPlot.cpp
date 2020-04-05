@@ -370,8 +370,8 @@ void
 CQChartsHierScatterPlot::
 resetAxes()
 {
-  xAxis_->setLabel(CQChartsOptString());
-  yAxis_->setLabel(CQChartsOptString());
+  xAxis_->setDefLabel("");
+  yAxis_->setDefLabel("");
 }
 
 void
@@ -391,7 +391,7 @@ initAxes()
 
     QString xname = modelHHeaderString(xColumn(), ok);
 
-    xAxis_->setLabel(CQChartsOptString(xname));
+    xAxis_->setDefLabel(xname);
   }
 
   if (yAxis_->label().string() == "") {
@@ -399,7 +399,7 @@ initAxes()
 
     QString yname = modelHHeaderString(yColumn(), ok);
 
-    yAxis_->setLabel(CQChartsOptString(yname));
+    yAxis_->setDefLabel(yname);
   }
 }
 

@@ -520,7 +520,7 @@ initRangeAxesI()
   }
 
   if (xname != "")
-    xAxis->setLabel(CQChartsOptString(xname));
+    xAxis->setDefLabel(xname);
 
   //---
 
@@ -534,7 +534,7 @@ initRangeAxesI()
     yname = modelHHeaderString(valueColumns().column(), ok);
   }
 
-  yAxis->setLabel(CQChartsOptString(yname));
+  yAxis->setDefLabel(yname);
 }
 
 void

@@ -147,6 +147,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
  private:
   void updatePlots();
 
+  void setOverlayAxisLabels();
+
  private:
   using Plots = std::vector<CQChartsPlot*>;
 

@@ -2149,11 +2149,11 @@ createObjs(PlotObjs &objs) const
   //---
 
   auto setXLabel = [&]() {
-    valueAxis()->setLabel(CQChartsOptString(valueColumnName("")));
+    valueAxis()->setDefLabel(valueColumnName(""));
   };
 
   auto setXGroupLabel = [&]() {
-    valueAxis()->setLabel(CQChartsOptString(valueColumnName("")));
+    valueAxis()->setDefLabel(valueColumnName(""));
   };
 
   auto setXGroupValuesLabel = [&]() {
@@ -2167,11 +2167,11 @@ createObjs(PlotObjs &objs) const
       groupLabels.push_back(groupName);
     }
 
-    valueAxis()->setLabel(CQChartsOptString(groupLabels.join(", ")));
+    valueAxis()->setDefLabel(groupLabels.join(", "));
   };
 
   // value axis label (x)
-  valueAxis()->setLabel(CQChartsOptString(""));
+  valueAxis()->setDefLabel("");
 
   if (isBucketed()) {
     if (groupData_.groupValues.size() > 1) {
@@ -2190,7 +2190,7 @@ createObjs(PlotObjs &objs) const
 
   // count axis label (y)
   if      (isDensity()) {
-    countAxis()->setLabel(CQChartsOptString("Density"));
+    countAxis()->setDefLabel("Density");
   }
   else {
     auto setCountLabel = [&](const QString &label) {
@@ -2205,7 +2205,7 @@ createObjs(PlotObjs &objs) const
           label1 += " (" + header + ")";
       }
 
-      countAxis()->setLabel(CQChartsOptString(label1));
+      countAxis()->setDefLabel(label1);
     };
 
     if      (isPercent   ()) setCountLabel("Percent");
@@ -2218,7 +2218,7 @@ createObjs(PlotObjs &objs) const
   }
 
   if (yLabel().length())
-    countAxis()->setLabel(CQChartsOptString(yLabel()));
+    countAxis()->setDefLabel(yLabel());
 
   //---
 

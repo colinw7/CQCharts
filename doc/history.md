@@ -1089,3 +1089,6 @@
  + Add optional string class
  + Update tab draw position for nested tab composite plots
  + Improve key annotation
+# 04/05/2020
+ + cleanup axis names for overlay/composite xy and scatter plots
+ + add line key item for annotation

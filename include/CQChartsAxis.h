@@ -89,6 +89,8 @@ class CQChartsAxis : public CQChartsObj,
 
   // label
   Q_PROPERTY(CQChartsOptString label     READ label     WRITE setLabel    )
+  Q_PROPERTY(QString           labelStr  READ labelStr  WRITE setLabelStr )
+  Q_PROPERTY(QString           defLabel  READ defLabel  WRITE setDefLabel )
   Q_PROPERTY(QString           userLabel READ userLabel WRITE setUserLabel)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel,axesLabel)
@@ -238,6 +240,13 @@ class CQChartsAxis : public CQChartsObj,
   // get/set label
   const CQChartsOptString &label() const { return label_; }
   void setLabel(const CQChartsOptString &str);
+
+  QString labelStr() const { return label_.stringOr(); }
+  void setLabelStr(const QString &s);
+
+  // set default label
+  const QString &defLabel() const { return label_.defValue(); }
+  void setDefLabel(const QString &str, bool notify=true);
 
   // get/set user label
   const QString &userLabel() const { return userLabel_; }

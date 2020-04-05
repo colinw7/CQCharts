@@ -497,9 +497,9 @@ createObjs(PlotObjs &objs) const
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
   if (hasYValues)
-    xAxis->setLabel(CQChartsOptString(pivotModel()->vheader()));
+    xAxis->setDefLabel(pivotModel()->vheader());
   else
-    xAxis->setLabel(CQChartsOptString(pivotModel()->hheader()));
+    xAxis->setDefLabel(pivotModel()->hheader());
 
   if (plotType() != PlotType::GRID) {
     if (valueType() != ValueType::COUNT) {
@@ -507,19 +507,19 @@ createObjs(PlotObjs &objs) const
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
 
       if      (valueType() == ValueType::SUM)
-        yAxis->setLabel(CQChartsOptString("Sum"));
+        yAxis->setDefLabel("Sum");
       else if (valueType() == ValueType::MIN)
-        yAxis->setLabel(CQChartsOptString("Minimum"));
+        yAxis->setDefLabel("Minimum");
       else if (valueType() == ValueType::MAX)
-        yAxis->setLabel(CQChartsOptString("Maximum"));
+        yAxis->setDefLabel("Maximum");
       else if (valueType() == ValueType::MEAN)
-        yAxis->setLabel(CQChartsOptString("Mean"));
+        yAxis->setDefLabel("Mean");
     }
     else {
       yAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
       yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
-      yAxis->setLabel(CQChartsOptString("Count"));
+      yAxis->setDefLabel("Count");
     }
   }
   else {
@@ -529,7 +529,7 @@ createObjs(PlotObjs &objs) const
     yAxis->setGridMid       (true);
     xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
-    yAxis->setLabel(CQChartsOptString(pivotModel()->hheader()));
+    yAxis->setDefLabel(pivotModel()->hheader());
   }
 
   //---

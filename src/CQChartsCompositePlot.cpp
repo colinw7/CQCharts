@@ -496,8 +496,11 @@ drawBgAxes(CQChartsPaintDevice *device) const
     }
 #endif
 
-    if (currentPlot() && currentPlot()->isVisible())
+    if (currentPlot() && currentPlot()->isVisible()) {
+      const_cast<CQChartsCompositePlot *>(this)->setOverlayAxisLabels();
+
       currentPlot()->drawBgAxes(device);
+    }
   }
 }
 
@@ -550,8 +553,11 @@ drawFgAxes(CQChartsPaintDevice *device) const
     }
 #endif
 
-    if (currentPlot() && currentPlot()->isVisible())
+    if (currentPlot() && currentPlot()->isVisible()) {
+      const_cast<CQChartsCompositePlot *>(this)->setOverlayAxisLabels();
+
       currentPlot()->drawFgAxes(device);
+    }
   }
 }
 
@@ -573,6 +579,13 @@ drawTitle(CQChartsPaintDevice *device) const
 
   if (currentPlot() && currentPlot()->isVisible())
     currentPlot()->drawTitle(device);
+}
+
+void
+CQChartsCompositePlot::
+setOverlayAxisLabels()
+{
+  setPlotsAxisNames(plots_, currentPlot());
 }
 
 //------

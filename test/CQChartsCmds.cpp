@@ -7727,8 +7727,14 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-text" , CQChartsCmdArg::Type::String, "item text");
-  argv.addCmdArg("-color", CQChartsCmdArg::Type::Color , "item color");
+  argv.addCmdArg("-row"  , CQChartsCmdArg::Type::Integer, "item row");
+  argv.addCmdArg("-col"  , CQChartsCmdArg::Type::Integer, "item column");
+  argv.addCmdArg("-nrows", CQChartsCmdArg::Type::Integer, "item row count");
+  argv.addCmdArg("-ncols", CQChartsCmdArg::Type::Integer, "item column count");
+
+  argv.addCmdArg("-text"  , CQChartsCmdArg::Type::String, "item text");
+  argv.addCmdArg("-color" , CQChartsCmdArg::Type::Color , "item color");
+  argv.addCmdArg("-symbol", CQChartsCmdArg::Type::Color , "item symbol");
 
   bool rc;
 
@@ -7792,26 +7798,58 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString       text  = argv.getParseStr("text");
-  CQChartsColor color = argv.getParseColor("color");
+  QString text  = argv.getParseStr("text");
 
   CQChartsUtil::ColorInd colorInd;
 
   int nr = plotKey->calcNumRows();
 
-  if (color.isValid()) {
+  int row   = (argv.hasParseArg("row") ? argv.getParseInt("row") : nr);
+  int col   = (argv.hasParseArg("col") ? argv.getParseInt("col") : 0);
+  int nrows = argv.getParseInt("nrows", 1);
+  int ncols = argv.getParseInt("ncols", 1);
+
+  if      (argv.hasParseArg("symbol")) {
+    CQChartsSymbolData symbolData;
+
+    symbolData.setType(CQChartsSymbol(argv.getParseStr("symbol")));
+
+    if (argv.hasParseArg("color")) {
+      CQChartsColor color = argv.getParseColor("color");
+
+      CQChartsStrokeData strokeData;
+      CQChartsFillData   fillData;
+
+      strokeData.setColor(color);
+      fillData  .setColor(color);
+
+      symbolData.setStroke(strokeData);
+      symbolData.setFill  (fillData);
+    }
+
+    auto *item1 = new CQChartsKeyLine(plotKey->plot(), colorInd, colorInd);
+    auto *item2 = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+
+    item1->setSymbolData(symbolData);
+
+    plotKey->addItem(item1, row, col    , nrows);
+    plotKey->addItem(item2, row, col + 1, ncols);
+  }
+  else if (argv.hasParseArg("color")) {
+    CQChartsColor color = argv.getParseColor("color");
+
     auto *item1 = new CQChartsKeyColorBox(plotKey->plot(), colorInd, colorInd, colorInd);
     auto *item2 = new CQChartsKeyText(plotKey->plot(), text, colorInd);
 
     item1->setColor(color);
 
-    plotKey->addItem(item1, nr, 0);
-    plotKey->addItem(item2, nr, 1);
+    plotKey->addItem(item1, row, col    , nrows);
+    plotKey->addItem(item2, row, col + 1, ncols);
   }
   else {
     auto *item = new CQChartsKeyText(plotKey->plot(), text, colorInd);
 
-    plotKey->addItem(item, nr, 0);
+    plotKey->addItem(item, row, col, nrows, ncols);
   }
 
   return true;

@@ -791,7 +791,7 @@ calcRange() const
 
   //---
 
-  const_cast<CQChartsXYPlot *>(this)->initAxes();
+  th->initAxes();
 
   //---
 
@@ -805,114 +805,111 @@ initAxes()
   setXValueColumn(xColumn());
   setYValueColumn(yColumns().column());
 
+  xAxis()->setDefLabel("", /*notify*/false);
+  yAxis()->setDefLabel("", /*notify*/false);
+
   //---
 
   // set x axis column and name
-  if (xAxis()) {
-    CQChartsColumn xAxisColumn;
+  CQChartsColumn xAxisColumn;
 
-    if (! isColumnSeries())
-      xAxisColumn = xColumn();
-    else {
-      xAxisColumn =
-        CQChartsColumn(CQChartsColumn::Type::HHEADER, yColumns().getColumn(0).column(), "");
-    }
+  if (! isColumnSeries())
+    xAxisColumn = xColumn();
+  else {
+    xAxisColumn =
+      CQChartsColumn(CQChartsColumn::Type::HHEADER, yColumns().getColumn(0).column(), "");
+  }
 
-    if (isOverlay()) {
-      if (isFirstPlot() || isX1X2())
-        xAxis()->setColumn(xAxisColumn);
-    }
-    else {
+  if (isOverlay()) {
+    if (isFirstPlot() || isX1X2())
       xAxis()->setColumn(xAxisColumn);
+  }
+  else {
+    xAxis()->setColumn(xAxisColumn);
+  }
+
+  //-
+
+  QString xname;
+
+  (void) xAxisName(xname, "X");
+
+  if (isOverlay()) {
+    if (isFirstPlot() || isX1X2())
+      xAxis()->setDefLabel(xname, /*notify*/false);
+  }
+  else {
+    xAxis()->setDefLabel(xname, /*notify*/false);
+  }
+
+  if (xColumnType_ == CQBaseModelType::TIME)
+    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+
+  //---
+
+  // set y axis column and name(s)
+  QString yname;
+
+  (void) yAxisName(yname, "Y");
+
+  int ns = numSets();
+
+  if      (isBivariateLines() && ns > 1) {
+    if (isOverlay()) {
+      if (isY1Y2()) {
+        yAxis()->setDefLabel(yname, /*notify*/false);
+      }
     }
-
-    //--
-
-    QString xname = xAxisName();
+    else {
+      yAxis()->setDefLabel(yname, /*notify*/false);
+    }
+  }
+  else if (isStacked()) {
+  }
+  else {
+    auto yColumn = yColumns().getColumn(0);
 
     if (isOverlay()) {
-      if (isFirstPlot() || isX1X2())
-        xAxis()->setLabel(CQChartsOptString(xname));
-    }
-    else {
-      xAxis()->setLabel(CQChartsOptString(xname));
-    }
-
-    if (xColumnType_ == CQBaseModelType::TIME)
-      xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
-  }
-
-  // set y axis name(s)
-  if (yAxis()) {
-    QString yname = yAxisName();
-
-    int ns = numSets();
-
-    if      (isBivariateLines() && ns > 1) {
-      if (isOverlay()) {
-        if      (isY1Y2()) {
-          yAxis()->setLabel(CQChartsOptString(yname));
-        }
-        else if (isFirstPlot()) {
-          setOverlayPlotsYAxisName();
-        }
-        else
-          yAxis()->setLabel(CQChartsOptString(""));
-      }
-      else {
-        yAxis()->setLabel(CQChartsOptString(yname));
-      }
-    }
-    else if (isStacked()) {
-    }
-    else {
-      auto yColumn = yColumns().getColumn(0);
-
-      if (isOverlay()) {
-        if (isFirstPlot() || isY1Y2())
-          yAxis()->setColumn(yColumn);
-      }
-      else
+      if (isFirstPlot() || isY1Y2())
         yAxis()->setColumn(yColumn);
+    }
+    else
+      yAxis()->setColumn(yColumn);
 
-      if (isOverlay()) {
-        if      (isY1Y2()) {
-          yAxis()->setLabel(CQChartsOptString(yname));
-        }
-        else if (isFirstPlot()) {
-          setOverlayPlotsYAxisName();
-        }
-        else
-          yAxis()->setLabel(CQChartsOptString(""));
-      }
-      else {
-        yAxis()->setLabel(CQChartsOptString(yname));
+    if (isOverlay()) {
+      if (isY1Y2()) {
+        yAxis()->setDefLabel(yname, /*notify*/false);
       }
     }
+    else {
+      yAxis()->setDefLabel(yname, /*notify*/false);
+    }
   }
+
+  //---
+
+  if (isOverlay() && isFirstPlot())
+    setOverlayPlotsAxisNames();
 }
 
-QString
+bool
 CQChartsXYPlot::
-xAxisName(const QString &def) const
+xAxisName(QString &name, const QString &def) const
 {
   bool ok;
 
-  QString name = modelHHeaderString(xColumn(), ok);
+  name = modelHHeaderString(xColumn(), ok);
 
-  if (! ok)
+  if (! ok || ! name.length())
     name = def;
 
-  return name;
+  return name.length();
 }
 
-QString
+bool
 CQChartsXYPlot::
-yAxisName(const QString &def) const
+yAxisName(QString &name, const QString &def) const
 {
-  QString name;
-  bool    ok = true;
-
   int ns = numSets();
 
   if      (isBivariateLines() && ns > 1) {
@@ -933,11 +930,8 @@ yAxisName(const QString &def) const
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
-
-    ok = name.length();
   }
   else if (isStacked()) {
-    ok = false;
   }
   else {
     if (! isColumnSeries()) {
@@ -947,6 +941,7 @@ yAxisName(const QString &def) const
         auto yColumn = yColumns().getColumn(j);
 
         QString name1 = modelHHeaderString(yColumn, ok);
+        if (! ok || ! name1.length()) continue;
 
         if (name.length())
           name += ", ";
@@ -954,46 +949,12 @@ yAxisName(const QString &def) const
         name += name1;
       }
     }
-
-    ok = name.length();
   }
 
-  if (! ok)
+  if (! name.length())
     name = def;
 
-  return name;
-}
-
-void
-CQChartsXYPlot::
-setOverlayPlotsYAxisName()
-{
-  assert(isFirstPlot() && isOverlay());
-
-  QString yname = yAxisName();
-
-  yAxis()->setLabel(CQChartsOptString(yname));
-
-  Plots plots;
-
-  overlayPlots(plots);
-
-  for (auto &plot : plots) {
-    if (plot == this)
-      continue;
-
-    CQChartsXYPlot *xyPlot = dynamic_cast<CQChartsXYPlot *>(plot);
-
-    QString yname;
-
-    if      (xyPlot)
-      yname = xyPlot->yAxisName();
-    else if (plot->yAxis())
-      yname = plot->yAxis()->label().string();
-
-    if (yname != "")
-      yAxis()->setLabel(CQChartsOptString(yAxis()->label().string() + ", " + yname));
-  }
+  return name.length();
 }
 
 //---
@@ -2232,12 +2193,19 @@ addKeyItems(CQChartsPlotKey *key)
       QString name = groupIndName(0);
 
       if (name == "")
-        name = yAxisName();
+        (void) yAxisName(name);
 
       if (name == "")
         name = titleStr();
 
       ColorInd is, ig;
+
+      if (parentPlot()) {
+        int i = parentPlot()->childPlotIndex(this);
+        int n = parentPlot()->numChildPlots();
+
+        ig = ColorInd(i, n);
+      }
 
       addKeyItem(name, is, ig);
     }
@@ -2442,7 +2410,9 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  QString xname = plot()->xAxisName("X");
+  QString xname;
+
+  (void) plot()->xAxisName(xname, "X");
 
   tableTip.addTableRow(xname, xstr );
   tableTip.addTableRow("Y1" , y1str);
@@ -2612,7 +2582,9 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  QString xname = plot()->xAxisName("X");
+  QString xname;
+
+  (void) plot()->xAxisName(xname, "X");
 
   tableTip.addTableRow(xname, xstr );
   tableTip.addTableRow("Y1" , y1str);
@@ -2929,8 +2901,13 @@ calcTipId() const
   QString xstr = plot()->xStr(x());
   QString ystr = plot()->yStr(y());
 
-  tableTip.addTableRow(plot()->xAxisName("X"), xstr);
-  tableTip.addTableRow(plot()->yAxisName("Y"), ystr);
+  QString xname, yname;
+
+  (void) plot()->xAxisName(xname, "X");
+  (void) plot()->yAxisName(yname, "Y");
+
+  tableTip.addTableRow(xname, xstr);
+  tableTip.addTableRow(yname, ystr);
 
   //---
 

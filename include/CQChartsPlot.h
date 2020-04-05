@@ -665,6 +665,12 @@ class CQChartsPlot : public CQChartsObj,
   virtual CQChartsAxis *mappedXAxis() const { return xAxis(); }
   virtual CQChartsAxis *mappedYAxis() const { return yAxis(); }
 
+  virtual bool xAxisName(QString &, const QString& ="") const { return false; }
+  virtual bool yAxisName(QString &, const QString& ="") const { return false; }
+
+  void setOverlayPlotsAxisNames();
+  void setPlotsAxisNames(const Plots &plots, CQChartsPlot *axisPlot);
+
   //---
 
   CQChartsPlotKey *key() const { return keyObj_; }

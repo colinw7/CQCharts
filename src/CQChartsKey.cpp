@@ -2251,3 +2251,96 @@ yColorValue(bool relative) const
 {
   return (relative ? yv_.map() : yv_.v);
 }
+
+//------
+
+CQChartsKeyLine::
+CQChartsKeyLine(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig) :
+ CQChartsKeyItem(plot->key(), is.n > 1 ? is : ig), is_(is), ig_(ig)
+{
+  setClickable(true);
+}
+
+CQChartsGeom::Size
+CQChartsKeyLine::
+size() const
+{
+  CQChartsPlot *plot = key_->plot();
+
+  QFont font = plot->view()->plotFont(plot, key_->textFont());
+
+  QFontMetricsF fm(font);
+
+  double w = fm.width("-X-");
+  double h = fm.height();
+
+  double ww = plot->pixelToWindowWidth (w + 8);
+  double wh = plot->pixelToWindowHeight(h + 2);
+
+  return CQChartsGeom::Size(ww, wh);
+}
+
+bool
+CQChartsKeyLine::
+selectPress(const Point &w, CQChartsSelMod selMod)
+{
+  if (! value_.isValid())
+    return CQChartsKeyItem::selectPress(w, selMod);
+
+  if (isClickable()) {
+    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
+      CQChartsPlot *plot = key_->plot();
+
+      if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
+        plot->setHideValue(value_);
+      else
+        plot->setHideValue(QVariant());
+
+      plot->updateRangeAndObjs();
+    }
+    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT) {
+    }
+  }
+
+  return true;
+}
+
+void
+CQChartsKeyLine::
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
+{
+  CQChartsPlot *plot = key_->plot();
+
+  auto prect = plot->windowToPixel(rect);
+
+  bool swapped;
+  auto pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
+  if (swapped) return;
+
+  double x1 = pbbox1.getXMin() + 4;
+  double x2 = pbbox1.getXMax() - 4;
+  double y  = pbbox1.getYMid();
+
+  const CQChartsFillData   &fillData   = symbolData_.fill();
+  const CQChartsStrokeData &strokeData = symbolData_.stroke();
+
+  QColor lc = plot->interpColor(fillData  .color(), ig_);
+  QColor fc = plot->interpColor(strokeData.color(), ig_);
+
+  CQChartsPenBrush penBrush;
+
+  plot->setPenBrush(penBrush,
+    CQChartsPenData  (true, lc),
+    CQChartsBrushData(true, fc));
+
+  device->setPen  (penBrush.pen);
+  device->setBrush(penBrush.brush);
+
+  device->drawLine(device->pixelToWindow(CQChartsGeom::Point(x1, y)),
+                   device->pixelToWindow(CQChartsGeom::Point(x2, y)));
+
+  CQChartsGeom::Point ps(CMathUtil::avg(x1, x2), y);
+
+  plot->drawSymbol(device, device->pixelToWindow(ps), symbolData_.type(),
+                   symbolData_.size(), penBrush);
+}

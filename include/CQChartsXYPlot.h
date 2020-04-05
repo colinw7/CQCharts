@@ -816,8 +816,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //---
 
   // axis names
-  QString xAxisName(const QString &def="") const;
-  QString yAxisName(const QString &def="") const;
+  bool xAxisName(QString &name, const QString &def="") const override;
+  bool yAxisName(QString &name, const QString &def="") const override;
 
   //---
 
@@ -889,8 +889,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   CQChartsGeom::Point calcFillUnderPos(double x, double y) const;
 
   int numSets() const;
-
-  void setOverlayPlotsYAxisName();
 
  private:
   // columns

@@ -387,21 +387,24 @@ void
 CQChartsPlotSymbolMgr::
 drawSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  return symbols.drawSymbol(type, renderer);
+  if (type != CQChartsSymbol::Type::NONE)
+    symbols.drawSymbol(type, renderer);
 }
 
 void
 CQChartsPlotSymbolMgr::
 strokeSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  return symbols.strokeSymbol(type, renderer);
+  if (type != CQChartsSymbol::Type::NONE)
+    symbols.strokeSymbol(type, renderer);
 }
 
 void
 CQChartsPlotSymbolMgr::
 fillSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 {
-  return symbols.fillSymbol(type, renderer);
+  if (type != CQChartsSymbol::Type::NONE)
+    symbols.fillSymbol(type, renderer);
 }
 
 //------

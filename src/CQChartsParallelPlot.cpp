@@ -460,11 +460,11 @@ calcRange() const
     if (range.isSet()) {
       if (! isHorizontal()) {
         axis->setRange(range.ymin(), range.ymax());
-        axis->setLabel(CQChartsOptString(name));
+        axis->setDefLabel(name);
       }
       else {
         axis->setRange(range.xmin(), range.xmax());
-        axis->setLabel(CQChartsOptString(name));
+        axis->setDefLabel(name);
       }
     }
   }

@@ -704,4 +704,51 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   QVariant        value_;                //!< associated value
 };
 
+//---
+
+/*!
+ * \brief Key Line Item base class
+ * \ingroup Charts
+ */
+class CQChartsKeyLine : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  using BBox       = CQChartsGeom::BBox;
+  using Size       = CQChartsGeom::Size;
+  using RangeValue = CQChartsGeom::RangeValue;
+
+ public:
+  CQChartsKeyLine(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig);
+
+  CQChartsPlot *plot() const { return plot_; }
+
+  Size size() const override;
+
+  //---
+
+  const CQChartsSymbolData &symbolData() const { return symbolData_; }
+  void setSymbolData(const CQChartsSymbolData &symbolData) { symbolData_ = symbolData; }
+
+  //---
+
+  const QVariant &value() const { return value_; }
+  void setValue(const QVariant &v) { value_ = v; }
+
+  //---
+
+  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+
+  //---
+
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+
+ protected:
+  CQChartsPlot*      plot_ { nullptr }; //!< parent plot
+  ColorInd           is_   { 0 };       //!< set color index
+  ColorInd           ig_   { 0 };       //!< group color index
+  QVariant           value_;            //!< associated value
+  CQChartsSymbolData symbolData_;       //!< symbol data
+};
+
 #endif
