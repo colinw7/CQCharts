@@ -6,6 +6,7 @@
 class CQChartsCmds;
 class CQChartsView;
 class CQChartsPlot;
+class CQChartsAnnotation;
 
 /*!
  * \brief Charts Tcl Command Callback Handler
@@ -16,7 +17,7 @@ class CQChartsCmdsSlot : public QObject {
 
  public:
   CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                   const QString &procName);
+                   CQChartsAnnotation *annotation, const QString &procName);
 
  private:
   void evalCmd(const QString &cmd);
@@ -33,10 +34,11 @@ class CQChartsCmdsSlot : public QObject {
   void interfaceThemeChanged();
 
  private:
-  CQChartsCmds* cmds_ { nullptr };
-  CQChartsView* view_ { nullptr };
-  CQChartsPlot* plot_ { nullptr };
-  QString       procName_;
+  CQChartsCmds*       cmds_       { nullptr };
+  CQChartsView*       view_       { nullptr };
+  CQChartsPlot*       plot_       { nullptr };
+  CQChartsAnnotation* annotation_ { nullptr };
+  QString             procName_;
 };
 
 #endif

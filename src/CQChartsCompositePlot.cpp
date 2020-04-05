@@ -90,6 +90,26 @@ setCompositeType(const CompositeType &t)
 
 void
 CQChartsCompositePlot::
+setCommonXRange(bool b)
+{
+  commonXRange_ = b;
+
+  updateRange();
+}
+
+void
+CQChartsCompositePlot::
+setCommonYRange(bool b)
+{
+  commonYRange_ = b;
+
+  updateRange();
+}
+
+//---
+
+void
+CQChartsCompositePlot::
 addPlot(CQChartsPlot *plot)
 {
   plots_.push_back(plot);
@@ -164,6 +184,8 @@ addProperties()
   };
 
   addProp("", "compositeType", "compositeType", "Composite Type");
+  addProp("", "commonXRange" , "commonXRange" , "Common X Range");
+  addProp("", "commonYRange" , "commonYRange" , "Common Y Range");
 
   addBaseProperties();
 }
@@ -173,17 +195,43 @@ CQChartsCompositePlot::
 calcRange() const
 {
   CQChartsGeom::Range dataRange;
+  CQChartsGeom::Range currentDataRange;
 
   for (auto &plot : plots_) {
     if (! plot->isVisible())
       continue;
 
-    dataRange += plot->calcRange();
+    CQChartsGeom::Range dataRange1 = plot->calcRange();
+
+    if (plot == currentPlot())
+      currentDataRange = dataRange1;
+
+    dataRange += dataRange1;
   }
 
   if (! dataRange.isSet()) {
     dataRange.updateRange(0.0, 0.0);
     dataRange.updateRange(1.0, 1.0);
+  }
+
+  if (! currentDataRange.isSet()) {
+    currentDataRange.updateRange(0.0, 0.0);
+    currentDataRange.updateRange(1.0, 1.0);
+  }
+
+  if      (! isCommonXRange() && ! isCommonYRange()) {
+    return currentDataRange;
+  }
+  else if (! isCommonXRange()) {
+    return CQChartsGeom::Range(currentDataRange.xmin(), dataRange.ymin(),
+                               currentDataRange.xmax(), dataRange.ymax());
+  }
+  else if (! isCommonYRange()) {
+    return CQChartsGeom::Range(dataRange.xmin(), currentDataRange.ymin(),
+                               dataRange.xmax(), currentDataRange.ymax());
+  }
+  else {
+    return dataRange;
   }
 
   return dataRange;

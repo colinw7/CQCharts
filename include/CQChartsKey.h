@@ -59,6 +59,10 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
+  virtual const BBox &bbox() const = 0;
+
+  //--
+
   // horizontal
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
@@ -199,7 +203,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   //---
 
-  const BBox &bbox() const { return wbbox_; }
+  const BBox &bbox() const override { return wbbox_; }
   void setBBox(const BBox &b) { wbbox_ = b; }
 
   //---
@@ -344,7 +348,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  const BBox &bbox() const { return wbbox_; }
+  const BBox &bbox() const override { return wbbox_; }
   void setBBox(const BBox &b) { wbbox_ = b; }
 
   //---
@@ -542,7 +546,8 @@ class CQChartsKeyItem : public QObject {
 
   virtual Size size() const = 0;
 
-  virtual QString id() const { return ""; }
+  virtual QString id() const { return id_; }
+  virtual void setId(const QString &id) { id_ = id; }
 
   const CQChartsPlotKey *key() const { return key_; }
   void setKey(CQChartsPlotKey *p) { key_ = p; }
@@ -589,6 +594,7 @@ class CQChartsKeyItem : public QObject {
 
  protected:
   CQChartsPlotKey* key_       { nullptr }; //!< parent key
+  QString          id_;                    //!< id
   ColorInd         ic_;                    //!< color index
   int              row_       { 0 };       //!< row
   int              col_       { 0 };       //!< col

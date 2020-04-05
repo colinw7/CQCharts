@@ -171,7 +171,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! handle select press
-  virtual bool selectPress(const CQChartsGeom::Point &);
+  virtual bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod);
 
   //! handle edit press, move, motion, release
   virtual bool editPress  (const CQChartsGeom::Point &);
@@ -236,6 +236,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  signals:
   //! emitted when data changed
   void dataChanged();
+
+  //! emitted when annotation pressed
+  void pressed(const QString &id);
 
  protected slots:
   void invalidateSlot() { invalidate(); }
@@ -537,6 +540,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -616,6 +621,8 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -691,6 +698,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -744,6 +753,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -815,6 +826,8 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -860,6 +873,8 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -899,6 +914,12 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
+
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -962,6 +983,8 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
@@ -1020,6 +1043,8 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -1082,6 +1107,8 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(CQChartsPaintDevice *device) override;
+
+  //---
 
   void writeHtml(CQChartsHtmlPainter *device) override;
 

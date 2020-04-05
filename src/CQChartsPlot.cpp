@@ -5135,7 +5135,7 @@ annotationsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
   }
 
   for (const auto &annotation : pressAnnotations_) {
-    if (! annotation->selectPress(w))
+    if (! annotation->selectPress(w, selMod))
       continue;
 
     selectOneObj(annotation, /*allObjs*/true);

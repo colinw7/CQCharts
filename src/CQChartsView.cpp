@@ -2752,7 +2752,7 @@ selectPointPress()
   }
 
   for (const auto &selAnnotation : pressAnnotations_) {
-    if (! selAnnotation->selectPress(w))
+    if (! selAnnotation->selectPress(w, mouseSelMod()))
       continue;
 
     selectOneObj(selAnnotation);

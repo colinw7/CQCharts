@@ -2,13 +2,15 @@
 #include <CQChartsCmds.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsAnnotation.h>
 
 #include <CQTclUtil.h>
 
 CQChartsCmdsSlot::
 CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                 const QString &procName) :
- QObject(cmds), cmds_(cmds), view_(view), plot_(plot), procName_(procName)
+                 CQChartsAnnotation *annotation, const QString &procName) :
+ QObject(cmds), cmds_(cmds), view_(view), plot_(plot), annotation_(annotation),
+ procName_(procName)
 {
 }
 
@@ -16,18 +18,58 @@ void
 CQChartsCmdsSlot::
 objIdPressed(const QString &id)
 {
+  if (view_)
+    disconnect(view_, SIGNAL(objIdPressed(const QString &)),
+               this, SLOT(objIdPressed(const QString &)));
+
+  if (plot_)
+    disconnect(plot_, SIGNAL(objIdPressed(const QString &)),
+               this, SLOT(objIdPressed(const QString &)));
+
   QString cmd = getTclIdCmd(id);
 
   evalCmd(cmd);
+
+  if (view_)
+    connect(view_, SIGNAL(objIdPressed(const QString &)),
+            this, SLOT(objIdPressed(const QString &)));
+
+  if (plot_)
+    connect(plot_, SIGNAL(objIdPressed(const QString &)),
+            this, SLOT(objIdPressed(const QString &)));
 }
 
 void
 CQChartsCmdsSlot::
 annotationIdPressed(const QString &id)
 {
+  if (view_)
+    disconnect(view_, SIGNAL(annotationIdPressed(const QString &)),
+               this, SLOT(annotationIdPressed(const QString &)));
+
+  if (plot_)
+    disconnect(plot_, SIGNAL(annotationIdPressed(const QString &)),
+               this, SLOT(annotationIdPressed(const QString &)));
+
+  if (annotation_)
+    disconnect(annotation_, SIGNAL(pressed(const QString &)),
+               this, SLOT(annotationIdPressed(const QString &)));
+
   QString cmd = getTclIdCmd(id);
 
   evalCmd(cmd);
+
+  if (view_)
+    connect(view_, SIGNAL(annotationIdPressed(const QString &)),
+            this, SLOT(annotationIdPressed(const QString &)));
+
+  if (plot_)
+    connect(plot_, SIGNAL(annotationIdPressed(const QString &)),
+            this, SLOT(annotationIdPressed(const QString &)));
+
+  if (annotation_)
+    connect(annotation_, SIGNAL(pressed(const QString &)),
+            this, SLOT(annotationIdPressed(const QString &)));
 }
 
 void
@@ -49,19 +91,21 @@ void
 CQChartsCmdsSlot::
 selectionChanged()
 {
+  if (view_)
+    disconnect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+
   if (plot_)
     disconnect(plot_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
-  else
-    disconnect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
 
   QString cmd = getTclCmd();
 
   evalCmd(cmd);
 
+  if (view_)
+    connect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+
   if (plot_)
     connect(plot_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
-  else
-    connect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
 }
 
 void
@@ -109,6 +153,9 @@ getTclCmd() const
   if (plot_)
     cmd += " \"" + plot_->pathId() + "\"";
 
+  if (annotation_)
+    cmd += " \"" + annotation_->id() + "\"";
+
   return cmd;
 }
 
@@ -123,6 +170,9 @@ getTclIdCmd(const QString &id) const
 
   if (plot_)
     cmd += " \"" + plot_->pathId() + "\"";
+
+  if (annotation_)
+    cmd += " \"" + annotation_->id() + "\"";
 
   cmd += " \"" + id + "\"";
 

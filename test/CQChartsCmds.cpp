@@ -7832,6 +7832,9 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
 
     item1->setSymbolData(symbolData);
 
+    item1->setId(QString("%1,%2").arg(row).arg(col    ));
+    item2->setId(QString("%1,%2").arg(row).arg(col + 1));
+
     plotKey->addItem(item1, row, col    , nrows);
     plotKey->addItem(item2, row, col + 1, ncols);
   }
@@ -7843,11 +7846,16 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
 
     item1->setColor(color);
 
+    item1->setId(QString("%1,%2").arg(row).arg(col    ));
+    item2->setId(QString("%1,%2").arg(row).arg(col + 1));
+
     plotKey->addItem(item1, row, col    , nrows);
     plotKey->addItem(item2, row, col + 1, ncols);
   }
   else {
     auto *item = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+
+    item->setId(QString("%1,%2").arg(row).arg(col));
 
     plotKey->addItem(item, row, col, nrows, ncols);
   }
@@ -7871,8 +7879,9 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   CQPerfTrace trace("CQChartsCmds::connectChartsSignalCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
   argv.endCmdGroup();
 
   argv.addCmdArg("-from", CQChartsCmdArg::Type::String, "from connection name");
@@ -7885,8 +7894,9 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
+  CQChartsView*       view       = nullptr;
+  CQChartsPlot*       plot       = nullptr;
+  CQChartsAnnotation* annotation = nullptr;
 
   if      (argv.hasParseArg("view")) {
     QString viewName = argv.getParseStr("view");
@@ -7902,6 +7912,12 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
 
     view = plot->view();
   }
+  else if (argv.hasParseArg("annotation")) {
+    QString annotationName = argv.getParseStr("annotation");
+
+    annotation = getAnnotationByName(annotationName);
+    if (! annotation) return false;
+  }
 
   //---
 
@@ -7909,66 +7925,86 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   QString toName   = argv.getParseStr("to"  );
 
   auto createCmdsSlot = [&]() {
-    return new CQChartsCmdsSlot(this, view, plot, toName);
+    return new CQChartsCmdsSlot(this, view, plot, annotation, toName);
   };
 
-  if      (fromName == "objIdPressed") {
-    if      (plot)
-      connect(plot, SIGNAL(objIdPressed(const QString &)),
-              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
-    else if (view)
+  if      (view) {
+    if      (fromName == "objIdPressed") {
       connect(view, SIGNAL(objIdPressed(const QString &)),
               createCmdsSlot(), SLOT(objIdPressed(const QString &)));
-    else
-      return errorMsg("plot or view required for slot '" + fromName + "'");
-  }
-  else if (fromName == "annotationIdPressed") {
-    if      (plot)
-      connect(plot, SIGNAL(annotationIdPressed(const QString &)),
-              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
-    else if (view)
+    }
+    else if (fromName == "annotationIdPressed") {
       connect(view, SIGNAL(annotationIdPressed(const QString &)),
               createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
-    else
-      return errorMsg("plot or view required for slot '" + fromName + "'");
-  }
-  else if (fromName == "plotObjsAdded") {
-    if (plot)
-      connect(plot, SIGNAL(plotObjsAdded()), createCmdsSlot(), SLOT(plotObjsAdded()));
-    else
-      return errorMsg("plot required for slot '" + fromName + "'");
-  }
-  else if (fromName == "selectionChanged") {
-    if      (plot)
-      connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
-    else if (view)
+    }
+    else if (fromName == "selectionChanged") {
       connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
-    else
-      return errorMsg("plot or view required for slot '" + fromName + "'");
-  }
-  else if (fromName == "themeChanged") {
-    connect(charts_, SIGNAL(themeChanged()), createCmdsSlot(),
-            SLOT(themeChanged()));
-  }
-  else if (fromName == "interfaceThemeChanged") {
-    connect(charts_, SIGNAL(interfaceThemeChanged()),
-            createCmdsSlot(), SLOT(interfaceThemeChanged()));
-  }
-  else if (fromName == "?") {
-    QStringList names;
+    }
+    else if (fromName == "?") {
+      QStringList names = QStringList() <<
+        "objIdPressed" << "annotationIdPressed" << "selectionChanged";
 
-    if      (plot)
-      names = QStringList() << "objIdPressed" << "annotationIdPressed" <<
-                               "plotObjsAdded" << "selectionChanged";
-    else if (view)
-      names = QStringList() << "objIdPressed" << "annotationIdPressed" << "selectionChanged";
+      return cmdBase_->setCmdRc(names);
+    }
     else
-      names = QStringList() << "themeChanged" << "interfaceThemeChanged";
-
-    return cmdBase_->setCmdRc(names);
+      return errorMsg("unknown slot");
   }
-  else
-    return errorMsg("unknown slot");
+  else if (plot) {
+    if      (fromName == "objIdPressed") {
+      connect(plot, SIGNAL(objIdPressed(const QString &)),
+              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
+    }
+    else if (fromName == "annotationIdPressed") {
+      connect(plot, SIGNAL(annotationIdPressed(const QString &)),
+              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+    }
+    else if (fromName == "plotObjsAdded") {
+      connect(plot, SIGNAL(plotObjsAdded()), createCmdsSlot(), SLOT(plotObjsAdded()));
+    }
+    else if (fromName == "selectionChanged") {
+      connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+    }
+    else if (fromName == "?") {
+      QStringList names = QStringList() <<
+        "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged";
+
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("unknown slot");
+  }
+  else if (annotation) {
+    if      (fromName == "annotationIdPressed") {
+      connect(annotation, SIGNAL(pressed(const QString &)),
+              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+    }
+    else if (fromName == "?") {
+      QStringList names = QStringList() <<
+        "annotationIdPressed";
+
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("unknown slot");
+  }
+  else {
+    if      (fromName == "themeChanged") {
+      connect(charts_, SIGNAL(themeChanged()), createCmdsSlot(),
+              SLOT(themeChanged()));
+    }
+    else if (fromName == "interfaceThemeChanged") {
+      connect(charts_, SIGNAL(interfaceThemeChanged()),
+              createCmdsSlot(), SLOT(interfaceThemeChanged()));
+    }
+    else if (fromName == "?") {
+      QStringList names = QStringList() <<
+        "themeChanged" << "interfaceThemeChanged";
+
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("unknown slot");
+  }
 
   return true;
 }

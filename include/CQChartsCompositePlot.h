@@ -43,7 +43,9 @@ class CQChartsCompositePlot;
 class CQChartsCompositePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CompositeType compositeType READ compositeType WRITE setCompositeType)
+  Q_PROPERTY(CompositeType compositeType READ compositeType  WRITE setCompositeType)
+  Q_PROPERTY(bool          commonXRange  READ isCommonXRange WRITE setCommonXRange )
+  Q_PROPERTY(bool          commonYRange  READ isCommonYRange WRITE setCommonYRange )
 
   Q_ENUMS(CompositeType);
 
@@ -64,6 +66,14 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   const CompositeType &compositeType() const { return compositeType_; }
   void setCompositeType(const CompositeType &t);
+
+  bool isCommonXRange() const { return commonXRange_; }
+  void setCommonXRange(bool b);
+
+  bool isCommonYRange() const { return commonYRange_; }
+  void setCommonYRange(bool b);
+
+  //---
 
   void addPlot(CQChartsPlot *plot);
 
@@ -155,6 +165,8 @@ class CQChartsCompositePlot : public CQChartsPlot {
   Plots         plots_;
   CQChartsPlot* currentPlot_   { nullptr };
   CompositeType compositeType_ { CompositeType::NONE };
+  bool          commonXRange_  { true };
+  bool          commonYRange_  { true };
 };
 
 #endif

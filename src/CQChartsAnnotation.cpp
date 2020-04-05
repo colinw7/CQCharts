@@ -538,10 +538,12 @@ interpColor(const CQChartsColor &c, const ColorInd &ind) const
 
 bool
 CQChartsAnnotation::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   if (! isEnabled())
     return false;
+
+  emit pressed(id());
 
   return id().length();
 }
@@ -3445,8 +3447,9 @@ propertyId() const
 
 void
 CQChartsAxisAnnotation::
-setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
+  bbox_ = bbox;
 }
 
 bool
@@ -3492,6 +3495,10 @@ draw(CQChartsPaintDevice *device)
   //---
 
   drawTerm(device);
+
+  //--
+
+  bbox_ = axis_->bbox();
 }
 
 void
@@ -3581,8 +3588,9 @@ propertyId() const
 
 void
 CQChartsKeyAnnotation::
-setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
+  bbox_ = bbox;
 }
 
 bool
@@ -3590,6 +3598,33 @@ CQChartsKeyAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
   return bbox().inside(p);
+}
+
+bool
+CQChartsKeyAnnotation::
+selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
+{
+  if (key_->selectPress(w, selMod)) {
+    emit pressed(QString("%1:%2").arg(id()).arg(key_->id()));
+    return true;
+  }
+
+  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+
+  if (plotKey->contains(w)) {
+    CQChartsKeyItem *item = plotKey->getItemAt(w);
+
+    if (item) {
+      bool handled = item->selectPress(w, selMod);
+
+      if (handled) {
+        emit pressed(QString("%1:%2:%3").arg(id()).arg(key_->id()).arg(item->id()));
+        return true;
+      }
+    }
+  }
+
+  return CQChartsAnnotation::selectPress(w, selMod);
 }
 
 void
@@ -3628,6 +3663,10 @@ draw(CQChartsPaintDevice *device)
   //---
 
   drawTerm(device);
+
+  //---
+
+  bbox_ = key_->bbox();
 }
 
 void
