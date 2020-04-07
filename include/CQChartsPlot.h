@@ -704,8 +704,11 @@ class CQChartsPlot : public CQChartsObj,
   bool isTabbed(bool checkVisible=true) const;
   void setTabbed(bool b, bool notify=true);
 
+  const CQChartsGeom::BBox &tabRect() const { return connectData_.tabRect; }
+  void setTabRect(const CQChartsGeom::BBox &rect) { connectData_.tabRect = rect; }
+
   bool isCurrent() const { return connectData_.current; }
-  void setCurrent(bool b) { connectData_.current = b; }
+  void setCurrent(bool b, bool notify=false);
 
   QString connectionStateStr() const;
 
@@ -2209,6 +2212,10 @@ class CQChartsPlot : public CQChartsObj,
 
   // connection (x1x2, y1y2, overlay) changed
   void connectDataChanged();
+
+  // current connected plot changed
+  void currentPlotChanged(CQChartsPlot *plot);
+  void currentPlotIdChanged(const QString &id);
 
   // layers changed (active, valid)
   void layersChanged();

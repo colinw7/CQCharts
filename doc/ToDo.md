@@ -3,14 +3,20 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Model
+   + load model columns
+   + join on multiple columns
  + key
    + key grouping item (with layout)
    + more testing of key annotation and allow add items
-   + key annotation
    + Move to thread crash for key with scrollbar ?
    + Auto key placement (quad tree, all plots)
    + Should be able to create fully functional key from annotations
+     + press callback with enough information to show/hide data
    + more customization of key line item (others)
+     + symbol/line style. format
+   + more customization of color box item
+     + shape, rounded, ...
  + expand plot with click
  + tabbed
    + tab change callback

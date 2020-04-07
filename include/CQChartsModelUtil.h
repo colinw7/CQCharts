@@ -281,8 +281,21 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 
 namespace CQChartsModelUtil {
 
+struct FilterColumn {
+  QString filter;
+  int     column { -1 };
+
+  FilterColumn(const QString &filter, int column) :
+   filter(filter), column(column) {
+  }
+};
+
+using FilterColumns = std::vector<FilterColumn>;
+
 bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter,
                           QString &filter1, int &column);
+bool decodeModelFilterStrs(const QAbstractItemModel *model, const QString &filter,
+                           FilterColumns &filterColumns);
 
 }
 

@@ -2079,6 +2079,18 @@ setTabbed(bool b, bool notify)
 
 void
 CQChartsPlot::
+setCurrent(bool b, bool notify)
+{
+  connectData_.current = b;
+
+  if (notify) {
+    emit currentPlotChanged(this);
+    emit currentPlotIdChanged(id());
+  }
+}
+
+void
+CQChartsPlot::
 setNextPlot(CQChartsPlot *plot, bool notify)
 {
   assert(plot != this && ! connectData_.next);
@@ -2240,14 +2252,15 @@ cycleNextPlot()
   if (! plot)
     plot = firstPlot();
 
-  plot->setCurrent(false);
+  plot->setCurrent(false, /*notify*/false);
 
   plot = plot->nextPlot();
 
   if (! plot)
     plot = firstPlot();
 
-  plot->setCurrent(true);
+  plot->setCurrent(true, /*notify*/true);
+
   plot->updateRangeAndObjs();
 }
 
@@ -2267,14 +2280,15 @@ cyclePrevPlot()
   if (! plot)
     plot = lastPlot();
 
-  plot->setCurrent(false);
+  plot->setCurrent(false, /*notify*/false);
 
   plot = plot->prevPlot();
 
   if (! plot)
     plot = lastPlot();
 
-  plot->setCurrent(true);
+  plot->setCurrent(true, /*notify*/true);
+
   plot->updateRangeAndObjs();
 }
 
@@ -5054,7 +5068,9 @@ tabbedSelectPress(const CQChartsGeom::Point &w, SelMod)
   if (! pressPlot) return false;
 
   for (auto &plot : plots)
-    plot->setCurrent(plot == pressPlot);
+    plot->setCurrent(false, /*notify*/false);
+
+  pressPlot->setCurrent(true, /*notify*/true);
 
   pressPlot->updateRangeAndObjs();
 
@@ -5066,7 +5082,7 @@ CQChartsPlot::
 tabbedPressPlot(const CQChartsGeom::Point &w, Plots &plots) const
 {
   for (const auto &plot : plots) {
-    if (plot->connectData_.tabRect.inside(w)) {
+    if (plot->tabRect().inside(w)) {
       if (! plot->isCurrent())
         return plot;
     }
@@ -7968,7 +7984,7 @@ drawTabs(CQChartsPaintDevice *device, const Plots &plots) const
   CQChartsPlot *currentPlot = nullptr;
 
   for (auto &plot : plots) {
-    if (plot->connectData_.current) {
+    if (plot->isCurrent()) {
       currentPlot = plot;
       break;
     }
@@ -8029,11 +8045,11 @@ drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentP
 
     CQChartsGeom::BBox prect(px, py, px + ptw1, py + tabData_.pth);
 
-    plot->connectData_.tabRect = pixelToWindow(prect);
+    plot->setTabRect(pixelToWindow(prect));
 
-    drawTab(plot->connectData_.tabRect, plot == currentPlot);
+    drawTab(plot->tabRect(), plot == currentPlot);
 
-    drawText(plot->connectData_.tabRect, plot->calcName(), plot == currentPlot);
+    drawText(plot->tabRect(), plot->calcName(), plot == currentPlot);
 
     px += ptw1;
   }

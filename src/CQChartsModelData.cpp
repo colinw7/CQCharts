@@ -1590,15 +1590,32 @@ copy(const CopyData &copyData)
 
 QAbstractItemModel *
 CQChartsModelData::
-join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
+join(CQChartsModelData *joinModelData, const Columns &joinColumns)
 {
+  if (joinColumns.empty())
+    return nullptr;
+
+  //--
+
   auto *details = this->details();
 
   int nc = details->numColumns();
   int nr = details->numRows();
 
-  if (joinColumn.column() < 0 || joinColumn.column() >= nc)
-    return nullptr;
+  //---
+
+  using ColumnSet = std::set<int>;
+
+  ColumnSet columnSet;
+
+  for (const auto &joinColumn : joinColumns) {
+    int ijoinColumn = joinColumn.column();
+
+    if (ijoinColumn < 0 || ijoinColumn >= nc)
+      return nullptr;
+
+    columnSet.insert(ijoinColumn);
+  }
 
   //---
 
@@ -1617,13 +1634,21 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
 
   //---
 
-  // get name of join column
+  // get name of join column(s)
   bool ok;
 
-  QString columnName = CQChartsModelUtil::modelHeaderString(model, joinColumn, ok);
+  QStringList columnNames;
+
+  for (const auto &joinColumn : joinColumns) {
+    QString columnName = CQChartsModelUtil::modelHeaderString(model, joinColumn, ok);
+
+    columnNames.push_back(columnName);
+  }
+
+  //---
 
   // find column with matching name in join model
-  int ijoinColumn = -1;
+  ColumnSet joinColumnSet;
 
   for (int ic = 0; ic < joinNc; ++ic) {
     CQChartsColumn c(ic);
@@ -1632,50 +1657,71 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
 
     QString joinColumnName = CQChartsModelUtil::modelHeaderString(joinModel, c, ok);
 
-    if (joinColumnName == columnName) {
-      ijoinColumn = ic;
-      break;
-    }
+    if (columnNames.contains(joinColumnName))
+      joinColumnSet.insert(ic);
   }
 
-  if (ijoinColumn < 0)
+  if (joinColumnSet.size() != joinColumns.size())
     return nullptr;
 
   //---
 
-  // build map of join column variant to row
+  auto encodeVariantList = [&](const QVariantList &vars) {
+    if (vars.size() == 1)
+      return vars[0];
+
+    QStringList strs;
+
+    for (const auto &var : vars)
+      strs.push_back(var.toString());
+
+    return QVariant(strs.join(":"));
+  };
+
+  //---
+
+  // build map of join columns variant/name to row
   using VariantRowMap = std::map<QVariant,int>;
 
   VariantRowMap variantRowMap;
 
   for (int r = 0; r < joinNr; ++r) {
-    QModelIndex ind1 = joinModel->index(r, ijoinColumn);
+    QVariantList vars;
 
-    QVariant var = joinModel->data(ind1, Qt::EditRole);
+    for (const auto &ijoinColumn : joinColumnSet) {
+      QModelIndex ind1 = joinModel->index(r, ijoinColumn);
 
-    if (! var.isValid())
-      var = joinModel->data(ind1, Qt::DisplayRole);
+      QVariant var = joinModel->data(ind1, Qt::EditRole);
+
+      if (! var.isValid())
+        var = joinModel->data(ind1, Qt::DisplayRole);
+
+      vars.push_back(var);
+    }
+
+    QVariant var = encodeVariantList(vars);
 
     variantRowMap[var] = r;
   }
 
   //---
 
-  auto *dataModel = new CQDataModel(nc + joinNc - 1, nr);
+  auto *dataModel = new CQDataModel(nc + joinNc - joinColumns.size(), nr);
 
   //---
 
   // copy model data
   for (int r = 0; r < nr; ++r) {
-    QVariant joinVar;
+    // add model column data and generate join key
+    QVariantList joinVars;
 
     for (int ic = 0; ic < nc; ++ic) {
       QModelIndex ind1 = model->index(r, ic);
 
       QVariant var = model->data(ind1);
 
-      if (ic == joinColumn.column())
-        joinVar = var;
+      if (columnSet.find(ic) != columnSet.end())
+        joinVars.push_back(var);
 
       if (var.isValid()) {
         QModelIndex ind2 = dataModel->index(r, ic);
@@ -1684,32 +1730,42 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
       }
     }
 
+    QVariant joinVar = encodeVariantList(joinVars);
+
+    //---
+
+    // get matching row in join model for key
     auto p = variantRowMap.find(joinVar);
 
-    if (p != variantRowMap.end()) {
-      int joinRow = (*p).second;
+    if (p == variantRowMap.end())
+      continue;
 
-      int c1 = nc;
+    int joinRow = (*p).second;
 
-      for (int ic = 0; ic < joinNc; ++ic) {
-        if (ijoinColumn == ic)
-          continue;
+    //---
 
-        QModelIndex ind1 = joinModel->index(joinRow, ic);
+    // add join module column values for matching row
+    int c1 = nc;
 
-        QVariant var = joinModel->data(ind1, Qt::EditRole);
+    for (int ic = 0; ic < joinNc; ++ic) {
+      // skip join columns
+      if (joinColumnSet.find(ic) != joinColumnSet.end())
+        continue;
 
-        if (! var.isValid())
-          var = joinModel->data(ind1, Qt::DisplayRole);
+      QModelIndex ind1 = joinModel->index(joinRow, ic);
 
-        if (var.isValid()) {
-          QModelIndex ind2 = dataModel->index(r, c1);
+      QVariant var = joinModel->data(ind1, Qt::EditRole);
 
-          dataModel->setData(ind2, var);
-        }
+      if (! var.isValid())
+        var = joinModel->data(ind1, Qt::DisplayRole);
 
-        ++c1;
+      if (var.isValid()) {
+        QModelIndex ind2 = dataModel->index(r, c1);
+
+        dataModel->setData(ind2, var);
       }
+
+      ++c1;
     }
   }
 
@@ -1721,7 +1777,8 @@ join(CQChartsModelData *joinModelData, const CQChartsColumn &joinColumn)
   int c1 = nc;
 
   for (int ic = 0; ic < joinNc; ++ic) {
-    if (ijoinColumn == ic)
+    // skip join columns
+    if (joinColumnSet.find(ic) != joinColumnSet.end())
       continue;
 
     joinModelData->copyColumnHeaderRoles(dataModel, ic, c1);

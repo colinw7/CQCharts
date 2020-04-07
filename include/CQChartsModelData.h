@@ -2,6 +2,7 @@
 #define CQChartsModelData_H
 
 #include <CQChartsModelTypes.h>
+#include <CQChartsColumn.h>
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>
@@ -16,7 +17,6 @@ class CQFoldedModel;
 #endif
 class CQSummaryModel;
 class CQPropertyViewModel;
-class CQChartsColumn;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -37,7 +37,8 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
  public:
-  using ModelP = QSharedPointer<QAbstractItemModel>;
+  using ModelP  = QSharedPointer<QAbstractItemModel>;
+  using Columns = std::vector<CQChartsColumn>;
 
 #ifdef CQCHARTS_FOLDED_MODEL
   using FoldedModels = std::vector<CQFoldedModel *>;
@@ -214,7 +215,7 @@ class CQChartsModelData : public QObject {
 
   QAbstractItemModel *copy(const CopyData &copyData);
 
-  QAbstractItemModel *join(CQChartsModelData *joinModel, const CQChartsColumn &joinColumn);
+  QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinColumns);
 
   void copyHeaderRoles(QAbstractItemModel *toModel) const;
 

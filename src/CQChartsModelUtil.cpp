@@ -2043,6 +2043,31 @@ bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter
   return true;
 }
 
+bool decodeModelFilterStrs(const QAbstractItemModel *model, const QString &filter,
+                           FilterColumns &filterColumns) {
+  assert(model);
+
+  if (! filter.length())
+    return false;
+
+  QStringList strs = filter.split(' ', QString::SkipEmptyParts);
+
+  for (auto &str : strs) {
+    QString filter;
+    int     column = -1;
+
+    if (! decodeModelFilterStr(model, str, filter, column))
+      continue;
+
+    filterColumns.push_back(FilterColumn(filter, column));
+  }
+
+  if (filterColumns.empty())
+    return false;
+
+  return true;
+}
+
 }
 
 //------

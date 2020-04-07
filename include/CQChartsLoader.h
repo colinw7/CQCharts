@@ -7,6 +7,7 @@
 
 class CQCharts;
 class CQChartsFilterModel;
+class CQChartsModelFilter;
 
 struct CQChartsInputData;
 
@@ -39,6 +40,9 @@ class CQChartsLoader {
   CQChartsFilterModel *createTclModel(const CQChartsInputData &inputData);
 
   CQChartsFilterModel *createCorrelationModel(QAbstractItemModel *model, bool flip=false);
+
+ private:
+  void setFilter(CQChartsModelFilter *model, const CQChartsInputData &inputData);
 
  private:
   CQCharts* charts_ { nullptr };

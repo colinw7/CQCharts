@@ -269,6 +269,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of expression rows");
   argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maximum number of file rows");
   argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-filter_type", CQChartsCmdArg::Type::String , "filter expression type");
   argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
   argv.addCmdArg("-name"       , CQChartsCmdArg::Type::String , "name for model");
 
@@ -343,6 +344,21 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
     inputData.maxRows = std::max(argv.getParseInt("max_rows"), 1);
 
   inputData.filter = argv.getParseStr("filter");
+
+  if (argv.hasParseArg("filter_type")) {
+    QString filterTypeStr = argv.getParseStr("filter_type").toLower();
+
+    if      (filterTypeStr == "expression")
+      inputData.filterType = CQChartsFilterModelType::EXPRESSION;
+    else if (filterTypeStr == "regexp")
+      inputData.filterType = CQChartsFilterModelType::REGEXP;
+    else if (filterTypeStr == "wildcard")
+      inputData.filterType = CQChartsFilterModelType::WILDCARD;
+    else if (filterTypeStr == "simple")
+      inputData.filterType = CQChartsFilterModelType::SIMPLE;
+    else
+      return errorMsg("Invalid filter type '" + filterTypeStr + "'");
+  }
 
   QStringList columnTypes = argv.getParseStrs("column_type");
 
@@ -2841,7 +2857,7 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
 
 //------
 
-// join models to create net model
+// join models to create new model
 bool
 CQChartsCmds::
 joinChartsModelCmd(CQChartsCmdArgs &argv)
@@ -2917,12 +2933,15 @@ joinChartsModelCmd(CQChartsCmdArgs &argv)
     columns.push_back(column);
   }
 
-  if (columns.size() != 1)
-    return errorMsg("Need one column to join");
+  if (columns.size() < 1)
+    return errorMsg("Need one or more column to join");
 
   //---
 
-  auto newModel = modelDatas[0]->join(modelDatas[1], columns[0]);
+  auto *newModel = modelDatas[0]->join(modelDatas[1], columns);
+
+  if (! newModel)
+    return errorMsg("Join failed");
 
   ModelP newModelP(newModel);
 

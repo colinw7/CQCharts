@@ -152,8 +152,9 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
     return nullptr;
   }
 
-  if (inputData.filter.length())
-    csv->setSimpleFilter(inputData.filter);
+  //---
+
+  setFilter(csv, inputData);
 
   return csv;
 }
@@ -177,15 +178,16 @@ loadTsv(const QString &filename, const CQChartsInputData &inputData)
     return nullptr;
   }
 
-  if (inputData.filter.length())
-    tsv->setSimpleFilter(inputData.filter);
+  //---
+
+  setFilter(tsv, inputData);
 
   return tsv;
 }
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadJson(const QString &filename, const CQChartsInputData &)
+loadJson(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadJson");
 
@@ -197,6 +199,10 @@ loadJson(const QString &filename, const CQChartsInputData &)
     delete json;
     return nullptr;
   }
+
+  //---
+
+  setFilter(json, inputData);
 
   return json;
 }
@@ -220,8 +226,9 @@ loadData(const QString &filename, const CQChartsInputData &inputData)
     return nullptr;
   }
 
-  if (inputData.filter.length())
-    data->setSimpleFilter(inputData.filter);
+  //---
+
+  setFilter(data, inputData);
 
   return data;
 }
@@ -243,6 +250,10 @@ createExprModel(int n)
   }
 
   auto *data = new CQChartsFilterModel(charts_, dataModel);
+
+  //---
+
+  //setFilter(data, inputData);
 
   return data;
 }
@@ -423,6 +434,10 @@ createVarsModel(const CQChartsInputData &inputData)
 
   varsModel->setVarNames(varNames);
 
+  //---
+
+  //setFilter(filterModel, inputData);
+
   return filterModel;
 }
 
@@ -528,6 +543,10 @@ createTclModel(const CQChartsInputData &inputData)
     }
   }
 
+  //---
+
+  //setFilter(filterModel, inputData);
+
   return filterModel;
 }
 
@@ -623,5 +642,26 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     }
   }
 
+  //---
+
+  //setFilter(filterModel, inputData);
+
   return filterModel;
+}
+
+void
+CQChartsLoader::
+setFilter(CQChartsModelFilter *model, const CQChartsInputData &inputData)
+{
+  if (! inputData.filter.length())
+    return;
+
+  if      (inputData.filterType == CQChartsModelFilterData::Type::EXPRESSION)
+    model->setExpressionFilter(inputData.filter);
+  else if (inputData.filterType == CQChartsModelFilterData::Type::REGEXP)
+    model->setRegExpFilter(inputData.filter);
+  else if (inputData.filterType == CQChartsModelFilterData::Type::WILDCARD)
+    model->setWildcardFilter(inputData.filter);
+  else if (inputData.filterType == CQChartsModelFilterData::Type::SIMPLE)
+    model->setSimpleFilter(inputData.filter);
 }

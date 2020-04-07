@@ -827,10 +827,15 @@ void
 CQChartsCompositePlot::
 setCurrentPlot(CQChartsPlot *currentPlot)
 {
-  for (auto &plot : plots_)
-    plot->setCurrent(plot == currentPlot);
+  if (currentPlot != currentPlot_) {
+    for (auto &plot : plots_)
+      plot->setCurrent(plot == currentPlot);
 
-  currentPlot_ = currentPlot;
+    currentPlot_ = currentPlot;
+
+    emit currentPlotChanged(currentPlot_);
+    emit currentPlotIdChanged(currentPlot_ ? currentPlot_->id() : "");
+  }
 }
 
 int

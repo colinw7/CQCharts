@@ -63,4 +63,12 @@ enum class CQChartsColorType {
   Y_VALUE
 };
 
+enum class CQChartsFilterModelType {
+  EXPRESSION,
+  REGEXP,
+  WILDCARD,
+  SIMPLE,
+  SELECTED
+};
+
 #endif

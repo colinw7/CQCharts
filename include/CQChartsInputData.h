@@ -1,6 +1,7 @@
 #ifndef CQChartsInputData_H
 #define CQChartsInputData_H
 
+#include <CQChartsTypes.h>
 #include <QVariant>
 #include <QString>
 #include <vector>
@@ -10,7 +11,8 @@
  * \ingroup Charts
  */
 struct CQChartsInputData {
-  using Values = std::vector<QVariant>;
+  using Values     = std::vector<QVariant>;
+  using FilterType = CQChartsFilterModelType;
 
   bool        commentHeader     { false }; //!< horizontal header comes from first comment line
   bool        firstLineHeader   { false }; //!< horizontal header comes from first line
@@ -20,10 +22,13 @@ struct CQChartsInputData {
   QStringList columns;                     //!< specific input column names/numbers
   int         numRows           { 100 };   //!< number of rows to generate with tcl expression
   int         maxRows           { -1 };    //!< maximum number of rows to read from file
-  QString     filter;                      //!< tcl expression filter
-  QString     fold;                        //!< fold definition for folded model
-  QString     sort;                        //!< arguments for model sort
-  Values      vars;                        //!< tcl variables to read data from
+
+  FilterType  filterType { FilterType::SIMPLE }; //!< filter type
+  QString     filter;                            //!< tcl expression filter
+
+  QString     fold; //!< fold definition for folded model
+  QString     sort; //!< arguments for model sort
+  Values      vars; //!< tcl variables to read data from
 };
 
 #endif

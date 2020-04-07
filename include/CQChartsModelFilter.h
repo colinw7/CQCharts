@@ -2,6 +2,7 @@
 #define CQChartsModelFilter_H
 
 #include <CQChartsRegExp.h>
+#include <CQChartsTypes.h>
 
 #include <QObject>
 #include <QSortFilterProxyModel>
@@ -20,21 +21,14 @@ class QItemSelectionModel;
  */
 class CQChartsModelFilterData {
  public:
-  enum class Type {
-    EXPRESSION,
-    REGEXP,
-    WILDCARD,
-    SIMPLE,
-    SELECTED
-  };
-
   using ColumnFilterMap = std::map<int,CQChartsRegExp>;
+  using Type            = CQChartsFilterModelType;
 
  public:
   CQChartsModelFilterData() { }
 
   const Type &type() const { return type_; }
-  void setType(const Type &v) { type_ = v; }
+  void setType(const Type &t) { type_ = t; }
 
   const QString &filter() const { return filter_; }
   void setFilter(const QString &filter) { filter_ = filter; }
@@ -68,16 +62,11 @@ class CQChartsModelFilterData {
   void setFilterExpr(const QString &filter) { filterExpr_ = filter; }
 
   QString details() const {
-    if      (type_ == Type::EXPRESSION)
-      return filter_;
-    else if (type_ == Type::REGEXP)
-      return filter_;
-    else if (type_ == Type::SIMPLE)
-      return filter_;
-    else if (type_ == Type::SELECTED)
-      return "selected";
-    else
-      return "";
+    if      (type_ == Type::EXPRESSION) return filter_;
+    else if (type_ == Type::REGEXP    ) return filter_;
+    else if (type_ == Type::SIMPLE    ) return filter_;
+    else if (type_ == Type::SELECTED  ) return "selected";
+    else                                return "";
   }
 
  private:
@@ -114,7 +103,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
     OR
   };
 
-  using Type = CQChartsModelFilterData::Type;
+  using Type = CQChartsFilterModelType;
 
  public:
   CQChartsModelFilter(CQCharts *charts);
