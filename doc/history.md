@@ -1,24 +1,24 @@
-## 8/6/2017 ##
+## 08/06/2017 ##
  + Improve Integral Axis
  + Add Plot Objects
  + Parallel Plot
  + Add TSV support
  + Stacked XY Plot
-## 8/13/2017 ##
+## 08/13/2017 ##
  + Add Key
  + Add Axis Labels
  + Add ToolTip
  + Add Zoom/Pan
-## 8/16/2017 ##
+## 08/16/2017 ##
  + Add Geometry Plot
  + Add Filtering to Table
-## 8/20/2017 ##
+## 08/20/2017 ##
  + Allow multiple plots per window
  + Add Adjacency Plot
  + Add Delaunay/Veronoi Plot
  + Add Value for Geometry Plot
  + Allow Click of Key to show/hide data
-## 8/27/2017 ##
+## 08/27/2017 ##
  + Add objects to Adjacency Plot
  + Allow axis to be placed on left/right top/bottom
  + Add Bubble Plot/Hier Bubble Plot
@@ -26,19 +26,19 @@
  + Support output format for time type
  + Fix key init position
  + Add probe line
-## 9/3/2017 ##
+## 09/03/2017 ##
  + Add auto fit for margins
  + Allow key outside
  + Add line symbols for key
  + Add Tree Map
  + Add title object
  + Improve symbols
-## 9/5/2017 ##
+## 09/05/2017 ##
  + improve axis properties
  + allow grid draw front/back
  + fix axis column update
  + split view widgets to separate files
-## 9/10/2017
+## 09/10/2017
  + Add types for real, integer, string
  + Key above/below
  + Support zoom on data (with overlay plot)
@@ -47,53 +47,53 @@
  + Add border individual side drawing
  + Support NaN values
  + Add objects for Sunburst plot
-## 9/12/2017
+## 09/12/2017
  + Add more bar chart customization : fill/stroke/data label
  + Allow key of multiple bar chart sets to show sets or values
  + Clip title
  + Draw key above or below
  + Improve handling of overlapped/linked plots
-## 9/13/2017
+## 09/13/2017
  + Add more border properties
  + Add grid fill
  + Use key background for disabled fade
  + draw faded key in xy plot
-## 9/17/2017
+## 09/17/2017
  + Extra data label customization
  + new CQPropertyView with search/filter support
  + Add key to box plot
  + Title on all plots
-## 9/24/2017
+## 09/24/2017
  + Add plot type manager
  + Add plot type parameters
  + Reduce dependencies
  + Add data labels for geometry plot
-## 9/27/2017
+## 09/27/2017
  + horizontal bar chart
-## 10/1/2017
+## 10/01/2017
  + fix memory leaks
  + improve adjacency fit
  + support rotated axis tick labels
  + support pie labels outside plot (> 1.0)
-## 10/2/2017
+## 10/02/2017
  + add point label, symbol, color
  + support different key label
  + don't shown non-integer minor ticks for integer axis
  + add pie chart start angle
  + ensure pie chart labels are rendered on top
  + support set of property from command line args
-## 10/3/2017
+## 10/03/2017
  + add factory to plot type
  + add create dialog
  + remove some name specific code to use plot type mgr
-## 10/4/2017
+## 10/04/2017
  + improve create dialog
  + remove old create widgets
  + cleanup argument syntax
-## 10/5/2017
+## 10/05/2017
  + improve handling of identical x values in bar chart of box plot
  + more options in create dialog
-## 10/8/2017
+## 10/08/2017
  + Track views by name
  + Improve model ownership tracking
  + Allow auto hide of overlapping tick labels
@@ -119,15 +119,15 @@
  + Add impulse lines
  + Add fill under position
  + Reduce exported dependencies
-## 11/5/2017
+## 11/05/2017
  + Add support for selection (select to/from view)
  + Add distibution plot
  + Update view dependencies so view uses property model and gradient palette and window uses
    property tree and gradient canvas/control
-## 11/8/2017
+## 11/08/2017
  + Improve tree map coloring and borders
  + Improve cross selection
-## 11/9/2017
+## 11/09/2017
  + Fix hier bubble and tree map hier selection
 ## 11/12/2017
  + Import and Rename some classes to reduce dependencies
@@ -225,7 +225,7 @@
  + Delay plot update on property change to speed up multiple changes
  + Add Trie to ValueSet to auto generate string groups
  + Support multiple selection on distribution plot push
-## 1/1/2018
+## 01/01/2018
  + Support name based connections in model for adjacency plot 
  + Support name based connections in model for chord plot 
  + Add annotation bbox to chord plot for better fit
@@ -233,7 +233,7 @@
  + More style config for delaunay plot
  + Fix zoom for overlay plots
  + Add pos feedback in zoom mode and fix rubber band point order
-## 1/7/2018
+## 01/07/2018
  + Support color column for hierarchical plots
  + Improve auto coloring of hierarchical and bubble plot
  + Add Hierarchical Scatter Plot
@@ -241,12 +241,12 @@
  + Add push/pop and multiple root support to sunburst plot
  + Remove click zoom - always use push/pop
  + Add Hier Plot base type with support for multiple name columns
-## 1/8/2018
+## 01/08/2018
  + Handle zero/negative size and sizes in hierarchical plots
  + Handle sizes on hierarchical nodes in hierarchical plots
  + Fix bad colorValueSet range color
  + Order inside objects by area
-## 1/10/2018
+## 01/10/2018
  + Improve tip text for hier plots
  + Add more symbol display properties for scatter plot
  + Fix data label alignment when box is horizontal
@@ -254,25 +254,25 @@
  + Improve check for integer/real columns
  + Add theme class and allow reset to default theme
  + Add theme palette to view settings
-## 1/14/2018
+## 01/14/2018
  + Add Folded Model
  + Support model visitor to better support hierarchical input data
  + Call addParameters from plot type register
  + Add simple filter support to CQChartsModelFilter (multi column wildcards)
  + Tree map has control for header max area usage before hidden
  + Test proc supports folded model and table/tree switching
-# 1/21/2018
+# 01/21/2018
  + Support grouping by hierarchy in bar chart and pie chart
  + Cleanup duplicate code in bar chart
  + Move common model data method to CQChartsModelFilter
  + Add named value sets
  + Add more palettes to gradient and allow selection
-# 1/23/2018
+# 01/23/2018
  + Add common code for radial text
  + Add auto format text to fit rect
  + Add scatter plot symbol size key (wip)
  + Ensure skip empty root when drawing tree map
-# 1/28/2018
+# 01/28/2018
  + Add support for view key (wip)
  + Fix margin on horizontal bar chart
  + Support angle extent in pie chart
@@ -281,7 +281,7 @@
  + Add support for ceil as interface language in test exec
  + support row headers in csv loader
  + Move filter for csv/tsv loaded to base class
-# 2/4/2018
+# 02/04/2018
  + Use vistor class for more model data processing for common row handling
  + Improve axis bbox calc for invert x/y
  + Add percent and range (min, max value) to bar chart
@@ -298,14 +298,14 @@
  + Support thousands format for numbers
  + Add context menu to view position text for value type
  + Cleanup duplicate code in xy plot
-# 2/4/2018
+# 02/04/2018
  + Add Bar Chart Menu Items
  + More Visitor usage
  + Support From/To format for Force Directed nodes
  + Support Vertical Probe Lines
-# 2/7/2018
+# 02/07/2018
  + Use visitor in more plot types
-# 2/11/2018
+# 02/11/2018
  + Add drag handles for plot, title, key and axis
  + More visitor usage
  + vector support in xy plot
@@ -314,13 +314,13 @@
  + Support export CSV/TSV from table
  + Edit uses left mouse instead of middle mouse
  + Allow generate model with variables as columns
-# 2/18/2018
+# 02/18/2018
  + rename CQChartsPaletteColor to CQChartsColor
  + Add rect, ellipse, poly, text and point annotation
  + Remove FillObj, LineObj, PointObj. Use data struectures
  + Use CQChartsLength for more property widths
  + Support object cross select from property view
-# 2/25/2018
+# 02/25/2018
  + Use CQChartsColumn class for all column values to support model columns, expression columns
    and vertical header columns
  + Improve usage of Column Type so columns with custom value types (rect, polygon, color)
@@ -335,14 +335,14 @@
  + Support scaled font in hier bubble plot
  + Support first column header in CSV reader
  + Support polyline annotation
-# 3/4/2018
+# 03/04/2018
  + Use testAndSet in more code
  + Add Path and Style columbn types to support SVG geometry
  + Update default palette
-# 4/21/2018
+# 04/21/2018
  + make plot model data access virtual
  + add edit move using cursor keys
-# 5/6/2018
+# 05/06/2018
  + support annotations on view
  + support bar chart log value
  + support theme number in color spec
@@ -355,7 +355,7 @@
  + better size limits on expander
  + support xy impulse as box as well as line
  + rename commands for clearer usage and add more get/set support
-# 5/9/2018
+# 05/09/2018
  + support align for text annotation
  + cache models from commands in charts instance
  + allow key to be optionally clipped
@@ -363,7 +363,7 @@
  + add grid to pie chart
  + make grid in radar plot optional
  + update command names and support model id
-# 5/13/2018
+# 05/13/2018
  + allow looking model details from model
  + add remap function for model process
  + add num_unique and map support to model column details
@@ -371,19 +371,19 @@
  + support color column real value for scatter plot
  + add name to role and role support on cli commands
  + make gui display optional when getting model details
-# 5/19/2018
+# 05/19/2018
  + Add export to CSV/TSV
  + Support Tcl in CLI and process expression
  + More standard command arg processing
-# 5/20/2018
+# 05/20/2018
  + Cleanup tcl support code
  + Fix some memory leaks
-# 5/21/2018
+# 05/21/2018
  + export to file
  + remove get_view/set_view commands
  + add measure_text command
  + use tcl::mathfunc for model expressions
-# 5/28/2018
+# 05/28/2018
  + add attributes to column parameters and use to improve plot dialog input
  + move interface palette to separate structure and separate tab in view settings
  + init group supports auto group by row number
@@ -399,22 +399,22 @@
  + preview file and analyze contents in load dialog for easier loading
  + combine set_theme/set_palette and get_theme/get_palette commands
  + improve expression model operators to allow header type and type to be set
-# 5/29/2018
+# 05/29/2018
  + add tips to some parameters
  + support auto set of format from model in plot dialog
  + move some plot properties in hierarchy
  + rename range property to rangeBar in bar chart (duplicate name)
  + move file load and analyze to separate file
-# 5/30/2018
+# 05/30/2018
  + more CQChartsHierPlot to separate file
  + add max rows for preview plot
-# 6/4/2018
+# 06/04/2018
  + add support for current model data and current view to charts class
  + allow disable auto range for distribution plot for string keys
  + move load model code to Loader class
  + Add tcl support for CQChartsModelExprMatch
  + Add missing object names for widgets
-# 6/10/2018
+# 06/10/2018
  + use single getSelectIndices API for plot object for cross selection
  + fix invert x/y axis drawing for x1x2 y1y1
  + add alpha for box plot lines and update property names
@@ -426,25 +426,25 @@
  + add median calculation into column details and get data command
  + add unique value and unique value counts to column details
  + auto select plot when plot object selected
-# 6/10/2018
+# 06/10/2018
  + move fold code into CQChartsModelData
  + add model dialog (to replace main window one)
  + add column editor
  + add more locks to obj tree
-# 6/11/2018
+# 06/11/2018
  + distribution plot use range label for middle axis label placement
  + add annotation bbox for image plot
  + update filter model class names
  + more cleanup of model list/control class/dialog
  + Add random indices to summary model
-# 6/12/2018
+# 06/12/2018
  + add sorting to summary model
-# 6/13/2018
+# 06/13/2018
  + Remove CQChartsModelP
  + support idColumn cross selecton for all plots
  + Fix create plot dialog column check to include column arrays
  + Speed up random row selection in summary model
-# 6/17/2018
+# 06/17/2018
  + Add more plot type parameters for axes, key, title support, log support, description
  + Improve value lookup for group value in hier column
  + Better box plot when single value in range
@@ -452,20 +452,20 @@
  + Support fold and collapse commands
  + Use CQBucketer class in distributon plot and bucket model function
  + Always store time values as doubles in model (convert values when format set)
-# 6/19/2018
+# 06/19/2018
  + Add raw values for box plot
  + Add support for rol in column definition
  + Allow transpose of list order in tcl loader
  + Add parameter groups
  + Cache converted column type in mode
-# 6/20/2018
+# 06/20/2018
  + add plot method to get model index and cleanup unused model pointer variables
  + update plot dialog to layout widgets in parameter groups
  + improve box plot with precalculated values in rows
-# 6/21/2018
+# 06/21/2018
  + cleanup handling of column role
  + clear data model cache when type changes
-# 6/24/2018
+# 06/24/2018
  + Add more plot type descriptions
  + Order plot types in dialog using new dimension and hierarchical properties
  + Add pan by bar width support for bar and distribution plots
@@ -474,7 +474,7 @@
  + Add pages to summary model and support in plot dialog
  + Make symbol a variant and use in plot properties
  + Support cached converted and formatted values in data model
-# 7/01/2018
+# 07/01/2018
  + draw grid lines between ticks for bar chart groups
  + make new plot base class for grouping of row/column data
  + support horizontal box plot bars
@@ -484,7 +484,7 @@
  + add integer plot parameter types and improved editor for required values
  + add more parameter groups
  + skip unsupported items from plot context menu
-# 7/08/2018
+# 07/08/2018
  + support length units for symbols
  + improve auto fit so pixel sized objects too big to fit are ignored
  + add bar plot base class for bar type plots
@@ -495,30 +495,30 @@
  + support query of plot object properties and get associated inds from tcl
  + add x/y axis label user overrides
  + add more descriptions
-# 7/09/2018
+# 07/09/2018
  + enable plot model filter
  + support column name in filter expression
  + improve grouping for scatter plot
  + add best fit for scatter plot points
-# 7/14/2018
+# 07/14/2018
  + add plot layer buffering for faster repaint
  + remove cexpr/ceil (support only tcl)
-# 7/15/2018
+# 07/15/2018
  + add density plot
  + support associated group for column
  + support custom symbol type in scatter plot
-# 7/16/2018
+# 07/16/2018
  + add mean line to density
  + buffer plots to actual pixel size
  + reduce redraws on drag
-# 7/18/2018
+# 07/18/2018
  + add optional normalized and jitter points to box plot
  + don't store value ref in CQChartsBarChartObj
  + add bar chart and distribution plot object properties 
  + update current plot in view setting when changed in view
-# 7/19/2018
+# 07/19/2018
  + Merge CQChartsExprModel and CQExprModel classes
-# 7/22/2018
+# 07/22/2018
  + Add indices for box plot jitter symbols
  + Add dot lines and rug support for distribution plot. Improve mean line
  + Add rug support for scatter plot
@@ -527,13 +527,13 @@
  + fix issue in Tcl_Obj real value to variant
  + Improve layer handling for mouse over and selection
  + Add layers to view settings
-# 7/25/2018
+# 07/25/2018
  + Add dot lines to bar chart
  + Add support for sub values of column e.g. month from time value
  + Calc density range and use for better draw. Support denisty group offset
  + Support gradient fill for density
  + Add lines/point to xy context menu
-# 7/29/2018
+# 07/29/2018
  + All symbol sizes use length units
  + Add stacked, side-by side for group distribution bars
  + Add scatter for group distribution values
@@ -542,10 +542,10 @@
  + Allow remove of palette defined color
  + Speed up isHierarchical test (limit rows checked)
  + Add Inside X/Y to Key menu
-# 7/31/2018
+# 07/31/2018
  + improve draw order or overlay plots with buffered layers
  + fix inside symbol outline
-# 8/05/2018
+# 08/05/2018
  + emit signal on plot object load to allow annotations to be build from existing objects
  + support plot object load signal in tcl
  + improve inside test for annotations
@@ -561,27 +561,27 @@
  + support named column values in expression model processing
  + add scatter best fit deviation bar
  + add scatter convext hull
-# 8/06/2018
+# 08/06/2018
  + mouse over for annotations
-# 8/09/2018
+# 08/09/2018
  + add density and whisker x/y axis annotations
-# 8/12/2018
+# 08/12/2018
  + add optional bars to distribution density plot
  + cleanup pen/brush set code
-# 8/19/2018
+# 08/19/2018
  + Support units for annotation position/size
  + Add custom expr tcl procs
  + Add annotations to pie plot box
  + Fix scale/offset for overlay plots
  + Add grid to scatter plot
  + Add best fit to xy plot
-# 8/26/2018
+# 08/26/2018
  + Use CRTP classes to factor out graphics customization duplicated code
  + Use CInterval for axis major ticks and bucketer
  + Move fill pattern into class
  + Add density map for scatter plot
  + Fix parallel plot mouse over
-# 9/2/2018
+# 09/02/2018
  + Support auto font scaling based on plot pixel size
  + Cleanup more pen/brush handling
  + Add interface interp color support
@@ -590,7 +590,7 @@
  + Support group column for xy plot
  + Add Sub Layout support to minimize number of image layers
  + Support pixmap or image for layer
-# 9/2/2018
+# 09/02/2018
  + fix bad tooltip for first bar of grouped barchart
  + show color value in barchart tooltip
  + add scale function to expr model
@@ -604,9 +604,9 @@
  + use unique id/name as fallback for scatter plot with non-numeric columns
  + support #{name} to column number in expression
  + add subset_model and transpose_model commands
-# 9/3/2018
+# 09/03/2018
  + add value row number to model visitor
-# 9/10/2018
+# 09/10/2018
  + Add column analyzer to select plots and associated columns drom data
  + Add polygon list, connection list and name pair types with variant and column type support
  + Support generic QObject in style macros and use in axes code for styling
@@ -615,24 +615,24 @@
  + Add tooltip to filter edit
  + Support And/Or for multiple filters
  + Support general tipColumn to supply tip string in model
-# 9/11/2018
+# 09/11/2018
  + Improve parameter details
  + Ensure required parameters are set in analyze model
  + Support discriminator parameters (one or another column required)
  + Improve fade of hidden key items
  + Support click key to show single value set
  + Add style macros to key
-# 9/12/2018
+# 09/12/2018
  + Fix tooltip for data values in scatter
-# 9/15/2018
+# 09/15/2018
  + Use single CRTP header for all object styling (view, plot, ...)
  + Use CQChartsColumns for all column arrays and properties
  + Add CQChartsKeyLocation meta type
  + Add CQChartsSides meta type
  + CQChartsFillUnderSide and CQChartsFillUnderPos meta types
-# 9/16/2018
+# 09/16/2018
  + Add inner margin support
-# 9/23/2018
+# 09/23/2018
  + add enum parameter
  + distribution plot use plot type and value type
  + add min/max for distribution value type
@@ -640,7 +640,7 @@
  + add query of plot types and parameters
  + Add theme type and dark options on view
  + Use style template for view background 
-# 9/30/2018
+# 09/30/2018
  + fix bar chart margins when stacked
  + add fold delta and count in model control
  + add fold clear in model control
@@ -722,7 +722,7 @@
  + Support symbol image buffer using environment variable
 # 12/29/2018
  + improve const correctness
-# 1/6/2019
+# 01/06/2019
  + add thread support for calc range, create objs and draw objs
  + create box plot outliers as separate interactive objects
  + support gap between pie chart segments
@@ -733,11 +733,11 @@
  + allow disable status bar widgets
  + more const correctness
  + fix bivariare xy line customization
-# 1/13/2019
+# 01/13/2019
  + Ensure column type cache works for non registered QAbstractModel data
  + Improve view key rendering and add to context menu
  + Fix redraw of dragged edited objects when threads active
-# 1/20/2019
+# 01/20/2019
  + Support line ends and connecting line width for xy vector/annotation arrow
  + improve handling of inside object/selected object in overlap plots
  + support fixed size view
@@ -746,7 +746,7 @@
  + support cycle select with F1 key
  + separate out cmd processing classes
  + resize property view on show
-# 2/3/2019
+# 02/03/2019
  + Add property editors for fill, stroke data types
  + Use shape type in updateObjPenBrushState
  + Add base class for line edit with widget menu
@@ -755,13 +755,13 @@
  + Allow show/select operation for key click
  + Support delta/count to draw selection of points in xy plot
  + Improve group handling for key in xy plot
-# 2/9/2019
+# 02/09/2019
  + add support for scrolling the plot key
  + support discrete palettes
  + improve support for optional types in properties
  + support modifiers in key show/select
  + add support for global title and column title in model
-# 2/10/2019
+# 02/10/2019
  + support meta data for text data structure
  + fix some issues for plot types with no data
  + fit no data object draw for multiple plots
@@ -772,85 +772,85 @@
  + use doxygen style for comments 
  + improve rect select when select triggers extra selection
  + add max rows and specified columns for CSV
-# 2/17/2019
+# 02/17/2019
  + Cleanup data line edit widgets
  + Support hidden property view items
  + Use CQChartsUtil::toInt, toReal and CQChartsVariant::toInt, toReal in all conversions
  + Support tcl list in commands
  + Add more doxygen comments
-# 2/24/2019
+# 02/24/2019
  + Add contrast text drawing for html text
  + Add Edit Dialog for Annotation, Title, Key and Axis
  + More Enum Editors
-# 3/2/2019
+# 03/02/2019
  + support html text in title
  + add edit context menu item in tree to show edit dialog
  + clean up edit dialogs to support tabs
-# 3/3/2019
+# 03/03/2019
  + Use separate property models for plots
-# 3/4/2019
+# 03/04/2019
  + add tcl selection callbacks, selection query and plot selection signals
-# 3/5/2019
+# 03/05/2019
  + add filter for plot properties
  + use CQLineEdit
-# 3/9/2019
+# 03/09/2019
  + Add shortcut key to show/hide property tree filter
  + Add dialog to edit single model
  + add horizontal scroll support to key
  + fix issues whe scrolled key has title
  + make pixel calculations for margins more stable
-# 3/17/2019
+# 03/17/2019
  + Add descriptions to properties
  + Support sub coloring of distribution bar with summed values
  + Fix box plot bar positioning with explicit x values
  + Add commands to create folded model, collapsed model, bucket model and stat model
-# 3/24/2019
+# 03/24/2019
  + cleanup pixelToWindow and windowToPixel conversions
-# 4/6/2019
+# 04/06/2019
  + Add more property descriptions
  + Get property list for view, plot, annotation in get_charts_data command
-# 4/7/2019
+# 04/07/2019
  + Add CQChartsFont to support inheritance
-# 4/15/2019
+# 04/15/2019
  + Add stats lines for xy and distribution plot
  + Add under/over flow buckets for distribution plot
  + Allow plot objects to be added to property tree
-# 4/21/2019
+# 04/21/2019
  + Cleanup description text
  + rename plot queue routines
-# 4/23/2019
+# 04/23/2019
  + Improve description text
  + Add better mouse feedback for distribution plot
-# 4/24/2019
+# 04/24/2019
  + Support defaultPalette for plot and view when palette number not specified
  + Fix edit of palette points
-# 4/25/2019
+# 04/25/2019
  + Add theme palette list editor
-# 4/28/2019
+# 04/28/2019
  + Support different color interpolation types (set, group, index, x/y value)
  + Use view/plot interpColor where appropriate
  + Improve view settings theme editor
  + Support auto maximize/restore using scrolled plots
  + Update get_charts_palette and set_charts_palette commands
-# 4/29/2019
+# 04/29/2019
  + Add Maximize/Restore for multiple plots
  + Add color type support to xy plot
  + Update select/inside fill color on theme change
-# 5/2/2019
+# 05/02/2019
  + Allow forced label tick positions
  + Cleanup distribution plot type/value/empty/percent combinations
-# 5/5/2019
+# 05/05/2019
  + Use ColorInd data for more plot objects and keys
  + Support plot x/y color stops to interpolate color from x/y value
-# 5/6/2019
+# 05/06/2019
  + ColorInd cleanup
  + Key Header and Text support more text properties
-# 5/12/2019
+# 05/12/2019
  + More ColorInd cleanup
  + Add more property description test
  + Rename some properties
  + Add user name for types and add to property view
-# 5/19/2019
+# 05/19/2019
  + Improve plot tip descriptions using new HTML builder class
  + Improve tip widget to allow expand/collapse
  + Add -properties to create_charts_annotation commands
@@ -864,58 +864,58 @@
  + Add more support for tip columns in plot object tooltip
  + Cleanup image style and options
  + More plot help descriptions
-# 5/28/2019
+# 05/28/2019
  + Fix missing axis swap code
  + Use tcl format for command arguments (column_type and properties)
  + Improve descriptions
-# 5/30/2019
+# 05/30/2019
  + Use tcl format for more column type for more code
  + Fix format for axes
-# 6/2/2019
+# 06/02/2019
  + Move gradient/theme classes and editors into new CQColors/CQColorsEdit classes
  + Support color value by interpolation and by index
  + Improve view/plot/annotation write
  + Support marking properties as style and allow show/hide style properties
  + Tcl parsing support for color definition
-# 6/8/2019
+# 06/08/2019
  + Update write code for mode input data and output annotation properties
  + Add safe user format from variant
  + Make some command options hidden
-# 6/10/2019
+# 06/10/2019
  + Fix interp Hsv issue with gray color
  + Show colors in table delegate
-# 6/17/2019
+# 06/17/2019
  + Improve write code
  + add mutex in tcl eval
-# 6/23/2019
+# 06/23/2019
  + add help dialog
  + improve clipping and handling of small text in hier bubble plot and sunburst plot
-# 6/30/2019
+# 06/30/2019
  + rename rect to rectangle
  + support size in tree map plot label
  + improve consistency between symbol fill and stroke shapes
-# 7/7/2019
+# 07/07/2019
  + Support select and edit of view annotations and key
  + Fix border sides drawing in box object
  + Remove unused CQChartsDisplayTransform
-# 7/16/2019
+# 07/16/2019
  + Add hidden parameters
-# 7/18/2019
+# 07/18/2019
  + Fix missing data in write plot
  + Tree map text rendering improvements
  + XY show vector even if no points
-# 7/21/2019
+# 07/21/2019
  + Improve conistency between xy and scatter plots
  + Support interp on xy smoothed line
  + Support images for xy and scatter symbols
-# 7/24/2019
+# 07/24/2019
  + improve draw of color, symbol, font and column editors
-# 7/28/2019
+# 07/28/2019
  + Add pivot model and plot
  + Support custom color/palette for coloring column background or barchart
-# 7/30/2019
+# 07/30/2019
  + Common code for CQChartsPlotObj model indices
-# 8/4/2019
+# 08/04/2019
  + Common code for drawing thin plot bars
  + Add image annotation and cleanup common code
  + Support checkable/checked for annotation
@@ -929,39 +929,39 @@
  + Add view layers to layers tab
  + Add tcl access to mouse data
  + Add tcl support for set hidden
-# 8/11/2019
+# 08/11/2019
  + Move model code to CQBaseModel/CQModelUtil
-# 8/12/2019
+# 08/12/2019
  + use CQTabSplit instead of CQDividedArea in plot/model dialog
  + add title to csv meta data
-# 8/15/2019
+# 08/15/2019
  + fix issues when making model writable
  + add access to model properties from tcl
-# 8/18/2019
+# 08/18/2019
  + support META comments in analyze file
  + support ENUM column type params
  + Add palette name meta type and editor
  + Add export model to csv with meta data
-# 8/22/2019
+# 08/22/2019
  + adjust const for no update
-# 8/25/2019
+# 08/25/2019
  + add rgb model support for CQChartsColor
  + add stops for table heatmap
-# 9/22/2019
+# 09/22/2019
  + add support for abstract painter
  + use painter to support writing plot to javascript
-# 9/24/2019
+# 09/24/2019
  + add support for different front/tail arrows
  + more javascript painter support
-# 9/28/2019
+# 09/28/2019
  + improve arrow rendering and inside test
-# 9/29/2019
+# 09/29/2019
  + add arrow type and update tcl command
-# 10/6/2019
+# 10/06/2019
  + add javascript support to more objects
  + improve shape intersect based on type
  + fix some rendering issues with coordinate switch
-# 10/9/2019
+# 10/09/2019
  + add table plot
 # 10/13/2019
  + add pie slice annotation
@@ -1092,3 +1092,8 @@
 # 04/05/2020
  + cleanup axis names for overlay/composite xy and scatter plots
  + add line key item for annotation
+# 04/12/2020
+ + add current plot property to composite plot and include in menu
+ + ensure plot object tree works in composite plot for mouse over
+ + add quick controls to view settings for specified columns and support in composite plot
+   + support visible filter for quick controls

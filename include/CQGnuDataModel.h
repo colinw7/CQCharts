@@ -32,12 +32,15 @@ class CQGnuDataModel : public CQDataModel {
 
   //---
 
+  //! get/set use first line comment for horizontal header
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }
 
+  //! get/set use first line as horizontal header
   bool isFirstLineHeader() const { return firstLineHeader_; }
   void setFirstLineHeader(bool b) { firstLineHeader_ = b; }
 
+  //! get/set use column for vertical header
   bool isFirstColumnHeader() const { return firstColumnHeader_; }
   void setFirstColumnHeader(bool b) { firstColumnHeader_ = b; }
 
@@ -68,6 +71,12 @@ class CQGnuDataModel : public CQDataModel {
 
   //---
 
+  //! get/set column names/numbers to read (also specifies order)
+  const QStringList &columns() const { return columns_; }
+  void setColumns(const QStringList &v) { columns_ = v; }
+
+  //---
+
   bool load(const QString &filename);
 
   //---
@@ -94,6 +103,7 @@ class CQGnuDataModel : public CQDataModel {
   int         setBlankLines_     { 2 };     //!< number of blank lines between sets
   int         subSetBlankLines_  { 1 };     //!< number of blank lines between sub sets
   bool        keepQuotes_        { false }; //!< key quotes for strings
+  QStringList columns_;                     //!< specific columns (and order)
   SetString   commentStrs_;                 //!< comment strings
   QStringList lines_;                       //!< file lines
   Set         set_;                         //!< set of sub sets of lines

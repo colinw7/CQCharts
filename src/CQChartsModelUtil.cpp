@@ -1249,7 +1249,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     QVariant var;
 
-    CQChartsExprTcl *qtcl = const_cast<CQChartsExprTcl *>(charts->currentExpr());
+    auto *qtcl = const_cast<CQChartsExprTcl *>(charts->currentExpr());
 
     if (! qtcl) {
       auto *eval = CQChartsColumnEvalInst;

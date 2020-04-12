@@ -155,7 +155,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
       if      (columnDetails->isMonotonic())
         xColumn = columnDetails->column();
-      else if (columnDetails->type() == CQBaseModelType::TIME)
+      else if (columnDetails->type() == ColumnType::TIME)
         xColumn = columnDetails->column();
       else if (! hasX && columnDetails->isNumeric())
         xColumn = columnDetails->column();
@@ -842,7 +842,7 @@ initAxes()
     xAxis()->setDefLabel(xname, /*notify*/false);
   }
 
-  if (xColumnType_ == CQBaseModelType::TIME)
+  if (xColumnType_ == ColumnType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 
   //---

@@ -998,9 +998,7 @@ QString timeToString(const QString &fmt, double r) {
   time_t t(r);
 
   struct tm *tm1 = localtime(&t);
-
-  if (! tm1)
-    return "<no_time>";
+  if (! tm1) return "<no_time>";
 
   (void) strftime(buffer, 512, fmt.toLatin1().constData(), tm1);
 
@@ -1011,9 +1009,7 @@ bool stringToTime(const QString &fmt, const QString &str, double &t) {
   struct tm tm1; memset(&tm1, 0, sizeof(tm));
 
   char *p = strptime(str.toLatin1().constData(), fmt.toLatin1().constData(), &tm1);
-
-  if (! p)
-    return false;
+  if (! p) return false;
 
   t = mktime(&tm1);
 

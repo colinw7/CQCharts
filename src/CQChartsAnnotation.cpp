@@ -3609,7 +3609,7 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
     return true;
   }
 
-  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+  auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey->contains(w)) {
     CQChartsKeyItem *item = plotKey->getItemAt(w);

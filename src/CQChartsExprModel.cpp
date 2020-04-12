@@ -1940,7 +1940,7 @@ scaleCmd(const Values &values) const
   CQChartsModelDetails *details = modelData->details();
   assert(details);
 
-  CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+  auto *columnDetails = details->columnDetails(column);
   assert(columnDetails);
 
   QVariant meanVar   = columnDetails->meanValue  (/*useNaN*/false);
@@ -2267,7 +2267,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
     CQChartsModelDetails *details = modelData->details();
     assert(details);
 
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+    auto *columnDetails = details->columnDetails(column);
     assert(columnDetails);
 
     columnTypeData.type       = columnDetails->type();
@@ -2281,12 +2281,12 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-  auto *rtypeData = dynamic_cast<const CQChartsColumnRealType    *>(typeData);
-  auto *itypeData = dynamic_cast<const CQChartsColumnIntegerType *>(typeData);
+  const auto *rtypeData = dynamic_cast<const CQChartsColumnRealType    *>(typeData);
+  const auto *itypeData = dynamic_cast<const CQChartsColumnIntegerType *>(typeData);
 
   if      (rtypeData) {
     if (! rtypeData->rmin(columnTypeData.nameValues, rmin)) {

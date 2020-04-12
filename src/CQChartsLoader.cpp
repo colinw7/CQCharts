@@ -173,6 +173,9 @@ loadTsv(const QString &filename, const CQChartsInputData &inputData)
   tsvModel->setFirstLineHeader  (inputData.firstLineHeader);
   tsvModel->setFirstColumnHeader(inputData.firstColumnHeader);
 
+  if (inputData.columns.length() > 0)
+    tsvModel->setColumns(inputData.columns);
+
   if (! tsvModel->load(filename)) {
     delete tsv;
     return nullptr;
@@ -220,6 +223,9 @@ loadData(const QString &filename, const CQChartsInputData &inputData)
   dataModel->setCommentHeader    (inputData.commentHeader);
   dataModel->setFirstLineHeader  (inputData.firstLineHeader);
   dataModel->setFirstColumnHeader(inputData.firstColumnHeader);
+
+  if (inputData.columns.length() > 0)
+    dataModel->setColumns(inputData.columns);
 
   if (! dataModel->load(filename)) {
     delete data;

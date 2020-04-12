@@ -453,8 +453,8 @@ CQChartsHierScatterPlot::
 addRowGroupValueSets(const ModelVisitor::VisitData &data) const
 {
   for (const auto &groupValueSet : groupValueSets_) {
-    CQChartsColumn    groupColumn = groupValueSet.first;
-    CQChartsValueSet *valueSet    = groupValueSet.second;
+    auto  groupColumn = groupValueSet.first;
+    auto *valueSet    = groupValueSet.second;
 
     CQChartsModelIndex groupModelInd(data.row, groupColumn, data.parent);
 
@@ -579,7 +579,7 @@ createObjs(PlotObjs &objs) const
 
   if (! currentGroup()->groups().empty()) {
     for (auto &igroup : currentGroup()->groups()) {
-      CQChartsHierScatterPointGroup *group = igroup.second;
+      auto *group = igroup.second;
 
       addGroupPoints(group, group, objs);
     }
@@ -663,7 +663,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
                CQChartsHierScatterPointGroup *group, PlotObjs &objs) const
 {
   for (auto &igroup : group->groups()) {
-    CQChartsHierScatterPointGroup *group1 = igroup.second;
+    auto *group1 = igroup.second;
 
     addGroupPoints(baseGroup, group1, objs);
   }
@@ -707,7 +707,7 @@ addKeyItems(CQChartsPlotKey *key)
   int n = group->numGroups();
 
   for (const auto &igroup : group->groups()) {
-    CQChartsHierScatterPointGroup *group = igroup.second;
+    auto *group = igroup.second;
 
     int i = group->i();
 

@@ -302,6 +302,11 @@ CQTabSplit.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
 \
+CQDoubleRangeSlider.cpp \
+CQIntRangeSlider.cpp \
+CQTimeRangeSlider.cpp \
+CQRangeSlider.cpp \
+\
 CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
 
@@ -594,6 +599,11 @@ HEADERS += \
 ../include/CQTabSplit.h \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
+\
+../include/CQDoubleRangeSlider.h \
+../include/CQIntRangeSlider.h \
+../include/CQTimeRangeSlider.h \
+../include/CQRangeSlider.h \
 \
 ../include/CUnixFile.h \
 \

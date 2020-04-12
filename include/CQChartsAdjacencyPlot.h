@@ -15,6 +15,9 @@
  */
 class CQChartsAdjacencyPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsAdjacencyPlotType();
 
   QString name() const override { return "adjacency"; }

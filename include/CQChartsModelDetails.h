@@ -106,7 +106,7 @@ class CQChartsModelDetails : public QObject {
  */
 class CQChartsModelColumnDetails {
  public:
-  using VariantList   = QList<QVariant>;
+  using ColumnType    = CQBaseModelType;
   using TableDrawType = CQChartsColumnType::DrawType;
 
  public:
@@ -126,11 +126,11 @@ class CQChartsModelColumnDetails {
 
   const CQChartsModelTypeData &typeData() const;
 
-  CQBaseModelType type() const;
-  void setType(CQBaseModelType type);
+  ColumnType type() const;
+  void setType(ColumnType type);
 
-  CQBaseModelType baseType() const;
-  void setBaseType(CQBaseModelType type);
+  ColumnType baseType() const;
+  void setBaseType(ColumnType type);
 
   const CQChartsNameValues &nameValues() const;
 
@@ -158,8 +158,8 @@ class CQChartsModelColumnDetails {
 
   int numUnique() const;
 
-  VariantList uniqueValues() const;
-  VariantList uniqueCounts() const;
+  QVariantList uniqueValues() const;
+  QVariantList uniqueCounts() const;
 
   int uniqueId(const QVariant &v) const;
 

@@ -1949,7 +1949,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         return var;
       }
       else {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+        auto *columnDetails = this->columnDetails(charts, model, column);
 
         if (! columnDetails)
           return var;
@@ -2030,7 +2030,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
@@ -2039,7 +2039,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
@@ -2208,7 +2208,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", map_min)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_min = CQChartsColumnUtil::varInteger(columnDetails->minValue(), map_min);
@@ -2217,7 +2217,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", map_max)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_max = CQChartsColumnUtil::varInteger(columnDetails->maxValue(), map_max);
@@ -2346,7 +2346,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
@@ -2355,7 +2355,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
@@ -2484,7 +2484,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
@@ -2493,7 +2493,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
     if (mapped) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+      auto *columnDetails = this->columnDetails(charts, model, column);
 
       if (columnDetails)
         map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);

@@ -183,9 +183,10 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  addProp("", "compositeType", "compositeType", "Composite Type");
-  addProp("", "commonXRange" , "commonXRange" , "Common X Range");
-  addProp("", "commonYRange" , "commonYRange" , "Common Y Range");
+  addProp("", "compositeType" , "compositeType", "Composite Type");
+  addProp("", "commonXRange"  , "commonXRange" , "Common X Range");
+  addProp("", "commonYRange"  , "commonYRange" , "Common Y Range");
+  addProp("", "currentPlotInd", "currentPlot"  , "Current Plot Index");
 
   addBaseProperties();
 }
@@ -249,6 +250,48 @@ createObjs(PlotObjs &) const
   }
 
   return true;
+}
+
+void
+CQChartsCompositePlot::
+clearPlotObjects()
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    plot->clearPlotObjects();
+  }
+
+  CQChartsPlot::clearPlotObjects();
+}
+
+void
+CQChartsCompositePlot::
+initPlotObjs()
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    plot->initPlotObjs();
+  }
+
+  CQChartsPlot::initPlotObjs();
+}
+
+void
+CQChartsCompositePlot::
+initObjTree()
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    plot->initObjTree();
+  }
+
+  CQChartsPlot::initObjTree();
 }
 
 CQChartsGeom::BBox
@@ -342,6 +385,20 @@ waitDraw()
   }
 
   CQChartsPlot::execWaitDraw();
+}
+
+void
+CQChartsCompositePlot::
+waitTree()
+{
+  for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
+    plot->execWaitTree();
+  }
+
+  CQChartsPlot::execWaitTree();
 }
 
 //---
@@ -657,7 +714,69 @@ addMenuItems(QMenu *menu)
       delete plotMenu;
   }
 
+  //--
+
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
+    auto *subMenu = new QMenu(name, menu);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  auto createActionGroup = [](QMenu *menu) {
+    return new QActionGroup(menu);
+  };
+
+  auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
+                                 const char *slotName) {
+    auto *menu = qobject_cast<QMenu *>(group->parent());
+
+    auto *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(checked);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+
+    group->addAction(action);
+
+    return action;
+  };
+
+  if (compositeType_ == CompositeType::NONE) {
+    QMenu *currentPlotMenu = addSubMenu(menu, "Current Plot");
+
+    auto *currentPlotGroup = createActionGroup(currentPlotMenu);
+
+    int ind = 0;
+
+    for (const auto &plot : plots_) {
+      auto *plotAction =
+        addGroupCheckAction(currentPlotGroup, plot->id(), false, SLOT(currentPlotSlot()));
+
+      plotAction->setChecked(plot == currentPlot());
+
+      plotAction->setData(ind++);
+    }
+
+    currentPlotMenu->addActions(currentPlotGroup->actions());
+  }
+
   return true;
+}
+
+void
+CQChartsCompositePlot::
+currentPlotSlot()
+{
+  auto *action = qobject_cast<QAction *>(sender());
+
+  bool ok;
+  int ind = (int) action->data().toInt(&ok);
+  if (! ok) return;
+
+  setCurrentPlot(childPlot(ind));
 }
 
 //------
@@ -833,6 +952,8 @@ setCurrentPlot(CQChartsPlot *currentPlot)
 
     currentPlot_ = currentPlot;
 
+    updateRange();
+
     emit currentPlotChanged(currentPlot_);
     emit currentPlotIdChanged(currentPlot_ ? currentPlot_->id() : "");
   }
@@ -859,4 +980,28 @@ CQChartsCompositePlot::
 numChildPlots() const
 {
   return plots_.size();
+}
+
+CQChartsPlot *
+CQChartsCompositePlot::
+childPlot(int i) const
+{
+  if (i < 0 || i >= int(plots_.size()))
+    return nullptr;
+
+  return plots_[i];
+}
+
+int
+CQChartsCompositePlot::
+currentPlotInd() const
+{
+  return childPlotIndex(currentPlot());
+}
+
+void
+CQChartsCompositePlot::
+setCurrentPlotInd(int i)
+{
+  setCurrentPlot(childPlot(i));
 }

@@ -93,6 +93,10 @@ class CQDataModel : public CQBaseModel {
 
   CQModelDetails *getDetails() const;
 
+  //---
+
+  void applyFilterColumns(const QStringList &columns);
+
  protected:
   struct FilterData {
     int     column { -1 };

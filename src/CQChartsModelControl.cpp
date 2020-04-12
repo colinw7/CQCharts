@@ -797,12 +797,21 @@ typeApplySlot()
 
   CQChartsColumn column(icolumn);
 
+  if (! column.isValid()) {
+    charts_->errorMsg("Invalid column");
+    return;
+  }
+
   //--
 
   QString nameStr = columnEditData_.nameEdit->text();
 
-  if (nameStr.length())
-    model->setHeaderData(icolumn, Qt::Horizontal, nameStr, Qt::DisplayRole);
+  if (nameStr.length()) {
+    if (! model->setHeaderData(icolumn, Qt::Horizontal, nameStr, Qt::DisplayRole)) {
+      charts_->errorMsg("Failed to set name");
+      return;
+    }
+  }
 
   //---
 
@@ -823,43 +832,53 @@ typeApplySlot()
 
   const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
-  if (typeData) {
-    CQChartsNameValues nameValues;
+  if (! typeData) {
+    charts_->errorMsg("Invalid column type '" + typeStr + "'");
+    return;
+  }
 
-    for (const auto &paramEdit : columnEditData_.paramEdits) {
-      QString name = paramEdit.label->text();
+  CQChartsNameValues nameValues;
 
-      const CQChartsColumnTypeParam *param = typeData->getParam(name);
-      if (! param) continue;
+  for (const auto &paramEdit : columnEditData_.paramEdits) {
+    QString name = paramEdit.label->text();
 
-      QString value;
+    const CQChartsColumnTypeParam *param = typeData->getParam(name);
 
-      if      (param->type() == CQBaseModelType::BOOLEAN) {
-        if (paramEdit.edit->type() == CQBaseModelType::BOOLEAN)
-          value = (paramEdit.edit->getBool() ? "1" : "0");
-      }
-      else if (param->type() == CQBaseModelType::INTEGER) {
-        if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
-          value = QString("%1").arg(paramEdit.edit->getInteger());
-      }
-      else if (param->type() == CQBaseModelType::ENUM) {
-        if (paramEdit.edit->type() == CQBaseModelType::ENUM)
-          value = paramEdit.edit->getEnum();
-      }
-      else if (param->type() == CQBaseModelType::COLOR) {
-        if (paramEdit.edit->type() == CQBaseModelType::COLOR)
-          value = paramEdit.edit->getColor();
-       }
-      else {
-        if (paramEdit.edit->type() == CQBaseModelType::STRING)
-          value = paramEdit.edit->getString();
-      }
-
-      if (value != "")
-        nameValues.setNameValue(name, value);
+    if (! param) {
+      charts_->errorMsg("Invalid parameter '" + name + "'");
+      return;
     }
 
-    columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
+    QString value;
+
+    if      (param->type() == CQBaseModelType::BOOLEAN) {
+      if (paramEdit.edit->type() == CQBaseModelType::BOOLEAN)
+        value = (paramEdit.edit->getBool() ? "1" : "0");
+    }
+    else if (param->type() == CQBaseModelType::INTEGER) {
+      if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
+        value = QString("%1").arg(paramEdit.edit->getInteger());
+    }
+    else if (param->type() == CQBaseModelType::ENUM) {
+      if (paramEdit.edit->type() == CQBaseModelType::ENUM)
+        value = paramEdit.edit->getEnum();
+    }
+    else if (param->type() == CQBaseModelType::COLOR) {
+      if (paramEdit.edit->type() == CQBaseModelType::COLOR)
+        value = paramEdit.edit->getColor();
+     }
+    else {
+      if (paramEdit.edit->type() == CQBaseModelType::STRING)
+        value = paramEdit.edit->getString();
+    }
+
+    if (value != "")
+      nameValues.setNameValue(name, value);
+  }
+
+  if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues)) {
+    charts_->errorMsg("Failed to set column data");
+    return;
   }
 
   //--
@@ -871,7 +890,10 @@ typeApplySlot()
   const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(headerColumnType);
 
   if (headerTypeData) {
-    columnTypeMgr->setModelHeaderType(model.data(), column, columnType);
+    if (! columnTypeMgr->setModelHeaderType(model.data(), column, columnType)) {
+      charts_->errorMsg("Failed to set header type");
+      return;
+    }
   }
 
   setColumnData(icolumn);

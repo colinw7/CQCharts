@@ -184,7 +184,7 @@ writeCSVModel(const QString &fileName)
   fs << "#META_DATA\n";
 
   for (int c = 0; c < nc; ++c) {
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
 
     QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
 
@@ -209,8 +209,8 @@ writeCSVModel(const QString &fileName)
 
     const CQChartsColor &drawColor = columnDetails->tableDrawColor();
 
-    CQChartsModelColumnDetails::TableDrawType tableDrawType  = columnDetails->tableDrawType();
-    CQChartsColorStops                        tableDrawStops = columnDetails->tableDrawStops();
+    auto::TableDrawType tableDrawType  = columnDetails->tableDrawType();
+    CQChartsColorStops  tableDrawStops = columnDetails->tableDrawStops();
 
     writeMetaColumnData("key", "1");
 
@@ -292,7 +292,7 @@ writeCSVModel(const QString &fileName)
 
       QVariant var;
 
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+      auto *columnDetails = details->columnDetails(CQChartsColumn(c));
 
       CQBaseModelType type = columnDetails->type();
 

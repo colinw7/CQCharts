@@ -37,7 +37,7 @@ class CQChartsExprTcl : public CQTcl {
     traceVar(name);
   }
 
-  QString encodeColumnName(const QString &name) {
+  static QString encodeColumnName(const QString &name) {
     assert(name.length());
 
     QString name1;

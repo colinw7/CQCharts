@@ -16,6 +16,9 @@ class CQChartsRotatedTextBoxObj;
  */
 class CQChartsChordPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsChordPlotType();
 
   QString name() const override { return "chord"; }

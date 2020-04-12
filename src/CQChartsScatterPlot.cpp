@@ -678,11 +678,11 @@ calcRange() const
 
         //---
 
-        if      (plot_->xColumnType() == CQBaseModelType::REAL ||
-                 plot_->xColumnType() == CQBaseModelType::INTEGER) {
+        if      (plot_->xColumnType() == ColumnType::REAL ||
+                 plot_->xColumnType() == ColumnType::INTEGER) {
           okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
         }
-        else if (plot_->xColumnType() == CQBaseModelType::TIME) {
+        else if (plot_->xColumnType() == ColumnType::TIME) {
           x = plot_->modelReal(xModelInd, okx);
         }
         else {
@@ -691,11 +691,11 @@ calcRange() const
 
         //---
 
-        if      (plot_->yColumnType() == CQBaseModelType::REAL ||
-                 plot_->yColumnType() == CQBaseModelType::INTEGER) {
+        if      (plot_->yColumnType() == ColumnType::REAL ||
+                 plot_->yColumnType() == ColumnType::INTEGER) {
           oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
         }
-        else if (plot_->yColumnType() == CQBaseModelType::TIME) {
+        else if (plot_->yColumnType() == ColumnType::TIME) {
           y = plot_->modelReal(yModelInd, oky);
         }
         else {
@@ -724,7 +724,7 @@ calcRange() const
       QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
+      auto *columnDetails = this->columnDetails(column);
 
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
@@ -770,7 +770,7 @@ calcRange() const
   if (dataRange.isSet()) {
     if (uniqueX || uniqueY) {
       if (uniqueX) {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(xColumn());
+        auto *columnDetails = this->columnDetails(xColumn());
 
         for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
           xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
@@ -780,7 +780,7 @@ calcRange() const
       }
 
       if (uniqueY) {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(yColumn());
+        auto *columnDetails = this->columnDetails(yColumn());
 
         for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
           yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
@@ -886,10 +886,10 @@ initAxes(bool uniqueX, bool uniqueY)
 
   //---
 
-  if (xColumnType_ == CQBaseModelType::TIME)
+  if (xColumnType_ == ColumnType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 
-  if (yColumnType_ == CQBaseModelType::TIME)
+  if (yColumnType_ == ColumnType::TIME)
     yAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 
   //---
@@ -1041,9 +1041,11 @@ addPointObjects(PlotObjs &objs) const
   int ig = 0;
   int ng = groupNameValues_.size();
 
-  if (ng <= 1 && parentPlot()) {
-    ig = parentPlot()->childPlotIndex(this);
-    ng = parentPlot()->numChildPlots();
+  if (! hasGroups) {
+    if (ng <= 1 && parentPlot()) {
+      ig = parentPlot()->childPlotIndex(this);
+      ng = parentPlot()->numChildPlots();
+    }
   }
 
   for (const auto &groupNameValue : groupNameValues_) {
@@ -1271,7 +1273,7 @@ addGridObjects(PlotObjs &objs) const
 
       //---
 
-      const CQChartsGridCell &cellPointData = pn.second;
+      const auto &cellPointData = pn.second;
 
       int maxN = cellPointData.maxN();
 
@@ -1279,8 +1281,8 @@ addGridObjects(PlotObjs &objs) const
         if (isInterrupt())
           break;
 
-        int                              ix      = px.first;
-        const CQChartsGridCell::YPoints &yPoints = px.second;
+        int         ix      = px.first;
+        const auto &yPoints = px.second;
 
         double xmin, xmax;
 
@@ -1290,8 +1292,8 @@ addGridObjects(PlotObjs &objs) const
           if (isInterrupt())
             break;
 
-          int                             iy     = py.first;
-          const CQChartsGridCell::Points &points = py.second;
+          int         iy     = py.first;
+          const auto &points = py.second;
 
           double ymin, ymax;
 
@@ -1348,11 +1350,11 @@ addNameValues() const
 
       //---
 
-      if      (plot_->xColumnType() == CQBaseModelType::REAL ||
-               plot_->xColumnType() == CQBaseModelType::INTEGER) {
+      if      (plot_->xColumnType() == ColumnType::REAL ||
+               plot_->xColumnType() == ColumnType::INTEGER) {
         okx = plot_->modelMappedReal(xModelInd, x, plot_->isLogX(), data.row);
       }
-      else if (plot_->xColumnType() == CQBaseModelType::TIME) {
+      else if (plot_->xColumnType() == ColumnType::TIME) {
         x = plot_->modelReal(xModelInd, okx);
       }
       else {
@@ -1361,11 +1363,11 @@ addNameValues() const
 
       //---
 
-      if      (plot_->yColumnType() == CQBaseModelType::REAL ||
-               plot_->yColumnType() == CQBaseModelType::INTEGER) {
+      if      (plot_->yColumnType() == ColumnType::REAL ||
+               plot_->yColumnType() == ColumnType::INTEGER) {
         oky = plot_->modelMappedReal(yModelInd, y, plot_->isLogY(), data.row);
       }
-      else if (plot_->yColumnType() == CQBaseModelType::TIME) {
+      else if (plot_->yColumnType() == ColumnType::TIME) {
         y = plot_->modelReal(yModelInd, oky);
       }
       else {
@@ -1426,7 +1428,7 @@ addNameValues() const
       QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
+      auto *columnDetails = this->columnDetails(column);
 
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
@@ -1471,7 +1473,7 @@ addNameValue(int groupInd, const QString &name, double x, double y, int row,
     if (pn == nameGridData.end())
       pn = nameGridData.insert(pn, NameGridData::value_type(name, gridData_));
 
-    CQChartsGridCell &cellPointData = (*pn).second;
+    auto &cellPointData = (*pn).second;
 
     cellPointData.addPoint(p);
 
@@ -1956,7 +1958,7 @@ drawBestFit(CQChartsPaintDevice *device) const
     auto pf = groupFitData_.find(groupInd);
     assert(pf != groupFitData_.end());
 
-    const CQChartsFitData &fitData = (*pf).second;
+    const auto &fitData = (*pf).second;
 
     //---
 
@@ -2152,7 +2154,7 @@ drawHull(CQChartsPaintDevice *device) const
 
       //---
 
-      CQChartsGrahamHull *hull = (*ph).second;
+      auto *hull = (*ph).second;
 
       const Points &points = th->groupPoints_[groupInd];
 
@@ -2166,7 +2168,7 @@ drawHull(CQChartsPaintDevice *device) const
       }
     }
 
-    const CQChartsGrahamHull *hull = (*ph).second;
+    const auto *hull = (*ph).second;
 
     //---
 
@@ -2252,7 +2254,7 @@ drawXDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawXDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2273,7 +2275,7 @@ drawXDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawXDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2304,7 +2306,7 @@ drawYDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawYDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2325,7 +2327,7 @@ drawYDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawYDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2478,7 +2480,7 @@ drawXWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawXWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2499,7 +2501,7 @@ drawXWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawXWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2530,7 +2532,7 @@ drawYWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawYWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2551,7 +2553,7 @@ drawYWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        CQChartsXYBoxWhisker *whiskerData = (*p).second;
+        auto *whiskerData = (*p).second;
 
         drawYWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
@@ -2648,7 +2650,7 @@ initWhiskerData() const
       pw = th->groupWhiskers_.insert(pw,
              GroupWhiskers::value_type(groupInd, new CQChartsXYBoxWhisker));
 
-    CQChartsXYBoxWhisker *whiskerData = (*pw).second;
+    auto *whiskerData = (*pw).second;
 
     //---
 
@@ -2705,7 +2707,7 @@ initWhiskerData() const
       pw = th->groupWhiskers_.insert(pw,
              GroupWhiskers::value_type(groupInd, new CQChartsXYBoxWhisker));
 
-    CQChartsXYBoxWhisker *whiskerData = (*pw).second;
+    auto *whiskerData = (*pw).second;
 
     //---
 
@@ -2952,7 +2954,7 @@ calcTipId() const
   auto p = (*pg).second.find(name_);
 
   if (p != (*pg).second.end()) {
-    const CQChartsScatterPlot::Values &values = (*p).second.values;
+    const auto &values = (*p).second.values;
 
     valuePoint = values[iv_.i];
   }

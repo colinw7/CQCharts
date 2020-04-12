@@ -584,7 +584,7 @@ calcTableSize() const
   for (int i = 0; i < tableData_.nc; ++i) {
     const CQChartsColumn &c = columns().getColumn(i);
 
-    CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+    auto *columnDetails = this->columnDetails(c);
     if (! columnDetails) continue;
 
     ColumnData &data = th->tableData_.columnDataMap[c];
@@ -1946,11 +1946,24 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  CQChartsColor textColor = plot_->textColor();
+
+  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column);
+
+  if (columnDetails) {
+    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
+
+    if (drawColor.isValid())
+      textColor = drawColor;
+  }
+
+  //---
+
   device->setFont(plot_->tableFont());
 
   QPen textPen;
 
-  plot_->setPen(textPen, true, plot_->interpColor(plot_->textColor(), ColorInd()),
+  plot_->setPen(textPen, true, plot_->interpColor(textColor, ColorInd()),
                 CQChartsAlpha(), 0.0, CQChartsLineDash());
 
   device->setPen(textPen);

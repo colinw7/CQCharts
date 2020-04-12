@@ -117,6 +117,9 @@ addParameters()
   addColumnParameter("image", "Image", "imageColumn").
    setTip("Row Image Column").setMapped();
 
+  addColumnsParameter("controls", "Controls", "controlColumns").
+    setString().setBasic().setTip("Control Columns");
+
   if (hasKey()) {
     addBoolParameter("key", "Key", "keyVisible", true).setTip("Show Key");
 
@@ -172,7 +175,7 @@ groupParameterGroups(int groupId) const
   ParameterGroups parameterGroups;
 
   for (auto &ig : parameterGroups_) {
-    CQChartsPlotParameterGroup *parameterGroup = ig.second;
+    auto *parameterGroup = ig.second;
 
     if (parameterGroup->parentGroupId() == groupId)
       parameterGroups.push_back(parameterGroup);

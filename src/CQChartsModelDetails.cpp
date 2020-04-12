@@ -86,7 +86,7 @@ columnDetails(const CQChartsColumn &c)
     p = columnDetails_.insert(p, ColumnDetails::value_type(c, details));
   }
 
-  CQChartsModelColumnDetails *details = (*p).second;
+  auto *details = (*p).second;
 
   return details;
 }
@@ -181,7 +181,7 @@ updateFull()
     updateSimple();
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
@@ -195,7 +195,7 @@ modelTypeChangedSlot(int modelInd)
 {
   if (data_ && data_->ind() == modelInd) {
     for (int c = 0; c < numColumns_; ++c) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
+      auto *columnDetails = this->columnDetails(CQChartsColumn(c));
 
       columnDetails->resetTypeInitialized();
     }
@@ -211,7 +211,7 @@ numericColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     if (columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -229,7 +229,7 @@ monotonicColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     if (columnDetails->isMonotonic())
       columns.addColumn(columnDetails->column());
@@ -719,13 +719,13 @@ numUnique() const
   }
 }
 
-CQChartsModelColumnDetails::VariantList
+QVariantList
 CQChartsModelColumnDetails::
 uniqueValues() const
 {
   initCache();
 
-  VariantList vars;
+  QVariantList vars;
 
   if      (type() == CQBaseModelType::INTEGER) {
     CQChartsIValues::Values values;
@@ -771,7 +771,7 @@ uniqueValues() const
   return vars;
 }
 
-CQChartsModelColumnDetails::VariantList
+QVariantList
 CQChartsModelColumnDetails::
 uniqueCounts() const
 {
@@ -795,7 +795,7 @@ uniqueCounts() const
     valueSet_->cvals().uniqueCounts(counts);
   }
 
-  VariantList vars;
+  QVariantList vars;
 
   for (const auto &c : counts)
     vars.push_back(c);
@@ -846,7 +846,7 @@ QVariant
 CQChartsModelColumnDetails::
 uniqueValue(int i) const
 {
-  VariantList uniqueValues = this->uniqueValues();
+  QVariantList uniqueValues = this->uniqueValues();
 
   if (i >= 0 && i < uniqueValues.size())
     return uniqueValues[i];

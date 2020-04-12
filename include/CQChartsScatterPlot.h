@@ -420,8 +420,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  CQBaseModelType xColumnType() const { return xColumnType_; }
-  CQBaseModelType yColumnType() const { return yColumnType_; }
+  ColumnType xColumnType() const { return xColumnType_; }
+  ColumnType yColumnType() const { return yColumnType_; }
 
   //---
 
@@ -751,8 +751,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   CQChartsColumn nameColumn_;  //!< name column
   CQChartsColumn labelColumn_; //!< label column
 
-  CQBaseModelType xColumnType_ { ColumnType::NONE }; //!< x column type
-  CQBaseModelType yColumnType_ { ColumnType::NONE }; //!< y column type
+  ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
+  ColumnType yColumnType_ { ColumnType::NONE }; //!< y column type
 
   // options
   PlotType plotType_ { PlotType::SYMBOLS }; //!< plot type

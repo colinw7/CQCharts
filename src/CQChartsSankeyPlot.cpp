@@ -92,7 +92,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
-    if (columnDetails->type() == CQBaseModelType::STRING) {
+    if (columnDetails->type() == ColumnType::STRING) {
       if (! linkColumn.isValid())
         linkColumn = columnDetails->column();
     }
@@ -375,7 +375,7 @@ createGraph(PlotObjs &objs) const
   DepthSizeMap  depthSizeMap;
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     int xpos = node->calcXPos();
 
@@ -421,7 +421,7 @@ createGraph(PlotObjs &objs) const
   //---
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     objs.push_back(node->obj());
   }
@@ -446,7 +446,7 @@ createNodes(const IndNodeMap &nodes) const
   double height = margin_*(int(nodes.size()) - 1);
 
   for (const auto &idNode : nodes) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     height += valueScale()*node->edgeSum();
   }
@@ -458,7 +458,7 @@ createNodes(const IndNodeMap &nodes) const
   double y1 = bbox_.getYMax() - (ys - height)/2.0;
 
   for (const auto &idNode : nodes) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     // draw src box
     double h = valueScale()*node->edgeSum();
@@ -523,7 +523,7 @@ updateMaxDepth() const
   int maxDepth = 0;
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
@@ -551,7 +551,7 @@ adjustNodes() const
   th->bbox_ = CQChartsGeom::BBox();
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     th->bbox_ += node->obj()->rect();
   }
@@ -585,7 +585,7 @@ initPosNodesMap()
   posNodesMap_ = PosNodesMap();
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     posNodesMap_[node->xpos()][node->ind()] = node;
   }
@@ -602,7 +602,7 @@ adjustNodeCenters()
     const IndNodeMap &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
-      CQChartsSankeyPlotNode *node = idNode.second;
+      auto *node = idNode.second;
 
       adjustNode(node);
     }
@@ -615,7 +615,7 @@ adjustNodeCenters()
     const IndNodeMap &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
-      CQChartsSankeyPlotNode *node = idNode.second;
+      auto *node = idNode.second;
 
       adjustNode(node);
     }
@@ -639,7 +639,7 @@ removeOverlaps() const
     PosNodeMap posNodeMap;
 
     for (const auto &idNode : indNodeMap) {
-      CQChartsSankeyPlotNode *node = idNode.second;
+      auto *node = idNode.second;
 
       const auto &rect = node->obj()->rect();
 
@@ -662,7 +662,7 @@ removeOverlaps() const
     CQChartsSankeyPlotNode *node1 = nullptr;
 
     for (const auto &posNode : posNodeMap) {
-      CQChartsSankeyPlotNode *node2 = posNode.second;
+      auto *node2 = posNode.second;
 
       if (node1) {
         const auto &rect1 = node1->obj()->rect();
@@ -686,7 +686,7 @@ removeOverlaps() const
         double dy = bbox_.getYMin() - rect1.getYMin();
 
         for (const auto &idNode : indNodeMap) {
-          CQChartsSankeyPlotNode *node = idNode.second;
+          auto *node = idNode.second;
 
           node->obj()->moveBy(CQChartsGeom::Point(0, dy));
         }
@@ -703,7 +703,7 @@ reorderNodeEdges() const
   using PosEdgeMap = std::map<double,CQChartsSankeyPlotEdge *>;
 
   for (const auto &idNode : indNodeMap_) {
-    CQChartsSankeyPlotNode *node = idNode.second;
+    auto *node = idNode.second;
 
     //---
 

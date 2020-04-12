@@ -71,13 +71,13 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   CQChartsColumns numericColumns;
 
   for (int c = 0; c < details->numColumns(); ++c) {
-    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
     if      (columnDetails->isNumeric()) {
       numericColumns.addColumn(columnDetails->column());
     }
-    else if (columnDetails->type() == CQBaseModelType::STRING) {
+    else if (columnDetails->type() == ColumnType::STRING) {
       if (! nameColumn.isValid())
         nameColumn = columnDetails->column();
     }

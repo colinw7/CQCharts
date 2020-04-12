@@ -175,7 +175,7 @@ updateSlot()
     columnNames << "Value";
 
     for (int c = 0; c < nc; ++c) {
-      const CQChartsModelColumnDetails *columnDetails = details_->columnDetails(CQChartsColumn(c));
+      const auto *columnDetails = details_->columnDetails(CQChartsColumn(c));
 
       columnNames << columnDetails->headerName();
     }
@@ -195,7 +195,7 @@ updateSlot()
   auto columnDetails = [&](int c, QString &nameStr, QString &typeStr, QString &minStr,
                            QString &maxStr, QString &meanStr, QString &stdDevStr,
                            QString &monoStr, QString &uniqueStr, QString &nullStr) {
-    const CQChartsModelColumnDetails *columnDetails = details_->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details_->columnDetails(CQChartsColumn(c));
 
     nameStr   = columnDetails->headerName();
     typeStr   = columnDetails->typeName();

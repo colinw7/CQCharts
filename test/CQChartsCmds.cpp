@@ -263,7 +263,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
                  "first column is vertical header");
 
   argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "separator char for csv");
-  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "column types");
+  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "columns to load");
   argv.addCmdArg("-transpose", CQChartsCmdArg::Type::Boolean, "transpose tcl data");
 
   argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of expression rows");
@@ -299,7 +299,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
     fileType = CQChartsFileType::VARS;
   }
-  else if (argv.hasParseArg ("tcl") ) {
+  else if (argv.hasParseArg("tcl") ) {
     QStringList strs = argv.getParseStrs("tcl");
 
     // { { <column_values> } { <column_values> } ... }

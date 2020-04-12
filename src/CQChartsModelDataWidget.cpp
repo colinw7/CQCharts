@@ -174,14 +174,20 @@ void
 CQChartsModelDataWidget::
 selectionChanged()
 {
+  std::set<int> columns;
+
 #ifdef CQCHARTS_MODEL_VIEW
+  QItemSelectionModel *sm = view_->selectionModel();
+
+  QModelIndexList inds = sm->selectedIndexes();
+
+  for (int i = 0; i < inds.length(); ++i)
+    columns.insert(inds[i].column());
 #else
   if      (tree_) {
   }
   else if (table_) {
     QItemSelectionModel *sm = table_->selectionModel();
-
-    std::set<int> columns;
 
     if      (table_->selectionBehavior() == QAbstractItemView::SelectColumns) {
       QModelIndexList inds = sm->selectedColumns();
@@ -198,14 +204,14 @@ selectionChanged()
       for (int i = 0; i < inds.length(); ++i)
         columns.insert(inds[i].column());
     }
-
-    if (columns.size() >= 1) {
-      int column = *columns.begin();
-
-      modelData_->setCurrentColumn(column);
-    }
   }
 #endif
+
+  if (columns.size() >= 1) {
+    int column = *columns.begin();
+
+    modelData_->setCurrentColumn(column);
+  }
 }
 
 void

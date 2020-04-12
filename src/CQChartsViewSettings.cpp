@@ -3,6 +3,7 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsGroupPlot.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQChartsLoadModelDlg.h>
@@ -21,6 +22,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
+#include <CQChartsExprTcl.h>
 
 #include <CQColorsEditCanvas.h>
 #include <CQColorsEditControl.h>
@@ -38,6 +40,10 @@
 #include <CQGroupBox.h>
 #include <CQToolTip.h>
 
+#include <CQDoubleRangeSlider.h>
+#include <CQIntRangeSlider.h>
+#include <CQTimeRangeSlider.h>
+
 #include <QHeaderView>
 #include <QSpinBox>
 #include <QRadioButton>
@@ -45,6 +51,7 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QLabel>
+#include <QButtonGroup>
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QFileDialog>
@@ -95,6 +102,7 @@ class CQChartsPlotTipLabel : public QLabel {
   QSize size_;
 };
 
+#if 0
 class CQChartsPlotTip : public CQToolTipIFace {
  public:
   CQChartsPlotTip() :
@@ -185,6 +193,7 @@ class CQChartsPlotTip : public CQToolTipIFace {
   CQChartsPlotTipLabel* widget_   { nullptr };
   bool                  expanded_ { false };
 };
+#endif
 
 //------
 
@@ -194,6 +203,8 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     setObjectName("modelTable");
 
     horizontalHeader()->setStretchLastSection(true);
+
+  //setSelectionMode(ExtendedSelection);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -267,7 +278,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
     horizontalHeader()->setStretchLastSection(true);
 
-    //setSelectionMode(ExtendedSelection);
+    setSelectionMode(ExtendedSelection);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -361,6 +372,8 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     horizontalHeader()->setStretchLastSection(true);
     verticalHeader()->setVisible(false);
 
+  //setSelectionMode(ExtendedSelection);
+
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
 
@@ -431,6 +444,8 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     horizontalHeader()->setStretchLastSection(true);
     verticalHeader()->setVisible(false);
 
+  //setSelectionMode(ExtendedSelection);
+
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
 
@@ -499,6 +514,8 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     setObjectName("viewLayerTable");
 
     horizontalHeader()->setStretchLastSection(true);
+
+  //setSelectionMode(ExtendedSelection);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -597,6 +614,8 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     setObjectName("plotLayerTable");
 
     horizontalHeader()->setStretchLastSection(true);
+
+  //setSelectionMode(ExtendedSelection);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -854,6 +873,8 @@ addWidgets()
 
   updateModelsData();
 
+  updatePlotControls();
+
   updateAnnotations();
 
   updateErrors();
@@ -980,10 +1001,48 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  int i1 = INT_MAX*0.4;
-  int i2 = INT_MAX - i1;
+  auto *controlFrame       = CQUtil::makeWidget<QFrame>("controlFrame");
+  auto *controlFrameLayout = CQUtil::makeLayout<QVBoxLayout>(controlFrame, 2, 2);
 
-  propertiesSplit->setSizes(QList<int>({i1, i2}));
+  propertiesSplit->addWidget(controlFrame, "Quick Control");
+
+  //--
+
+  auto *controlOptionsFrame  = CQUtil::makeWidget<QFrame>("controlOptionsFrame");
+  auto *controlOptionsLayout = CQUtil::makeLayout<QHBoxLayout>(controlOptionsFrame, 2, 2);
+
+  controlFrameLayout->addWidget(controlOptionsFrame);
+
+  controlWidgets_.equalCheck = CQUtil::makeLabelWidget<QCheckBox>("Equal", "equalCheck");
+  controlWidgets_.andCheck   = CQUtil::makeLabelWidget<QCheckBox>("And"  , "andCheck");
+
+  controlWidgets_.equalCheck->setChecked(true);
+  controlWidgets_.andCheck   ->setChecked(true);
+
+  connect(controlWidgets_.equalCheck, SIGNAL(stateChanged(int)),
+          this, SLOT(plotControlUpdateSlot()));
+  connect(controlWidgets_.andCheck, SIGNAL(stateChanged(int)),
+          this, SLOT(plotControlUpdateSlot()));
+
+  controlOptionsLayout->addWidget (controlWidgets_.equalCheck);
+  controlOptionsLayout->addWidget (controlWidgets_.andCheck);
+  controlOptionsLayout->addStretch(1);
+
+  controlWidgets_.area = CQUtil::makeWidget<QFrame>("controlArea");
+
+  controlFrameLayout->addWidget(controlWidgets_.area);
+
+  controlWidgets_.layout = new QGridLayout(controlWidgets_.area);
+
+  controlOptionsLayout->addStretch(1);
+
+  //---
+
+  int i1 = INT_MAX*0.4;
+  int i3 = INT_MAX*0.1;
+  int i2 = INT_MAX - i1 - i3;
+
+  propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
 }
 
 void
@@ -1352,6 +1411,8 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   auto *viewFrame       = CQUtil::makeWidget<QFrame>("viewFrame");
   auto *viewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
 
+  annotationsSplit->addWidget(viewFrame, "View");
+
   //--
 
   annotationsWidgets_.viewTable = new CQChartsViewSettingsViewAnnotationsTable;
@@ -1361,15 +1422,13 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   viewFrameLayout->addWidget(annotationsWidgets_.viewTable);
 
-  //--
-
-  annotationsSplit->addWidget(viewFrame, "View");
-
   //----
 
   // plot annotations
   auto *plotFrame       = CQUtil::makeWidget<QFrame>("plotFrame");
   auto *plotFrameLayout = CQUtil::makeLayout<QVBoxLayout>(plotFrame, 2, 2);
+
+  annotationsSplit->addWidget(plotFrame, "Plot");
 
   //--
 
@@ -1379,10 +1438,6 @@ initAnnotationsFrame(QFrame *annotationsFrame)
           this, SLOT(plotAnnotationSelectionChangeSlot()));
 
   plotFrameLayout->addWidget(annotationsWidgets_.plotTable);
-
-  //--
-
-  annotationsSplit->addWidget(plotFrame, "Plot");
 
   //----
 
@@ -2093,6 +2148,10 @@ updateCurrentPlot()
 
   //---
 
+  updatePlotControls();
+
+  //---
+
   updateAnnotations();
 
   updateLayers();
@@ -2404,6 +2463,317 @@ writePlotSlot()
     modelData->write(fs);
 
   plot->write(fs);
+}
+
+//------
+
+void
+CQChartsViewSettings::
+updatePlotControls()
+{
+  CQUtil::removeGridItems(controlWidgets_.layout, /*deleteWidgets*/true);
+
+  controlWidgets_.combos .clear();
+  controlWidgets_.sliders.clear();
+  controlWidgets_.radios .clear();
+
+  delete controlWidgets_.groupButtonGroup;
+
+  controlWidgets_.groupButtonGroup = new QButtonGroup(this);
+
+  controlWidgets_.groupButtonGroup->setExclusive(false);
+
+  //---
+
+  auto *view = window_->view();
+  assert(view);
+
+  auto *plot = view->currentPlot();
+  if (! plot) return;
+
+  //---
+
+  addPlotControls(plot);
+
+  int n = plot->numChildPlots();
+
+  for (int i = 0; i < n; ++i)
+    addPlotControls(plot->childPlot(i));
+
+  //---
+
+  controlWidgets_.layout->setColumnStretch(3, 1);
+}
+
+void
+CQChartsViewSettings::
+addPlotControls(CQChartsPlot *plot)
+{
+  CQChartsColumns columns = plot->controlColumns();
+
+  for (int ic = 0; ic < columns.count(); ++ic) {
+    const CQChartsColumn &column = columns.getColumn(ic);
+
+    auto *details = plot->columnDetails(column);
+    if (! details) continue;
+
+    bool ok;
+    QString header = plot->modelHHeaderString(columns.getColumn(ic), ok);
+    if (! ok) continue;
+
+    auto *label = CQUtil::makeLabelWidget<QLabel>(header, "label");
+
+    QComboBox*     combo  = nullptr;
+    CQRangeSlider* slider = nullptr;
+
+    if      (details->type() == CQBaseModelType::REAL) {
+      slider = CQUtil::makeWidget<CQDoubleRangeSlider>("slider");
+
+      slider->setProperty("header", header);
+    }
+    else if (details->type() == CQBaseModelType::INTEGER) {
+      slider = CQUtil::makeWidget<CQIntRangeSlider>("slider");
+
+      slider->setProperty("header", header);
+    }
+    else if (details->type() == CQBaseModelType::TIME) {
+      slider = CQUtil::makeWidget<CQTimeRangeSlider>("slider");
+
+      slider->setProperty("header", header);
+    }
+    else {
+      combo = CQUtil::makeWidget<QComboBox>("combo");
+
+      combo->setFixedWidth(QFontMetrics(combo->font()).width("XXXXXXXX"));
+    //combo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+
+      combo->setProperty("header", header);
+    }
+
+    auto *radio = CQUtil::makeLabelWidget<QRadioButton>("Group", "radio");
+
+    radio->setProperty("column", column.column());
+
+    controlWidgets_.groupButtonGroup->addButton(radio);
+
+    //---
+
+    if      (combo) {
+      combo->addItem("<any>");
+
+      QVariantList uniqueValues = details->uniqueValues();
+
+      for (const auto &value : uniqueValues) {
+        QString str = value.toString();
+        if (! str.length()) continue;
+
+        combo->addItem(str);
+      }
+    }
+    else if (slider) {
+      bool ok;
+
+      auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
+      auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
+      auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
+
+      if      (rslider) {
+        rslider->setRangeMin(details->minValue().toDouble(&ok));
+        rslider->setRangeMax(details->maxValue().toDouble(&ok));
+
+        rslider->setSliderMin(rslider->rangeMin());
+        rslider->setSliderMax(rslider->rangeMax());
+      }
+      else if (islider) {
+        islider->setRangeMin(details->minValue().toInt(&ok));
+        islider->setRangeMax(details->maxValue().toInt(&ok));
+
+        islider->setSliderMin(islider->rangeMin());
+        islider->setSliderMax(islider->rangeMax());
+      }
+      else if (tslider) {
+        tslider->setRangeMin(details->minValue().toDouble(&ok));
+        tslider->setRangeMax(details->maxValue().toDouble(&ok));
+
+        tslider->setSliderMin(tslider->rangeMin());
+        tslider->setSliderMax(tslider->rangeMax());
+      }
+    }
+
+    //---
+
+    if      (combo) {
+      combo->setProperty("plot", plot->id());
+
+      connect(combo, SIGNAL(currentIndexChanged(int)),
+              this, SLOT(plotControlUpdateSlot()));
+    }
+    else if (slider) {
+      auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
+      auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
+      auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
+
+      if      (rslider) {
+        rslider->setProperty("plot", plot->id());
+
+        connect(rslider, SIGNAL(sliderRangeChanged(double, double)),
+                this, SLOT(plotControlUpdateSlot()));
+      }
+      else if (islider) {
+        islider->setProperty("plot", plot->id());
+
+        connect(islider, SIGNAL(sliderRangeChanged(int, int)),
+                this, SLOT(plotControlUpdateSlot()));
+      }
+      else if (tslider) {
+        tslider->setProperty("plot", plot->id());
+
+        connect(tslider, SIGNAL(sliderRangeChanged(double, double)),
+                this, SLOT(plotControlUpdateSlot()));
+      }
+    }
+
+    if (radio) {
+      radio->setProperty("plot", plot->id());
+
+      connect(radio, SIGNAL(toggled(bool)), this, SLOT(plotControlUpdateSlot()));
+    }
+
+    controlWidgets_.combos .push_back(combo);
+    controlWidgets_.sliders.push_back(slider);
+    controlWidgets_.radios .push_back(radio);
+
+    int col = 0;
+
+    controlWidgets_.layout->addWidget(label, ic, col++);
+
+    if (combo)
+      controlWidgets_.layout->addWidget(combo, ic, col++);
+
+    if (slider)
+      controlWidgets_.layout->addWidget(slider, ic, col++);
+
+    if (radio)
+      controlWidgets_.layout->addWidget(radio, ic, col++);
+  }
+}
+
+void
+CQChartsViewSettings::
+plotControlUpdateSlot()
+{
+  auto *obj = sender();
+  if (! obj) return;
+
+
+  QString id = obj->property("plot").toString();
+
+  auto *view = window_->view();
+  assert(view);
+
+  auto *plot = view->getPlotForId(id);
+  if (! plot) return;
+
+  auto *groupPlot = dynamic_cast<CQChartsGroupPlot *>(plot);
+
+  QStringList filters;
+
+  QString cmpStr = (controlWidgets_.equalCheck->isChecked() ? "==" : "!=");
+
+  int n = controlWidgets_.combos.size();
+
+  for (int i = 0; i < n; ++i) {
+    auto *combo  = controlWidgets_.combos [i];
+    auto *slider = controlWidgets_.sliders[i];
+    auto *radio  = controlWidgets_.radios [i];
+
+    if (radio->isChecked()) {
+      bool ok;
+      int icolumn = radio->property("column").toInt(&ok);
+      if (! ok) continue;
+
+      if (groupPlot)
+        groupPlot->setGroupColumn(CQChartsColumn(icolumn));
+    }
+    else {
+      if      (combo) {
+        int ind = combo->currentIndex();
+        if (ind == 0) continue;
+
+        QString header = combo->property("header").toString();
+        if (! header.length()) continue;
+
+        QString header1 = CQChartsExprTcl::encodeColumnName(header);
+
+        QString filter = QString("$%1 %2 {%3}").arg(header1).arg(cmpStr).arg(combo->itemText(ind));
+
+        filters.push_back(filter);
+      }
+      else if (slider) {
+        QString header = slider->property("header").toString();
+        if (! header.length()) continue;
+
+        QString header1 = CQChartsExprTcl::encodeColumnName(header);
+
+        auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
+        auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
+        auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
+
+        QString filter;
+
+        if      (rslider) {
+          if (rslider->sliderMin() != rslider->rangeMin() &&
+              rslider->sliderMax() != rslider->rangeMax()) {
+            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
+              arg(rslider->sliderMin()).arg(rslider->sliderMax());
+          }
+          else if (rslider->sliderMin() != rslider->rangeMin()) {
+            filter = QString("$%1 >= %2").arg(header1).arg(rslider->sliderMin());
+          }
+          else if (rslider->sliderMax() != rslider->rangeMax()) {
+            filter = QString("$%1 <= %2").arg(header1).arg(rslider->sliderMax());
+          }
+        }
+        else if (islider) {
+          if (islider->sliderMin() != islider->rangeMin() &&
+              islider->sliderMax() != islider->rangeMax()) {
+            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
+              arg(islider->sliderMin()).arg(islider->sliderMax());
+          }
+          else if (islider->sliderMin() != islider->rangeMin()) {
+            filter = QString("$%1 >= %2").arg(header1).arg(islider->sliderMin());
+          }
+          else if (islider->sliderMax() != islider->rangeMax()) {
+            filter = QString("$%1 <= %2").arg(header1).arg(islider->sliderMax());
+          }
+        }
+        else if (tslider) {
+          if (tslider->sliderMin() != tslider->rangeMin() &&
+              tslider->sliderMax() != tslider->rangeMax()) {
+            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
+              arg(tslider->sliderMin()).arg(tslider->sliderMax());
+          }
+          else if (tslider->sliderMin() != tslider->rangeMin()) {
+            filter = QString("$%1 >= %2").arg(header1).arg(tslider->sliderMin());
+          }
+          else if (tslider->sliderMax() != tslider->rangeMax()) {
+            filter = QString("$%1 <= %2").arg(header1).arg(tslider->sliderMax());
+          }
+        }
+
+        if (filter.length())
+          filters.push_back(filter);
+      }
+    }
+  }
+
+  QString combStr = (controlWidgets_.andCheck->isChecked() ? "&&" : "||");
+
+  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
+
+  //std::cerr << filterStr.toStdString() << "\n";
+
+  plot->setVisibleFilterStr(filterStr);
 }
 
 //------

@@ -139,7 +139,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     auto columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
-    if      (columnDetails->type() == CQBaseModelType::STRING) {
+    if      (columnDetails->type() == ColumnType::STRING) {
       if (! connectionsColumn.isValid()) {
         QModelIndex parent;
 

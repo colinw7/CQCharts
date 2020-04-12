@@ -212,6 +212,9 @@ startThreadTimer()
   if (isSequential())
     return;
 
+  if (parentPlot())
+    return;
+
   if (isOverlay() && ! isFirstPlot())
     return;
 
@@ -401,6 +404,16 @@ selectionSlot(QItemSelectionModel *sm)
   QModelIndexList indices = sm->selectedIndexes();
   if (indices.empty()) return;
 
+  CQChartsPlotObj::Indices selectIndices;
+
+  for (int i = 0; i < indices.size(); ++i) {
+    const QModelIndex &ind = indices[i];
+
+    QModelIndex ind1 = normalizeIndex(ind);
+
+    selectIndices.insert(ind1);
+  }
+
   //---
 
   startSelection();
@@ -409,15 +422,22 @@ selectionSlot(QItemSelectionModel *sm)
   deselectAllObjs();
 
   // select objects with matching indices
-  for (int i = 0; i < indices.size(); ++i) {
-    const QModelIndex &ind = indices[i];
+  for (auto &plotObj : plotObjects()) {
+    CQChartsPlotObj::Indices indices;
 
-    QModelIndex ind1 = normalizeIndex(ind);
+    plotObj->getSelectIndices(indices);
 
-    for (auto &plotObj : plotObjects()) {
-      if (plotObj->isSelectIndex(ind1))
-        plotObj->setSelected(true);
+    bool found = false;
+
+    for (const auto &ind : indices) {
+      if (selectIndices.find(ind) != selectIndices.end()) {
+        found = true;
+        break;
+      }
     }
+
+    if (found)
+      plotObj->setSelected(true);
   }
 
   endSelection();
@@ -626,6 +646,42 @@ updateObjs()
   else
     execUpdateObjs();
 }
+
+//------
+
+void
+CQChartsPlot::
+applyVisibleFilter()
+{
+  if (visibleFilterStr().length()) {
+    auto *expr = new CQChartsModelExprMatch;
+
+    expr->setModel(model().data());
+
+    expr->initColumns();
+
+    expr->initMatch(visibleFilterStr());
+
+    for (auto &plotObj : plotObjects()) {
+      QModelIndex ind = plotObj->modelInd();
+
+      bool ok;
+
+      bool visible = expr->match(ind, ok);
+      if (!ok) visible = true;
+
+      plotObj->setVisible(visible);
+    }
+
+    delete expr;
+  }
+  else {
+    for (auto &plotObj : plotObjects())
+      plotObj->setVisible(true);
+  }
+}
+
+//------
 
 void
 CQChartsPlot::
@@ -1446,6 +1502,13 @@ CQChartsPlot::
 setFilterStr(const QString &s)
 {
   CQChartsUtil::testAndSet(filterStr_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPlot::
+setVisibleFilterStr(const QString &s)
+{
+  CQChartsUtil::testAndSet(visibleFilterStr_, s, [&]() { applyVisibleFilter(); drawObjs(); } );
 }
 
 //---
@@ -2483,11 +2546,12 @@ addBaseProperties()
   addStyleProp("font", "font", "font", "Base font");
 
   // columns
-  addProp("columns", "idColumn"     , "id"     , "Id column");
-  addProp("columns", "tipColumns"   , "tips"   , "Tips columns");
-  addProp("columns", "visibleColumn", "visible", "Visible column");
-  addProp("columns", "colorColumn"  , "color"  , "Color column");
-  addProp("columns", "imageColumn"  , "image"  , "Image column");
+  addProp("columns", "idColumn"      , "id"      , "Id column");
+  addProp("columns", "tipColumns"    , "tips"    , "Tip columns");
+  addProp("columns", "visibleColumn" , "visible" , "Visible column");
+  addProp("columns", "colorColumn"   , "color"   , "Color column");
+  addProp("columns", "imageColumn"   , "image"   , "Image column");
+  addProp("columns", "controlColumns", "controls", "Control columns");
 
   // range
   addProp("range", "viewRect", "view", "View rectangle");
@@ -3168,7 +3232,7 @@ addColorKeyItems(CQChartsPlotKey *key)
   if (! colorColumn().isValid())
     return false;
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+  auto *columnDetails = this->columnDetails(colorColumn());
   if (! columnDetails) return false;
 
   auto uniqueValues = columnDetails->uniqueValues();
@@ -3212,10 +3276,11 @@ void
 CQChartsPlot::
 threadTimerSlot()
 {
-  if (isOverlay()) {
-    if (! isFirstPlot())
-      return firstPlot()->startThreadTimer();
-  }
+  if (parentPlot())
+    return parentPlot()->startThreadTimer();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->startThreadTimer();
 
   //---
 
@@ -3314,8 +3379,7 @@ threadTimerSlot()
     //}
   }
   else if (updateState == UpdateState::DRAWN) {
-    if (! isPlotObjTreeSet())
-      objTreeData_.tree->waitTree();
+    waitTree();
   }
   else {
     updateView = true;
@@ -4072,7 +4136,7 @@ applyDataRangeAndDraw()
 
   if (! isOverlay()) {
     if (isX1X2() || isY1Y2()) {
-      CQChartsPlot *plot1 = firstPlot();
+      auto *plot1 = firstPlot();
 
       while (plot1) {
         if (plot1 != this)
@@ -4113,12 +4177,12 @@ applyDataRange(bool propagate)
   if (propagate) {
     if (isOverlay()) {
       if      (isX1X2()) {
-        CQChartsPlot *plot1 = firstPlot();
+        auto *plot1 = firstPlot();
 
         plot1->calcDataRanges(rawRange, adjustedRange);
       }
       else if (isY1Y2()) {
-        CQChartsPlot *plot1 = firstPlot();
+        auto *plot1 = firstPlot();
 
         plot1->calcDataRanges(rawRange, adjustedRange);
       }
@@ -4238,7 +4302,7 @@ applyDataRange(bool propagate)
       if (isX1X2() || isY1Y2()) {
         auto dataRange1 = CQChartsUtil::bboxRange(rawRange);
 
-        CQChartsPlot *plot1 = firstPlot();
+        auto *plot1 = firstPlot();
 
         while (plot1) {
           if (plot1 != this) {
@@ -4623,6 +4687,10 @@ createObjs()
   for (auto &obj : objs)
     addPlotObject(obj);
 
+  //---
+
+  applyVisibleFilter();
+
   return true;
 }
 
@@ -4685,10 +4753,28 @@ void
 CQChartsPlot::
 initObjTree()
 {
-  CQPerfTrace trace("CQChartsPlot::initObjTree");
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      plot->execInitObjTree();
+    });
+  }
+  else {
+    execInitObjTree();
+  }
+}
 
-  if (! isPreview())
-    objTreeData_.tree->addObjects();
+void
+CQChartsPlot::
+execInitObjTree()
+{
+  CQPerfTrace trace("CQChartsPlot::execInitObjTree");
+
+  if (objTreeData_.init) {
+    objTreeData_.init = false;
+
+    if (! isPreview())
+      objTreeData_.tree->addObjects();
+  }
 }
 
 void
@@ -6427,6 +6513,13 @@ setImageColumn(const CQChartsColumn &c)
   CQChartsUtil::testAndSet(imageColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsPlot::
+setControlColumns(const CQChartsColumns &c)
+{
+  CQChartsUtil::testAndSet(controlColumns_, c, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -6504,7 +6597,7 @@ initColorColumnData()
 
   //---
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+  auto *columnDetails = this->columnDetails(colorColumn());
   if (! columnDetails) return;
 
   if (colorColumn().isGroup()) {
@@ -6530,7 +6623,7 @@ initColorColumnData()
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), colorColumn(),
                                               columnTypeData);
 
-    if (columnTypeData.type == CQBaseModelType::COLOR) {
+    if (columnTypeData.type == ColumnType::COLOR) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       const CQChartsColumnColorType *colorType =
@@ -6607,7 +6700,7 @@ columnValueColor(const QVariant &var, CQChartsColor &color) const
         color = CQChartsVariant::toColor(var, ok);
       }
       else {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+        auto *columnDetails = this->columnDetails(colorColumn());
         if (! columnDetails) return false;
 
         // use unique index/count of edit values (which may have been converted)
@@ -7476,22 +7569,7 @@ updateDraw()
   //---
 
   // init object tree(s)
-  if (isOverlay()) {
-    processOverlayPlots([&](CQChartsPlot *plot) {
-      if (plot->objTreeData_.init) {
-        plot->objTreeData_.init = false;
-
-        plot->initObjTree();
-      }
-    });
-  }
-  else {
-    if (objTreeData_.init) {
-      objTreeData_.init = false;
-
-      initObjTree();
-    }
-  }
+  initObjTree();
 
   //---
 
@@ -7737,7 +7815,7 @@ CQChartsPlot::
 drawLayers(QPainter *painter) const
 {
   for (auto &tb : buffers_) {
-    CQChartsBuffer *buffer = tb.second;
+    auto *buffer = tb.second;
 
     if (buffer->isActive() && buffer->isValid())
       buffer->draw(painter);
@@ -9116,6 +9194,23 @@ drawLayerType() const
 
 //---
 
+void
+CQChartsPlot::
+waitTree()
+{
+  execWaitTree();
+}
+
+void
+CQChartsPlot::
+execWaitTree()
+{
+  if (! isPlotObjTreeSet())
+    objTreeData_.tree->waitTree();
+}
+
+//---
+
 CQChartsGeom::BBox
 CQChartsPlot::
 displayRangeBBox() const
@@ -9761,7 +9856,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
     pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
   }
 
-  //CQChartsBuffer *layerBuffer = (*pb).second;
+  //auto *layerBuffer = (*pb).second;
 
   //---
 
@@ -9773,7 +9868,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
     pl = layers_.insert(pl, Layers::value_type(type, layer));
   }
 
-  CQChartsLayer *layer = (*pl).second;
+  auto *layer = (*pl).second;
 
   layer->setActive(active);
 
@@ -10524,7 +10619,7 @@ columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeD
     return false;
   }
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
+  auto *columnDetails = this->columnDetails(column);
 
   if (columnDetails) {
     // if has details column is valid
@@ -10583,7 +10678,7 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
   if (! column.isValid())
     return false;
 
-  CQChartsModelColumnDetails *details = this->columnDetails(column);
+  auto *details = this->columnDetails(column);
   if (! details) return false;
 
   typeName = details->typeName();

@@ -14,6 +14,9 @@
  */
 class CQChartsSankeyPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsSankeyPlotType();
 
   QString name() const override { return "sankey"; }

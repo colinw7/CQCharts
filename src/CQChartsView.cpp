@@ -982,7 +982,7 @@ bool
 CQChartsView::
 getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -994,7 +994,7 @@ bool
 CQChartsView::
 getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -1006,7 +1006,7 @@ bool
 CQChartsView::
 getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -1020,7 +1020,7 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   object = item->object();
@@ -1034,7 +1034,7 @@ getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
   is_hidden = false;
 
-  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  const auto *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_hidden = CQCharts::getItemIsHidden(item);
@@ -1048,7 +1048,7 @@ getPropertyIsStyle(const QString &name, bool &is_style) const
 {
   is_style = false;
 
-  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  const auto *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_style = CQCharts::getItemIsStyle(item);
@@ -1382,9 +1382,17 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
   connect(plot, SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
   connect(plot, SIGNAL(errorAdded()), this, SIGNAL(updateErrors()));
 
+  connect(plot, SIGNAL(currentPlotIdChanged(const QString &)),
+          this, SIGNAL(currentPlotChanged()));
+
   //---
 
   if (currentPlotInd_ < 0)
+    setCurrentPlot(plot);
+
+  auto *currentPlot = this->currentPlot(/*remap*/false);
+
+  if (currentPlot->parentPlot() && ! plot->parentPlot())
     setCurrentPlot(plot);
 
   //---
@@ -5919,7 +5927,6 @@ currentPlotSlot()
   auto *action = qobject_cast<QAction *>(sender());
 
   bool ok;
-
   int plotInd = (int) CQChartsVariant::toInt(action->data(), ok);
   assert(ok);
 
@@ -5961,7 +5968,7 @@ CQChartsView::
 getDrawPlots(Plots &plots) const
 {
   for (const auto &plot : this->plots()) {
-    if (plot->isOverlay()) {
+    if      (plot->isOverlay()) {
       if (! plot->isFirstPlot())
         continue;
 
@@ -5989,6 +5996,9 @@ getDrawPlots(Plots &plots) const
         for (const auto &oplot : oplots)
           plots.push_back(oplot);
       }
+    }
+    else if (plot->parentPlot()) {
+      continue;
     }
     else
       plots.push_back(plot);
@@ -6020,7 +6030,12 @@ CQChartsPlot *
 CQChartsView::
 basePlot(CQChartsPlot *plot) const
 {
-  return (plot->isOverlay() ? plot->firstPlot() : plot);
+  if      (plot->isOverlay())
+    return plot->firstPlot();
+  else if (plot->parentPlot())
+    return plot->parentPlot();
+  else
+    return plot;
 }
 
 bool
@@ -6047,8 +6062,6 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
   if (clear)
     plots.clear();
 
-  using PlotSet = std::set<CQChartsPlot*>;
-
   PlotSet plotSet;
 
   plot = nullptr;
@@ -6057,6 +6070,9 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
 
   for (const auto &plot1 : this->plots()) {
     if (! plot1->isVisible())
+      continue;
+
+    if (plot1->parentPlot())
       continue;
 
     const auto &bbox = plot1->calcViewBBox();

@@ -3,9 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + Model
-   + load model columns
-   + join on multiple columns
+ + filter
+   + data or object
+   + column only
  + key
    + key grouping item (with layout)
    + more testing of key annotation and allow add items
@@ -22,6 +22,10 @@ High
    + tab change callback
    + test nested tab plots
    + tab through plots on view (like exitsting next/prev)
+ + table plot
+   + column color style
+   + More menu editors (see table plot sort column)
+   + support all variant types in table plot (image, color, ...)
  + use tcl expression for load_charts_model filter
  + column default/fallback value
  + stablize auto fit call with threads !
@@ -45,7 +49,6 @@ High
  + Test write/reload and compare same
  + Region tool to fill in coords
  + Custom editors for all properties (CQRealSpin, CQAlignEdit)
- + More menu editors (see table plot sort column)
  + test <desc> <body> <result> tcl proc ?
  + Restrictions on column for editor (no vertical, no expression, ...)
  + Tcl Parser for all string conversions to/from
@@ -69,7 +72,6 @@ High
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
  + values annotation : units, use width instead of rectangle
- + support all variant types in table plot (image, color, ...)
  + view annotation change doesn't redraw (rect fill/stroke visible)
  + const everywhere ?
  + SVG interactive output

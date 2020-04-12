@@ -978,16 +978,16 @@ write(std::ostream &os, const QString &varName) const
   auto *model = this->model().data();
   if (! model) return false;
 
-  auto *exprModel = CQChartsModelUtil::getExprModel(model);
-  auto *dataModel = CQChartsModelUtil::getDataModel(model);
-  auto *baseModel = CQChartsModelUtil::getBaseModel(model);
+  const auto *exprModel = CQChartsModelUtil::getExprModel(model);
+  const auto *dataModel = CQChartsModelUtil::getDataModel(model);
+  const auto *baseModel = CQChartsModelUtil::getBaseModel(model);
 
-  auto *varsModel     = dynamic_cast<const CQChartsVarsModel     *>(dataModel);
-  auto *exprDataModel = dynamic_cast<const CQChartsExprDataModel *>(dataModel);
-  auto *csvModel      = dynamic_cast<const CQCsvModel            *>(dataModel);
-  auto *tsvModel      = dynamic_cast<const CQTsvModel            *>(dataModel);
-  auto *gnuModel      = dynamic_cast<const CQGnuDataModel        *>(dataModel);
-  auto *jsonModel     = dynamic_cast<const CQJsonModel           *>(baseModel);
+  const auto *varsModel     = dynamic_cast<const CQChartsVarsModel     *>(dataModel);
+  const auto *exprDataModel = dynamic_cast<const CQChartsExprDataModel *>(dataModel);
+  const auto *csvModel      = dynamic_cast<const CQCsvModel            *>(dataModel);
+  const auto *tsvModel      = dynamic_cast<const CQTsvModel            *>(dataModel);
+  const auto *gnuModel      = dynamic_cast<const CQGnuDataModel        *>(dataModel);
+  const auto *jsonModel     = dynamic_cast<const CQJsonModel           *>(baseModel);
 
   if (varName != "")
     os << "set " << varName.toStdString();

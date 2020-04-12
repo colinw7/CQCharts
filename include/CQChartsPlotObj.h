@@ -160,6 +160,8 @@ class CQChartsPlotObj : public CQChartsObj {
   // select
   bool isSelectIndex(const QModelIndex &ind) const;
 
+  bool getSelectIndices(const Indices &inds) const;
+
   void addSelectIndices();
 
   void getHierSelectIndices(Indices &inds) const;

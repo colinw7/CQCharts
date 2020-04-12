@@ -13,6 +13,9 @@
  */
 class CQChartsRadarPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsRadarPlotType();
 
   QString name() const override { return "radar"; }

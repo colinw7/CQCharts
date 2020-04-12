@@ -273,6 +273,13 @@ load(const QString &filename)
 
   //---
 
+  // if columns specified filter and reorder data by columns
+  if (columns_.length())
+    applyFilterColumns(columns_);
+
+  //---
+
+  // clear column types
   resetColumnTypes();
 
   return true;

@@ -15,14 +15,21 @@ class CQTsvModel : public CQDataModel {
 
   //---
 
+  //! get/set use first line comment for horizontal header
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }
 
+  //! get/set use first line as horizontal header
   bool isFirstLineHeader() const { return firstLineHeader_; }
   void setFirstLineHeader(bool b) { firstLineHeader_ = b; }
 
+  //! get/set use column for vertical header
   bool isFirstColumnHeader() const { return firstColumnHeader_; }
   void setFirstColumnHeader(bool b) { firstColumnHeader_ = b; }
+
+  //! get/set column names/numbers to read (also specifies order)
+  const QStringList &columns() const { return columns_; }
+  void setColumns(const QStringList &v) { columns_ = v; }
 
   //---
 
@@ -39,9 +46,10 @@ class CQTsvModel : public CQDataModel {
   std::string encodeVariant(const QVariant &var) const;
 
  protected:
-  bool commentHeader_     { false }; //!< first comment line has column names
-  bool firstLineHeader_   { false }; //!< first non-comment line has column names
-  bool firstColumnHeader_ { false }; //!< first column in each line is row name
+  bool        commentHeader_     { false }; //!< first comment line has column names
+  bool        firstLineHeader_   { false }; //!< first non-comment line has column names
+  bool        firstColumnHeader_ { false }; //!< first column in each line is row name
+  QStringList columns_;                     //!< specific columns (and order)
 };
 
 #endif

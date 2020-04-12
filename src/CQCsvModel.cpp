@@ -129,81 +129,8 @@ load(const QString &filename)
   //---
 
   // if columns specified filter and reorder data by columns
-  if (columns_.length()) {
-    Data  data    = data_;
-    Cells hheader = hheader_;
-
-    std::map<int,int> columnMap;
-
-    int nc1 = hheader_.size();
-    int nc2 = columns_.length();
-
-    for (int c = 0; c < nc1; ++c)
-      columnMap[c] = -1;
-
-    for (int c = 0; c < nc2; ++c) {
-      const QString &name = columns_[c];
-
-      // get index for matching column name
-      int ind = -1;
-
-      for (int c1 = 0; c1 < nc1; ++c1) {
-        if (hheader[c1] == name) {
-          ind = c1;
-          break;
-        }
-      }
-
-      // if name not found, try and convert column name to number
-      if (ind == -1) {
-        bool ok;
-
-        int ind1 = name.toInt(&ok);
-
-        if (ok && ind1 >= 0 && ind1 < nc1)
-          ind = ind1;
-      }
-
-      if (ind == -1) {
-        std::cerr << "Invalid column name '" << name.toStdString() << "'\n";
-        continue;
-      }
-
-      columnMap[ind] = c;
-    }
-
-    // get new number of columns
-    nc2 = 0;
-
-    for (int c = 0; c < nc1; ++c) {
-      int c1 = columnMap[c];
-
-      if (c1 >= 0 && c1 < nc1)
-        ++nc2;
-    }
-
-    // remap horizontal header and row data
-    hheader_.clear(); hheader_.resize(nc2);
-
-    int nr = data.size();
-
-    for (int r = 0; r < nr; ++r) {
-      Cells &cells1 = data [r]; // old data
-      Cells &cells2 = data_[r]; // new data
-
-      cells2.clear(); cells2.resize(nc2);
-
-      for (int c = 0; c < nc1; ++c) {
-        int c1 = columnMap[c];
-
-        if (c1 < 0 || c1 >= nc1)
-          continue;
-
-        hheader_[c1] = hheader[c];
-        cells2  [c1] = cells1 [c];
-      }
-    }
-  }
+  if (columns_.length())
+    applyFilterColumns(columns_);
 
   //---
 

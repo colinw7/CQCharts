@@ -113,7 +113,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
     CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
 
-    if (columnDetails->type() == CQBaseModelType::STRING) {
+    if (columnDetails->type() == ColumnType::STRING) {
       bool ok;
 
       auto str = CQChartsModelUtil::modelString(charts, model, ind, ok);

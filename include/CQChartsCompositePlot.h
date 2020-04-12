@@ -43,9 +43,10 @@ class CQChartsCompositePlot;
 class CQChartsCompositePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CompositeType compositeType READ compositeType  WRITE setCompositeType)
-  Q_PROPERTY(bool          commonXRange  READ isCommonXRange WRITE setCommonXRange )
-  Q_PROPERTY(bool          commonYRange  READ isCommonYRange WRITE setCommonYRange )
+  Q_PROPERTY(CompositeType compositeType  READ compositeType  WRITE setCompositeType )
+  Q_PROPERTY(bool          commonXRange   READ isCommonXRange WRITE setCommonXRange  )
+  Q_PROPERTY(bool          commonYRange   READ isCommonYRange WRITE setCommonYRange  )
+  Q_PROPERTY(bool          currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
 
   Q_ENUMS(CompositeType);
 
@@ -85,6 +86,12 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   bool createObjs(PlotObjs &objs) const override;
 
+  void clearPlotObjects() override;
+
+  void initPlotObjs() override;
+
+  void initObjTree() override;
+
   CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   void updateAxisRanges(const CQChartsGeom::BBox &adjustedRange) override;
@@ -98,6 +105,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void waitRange() override;
   void waitDraw() override;
   void waitObjs() override;
+  void waitTree() override;
 
   //---
 
@@ -153,6 +161,13 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   int childPlotIndex(const CQChartsPlot *) const override;
   int numChildPlots() const override;
+  CQChartsPlot *childPlot(int i) const override;
+
+  int currentPlotInd() const;
+  void setCurrentPlotInd(int i);
+
+ private slots:
+  void currentPlotSlot();
 
  private:
   void updatePlots();

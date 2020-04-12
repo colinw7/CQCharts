@@ -14,6 +14,9 @@
  */
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsForceDirectedPlotType();
 
   QString name() const override { return "forcedirected"; }

@@ -321,7 +321,7 @@ initGroup(CQChartsGroupData &data) const
       assert(column.isValid());
     }
 
-    ColumnType columnType = CQBaseModelType::STRING;
+    ColumnType columnType = ColumnType::STRING;
 
     if (column.type() == CQChartsColumn::Type::DATA ||
         column.type() == CQChartsColumn::Type::DATA_INDEX)
@@ -337,7 +337,7 @@ initGroup(CQChartsGroupData &data) const
   }
   // for specified grouping column, set column and column type
   else if (data.column.isValid()) {
-    ColumnType columnType = CQBaseModelType::STRING;
+    ColumnType columnType = ColumnType::STRING;
 
     if (data.column.type() == CQChartsColumn::Type::DATA ||
         data.column.type() == CQChartsColumn::Type::DATA_INDEX)

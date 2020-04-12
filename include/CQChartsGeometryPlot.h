@@ -37,6 +37,9 @@ struct CQChartsGeometryShape {
  */
 class CQChartsGeometryPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsGeometryPlotType();
 
   QString name() const override { return "geometry"; }

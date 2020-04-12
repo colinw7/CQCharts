@@ -134,11 +134,12 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(QString name READ name WRITE setName)
 
   // generic columns and control
-  Q_PROPERTY(CQChartsColumn  idColumn      READ idColumn      WRITE setIdColumn     )
-  Q_PROPERTY(CQChartsColumns tipColumns    READ tipColumns    WRITE setTipColumns   )
-  Q_PROPERTY(CQChartsColumn  visibleColumn READ visibleColumn WRITE setVisibleColumn)
-  Q_PROPERTY(CQChartsColumn  colorColumn   READ colorColumn   WRITE setColorColumn  )
-  Q_PROPERTY(CQChartsColumn  imageColumn   READ imageColumn   WRITE setImageColumn  )
+  Q_PROPERTY(CQChartsColumn  idColumn       READ idColumn       WRITE setIdColumn      )
+  Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
+  Q_PROPERTY(CQChartsColumn  visibleColumn  READ visibleColumn  WRITE setVisibleColumn )
+  Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(CQChartsColumn  imageColumn    READ imageColumn    WRITE setImageColumn   )
+  Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
 
   // color map
   Q_PROPERTY(ColorType          colorType       READ colorType       WRITE setColorType      )
@@ -178,7 +179,8 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(int  everyStep    READ everyStep      WRITE setEveryStep   )
 
   // filter
-  Q_PROPERTY(QString filterStr READ filterStr WRITE setFilterStr)
+  Q_PROPERTY(QString filterStr        READ filterStr        WRITE setFilterStr       )
+  Q_PROPERTY(QString visibleFilterStr READ visibleFilterStr WRITE setVisibleFilterStr)
 
   Q_PROPERTY(bool skipBad READ isSkipBad WRITE setSkipBad)
 
@@ -395,6 +397,12 @@ class CQChartsPlot : public CQChartsObj,
   void updateRangeAndObjs();
   void updateObjs();
 
+  //---
+
+  void applyVisibleFilter();
+
+  //---
+
   void drawBackground();
   void drawForeground();
   void drawObjs();
@@ -476,6 +484,9 @@ class CQChartsPlot : public CQChartsObj,
 
   const QString &filterStr() const { return filterStr_; }
   void setFilterStr(const QString &s);
+
+  const QString &visibleFilterStr() const { return visibleFilterStr_; }
+  void setVisibleFilterStr(const QString &s);
 
   //---
 
@@ -684,6 +695,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual int childPlotIndex(const CQChartsPlot *) const { return -1; }
   virtual int numChildPlots() const { return 0; }
+  virtual CQChartsPlot *childPlot(int) const { return nullptr; }
 
   int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
 
@@ -1271,6 +1283,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual void waitRange();
   virtual void waitDraw();
   virtual void waitObjs();
+  virtual void waitTree();
 
  private:
   void execWaitRange();
@@ -1304,6 +1317,10 @@ class CQChartsPlot : public CQChartsObj,
 
   void execWaitDraw();
 
+  //---
+
+  void execWaitTree();
+
  private:
   void initColorColumnData();
 
@@ -1314,7 +1331,7 @@ class CQChartsPlot : public CQChartsObj,
   bool initPlotRange();
 
   // (re)initialize plot objects
-  void initPlotObjs();
+  virtual void initPlotObjs();
 
   bool addNoDataObj();
 
@@ -1333,9 +1350,14 @@ class CQChartsPlot : public CQChartsObj,
   // TODO: need axis update as well
   virtual bool createObjs(PlotObjs &) const = 0;
 
+ public:
   // add plotObjects to quad tree (create no data object in no objects)
-  void initObjTree();
+  virtual void initObjTree();
 
+ protected:
+  void execInitObjTree();
+
+ public:
   // routine to run after plot set up (usually fixes up some defaults)
   virtual void postInit();
 
@@ -1464,6 +1486,9 @@ class CQChartsPlot : public CQChartsObj,
 
   const CQChartsColumn &colorColumn() const { return colorColumnData_.column; };
   void setColorColumn(const CQChartsColumn &c);
+
+  const CQChartsColumns &controlColumns() const { return controlColumns_; }
+  void setControlColumns(const CQChartsColumns &columns);
 
   //--
 
@@ -2448,7 +2473,7 @@ class CQChartsPlot : public CQChartsObj,
     double             map_max   { 1.0 };
     double             data_min  { 0.0 };
     double             data_max  { 1.0 };
-    CQBaseModelType    modelType;
+    ColumnType         modelType;
     QString            palette;
     CQChartsColorStops xStops;
     CQChartsColorStops yStops;
@@ -2543,8 +2568,9 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsOptReal ymax_; //!< ymax override
 
   // filter
-  EveryData everyData_; //!< every data
-  QString   filterStr_; //!< filter
+  EveryData everyData_;        //!< every data
+  QString   filterStr_;        //!< data filter
+  QString   visibleFilterStr_; //!< visible filter
 
   bool skipBad_ { true }; //!< skip bad values
 
@@ -2569,12 +2595,13 @@ class CQChartsPlot : public CQChartsObj,
   bool             colorKey_ { false };   //!< use color column for key
 
   // columns
-  CQChartsColumn  xValueColumn_;  //!< x axis value column
-  CQChartsColumn  yValueColumn_;  //!< y axis value column
-  CQChartsColumn  idColumn_;      //!< unique data id column (signalled)
-  CQChartsColumns tipColumns_;    //!< tip columns
-  CQChartsColumn  visibleColumn_; //!< visible column
-  CQChartsColumn  imageColumn_;   //!< image column
+  CQChartsColumn  xValueColumn_;   //!< x axis value column
+  CQChartsColumn  yValueColumn_;   //!< y axis value column
+  CQChartsColumn  idColumn_;       //!< unique data id column (signalled)
+  CQChartsColumns tipColumns_;     //!< tip columns
+  CQChartsColumn  visibleColumn_;  //!< visible column
+  CQChartsColumn  imageColumn_;    //!< image column
+  CQChartsColumns controlColumns_; //!< control columns
 
   // color data
   ColorColumnData    colorColumnData_; //!< color color data

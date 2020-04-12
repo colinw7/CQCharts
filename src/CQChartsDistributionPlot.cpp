@@ -2339,7 +2339,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
   const Values *values = getGroupValues(groupInd);
   if (! values) return false;
 
-  if      (values->valueSet->type() == CQBaseModelType::INTEGER) {
+  if      (values->valueSet->type() == ColumnType::INTEGER) {
     const CQChartsIValues &ivals = values->valueSet->ivals();
 
     statData = ivals.statData();
@@ -2349,7 +2349,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
     for (int i = 0; i < ivals.size(); ++i)
       vals.push_back(*ivals.value(i));
   }
-  else if (values->valueSet->type() == CQBaseModelType::REAL) {
+  else if (values->valueSet->type() == ColumnType::REAL) {
     const CQChartsRValues &rvals = values->valueSet->rvals();
 
     statData = rvals.statData();
@@ -2371,12 +2371,12 @@ getStatData(int groupInd, CQStatData &statData) const
   const Values *values = getGroupValues(groupInd);
   if (! values) return false;
 
-  if      (values->valueSet->type() == CQBaseModelType::INTEGER) {
+  if      (values->valueSet->type() == ColumnType::INTEGER) {
     const CQChartsIValues &ivals = values->valueSet->ivals();
 
     statData = ivals.statData();
   }
-  else if (values->valueSet->type() == CQBaseModelType::REAL) {
+  else if (values->valueSet->type() == ColumnType::REAL) {
     const CQChartsRValues &rvals = values->valueSet->rvals();
 
     statData = rvals.statData();
@@ -2455,7 +2455,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       key->setHeaderStr(header);
 
-      const CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+      const auto *columnDetails = this->columnDetails(colorColumn());
 
       int nv = (columnDetails ? columnDetails->numUnique() : 0);
 

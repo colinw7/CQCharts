@@ -35,6 +35,7 @@ class CQColorsEditList;
 class CQTabWidget;
 class CQIntegerSpin;
 class CQGroupBox;
+class CQRangeSlider;
 
 class QComboBox;
 class QSpinBox;
@@ -43,6 +44,8 @@ class QToolButton;
 class QRadioButton;
 class QCheckBox;
 class QLabel;
+class QGridLayout;
+class QButtonGroup;
 class QTimer;
 
 /*!
@@ -82,6 +85,9 @@ class CQChartsViewSettings : public QFrame {
 
   void updatePlots();
   void updateCurrentPlot();
+
+  void updatePlotControls();
+  void addPlotControls(CQChartsPlot *plot);
 
   void updateAnnotations();
 
@@ -145,6 +151,10 @@ class CQChartsViewSettings : public QFrame {
   void removePlotsSlot();
 
   void writePlotSlot();
+
+  //---
+
+  void plotControlUpdateSlot();
 
   //---
 
@@ -260,11 +270,27 @@ class CQChartsViewSettings : public QFrame {
     PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
   };
 
+  struct ControlWidgets {
+    using Combos  = std::vector<QComboBox *>;
+    using Sliders = std::vector<CQRangeSlider *>;
+    using Radios  = std::vector<QRadioButton *>;
+
+    QCheckBox*    equalCheck       { nullptr }; //!< equal check
+    QCheckBox*    andCheck         { nullptr }; //!< and check
+    QFrame*       area             { nullptr }; //!< control area
+    QGridLayout*  layout           { nullptr }; //!< control layout
+    Combos        combos;                       //!< option combos
+    Sliders       sliders;                      //!< option sliders
+    Radios        radios;                       //!< option group radios
+    QButtonGroup* groupButtonGroup { nullptr }; //!< group radio button group
+  };
+
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
   CQTabWidget*       tab_                 { nullptr }; //!< settings/palette tab
   PropertiesWidgets  propertiesWidgets_;               //!< properties widgets
+  ControlWidgets     controlWidgets_;                  //!< control widgets
   ModelsWidgets      modelsWidgets_;                   //!< models widgets
   PlotsWidgets       plotsWidgets_;                    //!< plots widgets
   AnnotationsWidgets annotationsWidgets_;              //!< annotations widgets

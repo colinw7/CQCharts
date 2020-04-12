@@ -21,6 +21,9 @@ class CQChartsArrow;
  */
 class CQChartsXYPlotType : public CQChartsPointPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsXYPlotType();
 
   QString name() const override { return "xy"; }

@@ -328,7 +328,7 @@ initSymbolTypeData() const
   if (! symbolTypeColumn().isValid())
     return;
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolTypeColumn());
+  auto *columnDetails = this->columnDetails(symbolTypeColumn());
   if (! columnDetails) return;
 
   if (symbolTypeColumn().isGroup()) {
@@ -354,7 +354,7 @@ initSymbolTypeData() const
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolTypeColumn(),
                                               columnTypeData);
 
-    if (columnTypeData.type == CQBaseModelType::SYMBOL) {
+    if (columnTypeData.type == ColumnType::SYMBOL) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *symbolTypeType =
@@ -402,7 +402,7 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
         symbolType = CQChartsVariant::toSymbol(var, ok);
       }
       else {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolTypeColumn());
+        auto *columnDetails = this->columnDetails(symbolTypeColumn());
         if (! columnDetails) return false;
 
         // use unique index/count of edit values (which may have been converted)
@@ -443,7 +443,7 @@ initSymbolSizeData() const
   if (! symbolSizeColumn().isValid())
     return;
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolSizeColumn());
+  auto *columnDetails = this->columnDetails(symbolSizeColumn());
   if (! columnDetails) return;
 
   if (symbolSizeColumn().isGroup()) {
@@ -475,7 +475,7 @@ initSymbolSizeData() const
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolSizeColumn(),
                                               columnTypeData);
 
-    if (columnTypeData.type == CQBaseModelType::SYMBOL_SIZE) {
+    if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *symbolSizeType =
@@ -527,7 +527,7 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
         symbolSize = CQChartsVariant::toLength(var, ok);
       }
       else {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolSizeColumn());
+        auto *columnDetails = this->columnDetails(symbolSizeColumn());
         if (! columnDetails) return false;
 
         // use unique index/count of edit values (which may have been converted)
@@ -572,7 +572,7 @@ initFontSizeData() const
   if (! fontSizeColumn().isValid())
     return;
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(fontSizeColumn());
+  auto *columnDetails = this->columnDetails(fontSizeColumn());
   if (! columnDetails) return;
 
   if (fontSizeColumn().isGroup()) {
@@ -598,7 +598,7 @@ initFontSizeData() const
     (void) CQChartsModelUtil::columnValueType(charts(), model().data(), fontSizeColumn(),
                                               columnTypeData);
 
-    if (columnTypeData.type == CQBaseModelType::FONT_SIZE) {
+    if (columnTypeData.type == ColumnType::FONT_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *fontSizeType =
@@ -650,7 +650,7 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
         fontSize = CQChartsVariant::toLength(var, ok);
       }
       else {
-        CQChartsModelColumnDetails *columnDetails = this->columnDetails(fontSizeColumn());
+        auto *columnDetails = this->columnDetails(fontSizeColumn());
         if (! columnDetails) return false;
 
         // use unique index/count of edit values (which may have been converted)

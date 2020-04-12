@@ -110,6 +110,21 @@ isSelectIndex(const QModelIndex &ind) const
 
 void
 CQChartsPlotObj::
+getSelectIndices(Indices &indices) const
+{
+  Indices inds;
+
+  getHierSelectIndices(inds);
+
+  for (auto &ind1 : inds) {
+    QModelIndex ind2 = plot()->normalizeIndex(ind1);
+
+    indices.insert(ind2);
+  }
+}
+
+void
+CQChartsPlotObj::
 addSelectIndices()
 {
   Indices inds;

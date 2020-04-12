@@ -61,7 +61,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
   IColumnUsed columnUsed;
 
   for (int i = 0; i < nc; ++i) {
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
+    auto *columnDetails = details->columnDetails(CQChartsColumn(i));
 
     columnUsed[i] = ColumnUsed(columnDetails, false);
   }
@@ -147,7 +147,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
         if (cu.second.second)
           continue;
 
-        CQChartsModelColumnDetails *columnDetails = cu.second.first;
+        auto *columnDetails = cu.second.first;
 
         if (! columnDetails->isKey())
           continue;
@@ -176,7 +176,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
           if (cu.second.second)
             continue;
 
-          CQChartsModelColumnDetails *columnDetails = cu.second.first;
+          auto *columnDetails = cu.second.first;
 
           if (! type->isColumnForParameter(columnDetails, parameter))
             continue;
@@ -197,7 +197,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
         if (cu.second.second)
           continue;
 
-        CQChartsModelColumnDetails *columnDetails = cu.second.first;
+        auto *columnDetails = cu.second.first;
 
         if (attributes.isMonotonic()) {
           if (! columnDetails->isMonotonic())
@@ -268,7 +268,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
       //---
 
       // must be string or integer column
-      CQChartsModelColumnDetails *columnDetails = cu.second.first;
+      auto *columnDetails = cu.second.first;
 
       if (columnDetails->type() != CQBaseModelType::STRING &&
           columnDetails->type() != CQBaseModelType::INTEGER)

@@ -14,6 +14,9 @@
  */
 class CQChartsParallelPlotType : public CQChartsPlotType {
  public:
+  using ColumnType = CQBaseModelType;
+
+ public:
   CQChartsParallelPlotType();
 
   QString name() const override { return "parallel"; }
