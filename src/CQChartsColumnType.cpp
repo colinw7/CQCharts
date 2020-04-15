@@ -854,7 +854,7 @@ columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsC
   CQChartsModelData *modelData = charts->getModelData(model);
   if (! modelData) return nullptr;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return nullptr;
 
   return details->columnDetails(column);
@@ -2199,10 +2199,10 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
            int &data_min, int &data_max) const
 {
   mapped   = false;
-  map_min  = 0.0;
-  map_max  = 1.0;
-  data_min = 0.0;
-  data_max = 1.0;
+  map_min  = 0;
+  map_max  = 1;
+  data_min = 0;
+  data_max = 1;
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 

@@ -296,8 +296,8 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   //--
 
-  auto addButton    = createButton("add"   , "ADD"   , "Add point"   , SLOT(addSlot()));
-  auto removeButton = createButton("remove", "REMOVE", "Remove point", SLOT(removeSlot()));
+  auto *addButton    = createButton("add"   , "ADD"   , "Add point"   , SLOT(addSlot()));
+  auto *removeButton = createButton("remove", "REMOVE", "Remove point", SLOT(removeSlot()));
 
   controlFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Units", "unitsLabel"));
   controlFrameLayout->addWidget(unitsEdit_);
@@ -384,8 +384,8 @@ polygonToWidgets()
 
   //---
 
-//auto polygon = polygon_.polygon();
-  auto units   = polygon_.units();
+//const auto &polygon = polygon_.polygon();
+  const auto &units   = polygon_.units();
 
   unitsEdit_->setUnits(units);
 
@@ -552,7 +552,7 @@ calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const
   if (n > 0) {
     int n1 = std::min(n, 10);
 
-    ch  = n*eh;
+    ch  = n *eh;
     ch1 = n1*eh;
 
     if (n1 < n) {

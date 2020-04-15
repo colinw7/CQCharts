@@ -10,6 +10,7 @@
 #include <CQChartsSmooth.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsGrahamHull.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsVariant.h>
@@ -150,7 +151,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
   for (int c = 0; c < nc; ++c) {
     if (! xColumn.isValid()) {
-      auto columnDetails = details->columnDetails(CQChartsColumn(c));
+      auto *columnDetails = details->columnDetails(CQChartsColumn(c));
       if (! columnDetails) continue;
 
       if      (columnDetails->isMonotonic())
@@ -173,7 +174,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     if (c == xColumn.column())
       continue;
 
-    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
     if (columnDetails->isNumeric())
@@ -198,8 +199,6 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("xy"), model),
  CQChartsObjLineData         <CQChartsXYPlot>(this),
  CQChartsObjPointData        <CQChartsXYPlot>(this),
- CQChartsObjBestFitShapeData <CQChartsXYPlot>(this),
- CQChartsObjStatsLineData    <CQChartsXYPlot>(this),
  CQChartsObjImpulseLineData  <CQChartsXYPlot>(this),
  CQChartsObjBivariateLineData<CQChartsXYPlot>(this),
  CQChartsObjFillUnderFillData<CQChartsXYPlot>(this)
@@ -220,14 +219,6 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   setPoints(false);
 
   setLinesWidth(CQChartsLength("3px"));
-
-  setBestFit(false);
-  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
-  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setBestFitFillAlpha(CQChartsAlpha(0.5));
-
-  setStatsLines(false);
-  setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
   //---
 
@@ -299,42 +290,6 @@ setVectorYColumn(const CQChartsColumn &c)
 }
 
 //---
-
-void
-CQChartsXYPlot::
-setBestFit(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() {
-    bestFitData_.visible = b; resetBestFit(); drawObjs();
-  } );
-}
-
-void
-CQChartsXYPlot::
-setBestFitOutliers(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() {
-    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
-  } );
-}
-
-void
-CQChartsXYPlot::
-setBestFitDeviation(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() {
-    bestFitData_.showDeviation = b; resetBestFit(); drawObjs();
-  } );
-}
-
-void
-CQChartsXYPlot::
-setBestFitOrder(int order)
-{
-  CQChartsUtil::testAndSet(bestFitData_.order, order, [&]() {
-    bestFitData_.order = order; resetBestFit(); drawObjs();
-  } );
-}
 
 void
 CQChartsXYPlot::
@@ -527,19 +482,18 @@ addProperties()
 
   addLineProperties("lines/stroke", "lines", "Lines");
 
-  // best fit line and deviation fill
-  addProp("bestFit", "bestFit"         , "visible"  , "Show best fit");
-  addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
-  addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
-  addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
+  //---
 
-  addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
-  addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
+  // best fit line and deviation fill
+  addBestFitProperties();
+
+  // convex hull shape
+  addHullProperties();
 
   // stats
-  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
+  addStatsProperties();
 
-  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
+  //---
 
   // fill under
   addProp("fillUnder", "fillUnderFilled"    , "visible"   , "Fill under polygon visible");
@@ -2338,6 +2292,21 @@ addMenuItems(QMenu *menu)
   addMenuCheckedAction(menu, "Impulse"   , isImpulseLines   (), SLOT(setImpulseLinesSlot(bool)));
   addMenuCheckedAction(menu, "Fill Under", isFillUnderFilled(), SLOT(setFillUnderFilledSlot(bool)));
 
+  //---
+
+  auto *overlaysMenu = new QMenu("Overlays", menu);
+
+  (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
+                              isBestFit   (), SLOT(setBestFit       (bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Hull"       ,
+                              isHull      (), SLOT(setHull          (bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Statistic Lines",
+                              isStatsLines(), SLOT(setStatsLinesSlot(bool)));
+
+  menu->addMenu(overlaysMenu);
+
+  //---
+
   return true;
 }
 
@@ -3243,6 +3212,7 @@ CQChartsXYPolylineObj::
 ~CQChartsXYPolylineObj()
 {
   delete smooth_;
+  delete hull_;
 }
 
 QString
@@ -3269,6 +3239,7 @@ calcTipId() const
   return tableTip.str();
 }
 
+#if 0
 bool
 CQChartsXYPolylineObj::
 isVisible() const
@@ -3278,12 +3249,13 @@ isVisible() const
 
   return CQChartsPlotObj::isVisible();
 }
+#endif
 
 bool
 CQChartsXYPolylineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! isVisible())
+  if (! plot()->isLines())
     return false;
 
   if (! plot()->isLinesSelectable())
@@ -3325,7 +3297,7 @@ bool
 CQChartsXYPolylineObj::
 interpY(double x, std::vector<double> &yvals) const
 {
-  if (! isVisible())
+  if (! plot()->isLines())
     return false;
 
   if (plot()->isRoundedLines()) {
@@ -3366,7 +3338,7 @@ void
 CQChartsXYPolylineObj::
 getSelectIndices(Indices &) const
 {
-  if (! isVisible())
+  if (! plot()->isLines())
     return;
 
   // all objects part of line (don't support select)
@@ -3439,13 +3411,46 @@ void
 CQChartsXYPolylineObj::
 draw(CQChartsPaintDevice *device)
 {
-  if (! isVisible() && ! plot()->isBestFit() && ! plot()->isStatsLines())
+  if (! plot()->isLines() && ! plot()->isBestFit() && ! plot()->isStatsLines())
     return;
 
   //---
 
+  if (plot()->isHull()) {
+    if (! hull_)
+      hull_ = new CQChartsGrahamHull;
+
+    //---
+
+    hull_->clear();
+
+    for (int i = 0; i < poly_.size(); ++i) {
+      if (plot()->isInterrupt())
+        return;
+
+      hull_->addPoint(poly_.point(i));
+    }
+
+    //---
+
+    // set pen/brush
+    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+
+    CQChartsPenBrush penBrush;
+
+    plot()->setPenBrush(penBrush, plot()->hullPenData(ic), plot_->hullBrushData(ic));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
+    hull_->draw(plot(), device);
+  }
+
+  //---
+
   // draw lines
-  if (isVisible()) {
+  if (plot()->isLines()) {
     // calc pen and brush
     CQChartsPenBrush penBrush;
 
@@ -3493,91 +3498,9 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    // calc fit shape at each pixel
-    CQChartsGeom::Polygon bpoly, poly, tpoly;
+    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
-    auto pl = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmin(), 0));
-    auto pr = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmax(), 0));
-
-    for (int px = int(pl.x); px <= int(pr.x); ++px) {
-      if (plot()->isInterrupt())
-        return;
-
-      auto p1 = plot()->pixelToWindow(CQChartsGeom::Point(px, 0.0));
-
-      double y2 = bestFit_.interp(p1.x);
-
-      auto p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2));
-
-      poly.addPoint(p2);
-
-      // deviation curve above/below
-      if (plot()->isBestFitDeviation()) {
-        p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 - bestFit_.deviation()));
-
-        bpoly.addPoint(p2);
-
-        p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 + bestFit_.deviation()));
-
-        tpoly.addPoint(p2);
-      }
-    }
-
-    //---
-
-    if (poly.size()) {
-      // calc pen and brush
-      CQChartsPenBrush penBrush;
-
-      ColorInd ic = (ig_.n > 1 ? ig_ : is_);
-
-      QColor strokeColor = plot()->interpBestFitStrokeColor(ic);
-      QColor fillColor   = plot()->interpBestFitFillColor  (ic);
-
-      plot()->setPenBrush(penBrush,
-        CQChartsPenData  (true, strokeColor, plot()->bestFitStrokeAlpha(),
-                          plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash()),
-        CQChartsBrushData(plot()->isBestFitFilled(), fillColor, plot()->bestFitFillAlpha(),
-                          plot()->bestFitFillPattern()));
-
-      plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      //---
-
-      // draw fit deviation shape
-      if (plot()->isBestFitDeviation()) {
-        CQChartsGeom::Polygon dpoly;
-
-        for (int i = 0; i < bpoly.size(); ++i) {
-          if (plot()->isInterrupt())
-            return;
-
-          auto p = bpoly.point(i);
-
-          dpoly.addPoint(p);
-        }
-
-        for (int i = tpoly.size() - 1; i >= 0; --i) {
-          if (plot()->isInterrupt())
-            return;
-
-          auto p = tpoly.point(i);
-
-          dpoly.addPoint(p);
-        }
-
-        device->drawPolygon(dpoly);
-      }
-
-      //---
-
-      // draw fit line
-      QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
-
-      device->strokePath(path, penBrush.pen);
-    }
+    plot()->drawBestFit(device, bestFit_, ic);
   }
 
   //---
@@ -3588,9 +3511,9 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // calc pen and brush
-    CQChartsPenBrush penBrush;
-
     ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+
+    CQChartsPenBrush penBrush;
 
     QColor c = plot()->interpStatsLinesColor(ic);
 

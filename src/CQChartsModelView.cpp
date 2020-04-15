@@ -78,7 +78,7 @@ addMenuActions(QMenu *menu)
   //---
 
   auto addMenu = [&](const QString &name) {
-    QMenu *subMenu = new QMenu(name, menu);
+    auto *subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
 
@@ -86,7 +86,7 @@ addMenuActions(QMenu *menu)
   };
 
   auto addActionGroup = [&](QMenu *menu, const char *slotName) {
-    QActionGroup *actionGroup = new QActionGroup(menu);
+    auto *actionGroup = new QActionGroup(menu);
 
     connect(actionGroup, SIGNAL(triggered(QAction *)), this, slotName);
 
@@ -94,7 +94,7 @@ addMenuActions(QMenu *menu)
   };
 
   auto addAction = [&](const QString &name, const char *slotName) {
-    QAction *action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slotName);
 
@@ -110,7 +110,7 @@ addMenuActions(QMenu *menu)
     addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
 
   auto addSelectAction = [&](const QString &name, bool checked) {
-    QAction *action = new QAction(name, selectMenu);
+    auto *action = new QAction(name, selectMenu);
 
     action->setCheckable(true);
     action->setChecked  (checked);
@@ -133,7 +133,7 @@ addMenuActions(QMenu *menu)
     addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
 
   auto addExportAction = [&](const QString &name) {
-    QAction *action = new QAction(name, exportMenu);
+    auto *action = new QAction(name, exportMenu);
 
     exportActionGroup->addAction(action);
   };

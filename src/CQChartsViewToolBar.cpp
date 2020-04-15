@@ -132,7 +132,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
-  QButtonGroup *selectButtonGroup = new QButtonGroup(this);
+  auto *selectButtonGroup = new QButtonGroup(this);
 
   selectPointButton_ = CQUtil::makeLabelWidget<QRadioButton>("Point", "point");
 

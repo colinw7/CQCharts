@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + pie fan plot (R In Action pg 124)
+ + hex grid for scatter density
+   + support shapes for key (circle, square, hex, ...)
  + filter
    + data or object
    + column only
@@ -17,7 +20,7 @@ High
      + symbol/line style. format
    + more customization of color box item
      + shape, rounded, ...
- + expand plot with click
+ + expand plot with click (edit mode ?)
  + tabbed
    + tab change callback
    + test nested tab plots

@@ -265,7 +265,6 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
 CQCHARTS_NAMED_SHAPE_DATA(GridCell,gridCell)
 
 /*!
@@ -274,9 +273,6 @@ CQCHARTS_NAMED_SHAPE_DATA(GridCell,gridCell)
  */
 class CQChartsScatterPlot : public CQChartsPointPlot,
  public CQChartsObjPointData        <CQChartsScatterPlot>,
- public CQChartsObjBestFitShapeData <CQChartsScatterPlot>,
- public CQChartsObjStatsLineData    <CQChartsScatterPlot>,
- public CQChartsObjHullShapeData    <CQChartsScatterPlot>,
  public CQChartsObjRugPointData     <CQChartsScatterPlot>,
  public CQChartsObjGridCellShapeData<CQChartsScatterPlot> {
   Q_OBJECT
@@ -289,22 +285,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // options
   Q_PROPERTY(PlotType plotType READ plotType  WRITE setPlotType)
-
-  // best fit
-  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
-  Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
-  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
-  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
-
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit,bestFit)
-
-  // stats
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
-
-  // convex hull
-  Q_PROPERTY(bool hull READ isHull WRITE setHull)
-
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull,hull)
 
   // axis rug
   Q_PROPERTY(bool  xRug     READ isXRug   WRITE setXRug    )
@@ -336,7 +316,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsLength whiskerMargin READ whiskerMargin WRITE setWhiskerMargin)
   Q_PROPERTY(CQChartsAlpha  whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
 
-  // symbol
+  // symbol data
   CQCHARTS_POINT_DATA_PROPERTIES
 
   // grid cells
@@ -436,25 +416,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS    ); }
   bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS ); }
-
-  //---
-
-  // best fit
-  bool isBestFit() const { return bestFitData_.visible; }
-
-  bool isBestFitOutliers() const { return bestFitData_.includeOutliers; }
-  void setBestFitOutliers(bool b);
-
-  int bestFitOrder() const { return bestFitData_.order; }
-  void setBestFitOrder(int o);
-
-  bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
-  void setBestFitDeviation(bool b);
-
-  //---
-
-  // convex hull
-  bool isHull() const { return hullData_.visible; }
 
   //---
 
@@ -613,9 +574,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   void initGroupBestFit(int groupInd) const;
-  void initGroupStats  (int groupInd) const;
 
   void drawBestFit(CQChartsPaintDevice *device) const;
+
+  //---
+
+  void initGroupStats(int groupInd) const;
 
   void drawStatsLines(CQChartsPaintDevice *device) const;
 
@@ -667,10 +631,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setGridCells(bool b);
 
   // overlays
-  void setBestFit       (bool b);
-  void setHull          (bool b);
-  void setStatsLinesSlot(bool b);
-  void setDensityMap    (bool b);
+  void setDensityMap(bool b);
 
   // x axis annotations
   void setXRug    (bool b);
@@ -700,17 +661,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using GroupStatData = std::map<int,StatData>;
   using GroupHull     = std::map<int,CQChartsGrahamHull *>;
   using GroupWhiskers = std::map<int,CQChartsXYBoxWhisker *>;
-
-  struct BestFitData {
-    bool visible         { false }; //!< show fit
-    bool showDeviation   { false }; //!< show fit deviation
-    int  order           { 3 };     //!< fit order
-    bool includeOutliers { true };  //!< include outliers
-  };
-
-  struct HullData {
-    bool visible { false }; //!< show convex hull
-  };
 
   struct AxisRugData {
     bool  xVisible { false };         //!< x rug
@@ -763,8 +713,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   AxisWhiskerData axisWhiskerData_; //!< axis whisker data
 
   // plot overlay data
-  BestFitData      bestFitData_;    //!< best fit data
-  HullData         hullData_;       //!< hull data
   DensityMapData   densityMapData_; //!< density map data
   CQChartsGridCell gridData_;       //!< grid data
 

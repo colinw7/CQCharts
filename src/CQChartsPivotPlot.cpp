@@ -1512,7 +1512,7 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
   setModelInd(ind);
 
   // get column palette and bg color
-  auto columnDetails = plot_->columnDetails(CQChartsColumn(modelInd().column()));
+  auto *columnDetails = plot_->columnDetails(CQChartsColumn(modelInd().column()));
 
   if (columnDetails)
     color_ = columnDetails->tableDrawColor();

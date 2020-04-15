@@ -139,7 +139,7 @@ CQChartsHelpDlg::
 addItems()
 {
   auto addItem = [&](QTreeWidgetItem *parent, const QString &name, const QString &id) {
-    QTreeWidgetItem *item = new QTreeWidgetItem(QStringList() << name);
+    auto *item = new QTreeWidgetItem(QStringList() << name);
 
     if (! parent)
       tree_->addTopLevelItem(item);

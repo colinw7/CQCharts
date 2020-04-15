@@ -706,7 +706,7 @@ addMenuItems(QMenu *menu)
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    QMenu *plotMenu = new QMenu(plot->id(), menu);
+    auto *plotMenu = new QMenu(plot->id(), menu);
 
     if (plot->addMenuItems(plotMenu))
       menu->addMenu(plotMenu);

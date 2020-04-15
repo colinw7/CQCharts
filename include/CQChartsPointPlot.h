@@ -4,6 +4,7 @@
 #include <CQChartsGroupPlot.h>
 
 class CQChartsDataLabel;
+class CQChartsFitData;
 
 /*!
  * \brief Point plot type (Base class for XY and Symbol Plot Types)
@@ -23,7 +24,12 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
 
 //---
 
-class CQChartsPointPlot : public CQChartsGroupPlot {
+CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
+
+class CQChartsPointPlot : public CQChartsGroupPlot,
+ public CQChartsObjBestFitShapeData<CQChartsPointPlot>,
+ public CQChartsObjHullShapeData   <CQChartsPointPlot>,
+ public CQChartsObjStatsLineData   <CQChartsPointPlot> {
   Q_OBJECT
 
   // columns
@@ -50,6 +56,22 @@ class CQChartsPointPlot : public CQChartsGroupPlot {
 
   // text labels
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
+
+  // best fit
+  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
+  Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
+  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
+  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit,bestFit)
+
+  // convex hull
+  Q_PROPERTY(bool hull READ isHull WRITE setHull)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull,hull)
+
+  // stats
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
 
  public:
   CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
@@ -115,7 +137,30 @@ class CQChartsPointPlot : public CQChartsGroupPlot {
 
   //---
 
+  // best fit
+  bool isBestFit() const { return bestFitData_.visible; }
+
+  bool isBestFitOutliers() const { return bestFitData_.includeOutliers; }
+  void setBestFitOutliers(bool b);
+
+  int bestFitOrder() const { return bestFitData_.order; }
+  void setBestFitOrder(int o);
+
+  bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
+  void setBestFitDeviation(bool b);
+
+ //---
+
+  // convex hull
+  bool isHull() const { return hullData_.visible; }
+
+  //---
+
   void addPointProperties();
+
+  void addBestFitProperties();
+  void addHullProperties();
+  void addStatsProperties();
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
@@ -144,6 +189,18 @@ class CQChartsPointPlot : public CQChartsGroupPlot {
   void initFontSizeData() const;
 
   bool columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const;
+
+  //---
+
+ public:
+  void drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData,
+                   const ColorInd &ic) const;
+
+ public slots:
+  // overlays
+  void setBestFit       (bool b);
+  void setHull          (bool b);
+  void setStatsLinesSlot(bool b);
 
  protected slots:
   void dataLabelChanged();
@@ -182,12 +239,28 @@ class CQChartsPointPlot : public CQChartsGroupPlot {
     QString        units    { "px" };  //!< mapped size units
   };
 
+  struct BestFitData {
+    bool visible         { false }; //!< show fit
+    bool showDeviation   { false }; //!< show fit deviation
+    int  order           { 3 };     //!< fit order
+    bool includeOutliers { true };  //!< include outliers
+  };
+
+  struct HullData {
+    bool visible { false }; //!< show convex hull
+  };
+
  protected:
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
+  // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data
   SymbolSizeData symbolSizeData_; //!< symbol size column data
   FontSizeData   fontSizeData_;   //!< font size column data
+
+  // plot overlay data
+  BestFitData    bestFitData_; //!< best fit data
+  HullData       hullData_;    //!< hull data
 };
 
 #endif

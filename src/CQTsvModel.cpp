@@ -255,7 +255,6 @@ QString
 CQTsvModel::
 encodeString(const QString &str)
 {
-  // TODO: handle tab in string
   QString str1;
 
   int len = str.length();

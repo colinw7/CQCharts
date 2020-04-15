@@ -48,7 +48,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   int nc = details->numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
     if (columnDetails->isNumeric()) {

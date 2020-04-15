@@ -3975,10 +3975,12 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   CQPerfTrace trace("CQChartsCmds::createChartsPivotModelCmd");
 
-  argv.addCmdArg("-model"   , CQChartsCmdArg::Type::Integer, "model id");
-  argv.addCmdArg("-hcolumns", CQChartsCmdArg::Type::String , "horizontal columns");
-  argv.addCmdArg("-vcolumns", CQChartsCmdArg::Type::String , "vertical columns");
-  argv.addCmdArg("-dcolumn" , CQChartsCmdArg::Type::String , "data column");
+  argv.addCmdArg("-model"         , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-hcolumns"      , CQChartsCmdArg::Type::String , "horizontal columns");
+  argv.addCmdArg("-vcolumns"      , CQChartsCmdArg::Type::String , "vertical columns");
+  argv.addCmdArg("-dcolumn"       , CQChartsCmdArg::Type::String , "data column");
+  argv.addCmdArg("-value_type"    , CQChartsCmdArg::Type::String , "value type");
+  argv.addCmdArg("-include_totals", CQChartsCmdArg::Type::Boolean, "include totals");
 
   bool rc;
 
@@ -4027,10 +4029,12 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   CQChartsColumn dcolumn;
 
-  QString dcolumnStr = argv.getParseStr("dcolumn");
+  if (argv.hasParseArg("dcolumn")) {
+    QString dcolumnStr = argv.getParseStr("dcolumn");
 
-  if (! CQChartsModelUtil::stringToColumn(model.data(), dcolumnStr, dcolumn))
-    dcolumn = CQChartsColumn();
+    if (! CQChartsModelUtil::stringToColumn(model.data(), dcolumnStr, dcolumn))
+      return errorMsg("Bad column name '" + dcolumnStr + "'");
+  }
 
   //------
 
@@ -4039,7 +4043,28 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
   pivotModel->setHColumns(hColumns);
   pivotModel->setVColumns(vColumns);
 
-  pivotModel->setValueColumn(dcolumn.column());
+  if (dcolumn.isValid())
+    pivotModel->setValueColumn(dcolumn.column());
+
+  if (argv.hasParseArg("value_type")) {
+    QString valueTypeStr = argv.getParseStr("value_type").toLower();
+
+    if      (valueTypeStr == "count")
+      pivotModel->setValueType(CQPivotModel::ValueType::COUNT);
+    else if (valueTypeStr == "count_unique")
+      pivotModel->setValueType(CQPivotModel::ValueType::COUNT_UNIQUE);
+    else if (valueTypeStr == "sum")
+      pivotModel->setValueType(CQPivotModel::ValueType::SUM);
+    else if (valueTypeStr == "min")
+      pivotModel->setValueType(CQPivotModel::ValueType::MIN);
+    else if (valueTypeStr == "max")
+      pivotModel->setValueType(CQPivotModel::ValueType::MAX);
+    else if (valueTypeStr == "mean")
+      pivotModel->setValueType(CQPivotModel::ValueType::MEAN);
+  }
+
+  if (argv.hasParseArg("include_totals"))
+    pivotModel->setIncludeTotals(true);
 
   //---
 
@@ -7947,28 +7972,7 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
     return new CQChartsCmdsSlot(this, view, plot, annotation, toName);
   };
 
-  if      (view) {
-    if      (fromName == "objIdPressed") {
-      connect(view, SIGNAL(objIdPressed(const QString &)),
-              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
-    }
-    else if (fromName == "annotationIdPressed") {
-      connect(view, SIGNAL(annotationIdPressed(const QString &)),
-              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
-    }
-    else if (fromName == "selectionChanged") {
-      connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
-    }
-    else if (fromName == "?") {
-      QStringList names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "selectionChanged";
-
-      return cmdBase_->setCmdRc(names);
-    }
-    else
-      return errorMsg("unknown slot");
-  }
-  else if (plot) {
+  if      (plot) {
     if      (fromName == "objIdPressed") {
       connect(plot, SIGNAL(objIdPressed(const QString &)),
               createCmdsSlot(), SLOT(objIdPressed(const QString &)));
@@ -7986,6 +7990,27 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
     else if (fromName == "?") {
       QStringList names = QStringList() <<
         "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged";
+
+      return cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg("unknown slot");
+  }
+  else if (view) {
+    if      (fromName == "objIdPressed") {
+      connect(view, SIGNAL(objIdPressed(const QString &)),
+              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
+    }
+    else if (fromName == "annotationIdPressed") {
+      connect(view, SIGNAL(annotationIdPressed(const QString &)),
+              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
+    }
+    else if (fromName == "selectionChanged") {
+      connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+    }
+    else if (fromName == "?") {
+      QStringList names = QStringList() <<
+        "objIdPressed" << "annotationIdPressed" << "selectionChanged";
 
       return cmdBase_->setCmdRc(names);
     }

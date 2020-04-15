@@ -3,6 +3,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsFitData.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -39,7 +40,10 @@ addMappingParameters()
 
 CQChartsPointPlot::
 CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
- CQChartsGroupPlot(view, plotType, model)
+ CQChartsGroupPlot(view, plotType, model),
+ CQChartsObjBestFitShapeData<CQChartsPointPlot>(this),
+ CQChartsObjHullShapeData   <CQChartsPointPlot>(this),
+ CQChartsObjStatsLineData   <CQChartsPointPlot>(this)
 {
   NoUpdate noUpdate(this);
 
@@ -64,6 +68,21 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
   setFontSizeMapped(true);
   setFontSizeMapMin(CQChartsFontSize::minValue());
   setFontSizeMapMax(CQChartsFontSize::maxValue());
+
+  //---
+
+  // best fit
+  setBestFit(false);
+  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBestFitFillAlpha(CQChartsAlpha(0.5));
+
+  // hull
+  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  // stats
+  setStatsLines(false);
+  setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 }
 
 CQChartsPointPlot::
@@ -102,6 +121,56 @@ addPointProperties()
   addProp("mapping/fontSize", "fontSizeMapMin"  , "min"    , "Font size map min value");
   addProp("mapping/fontSize", "fontSizeMapMax"  , "max"    , "Font size map max value");
   addProp("mapping/fontSize", "fontSizeMapUnits", "units"  , "Font size map units");
+}
+
+void
+CQChartsPointPlot::
+addBestFitProperties()
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  // best fit line and deviation fill
+  addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");
+  addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
+  addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
+  addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
+
+  addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
+  addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
+}
+
+void
+CQChartsPointPlot::
+addHullProperties()
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  // convex hull shape
+  addProp("hull", "hull", "visible", "Show convex hull overlay");
+
+  addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
+  addLineProperties("hull/stroke", "hullStroke", "Convex hull");
+}
+
+void
+CQChartsPointPlot::
+addStatsProperties()
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  // stats
+  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
+
+  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
 }
 
 void
@@ -723,6 +792,151 @@ dataLabelChanged()
 {
   // TODO: not enough info to optimize behavior so reload all objects
   updateObjs();
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setBestFit(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setBestFitOutliers(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setBestFitDeviation(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setBestFitOrder(int o)
+{
+  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPointPlot::
+drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const ColorInd &ic) const
+{
+  // calc fit shape at each pixel
+  CQChartsGeom::Polygon bpoly, poly, tpoly;
+
+  auto pl = windowToPixel(CQChartsGeom::Point(fitData.xmin(), 0));
+  auto pr = windowToPixel(CQChartsGeom::Point(fitData.xmax(), 0));
+
+  double dx = std::max((pr.x - pl.x)/100, 1.0);
+
+  for (double px = pl.x; px <= pr.x; px += dx) {
+    if (isInterrupt())
+      return;
+
+    auto p1 = pixelToWindow(CQChartsGeom::Point(px, 0.0));
+
+    double y2 = fitData.interp(p1.x);
+
+    auto p2 = CQChartsGeom::Point(p1.x, y2);
+
+    poly.addPoint(p2);
+
+    // deviation curve above/below
+    if (isBestFitDeviation()) {
+      p2 = CQChartsGeom::Point(p1.x, y2 - fitData.deviation());
+
+      bpoly.addPoint(p2);
+
+      p2 = CQChartsGeom::Point(p1.x, y2 + fitData.deviation());
+
+      tpoly.addPoint(p2);
+    }
+  }
+
+  //---
+
+  if (poly.size()) {
+    // calc pen and brush
+    CQChartsPenBrush penBrush;
+
+    QColor strokeColor = interpBestFitStrokeColor(ic);
+    QColor fillColor   = interpBestFitFillColor  (ic);
+
+    setPenBrush(penBrush,
+      CQChartsPenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
+                        bestFitStrokeWidth(), bestFitStrokeDash()),
+      CQChartsBrushData(isBestFitFilled(), fillColor, bestFitFillAlpha(),
+                        bestFitFillPattern()));
+
+    updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    //---
+
+    // draw fit deviation shape
+    if (isBestFitDeviation()) {
+      CQChartsGeom::Polygon dpoly;
+
+      for (int i = 0; i < bpoly.size(); ++i) {
+        if (isInterrupt())
+          return;
+
+        auto p = bpoly.point(i);
+
+        dpoly.addPoint(p);
+      }
+
+      for (int i = tpoly.size() - 1; i >= 0; --i) {
+        if (isInterrupt())
+          return;
+
+        auto p = tpoly.point(i);
+
+        dpoly.addPoint(p);
+      }
+
+      device->drawPolygon(dpoly);
+    }
+
+    //---
+
+    // draw fit line
+    QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
+
+    device->strokePath(path, penBrush.pen);
+  }
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setHull(bool b)
+{
+  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setStatsLinesSlot(bool b)
+{
+  if (b != isStatsLines()) {
+    setStatsLines(b);
+
+    drawObjs();
+  }
 }
 
 //---

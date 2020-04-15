@@ -32,7 +32,7 @@ addParameters()
 
   //---
 
-  auto primaryGroup = startParameterGroup("Raw Values");
+  auto *primaryGroup = startParameterGroup("Raw Values");
 
   addColumnsParameter("value", "Value", "valueColumns").
     setNumeric().setRequired().setTip("Value column(s)");
@@ -45,7 +45,7 @@ addParameters()
 
   //---
 
-  auto secondaryGroup = startParameterGroup("Calculated Values");
+  auto *secondaryGroup = startParameterGroup("Calculated Values");
 
   addColumnParameter("x"          , "X"           , "xColumn"          ).
     setNumeric().setTip("X Value");
@@ -150,7 +150,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   int nc = details->numColumns();
 
   for (int i = 0; i < nc; ++i) {
-    auto columnDetails = details->columnDetails(CQChartsColumn(i));
+    auto *columnDetails = details->columnDetails(CQChartsColumn(i));
 
     if (columnDetails && columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -670,8 +670,8 @@ updateRawRange() const
 
       for (auto &setWhiskers : setWhiskerMap) {
         if (isWhiskersGrouped() || ! isSetHidden(is)) {
-          int  setId   = setWhiskers.first;
-          auto whisker = setWhiskers.second;
+          int   setId   = setWhiskers.first;
+          auto *whisker = setWhiskers.second;
 
           //---
 
@@ -1370,8 +1370,8 @@ initRawObjs(PlotObjs &objs) const
         bool hidden = (isWhiskersGrouped() ? isSetHidden(ig) : isSetHidden(is));
         if (hidden) { ++is; continue; }
 
-        int  setId   = setWhiskers.first;
-        auto whisker = setWhiskers.second;
+        int   setId   = setWhiskers.first;
+        auto *whisker = setWhiskers.second;
 
         if (whisker->values().empty())
           continue;
@@ -1745,8 +1745,8 @@ addKeyItems(CQChartsPlotKey *key)
       int ns = setWhiskerMap.size();
 
       for (const auto &setWhiskers : setWhiskerMap) {
-        int  setId   = setWhiskers.first;
-      //auto whisker = setWhiskers.second;
+        int   setId   = setWhiskers.first;
+      //auto *whisker = setWhiskers.second;
 
         QString setName = setIdName(setId);
 
@@ -1795,8 +1795,8 @@ addKeyItems(CQChartsPlotKey *key)
     int ns = setWhiskerMap.size();
 
     for (const auto &setWhiskers : setWhiskerMap) {
-    //int  setId   = setWhiskers.first;
-      auto whisker = setWhiskers.second;
+    //int   setId   = setWhiskers.first;
+      auto *whisker = setWhiskers.second;
 
       QString name = whisker->name();
 
@@ -2937,8 +2937,8 @@ initPolygon()
   const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
 
   for (const auto &setWhiskers : setWhiskerMap) {
-    int  setId   = setWhiskers.first;
-    auto whisker = setWhiskers.second;
+    int   setId   = setWhiskers.first;
+    auto *whisker = setWhiskers.second;
 
     double min    = whisker->min   ();
     double max    = whisker->max   ();

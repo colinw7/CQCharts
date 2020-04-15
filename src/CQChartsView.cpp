@@ -4705,7 +4705,7 @@ showMenu(const QPoint &p)
   CQColorsMgrInst->getThemeNames(themeNames);
 
   for (const auto &themeName : themeNames) {
-    auto theme = CQColorsMgrInst->getNamedTheme(themeName) ;
+    auto *theme = CQColorsMgrInst->getNamedTheme(themeName) ;
 
     auto *themeAction = addThemeAction(theme->desc(), SLOT(themeNameSlot()));
 

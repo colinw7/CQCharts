@@ -195,10 +195,13 @@ data(const QModelIndex &index, int role) const
 
     const Values &values = (*p1).second;
 
-    if (values.count() == 0)
+    if      (values.count() != 0)
+      return typeValue(values);
+    else if (values.rcount())
+      return values.rcount();
+    else
       return QVariant();
 
-    return typeValue(values);
   }
   else {
     return CQBaseModel::data(index, role);
@@ -431,21 +434,26 @@ updateModel()
       vRowKeys_[row        ] = vkeys;
     }
 
-    QModelIndex ind = sm->index(row, valueColumn_);
+    Values &values = values_[hkeys.key()][vkeys.key()];
 
-    QVariant data = sm->data(ind);
+    if (valueColumn_ >= 0) {
+      QModelIndex ind = sm->index(row, valueColumn_);
 
-    if (data.isValid()) {
-      Values &values = values_[hkeys.key()][vkeys.key()];
+      QVariant data = sm->data(ind);
 
-      bool ok;
+      if (data.isValid()) {
+        bool ok;
 
-      double r = data.toReal(&ok);
+        double r = data.toReal(&ok);
 
-      if (ok)
-        values.add(r);
+        if (ok)
+          values.add(r);
 
-      values.add(ind, data.toString());
+        values.add(ind, data.toString());
+      }
+    }
+    else {
+      values.add(1);
     }
   }
 
@@ -500,15 +508,20 @@ calcData()
 
       const Values &values = values_[hkey][vkey];
 
-      if (values.count() == 0)
-        continue;
+      if      (values.count() != 0) {
+        double value = typeValue(values);
 
-      double value = typeValue(values);
-
-      data.min  = (data.set ? std::min(data.min, value) : value);
-      data.max  = (data.set ? std::max(data.max, value) : value);
-      data.sum += value;
-      data.set  = true;
+        data.min  = (data.set ? std::min(data.min, value) : value);
+        data.max  = (data.set ? std::max(data.max, value) : value);
+        data.sum += value;
+        data.set  = true;
+      }
+      else if (values.rcount()) {
+        data.min  = 0;
+        data.max  = 1;
+        data.sum += values.rcount();
+        data.set  = true;
+      }
     }
 
     assert(r >= 0 && r < nr);
@@ -533,15 +546,20 @@ calcData()
 
       const Values &values = values_[hkey][vkey];
 
-      if (values.count() == 0)
-        continue;
+      if      (values.count() != 0) {
+        double value = typeValue(values);
 
-      double value = typeValue(values);
-
-      data.min = (data.set ? std::min(data.min, value) : value);
-      data.max = (data.set ? std::max(data.max, value) : value);
-      data.sum = value;
-      data.set = true;
+        data.min = (data.set ? std::min(data.min, value) : value);
+        data.max = (data.set ? std::max(data.max, value) : value);
+        data.sum = value;
+        data.set = true;
+      }
+      else if (values.rcount()) {
+        data.min  = 0;
+        data.max  = 1;
+        data.sum += values.rcount();
+        data.set  = true;
+      }
     }
 
     assert(c >= 0 && c < nc);

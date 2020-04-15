@@ -12,6 +12,7 @@ class CQChartsXYPlot;
 class CQChartsXYLabelObj;
 class CQChartsXYPolylineObj;
 class CQChartsArrow;
+class CQChartsGrahamHull;
 
 //---
 
@@ -397,7 +398,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  bool isVisible() const override;
+//bool isVisible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -442,6 +443,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
   CQChartsFitData       bestFit_;              //!< best fit data
   CQStatData            statData_;             //!< statistics data
+  CQChartsGrahamHull*   hull_     { nullptr }; //!< hull
 };
 
 //---
@@ -585,8 +587,6 @@ CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
 class CQChartsXYPlot : public CQChartsPointPlot,
  public CQChartsObjLineData         <CQChartsXYPlot>,
  public CQChartsObjPointData        <CQChartsXYPlot>,
- public CQChartsObjBestFitShapeData <CQChartsXYPlot>,
- public CQChartsObjStatsLineData    <CQChartsXYPlot>,
  public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
  public CQChartsObjBivariateLineData<CQChartsXYPlot>,
  public CQChartsObjFillUnderFillData<CQChartsXYPlot> {
@@ -608,17 +608,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // column series
   Q_PROPERTY(bool columnSeries READ isColumnSeries WRITE setColumnSeries);
-
-  // best fit
-  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
-  Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
-  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
-  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
-
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit, bestFit)
-
-  // stats
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
 
   // vectors
   Q_PROPERTY(bool vectors READ isVectors WRITE setVectors)
@@ -720,18 +709,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void setRoundedLines(bool b);
 
   //---
-
-  // best fit
-  bool isBestFit() const { return bestFitData_.visible; }
-
-  bool isBestFitOutliers() const { return bestFitData_.includeOutliers; }
-  void setBestFitOutliers(bool b);
-
-  int bestFitOrder() const { return bestFitData_.order; }
-  void setBestFitOrder(int o);
-
-  bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
-  void setBestFitDeviation(bool b);
 
  private:
   void resetBestFit();
@@ -857,9 +834,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // set fill under
   void setFillUnderFilledSlot(bool b);
 
-  // set best fit
-  void setBestFit(bool b);
-
  private:
   struct IndPoly {
     using Inds = std::vector<QModelIndex>;
@@ -870,13 +844,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   using SetIndPoly      = std::vector<IndPoly>;
   using GroupSetIndPoly = std::map<int,SetIndPoly>;
-
-  struct BestFitData {
-    bool visible         { false }; //!< show fit
-    bool includeOutliers { true };  //!< include outliers
-    bool showDeviation   { false }; //!< show deviation
-    int  order           { 3 };     //!< fit order
-  };
 
  private:
   void initAxes();
@@ -919,9 +886,6 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // fill under data
   FillUnderData fillUnderData_; //!< fill under data
-
-  // plot overlay data
-  BestFitData bestFitData_; //!< best fit data
 
   // vector data
   CQChartsArrow* arrowObj_ { nullptr }; //!< vectors data

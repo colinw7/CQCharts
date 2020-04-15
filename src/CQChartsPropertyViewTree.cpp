@@ -31,7 +31,7 @@ CQChartsPropertyViewTree::
 addMenuItems(QMenu *menu)
 {
   auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) {
-    QAction *action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     connect(action, SIGNAL(triggered()), this, slot);
 
@@ -41,7 +41,7 @@ addMenuItems(QMenu *menu)
   };
 
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name, bool isSet, const char *slot) {
-    QAction *action = new QAction(name, menu);
+    auto *action = new QAction(name, menu);
 
     action->setCheckable(true);
     action->setChecked(isSet);

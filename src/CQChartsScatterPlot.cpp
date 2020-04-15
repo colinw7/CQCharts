@@ -120,9 +120,6 @@ CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("scatter"), model),
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
- CQChartsObjBestFitShapeData <CQChartsScatterPlot>(this),
- CQChartsObjStatsLineData    <CQChartsScatterPlot>(this),
- CQChartsObjHullShapeData    <CQChartsScatterPlot>(this),
  CQChartsObjRugPointData     <CQChartsScatterPlot>(this),
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
@@ -135,18 +132,8 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setSymbolFilled (true);
   setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-
   setRugSymbolType(CQChartsSymbol::Type::NONE);
   setRugSymbolSize(CQChartsLength("5px"));
-
-  setBestFit(false);
-  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
-  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setBestFitFillAlpha(CQChartsAlpha(0.5));
-
-  setStatsLines(false);
-  setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
   setGridCellFilled (true);
   setGridCellStroked(true);
@@ -212,7 +199,10 @@ CQChartsScatterPlot::
 setGridNumX(int n)
 {
   if (n != gridData_.nx()) {
-    gridData_.setNX(n); updateRangeAndObjs();
+    gridData_.setNX(n);
+
+    if (isGridCells())
+      updateRangeAndObjs();
   }
 }
 
@@ -221,7 +211,10 @@ CQChartsScatterPlot::
 setGridNumY(int n)
 {
   if (n != gridData_.ny()) {
-    gridData_.setNY(n); updateRangeAndObjs();
+    gridData_.setNY(n);
+
+    if (isGridCells())
+      updateRangeAndObjs();
   }
 }
 
@@ -295,58 +288,6 @@ setGridCells(bool b)
   else {
     CQChartsUtil::testAndSet(plotType_,
      (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
-  }
-}
-
-//---
-
-void
-CQChartsScatterPlot::
-setBestFit(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsScatterPlot::
-setBestFitOutliers(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsScatterPlot::
-setBestFitDeviation(bool b)
-{
-  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsScatterPlot::
-setBestFitOrder(int o)
-{
-  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsScatterPlot::
-setHull(bool b)
-{
-  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { drawObjs(); } );
-}
-
-//---
-
-void
-CQChartsScatterPlot::
-setStatsLinesSlot(bool b)
-{
-  if (b != isStatsLines()) {
-    setStatsLines(b);
-
-    drawObjs();
   }
 }
 
@@ -530,25 +471,18 @@ addProperties()
   // options
   addProp("options", "plotType", "plotType", "Plot type");
 
+  //---
+
   // best fit line and deviation fill
-  addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");
-  addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
-  addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
-  addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
-
-  addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
-  addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
-
-  // stats
-  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
-
-  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
+  addBestFitProperties();
 
   // convex hull shape
-  addProp("hull", "hull", "visible", "Show convex hull overlay");
+  addHullProperties();
 
-  addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
-  addLineProperties("hull/stroke", "hullStroke", "Convex hull");
+  // stats
+  void addStatsProperties();
+
+  //---
 
   // density map
   addProp("densityMap", "densityMap"        , "visible" , "Show density map overlay");
@@ -1242,6 +1176,8 @@ addGridObjects(PlotObjs &objs) const
 
   //---
 
+  int maxN = gridData_.maxN();
+
   int ig = 0;
   int ng = groupNameGridData_.size();
 
@@ -1275,7 +1211,7 @@ addGridObjects(PlotObjs &objs) const
 
       const auto &cellPointData = pn.second;
 
-      int maxN = cellPointData.maxN();
+    //int maxN = cellPointData.maxN();
 
       for (const auto &px : cellPointData.xyPoints()) {
         if (isInterrupt())
@@ -1762,7 +1698,7 @@ calcAnnotationBBox() const
 
     // whisker axis
     if (isXWhisker()) {
-      int ng = groupNameValues_.size();
+      int ng = (! isGridCells() ? groupNameValues_.size() : groupNameGridData_.size());
 
       double wm = lengthPlotHeight(whiskerMargin());
       double ww = ng*lengthPlotHeight(whiskerWidth());
@@ -1776,7 +1712,7 @@ calcAnnotationBBox() const
     }
 
     if (isYWhisker()) {
-      int ng = groupNameValues_.size();
+      int ng = (! isGridCells() ? groupNameValues_.size() : groupNameGridData_.size());
 
       double wm = lengthPlotWidth(whiskerMargin());
       double ww = ng*lengthPlotWidth(whiskerWidth());
@@ -1962,84 +1898,9 @@ drawBestFit(CQChartsPaintDevice *device) const
 
     //---
 
-    // calc fit shape at each pixel
-    CQChartsGeom::Polygon bpoly, poly, tpoly;
+    ColorInd ic(ig, ng);
 
-    auto pl = CQChartsGeom::Point(fitData.xmin(), 0);
-    auto pr = CQChartsGeom::Point(fitData.xmax(), 0);
-
-    for (int px = int(pl.x); px <= int(pr.x); ++px) {
-      if (isInterrupt())
-        return;
-
-      auto p1 = CQChartsGeom::Point(px, 0.0);
-
-      double y2 = fitData.interp(p1.x);
-
-      auto p2 = CQChartsGeom::Point(p1.x, y2);
-
-      poly.addPoint(p2);
-
-      // deviation curve above/below
-      if (isBestFitDeviation()) {
-        p2 = CQChartsGeom::Point(p1.x, y2 - fitData.deviation());
-
-        bpoly.addPoint(p2);
-
-        p2 = CQChartsGeom::Point(p1.x, y2 + fitData.deviation());
-
-        tpoly.addPoint(p2);
-      }
-    }
-
-    //---
-
-    if (poly.size()) {
-      // set pen and brush
-      ColorInd ic(ig, ng);
-
-      CQChartsPenBrush penBrush;
-
-      QColor strokeColor = interpBestFitStrokeColor(ic);
-      QColor fillColor   = interpBestFitFillColor  (ic);
-
-      setPenBrush(penBrush,
-        CQChartsPenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
-                          bestFitStrokeWidth(), bestFitStrokeDash()),
-        CQChartsBrushData(isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern()));
-
-      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      //---
-
-      // draw fit deviation shape
-      if (isBestFitDeviation()) {
-        CQChartsGeom::Polygon dpoly;
-
-        for (int i = 0; i < bpoly.size(); ++i) {
-          auto p = bpoly.point(i);
-
-          dpoly.addPoint(p);
-        }
-
-        for (int i = tpoly.size() - 1; i >= 0; --i) {
-          auto p = tpoly.point(i);
-
-          dpoly.addPoint(p);
-        }
-
-        device->drawPolygon(dpoly);
-      }
-
-      //---
-
-      // draw fit line
-      QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
-
-      device->strokePath(path, penBrush.pen);
-    }
+    CQChartsPointPlot::drawBestFit(device, fitData, ic);
 
     //---
 
@@ -2621,7 +2482,7 @@ drawYWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
   const auto &dataRange = this->dataRange();
 
   double pos = (yWhiskerSide() == XSide::LEFT ?
-    dataRange.xmin() - ig.i*ww - wm : dataRange.xmax() + (ig.i + 1)*ww + wm);
+    dataRange.xmin() - (ig.i + 1)*ww - wm : dataRange.xmax() + ig.i*ww + wm);
 
   CQChartsGeom::BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
 

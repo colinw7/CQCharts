@@ -2,7 +2,11 @@
 #define CQTsvModel_H
 
 #include <CQDataModel.h>
+#include <QStringList>
 
+/*!
+ * \brief Model containing TSV file data
+ */
 class CQTsvModel : public CQDataModel {
   Q_OBJECT
 
@@ -27,22 +31,28 @@ class CQTsvModel : public CQDataModel {
   bool isFirstColumnHeader() const { return firstColumnHeader_; }
   void setFirstColumnHeader(bool b) { firstColumnHeader_ = b; }
 
+  //---
+
   //! get/set column names/numbers to read (also specifies order)
   const QStringList &columns() const { return columns_; }
   void setColumns(const QStringList &v) { columns_ = v; }
 
   //---
 
+  //! load TSV from specified file
   bool load(const QString &filename);
 
+  //! save model to TSV file
   void save(std::ostream &os);
   void save(QAbstractItemModel *model, std::ostream &os);
 
   //---
 
+  //! encode string (suitable for TSV value)
   static QString encodeString(const QString &str);
 
  protected:
+  //! encode variant (suitable for TSV value)
   std::string encodeVariant(const QVariant &var) const;
 
  protected:

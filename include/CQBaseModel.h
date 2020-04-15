@@ -121,7 +121,7 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
-  //! get/set column name, value
+  //! get/set column name value
   QVariant columnNameValue(int column, const QString &name) const;
   bool setColumnNameValue(int column, const QString &name, const QVariant &value);
 
@@ -205,6 +205,7 @@ class CQBaseModel : public QAbstractItemModel {
   using RowValues     = std::map<int,QVariant>;
   using RoleRowValues = std::map<int,RowValues>;
   using NameValues    = std::map<QString,QVariant>;
+  using ModelType     = CQBaseModelType;
 
   //---
 
@@ -214,19 +215,19 @@ class CQBaseModel : public QAbstractItemModel {
      column(column) {
     }
 
-    int             column        { -1 };                    //!< column
-    CQBaseModelType type          { CQBaseModelType::NONE }; //!< auto or assigned type
-    CQBaseModelType baseType      { CQBaseModelType::NONE }; //!< auto or assigned base type
-    QString         typeValues;                              //!< type values
-    QVariant        min;                                     //!< custom min value
-    QVariant        max;                                     //!< custom max value
-    bool            key           { false };                 //!< is key
-    bool            sorted        { false };                 //!< is sorted
-    Qt::SortOrder   sortOrder     { Qt::AscendingOrder };    //!< sort ortder
-    QString         title;                                   //!< title
-    CQBaseModelType headerType    { CQBaseModelType::NONE }; //!< header type
-    QString         headerTypeValues;                        //!< header type values
-    RoleRowValues   roleRowValues;                           //!< row role values
+    int           column          { -1 };                 //!< column
+    ModelType     type            { ModelType::NONE };    //!< auto or assigned type
+    ModelType     baseType        { ModelType::NONE };    //!< auto or assigned base type
+    QString       typeValues;                             //!< type values
+    QVariant      min;                                    //!< custom min value
+    QVariant      max;                                    //!< custom max value
+    bool          key             { false };              //!< is key
+    bool          sorted          { false };              //!< is sorted
+    Qt::SortOrder sortOrder       { Qt::AscendingOrder }; //!< sort ortder
+    QString       title;                                  //!< title
+    ModelType     headerType      { ModelType::NONE };    //!< header type
+    QString       headerTypeValues;                       //!< header type values
+    RoleRowValues roleRowValues;                          //!< row role values
   };
 
   using ColumnDatas = std::map<int,ColumnData>;

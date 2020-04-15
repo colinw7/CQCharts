@@ -1032,7 +1032,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
   ChildGroups childGroups;
 
   for (const auto &p : type->parameterGroups()) {
-    auto parameterGroup = p.second;
+    auto *parameterGroup = p.second;
 
     if (parameterGroup->isHidden())
       continue;
@@ -2054,7 +2054,7 @@ setXYMin(const QString &id)
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  auto columnDetails = details->columnDetails(column);
+  auto *columnDetails = details->columnDetails(column);
   if (! columnDetails) return;
 
   if      (id == "xmin") {
@@ -2114,7 +2114,7 @@ validateSlot()
 
       analyzeModel.analyzeType(type);
 
-      auto analyzeModelData = analyzeModel.analyzeModelData(type);
+      const auto &analyzeModelData = analyzeModel.analyzeModelData(type);
 
       //---
 
@@ -2445,7 +2445,7 @@ validate(QStringList &msgs)
 
       if (column.type() == CQChartsColumn::Type::DATA ||
           column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        auto columnDetails = details->columnDetails(column);
+        auto *columnDetails = details->columnDetails(column);
         assert(columnDetails);
 
         if (parameter->isMonotonic()) {

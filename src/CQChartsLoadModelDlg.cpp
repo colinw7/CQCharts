@@ -561,7 +561,7 @@ updateColumns()
   columnsTable_->setHorizontalHeaderItem(2, new QTableWidgetItem("Data"));
 
   auto createTableItem = [&](const QString &name) {
-    QTableWidgetItem *item = new QTableWidgetItem(name);
+    auto *item = new QTableWidgetItem(name);
 
     item->setToolTip(name);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);

@@ -976,10 +976,16 @@ nameType(const QString &name)
 
   auto p = s_nameType.find(name);
 
-  if (p == s_nameType.end())
-    return CQBaseModelType::NONE;
+  if (p != s_nameType.end())
+    return (*p).second;
 
-  return (*p).second;
+  // handle aliases (should be part of type)
+  if      (name == "int")
+    return CQBaseModelType::INTEGER;
+  else if (name == "double")
+    return CQBaseModelType::REAL;
+
+  return CQBaseModelType::NONE;
 }
 
 double

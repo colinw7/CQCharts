@@ -445,8 +445,8 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
   //--
 
-  auto addButton    = createButton("add"   , "ADD"   , "Add column"   , SLOT(addSlot()));
-  auto removeButton = createButton("remove", "REMOVE", "Remove column", SLOT(removeSlot()));
+  auto *addButton    = createButton("add"   , "ADD"   , "Add column"   , SLOT(addSlot()));
+  auto *removeButton = createButton("remove", "REMOVE", "Remove column", SLOT(removeSlot()));
 
   controlFrameLayout->addWidget(countLabel_);
   controlFrameLayout->addStretch(1);

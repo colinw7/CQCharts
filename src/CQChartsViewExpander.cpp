@@ -220,13 +220,13 @@ mousePressEvent(QMouseEvent *me)
     movePos_  = pressPos_;
   }
   else if (me->button() == Qt::RightButton) {
-    QMenu *menu = new QMenu;
+    auto *menu = new QMenu;
 
-    QActionGroup *sideGroup = new QActionGroup(menu);
+    auto *sideGroup = new QActionGroup(menu);
 
     if (isVertical()) {
-      QAction *leftAction  = new QAction("Left"  , menu);
-      QAction *rightAction = new QAction("Right" , menu);
+      auto *leftAction  = new QAction("Left"  , menu);
+      auto *rightAction = new QAction("Right" , menu);
 
       leftAction ->setCheckable(true);
       rightAction->setCheckable(true);
@@ -241,8 +241,8 @@ mousePressEvent(QMouseEvent *me)
       connect(rightAction, SIGNAL(triggered()), this, SLOT(rightSlot()));
     }
     else {
-      QAction *topAction    = new QAction("Top"   , menu);
-      QAction *bottomAction = new QAction("Bottom", menu);
+      auto *topAction    = new QAction("Top"   , menu);
+      auto *bottomAction = new QAction("Bottom", menu);
 
       topAction   ->setCheckable(true);
       bottomAction->setCheckable(true);
@@ -261,7 +261,7 @@ mousePressEvent(QMouseEvent *me)
 
     menu->addSeparator();
 
-    QAction *detachAction = new QAction((! isDetached() ? "Detach" : "Attach"), menu);
+    auto *detachAction = new QAction((! isDetached() ? "Detach" : "Attach"), menu);
 
     connect(detachAction, SIGNAL(triggered()), this, SLOT(detachLaterSlot()));
 

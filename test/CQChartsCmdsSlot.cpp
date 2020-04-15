@@ -18,24 +18,22 @@ void
 CQChartsCmdsSlot::
 objIdPressed(const QString &id)
 {
-  if (view_)
-    disconnect(view_, SIGNAL(objIdPressed(const QString &)),
-               this, SLOT(objIdPressed(const QString &)));
-
-  if (plot_)
+  if      (plot_)
     disconnect(plot_, SIGNAL(objIdPressed(const QString &)),
+               this, SLOT(objIdPressed(const QString &)));
+  else if (view_)
+    disconnect(view_, SIGNAL(objIdPressed(const QString &)),
                this, SLOT(objIdPressed(const QString &)));
 
   QString cmd = getTclIdCmd(id);
 
   evalCmd(cmd);
 
-  if (view_)
-    connect(view_, SIGNAL(objIdPressed(const QString &)),
-            this, SLOT(objIdPressed(const QString &)));
-
-  if (plot_)
+  if      (plot_)
     connect(plot_, SIGNAL(objIdPressed(const QString &)),
+            this, SLOT(objIdPressed(const QString &)));
+  else if (view_)
+    connect(view_, SIGNAL(objIdPressed(const QString &)),
             this, SLOT(objIdPressed(const QString &)));
 }
 

@@ -157,6 +157,9 @@ class CQPivotModel : public CQBaseModel {
 
   class Values {
    public:
+    using Reals = std::vector<double>;
+
+   public:
     Values() { }
 
     // add real value
@@ -186,8 +189,10 @@ class CQPivotModel : public CQBaseModel {
 
     const Inds &inds() const { return inds_; }
 
+    int          rcount () const { return rvalues_.size(); }
+    const Reals &rvalues() const { return rvalues_; }
+
    private:
-    using Reals   = std::vector<double>;
     using Strings = std::set<QString>;
 
     Reals   rvalues_;
