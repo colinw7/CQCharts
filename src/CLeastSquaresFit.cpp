@@ -334,7 +334,7 @@ singleValueDecomposition(double **a, int m, int n, double w[], double **v, int *
           c = g/h;
           s = -f/h;
 
-          h = 1.0/h;
+          //h = 1.0/h;
 
           for (int j = 0; j < m; j++) {
             y = a[j][nm];
@@ -364,7 +364,7 @@ singleValueDecomposition(double **a, int m, int n, double w[], double **v, int *
         return;
       }
 
-      /* Shift from bottom 2-by-2 minor                               */
+      /* Shift from bottom 2-by-2 minor */
       x = w[l];
       nm = k - 1;
       y = w[nm];
@@ -940,7 +940,7 @@ void bestLeastSquaresFit(double x_point[], double y_point[], int num_points,
       x_power_coeff *= max_x;
 
       if (coeff_free[sub_coeff] &&
-          ! SUM(std::abs(coeff[sub_coeff]*x_power_coeff) - max_y, LDbl(max_y)))
+          ! bool(SUM(std::abs(coeff[sub_coeff]*x_power_coeff) - max_y, LDbl(max_y))))
         coeff[sub_coeff] = 0.0;
     }
 

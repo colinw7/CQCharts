@@ -183,8 +183,7 @@ init()
 
   //--
 
-  connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
-  connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+  connectSlots(true);
 
   initialized_ = true;
 
@@ -409,21 +408,7 @@ void
 CQChartsCreatePlotDlg::
 updateModelData()
 {
-  disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
-  disconnect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
-
-  disconnect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
-            this, SLOT(summaryEnabledSlot()));
-  disconnect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
-             this, SLOT(updatePreviewSlot()));
-  disconnect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
-             this, SLOT(updateSummaryTypeSlot()));
-  disconnect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
-             this, SLOT(updatePreviewSlot()));
-  disconnect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
-             this, SLOT(updatePreviewSlot()));
-  disconnect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
-             this, SLOT(updatePreviewSlot()));
+  connectSlots(false);
 
   //---
 
@@ -516,21 +501,36 @@ updateModelData()
 
   //---
 
-  connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
-          this, SLOT(summaryEnabledSlot()));
-  connect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
-  connect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(updateSummaryTypeSlot()));
-  connect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
-  connect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
-  connect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
+  connectSlots(true);
+}
 
-  connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
-  connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+void
+CQChartsCreatePlotDlg::
+connectSlots(bool b)
+{
+  CQChartsWidgetUtil::connectDisconnect(b,
+    modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
+    this, SLOT(summaryEnabledSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.maxRows, SIGNAL(valueChanged(int)),
+    this, SLOT(updatePreviewSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
+    this, SLOT(updateSummaryTypeSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(updatePreviewSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(updatePreviewSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
+    this, SLOT(updatePreviewSlot()));
 }
 
 void
@@ -821,16 +821,11 @@ createSummaryFrame()
 
   summaryEditData_.enabledCheck->setToolTip("Enable summary of model data");
 
-  connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
-          this, SLOT(summaryEnabledSlot()));
-
   summaryControlLayout->addWidget(summaryEditData_.enabledCheck);
 
   //---
 
   summaryEditData_.maxRows = CQUtil::makeWidget<CQIntegerSpin>("summaryMaxRows");
-
-  connect(summaryEditData_.maxRows, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
   summaryControlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Max Rows", "maxRows"));
   summaryControlLayout->addWidget(summaryEditData_.maxRows);
@@ -843,9 +838,6 @@ createSummaryFrame()
     QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
 
   summaryEditData_.typeCombo->setToolTip("Summary data selection type");
-
-  connect(summaryEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(updateSummaryTypeSlot()));
 
   summaryControlLayout->addWidget(summaryEditData_.typeCombo);
 
@@ -879,9 +871,6 @@ createSummaryFrame()
 
   summaryEditData_.sortedColEdit = CQUtil::makeWidget<CQIntegerSpin>("summarySortedColEdit");
 
-  connect(summaryEditData_.sortedColEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
-
   sortedTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Sort Column", "sortCol"));
   sortedTypeLayout->addWidget(summaryEditData_.sortedColEdit);
 
@@ -899,18 +888,12 @@ createSummaryFrame()
 
   summaryEditData_.pageSizeEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryPageSizeEdit");
 
-  connect(summaryEditData_.pageSizeEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
-
   pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Page Size", "pointSize"));
   pageSizeTypeLayout->addWidget(summaryEditData_.pageSizeEdit);
 
   //--
 
   summaryEditData_.currentPageEdit = CQUtil::makeWidget<CQIntegerSpin>("summaryCurrentPageEdit");
-
-  connect(summaryEditData_.currentPageEdit, SIGNAL(valueChanged(int)),
-          this, SLOT(updatePreviewSlot()));
 
   pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Current Page", "currentPage"));
   pageSizeTypeLayout->addWidget(summaryEditData_.currentPageEdit);
@@ -2128,20 +2111,18 @@ validateSlot()
           if (isAdvanced()) {
             auto *edit = (*pe).second.advancedEdit;
 
-            disconnect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
+            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+              edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
             edit->setColumn(column);
-
-            connect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
           }
           else {
             auto *edit = (*pe).second.basicEdit;
 
-            disconnect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
+            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+              edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
             edit->setColumn(column);
-
-            connect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
           }
         }
         else {
@@ -2150,11 +2131,10 @@ validateSlot()
           if (pe != plotData.columnsEdits.end()) {
             auto *edit = (*pe).second;
 
-            disconnect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
+            CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+              edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
             edit->setColumns(CQChartsColumns(column));
-
-            connect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
           }
         }
       }
@@ -2166,11 +2146,10 @@ validateSlot()
         if (pe != plotData.columnsEdits.end()) {
           auto *edit = (*pe).second;
 
-          disconnect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
+          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+            edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
           edit->setColumns(nc.second);
-
-          connect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
         }
       }
 
@@ -2181,11 +2160,10 @@ validateSlot()
         if (pe != plotData.boolEdits.end()) {
           auto *edit = (*pe).second;
 
-          disconnect(edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+          CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+            edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
           edit->setChecked(nc.second);
-
-          connect(edit, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
         }
       }
 
@@ -2553,7 +2531,8 @@ updatePreviewSlot()
   auto *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
-    disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
+    CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+      modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
 
     int  n = summaryEditData_.maxRows->value();
 
@@ -2598,8 +2577,6 @@ updatePreviewSlot()
     else {
       summaryModel->setMode(CQSummaryModel::Mode::NORMAL);
     }
-
-    connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateModelData()));
   }
 
   validateSlot();

@@ -2521,8 +2521,7 @@ initWhiskerData() const
         if (isInterrupt())
           return;
 
-        const CQChartsScatterPointObj *pointObj =
-          dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+        const auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
           auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
@@ -2537,8 +2536,7 @@ initWhiskerData() const
         if (isInterrupt())
           return;
 
-        const CQChartsScatterPointObj *pointObj =
-          dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+        const auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
           auto *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
@@ -2578,8 +2576,7 @@ initWhiskerData() const
         if (isInterrupt())
           return;
 
-        const CQChartsScatterCellObj *cellObj =
-          dynamic_cast<CQChartsScatterCellObj *>(plotObj);
+        const auto *cellObj = dynamic_cast<CQChartsScatterCellObj *>(plotObj);
 
         if (cellObj && cellObj->groupInd() == groupInd) {
           for (const auto &p : cellObj->points()) {
@@ -2599,8 +2596,7 @@ initWhiskerData() const
         if (isInterrupt())
           return;
 
-        const CQChartsScatterCellObj *cellObj =
-          dynamic_cast<CQChartsScatterCellObj *>(plotObj);
+        const auto *cellObj = dynamic_cast<CQChartsScatterCellObj *>(plotObj);
 
         if (cellObj && cellObj->groupInd() == groupInd) {
           for (const auto &p : cellObj->points()) {

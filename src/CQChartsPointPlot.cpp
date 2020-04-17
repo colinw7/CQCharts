@@ -4,6 +4,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsFitData.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -777,11 +778,10 @@ setDataLabelFont(const CQChartsFont &font)
 
   CQChartsDataLabel *dataLabel = this->dataLabel();
 
-  disconnect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+  CQChartsWidgetUtil::AutoDisconnect dataChangeDisconnect(
+    dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
   dataLabel->setTextFont(font);
-
-  connect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 }
 
 //---

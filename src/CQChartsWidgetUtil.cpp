@@ -76,6 +76,7 @@ CQChartsDialogButtons(QWidget *parent) :
   okButton_     = CQUtil::makeLabelWidget<QPushButton>("OK"    , "ok"    );
   applyButton_  = CQUtil::makeLabelWidget<QPushButton>("Apply" , "apply" );
   cancelButton_ = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
+  helpButton_   = CQUtil::makeLabelWidget<QPushButton>("Help"  , "help"  );
 
   applyButton_->setDefault(true);
 
@@ -83,23 +84,30 @@ CQChartsDialogButtons(QWidget *parent) :
   layout->addWidget (okButton_);
   layout->addWidget (applyButton_);
   layout->addWidget (cancelButton_);
+  layout->addWidget (helpButton_);
 
   okButton_    ->setToolTip("Apply and Close");
   applyButton_ ->setToolTip("Apply without Close");
   cancelButton_->setToolTip("Close without Apply");
+  helpButton_  ->setToolTip("Show help");
 
-  //connect(okButton_    , SIGNAL(clicked()), this, SIGNAL(okPressed()));
-  //connect(applyButton_ , SIGNAL(clicked()), this, SIGNAL(applyPressed()));
-  //connect(cancelButton_, SIGNAL(clicked()), this, SIGNAL(cancelPressed()));
+  helpButton_->setVisible(false);
 }
 
 void
 CQChartsDialogButtons::
-connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cancelSlot)
+connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cancelSlot,
+        const char *helpSlot)
 {
   QObject::connect(okButton_    , SIGNAL(clicked()), w, okSlot);
   QObject::connect(applyButton_ , SIGNAL(clicked()), w, applySlot);
   QObject::connect(cancelButton_, SIGNAL(clicked()), w, cancelSlot);
+
+  if (helpSlot) {
+    helpButton_->setVisible(true);
+
+    QObject::connect(helpButton_, SIGNAL(clicked()), w, helpSlot);
+  }
 }
 
 void

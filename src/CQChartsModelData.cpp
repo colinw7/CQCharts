@@ -8,6 +8,7 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsHtml.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQSummaryModel.h>
 #include <CQPivotModel.h>
@@ -101,7 +102,7 @@ CQChartsModelData::
 CQChartsModelData(CQCharts *charts, ModelP &model) :
  charts_(charts), model_(model)
 {
-  connectModel();
+  connectModel(true);
 }
 
 CQChartsModelData::
@@ -206,50 +207,31 @@ setCurrentColumn(int i)
 
 void
 CQChartsModelData::
-connectModel()
+connectModel(bool b)
 {
   if (! model().data())
     return;
 
-  connect(model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  connect(model().data(), SIGNAL(layoutChanged()),
-          this, SLOT(modelLayoutChangedSlot()));
-  connect(model().data(), SIGNAL(modelReset()),
-          this, SLOT(modelResetSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+    this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(layoutChanged()), this, SLOT(modelLayoutChangedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
-  connect(model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-          this, SLOT(modelRowsInsertedSlot()));
-  connect(model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelRowsRemovedSlot()));
-  connect(model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-          this, SLOT(modelColumnsInsertedSlot()));
-  connect(model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelColumnsRemovedSlot()));
-}
-
-void
-CQChartsModelData::
-disconnectModel()
-{
-  if (! model().data())
-    return;
-
-  disconnect(model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-             this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  disconnect(model().data(), SIGNAL(layoutChanged()),
-             this, SLOT(modelLayoutChangedSlot()));
-  disconnect(model().data(), SIGNAL(modelReset()),
-             this, SLOT(modelResetSlot()));
-
-  disconnect(model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-             this, SLOT(modelRowsInsertedSlot()));
-  disconnect(model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-             this, SLOT(modelRowsRemovedSlot()));
-  disconnect(model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-             this, SLOT(modelColumnsInsertedSlot()));
-  disconnect(model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-             this, SLOT(modelColumnsRemovedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+    this, SLOT(modelRowsInsertedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+    this, SLOT(modelRowsRemovedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+    this, SLOT(modelColumnsInsertedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+    this, SLOT(modelColumnsRemovedSlot()));
 }
 
 void
@@ -395,13 +377,11 @@ CQChartsModelData::
 select(const QItemSelection &sel)
 {
   for (auto &sm : selectionModels_) {
-    disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-               this, SLOT(selectionSlot()));
+    CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+      sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+      this, SLOT(selectionSlot()));
 
     sm->select(sel, QItemSelectionModel::ClearAndSelect);
-
-    connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this, SLOT(selectionSlot()));
   }
 }
 

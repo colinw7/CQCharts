@@ -9,6 +9,7 @@
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQChartsModelView.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPixmapCache.h>
 #include <CQTabSplit.h>
@@ -279,8 +280,10 @@ updateRangeMap()
   CQChartsPlot *plot = view()->currentPlot();
   if (! plot) return;
 
-  disconnect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
-  disconnect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+  CQChartsWidgetUtil::AutoDisconnect xscrollDisconnect(
+    xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+  CQChartsWidgetUtil::AutoDisconnect yscrollDisconnect(
+    yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 
   auto bbox1 = plot->getDataRange ();
   auto bbox2 = plot->calcDataRange();
@@ -299,9 +302,6 @@ updateRangeMap()
     yrangeScroll_->setLen(ysize);
     xrangeScroll_->setPos(ypos);
   }
-
-  connect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
-  connect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 }
 
 void
@@ -505,8 +505,9 @@ selectPropertyObjects()
 
   //---
 
-  disconnect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
-             this, SLOT(propertyItemSelected(QObject *, const QString &)));
+  CQChartsWidgetUtil::AutoDisconnect settingsDisconnect(
+    settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+    this, SLOT(propertyItemSelected(QObject *, const QString &)));
 
   //---
 
@@ -584,11 +585,6 @@ selectPropertyObjects()
         settings_->viewPropertyTree()->selectObject(obj);
     }
   }
-
-  //---
-
-  connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
-          this, SLOT(propertyItemSelected(QObject *, const QString &)));
 }
 
 void

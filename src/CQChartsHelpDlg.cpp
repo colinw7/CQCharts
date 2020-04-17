@@ -5,6 +5,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsDocument.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPixmapCache.h>
 #include <CQUtil.h>
@@ -222,11 +223,12 @@ setCurrentSection(const QString &section, bool updateUndoRedo)
 
   //---
 
-  disconnect(tree_, SIGNAL(itemSelectionChanged()), this, SLOT(treeItemSlot()));
+  {
+  CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
+    tree_, SIGNAL(itemSelectionChanged()), this, SLOT(treeItemSlot()));
 
   tree_->setCurrentItem(item, 0, QItemSelectionModel::ClearAndSelect);
-
-  connect(tree_, SIGNAL(itemSelectionChanged()), this, SLOT(treeItemSlot()));
+  }
 
   loadSectionText();
 

@@ -7,6 +7,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQCsvModel.h>
 #include <CQColorsPalette.h>
@@ -107,10 +108,7 @@ void
 CQChartsEditModelDlg::
 setModelData(CQChartsModelData *modelData)
 {
-  if (modelData_) {
-    disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
-    disconnect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
-  }
+  connectSlots(false);
 
   modelData_ = modelData;
 
@@ -119,19 +117,28 @@ setModelData(CQChartsModelData *modelData)
   else
     model_ = ModelP();
 
-  if (modelData_) {
-    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
-    connect(modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
-  }
+  connectSlots(true);
 
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
   else
     setWindowTitle("Edit Model");
 
-  modelWidget_->setModelData(modelData_);
-
+  modelWidget_ ->setModelData(modelData_);
   modelControl_->setModelData(modelData_);
+}
+
+void
+CQChartsEditModelDlg::
+connectSlots(bool b)
+{
+  if (! modelData_)
+    return;
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    modelData_, SIGNAL(deleted()), this, SLOT(cancelSlot()));
 }
 
 void

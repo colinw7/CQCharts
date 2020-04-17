@@ -237,6 +237,9 @@ class CQChartsCreatePlotDlg : public QDialog {
   void cancelSlot();
 
  private:
+  void connectSlots(bool b);
+
+ private:
   using TypePlotData    = std::map<QString,PlotData>;
   using TabType         = std::map<int,CQChartsPlotType *>;
   using TypeInitialized = std::map<QString,bool>;

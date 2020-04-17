@@ -2,6 +2,7 @@
 #include <CQChartsModelDataWidget.h>
 #include <CQChartsModelData.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQUtil.h>
 
@@ -53,7 +54,8 @@ void
 CQChartsModelList::
 addModelData(CQChartsModelData *modelData)
 {
-  disconnect(viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
+  CQChartsWidgetUtil::AutoDisconnect viewTabAutoDisconnect(
+    viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
   //---
 
@@ -67,22 +69,20 @@ addModelData(CQChartsModelData *modelData)
 
   //---
 
-  disconnect(charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
+  {
+  CQChartsWidgetUtil::AutoDisconnect modelChangedAutoDisconnect(
+    charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 
   charts_->setCurrentModelInd(ind);
-
-  connect(charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
-
-  //---
-
-  connect(viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
+  }
 }
 
 void
 CQChartsModelList::
 updateCurrentModel()
 {
-  disconnect(viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
+  CQChartsWidgetUtil::AutoDisconnect currentChangedAutoDisconnect(
+    viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
   CQChartsModelData *modelData = charts_->currentModelData();
 
@@ -95,8 +95,6 @@ updateCurrentModel()
       break;
     }
   }
-
-  connect(viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 }
 
 void
@@ -113,14 +111,13 @@ void
 CQChartsModelList::
 currentTabChanged(int)
 {
-  disconnect(charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
+  CQChartsWidgetUtil::AutoDisconnect modelChangedAutoDisconnect(
+    charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 
   CQChartsModelDataWidget *modelDataWidget = currentModelDataWidget();
 
   if (modelDataWidget)
     charts_->setCurrentModelInd(modelDataWidget->modelData()->ind());
-
-  connect(charts_, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 }
 
 CQChartsModelData *

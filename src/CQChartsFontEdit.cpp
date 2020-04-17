@@ -122,10 +122,8 @@ connectSlots(bool b)
 {
   connectBaseSlots(b);
 
-  if (b)
-    connect(dataEdit_, SIGNAL(fontChanged()), this, SLOT(menuEditChanged()));
-  else
-    disconnect(dataEdit_, SIGNAL(fontChanged()), this, SLOT(menuEditChanged()));
+  CQChartsWidgetUtil::connectDisconnect(b,
+    dataEdit_, SIGNAL(fontChanged()), this, SLOT(menuEditChanged()));
 }
 
 void

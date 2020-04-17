@@ -2807,22 +2807,23 @@ viewAnnotationSelectionChangeSlot()
   annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
 
   if (viewAnnotations.size()) {
-    disconnect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
-               this, SLOT(plotAnnotationSelectionChangeSlot()));
+    CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+      annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+      this, SLOT(plotAnnotationSelectionChangeSlot()));
 
     annotationsWidgets_.plotTable->selectionModel()->clear();
-
-    connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
-            this, SLOT(plotAnnotationSelectionChangeSlot()));
   }
 
   //---
 
+  {
   auto *view = window_->view();
 
-  disconnect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
-             this, SLOT(viewAnnotationSelectionChangeSlot()));
-  disconnect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+  CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+    annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+    this, SLOT(viewAnnotationSelectionChangeSlot()));
+  CQChartsWidgetUtil::AutoDisconnect annotationsDisconnect(
+    view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 
   view->startSelection();
 
@@ -2832,10 +2833,7 @@ viewAnnotationSelectionChangeSlot()
     annotation->setSelected(true);
 
   view->endSelection();
-
-  connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
-          this, SLOT(viewAnnotationSelectionChangeSlot()));
-  connect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+  }
 }
 
 void
@@ -2852,23 +2850,24 @@ plotAnnotationSelectionChangeSlot()
   annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
 
   if (plotAnnotations.size()) {
-    disconnect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
-               this, SLOT(viewAnnotationSelectionChangeSlot()));
+    CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+      annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+      this, SLOT(viewAnnotationSelectionChangeSlot()));
 
     annotationsWidgets_.viewTable->selectionModel()->clear();
-
-    connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
-            this, SLOT(viewAnnotationSelectionChangeSlot()));
   }
 
   //---
 
+  {
   auto *view = window_->view();
   auto *plot = view->currentPlot();
 
-  disconnect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
-             this, SLOT(plotAnnotationSelectionChangeSlot()));
-  disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+  CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
+    annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+    this, SLOT(plotAnnotationSelectionChangeSlot()));
+  CQChartsWidgetUtil::AutoDisconnect annotationsDisconnect(
+    plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 
   view->startSelection();
 
@@ -2878,10 +2877,7 @@ plotAnnotationSelectionChangeSlot()
     annotation->setSelected(true);
 
   view->endSelection();
-
-  connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
-          this, SLOT(plotAnnotationSelectionChangeSlot()));
-  connect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
+  }
 }
 
 void

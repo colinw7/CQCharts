@@ -25,6 +25,24 @@ inline void connectDisconnect(bool b, QObject *from, const char *fromName,
     QObject::disconnect(from, fromName, to, toName);
 }
 
+class AutoDisconnect {
+ public:
+  AutoDisconnect(QObject *from, const char *fromName, QObject *to, const char *toName) :
+   from_(from), fromName_(fromName), to_(to), toName_(toName) {
+    connectDisconnect(false, from_, fromName_, to_, toName_);
+  }
+
+ ~AutoDisconnect() {
+    connectDisconnect(true, from_, fromName_, to_, toName_);
+  }
+
+ private:
+  QObject    *from_     { nullptr };
+  const char *fromName_ { nullptr };
+  QObject    *to_       { nullptr };
+  const char *toName_   { nullptr };
+};
+
 }
 
 //------
@@ -44,15 +62,18 @@ class CQChartsDialogButtons : public QFrame {
   QPushButton* okButton    () const { return okButton_    ; }
   QPushButton* applyButton () const { return applyButton_ ; }
   QPushButton* cancelButton() const { return cancelButton_; }
+  QPushButton* helpButton  () const { return helpButton_  ; }
 
-  void connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cancelSlot);
+  void connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cancelSlot,
+               const char *helpSlot=nullptr);
 
   void setToolTips(const QString &okTip, const QString &applyTip, const QString &cancelTip);
 
- protected:
+ private:
   QPushButton* okButton_     { nullptr };
   QPushButton* applyButton_  { nullptr };
   QPushButton* cancelButton_ { nullptr };
+  QPushButton* helpButton_   { nullptr };
 };
 
 //---

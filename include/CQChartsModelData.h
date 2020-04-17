@@ -224,8 +224,7 @@ class CQChartsModelData : public QObject {
  private:
   void updatePropertyModel();
 
-  void connectModel();
-  void disconnectModel();
+  void connectModel(bool b);
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);

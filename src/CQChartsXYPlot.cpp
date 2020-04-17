@@ -15,6 +15,7 @@
 #include <CQChartsHtml.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQUtil.h>
 #include <CQPropertyViewModel.h>
@@ -331,11 +332,10 @@ CQChartsXYPlot::
 setVectors(bool b)
 {
   if (b != isVectors()) {
-    disconnect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+    CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
+      arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     arrowObj_->setVisible(b);
-
-    connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
     updateObjs();
   }
@@ -2317,12 +2317,11 @@ CQChartsXYPlot::
 drawArrow(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
           const CQChartsGeom::Point &p2) const
 {
-  disconnect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
+    arrowObj_, SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));
 
   arrowObj_->setFrom(p1);
   arrowObj_->setTo  (p2);
-
-  connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
   arrowObj_->draw(device);
 }

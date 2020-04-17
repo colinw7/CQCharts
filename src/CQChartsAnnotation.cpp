@@ -14,6 +14,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -2818,14 +2819,15 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw arrow
-  disconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  {
+  CQChartsWidgetUtil::AutoDisconnect
+    autoDisconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
   arrow()->setFrom(start);
   arrow()->setTo  (end  );
 
   arrow()->draw(device, penBrush);
-
-  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  }
 
   //---
 
