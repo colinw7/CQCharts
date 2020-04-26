@@ -67,7 +67,7 @@ addBoxProperties()
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };

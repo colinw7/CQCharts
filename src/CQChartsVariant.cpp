@@ -20,7 +20,7 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::Point) {
     QPoint point = var.value<QPoint>();
 
-    str = CQChartsUtil::pointToString(CQChartsGeom::Point(QPointF(point)));
+    str = CQChartsUtil::pointToString(CQChartsGeom::Point(point));
   }
   else if (var.type() == QVariant::PointF) {
     QPointF point = var.value<QPointF>();
@@ -408,7 +408,7 @@ CQChartsGeom::Point toPoint(const QVariant &var, bool &ok) {
 
     QPoint p = var.value<QPoint>();
 
-    point = CQChartsGeom::Point(QPointF(p));
+    point = CQChartsGeom::Point(p);
   }
   else if (var.type() == QVariant::UserType) {
     QString str;

@@ -19,7 +19,7 @@ bool
 CQChartsThemeName::
 setName(const QString &name)
 {
-  CQColorsTheme *obj = CQColorsMgrInst->getNamedTheme(name);
+  auto *obj = CQColorsMgrInst->getNamedTheme(name);
   if (! obj) return false;
 
   name_ = name;

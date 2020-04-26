@@ -177,8 +177,6 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   CQChartsFont font = value.value<CQChartsFont>();
 
-  int x = option.rect.left();
-
   //---
 
   QString str = font.toString();
@@ -206,7 +204,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  x = option1.rect.right();
+  int x = option1.rect.right();
 
   int w1 = option.rect.width() - w - 8;
 

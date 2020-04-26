@@ -22,15 +22,15 @@ class CQChartsSidesEdit : public QFrame {
   const CQChartsSides &sides() const;
   void setSides(const CQChartsSides &side);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  signals:
   void sidesChanged();
 
  private:
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  void mousePressEvent(QMouseEvent *);
+  void mousePressEvent(QMouseEvent *) override;
 
   void initStyleOption(QStyleOptionComboBox &opt) const;
 
@@ -50,16 +50,16 @@ class CQChartsSidesEditMenuWidget : public QFrame {
  public:
   CQChartsSidesEditMenuWidget(CQChartsSidesEdit *edit);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private:
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  void mouseMoveEvent(QMouseEvent *);
+  void mouseMoveEvent(QMouseEvent *) override;
 
-  void mousePressEvent(QMouseEvent *);
+  void mousePressEvent(QMouseEvent *) override;
 
   void drawSideRect(QPainter *p, CQChartsSides::Side side, bool on);
 

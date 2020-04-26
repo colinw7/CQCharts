@@ -128,7 +128,7 @@ bool
 CQChartsSunburstPlot::
 isRoot(const CQChartsSunburstHierNode *node) const
 {
-  CQChartsSunburstHierNode *root = currentRoot();
+  auto *root = currentRoot();
 
   if (root) {
     return (node == root);
@@ -150,7 +150,7 @@ CQChartsSunburstPlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    auto f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     drawObjs();
   }
@@ -227,7 +227,7 @@ currentRoot() const
     return currentRoot;
 
   for (int i = 0; i < names.size(); ++i) {
-    CQChartsSunburstHierNode *hier = childHierNode(currentRoot, names[i]);
+    auto *hier = childHierNode(currentRoot, names[i]);
 
     if (! hier)
       return currentRoot;
@@ -428,7 +428,7 @@ replaceRoots() const
   double ri = std::max(innerRadius(), 0.0);
   double ro = CMathUtil::clamp(outerRadius(), ri, 1.0);
 
-  CQChartsAngle a = startAngle();
+  auto a = startAngle();
 
   if (currentRoot()) {
     CQChartsAngle da(360.0);
@@ -497,7 +497,7 @@ loadHier(CQChartsSunburstHierNode *root) const
 
       //---
 
-      CQChartsSunburstHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -694,13 +694,13 @@ CQChartsSunburstPlot::
 addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size,
         const QModelIndex &nameInd, const QModelIndex &valueInd) const
 {
-  CQChartsSunburstHierNode *parent = root;
+  auto *parent = root;
 
   for (int i = 0; i < nameStrs.length() - 1; ++i) {
     CQChartsSunburstHierNode *child = nullptr;
 
     if (i == 0 && isMultiRoot()) {
-      CQChartsSunburstRootNode *root = rootNode(nameStrs[i]);
+      auto *root = rootNode(nameStrs[i]);
 
       if (! root) {
         auto *th = const_cast<CQChartsSunburstPlot *>(this);
@@ -720,7 +720,7 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
         QModelIndex nameInd1;
         double      size1 = 0.0;
 
-        CQChartsSunburstNode *node = childNode(parent, nameStrs[i]);
+        auto *node = childNode(parent, nameStrs[i]);
 
         if (node) {
           nameInd1 = node->ind();
@@ -748,11 +748,11 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
 
   QString name = nameStrs[nameStrs.length() - 1];
 
-  CQChartsSunburstNode *node = childNode(parent, name);
+  auto *node = childNode(parent, name);
 
   if (! node) {
     // use hier node if already created
-    CQChartsSunburstHierNode *child = childHierNode(parent, name);
+    auto *child = childHierNode(parent, name);
 
     if (child) {
       child->setSize(size);
@@ -835,7 +835,7 @@ childHierNode(CQChartsSunburstHierNode *parent, const QString &name) const
 {
   if (! parent) {
     for (const auto &root : roots_) {
-      CQChartsSunburstHierNode *hier = childHierNode(root, name);
+      auto *hier = childHierNode(root, name);
       if (hier) return hier;
     }
 
@@ -955,9 +955,9 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
-  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
-  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
+  auto *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  auto *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != nullptr);
@@ -975,9 +975,8 @@ pushSlot()
   selectedPlotObjs(objs);
 
   if (objs.empty()) {
-    QPointF gpos = view()->menuPos();
-
-    QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+    auto gpos = view()->menuPos();
+    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
     auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
@@ -991,7 +990,7 @@ pushSlot()
     auto *sobj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
     if (! sobj) continue;
 
-    CQChartsSunburstNode *node = sobj->node();
+    auto *node = sobj->node();
 
     auto *hnode = dynamic_cast<CQChartsSunburstHierNode *>(node);
 
@@ -1010,7 +1009,7 @@ void
 CQChartsSunburstPlot::
 popSlot()
 {
-  CQChartsSunburstHierNode *root = currentRoot();
+  auto *root = currentRoot();
 
   if (root && root->parent()) {
     setCurrentRoot(root->parent(), /*update*/true);
@@ -1021,7 +1020,7 @@ void
 CQChartsSunburstPlot::
 popTopSlot()
 {
-  CQChartsSunburstHierNode *root = currentRoot();
+  auto *root = currentRoot();
 
   if (root)
     setCurrentRoot(nullptr, /*update*/true);

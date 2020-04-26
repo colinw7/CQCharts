@@ -108,15 +108,15 @@ void
 CQChartsEditHandles::
 draw(QPainter *painter) const
 {
-  QPointF ll = windowToPixel(bbox_.getLL()).qpoint();
-  QPointF ur = windowToPixel(bbox_.getUR()).qpoint();
+  auto ll = windowToPixel(bbox_.getLL());
+  auto ur = windowToPixel(bbox_.getUR());
 
   QPainterPath path;
 
-  path.moveTo(ll.x(), ll.y());
-  path.lineTo(ur.x(), ll.y());
-  path.lineTo(ur.x(), ur.y());
-  path.lineTo(ll.x(), ur.y());
+  path.moveTo(ll.x, ll.y);
+  path.lineTo(ur.x, ll.y);
+  path.lineTo(ur.x, ur.y);
+  path.lineTo(ll.x, ur.y);
   path.closeSubpath();
 
   QPen pen(Qt::black);

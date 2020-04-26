@@ -22,7 +22,7 @@ commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   Values values;
 
   for (int i = 1; i < objc; ++i) {
-    const Tcl_Obj *obj = objv[i];
+    const auto *obj = objv[i];
 
     values.push_back(CQTclUtil::variantFromObj(command->qtcl()->interp(), obj));
   }

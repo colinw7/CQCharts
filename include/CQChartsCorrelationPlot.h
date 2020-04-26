@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 
 class CQChartsFilterModel;
+class CQChartsCorrelationModel;
 
 //---
 
@@ -39,16 +40,15 @@ class CQChartsCorrelationPlotType : public CQChartsPlotType {
 class CQChartsCorrelationPlot;
 
 /*!
- * \brief Image Plot cell object
+ * \brief Correlation Plot cell object
  * \ingroup Charts
  */
-class CQChartsCellObj : public CQChartsPlotObj {
+class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsCellObj(const CQChartsCorrelationPlot *plot, const CQChartsGeom::BBox &rect,
-                  int row, int col, double value, const QModelIndex &ind,
-                  const ColorInd &iv);
+  CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const CQChartsGeom::BBox &rect,
+                             int row, int col, double value, const QModelIndex &ind);
 
   //---
 
@@ -72,7 +72,13 @@ class CQChartsCellObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
+  void drawCellLabel(CQChartsPaintDevice *device, const QString &str);
+  void drawCellLabel(CQChartsPaintDevice *device, const QString &str,
+                     const CQChartsGeom::BBox &rect, double fontInc=0.0);
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void valueColorInd(ColorInd &ic) const;
 
   //---
 
@@ -118,6 +124,31 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel,yLabel)
 
+  // cell types
+  Q_PROPERTY(DiagonalType    diagonalType      READ diagonalType      WRITE setDiagonalType     )
+  Q_PROPERTY(OffDiagonalType upperDiagonalType READ upperDiagonalType WRITE setUpperDiagonalType)
+  Q_PROPERTY(OffDiagonalType lowerDiagonalType READ lowerDiagonalType WRITE setLowerDiagonalType)
+
+  Q_ENUMS(DiagonalType)
+  Q_ENUMS(OffDiagonalType)
+
+ public:
+  enum class DiagonalType {
+    NONE,
+    NAME,
+    MIN_MAX,
+    DENSITY
+  };
+
+  enum class OffDiagonalType {
+    NONE,
+    PIE,
+    SHADE,
+    ELLIPSE,
+    POINTS,
+    CONFIDENCE
+  };
+
  public:
   CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model);
 
@@ -126,6 +157,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   //---
 
   CQChartsFilterModel *correlationModel() const { return correlationModel_; }
+
+  CQChartsCorrelationModel *baseModel() const { return baseModel_; }
 
   //---
 
@@ -144,6 +177,18 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   // y labels
   bool isYLabels() const { return yLabels_; }
+
+  //---
+
+  // cell types
+  const DiagonalType &diagonalType() const { return diagonalType_; }
+  void setDiagonalType(const DiagonalType &t);
+
+  const OffDiagonalType &lowerDiagonalType() const { return lowerDiagonalType_; }
+  void setLowerDiagonalType(const OffDiagonalType &t);
+
+  const OffDiagonalType &upperDiagonalType() const { return upperDiagonalType_; }
+  void setUpperDiagonalType(const OffDiagonalType &t);
 
   //---
 
@@ -179,6 +224,11 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void setXLabels(bool b);
   void setYLabels(bool b);
 
+ private slots:
+  void diagonalTypeSlot(bool);
+  void upperDiagonalTypeSlot(bool);
+  void lowerDiagonalTypeSlot(bool);
+
  private:
   void addCellObj(int row, int col, double x, double y, double dx, double dy, double value,
                   const QModelIndex &ind, PlotObjs &objs) const;
@@ -187,12 +237,17 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void drawYLabels(CQChartsPaintDevice *device) const;
 
  private:
-  CQChartsFilterModel* correlationModel_ { nullptr }; //!< correlation mode
-  bool                 cellLabels_       { true };    //!< cell labels
-  bool                 xLabels_          { true };    //!< x labels
-  bool                 yLabels_          { true };    //!< y labels
-  int                  nc_               { 0 };       //!< number of grid columns
-  mutable double       labelScale_       { 1.0 };     //!< label scale
+  CQChartsFilterModel*      correlationModel_  { nullptr }; //!< correlation model
+  ModelP                    correlationModelP_;             //!< correlation model shared pointer
+  CQChartsCorrelationModel* baseModel_         { nullptr }; //!< base correlation model
+  bool                      cellLabels_        { true };    //!< cell labels
+  bool                      xLabels_           { true };    //!< x labels
+  bool                      yLabels_           { true };    //!< y labels
+  int                       nc_                { 0 };       //!< number of grid columns
+  mutable double            labelScale_        { 1.0 };     //!< label scale
+  DiagonalType              diagonalType_      { DiagonalType::NAME };
+  OffDiagonalType           upperDiagonalType_ { OffDiagonalType::PIE };
+  OffDiagonalType           lowerDiagonalType_ { OffDiagonalType::SHADE };
 };
 
 #endif

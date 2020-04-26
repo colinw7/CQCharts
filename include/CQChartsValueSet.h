@@ -141,7 +141,7 @@ class CQChartsRValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQChartsRValues *th = const_cast<CQChartsRValues *>(this);
+        auto *th = const_cast<CQChartsRValues *>(this);
 
         th->calc();
 
@@ -293,7 +293,7 @@ class CQChartsIValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQChartsIValues *th = const_cast<CQChartsIValues *>(this);
+        auto *th = const_cast<CQChartsIValues *>(this);
 
         th->calc();
 

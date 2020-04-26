@@ -241,7 +241,7 @@ calcRange() const
 
   //---
 
-  CQChartsDendrogram::HierNode *root = dendrogram_->root();
+  auto *root = dendrogram_->root();
 
   if (root)
     root->setOpen(true);
@@ -287,7 +287,7 @@ addNameValue(const QString &name, double value) const
   //---
 
   // create nodes
-  CQChartsDendrogram::HierNode *hierNode = 0;
+  CQChartsDendrogram::HierNode *hierNode = nullptr;
 
   for (const auto &n : names) {
     if (! hierNode) {
@@ -300,7 +300,7 @@ addNameValue(const QString &name, double value) const
         hierNode = dendrogram_->root();
     }
     else {
-      CQChartsDendrogram::HierNode *hierNode1 = hierNode->findChild(n);
+      auto *hierNode1 = hierNode->findChild(n);
 
       if (! hierNode1) {
         hierNode = dendrogram_->createHierNode(hierNode, n);
@@ -318,7 +318,7 @@ addNameValue(const QString &name, double value) const
     hierNode->setOpen(false);
   }
   else {
-    CQChartsDendrogram::Node *node = dendrogram_->createNode(hierNode, name1, value);
+    auto *node = dendrogram_->createNode(hierNode, name1, value);
 
     assert(node);
 
@@ -356,7 +356,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsDendrogram::HierNode *root = dendrogram_->root();
+  auto *root = dendrogram_->root();
 
   if (root) {
     addNodeObj(root, objs);
@@ -428,7 +428,7 @@ void
 CQChartsDendrogramPlot::
 execDrawForeground(CQChartsPaintDevice *device) const
 {
-  CQChartsDendrogram::HierNode *root = dendrogram_->root();
+  auto *root = dendrogram_->root();
 
   if (root) {
     drawNode(device, 0, root);
@@ -515,7 +515,7 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 
   double ps = pixelToWindowWidth(cs);
 
-  CQChartsDendrogram::Node *node = dendrogram_->getNodeAtPoint(p.x, p.y, ps);
+  auto *node = dendrogram_->getNodeAtPoint(p.x, p.y, ps);
 
   if (! node)
     return false;

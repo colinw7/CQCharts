@@ -523,7 +523,7 @@ updateColumns()
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+  auto *columnTypeMgr = charts()->columnTypeMgr();
 
   QStringList typeNames;
 
@@ -572,13 +572,13 @@ updateColumns()
   int i = 0;
 
   for (const auto &c : columns_) {
-    QTableWidgetItem *nameItem = createTableItem(c);
+    auto *nameItem = createTableItem(c);
 
     auto p = columnTypes_.find(c);
 
     QString type = (p != columnTypes_.end() ? (*p).second : QString("string"));
 
-    QTableWidgetItem *typeItem = createTableItem(type);
+    auto *typeItem = createTableItem(type);
 
     columnsTable_->setItem(i, 0, nameItem);
     columnsTable_->setItem(i, 1, typeItem);
@@ -603,7 +603,7 @@ updateColumns()
 
       QString str = CQTcl::mergeList(strs);
 
-      QTableWidgetItem *dataItem = createTableItem(str);
+      auto *dataItem = createTableItem(str);
 
       columnsTable_->setItem(i, 2, dataItem);
     }
@@ -806,12 +806,12 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 {
   bool hierarchical;
 
-  QAbstractItemModel *model = loadFile(filename, type, inputData, hierarchical);
+  auto *model = loadFile(filename, type, inputData, hierarchical);
   if (! model) return false;
 
-  ModelP modelp(model);
+  ModelP modelP(model);
 
-  CQChartsModelData *modelData = charts()->initModelData(modelp);
+  auto *modelData = charts()->initModelData(modelP);
 
   charts()->setModelName(modelData, filename);
 
@@ -825,7 +825,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
     if (p != columnTypes_.end()) {
       const QString &type = (*p).second;
 
-      CQChartsModelUtil::setColumnTypeStr(charts(), modelp.data(), CQChartsColumn(ic), type);
+      CQChartsModelUtil::setColumnTypeStr(charts(), modelP.data(), CQChartsColumn(ic), type);
     }
 
     ++ic;

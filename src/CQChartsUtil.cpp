@@ -997,7 +997,7 @@ QString timeToString(const QString &fmt, double r) {
 
   time_t t(r);
 
-  struct tm *tm1 = localtime(&t);
+  auto *tm1 = localtime(&t);
   if (! tm1) return "<no_time>";
 
   (void) strftime(buffer, 512, fmt.toLatin1().constData(), tm1);
@@ -1255,6 +1255,9 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChart
     brush.setColor(color);
 
     brush.setStyle(pattern.style());
+
+    if (pattern.scale() != 1.0)
+      brush.setTransform(QTransform::fromScale(pattern.scale(), pattern.scale()));
   }
   else {
     brush.setStyle(Qt::NoBrush);

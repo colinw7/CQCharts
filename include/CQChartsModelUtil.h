@@ -148,10 +148,11 @@ QString modelHeaderString(const QAbstractItemModel *model, int section,
                           Qt::Orientation orient, int role, bool &ok);
 QString modelHeaderString(const QAbstractItemModel *model, int section,
                           Qt::Orientation orient, bool &ok);
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          int role, bool &ok);
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          bool &ok);
+
+QString modelHHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           int role, bool &ok);
+QString modelHHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           bool &ok);
 
 //--
 

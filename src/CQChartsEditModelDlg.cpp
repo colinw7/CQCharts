@@ -168,12 +168,12 @@ bool
 CQChartsEditModelDlg::
 writeCSVModel(const QString &fileName)
 {
-  CQChartsModelDetails *details = modelData_->details();
+  auto *details = modelData_->details();
 
   if (details->isHierarchical())
     return false;
 
-  QAbstractItemModel *model = model_.data();
+  auto *model = model_.data();
 
   //---
 
@@ -357,9 +357,9 @@ writeModelCmds()
   if (! modelData_)
     return;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
-  QAbstractItemModel *model = model_.data();
+  auto *model = model_.data();
 
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);
@@ -369,7 +369,7 @@ writeModelCmds()
     if (! CQChartsModelUtil::columnValueType(charts_, model, column, columnTypeData))
       continue;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+    const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
     QString value = typeData->name();
 

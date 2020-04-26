@@ -530,7 +530,7 @@ drawDelaunay(CQChartsPaintDevice *device) const
 
     // draw delaunay triangles
     for (auto pf = delaunayData_->facesBegin(); pf != delaunayData_->facesEnd(); ++pf) {
-      const CQChartsHull3D::Face *f = *pf;
+      const auto *f = *pf;
 
       if (! f->isLower()) continue;
 
@@ -576,7 +576,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
       CQChartsBrushData(true, fc, voronoiFillAlpha(), voronoiFillPattern()));
 
     for (auto pv = delaunayData_->verticesBegin(); pv != delaunayData_->verticesEnd(); ++pv) {
-      const CQChartsHull3D::Vertex *v1 = *pv;
+      const auto *v1 = *pv;
 
       CQChartsGrahamHull hull;
 
@@ -622,9 +622,9 @@ drawVoronoi(CQChartsPaintDevice *device) const
     CQChartsLength symbolSize = this->voronoiSymbolSize();
 
     for (auto pf = delaunayData_->facesBegin(); pf != delaunayData_->facesEnd(); ++pf) {
-      const CQChartsHull3D::Face *f = *pf;
+      const auto *f = *pf;
 
-      CQChartsHull3D::Vertex *v = f->getVoronoi();
+      auto *v = f->getVoronoi();
       if (! v) continue;
 
       CQChartsGeom::Point p(v->x(), v->y());
@@ -648,7 +648,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
     for (auto pve = delaunayData_->voronoiEdgesBegin();
            pve != delaunayData_->voronoiEdgesEnd(); ++pve) {
-      const CQChartsHull3D::Edge *e = *pve;
+      const auto *e = *pve;
 
       auto *v1 = e->start();
       auto *v2 = e->end  ();

@@ -417,10 +417,10 @@ createArrowFrame()
   auto *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
   assert(annotation);
 
-  CQChartsArrow *arrow = annotation->arrow();
+  auto *arrow = annotation->arrow();
 
-  const CQChartsStrokeData &stroke = arrow->shapeData().stroke();
-  const CQChartsFillData   &fill   = arrow->shapeData().fill();
+  const auto &stroke = arrow->shapeData().stroke();
+  const auto &fill   = arrow->shapeData().fill();
 
   //---
 

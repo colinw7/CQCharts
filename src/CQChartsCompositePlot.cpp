@@ -745,7 +745,7 @@ addMenuItems(QMenu *menu)
   };
 
   if (compositeType_ == CompositeType::NONE) {
-    QMenu *currentPlotMenu = addSubMenu(menu, "Current Plot");
+    auto *currentPlotMenu = addSubMenu(menu, "Current Plot");
 
     auto *currentPlotGroup = createActionGroup(currentPlotMenu);
 
@@ -820,7 +820,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
     return true;
 
   if (compositeType_ == CompositeType::TABBED) {
-    CQChartsPlot *pressPlot = tabbedPressPlot(w, plots_);
+    auto *pressPlot = tabbedPressPlot(w, plots_);
 
     if (pressPlot) {
       setCurrentPlot(pressPlot);

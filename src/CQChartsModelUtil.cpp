@@ -891,10 +891,10 @@ getExprModel(QAbstractItemModel *model)
   if (exprModel)
     return exprModel;
 
-  QSortFilterProxyModel *sortModel = getSortFilterProxyModel(model);
+  auto *sortModel = getSortFilterProxyModel(model);
   if (! sortModel) return nullptr;
 
-  QAbstractItemModel *sourceModel = sortModel->sourceModel();
+  auto *sourceModel = sortModel->sourceModel();
 //std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
 
   exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
@@ -941,10 +941,10 @@ getHierSepModel(QAbstractItemModel *model)
   if (hierSepModel)
     return hierSepModel;
 
-  QSortFilterProxyModel *sortModel = getSortFilterProxyModel(model);
+  auto *sortModel = getSortFilterProxyModel(model);
   if (! sortModel) return nullptr;
 
-  QAbstractItemModel *sourceModel = sortModel->sourceModel();
+  auto *sourceModel = sortModel->sourceModel();
 
   hierSepModel = qobject_cast<CQHierSepModel *>(sourceModel);
 
@@ -1013,7 +1013,7 @@ setProperty(QAbstractItemModel *model, const QString &name, const QVariant &valu
   if (CQUtil::setProperty(model, name, value))
     return true;
 
-  QAbstractItemModel *baseModel = getBaseModel(model);
+  auto *baseModel = getBaseModel(model);
 
   if (baseModel && baseModel != model) {
     if (CQUtil::setProperty(baseModel, name, value))
@@ -1119,13 +1119,13 @@ QString modelHeaderString(const QAbstractItemModel *model, int section,
   return modelHeaderStringI(model, CQChartsColumn(section), orient, Qt::DisplayRole, ok);
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          int role, bool &ok) {
+QString modelHHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           int role, bool &ok) {
   return modelHeaderStringI(model, column, Qt::Horizontal, role, ok);
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          bool &ok) {
+QString modelHHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           bool &ok) {
   return modelHeaderStringI(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
@@ -2212,7 +2212,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
       assert(r >= 0 && r <= int(rowColValueSet_.size()));
       assert(c >= 0 && c <= numFlatColumns());
 
-      FlattenVisitor *th = const_cast<FlattenVisitor *>(this);
+      auto *th = const_cast<FlattenVisitor *>(this);
 
       return th->rowColValueSet_[r][c];
     }
@@ -2241,7 +2241,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   auto *dataModel = new CQDataModel(nc + nh, nr);
 
@@ -2265,7 +2265,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
     if (! CQChartsModelUtil::columnValueType(charts, model, column, columnTypeData))
       return;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+    const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
     if (typeData) {
       if (isGroup || typeData->isNumeric()) {
@@ -2274,7 +2274,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
       }
     }
 
-    const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
+    const auto *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
 
     if (headerTypeData) {
       (void) columnTypeMgr->setModelHeaderType(dataModel, column, columnTypeData.headerType,

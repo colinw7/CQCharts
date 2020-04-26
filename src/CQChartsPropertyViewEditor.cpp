@@ -40,7 +40,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->drawItem();
+  auto *item = CQPropertyViewMgrInst->drawItem();
 
   CQChartsPlot *plot;
   CQChartsView *view;
@@ -60,7 +60,7 @@ QWidget *
 CQChartsPropertyViewEditorFactory::
 createEdit(QWidget *parent)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
+  auto *item = CQPropertyViewMgrInst->editItem();
 
   CQChartsPropertyViewTree *tree =
     (parent ? qobject_cast<CQChartsPropertyViewTree *>(parent->parentWidget()) : nullptr);
@@ -70,7 +70,7 @@ createEdit(QWidget *parent)
 
   CQChartsPropertyViewUtil::getPropertyItemPlotView(item, plot, view);
 
-  CQChartsLineEditBase *edit = createPropertyEdit(parent);
+  auto *edit = createPropertyEdit(parent);
 
   edit->setPropertyViewTree(tree);
 

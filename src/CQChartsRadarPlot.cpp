@@ -64,7 +64,7 @@ void
 CQChartsRadarPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumn  nameColumn;

@@ -293,7 +293,7 @@ namespace Springy {
     }
 
     Node *newNode() {
-      Node *node = new Node(nextNodeId_++);
+      auto *node = new Node(nextNodeId_++);
 
       addNode(node);
 
@@ -301,7 +301,7 @@ namespace Springy {
     }
 
     Edge *newEdge(Node *source, Node *target) {
-      Edge *edge = new Edge(nextEdgeId_++, source, target);
+      auto *edge = new Edge(nextEdgeId_++, source, target);
 
       addEdge(edge);
 
@@ -418,7 +418,7 @@ namespace Springy {
     Graph *graph() const { return graph_; }
 
     Point *nodePoint(Node *node) const {
-      Layout *th = const_cast<Layout *>(this);
+      auto *th = const_cast<Layout *>(this);
 
       auto p = th->nodePoints_.find(node->id());
 

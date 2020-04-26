@@ -75,7 +75,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     QVariant var = getModelData(index);
 
     // remap if needed
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    auto *columnTypeMgr = charts()->columnTypeMgr();
 
     const CQChartsColumnColorType *colorType =
       dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(type));
@@ -88,7 +88,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     // get color
     bool ok;
-    CQChartsColor c = CQChartsVariant::toColor(cvar, ok);
+    auto c = CQChartsVariant::toColor(cvar, ok);
     if (! ok) return false;
 
     // draw
@@ -102,7 +102,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     bool ok;
 
-    CQChartsSymbol symbol = CQChartsVariant::toSymbol(var, ok);
+    auto symbol = CQChartsVariant::toSymbol(var, ok);
     if (! ok) return false;
 
     drawSymbol(painter, option, symbol, index);
@@ -113,7 +113,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     bool ok;
 
-    CQChartsImage image = CQChartsVariant::toImage(var, ok);
+    auto image = CQChartsVariant::toImage(var, ok);
     if (! ok) return false;
 
     drawImage(painter, option, image, index);
@@ -178,9 +178,9 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     //---
 
     // get min, max
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    auto *columnTypeMgr = charts()->columnTypeMgr();
 
-    const CQChartsColumnType *columnType = columnTypeMgr->getType(type);
+    const auto *columnType = columnTypeMgr->getType(type);
 
     QVariant minVar = columnType->minValue(columnData.details->nameValues());
     if (! minVar.isValid()) minVar = columnData.details->minValue();
@@ -195,8 +195,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     //---
 
-    const CQChartsColor      &drawColor = columnData.details->tableDrawColor();
-    const CQChartsColorStops &drawStops = columnData.details->tableDrawStops();
+    const auto &drawColor = columnData.details->tableDrawColor();
+    const auto &drawStops = columnData.details->tableDrawStops();
 
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
       QColor bg;
@@ -404,7 +404,7 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CQChartsModelDetails *details = getDetails();
+  auto *details = getDetails();
 
   data.details = (details ? details->columnDetails(CQChartsColumn(index.column())) : nullptr);
 

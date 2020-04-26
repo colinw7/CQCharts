@@ -143,7 +143,7 @@ filename() const
 
   ModelP model = this->currentModel();
 
-  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+  auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
 
   if (dataModel)
     return dataModel->filename();
@@ -1070,8 +1070,8 @@ write(std::ostream &os, const QString &varName) const
       os << "{" << i << " " << columnTypePtr->name().toStdString() << "}";
 
       for (const auto &nv : columnTypeData.nameValues.nameValues()) {
-        const QString  &name = nv.first;
-        const QVariant &var  = nv.second;
+        const auto &name = nv.first;
+        const auto &var  = nv.second;
 
         if (! var.isValid())
           continue;
@@ -1134,8 +1134,8 @@ write(std::ostream &os, const QString &varName) const
         os << "{" << columnTypePtr->name().toStdString() << "}";
 
         for (const auto &nv : columnTypeData.nameValues.nameValues()) {
-          const QString  &name = nv.first;
-          const QVariant &var  = nv.second;
+          const auto &name = nv.first;
+          const auto &var  = nv.second;
 
           if (! var.isValid())
             continue;
@@ -1242,7 +1242,7 @@ writeCSV(std::ostream &fs) const
 
     bool ok;
 
-    QString header = CQChartsModelUtil::modelHeaderString(model, c, ok);
+    QString header = CQChartsModelUtil::modelHHeaderString(model, c, ok);
 
     auto writeMetaColumnData = [&](const QString &name, const QString &value) {
       fs << "#  column," << header.toStdString() << "," <<
@@ -1333,7 +1333,7 @@ writeCSV(std::ostream &fs) const
 
     bool ok;
 
-    QString header = CQChartsModelUtil::modelHeaderString(model, c, ok);
+    QString header = CQChartsModelUtil::modelHHeaderString(model, c, ok);
 
     if (ic > 0)
       fs << ",";
@@ -1440,7 +1440,7 @@ copy(const CopyData &copyData)
 
       bool ok;
 
-      QString name = CQChartsModelUtil::modelHeaderString(model_.data(), c, ok);
+      QString name = CQChartsModelUtil::modelHHeaderString(model_.data(), c, ok);
 
       expr->setNameColumn(expr->encodeColumnName(name), ic);
 
@@ -1498,7 +1498,7 @@ copy(const CopyData &copyData)
 
     bool ok;
 
-    QVariant var = CQChartsModelUtil::modelHeaderString(model, c, ok);
+    QVariant var = CQChartsModelUtil::modelHHeaderString(model, c, ok);
 
     if (var.isValid())
       dataModel->setHeaderData(ic, Qt::Horizontal, var, Qt::DisplayRole);
@@ -1620,7 +1620,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
   QStringList columnNames;
 
   for (const auto &joinColumn : joinColumns) {
-    QString columnName = CQChartsModelUtil::modelHeaderString(model, joinColumn, ok);
+    QString columnName = CQChartsModelUtil::modelHHeaderString(model, joinColumn, ok);
 
     columnNames.push_back(columnName);
   }
@@ -1635,7 +1635,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
 
     bool ok;
 
-    QString joinColumnName = CQChartsModelUtil::modelHeaderString(joinModel, c, ok);
+    QString joinColumnName = CQChartsModelUtil::modelHHeaderString(joinModel, c, ok);
 
     if (columnNames.contains(joinColumnName))
       joinColumnSet.insert(ic);

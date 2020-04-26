@@ -33,7 +33,7 @@ void
 CQChartsPaletteNameEdit::
 setCharts(const CQCharts *charts)
 {
-  const CQColorsTheme *theme = charts->theme();
+  const auto *theme = charts->theme();
 
   int n = theme->numPalettes();
 
@@ -130,7 +130,7 @@ QWidget *
 CQChartsPaletteNamePropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
+  auto *item = CQPropertyViewMgrInst->editItem();
 
   QObject *obj = (item ? item->object() : nullptr);
 

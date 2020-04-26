@@ -215,7 +215,7 @@ initGroupData(const CQChartsColumns &dataColumns,
   CQPerfTrace trace("CQChartsGroupPlot::initGroupData");
 
   // given columns and current grouping settings cache group buckets
-  CQChartsColumnBucket *groupBucket = initGroupData(dataColumns, nameColumn, hier, groupData_);
+  auto *groupBucket = initGroupData(dataColumns, nameColumn, hier, groupData_);
 
   const_cast<CQChartsGroupPlot *>(this)->setGroupBucket(groupBucket);
 }
@@ -467,7 +467,7 @@ bool
 CQChartsGroupPlot::
 rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) const
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return false;
 
   if (! groupBucket_)
@@ -595,7 +595,7 @@ void
 CQChartsGroupPlot::
 setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   QVariant var(groupInd);

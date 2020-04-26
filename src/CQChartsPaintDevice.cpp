@@ -290,14 +290,29 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsViewPlotPainter::
-drawEllipse(const CQChartsGeom::BBox &bbox)
+drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a)
 {
   auto pbbox = windowToPixel(bbox);
 
   QRectF prect = pbbox.qrect();
 
-  if (prect.isValid())
+  if (! prect.isValid())
+    return;
+
+  if (a.value() != 0.0) {
+    painter_->save();
+
+    painter_->translate(prect.center());
+    painter_->rotate   (-a.value());
+    painter_->translate(-prect.center());
+
     painter_->drawEllipse(prect);
+
+    painter_->restore();
+  }
+  else {
+    painter_->drawEllipse(prect);
+  }
 }
 
 #if 0
@@ -801,7 +816,7 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsScriptPainter::
-drawEllipse(const CQChartsGeom::BBox &bbox)
+drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -1191,7 +1206,7 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsSVGPainter::
-drawEllipse(const CQChartsGeom::BBox &bbox)
+drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
 {
   auto pbbox = windowToPixel(bbox);
 

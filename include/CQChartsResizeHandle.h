@@ -7,7 +7,6 @@
 
 #include <QPainterPath>
 #include <QColor>
-#include <QPointF>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -68,7 +67,6 @@ class CQChartsResizeHandle : QObject {
   QColor               fillColor_   { "#4444aa" };
   CQChartsAlpha        fillAlpha_   { 0.5 };
   QColor               strokeColor_ { Qt::black };
-  QPointF              pos_         { 0, 0 };
   mutable QPainterPath path_;
 };
 

@@ -84,12 +84,12 @@ void
 CQChartsManageModelsDlg::
 writeSlot()
 {
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+  auto *modelData = modelWidgets_->modelList()->currentModelData();
   if (! modelData) return;
 
-  QAbstractItemModel *model = modelData->currentModel().data();
+  auto *model = modelData->currentModel().data();
 
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);
@@ -99,7 +99,7 @@ writeSlot()
     if (! CQChartsModelUtil::columnValueType(charts_, model, column, columnTypeData))
       continue;
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+    const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
     QString value = typeData->name();
 
@@ -164,7 +164,7 @@ void
 CQChartsManageModelsDlg::
 plotSlot()
 {
-  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+  auto *modelData = modelWidgets_->modelList()->currentModelData();
   if (! modelData) return;
 
   charts_->createPlotDlg(modelData);

@@ -48,11 +48,11 @@ class CQChartsEditPreview : public QFrame {
  public:
   CQChartsEditPreview(CQChartsEditBase *edit);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
   virtual void draw(QPainter *painter) = 0;
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   static QColor interpColor(CQChartsPlot *plot, CQChartsView *view, const CQChartsColor &color);
 

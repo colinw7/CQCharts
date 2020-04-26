@@ -475,7 +475,7 @@ makeCcw(PFace f, PEdge e, PVertex p)
     f->setVertex(0, e->start());
     f->setVertex(1, e->end  ());
 
-    Edge *t = f->edge(1);
+    auto *t = f->edge(1);
 
     f->setEdge(1, f->edge(2));
     f->setEdge(2, t         );
@@ -498,7 +498,7 @@ void
 CQChartsHull3D::
 dumpPS(const char *filename)
 {
-  FILE *fp = fopen(filename, "w");
+  auto *fp = fopen(filename, "w");
 
   if (! fp) {
     std::cerr << "Invalid filename " << filename << "\n";

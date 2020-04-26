@@ -6,7 +6,7 @@
 namespace CQChartsEnv {
 
 bool getBool(const char *name, bool def) {
-  char *env = getenv(name);
+  auto *env = getenv(name);
   if (! env) return def;
 
   if      (strcmp(env, "0") == 0 || strcmp(env, "false") == 0 || strcmp(env, "no" ) == 0)
@@ -20,7 +20,7 @@ bool getBool(const char *name, bool def) {
 }
 
 int getInt(const char *name, int def) {
-  char *env = getenv(name);
+  auto *env = getenv(name);
   if (! env) return def;
 
   return atoi(env);

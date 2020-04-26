@@ -55,7 +55,7 @@ addMenuItems(QMenu *menu)
 
   //--
 
-  CQPropertyViewItem *item = CQPropertyViewTree::menuItem();
+  auto *item = CQPropertyViewTree::menuItem();
 
   if (item)
     addMenuAction(menu, "Edit", SLOT(editSlot()));
@@ -74,7 +74,7 @@ void
 CQChartsPropertyViewTree::
 printItem(CQPropertyViewItem *item) const
 {
-  QObject *object = item->object();
+  auto *object = item->object();
 
   QString dataStr = item->dataStr();
   QString path    = item->path(".", /*alias*/true);
@@ -91,7 +91,7 @@ printItem(CQPropertyViewItem *item) const
                  " -value " << dataStr.toStdString() << "\n";
   }
   else if (annotation) {
-    CQChartsPlot *plot = annotation->plot();
+    auto *plot = annotation->plot();
 
     if (plot) {
       if (path.startsWith(plot->id()))
@@ -117,7 +117,7 @@ printItem(CQPropertyViewItem *item) const
                  " -value " << dataStr.toStdString() << "\n";
   }
   else {
-    CQChartsView *view = settings_->window()->view();
+    auto *view = settings_->window()->view();
 
     std::cerr << "set_charts_property -view " << view->id().toStdString() <<
                  " -name " << path.toStdString() <<
@@ -129,9 +129,9 @@ void
 CQChartsPropertyViewTree::
 editSlot()
 {
-  CQPropertyViewItem *item = this->menuItem();
+  auto *item = this->menuItem();
 
-  QObject *obj = item->hierObject();
+  auto *obj = item->hierObject();
 
   //---
 
@@ -215,7 +215,7 @@ setShowStyleItems(bool show)
 {
   showStyleItems_ = show;
 
-  CQPropertyViewItem *item = propertyModel()->root();
+  auto *item = propertyModel()->root();
 
   showStyleItems(item, show);
 }

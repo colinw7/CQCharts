@@ -50,7 +50,7 @@ class CQChartsPaintDevice {
   virtual void fillRect(const CQChartsGeom::BBox &, const QBrush &) { }
   virtual void drawRect(const CQChartsGeom::BBox &) { }
 
-  virtual void drawEllipse(const CQChartsGeom::BBox &) { }
+  virtual void drawEllipse(const CQChartsGeom::BBox &, const CQChartsAngle& =CQChartsAngle()) { }
 
 //virtual void drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &,
 //                     const CQChartsAngle &) { }
@@ -149,7 +149,7 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox) override;
+  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
 //void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
 //             const CQChartsAngle &a2) override;
@@ -312,7 +312,7 @@ class CQChartsScriptPainter : public CQChartsHtmlPainter {
   void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox) override;
+  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
 //void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
 //             const CQChartsAngle &a2) override;
@@ -405,7 +405,7 @@ class CQChartsSVGPainter : public CQChartsHtmlPainter {
   void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
   void drawRect(const CQChartsGeom::BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox) override;
+  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
 //void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
 //             const CQChartsAngle &a2) override;

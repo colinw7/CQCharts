@@ -2105,16 +2105,18 @@ mousePressEvent(QMouseEvent *me)
   if (isPreview())
     return;
 
+  CQChartsGeom::Point mp(me->pos());
+
   mouseData_.reset();
 
-  mouseData_.pressPoint = adjustMousePos(me->pos());
+  mouseData_.pressPoint = adjustMousePos(mp);
   mouseData_.button     = me->button();
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.selMod     = modifiersToSelMod(me->modifiers());
   mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
 
-  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
+  auto w = pixelToWindow(mousePressPoint());
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2141,9 +2143,9 @@ mousePressEvent(QMouseEvent *me)
   }
   else if (mouseButton() == Qt::RightButton) {
     mouseData_.pressed    = false;
-    mouseData_.pressPoint = me->globalPos();
+    mouseData_.pressPoint = CQChartsGeom::Point(me->globalPos());
 
-    showMenu(me->pos());
+    showMenu(mp);
 
     return;
   }
@@ -2158,8 +2160,10 @@ mouseMoveEvent(QMouseEvent *me)
   if (isPreview())
     return;
 
+  CQChartsGeom::Point mp(me->pos());
+
   mouseData_.oldMovePoint = mouseMovePoint();
-  mouseData_.movePoint    = adjustMousePos(me->pos());
+  mouseData_.movePoint    = adjustMousePos(mp);
 
   // select mode and move (not pressed) - update plot positions
   if (mode() == Mode::SELECT && ! mousePressed()) {
@@ -2198,7 +2202,7 @@ mouseMoveEvent(QMouseEvent *me)
   }
 
   // get plots at point
-  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+  auto w = pixelToWindow(mouseMovePoint());
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2241,12 +2245,14 @@ mouseReleaseEvent(QMouseEvent *me)
   if (isPreview())
     return;
 
+  CQChartsGeom::Point mp(me->pos());
+
   mouseData_.oldMovePoint = mouseMovePoint();
-  mouseData_.movePoint    = adjustMousePos(me->pos());
+  mouseData_.movePoint    = adjustMousePos(mp);
 
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
-  //auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+  //auto w = pixelToWindow(mouseMovePoint());
 
   if      (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
@@ -2280,11 +2286,11 @@ mouseReleaseEvent(QMouseEvent *me)
   }
 }
 
-QPoint
+CQChartsGeom::Point
 CQChartsView::
-adjustMousePos(const QPoint &pos) const
+adjustMousePos(const CQChartsGeom::Point &pos) const
 {
-  return QPoint(pos.x() + sizeData_.xpos, pos.y() + sizeData_.ypos);
+  return CQChartsGeom::Point(pos.x + sizeData_.xpos, pos.y + sizeData_.ypos);
 }
 
 //------
@@ -2353,9 +2359,8 @@ keyPressEvent(QKeyEvent *ke)
 
   //---
 
-  QPoint gpos = QCursor::pos();
-
-  QPointF pos = mapFromGlobal(gpos);
+  auto gpos = QCursor::pos();
+  auto pos  = mapFromGlobal(gpos);
 
   auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
@@ -2374,9 +2379,8 @@ bool
 CQChartsView::
 editMousePress()
 {
-  QPointF p = mousePressPoint();
-
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto p = mousePressPoint();
+  auto w = pixelToWindow(p);
 
   //---
 
@@ -2469,14 +2473,14 @@ editMousePress()
 
   //---
 
-  bool rc = processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &p) {
+  bool rc = processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &p) {
     return plot->editMousePress(p, /*inside*/false);
   }, p);
 
   if (rc)
     return true;
 
-  rc = processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &p) {
+  rc = processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &p) {
     return plot->editMousePress(p, /*inside*/true);
   }, p);
 
@@ -2492,9 +2496,8 @@ bool
 CQChartsView::
 editMouseMove()
 {
-  QPointF p = mouseMovePoint();
-
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto p = mouseMovePoint();
+  auto w = pixelToWindow(p);
 
   if      (mouseData_.dragObj == DragObj::KEY) {
     if (key()->editMove(w))
@@ -2521,7 +2524,7 @@ editMouseMove()
 
   //---
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+  processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &pos) {
     bool current = (plot == mousePlot());
 
     return plot->editMouseMove(pos, current);
@@ -2534,9 +2537,8 @@ void
 CQChartsView::
 editMouseMotion()
 {
-  QPointF p = mouseMovePoint();
-
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto p = mouseMovePoint();
+  auto w = pixelToWindow(p);
 
   //---
 
@@ -2588,7 +2590,7 @@ editMouseRelease()
 {
   mouseData_.dragObj = DragObj::NONE;
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+  processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &pos) {
     plot->editMouseRelease(pos); return false;
   }, mouseMovePoint());
 }
@@ -2597,7 +2599,7 @@ editMouseRelease()
 
 void
 CQChartsView::
-showProbeLines(const QPointF &p)
+showProbeLines(const CQChartsGeom::Point &p)
 {
   auto addVerticalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
                                   double px, double py1, double py2) -> void {
@@ -2625,9 +2627,9 @@ showProbeLines(const QPointF &p)
     ++ind;
   };
 
-  //int px = p.x();
+  //int px = p.x;
 
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(p);
 
   Plots         plots;
   CQChartsPlot *plot;
@@ -2637,7 +2639,7 @@ showProbeLines(const QPointF &p)
   int probeInd = 0;
 
   for (auto &plot : plots) {
-    auto w = plot->pixelToWindow(CQChartsGeom::Point(p));
+    auto w = plot->pixelToWindow(p);
 
     //---
 
@@ -2655,10 +2657,8 @@ showProbeLines(const QPointF &p)
 
     if      (probeData.both) {
       // add probe lines from xmin to probed x values and from ymin to probed y values
-      CQChartsGeom::Point px1 =
-        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
-      CQChartsGeom::Point py1 =
-        plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
+      auto px1 = plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
+      auto py1 = plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
 
       int nx = probeData.xvals.size();
       int ny = probeData.yvals.size();
@@ -2669,10 +2669,8 @@ showProbeLines(const QPointF &p)
         const auto &xval = probeData.xvals[i];
         const auto &yval = probeData.yvals[i];
 
-        CQChartsGeom::Point px2 =
-          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
-        CQChartsGeom::Point py2 =
-          plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
+        auto px2 = plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
+        auto py2 = plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
 
         QString tip = QString("%1, %2").
           arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
@@ -2684,12 +2682,10 @@ showProbeLines(const QPointF &p)
     }
     else if (probeData.direction == Qt::Vertical) {
       // add probe lines from ymin to probed y values
-      CQChartsGeom::Point p1 =
-        plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
+      auto p1 = plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
 
       for (const auto &yval : probeData.yvals) {
-        CQChartsGeom::Point p2 =
-          plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
+        auto p2 = plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
 
         QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
@@ -2698,12 +2694,10 @@ showProbeLines(const QPointF &p)
     }
     else {
       // add probe lines from xmin to probed x values
-      CQChartsGeom::Point p1 =
-        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
+      auto p1 = plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
 
       for (const auto &xval : probeData.xvals) {
-        CQChartsGeom::Point p2 =
-          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
+        auto p2 = plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
 
         QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
 
@@ -2734,7 +2728,7 @@ void
 CQChartsView::
 selectPointPress()
 {
-  auto w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
+  auto w = pixelToWindow(mousePressPoint());
 
   //---
 
@@ -2777,10 +2771,10 @@ selectPointPress()
 
   // select plot objects
   struct SelData {
-    QPointF        pos;
-    CQChartsSelMod selMod;
+    CQChartsGeom::Point pos;
+    CQChartsSelMod      selMod;
 
-    SelData(const QPointF &pos, CQChartsSelMod selMod) :
+    SelData(const CQChartsGeom::Point &pos, CQChartsSelMod selMod) :
      pos(pos), selMod(selMod) {
     }
   };
@@ -2828,7 +2822,7 @@ selectMouseMove()
 {
   if      (isPointSelectMode()) {
     if (key()) {
-      auto w = pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
+      auto w = pixelToWindow(mouseMovePoint());
 
       bool handled = key()->selectMove(w);
 
@@ -2838,7 +2832,7 @@ selectMouseMove()
 
     //---
 
-    processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+    processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &pos) {
       bool current = (plot == mousePlot());
 
       return plot->selectMouseMove(pos, current);
@@ -2865,8 +2859,8 @@ selectMouseRelease()
 
     //---
 
-    double dx = abs(mouseMovePoint().x() - mousePressPoint().x());
-    double dy = abs(mouseMovePoint().y() - mousePressPoint().y());
+    double dx = abs(mouseMovePoint().x - mousePressPoint().x);
+    double dy = abs(mouseMovePoint().y - mousePressPoint().y);
 
     if (dx < 4 && dy < 4) {
       selectPointPress();
@@ -2876,10 +2870,8 @@ selectMouseRelease()
     }
     else {
       processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
-        CQChartsGeom::Point w1 =
-          plot->pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
-        CQChartsGeom::Point w2 =
-          plot->pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
+        auto w1 = plot->pixelToWindow(mousePressPoint());
+        auto w2 = plot->pixelToWindow(mouseMovePoint());
 
         return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
       }, mouseSelMod());
@@ -2890,7 +2882,7 @@ selectMouseRelease()
 
   // release pressed annotations
   for (const auto &annotation : pressAnnotations_) {
-    auto w = pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
+    auto w = pixelToWindow(mousePressPoint());
 
     annotation->mouseRelease(w);
   }
@@ -2985,12 +2977,12 @@ editObjs(Objs &objs)
 
 void
 CQChartsView::
-updatePosText(const QPointF &pos)
+updatePosText(const CQChartsGeom::Point &pos)
 {
   QString posStr;
 
   if (posTextType() == PosTextType::PLOT) {
-    auto w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(pos);
 
     auto *currentPlot = this->currentPlot(/*remap*/false);
 
@@ -3007,7 +2999,7 @@ updatePosText(const QPointF &pos)
       basePlotsAt(w, plots);
 
     for (const auto &plot : plots) {
-      auto w = plot->pixelToWindow(CQChartsGeom::Point(pos));
+      auto w = plot->pixelToWindow(pos);
 
       if (posStr.length())
         posStr += " ";
@@ -3016,12 +3008,12 @@ updatePosText(const QPointF &pos)
     }
   }
   else if (posTextType() == PosTextType::VIEW) {
-    auto w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(pos);
 
     posStr = QString("%1 %2").arg(w.x).arg(w.y);
   }
   else {
-    posStr = QString("%1 %2").arg(pos.x()).arg(pos.y());
+    posStr = QString("%1 %2").arg(pos.x).arg(pos.y);
   }
 
   setPosText(posStr);
@@ -3058,10 +3050,8 @@ zoomMouseRelease()
     return;
 
   if (mousePlot()) {
-    CQChartsGeom::Point w1 =
-      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
-    CQChartsGeom::Point w2 =
-      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+    auto w1 = mousePlot()->pixelToWindow(mousePressPoint());
+    auto w2 = mousePlot()->pixelToWindow(mouseMovePoint ());
 
     CQChartsGeom::BBox bbox(w1, w2);
 
@@ -3076,10 +3066,8 @@ CQChartsView::
 panMouseMove()
 {
   if (mousePlot()) {
-    CQChartsGeom::Point w1 =
-      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseData_.oldMovePoint)));
-    CQChartsGeom::Point w2 =
-      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
+    auto w1 = mousePlot()->pixelToWindow(mouseData_.oldMovePoint);
+    auto w2 = mousePlot()->pixelToWindow(mouseMovePoint());
 
     double dx = w1.x - w2.x;
     double dy = w1.y - w2.y;
@@ -3092,18 +3080,19 @@ panMouseMove()
 
 void
 CQChartsView::
-startRegionBand(const QPoint &pos)
+startRegionBand(const CQChartsGeom::Point &pos)
 {
   if (! regionBand_)
     regionBand_ = new QRubberBand(QRubberBand::Rectangle, this);
 
-  regionBand_->setGeometry(QRect(pos, QSize()));
+  regionBand_->setGeometry(QRect(pos.qpointi(), QSize()));
   regionBand_->show();
 }
 
 void
 CQChartsView::
-updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &movePoint)
+updateRegionBand(CQChartsPlot *plot, const CQChartsGeom::Point &pressPoint,
+                 const CQChartsGeom::Point &movePoint)
 {
   updateRegionBand(pressPoint, movePoint);
 
@@ -3132,12 +3121,12 @@ updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &mov
 
 void
 CQChartsView::
-updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint)
+updateRegionBand(const CQChartsGeom::Point &pressPoint, const CQChartsGeom::Point &movePoint)
 {
-  double x = std::min(pressPoint.x(), movePoint.x());
-  double y = std::min(pressPoint.y(), movePoint.y());
-  double w = std::abs(movePoint.x() - pressPoint.x());
-  double h = std::abs(movePoint.y() - pressPoint.y());
+  double x = std::min(pressPoint.x, movePoint.x);
+  double y = std::min(pressPoint.y, movePoint.y);
+  double w = std::abs(movePoint.x - pressPoint.x);
+  double h = std::abs(movePoint.y - pressPoint.y);
 
   regionBand_->setGeometry(QRect(int(x), int(y), int(w), int(h)));
 }
@@ -3459,7 +3448,7 @@ drawPlots(QPainter *painter)
   if (! hasPlots && ! hasAnnotations && ! isPreview()) {
     showNoData(true);
 
-    QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
+    auto *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
@@ -3494,7 +3483,7 @@ drawPlots(QPainter *painter)
 
   // draw annotations and key
   if (hasAnnotations || hasPlots) {
-    QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
+    auto *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
@@ -3521,7 +3510,7 @@ drawPlots(QPainter *painter)
 
   // draw overlay (annotations and key)
   if (hasPlots || hasAnnotations) {
-    QPainter *painter1 = overlayBuffer_->beginPaint(painter, rect());
+    auto *painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
@@ -4008,7 +3997,7 @@ void
 CQChartsView::
 searchSlot()
 {
-  auto w = pixelToWindow(CQChartsGeom::Point(searchPos_));
+  auto w = pixelToWindow(searchPos_);
 
   plotsAt(w, mouseData_.plots, mouseData_.plot, /*clear*/true, /*first*/true);
 
@@ -4018,8 +4007,8 @@ searchSlot()
 
   bool handled = false;
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
-    auto w = plot->pixelToWindow(CQChartsGeom::Point(pos));
+  processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsGeom::Point &pos) {
+    auto w = plot->pixelToWindow(pos);
 
     if (plot->selectMove(w, ! handled))
       handled = true;
@@ -4106,7 +4095,7 @@ paletteChangedSlot(const QString &)
 
 void
 CQChartsView::
-showMenu(const QPoint &p)
+showMenu(const CQChartsGeom::Point &p)
 {
   delete popupMenu_;
 
@@ -4131,7 +4120,7 @@ showMenu(const QPoint &p)
   //---
 
   // get current plot
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(p);
 
   Plots         plots;
   CQChartsPlot* plot { nullptr };
@@ -4213,7 +4202,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    QMenu *modeMenu = addSubMenu(popupMenu_, "Mode");
+    auto *modeMenu = addSubMenu(popupMenu_, "Mode");
 
     auto *modeActionGroup = createActionGroup(modeMenu);
 
@@ -4275,7 +4264,7 @@ showMenu(const QPoint &p)
   //---
 
   if (key() && basePlots.size() > 1) {
-    QMenu *viewKeyMenu = addSubMenu(popupMenu_, "View Key");
+    auto *viewKeyMenu = addSubMenu(popupMenu_, "View Key");
 
     addCheckAction(viewKeyMenu, "Visible", key()->isVisible(), SLOT(viewKeyVisibleSlot(bool)));
 
@@ -4285,7 +4274,7 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = addSubMenu(viewKeyMenu, "Location");
+    auto *keyLocationMenu = addSubMenu(viewKeyMenu, "Location");
 
     auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
@@ -4340,7 +4329,7 @@ showMenu(const QPoint &p)
 
   // Add plots
   if (allPlots.size() > 1) {
-    QMenu *plotsMenu = addSubMenu(popupMenu_, "Plots");
+    auto *plotsMenu = addSubMenu(popupMenu_, "Plots");
 
     auto *plotsGroup = createActionGroup(plotsMenu);
 
@@ -4364,7 +4353,7 @@ showMenu(const QPoint &p)
   //------
 
   if (plotType && plotType->hasKey()) {
-    QMenu *plotKeyMenu = addSubMenu(popupMenu_, "Plot Key");
+    auto *plotKeyMenu = addSubMenu(popupMenu_, "Plot Key");
 
     //---
 
@@ -4403,7 +4392,7 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = addSubMenu(plotKeyMenu, "Location");
+    auto *keyLocationMenu = addSubMenu(plotKeyMenu, "Location");
 
     auto *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
@@ -4469,7 +4458,7 @@ showMenu(const QPoint &p)
   if (currentPlot && currentPlot->hasXAxis()) {
     auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
-    QMenu *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
+    auto *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
 
     //---
 
@@ -4490,7 +4479,7 @@ showMenu(const QPoint &p)
 
     AxisSideActionMap xAxisSideActionMap;
 
-    QMenu *xAxisSideMenu = addSubMenu(xAxisMenu, "Side");
+    auto *xAxisSideMenu = addSubMenu(xAxisMenu, "Side");
 
     auto *xAxisSideGroup = createActionGroup(xAxisMenu);
 
@@ -4522,7 +4511,7 @@ showMenu(const QPoint &p)
   if (currentPlot && currentPlot->hasYAxis()) {
     auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
-    QMenu *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
+    auto *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
 
     //---
 
@@ -4543,7 +4532,7 @@ showMenu(const QPoint &p)
 
     AxisSideActionMap yAxisSideActionMap;
 
-    QMenu *yAxisSideMenu = addSubMenu(yAxisMenu, "Side");
+    auto *yAxisSideMenu = addSubMenu(yAxisMenu, "Side");
 
     auto *yAxisSideGroup = createActionGroup(yAxisMenu);
 
@@ -4575,7 +4564,7 @@ showMenu(const QPoint &p)
   if (plotType && plotType->hasTitle()) {
     auto *title = (basePlot ? basePlot->title() : nullptr);
 
-    QMenu *titleMenu = addSubMenu(popupMenu_, "Title");
+    auto *titleMenu = addSubMenu(popupMenu_, "Title");
 
     auto *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
@@ -4589,7 +4578,7 @@ showMenu(const QPoint &p)
 
     TitleLocationActionMap titleLocationActionMap;
 
-    QMenu *titleLocationMenu = addSubMenu(titleMenu, "Location");
+    auto *titleLocationMenu = addSubMenu(titleMenu, "Location");
 
     auto *titleLocationGroup = createActionGroup(titleMenu);
 
@@ -4661,7 +4650,7 @@ showMenu(const QPoint &p)
 
   popupMenu_->addSeparator();
 
-  QMenu *themeMenu = addSubMenu(popupMenu_, "Theme");
+  auto *themeMenu = addSubMenu(popupMenu_, "Theme");
 
   auto *interfaceGroup = createActionGroup(themeMenu);
   auto *themeGroup     = createActionGroup(themeMenu);
@@ -4728,7 +4717,7 @@ showMenu(const QPoint &p)
   //---
 
   if (hasPlots) {
-    QMenu *printMenu = addSubMenu(popupMenu_, "Print");
+    auto *printMenu = addSubMenu(popupMenu_, "Print");
 
     addAction(printMenu, "PNG", SLOT(printPNGSlot()));
     addAction(printMenu, "SVG", SLOT(printSVGSlot()));
@@ -4755,7 +4744,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  popupMenu_->popup(mapToGlobal(p));
+  popupMenu_->popup(mapToGlobal(p.qpointi()));
 }
 
 //------
@@ -6475,8 +6464,7 @@ CQChartsGeom::Point
 CQChartsView::
 positionToView(const CQChartsPosition &pos) const
 {
-  auto p = CQChartsGeom::Point(pos.p());
-
+  auto p  = pos.p();
   auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)
@@ -6495,8 +6483,7 @@ CQChartsGeom::Point
 CQChartsView::
 positionToPixel(const CQChartsPosition &pos) const
 {
-  auto p = CQChartsGeom::Point(pos.p());
-
+  auto p  = pos.p();
   auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)

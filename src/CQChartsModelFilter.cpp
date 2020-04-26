@@ -60,7 +60,7 @@ void
 CQChartsModelFilter::
 setExpressionFilter(const QString &filter)
 {
-  CQChartsModelFilterData &filterData = currentFilterData();
+  auto &filterData = currentFilterData();
 
   filterData.setType  (CQChartsModelFilterData::Type::EXPRESSION);
   filterData.setFilter(filter);
@@ -75,7 +75,7 @@ void
 CQChartsModelFilter::
 setRegExpFilter(const QString &filter)
 {
-  CQChartsModelFilterData &filterData = currentFilterData();
+  auto &filterData = currentFilterData();
 
   filterData.setType  (CQChartsModelFilterData::Type::REGEXP);
   filterData.setFilter(filter);
@@ -90,7 +90,7 @@ void
 CQChartsModelFilter::
 setWildcardFilter(const QString &filter)
 {
-  CQChartsModelFilterData &filterData = currentFilterData();
+  auto &filterData = currentFilterData();
 
   filterData.setType  (CQChartsModelFilterData::Type::WILDCARD);
   filterData.setFilter(filter);
@@ -105,7 +105,7 @@ void
 CQChartsModelFilter::
 setSimpleFilter(const QString &filter)
 {
-  CQChartsModelFilterData &filterData = currentFilterData();
+  auto &filterData = currentFilterData();
 
   filterData.setType  (CQChartsModelFilterData::Type::SIMPLE);
   filterData.setFilter(filter);
@@ -120,7 +120,7 @@ void
 CQChartsModelFilter::
 setSelectionFilter(bool invert)
 {
-  CQChartsModelFilterData &filterData = currentFilterData();
+  auto &filterData = currentFilterData();
 
   filterData.setType  (CQChartsModelFilterData::Type::SELECTED);
   filterData.setFilter("");
@@ -175,7 +175,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 
   //---
 
-  QAbstractItemModel *model = sourceModel();
+  auto *model = sourceModel();
   assert(model);
 
   class RowVisitor : public CQChartsModelVisitor {
@@ -276,7 +276,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     if (filterData.filterRows().empty())
       return ! filterData.isInvert();
 
-    QAbstractItemModel *model = sourceModel();
+    auto *model = sourceModel();
     assert(model);
 
     QModelIndex ind1 = model->index(ind.row(), 0, ind.parent());
@@ -287,7 +287,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
   }
   // filter string matches regexp
   else if (filterData.isRegExp() || filterData.isWildcard()) {
-    QAbstractItemModel *model = sourceModel();
+    auto *model = sourceModel();
     assert(model);
 
     QVariant var = model->data(ind);
@@ -300,7 +300,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
   }
   // filter string matches one of list of strings
   else if (filterData.isSimple()) {
-    QAbstractItemModel *model = sourceModel();
+    auto *model = sourceModel();
     assert(model);
 
     for (const auto &columnFilter : filterData.columnFilterMap()) {
@@ -375,7 +375,7 @@ initFilterData(CQChartsModelFilterData &filterData)
     }
   }
   else if (filterData.isRegExp() || filterData.isWildcard()) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     assert(model);
 
     QString filter;
@@ -390,7 +390,7 @@ initFilterData(CQChartsModelFilterData &filterData)
       filterData.setRegExp(CQChartsRegExp(filter, QRegExp::PatternSyntax::WildcardUnix));
   }
   else if (filterData.isSimple()) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     assert(model);
 
     QStringList strs = filterData.filter().split(",");
@@ -410,7 +410,7 @@ initFilterData(CQChartsModelFilterData &filterData)
     filterData.setColumnFilterMap(columnFilterMap);
   }
   else if (filterData.isExpr()) {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     assert(model);
 
     QString expr1 = replaceNamedColumns(model, filterData.filter());
@@ -437,7 +437,7 @@ initFilter()
     exprMatch()->setModelData(modelData);
   }
   else {
-    QAbstractItemModel *model = this->sourceModel();
+    auto *model = this->sourceModel();
     assert(model);
 
     exprMatch()->setModel(model);

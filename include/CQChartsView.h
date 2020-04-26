@@ -524,7 +524,7 @@ class CQChartsView : public QFrame,
 
   void keyPressEvent(QKeyEvent *ke) override;
 
-  QPoint adjustMousePos(const QPoint &pos) const;
+  CQChartsGeom::Point adjustMousePos(const CQChartsGeom::Point &pos) const;
 
   //---
 
@@ -625,19 +625,21 @@ class CQChartsView : public QFrame,
   //---
 
   // probe lines
-  void showProbeLines(const QPointF &p);
+  void showProbeLines(const CQChartsGeom::Point &p);
 
   //---
 
   // update cursor position text
-  void updatePosText(const QPointF &pos);
+  void updatePosText(const CQChartsGeom::Point &pos);
 
   //---
 
   // handle region rubberband
-  void startRegionBand(const QPoint &pos);
-  void updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &movePoint);
-  void updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint);
+  void startRegionBand(const CQChartsGeom::Point &pos);
+  void updateRegionBand(CQChartsPlot *plot, const CQChartsGeom::Point &pressPoint,
+                        const CQChartsGeom::Point &movePoint);
+  void updateRegionBand(const CQChartsGeom::Point &pressPoint,
+                        const CQChartsGeom::Point &movePoint);
   void endRegionBand();
 
   //---
@@ -659,9 +661,9 @@ class CQChartsView : public QFrame,
   //---
 
   // show context menu
-  void showMenu(const QPoint &p);
+  void showMenu(const CQChartsGeom::Point &p);
 
-  QPointF menuPos() const { return mousePressPoint(); }
+  CQChartsGeom::Point menuPos() const { return mousePressPoint(); }
 
   //---
 
@@ -669,8 +671,8 @@ class CQChartsView : public QFrame,
   const Plots &mousePlots() const { return mouseData_.plots; }
   const CQChartsPlot *mousePlot() const { return mouseData_.plot; }
 
-  QPoint mousePressPoint() const { return mouseData_.pressPoint; }
-  QPoint mouseMovePoint () const { return mouseData_.movePoint; }
+  CQChartsGeom::Point mousePressPoint() const { return mouseData_.pressPoint; }
+  CQChartsGeom::Point mouseMovePoint () const { return mouseData_.movePoint; }
 
   bool mousePressed() const { return mouseData_.pressed; }
   int  mouseButton () const { return mouseData_.button; }
@@ -1064,19 +1066,19 @@ class CQChartsView : public QFrame,
 
   //! structure for mouse interaction data
   struct MouseData {
-    Plots              plots;                                   //!< plots at mouse point
-    CQChartsPlot*      plot       { nullptr };                  //!< plot at mouse point
-    QPoint             pressPoint { 0, 0 };                     //!< press point
-    QPoint             oldMovePoint;                            //!< previous move point
-    QPoint             movePoint  { 0, 0 };                     //!< move point
-    bool               pressed    { false };                    //!< is pressed
-    bool               escape     { false };                    //!< escape pressed
-    int                button     { Qt::NoButton };             //!< press button
-    CQChartsSelMod     selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
-    CQChartsSelMod     clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
-    DragObj            dragObj    { DragObj::NONE };            //!< drag object
-    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE }; //!< drag sided
-    bool               dragged    { false };                    //!< is dragged
+    Plots               plots;                                   //!< plots at mouse point
+    CQChartsPlot*       plot       { nullptr };                  //!< plot at mouse point
+    CQChartsGeom::Point pressPoint { 0, 0 };                     //!< press point
+    CQChartsGeom::Point oldMovePoint;                            //!< previous move point
+    CQChartsGeom::Point movePoint  { 0, 0 };                     //!< move point
+    bool                pressed    { false };                    //!< is pressed
+    bool                escape     { false };                    //!< escape pressed
+    int                 button     { Qt::NoButton };             //!< press button
+    CQChartsSelMod      selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
+    CQChartsSelMod      clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
+    DragObj             dragObj    { DragObj::NONE };            //!< drag object
+    CQChartsResizeSide  dragSide   { CQChartsResizeSide::NONE }; //!< drag sided
+    bool                dragged    { false };                    //!< is dragged
 
     void reset() {
       plots.clear();
@@ -1163,7 +1165,7 @@ class CQChartsView : public QFrame,
   MouseData             mouseData_;                               //!< mouse data
   int                   searchTimeout_     { 10 };                //!< search timeout
   QTimer*               searchTimer_       { nullptr };           //!< search timer
-  QPointF               searchPos_;                               //!< search pos
+  CQChartsGeom::Point   searchPos_;                               //!< search pos
   QRubberBand*          regionBand_        { nullptr };           //!< zoom region rubberband
   ProbeBands            probeBands_;                              //!< probe lines
   QMenu*                popupMenu_         { nullptr };           //!< context menu

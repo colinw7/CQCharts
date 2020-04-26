@@ -62,7 +62,7 @@ void
 CQChartsModelView::
 modelTypeChangedSlot(int modelId)
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   if (modelData && modelData->ind() == modelId) {
     //delegate_->clearColumnTypes();
@@ -104,10 +104,9 @@ addMenuActions(QMenu *menu)
   //---
 
 #if 0
-  QMenu *selectMenu = addMenu("Select");
+  auto *selectMenu = addMenu("Select");
 
-  QActionGroup *selectActionGroup =
-    addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
+  auto *selectActionGroup = addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
 
   auto addSelectAction = [&](const QString &name, bool checked) {
     auto *action = new QAction(name, selectMenu);
@@ -127,10 +126,9 @@ addMenuActions(QMenu *menu)
 
   //---
 
-  QMenu *exportMenu = addMenu("Export");
+  auto *exportMenu = addMenu("Export");
 
-  QActionGroup *exportActionGroup =
-    addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
+  auto *exportActionGroup = addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
 
   auto addExportAction = [&](const QString &name) {
     auto *action = new QAction(name, exportMenu);
@@ -168,7 +166,7 @@ setModelP(const ModelP &model)
   //--
 
   if (model_.data()) {
-    CQChartsModelData *modelData = getModelData();
+    auto *modelData = getModelData();
 
     if (modelData) {
       sm_ = new CQChartsSelectionModel(this, modelData);
@@ -247,7 +245,7 @@ addReplaceFilter(const QString &filter, bool add)
     auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
     assert(proxyModel);
 
-    QAbstractItemModel *model = proxyModel->sourceModel();
+    auto *model = proxyModel->sourceModel();
     assert(model);
 
     QString filter1;
@@ -366,7 +364,7 @@ addReplaceSearch(const QString &text, bool add)
       match_->setModelData(modelData_);
     }
     else {
-      QAbstractItemModel *model = proxyModel->sourceModel();
+      auto *model = proxyModel->sourceModel();
 
       match_->setModel(model);
     }
@@ -428,7 +426,7 @@ addReplaceSearch(const QString &text, bool add)
     sel.select(ind, ind);
   }
 
-  QItemSelectionModel *sm = this->selectionModel();
+  auto *sm = this->selectionModel();
 
   sm->clear();
 
@@ -538,7 +536,7 @@ exportSlot(QAction *action)
   QString fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
   if (! fileName.length()) return; // cancelled
 
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   if      (type == "CSV")
     modelData->exportModel(fileName, CQBaseModelDataType::CSV, hheader, vheader);
@@ -554,7 +552,7 @@ void
 CQChartsModelView::
 editSlot()
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   if (modelData)
     charts_->editModelDlg(modelData);
@@ -578,7 +576,7 @@ CQChartsModelDetails *
 CQChartsModelView::
 getDetails()
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   return (modelData ? modelData->details() : nullptr);
 }

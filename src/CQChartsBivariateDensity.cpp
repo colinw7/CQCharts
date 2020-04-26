@@ -45,8 +45,11 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
 
   int x1 = CMathRound::RoundDown(ll.x);
   int x2 = CMathRound::RoundUp  (ur.x);
-  int y2 = CMathRound::RoundUp  (ll.y);
-  int y1 = CMathRound::RoundDown(ur.y);
+  int y1 = CMathRound::RoundUp  (ll.y);
+  int y2 = CMathRound::RoundDown(ur.y);
+
+  assert(x1 <= x2);
+  assert(y1 <= y2);
 
   int dx = gridSize;
   int dy = gridSize;

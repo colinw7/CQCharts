@@ -306,7 +306,7 @@ getPaletteName(QString &name) const
 {
   int paletteInd = getPaletteInd();
 
-  CQColorsPalette *palette = CQColorsMgrInst->getIndPalette(paletteInd);
+  auto *palette = CQColorsMgrInst->getIndPalette(paletteInd);
   if (! palette) return false;
 
   name = palette->name();

@@ -4,6 +4,7 @@
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
+#include <CQColorsPalette.h>
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
@@ -195,7 +196,7 @@ doLayout()
     double ph = 0.0;
 
     for (int i = 0; i < numPlots_; ++i) {
-      CQChartsPlot *plot = view()->plot(i);
+      auto *plot = view()->plot(i);
 
       QString name = plot->keyText();
 
@@ -265,7 +266,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addHeaderStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    CQPropertyViewItem *item = addHeaderProp(name, alias, desc);
+    auto *item = addHeaderProp(name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -299,7 +300,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addTextStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    CQPropertyViewItem *item = addTextProp(name, alias, desc);
+    auto *item = addTextProp(name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -396,7 +397,7 @@ draw(CQChartsPaintDevice *device) const
   for (int i = 0; i < numPlots_; ++i) {
     double py2 = py1 + bs + 2;
 
-    CQChartsPlot *plot = view()->plot(i);
+    auto *plot = view()->plot(i);
 
     bool checked = plot->isVisible();
 
@@ -576,7 +577,7 @@ void
 CQChartsViewKey::
 doShow(int i, CQChartsSelMod selMod)
 {
-  CQChartsPlot *plot = view()->plot(i);
+  auto *plot = view()->plot(i);
 
   if      (selMod == CQChartsSelMod::REPLACE) {
     CQChartsView::Plots plots;
@@ -670,7 +671,7 @@ CQChartsPlotKey::
 isOverlayVisible() const
 {
   if (plot()->isOverlay()) {
-    const CQChartsPlotKey *key = plot()->getFirstPlotKey();
+    const auto *key = plot()->getFirstPlotKey();
 
     return (key == this);
   }
@@ -768,8 +769,8 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   //---
 
-  CQChartsAxis *xAxis = plot()->xAxis();
-  CQChartsAxis *yAxis = plot()->yAxis();
+  auto *xAxis = plot()->xAxis();
+  auto *yAxis = plot()->yAxis();
 
   // get key contents size
   auto ks = calcSize();
@@ -876,7 +877,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addStyleProp = [&](const QString &name, const QString &desc) {
-    CQPropertyViewItem *item = addProp(name, desc);
+    auto *item = addProp(name, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -929,7 +930,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addHeaderStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    CQPropertyViewItem *item = addHeaderProp(name, alias, desc);
+    auto *item = addHeaderProp(name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -963,7 +964,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addTextStyleProp = [&](const QString &name, const QString &alias, const QString &desc) {
-    CQPropertyViewItem *item = addTextProp(name, alias, desc);
+    auto *item = addTextProp(name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -1367,7 +1368,7 @@ selectMove(const CQChartsGeom::Point &w)
   bool changed = false;
 
   if (contains(w)) {
-    CQChartsKeyItem *item = getItemAt(w);
+    auto *item = getItemAt(w);
 
     bool handled = false;
 
@@ -1497,7 +1498,7 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
   bool rc = false;
 
-  CQChartsKeyItem *item = getItemAt(p);
+  auto *item = getItemAt(p);
 
   if (item) {
     QString tip1;
@@ -2022,7 +2023,7 @@ void
 CQChartsKeyItem::
 doShow(CQChartsSelMod selMod)
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   const auto &ic = colorIndex();
 
@@ -2065,7 +2066,7 @@ CQChartsGeom::Size
 CQChartsKeyText::
 size() const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   QFont font = plot->view()->plotFont(plot, key_->textFont());
 
@@ -2091,7 +2092,7 @@ void
 CQChartsKeyText::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   plot->view()->setPlotPainterFont(plot, device, key_->textFont());
 
@@ -2138,7 +2139,7 @@ CQChartsGeom::Size
 CQChartsKeyColorBox::
 size() const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   QFont font = plot->view()->plotFont(plot, key_->textFont());
 
@@ -2161,7 +2162,7 @@ selectPress(const Point &w, CQChartsSelMod selMod)
 
   if (isClickable()) {
     if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
-      CQChartsPlot *plot = key_->plot();
+      auto *plot = key_->plot();
 
       if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
         plot->setHideValue(value_);
@@ -2181,7 +2182,7 @@ void
 CQChartsKeyColorBox::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   auto prect = plot->windowToPixel(rect);
 
@@ -2207,7 +2208,7 @@ QBrush
 CQChartsKeyColorBox::
 fillBrush() const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   ColorInd ic = calcColorInd();
 
@@ -2265,7 +2266,7 @@ CQChartsGeom::Size
 CQChartsKeyLine::
 size() const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   QFont font = plot->view()->plotFont(plot, key_->textFont());
 
@@ -2289,7 +2290,7 @@ selectPress(const Point &w, CQChartsSelMod selMod)
 
   if (isClickable()) {
     if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW) {
-      CQChartsPlot *plot = key_->plot();
+      auto *plot = key_->plot();
 
       if (CQChartsVariant::cmp(value_, plot->hideValue()) != 0)
         plot->setHideValue(value_);
@@ -2309,7 +2310,7 @@ void
 CQChartsKeyLine::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
-  CQChartsPlot *plot = key_->plot();
+  auto *plot = key_->plot();
 
   auto prect = plot->windowToPixel(rect);
 
@@ -2321,8 +2322,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   double x2 = pbbox1.getXMax() - 4;
   double y  = pbbox1.getYMid();
 
-  const CQChartsFillData   &fillData   = symbolData_.fill();
-  const CQChartsStrokeData &strokeData = symbolData_.stroke();
+  const auto &fillData   = symbolData_.fill();
+  const auto &strokeData = symbolData_.stroke();
 
   QColor lc = plot->interpColor(fillData  .color(), ig_);
   QColor fc = plot->interpColor(strokeData.color(), ig_);
@@ -2343,4 +2344,135 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   plot->drawSymbol(device, device->pixelToWindow(ps), symbolData_.type(),
                    symbolData_.size(), penBrush);
+}
+
+//------
+
+CQChartsGradientKeyItem::
+CQChartsGradientKeyItem(CQChartsPlot *plot) :
+ CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+{
+}
+
+CQChartsGeom::Size
+CQChartsGradientKeyItem::
+size() const
+{
+  QFont font = plot_->view()->plotFont(plot_, key_->textFont());
+
+  QFontMetricsF fm(font);
+
+  double fw = fm.width("X");
+  double fh = fm.height();
+
+  int n = maxN();
+
+  double tw = fm.width(QString("%1").arg(n));
+
+  double ww = plot_->pixelToWindowWidth (2*fw + tw + 6);
+  double wh = plot_->pixelToWindowHeight(7*fh + fh + 4);
+
+  return CQChartsGeom::Size(ww, wh);
+}
+
+void
+CQChartsGradientKeyItem::
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
+{
+  // calc text width
+  plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
+
+  QFontMetricsF fm(device->font());
+
+//double fw = fm.width("X");
+  double fh = fm.height();
+
+  int n = maxN();
+
+  double tw  = fm.width(QString("%1").arg(n));
+  double wtw = plot_->pixelToWindowWidth(tw);
+
+  double wxm = plot_->pixelToWindowWidth (2);
+  double wym = plot_->pixelToWindowHeight(fh/2 + 2);
+
+  // calc left/right boxes
+  CQChartsGeom::BBox lrect(rect.getXMin() + wxm, rect.getYMin() + wym,
+                           rect.getXMax() - wtw - 2*wxm, rect.getYMax() - wym);
+  CQChartsGeom::BBox rrect(rect.getXMax() - wtw - wxm, rect.getYMin() + wym,
+                           rect.getXMax() - wxm, rect.getYMax() - wym);
+
+  auto lprect = plot_->windowToPixel(lrect);
+  auto rprect = plot_->windowToPixel(rrect);
+
+  //---
+
+  // draw gradient in left box
+  CQChartsGeom::Point pg1(lprect.getXMin(), lprect.getYMax());
+  CQChartsGeom::Point pg2(lprect.getXMin(), lprect.getYMin());
+
+  QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
+
+  plot_->view()->themePalette()->setLinearGradient(lg, 1.0);
+
+  QBrush brush(lg);
+
+  CQChartsGeom::BBox fbbox(pg1.x                    , pg2.y,
+                           pg1.x + lprect.getWidth(), pg2.y + lprect.getHeight());
+
+  device->fillRect(device->pixelToWindow(fbbox), brush);
+
+  //---
+
+  // calc label positions
+  int n1 = 0;
+  int n5 = n;
+
+  double dn = (n5 - n1)/4.0;
+
+  int n2 = int(n1 + dn);
+  int n4 = int(n5 - dn);
+  int n3 = int((n5 + n1)/2.0);
+
+  double y1 = rprect.getYMax();
+  double y5 = rprect.getYMin();
+  double dy = (y1 - y5)/4.0;
+
+  double y2 = y1 - dy;
+  double y4 = y5 + dy;
+  double y3 = (y5 + y1)/2.0;
+
+  //---
+
+  // set text pen
+  QPen pen;
+
+  QColor tc = plot_->interpThemeColor(ColorInd(1.0));
+
+  plot_->setPen(pen, true, tc, CQChartsAlpha());
+
+  device->setPen(pen);
+
+  //---
+
+  // draw key labels
+  auto drawTextLabel = [&](const CQChartsGeom::Point &p, int n) {
+    auto p1 = device->pixelToWindow(p);
+
+    QString text = QString("%1").arg(n);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options);
+  };
+
+  double x1 = rprect.getXMin();
+  double df = (fm.ascent() - fm.descent())/2.0;
+
+  drawTextLabel(CQChartsGeom::Point(x1, y1 + df), n1);
+  drawTextLabel(CQChartsGeom::Point(x1, y2 + df), n2);
+  drawTextLabel(CQChartsGeom::Point(x1, y3 + df), n3);
+  drawTextLabel(CQChartsGeom::Point(x1, y4 + df), n4);
+  drawTextLabel(CQChartsGeom::Point(x1, y5 + df), n5);
 }

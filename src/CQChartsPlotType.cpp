@@ -345,7 +345,7 @@ addParameter(CQChartsPlotParameter *parameter)
 {
   parameters_.push_back(parameter);
 
-  CQChartsPlotParameter *parameter1 = parameters_.back();
+  auto *parameter1 = parameters_.back();
 
   if (! parameterGroupIds_.empty()) {
     int parameterGroupId = parameterGroupIds_.back();

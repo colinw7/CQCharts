@@ -270,9 +270,9 @@ main(int argc, char **argv)
     dlg->show();
   }
   else if (mainData.showView) {
-    CQChartsView *view = test.charts()->addView();
+    auto *view = test.charts()->addView();
 
-    CQChartsWindow *window = test.charts()->createWindow(view);
+    auto *window = test.charts()->createWindow(view);
     assert(window);
   }
 
@@ -777,7 +777,7 @@ bool
 CQChartsTest::
 initPlot(const CQChartsInitData &initData)
 {
-  CQChartsView *view = charts_->currentView();
+  auto *view = charts_->currentView();
 
   //---
 
@@ -823,7 +823,7 @@ initPlot(const CQChartsInitData &initData)
 
   //---
 
-  CQChartsModelData *modelData = charts_->currentModelData();
+  auto *modelData = charts_->currentModelData();
 
   if (! modelData)
     return false;
@@ -850,7 +850,7 @@ initPlot(const CQChartsInitData &initData)
 
   //---
 
-  CQChartsPlot *plot = initPlotView(modelData, initData, i, bbox);
+  auto *plot = initPlotView(modelData, initData, i, bbox);
 
   if (! plot)
     return false;
@@ -867,7 +867,7 @@ initPlot(const CQChartsInitData &initData)
       if (initData.viewTitle.length())
         view->setTitle(initData.viewTitle);
 
-      CQChartsPlot *prevPlot = view->plot(0);
+      auto *prevPlot = view->plot(0);
 
       view->initX1X2(prevPlot, plot, initData.overlay);
     }
@@ -879,7 +879,7 @@ initPlot(const CQChartsInitData &initData)
       if (initData.viewTitle.length())
         view->setTitle(initData.viewTitle);
 
-      CQChartsPlot *prevPlot = view->plot(0);
+      auto *prevPlot = view->plot(0);
 
       view->initY1Y2(prevPlot, plot, initData.overlay);
     }
@@ -893,7 +893,7 @@ initPlot(const CQChartsInitData &initData)
       if (initData.viewTitle.length())
         view->setTitle(initData.viewTitle);
 
-      CQChartsPlot *prevPlot = view->plot(i - 1);
+      auto *prevPlot = view->plot(i - 1);
 
       CQChartsView::Plots plots;
 
@@ -928,7 +928,7 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
     return nullptr;
 
   // ignore if bad type
-  CQChartsPlotType *type = charts_->plotType(typeName);
+  auto *type = charts_->plotType(typeName);
 
   if (! type) {
     errorMsg("Invalid type '" + typeName + "' for plot");
@@ -1071,7 +1071,7 @@ void
 CQChartsTest::
 print(const QString &filename)
 {
-  CQChartsView *view = charts_->currentView();
+  auto *view = charts_->currentView();
 
   if (! view)
     return;

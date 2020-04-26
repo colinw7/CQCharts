@@ -155,7 +155,7 @@ contextMenuEvent(QContextMenuEvent *e)
 
   //---
 
-  QAction *activeAction = menu->addAction("Active");
+  auto *activeAction = menu->addAction("Active");
 
   activeAction->setCheckable(true);
   activeAction->setChecked  (active_);
@@ -209,7 +209,7 @@ contextMenuEvent(QContextMenuEvent *e)
 
   //---
 
-  QAction *activeAction = menu->addAction("Active");
+  auto *activeAction = menu->addAction("Active");
 
   activeAction->setCheckable(true);
   activeAction->setChecked  (active_);
@@ -224,9 +224,9 @@ contextMenuEvent(QContextMenuEvent *e)
 
   auto *actionGroup = new QActionGroup(menu);
 
-  QAction *plotAction  = menu->addAction("Plot" );
-  QAction *viewAction  = menu->addAction("View" );
-  QAction *pixelAction = menu->addAction("Pixel");
+  auto *plotAction  = menu->addAction("Plot" );
+  auto *viewAction  = menu->addAction("View" );
+  auto *pixelAction = menu->addAction("Pixel");
 
   plotAction ->setCheckable(true);
   viewAction ->setCheckable(true);
@@ -312,7 +312,7 @@ contextMenuEvent(QContextMenuEvent *e)
 
   //---
 
-  QAction *activeAction = menu->addAction("Active");
+  auto *activeAction = menu->addAction("Active");
 
   activeAction->setCheckable(true);
   activeAction->setChecked  (active_);

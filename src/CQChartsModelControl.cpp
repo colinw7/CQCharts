@@ -484,7 +484,7 @@ addColumnDataFrame()
 
   QStringList typeNames;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   columnTypeMgr->typeNames(typeNames);
 
@@ -715,7 +715,7 @@ void
 CQChartsModelControl::
 updateCurrentModel()
 {
-  CQChartsModelData *modelData = charts_->currentModelData();
+  auto *modelData = charts_->currentModelData();
 
   setModelData(modelData);
 }
@@ -739,7 +739,7 @@ setModelData(CQChartsModelData *modelData)
     //---
 
     if (modelData_) {
-      CQPropertyViewModel *propertyModel = modelData_->propertyViewModel();
+      auto *propertyModel = modelData_->propertyViewModel();
 
       propertyTree_->setPropertyModel(propertyModel);
     }
@@ -815,7 +815,7 @@ typeApplySlot()
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   //--
 
@@ -830,7 +830,7 @@ typeApplySlot()
 
   CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+  const auto *typeData = columnTypeMgr->getType(columnType);
 
   if (! typeData) {
     charts_->errorMsg("Invalid column type '" + typeStr + "'");
@@ -842,7 +842,7 @@ typeApplySlot()
   for (const auto &paramEdit : columnEditData_.paramEdits) {
     QString name = paramEdit.label->text();
 
-    const CQChartsColumnTypeParam *param = typeData->getParam(name);
+    const auto *param = typeData->getParam(name);
 
     if (! param) {
       charts_->errorMsg("Invalid parameter '" + name + "'");
@@ -887,7 +887,7 @@ typeApplySlot()
 
   CQBaseModelType headerColumnType = CQBaseModel::nameType(headerTypeStr);
 
-  const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(headerColumnType);
+  const auto *headerTypeData = columnTypeMgr->getType(headerColumnType);
 
   if (headerTypeData) {
     if (! columnTypeMgr->setModelHeaderType(model.data(), column, columnType)) {
@@ -924,11 +924,11 @@ setColumnData(int column)
 
   if (CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(column),
                                          columnTypeData)) {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+    auto *columnTypeMgr = charts_->columnTypeMgr();
 
     //--
 
-    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+    const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
   //QString typeStr =
   //  columnTypeMgr->encodeTypeData(columnTypeData.type, columnTypeData.nameValues);
@@ -940,7 +940,7 @@ setColumnData(int column)
 
     //--
 
-    const CQChartsColumnType *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
+    const auto *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
 
     int headerTypeInd = columnEditData_.typeCombo->findText(headerTypeData->name());
 

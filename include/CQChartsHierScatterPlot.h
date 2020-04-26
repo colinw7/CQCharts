@@ -99,7 +99,7 @@ class CQChartsHierScatterPointGroup {
   int depth() const {
     int d = 0;
 
-    CQChartsHierScatterPointGroup *p = parent();
+    auto *p = parent();
 
     while (p) {
       ++d;
@@ -121,7 +121,7 @@ class CQChartsHierScatterPointGroup {
 
   CQChartsHierScatterPointGroup *lookupGroup(const QString &name) const {
     for (const auto &igroup : groups_) {
-      CQChartsHierScatterPointGroup *group = igroup.second;
+      auto *group = igroup.second;
 
       if (group->name() == name)
         return group;
@@ -136,13 +136,13 @@ class CQChartsHierScatterPointGroup {
 
     int n = groups_.size();
 
-    CQChartsHierScatterPointGroup *group1 = new CQChartsHierScatterPointGroup(this, ind);
+    auto *group1 = new CQChartsHierScatterPointGroup(this, ind);
 
     group1->setI(n);
 
     p = groups_.insert(p, CQChartsHierScatterPointGroupMap::value_type(ind, group1));
 
-    CQChartsHierScatterPointGroup *group = (*p).second;
+    auto *group = (*p).second;
 
     group->setName(name);
 

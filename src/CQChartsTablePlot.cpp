@@ -62,7 +62,7 @@ void
 CQChartsTablePlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumns columns;
@@ -582,7 +582,7 @@ calcTableSize() const
   }
 
   for (int i = 0; i < tableData_.nc; ++i) {
-    const CQChartsColumn &c = columns().getColumn(i);
+    const auto &c = columns().getColumn(i);
 
     auto *columnDetails = this->columnDetails(c);
     if (! columnDetails) continue;
@@ -594,9 +594,9 @@ calcTableSize() const
     QString str;
 
     if (summaryModel())
-      str = CQChartsModelUtil::modelHeaderString(summaryModel(), c, ok);
+      str = CQChartsModelUtil::modelHHeaderString(summaryModel(), c, ok);
     else
-      str = CQChartsModelUtil::modelHeaderString(model().data(), c, ok);
+      str = CQChartsModelUtil::modelHHeaderString(model().data(), c, ok);
 
     if (! ok) continue;
 
@@ -655,7 +655,7 @@ calcTableSize() const
       //---
 
       for (int i = 0; i < tableData_.nc; ++i) {
-        const CQChartsColumn &c = plot_->columns().getColumn(i);
+        const auto &c = plot_->columns().getColumn(i);
 
         CQChartsModelIndex ind(data.row, c, data.parent);
 
@@ -710,7 +710,7 @@ calcTableSize() const
   }
 
   for (int i = 0; i < tableData_.nc; ++i) {
-    const CQChartsColumn &c = columns().getColumn(i);
+    const auto &c = columns().getColumn(i);
 
     const ColumnData &data = th->tableData_.columnDataMap[c];
 
@@ -1057,7 +1057,7 @@ initDrawData() const
   }
 
   for (int i = 0; i < tableData_.nc; ++i) {
-    const CQChartsColumn &c = columns().getColumn(i);
+    const auto &c = columns().getColumn(i);
 
     ColumnData &data = th->tableData_.columnDataMap[c];
 
@@ -1218,7 +1218,7 @@ drawTableBackground(CQChartsPaintDevice *device) const
   }
 
   for (int i = 0; i < tableData_.nc; ++i) {
-    const CQChartsColumn &c = columns().getColumn(i);
+    const auto &c = columns().getColumn(i);
 
     ColumnData &data = th->tableData_.columnDataMap[c];
 
@@ -1302,7 +1302,7 @@ drawTableBackground(CQChartsPaintDevice *device) const
 
   // column vertical lines
   for (int i = 0; i < tableData_.nc; ++i) {
-    const CQChartsColumn &c = columns().getColumn(i);
+    const auto &c = columns().getColumn(i);
 
     const ColumnData &data = th->tableData_.columnDataMap[c];
 
@@ -1473,11 +1473,11 @@ createTableObjData() const
 
       // draw column headers
       for (int ic = 0; ic < tableData_.nc; ++ic) {
-        const CQChartsColumn &c = plot_->columns().getColumn(ic);
+        const auto &c = plot_->columns().getColumn(ic);
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelHeaderString(model_, c, ok);
+        QString str = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
         if (! ok) continue;
 
         //---
@@ -1521,7 +1521,7 @@ createTableObjData() const
 
     void drawCellValues(double x, double y, const VisitData &data) {
       for (int ic = 0; ic < tableData_.nc; ++ic) {
-        const CQChartsColumn &c = plot_->columns().getColumn(ic);
+        const auto &c = plot_->columns().getColumn(ic);
 
         const ColumnData &cdata = tableData_.columnDataMap[c];
 
@@ -1532,7 +1532,7 @@ createTableObjData() const
     }
 
     void drawCellValue(double x, double y, const VisitData &data, int ic) {
-      const CQChartsColumn &c = plot_->columns().getColumn(ic);
+      const auto &c = plot_->columns().getColumn(ic);
 
       //---
 
@@ -1951,7 +1951,7 @@ draw(CQChartsPaintDevice *device)
   auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column);
 
   if (columnDetails) {
-    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
+    const auto &drawColor = columnDetails->tableDrawColor();
 
     if (drawColor.isValid())
       textColor = drawColor;

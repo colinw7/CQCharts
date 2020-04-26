@@ -40,7 +40,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   if (hasValue)
     return;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumn valueColumn;

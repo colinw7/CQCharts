@@ -13,6 +13,6 @@ set view [create_charts_view]
 set plot [create_charts_plot -view $view -model $model -type scatter \
  -columns {{x carat} {y price}}]
 
-set_charts_property -plot $plot -name grid.enabled -value 1
+set_charts_property -plot $plot -name options.plotType -value GRID_CELLS
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed

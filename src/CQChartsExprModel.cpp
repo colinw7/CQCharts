@@ -194,7 +194,7 @@ addExtraColumn(const QString &header, const QString &expr, int &column)
   //---
 
   // init calculated values in separate array
-  ExtraColumn *extraColumn = extraColumns_[ecolumn];
+  auto *extraColumn = extraColumns_[ecolumn];
 
   nr_ = rowCount();
 
@@ -344,7 +344,7 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   calcExtraColumn(column, ecolumn);
 
   // store calculated values in separate array
-  ExtraColumn *extraColumn = extraColumns_[ecolumn];
+  auto *extraColumn = extraColumns_[ecolumn];
 
   nr_ = rowCount();
 
@@ -452,7 +452,7 @@ getExtraColumnDetails(int column, QString &header, QString &expr) const
   if (ecolumn < 0 || ecolumn >= numExtraColumns())
     return false;
 
-  const ExtraColumn *extraColumn = extraColumns_[ecolumn];
+  const auto *extraColumn = extraColumns_[ecolumn];
 
   header = extraColumn->header;
   expr   = extraColumn->expr;
@@ -502,7 +502,7 @@ initCalc()
 
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHeaderString(this, c, ok);
+    QString name = CQChartsModelUtil::modelHHeaderString(this, c, ok);
 
     columnNames_[ic  ] = name;
     nameColumns_[name] = ic;
@@ -766,7 +766,7 @@ data(const QModelIndex &index, int role) const
     var = getExtraColumnValue(currentRow_, currentCol_, column, rc);
   }
   else if (role == Qt::TextAlignmentRole) {
-    const ExtraColumn &extraColumn = this->extraColumn(column);
+    const auto &extraColumn = this->extraColumn(column);
 
     if (extraColumn.typeData.type == CQBaseModelType::INTEGER ||
         extraColumn.typeData.type == CQBaseModelType::REAL)
@@ -864,7 +864,7 @@ QVariant
 CQChartsExprModel::
 getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
 {
-  const ExtraColumn &extraColumn = this->extraColumn(ecolumn);
+  const auto &extraColumn = this->extraColumn(ecolumn);
 
   //---
 
@@ -903,7 +903,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  ExtraColumn &extraColumn = this->extraColumn(ecolumn);
+  auto &extraColumn = this->extraColumn(ecolumn);
 
   extraColumn.evaluating = true;
 
@@ -981,7 +981,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (column >= numExtraColumns())
     return false;
 
-  ExtraColumn &extraColumn = this->extraColumn(column);
+  auto &extraColumn = this->extraColumn(column);
 
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
     extraColumn.variantMap[index.row()] = value;
@@ -1015,7 +1015,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (column >= numExtraColumns())
     return QVariant();
 
-  const ExtraColumn &extraColumn = this->extraColumn(column);
+  const auto &extraColumn = this->extraColumn(column);
 
   if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     if (extraColumn.header.length())
@@ -1111,7 +1111,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   if (column >= numExtraColumns())
     return false;
 
-  ExtraColumn &extraColumn = this->extraColumn(column);
+  auto &extraColumn = this->extraColumn(column);
 
   if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     extraColumn.header = value.toString();
@@ -1934,10 +1934,10 @@ scaleCmd(const Values &values) const
 
   CQChartsColumn column(ind.column());
 
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
   if (! modelData) return QVariant(0.0);
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   assert(details);
 
   auto *columnDetails = details->columnDetails(column);
@@ -2257,14 +2257,14 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 {
   CQChartsColumn column(ind.column());
 
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   //---
 
   CQChartsModelTypeData columnTypeData;
 
   if (modelData) {
-    CQChartsModelDetails *details = modelData->details();
+    auto *details = modelData->details();
     assert(details);
 
     auto *columnDetails = details->columnDetails(column);
@@ -2283,7 +2283,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   auto *columnTypeMgr = charts_->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnTypeData.type);
+  const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
   const auto *rtypeData = dynamic_cast<const CQChartsColumnRealType    *>(typeData);
   const auto *itypeData = dynamic_cast<const CQChartsColumnIntegerType *>(typeData);

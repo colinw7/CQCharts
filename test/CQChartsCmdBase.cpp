@@ -29,12 +29,12 @@ class CQChartsTclCmd {
   }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsTclCmd *command = (CQChartsTclCmd *) clientData;
+    auto *command = (CQChartsTclCmd *) clientData;
 
     Vars vars;
 
     for (int i = 1; i < objc; ++i) {
-      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
+      auto *obj = const_cast<Tcl_Obj *>(objv[i]);
 
       vars.push_back(command->cmdBase_->qtcl()->variantFromObj(obj));
     }
@@ -116,7 +116,7 @@ processCmd(const QString &cmd, const Vars &vars)
   auto p = commandProcs_.find(cmd);
 
   if (p != commandProcs_.end()) {
-    CQChartsCmdProc *proc = (*p).second;
+    auto *proc = (*p).second;
 
     CQChartsCmdArgs argv(cmd, vars);
 
@@ -149,7 +149,7 @@ qtGetPropertyCmd(CQChartsCmdArgs &argv)
   QString objectName = argv.getParseStr("object");
   QString propName   = argv.getParseStr("property");
 
-  QObject *obj = CQUtil::nameToObject(objectName);
+  auto *obj = CQUtil::nameToObject(objectName);
 
   if (! obj) {
     errorMsg(QString("No object '%1'").arg(objectName));
@@ -187,7 +187,7 @@ qtSetPropertyCmd(CQChartsCmdArgs &argv)
   QString propName   = argv.getParseStr("property");
   QString value      = argv.getParseStr("value");
 
-  QObject *obj = CQUtil::nameToObject(objectName);
+  auto *obj = CQUtil::nameToObject(objectName);
 
   if (! obj) {
     errorMsg(QString("No object '%1'").arg(objectName));

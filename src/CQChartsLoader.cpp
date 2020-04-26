@@ -6,6 +6,7 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsVarsModel.h>
 #include <CQChartsTclModel.h>
+#include <CQChartsCorrelationModel.h>
 #include <CQChartsExprDataModel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
@@ -43,7 +44,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
   hierarchical = false;
 
   if      (type == CQChartsFileType::CSV) {
-    CQChartsFilterModel *csv = loadCsv(filename, inputData);
+    auto *csv = loadCsv(filename, inputData);
 
     if (! csv) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -53,7 +54,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return csv;
   }
   else if (type == CQChartsFileType::TSV) {
-    CQChartsFilterModel *tsv = loadTsv(filename, inputData);
+    auto *tsv = loadTsv(filename, inputData);
 
     if (! tsv) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -63,7 +64,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return tsv;
   }
   else if (type == CQChartsFileType::JSON) {
-    CQChartsFilterModel *json = loadJson(filename, inputData);
+    auto *json = loadJson(filename, inputData);
 
     if (! json) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -78,7 +79,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return json;
   }
   else if (type == CQChartsFileType::DATA) {
-    CQChartsFilterModel *data = loadData(filename, inputData);
+    auto *data = loadData(filename, inputData);
 
     if (! data) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -88,7 +89,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return data;
   }
   else if (type == CQChartsFileType::EXPR) {
-    CQChartsFilterModel *model = createExprModel(inputData.numRows);
+    auto *model = createExprModel(inputData.numRows);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -98,7 +99,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return model;
   }
   else if (type == CQChartsFileType::VARS) {
-    CQChartsFilterModel *model = createVarsModel(inputData);
+    auto *model = createVarsModel(inputData);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -108,7 +109,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return model;
   }
   else if (type == CQChartsFileType::TCL) {
-    CQChartsFilterModel *model = createTclModel(inputData);
+    auto *model = createTclModel(inputData);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -565,86 +566,273 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
   int nr = model->rowCount   ();
   int nc = model->columnCount();
 
-  int nv = (! flip ? nc : nr);
+  int nv = 0;
+
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   using ColumnValues = std::vector<CMathCorrelation::Values>;
   using ColumnNames  = std::vector<QString>;
+  using ColumnMinMax = std::vector<CQChartsGeom::RMinMax>;
 
   ColumnValues columnValues;
   ColumnNames  columnNames;
+  ColumnMinMax columnMinMax;
 
-  columnValues.resize(nv);
-  columnNames .resize(nv);
+  using ColumnSet = std::set<CQChartsColumn>;
+
+  ColumnSet columnSet;
 
   if (! flip) {
-    for (int c = 0; c < nc; ++c) {
+    for (int ic = 0; ic < nc; ++ic) {
+      CQChartsColumn c(ic);
+
+      CQChartsModelTypeData typeData;
+
+      if (! columnTypeMgr->getModelColumnType(model, c, typeData))
+        typeData.type = CQBaseModelType::STRING;
+
+      if (typeData.type == CQBaseModelType::INTEGER || typeData.type == CQBaseModelType::REAL)
+        columnSet.insert(c);
+    }
+
+    //---
+
+    int nc1 = columnSet.size();
+
+    nv = nc1;
+
+    columnValues.resize(nv);
+    columnNames .resize(nv);
+    columnMinMax.resize(nv);
+
+    //---
+
+    int ic = 0;
+
+    for (const auto &c : columnSet) {
       bool ok;
 
-      columnNames[c] = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+      columnNames[ic] =
+        CQChartsModelUtil::modelHeaderString(model, c.column(), Qt::Horizontal, ok);
 
-      CMathCorrelation::Values &values = columnValues[c];
+      auto &values = columnValues[ic];
+      auto &minMax = columnMinMax[ic];
 
       values.resize(nr);
 
-      for (int r = 0; r < nr; ++r) {
-        QModelIndex ind = model->index(r, c, QModelIndex());
+      for (int ir = 0; ir < nr; ++ir) {
+        QModelIndex ind = model->index(ir, c.column(), QModelIndex());
 
         bool ok;
 
         double v = CQChartsModelUtil::modelReal(model, ind, ok);
 
-        values[r] = v;
+        values[ir] = v;
+
+        minMax.add(v);
       }
+
+      ++ic;
     }
   }
   else {
-    for (int r = 0; r < nr; ++r) {
+    nv = nr;
+
+    columnValues.resize(nv);
+    columnNames .resize(nv);
+    columnMinMax.resize(nv);
+
+    //---
+
+    for (int ir = 0; ir < nr; ++ir) {
       bool ok;
 
-      columnNames[r] = CQChartsModelUtil::modelHeaderString(model, r, Qt::Vertical, ok);
+      columnNames[ir] = CQChartsModelUtil::modelHeaderString(model, ir, Qt::Vertical, ok);
 
-      CMathCorrelation::Values &values = columnValues[r];
+      auto &values = columnValues[ir];
+      auto &minMax = columnMinMax[ir];
 
       values.resize(nc);
 
-      for (int c = 0; c < nc; ++c) {
-        QModelIndex ind = model->index(r, c, QModelIndex());
+      for (int ic = 0; ic < nc; ++ic) {
+        QModelIndex ind = model->index(ir, ic, QModelIndex());
 
         bool ok;
 
         double v = CQChartsModelUtil::modelReal(model, ind, ok);
 
-        values[c] = v;
+        values[ic] = v;
+
+        minMax.add(v);
       }
     }
   }
 
   //---
 
-  auto *dataModel = new CQDataModel(nv, nv);
+  // calc off diagonal values
+  using ColumnReal          = std::map<int,double>;
+  using ColumnColumnReal    = std::map<int,ColumnReal>;
+  using ColumnPoints        = std::map<int,CQChartsCorrelationModel::Points>;
+  using ColumnColumnPoints  = std::map<int,ColumnPoints>;
+  using DevData             = std::pair<double,double>;
+  using ColumnDevData       = std::map<int,DevData>;
+  using ColumnColumnDevData = std::map<int,ColumnDevData>;
+  using ColumnDensity       = std::map<int,CQChartsDensity *>;
 
-  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
+  ColumnReal          columnSumSq;
+  ColumnColumnReal    columnsCorr;
+  ColumnColumnPoints  columnsPoints;
+  ColumnColumnDevData columnsDevData;
+  ColumnDensity       columnDensity;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  for (int ic1 = 0; ic1 < nv; ++ic1) {
+    CQChartsColumn c1(ic1);
 
-  for (int c = 0; c < nv; ++c)
-    (void) columnTypeMgr->setModelColumnType(dataModel, CQChartsColumn(c), CQBaseModelType::REAL);
+    auto &values1 = columnValues[ic1];
 
-  for (int c = 0; c < nv; ++c) {
-    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal,
-                                           columnNames[c], Qt::DisplayRole);
-    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Vertical  ,
-                                           columnNames[c], Qt::DisplayRole);
+    for (int ic2 = ic1; ic2 < nv; ++ic2) {
+      if (ic1 != ic2) {
+        CQChartsColumn c2(ic2);
 
-    CQChartsModelUtil::setModelValue(dataModel, c, CQChartsColumn(c), 1.0);
+        auto &values2 = columnValues[ic2];
+
+        double corr = CMathCorrelation::calc(values1, values2);
+
+        columnsCorr[ic1][ic2] = corr;
+        columnsCorr[ic2][ic1] = corr;
+
+        columnSumSq[ic1] += corr*corr;
+        columnSumSq[ic2] += corr*corr;
+
+        CQChartsCorrelationModel::Points points1, points2;
+
+        assert(values1.size() == values2.size());
+
+        int nv1 = values1.size();
+
+        for (int j = 0; j < nv1; ++j) {
+          points1.push_back(CQChartsGeom::Point(values1[j], values2[j]));
+          points2.push_back(CQChartsGeom::Point(values2[j], values1[j]));
+        }
+
+        columnsPoints[ic1][ic2] = points1;
+        columnsPoints[ic2][ic1] = points2;
+
+        double stddev1 = CMathCorrelation::stddev(values1);
+        double stddev2 = CMathCorrelation::stddev(values2);
+
+        columnsDevData[ic1][ic2] = DevData(stddev1, stddev2);
+        columnsDevData[ic2][ic1] = DevData(stddev2, stddev1);
+      }
+      else {
+        CQChartsCorrelationModel::Points points1;
+
+        int nv1 = values1.size();
+
+        CQChartsDensity::XVals xvals;
+
+        for (int j = 0; j < nv1; ++j)
+          xvals.push_back(values1[j]);
+
+        if (! columnDensity[ic1])
+          columnDensity[ic1] = new CQChartsDensity;
+
+        columnDensity[ic1]->setXVals(xvals);
+      }
+    }
   }
 
-  for (int c1 = 0; c1 < nv; ++c1) {
-    for (int c2 = c1; c2 < nv; ++c2) {
-      double corr = CMathCorrelation::calc(columnValues[c1], columnValues[c2]);
+  //---
 
-      CQChartsModelUtil::setModelValue(dataModel, c1, CQChartsColumn(c2), corr);
-      CQChartsModelUtil::setModelValue(dataModel, c2, CQChartsColumn(c1), corr);
+  // sort by sum of squares
+  using ColumnNums = std::vector<int>;
+  using SumColumns = std::map<double,ColumnNums>;
+
+  SumColumns sumColumns;
+
+  for (const auto &pc : columnSumSq) {
+    sumColumns[pc.second].push_back(pc.first);
+  }
+
+  ColumnNums sortedColumns;
+
+  for (const auto &ps : sumColumns)
+    for (const auto &c : ps.second)
+      sortedColumns.push_back(c);
+
+  assert(int(sortedColumns.size()) == nv);
+
+  //---
+
+  // create model
+  auto *correlationModel = new CQChartsCorrelationModel(nv);
+
+  auto *filterModel = new CQChartsFilterModel(charts_, correlationModel);
+
+  for (int ic = 0; ic < nv; ++ic) {
+    CQChartsColumn c(ic);
+
+    (void) columnTypeMgr->setModelColumnType(correlationModel, c, CQBaseModelType::REAL);
+  }
+
+  //---
+
+  // set header values and diagonal values
+  for (int ic = 0; ic < nv; ++ic) {
+    int ics = sortedColumns[ic];
+
+    CQChartsColumn c(ic);
+
+    QString columnName = columnNames[ics];
+
+    CQChartsModelUtil::setModelHeaderValue(correlationModel, ic, Qt::Horizontal,
+                                           columnName, Qt::DisplayRole);
+    CQChartsModelUtil::setModelHeaderValue(correlationModel, ic, Qt::Vertical  ,
+                                           columnName, Qt::DisplayRole);
+
+    CQChartsModelUtil::setModelValue(correlationModel, ic, c, 1.0);
+  }
+
+  //---
+
+  // set off diagonal values
+  for (int ic1 = 0; ic1 < nv; ++ic1) {
+    int ic1s = sortedColumns[ic1];
+
+    CQChartsColumn c1(ic1);
+
+    auto &minMax = columnMinMax[ic1s];
+
+    correlationModel->setMinMax(ic1, minMax);
+
+    for (int ic2 = ic1; ic2 < nv; ++ic2) {
+      if (ic1 != ic2) {
+        int ic2s = sortedColumns[ic2];
+
+        CQChartsColumn c2(ic2);
+
+        double corr = columnsCorr[ic1s][ic2s];
+
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c2, corr);
+        CQChartsModelUtil::setModelValue(correlationModel, ic2, c1, corr);
+
+        correlationModel->setPoints(ic1, ic2, columnsPoints[ic1s][ic2s]);
+        correlationModel->setPoints(ic2, ic1, columnsPoints[ic2s][ic1s]);
+
+        correlationModel->setDevData(ic1, ic2,
+          columnsDevData[ic1s][ic2s].first, columnsDevData[ic1s][ic2s].second);
+        correlationModel->setDevData(ic2, ic1,
+          columnsDevData[ic2s][ic1s].first, columnsDevData[ic2s][ic1s].second);
+      }
+      else {
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0);
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0);
+
+        correlationModel->setDensity(ic1, columnDensity[ic1s]);
+
+        correlationModel->setDevData(ic1, ic1, 0.0, 0.0);
+      }
     }
   }
 

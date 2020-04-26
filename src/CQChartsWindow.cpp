@@ -277,7 +277,7 @@ void
 CQChartsWindow::
 updateRangeMap()
 {
-  CQChartsPlot *plot = view()->currentPlot();
+  auto *plot = view()->currentPlot();
   if (! plot) return;
 
   CQChartsWidgetUtil::AutoDisconnect xscrollDisconnect(
@@ -351,7 +351,7 @@ void
 CQChartsWindow::
 rangeScrollSlot()
 {
-  CQChartsPlot *plot = view()->currentPlot();
+  auto *plot = view()->currentPlot();
   if (! plot) return;
 
   auto dataRange = plot->getDataRange();
@@ -432,7 +432,7 @@ void
 CQChartsWindow::
 filterChangedSlot()
 {
-  //CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
+  //auto *plot = view_->currentPlot(/*remap*/false);
   //if (! plot) return;
 
   //plot->updateRangeAndObjs();
@@ -463,7 +463,7 @@ void
 CQChartsWindow::
 plotSlot()
 {
-  CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
+  auto *plot = view_->currentPlot(/*remap*/false);
 
   if (plot)
     setWindowTitle(QString("Window: View %1, Plot %2").arg(view_->id()).arg(plot->id()));
@@ -577,7 +577,7 @@ selectPropertyObjects()
       settings_->plotPropertyTree(plot)->deselectAllObjects();
 
     for (auto &obj : objSet) {
-      CQChartsPlot *plot = objectPlot(obj);
+      auto *plot = objectPlot(obj);
 
       if (plot)
         settings_->plotPropertyTree(plot)->selectObject(obj);
@@ -591,7 +591,7 @@ void
 CQChartsWindow::
 propertyItemSelected(QObject *obj, const QString &path)
 {
-  CQChartsPlot *plot = objectPlot(obj);
+  auto *plot = objectPlot(obj);
 
   if (plot)
     plot->propertyItemSelected(obj, path);
@@ -630,7 +630,7 @@ CQChartsPlot *
 CQChartsWindow::
 objectPlot(QObject *obj) const
 {
-  QObject *obj1 = obj;
+  auto *obj1 = obj;
 
   while (obj1) {
     auto *plot = qobject_cast<CQChartsPlot *>(obj1);
@@ -670,16 +670,15 @@ void
 CQChartsWindowRangeScroll::
 drawBackground(QPainter *p)
 {
-  CQChartsPlot *plot = window_->view()->currentPlot();
+  auto *plot = window_->view()->currentPlot();
   if (! plot) return;
 
   plot->setOverview(true);
 
   window_->view()->doResize(p->device()->width(), p->device()->height());
 
-  CQChartsPlot::ZoomData zoomData = plot->zoomData();
-
-  CQChartsPlotMargin outerMargin = plot->outerMargin();
+  auto zoomData    = plot->zoomData();
+  auto outerMargin = plot->outerMargin();
 
   CQChartsLength margin(this->margin(), CQChartsUnits::PIXEL);
 

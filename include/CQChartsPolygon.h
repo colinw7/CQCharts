@@ -61,13 +61,10 @@ class CQChartsPolygon {
   int numPoints() const { return polygon_.size(); }
 
   CQChartsGeom::Point point(int i) const { return polygon_.point(i); }
-//const QPointF &qpoint(int i) const { return polygon_.qpoint(i); }
 
   void setPoint(int i, const CQChartsGeom::Point &p) { polygon_.setPoint(i, p); }
-//void setPoint(int i, const QPointF &p) { polygon_.setPoint(i, p); }
 
   void addPoint(const CQChartsGeom::Point &p) { polygon_.addPoint(p); }
-//void addPoint(const QPointF &p) { polygon_.addPoint(p); }
 
   void removePoint() { polygon_.removePoint(); }
 

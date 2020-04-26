@@ -54,7 +54,7 @@ void
 CQChartsTree::
 modelTypeChangedSlot(int modelId)
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   if (modelData && modelData->ind() == modelId) {
     //delegate_->clearColumnTypes();
@@ -87,7 +87,7 @@ addMenuActions(QMenu *menu)
 
   //---
 
-  QMenu *selectMenu = addMenu("Select");
+  auto *selectMenu = addMenu("Select");
 
   QActionGroup *selectActionGroup =
     addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
@@ -109,7 +109,7 @@ addMenuActions(QMenu *menu)
 
   //---
 
-  QMenu *exportMenu = addMenu("Export");
+  auto *exportMenu = addMenu("Export");
 
   QActionGroup *exportActionGroup =
     addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
@@ -146,7 +146,7 @@ setModelP(const ModelP &model)
   //--
 
   if (model_.data()) {
-    CQChartsModelData *modelData = getModelData();
+    auto *modelData = getModelData();
 
     if (modelData) {
       sm_ = new CQChartsSelectionModel(this, modelData);
@@ -176,7 +176,7 @@ setFilter(const QString &filter)
   auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
-  QAbstractItemModel *model = proxyModel->sourceModel();
+  auto *model = proxyModel->sourceModel();
   assert(model);
 
   QString filter1;
@@ -236,7 +236,7 @@ exportSlot(QAction *action)
 {
   QString type = action->text();
 
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   if      (type == "CSV")
     modelData->exportModel("-", CQBaseModelDataType::CSV);
@@ -267,7 +267,7 @@ CQChartsModelDetails *
 CQChartsTree::
 getDetails()
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   return (modelData ? modelData->details() : nullptr);
 }

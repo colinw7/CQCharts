@@ -9,6 +9,7 @@
 #include <CQChartsImage.h>
 #include <CQStatData.h>
 #include <CInterval.h>
+#include <CHexMap.h>
 
 class CQChartsScatterPlot;
 class CQChartsGrahamHull;
@@ -61,8 +62,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   };
 
  public:
+  using Point = CQChartsGeom::Point;
+
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                          const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &p,
+                          const CQChartsGeom::BBox &rect, const Point &p,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   const CQChartsScatterPlot *plot() const { return plot_; }
@@ -72,7 +75,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // position
-  const CQChartsGeom::Point &point() const { return pos_; }
+  const Point &point() const { return pos_; }
 
   //---
 
@@ -114,7 +117,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -148,7 +151,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  private:
   const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
   int                        groupInd_   { -1 };      //!< plot group index
-  CQChartsGeom::Point        pos_;                    //!< point position
+  Point                      pos_;                    //!< point position
   ExtraData                  edata_;                  //!< extra data
   QString                    name_;                   //!< label name
   CQChartsImage              image_;                  //!< image data
@@ -170,7 +173,8 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
     XY = (X | Y)
   };
 
-  using Points = std::vector<CQChartsGeom::Point>;
+  using Point  = CQChartsGeom::Point;
+  using Points = std::vector<Point>;
 
  public:
   CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
@@ -191,7 +195,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -218,6 +222,66 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Scatter Plot Hex Cell object
+ * \ingroup Charts
+ */
+class CQChartsScatterHexObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  enum Dir {
+    X  = (1<<0),
+    Y  = (1<<1),
+    XY = (X | Y)
+  };
+
+  using Point  = CQChartsGeom::Point;
+  using Points = std::vector<Point>;
+
+ public:
+  CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd,
+                        const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
+                        int ix, int iy, const CQChartsGeom::Polygon &poly, int n, int maxN);
+
+  int groupInd() const { return groupInd_; }
+
+  //---
+
+  QString typeName() const override { return "hex"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  //---
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+ private:
+  const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot
+  int                        groupInd_ { -1 };      //!< plot group index
+  int                        ix_       { -1 };      //!< x index
+  int                        iy_       { -1 };      //!< y index
+  CQChartsGeom::Polygon      poly_;                 //!< polygon
+  int                        n_        { 0 };       //!< number of points
+  int                        maxN_     { 0 };       //!< max number of points
+};
+
+//---
+
 #include <CQChartsKey.h>
 
 /*!
@@ -228,12 +292,15 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
+  using Point  = CQChartsGeom::Point;
+
+ public:
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd &ic);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -249,15 +316,29 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  * \brief Scatter Plot Grid Key Item
  * \ingroup Charts
  */
-class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
+class CQChartsScatterGridKeyItem : public CQChartsGradientKeyItem {
   Q_OBJECT
 
  public:
   CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot);
 
-  CQChartsGeom::Size size() const override;
+  int maxN() const override;
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
+ private:
+  CQChartsScatterPlot* plot_ { nullptr };
+};
+
+/*!
+ * \brief Scatter Plot Hex Key Item
+ * \ingroup Charts
+ */
+class CQChartsScatterHexKeyItem : public CQChartsGradientKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsScatterHexKeyItem(CQChartsScatterPlot *plot);
+
+  int maxN() const override;
 
  private:
   CQChartsScatterPlot* plot_ { nullptr };
@@ -338,17 +419,20 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
  public:
   enum class PlotType {
     SYMBOLS,
-    GRID_CELLS
+    GRID_CELLS,
+    HEX_CELLS
   };
 
-  struct ValueData {
-    CQChartsGeom::Point p;
-    int                 row { -1 };
-    QModelIndex         ind;
-    CQChartsColor       color;
+  using Point = CQChartsGeom::Point;
 
-    ValueData(const CQChartsGeom::Point &p=CQChartsGeom::Point(), int row=-1,
-              const QModelIndex &ind=QModelIndex(), const CQChartsColor &color=CQChartsColor()) :
+  struct ValueData {
+    Point         p;
+    int           row { -1 };
+    QModelIndex   ind;
+    CQChartsColor color;
+
+    ValueData(const Point &p=Point(), int row=-1, const QModelIndex &ind=QModelIndex(),
+              const CQChartsColor &color=CQChartsColor()) :
      p(p), row(row), ind(ind), color(color) {
     }
   };
@@ -364,8 +448,17 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using NameValues      = std::map<QString,ValuesData>;
   using GroupNameValues = std::map<int,NameValues>;
 
+  //--
+
   using NameGridData      = std::map<QString,CQChartsGridCell>;
   using GroupNameGridData = std::map<int,NameGridData>;
+
+  //--
+
+  using HexMap = CHexMap<void>;
+
+  using NameHexData      = std::map<QString,HexMap>;
+  using GroupNameHexData = std::map<int,NameHexData>;
 
   //---
 
@@ -414,8 +507,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // plot type
   PlotType plotType() const { return plotType_; }
 
-  bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS    ); }
-  bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS ); }
+  bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS   ); }
+  bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS); }
+  bool isHexCells () const { return (plotType() == PlotType::HEX_CELLS ); }
 
   //---
 
@@ -492,6 +586,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  // hex cells
+  const HexMap &hexMap() const { return hexMap_; }
+  int hexMapMaxN() const { return hexMapMaxN_; }
+
+  //---
+
   // symbol map key
   bool isSymbolMapKey() const { return symbolMapKeyData_.displayed; }
   void setSymbolMapKey(bool b);
@@ -504,7 +604,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void addNameValue(int groupInd, const QString &name, double x, double y, int row,
+  void addNameValue(int groupInd, const QString &name, const Point &p, int row,
                     const QModelIndex &xind, const CQChartsColor &color=CQChartsColor());
 
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
@@ -523,6 +623,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void addPointObjects(PlotObjs &objs) const;
   void addGridObjects (PlotObjs &objs) const;
+  void addHexObjects  (PlotObjs &objs) const;
 
   void addNameValues() const;
 
@@ -566,6 +667,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void addPointKeyItems(CQChartsPlotKey *key);
   void addGridKeyItems (CQChartsPlotKey *key);
+  void addHexKeyItems  (CQChartsPlotKey *key);
 
   //---
 
@@ -629,6 +731,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // set symbols, grid cells
   void setSymbols  (bool b);
   void setGridCells(bool b);
+  void setHexCells (bool b);
 
   // overlays
   void setDensityMap(bool b);
@@ -655,7 +758,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
-  using Points        = std::vector<CQChartsGeom::Point>;
+  using Points        = std::vector<Point>;
   using GroupPoints   = std::map<int,Points>;
   using GroupFitData  = std::map<int,CQChartsFitData>;
   using GroupStatData = std::map<int,StatData>;
@@ -715,10 +818,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // plot overlay data
   DensityMapData   densityMapData_; //!< density map data
   CQChartsGridCell gridData_;       //!< grid data
+  HexMap           hexMap_;         //!< hex map
+  int              hexMapMaxN_ { 0 };
 
   // group data
   GroupNameValues   groupNameValues_;   //!< group name values
-  GroupNameGridData groupNameGridData_; //!< grid values
+  GroupNameGridData groupNameGridData_; //!< grid cell values
+  GroupNameHexData  groupNameHexData_;  //!< hex celll values
   GroupPoints       groupPoints_;       //!< group fit points
   GroupFitData      groupFitData_;      //!< group fit data
   GroupStatData     groupStatData_;     //!< group stat data

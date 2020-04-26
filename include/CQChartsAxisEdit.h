@@ -16,7 +16,7 @@ class CQChartsEditAxisDlg : public QDialog {
  public:
   CQChartsEditAxisDlg(QWidget *parent, CQChartsAxis *axis);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private slots:
   void okSlot();

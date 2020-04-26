@@ -760,7 +760,7 @@ class CQChartsPlot : public CQChartsObj,
 
   template<typename FUNCTION>
   void processOverlayPlots(FUNCTION f) const {
-    const CQChartsPlot *plot = firstPlot();
+    const auto *plot = firstPlot();
 
     while (plot) {
       f(plot);
@@ -771,7 +771,7 @@ class CQChartsPlot : public CQChartsObj,
 
   template<typename FUNCTION>
   void processOverlayPlots(FUNCTION f) {
-    CQChartsPlot *plot = firstPlot();
+    auto *plot = firstPlot();
 
     while (plot) {
       f(plot);
@@ -782,7 +782,7 @@ class CQChartsPlot : public CQChartsObj,
 
   template<typename FUNCTION>
   bool processOverlayPlots(FUNCTION f, bool b) const {
-    const CQChartsPlot *plot = firstPlot();
+    const auto *plot = firstPlot();
 
     while (plot) {
       bool b1 = f(plot);
@@ -1539,9 +1539,9 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // handle mouse press/move/release
-  bool selectMousePress  (const QPointF &p, SelMod selMod);
-  bool selectMouseMove   (const QPointF &p, bool first=false);
-  bool selectMouseRelease(const QPointF &p);
+  bool selectMousePress  (const CQChartsGeom::Point &p, SelMod selMod);
+  bool selectMouseMove   (const CQChartsGeom::Point &p, bool first=false);
+  bool selectMouseRelease(const CQChartsGeom::Point &p);
 
   virtual bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod);
   virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
@@ -1563,10 +1563,10 @@ class CQChartsPlot : public CQChartsObj,
   //-
 
   // handle mouse drag press/move/release
-  bool editMousePress  (const QPointF &p, bool inside=false);
-  bool editMouseMove   (const QPointF &p, bool first=false);
-  bool editMouseMotion (const QPointF &p);
-  bool editMouseRelease(const QPointF &p);
+  bool editMousePress  (const CQChartsGeom::Point &p, bool inside=false);
+  bool editMouseMove   (const CQChartsGeom::Point &p, bool first=false);
+  bool editMouseMotion (const CQChartsGeom::Point &p);
+  bool editMouseRelease(const CQChartsGeom::Point &p);
 
   virtual bool editPress  (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
                            bool inside=false);
@@ -1890,6 +1890,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawBackgroundLayer(CQChartsPaintDevice *device) const;
 
+  virtual void drawBackgroundRects(CQChartsPaintDevice *device) const;
+
   virtual bool hasBackground() const;
 
   virtual void execDrawBackground(CQChartsPaintDevice *device) const;
@@ -1927,6 +1929,8 @@ class CQChartsPlot : public CQChartsObj,
                             const CQChartsLayer::Type &type) const;
 
   virtual void postDrawObjs(CQChartsPaintDevice *) const { }
+
+  virtual bool objInsideBox(CQChartsPlotObj *plotObj, const CQChartsGeom::BBox &bbox) const;
 
   //---
 
@@ -2501,12 +2505,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //! mouse state data
   struct MouseData {
-    QPointF            pressPoint { 0, 0 };
-    QPointF            movePoint  { 0, 0 };
-    bool               pressed    { false };
-    DragObj            dragObj    { DragObj::NONE };
-    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE };
-    bool               dragged    { false };
+    CQChartsGeom::Point pressPoint { 0, 0 };
+    CQChartsGeom::Point movePoint  { 0, 0 };
+    bool                pressed    { false };
+    DragObj             dragObj    { DragObj::NONE };
+    CQChartsResizeSide  dragSide   { CQChartsResizeSide::NONE };
+    bool                dragged    { false };
   };
 
   //! animation data

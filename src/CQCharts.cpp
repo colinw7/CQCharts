@@ -24,6 +24,7 @@
 #include <CQChartsRadarPlot.h>
 #include <CQChartsSankeyPlot.h>
 #include <CQChartsScatterPlot.h>
+#include <CQChartsScatterPlot3D.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
@@ -384,6 +385,7 @@ init()
   plotTypeMgr_->addType("radar"        , new CQChartsRadarPlotType        );
   plotTypeMgr_->addType("sankey"       , new CQChartsSankeyPlotType       );
   plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
+  plotTypeMgr_->addType("scatter3d"    , new CQChartsScatterPlot3DType    );
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("table"        , new CQChartsTablePlotType        );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
@@ -420,7 +422,7 @@ init()
     //---
 
     // add property types (and editors)
-    CQPropertyViewMgr *viewMgr = CQPropertyViewMgrInst;
+    auto *viewMgr = CQPropertyViewMgrInst;
 
     viewMgr->addType("CQChartsAlpha"           , new CQChartsAlphaPropertyViewType           );
     viewMgr->addType("CQChartsAngle"           , new CQChartsAnglePropertyViewType           );
@@ -710,7 +712,7 @@ interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r, bool scale
   if (ind < 0)
     ind = 0;
 
-  CQColorsPalette *palette = this->themePalette(ind);
+  auto *palette = this->themePalette(ind);
 
 #if 0
   if (palette->isDistinct() && ng > 0) {
@@ -733,7 +735,7 @@ CQCharts::
 interpNamePaletteColorValue(const QString &name, int /*ig*/, int /*ng*/,
                             double r, bool scale) const
 {
-  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
+  auto *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return QColor(); // assert ?
 
   return palette->getColor(r, scale);
@@ -754,7 +756,7 @@ indexIndPaletteColor(int ind, int i, int n) const
   if (ind < 0)
     ind = 0;
 
-  CQColorsPalette *palette = this->themePalette(ind);
+  auto *palette = this->themePalette(ind);
 
   return palette->getColor(i, n, CQColorsPalette::WrapMode::REPEAT);
 }
@@ -763,7 +765,7 @@ QColor
 CQCharts::
 indexNamePaletteColor(const QString &name, int i, int n) const
 {
-  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
+  auto *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return QColor(); // assert ?
 
   return palette->getColor(i, n, CQColorsPalette::WrapMode::REPEAT);
@@ -946,7 +948,7 @@ bool
 CQCharts::
 removeModelData(ModelP &model)
 {
-  CQChartsModelData *modelData = getModelData(model.data());
+  auto *modelData = getModelData(model.data());
 
   if (! modelData)
     return false;
@@ -1066,7 +1068,7 @@ CQChartsView *
 CQCharts::
 addView(const QString &id)
 {
-  CQChartsView *view = createView();
+  auto *view = createView();
 
   if (id.length())
     view->setId(id);
@@ -1169,7 +1171,7 @@ CQChartsWindow *
 CQCharts::
 createWindow(CQChartsView *view)
 {
-  CQChartsWindow *window = CQChartsWindowMgrInst->createWindow(view);
+  auto *window = CQChartsWindowMgrInst->createWindow(view);
 
   emit windowCreated(window);
 

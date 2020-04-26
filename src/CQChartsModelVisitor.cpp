@@ -11,7 +11,7 @@ bool exec(CQCharts *charts, const QAbstractItemModel *model, CQChartsModelVisito
   if (! model)
     return false;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   columnTypeMgr->startCache(model);
 

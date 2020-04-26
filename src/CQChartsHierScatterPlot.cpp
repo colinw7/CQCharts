@@ -168,7 +168,7 @@ popCurrentGroup()
   if (! currentGroup())
     return;
 
-  CQChartsHierScatterPointGroup *group = currentGroup()->parent();
+  auto *group = currentGroup()->parent();
 
   if (group)
     setCurrentGroup(group);
@@ -187,7 +187,7 @@ setCurrentGroup(CQChartsHierScatterPointGroup *group)
 {
   filterNames_.clear();
 
-  CQChartsHierScatterPointGroup *group1 = group;
+  auto *group1 = group;
 
   while (group1 && group1 != rootGroup_) {
     filterNames_.push_front(group1->name());
@@ -348,7 +348,7 @@ acceptsRow(int row, const QModelIndex &parent) const
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
-    const CQChartsColumn &column = groupValues_.getColumn(i);
+    const auto &column = groupValues_.getColumn(i);
 
     CQChartsModelIndex modelInd(row, column, parent);
 
@@ -567,7 +567,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   for (const auto &name : filterNames_) {
-    CQChartsHierScatterPointGroup *group1 = currentGroup()->lookupGroup(name);
+    auto *group1 = currentGroup()->lookupGroup(name);
 
     if (! group1)
       break;
@@ -633,10 +633,10 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
   //---
 
   // get parent group
-  CQChartsHierScatterPointGroup *group = currentGroup();
+  auto *group = currentGroup();
 
   for (const auto &groupData : groupDatas) {
-    CQChartsHierScatterPointGroup *group1 = group->lookupGroup(groupData.ind);
+    auto *group1 = group->lookupGroup(groupData.ind);
 
     if (! group1) {
       group1 = group->addGroup(groupData.ind, groupData.str);
@@ -702,7 +702,7 @@ void
 CQChartsHierScatterPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  CQChartsHierScatterPointGroup *group = currentGroup();
+  auto *group = currentGroup();
 
   int n = group->numGroups();
 
@@ -876,7 +876,7 @@ draw(CQChartsPaintDevice *device)
 
   // draw label
   if (plot_->isTextLabels()) {
-    const CQChartsDataLabel *dataLabel = plot_->dataLabel();
+    const auto *dataLabel = plot_->dataLabel();
 
     auto ps = plot_->windowToPixel(p_);
 

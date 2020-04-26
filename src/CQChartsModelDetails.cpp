@@ -157,7 +157,7 @@ updateSimple()
 
   assert(initialized_ == Initialized::NONE);
 
-  QAbstractItemModel *model = this->model();
+  auto *model = this->model();
 
   hierarchical_ = CQChartsModelUtil::isHierarchical(model);
 
@@ -446,18 +446,18 @@ QString
 CQChartsModelColumnDetails::
 headerName() const
 {
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
 
   bool ok;
 
-  return CQChartsModelUtil::modelHeaderString(model, column_, ok);
+  return CQChartsModelUtil::modelHHeaderString(model, column_, ok);
 }
 
 bool
 CQChartsModelColumnDetails::
 isKey() const
 {
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
 
   bool ok;
 
@@ -598,15 +598,15 @@ dataName(const QVariant &v) const
 {
   initCache();
 
-  CQCharts *charts = details_->charts();
+  auto *charts = details_->charts();
   if (! charts) return QVariant();
 
-  const CQChartsColumnType *columnType = this->columnType();
+  const auto *columnType = this->columnType();
 
   if (! columnType)
     return v;
 
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
 
   bool converted;
 
@@ -643,7 +643,7 @@ isMonotonic() const
       column_.type() == CQChartsColumn::Type::DATA_INDEX) {
     bool ok;
 
-    QAbstractItemModel *model = details_->model();
+    auto *model = details_->model();
 
     auto var = CQChartsModelUtil::modelHeaderValue(
       model, column_, static_cast<int>(CQBaseModelRole::Sorted), ok);
@@ -667,7 +667,7 @@ isIncreasing() const
       column_.type() == CQChartsColumn::Type::DATA_INDEX) {
     bool ok;
 
-    QAbstractItemModel *model = details_->model();
+    auto *model = details_->model();
 
     QVariant var = CQChartsModelUtil::modelHeaderValue(
       model, column_, static_cast<int>(CQBaseModelRole::Sorted), ok);
@@ -1101,7 +1101,7 @@ initData()
 
   //---
 
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
   if (! model) return false;
 
   CQChartsModelFilter *modelFilter = nullptr;
@@ -1135,9 +1135,9 @@ initData()
      details_(details) {
       charts_ = details_->details()->charts();
 
-      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+      auto *columnTypeMgr = charts_->columnTypeMgr();
 
-      const CQChartsColumnType *columnType = columnTypeMgr->getType(details_->type());
+      const auto *columnType = columnTypeMgr->getType(details_->type());
 
       if (columnType) {
         min_ = columnType->minValue(details->nameValues()); // type custom min value
@@ -1472,7 +1472,7 @@ initData()
 
   DetailVisitor detailVisitor(this);
 
-  CQCharts *charts = details()->charts();
+  auto *charts = details()->charts();
   if (! charts) return false;
 
   CQChartsModelVisit::exec(charts, model, detailVisitor);
@@ -1520,7 +1520,7 @@ calcType()
 
   //---
 
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
   if (! model) return false;
 
   if (! column_.isValid())
@@ -1540,7 +1540,7 @@ calcType()
 
   // get column type and name values
   // TODO: calls CQChartsModelVisitor, integrate into this visitor
-  CQCharts *charts = details_->charts();
+  auto *charts = details_->charts();
   if (! charts) return false;
 
   if (! CQChartsModelUtil::columnValueType(charts, model, column_, typeData_)) {
@@ -1550,7 +1550,7 @@ calcType()
 
   //---
 
-  const CQChartsColumnType *columnType = this->columnType();
+  const auto *columnType = this->columnType();
 
   if (columnType) {
     typeName_ = columnType->name();
@@ -1564,7 +1564,7 @@ calcType()
   //---
 
   if (columnType) {
-    const CQChartsNameValues &nameValues = this->typeData_.nameValues;
+    const auto &nameValues = this->typeData_.nameValues;
 
     preferredWidth_ = columnType->preferredWidth(nameValues);
 
@@ -1635,12 +1635,12 @@ bool
 CQChartsModelColumnDetails::
 columnColor(const QVariant &var, CQChartsColor &color) const
 {
-  CQCharts *charts = details_->charts();
+  auto *charts = details_->charts();
   if (! charts) return false;
 
-  QAbstractItemModel *model = details_->model();
+  auto *model = details_->model();
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   const CQChartsColumnColorType *colorType =
     dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModelType::COLOR));
@@ -1663,7 +1663,7 @@ bool
 CQChartsModelColumnDetails::
 columnNameValue(const QString &name, QString &value) const
 {
-  const CQChartsColumnType *columnType = this->columnType();
+  const auto *columnType = this->columnType();
 
   if (! columnType)
     return false;
@@ -1678,10 +1678,10 @@ const CQChartsColumnType *
 CQChartsModelColumnDetails::
 columnType() const
 {
-  CQCharts *charts = details_->charts();
+  auto *charts = details_->charts();
   if (! charts) return nullptr;
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+  auto *columnTypeMgr = charts->columnTypeMgr();
 
   return columnTypeMgr->getType(typeData_.type);
 }

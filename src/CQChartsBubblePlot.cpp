@@ -535,7 +535,7 @@ loadModel() const
 
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
-      CQChartsBubbleNode *node = plot_->addNode(parentHier(data), name, size, nameInd1);
+      auto *node = plot_->addNode(parentHier(data), name, size, nameInd1);
 
       if (node) {
         CQChartsColor color;
@@ -553,7 +553,7 @@ loadModel() const
 
       std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
 
-      CQChartsBubbleHierNode *hierNode = plot_->currentRoot();
+      auto *hierNode = plot_->currentRoot();
 
       for (std::size_t i = 0; i < groupInds.size(); ++i) {
         int groupInd = groupInds[i];
@@ -633,7 +633,7 @@ groupHierNode(CQChartsBubbleHierNode *parent, int groupInd) const
 
   QModelIndex ind;
 
-  CQChartsBubbleHierNode *hierNode = th->addHierNode(parent, name, ind);
+  auto *hierNode = th->addHierNode(parent, name, ind);
 
   auto p1 = th->groupHierNodes_.insert(th->groupHierNodes_.end(),
               GroupHierNodes::value_type(groupInd, hierNode));
@@ -790,7 +790,7 @@ void
 CQChartsBubbleHierObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsBubbleHierNode *root = hier_->parent();
+  auto *root = hier_->parent();
 
   if (! root)
     root = hier_;

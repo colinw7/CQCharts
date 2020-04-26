@@ -266,9 +266,9 @@ QWidget *
 CQChartsColumnPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
+  auto *item = CQPropertyViewMgrInst->editItem();
 
-  QObject *obj = (item ? item->object() : nullptr);
+  auto *obj = (item ? item->object() : nullptr);
 
   auto *plot = qobject_cast<CQChartsPlot *>(obj);
 

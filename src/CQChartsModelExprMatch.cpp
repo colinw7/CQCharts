@@ -31,12 +31,12 @@ class CQChartsModelExprMatchFn {
   CQChartsExprTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsModelExprMatchFn *command = (CQChartsModelExprMatchFn *) clientData;
+    auto *command = (CQChartsModelExprMatchFn *) clientData;
 
     Values values;
 
     for (int i = 1; i < objc; ++i) {
-      const Tcl_Obj *obj = objv[i];
+      const auto *obj = objv[i];
 
       values.push_back(command->qtcl()->variantFromObj(obj));
     }
@@ -181,7 +181,7 @@ initColumns()
 
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHeaderString(model_, c, ok);
+    QString name = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
 
     columnNames_[ic  ] = name;
     nameColumns_[name] = ic;
@@ -389,7 +389,7 @@ headerCmd(const Values &values) const
 
   bool ok;
 
-  return CQChartsModelUtil::modelHeaderString(model(), CQChartsColumn(col), ok);
+  return CQChartsModelUtil::modelHHeaderString(model(), CQChartsColumn(col), ok);
 }
 
 //---

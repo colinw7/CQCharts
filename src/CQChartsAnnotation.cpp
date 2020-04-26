@@ -199,7 +199,7 @@ writeProperties(std::ostream &os, const QString &varName) const
 {
   CQPropertyViewModel::NameValues nameValues;
 
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
 
   if (propertyModel)
     propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
@@ -306,7 +306,7 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -326,7 +326,7 @@ addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    CQPropertyViewItem *item = model->addProperty(path, this, name, alias);
+    auto *item = model->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
     return item;
@@ -344,7 +344,7 @@ bool
 CQChartsAnnotation::
 getProperty(const QString &name, QVariant &value) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
   return propertyModel->getProperty(this, name, value);
@@ -354,7 +354,7 @@ bool
 CQChartsAnnotation::
 getTclProperty(const QString &name, QVariant &value) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
   return propertyModel->getTclProperty(this, name, value);
@@ -364,7 +364,7 @@ bool
 CQChartsAnnotation::
 getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -376,7 +376,7 @@ bool
 CQChartsAnnotation::
 getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -388,7 +388,7 @@ bool
 CQChartsAnnotation::
 getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -402,7 +402,7 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyItem(name, hidden);
+  const auto *item = propertyItem(name, hidden);
   if (! item) return false;
 
   object = item->object();
@@ -416,7 +416,7 @@ getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
   is_hidden = false;
 
-  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  const auto *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_hidden = CQCharts::getItemIsHidden(item);
@@ -430,7 +430,7 @@ getPropertyIsStyle(const QString &name, bool &is_style) const
 {
   is_style = false;
 
-  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  const auto *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_style = CQCharts::getItemIsStyle(item);
@@ -461,7 +461,7 @@ bool
 CQChartsAnnotation::
 setProperty(const QString &name, const QVariant &value)
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
   return propertyModel->setProperty(this, name, value);
@@ -471,7 +471,7 @@ void
 CQChartsAnnotation::
 getPropertyNames(QStringList &names, bool hidden) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return;
 
   propertyModel->objectNames(this, names, hidden);
@@ -493,10 +493,10 @@ const CQPropertyViewItem *
 CQChartsAnnotation::
 propertyItem(const QString &name, bool hidden) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return nullptr;
 
-  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name, hidden);
+  const auto *item = propertyModel->propertyItem(this, name, hidden);
   if (! item) return nullptr;
 
   return item;
@@ -723,6 +723,9 @@ CQChartsPosition
 CQChartsRectangleAnnotation::
 start() const
 {
+  if (! rectangle().bbox().isValid())
+    return CQChartsPosition();
+
   CQChartsGeom::Point p(rectangle().bbox().getXMin(), rectangle().bbox().getYMin());
 
   return CQChartsPosition(p, rectangle().units());
@@ -749,6 +752,9 @@ CQChartsPosition
 CQChartsRectangleAnnotation::
 end() const
 {
+  if (! rectangle().bbox().isValid())
+    return CQChartsPosition();
+
   CQChartsGeom::Point p(rectangle().bbox().getXMax(), rectangle().bbox().getYMax());
 
   return CQChartsPosition(p, rectangle().units());
@@ -1714,7 +1720,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -1890,6 +1896,9 @@ draw(CQChartsPaintDevice *device)
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
+
+  if (! bbox_.isValid())
+    return;
 
   //---
 
@@ -2367,6 +2376,9 @@ draw(CQChartsPaintDevice *device)
   if (! rectangle().isSet())
     positionToBBox();
 
+  if (! bbox_.isValid())
+    return;
+
   //---
 
   // set rect pen and brush
@@ -2611,14 +2623,14 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = &(model->addProperty(path, arrow(), name, alias)->setDesc(desc));
+    auto *item = &(model->addProperty(path, arrow(), name, alias)->setDesc(desc));
     item->setHidden(hidden);
     return item;
   };
 
   auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                                const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addArrowProp(path, name, alias, desc, hidden);
+    auto *item = addArrowProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -2701,7 +2713,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 
 #if 0
   // can't use objectNames as root is wrong
-  CQPropertyModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
   if (! propertyModel) return;
 
   propertyModel->objectNames(arrow(), names);
@@ -2949,7 +2961,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   //---
 
   // write arrow properties
-  CQPropertyViewModel *propertyModel = this->propertyModel();
+  auto *propertyModel = this->propertyModel();
 
   CQPropertyViewModel::NameValues nameValues;
 
@@ -3018,7 +3030,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -3614,7 +3626,7 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
   auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey->contains(w)) {
-    CQChartsKeyItem *item = plotKey->getItemAt(w);
+    auto *item = plotKey->getItemAt(w);
 
     if (item) {
       bool handled = item->selectPress(w, selMod);
@@ -4207,7 +4219,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;

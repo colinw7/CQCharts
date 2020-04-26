@@ -810,7 +810,7 @@ draw(CQChartsPaintDevice *device)
   else if  (plot_->cellStyle() == CQChartsImagePlot::CellStyle::BALLOON) {
     auto prect = plot_->windowToPixel(rect());
 
-    double s = std::min(prect.getWidth(), prect.getHeight());
+    double s = prect.getMinSize();
 
     double minSize = s*plot_->minBalloonSize();
     double maxSize = s*plot_->maxBalloonSize();

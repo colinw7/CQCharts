@@ -17,7 +17,7 @@ class CQChartsViewError : public QFrame {
 
   void updatePlots();
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private:
   using Texts = std::map<CQChartsPlot *, QTextBrowser *>;

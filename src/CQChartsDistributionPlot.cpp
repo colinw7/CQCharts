@@ -746,7 +746,7 @@ bucketGroupValues() const
     CQChartsValueSet::Type type = CQChartsValueSet::Type::NONE;
 
     for (auto &groupValues : groupData_.groupValues) {
-      Values *values = groupValues.second;
+      auto *values = groupValues.second;
 
       CQChartsValueSet::Type type1 = values->valueSet->type();
 
@@ -771,7 +771,7 @@ bucketGroupValues() const
     int iv = 0;
 
     for (auto &groupValues : groupData_.groupValues) {
-      Values *values = groupValues.second;
+      auto *values = groupValues.second;
 
       if      (type == CQChartsValueSet::Type::INTEGER) {
         if (iv == 0) {
@@ -802,8 +802,8 @@ bucketGroupValues() const
   else {
     // init each group bucketer from value ranges
     for (auto &groupValues : groupData_.groupValues) {
-      int     groupInd = groupValues.first;
-      Values *values   = groupValues.second;
+      int   groupInd = groupValues.first;
+      auto *values   = groupValues.second;
 
       // init group bucketer
       CQBucketer &bucketer = th->groupBucketer(groupInd);
@@ -830,8 +830,8 @@ bucketGroupValues() const
 
   // bucket grouped sets of values
   for (auto &groupValues : groupData_.groupValues) {
-    int     groupInd = groupValues.first;
-    Values *values   = groupValues.second;
+    int   groupInd = groupValues.first;
+    auto *values   = groupValues.second;
 
     //---
 
@@ -970,8 +970,8 @@ calcBucketRanges() const
 
     //---
 
-    int     groupInd = groupValues.first;
-    Values *values   = groupValues.second;
+    int   groupInd = groupValues.first;
+    auto *values   = groupValues.second;
 
     // density curve per group (optionally offset)
     if      (isDensity()) {
@@ -1019,8 +1019,8 @@ calcBucketRanges() const
       bool overFlow  = false;
 
       for (auto &bucketValues : values->bucketValues) {
-        const Bucket    &bucket   = bucketValues.first;
-        VariantIndsData &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        auto       &varsData = bucketValues.second;
 
         //---
 
@@ -1318,7 +1318,7 @@ addRowColumn(const CQChartsModelIndex &ind) const
   //---
 
   // get value set for group
-  Values *values = getGroupIndValues(groupInd, ind);
+  auto *values = getGroupIndValues(groupInd, ind);
 
   //---
 
@@ -1623,12 +1623,12 @@ createObjs(PlotObjs &objs) const
     }
     else {
       for (auto &groupValues : groupData_.groupValues) {
-        int           groupInd = groupValues.first;
-        const Values *values   = groupValues.second;
+        int         groupInd = groupValues.first;
+        const auto *values   = groupValues.second;
 
         for (const auto &bucketValues : values->bucketValues) {
-          const Bucket          &bucket   = bucketValues.first;
-          const VariantIndsData &varsData = bucketValues.second;
+          const auto &bucket   = bucketValues.first;
+          const auto &varsData = bucketValues.second;
 
           BarValue barValue = varIndsValue(varsData);
 
@@ -1659,7 +1659,7 @@ createObjs(PlotObjs &objs) const
   BucketInd bucketInd;
 
   for (auto &groupValues : groupData_.groupValues) {
-    const Values *values = groupValues.second;
+    const auto *values = groupValues.second;
 
     for (const auto &bucketValues : values->bucketValues) {
       const Bucket &bucket = bucketValues.first;
@@ -1668,8 +1668,8 @@ createObjs(PlotObjs &objs) const
     }
 
     for (const auto &bucketValues : values->bucketValues) {
-      const Bucket          &bucket   = bucketValues.first;
-      const VariantIndsData &varsData = bucketValues.second;
+      const auto &bucket   = bucketValues.first;
+      const auto &varsData = bucketValues.second;
 
       int n = varsData.inds.size();
 
@@ -1712,8 +1712,8 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      int           groupInd = groupValues.first;
-      const Values *values   = groupValues.second;
+      int         groupInd = groupValues.first;
+      const auto *values   = groupValues.second;
 
       //---
 
@@ -1731,12 +1731,12 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        const Bucket          &bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        const auto &varsData = bucketValues.second;
 
         //---
 
-        const VariantIndsData *pVarsData = &varsData;
+        const auto *pVarsData = &varsData;
 
         BarValue barValue = varIndsValue(*pVarsData);
 
@@ -1770,8 +1770,8 @@ createObjs(PlotObjs &objs) const
 
     //---
 
-    int           groupInd = groupValues.first;
-    const Values *values   = groupValues.second;
+    int         groupInd = groupValues.first;
+    const auto *values   = groupValues.second;
 
     //---
 
@@ -1791,8 +1791,8 @@ createObjs(PlotObjs &objs) const
       data.buckets.clear();
 
       for (auto &bucketValues : values->bucketValues) {
-        const Bucket          &bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
+        const Bucket &bucket   = bucketValues.first;
+        const auto   &varsData = bucketValues.second;
 
         int n = varsData.inds.size();
 
@@ -1826,12 +1826,12 @@ createObjs(PlotObjs &objs) const
       int nv = values->bucketValues.size();
 
       for (auto &bucketValues : values->bucketValues) {
-        const Bucket          &bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        const auto &varsData = bucketValues.second;
 
         //---
 
-        const VariantIndsData *pVarsData = &varsData;
+        const auto *pVarsData = &varsData;
 
         Bucket sbucket = bucket;
 
@@ -1847,7 +1847,7 @@ createObjs(PlotObjs &objs) const
             auto p = values->bucketValues.find(sbucket);
             assert(p != values->bucketValues.end());
 
-            const VariantIndsData &varsData1 = (*p).second;
+            const auto &varsData1 = (*p).second;
 
             pVarsData = &varsData1;
           }
@@ -1905,8 +1905,8 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        const Bucket          &bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        const auto &varsData = bucketValues.second;
 
         //---
 
@@ -1916,7 +1916,7 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        const VariantIndsData *pVarsData = &varsData;
+        const auto *pVarsData = &varsData;
 
         Bucket sbucket = bucket;
 
@@ -1932,7 +1932,7 @@ createObjs(PlotObjs &objs) const
             auto p = values->bucketValues.find(sbucket);
             assert(p != values->bucketValues.end());
 
-            const VariantIndsData &varsData1 = (*p).second;
+            const auto &varsData1 = (*p).second;
 
             pVarsData = &varsData1;
           }
@@ -2299,7 +2299,7 @@ void
 CQChartsDistributionPlot::
 getInds(int groupInd, const Bucket &bucket, VariantInds &inds) const
 {
-  const Values *values = getGroupValues(groupInd);
+  const auto *values = getGroupValues(groupInd);
   if (! values) return;
 
   auto pb = values->bucketValues.find(bucket);
@@ -2336,7 +2336,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
 {
   vals.clear();
 
-  const Values *values = getGroupValues(groupInd);
+  const auto *values = getGroupValues(groupInd);
   if (! values) return false;
 
   if      (values->valueSet->type() == ColumnType::INTEGER) {
@@ -2368,7 +2368,7 @@ bool
 CQChartsDistributionPlot::
 getStatData(int groupInd, CQStatData &statData) const
 {
-  const Values *values = getGroupValues(groupInd);
+  const auto *values = getGroupValues(groupInd);
   if (! values) return false;
 
   if      (values->valueSet->type() == ColumnType::INTEGER) {
@@ -2436,8 +2436,8 @@ addKeyItems(CQChartsPlotKey *key)
     int ig = 0;
 
     for (const auto &groupValues : groupData_.groupValues) {
-      int           groupInd = groupValues.first;
-    //const Values *values   = groupValues.second;
+      int         groupInd = groupValues.first;
+    //const auto *values   = groupValues.second;
 
       QString groupName = groupIndName(groupInd);
 
@@ -2484,16 +2484,16 @@ addKeyItems(CQChartsPlotKey *key)
     else {
       auto pg = groupData_.groupValues.begin();
 
-      int           groupInd = (*pg).first;
-      const Values *values   = (*pg).second;
+      int         groupInd = (*pg).first;
+      const auto *values   = (*pg).second;
 
       int nv = values->bucketValues.size();
 
       int iv = 0;
 
       for (const auto &bucketValues : values->bucketValues) {
-        const Bucket          &bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        const auto &varsData = bucketValues.second;
 
         double value1, value2;
 
@@ -2522,7 +2522,7 @@ QString
 CQChartsDistributionPlot::
 bucketValuesStr(int groupInd, const Bucket &bucket, BucketValueType type) const
 {
-  const Values *values = getGroupValues(groupInd);
+  const auto *values = getGroupValues(groupInd);
 
   if (! values)
     return "";
@@ -2804,9 +2804,9 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QAction *pushAction   = addAction("Push"   , SLOT(pushSlot  ()));
-  QAction *popAction    = addAction("Pop"    , SLOT(popSlot   ()));
-  QAction *popTopAction = addAction("Pop Top", SLOT(popTopSlot()));
+  auto *pushAction   = addAction("Push"   , SLOT(pushSlot  ()));
+  auto *popAction    = addAction("Pop"    , SLOT(popSlot   ()));
+  auto *popTopAction = addAction("Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(! filterStack_.empty());
@@ -2869,8 +2869,8 @@ drawStatsLines(CQChartsPaintDevice *device) const
 
     //---
 
-    int           groupInd = groupValues.first;
-    const Values *values   = groupValues.second;
+    int         groupInd = groupValues.first;
+    const auto *values   = groupValues.second;
 
     CQStatData statData = values->statData;
 
@@ -2936,8 +2936,8 @@ pushSlot()
   selectedPlotObjs(objs);
 
   if (objs.empty()) {
-    QPointF gpos = view()->menuPos();
-    QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+    auto gpos = view()->menuPos();
+    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
     auto w = pixelToWindow(CQChartsGeom::Point(pos));
 

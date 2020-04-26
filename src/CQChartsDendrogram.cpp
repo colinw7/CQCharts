@@ -294,7 +294,7 @@ getNodeAtPoint(double x, double y, double tol)
 
   // make single list of nodes to place
   for (const auto &c : children_) {
-    Node *node = c->getNodeAtPoint(x, y, tol);
+    auto *node = c->getNodeAtPoint(x, y, tol);
 
     if (node)
       return node;
@@ -375,14 +375,14 @@ setGaps()
     double row = 0;
 
     for (int j = 0; j < n; ++j) {
-      Node *node = dnodes[j];
+      auto *node = dnodes[j];
 
       // calc space from multi-row node
       double ns = (node->numRows() - 1.0)/2.0;
 
       // calc space from multi-row node below
       if (j > 0) {
-        Node *node1 = dnodes[j - 1];
+        auto *node1 = dnodes[j - 1];
 
         ns += (node1->numRows() - 1.0)/2.0;
       }
@@ -425,7 +425,7 @@ printGaps() const
     int n = dnodes.size();
 
     for (int j = 0; j < n; ++j) {
-      Node *node = dnodes[j];
+      auto *node = dnodes[j];
 
       if (i > 0 && node->gap() > 0)
         std::cerr << "Gap " << node->gap() << " below " << node->name().toStdString() <<
@@ -458,7 +458,7 @@ compressNodes()
     int n = dnodes.size();
 
     for (int j = 0; j < n; ++j) {
-      Node *node = dnodes[j];
+      auto *node = dnodes[j];
 
       //---
 
@@ -484,7 +484,7 @@ compressNodes()
       // check gaps of parent nodes
       double move_gap1 = move_gap;
 
-      HierNode *parent = node->parent();
+      auto *parent = node->parent();
 
       while (move_gap > 0 && parent) {
         move_gap1 = std::min(move_gap1, parent->gap());
@@ -543,15 +543,15 @@ canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
       break;
 
   // check gaps of child nodes for node and all siblings above it
-  Node *lowestChild = 0;
+  Node *lowestChild = nullptr;
 
   for ( ; i < n; ++i) {
-    Node *node1 = dnodes[i];
+    auto *node1 = dnodes[i];
 
     if (node1->isOpen() && node1->hasChildren()) {
       auto *hierNode = dynamic_cast<HierNode *>(node1);
 
-      Node *child = getLowestChild(hierNode);
+      auto *child = getLowestChild(hierNode);
 
       if (! lowestChild || child->row() < lowestChild->row())
         lowestChild = child;
@@ -578,7 +578,7 @@ CQChartsDendrogram::Node *
 CQChartsDendrogram::RootNode::
 getLowestChild(HierNode *hierNode)
 {
-  Node *lowestNode = 0;
+  Node *lowestNode = nullptr;
 
   const Children &children = hierNode->getChildren();
 
@@ -610,7 +610,7 @@ setOpenDepth(int depth)
     int n = dnodes.size();
 
     for (int j = 0; j < n; ++j) {
-      Node *node = dnodes[j];
+      auto *node = dnodes[j];
 
       node->setOpen(i < depth);
     }
@@ -627,7 +627,7 @@ openNode(int depth, const QString &name)
   int n = dnodes.size();
 
   for (int j = 0; j < n; ++j) {
-    Node *node = dnodes[j];
+    auto *node = dnodes[j];
 
     if (node->name() == name)
       node->setOpen(true);
@@ -704,7 +704,7 @@ compressNodeUp(Node *node, double d)
 
   moveHigherNodes(node, d);
 
-  HierNode *parent = node->parent();
+  auto *parent = node->parent();
 
   if (node->depth() > 1)
     compressNodeUp(parent, d);
@@ -721,7 +721,7 @@ moveHigherNodes(Node *node, double d)
   int n = dnodes.size();
 
   for (int i = n - 1; i >= 0; --i) {
-    Node *dnode = dnodes[i];
+    auto *dnode = dnodes[i];
 
     if (dnode == node) break;
 
@@ -818,7 +818,7 @@ CQChartsDendrogram::Node *
 CQChartsDendrogram::
 createNode(HierNode *hier, const QString &name, double size)
 {
-  Node *node = new Node(hier, name, size);
+  auto *node = new Node(hier, name, size);
 
   hier->addNode(node);
 

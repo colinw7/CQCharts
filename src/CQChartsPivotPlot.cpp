@@ -483,8 +483,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  CQChartsAxis *xAxis = mappedXAxis();
-  CQChartsAxis *yAxis = mappedYAxis();
+  auto *xAxis = mappedXAxis();
+  auto *yAxis = mappedYAxis();
 
   bool hasYValues = yColumns().isValid(); // has grouping y columns key
 
@@ -1590,7 +1590,7 @@ draw(CQChartsPaintDevice *device)
   auto prect = plot_->windowToPixel(rect());
 
   double m  = 4;
-  double bs = std::min(std::min(prect.getWidth()/2 - 2*m, prect.getHeight()/2 - 2*m), 32.0);
+  double bs = std::min(prect.getMinSize()/2 - 2*m, 32.0);
 
   //---
 

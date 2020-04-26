@@ -21,7 +21,7 @@ CQChartsAppWindow(CQCharts *charts) :
 
   //---
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(centralWidget(), 0, 0);
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(centralWidget(), 0, 0);
 
   //---
 
@@ -41,9 +41,9 @@ void
 CQChartsAppWindow::
 addMenus()
 {
-  QMenuBar *menuBar = addMenuBar();
+  auto *menuBar = addMenuBar();
 
-  QMenu *fileMenu = menuBar->addMenu("&File");
+  auto *fileMenu = menuBar->addMenu("&File");
 
   auto loadAction = new QAction("Load Model", menuBar);
 
@@ -61,7 +61,7 @@ addMenus()
 
   //---
 
-  QMenu *plotMenu = menuBar->addMenu("&Plot");
+  auto *plotMenu = menuBar->addMenu("&Plot");
 
   auto createAction = new QAction("Create Plot", menuBar);
 
@@ -73,7 +73,7 @@ addMenus()
 
   //---
 
-  QMenu *helpMenu = menuBar->addMenu("&Help");
+  auto *helpMenu = menuBar->addMenu("&Help");
 
   auto helpAction = new QAction("Help"  , menuBar);
 
@@ -111,7 +111,7 @@ void
 CQChartsAppWindow::
 createPlotSlot()
 {
-  CQChartsModelData *modelData = charts_->currentModelData();
+  auto *modelData = charts_->currentModelData();
 
   if (! modelData)
     return;

@@ -26,6 +26,7 @@ CQChartsVarsModel.cpp \
 CQChartsTclModel.cpp \
 CQChartsExprDataModel.cpp \
 CQChartsSelectionModel.cpp \
+CQChartsCorrelationModel.cpp \
 \
 CQChartsColumn.cpp \
 CQChartsColumnNum.cpp \
@@ -53,6 +54,10 @@ CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
 CQChartsGroupPlot.cpp \
 CQChartsPointPlot.cpp \
+\
+CQChartsPlot3D.cpp \
+CQChartsScatterPlot3D.cpp \
+CQChartsCamera.cpp \
 \
 CQChartsBarPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
@@ -320,6 +325,7 @@ HEADERS += \
 ../include/CQChartsTclModel.h \
 ../include/CQChartsExprDataModel.h \
 ../include/CQChartsSelectionModel.h \
+../include/CQChartsCorrelationModel.h \
 \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnNum.h \
@@ -347,6 +353,10 @@ HEADERS += \
 ../include/CQChartsHierPlotType.h \
 ../include/CQChartsGroupPlot.h \
 ../include/CQChartsPointPlot.h \
+\
+../include/CQChartsPlot3D.h \
+../include/CQChartsScatterPlot3D.h \
+../include/CQChartsCamera.h \
 \
 ../include/CQChartsBarPlot.h \
 ../include/CQChartsAdjacencyPlot.h \

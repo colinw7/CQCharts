@@ -99,7 +99,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  QString str = sides_.toString();
+  QString str = sides().toString();
 
   QFontMetrics fm(font());
 
@@ -110,7 +110,7 @@ QSize
 CQChartsSidesEdit::
 sizeHint() const
 {
-  QString str = sides_.toString();
+  QString str = sides().toString();
 
   QFontMetrics fm(font());
 

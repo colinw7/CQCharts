@@ -314,7 +314,7 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return dataRange;
 
   //---

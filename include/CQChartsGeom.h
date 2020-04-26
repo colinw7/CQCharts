@@ -37,6 +37,10 @@ class Point {
    x(point.x()), y(point.y()) {
   }
 
+  explicit Point(const QPoint &point) :
+   x(point.x()), y(point.y()) {
+  }
+
   //---
 
   Point &operator=(const Point &point) {
@@ -379,6 +383,9 @@ class BBox {
   Size size() const { return Size(getWidth(), getHeight()); }
 
   //QSizeF qsize() const { return QSizeF(getWidth(), getHeight()); }
+
+  double getMinSize() const { return std::min(getWidth(), getHeight()); }
+  double getMaxSize() const { return std::max(getWidth(), getHeight()); }
 
   //---
 
@@ -2212,6 +2219,85 @@ inline CQChartsGeom::Point ellipsePoint(const CQChartsGeom::Point &c,
   return CQChartsGeom::Point(c.x + rt*ca, c.y + rt*sa);
 }
 #endif
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+/*!
+ * \brief Point class
+ * \ingroup Charts
+ */
+class Point3D {
+ public:
+  Point3D() { }
+
+  Point3D(double x1, double y1, double z1) :
+   x(x1), y(y1), z(z1) {
+  }
+
+  Point3D(const Point3D &point) :
+   x(point.x), y(point.y), z(point.z) {
+  }
+
+  Point3D &operator=(const Point3D &point) {
+    x = point.x;
+    y = point.y;
+    z = point.z;
+
+    return *this;
+  }
+
+  //---
+
+  Point point2D() const { return Point(x, y); }
+
+ public:
+  double x { 0 };
+  double y { 0 };
+  double z { 0 };
+};
+
+class Range3D {
+ public:
+  Range3D() { }
+
+  Range3D(double x1, double y1, double z1, double x2, double y2, double z2) :
+   set_(true), x1_(x1), y1_(y1), z1_(z1), x2_(x2), y2_(y2), z2_(z2) {
+  }
+
+  bool isSet() const { return set_; }
+
+  double xmin() const { assert(set_); return std::min(x1_, x2_); }
+  double ymin() const { assert(set_); return std::min(y1_, y2_); }
+  double zmin() const { assert(set_); return std::min(z1_, z2_); }
+  double xmax() const { assert(set_); return std::max(x1_, x2_); }
+  double ymax() const { assert(set_); return std::max(y1_, y2_); }
+  double zmax() const { assert(set_); return std::max(z1_, z2_); }
+
+  double xmid() const { assert(set_); return (x2_ + x1_)/2; }
+  double ymid() const { assert(set_); return (y2_ + y1_)/2; }
+  double zmid() const { assert(set_); return (z2_ + z1_)/2; }
+
+  void updateRange(double x, double y, double z) {
+    if (! set_) {
+      x1_ = x; y1_ = y; z1_ = z;
+      x2_ = x; y2_ = y; z2_ = z;
+
+      set_ = true;
+    }
+    else {
+      x1_ = std::min(x1_, x); y1_ = std::min(y1_, y); z1_ = std::min(z1_, z);
+      x2_ = std::max(x2_, x); y2_ = std::max(y2_, y); z2_ = std::max(z2_, z);
+    }
+  }
+
+ private:
+  bool   set_ { false };
+  double x1_ { 0 }, y1_ { 0 }, z1_ { 0 }, x2_ { 0 }, y2_ { 0 }, z2_ { 0 };
+};
 
 }
 

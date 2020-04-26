@@ -1112,8 +1112,8 @@ pushSlot()
   selectedPlotObjs(objs);
 
   if (objs.empty()) {
-    QPointF gpos = view()->menuPos();
-    QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+    auto gpos = view()->menuPos();
+    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
     auto w = pixelToWindow(CQChartsGeom::Point(pos));
 

@@ -52,6 +52,7 @@ addParameters()
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("SYMBOLS"   , int(CQChartsScatterPlot::PlotType::SYMBOLS   )).
     addNameValue("GRID_CELLS", int(CQChartsScatterPlot::PlotType::GRID_CELLS)).
+    addNameValue("HEX_CELLS" , int(CQChartsScatterPlot::PlotType::HEX_CELLS )).
     setTip("Plot type");
 
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
@@ -201,7 +202,7 @@ setGridNumX(int n)
   if (n != gridData_.nx()) {
     gridData_.setNX(n);
 
-    if (isGridCells())
+    if (! isSymbols())
       updateRangeAndObjs();
   }
 }
@@ -213,7 +214,7 @@ setGridNumY(int n)
   if (n != gridData_.ny()) {
     gridData_.setNY(n);
 
-    if (isGridCells())
+    if (! isSymbols())
       updateRangeAndObjs();
   }
 }
@@ -288,6 +289,26 @@ setGridCells(bool b)
   else {
     CQChartsUtil::testAndSet(plotType_,
      (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+  }
+}
+
+void
+CQChartsScatterPlot::
+setHexCells(bool b)
+{
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      auto *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+
+      if (splot)
+        splot->plotType_ = (b ? PlotType::HEX_CELLS : PlotType::SYMBOLS);
+    });
+
+    updateRangeAndObjs();
+  }
+  else {
+    CQChartsUtil::testAndSet(plotType_,
+     (b ? PlotType::HEX_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -452,7 +473,7 @@ addProperties()
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -607,7 +628,7 @@ calcRange() const
       bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
 
       if (! hidden) {
-        double x   { 0.0  }, y   { 0.0 };
+        double x   { 0.0  }, y   { 0.0  };
         bool   okx { true }, oky { true };
 
         //---
@@ -665,7 +686,7 @@ calcRange() const
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
       if (! details_) {
-        CQChartsModelData *modelData = plot_->getModelData();
+        auto *modelData = plot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -677,6 +698,7 @@ calcRange() const
 
     bool isUniqueX() const { return uniqueX_ == numRows(); }
     bool isUniqueY() const { return uniqueY_ == numRows(); }
+    bool isUniqueZ() const { return uniqueZ_ == numRows(); }
 
    private:
     const CQChartsScatterPlot* plot_      { nullptr };
@@ -685,6 +707,7 @@ calcRange() const
     CQChartsModelDetails*      details_   { nullptr };
     int                        uniqueX_   { 0 };
     int                        uniqueY_   { 0 };
+    int                        uniqueZ_   { 0 };
   };
 
   RowVisitor visitor(this);
@@ -801,8 +824,8 @@ initAxes(bool uniqueX, bool uniqueY)
 
   //---
 
-  CQChartsAxisValueType xType = xAxis()->valueType();
-  CQChartsAxisValueType yType = yAxis()->valueType();
+  auto xType = xAxis()->valueType();
+  auto yType = yAxis()->valueType();
 
   if (xType != CQChartsAxisValueType::Type::INTEGER && xType != CQChartsAxisValueType::Type::REAL)
     xType = CQChartsAxisValueType::Type::REAL;
@@ -878,6 +901,7 @@ clearPlotObjects()
 {
   groupNameValues_  .clear();
   groupNameGridData_.clear();
+  groupNameHexData_ .clear();
 
   CQChartsPlot::clearPlotObjects();
 }
@@ -902,6 +926,9 @@ createObjs(PlotObjs &objs) const
   // init name values
   th->gridData_.setMaxN(0);
 
+  th->hexMap_.clear();
+  th->hexMapMaxN_ = 0;
+
   if (groupNameValues_.empty())
     addNameValues();
 
@@ -924,8 +951,8 @@ createObjs(PlotObjs &objs) const
   //---
 
   addPointObjects(objs);
-
-  addGridObjects(objs);
+  addGridObjects (objs);
+  addHexObjects  (objs);
 
   //---
 
@@ -958,7 +985,7 @@ void
 CQChartsScatterPlot::
 addPointObjects(PlotObjs &objs) const
 {
-  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+  auto *columnTypeMgr = charts()->columnTypeMgr();
 
   columnTypeMgr->startCache(model().data());
 
@@ -1258,6 +1285,106 @@ addGridObjects(PlotObjs &objs) const
 
 void
 CQChartsScatterPlot::
+addHexObjects(PlotObjs &objs) const
+{
+  int hasGroups = (numGroups() > 1);
+
+  //---
+
+  int maxN = hexMapMaxN_;
+
+  int ig = 0;
+  int ng = groupNameHexData_.size();
+
+  for (const auto &pg : groupNameHexData_) {
+    if (isInterrupt())
+      break;
+
+    int                groupInd    = pg.first;
+    const NameHexData &nameHexData = pg.second;
+
+    //---
+
+    bool hidden = (hasGroups && isSetHidden(groupInd));
+
+    if (hidden) { ++ig; continue; }
+
+    //---
+
+    int is = 0;
+    int ns = nameHexData.size();
+
+    for (const auto &pn : nameHexData) {
+      if (isInterrupt())
+        break;
+
+      bool hidden = (! hasGroups && isSetHidden(is));
+
+      if (hidden) { ++is; continue; }
+
+      //---
+
+      const auto &hexMap = pn.second;
+
+    //int maxN = hexMap.numData();
+
+      for (const auto &px : hexMap.data()) {
+        if (isInterrupt())
+          break;
+
+        int         i     = px.first;
+        const auto &jData = px.second;
+
+        double xmin, xmax;
+
+        gridData().xIValues(i, xmin, xmax);
+
+        for (const auto &py : jData) {
+          if (isInterrupt())
+            break;
+
+          int         j         = py.first;
+          const auto &dataArray = py.second;
+
+          int n = dataArray.size();
+
+          HexMap::Polygon ipolygon;
+
+          hexMap.indexPolygon(i, j, ipolygon);
+
+          CQChartsGeom::Polygon polygon;
+
+          for (auto &p : ipolygon) {
+            Point pv(p.x, p.y);
+
+            auto pw = viewToWindow(pv);
+
+            polygon.addPoint(pw);
+          }
+
+          auto bbox = polygon.boundingBox();
+
+          //---
+
+          ColorInd is1(is, ns);
+          ColorInd ig1(ig, ng);
+
+          auto *hexObj = new CQChartsScatterHexObj(this, groupInd, bbox, is1, ig1,
+                                                   i, j, polygon, n, maxN);
+
+          objs.push_back(hexObj);
+        }
+      }
+
+      ++is;
+    }
+
+    ++ig;
+  }
+}
+
+void
+CQChartsScatterPlot::
 addNameValues() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::addNameValues");
@@ -1281,7 +1408,7 @@ addNameValues() const
       QModelIndex xInd  = plot_->modelIndex(xModelInd);
       QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
-      double x   { 0.0  }, y   { 0.0 };
+      double x   { 0.0  }, y   { 0.0  };
       bool   okx { true }, oky { true };
 
       //---
@@ -1351,7 +1478,9 @@ addNameValues() const
 
       auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
 
-      plot->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
+      Point p(x, y);
+
+      plot->addNameValue(groupInd, name, p, data.row, xInd1, color);
 
       return State::OK;
     }
@@ -1371,7 +1500,7 @@ addNameValues() const
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
       if (! details_) {
-        CQChartsModelData *modelData = plot_->getModelData();
+        auto *modelData = plot_->getModelData();
 
         details_ = (modelData ? modelData->details() : nullptr);
       }
@@ -1391,12 +1520,10 @@ addNameValues() const
 
 void
 CQChartsScatterPlot::
-addNameValue(int groupInd, const QString &name, double x, double y, int row,
+addNameValue(int groupInd, const QString &name, const Point &p, int row,
              const QModelIndex &xind, const CQChartsColor &color)
 {
-  CQChartsGeom::Point p(x, y);
-
-  if (isGridCells()) {
+  if      (isGridCells()) {
     auto pi = groupNameGridData_.find(groupInd);
 
     if (pi == groupNameGridData_.end())
@@ -1415,6 +1542,43 @@ addNameValue(int groupInd, const QString &name, double x, double y, int row,
 
     gridData_.setMaxN(std::max(gridData_.maxN(), cellPointData.maxN()));
   }
+  else if (isHexCells()) {
+    auto pi = groupNameHexData_.find(groupInd);
+
+    if (pi == groupNameHexData_.end())
+      pi = groupNameHexData_.insert(pi, GroupNameHexData::value_type(groupInd, NameHexData()));
+
+    NameHexData &nameHexData = (*pi).second;
+
+    auto pn = nameHexData.find(name);
+
+    if (pn == nameHexData.end()) {
+      HexMap hexMap;
+
+      const auto &viewBBox = this->viewBBox();
+
+      hexMap.setRange(viewBBox.getXMin(), viewBBox.getYMin(),
+                      viewBBox.getXMax(), viewBBox.getYMax());
+
+      hexMap.setNum(gridData_.nx());
+
+      pn = nameHexData.insert(pn, NameHexData::value_type(name, hexMap));
+    }
+
+    auto pv = windowToView(p);
+
+    auto &hexMap = (*pn).second;
+
+    HexMap::Point hp(pv.x, pv.y);
+
+    hexMap.addPoint(hp);
+
+    int hi, hj;
+
+    hexMap.pointToPos(hp, hi, hj);
+
+    hexMapMaxN_ = std::max(hexMapMaxN_, hexMap.numData(hi, hj));
+  }
   else {
     ValuesData &valuesData = groupNameValues_[groupInd][name];
 
@@ -1432,10 +1596,12 @@ addKeyItems(CQChartsPlotKey *key)
   if (isOverlay() && ! isFirstPlot())
     return;
 
-  if (! isGridCells())
-    addPointKeyItems(key);
-  else
+  if      (isGridCells())
     addGridKeyItems(key);
+  else if (isHexCells())
+    addHexKeyItems(key);
+  else
+    addPointKeyItems(key);
 
   key->plot()->updateKeyPosition(/*force*/true);
 }
@@ -1475,7 +1641,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           double r = CMathUtil::map(groupInd, colorColumnData_.data_min, colorColumnData_.data_max,
                                     colorMapMin(), colorMapMax());
 
-          CQChartsColor color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+          auto color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 
           if (color.isValid())
             colorItem->setColor(color);
@@ -1545,6 +1711,15 @@ addGridKeyItems(CQChartsPlotKey *key)
   key->addItem(item, 0, 0);
 }
 
+void
+CQChartsScatterPlot::
+addHexKeyItems(CQChartsPlotKey *key)
+{
+  auto *item = new CQChartsScatterHexKeyItem(this);
+
+  key->addItem(item, 0, 0);
+}
+
 //---
 
 bool
@@ -1594,6 +1769,7 @@ addMenuItems(QMenu *menu)
 
   (void) addMenuCheckedAction(typeMenu, "Symbols"   , isSymbols  (), SLOT(setSymbols(bool)));
   (void) addMenuCheckedAction(typeMenu, "Grid Cells", isGridCells(), SLOT(setGridCells(bool)));
+  (void) addMenuCheckedAction(typeMenu, "Hex Cells" , isHexCells (), SLOT(setHexCells(bool)));
 
   menu->addMenu(typeMenu);
 
@@ -1655,7 +1831,7 @@ calcAnnotationBBox() const
       double y = (xRugSide() == YSide::BOTTOM ? dataRange.ymin() - 2*sy :
                                                 dataRange.ymax() + 2*sy);
 
-      CQChartsGeom::Point p(dataRange.xmax(), y);
+      Point p(dataRange.xmax(), y);
 
       bbox += p;
     }
@@ -1664,7 +1840,7 @@ calcAnnotationBBox() const
       double x = (yRugSide() == XSide::LEFT ? dataRange.xmin() - 2*sx :
                                               dataRange.xmax() + 2*sx);
 
-      CQChartsGeom::Point p(x, dataRange.ymax());
+      Point p(x, dataRange.ymax());
 
       bbox += p;
     }
@@ -1678,7 +1854,7 @@ calcAnnotationBBox() const
       double pos = (xDensitySide() == YSide::BOTTOM ?
         dataRange.ymin() - dw : dataRange.ymax() + dw);
 
-      CQChartsGeom::Point p1(dataRange.xmax(), pos);
+      Point p1(dataRange.xmax(), pos);
 
       bbox += p1;
     }
@@ -1689,7 +1865,7 @@ calcAnnotationBBox() const
       double pos = (yDensitySide() == XSide::LEFT ?
         dataRange.xmin() - dw : dataRange.xmax() + dw);
 
-      CQChartsGeom::Point p2(pos, dataRange.ymin());
+      Point p2(pos, dataRange.ymin());
 
       bbox += p2;
     }
@@ -1698,7 +1874,7 @@ calcAnnotationBBox() const
 
     // whisker axis
     if (isXWhisker()) {
-      int ng = (! isGridCells() ? groupNameValues_.size() : groupNameGridData_.size());
+      int ng = (isSymbols() ? groupNameValues_.size() : groupNameGridData_.size());
 
       double wm = lengthPlotHeight(whiskerMargin());
       double ww = ng*lengthPlotHeight(whiskerWidth());
@@ -1706,13 +1882,13 @@ calcAnnotationBBox() const
       double pos = (xWhiskerSide() == YSide::BOTTOM ?
         dataRange.ymin() - ww - 2*wm : dataRange.ymax() + ww + 2*wm);
 
-      CQChartsGeom::Point p1(dataRange.xmax(), pos);
+      Point p1(dataRange.xmax(), pos);
 
       bbox += p1;
     }
 
     if (isYWhisker()) {
-      int ng = (! isGridCells() ? groupNameValues_.size() : groupNameGridData_.size());
+      int ng = (isSymbols() ? groupNameValues_.size() : groupNameGridData_.size());
 
       double wm = lengthPlotWidth(whiskerMargin());
       double ww = ng*lengthPlotWidth(whiskerWidth());
@@ -1720,7 +1896,7 @@ calcAnnotationBBox() const
       double pos = (yWhiskerSide() == XSide::LEFT ?
         dataRange.xmin() - ww - 2*wm : dataRange.xmax() + ww + 2*wm);
 
-      CQChartsGeom::Point p2(pos, dataRange.ymin());
+      Point p2(pos, dataRange.ymin());
 
       bbox += p2;
     }
@@ -1796,7 +1972,7 @@ initGroupBestFit(int groupInd) const
   // init best fit data
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
-  CQChartsFitData &fitData = th->groupFitData_[groupInd];
+  auto &fitData = th->groupFitData_[groupInd];
 
   if (! fitData.isFitted()) {
     auto p = groupPoints_.find(groupInd);
@@ -1959,15 +2135,15 @@ drawStatsLines(CQChartsPaintDevice *device) const
     //---
 
     auto drawXStatLine = [&](double x) {
-      CQChartsGeom::Point p1(x, statData.ystat.loutlier);
-      CQChartsGeom::Point p2(x, statData.ystat.uoutlier);
+      Point p1(x, statData.ystat.loutlier);
+      Point p2(x, statData.ystat.uoutlier);
 
       device->drawLine(p1, p2);
     };
 
     auto drawYStatLine = [&](double y) {
-      CQChartsGeom::Point p1(statData.xstat.loutlier, y);
-      CQChartsGeom::Point p2(statData.xstat.uoutlier, y);
+      Point p1(statData.xstat.loutlier, y);
+      Point p2(statData.xstat.uoutlier, y);
 
       device->drawLine(p1, p2);
     };
@@ -2102,7 +2278,7 @@ drawXDensity(CQChartsPaintDevice *device) const
 
   //---
 
-  if (! isGridCells()) {
+  if (isSymbols()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2154,7 +2330,7 @@ drawYDensity(CQChartsPaintDevice *device) const
 
   //---
 
-  if (! isGridCells()) {
+  if (isSymbols()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2219,7 +2395,7 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   const auto &dataRange = this->dataRange();
 
-  const CQChartsDensity &density = whiskerData.xWhisker.density();
+  const auto &density = whiskerData.xWhisker.density();
 
   double xmin = density.xmin1();
   double xmax = density.xmax1();
@@ -2254,7 +2430,7 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   const auto &dataRange = this->dataRange();
 
-  const CQChartsDensity &density = whiskerData.yWhisker.density();
+  const auto &density = whiskerData.yWhisker.density();
 
   double xmin = density.xmin1();
   double xmax = density.xmax1();
@@ -2328,7 +2504,7 @@ drawXWhisker(CQChartsPaintDevice *device) const
 
   //---
 
-  if (! isGridCells()) {
+  if (isSymbols()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2380,7 +2556,7 @@ drawYWhisker(CQChartsPaintDevice *device) const
 
   //---
 
-  if (! isGridCells()) {
+  if (isSymbols()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2636,7 +2812,7 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   //double vx = view()->viewportRange();
   //double vy = 0.0;
 
-  //auto p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
+  //auto p = view()->windowToPixel(Point(vx, vy));
 
   double px = pbbox.getXMax();
   double py = pbbox.getYMax();
@@ -2659,7 +2835,7 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   CQChartsGeom::BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
   CQChartsGeom::BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
 
-  CQChartsAlpha a = symbolMapKeyAlpha();
+  auto a = symbolMapKeyAlpha();
 
   QColor fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a.value());
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
@@ -2669,12 +2845,12 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2));
   device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(pbbox3));
 
-  auto drawText = [&](const CQChartsGeom::Point &p, double value) {
+  auto drawText = [&](const Point &p, double value) {
     QString text = QString("%1").arg(value);
 
     QFontMetricsF fm(device->font());
 
-    CQChartsGeom::Point p1(p.x - fm.width(text)/2, p.y);
+    Point p1(p.x - fm.width(text)/2, p.y);
 
     auto p2 = device->pixelToWindow(p1);
 
@@ -2685,16 +2861,16 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::drawTextAtPoint(device, p2, text, options);
   };
 
-  drawText(CQChartsGeom::Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
-  drawText(CQChartsGeom::Point(pbbox2.getXMid(), pbbox2.getYMin()), mean);
-  drawText(CQChartsGeom::Point(pbbox3.getXMid(), pbbox3.getYMin()), min );
+  drawText(Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
+  drawText(Point(pbbox2.getXMid(), pbbox2.getYMin()), mean);
+  drawText(Point(pbbox3.getXMid(), pbbox3.getYMin()), min );
 }
 
 //------
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                        const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &pos,
+                        const CQChartsGeom::BBox &rect, const Point &pos,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
@@ -2708,7 +2884,7 @@ CQChartsSymbol
 CQChartsScatterPointObj::
 symbolType() const
 {
-  CQChartsSymbol symbolType = extraData().symbolType;
+  auto symbolType = extraData().symbolType;
 
   if (! symbolType.isValid())
     symbolType = plot_->symbolType();
@@ -2720,7 +2896,7 @@ CQChartsLength
 CQChartsScatterPointObj::
 symbolSize() const
 {
-  CQChartsLength symbolSize = extraData().symbolSize;
+  auto symbolSize = extraData().symbolSize;
 
   if (! symbolSize.isValid())
     symbolSize = plot()->symbolSize();
@@ -2732,7 +2908,7 @@ CQChartsLength
 CQChartsScatterPointObj::
 fontSize() const
 {
-  CQChartsLength fontSize = extraData().fontSize;
+  auto fontSize = extraData().fontSize;
 
   if (! fontSize.isValid()) {
     double dataLabelFontSize = plot()->dataLabel()->textFont().pointSizeF();
@@ -2747,7 +2923,7 @@ CQChartsColor
 CQChartsScatterPointObj::
 color() const
 {
-  CQChartsColor color = extraData().color;
+  auto color = extraData().color;
 
   return color;
 }
@@ -2859,7 +3035,7 @@ calcTipId() const
 
 bool
 CQChartsScatterPointObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   double sx, sy;
 
@@ -2961,7 +3137,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // draw symbol or image
-  CQChartsImage image = this->image();
+  auto image = this->image();
 
   if (! image.isValid()) {
     auto ps1 = plot_->pixelToWindow(ps);
@@ -2990,7 +3166,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 
   // draw text labels
   if (plot_->dataLabel()->isVisible()) {
-    const CQChartsDataLabel *dataLabel = plot_->dataLabel();
+    const auto *dataLabel = plot_->dataLabel();
 
     //---
 
@@ -3006,12 +3182,12 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     //---
 
     // get font size
-    CQChartsLength fontSize = this->fontSize();
+    auto fontSize = this->fontSize();
 
     //---
 
     // set (temp) font
-    CQChartsFont font = dataLabel->textFont();
+    auto font = dataLabel->textFont();
 
     if (fontSize.isValid()) {
       double fontPixelSize = plot_->lengthPixelHeight(fontSize);
@@ -3019,7 +3195,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
       // scale to font size
       fontPixelSize = plot_->limitFontSize(fontPixelSize);
 
-      CQChartsFont font1 = font;
+      auto font1 = font;
 
       font1.setPointSizeF(fontPixelSize);
 
@@ -3051,7 +3227,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   plot_->setSymbolPenBrush(penBrush, ic);
 
   // override symbol fill color for custom color
-  CQChartsColor color = this->color();
+  auto color = this->color();
 
   if (color.isValid()) {
     QColor c = plot_->interpColor(color, ic);
@@ -3134,7 +3310,7 @@ calcTipId() const
 
 bool
 CQChartsScatterCellObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   return CQChartsPlotObj::inside(p);
 }
@@ -3212,8 +3388,8 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // set symbol type and size
-  CQChartsSymbol symbolType = plot_->rugSymbolType();
-  CQChartsLength symbolSize = plot_->rugSymbolSize();
+  auto symbolType = plot_->rugSymbolType();
+  auto symbolSize = plot_->rugSymbolSize();
 
   if (symbolType == CQChartsSymbol::Type::NONE)
     symbolType = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
@@ -3268,6 +3444,110 @@ writeScriptData(CQChartsScriptPainter *device) const
 
 //------
 
+CQChartsScatterHexObj::
+CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd,
+                       const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
+                       int ix, int iy, const CQChartsGeom::Polygon &poly, int n, int maxN) :
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+ groupInd_(groupInd), ix_(ix), iy_(iy), poly_(poly), n_(n), maxN_(maxN)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsScatterHexObj::
+calcId() const
+{
+  return QString("%1:%2:%3:%4:%5").arg(typeName()).arg(is_.i).arg(ig_.i).arg(ix_).arg(iy_);
+}
+
+QString
+CQChartsScatterHexObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Count", n_);
+
+  return tableTip.str();
+}
+
+bool
+CQChartsScatterHexObj::
+inside(const Point &p) const
+{
+  return CQChartsPlotObj::inside(p);
+}
+
+void
+CQChartsScatterHexObj::
+getSelectIndices(Indices &) const
+{
+}
+
+void
+CQChartsScatterHexObj::
+draw(CQChartsPaintDevice *device)
+{
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw polygon
+  device->drawPolygon(poly_);
+
+  //---
+
+  device->resetColorNames();
+}
+
+void
+CQChartsScatterHexObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set pen and brush
+  ColorInd ic(n_, maxN_);
+
+  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
+  QColor fc = plot_->interpPaletteColor(ic);
+
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
+                      plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash()),
+    CQChartsBrushData(plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(),
+                      plot_->gridCellFillPattern()));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsScatterHexObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.count = " << n_ << ";\n";
+}
+
+//------
+
 CQChartsScatterKeyColor::
 CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd &ic) :
  CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
@@ -3276,7 +3556,7 @@ CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd 
 
 bool
 CQChartsScatterKeyColor::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
+selectPress(const Point &, CQChartsSelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
@@ -3333,129 +3613,28 @@ hideIndex() const
 
 CQChartsScatterGridKeyItem::
 CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot) :
- CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+ CQChartsGradientKeyItem(plot), plot_(plot)
 {
 }
 
-CQChartsGeom::Size
+int
 CQChartsScatterGridKeyItem::
-size() const
+maxN() const
 {
-  QFont font = plot_->view()->plotFont(plot_, key_->textFont());
-
-  QFontMetricsF fm(font);
-
-  double fw = fm.width("X");
-  double fh = fm.height();
-
-  int n = plot_->gridData().maxN();
-
-  double tw = fm.width(QString("%1").arg(n));
-
-  double ww = plot_->pixelToWindowWidth (2*fw + tw + 6);
-  double wh = plot_->pixelToWindowHeight(7*fh + fh + 4);
-
-  return CQChartsGeom::Size(ww, wh);
+  return plot_->gridData().maxN();
 }
 
-void
-CQChartsScatterGridKeyItem::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
+//---
+
+CQChartsScatterHexKeyItem::
+CQChartsScatterHexKeyItem(CQChartsScatterPlot *plot) :
+ CQChartsGradientKeyItem(plot), plot_(plot)
 {
-  // calc text width
-  plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
+}
 
-  QFontMetricsF fm(device->font());
-
-//double fw = fm.width("X");
-  double fh = fm.height();
-
-  int n = plot_->gridData().maxN();
-
-  double tw  = fm.width(QString("%1").arg(n));
-  double wtw = plot_->pixelToWindowWidth(tw);
-
-  double wxm = plot_->pixelToWindowWidth (2);
-  double wym = plot_->pixelToWindowHeight(fh/2 + 2);
-
-  // calc left/right boxes
-  CQChartsGeom::BBox lrect(rect.getXMin() + wxm, rect.getYMin() + wym,
-                           rect.getXMax() - wtw - 2*wxm, rect.getYMax() - wym);
-  CQChartsGeom::BBox rrect(rect.getXMax() - wtw - wxm, rect.getYMin() + wym,
-                           rect.getXMax() - wxm, rect.getYMax() - wym);
-
-  auto lprect = plot_->windowToPixel(lrect);
-  auto rprect = plot_->windowToPixel(rrect);
-
-  //---
-
-  // draw gradient in left box
-  CQChartsGeom::Point pg1(lprect.getXMin(), lprect.getYMax());
-  CQChartsGeom::Point pg2(lprect.getXMin(), lprect.getYMin());
-
-  QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
-
-  plot_->view()->themePalette()->setLinearGradient(lg, 1.0);
-
-  QBrush brush(lg);
-
-  CQChartsGeom::BBox fbbox(pg1.x                    , pg2.y,
-                           pg1.x + lprect.getWidth(), pg2.y + lprect.getHeight());
-
-  device->fillRect(device->pixelToWindow(fbbox), brush);
-
-  //---
-
-  // calc label positions
-  int n1 = 0;
-  int n5 = n;
-
-  double dn = (n5 - n1)/4.0;
-
-  int n2 = int(n1 + dn);
-  int n4 = int(n5 - dn);
-  int n3 = int((n5 + n1)/2.0);
-
-  double y1 = rprect.getYMax();
-  double y5 = rprect.getYMin();
-  double dy = (y1 - y5)/4.0;
-
-  double y2 = y1 - dy;
-  double y4 = y5 + dy;
-  double y3 = (y5 + y1)/2.0;
-
-  //---
-
-  // set text pen
-  QPen pen;
-
-  QColor tc = plot_->interpThemeColor(ColorInd(1.0));
-
-  plot_->setPen(pen, true, tc, CQChartsAlpha());
-
-  device->setPen(pen);
-
-  //---
-
-  // draw key labels
-  auto drawTextLabel = [&](const CQChartsGeom::Point &p, int n) {
-    auto p1 = device->pixelToWindow(p);
-
-    QString text = QString("%1").arg(n);
-
-    CQChartsTextOptions options;
-
-    options.align = Qt::AlignLeft;
-
-    CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options);
-  };
-
-  double x1 = rprect.getXMin();
-  double df = (fm.ascent() - fm.descent())/2.0;
-
-  drawTextLabel(CQChartsGeom::Point(x1, y1 + df), n1);
-  drawTextLabel(CQChartsGeom::Point(x1, y2 + df), n2);
-  drawTextLabel(CQChartsGeom::Point(x1, y3 + df), n3);
-  drawTextLabel(CQChartsGeom::Point(x1, y4 + df), n4);
-  drawTextLabel(CQChartsGeom::Point(x1, y5 + df), n5);
+int
+CQChartsScatterHexKeyItem::
+maxN() const
+{
+  return plot_->hexMapMaxN();
 }

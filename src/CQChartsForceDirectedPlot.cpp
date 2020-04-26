@@ -125,7 +125,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   if (hasConnections || hasNamePair)
     return;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumn connectionsColumn;
@@ -469,7 +469,7 @@ createObjs(PlotObjs &) const
     const QString &name  = idConnections.second.name;
     int            group = idConnections.second.group;
 
-    Springy::Node *node = forceDirected_->newNode();
+    auto *node = forceDirected_->newNode();
 
     QString label = QString("%1:%2").arg(name).arg(group);
 
@@ -489,17 +489,17 @@ createObjs(PlotObjs &) const
     auto pn = nodes_.find(id);
     assert(pn != nodes_.end());
 
-    Springy::Node *node = (*pn).second;
+    auto *node = (*pn).second;
     assert(node);
 
     for (const auto &connection : connections.connections) {
       auto pn1 = nodes_.find(connection.node);
       assert(pn1 != nodes_.end());
 
-      Springy::Node *node1 = (*pn1).second;
+      auto *node1 = (*pn1).second;
       assert(node1);
 
-      Springy::Edge *edge = forceDirected_->newEdge(node, node1);
+      auto *edge = forceDirected_->newEdge(node, node1);
 
       edge->setLength(1.0/connection.count);
       edge->setValue(connection.count);

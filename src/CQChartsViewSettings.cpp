@@ -251,10 +251,10 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
   }
 
   long selectedModel() const {
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
 
     for (int i = 0; i < items.length(); ++i) {
-      QTableWidgetItem *item = items[i];
+      auto *item = items[i];
       if (item->column() != 0) continue;
 
       bool ok;
@@ -336,7 +336,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
     int nr = rowCount();
 
     for (int i = 0; i < nr; ++i) {
-      QTableWidgetItem *item = this->item(i, 0);
+      auto *item = this->item(i, 0);
 
       bool ok;
 
@@ -347,10 +347,10 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
   }
 
   void getSelectedPlots(CQChartsView *view, std::vector<CQChartsPlot *> &plots) {
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
 
     for (int i = 0; i < items.length(); ++i) {
-      QTableWidgetItem *item = items[i];
+      auto *item = items[i];
       if (item->column() != 0) continue;
 
       QString id = item->text();
@@ -416,10 +416,10 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
   }
 
   void getSelectedAnnotations(CQChartsView *view, std::vector<CQChartsAnnotation *> &annotations) {
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
 
     for (int i = 0; i < items.length(); ++i) {
-      QTableWidgetItem *item = items[i];
+      auto *item = items[i];
       if (item->column() != 0) continue;
 
       bool ok;
@@ -488,10 +488,10 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
   }
 
   void getSelectedAnnotations(CQChartsPlot *plot, std::vector<CQChartsAnnotation *> &annotations) {
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
 
     for (int i = 0; i < items.length(); ++i) {
-      QTableWidgetItem *item = items[i];
+      auto *item = items[i];
       if (item->column() != 0) continue;
 
       bool ok;
@@ -523,10 +523,10 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
   QImage *selectedImage(CQChartsView *view) const {
     if (! view) return nullptr;
 
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
     if (items.length() <= 0) return nullptr;
 
-    QTableWidgetItem *item = items[0];
+    auto *item = items[0];
 
     bool ok;
 
@@ -542,7 +542,7 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
 
     if (! buffer) return nullptr;
 
-    QImage *image = buffer->image();
+    auto *image = buffer->image();
 
     return image;
   }
@@ -590,9 +590,9 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
       else if (l == 1)
         buffer = view->overlayBuffer();
 
-  //  QTableWidgetItem *idItem    = item(l, 0);
-      QTableWidgetItem *stateItem = item(l, 1);
-      QTableWidgetItem *rectItem  = item(l, 2);
+  //  auto *idItem    = item(l, 0);
+      auto *stateItem = item(l, 1);
+      auto *rectItem  = item(l, 2);
 
       stateItem->setText("");
 
@@ -623,10 +623,10 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
   QImage *selectedImage(CQChartsPlot *plot) const {
     if (! plot) return nullptr;
 
-    QList<QTableWidgetItem *> items = selectedItems();
+    auto items = selectedItems();
     if (items.length() <= 0) return nullptr;
 
-    QTableWidgetItem *item = items[0];
+    auto *item = items[0];
 
     bool ok;
 
@@ -639,7 +639,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     auto *buffer = plot->getBuffer(layer->buffer());
     if (! buffer) return nullptr;
 
-    QImage *image = buffer->image();
+    auto *image = buffer->image();
 
     return image;
   }
@@ -702,11 +702,11 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       auto *layer = plot->getLayer(type);
 
-      const CQChartsBuffer *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
+      const auto *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
 
-  //  QTableWidgetItem *idItem    = item(i, 0);
-      QTableWidgetItem *stateItem = item(i, 1);
-      QTableWidgetItem *rectItem  = item(i, 2);
+  //  auto *idItem    = item(i, 0);
+      auto *stateItem = item(i, 1);
+      auto *rectItem  = item(i, 2);
 
       QStringList states;
 
@@ -727,7 +727,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
   }
 
   bool getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &active) {
-    QTableWidgetItem *nameItem = item(row, 0);
+    auto *nameItem = item(row, 0);
 
     QString name = nameItem->text();
 
@@ -736,7 +736,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     auto *layer = plot->getLayer(type);
     if (! layer) return false;
 
-    QTableWidgetItem *stateItem = item(row, 1);
+    auto *stateItem = item(row, 1);
 
     active = (stateItem->checkState() == Qt::Checked);
 
@@ -1786,7 +1786,7 @@ viewLayerImageSlot()
   auto *view = window_->view();
   if (! view) return;
 
-  QImage *image = layersWidgets_.viewLayerTable->selectedImage(view);
+  auto *image = layersWidgets_.viewLayerTable->selectedImage(view);
   if (! image) return;
 
   //---
@@ -1810,7 +1810,7 @@ plotLayerImageSlot()
   auto *plot = window_->view()->currentPlot();
   if (! plot) return;
 
-  QImage *image = layersWidgets_.plotLayerTable->selectedImage(plot);
+  auto *image = layersWidgets_.plotLayerTable->selectedImage(plot);
   if (! image) return;
 
   //---
@@ -2225,7 +2225,7 @@ void
 CQChartsViewSettings::
 updatePlotOverlayState()
 {
-  QObject *obj = sender();
+  auto *obj = sender();
 
   if      (obj == plotsWidgets_.x1x2Check) {
     if (plotsWidgets_.x1x2Check->isChecked())
@@ -2512,7 +2512,7 @@ addPlotControls(CQChartsPlot *plot)
   CQChartsColumns columns = plot->controlColumns();
 
   for (int ic = 0; ic < columns.count(); ++ic) {
-    const CQChartsColumn &column = columns.getColumn(ic);
+    const auto &column = columns.getColumn(ic);
 
     auto *details = plot->columnDetails(column);
     if (! details) continue;
@@ -3161,7 +3161,7 @@ plotLayersClickedSlot(int row, int column)
 
   plot->setLayerActive(type, active);
 
-  const CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
+  const auto *buffer = plot->getBuffer(layer->buffer());
 
   if (buffer->type() != CQChartsBuffer::Type::MIDDLE)
     plot->invalidateLayer(buffer->type());

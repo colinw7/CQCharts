@@ -161,7 +161,7 @@ CQChartsHierBubbleHierNode *
 CQChartsHierBubblePlot::
 currentRoot() const
 {
-  CQChartsHierBubbleHierNode *currentRoot = nodeData_.root;
+  auto *currentRoot = nodeData_.root;
 
   QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
 
@@ -169,7 +169,7 @@ currentRoot() const
     return currentRoot;
 
   for (int i = 0; i < names.size(); ++i) {
-    CQChartsHierBubbleHierNode *hier = childHierNode(currentRoot, names[i]);
+    auto *hier = childHierNode(currentRoot, names[i]);
 
     if (! hier)
       return currentRoot;
@@ -527,7 +527,7 @@ loadHier() const
 
       //---
 
-      CQChartsHierBubbleHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      auto *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -739,17 +739,17 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   //---
 
-  CQChartsHierBubbleHierNode *parent = nodeData_.root;
+  auto *parent = nodeData_.root;
 
   for (int i = 0; i < nameStrs.length() - 1; ++i) {
-    CQChartsHierBubbleHierNode *child = childHierNode(parent, nameStrs[i]);
+    auto *child = childHierNode(parent, nameStrs[i]);
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
       QModelIndex nameInd1;
       double      size1 = 0.0;
 
-      CQChartsHierBubbleNode *node = childNode(parent, nameStrs[i]);
+      auto *node = childNode(parent, nameStrs[i]);
 
       if (node) {
         nameInd1 = node->ind();
@@ -777,11 +777,11 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   QString name = nameStrs[nameStrs.length() - 1];
 
-  CQChartsHierBubbleNode *node = childNode(parent, name);
+  auto *node = childNode(parent, name);
 
   if (! node) {
     // use hier node if already created
-    CQChartsHierBubbleHierNode *child = childHierNode(parent, name);
+    auto *child = childHierNode(parent, name);
 
     if (child) {
       child->setSize(size);
@@ -908,9 +908,9 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
-  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
-  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
+  auto *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  auto *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  auto *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != nodeData_.root);
@@ -928,8 +928,8 @@ pushSlot()
   selectedPlotObjs(objs);
 
   if (objs.empty()) {
-    QPointF gpos = view()->menuPos();
-    QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+    auto gpos = view()->menuPos();
+    auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
     auto w = pixelToWindow(CQChartsGeom::Point(pos));
 
@@ -943,7 +943,7 @@ pushSlot()
     auto *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
 
     if (hierObj) {
-      CQChartsHierBubbleHierNode *hnode = hierObj->hierNode();
+      auto *hnode = hierObj->hierNode();
 
       setCurrentRoot(hnode, /*update*/true);
 
@@ -953,9 +953,9 @@ pushSlot()
     auto *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if (nodeObj) {
-      CQChartsHierBubbleNode *node = nodeObj->node();
+      auto *node = nodeObj->node();
 
-      CQChartsHierBubbleHierNode *hnode = node->parent();
+      auto *hnode = node->parent();
 
       if (hnode) {
         setCurrentRoot(hnode, /*update*/true);
@@ -970,7 +970,7 @@ void
 CQChartsHierBubblePlot::
 popSlot()
 {
-  CQChartsHierBubbleHierNode *root = currentRoot();
+  auto *root = currentRoot();
 
   if (root && root->parent()) {
     setCurrentRoot(root->parent(), /*update*/true);
@@ -981,7 +981,7 @@ void
 CQChartsHierBubblePlot::
 popTopSlot()
 {
-  CQChartsHierBubbleHierNode *root = currentRoot();
+  auto *root = currentRoot();
 
   if (root != nodeData_.root) {
     setCurrentRoot(nodeData_.root, /*update*/true);
@@ -1155,7 +1155,7 @@ void
 CQChartsHierBubbleHierObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsHierBubbleHierNode *pnode = node()->parent();
+  auto *pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;
@@ -1167,7 +1167,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsHierBubbleHierNode *root = hierNode()->parent();
+  auto *root = hierNode()->parent();
 
   if (! root)
     root = hierNode();
@@ -1317,7 +1317,7 @@ void
 CQChartsHierBubbleNodeObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsHierBubbleHierNode *pnode = node()->parent();
+  auto *pnode = node()->parent();
 
   if (pnode && ! pnode->isHierExpanded())
     return;

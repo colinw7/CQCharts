@@ -57,7 +57,7 @@ sizeHint() const
   int w = 0, h = 0;
 
   for (const auto &p : texts_) {
-    QTextBrowser *text = p.second;
+    auto *text = p.second;
 
     auto doc = text->document();
 
@@ -67,7 +67,7 @@ sizeHint() const
       doc->markContentsDirty(0, doc->characterCount());
     }
 
-    QAbstractTextDocumentLayout *layout = doc->documentLayout();
+    auto *layout = doc->documentLayout();
 
     auto s = layout->documentSize();
 

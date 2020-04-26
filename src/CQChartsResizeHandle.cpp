@@ -52,37 +52,37 @@ draw(QPainter *painter) const
     double ms1 = 12;
     double ms2 = 4;
 
-    QPointF c = windowToPixel(bbox_.getCenter()).qpoint();
+    auto c = windowToPixel(bbox_.getCenter());
 
-    path_.moveTo(c.x() - ms1, c.y()      );
-    path_.lineTo(c.x() - ms2, c.y() + ms2);
-    path_.lineTo(c.x()      , c.y() + ms1);
-    path_.lineTo(c.x() + ms2, c.y() + ms2);
-    path_.lineTo(c.x() + ms1, c.y()      );
-    path_.lineTo(c.x() + ms2, c.y() - ms2);
-    path_.lineTo(c.x()      , c.y() - ms1);
-    path_.lineTo(c.x() - ms2, c.y() - ms2);
+    path_.moveTo(c.x - ms1, c.y      );
+    path_.lineTo(c.x - ms2, c.y + ms2);
+    path_.lineTo(c.x      , c.y + ms1);
+    path_.lineTo(c.x + ms2, c.y + ms2);
+    path_.lineTo(c.x + ms1, c.y      );
+    path_.lineTo(c.x + ms2, c.y - ms2);
+    path_.lineTo(c.x      , c.y - ms1);
+    path_.lineTo(c.x - ms2, c.y - ms2);
     path_.closeSubpath();
   }
   else if (side() == CQChartsResizeSide::LL) {
-    QPointF ll = windowToPixel(bbox_.getLL()).qpoint();
+    auto ll = windowToPixel(bbox_.getLL());
 
-    path_.addEllipse(ll.x() - cs/2, ll.y() - cs/2, cs, cs);
+    path_.addEllipse(ll.x - cs/2, ll.y - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::LR) {
-    QPointF lr = windowToPixel(bbox_.getLR()).qpoint();
+    auto lr = windowToPixel(bbox_.getLR());
 
-    path_.addEllipse(lr.x() - cs/2, lr.y() - cs/2, cs, cs);
+    path_.addEllipse(lr.x - cs/2, lr.y - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::UL) {
-    QPointF ul = windowToPixel(bbox_.getUL()).qpoint();
+    auto ul = windowToPixel(bbox_.getUL());
 
-    path_.addEllipse(ul.x() - cs/2, ul.y() - cs/2, cs, cs);
+    path_.addEllipse(ul.x - cs/2, ul.y - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::UR) {
-    QPointF ur = windowToPixel(bbox_.getUR()).qpoint();
+    auto ur = windowToPixel(bbox_.getUR());
 
-    path_.addEllipse(ur.x() - cs/2, ur.y() - cs/2, cs, cs);
+    path_.addEllipse(ur.x - cs/2, ur.y - cs/2, cs, cs);
   }
   else {
     return;
@@ -109,9 +109,9 @@ bool
 CQChartsResizeHandle::
 inside(const CQChartsGeom::Point &w) const
 {
-  QPointF p = windowToPixel(w).qpoint();
+  auto p = windowToPixel(w);
 
-  return path_.contains(p);
+  return path_.contains(p.qpoint());
 }
 
 CQChartsGeom::Point

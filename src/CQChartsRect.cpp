@@ -36,11 +36,15 @@ QString
 CQChartsRect::
 toString() const
 {
-  QString ustr = CQChartsUtil::unitsString(units_);
+  if (isValid()) {
+    QString ustr = CQChartsUtil::unitsString(units_);
 
-  return QString("%1 %2 %3 %4 %5").
-           arg(bbox_.getXMin()).arg(bbox_.getYMin()).
-           arg(bbox_.getXMax()).arg(bbox_.getYMax()).arg(ustr);
+    return QString("%1 %2 %3 %4 %5").
+             arg(bbox_.getXMin()).arg(bbox_.getYMin()).
+             arg(bbox_.getXMax()).arg(bbox_.getYMax()).arg(ustr);
+  }
+  else
+    return QString();
 }
 
 bool

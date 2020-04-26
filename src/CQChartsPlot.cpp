@@ -276,7 +276,7 @@ connectDisconnectModel(bool isConnect)
   if (! model_.data())
     return;
 
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
 
   //---
 
@@ -2183,7 +2183,7 @@ firstPlot()
   if (connectData_.prev)
     return connectData_.prev->firstPlot();
 
-  CQChartsPlot *plot = this;
+  auto *plot = this;
 
   while (plot && ! plot->isVisible())
     plot = plot->nextPlot();
@@ -2208,7 +2208,7 @@ lastPlot()
   if (connectData_.next)
     return connectData_.next->lastPlot();
 
-  CQChartsPlot *plot = this;
+  auto *plot = this;
 
   while (plot && ! plot->isVisible())
     plot = plot->prevPlot();
@@ -2522,14 +2522,14 @@ addBaseProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = &(this->addProperty(path, this, name, alias)->setDesc(desc));
+    auto *item = &(this->addProperty(path, this, name, alias)->setDesc(desc));
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc, hidden);
+    auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -2757,7 +2757,7 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -2782,7 +2782,7 @@ addLineProperties(const QString &path, const QString &prefix,
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden) {
-    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
@@ -2806,7 +2806,7 @@ addFillProperties(const QString &path, const QString &prefix,
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden) {
-    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
@@ -2829,7 +2829,7 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
     return item;
@@ -2929,7 +2929,7 @@ bool
 CQChartsPlot::
 getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const auto *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -2941,7 +2941,7 @@ bool
 CQChartsPlot::
 getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const auto *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -2953,7 +2953,7 @@ bool
 CQChartsPlot::
 getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const auto *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -2967,7 +2967,7 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const auto *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   object = item->object();
@@ -2981,7 +2981,7 @@ getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
   is_hidden = false;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  const auto *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
   if (! item) return false;
 
   is_hidden = CQCharts::getItemIsHidden(item);
@@ -2995,7 +2995,7 @@ getPropertyIsStyle(const QString &name, bool &is_style) const
 {
   is_style = false;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  const auto *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
   if (! item) return false;
 
   is_style = CQCharts::getItemIsStyle(item);
@@ -4934,7 +4934,7 @@ void
 CQChartsPlot::
 setInsideObject()
 {
-  CQChartsObj *insideObj = insideObject();
+  auto *insideObj = insideObject();
 
   for (auto &obj : insideObjs_) {
     if (obj == insideObj)
@@ -5102,11 +5102,11 @@ addErrorsToWidget(QTextBrowser *text)
 
 bool
 CQChartsPlot::
-selectMousePress(const QPointF &p, SelMod selMod)
+selectMousePress(const CQChartsGeom::Point &p, SelMod selMod)
 {
   if (! isReady()) return false;
 
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(p);
 
   return selectPress(w, selMod);
 }
@@ -5150,7 +5150,7 @@ tabbedSelectPress(const CQChartsGeom::Point &w, SelMod)
 
   tabbedPlots(plots);
 
-  CQChartsPlot *pressPlot = tabbedPressPlot(w, plots);
+  auto *pressPlot = tabbedPressPlot(w, plots);
   if (! pressPlot) return false;
 
   for (auto &plot : plots)
@@ -5183,7 +5183,7 @@ keySelectPress(CQChartsPlotKey *key, const CQChartsGeom::Point &w, SelMod selMod
 {
   // select key
   if (key && key->contains(w)) {
-    CQChartsKeyItem *item = key->getItemAt(w);
+    auto *item = key->getItemAt(w);
 
     if (item) {
       bool handled = item->selectPress(w, selMod);
@@ -5393,12 +5393,11 @@ objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
 bool
 CQChartsPlot::
-selectMouseMove(const QPointF &pos, bool first)
+selectMouseMove(const CQChartsGeom::Point &pos, bool first)
 {
   if (! isReady()) return false;
 
-  auto p = CQChartsGeom::Point(pos);
-  auto w = pixelToWindow(p);
+  auto w = pixelToWindow(pos);
 
   return selectMove(w, first);
 }
@@ -5455,11 +5454,11 @@ selectMove(const CQChartsGeom::Point &w, bool first)
 
 bool
 CQChartsPlot::
-selectMouseRelease(const QPointF &p)
+selectMouseRelease(const CQChartsGeom::Point &p)
 {
   if (! isReady()) return false;
 
-  auto w = pixelToWindow(CQChartsGeom::Point(p));
+  auto w = pixelToWindow(p);
 
   return selectRelease(w);
 }
@@ -5500,11 +5499,11 @@ selectObjsAtPoint(const CQChartsGeom::Point &w, Objs &objs)
 
 bool
 CQChartsPlot::
-editMousePress(const QPointF &pos, bool inside)
+editMousePress(const CQChartsGeom::Point &pos, bool inside)
 {
   if (! isReady()) return false;
 
-  auto p = CQChartsGeom::Point(pos);
+  auto p = pos;
   auto w = pixelToWindow(p);
 
   editing_ = true;
@@ -5522,7 +5521,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
   //---
 
   mouseData_.dragObj    = DragObj::NONE;
-  mouseData_.pressPoint = p.qpoint();
+  mouseData_.pressPoint = p;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.dragged    = false;
 
@@ -5973,11 +5972,11 @@ hasYAxis() const
 
 bool
 CQChartsPlot::
-editMouseMove(const QPointF &pos, bool first)
+editMouseMove(const CQChartsGeom::Point &pos, bool first)
 {
   if (! isReady()) return false;
 
-  auto p = CQChartsGeom::Point(pos);
+  auto p = pos;
   auto w = pixelToWindow(p);
 
   return editMove(p, w, first);
@@ -5992,9 +5991,9 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
   //---
 
-  QPointF lastMovePoint = mouseData_.movePoint;
+  auto lastMovePoint = mouseData_.movePoint;
 
-  mouseData_.movePoint = p.qpoint();
+  mouseData_.movePoint = p;
 
   if (mouseData_.dragObj == DragObj::NONE)
     return false;
@@ -6031,8 +6030,8 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       return false;
   }
   else if (mouseData_.dragObj == DragObj::PLOT) {
-    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
-    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+    double dx = mouseData_.movePoint.x - lastMovePoint.x;
+    double dy = lastMovePoint.y - mouseData_.movePoint.y;
 
     double dx1 =  view()->pixelToSignedWindowWidth (dx);
     double dy1 = -view()->pixelToSignedWindowHeight(dy);
@@ -6072,8 +6071,8 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
-    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
-    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+    double dx = mouseData_.movePoint.x - lastMovePoint.x;
+    double dy = lastMovePoint.y - mouseData_.movePoint.y;
 
     double dx1 =  view()->pixelToSignedWindowWidth (dx);
     double dy1 = -view()->pixelToSignedWindowHeight(dy);
@@ -6129,11 +6128,11 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
 bool
 CQChartsPlot::
-editMouseMotion(const QPointF &pos)
+editMouseMotion(const CQChartsGeom::Point &pos)
 {
   if (! isReady()) return false;
 
-  auto p = CQChartsGeom::Point(pos);
+  auto p = pos;
   auto w = pixelToWindow(p);
 
   return editMotion(p, w);
@@ -6193,11 +6192,11 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
 
 bool
 CQChartsPlot::
-editMouseRelease(const QPointF &pos)
+editMouseRelease(const CQChartsGeom::Point &pos)
 {
   if (! isReady()) return false;
 
-  auto p = CQChartsGeom::Point(pos);
+  auto p = pos;
   auto w = pixelToWindow(p);
 
   editing_ = false;
@@ -6624,7 +6623,7 @@ initColorColumnData()
                                               columnTypeData);
 
     if (columnTypeData.type == ColumnType::COLOR) {
-      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+      auto *columnTypeMgr = charts()->columnTypeMgr();
 
       const CQChartsColumnColorType *colorType =
         dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnTypeData.type));
@@ -6792,7 +6791,7 @@ columnStr(const CQChartsColumn &column, double x) const
   if (! column.isValid())
     return CQChartsUtil::formatReal(x);
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
 
   if (! model)
     return CQChartsUtil::formatReal(x);
@@ -7470,9 +7469,9 @@ bool
 CQChartsPlot::
 printLayer(CQChartsLayer::Type type, const QString &filename) const
 {
-  CQChartsLayer *layer = getLayer(type);
+  auto *layer = getLayer(type);
 
-  const CQChartsBuffer *buffer = getBuffer(layer->buffer());
+  const auto *buffer = getBuffer(layer->buffer());
 
   if (! buffer->image())
     return false;
@@ -7826,9 +7825,9 @@ void
 CQChartsPlot::
 drawLayer(QPainter *painter, CQChartsLayer::Type type) const
 {
-  CQChartsLayer *layer = getLayer(type);
+  auto *layer = getLayer(type);
 
-  CQChartsBuffer *buffer = getBuffer(layer->buffer());
+  auto *buffer = getBuffer(layer->buffer());
 
   buffer->draw(painter, 0, 0);
 }
@@ -7874,10 +7873,10 @@ drawBackgroundParts(QPainter *painter) const
 
   //---
 
-  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::BACKGROUND);
+  auto *buffer = getBuffer(CQChartsBuffer::Type::BACKGROUND);
   if (! buffer->isActive()) return;
 
-  QPainter *painter1 = beginPaint(buffer, painter);
+  auto *painter1 = beginPaint(buffer, painter);
 
   //---
 
@@ -7927,7 +7926,7 @@ drawMiddleParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawMiddleParts");
 
-  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::MIDDLE);
+  auto *buffer = getBuffer(CQChartsBuffer::Type::MIDDLE);
   if (! buffer->isActive()) return;
 
   //---
@@ -7944,7 +7943,7 @@ drawMiddleParts(QPainter *painter) const
 
   //---
 
-  QPainter *painter1 = beginPaint(buffer, painter);
+  auto *painter1 = beginPaint(buffer, painter);
 
   //---
 
@@ -7992,10 +7991,10 @@ drawForegroundParts(QPainter *painter) const
 
   //---
 
-  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::FOREGROUND);
+  auto *buffer = getBuffer(CQChartsBuffer::Type::FOREGROUND);
   if (! buffer->isActive()) return;
 
-  QPainter *painter1 = beginPaint(buffer, painter);
+  auto *painter1 = beginPaint(buffer, painter);
 
   //---
 
@@ -8152,10 +8151,10 @@ drawOverlayParts(QPainter *painter) const
 
   //---
 
-  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::OVERLAY);
+  auto *buffer = getBuffer(CQChartsBuffer::Type::OVERLAY);
   if (! buffer->isActive()) return;
 
-  QPainter *painter1 = beginPaint(buffer, painter);
+  auto *painter1 = beginPaint(buffer, painter);
 
   //---
 
@@ -8243,6 +8242,18 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
 
   //---
 
+  drawBackgroundRects(device);
+
+  //---
+
+  if (this->hasBackground())
+    execDrawBackground(device);
+}
+
+void
+CQChartsPlot::
+drawBackgroundRects(CQChartsPaintDevice *device) const
+{
   auto drawBackgroundRect = [&](bool isFilled, bool isStroked, const CQChartsGeom::BBox &rect,
                                 const QColor &fillColor, const CQChartsAlpha &fillAlpha,
                                 const CQChartsFillPattern &fillPattern,
@@ -8285,11 +8296,6 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
                        interpDataFillColor(ColorInd()), dataFillAlpha(), dataFillPattern(),
                        interpDataStrokeColor(ColorInd()), dataStrokeAlpha(),
                        dataStrokeWidth(), dataStrokeDash(), dataBorderSides());
-
-  //---
-
-  if (this->hasBackground())
-    execDrawBackground(device);
 }
 
 bool
@@ -8461,7 +8467,7 @@ drawBgKey(CQChartsPaintDevice *device) const
     //auto *plot = firstPlot();
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      CQChartsPlotKey *key = plot->key();
+      auto *key = plot->key();
       if (! key) return;
 
       device->setPlot(const_cast<CQChartsPlot *>(plot));
@@ -8472,7 +8478,7 @@ drawBgKey(CQChartsPaintDevice *device) const
     device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
-    CQChartsPlotKey *key = this->key();
+    auto *key = this->key();
 
     if (key)
       key->draw(device);
@@ -8550,7 +8556,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
         continue;
     }
 
-    if (! plotObj->rectIntersect(bbox, /*inside*/ false))
+    if (! objInsideBox(plotObj, bbox))
       continue;
 
     anyObjs = true;
@@ -8612,7 +8618,7 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
     //---
 
     // skip objects not inside plot
-    if (! plotObj->rectIntersect(bbox, /*inside*/ false))
+    if (! objInsideBox(plotObj, bbox))
       continue;
 
     //---
@@ -8648,6 +8654,13 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
   //---
 
   device->restore();
+}
+
+bool
+CQChartsPlot::
+objInsideBox(CQChartsPlotObj *plotObj, const CQChartsGeom::BBox &bbox) const
+{
+  return plotObj->rectIntersect(bbox, /*inside*/ false);
 }
 
 bool
@@ -8792,7 +8805,7 @@ drawFgKey(CQChartsPaintDevice *device) const
     //auto *plot = lastPlot();
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      CQChartsPlotKey *key = plot->key();
+      auto *key = plot->key();
       if (! key) return;
 
       device->setPlot(const_cast<CQChartsPlot *>(plot));
@@ -8803,7 +8816,7 @@ drawFgKey(CQChartsPaintDevice *device) const
     device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
-    CQChartsPlotKey *key = this->key();
+    auto *key = this->key();
 
     if (key)
       key->draw(device);
@@ -9808,7 +9821,7 @@ CQChartsObj *
 CQChartsPlot::
 getObject(const QString &objectId) const
 {
-  CQChartsPlotObj *plotObj = getPlotObject(objectId);
+  auto *plotObj = getPlotObject(objectId);
   if (plotObj) return plotObj;
 
   auto checkObjs = [&](std::initializer_list<CQChartsObj *> objs) {
@@ -9828,7 +9841,7 @@ getObjectInds(const QString &objectId) const
 {
   QList<QModelIndex> inds;
 
-  CQChartsPlotObj *plotObj = getPlotObject(objectId);
+  auto *plotObj = getPlotObject(objectId);
 
   if (plotObj) {
     CQChartsPlotObj::Indices inds1;
@@ -9892,7 +9905,7 @@ void
 CQChartsPlot::
 setLayerActive1(const CQChartsLayer::Type &type, bool b)
 {
-  CQChartsLayer *layer = getLayer(type);
+  auto *layer = getLayer(type);
 
   layer->setActive(b);
 
@@ -9903,7 +9916,7 @@ bool
 CQChartsPlot::
 isLayerActive(const CQChartsLayer::Type &type) const
 {
-  CQChartsLayer *layer = getLayer(type);
+  auto *layer = getLayer(type);
 
   return layer->isActive();
 }
@@ -9987,7 +10000,7 @@ CQChartsPlot::
 invalidateLayer1(const CQChartsBuffer::Type &type)
 {
 //std::cerr << "invalidateLayer1: " << CQChartsBuffer::typeName(type) << "\n";
-  CQChartsBuffer *layer = getBuffer(type);
+  auto *layer = getBuffer(type);
 
   layer->setValid(false);
 
@@ -10089,7 +10102,7 @@ beginPaint(CQChartsBuffer *buffer, QPainter *painter, const QRectF &rect) const
   // resize and clear
   QRectF prect = (! rect.isValid() ? calcPlotPixelRect().qrect() : rect);
 
-  QPainter *painter1 = buffer->beginPaint(painter, prect, view()->isAntiAlias());
+  auto *painter1 = buffer->beginPaint(painter, prect, view()->isAntiAlias());
 
   // don't paint if not active
   if (! buffer->isActive())
@@ -10115,7 +10128,7 @@ getFirstPlotKey() const
   auto *plot = firstPlot();
 
   while (plot) {
-    CQChartsPlotKey *key = plot->key();
+    auto *key = plot->key();
 
     if (key && key->isVisibleAndNonEmpty())
       return key;
@@ -10433,7 +10446,7 @@ QColor
 CQChartsPlot::
 blendGroupPaletteColor(double r1, double r2, double dr) const
 {
-  CQColorsTheme *theme = view()->theme();
+  auto *theme = view()->theme();
 
   // r1 is parent color and r2 is child color
   QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
@@ -10491,7 +10504,7 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
   else if (colorType == ColorType::INDEX)
     colorInd = iv;
   else if (colorType == ColorType::X_VALUE) {
-    const CQChartsColorStops &stops = colorXStops();
+    const auto &stops = colorXStops();
 
     bool hasStops = stops.isValid();
     bool relative = (hasStops ? stops.isPercent() : true);
@@ -10512,7 +10525,7 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
       colorInd = ColorInd(x);
   }
   else if (colorType == ColorType::Y_VALUE) {
-    const CQChartsColorStops &stops = colorYStops();
+    const auto &stops = colorYStops();
 
     bool hasStops = stops.isValid();
     bool relative = (hasStops ? stops.isPercent() : true);
@@ -10634,7 +10647,7 @@ columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeD
     }
   }
   else {
-    QAbstractItemModel *model = this->model().data();
+    auto *model = this->model().data();
     assert(model);
 
     if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnTypeData)) {
@@ -10653,7 +10666,7 @@ bool
 CQChartsPlot::
 columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   return CQChartsModelUtil::columnTypeStr(charts(), model, column, typeStr);
@@ -10663,7 +10676,7 @@ bool
 CQChartsPlot::
 setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   return CQChartsModelUtil::setColumnTypeStr(charts(), model, column, typeStr);
@@ -10692,10 +10705,10 @@ CQChartsModelColumnDetails *
 CQChartsPlot::
 columnDetails(const CQChartsColumn &column) const
 {
-  CQChartsModelData *modelData = getModelData();
+  auto *modelData = getModelData();
   if (! modelData) return nullptr;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return nullptr;
 
   return details->columnDetails(column);
@@ -10715,12 +10728,12 @@ CQChartsPlot::
 getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
                    const QString &separator, QStringList &nameStrs, ModelIndices &nameInds) const
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   // single column (separated names)
   if (nameColumns.count() == 1) {
-    const CQChartsColumn &nameColumn = nameColumns.column();
+    const auto &nameColumn = nameColumns.column();
 
     //---
 
@@ -10787,7 +10800,7 @@ CQChartsPlot::
 normalizeIndex(const QModelIndex &ind) const
 {
   // map index in proxy model, to source model (non-proxy model)
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
@@ -10815,7 +10828,7 @@ CQChartsPlot::
 unnormalizeIndex(const QModelIndex &ind) const
 {
   // map index in source model (non-proxy model), to proxy model
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
@@ -10844,7 +10857,7 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
             QAbstractItemModel* &sourceModel) const
 {
   // map index in source model (non-proxy model), to proxy model
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   assert(model);
 
   auto *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
@@ -10866,7 +10879,7 @@ bool
 CQChartsPlot::
 isHierarchical() const
 {
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
 
   return CQChartsModelUtil::isHierarchical(model);
 }
@@ -11056,7 +11069,7 @@ modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) con
   if (! column.hasColumn())
     return QModelIndex();
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
   if (! model) return QModelIndex();
 
   return model->index(row, column.column(), parent);
@@ -11149,7 +11162,7 @@ QString
 CQChartsPlot::
 modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, column, ok);
+  return CQChartsModelUtil::modelHHeaderString(model, column, ok);
 }
 
 QString
@@ -11157,7 +11170,7 @@ CQChartsPlot::
 modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                    int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, column, role, ok);
+  return CQChartsModelUtil::modelHHeaderString(model, column, role, ok);
 }
 
 //--
@@ -11687,7 +11700,7 @@ void
 CQChartsPlot::
 endSelectIndex()
 {
-//QAbstractItemModel *model = this->model().data();
+//auto *model = this->model().data();
 //assert(model);
 
   //---
@@ -11741,7 +11754,7 @@ endSelectIndex()
   //---
 
   if (optItemSelection.length()) {
-    CQChartsModelData *modelData = getModelData();
+    auto *modelData = getModelData();
 
     if (modelData)
       modelData->select(optItemSelection);
@@ -11776,8 +11789,7 @@ CQChartsGeom::Point
 CQChartsPlot::
 positionToPlot(const CQChartsPosition &pos) const
 {
-  auto p = CQChartsGeom::Point(pos.p());
-
+  auto p  = pos.p();
   auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)
@@ -11800,8 +11812,7 @@ CQChartsGeom::Point
 CQChartsPlot::
 positionToPixel(const CQChartsPosition &pos) const
 {
-  auto p = CQChartsGeom::Point(pos.p());
-
+  auto p  = pos.p();
   auto p1 = p;
 
   if      (pos.units() == CQChartsUnits::PIXEL)
@@ -12425,7 +12436,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
     return (modelVarName != "" ? modelVarName : "model");
   };
 
-  //CQChartsModelData *modelData = getModelData();
+  //auto *modelData = getModelData();
 
   os << "set " << plotName().toStdString();
   os << " [create_charts_plot -model $" << modelName().toStdString() <<

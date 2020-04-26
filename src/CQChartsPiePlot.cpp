@@ -539,7 +539,7 @@ createObjs(PlotObjs &objs) const
     auto *obj = dynamic_cast<CQChartsPieObj *>(plotObj);
     if (! obj) continue;
 
-    CQChartsPieGroupObj *groupObj = obj->groupObj();
+    auto *groupObj = obj->groupObj();
 
     int i = obj->colorIndex();
     int n = (groupObj ? groupObj->numObjs() : 0);
@@ -639,7 +639,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
   const GroupData &groupData = (*pg).second;
 
-  CQChartsPieGroupObj *groupObj = groupData.groupObj;
+  auto *groupObj = groupData.groupObj;
 
   //---
 
@@ -667,7 +667,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get pie object (by label)
-  CQChartsPieObj *obj = (groupObj ? groupObj->lookupObj(label) : nullptr);
+  auto *obj = (groupObj ? groupObj->lookupObj(label) : nullptr);
 
   if (! obj) {
     CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
@@ -1198,7 +1198,7 @@ calcTipId() const
   CQChartsModelIndex lind(ind.row(), plot_->labelColumn(), ind.parent());
 
   if (hasGroup) {
-    CQChartsPieGroupObj *groupObj = this->groupObj();
+    auto *groupObj = this->groupObj();
 
     groupName = groupObj->name();
 
@@ -1612,7 +1612,7 @@ QColor
 CQChartsPieObj::
 fillColor() const
 {
-  CQChartsPieGroupObj *groupObj = this->groupObj();
+  auto *groupObj = this->groupObj();
 
   ColorInd colorInd = this->calcColorInd();
 
@@ -1862,7 +1862,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   device->setPen(pen);
 
-  CQChartsTextOptions textOptions = plot_->adjustTextOptions();
+  auto textOptions = plot_->adjustTextOptions();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, label, textOptions);
 }

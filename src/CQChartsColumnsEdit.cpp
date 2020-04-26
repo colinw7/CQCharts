@@ -362,9 +362,9 @@ QWidget *
 CQChartsColumnsPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
+  auto *item = CQPropertyViewMgrInst->editItem();
 
-  QObject *obj = (item ? item->object() : nullptr);
+  auto *obj = (item ? item->object() : nullptr);
 
   auto *edit = new CQChartsColumnsLineEdit(parent);
 

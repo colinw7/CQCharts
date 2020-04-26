@@ -4,7 +4,7 @@
 #include <QString>
 
 /*!
- * \brief class to contain charts angle
+ * \brief class to contain charts angle (degrees)
  * \ingroup Charts
  */
 class CQChartsAngle {
@@ -37,6 +37,12 @@ class CQChartsAngle {
   }
 
   CQChartsAngle &operator+=(const CQChartsAngle &rhs) { a_ += rhs.a_; return *this; }
+
+  friend CQChartsAngle operator-(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
+    return CQChartsAngle(lhs.a_ - rhs.a_);
+  }
+
+  CQChartsAngle &operator-=(const CQChartsAngle &rhs) { a_ -= rhs.a_; return *this; }
 
   //---
 

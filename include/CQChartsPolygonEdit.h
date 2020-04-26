@@ -74,7 +74,7 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
 
   int numPoints() const;
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   void calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const;
 

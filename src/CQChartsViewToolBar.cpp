@@ -320,7 +320,7 @@ void
 CQChartsViewToolBar::
 zoomFullSlot()
 {
-  CQChartsPlot *plot = view()->currentPlot(/*remap*/true);
+  auto *plot = view()->currentPlot(/*remap*/true);
 
   if (plot)
     plot->zoomFull();
@@ -383,7 +383,7 @@ void
 CQChartsViewToolBar::
 manageModelsSlot()
 {
-  CQCharts *charts = view()->charts();
+  auto *charts = view()->charts();
 
   (void) charts->manageModelsDlg();
 }
@@ -392,14 +392,14 @@ void
 CQChartsViewToolBar::
 addPlotSlot()
 {
-  CQCharts *charts = view()->charts();
+  auto *charts = view()->charts();
 
-  CQChartsModelData *modelData = charts->currentModelData();
+  auto *modelData = charts->currentModelData();
 
   if (! modelData)
     return;
 
-  CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
+  auto *createPlotDlg = charts->createPlotDlg(modelData);
 
   createPlotDlg->setViewName(view()->id());
 }
@@ -429,7 +429,7 @@ void
 CQChartsViewToolBar::
 helpSlot()
 {
-  CQCharts *charts = view()->charts();
+  auto *charts = view()->charts();
 
   CQChartsHelpDlgMgrInst->showDialog(charts);
 }

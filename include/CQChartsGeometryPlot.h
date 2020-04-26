@@ -290,7 +290,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   ColumnType     styleColumnType_    { ColumnType::NONE }; //!< style column type
 
   // labels
-  CQChartsDataLabel*  dataLabel_  { nullptr }; //!< data label style
+  CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // value
   OptReal               minValue_;                         //!< user min value
@@ -306,7 +306,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   double maxBalloonSize_ { 0.25 }; //!< max balloon size (fraction of height)
 
   // shapes
-  Geometries geometries_;  //!< geometry shapes
+  Geometries geometries_; //!< geometry shapes
 };
 
 #endif

@@ -425,7 +425,7 @@ initSymbolTypeData() const
                                               columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL) {
-      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+      auto *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *symbolTypeType =
         dynamic_cast<const CQChartsColumnSymbolTypeType *>(
@@ -546,7 +546,7 @@ initSymbolSizeData() const
                                               columnTypeData);
 
     if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
-      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+      auto *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *symbolSizeType =
         dynamic_cast<const CQChartsColumnSymbolSizeType *>(
@@ -669,7 +669,7 @@ initFontSizeData() const
                                               columnTypeData);
 
     if (columnTypeData.type == ColumnType::FONT_SIZE) {
-      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+      auto *columnTypeMgr = charts()->columnTypeMgr();
 
       const auto *fontSizeType =
         dynamic_cast<const CQChartsColumnFontSizeType *>(
@@ -776,7 +776,7 @@ setDataLabelFont(const CQChartsFont &font)
 {
   NoUpdate noUpdate(this);
 
-  CQChartsDataLabel *dataLabel = this->dataLabel();
+  auto *dataLabel = this->dataLabel();
 
   CQChartsWidgetUtil::AutoDisconnect dataChangeDisconnect(
     dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));

@@ -1097,3 +1097,6 @@
  + ensure plot object tree works in composite plot for mouse over
  + add quick controls to view settings for specified columns and support in composite plot
    + support visible filter for quick controls
+# 04/26/2020
+ + Add more diagonal and off-diagonal plot types for correlation plot
+ + Add 3D scatter plot

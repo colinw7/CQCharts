@@ -43,6 +43,11 @@ class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
 
   //---
 
+  double scale() const { return scale_; }
+  void setScale(double r) { scale_ = r; }
+
+  //---
+
   QString toString() const override;
   bool fromString(const QString &s) override;
 
@@ -68,7 +73,8 @@ class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
   bool setValue(const QString &str);
 
  private:
-  Type type_ { Type::NONE };
+  Type   type_  { Type::NONE };
+  double scale_ { 1.0 };
 };
 
 //---

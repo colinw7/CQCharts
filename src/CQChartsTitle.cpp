@@ -126,7 +126,7 @@ updateLocation()
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
 
-  CQChartsAxis *xAxis = plot_->xAxis();
+  auto *xAxis = plot_->xAxis();
 
   if      (location == CQChartsTitleLocation::Type::TOP) {
     if (! isInsidePlot()) {

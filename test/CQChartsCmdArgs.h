@@ -271,7 +271,7 @@ class CQChartsCmdBaseArgs {
   }
 
   // get polygon value of current option
-  bool getOptValue(QPolygonF &poly) {
+  bool getOptValue(CQChartsGeom::Polygon &poly) {
     QString str;
 
     if (! getOptValue(str))
@@ -279,7 +279,7 @@ class CQChartsCmdBaseArgs {
 
     poly = stringToPolygon(str);
 
-    return poly.length();
+    return poly.size();
   }
 
   // get reals value of current option
@@ -748,13 +748,14 @@ class CQChartsCmdBaseArgs {
   }
 
   // get parsed polygon value for option
-  QPolygonF getParsePoly(const QString &name, const QPolygonF &def=QPolygonF()) const {
+  CQChartsGeom::Polygon getParsePoly(const QString &name,
+      const CQChartsGeom::Polygon &def=CQChartsGeom::Polygon()) const {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
     QString value = (*p).second[0];
 
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     if (! parsePoly(value, poly))
       return def;
@@ -1011,8 +1012,8 @@ class CQChartsCmdBaseArgs {
 
  private:
   // string to polygon
-  QPolygonF stringToPolygon(const QString &str) const {
-    QPolygonF poly;
+  CQChartsGeom::Polygon stringToPolygon(const QString &str) const {
+    CQChartsGeom::Polygon poly;
 
     CQStrParse parse(str);
 
@@ -1041,23 +1042,23 @@ class CQChartsCmdBaseArgs {
       if (! CQChartsUtil::toReal(ystr, y))
         break;
 
-      QPointF p(x, y);
+      CQChartsGeom::Point p(x, y);
 
-      poly << p;
+      poly.addPoint(p);
     }
 
     return poly;
   }
 
   // parse polygon from string
-  bool parsePoly(const QString &str, QPolygonF &poly) const {
+  bool parsePoly(const QString &str, CQChartsGeom::Polygon &poly) const {
     CQStrParse parse(str);
 
     return parsePoly(parse, poly);
   }
 
   // parse polygon at parse position
-  bool parsePoly(CQStrParse &parse, QPolygonF &poly) const {
+  bool parsePoly(CQStrParse &parse, CQChartsGeom::Polygon &poly) const {
     parse.skipSpace();
 
     if (parse.isChar('{')) {
@@ -1086,26 +1087,26 @@ class CQChartsCmdBaseArgs {
     //--
 
     while (! parse.eof()) {
-      QPointF p;
+      CQChartsGeom::Point p;
 
       if (! parsePoint(parse, p))
         return false;
 
-      poly << p;
+      poly.addPoint(p);
     }
 
     return true;
   }
 
   // parse point from string
-  bool parsePoint(const QString &str, QPointF &pos) const {
+  bool parsePoint(const QString &str, CQChartsGeom::Point &pos) const {
     CQStrParse parse(str);
 
     return parsePoint(parse, pos);
   }
 
   // parse point at parse position
-  bool parsePoint(CQStrParse &parse, QPointF &pos) const {
+  bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &pos) const {
     parse.skipSpace();
 
     if (parse.isChar('{')) {
@@ -1143,7 +1144,7 @@ class CQChartsCmdBaseArgs {
     if (! CQChartsUtil::toReal(ystr, y))
       return false;
 
-    pos = QPointF(x, y);
+    pos = CQChartsGeom::Point(x, y);
 
     return true;
   }

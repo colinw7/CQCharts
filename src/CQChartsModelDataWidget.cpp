@@ -177,7 +177,7 @@ selectionChanged()
   std::set<int> columns;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  QItemSelectionModel *sm = view_->selectionModel();
+  auto *sm = view_->selectionModel();
 
   QModelIndexList inds = sm->selectedIndexes();
 
@@ -187,7 +187,7 @@ selectionChanged()
   if      (tree_) {
   }
   else if (table_) {
-    QItemSelectionModel *sm = table_->selectionModel();
+    auto *sm = table_->selectionModel();
 
     if      (table_->selectionBehavior() == QAbstractItemView::SelectColumns) {
       QModelIndexList inds = sm->selectedColumns();
@@ -275,7 +275,7 @@ setDetails()
 
   //---
 
-  const CQChartsModelDetails *details = (modelData1 ? modelData1->details() : nullptr);
+  const auto *details = (modelData1 ? modelData1->details() : nullptr);
 
   detailsWidget_->setDetails(details);
 }

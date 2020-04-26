@@ -757,4 +757,26 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   CQChartsSymbolData symbolData_;       //!< symbol data
 };
 
+//---
+
+/*!
+ * \brief Plot Gradient Key Item
+ * \ingroup Charts
+ */
+class CQChartsGradientKeyItem : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsGradientKeyItem(CQChartsPlot *plot);
+
+  CQChartsGeom::Size size() const override;
+
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
+
+  virtual int maxN() const = 0;
+
+ private:
+  CQChartsPlot* plot_ { nullptr };
+};
+
 #endif

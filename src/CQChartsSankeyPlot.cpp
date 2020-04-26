@@ -81,7 +81,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
         analyzeModelData.parameterNameColumn.end())
     return;
 
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumn linkColumn;
@@ -236,7 +236,7 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
 
   if (! model)
     return dataRange;
@@ -281,7 +281,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
+  auto *model = this->model().data();
 
   if (! model)
     return false;
@@ -318,10 +318,10 @@ createObjs(PlotObjs &objs) const
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
-      CQChartsSankeyPlotNode *srcNode  = plot_->findNode(srcStr);
-      CQChartsSankeyPlotNode *destNode = plot_->findNode(destStr);
+      auto *srcNode  = plot_->findNode(srcStr);
+      auto *destNode = plot_->findNode(destStr);
 
-      CQChartsSankeyPlotEdge *edge = plot_->createEdge(value, srcNode, destNode);
+      auto *edge = plot_->createEdge(value, srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -710,7 +710,7 @@ reorderNodeEdges() const
     PosEdgeMap srcPosEdgeMap;
 
     for (const auto &edge : node->srcEdges()) {
-      CQChartsSankeyPlotNode *srcNode = edge->srcNode();
+      auto *srcNode = edge->srcNode();
 
       const auto &rect = srcNode->obj()->rect();
 
@@ -737,7 +737,7 @@ reorderNodeEdges() const
     PosEdgeMap destPosEdgeMap;
 
     for (const auto &edge : node->destEdges()) {
-      CQChartsSankeyPlotNode *destNode = edge->destNode();
+      auto *destNode = edge->destNode();
 
       const auto &rect = destNode->obj()->rect();
 
@@ -773,13 +773,13 @@ adjustNode(CQChartsSankeyPlotNode *node) const
   CQChartsGeom::BBox bbox;
 
   for (const auto &edge : node->srcEdges()) {
-    CQChartsSankeyPlotNode *srcNode = edge->srcNode();
+    auto *srcNode = edge->srcNode();
 
     bbox += srcNode->obj()->rect();
   }
 
   for (const auto &edge : node->destEdges()) {
-    CQChartsSankeyPlotNode *destNode = edge->destNode();
+    auto *destNode = edge->destNode();
 
     bbox += destNode->obj()->rect();
   }
@@ -900,7 +900,7 @@ srcDepth(NodeSet &visited) const
     int depth = 0;
 
     for (const auto &edge : srcEdges_) {
-      CQChartsSankeyPlotNode *node = edge->srcNode();
+      auto *node = edge->srcNode();
 
       auto p = visited.find(node);
 
@@ -943,7 +943,7 @@ destDepth(NodeSet &visited) const
     int depth = 0;
 
     for (const auto &edge : destEdges_) {
-      CQChartsSankeyPlotNode *node = edge->destNode();
+      auto *node = edge->destNode();
 
       auto p = visited.find(node);
 

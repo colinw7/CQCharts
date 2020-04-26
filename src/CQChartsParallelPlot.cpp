@@ -69,7 +69,7 @@ void
 CQChartsParallelPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  CQChartsModelDetails *details = modelData->details();
+  auto *details = modelData->details();
   if (! details) return;
 
   using UniqueColumns = std::map<int,CQChartsColumn>;
@@ -224,7 +224,7 @@ addProperties()
 
   auto addAxisStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                               const QString &desc, bool hidden=false) {
-    CQPropertyViewItem *item = addAxisProp(path, name, alias, desc);
+    auto *item = addAxisProp(path, name, alias, desc);
     CQCharts::setItemIsStyle(item);
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
@@ -370,7 +370,7 @@ calcRange() const
       for (int i = 0; i < ns_; ++i) {
         auto &range = setRanges_[i];
 
-        const CQChartsColumn &setColumn = plot_->yColumns().getColumn(i);
+        const auto &setColumn = plot_->yColumns().getColumn(i);
 
         //---
 
@@ -446,7 +446,7 @@ calcRange() const
 
   // set axes range and name
   for (int j = 0; j < ns; ++j) {
-    CQChartsAxis *axis = axes_[j];
+    auto *axis = axes_[j];
 
     const auto &range     = setRange(j);
     const auto &setColumn = yColumns().getColumn(j);
@@ -514,7 +514,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        const CQChartsColumn &setColumn = plot_->yColumns().getColumn(i);
+        const auto &setColumn = plot_->yColumns().getColumn(i);
 
         //---
 
@@ -599,7 +599,7 @@ createObjs(PlotObjs &objs) const
     int nl = poly.size();
 
     for (int j = 0; j < nl; ++j) {
-      const CQChartsColumn &setColumn = yColumns().getColumn(j);
+      const auto &setColumn = yColumns().getColumn(j);
 
       CQChartsModelIndex setColumnInd(i, setColumn, xind.parent());
 
@@ -841,7 +841,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
   int ns = yColumns().count();
 
   for (int j = 0; j < ns; ++j) {
-    CQChartsAxis *axis = axes_[j];
+    auto *axis = axes_[j];
 
     axis->setAxesLineData         (masterAxis_->axesLineData());
     axis->setAxesLabelTextData    (masterAxis_->axesLabelTextData());
@@ -1051,7 +1051,7 @@ calcTipId() const
   int nl = poly_.size();
 
   for (int j = 0; j < nl; ++j) {
-    const CQChartsColumn &yColumn = plot_->yColumns().getColumn(j);
+    const auto &yColumn = plot_->yColumns().getColumn(j);
 
     bool ok;
 
@@ -1255,7 +1255,7 @@ calcId() const
 
   QString xname = plot_->modelString(xModelInd, ok);
 
-  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
+  const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
   QString yname = plot_->modelHHeaderString(yColumn, ok);
 
@@ -1276,7 +1276,7 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
+  const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
   QString yname = plot_->modelHHeaderString(yColumn, ok);
 

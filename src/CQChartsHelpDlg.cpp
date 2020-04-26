@@ -160,7 +160,7 @@ addItems()
 
   addTopItem("Introduction", "introduction");
 
-  QTreeWidgetItem *modelsItem = addTopItem("Models", "models");
+  auto *modelsItem = addTopItem("Models", "models");
   assert(modelsItem);
 
   QStringList modelTypeNames;
@@ -170,9 +170,9 @@ addItems()
   for (const auto &name : modelTypeNames)
     addItem(modelsItem, name, name);
 
-  QTreeWidgetItem *columnTypesItem = addItem(modelsItem, "Types", "column_types");
+  auto *columnTypesItem = addItem(modelsItem, "Types", "column_types");
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  auto *columnTypeMgr = charts_->columnTypeMgr();
 
   QStringList columnTypeNames;
 
@@ -183,12 +183,12 @@ addItems()
 
   //---
 
-  QTreeWidgetItem *viewItem = addTopItem("View", "view");
+  auto *viewItem = addTopItem("View", "view");
   assert(viewItem);
 
   //---
 
-  QTreeWidgetItem *plotsItem = addTopItem("Plots", "plot_types");
+  auto *plotsItem = addTopItem("Plots", "plot_types");
 
   QStringList names, descs;
 
@@ -199,12 +199,12 @@ addItems()
 
   //---
 
-  QTreeWidgetItem *annotationsItem = addTopItem("Annotations", "annotation_types");
+  auto *annotationsItem = addTopItem("Annotations", "annotation_types");
   assert(annotationsItem);
 
   //---
 
-  QTreeWidgetItem *commandsItem = addTopItem("Commands", "commands");
+  auto *commandsItem = addTopItem("Commands", "commands");
 
   for (const auto &command : CQChartsHelpDlgMgrInst->tclCommands())
     addItem(commandsItem, command, command);
@@ -216,7 +216,7 @@ setCurrentSection(const QString &section, bool updateUndoRedo)
 {
   QStringList parts = section.split("/");
 
-  QTreeWidgetItem *item = getTreeItem(nullptr, parts, 0);
+  auto *item = getTreeItem(nullptr, parts, 0);
 
   if (! item)
     return false;
@@ -305,10 +305,10 @@ void
 CQChartsHelpDlg::
 treeItemSlot()
 {
-  QList<QTreeWidgetItem *> items = tree_->selectedItems();
+  auto items = tree_->selectedItems();
   if (items.count() == 0) return;
 
-  QTreeWidgetItem *item = items[0];
+  auto *item = items[0];
 
   updateCurrentSection(itemPath(item));
 
@@ -321,16 +321,16 @@ void
 CQChartsHelpDlg::
 loadSectionText()
 {
-  QList<QTreeWidgetItem *> items = tree_->selectedItems();
+  auto items = tree_->selectedItems();
   if (items.count() == 0) return;
 
-  QTreeWidgetItem *item = items[0];
+  auto *item = items[0];
 
   QString id = item->data(0, Qt::UserRole).toString();
 
   QString parentId;
 
-  QTreeWidgetItem *parent = item->parent();
+  auto *parent = item->parent();
 
   if (parent)
     parentId = parent->data(0, Qt::UserRole).toString();
@@ -355,15 +355,15 @@ loadSectionText()
     setHtml(CQChartsModelData::typeDescription(id));
   }
   else if (parentId == "column_types") {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+    auto *columnTypeMgr = charts_->columnTypeMgr();
 
-    const CQChartsColumnType *type = columnTypeMgr->getNamedType(id);
+    const auto *type = columnTypeMgr->getNamedType(id);
     assert(type);
 
     setHtml(type->desc());
   }
   else if (parentId == "plot_types") {
-    CQChartsPlotType *type = charts_->plotType(id);
+    auto *type = charts_->plotType(id);
     assert(type);
 
     setHtml(type->description());
@@ -378,7 +378,7 @@ itemPath(QTreeWidgetItem *item) const
 {
   QString name = item->data(0, Qt::UserRole).toString();
 
-  QTreeWidgetItem *parent = item->parent();
+  auto *parent = item->parent();
 
   if (parent)
     name = itemPath(parent) + "/" + name;
@@ -442,7 +442,7 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     int n = tree_->topLevelItemCount();
 
     for (int i = 0; i < n; ++i) {
-      QTreeWidgetItem *item = tree_->topLevelItem(i);
+      auto *item = tree_->topLevelItem(i);
 
       QString id = item->data(0, Qt::UserRole).toString();
 
@@ -454,7 +454,7 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     int n = parent->childCount();
 
     for (int i = 0; i < n; ++i) {
-      QTreeWidgetItem *item = parent->child(i);
+      auto *item = parent->child(i);
 
       QString id = item->data(0, Qt::UserRole).toString();
 

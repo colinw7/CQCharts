@@ -233,6 +233,11 @@ class CQCharts : public QObject {
 
   void setModelFileName(CQChartsModelData *modelData, const QString &fileName);
 
+  //---
+
+  // remove model data for model
+  bool removeModelData(ModelP &model);
+
   bool removeModelData(CQChartsModelData *modelData);
 
   //---
@@ -340,9 +345,6 @@ class CQCharts : public QObject {
  private:
   // add new model data for model
   int addModelData(ModelP &model);
-
-  // remove model data for model
-  bool removeModelData(ModelP &model);
 
   // assign model index to model
   bool setModelInd(QAbstractItemModel *model, int ind);

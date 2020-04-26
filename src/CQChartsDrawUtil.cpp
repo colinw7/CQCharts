@@ -36,7 +36,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
 
   auto pbbox = device->windowToPixel(bbox);
 
-  double minSize = std::min(pbbox.getWidth(), pbbox.getHeight());
+  double minSize = pbbox.getMinSize();
 
   double xsize = device->lengthPixelWidth (xlen);
   double ysize = device->lengthPixelHeight(ylen);
@@ -483,7 +483,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
 
   double cx = bbox.getXMid();
   double cy = bbox.getYMid();
-  double ss = std::min(pbbox.getWidth(), pbbox.getHeight());
+  double ss = pbbox.getMinSize();
 
   CQChartsLength symbolSize(ss/2.0, CQChartsUnits::PIXEL);
 
@@ -652,7 +652,7 @@ calcHtmlTextSize(const QString &text, const QFont &font, int margin)
   td.setHtml(text);
   td.setDefaultFont(font);
 
-  QAbstractTextDocumentLayout *layout = td.documentLayout();
+  auto *layout = td.documentLayout();
 
   return CQChartsGeom::Size(layout->documentSize());
 }
@@ -786,7 +786,7 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
 
   ctx.palette.setColor(QPalette::Text, pc);
 
-  QAbstractTextDocumentLayout *layout = td.documentLayout();
+  auto *layout = td.documentLayout();
 
   layout->setPaintDevice(painter->device());
 

@@ -124,7 +124,7 @@ class CQChartsBoxWhiskerT {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+        auto *th = const_cast<CQChartsBoxWhiskerT *>(this);
 
         th->calc();
 
@@ -162,7 +162,7 @@ class CQChartsBoxWhiskerT {
       std::unique_lock<std::mutex> lock(densityMutex_);
 
       if (! densityValid_.load()) {
-        CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+        auto *th = const_cast<CQChartsBoxWhiskerT *>(this);
 
         th->calcDensity();
 

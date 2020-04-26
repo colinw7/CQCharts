@@ -78,7 +78,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  signals:
   void columnsChanged();

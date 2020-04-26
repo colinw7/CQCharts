@@ -170,7 +170,7 @@ decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 
   Type baseType = CQBaseModel::nameType(baseTypeName);
 
-  const CQChartsColumnType *baseTypeData = getType(baseType);
+  const auto *baseTypeData = getType(baseType);
 
   return baseTypeData;
 }
@@ -463,7 +463,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  const CQChartsColumnType *columnType = getType(typeData.type);
+  const auto *columnType = getType(typeData.type);
 
   if (columnType) {
     for (const auto &param : columnType->params()) {
@@ -554,7 +554,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   CQChartsNameValues nameValues1;
 
-  const CQChartsColumnType *columnType = getType(type);
+  const auto *columnType = getType(type);
 
   if (columnType) {
     for (const auto &param : columnType->params()) {
@@ -589,7 +589,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   //---
 
   if (changed) {
-    CQChartsModelData *modelData = charts_->getModelData(model);
+    auto *modelData = charts_->getModelData(model);
 
     if (modelData)
       charts_->emitModelTypeChanged(modelData->ind());
@@ -641,7 +641,7 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   CQChartsNameValues nameValues1;
 
-  const CQChartsColumnType *columnType = getType(type);
+  const auto *columnType = getType(type);
 
   if (columnType) {
     for (const auto &param : columnType->params()) {
@@ -670,7 +670,7 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
   //---
 
   if (changed) {
-    CQChartsModelData *modelData = charts_->getModelData(model);
+    auto *modelData = charts_->getModelData(model);
 
     if (modelData)
       charts_->emitModelTypeChanged(modelData->ind());
@@ -723,7 +723,7 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
   int modelInd = -1;
 
   // get model data
-  CQChartsModelData *modelData = charts_->getModelData(model);
+  auto *modelData = charts_->getModelData(model);
 
   if (! modelData) {
     if (! charts_->getModelInd(model, modelInd)) {
@@ -851,7 +851,7 @@ CQChartsModelColumnDetails *
 CQChartsColumnType::
 columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column) const
 {
-  CQChartsModelData *modelData = charts->getModelData(model);
+  auto *modelData = charts->getModelData(model);
   if (! modelData) return nullptr;
 
   auto *details = modelData->details();
@@ -1591,7 +1591,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isPolygonListVariant(var)) {
-    CQChartsPolygonList polyList = var.value<CQChartsPolygonList>();
+    auto polyList = var.value<CQChartsPolygonList>();
 
     return polyList.toString();
   }
@@ -1662,7 +1662,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isVariantType(var)) {
-    CQChartsConnectionList connectionList = var.value<CQChartsConnectionList>();
+    auto connectionList = var.value<CQChartsConnectionList>();
 
     return connectionList.toString();
   }
@@ -1736,7 +1736,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (isNamePairVariant(var)) {
-    CQChartsNamePair namePair = var.value<CQChartsNamePair>();
+    auto namePair = var.value<CQChartsNamePair>();
 
     if (! namePair.isValid())
       return "";
@@ -1809,7 +1809,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (var.userType() == CQChartsPath::metaTypeId) {
-    CQChartsPath path = var.value<CQChartsPath>();
+    auto path = var.value<CQChartsPath>();
 
     return CQChartsUtil::pathToString(path);
   }
@@ -1864,7 +1864,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (var.userType() == CQChartsStyle::metaTypeId) {
-    CQChartsStyle style = var.value<CQChartsStyle>();
+    auto style = var.value<CQChartsStyle>();
 
     return CQChartsUtil::styleToString(style);
   }
@@ -1932,7 +1932,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
       CQChartsColor color;
 
       if (paletteName.simplified().length()) {
-        CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+        auto *palette = CQColorsMgrInst->getNamedPalette(paletteName);
 
         if (palette)
           color = palette->getColor(r1);
@@ -1963,7 +1963,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         CQChartsColor color;
 
         if (paletteName.simplified().length()) {
-          CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+          auto *palette = CQColorsMgrInst->getNamedPalette(paletteName);
 
           if (palette)
             color = palette->getColor(r);
@@ -2004,7 +2004,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (CQChartsVariant::isColor(var)) {
     bool ok;
 
-    CQChartsColor c = CQChartsVariant::toColor(var, ok);
+    auto c = CQChartsVariant::toColor(var, ok);
 
     if (ok)
       return c.toString();
@@ -2081,7 +2081,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   bool ok;
 
-  CQChartsImage image = CQChartsVariant::toImage(var, ok);
+  auto image = CQChartsVariant::toImage(var, ok);
 
   if (image.isValid())
     return var;
@@ -2099,7 +2099,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (CQChartsVariant::isImage(var)) {
     bool ok;
 
-    CQChartsImage image = CQChartsVariant::toImage(var, ok);
+    auto image = CQChartsVariant::toImage(var, ok);
 
     if (ok)
       return image.toString();
@@ -2160,7 +2160,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
     int i1 = (int) CMathUtil::map(int(i), min, max, size_min, size_max);
 
-    CQChartsSymbol symbol = CQChartsSymbol((CQChartsSymbol::Type) i1);
+    auto symbol = CQChartsSymbol((CQChartsSymbol::Type) i1);
 
     return QVariant::fromValue<CQChartsSymbol>(symbol);
   }
@@ -2183,7 +2183,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (CQChartsVariant::isSymbol(var)) {
     bool ok;
 
-    CQChartsSymbol symbol = CQChartsVariant::toSymbol(var, ok);
+    auto symbol = CQChartsVariant::toSymbol(var, ok);
 
     if (ok)
       return symbol.toString();

@@ -114,7 +114,7 @@ class CQChartsChordData {
     if (totalValid_)
       return total_;
 
-    CQChartsChordData *th = const_cast<CQChartsChordData *>(this);
+    auto *th = const_cast<CQChartsChordData *>(this);
 
     th->total_      = calcTotal();
     th->totalValid_ = true;
