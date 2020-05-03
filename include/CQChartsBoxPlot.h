@@ -278,8 +278,6 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &) const override { }
-
   void draw(CQChartsPaintDevice *device) override;
 
  private:

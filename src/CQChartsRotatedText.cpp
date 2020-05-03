@@ -11,7 +11,7 @@ void
 drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QString &text,
           const CQChartsTextOptions &options, bool /*alignBBox*/)
 {
-  double a1 = CMathUtil::Deg2Rad(options.angle.value());
+  double a1 = options.angle.radians();
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -115,7 +115,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &t
   double th = fm.height();
   double tw = fm.width(text);
 
-  double a1 = CMathUtil::Deg2Rad(options.angle.value());
+  double a1 = options.angle.radians();
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -275,7 +275,7 @@ calcBBoxData(double x, double y, const QString &text, const QFont &font,
   double th = fm.height()    + xlm + xrm;
   double tw = fm.width(text) + ybm + ytm;
 
-  double a1 = CMathUtil::Deg2Rad(options.angle.value());
+  double a1 = options.angle.radians();
 
   double c = cos(-a1);
   double s = sin(-a1);

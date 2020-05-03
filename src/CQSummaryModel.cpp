@@ -385,8 +385,10 @@ rowCount(const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->sourceModel();
 
+  QModelIndex parent1 = (parent.isValid() ? mapToSource(parent) : QModelIndex());
+
   if      (mode() == Mode::PAGED) {
-    int nr = (model ? model->rowCount(parent) : 0);
+    int nr = (model ? model->rowCount(parent1) : 0);
 
     return std::min(nr, pageSize());
   }
@@ -395,13 +397,13 @@ rowCount(const QModelIndex &parent) const
       return rowNums().size();
     }
     else {
-      int nr = (model ? model->rowCount(parent) : 0);
+      int nr = (model ? model->rowCount(parent1) : 0);
 
       return std::min(nr, pageSize());
     }
   }
   else {
-    int nr = (model ? model->rowCount(parent) : 0);
+    int nr = (model ? model->rowCount(parent1) : 0);
 
     return std::min(nr, maxRows());
   }

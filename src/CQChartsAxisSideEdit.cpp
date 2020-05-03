@@ -40,7 +40,7 @@ void
 CQChartsAxisSideEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsAxisSide axisSide = var.value<CQChartsAxisSide>();
+  auto axisSide = var.value<CQChartsAxisSide>();
 
   setAxisSide(axisSide);
 }
@@ -49,7 +49,7 @@ QString
 CQChartsAxisSideEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisSide axisSide = var.value<CQChartsAxisSide>();
+  auto axisSide = var.value<CQChartsAxisSide>();
 
   return axisSide.toString();
 }
@@ -74,7 +74,7 @@ QString
 CQChartsAxisSidePropertyViewType::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisSide axisSide = var.value<CQChartsAxisSide>();
+  auto axisSide = var.value<CQChartsAxisSide>();
 
   return axisSide.toString();
 }

@@ -510,8 +510,8 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
 
     double da = (isInvertX != isInvertY ? -1 : 1);
 
-    double ra1 = da*CMathUtil::Deg2Rad(a1.value());
-    double ra2 = da*CMathUtil::Deg2Rad(a2.value());
+    double ra1 = da*a1.radians();
+    double ra2 = da*a2.radians();
 
     auto p1 = CQChartsGeom::circlePoint(c, ri, ra1);
     auto p2 = CQChartsGeom::circlePoint(c, ro, ra1);

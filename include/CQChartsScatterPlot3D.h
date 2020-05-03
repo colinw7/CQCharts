@@ -38,7 +38,7 @@ class CQChartsScatterPlot3DType : public CQChartsPlot3DType {
  * \brief Scatter Plot Point object
  * \ingroup Charts
  */
-class CQChartsScatterPoint3DObj : public CQChartsPlotObj {
+class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   Q_OBJECT
 
   Q_PROPERTY(int                   groupInd READ groupInd)
@@ -58,7 +58,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlotObj {
                             const CQChartsGeom::BBox &rect, const Point3D &pos,
                             const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
-  const CQChartsScatterPlot3D *plot() const { return plot_; }
+  const CQChartsScatterPlot3D *scatterPlot() const;
 
   int groupInd() const { return groupInd_; }
 
@@ -107,7 +107,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void postDraw(CQChartsPaintDevice *device) override;
 
   //---
 
@@ -128,12 +128,33 @@ class CQChartsScatterPoint3DObj : public CQChartsPlotObj {
   ExtraData &extraData() { return edata_; };
 
  private:
-  const CQChartsScatterPlot3D* plot_       { nullptr }; //!< scatter plot
-  int                          groupInd_   { -1 };      //!< plot group index
-  Point3D                      pos_;                    //!< point position
-  ExtraData                    edata_;                  //!< extra data
-  QString                      name_;                   //!< label name
+  int       groupInd_ { -1 }; //!< plot group index
+  Point3D   pos_;             //!< point position
+  ExtraData edata_;           //!< extra data
+  QString   name_;            //!< label name
 };
+
+//---
+
+#if 0
+class CQChartsScatterBar3DObj : public CQChartsPlot3DObj {
+ public:
+  CQChartsScatterBar3DObj(const CQChartsScatterPlot3D *plot,
+                          const CQChartsGeom::Point3D &p=CQChartsGeom::Point3D());
+
+  const CQChartsScatterPlot3D *scatterPlot() const;
+
+  const CQChartsGeom::Point3D &p() const { return p_; }
+  void setP(const CQChartsGeom::Point3D &p) { p_ = p; }
+
+  QString typeName() const override { return "bar"; }
+
+  void postDraw(CQChartsPaintDevice *device) override;
+
+ private:
+  CQChartsGeom::Point3D p_; //!< point
+};
+#endif
 
 //---
 
@@ -180,6 +201,14 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   Q_PROPERTY(CQChartsColumn zColumn     READ zColumn     WRITE setZColumn    )
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
+
+  // options
+  Q_PROPERTY(bool drawSymbols READ isDrawSymbols WRITE setDrawSymbols)
+  Q_PROPERTY(bool drawLines   READ isDrawLines   WRITE setDrawLines  )
+  Q_PROPERTY(bool drawBars    READ isDrawBars    WRITE setDrawBars   )
+  Q_PROPERTY(bool fillUnder   READ isFillUnder   WRITE setFillUnder  )
+
+  Q_PROPERTY(double barSize READ barSize WRITE setBarSize)
 
   // symbol data
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -237,6 +266,23 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
+  bool isDrawSymbols() const { return drawSymbols_; }
+  void setDrawSymbols(bool b);
+
+  bool isDrawLines() const { return drawLines_; }
+  void setDrawLines(bool b);
+
+  bool isDrawBars() const { return drawBars_; }
+  void setDrawBars(bool b);
+
+  bool isFillUnder() const { return fillUnder_; }
+  void setFillUnder(bool b);
+
+  double barSize() const { return barSize_; }
+  void setBarSize(double s);
+
+  //---
+
   ColumnType xColumnType() const { return xColumnType_; }
   ColumnType yColumnType() const { return yColumnType_; }
   ColumnType zColumnType() const { return zColumnType_; }
@@ -256,11 +302,15 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   CQChartsGeom::Range calcRange() const override;
 
+  void postUpdateRange() override;
+
   void clearPlotObjects() override;
 
   bool createObjs(PlotObjs &obj) const override;
 
-  void addPointObjects(PlotObjs &objs) const;
+  void initGroups();
+
+  void addPointObjects() const;
 
   void addNameValues() const;
 
@@ -290,16 +340,17 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   void execDrawBackground(CQChartsPaintDevice *device) const override;
 
+  void preDrawObjs (CQChartsPaintDevice *) const override;
   void postDrawObjs(CQChartsPaintDevice *) const override;
 
   bool hasForeground() const override;
 
   void execDrawForeground(CQChartsPaintDevice *device) const override;
 
-  //---
-
  private:
-  void initAxes(bool uniqueX, bool uniqueY);
+  void addObjs() const;
+
+  void addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig);
 
   //---
 
@@ -321,7 +372,14 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   void drawStatsLines(CQChartsPaintDevice *device) const;
 
-  //---
+  //----
+
+  struct GroupData {
+    CQChartsPolygon3DObj  *polygon  { nullptr };
+    CQChartsPolyline3DObj *polyline { nullptr };
+  };
+
+  GroupData &getGroupData(int groupId);
 
  private:
   using Points      = std::vector<Point3D>;
@@ -339,9 +397,22 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   ColumnType yColumnType_ { ColumnType::NONE }; //!< y column type
   ColumnType zColumnType_ { ColumnType::NONE }; //!< z column type
 
+  // options
+  bool drawSymbols_ { true  }; //! draw symbols
+  bool drawLines_   { false }; //! draw lines
+  bool drawBars_    { false }; //! draw bars
+  bool fillUnder_   { false }; //! fill under
+
+  double barSize_ { 0.01 }; //! bar size
+
   // group data
   GroupNameValues groupNameValues_; //!< group name values
   GroupPoints     groupPoints_;     //!< group fit points
+
+  // draw data
+  using GroupObj = std::map<int,GroupData>;
+
+  mutable GroupObj groupObj_;
 };
 
 #endif

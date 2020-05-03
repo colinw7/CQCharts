@@ -129,7 +129,6 @@ class Point {
 
   // Addition of points makes no mathematical sense but
   // is useful for weighted sum
-
   Point &operator+=(const Point &rhs) { x += rhs.x; y += rhs.y; return *this; }
 
   Point &operator+=(double rhs) { x += rhs; y += rhs; return *this; }
@@ -2220,6 +2219,10 @@ inline CQChartsGeom::Point ellipsePoint(const CQChartsGeom::Point &c,
 }
 #endif
 
+inline double pointAngle(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
+  return std::atan2(p2.y - p1.y, p2.x - p1.x);
+}
+
 }
 
 //------
@@ -2248,6 +2251,41 @@ class Point3D {
     z = point.z;
 
     return *this;
+  }
+
+  //---
+
+  // dot product
+  double dotProduct(const Point3D &p) const {
+    return (x*p.x + y*p.y + z*p.z);
+  }
+
+  //---
+
+  Point3D &operator+=(const Point3D &rhs) { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
+
+  Point3D operator+(const Point3D &rhs) const { return Point3D(x + rhs.x, y + rhs.y, z + rhs.z); }
+
+  Point3D &operator/=(double rhs) { double irhs = 1.0/rhs; x *= irhs; y *= irhs; return *this; }
+
+  friend Point3D operator/(const Point3D &lhs, double rhs) {
+    double irhs = 1.0/rhs;
+
+    return Point3D(lhs.x*irhs, lhs.y*irhs, lhs.z*irhs);
+  }
+
+  //---
+
+  int cmp(const Point3D &p) const {
+    { if (x < p.x) return -1; } { if (x > p.x) return 1; }
+    { if (y < p.y) return -1; } { if (y > p.y) return 1; }
+    { if (z < p.z) return -1; } { if (z > p.z) return 1; }
+
+    return 0;
+  }
+
+  friend bool operator<(const Point3D &lhs, const Point3D &rhs) {
+    return lhs.cmp(rhs) < 0;
   }
 
   //---
@@ -2281,6 +2319,10 @@ class Range3D {
   double ymid() const { assert(set_); return (y2_ + y1_)/2; }
   double zmid() const { assert(set_); return (z2_ + z1_)/2; }
 
+  double xsize() const { return xmax() - xmin(); }
+  double ysize() const { return ymax() - ymin(); }
+  double zsize() const { return zmax() - zmin(); }
+
   void updateRange(double x, double y, double z) {
     if (! set_) {
       x1_ = x; y1_ = y; z1_ = z;
@@ -2297,6 +2339,23 @@ class Range3D {
  private:
   bool   set_ { false };
   double x1_ { 0 }, y1_ { 0 }, z1_ { 0 }, x2_ { 0 }, y2_ { 0 }, z2_ { 0 };
+};
+
+class Polygon3D {
+ public:
+  using Points = std::vector<Point3D>;
+
+ public:
+  Polygon3D() { }
+
+  const Points &points() const { return points_; }
+
+  void addPoint(const Point3D &p) {
+    points_.push_back(p);
+  }
+
+ private:
+  Points points_;
 };
 
 }

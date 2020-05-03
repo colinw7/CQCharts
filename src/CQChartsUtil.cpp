@@ -848,7 +848,7 @@ QString bboxToString(const CQChartsGeom::BBox &bbox) {
     return CQTcl::mergeList(strs);
   }
   else {
-    return "{ }";
+    return "";
   }
 }
 
@@ -1115,13 +1115,11 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
   // split at best and measure
   int split = splits[bestInd];
 
-  QChar c = splits[split];
-
   QString str1 = sstr.mid(0, split).trimmed();
 
   QString str2;
 
-  if (c == '\n')
+  if (sstr[split] == '\n')
     str2 = sstr.mid(split + 1).trimmed();
   else
     str2 = sstr.mid(split).trimmed();

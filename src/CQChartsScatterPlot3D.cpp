@@ -173,6 +173,43 @@ setZColumn(const CQChartsColumn &c)
 
 void
 CQChartsScatterPlot3D::
+setDrawSymbols(bool b)
+{
+  CQChartsUtil::testAndSet(drawSymbols_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsScatterPlot3D::
+setDrawLines(bool b)
+{
+  CQChartsUtil::testAndSet(drawLines_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot3D::
+setDrawBars(bool b)
+{
+  CQChartsUtil::testAndSet(drawBars_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot3D::
+setFillUnder(bool b)
+{
+  CQChartsUtil::testAndSet(fillUnder_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot3D::
+setBarSize(double s)
+{
+  CQChartsUtil::testAndSet(barSize_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsScatterPlot3D::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -191,6 +228,16 @@ addProperties()
 
   addProp("columns", "nameColumn" , "name" , "Name column");
   addProp("columns", "labelColumn", "label", "Label column");
+
+  //---
+
+  // options
+  addProp("options", "drawSymbols", "drawSymbols", "Draw symbols at points");
+  addProp("options", "drawLines"  , "drawLines"  , "Draw lines between points");
+  addProp("options", "drawBars"   , "drawBars"   , "Draw bars between points");
+  addProp("options", "fillUnder"  , "fillUnder"  , "Fill under lines between points");
+
+  addProp("options", "barSize", "barSize", "Bar size factor");
 
   //---
 
@@ -311,7 +358,7 @@ calcRange() const
 
         //---
 
-        if (plot_->isSkipBad() && (! okx || ! oky))
+        if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
           return State::SKIP;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
@@ -405,6 +452,23 @@ calcRange() const
   return CQChartsGeom::Range(-1, -1, 1, 1);
 }
 
+void
+CQChartsScatterPlot3D::
+postUpdateRange()
+{
+  CQChartsPlot3D::postUpdateRange();
+
+  groupObj_.clear();
+
+  addAxis(xColumn(), yColumn(), zColumn());
+
+  initGroups();
+
+  addPointObjects();
+
+  addObjs();
+}
+
 //------
 
 void
@@ -418,37 +482,8 @@ clearPlotObjects()
 
 bool
 CQChartsScatterPlot3D::
-createObjs(PlotObjs &objs) const
+createObjs(PlotObjs &) const
 {
-  CQPerfTrace trace("CQChartsScatterPlot3D::createObjs");
-
-  NoUpdate noUpdate(this);
-
-  auto *th = const_cast<CQChartsScatterPlot3D *>(this);
-
-  //---
-
-  // init value set
-  //initValueSets();
-
-  //---
-
-  // init name values
-  if (groupNameValues_.empty())
-    addNameValues();
-
-  th->groupPoints_.clear();
-
-  //---
-
-  th->updateColumnNames();
-
-  //---
-
-  addPointObjects(objs);
-
-  //---
-
   return true;
 }
 
@@ -470,8 +505,29 @@ updateColumnNames()
 
 void
 CQChartsScatterPlot3D::
-addPointObjects(PlotObjs &objs) const
+initGroups()
 {
+  auto *th = const_cast<CQChartsScatterPlot3D *>(this);
+
+  // init name values
+  if (groupNameValues_.empty())
+    addNameValues();
+
+  th->groupPoints_.clear();
+
+  //---
+
+  th->updateColumnNames();
+}
+
+void
+CQChartsScatterPlot3D::
+addPointObjects() const
+{
+  auto *th = const_cast<CQChartsScatterPlot3D *>(this);
+
+  //---
+
   auto *columnTypeMgr = charts()->columnTypeMgr();
 
   columnTypeMgr->startCache(model().data());
@@ -506,8 +562,6 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     // get group points
-    auto *th = const_cast<CQChartsScatterPlot3D *>(this);
-
     auto pg = th->groupPoints_.find(groupInd);
 
     if (pg == th->groupPoints_.end())
@@ -571,9 +625,14 @@ addPointObjects(PlotObjs &objs) const
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
 
-        objs.push_back(pointObj);
+      //objs.push_back(pointObj);
 
         points.push_back(p);
+
+        //---
+
+        // get point
+        th->addPointObj(p, pointObj);
 
         //---
 
@@ -712,7 +771,7 @@ addNameValues() const
 
       //---
 
-      if (plot_->isSkipBad() && (! okx || ! oky))
+      if (plot_->isSkipBad() && (! okx || ! oky || ! okz))
         return State::SKIP;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
@@ -967,8 +1026,6 @@ void
 CQChartsScatterPlot3D::
 execDrawBackground(CQChartsPaintDevice *device) const
 {
-  drawAxis(device);
-
   CQChartsPlot::execDrawBackground(device);
 }
 
@@ -990,8 +1047,179 @@ execDrawForeground(CQChartsPaintDevice *) const
 
 void
 CQChartsScatterPlot3D::
-postDrawObjs(CQChartsPaintDevice *) const
+preDrawObjs(CQChartsPaintDevice *device) const
 {
+  drawAxis(device);
+}
+
+void
+CQChartsScatterPlot3D::
+addObjs() const
+{
+  auto *th = const_cast<CQChartsScatterPlot3D *>(this);
+
+  int ng = groupPoints_.size();
+
+  if (isDrawBars()) {
+    for (auto &gp : groupPoints_) {
+      for (auto &p : gp.second) {
+        ColorInd ig(gp.first, ng);
+
+        th->addBarPolygons(p, ig);
+
+//      auto *barObj = new CQChartsScatterBar3DObj(this, p);
+
+//      barObj->setIg(ig);
+
+//      th->addPointObj(p, barObj);
+      }
+    }
+  }
+
+  if (isFillUnder()) {
+    for (auto &gp : groupPoints_) {
+      if (gp.second.empty())
+        continue;
+
+      auto &groupData = th->getGroupData(gp.first);
+
+      if (! groupData.polygon) {
+        auto p = gp.second[0];
+
+        //---
+
+        groupData.polygon = new CQChartsPolygon3DObj(this);
+
+        groupData.polygon->setIg(ColorInd(gp.first, ng));
+
+        th->addPointObj(p, groupData.polygon);
+      }
+
+      //---
+
+      bool first = true;
+
+      CQChartsGeom::Point3D p2;
+
+      for (auto &p : gp.second) {
+        p2 = p;
+
+        if (first) {
+          CQChartsGeom::Point3D p1(p2.x, p2.y, range3D_.zmin());
+
+          groupData.polygon->addPoint(p1);
+
+          first = false;
+        }
+
+        groupData.polygon->addPoint(p2);
+      }
+
+      if (! first) {
+        CQChartsGeom::Point3D p1(p2.x, p2.y, range3D_.zmin());
+
+        groupData.polygon->addPoint(p1);
+      }
+    }
+  }
+
+  //---
+
+  if (isDrawLines()) {
+    for (auto &gp : groupPoints_) {
+      if (gp.second.empty())
+        continue;
+
+      auto &groupData = th->getGroupData(gp.first);
+
+      if (! groupData.polyline) {
+        auto p = gp.second[0];
+
+        //---
+
+        groupData.polyline = new CQChartsPolyline3DObj(this);
+
+        groupData.polyline->setIg(ColorInd(gp.first, ng));
+
+        th->addPointObj(p, groupData.polyline);
+      }
+
+      //---
+
+      CQChartsGeom::Polygon poly;
+
+      for (auto &p : gp.second)
+        groupData.polyline->addPoint(p);
+    }
+  }
+}
+
+//---
+
+void
+CQChartsScatterPlot3D::
+addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig)
+{
+  const auto &range3D = this->range3D();
+
+  double dt = this->barSize();
+
+  double dx = dt*range3D.xsize();
+  double dy = dt*range3D.ysize();
+//double dz = dt*range3D.zsize();
+
+  CQChartsGeom::Point3D p1(p.x - dx, p.y - dy, p.z);
+  CQChartsGeom::Point3D p2(p.x + dx, p.y - dy, p.z);
+  CQChartsGeom::Point3D p3(p.x + dx, p.y + dy, p.z);
+  CQChartsGeom::Point3D p4(p.x - dx, p.y + dy, p.z);
+
+  CQChartsGeom::Point3D p5(p.x - dx, p.y - dy, range3D.zmin());
+  CQChartsGeom::Point3D p6(p.x + dx, p.y - dy, range3D.zmin());
+  CQChartsGeom::Point3D p7(p.x + dx, p.y + dy, range3D.zmin());
+  CQChartsGeom::Point3D p8(p.x - dx, p.y + dy, range3D.zmin());
+
+  auto createPoly = [&](const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
+                        const CQChartsGeom::Point3D &p3, const CQChartsGeom::Point3D &p4) {
+    CQChartsGeom::Polygon3D poly;
+
+    poly.addPoint(p1);
+    poly.addPoint(p2);
+    poly.addPoint(p3);
+    poly.addPoint(p4);
+
+    auto *polyObj = new CQChartsPolygon3DObj(this, poly);
+
+    polyObj->setIg(ig);
+
+    addPointObj((p1 + p2 + p3 + p4)/4.0, polyObj);
+  };
+
+  createPoly(p1, p2, p6, p5);
+  createPoly(p2, p3, p7, p6);
+  createPoly(p3, p4, p8, p7);
+  createPoly(p4, p1, p5, p8);
+  createPoly(p1, p2, p3, p4);
+}
+
+//---
+
+void
+CQChartsScatterPlot3D::
+postDrawObjs(CQChartsPaintDevice *device) const
+{
+  drawPointObjs(device);
+}
+
+CQChartsScatterPlot3D::GroupData &
+CQChartsScatterPlot3D::
+getGroupData(int groupId)
+{
+  auto pg = groupObj_.find(groupId);
+
+  if (pg == groupObj_.end())
+    pg = groupObj_.insert(pg, GroupObj::value_type(groupId, GroupData()));
+
+  return (*pg).second;
 }
 
 //------
@@ -1000,10 +1228,22 @@ CQChartsScatterPoint3DObj::
 CQChartsScatterPoint3DObj(const CQChartsScatterPlot3D *plot, int groupInd,
                           const CQChartsGeom::BBox &rect, const Point3D &pos,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsScatterPlot3D *>(plot), rect, is, ig, iv),
- plot_(plot), groupInd_(groupInd), pos_(pos)
+ CQChartsPlot3DObj(plot), groupInd_(groupInd), pos_(pos)
 {
+  setRect(rect);
+
+  setIs(is);
+  setIg(ig);
+  setIv(iv);
+
   setDetailHint(DetailHint::MAJOR);
+}
+
+const CQChartsScatterPlot3D *
+CQChartsScatterPoint3DObj::
+scatterPlot() const
+{
+  return dynamic_cast<const CQChartsScatterPlot3D *>(plot3D());
 }
 
 //---
@@ -1015,7 +1255,7 @@ symbolType() const
   auto symbolType = extraData().symbolType;
 
   if (! symbolType.isValid())
-    symbolType = plot_->symbolType();
+    symbolType = scatterPlot()->symbolType();
 
   return symbolType;
 }
@@ -1027,7 +1267,7 @@ symbolSize() const
   auto symbolSize = extraData().symbolSize;
 
   if (! symbolSize.isValid())
-    symbolSize = plot()->symbolSize();
+    symbolSize = scatterPlot()->symbolSize();
 
   return symbolSize;
 }
@@ -1084,7 +1324,7 @@ calcTipId() const
 
   // add group column
   if (ig_.n > 1) {
-    QString groupName = plot_->groupIndName(groupInd_);
+    QString groupName = scatterPlot()->groupIndName(groupInd_);
 
     tableTip.addTableRow("Group", groupName);
   }
@@ -1096,17 +1336,17 @@ calcTipId() const
   QString ystr = plot()->yStr(pos_.y);
   QString zstr = plot()->yStr(pos_.z);
 
-  tableTip.addTableRow(plot_->xHeaderName(), xstr);
-  tableTip.addTableRow(plot_->yHeaderName(), ystr);
-  tableTip.addTableRow(plot_->zHeaderName(), zstr);
+  tableTip.addTableRow(scatterPlot()->xHeaderName(), xstr);
+  tableTip.addTableRow(scatterPlot()->yHeaderName(), ystr);
+  tableTip.addTableRow(scatterPlot()->zHeaderName(), zstr);
 
   //---
 
   // get values for name (grouped id identical names)
   CQChartsScatterPlot3D::ValueData valuePoint;
 
-  auto pg = plot_->groupNameValues().find(groupInd_);
-  assert(pg != plot_->groupNameValues().end());
+  auto pg = scatterPlot()->groupNameValues().find(groupInd_);
+  assert(pg != scatterPlot()->groupNameValues().end());
 
   auto p = (*pg).second.find(name_);
 
@@ -1158,7 +1398,7 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  CQChartsCamera *camera = plot_->camera();
+  CQChartsCamera *camera = plot3D()->camera();
 
   auto pt = camera->transform(point());
 
@@ -1175,9 +1415,9 @@ void
 CQChartsScatterPoint3DObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
-  addColumnSelectIndex(inds, plot_->zColumn());
+  addColumnSelectIndex(inds, scatterPlot()->xColumn());
+  addColumnSelectIndex(inds, scatterPlot()->yColumn());
+  addColumnSelectIndex(inds, scatterPlot()->zColumn());
 
   addColumnSelectIndex(inds, plot_->colorColumn());
 }
@@ -1186,8 +1426,34 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsScatterPoint3DObj::
-draw(CQChartsPaintDevice *device)
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
+  ColorInd ic = calcColorInd();
+
+  scatterPlot()->setSymbolPenBrush(penBrush, ic);
+
+  // override symbol fill color for custom color
+  auto color = this->color();
+
+  if (color.isValid()) {
+    QColor c = plot_->interpColor(color, ic);
+
+    c.setAlphaF(scatterPlot()->symbolFillAlpha().value());
+
+    penBrush.brush.setColor(c);
+  }
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+}
+
+void
+CQChartsScatterPoint3DObj::
+postDraw(CQChartsPaintDevice *device)
+{
+  if (! scatterPlot()->isDrawSymbols())
+    return;
+
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
@@ -1207,51 +1473,136 @@ draw(CQChartsPaintDevice *device)
   CQChartsSymbol symbolType = this->symbolType();
   CQChartsLength symbolSize = this->symbolSize();
 
-  double sx, sy;
-
-  plot_->pixelSymbolSize(symbolSize, sx, sy);
+//double sx, sy;
+//plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
-  // get point
-  CQChartsCamera *camera = plot_->camera();
+  CQChartsCamera *camera = plot3D()->camera();
 
   auto pt = camera->transform(point());
 
-  auto ps = plot_->windowToPixel(CQChartsGeom::Point(pt.x, pt.y));
+  plot_->drawSymbol(device, pt.point2D(), symbolType, symbolSize, penBrush);
+}
 
-  //---
+//------
 
-  // draw symbol
-  auto ps1 = plot_->pixelToWindow(ps);
+#if 0
+CQChartsScatterBar3DObj::
+CQChartsScatterBar3DObj(const CQChartsScatterPlot3D *plot, const CQChartsGeom::Point3D &p) :
+ CQChartsPlot3DObj(plot), p_(p)
+{
+}
 
-  plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
-
-  device->resetColorNames();
+const CQChartsScatterPlot3D *
+CQChartsScatterBar3DObj::
+scatterPlot() const
+{
+  return dynamic_cast<const CQChartsScatterPlot3D *>(plot3D());
 }
 
 void
-CQChartsScatterPoint3DObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+CQChartsScatterBar3DObj::
+postDraw(CQChartsPaintDevice *device)
 {
-  ColorInd ic = calcColorInd();
+  const auto &range3D = plot3D()->range3D();
 
-  plot_->setSymbolPenBrush(penBrush, ic);
+  double dt = scatterPlot()->barSize();
 
-  // override symbol fill color for custom color
-  auto color = this->color();
+  double dx = dt*range3D.xsize();
+  double dy = dt*range3D.ysize();
+//double dz = dt*range3D.zsize();
 
-  if (color.isValid()) {
-    QColor c = plot_->interpColor(color, ic);
+  CQChartsGeom::Point3D p1(p_.x - dx, p_.y - dy, p_.z);
+  CQChartsGeom::Point3D p2(p_.x + dx, p_.y - dy, p_.z);
+  CQChartsGeom::Point3D p3(p_.x + dx, p_.y + dy, p_.z);
+  CQChartsGeom::Point3D p4(p_.x - dx, p_.y + dy, p_.z);
 
-    c.setAlphaF(plot_->symbolFillAlpha().value());
+  CQChartsGeom::Point3D p5(p_.x - dx, p_.y - dy, range3D.zmin());
+  CQChartsGeom::Point3D p6(p_.x + dx, p_.y - dy, range3D.zmin());
+  CQChartsGeom::Point3D p7(p_.x + dx, p_.y + dy, range3D.zmin());
+  CQChartsGeom::Point3D p8(p_.x - dx, p_.y + dy, range3D.zmin());
 
-    penBrush.brush.setColor(c);
+  CQChartsGeom::Polygon poly1;
+
+  CQChartsCamera *camera = plot3D()->camera();
+
+  using Polys  = std::vector<CQChartsGeom::Polygon>;
+  using ZPolys = std::map<double, Polys>;
+
+  ZPolys zpolys;
+
+  auto createPoly = [&](const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
+                        const CQChartsGeom::Point3D &p3, const CQChartsGeom::Point3D &p4) {
+    double z = camera->transform((p1 + p2 + p3 + p4)/4.0).z;
+
+    CQChartsGeom::Polygon poly;
+
+    poly.addPoint(camera->transform(p1).point2D());
+    poly.addPoint(camera->transform(p2).point2D());
+    poly.addPoint(camera->transform(p3).point2D());
+    poly.addPoint(camera->transform(p4).point2D());
+
+    zpolys[-z].push_back(poly);
+  };
+
+  createPoly(p1, p2, p6, p5);
+  createPoly(p2, p3, p7, p6);
+  createPoly(p3, p4, p8, p7);
+  createPoly(p4, p1, p5, p8);
+  createPoly(p1, p2, p3, p4);
+
+  CQChartsPenBrush penBrush;
+
+  QColor fc = plot_->charts()->interpPaletteColor(ig());
+  QColor pc = plot_->charts()->interpInterfaceColor(0.0);
+  QColor bg = plot_->charts()->interpInterfaceColor(1.0);
+
+  double z[8];
+
+  z[0] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmin(), range3D.ymin(), range3D.zmin())).z;
+  z[1] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmax(), range3D.ymin(), range3D.zmin())).z;
+  z[2] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmax(), range3D.ymax(), range3D.zmin())).z;
+  z[3] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmin(), range3D.ymax(), range3D.zmin())).z;
+  z[4] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmin(), range3D.ymin(), range3D.zmax())).z;
+  z[5] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmax(), range3D.ymin(), range3D.zmax())).z;
+  z[6] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmax(), range3D.ymax(), range3D.zmax())).z;
+  z[7] = camera->transform(
+    CQChartsGeom::Point3D(range3D.xmin(), range3D.ymax(), range3D.zmax())).z;
+
+  double zmin = z[0];
+  double zmax = z[0];
+
+  for (int i = 1; i < 7; ++i) {
+    zmin = std::min(zmin, z[i]);
+    zmax = std::max(zmax, z[i]);
   }
 
-  if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  for (const auto &pz : zpolys) {
+    double z = -pz.first;
+
+    for (const auto &zp : pz.second) {
+      double s = CMathUtil::map(z, zmin, zmax, 1.0, 0.3);
+
+      QColor fc1 = CQChartsUtil::blendColors(fc, bg, s);
+
+      plot_->setPenBrush(penBrush, CQChartsPenData(true, pc, CQChartsAlpha(0.2)),
+                         CQChartsBrushData(true, fc1));
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      device->drawPolygon(zp);
+    }
+  }
 }
+#endif
 
 //------
 

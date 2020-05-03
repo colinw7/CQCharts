@@ -6,6 +6,8 @@
 /*!
  * \brief class to contain charts alpha
  * \ingroup Charts
+ *
+ * TODO: support percent value e.g. 50%
  */
 class CQChartsAlpha {
  public:

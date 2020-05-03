@@ -34,13 +34,6 @@ class CQChartsXYPlane {
 
 class CQChartsCamera {
  public:
-  enum class AxesScale {
-    NONE,
-    XY,
-    XYZ
-  };
-
- public:
   CQChartsCamera(CQChartsPlot3D *plot=nullptr);
 
   virtual ~CQChartsCamera();
@@ -108,13 +101,10 @@ class CQChartsCamera {
 
   //---
 
-  void resetZoom() { scaleX_ = 1; scaleY_ = 1; scaleZ_ = 1; }
+  void resetZoom() { scaleX_ = 0.707; scaleY_ = 0.707; scaleZ_ = 0.707; }
 
   void zoomIn (double f=1.1) { scaleX_ *= f; scaleY_ *= f; scaleZ_ *= f; }
   void zoomOut(double f=1.1) { scaleX_ /= f; scaleY_ /= f; scaleZ_ /= f; }
-
-  const AxesScale &axesScale() const { return axesScale_; }
-  void setAxesScale(const AxesScale &v) { axesScale_ = v; }
 
   void setPosition(const CQChartsGeom::Point3D &position) {
     coordFrame_.setOrigin(CPoint3D(position.x, position.y, position.z));
@@ -130,8 +120,8 @@ class CQChartsCamera {
   void rotateDY(double dy) { coordFrame_.rotateAboutY(dy); }
   void rotateDZ(double dz) { coordFrame_.rotateAboutZ(dz); }
 
-  double fieldOfView() const { return fov_; }
-  void setFieldOfView(double r) { fov_ = r; }
+//double fieldOfView() const { return fov_; }
+//void setFieldOfView(double r) { fov_ = r; }
 
   const CQChartsXYPlane &xyPlane() const { return xyPlane_; }
   void setXYPlane(const CQChartsXYPlane &v) { xyPlane_ = v; }
@@ -144,7 +134,8 @@ class CQChartsCamera {
 
   void planeZRange(double &zmin, double &zmax) const;
 
-  CQChartsGeom::Point3D transform(const CQChartsGeom::Point3D &p) const;
+  CQChartsGeom::Point3D transform  (const CQChartsGeom::Point3D &p) const;
+  CQChartsGeom::Point3D untransform(const CQChartsGeom::Point3D &p) const;
 
   void showView(std::ostream &os) const;
 
@@ -162,15 +153,15 @@ class CQChartsCamera {
   double                rotateX_    { 60.0 };
   double                rotateY_    {  0.0 };
   double                rotateZ_    { 30.0 };
-  double                scaleX_     { 1.0 };
-  double                scaleY_     { 1.0 };
-  double                scaleZ_     { 1.0 };
-  AxesScale             axesScale_  { AxesScale::NONE };
+  double                scaleX_     { 0.707 };
+  double                scaleY_     { 0.707 };
+  double                scaleZ_     { 0.707 };
   CCoordFrame3D         coordFrame_;
   CQChartsGeom::Point3D direction_  { 0, 0, 1 };
-  double                fov_        { 90 };
+//double                fov_        { 90 };
   CQChartsXYPlane       xyPlane_;
   mutable CMatrix3DH    projMatrix_;
+  mutable CMatrix3DH    iprojMatrix_;
 };
 
 typedef std::shared_ptr<CQChartsCamera> CQChartsCameraP;

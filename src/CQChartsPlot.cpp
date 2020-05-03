@@ -2550,6 +2550,7 @@ addBaseProperties()
   addProp("columns", "tipColumns"    , "tips"    , "Tip columns");
   addProp("columns", "visibleColumn" , "visible" , "Visible column");
   addProp("columns", "colorColumn"   , "color"   , "Color column");
+  addProp("columns", "fontColumn"    , "font"    , "Font column");
   addProp("columns", "imageColumn"   , "image"   , "Image column");
   addProp("columns", "controlColumns", "controls", "Control columns");
 
@@ -4734,6 +4735,7 @@ updateColumnNames()
 {
   setColumnHeaderName(idColumn   (), "Id"   );
   setColumnHeaderName(colorColumn(), "Color");
+  setColumnHeaderName(fontColumn (), "Font" );
   setColumnHeaderName(imageColumn(), "Image");
 }
 
@@ -6658,7 +6660,7 @@ modelIndexColor(const CQChartsModelIndex &colorInd, CQChartsColor &color) const
   if (! colorColumnData_.valid)
     return false;
 
-  // get mode edit value
+  // get model edit value
   bool ok;
 
   QVariant var = modelValue(colorInd, ok);
@@ -6671,68 +6673,137 @@ bool
 CQChartsPlot::
 columnValueColor(const QVariant &var, CQChartsColor &color) const
 {
-  if (colorColumnData_.mapped) {
-    if (CQChartsVariant::isNumeric(var)) {
-      bool ok;
+  auto colorFromPaletteValue = [&](double r) {
+    // use named palette if defined or current palette value
+    CQChartsColor color;
 
-      double r = CQChartsVariant::toReal(var, ok);
-      if (! ok) return false;
+    if (colorColumnData_.palette != "") {
+      auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
 
-      double r1 =
-        CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
-
-      if (r1 < 0.0 || r1 > 1.0)
-        return false;
-
-      if (colorColumnData_.palette != "") {
-        auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
-
-        if (palette)
-          color = palette->getColor(r1);
-      }
-      else
-        color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
+      if (palette)
+        color = palette->getColor(r);
     }
-    else {
-      if (CQChartsVariant::isColor(var)) {
-        bool ok;
-        color = CQChartsVariant::toColor(var, ok);
-      }
-      else {
-        auto *columnDetails = this->columnDetails(colorColumn());
-        if (! columnDetails) return false;
+    else
+      color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 
-        // use unique index/count of edit values (which may have been converted)
-        // not same as CQChartsColumnColorType::userData
-        int n = columnDetails->numUnique();
-        int i = columnDetails->valueInd(var);
+    return color;
+  };
 
-        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
+  //---
 
-        if (colorColumnData_.palette != "") {
-          auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
+  if (CQChartsVariant::isNumeric(var)) {
+    // get real value
+    bool ok;
+    double r = CQChartsVariant::toReal(var, ok);
+    if (! ok) return false;
 
-          if (palette)
-            color = palette->getColor(r);
-        }
-        else
-          color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
-      }
-    }
+    //--
+
+    // map real from data range if enabled
+    double r1;
+
+    if (colorColumnData_.mapped)
+      r1 = CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
+    else
+      r1 = r;
+
+    // skip if invalid value
+    if (r1 < 0.0 || r1 > 1.0) return false;
+
+    //--
+
+    color = colorFromPaletteValue(r1);
+  }
+  else if (CQChartsVariant::isColor(var)) {
+    // use color value directly
+    bool ok;
+    color = CQChartsVariant::toColor(var, ok);
   }
   else {
-    if (CQChartsVariant::isColor(var)) {
-      bool ok;
-      color = CQChartsVariant::toColor(var, ok);
+    if (colorColumnData_.mapped) {
+      // use index of value in unique values to generate value in range
+      auto *columnDetails = this->columnDetails(colorColumn());
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorType::userData
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+
+      color = colorFromPaletteValue(r);
     }
     else {
-      color = CQChartsColor(var.toString());
+      bool ok;
+      QString str = CQChartsVariant::toString(var, ok);
+
+      color = CQChartsColor(str);
     }
   }
 
   return color.isValid();
 }
 
+//------
+
+void
+CQChartsPlot::
+setFontColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(fontColumn_, c, [&]() { updateObjs(); } );
+}
+
+bool
+CQChartsPlot::
+fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const
+{
+  CQChartsModelIndex fontInd(row, fontColumn(), parent);
+
+  return modelIndexFont(fontInd, font);
+}
+
+bool
+CQChartsPlot::
+modelIndexFont(const CQChartsModelIndex &fontInd, CQChartsFont &font) const
+{
+  // get model edit value
+  bool ok;
+
+  QVariant var = modelValue(fontInd, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  return columnValueFont(var, font);
+}
+
+bool
+CQChartsPlot::
+columnValueFont(const QVariant &var, CQChartsFont &font) const
+{
+  if (CQChartsVariant::isNumeric(var)) {
+    // get real value
+    bool ok;
+    double r = CQChartsVariant::toReal(var, ok);
+    if (! ok) return false;
+
+    //--
+
+    font.setFontSize(r);
+  }
+  else if (CQChartsVariant::isFont(var)) {
+    // use font value directly
+    bool ok;
+    font = CQChartsVariant::toFont(var, ok);
+  }
+  else {
+    bool ok;
+    QString str = CQChartsVariant::toString(var, ok);
+
+    font = CQChartsFont(str);
+  }
+
+  return font.isValid();
+}
 //------
 
 QString
@@ -10460,6 +10531,13 @@ CQChartsPlot::
 interpThemeColor(const ColorInd &ind) const
 {
   return view()->interpThemeColor(ind);
+}
+
+QColor
+CQChartsPlot::
+interpInterfaceColor(double r) const
+{
+  return view()->interpInterfaceColor(r);
 }
 
 QColor

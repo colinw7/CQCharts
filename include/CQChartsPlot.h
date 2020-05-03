@@ -138,6 +138,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
   Q_PROPERTY(CQChartsColumn  visibleColumn  READ visibleColumn  WRITE setVisibleColumn )
   Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(CQChartsColumn  fontColumn     READ fontColumn     WRITE setFontColumn    )
   Q_PROPERTY(CQChartsColumn  imageColumn    READ imageColumn    WRITE setImageColumn   )
   Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
 
@@ -1265,6 +1266,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void interruptRange();
 
+ protected:
   bool isReady() const;
 
  public:
@@ -1487,6 +1489,9 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsColumn &colorColumn() const { return colorColumnData_.column; };
   void setColorColumn(const CQChartsColumn &c);
 
+  const CQChartsColumn &fontColumn() const { return fontColumn_; };
+  void setFontColumn(const CQChartsColumn &c);
+
   const CQChartsColumns &controlColumns() const { return controlColumns_; }
   void setControlColumns(const CQChartsColumns &columns);
 
@@ -1516,12 +1521,21 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // column
+  // color column
   bool colorColumnColor(int row, const QModelIndex &parent, CQChartsColor &color) const;
 
   bool modelIndexColor(const CQChartsModelIndex &ind, CQChartsColor &color) const;
 
   bool columnValueColor(const QVariant &var, CQChartsColor &color) const;
+
+  //---
+
+  // font column
+  bool fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const;
+
+  bool modelIndexFont(const CQChartsModelIndex &ind, CQChartsFont &font) const;
+
+  bool columnValueFont(const QVariant &var, CQChartsFont &font) const;
 
   //---
 
@@ -1539,9 +1553,9 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // handle mouse press/move/release
-  bool selectMousePress  (const CQChartsGeom::Point &p, SelMod selMod);
-  bool selectMouseMove   (const CQChartsGeom::Point &p, bool first=false);
-  bool selectMouseRelease(const CQChartsGeom::Point &p);
+  virtual bool selectMousePress  (const CQChartsGeom::Point &p, SelMod selMod);
+  virtual bool selectMouseMove   (const CQChartsGeom::Point &p, bool first=false);
+  virtual bool selectMouseRelease(const CQChartsGeom::Point &p);
 
   virtual bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod);
   virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
@@ -2094,6 +2108,8 @@ class CQChartsPlot : public CQChartsObj,
  public:
   QColor interpThemeColor(const ColorInd &ind) const;
 
+  QColor interpInterfaceColor(double r) const;
+
  public:
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
 
@@ -2151,8 +2167,9 @@ class CQChartsPlot : public CQChartsObj,
   QString columnsHeaderName(const CQChartsColumns &columns) const;
   QString columnHeaderName(const CQChartsColumn &column) const;
 
-  QString idHeaderName   () const { return columnHeaderName(idColumn()); }
+  QString idHeaderName   () const { return columnHeaderName(idColumn   ()); }
   QString colorHeaderName() const { return columnHeaderName(colorColumn()); }
+  QString fontHeaderName () const { return columnHeaderName(fontColumn ()); }
   QString imageHeaderName() const { return columnHeaderName(imageColumn()); }
 
   virtual void updateColumnNames();
@@ -2604,6 +2621,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn  idColumn_;       //!< unique data id column (signalled)
   CQChartsColumns tipColumns_;     //!< tip columns
   CQChartsColumn  visibleColumn_;  //!< visible column
+  CQChartsColumn  fontColumn_;     //!< font column
   CQChartsColumn  imageColumn_;    //!< image column
   CQChartsColumns controlColumns_; //!< control columns
 

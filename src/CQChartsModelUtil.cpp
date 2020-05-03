@@ -988,6 +988,25 @@ getBaseModel(QAbstractItemModel *model)
   return CQModelUtil::getBaseModel(model);
 }
 
+void
+getProxyModels(QAbstractItemModel *model, std::vector<QAbstractProxyModel *> &proxyModels,
+               QAbstractItemModel* &sourceModel)
+{
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(model);
+
+  if (proxyModel) {
+    while (proxyModel) {
+      proxyModels.push_back(proxyModel);
+
+      sourceModel = proxyModel->sourceModel();
+
+      proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+    }
+  }
+  else
+    sourceModel = model;
+}
+
 //---
 
 #if 0
@@ -1230,15 +1249,11 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return row + column.rowOffset();
   }
   else if (column.type() == CQChartsColumn::Type::VHEADER) {
-    bool ok;
-
     QVariant var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 
     return var;
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
-    bool ok;
-
     QVariant var =
       CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, CQBaseModelRole::Group, ok);
 

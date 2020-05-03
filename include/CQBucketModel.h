@@ -12,7 +12,15 @@
 class CQBucketModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(int bucketColumn READ bucketColumn WRITE setBucketColumn)
+  Q_PROPERTY(int    bucketColumn   READ bucketColumn     WRITE setBucketColumn  )
+  Q_PROPERTY(int    bucketRole     READ bucketRole       WRITE setBucketRole    )
+  Q_PROPERTY(bool   bucketIntegral READ isBucketIntegral WRITE setBucketIntegral)
+  Q_PROPERTY(double bucketStart    READ bucketStart      WRITE setBucketStart   )
+  Q_PROPERTY(double bucketDelta    READ bucketDelta      WRITE setBucketDelta   )
+  Q_PROPERTY(double bucketMin      READ bucketMin        WRITE setBucketMin     )
+  Q_PROPERTY(double bucketMax      READ bucketMax        WRITE setBucketMax     )
+  Q_PROPERTY(int    bucketCount    READ bucketCount      WRITE setBucketCount   )
+  Q_PROPERTY(bool   multiColumn    READ isMultiColumn    WRITE setMultiColumn   )
 
  public:
   CQBucketModel(QAbstractItemModel *model, const CQBucketer &bucketer=CQBucketer());

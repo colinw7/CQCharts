@@ -115,6 +115,9 @@ QSortFilterProxyModel *getSortFilterProxyModel(QAbstractItemModel *model);
 
 QAbstractItemModel *getBaseModel(QAbstractItemModel *model);
 
+void getProxyModels(QAbstractItemModel *model, std::vector<QAbstractProxyModel *> &proxyModels,
+                    QAbstractItemModel* &sourceModel);
+
 //bool getProperty(const QAbstractItemModel *model, const QString &name, QVariant &value);
 //bool setProperty(QAbstractItemModel *model, const QString &name, const QVariant &value);
 

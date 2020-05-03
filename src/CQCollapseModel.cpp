@@ -1,4 +1,5 @@
 #include <CQCollapseModel.h>
+#include <CQBaseModel.h>
 #include <set>
 #include <cassert>
 
@@ -26,7 +27,94 @@ void
 CQCollapseModel::
 setSourceModel(QAbstractItemModel *sourceModel)
 {
+  connectSlots(false);
+
   QAbstractProxyModel::setSourceModel(sourceModel);
+
+  connectSlots(true);
+}
+
+//------
+
+void
+CQCollapseModel::
+connectSlots(bool b)
+{
+  QAbstractItemModel *model = this->sourceModel();
+  if (! model) return;
+
+  auto connectDisconnect = [&](bool b, const char *from, const char *to) {
+    if (b)
+      QObject::connect(model, from, this, to);
+    else
+      QObject::disconnect(model, from, this, to);
+  };
+
+  connectDisconnect(b, SIGNAL(columnsInserted(const QModelIndex &, int, int)), SLOT(resetSlot()));
+  connectDisconnect(b, SIGNAL(columnsMoved(const QModelIndex &, int, int,
+                              const QModelIndex &, int)), SLOT(resetSlot()));
+  connectDisconnect(b, SIGNAL(columnsRemoved(const QModelIndex &, int, int)), SLOT(resetSlot()));
+
+  connectDisconnect(b, SIGNAL(modelReset()), SLOT(resetSlot()));
+
+  connectDisconnect(b, SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(resetSlot()));
+  connectDisconnect(b, SIGNAL(rowsMoved(const QModelIndex &, int, int,
+                              const QModelIndex &, int)), SLOT(resetSlot()));
+  connectDisconnect(b, SIGNAL(rowsRemoved(const QModelIndex &, int, int)), SLOT(resetSlot()));
+}
+
+//------
+
+QString
+CQCollapseModel::
+columnTypes() const
+{
+  auto *th = const_cast<CQCollapseModel *>(this);
+
+  int nc = columnCount();
+
+  QStringList strs;
+
+  for (int i = 0; i < nc; ++i) {
+    const ColumnConfig &columnConfig = th->getColumnConfig(i);
+
+    strs << CQBaseModel::typeName(columnConfig.type);
+  }
+
+  return strs.join(" ");
+}
+
+void
+CQCollapseModel::
+setColumnTypes(const QString &)
+{
+}
+
+QString
+CQCollapseModel::
+collapseOps() const
+{
+  auto *th = const_cast<CQCollapseModel *>(this);
+
+  int nc = columnCount();
+
+  QStringList strs;
+
+  for (int i = 0; i < nc; ++i) {
+    const ColumnConfig &columnConfig = th->getColumnConfig(i);
+
+    if      (columnConfig.collapseOp == CollapseOp::UNIQUE) strs << "unique";
+    else if (columnConfig.collapseOp == CollapseOp::SUM   ) strs << "sum";
+    else if (columnConfig.collapseOp == CollapseOp::MEAN  ) strs << "mean";
+  }
+
+  return strs.join(" ");
+}
+
+void
+CQCollapseModel::
+setCollapseOps(const QString &)
+{
 }
 
 //------
@@ -39,13 +127,11 @@ setColumnType(int column, CQBaseModelType type)
 
   columnConfig.type = type;
 
-  int nr = rowCount();
+  beginResetModel();
 
-  for (int r = 0; r < nr; ++r) {
-    VariantData &variantData = getVariantData(r, column, Qt::DisplayRole);
+  resetColumnDisplayValues(column);
 
-    variantData.resetDisplayValue();
-  }
+  endResetModel();
 }
 
 void
@@ -56,6 +142,40 @@ setColumnCollapseOp(int column, CollapseOp op)
 
   columnConfig.collapseOp = op;
 
+  beginResetModel();
+
+  resetColumnDisplayValues(column);
+
+  endResetModel();
+}
+
+//------
+
+void
+CQCollapseModel::
+resetSlot()
+{
+  beginResetModel();
+
+  resetDisplayValues();
+
+  endResetModel();
+}
+
+void
+CQCollapseModel::
+resetDisplayValues()
+{
+  int nc = columnCount();
+
+  for (int i = 0; i < nc; ++i)
+    resetColumnDisplayValues(i);
+}
+
+void
+CQCollapseModel::
+resetColumnDisplayValues(int column)
+{
   int nr = rowCount();
 
   for (int r = 0; r < nr; ++r) {
@@ -164,7 +284,9 @@ data(const QModelIndex &index, int role) const
 
     VariantData &variantData = getVariantData(r, c, role);
 
-    ColumnConfig &columnConfig = const_cast<CQCollapseModel *>(this)->getColumnConfig(c);
+    auto *th = const_cast<CQCollapseModel *>(this);
+
+    ColumnConfig &columnConfig = th->getColumnConfig(c);
 
     return variantData.displayValue(columnConfig);
   }
@@ -218,7 +340,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (orientation == Qt::Horizontal) {
     if (role == static_cast<int>(CQBaseModelRole::Type) ||
         role == static_cast<int>(CQBaseModelRole::BaseType)) {
-      ColumnConfig &columnConfig = const_cast<CQCollapseModel *>(this)->getColumnConfig(section);
+      auto *th = const_cast<CQCollapseModel *>(this);
+
+      ColumnConfig &columnConfig = th->getColumnConfig(section);
 
       if      (role == static_cast<int>(CQBaseModelRole::Type)) {
         return static_cast<int>(columnConfig.type);
@@ -374,7 +498,7 @@ collapseRowColumn(int row, int column, int role, VariantData &variantData) const
 
   QModelIndex ind = model->index(row, column, QModelIndex());
 
-  QVariant var = model->data(ind, role);
+  QVariant var = model->data(ind, Qt::DisplayRole);
 
   variantData.setParent(var);
 

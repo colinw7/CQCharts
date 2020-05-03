@@ -53,6 +53,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
   Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
+  Q_PROPERTY(CQChartsFont   font       READ font       WRITE setFont      )
 
  public:
   enum Dir {
@@ -115,6 +116,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   CQChartsColor color() const;
   void setColor(const CQChartsColor &c) { extraData().color = c; }
 
+  // font
+  CQChartsFont font() const;
+  void setFont(const CQChartsFont &f) { extraData().font = f; }
+
   //---
 
   bool inside(const Point &p) const override;
@@ -140,8 +145,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   struct ExtraData {
     CQChartsSymbol symbolType { CQChartsSymbol::Type::NONE }; //!< symbol type
     CQChartsLength symbolSize { CQChartsUnits::NONE, 0.0 };   //!< symbol size
-    CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
     CQChartsColor  color;                                     //!< symbol fill color
+    CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
+    CQChartsFont   font;                                      //!< text font
   };
 
  private:

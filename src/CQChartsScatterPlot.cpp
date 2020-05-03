@@ -1127,6 +1127,16 @@ addPointObjects(PlotObjs &objs) const
 
         //---
 
+        // set optional font
+        if (fontColumn().isValid()) {
+          CQChartsFont font;
+
+          if (fontColumnFont(valuePoint.row, valuePoint.ind.parent(), font))
+            pointObj->setFont(font);
+        }
+
+        //---
+
         // set optional symbol fill color
         CQChartsColor symbolColor(CQChartsColor::Type::NONE);
 
@@ -2928,6 +2938,15 @@ color() const
   return color;
 }
 
+CQChartsFont
+CQChartsScatterPointObj::
+font() const
+{
+  auto font = extraData().font;
+
+  return font;
+}
+
 //---
 
 QString
@@ -3187,20 +3206,22 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     //---
 
     // set (temp) font
-    auto font = dataLabel->textFont();
+    auto font = this->font();
 
-    if (fontSize.isValid()) {
-      double fontPixelSize = plot_->lengthPixelHeight(fontSize);
+    if (! font.isValid()) {
+      font = dataLabel->textFont();
 
-      // scale to font size
-      fontPixelSize = plot_->limitFontSize(fontPixelSize);
+      if (fontSize.isValid()) {
+        double fontPixelSize = plot_->lengthPixelHeight(fontSize);
 
-      auto font1 = font;
+        // scale to font size
+        fontPixelSize = plot_->limitFontSize(fontPixelSize);
 
-      font1.setPointSizeF(fontPixelSize);
-
-      const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font1);
+        font.setPointSizeF(fontPixelSize);
+      }
     }
+
+    const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
 
     //---
 

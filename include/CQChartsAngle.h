@@ -1,17 +1,26 @@
 #ifndef CQChartsAngle_H
 #define CQChartsAngle_H
 
+#include <CMathUtil.h>
 #include <QString>
 
 /*!
  * \brief class to contain charts angle (degrees)
  * \ingroup Charts
+ *
+ * TODO: support postfix for type of degrees/radians
  */
 class CQChartsAngle {
  public:
   static void registerMetaType();
 
   static int metaTypeId;
+
+ public:
+  enum Type {
+    DEGREES,
+    RADIANS
+  };
 
  public:
   //! default constructor
@@ -29,6 +38,11 @@ class CQChartsAngle {
   //---
 
   bool isValid() const { return true; }
+
+  //---
+
+  double degrees() const { return a_; }
+  double radians() const { return CMathUtil::Deg2Rad(a_); }
 
   //---
 

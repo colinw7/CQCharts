@@ -336,7 +336,7 @@ calcRange() const
   double r = std::max(1.0, labelRadius());
 
   double angle1 = startAngle().value();
-  double alen   = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
+  double alen   = CQChartsUtil::clampDegrees(angleExtent().value());
   double angle2 = angle1 + alen;
 
   // add segment outside points
@@ -970,7 +970,7 @@ adjustObjAngles() const
       double ga = gapAngle().value();
 
       double angle1    = startAngle().value();
-      double alen      = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
+      double alen      = CQChartsUtil::clampDegrees(angleExtent().value());
       double dataTotal = groupObj->dataTotal();
 
       int numObjs = groupObj->objs().size();
@@ -1419,11 +1419,11 @@ draw(CQChartsPaintDevice *device)
   double ro = outerRadius();
   double rv = valueRadius();
 
-//double ga = plot_->gapAngle().value()/2.0;
-  double ga = 0.0;
+//CQChartsAngle ga = plot_->gapAngle().value()/2.0;
+  CQChartsAngle ga { 0.0 };
 
-  CQChartsAngle aa1(angle1().value() + ga);
-  CQChartsAngle aa2(angle2().value() - ga);
+  CQChartsAngle aa1 = angle1() + ga;
+  CQChartsAngle aa2 = angle2() - ga;
 
   //---
 
@@ -1761,7 +1761,7 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CMathUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
+  double a = CMathUtil::Rad2Deg(CQChartsGeom::pointAngle(center, p));
   a = CMathUtil::normalizeAngle(a);
 
   double a1 = startAngle().value(); a1 = CMathUtil::normalizeAngle(a1);

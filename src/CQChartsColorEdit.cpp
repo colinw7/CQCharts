@@ -3,6 +3,7 @@
 #include <CQChartsObj.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 #include <CQColorsEditModel.h>
@@ -174,7 +175,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsColor color = value.value<CQChartsColor>();
+  bool ok;
+  CQChartsColor color = CQChartsVariant::toColor(value, ok);
+  if (! ok) return;
 
   int x = option.rect.left();
 
@@ -222,9 +225,11 @@ QString
 CQChartsColorPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsColor>().colorStr();
+  bool ok;
+  CQChartsColor color = CQChartsVariant::toColor(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return color.colorStr();
 }
 
 //------
@@ -261,7 +266,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->color());
+  return CQChartsVariant::fromColor(edit->color());
 }
 
 void
@@ -271,7 +276,9 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
-  CQChartsColor color = var.value<CQChartsColor>();
+  bool ok;
+  CQChartsColor color = CQChartsVariant::toColor(var, ok);
+  if (! ok) return;
 
   edit->setColor(color);
 }

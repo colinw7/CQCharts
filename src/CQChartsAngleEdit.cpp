@@ -1,5 +1,6 @@
 #include <CQChartsAngleEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -99,7 +100,11 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  QString str = value.value<CQChartsAngle>().toString();
+  bool ok;
+  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  if (! ok) return;
+
+  QString str = angle.toString();
 
   QFontMetrics fm(option.font);
 
@@ -118,9 +123,11 @@ QString
 CQChartsAnglePropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsAngle>().toString();
+  bool ok;
+  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return angle.toString();
 }
 
 //------
@@ -151,17 +158,19 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsAngleEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->angle());
+  return CQChartsVariant::fromAngle(edit->angle());
 }
 
 void
 CQChartsAnglePropertyViewEditor::
-setValue(QWidget *w, const QVariant &var)
+setValue(QWidget *w, const QVariant &value)
 {
   auto *edit = qobject_cast<CQChartsAngleEdit *>(w);
   assert(edit);
 
-  CQChartsAngle angle = var.value<CQChartsAngle>();
+  bool ok;
+  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  if (! ok) return;
 
   edit->setAngle(angle);
 }

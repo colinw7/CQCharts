@@ -118,6 +118,28 @@ setKeepFoldColumn(bool b)
 
 void
 CQFoldedModel::
+setBucketCount(int i)
+{
+  if (i != foldData_.numAuto()) {
+    foldData_.setNumAuto(i);
+
+    setFoldData(foldData_);
+  }
+}
+
+void
+CQFoldedModel::
+setBucketDelta(double r)
+{
+  if (r != foldData_.delta()) {
+    foldData_.setDelta(r);
+
+    setFoldData(foldData_);
+  }
+}
+
+void
+CQFoldedModel::
 connectSlots(bool b)
 {
   QAbstractItemModel *model = this->sourceModel();
@@ -504,19 +526,19 @@ data(const QModelIndex &index, int role) const
       // return fold text in fold column for display role
       // TODO: other roles
       if      (role == Qt::DisplayRole) {
-        if (c == foldPos_)
+        if (c == foldPos())
           return nodeData.child->str;
 
         return "";
       }
       else if (role == Qt::EditRole) {
-        if (c == foldPos_)
+        if (c == foldPos())
           return nodeData.child->bucket;
 
         return "";
       }
       else if (role == Qt::ToolTipRole) {
-        if (c == foldPos_)
+        if (c == foldPos())
           return QString("%1 (%2)").arg(nodeData.child->str).arg(nodeData.child->bucket);
 
         return "";
@@ -607,6 +629,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   //---
 
   if (role == static_cast<int>(CQBaseModelRole::Type) ||
+      role == static_cast<int>(CQBaseModelRole::BaseType) ||
       role == static_cast<int>(CQBaseModelRole::TypeValues) ||
       role == static_cast<int>(CQBaseModelRole::Min) ||
       role == static_cast<int>(CQBaseModelRole::Max) ||
@@ -625,20 +648,19 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return model->headerData(c, orientation, role);
     }
 
+    if (section == foldColumn()) {
+      if (role == static_cast<int>(CQBaseModelRole::Type) ||
+          role == static_cast<int>(CQBaseModelRole::BaseType)) {
+        return QVariant((int) CQBaseModelType::STRING);
+      }
+    }
+
     int c = mapColumnToSource(section);
     if (c < 0) return QVariant();
 
     QVariant value = model->headerData(c, orientation, role);
 
-    if (value.isValid())
-      return value;
-
-    if (role == static_cast<int>(CQBaseModelRole::Type)) {
-      return QVariant((int) CQBaseModelType::STRING);
-    }
-    else {
-      return value;
-    }
+    return value;
   }
   else if (role == static_cast<int>(CQBaseModelRole::Key)) {
     if (section == foldColumn())
@@ -852,24 +874,24 @@ initSourceColumns()
     sourceColumns_[i] = i;
 
   if (! isKeepFoldColumn()) {
-    if      (foldPos_ < foldColumn()) {
-      for (int i = foldColumn(); i >= foldPos_ + 1; --i)
+    if      (foldPos() < foldColumn()) {
+      for (int i = foldColumn(); i >= foldPos() + 1; --i)
         sourceColumns_[i] = sourceColumns_[i - 1];
 
-      sourceColumns_[foldPos_] = foldColumn();
+      sourceColumns_[foldPos()] = foldColumn();
     }
-    else if (foldPos_ > foldColumn()) {
-      for (int i = foldColumn() + 1; i <= foldPos_; ++i)
+    else if (foldPos() > foldColumn()) {
+      for (int i = foldColumn() + 1; i <= foldPos(); ++i)
         sourceColumns_[i - 1] = sourceColumns_[i];
 
-      sourceColumns_[foldPos_] = foldColumn();
+      sourceColumns_[foldPos()] = foldColumn();
     }
   }
   else {
-    for (int i = numColumns_ - 1; i >= foldPos_ + 1; --i)
+    for (int i = numColumns_ - 1; i >= foldPos() + 1; --i)
       sourceColumns_[i] = sourceColumns_[i - 1];
 
-    sourceColumns_[foldPos_] = foldColumn();
+    sourceColumns_[foldPos()] = foldColumn();
   }
 }
 

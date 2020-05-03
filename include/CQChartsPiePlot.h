@@ -285,8 +285,6 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   QString calcTipId() const override;
 
-  void getSelectIndices(Indices &) const override { }
-
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(CQChartsPaintDevice *device) override;

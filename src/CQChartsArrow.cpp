@@ -97,7 +97,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
     }
 
     Angle(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
-      angle = std::atan2(p2.y - p1.y, p2.x - p1.x);
+      angle = CQChartsGeom::pointAngle(p1, p2);
 
       init();
     }

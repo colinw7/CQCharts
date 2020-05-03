@@ -32,6 +32,8 @@ inline bool isReal(const QVariant &var) {
 
 double toReal(const QVariant &var, bool &ok);
 
+double toConvertedReal(const QVariant &var, bool &ok, bool &converted);
+
 inline bool toReal(const QVariant &var, double &r) {
   bool ok;
 
@@ -64,7 +66,11 @@ inline bool isNumeric(const QVariant &var) {
   return isReal(var) || isInt(var) || isBool(var);
 }
 
+}
+
 //---
+
+namespace CQChartsVariant {
 
 inline bool isColor(const QVariant &var) {
   if (! var.isValid())
@@ -81,11 +87,36 @@ inline bool isColor(const QVariant &var) {
 
 CQChartsColor toColor(const QVariant &var, bool &ok);
 
+QVariant fromColor(const CQChartsColor &c);
+
+}
+
 //---
+
+namespace CQChartsVariant {
+
+inline bool isFont(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::Font)
+    return true;
+
+  if (var.type() == QVariant::UserType && var.userType() == CQChartsFont::metaTypeId)
+    return true;
+
+  return false;
+}
 
 CQChartsFont toFont(const QVariant &var, bool &ok);
 
+QVariant fromFont(const CQChartsFont &f);
+
+}
+
 //---
+
+namespace CQChartsVariant {
 
 inline bool isSymbol(const QVariant &var) {
   if (! var.isValid())
@@ -101,7 +132,13 @@ inline bool isSymbol(const QVariant &var) {
 
 CQChartsSymbol toSymbol(const QVariant &var, bool &ok);
 
+QVariant fromSymbol(const CQChartsSymbol &symbol);
+
+}
+
 //---
+
+namespace CQChartsVariant {
 
 inline bool isImage(const QVariant &var) {
   if (! var.isValid())
@@ -120,7 +157,13 @@ inline bool isImage(const QVariant &var) {
 
 CQChartsImage toImage(const QVariant &var, bool &ok);
 
+QVariant fromImage(const CQChartsImage &image);
+
+}
+
 //---
+
+namespace CQChartsVariant {
 
 inline bool isLength(const QVariant &var) {
   if (! var.isValid())
@@ -136,21 +179,41 @@ inline bool isLength(const QVariant &var) {
 
 CQChartsLength toLength(const QVariant &var, bool &ok);
 
+QVariant fromLength(const CQChartsLength &length);
+
+}
+
 //---
+
+namespace CQChartsVariant {
 
 std::vector<double> toReals(const QVariant &var, bool &ok);
 
+}
+
 //---
+
+namespace CQChartsVariant {
 
 CQChartsGeom::Point toPoint(const QVariant &var, bool &ok);
-QVariant            fromPoint(const CQChartsGeom::Point &point);
+
+QVariant fromPoint(const CQChartsGeom::Point &point);
+
+}
 
 //---
+
+namespace CQChartsVariant {
 
 CQChartsGeom::BBox toBBox  (const QVariant &var, bool &ok);
-QVariant           fromBBox(const CQChartsGeom::BBox &bbox);
+
+QVariant fromBBox(const CQChartsGeom::BBox &bbox);
+
+}
 
 //---
+
+namespace CQChartsVariant {
 
 CQChartsGeom::Polygon toPolygon(const QVariant &var, bool &ok);
 
@@ -164,6 +227,8 @@ namespace CQChartsVariant {
 
 CQChartsPath toPath(const QVariant &var, bool &ok);
 
+QVariant fromPath(const CQChartsPath &path);
+
 }
 
 //---
@@ -173,6 +238,32 @@ CQChartsPath toPath(const QVariant &var, bool &ok);
 namespace CQChartsVariant {
 
 CQChartsPolygonList toPolygonList(const QVariant &var, bool &ok);
+
+QVariant fromPolygonList(const CQChartsPolygonList &polyList);
+
+}
+
+//---
+
+#include <CQChartsAlpha.h>
+
+namespace CQChartsVariant {
+
+CQChartsAlpha toAlpha(const QVariant &var, bool &ok);
+
+QVariant fromAlpha(const CQChartsAlpha &a);
+
+}
+
+//---
+
+#include <CQChartsAngle.h>
+
+namespace CQChartsVariant {
+
+CQChartsAngle toAngle(const QVariant &var, bool &ok);
+
+QVariant fromAngle(const CQChartsAngle &a);
 
 }
 

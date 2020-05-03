@@ -1,6 +1,21 @@
 #ifndef CQChartsColumnType_H
 #define CQChartsColumnType_H
 
+// TODO: Add support for
+//  Fill Data
+//    CQChartsFillPattern
+//  Stroke Data
+//    CQChartsLineDash
+//  Text Data
+//    CQChartsFont
+//  Geometry
+//    CQChartsPoints ?
+//    CQChartsPolygon
+//    CQChartsPolygonList
+//    CQChartsPosition
+//    CQChartsRect
+//    CQChartsStyle
+
 #include <CQChartsColor.h>
 #include <CQChartsColorStops.h>
 #include <CQChartsUtil.h>
@@ -66,6 +81,11 @@ class CQChartsColumnTypeParam {
  * \brief column type base class
  * \ingroup Charts
  *
+ * Class to represent type of data present in the model column data.
+ *
+ * When defined can reduce the conversion of column data to type required by
+ * the plot for the column.
+ *
  * supports one base parameter
  *  . key - is column a key (for grouping)
  */
@@ -92,6 +112,7 @@ class CQChartsColumnType {
 
   virtual QString name() const;
 
+  // help methods for compatibility with basic data types
   virtual bool isNumeric () const { return false; }
   virtual bool isIntegral() const { return false; }
   virtual bool isBoolean () const { return false; }
@@ -339,6 +360,29 @@ class CQChartsColumnRectType : public CQChartsColumnType {
 //---
 
 /*!
+ * \brief length column type class
+ * \ingroup Charts
+ */
+class CQChartsColumnLengthType : public CQChartsColumnType {
+ public:
+  CQChartsColumnLengthType();
+
+  QString desc() const override;
+
+  // input variant to data variant for edit
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+                    const QVariant &var, const CQChartsModelTypeData &typeData,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+                    const QVariant &var, const CQChartsModelTypeData &typeData,
+                    bool &converted) const override;
+};
+
+//---
+
+/*!
  * \brief polygon column type class
  * \ingroup Charts
  */
@@ -514,6 +558,29 @@ class CQChartsColumnColorType : public CQChartsColumnType {
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const CQChartsNameValues &nameValues, bool &mapped,
                   double &map_min, double &map_max, QString &palette) const;
+};
+
+//---
+
+/*!
+ * \brief font column type class
+ * \ingroup Charts
+ */
+class CQChartsColumnFontType : public CQChartsColumnType {
+ public:
+  CQChartsColumnFontType();
+
+  QString desc() const override;
+
+  // input variant to data variant for edit
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+                    const QVariant &var, const CQChartsModelTypeData &typeData,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
+                    const QVariant &var, const CQChartsModelTypeData &typeData,
+                    bool &converted) const override;
 };
 
 //---

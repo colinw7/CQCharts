@@ -1722,7 +1722,7 @@ CQChartsHierBubbleNode(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHie
                        const QString &name, double size, const QModelIndex &ind) :
  plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
 {
-  r_ = sqrt(size_/M_PI);
+  r_ = CQChartsUtil::areaToRadius(size_);
 }
 
 CQChartsHierBubbleNode::
@@ -1735,7 +1735,7 @@ CQChartsHierBubbleNode::
 initRadius()
 {
   // area = PI*r*r; r = sqrt(area/PI)
-  r_ = sqrt(hierSize()/M_PI);
+  r_ = CQChartsUtil::areaToRadius(hierSize());
 }
 
 QString

@@ -32,6 +32,7 @@ void initTypes() {
     addType(CQBaseModelType::POLYGON        , "polygon"        );
     addType(CQBaseModelType::POLYGON_LIST   , "polygon_list"   );
     addType(CQBaseModelType::COLOR          , "color"          );
+    addType(CQBaseModelType::FONT           , "font"           );
     addType(CQBaseModelType::PEN            , "pen"            );
     addType(CQBaseModelType::BRUSH          , "brush"          );
     addType(CQBaseModelType::IMAGE          , "image"          );
@@ -46,6 +47,7 @@ void initTypes() {
     addType(CQBaseModelType::COLUMN         , "column"         );
     addType(CQBaseModelType::COLUMN_LIST    , "column_list"    );
     addType(CQBaseModelType::ENUM           , "enum"           );
+    addType(CQBaseModelType::LENGTH         , "length"         );
   }
 }
 

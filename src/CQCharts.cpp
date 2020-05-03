@@ -400,7 +400,9 @@ init()
   columnTypeMgr_->addType(CQBaseModelType::BOOLEAN        , new CQChartsColumnBooleanType       );
   columnTypeMgr_->addType(CQBaseModelType::TIME           , new CQChartsColumnTimeType          );
   columnTypeMgr_->addType(CQBaseModelType::COLOR          , new CQChartsColumnColorType         );
+  columnTypeMgr_->addType(CQBaseModelType::FONT           , new CQChartsColumnFontType          );
   columnTypeMgr_->addType(CQBaseModelType::RECT           , new CQChartsColumnRectType          );
+  columnTypeMgr_->addType(CQBaseModelType::LENGTH         , new CQChartsColumnLengthType        );
   columnTypeMgr_->addType(CQBaseModelType::POLYGON        , new CQChartsColumnPolygonType       );
   columnTypeMgr_->addType(CQBaseModelType::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
   columnTypeMgr_->addType(CQBaseModelType::IMAGE          , new CQChartsColumnImageType         );
@@ -776,6 +778,13 @@ CQCharts::
 interpThemeColor(const ColorInd &ind) const
 {
   return this->interfaceTheme()->interpColor(ind.value(), /*scale*/true);
+}
+
+QColor
+CQCharts::
+interpInterfaceColor(double r) const
+{
+  return this->interfaceTheme()->interpColor(r, /*scale*/true);
 }
 
 CQColorsPalette *

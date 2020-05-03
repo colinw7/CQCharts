@@ -14,24 +14,24 @@ set nc [get_charts_data -model $model -name num_columns]
 echo "dims: $nr $nc"
 
 # summary
-set sds [get_charts_data -model $model -name standard_deviation]
+set sds [get_charts_data -model $model -name details.standard_deviation]
 echo "standard_deviations: $sds"
 
-set sd [get_charts_data -model $model -name standard_deviation -column 4]
+set sd [get_charts_data -model $model -name details.standard_deviation -column 4]
 echo "standard_deviation 4: $sd"
 
 # summary model
 set model1 [create_charts_summary_model -model $model -sorted]
 
-set order [get_charts_data -model $model1 -name property.sortOrder]
+set order [get_charts_property -model $model1 -name summary.sortOrder]
 
 echo "order: $order"
 
 write_charts_model -model $model1 -max_rows 10
 
-set_charts_data -model $model1 -name property.sortOrder -value 1
+set_charts_property -model $model1 -name summary.sortOrder -value 1
 
-set order [get_charts_data -model $model1 -name property.sortOrder]
+set order [get_charts_property -model $model1 -name summary.sortOrder]
 
 echo "order: $order"
 

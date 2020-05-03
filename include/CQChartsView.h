@@ -507,6 +507,8 @@ class CQChartsView : public QFrame,
 
   QColor interpThemeColor(const ColorInd &ind) const;
 
+  QColor interpInterfaceColor(double r) const;
+
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
 
   //---

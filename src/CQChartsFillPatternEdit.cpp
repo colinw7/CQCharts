@@ -40,7 +40,7 @@ void
 CQChartsFillPatternEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
+  auto fillPattern = var.value<CQChartsFillPattern>();
 
   setFillPattern(fillPattern);
 }
@@ -49,7 +49,7 @@ QString
 CQChartsFillPatternEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
+  auto fillPattern = var.value<CQChartsFillPattern>();
 
   return fillPattern.toString();
 }
@@ -74,7 +74,7 @@ QString
 CQChartsFillPatternPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
+  auto fillPattern = var.value<CQChartsFillPattern>();
 
   return fillPattern.toString();
 }

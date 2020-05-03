@@ -2083,6 +2083,15 @@ interpThemeColor(const ColorInd &ind) const
 
 QColor
 CQChartsView::
+interpInterfaceColor(double r) const
+{
+  CQChartsColor c(CQChartsColor::Type::INTERFACE_VALUE, r);
+
+  return charts()->interpColor(c, ColorInd());
+}
+
+QColor
+CQChartsView::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
   if (defaultPalette_ != "") {

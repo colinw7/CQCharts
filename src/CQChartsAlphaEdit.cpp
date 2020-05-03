@@ -1,5 +1,6 @@
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -102,7 +103,11 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  QString str = value.value<CQChartsAlpha>().toString();
+  bool ok;
+  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  if (! ok) return;
+
+  QString str = alpha.toString();
 
   QFontMetrics fm(option.font);
 
@@ -121,9 +126,11 @@ QString
 CQChartsAlphaPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsAlpha>().toString();
+  bool ok;
+  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return alpha.toString();
 }
 
 //------
@@ -154,17 +161,19 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsAlphaEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->alpha());
+  return CQChartsVariant::fromAlpha(edit->alpha());
 }
 
 void
 CQChartsAlphaPropertyViewEditor::
-setValue(QWidget *w, const QVariant &var)
+setValue(QWidget *w, const QVariant &value)
 {
   auto *edit = qobject_cast<CQChartsAlphaEdit *>(w);
   assert(edit);
 
-  CQChartsAlpha alpha = var.value<CQChartsAlpha>();
+  bool ok;
+  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  if (! ok) return;
 
   edit->setAlpha(alpha);
 }

@@ -177,11 +177,14 @@ int cmp(const QVariant &var1, const QVariant &var2) {
 
 //---
 
-double toReal(const QVariant &var, bool &ok) {
-  ok = true;
+double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
+  ok        = true;
+  converted = false;
 
   if (var.type() == QVariant::Double)
     return var.value<double>();
+
+  converted = true;
 
   QString str = toString(var, ok);
 
@@ -189,6 +192,12 @@ double toReal(const QVariant &var, bool &ok) {
     return CMathUtil::getNaN();
 
   return CQChartsUtil::toReal(str, ok);
+}
+
+double toReal(const QVariant &var, bool &ok) {
+  bool converted;
+
+  return toConvertedReal(var, ok, converted);
 }
 
 //---
@@ -259,6 +268,10 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
   return color;
 }
 
+QVariant fromColor(const CQChartsColor &c) {
+  return QVariant::fromValue<CQChartsColor>(c);
+}
+
 //---
 
 CQChartsFont toFont(const QVariant &var, bool &ok) {
@@ -281,6 +294,10 @@ CQChartsFont toFont(const QVariant &var, bool &ok) {
   return font;
 }
 
+QVariant fromFont(const CQChartsFont &f) {
+  return QVariant::fromValue<CQChartsFont>(f);
+}
+
 //---
 
 CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
@@ -299,6 +316,10 @@ CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
   ok = false;
 
   return CQChartsSymbol();
+}
+
+QVariant fromSymbol(const CQChartsSymbol &symbol) {
+  return QVariant::fromValue<CQChartsSymbol>(symbol);
 }
 
 //---
@@ -327,6 +348,10 @@ CQChartsImage toImage(const QVariant &var, bool &ok) {
   return CQChartsImage();
 }
 
+QVariant fromImage(const CQChartsImage &image) {
+  return QVariant::fromValue<CQChartsImage>(image);
+}
+
 //---
 
 CQChartsLength toLength(const QVariant &var, bool &ok) {
@@ -345,6 +370,10 @@ CQChartsLength toLength(const QVariant &var, bool &ok) {
   ok = false;
 
   return CQChartsLength();
+}
+
+QVariant fromLength(const CQChartsLength &length) {
+  return QVariant::fromValue<CQChartsLength>(length);
 }
 
 //---
@@ -485,15 +514,18 @@ CQChartsGeom::Polygon toPolygon(const QVariant &var, bool &ok) {
   ok = false;
 
   // TODO: handle QVariant::RectF ?
-  if (var.type() != QVariant::PolygonF) {
+  QPolygonF qpoly;
+
+  if      (var.type() == QVariant::PolygonF)
+    qpoly = var.value<QPolygonF>();
+  else if (var.type() == QVariant::Polygon)
+    qpoly = var.value<QPolygon>();
+  else {
     ok = false;
 
     return poly;
   }
 
-  QPolygonF qpoly = var.value<QPolygonF>();
-
-  poly = CQChartsGeom::Polygon(qpoly);
 
   return poly;
 }
@@ -503,7 +535,19 @@ CQChartsGeom::Polygon toPolygon(const QVariant &var, bool &ok) {
 CQChartsPath toPath(const QVariant &var, bool &ok) {
   ok = true; // TODO: validate
 
-  return var.value<CQChartsPath>();
+  CQChartsPath path;
+
+  // TODO: other var formats
+  if (var.userType() == CQChartsPath::metaTypeId)
+    path = var.value<CQChartsPath>();
+  else
+    ok = false;
+
+  return path;
+}
+
+QVariant fromPath(const CQChartsPath &path) {
+  return QVariant::fromValue<CQChartsPath>(path);
 }
 
 //---
@@ -512,6 +556,50 @@ CQChartsPolygonList toPolygonList(const QVariant &var, bool &ok) {
   ok = true; // TODO: validate
 
   return var.value<CQChartsPolygonList>();
+}
+
+QVariant fromPolygonList(const CQChartsPolygonList &polyList) {
+  return QVariant::fromValue<CQChartsPolygonList>(polyList);
+}
+
+//---
+
+CQChartsAlpha toAlpha(const QVariant &var, bool &ok) {
+  ok = true; // TODO: validate
+
+  CQChartsAlpha alpha;
+
+  // TODO: other var formats
+  if (var.userType() == CQChartsAlpha::metaTypeId)
+    alpha = var.value<CQChartsAlpha>();
+  else
+    ok = false;
+
+  return alpha;
+}
+
+QVariant fromAlpha(const CQChartsAlpha &a) {
+  return QVariant::fromValue<CQChartsAlpha>(a);
+}
+
+//---
+
+CQChartsAngle toAngle(const QVariant &var, bool &ok) {
+  ok = true; // TODO: validate
+
+  CQChartsAngle angle;
+
+  // TODO: other var formats
+  if (var.userType() == CQChartsAngle::metaTypeId)
+    angle = var.value<CQChartsAngle>();
+  else
+    ok = false;
+
+  return angle;
+}
+
+QVariant fromAngle(const CQChartsAngle &a) {
+  return QVariant::fromValue<CQChartsAngle>(a);
 }
 
 }

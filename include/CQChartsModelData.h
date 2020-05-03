@@ -217,6 +217,8 @@ class CQChartsModelData : public QObject {
 
   QAbstractItemModel *join(CQChartsModelData *joinModel, const Columns &joinColumns);
 
+  QAbstractItemModel *groupColumns(const Columns &groupColumns);
+
   void copyHeaderRoles(QAbstractItemModel *toModel) const;
 
   void copyColumnHeaderRoles(QAbstractItemModel *toModel, int c1, int c2) const;

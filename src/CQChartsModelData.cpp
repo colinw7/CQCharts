@@ -11,6 +11,9 @@
 #include <CQChartsWidgetUtil.h>
 
 #include <CQSummaryModel.h>
+#include <CQBucketModel.h>
+#include <CQFoldedModel.h>
+#include <CQCollapseModel.h>
 #include <CQPivotModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -19,10 +22,6 @@
 #include <CQHierSepModel.h>
 #include <CQPropertyViewModel.h>
 #include <CQTclUtil.h>
-
-#ifdef CQCHARTS_FOLDED_MODEL
-#include <CQFoldedModel.h>
-#endif
 
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
@@ -777,7 +776,12 @@ getPropertyData(const QString &name, QVariant &value) const
   for (const auto &p1 : idModelNames) {
     auto id = p1.first;
 
-    if (! name.startsWith(id + "."))
+    QString prefix;
+
+    if (id != "")
+      prefix = id + ".";
+
+    if (prefix != "" && ! name.startsWith(prefix))
       continue;
 
     auto modelNames = p1.second;
@@ -788,7 +792,7 @@ getPropertyData(const QString &name, QVariant &value) const
       auto nameAliases = p2.second;
 
       for (const auto &na : nameAliases.data) {
-        QString name1 = QString("%1.%2").arg(id).arg(na.alias != "" ? na.alias : na.name);
+        QString name1 = QString("%1%2").arg(prefix).arg(na.alias != "" ? na.alias : na.name);
 
         if (name == name1)
           return propertyModel->getProperty(obj, name1, value);
@@ -818,7 +822,12 @@ setPropertyData(const QString &name, const QVariant &value)
   for (const auto &p1 : idModelNames) {
     auto id = p1.first;
 
-    if (! name.startsWith(id + "."))
+    QString prefix;
+
+    if (id != "")
+      prefix = id + ".";
+
+    if (prefix != "" && ! name.startsWith(prefix))
       continue;
 
     auto modelNames = p1.second;
@@ -829,7 +838,7 @@ setPropertyData(const QString &name, const QVariant &value)
       auto nameAliases = p2.second;
 
       for (const auto &na : nameAliases.data) {
-        QString name1 = QString("%1.%2").arg(id).arg(na.alias != "" ? na.alias : na.name);
+        QString name1 = QString("%1%2").arg(prefix).arg(na.alias != "" ? na.alias : na.name);
 
         if (name == name1)
           return propertyModel->setProperty(obj, na.name, value);
@@ -850,13 +859,21 @@ getPropertyNameData(IdModelNames &names) const
 
   names[""][th] << "ind" << "id" << "name" << "filename" << "currentColumn";
 
-  names["summary"][th] << NameAlias("summaryEnabled", "enabled");
+  // needed ?
+  names["modelSummary"][th] << NameAlias("summaryEnabled", "enabled");
 
   //---
 
   ModelP model = this->currentModel();
 
   auto *absModel = CQChartsModelUtil::getBaseModel(model.data());
+
+  std::vector<QAbstractProxyModel *> proxyModels;
+  QAbstractItemModel*                sourceModel;
+
+  CQChartsModelUtil::getProxyModels(model.data(), proxyModels, sourceModel);
+
+  //---
 
   auto *baseModel = qobject_cast<CQBaseModel *>(absModel);
 
@@ -900,6 +917,54 @@ getPropertyNameData(IdModelNames &names) const
   if (summaryModel)
     names["summary"][summaryModel] << "mode" << "maxRows" << "sortColumn" << "sortRole" <<
                                       "sortOrder" << "pageSize" << "currentPage";
+
+  auto *bucketModel = qobject_cast<CQBucketModel *>(model.data());
+
+  if (bucketModel)
+    names["bucket"][bucketModel] << "bucketColumn" << "bucketRole" << "bucketIntegral" <<
+                                    "bucketStart" << "bucketDelta" << "bucketMin" <<
+                                    "bucketMax" << "bucketCount" << "multiColumn";
+
+  //---
+
+  // folded model
+  auto *foldedModel = qobject_cast<CQFoldedModel *>(model.data());
+
+  if (! foldedModel)
+    foldedModel = qobject_cast<CQFoldedModel *>(sourceModel);
+
+  if (! foldedModel) {
+    for (const auto &proxyModel : proxyModels) {
+      foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
+
+      if (foldedModel)
+        break;
+    }
+  }
+
+  if (foldedModel)
+    names["folded"][foldedModel] << "foldColumn" << "showFoldColumnData" << "keepFoldColumn" <<
+                                    "bucketCount" << "bucketDelta";
+
+  //---
+
+  // collapse model
+  auto *collapseModel = qobject_cast<CQCollapseModel *>(model.data());
+
+  if (! collapseModel)
+    collapseModel = qobject_cast<CQCollapseModel *>(sourceModel);
+
+  if (! collapseModel) {
+    for (const auto &proxyModel : proxyModels) {
+      collapseModel = qobject_cast<CQCollapseModel *>(proxyModel);
+
+      if (collapseModel)
+        break;
+    }
+  }
+
+  if (collapseModel)
+    names["collapse"][collapseModel] << "columnTypes" << "collapseOps";
 
   //---
 
@@ -1772,6 +1837,123 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
   auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   filterModel->setObjectName("joinModel");
+
+  //---
+
+  return filterModel;
+}
+
+//------
+
+QAbstractItemModel *
+CQChartsModelData::
+groupColumns(const Columns &groupColumns)
+{
+  if (groupColumns.empty())
+    return nullptr;
+
+  //--
+
+  auto *details = this->details();
+
+  int nc = details->numColumns();
+  int nr = details->numRows();
+
+  //---
+
+  using ColumnSet = std::set<int>;
+
+  ColumnSet groupColumnSet;
+
+  for (const auto &groupColumn : groupColumns) {
+    int icolumn = groupColumn.column();
+
+    if (icolumn < 0 || icolumn >= nc)
+      return nullptr;
+
+    groupColumnSet.insert(icolumn);
+  }
+
+  //---
+
+  auto *model = this->model().data();
+  if (! model) return nullptr;
+
+  //---
+
+  // create new model
+  int ng = groupColumnSet.size();
+
+  auto *dataModel = new CQDataModel(nc - ng + 2, nr*ng);
+
+  //---
+
+  // copy header data
+  int c1 = 0;
+
+  for (int c = 0; c < nc; ++c) {
+    if (groupColumnSet.find(c) != groupColumnSet.end())
+      continue;
+
+    copyColumnHeaderRoles(dataModel, c, c1);
+
+    ++c1;
+  }
+
+  dataModel->setHeaderData(c1, Qt::Horizontal, "Group", Qt::DisplayRole); ++c1;
+  dataModel->setHeaderData(c1, Qt::Horizontal, "Value", Qt::DisplayRole); ++c1;
+
+  //---
+
+  // copy model data
+  int r1 = 0;
+
+  for (const auto &groupColumn : groupColumnSet) {
+    bool ok;
+
+    QString columnName =
+      CQChartsModelUtil::modelHHeaderString(model, CQChartsColumn(groupColumn), ok);
+
+    for (int r = 0; r < nr; ++r, ++r1) {
+      int c1 = 0;
+
+      for (int c = 0; c < nc; ++c) {
+        if (groupColumnSet.find(c) != groupColumnSet.end())
+          continue;
+
+        QModelIndex ind1 = model->index(r, c);
+
+        QVariant var = model->data(ind1);
+
+        QModelIndex ind2 = dataModel->index(r1, c1);
+
+        dataModel->setData(ind2, var);
+
+        ++c1;
+      }
+
+      //---
+
+      QModelIndex ind3 = dataModel->index(r1, c1); ++c1;
+
+      dataModel->setData(ind3, columnName);
+
+      QModelIndex ind4 = model->index(r, groupColumn);
+
+      QVariant var = model->data(ind4);
+
+      QModelIndex ind5 = dataModel->index(r1, c1); ++c1;
+
+      dataModel->setData(ind5, var);
+    }
+  }
+
+  //---
+
+  // create model
+  auto *filterModel = new CQChartsFilterModel(charts_, dataModel);
+
+  filterModel->setObjectName("groupModel");
 
   //---
 

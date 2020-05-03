@@ -2,6 +2,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
@@ -103,7 +104,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsSymbol symbolType = value.value<CQChartsSymbol>();
+  bool ok;
+  CQChartsSymbol symbolType = CQChartsVariant::toSymbol(value, ok);
+  if (! ok) return;
 
   //---
 
@@ -150,9 +153,11 @@ QString
 CQChartsSymbolPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsSymbol>().toString();
+  bool ok;
+  CQChartsSymbol symbolType = CQChartsVariant::toSymbol(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return symbolType.toString();
 }
 
 //------
@@ -188,7 +193,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->symbol());
+  return CQChartsVariant::fromSymbol(edit->symbol());
 }
 
 void
@@ -198,7 +203,9 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSymbolEdit *>(w);
   assert(edit);
 
-  CQChartsSymbol symbol = var.value<CQChartsSymbol>();
+  bool ok;
+  CQChartsSymbol symbol = CQChartsVariant::toSymbol(var, ok);
+  if (! ok) return;
 
   edit->setSymbol(symbol);
 }

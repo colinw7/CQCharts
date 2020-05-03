@@ -457,38 +457,43 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
   QVariant var = modelValue(symbolTypeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
-  if (symbolTypeData_.mapped) {
-    if (CQChartsVariant::isNumeric(var)) {
-      int i = (int) CQChartsVariant::toInt(var, ok);
-      if (! ok) return false;
+  if (CQChartsVariant::isNumeric(var)) {
+    int i = (int) CQChartsVariant::toInt(var, ok);
+    if (! ok) return false;
 
+    if (symbolTypeData_.mapped) {
+      // map value in range (symbolTypeData_.data_min, symbolTypeData_.data_max) to
+      // (symbolTypeData_.map_min, symbolTypeData_.map_max)
       int i1 = (int) CMathUtil::map(i, symbolTypeData_.data_min, symbolTypeData_.data_max,
                                     symbolTypeData_.map_min, symbolTypeData_.map_max);
 
       symbolType = CQChartsSymbol::outlineFromInt(i1);
     }
     else {
-      if (CQChartsVariant::isSymbol(var)) {
-        symbolType = CQChartsVariant::toSymbol(var, ok);
-      }
-      else {
-        auto *columnDetails = this->columnDetails(symbolTypeColumn());
-        if (! columnDetails) return false;
-
-        // use unique index/count of edit values (which may have been converted)
-        // not same as CQChartsColumnColorType::userData
-        int n = columnDetails->numUnique();
-        int i = columnDetails->valueInd(var);
-
-        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
-
-        symbolType = CQChartsSymbol::interpOutline(r);
-      }
+      // use value directly for type
+      symbolType = CQChartsSymbol::outlineFromInt(i);
     }
   }
+  else if (CQChartsVariant::isSymbol(var)) {
+    // use symbol directly for type
+    symbolType = CQChartsVariant::toSymbol(var, ok);
+  }
   else {
-    if (CQChartsVariant::isSymbol(var)) {
-      symbolType = CQChartsVariant::toSymbol(var, ok);
+    if (symbolTypeData_.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(symbolTypeColumn());
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorType::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+
+      symbolType = CQChartsSymbol::interpOutline(r);
     }
     else {
       QString str = CQChartsVariant::toString(var, ok);
@@ -582,8 +587,10 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
   QVariant var = modelValue(symbolSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
-  if (symbolSizeData_.mapped) {
-    if (CQChartsVariant::isNumeric(var)) {
+  if (CQChartsVariant::isNumeric(var)) {
+    if (symbolSizeData_.mapped) {
+      // map value in range (symbolSizeData_.data_min, symbolSizeData_.data_max) to
+      // (symbolSizeData_.map_min, symbolSizeData_.map_max)
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
@@ -593,31 +600,31 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
       symbolSize = CQChartsLength(r1, units);
     }
     else {
-      if (CQChartsVariant::isLength(var)) {
-        symbolSize = CQChartsVariant::toLength(var, ok);
-      }
-      else {
-        auto *columnDetails = this->columnDetails(symbolSizeColumn());
-        if (! columnDetails) return false;
-
-        // use unique index/count of edit values (which may have been converted)
-        // not same as CQChartsColumnColorSize::userData
-        int n = columnDetails->numUnique();
-        int i = columnDetails->valueInd(var);
-
-        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
-
-        double r1 = CMathUtil::map(r, 0.0, 1.0,
-                                   CQChartsSymbolSize::minValue(),
-                                   CQChartsSymbolSize::maxValue());
-
-        symbolSize = CQChartsLength(r1, units);
-      }
+      // use value directly for size
+      symbolSize = CQChartsVariant::toLength(var, ok);
     }
   }
+  else if (CQChartsVariant::isLength(var)) {
+    // use length directly for size
+    symbolSize = CQChartsVariant::toLength(var, ok);
+  }
   else {
-    if (CQChartsVariant::isLength(var)) {
-      symbolSize = CQChartsVariant::toLength(var, ok);
+    if (symbolSizeData_.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(symbolSizeColumn());
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorSize::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
+                                CQChartsSymbolSize::maxValue());
+
+      symbolSize = CQChartsLength(r, units);
     }
     else {
       QString str = CQChartsVariant::toString(var, ok);
@@ -705,8 +712,10 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
   QVariant var = modelValue(fontSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
-  if (fontSizeData_.mapped) {
-    if (CQChartsVariant::isNumeric(var)) {
+  if (CQChartsVariant::isNumeric(var)) {
+    if (fontSizeData_.mapped) {
+      // map value in range (fontSizeData_.map_min, fontSizeData_.data_max) to
+      // (fontSizeData_.map_min, fontSizeData_.map_max)
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
@@ -716,31 +725,31 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
       fontSize = CQChartsLength(r1, units);
     }
     else {
-      if (CQChartsVariant::isLength(var)) {
-        fontSize = CQChartsVariant::toLength(var, ok);
-      }
-      else {
-        auto *columnDetails = this->columnDetails(fontSizeColumn());
-        if (! columnDetails) return false;
-
-        // use unique index/count of edit values (which may have been converted)
-        // not same as CQChartsColumnColorSize::userData
-        int n = columnDetails->numUnique();
-        int i = columnDetails->valueInd(var);
-
-        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
-
-        double r1 = CMathUtil::map(r, 0.0, 1.0,
-                                   CQChartsFontSize::minValue(),
-                                   CQChartsFontSize::maxValue());
-
-        fontSize = CQChartsLength(r1, units);
-      }
+      // use value directly for size
+      fontSize = CQChartsVariant::toLength(var, ok);
     }
   }
+  else if (CQChartsVariant::isLength(var)) {
+    // use length directly for size
+    fontSize = CQChartsVariant::toLength(var, ok);
+  }
   else {
-    if (CQChartsVariant::isLength(var)) {
-      fontSize = CQChartsVariant::toLength(var, ok);
+    if (symbolSizeData_.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(fontSizeColumn());
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorSize::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
+                                CQChartsFontSize::maxValue());
+
+      fontSize = CQChartsLength(r, units);
     }
     else {
       QString str = CQChartsVariant::toString(var, ok);

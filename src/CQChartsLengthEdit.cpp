@@ -1,6 +1,7 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsUnitsEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
@@ -174,7 +175,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsLength length = value.value<CQChartsLength>();
+  bool ok;
+  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  if (! ok) return;
 
   QString str = length.toString();
 
@@ -195,9 +198,11 @@ QString
 CQChartsLengthPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsLength>().toString();
+  bool ok;
+  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return length.toString();
 }
 
 //------
@@ -233,17 +238,19 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsLengthEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->length());
+  return CQChartsVariant::fromLength(edit->length());
 }
 
 void
 CQChartsLengthPropertyViewEditor::
-setValue(QWidget *w, const QVariant &var)
+setValue(QWidget *w, const QVariant &value)
 {
   auto *edit = qobject_cast<CQChartsLengthEdit *>(w);
   assert(edit);
 
-  CQChartsLength length = var.value<CQChartsLength>();
+  bool ok;
+  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  if (! ok) return;
 
   edit->setLength(length);
 }

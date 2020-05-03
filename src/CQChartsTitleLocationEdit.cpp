@@ -42,7 +42,7 @@ void
 CQChartsTitleLocationEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsTitleLocation titleLocation = var.value<CQChartsTitleLocation>();
+  auto titleLocation = var.value<CQChartsTitleLocation>();
 
   setTitleLocation(titleLocation);
 }
@@ -51,7 +51,7 @@ QString
 CQChartsTitleLocationEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsTitleLocation titleLocation = var.value<CQChartsTitleLocation>();
+  auto titleLocation = var.value<CQChartsTitleLocation>();
 
   return titleLocation.toString();
 }
@@ -76,7 +76,7 @@ QString
 CQChartsTitleLocationPropertyViewType::
 variantToString(const QVariant &var) const
 {
-  CQChartsTitleLocation titleLocation = var.value<CQChartsTitleLocation>();
+  auto titleLocation = var.value<CQChartsTitleLocation>();
 
   return titleLocation.toString();
 }

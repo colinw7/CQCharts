@@ -63,9 +63,11 @@ class CQFoldData {
 class CQFoldedModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(int  foldColumn         READ foldColumn         WRITE setFoldColumn)
-  Q_PROPERTY(bool showFoldColumnData READ showFoldColumnData WRITE setShowFoldColumnData)
-  Q_PROPERTY(bool keepFoldColumn     READ isKeepFoldColumn   WRITE setKeepFoldColumn)
+  Q_PROPERTY(int    foldColumn         READ foldColumn         WRITE setFoldColumn)
+  Q_PROPERTY(bool   showFoldColumnData READ showFoldColumnData WRITE setShowFoldColumnData)
+  Q_PROPERTY(bool   keepFoldColumn     READ isKeepFoldColumn   WRITE setKeepFoldColumn)
+  Q_PROPERTY(int    bucketCount        READ bucketCount        WRITE setBucketCount)
+  Q_PROPERTY(double bucketDelta        READ bucketDelta        WRITE setBucketDelta)
 
  public:
   CQFoldedModel(QAbstractItemModel *model, const CQFoldData &foldData=CQFoldData());
@@ -77,6 +79,9 @@ class CQFoldedModel : public QAbstractProxyModel {
   // get/set source model
   QAbstractItemModel *sourceModel() const;
   void setSourceModel(QAbstractItemModel *sourceModel) override;
+
+  // fold column position
+  int foldPos() const { return foldPos_; }
 
   //---
 
@@ -95,6 +100,14 @@ class CQFoldedModel : public QAbstractProxyModel {
   // get/set keep fold column
   bool isKeepFoldColumn() const { return foldData_.isKeepColumn(); }
   void setKeepFoldColumn(bool b);
+
+  // get/set fold bucket count
+  int bucketCount() const { return foldData_.numAuto(); }
+  void setBucketCount(int i);
+
+  // get/set fold bucket delta
+  double bucketDelta() const { return foldData_.delta(); }
+  void setBucketDelta(double r);
 
   //---
 

@@ -8,6 +8,8 @@ CQBucketModel::
 CQBucketModel(QAbstractItemModel *model, const CQBucketer &bucketer) :
  bucketer_(bucketer)
 {
+  setObjectName("bucketModel");
+
   setSourceModel(model);
 }
 

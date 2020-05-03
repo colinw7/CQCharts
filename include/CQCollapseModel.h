@@ -13,6 +13,9 @@
 class CQCollapseModel : public QAbstractProxyModel {
   Q_OBJECT
 
+  Q_PROPERTY(QString columnTypes READ columnTypes WRITE setColumnTypes)
+  Q_PROPERTY(QString collapseOps READ collapseOps WRITE setCollapseOps)
+
  public:
   enum class CollapseOp {
     UNIQUE,
@@ -24,6 +27,14 @@ class CQCollapseModel : public QAbstractProxyModel {
   CQCollapseModel(QAbstractItemModel *model);
 
  ~CQCollapseModel();
+
+  //---
+
+  QString columnTypes() const;
+  void setColumnTypes(const QString &s);
+
+  QString collapseOps() const;
+  void setCollapseOps(const QString &s);
 
   //---
 
@@ -83,9 +94,17 @@ class CQCollapseModel : public QAbstractProxyModel {
   // map proxy index to source index
   QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
 
+ public slots:
+  void resetSlot();
+
  private:
   struct ColumnConfig;
   class  VariantData;
+
+  void connectSlots(bool b);
+
+  void resetDisplayValues();
+  void resetColumnDisplayValues(int column);
 
   ColumnConfig &getColumnConfig(int c);
 

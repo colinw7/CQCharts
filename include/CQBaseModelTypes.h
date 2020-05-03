@@ -56,6 +56,7 @@ enum class CQBaseModelType {
   POLYGON = QVariant::UserType + 199,
 #endif
   COLOR   = QVariant::Color,
+  FONT    = QVariant::Font,
   PEN     = QVariant::Pen,
   BRUSH   = QVariant::Brush,
   IMAGE   = QVariant::Image,
@@ -71,7 +72,8 @@ enum class CQBaseModelType {
   NAME_PAIR       = QVariant::UserType + 108,
   COLUMN          = QVariant::UserType + 109,
   COLUMN_LIST     = QVariant::UserType + 110,
-  ENUM            = QVariant::UserType + 111
+  ENUM            = QVariant::UserType + 111,
+  LENGTH          = QVariant::UserType + 112
 };
 
 #endif

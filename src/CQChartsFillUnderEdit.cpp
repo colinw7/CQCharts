@@ -105,7 +105,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsFillUnderSide fillUnderSide = value.value<CQChartsFillUnderSide>();
+  auto fillUnderSide = value.value<CQChartsFillUnderSide>();
 
   QString str = fillUnderSide.toString();
 
@@ -174,7 +174,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillUnderSideEdit *>(w);
   assert(edit);
 
-  CQChartsFillUnderSide fillUnderSide = var.value<CQChartsFillUnderSide>();
+  auto fillUnderSide = var.value<CQChartsFillUnderSide>();
 
   edit->setFillUnderSide(fillUnderSide);
 }
@@ -318,7 +318,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsFillUnderPos fillUnderPos = value.value<CQChartsFillUnderPos>();
+  auto fillUnderPos = value.value<CQChartsFillUnderPos>();
 
   QString str = fillUnderPos.toString();
 
@@ -387,7 +387,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
-  CQChartsFillUnderPos fillUnderPos = var.value<CQChartsFillUnderPos>();
+  auto fillUnderPos = var.value<CQChartsFillUnderPos>();
 
   edit->setFillUnderPos(fillUnderPos);
 }

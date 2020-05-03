@@ -6,6 +6,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -175,7 +176,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsFont font = value.value<CQChartsFont>();
+  bool ok;
+  CQChartsFont font = CQChartsVariant::toFont(value, ok);
+  if (! ok) return;
 
   //---
 
@@ -239,9 +242,11 @@ QString
 CQChartsFontPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsFont>().toString();
+  bool ok;
+  CQChartsFont font = CQChartsVariant::toFont(value, ok);
+  if (! ok) return "";
 
-  return str;
+  return font.toString();
 }
 
 //------
@@ -277,7 +282,7 @@ getValue(QWidget *w)
   auto *edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
-  return QVariant::fromValue(edit->font());
+  return CQChartsVariant::fromFont(edit->font());
 }
 
 void
@@ -287,7 +292,9 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFontLineEdit *>(w);
   assert(edit);
 
-  CQChartsFont font = var.value<CQChartsFont>();
+  bool ok;
+  CQChartsFont font = CQChartsVariant::toFont(var, ok);
+  if (! ok) return;
 
   edit->setFont(font);
 }

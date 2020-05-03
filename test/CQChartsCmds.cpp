@@ -101,6 +101,7 @@ addCommands()
     addCommand("flatten_charts_model", new CQChartsFlattenChartsModelCmd(this));
     addCommand("copy_charts_model"   , new CQChartsCopyChartsModelCmd   (this));
     addCommand("join_charts_model"   , new CQChartsJoinChartsModelCmd   (this));
+    addCommand("group_charts_model"  , new CQChartsGroupChartsModelCmd  (this));
     addCommand("export_charts_model" , new CQChartsExportChartsModelCmd (this));
     addCommand("write_charts_model"  , new CQChartsWriteChartsModelCmd  (this));
     addCommand("remove_charts_model" , new CQChartsRemoveChartsModelCmd (this));
@@ -2942,6 +2943,78 @@ joinChartsModelCmd(CQChartsCmdArgs &argv)
 
   if (! newModel)
     return errorMsg("Join failed");
+
+  ModelP newModelP(newModel);
+
+  auto newModelData = charts_->initModelData(newModelP);
+
+  //---
+
+  return cmdBase_->setCmdRc(newModelData->ind());
+}
+
+//------
+
+// join models to create new model
+bool
+CQChartsCmds::
+groupChartsModelCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::groupChartsModelCmd");
+
+  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String, "model id");
+  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String, "columns");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  auto *modelData = getModelDataOrCurrent(modelInd);
+  if (! modelData) return errorMsg("No model data");
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  QString columnsStr = argv.getParseStr("columns");
+
+  QStringList columnStrs;
+
+  if (! CQTcl::splitList(columnsStr, columnStrs))
+    return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
+
+  CQChartsModelData::Columns columns;
+
+  for (const auto &columnStr : columnStrs) {
+    CQChartsColumn column;
+
+    if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
+      (void) errorMsg("Bad column '" + columnStr + "'");
+      continue;
+    }
+
+    columns.push_back(column);
+  }
+
+  //---
+
+  auto *newModel = modelData->groupColumns(columns);
+
+  if (! newModel)
+    return errorMsg("Grouping failed");
 
   ModelP newModelP(newModel);
 

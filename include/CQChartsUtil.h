@@ -391,6 +391,21 @@ struct ColorInd {
 
 namespace CQChartsUtil {
 
+inline double areaToRadius(double a) {
+  // area = PI*r*r; r = sqrt(area/PI)
+  return sqrt(a/M_PI);
+}
+
+inline double clampDegrees(double a) {
+  return CMathUtil::clamp(a, -360.0, 360.0);
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
 inline QImage *newImage(const QSize &size) {
 //return new QImage(size, QImage::Format_ARGB32);
   return new QImage(size, QImage::Format_ARGB32_Premultiplied);

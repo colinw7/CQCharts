@@ -1368,7 +1368,7 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CMathUtil::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
+  double a = CMathUtil::Rad2Deg(CQChartsGeom::pointAngle(c, p)); while (a < 0) a += 360.0;
 
   double a1 = node_->a().value();
   double a2 = a1 + node_->da().value();

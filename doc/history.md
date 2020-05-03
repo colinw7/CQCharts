@@ -1100,3 +1100,6 @@
 # 04/26/2020
  + Add more diagonal and off-diagonal plot types for correlation plot
  + Add 3D scatter plot
+# 05/03/2020
+ + Improve 3D Object Z clip
+ + Add CQBucketModel and CQFoldedModel to model properties

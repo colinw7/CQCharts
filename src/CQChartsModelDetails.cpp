@@ -764,8 +764,8 @@ uniqueValues() const
 
     valueSet_->cvals().uniqueValues(values);
 
-    for (const auto &v : values)
-      vars.push_back(QVariant::fromValue<CQChartsColor>(v));
+    for (const auto &c : values)
+      vars.push_back(CQChartsVariant::fromColor(c));
   }
 
   return vars;
@@ -1214,7 +1214,7 @@ initData()
         if (! details_->columnColor(var, color))
           return State::SKIP;
 
-        if (! details_->checkRow(QVariant::fromValue<CQChartsColor>(color)))
+        if (! details_->checkRow(CQChartsVariant::fromColor(color)))
           return State::SKIP;
 
         details_->addColor(color);
@@ -1429,7 +1429,7 @@ initData()
         else
           cmin = c;
 
-        min_ = QVariant::fromValue<CQChartsColor>(cmin);
+        min_ = CQChartsVariant::fromColor(cmin);
       }
 
       // if no type defined max, update max value
@@ -1441,11 +1441,11 @@ initData()
         else
           cmax = c;
 
-        max_ = QVariant::fromValue<CQChartsColor>(cmax);
+        max_ = CQChartsVariant::fromColor(cmax);
       }
 
       lastValue1_ = lastValue2_;
-      lastValue2_ = QVariant::fromValue<CQChartsColor>(c);
+      lastValue2_ = CQChartsVariant::fromColor(c);
     }
 
     QVariant minValue() const { return min_; }

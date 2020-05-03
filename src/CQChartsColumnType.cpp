@@ -1083,21 +1083,9 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // get real value
-  double r = 0.0;
-
-  if (var.type() == QVariant::Double) {
-    r = var.value<double>();
-  }
-  else {
-    bool ok;
-
-    r = CQChartsVariant::toReal(var, ok);
-
-    if (! ok)
-      return CQChartsVariant::toString(var, ok);
-
-    converted = true;
-  }
+  bool ok;
+  double r = CQChartsVariant::toConvertedReal(var, ok, converted);
+  if (! ok) return CQChartsVariant::toString(var, ok);
 
   //---
 
@@ -1484,6 +1472,56 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
 //------
 
+CQChartsColumnLengthType::
+CQChartsColumnLengthType() :
+ CQChartsColumnType(Type::LENGTH)
+{
+}
+
+QString
+CQChartsColumnLengthType::
+desc() const
+{
+  return CQChartsHtml().
+   h2("Length").
+    p("Specifies that the column values are length values.");
+}
+
+QVariant
+CQChartsColumnLengthType::
+userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
+         const CQChartsModelTypeData &, bool &converted) const
+{
+  if (! var.isValid() || var.type() == QVariant::RectF)
+    return var;
+
+  converted = true;
+
+  bool ok;
+
+  auto len = CQChartsVariant::toLength(var, ok);
+  if (! ok) return var;
+
+  return CQChartsVariant::fromLength(len);
+}
+
+QVariant
+CQChartsColumnLengthType::
+dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
+         const CQChartsModelTypeData &, bool &converted) const
+{
+  bool ok;
+
+  auto len = CQChartsVariant::toLength(var, ok);
+  if (! ok) return var;
+
+  converted = true;
+
+  return len.toString();
+}
+
+//------
+
 CQChartsColumnPolygonType::
 CQChartsColumnPolygonType() :
  CQChartsColumnType(Type::POLYGON)
@@ -1534,13 +1572,17 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  if (var.type() == QVariant::PolygonF) {
-    QPolygonF poly = var.value<QPolygonF>();
+  QPolygonF poly;
 
-    return CQChartsUtil::polygonToString(CQChartsGeom::Polygon(poly));
-  }
+  // TODO: other var formats
+  if      (var.type() == QVariant::PolygonF)
+    poly = var.value<QPolygonF>();
+  else if (var.type() == QVariant::Polygon)
+    poly = var.value<QPolygon>();
+  else
+    return QVariant();
 
-  return var; // TODO: other var formats
+  return CQChartsUtil::polygonToString(CQChartsGeom::Polygon(poly));
 }
 
 //------
@@ -1577,7 +1619,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   CQChartsPolygonList polyList(str);
 
-  return QVariant::fromValue<CQChartsPolygonList>(polyList);
+  return CQChartsVariant::fromPolygonList(polyList);
 }
 
 QVariant
@@ -1795,7 +1837,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   (void) CQChartsUtil::stringToPath(str, path);
 
-  return QVariant::fromValue<CQChartsPath>(path);
+  return CQChartsVariant::fromPath(path);
 }
 
 QVariant
@@ -1808,13 +1850,11 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  if (var.userType() == CQChartsPath::metaTypeId) {
-    auto path = var.value<CQChartsPath>();
+  bool ok;
+  CQChartsPath path = CQChartsVariant::toPath(var, ok);
+  if (! ok) return QVariant();
 
-    return CQChartsUtil::pathToString(path);
-  }
-
-  return var; // TODO: other var formats
+  return CQChartsUtil::pathToString(path);
 }
 
 //------
@@ -1942,7 +1982,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
       else
         color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
 
-      return QVariant::fromValue<CQChartsColor>(color);
+      return CQChartsVariant::fromColor(color);
     }
     else {
       if (CQChartsVariant::isColor(var)) {
@@ -1973,7 +2013,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 
-        return QVariant::fromValue<CQChartsColor>(color);
+        return CQChartsVariant::fromColor(color);
       }
     }
   }
@@ -1989,7 +2029,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
       if (! color.isValid())
         return var;
 
-      return QVariant::fromValue<CQChartsColor>(color);
+      return CQChartsVariant::fromColor(color);
     }
   }
 }
@@ -2051,6 +2091,67 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
 
 //------
 
+CQChartsColumnFontType::
+CQChartsColumnFontType() :
+ CQChartsColumnType(Type::FONT)
+{
+}
+
+QString
+CQChartsColumnFontType::
+desc() const
+{
+  return CQChartsHtml().
+   h2("Font").
+    p("Specifies that the column values are font names.");
+}
+
+QVariant
+CQChartsColumnFontType::
+userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &,
+         const QVariant &var, const CQChartsModelTypeData &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  converted = true;
+
+  if (CQChartsVariant::isFont(var)) {
+    return var;
+  }
+  else {
+    QString str = var.toString();
+
+    CQChartsFont font(str);
+
+    if (! font.isValid())
+      return var;
+
+    return CQChartsVariant::fromFont(font);
+  }
+}
+
+QVariant
+CQChartsColumnFontType::
+dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
+         const CQChartsModelTypeData &, bool &converted) const
+{
+  converted = true;
+
+  if (CQChartsVariant::isFont(var)) {
+    bool ok;
+
+    auto c = CQChartsVariant::toFont(var, ok);
+
+    if (ok)
+      return c.toString();
+  }
+
+  return var; // TODO: other var formats
+}
+
+//------
+
 CQChartsColumnImageType::
 CQChartsColumnImageType() :
  CQChartsColumnType(Type::IMAGE)
@@ -2086,7 +2187,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (image.isValid())
     return var;
 
-  return QVariant::fromValue<CQChartsImage>(image);
+  return CQChartsVariant::fromImage(image);
 }
 
 QVariant
@@ -2162,14 +2263,14 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
     auto symbol = CQChartsSymbol((CQChartsSymbol::Type) i1);
 
-    return QVariant::fromValue<CQChartsSymbol>(symbol);
+    return CQChartsVariant::fromSymbol(symbol);
   }
   else {
     QString str = var.toString();
 
     CQChartsSymbol symbol(str);
 
-    return QVariant::fromValue<CQChartsSymbol>(symbol);
+    return CQChartsVariant::fromSymbol(symbol);
   }
 }
 

@@ -275,7 +275,9 @@ addDashOption(const std::string &id, const CQChartsLineDash &dash)
 
   menu_->addAction(action);
 
-  combo_->addItem(icon, action->text(), QVariant::fromValue(dash));
+  QVariant var = QVariant::fromValue(dash);
+
+  combo_->addItem(icon, action->text(), var);
 }
 
 QIcon

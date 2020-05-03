@@ -181,8 +181,6 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void moveBy(const CQChartsGeom::Point &delta);
 
-  void getSelectIndices(Indices &) const override { }
-
   //---
 
   void draw(CQChartsPaintDevice *device) override;
@@ -225,8 +223,6 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void setDestRect(const CQChartsGeom::BBox &rect) { destRect_ = rect; }
 
   bool inside(const CQChartsGeom::Point &p) const override;
-
-  void getSelectIndices(Indices &) const override { }
 
   //---
 

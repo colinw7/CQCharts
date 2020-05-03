@@ -160,13 +160,11 @@ class CQChartsPlotObj : public CQChartsObj {
   // select
   bool isSelectIndex(const QModelIndex &ind) const;
 
-  bool getSelectIndices(const Indices &inds) const;
-
   void addSelectIndices();
 
   void getHierSelectIndices(Indices &inds) const;
 
-  virtual void getSelectIndices(Indices &inds) const = 0;
+  virtual void getSelectIndices(Indices &) const;
 
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
 
@@ -182,6 +180,8 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void drawFg(CQChartsPaintDevice *) const;
 
   virtual void draw(CQChartsPaintDevice *);
+
+  virtual void postDraw(CQChartsPaintDevice *) { }
 
   void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
                           const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const;

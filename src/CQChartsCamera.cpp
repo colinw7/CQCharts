@@ -38,9 +38,13 @@ init()
   else
     projMatrix_.buildOrtho(xmin_, xmax_, ymin_, ymax_, near_, far_);
 
-  rotateDX(M_PI*rotateX_/180.0);
-  rotateDY(M_PI*rotateY_/180.0);
-  rotateDZ(M_PI*rotateZ_/180.0);
+  projMatrix_.invert(iprojMatrix_);
+
+  //---
+
+  rotateDX(CMathUtil::Deg2Rad(rotateX_));
+  rotateDY(CMathUtil::Deg2Rad(rotateY_));
+  rotateDZ(CMathUtil::Deg2Rad(rotateZ_));
 
 #if 0
   if (plot_)
@@ -52,24 +56,24 @@ void
 CQChartsCamera::
 reset()
 {
-  enabled_    = false;
-  xmin_       = -1;
-  ymin_       = -1;
-  xmax_       = 1;
-  ymax_       = 1;
-  near_       = 0.1;
-  far_        = 100;
-  rotateX_    = 60.0;
-  rotateY_    = 0.0;
-  rotateZ_    = 30.0;
-  scaleX_     = 1.0;
-  scaleY_     = 1.0;
-  scaleZ_     = 1.0;
-  axesScale_  = AxesScale::NONE;
-  coordFrame_ = CCoordFrame3D();
-  direction_  = CQChartsGeom::Point3D(0, 0, 1);
-  fov_        = 90;
-  projMatrix_ = CMatrix3DH();
+  enabled_     = false;
+  xmin_        = -1;
+  ymin_        = -1;
+  xmax_        = 1;
+  ymax_        = 1;
+  near_        = 0.1;
+  far_         = 100;
+  rotateX_     = 60.0;
+  rotateY_     = 0.0;
+  rotateZ_     = 30.0;
+  scaleX_      = 1.0;
+  scaleY_      = 1.0;
+  scaleZ_      = 1.0;
+  coordFrame_  = CCoordFrame3D();
+  direction_   = CQChartsGeom::Point3D(0, 0, 1);
+//fov_         = 90;
+  projMatrix_  = CMatrix3DH();
+  iprojMatrix_ = CMatrix3DH();
 }
 
 void
@@ -113,6 +117,8 @@ transform(const CQChartsGeom::Point3D &p) const
 {
   if (! enabled_) return p;
 
+  //---
+
   // map to unit radius cube centered at 0,0
   const CQChartsGeom::Range3D &range3D = plot_->range3D();
 
@@ -128,7 +134,12 @@ transform(const CQChartsGeom::Point3D &p) const
 
   double zmin = 0.0, zmax = 1.0;
 
+#if 0
   planeZRange(zmin, zmax);
+#else
+  zmin = range3D.zmin();
+  zmax = range3D.zmax();
+#endif
 
   //---
 
@@ -146,11 +157,60 @@ transform(const CQChartsGeom::Point3D &p) const
   projMatrix_.multiplyPoint(p2, p3);
 
   // remap back to x, y, z range
-  double x2 = CMathUtil::map(p3.x, -1, 1, xmin, xmax);
-  double y2 = CMathUtil::map(p3.y, -1, 1, ymin, ymax);
-  double z2 = CMathUtil::map(p3.z, -1, 1, zmin, zmax);
+  double x3 = CMathUtil::map(p3.x, -1, 1, xmin, xmax);
+  double y3 = CMathUtil::map(p3.y, -1, 1, ymin, ymax);
+  double z3 = CMathUtil::map(p3.z, -1, 1, zmin, zmax);
 
-  return CQChartsGeom::Point3D(x2, y2, z2);
+  return CQChartsGeom::Point3D(x3, y3, z3);
+}
+
+CQChartsGeom::Point3D
+CQChartsCamera::
+untransform(const CQChartsGeom::Point3D &p) const
+{
+  if (! enabled_) return p;
+
+  // map to unit radius cube centered at 0,0
+  const CQChartsGeom::Range3D &range3D = plot_->range3D();
+
+  if (! range3D.isSet())
+    return p;
+
+  double xmin = range3D.xmin();
+  double xmax = range3D.xmax();
+  double ymin = range3D.ymin();
+  double ymax = range3D.ymax();
+
+  //---
+
+  double zmin = 0.0, zmax = 1.0;
+
+#if 0
+  planeZRange(zmin, zmax);
+#else
+  zmin = range3D.zmin();
+  zmax = range3D.zmax();
+#endif
+
+  //---
+
+  double x3 = CMathUtil::map(p.x, xmin, xmax, -1, 1);
+  double y3 = CMathUtil::map(p.y, ymin, ymax, -1, 1);
+  double z3 = CMathUtil::map(p.z, zmin, zmax, -1, 1);
+
+  CPoint3D p3(x3, y3, z3);
+
+  CPoint3D p2;
+
+  iprojMatrix_.multiplyPoint(p3, p2);
+
+  CPoint3D p1 = coordFrame_.transformFrom(p2);
+
+  double x = CMathUtil::map(p1.x, -scaleX_, scaleX_, xmin, xmax);
+  double y = CMathUtil::map(p1.y, -scaleY_, scaleY_, ymin, ymax);
+  double z = CMathUtil::map(p1.z, -scaleZ_, scaleZ_, zmin, zmax);
+
+  return CQChartsGeom::Point3D(x, y, z);
 }
 
 void
@@ -173,13 +233,6 @@ showView(std::ostream &os) const
 {
   os << "view is " << rotateX_ << ", " << rotateZ_ << " rot_z";
   os << ", " << scaleX_ << ", " << scaleZ_ << " scale_z" << std::endl;
-
-  if      (axesScale_ == AxesScale::NONE)
-    os << " axes are independently scaled" << std::endl;
-  else if (axesScale_ == AxesScale::XY)
-    os << " x/y axes are on the same scale" << std::endl;
-  else if (axesScale_ == AxesScale::XYZ)
-    os << " x/y/z axes are on the same scale" << std::endl;
 }
 
 void
@@ -188,11 +241,10 @@ unsetView()
 {
   enabled_ = true;
 
-  rotateX_   = 60.0;
-  rotateZ_   = 30.0;
-  scaleX_    = 1.0;
-  scaleZ_    = 1.0;
-  axesScale_ = AxesScale::NONE;
+  rotateX_ = 60.0;
+  rotateZ_ = 30.0;
+  scaleX_  = 1.0;
+  scaleZ_  = 1.0;
 
   init();
 }

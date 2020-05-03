@@ -308,7 +308,7 @@ calcAnnotationBBox() const
 
     //---
 
-    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
+    double alen = CQChartsUtil::clampDegrees(angleExtent().value());
 
     double da = alen/nv;
     double r  = valueRadius_;
@@ -455,7 +455,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   // calc polygon angle
   int nv = valueColumns().count();
 
-  double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
+  double alen = CQChartsUtil::clampDegrees(angleExtent().value());
 
   double da = (nv > 2 ? alen/nv : 90.0);
 
@@ -654,7 +654,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     // TODO
   }
   else if (nv > 2) {
-    double alen = CMathUtil::clamp(angleExtent().value(), -360.0, 360.0);
+    double alen = CQChartsUtil::clampDegrees(angleExtent().value());
 
     double da = alen/nv;
 

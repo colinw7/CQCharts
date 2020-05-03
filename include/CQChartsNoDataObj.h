@@ -23,8 +23,6 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f) { font_ = f; }
 
-  void getSelectIndices(Indices &) const override { }
-
   void draw(CQChartsPaintDevice *) override;
 
  private:

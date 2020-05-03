@@ -2,7 +2,30 @@ Abstract Painter/Javascript
  + Support Javascript callback in generated code (select)
  + JS Polygon List inside support
 
+TODO:
+ + 3D plots
+   + z by group (@GROUP)
+   + pixel to point (unmap)
+     + tooltip
+   + nearest 3d point
+   + normal and use back face removal
+   + text use box points to rotate to axis
+   + break box into multiple normal rects
+ + Connected Scatter Plot
+ + Hand drawn shapes
+   + https://shihn.ca/posts/2020/roughjs-algorithms/
+ + Bezier through points
+   + https://exploringswift.com/blog/Drawing-Smooth-Cubic-Bezier-Curve-through-prescribed-points-using-Swift
+   + https://github.com/Onaeem26/CubicBezierCurveSwift
+
 High
+  Variant
+   + remove QVariant::fromValue calls outside CQChartsVariant and add all types to BaseModule/ColumnType
+   + all variant cast goes through CQChartsVariant and is consistent
+     + handle all possible types
+     + converted flag ?
+     + string fallback ?
+   + Check plots handle all possible data types from model
  + pie fan plot (R In Action pg 124)
  + hex grid for scatter density
    + support shapes for key (circle, square, hex, ...)
