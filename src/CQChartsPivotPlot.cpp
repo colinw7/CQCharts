@@ -1114,7 +1114,7 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn());
+  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
@@ -1431,7 +1431,7 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn());
+  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
@@ -1537,7 +1537,7 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn());
+  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 

@@ -25,6 +25,10 @@ proc objPressed { view plot id } {
 
 set model [load_charts_model -csv data/boxplot.csv -first_line_header]
 
+set_charts_data -model $model -column 0 -header -role tip -name value -value "Experiment"
+set_charts_data -model $model -column 1 -header -role tip -name value -value "Run"
+set_charts_data -model $model -column 2 -header -role tip -name value -value "Speed"
+
 set plot [create_charts_plot -type xy -columns {{group 0} {x 1} {y 2}} -title "Group XY Plot"]
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed

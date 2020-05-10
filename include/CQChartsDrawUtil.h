@@ -20,6 +20,12 @@ class CQChartsPaintDevice;
 struct CQChartsPenBrush {
   QPen   pen;
   QBrush brush;
+
+  CQChartsPenBrush() = default;
+
+  CQChartsPenBrush(const QPen &pen, const QBrush &brush) :
+   pen(pen), brush(brush) {
+  }
 };
 
 //---

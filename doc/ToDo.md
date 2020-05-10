@@ -3,14 +3,15 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Tip role for column to replace header name with custom value
+ + Factory classes for plots and plot objects
  + 3D plots
-   + z by group (@GROUP)
    + pixel to point (unmap)
      + tooltip
    + nearest 3d point
-   + normal and use back face removal
    + text use box points to rotate to axis
    + break box into multiple normal rects
+   + scatter labels using text obj
  + Connected Scatter Plot
  + Hand drawn shapes
    + https://shihn.ca/posts/2020/roughjs-algorithms/

@@ -406,6 +406,34 @@ setColumnTitle(int column, const QString &s)
   return true;
 }
 
+QString
+CQBaseModel::
+columnTip(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return "";
+
+  const ColumnData &columnData = getColumnData(column);
+
+  return columnData.tip;
+}
+
+bool
+CQBaseModel::
+setColumnTip(int column, const QString &s)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.tip = s;
+
+  emit columnTipChanged(column);
+
+  return true;
+}
+
 CQBaseModelType
 CQBaseModel::
 columnHeaderType(int column) const
@@ -670,6 +698,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == static_cast<int>(CQBaseModelRole::Title)) {
       return columnTitle(section);
     }
+    else if (role == static_cast<int>(CQBaseModelRole::Tip)) {
+      return columnTip(section);
+    }
     else if (role == static_cast<int>(CQBaseModelRole::DataMin)) {
       return columnMin(section);
     }
@@ -748,6 +779,9 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     }
     else if (role == static_cast<int>(CQBaseModelRole::Title)) {
       return setColumnTitle(section, value.toString());
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::Tip)) {
+      return setColumnTip(section, value.toString());
     }
     else if (role == static_cast<int>(CQBaseModelRole::DataMin)) {
       assert(false);

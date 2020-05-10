@@ -74,8 +74,8 @@ class CQDataModel : public CQBaseModel {
   void resetColumnCache(int column);
 
  protected:
-  typedef std::vector<QVariant> Cells;
-  typedef std::vector<Cells>    Data;
+  using Cells = std::vector<QVariant>;
+  using Data  = std::vector<Cells>;
 
  protected:
   void init(int numCols, int numRows);

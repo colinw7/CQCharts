@@ -1572,7 +1572,7 @@ calcTipId() const
     QString headerStr("Name");
 
     if (plot_->nameColumn().isValid())
-      headerStr = plot_->columnHeaderName(plot_->nameColumn());
+      headerStr = plot_->columnHeaderName(plot_->nameColumn(), /*tip*/true);
 
     tableTip.addTableRow(headerStr, nameStr);
   }
@@ -1581,7 +1581,7 @@ calcTipId() const
     QString headerStr("Value");
 
     if (plot_->valueColumns().isValid())
-      headerStr = plot_->columnsHeaderName(plot_->valueColumns());
+      headerStr = plot_->columnsHeaderName(plot_->valueColumns(), /*tip*/true);
 
     tableTip.addTableRow(headerStr, valueStr);
   }

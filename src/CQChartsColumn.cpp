@@ -181,6 +181,12 @@ toString() const
     else
       str += "@ROW";
   }
+  else if (type_ == Type::COLUMN) {
+    str += "@COLUMN";
+  }
+  else if (type_ == Type::CELL) {
+    str += "@CELL";
+  }
   else if (type_ == Type::HHEADER)
     str += "@HH";
   else if (type_ == Type::VHEADER)
@@ -374,6 +380,14 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
     if (parse.isWord("@R1") || parse.isWord("@ROW1")) {
       role = 1; type = Type::ROW; return true;
+    }
+
+    if (parse.isWord("@COL") || parse.isWord("@COLUMN")) {
+      type = Type::COLUMN; return true;
+    }
+
+    if (parse.isWord("@CELL")) {
+      type = Type::CELL; return true;
     }
 
     //---

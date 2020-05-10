@@ -9,6 +9,7 @@
 #include <CInterval.h>
 
 class CQChartsScatterPlot3D;
+class CQChartsDataLabel;
 
 //---
 
@@ -136,28 +137,6 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
 //---
 
-#if 0
-class CQChartsScatterBar3DObj : public CQChartsPlot3DObj {
- public:
-  CQChartsScatterBar3DObj(const CQChartsScatterPlot3D *plot,
-                          const CQChartsGeom::Point3D &p=CQChartsGeom::Point3D());
-
-  const CQChartsScatterPlot3D *scatterPlot() const;
-
-  const CQChartsGeom::Point3D &p() const { return p_; }
-  void setP(const CQChartsGeom::Point3D &p) { p_ = p; }
-
-  QString typeName() const override { return "bar"; }
-
-  void postDraw(CQChartsPaintDevice *device) override;
-
- private:
-  CQChartsGeom::Point3D p_; //!< point
-};
-#endif
-
-//---
-
 #include <CQChartsKey.h>
 
 /*!
@@ -201,6 +180,10 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   Q_PROPERTY(CQChartsColumn zColumn     READ zColumn     WRITE setZColumn    )
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
+
+  Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
+  Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
+  Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
   // options
   Q_PROPERTY(bool drawSymbols READ isDrawSymbols WRITE setDrawSymbols)
@@ -248,7 +231,13 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
-  // columns
+  // data label
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+
+  //---
+
+  // basic columns
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
@@ -263,6 +252,18 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   const CQChartsColumn &zColumn() const { return zColumn_; }
   void setZColumn(const CQChartsColumn &c);
+
+  //---
+
+  // customization columns
+  const CQChartsColumn &symbolTypeColumn() const;
+  void setSymbolTypeColumn(const CQChartsColumn &c);
+
+  const CQChartsColumn &symbolSizeColumn() const;
+  void setSymbolSizeColumn(const CQChartsColumn &c);
+
+  const CQChartsColumn &fontSizeColumn() const;
+  void setFontSizeColumn(const CQChartsColumn &c);
 
   //---
 
@@ -303,8 +304,6 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   CQChartsGeom::Range calcRange() const override;
 
   void postUpdateRange() override;
-
-  void clearPlotObjects() override;
 
   bool createObjs(PlotObjs &obj) const override;
 
@@ -381,11 +380,38 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   GroupData &getGroupData(int groupId);
 
+ protected slots:
+  void dataLabelChanged();
+
  private:
   using Points      = std::vector<Point3D>;
   using GroupPoints = std::map<int,Points>;
 
- private:
+ protected:
+  struct SymbolTypeData {
+    CQChartsColumn column;             //!< symbol type column
+    bool           valid    { false }; //!< symbol type valid
+    bool           mapped   { false }; //!< symbol type values mapped
+    int            data_min { 0 };     //!< model data min
+    int            data_max { 1 };     //!< model data max
+    int            map_min  { 0 };     //!< mapped size min
+    int            map_max  { 1 };     //!< mapped size max
+  };
+
+  struct SymbolSizeData {
+    CQChartsColumn column;              //!< symbol size column
+    bool           valid     { false }; //!< symbol size valid
+    bool           mapped    { false }; //!< symbol size values mapped
+    double         data_min  { 0.0 };   //!< model data min
+    double         data_max  { 1.0 };   //!< model data max
+    double         data_mean { 0.0 };   //!< model data mean
+    double         map_min   { 0.0 };   //!< mapped size min
+    double         map_max   { 1.0 };   //!< mapped size max
+    QString        units     { "px" };  //!< mapped size units
+  };
+
+  CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
+
   // columns
   CQChartsColumn xColumn_;     //!< x column
   CQChartsColumn yColumn_;     //!< y column
@@ -396,6 +422,11 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
   ColumnType yColumnType_ { ColumnType::NONE }; //!< y column type
   ColumnType zColumnType_ { ColumnType::NONE }; //!< z column type
+
+  // custom column data
+  SymbolTypeData symbolTypeData_; //!< symbol type column data
+  SymbolSizeData symbolSizeData_; //!< symbol size column data
+  FontSizeData   fontSizeData_;   //!< font size column data
 
   // options
   bool drawSymbols_ { true  }; //! draw symbols

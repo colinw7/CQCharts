@@ -1103,3 +1103,8 @@
 # 05/03/2020
  + Improve 3D Object Z clip
  + Add CQBucketModel and CQFoldedModel to model properties
+# 05/10/2020
+ + Add tip customization for column
+ + Add support for CELL and COLUMN column types
+ + Improve axis drawing for 3D plot
+ + Restore support for point labels to 3D scatter plot

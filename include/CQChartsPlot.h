@@ -960,6 +960,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  QString modelHHeaderTip(const CQChartsColumn &column, bool &ok) const;
+
+  //---
+
   QString modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
   QString modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const;
 
@@ -1323,9 +1327,68 @@ class CQChartsPlot : public CQChartsObj,
 
   void execWaitTree();
 
- private:
+  //---
+
+ protected:
   void initColorColumnData();
 
+  //---
+
+  struct SymbolTypeData {
+    CQChartsColumn column;             //!< symbol type column
+    bool           valid    { false }; //!< symbol type valid
+    bool           mapped   { false }; //!< symbol type values mapped
+    int            data_min { 0 };     //!< model data min
+    int            data_max { 1 };     //!< model data max
+    int            map_min  { 0 };     //!< mapped size min
+    int            map_max  { 1 };     //!< mapped size max
+  };
+
+  void initSymbolTypeData(SymbolTypeData &symbolTypeData) const;
+
+  bool columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
+                        CQChartsSymbol &symbolType) const;
+
+  //---
+
+  struct SymbolSizeData {
+    CQChartsColumn column;              //!< symbol size column
+    bool           valid     { false }; //!< symbol size valid
+    bool           mapped    { false }; //!< symbol size values mapped
+    double         data_min  { 0.0 };   //!< model data min
+    double         data_max  { 1.0 };   //!< model data max
+    double         data_mean { 0.0 };   //!< model data mean
+    double         map_min   { 0.0 };   //!< mapped size min
+    double         map_max   { 1.0 };   //!< mapped size max
+    QString        units     { "px" };  //!< mapped size units
+  };
+
+  void initSymbolSizeData(SymbolSizeData &symbolSizeData) const;
+
+  bool columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
+                        CQChartsLength &symbolSize) const;
+
+  //---
+
+  struct FontSizeData {
+    CQChartsColumn column;             //!< font size column
+    bool           valid    { false }; //!< font size valid
+    bool           mapped   { false }; //!< font size values mapped
+    double         data_min { 0.0 };   //!< model data min
+    double         data_max { 1.0 };   //!< model data max
+    double         map_min  { 0.0 };   //!< mapped size min
+    double         map_max  { 1.0 };   //!< mapped size max
+    QString        units    { "px" };  //!< mapped size units
+  };
+
+  void initFontSizeData(FontSizeData &fontSizeData) const;
+
+  bool columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
+                      CQChartsLength &fontSize) const;
+
+  //---
+
+ private:
   // (re)initialize grouped plot objects
   void initGroupedPlotObjs();
 
@@ -2164,13 +2227,13 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // cached column names
-  QString columnsHeaderName(const CQChartsColumns &columns) const;
-  QString columnHeaderName(const CQChartsColumn &column) const;
+  QString columnsHeaderName(const CQChartsColumns &columns, bool tip=false) const;
+  QString columnHeaderName(const CQChartsColumn &column, bool tip=false) const;
 
-  QString idHeaderName   () const { return columnHeaderName(idColumn   ()); }
-  QString colorHeaderName() const { return columnHeaderName(colorColumn()); }
-  QString fontHeaderName () const { return columnHeaderName(fontColumn ()); }
-  QString imageHeaderName() const { return columnHeaderName(imageColumn()); }
+  QString idHeaderName   (bool tip=false) const { return columnHeaderName(idColumn   (), tip); }
+  QString colorHeaderName(bool tip=false) const { return columnHeaderName(colorColumn(), tip); }
+  QString fontHeaderName (bool tip=false) const { return columnHeaderName(fontColumn (), tip); }
+  QString imageHeaderName(bool tip=false) const { return columnHeaderName(imageColumn(), tip); }
 
   virtual void updateColumnNames();
 
@@ -2329,14 +2392,16 @@ class CQChartsPlot : public CQChartsObj,
 
   void objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
 
-  void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+  void plotObjsAtPoint1(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+
+  virtual void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
 
   void annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const;
 
   void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs,
                          bool inside, bool select=false) const;
 
-  bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
+  virtual bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
 
  protected:
   //*! update state

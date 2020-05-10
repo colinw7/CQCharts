@@ -25,6 +25,41 @@ addPathProperties(const QString &path, const QString &desc)
     return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  //---
+
+  addBasicProperties(path, desc);
+
+  addProp(path, "position", "", desc + " position");
+  addProp(path, "clip"    , "", desc + " is clipped");
+
+  addTextProperties(path, desc);
+
+  QString boxPath = path + "/box";
+
+  addBoxProperties(plot()->propertyModel(), boxPath, desc);
+}
+
+void
+CQChartsDataLabel::
+addBasicProperties(const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  addProp(path, "visible", "", desc + " visible");
+}
+
+void
+CQChartsDataLabel::
+addTextProperties(const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
     auto *item = addProp(path, name, alias, desc);
@@ -34,52 +69,45 @@ addPathProperties(const QString &path, const QString &desc)
 
   //---
 
-  addProp(path, "visible" , "", desc + " visible");
-  addProp(path, "position", "", desc + " position");
-  addProp(path, "clip"    , "", desc + " is clipped");
-
   QString textPath = path + "/text";
 
-  addStyleProp(textPath, "textColor"   , "color"   , desc + " text color");
-  addStyleProp(textPath, "textAlpha"   , "alpha"   , desc + " text alpha");
-  addStyleProp(textPath, "textFont"    , "font"    , desc + " text font");
-  addStyleProp(textPath, "textAngle"   , "angle"   , desc + " text angle");
-  addStyleProp(textPath, "textContrast", "contrast", desc + " text is contrast");
-  addStyleProp(textPath, "textHtml"    , "html"    , desc + " text is HTML");
-
-  QString boxPath = path + "/box";
-
-  addBoxProperties(plot()->propertyModel(), boxPath, desc);
+  addStyleProp(textPath, "textColor"        , "color"        , desc + " text color");
+  addStyleProp(textPath, "textAlpha"        , "alpha"        , desc + " text alpha");
+  addStyleProp(textPath, "textFont"         , "font"         , desc + " text font");
+  addStyleProp(textPath, "textAngle"        , "angle"        , desc + " text angle");
+  addStyleProp(textPath, "textContrast"     , "contrast"     , desc + " text is contrast");
+  addStyleProp(textPath, "textContrastAlpha", "contrastAlpha", desc + " text contrast alpha");
+  addStyleProp(textPath, "textHtml"         , "html"         , desc + " text is HTML");
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &str) const
 {
-  draw(device, bbox, ystr, position());
+  draw(device, bbox, str, position());
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &str,
      const Position &position) const
 {
   if (! isVisible())
     return;
 
-  QPen tpen;
+  CQChartsPenBrush penBrush;
 
   QColor tc = interpTextColor(ColorInd());
 
-  plot()->setPen(tpen, true, tc, textAlpha());
+  plot()->setPenBrush(penBrush, CQChartsPenData(true, tc, textAlpha()), CQChartsBrushData(false));
 
-  draw(device, bbox, ystr, position, tpen);
+  draw(device, bbox, str, position, penBrush);
 }
 
 void
 CQChartsDataLabel::
 draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
-     const Position &position, const QPen &tpen) const
+     const Position &position, const CQChartsPenBrush &penBrush) const
 {
   bbox_ = bbox;
 
@@ -183,7 +211,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
     if (! clipped) {
       if (ystr.length()) {
-        device->setPen(tpen);
+        device->setPen(penBrush.pen);
 
         auto p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
 
@@ -269,7 +297,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
     CQChartsBoxObj::draw(device, poly);
 
-    device->setPen(tpen);
+    device->setPen(penBrush.pen);
 
     if (ystr.length()) {
       auto p1 = device->pixelToWindow(CQChartsGeom::Point(x, y));

@@ -2266,7 +2266,8 @@ class Point3D {
 
   Point3D operator+(const Point3D &rhs) const { return Point3D(x + rhs.x, y + rhs.y, z + rhs.z); }
 
-  Point3D &operator/=(double rhs) { double irhs = 1.0/rhs; x *= irhs; y *= irhs; return *this; }
+  Point3D &operator/=(double rhs) {
+    double irhs = 1.0/rhs; x *= irhs; y *= irhs; z *= irhs; return *this; }
 
   friend Point3D operator/(const Point3D &lhs, double rhs) {
     double irhs = 1.0/rhs;
@@ -2322,6 +2323,13 @@ class Range3D {
   double xsize() const { return xmax() - xmin(); }
   double ysize() const { return ymax() - ymin(); }
   double zsize() const { return zmax() - zmin(); }
+
+  void setXMin(double x) { x1_ = x; set_ = true; }
+  void setYMin(double y) { y1_ = y; set_ = true; }
+  void setZMin(double z) { z1_ = z; set_ = true; }
+  void setXMax(double x) { x2_ = x; set_ = true; }
+  void setYMax(double y) { y2_ = y; set_ = true; }
+  void setZMax(double z) { z2_ = z; set_ = true; }
 
   void updateRange(double x, double y, double z) {
     if (! set_) {

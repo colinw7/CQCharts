@@ -24,17 +24,18 @@ enum class CQBaseModelRole {
   Sorted            = Type + 5,         //!< column is sorted
   SortOrder         = Type + 6,         //!< column sort order
   Title             = Type + 7,         //!< column custom title (used ?)
-  Key               = Type + 8,         //!< column is key (unique)
-  RawValue          = Type + 9,         //!< cell raw value
-  IntermediateValue = Type + 10,        //!< cell intermediate value
-  CachedValue       = Type + 11,        //!< cell cached value
-  OutputValue       = Type + 12,        //!< cell output value
-  Group             = Type + 13,        //!< cell group value
-  Format            = Type + 14,        //!< output format (used ?)
-  DataMin           = Type + 15,        //!< column calculated value min
-  DataMax           = Type + 16,        //!< column calculated value max
-  HeaderType        = Type + 17,        //!< column header type
-  HeaderTypeValues  = Type + 18         //!< column header type values
+  Tip               = Type + 8,         //!< column custom tip
+  Key               = Type + 9,         //!< column is key (unique)
+  RawValue          = Type + 10,        //!< cell raw value
+  IntermediateValue = Type + 11,        //!< cell intermediate value
+  CachedValue       = Type + 12,        //!< cell cached value
+  OutputValue       = Type + 13,        //!< cell output value
+  Group             = Type + 14,        //!< cell group value
+  Format            = Type + 15,        //!< output format (used ?)
+  DataMin           = Type + 16,        //!< column calculated value min
+  DataMax           = Type + 17,        //!< column calculated value max
+  HeaderType        = Type + 18,        //!< column header type
+  HeaderTypeValues  = Type + 19         //!< column header type values
 };
 
 //! model value types supported by CQBaseModel

@@ -1248,6 +1248,18 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     return row + column.rowOffset();
   }
+  else if (column.type() == CQChartsColumn::Type::COLUMN) {
+    ok = true;
+
+    return column.columnCol();
+  }
+  else if (column.type() == CQChartsColumn::Type::CELL) {
+    ok = true;
+
+    QModelIndex ind = model->index(row, column.cellCol(), parent);
+
+    return modelValue(model, ind, role, ok);
+  }
   else if (column.type() == CQChartsColumn::Type::VHEADER) {
     QVariant var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 

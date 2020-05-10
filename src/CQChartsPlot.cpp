@@ -597,16 +597,16 @@ void
 CQChartsPlot::
 updateRangeAndObjs()
 {
+  if (! isUpdatesEnabled())
+    return;
+
+  if (parentPlot())
+    return parentPlot()->updateRangeAndObjs();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateRangeAndObjs();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (parentPlot())
-      return parentPlot()->updateRangeAndObjs();
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->updateRangeAndObjs();
-
     if (debugUpdate_)
       std::cerr << "updateRangeAndObjs : " << id().toStdString() << "\n";
 
@@ -4697,12 +4697,12 @@ createObjs()
 
 QString
 CQChartsPlot::
-columnsHeaderName(const CQChartsColumns &columns) const
+columnsHeaderName(const CQChartsColumns &columns, bool tip) const
 {
   QString str;
 
   for (const auto &column : columns.columns()) {
-    QString str1 = columnHeaderName(column);
+    QString str1 = columnHeaderName(column, tip);
     if (! str1.length()) continue;
 
     if (str.length())
@@ -4716,14 +4716,14 @@ columnsHeaderName(const CQChartsColumns &columns) const
 
 QString
 CQChartsPlot::
-columnHeaderName(const CQChartsColumn &column) const
+columnHeaderName(const CQChartsColumn &column, bool tip) const
 {
   auto p = columnNames_.find(column);
   if (p != columnNames_.end()) return (*p).second;
 
   bool ok;
 
-  QString str = modelHHeaderString(column, ok);
+  QString str = (tip ? modelHHeaderTip(column, ok) : modelHHeaderString(column, ok));
   if (! ok) return "";
 
   return str;
@@ -6804,6 +6804,377 @@ columnValueFont(const QVariant &var, CQChartsFont &font) const
 
   return font.isValid();
 }
+
+//------
+
+void
+CQChartsPlot::
+initSymbolTypeData(SymbolTypeData &symbolTypeData) const
+{
+  symbolTypeData.valid = false;
+
+  if (! symbolTypeData.column.isValid())
+    return;
+
+  auto *columnDetails = this->columnDetails(symbolTypeData.column);
+  if (! columnDetails) return;
+
+  if (symbolTypeData.column.isGroup()) {
+    symbolTypeData.data_min = 0.0;
+    symbolTypeData.data_max = std::max(numGroups() - 1, 0);
+  }
+  else {
+    if (symbolTypeData.mapped) {
+      QVariant minVar = columnDetails->minValue();
+      QVariant maxVar = columnDetails->maxValue();
+
+      bool ok;
+
+      symbolTypeData.data_min = int(CQChartsVariant::toReal(minVar, ok));
+      if (! ok) symbolTypeData.data_min = 0;
+
+      symbolTypeData.data_max = int(CQChartsVariant::toReal(maxVar, ok));
+      if (! ok) symbolTypeData.data_max = 1;
+    }
+
+    CQChartsModelTypeData columnTypeData;
+
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolTypeData.column,
+                                              columnTypeData);
+
+    if (columnTypeData.type == ColumnType::SYMBOL) {
+      auto *columnTypeMgr = charts()->columnTypeMgr();
+
+      const auto *symbolTypeType =
+        dynamic_cast<const CQChartsColumnSymbolTypeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
+      assert(symbolTypeType);
+
+      symbolTypeType->getMapData(charts(), model().data(), symbolTypeData.column,
+                                 columnTypeData.nameValues, symbolTypeData.mapped,
+                                 symbolTypeData.map_min, symbolTypeData.map_max,
+                                 symbolTypeData.data_min, symbolTypeData.data_max);
+    }
+  }
+
+  symbolTypeData.valid = true;
+}
+
+bool
+CQChartsPlot::
+columnSymbolType(int row, const QModelIndex &parent,
+                 const SymbolTypeData &symbolTypeData, CQChartsSymbol &symbolType) const
+{
+  if (! symbolTypeData.valid)
+    return false;
+
+  CQChartsModelIndex symbolTypeModelInd(row, symbolTypeData.column, parent);
+
+  bool ok;
+
+  QVariant var = modelValue(symbolTypeModelInd, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (CQChartsVariant::isNumeric(var)) {
+    int i = (int) CQChartsVariant::toInt(var, ok);
+    if (! ok) return false;
+
+    if (symbolTypeData.mapped) {
+      // map value in range (symbolTypeData.data_min, symbolTypeData.data_max) to
+      // (symbolTypeData.map_min, symbolTypeData.map_max)
+      int i1 = (int) CMathUtil::map(i, symbolTypeData.data_min, symbolTypeData.data_max,
+                                    symbolTypeData.map_min, symbolTypeData.map_max);
+
+      symbolType = CQChartsSymbol::outlineFromInt(i1);
+    }
+    else {
+      // use value directly for type
+      symbolType = CQChartsSymbol::outlineFromInt(i);
+    }
+  }
+  else if (CQChartsVariant::isSymbol(var)) {
+    // use symbol directly for type
+    symbolType = CQChartsVariant::toSymbol(var, ok);
+  }
+  else {
+    if (symbolTypeData.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(symbolTypeData.column);
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorType::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+
+      symbolType = CQChartsSymbol::interpOutline(r);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      symbolType = CQChartsSymbol(str);
+    }
+  }
+
+  return symbolType.isValid();
+}
+
+//------
+
+void
+CQChartsPlot::
+initSymbolSizeData(SymbolSizeData &symbolSizeData) const
+{
+  symbolSizeData.valid = false;
+
+  if (! symbolSizeData.column.isValid())
+    return;
+
+  auto *columnDetails = this->columnDetails(symbolSizeData.column);
+  if (! columnDetails) return;
+
+  if (symbolSizeData.column.isGroup()) {
+    symbolSizeData.data_min  = 0.0;
+    symbolSizeData.data_max  = std::max(numGroups() - 1, 0);
+    symbolSizeData.data_mean = symbolSizeData.data_max/2.0;
+  }
+  else {
+    if (symbolSizeData.mapped) {
+      QVariant minVar  = columnDetails->minValue();
+      QVariant maxVar  = columnDetails->maxValue();
+      QVariant meanVar = columnDetails->meanValue();
+
+      bool ok;
+
+      symbolSizeData.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) symbolSizeData.data_min = 0.0;
+
+      symbolSizeData.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) symbolSizeData.data_max = 1.0;
+
+      symbolSizeData.data_mean = CQChartsVariant::toReal(meanVar, ok);
+      if (! ok) symbolSizeData.data_mean =
+                  CMathUtil::avg(symbolSizeData.data_min, symbolSizeData.data_max);
+    }
+
+    CQChartsModelTypeData columnTypeData;
+
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolSizeData.column,
+                                              columnTypeData);
+
+    if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
+      auto *columnTypeMgr = charts()->columnTypeMgr();
+
+      const auto *symbolSizeType =
+        dynamic_cast<const CQChartsColumnSymbolSizeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
+      assert(symbolSizeType);
+
+      symbolSizeType->getMapData(charts(), model().data(), symbolSizeData.column,
+                                 columnTypeData.nameValues, symbolSizeData.mapped,
+                                 symbolSizeData.map_min, symbolSizeData.map_max,
+                                 symbolSizeData.data_min, symbolSizeData.data_max);
+    }
+  }
+
+  symbolSizeData.valid = true;
+}
+
+bool
+CQChartsPlot::
+columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
+                 CQChartsLength &symbolSize) const
+{
+  if (! symbolSizeData.valid)
+    return false;
+
+  CQChartsUnits units = CQChartsUnits::PIXEL;
+
+  (void) CQChartsUtil::decodeUnits(symbolSizeData.units, units);
+
+  CQChartsModelIndex symbolSizeModelInd(row, symbolSizeData.column, parent);
+
+  bool ok;
+
+  QVariant var = modelValue(symbolSizeModelInd, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (CQChartsVariant::isNumeric(var)) {
+    if (symbolSizeData.mapped) {
+      // map value in range (symbolSizeData.data_min, symbolSizeData.data_max) to
+      // (symbolSizeData.map_min, symbolSizeData.map_max)
+      double r = CQChartsVariant::toReal(var, ok);
+      if (! ok) return false;
+
+      double r1 = CMathUtil::map(r, symbolSizeData.data_min, symbolSizeData.data_max,
+                                 symbolSizeData.map_min, symbolSizeData.map_max);
+
+      symbolSize = CQChartsLength(r1, units);
+    }
+    else {
+      // use value directly for size
+      symbolSize = CQChartsVariant::toLength(var, ok);
+    }
+  }
+  else if (CQChartsVariant::isLength(var)) {
+    // use length directly for size
+    symbolSize = CQChartsVariant::toLength(var, ok);
+  }
+  else {
+    if (symbolSizeData.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(symbolSizeData.column);
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorSize::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
+                                CQChartsSymbolSize::maxValue());
+
+      symbolSize = CQChartsLength(r, units);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      symbolSize = CQChartsLength(str, units);
+    }
+  }
+
+  return symbolSize.isValid();
+}
+
+//------
+
+void
+CQChartsPlot::
+initFontSizeData(FontSizeData &fontSizeData) const
+{
+  fontSizeData.valid = false;
+
+  if (! fontSizeData.column.isValid())
+    return;
+
+  auto *columnDetails = this->columnDetails(fontSizeData.column);
+  if (! columnDetails) return;
+
+  if (fontSizeData.column.isGroup()) {
+    fontSizeData.data_min = 0.0;
+    fontSizeData.data_max = std::max(numGroups() - 1, 0);
+  }
+  else {
+    if (fontSizeData.mapped) {
+      QVariant minVar = columnDetails->minValue();
+      QVariant maxVar = columnDetails->maxValue();
+
+      bool ok;
+
+      fontSizeData.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) fontSizeData.data_min = 0.0;
+
+      fontSizeData.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) fontSizeData.data_max = 1.0;
+    }
+
+    CQChartsModelTypeData columnTypeData;
+
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), fontSizeData.column,
+                                              columnTypeData);
+
+    if (columnTypeData.type == ColumnType::FONT_SIZE) {
+      auto *columnTypeMgr = charts()->columnTypeMgr();
+
+      const auto *fontSizeType =
+        dynamic_cast<const CQChartsColumnFontSizeType *>(
+          columnTypeMgr->getType(columnTypeData.type));
+      assert(fontSizeType);
+
+      fontSizeType->getMapData(charts(), model().data(), fontSizeData.column,
+                               columnTypeData.nameValues, fontSizeData.mapped,
+                               fontSizeData.map_min, fontSizeData.map_max,
+                               fontSizeData.data_min, fontSizeData.data_max);
+    }
+  }
+
+  fontSizeData.valid = true;
+}
+
+bool
+CQChartsPlot::
+columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
+               CQChartsLength &fontSize) const
+{
+  if (! fontSizeData.valid)
+    return false;
+
+  CQChartsUnits units = CQChartsUnits::PIXEL;
+
+  (void) CQChartsUtil::decodeUnits(fontSizeData.units, units);
+
+  CQChartsModelIndex fontSizeModelInd(row, fontSizeData.column, parent);
+
+  bool ok;
+
+  QVariant var = modelValue(fontSizeModelInd, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (CQChartsVariant::isNumeric(var)) {
+    if (fontSizeData.mapped) {
+      // map value in range (fontSizeData.map_min, fontSizeData.data_max) to
+      // (fontSizeData.map_min, fontSizeData.map_max)
+      double r = CQChartsVariant::toReal(var, ok);
+      if (! ok) return false;
+
+      double r1 = CMathUtil::map(r, fontSizeData.data_min, fontSizeData.data_max,
+                                 fontSizeData.map_min, fontSizeData.map_max);
+
+      fontSize = CQChartsLength(r1, units);
+    }
+    else {
+      // use value directly for size
+      fontSize = CQChartsVariant::toLength(var, ok);
+    }
+  }
+  else if (CQChartsVariant::isLength(var)) {
+    // use length directly for size
+    fontSize = CQChartsVariant::toLength(var, ok);
+  }
+  else {
+    if (fontSizeData.mapped) {
+      // use index of value in unique values to generate value in range
+      // (CQChartsSymbolSize::minValue, CQChartsSymbolSize::maxValue)
+      auto *columnDetails = this->columnDetails(fontSizeData.column);
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnColorSize::userData
+      // TODO: use map min/max
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
+                                CQChartsFontSize::maxValue());
+
+      fontSize = CQChartsLength(r, units);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      fontSize = CQChartsLength(str, units);
+    }
+  }
+
+  return fontSize.isValid();
+}
+
 //------
 
 QString
@@ -7374,7 +7745,7 @@ objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 {
   PlotObjs plotObjs;
 
-  plotObjsAtPoint(p, plotObjs);
+  plotObjsAtPoint1(p, plotObjs);
 
   for (const auto &plotObj : plotObjs)
     objs.push_back(plotObj);
@@ -7391,7 +7762,7 @@ objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 
 void
 CQChartsPlot::
-plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
+plotObjsAtPoint1(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
@@ -7404,8 +7775,15 @@ plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
     });
   }
   else {
-    objTreeData_.tree->objectsAtPoint(p, plotObjs);
+    plotObjsAtPoint(p, plotObjs);
   }
+}
+
+void
+CQChartsPlot::
+plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
+{
+  objTreeData_.tree->objectsAtPoint(p, plotObjs);
 }
 
 void
@@ -11255,6 +11633,20 @@ modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
+modelHHeaderTip(const CQChartsColumn &column, bool &ok) const
+{
+  QString str = modelHHeaderString(model().data(), column, (int) CQBaseModelRole::Tip, ok);
+
+  if (! ok)
+    str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
+
+  return str;
+}
+
+//--
+
+QString
+CQChartsPlot::
 modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const
 {
   return modelVHeaderString(model().data(), section, orient, role, ok);
@@ -11304,14 +11696,36 @@ QVariant
 CQChartsPlot::
 modelValue(const CQChartsModelIndex &ind, int role, bool &ok) const
 {
-  return modelValue(model().data(), ind.row, ind.column, ind.parent, role, ok);
+  if (ind.column.isColumn() || ind.column.isCell()) {
+    CQChartsColumn c = ind.column;
+
+    if (ind.column.isColumn())
+      c.setColumnCol(ind.cellCol);
+    else
+      c.setCellCol(ind.cellCol);
+
+    return modelValue(model().data(), ind.row, c, ind.parent, role, ok);
+  }
+  else
+    return modelValue(model().data(), ind.row, ind.column, ind.parent, role, ok);
 }
 
 QVariant
 CQChartsPlot::
 modelValue(const CQChartsModelIndex &ind, bool &ok) const
 {
-  return modelValue(model().data(), ind.row, ind.column, ind.parent, ok);
+  if (ind.column.isColumn() || ind.column.isCell()) {
+    CQChartsColumn c = ind.column;
+
+    if (ind.column.isColumn())
+      c.setColumnCol(ind.cellCol);
+    else
+      c.setCellCol(ind.cellCol);
+
+    return modelValue(model().data(), ind.row, c, ind.parent, ok);
+  }
+  else
+    return modelValue(model().data(), ind.row, ind.column, ind.parent, ok);
 }
 
 QVariant
@@ -11398,14 +11812,36 @@ double
 CQChartsPlot::
 modelReal(const CQChartsModelIndex &ind, int role, bool &ok) const
 {
-  return modelReal(model().data(), ind.row, ind.column, ind.parent, role, ok);
+  if (ind.column.isColumn() || ind.column.isCell()) {
+    CQChartsColumn c = ind.column;
+
+    if (ind.column.isColumn())
+      c.setColumnCol(ind.cellCol);
+    else
+      c.setCellCol(ind.cellCol);
+
+    return modelReal(model().data(), ind.row, c, ind.parent, role, ok);
+  }
+  else
+    return modelReal(model().data(), ind.row, ind.column, ind.parent, role, ok);
 }
 
 double
 CQChartsPlot::
 modelReal(const CQChartsModelIndex &ind, bool &ok) const
 {
-  return modelReal(model().data(), ind.row, ind.column, ind.parent, ok);
+  if (ind.column.isColumn() || ind.column.isCell()) {
+    CQChartsColumn c = ind.column;
+
+    if (ind.column.isColumn())
+      c.setColumnCol(ind.cellCol);
+    else
+      c.setCellCol(ind.cellCol);
+
+    return modelReal(model().data(), ind.row, c, ind.parent, ok);
+  }
+  else
+    return modelReal(model().data(), ind.row, ind.column, ind.parent, ok);
 }
 
 double

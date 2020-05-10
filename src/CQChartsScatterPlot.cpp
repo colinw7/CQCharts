@@ -489,6 +489,8 @@ addProperties()
   addProp("columns", "nameColumn" , "name" , "Name column");
   addProp("columns", "labelColumn", "label", "Label column");
 
+  //---
+
   // options
   addProp("options", "plotType", "plotType", "Plot type");
 
@@ -538,11 +540,15 @@ addProperties()
 
   addStyleProp("whisker/fill", "whiskerAlpha" , "alpha", "Axis whisker alpha");
 
+  //---
+
   // symbol
   addSymbolProperties("symbol", "", "");
 
   // data labels
   dataLabel()->addPathProperties("labels", "Labels");
+
+  //---
 
   // grid
   addProp("gridCells", "gridNumX", "nx", "Number of x grid cells");
@@ -552,6 +558,8 @@ addProperties()
   addFillProperties("gridCells/fill"  , "gridCellFill"   , "Grid cell");
   addStyleProp     ("gridCells/stroke", "gridCellStroked", "visible", "Grid cell stroke visible");
   addLineProperties("gridCells/stroke", "gridCellStroke" , "Grid cell");
+
+  //---
 
   // symbol key
   addProp     ("symbol/key"     , "symbolMapKey"      , "visible",
@@ -568,6 +576,8 @@ addProperties()
   //---
 
   CQChartsPointPlot::addPointProperties();
+
+  //---
 
   // color map
   addColorMapProperties();
@@ -698,7 +708,6 @@ calcRange() const
 
     bool isUniqueX() const { return uniqueX_ == numRows(); }
     bool isUniqueY() const { return uniqueY_ == numRows(); }
-    bool isUniqueZ() const { return uniqueZ_ == numRows(); }
 
    private:
     const CQChartsScatterPlot* plot_      { nullptr };
@@ -707,7 +716,6 @@ calcRange() const
     CQChartsModelDetails*      details_   { nullptr };
     int                        uniqueX_   { 0 };
     int                        uniqueY_   { 0 };
-    int                        uniqueZ_   { 0 };
   };
 
   RowVisitor visitor(this);
@@ -985,6 +993,8 @@ void
 CQChartsScatterPlot::
 addPointObjects(PlotObjs &objs) const
 {
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
   auto *columnTypeMgr = charts()->columnTypeMgr();
 
   columnTypeMgr->startCache(model().data());
@@ -1025,8 +1035,6 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     // get group points
-    auto *th = const_cast<CQChartsScatterPlot *>(this);
-
     auto pg = th->groupPoints_.find(groupInd);
 
     if (pg == th->groupPoints_.end())
@@ -1088,7 +1096,7 @@ addPointObjects(PlotObjs &objs) const
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *pointObj = new CQChartsScatterPointObj(this, groupInd, bbox, p, is1, ig1, iv1);
+        auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
         pointObj->setModelInd(valuePoint.ind);
 
@@ -1209,6 +1217,8 @@ void
 CQChartsScatterPlot::
 addGridObjects(PlotObjs &objs) const
 {
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
   int hasGroups = (numGroups() > 1);
 
   //---
@@ -1279,8 +1289,7 @@ addGridObjects(PlotObjs &objs) const
 
           CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
-          auto *cellObj = new CQChartsScatterCellObj(this, groupInd, bbox, is1, ig1,
-                                                     ix, iy, points, maxN);
+          auto *cellObj = th->createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
           objs.push_back(cellObj);
         }
@@ -1297,6 +1306,8 @@ void
 CQChartsScatterPlot::
 addHexObjects(PlotObjs &objs) const
 {
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
   int hasGroups = (numGroups() > 1);
 
   //---
@@ -1379,8 +1390,7 @@ addHexObjects(PlotObjs &objs) const
           ColorInd is1(is, ns);
           ColorInd ig1(ig, ng);
 
-          auto *hexObj = new CQChartsScatterHexObj(this, groupInd, bbox, is1, ig1,
-                                                   i, j, polygon, n, maxN);
+          auto *hexObj = th->createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
 
           objs.push_back(hexObj);
         }
@@ -1598,6 +1608,38 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     valuesData.values.emplace_back(p, row, xind, color);
   }
 }
+
+//---
+
+CQChartsScatterPointObj *
+CQChartsScatterPlot::
+createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point &p,
+               const ColorInd &is, const ColorInd &ig, const ColorInd &iv)
+{
+  return new CQChartsScatterPointObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
+                                     p, is, ig, iv);
+}
+
+CQChartsScatterCellObj *
+CQChartsScatterPlot::
+createCellObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
+              const ColorInd &ig, int ix, int iy, const Points &points, int maxN)
+{
+  return new CQChartsScatterCellObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
+                                    is, ig, ix, iy, points, maxN);
+}
+
+CQChartsScatterHexObj *
+CQChartsScatterPlot::
+createHexObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
+             const ColorInd &ig, int ix, int iy, const CQChartsGeom::Polygon &poly,
+             int n, int maxN)
+{
+  return new CQChartsScatterHexObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
+                                   is, ig, ix, iy, poly, n, maxN);
+}
+
+//---
 
 void
 CQChartsScatterPlot::
@@ -2180,6 +2222,8 @@ void
 CQChartsScatterPlot::
 drawHull(CQChartsPaintDevice *device) const
 {
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
   int ig = 0;
   int ng = groupNameValues_.size();
 
@@ -2191,8 +2235,6 @@ drawHull(CQChartsPaintDevice *device) const
 
     // get hull for group (add if needed)
     int groupInd = groupNameValue.first;
-
-    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto ph = th->groupHull_.find(groupInd);
 
@@ -2680,6 +2722,8 @@ void
 CQChartsScatterPlot::
 initWhiskerData() const
 {
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
   for (const auto &groupNameValue : groupNameValues_) {
     if (isInterrupt())
       return;
@@ -2688,8 +2732,6 @@ initWhiskerData() const
 
     // get group whiskers
     int groupInd = groupNameValue.first;
-
-    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 
@@ -2743,8 +2785,6 @@ initWhiskerData() const
 
     // get group whiskers
     int groupInd = pg.first;
-
-    auto *th = const_cast<CQChartsScatterPlot *>(this);
 
     auto pw = th->groupWhiskers_.find(groupInd);
 
@@ -2992,8 +3032,8 @@ calcTipId() const
   QString xstr = plot()->xStr(pos_.x);
   QString ystr = plot()->yStr(pos_.y);
 
-  tableTip.addTableRow(plot_->xHeaderName(), xstr);
-  tableTip.addTableRow(plot_->yHeaderName(), ystr);
+  tableTip.addTableRow(plot_->xHeaderName(/*tip*/true), xstr);
+  tableTip.addTableRow(plot_->yHeaderName(/*tip*/true), ystr);
 
   //---
 
@@ -3023,7 +3063,7 @@ calcTipId() const
     QString str = plot_->modelString(columnInd, ok);
     if (! ok) return;
 
-    tableTip.addTableRow(plot_->columnHeaderName(column), str);
+    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
   };
 
   //---
@@ -3037,7 +3077,7 @@ calcTipId() const
 
   // add color column
   if (valuePoint.color.isValid())
-    tableTip.addTableRow(plot_->colorHeaderName(), valuePoint.color.colorStr());
+    tableTip.addTableRow(plot_->colorHeaderName(/*tip*/true), valuePoint.color.colorStr());
   else
     addColumnRowValue(plot_->colorColumn());
 
@@ -3184,58 +3224,68 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // draw text labels
-  if (plot_->dataLabel()->isVisible()) {
-    const auto *dataLabel = plot_->dataLabel();
+  if (plot_->dataLabel()->isVisible())
+    drawDataLabel(device);
+}
 
-    //---
+void
+CQChartsScatterPointObj::
+drawDataLabel(CQChartsPaintDevice *device) const
+{
+  const auto *dataLabel = plot_->dataLabel();
 
-    // text font color
-    ColorInd ic = calcColorInd();
+  auto ps = plot_->windowToPixel(pos_);
 
-    QPen tpen;
+  double sx, sy;
 
-    QColor tc = dataLabel->interpTextColor(ic);
+  plot_->pixelSymbolSize(symbolSize(), sx, sy);
 
-    plot_->setPen(tpen, true, tc, dataLabel->textAlpha());
+  //---
 
-    //---
+  // text font color
+  CQChartsPenBrush penBrush;
 
-    // get font size
-    auto fontSize = this->fontSize();
+  QColor tc = dataLabel->interpTextColor(calcColorInd());
 
-    //---
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData(true, tc, dataLabel->textAlpha()), CQChartsBrushData(false));
 
-    // set (temp) font
-    auto font = this->font();
+  //---
 
-    if (! font.isValid()) {
-      font = dataLabel->textFont();
+  // get font
+  auto font     = this->font();
+  auto fontSize = this->fontSize();
 
-      if (fontSize.isValid()) {
-        double fontPixelSize = plot_->lengthPixelHeight(fontSize);
+  if (! font.isValid()) {
+    font = dataLabel->textFont();
 
-        // scale to font size
-        fontPixelSize = plot_->limitFontSize(fontPixelSize);
-
-        font.setPointSizeF(fontPixelSize);
-      }
-    }
-
-    const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
-
-    //---
-
-    // draw text
-    CQChartsGeom::BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
-
-    dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name_, dataLabel->position(), tpen);
-
-    //---
-
-    // reset font
     if (fontSize.isValid()) {
-      const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
+      double fontPixelSize = plot_->lengthPixelHeight(fontSize);
+
+      // scale to font size
+      fontPixelSize = plot_->limitFontSize(fontPixelSize);
+
+      font.setPointSizeF(fontPixelSize);
     }
+  }
+
+  //---
+
+  // set (temp) font
+  const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
+
+  //---
+
+  // draw text
+  CQChartsGeom::BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+
+  dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name_, dataLabel->position(), penBrush);
+
+  //---
+
+  // reset font
+  if (fontSize.isValid()) {
+    const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
   }
 }
 

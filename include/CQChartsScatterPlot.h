@@ -132,6 +132,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip=false) const;
 
+  void drawDataLabel(CQChartsPaintDevice *device) const;
+
   //---
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
@@ -429,7 +431,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     HEX_CELLS
   };
 
-  using Point = CQChartsGeom::Point;
+  using Point  = CQChartsGeom::Point;
+  using Points = std::vector<Point>;
 
   struct ValueData {
     Point         p;
@@ -635,14 +638,31 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  QString xHeaderName() const { return columnHeaderName(xColumn()); }
-  QString yHeaderName() const { return columnHeaderName(yColumn()); }
+  QString xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
+  QString yHeaderName(bool tip=false) const { return columnHeaderName(yColumn(), tip); }
 
   void updateColumnNames() override;
 
   //---
 
   int numRows() const;
+
+  //---
+
+  virtual CQChartsScatterPointObj *createPointObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                                  const Point &p, const ColorInd &is,
+                                                  const ColorInd &ig, const ColorInd &iv);
+
+  virtual CQChartsScatterCellObj *createCellObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                                const ColorInd &is, const ColorInd &ig,
+                                                int ix, int iy, const Points &points, int maxn);
+
+  virtual CQChartsScatterHexObj *createHexObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                              const ColorInd &is, const ColorInd &ig,
+                                              int ix, int iy, const CQChartsGeom::Polygon &poly,
+                                              int n, int maxN);
+
+  //---
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -764,7 +784,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
-  using Points        = std::vector<Point>;
   using GroupPoints   = std::map<int,Points>;
   using GroupFitData  = std::map<int,CQChartsFitData>;
   using GroupStatData = std::map<int,StatData>;

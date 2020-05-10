@@ -28,6 +28,8 @@ class CQChartsColumn {
     DATA_INDEX, // model row data sub value (e.g. time sub value)
     EXPR,       // expression
     ROW,        // model row number
+    COLUMN,     // model column number
+    CELL,       // model cell data
     HHEADER,    // model horizontal header data
     VHEADER,    // model vertical header data
     GROUP       // model row group id
@@ -95,6 +97,20 @@ class CQChartsColumn {
   bool isRow() const { return (type_ == Type::ROW); }
 
   int rowOffset() const { return (role_ > 0 ? role_ : 0); }
+
+  //--
+
+  bool isColumn() const { return (type_ == Type::COLUMN); }
+
+  void setColumnCol(int col) { assert(isColumn()); role_ = col; }
+  int columnCol() const { assert(isColumn()); return role_; }
+
+  //--
+
+  bool isCell() const { return (type_ == Type::CELL); }
+
+  void setCellCol(int col) { assert(isCell()); role_ = col; }
+  int cellCol() const { assert(isCell()); return role_; }
 
   //--
 
@@ -344,6 +360,7 @@ struct CQChartsModelIndex {
   int            row { -1 };
   CQChartsColumn column;
   QModelIndex    parent;
+  int            cellCol { -1 };
 
   CQChartsModelIndex() = default;
 

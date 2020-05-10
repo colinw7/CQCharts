@@ -18,8 +18,14 @@ class CQChartsPlot3DType : public CQChartsGroupPlotType {
 class CQChartsPlot3D : public CQChartsGroupPlot {
   Q_OBJECT
 
+  // range
+  Q_PROPERTY(CQChartsOptReal zmin READ zmin WRITE setZMin)
+  Q_PROPERTY(CQChartsOptReal zmax READ zmax WRITE setZMax)
+
+  // grid
   Q_PROPERTY(bool gridLines READ isGridLines WRITE setGridLines)
 
+  // camera
   Q_PROPERTY(double cameraRotateX READ cameraRotateX WRITE setCameraRotateX)
   Q_PROPERTY(double cameraRotateY READ cameraRotateY WRITE setCameraRotateY)
   Q_PROPERTY(double cameraRotateZ READ cameraRotateZ WRITE setCameraRotateZ)
@@ -41,6 +47,14 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
   //---
 
   const Range3D &range3D() const { return range3D_; }
+
+  const CQChartsOptReal &zmin() const { return zmin_; }
+  void setZMin(const CQChartsOptReal &r);
+
+  const CQChartsOptReal &zmax() const { return zmax_; }
+  void setZMax(const CQChartsOptReal &r);
+
+  //---
 
   Camera *camera() const { return camera_; }
 
@@ -93,12 +107,16 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
   //---
 
+  bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const override;
+
+  void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const override;
+
+  //---
+
   void drawBackgroundRects(CQChartsPaintDevice *device) const override;
 
   void addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
                const CQChartsColumn &zColumn) const;
-
-  void drawAxis(CQChartsPaintDevice *device) const;
 
   //---
 
@@ -111,7 +129,9 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
   //---
 
-  void addPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj);
+  void addBgPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj);
+  void addPointObj  (const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj);
+  void addFgPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj);
 
   void drawPointObjs(CQChartsPaintDevice *device) const;
 
@@ -139,7 +159,10 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
     CInterval interval;               //!< interval data
   };
 
-  Range3D range3D_;                    //! 3D range
+  Range3D         range3D_; //! 3D range
+  CQChartsOptReal zmin_;    //!< zmin override
+  CQChartsOptReal zmax_;    //!< zmax override
+
   Camera* camera_    { nullptr };      //! camera
   bool    gridLines_ { true };         //! show axis grid lines
   Axis    xAxis_     { Axis::Dir::X }; //! x axis
@@ -152,7 +175,9 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
   using Objs      = std::vector<CQChartsPlot3DObj *>;
   using PointObjs = std::map<CQChartsGeom::Point3D,Objs>;
 
+  mutable PointObjs bgPointObjs_;
   mutable PointObjs pointObjs_;
+  mutable PointObjs fgPointObjs_;
 };
 
 //---
@@ -166,9 +191,17 @@ class CQChartsPlot3DObj : public CQChartsPlotObj {
   const CQChartsGeom::Point3D &refPoint() const { return refPoint_; }
   void setRefPoint(const CQChartsGeom::Point3D &p) { refPoint_ = p; }
 
+  const CQChartsPenBrush &penBrush() const { return penBrush_; }
+  void setPenBrush(const CQChartsPenBrush &v) { penBrush_ = v; }
+
+  const CQChartsGeom::BBox &drawBBox() const { return drawBBox_; }
+  void setDrawBBox(const CQChartsGeom::BBox &b) { drawBBox_ = b; }
+
  private:
-  const CQChartsPlot3D* plot3D_ { nullptr }; //! parent plot
-  CQChartsGeom::Point3D refPoint_;           //! reference point
+  const CQChartsPlot3D*      plot3D_ { nullptr }; //! parent plot
+  CQChartsGeom::Point3D      refPoint_;           //! reference point
+  CQChartsPenBrush           penBrush_;           //! pen/brush
+  mutable CQChartsGeom::BBox drawBBox_;           //! draw bounding box
 };
 
 //---
@@ -223,16 +256,28 @@ class CQChartsText3DObj : public CQChartsPlot3DObj {
   double z() const { return z_; }
   void setZ(double r) { z_ = r; }
 
+  const CQChartsFont &font() const { return font_; }
+  void setFont(const CQChartsFont &v) { font_ = v; }
+
+  const CQChartsTextOptions &textOptions() const { return textOptions_; }
+  void setTextOptions(const CQChartsTextOptions &v) { textOptions_ = v; }
+
+  bool isAutoAlign() const { return autoAlign_; }
+  void setAutoAlign(bool b) { autoAlign_ = b; }
+
   QString typeName() const override { return "line"; }
 
   void postDraw(CQChartsPaintDevice *device) override;
 
  private:
-  CQChartsGeom::Point3D p1_;                 //!< point
-  CQChartsGeom::Point3D p2_;                 //!< offset point
-  bool                  vertical_ { false }; //!< is vertical
-  QString               text_;               //!< text
-  double                z_        { 0.0 };   //!< z
+  CQChartsGeom::Point3D p1_;                  //!< point
+  CQChartsGeom::Point3D p2_;                  //!< offset point
+  bool                  vertical_  { false }; //!< is vertical
+  QString               text_;                //!< text
+  double                z_         { 0.0 };   //!< z
+  CQChartsFont          font_;                //!< font
+  CQChartsTextOptions   textOptions_;         //!< text options
+  bool                  autoAlign_ { false }; //!< auto align
 };
 
 //---
@@ -267,10 +312,101 @@ class CQChartsPolygon3DObj : public CQChartsPlot3DObj {
 
   void addPoint(const CQChartsGeom::Point3D &p) { poly_.addPoint(p); }
 
+  const CQChartsGeom::Point3D &normal() const { return normal_; }
+  void setNormal(const CQChartsGeom::Point3D &v) { normal_ = v; }
+
+  const QColor &color() const { return color_; }
+  void setColor(const QColor &v) { color_ = v; }
+
+  void postDraw(CQChartsPaintDevice *device) override;
+
+  bool checkVisible() const;
+
+ private:
+  CQChartsGeom::Polygon3D poly_;   //!< polygon
+  CQChartsGeom::Point3D   normal_; //!< normal
+  QColor                  color_;  //!< color
+};
+
+//---
+
+class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
+ public:
+  struct SidePolygon {
+    const CQChartsAxisPolygon3DObj *poly { nullptr };
+    CQChartsGeom::Point3D           p1;
+    CQChartsGeom::Point3D           p2;
+
+    SidePolygon() = default;
+
+    SidePolygon(const CQChartsAxisPolygon3DObj *poly, const CQChartsGeom::Point3D &p1,
+                CQChartsGeom::Point3D &p2) :
+     poly(poly), p1(p1), p2(p2) {
+    }
+  };
+
+  using SidePolygons = std::vector<SidePolygon>;
+
+  struct Line {
+    CQChartsGeom::Point3D p1;
+    CQChartsGeom::Point3D p2;
+
+    Line() = default;
+
+    Line(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2) :
+     p1(p1), p2(p2) {
+    }
+  };
+
+  using Lines = std::vector<Line>;
+
+  struct Text {
+    CQChartsGeom::Point3D           p;
+    QString                         text;
+    const CQChartsAxisPolygon3DObj *poly { nullptr };
+
+    Text() = default;
+
+    Text(const CQChartsGeom::Point3D &p, const QString &text,
+         const CQChartsAxisPolygon3DObj *poly) :
+     p(p), text(text), poly(poly) {
+    }
+  };
+
+  using Texts = std::vector<Text>;
+
+ public:
+  CQChartsAxisPolygon3DObj(const CQChartsPlot3D *plot,
+                           const CQChartsGeom::Polygon3D &poly=CQChartsGeom::Polygon3D());
+
+  QString typeName() const override { return "axis_poly"; }
+
+  void addSidePolygon(const CQChartsAxisPolygon3DObj *poly, const CQChartsGeom::Point3D &p1,
+                      CQChartsGeom::Point3D &p2) {
+    sidePolygons_.push_back(SidePolygon(poly, p1, p2));
+  }
+
+  void addGridLine(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2) {
+    gridLines_.push_back(Line(p1, p2));
+  }
+
+  void addTickText(const CQChartsGeom::Point3D &p, const QString &text,
+                  const CQChartsAxisPolygon3DObj *poly) {
+    tickTexts_.push_back(Text(p, text, poly));
+  }
+
+  void addLabelText(const CQChartsGeom::Point3D &p, const QString &text,
+                    const CQChartsAxisPolygon3DObj *poly) {
+    labelTexts_.push_back(Text(p, text, poly));
+  }
+
   void postDraw(CQChartsPaintDevice *device) override;
 
  private:
-  CQChartsGeom::Polygon3D poly_; //!< polygon
+  SidePolygons sidePolygons_;
+  Lines        gridLines_;
+  Texts        tickTexts_;
+  Texts        labelTexts_;
 };
 
 #endif

@@ -765,7 +765,39 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
                   const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const;
 
-  QString valueName(int is, int ns, int irow) const;
+  //---
+
+  virtual CQChartsXYPointObj *createPointObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                             const CQChartsGeom::Point &p, const ColorInd &is,
+                                             const ColorInd &ig, const ColorInd &iv);
+
+  virtual CQChartsXYBiLineObj *createBiLineObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                               double x, double y1, double y2,
+                                               const QModelIndex &ind, const ColorInd &is,
+                                               const ColorInd &iv);
+
+  virtual CQChartsXYLabelObj *createLabelObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                             double x, double y, const QString &label,
+                                             const QModelIndex &ind, const ColorInd &is,
+                                             const ColorInd &iv);
+
+  virtual CQChartsXYImpulseLineObj *createImpulseLineObj(int groupInd,
+                                                         const CQChartsGeom::BBox &rect,
+                                                         double x, double y1, double y2,
+                                                         const QModelIndex &ind,
+                                                         const ColorInd &is, const ColorInd &iv);
+
+  CQChartsXYPolylineObj *createPolylineObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                           const CQChartsGeom::Polygon &poly, const QString &name,
+                                           const ColorInd &is, const ColorInd &ig);
+
+  CQChartsXYPolygonObj *createPolygonObj(int groupInd, const CQChartsGeom::BBox &rect,
+                                         const CQChartsGeom::Polygon &poly, const QString &name,
+                                         const ColorInd &is, const ColorInd &ig, bool under);
+
+  //---
+
+  QString valueName(int is, int ns, int irow, bool tip=false) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -798,6 +830,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   // axis names
   bool xAxisName(QString &name, const QString &def="") const override;
   bool yAxisName(QString &name, const QString &def="") const override;
+
+  bool xColumnName(QString &name, const QString &def, bool tip=false) const;
+  bool yColumnName(QString &name, const QString &def, bool tip=false) const;
 
   //---
 

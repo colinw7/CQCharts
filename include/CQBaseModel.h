@@ -61,7 +61,7 @@ class CQBaseModel : public QAbstractItemModel {
 
   //! get/set model title
   const QString &title() const { return title_; }
-  void setTitle(const QString &v) { title_ = v; }
+  void setTitle(const QString &s) { title_ = s; }
 
   //! get/set max rows to process to determine type
   int maxTypeRows() const { return maxTypeRows_; }
@@ -109,7 +109,11 @@ class CQBaseModel : public QAbstractItemModel {
 
   //! get/set column title
   QString columnTitle(int column) const;
-  bool setColumnTitle(int column, const QString &v);
+  bool setColumnTitle(int column, const QString &s);
+
+  //! get/set column tip
+  QString columnTip(int column) const;
+  bool setColumnTip(int column, const QString &s);
 
   //! get/set column header type
   CQBaseModelType columnHeaderType(int column) const;
@@ -199,6 +203,7 @@ class CQBaseModel : public QAbstractItemModel {
   void columnSortedChanged    (int column);
   void columnSortOrderChanged (int column);
   void columnTitleChanged     (int column);
+  void columnTipChanged       (int column);
   void columnHeaderTypeChanged(int column);
 
  protected:
@@ -225,6 +230,7 @@ class CQBaseModel : public QAbstractItemModel {
     bool          sorted          { false };              //!< is sorted
     Qt::SortOrder sortOrder       { Qt::AscendingOrder }; //!< sort ortder
     QString       title;                                  //!< title
+    QString       tip;                                    //!< tip
     ModelType     headerType      { ModelType::NONE };    //!< header type
     QString       headerTypeValues;                       //!< header type values
     RoleRowValues roleRowValues;                          //!< row role values

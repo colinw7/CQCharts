@@ -469,7 +469,7 @@ columnToWidgets()
 
       columnCombo_->setColumn(column_);
 
-      if (column_.role() >= 0)
+      if (column_.hasRole())
         roleEdit_->setText(QString("%1").arg(column_.role()));
 
       if (column_.type() == CQChartsColumn::Type::DATA_INDEX)

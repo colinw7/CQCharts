@@ -600,8 +600,9 @@ drawVoronoi(CQChartsPaintDevice *device) const
         brush.setColor(fc1);
       }
 
-      device->setPen  (penBrush.pen);
-      device->setBrush(brush);
+      CQChartsPenBrush penBrush1(penBrush.pen, brush);
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
       device->drawPolygon(poly);
     }

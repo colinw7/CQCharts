@@ -267,7 +267,7 @@ roleNames()
              "tool_tip" << "background" << "foreground" << "text_alignment" <<
              "text_color" << "decoration" <<
              "type" << "base_type" << "type_values" << "min" << "max" << "sorted" <<
-             "sort_order" << "title" << "key" << "raw_value" << "intermediate_value" <<
+             "sort_order" << "title" << "tip" << "key" << "raw_value" << "intermediate_value" <<
              "cached_value" << "output_value" << "group" << "format" << "data_min" << "data_max" <<
              "header_type" << "header_type_values";
 
@@ -297,6 +297,7 @@ nameToRole(const QString &name)
   else if (name == "sorted"            ) return (int) CQBaseModelRole::Sorted;
   else if (name == "sort_order"        ) return (int) CQBaseModelRole::SortOrder;
   else if (name == "title"             ) return (int) CQBaseModelRole::Title;
+  else if (name == "tip"               ) return (int) CQBaseModelRole::Tip;
   else if (name == "key"               ) return (int) CQBaseModelRole::Key;
   else if (name == "raw_value"         ) return (int) CQBaseModelRole::RawValue;
   else if (name == "intermediate_value") return (int) CQBaseModelRole::IntermediateValue;

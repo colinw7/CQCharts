@@ -850,9 +850,16 @@ bool
 CQChartsXYPlot::
 xAxisName(QString &name, const QString &def) const
 {
+  return xColumnName(name, def, false);
+}
+
+bool
+CQChartsXYPlot::
+xColumnName(QString &name, const QString &def, bool tip) const
+{
   bool ok;
 
-  name = modelHHeaderString(xColumn(), ok);
+  name = (tip ? modelHHeaderTip(xColumn(), ok) : modelHHeaderString(xColumn(), ok));
 
   if (! ok || ! name.length())
     name = def;
@@ -863,6 +870,13 @@ xAxisName(QString &name, const QString &def) const
 bool
 CQChartsXYPlot::
 yAxisName(QString &name, const QString &def) const
+{
+  return yColumnName(name, def, false);
+}
+
+bool
+CQChartsXYPlot::
+yColumnName(QString &name, const QString &def, bool tip) const
 {
   int ns = numSets();
 
@@ -879,8 +893,8 @@ yAxisName(QString &name, const QString &def) const
 
       bool ok1, ok2;
 
-      QString yname1 = modelHHeaderString(yColumn1, ok1);
-      QString yname2 = modelHHeaderString(yColumn2, ok2);
+      QString yname1 = (tip ? modelHHeaderTip(yColumn1, ok1) : modelHHeaderString(yColumn1, ok1));
+      QString yname2 = (tip ? modelHHeaderTip(yColumn2, ok2) : modelHHeaderString(yColumn2, ok2));
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -894,7 +908,7 @@ yAxisName(QString &name, const QString &def) const
 
         auto yColumn = yColumns().getColumn(j);
 
-        QString name1 = modelHHeaderString(yColumn, ok);
+        QString name1 = (tip ? modelHHeaderTip(yColumn, ok) : modelHHeaderString(yColumn, ok));
         if (! ok || ! name1.length()) continue;
 
         if (name.length())
@@ -1177,6 +1191,10 @@ CQChartsXYPlot::
 addBivariateLines(int groupInd, const SetIndPoly &setPoly,
                   const ColorInd &ig, PlotObjs &objs) const
 {
+  auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  //---
+
   double sw = symbolWidth ();
   double sh = symbolHeight();
 
@@ -1268,7 +1286,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         ColorInd is(j - 1, ny1 - 1);
         ColorInd iv(ip, np);
 
-        auto *lineObj = new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1, is, iv);
+        auto *lineObj = th->createBiLineObj(groupInd, bbox, x, y1, y2, xind1, is, iv);
 
         objs.push_back(lineObj);
       }
@@ -1586,7 +1604,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *pointObj = new CQChartsXYPointObj(this, groupInd, bbox, p, is1, ig, iv1);
+        auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig, iv1);
 
         pointObj->setModelInd(xind1);
 
@@ -1655,8 +1673,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         if (pointName.length()) {
           CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
-          auto *labelObj = new CQChartsXYLabelObj(this, groupInd, bbox, x, y, pointName,
-                                                  xind1, is1, iv1);
+          auto *labelObj = th->createLabelObj(groupInd, bbox, x, y, pointName, xind1, is1, iv1);
 
           labelObjs.push_back(labelObj);
 
@@ -1727,8 +1744,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           CQChartsGeom::BBox bbox(x - w/2, ys, x + w/2, ye);
 
-          auto *impulseObj = new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye,
-                                                          xind1, is1, iv1);
+          auto *impulseObj = th->createImpulseLineObj(groupInd, bbox, x, ys, ye, xind1, is1, iv1);
 
           impulseLineObjs.push_back(impulseObj);
         }
@@ -1972,7 +1988,9 @@ addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd, const ColorInd 
   auto bbox = polyLine.boundingBox();
   if (! bbox.isSet()) return nullptr;
 
-  auto *lineObj = new CQChartsXYPolylineObj(this, groupInd, bbox, polyLine, name, is, ig);
+  auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  auto *lineObj = th->createPolylineObj(groupInd, bbox, polyLine, name, is, ig);
 
   for (auto &pointObj : pointObjs) {
     auto *pointObj1 = dynamic_cast<CQChartsXYPointObj *>(pointObj);
@@ -1994,14 +2012,75 @@ addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
   auto bbox = poly.boundingBox();
   if (! bbox.isSet()) return;
 
-  auto *polyObj = new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig, under);
+  auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  auto *polyObj = th->createPolygonObj(groupInd, bbox, poly, name, is, ig, under);
 
   objs.push_back(polyObj);
 }
 
+//---
+
+CQChartsXYPointObj *
+CQChartsXYPlot::
+createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &p,
+               const ColorInd &is, const ColorInd &ig, const ColorInd &iv)
+{
+  return new CQChartsXYPointObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                p, is, ig, iv);
+}
+
+CQChartsXYBiLineObj *
+CQChartsXYPlot::
+createBiLineObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y1, double y2,
+                const QModelIndex &ind, const ColorInd &is, const ColorInd &iv)
+{
+  return new CQChartsXYBiLineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                 x, y1, y2, ind, is, iv);
+}
+
+CQChartsXYLabelObj *
+CQChartsXYPlot::
+createLabelObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y,
+               const QString &label, const QModelIndex &ind, const ColorInd &is,
+               const ColorInd &iv)
+{
+  return new CQChartsXYLabelObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                x, y, label, ind, is, iv);
+}
+
+CQChartsXYImpulseLineObj *
+CQChartsXYPlot::
+createImpulseLineObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y1, double y2,
+                     const QModelIndex &ind, const ColorInd &is, const ColorInd &iv)
+{
+  return new CQChartsXYImpulseLineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                      x, y1, y2, ind, is, iv);
+}
+
+CQChartsXYPolylineObj *
+CQChartsXYPlot::
+createPolylineObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Polygon &poly,
+                  const QString &name, const ColorInd &is, const ColorInd &ig)
+{
+  return new CQChartsXYPolylineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                   poly, name, is, ig);
+}
+
+CQChartsXYPolygonObj *
+CQChartsXYPlot::
+createPolygonObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Polygon &poly,
+                 const QString &name, const ColorInd &is, const ColorInd &ig, bool under)
+{
+  return new CQChartsXYPolygonObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
+                                  poly, name, is, ig, under);
+}
+
+//---
+
 QString
 CQChartsXYPlot::
-valueName(int is, int ns, int irow) const
+valueName(int is, int ns, int irow, bool tip) const
 {
   QString name;
 
@@ -2011,7 +2090,7 @@ valueName(int is, int ns, int irow) const
 
       bool ok;
 
-      name = modelHHeaderString(yColumn, ok);
+      name = (tip ? modelHHeaderTip(yColumn, ok) : modelHHeaderString(yColumn, ok));
     }
   }
 
@@ -2380,7 +2459,7 @@ calcTipId() const
 
   QString xname;
 
-  (void) plot()->xAxisName(xname, "X");
+  (void) plot()->xColumnName(xname, "X", /*tip*/true);
 
   tableTip.addTableRow(xname, xstr );
   tableTip.addTableRow("Y1" , y1str);
@@ -2552,7 +2631,7 @@ calcTipId() const
 
   QString xname;
 
-  (void) plot()->xAxisName(xname, "X");
+  (void) plot()->xColumnName(xname, "X", /*tip*/true);
 
   tableTip.addTableRow(xname, xstr );
   tableTip.addTableRow("Y1" , y1str);
@@ -2871,8 +2950,8 @@ calcTipId() const
 
   QString xname, yname;
 
-  (void) plot()->xAxisName(xname, "X");
-  (void) plot()->yAxisName(yname, "Y");
+  (void) plot()->xColumnName(xname, "X", /*tip*/true);
+  (void) plot()->yColumnName(yname, "Y", /*tip*/true);
 
   tableTip.addTableRow(xname, xstr);
   tableTip.addTableRow(yname, ystr);
@@ -3140,13 +3219,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // text font color
-  QPen tpen;
+  CQChartsPenBrush penBrush;
 
   QColor tc = dataLabel->interpTextColor(ColorInd());
 
-  plot()->setPen(tpen, true, tc, dataLabel->textAlpha());
-
-  device->setPen(tpen);
+  plot()->setPenBrush(penBrush,
+    CQChartsPenData(true, tc, dataLabel->textAlpha()), CQChartsBrushData(false));
 
   //---
 
@@ -3182,7 +3260,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsGeom::BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  dataLabel->draw(device, ebbox, label_, dataLabel->position(), tpen);
+  dataLabel->draw(device, ebbox, label_, dataLabel->position(), penBrush);
 
   //---
 

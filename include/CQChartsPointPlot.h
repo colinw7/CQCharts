@@ -179,15 +179,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
  protected:
   void initSymbolTypeData() const;
-
   bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
 
-  void initSymbolSizeData() const;
+  //---
 
+  void initSymbolSizeData() const;
   bool columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const;
 
-  void initFontSizeData() const;
+  //---
 
+  void initFontSizeData() const;
   bool columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const;
 
   //---
@@ -206,39 +207,6 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void dataLabelChanged();
 
  protected:
-  struct SymbolTypeData {
-    CQChartsColumn column;             //!< symbol type column
-    bool           valid    { false }; //!< symbol type valid
-    bool           mapped   { false }; //!< symbol type values mapped
-    int            data_min { 0 };     //!< model data min
-    int            data_max { 1 };     //!< model data max
-    int            map_min  { 0 };     //!< mapped size min
-    int            map_max  { 1 };     //!< mapped size max
-  };
-
-  struct SymbolSizeData {
-    CQChartsColumn column;              //!< symbol size column
-    bool           valid     { false }; //!< symbol size valid
-    bool           mapped    { false }; //!< symbol size values mapped
-    double         data_min  { 0.0 };   //!< model data min
-    double         data_max  { 1.0 };   //!< model data max
-    double         data_mean { 0.0 };   //!< model data mean
-    double         map_min   { 0.0 };   //!< mapped size min
-    double         map_max   { 1.0 };   //!< mapped size max
-    QString        units     { "px" };  //!< mapped size units
-  };
-
-  struct FontSizeData {
-    CQChartsColumn column;             //!< font size column
-    bool           valid    { false }; //!< font size valid
-    bool           mapped   { false }; //!< font size values mapped
-    double         data_min { 0.0 };   //!< model data min
-    double         data_max { 1.0 };   //!< model data max
-    double         map_min  { 0.0 };   //!< mapped size min
-    double         map_max  { 1.0 };   //!< mapped size max
-    QString        units    { "px" };  //!< mapped size units
-  };
-
   struct BestFitData {
     bool visible         { false }; //!< show fit
     bool showDeviation   { false }; //!< show fit deviation
