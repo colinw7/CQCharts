@@ -75,6 +75,15 @@ class CQChartsSankeyPlotNode {
   int ind() const { return ind_; }
   void setInd(int ind) { ind_ = ind; }
 
+  const QString &name() const { return name_; }
+  void setName(const QString &v) { name_ = v; }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  int depth() const { return depth_; }
+  void setDepth(int i) { depth_ = i; }
+
   const Edges &srcEdges () const { return srcEdges_ ; }
   const Edges &destEdges() const { return destEdges_; }
 
@@ -108,6 +117,9 @@ class CQChartsSankeyPlotNode {
   CQChartsSankeyPlotNode*   parent_    { nullptr };
   QString                   str_;
   int                       ind_       { -1 };
+  QString                   name_;
+  double                    value_     { 0.0 };
+  int                       depth_      { -1 };
   Edges                     srcEdges_;
   Edges                     destEdges_;
   int                       srcDepth_  { -1 };
@@ -161,6 +173,18 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
                         CQChartsSankeyPlotNode *node, const ColorInd &ind);
 
+  const QString &hierName() const { return hierName_; }
+  void setHierName(const QString &s) { hierName_ = s; }
+
+  const QString &name() const { return name_; }
+  void setName(const QString &s) { name_ = s; }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  int depth() const { return depth_; }
+  void setDepth(int i) { depth_ = i; }
+
   const CQChartsGeom::BBox &srcEdgeRect(CQChartsSankeyPlotEdge *edge) const {
     auto p = srcEdgeRect_.find(edge);
     assert(p != srcEdgeRect_.end());
@@ -178,6 +202,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   QString typeName() const override { return "node"; }
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   void moveBy(const CQChartsGeom::Point &delta);
 
@@ -200,6 +226,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   CQChartsSankeyPlotNode*   node_ { nullptr }; //!< node
   EdgeRect                  srcEdgeRect_;      //!< edge to src
   EdgeRect                  destEdgeRect_;     //!< edge to dest
+  QString                   hierName_;         //!< node hier name
+  QString                   name_;             //!< node name
+  double                    value_ { 0.0 };    //!< node value
+  int                       depth_ { -1 };     //!< node depth
 };
 
 //---
@@ -218,6 +248,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   QString typeName() const override { return "edge"; }
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   void setSrcRect (const CQChartsGeom::BBox &rect) { srcRect_  = rect; }
   void setDestRect(const CQChartsGeom::BBox &rect) { destRect_ = rect; }
@@ -262,6 +294,11 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   //! link separator
   Q_PROPERTY(QString separator READ separator WRITE setSeparator)
+
+  // options
+  Q_PROPERTY(double nodeMargin READ nodeMargin WRITE setNodeMargin)
+  Q_PROPERTY(double nodeWidth  READ nodeWidth  WRITE setNodeWidth )
+  Q_PROPERTY(int    maxDepth   READ maxDepth   WRITE setMaxDepth  )
 
   // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
@@ -310,6 +347,24 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set node margin
+  double nodeMargin() const { return nodeMargin_; }
+  void setNodeMargin(double r);
+
+  //---
+
+  //! get/set x margin
+  double nodeWidth() const { return nodeWidth_; }
+  void setNodeWidth(double r);
+
+  //---
+
+  //! get/set max depth
+  int maxDepth() const { return maxDepth_; }
+  void setMaxDepth(int d);
+
+  //---
+
   //! get/set text align
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
@@ -320,7 +375,12 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() const override;
 
+  CQChartsGeom::Range getCalcDataRange() const override;
+
   bool createObjs(PlotObjs &objs) const override;
+
+  bool createHierObjs() const;
+  bool createFlatObjs() const;
 
   void updateMaxDepth() const;
 
@@ -330,7 +390,7 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   int maxHeight() const { return maxHeight_; }
 
-  int maxDepth() const { return maxDepth_; }
+  int maxNodeDepth() const { return maxNodeDepth_; }
 
   double valueScale() const { return valueScale_; }
 
@@ -350,9 +410,9 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   void createGraph(PlotObjs &objs) const;
 
-  void createNodes(const IndNodeMap &nodes) const;
+  void createDepthNodes(const IndNodeMap &nodes) const;
 
-  void createEdge(CQChartsSankeyPlotEdge *edge) const;
+  CQChartsSankeyEdgeObj *createEdgeObj(CQChartsSankeyPlotEdge *edge) const;
 
   void adjustNodes() const;
 
@@ -369,20 +429,29 @@ class CQChartsSankeyPlot : public CQChartsPlot,
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;
 
-  CQChartsColumn     linkColumn_;                     //!< link column
-  CQChartsColumn     valueColumn_;                    //!< value column
-  QString            separator_;                      //!< separator
-  Align              align_       { Align::JUSTIFY }; //!< align
-  NameNodeMap        nameNodeMap_;                    //!< name node map
-  IndNodeMap         indNodeMap_;                     //!< ind node map
-  PosNodesMap        posNodesMap_;                    //!< pos node map
-  Edges              edges_;                          //!< edges
-  CQChartsGeom::BBox bbox_;                           //!< bbox
-  int                maxHeight_   { 0 };              //!< max height
-  int                maxDepth_    { 0 };              //!< max depth
-  double             valueScale_  { 1.0 };            //!< value scale
-  double             margin_      { 0.0 };            //!< margin
-  bool               pressed_     { false };          //!< mouse pressed
+  CQChartsColumn     linkColumn_;                       //!< link column
+  CQChartsColumn     valueColumn_;                      //!< value column
+  QString            separator_;                        //!< separator
+  Align              align_         { Align::JUSTIFY }; //!< align
+  NameNodeMap        nameNodeMap_;                      //!< name node map
+  IndNodeMap         indNodeMap_;                       //!< ind node map
+  PosNodesMap        posNodesMap_;                      //!< pos node map
+  Edges              edges_;                            //!< edges
+  CQChartsGeom::BBox bbox_;                             //!< bbox
+  int                maxHeight_     { 0 };              //!< max height
+  int                maxNodeDepth_  { 0 };              //!< max node depth
+  double             nodeMargin_    { 0.2 };            //!< node margin
+  double             minNodeMargin_ { 4 };              //!< min node margin in pixels
+  double             nodeWidth_     { 16 };             //!< x margin in pixels
+  int                maxDepth_      { -1 };             //!< max depth
+  double             boxMargin_     { 0.01 };           //!< bounding box margin
+  double             edgeMargin_    { 0.01 };           //!< edge bounding box margin
+  double             valueScale_    { 1.0 };            //!< value scale
+  double             valueMargin_   { 0.0 };            //!< value margin
+  bool               pressed_       { false };          //!< mouse pressed
+  bool               nodeYSet_      { false };          //!< node y set
+  double             nodeYMin_      { 0.0 };            //!< node y min
+  double             nodeYMax_      { 0.0 };            //!< node y max
 };
 
 #endif

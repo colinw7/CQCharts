@@ -26,7 +26,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   Q_PROPERTY(CQChartsPosition absolutePosition  READ absolutePosition  WRITE setAbsolutePosition)
   Q_PROPERTY(CQChartsRect     absoluteRectangle READ absoluteRectangle WRITE setAbsoluteRectangle)
 
-  Q_PROPERTY(bool insidePlot READ isInsidePlot WRITE setInsidePlot)
+  Q_PROPERTY(bool insidePlot  READ isInsidePlot  WRITE setInsidePlot )
+  Q_PROPERTY(bool expandWidth READ isExpandWidth WRITE setExpandWidth)
 
   Q_PROPERTY(bool fitHorizontal READ isFitHorizontal WRITE setFitHorizontal)
   Q_PROPERTY(bool fitVertical   READ isFitVertical   WRITE setFitVertical  )
@@ -56,6 +57,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   bool isInsidePlot() const { return insidePlot_; }
   void setInsidePlot(bool b);
+
+  bool isExpandWidth() const { return expandWidth_; }
+  void setExpandWidth(bool b);
 
   bool isFitHorizontal() const { return fitData_.horizontal; }
   void setFitHorizontal(bool b) { fitData_.horizontal = b; }
@@ -151,6 +155,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   CQChartsPosition      absolutePosition_;              //!< position (relative to plot box)
   CQChartsRect          absoluteRectangle_;             //!< rect (relative to plot box)
   bool                  insidePlot_        { false };   //!< is placed inside plot
+  bool                  expandWidth_       { false };   //!< is width expanded to plot
   Point                 position_          { 0, 0 };    //!< position
   Size                  size_;                          //!< size
   mutable BBox          bbox_;                          //!< bbox

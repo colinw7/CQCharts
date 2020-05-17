@@ -274,7 +274,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -330,7 +330,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

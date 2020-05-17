@@ -835,7 +835,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsHierScatterPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());

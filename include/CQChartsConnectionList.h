@@ -10,10 +10,12 @@
 class CQChartsConnectionList {
  public:
   struct Connection {
-    int node  { 0 };
-    int count { 0 };
+    int    node  { -1 };
+    double count { -1 };
 
-    Connection(int node=-1, int count=-1) :
+    Connection() = default;
+
+    Connection(int node, double count) :
      node(node), count(count) {
     }
   };

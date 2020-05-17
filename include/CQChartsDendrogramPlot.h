@@ -58,8 +58,6 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox textRect() const;
 
-  void getSelectIndices(Indices &inds) const override;
-
   void draw(CQChartsPaintDevice *device) override;
 
  private:

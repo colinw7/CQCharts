@@ -76,7 +76,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -122,7 +122,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point&) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -162,7 +162,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point&) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -201,7 +201,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

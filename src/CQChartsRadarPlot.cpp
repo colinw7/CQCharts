@@ -901,7 +901,7 @@ annotationBBox() const
 
 void
 CQChartsRadarObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &valueColumn : plot_->valueColumns())
     addColumnSelectIndex(inds, valueColumn);

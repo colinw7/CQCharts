@@ -36,6 +36,7 @@ class CQTabWidget;
 class CQIntegerSpin;
 class CQGroupBox;
 class CQRangeSlider;
+class CQTabSplit;
 
 class QComboBox;
 class QSpinBox;
@@ -87,7 +88,7 @@ class CQChartsViewSettings : public QFrame {
   void updateCurrentPlot();
 
   void updatePlotControls();
-  void addPlotControls(CQChartsPlot *plot);
+  int addPlotControls(CQChartsPlot *plot);
 
   void updateAnnotations();
 
@@ -214,7 +215,8 @@ class CQChartsViewSettings : public QFrame {
   using PlotLayerTable       = CQChartsViewSettingsPlotLayerTable;
 
   struct PropertiesWidgets {
-    FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
+    CQTabSplit*           propertiesSplit  { nullptr }; //!< properties split
+//  FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
     ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
     CQTabWidget*          plotsTab         { nullptr }; //!< plots settings tab
 //  CQChartsPlotTip*      plotTip          { nullptr }; //!< current plot tip
@@ -275,6 +277,7 @@ class CQChartsViewSettings : public QFrame {
     using Sliders = std::vector<CQRangeSlider *>;
     using Radios  = std::vector<QRadioButton *>;
 
+    QFrame*       frame            { nullptr }; //!< frame
     QCheckBox*    equalCheck       { nullptr }; //!< equal check
     QCheckBox*    andCheck         { nullptr }; //!< and check
     QFrame*       area             { nullptr }; //!< control area

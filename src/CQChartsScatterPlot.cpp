@@ -3111,7 +3111,7 @@ inside(const Point &p) const
 
 void
 CQChartsScatterPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());
@@ -3388,12 +3388,6 @@ inside(const Point &p) const
 
 void
 CQChartsScatterCellObj::
-getSelectIndices(Indices &) const
-{
-}
-
-void
-CQChartsScatterCellObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
@@ -3548,12 +3542,6 @@ CQChartsScatterHexObj::
 inside(const Point &p) const
 {
   return CQChartsPlotObj::inside(p);
-}
-
-void
-CQChartsScatterHexObj::
-getSelectIndices(Indices &) const
-{
 }
 
 void

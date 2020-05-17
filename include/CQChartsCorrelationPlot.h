@@ -64,7 +64,7 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

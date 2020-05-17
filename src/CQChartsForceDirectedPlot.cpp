@@ -74,7 +74,7 @@ description() const
   return CQChartsHtml().
    h2("Force Directed Plot").
     h3("Summary").
-     p("Draw connected data using animated nodes connected by springs.").
+     p("Draws connected data using animated nodes connected by springs.").
     h3("Columns").
      p("Connection information can be supplied using:").
      ul({ LI("A list of connections in the " + B("Connections") + " column with the "
@@ -128,6 +128,9 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   auto *details = modelData->details();
   if (! details) return;
 
+  auto *charts = modelData->charts();
+  auto *model  = modelData->model().data();
+
   CQChartsColumn connectionsColumn;
   CQChartsColumn namePairColumn;
   CQChartsColumn countColumn;
@@ -139,15 +142,13 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
+    CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
+
     if      (columnDetails->type() == ColumnType::STRING) {
       if (! connectionsColumn.isValid()) {
-        QModelIndex parent;
-
         bool ok;
 
-        QString str =
-          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                         0, columnDetails->column(), parent, ok);
+        QString str = CQChartsModelUtil::modelString(charts, model, ind, ok);
         if (! ok) continue;
 
         CQChartsConnectionList::Connections connections;
@@ -157,13 +158,9 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
       }
 
       if (! namePairColumn.isValid()) {
-        QModelIndex parent;
-
         bool ok;
 
-        QString str =
-          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                         0, columnDetails->column(), parent, ok);
+        QString str = CQChartsModelUtil::modelString(charts, model, ind, ok);
         if (! ok) continue;
 
         CQChartsNamePair::Names names;
@@ -386,10 +383,240 @@ createObjs(PlotObjs &) const
   if (! idConnections_.empty())
     return false;
 
-  //---
-
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
+  th->nameNodeMap_.clear();
+
+  //---
+
+  bool rc = true;
+
+  if (isHierarchical())
+    rc = createHierObjs();
+  else
+    rc = createFlatObjs();
+
+  if (! rc)
+    return false;
+
+  //---
+
+  double maxCount = 0.0;
+
+  th->nodes_.clear();
+
+  for (const auto &idConnections : idConnections_) {
+    int         id              = idConnections.first;
+    const auto &connectionsData = idConnections.second;
+
+    const QString &name  = connectionsData.name;
+    int            group = connectionsData.group;
+
+    auto *node = forceDirected_->newNode();
+
+    QString label = QString("%1:%2").arg(name).arg(group);
+
+    node->setLabel(label);
+    node->setMass (nodeMass_);
+    node->setValue((1.0*group)/maxGroup_);
+
+    th->nodes_[id] = node;
+
+    //---
+
+    for (const auto &connection : connectionsData.connections) {
+      maxCount = std::max(maxCount, connection.count);
+    }
+  }
+
+  th->widthScale_ = (maxCount > 0.0 ? 1.0/maxCount : 1.0);
+
+  //---
+
+  for (const auto &idConnections : idConnections_) {
+    int         id              = idConnections.first;
+    const auto &connectionsData = idConnections.second;
+
+    auto pn = nodes_.find(id);
+    assert(pn != nodes_.end());
+
+    auto *node = (*pn).second;
+    assert(node);
+
+    for (const auto &connection : connectionsData.connections) {
+      auto pn1 = nodes_.find(connection.node);
+      assert(pn1 != nodes_.end());
+
+      auto *node1 = (*pn1).second;
+      assert(node1);
+
+      auto *edge = forceDirected_->newEdge(node, node1);
+
+      edge->setLength(1.0/connection.count);
+      edge->setValue(connection.count);
+    }
+  }
+
+  //---
+
+  for (int i = 0; i < initSteps_; ++i)
+    forceDirected_->step(stepSize_);
+
+  //---
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
+createHierObjs() const
+{
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsForceDirectedPlot *plot) :
+     plot_(plot) {
+    }
+
+    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex namePairInd(data.row, plot_->namePairColumn(), data.parent);
+
+      bool ok;
+
+      QString namePairStr = plot_->modelString(namePairInd, ok);
+
+      namePairStrs_.push_back(namePairStr);
+
+      parentStr_ = namePairStrs_.join(separator_);
+
+      total_ = 0.0;
+
+      return State::OK;
+    }
+
+    State hierPostVisit(const QAbstractItemModel *, const VisitData &data) override {
+      QString hierLinkStr = parentStr_;
+
+      namePairStrs_.pop_back();
+
+      parentStr_ = namePairStrs_.join(separator_);
+
+      QString namePairStr = (namePairStrs_.length() ? namePairStrs_.back() : QString());
+
+      //---
+
+      auto srcId  = plot_->getStringId(parentStr_);
+      auto destId = plot_->getStringId(hierLinkStr);
+
+      //---
+
+      CQChartsModelIndex namePairInd(data.row, plot_->namePairColumn(), data.parent);
+
+      QModelIndex nameInd  = plot_->modelIndex(namePairInd);
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
+      CQChartsForceDirectedPlot::ConnectionsData connectionsData;
+
+      connectionsData.ind   = nameInd1;
+      connectionsData.node  = srcId;
+      connectionsData.name  = parentStr_;
+      connectionsData.group = 0;
+
+      addConnection(connectionsData, destId, total_);
+
+      //---
+
+      return State::OK;
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex namePairInd  (data.row, plot_->namePairColumn(), data.parent);
+      CQChartsModelIndex countModelInd(data.row, plot_->countColumn(), data.parent);
+
+      bool ok1, ok2;
+
+      QString namePairStr = plot_->modelString(namePairInd  , ok1);
+      double  count       = plot_->modelReal  (countModelInd, ok2);
+
+      if (! ok1) return addDataError(namePairInd  , "Invalid Name Pair");
+      if (! ok2) return addDataError(countModelInd, "Invalid Count");
+
+      //---
+
+      QString hierLinkStr = parentStr_ + separator_ + namePairStr;
+
+      auto srcId  = plot_->getStringId(parentStr_);
+      auto destId = plot_->getStringId(hierLinkStr);
+
+      //---
+
+      QModelIndex nameInd  = plot_->modelIndex(namePairInd);
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
+      CQChartsForceDirectedPlot::ConnectionsData connectionsData;
+
+      connectionsData.ind   = nameInd1;
+      connectionsData.node  = srcId;
+      connectionsData.name  = parentStr_;
+      connectionsData.group = 0;
+
+      addConnection(connectionsData, destId, count);
+
+      //---
+
+      total_ += count;
+
+      return State::OK;
+    }
+
+    void addConnection(const CQChartsForceDirectedPlot::ConnectionsData &connectionsData,
+                       int destId, double count) {
+      auto &srcConnectionsData = const_cast<CQChartsForceDirectedPlot::ConnectionsData &>(
+        plot_->getConnections(connectionsData.node));
+
+      srcConnectionsData = connectionsData;
+
+      CQChartsConnectionList::Connection connection;
+
+      connection.node  = destId;
+      connection.count = count;
+
+      (void) plot_->getConnections(connection.node);
+
+      srcConnectionsData.connections.push_back(connection);
+
+      maxCount_ = std::max(maxCount_, count);
+    }
+
+    double maxCount() const { return maxCount_; }
+
+   private:
+     State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsForceDirectedPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsForceDirectedPlot* plot_      { nullptr };
+    QChar                            separator_ { '/' };
+    QStringList                      namePairStrs_;
+    QString                          parentStr_;
+    double                           total_     { 0.0 };
+    double                           maxCount_  { 0.0 };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
+
+  return true;
+}
+
+bool
+CQChartsForceDirectedPlot::
+createFlatObjs() const
+{
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(const CQChartsForceDirectedPlot *plot) :
@@ -417,7 +644,8 @@ createObjs(PlotObjs &) const
       }
       else {
         ConnectionsData connectionsData;
-        int             destId, count;
+        int             destId;
+        double          count;
 
         if (! plot_->getNameConnections(group, data, connectionsData, destId, count))
           return State::SKIP;
@@ -452,66 +680,15 @@ createObjs(PlotObjs &) const
     int                              maxGroup_ { 0 };
   };
 
-  th->nameNodeMap_.clear();
-
   RowVisitor visitor(this);
 
   visitModel(visitor);
 
-  int maxGroup = visitor.maxGroup();
-
   //---
 
-  th->nodes_.clear();
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  for (const auto &idConnections : idConnections_) {
-    int            id    = idConnections.first;
-    const QString &name  = idConnections.second.name;
-    int            group = idConnections.second.group;
-
-    auto *node = forceDirected_->newNode();
-
-    QString label = QString("%1:%2").arg(name).arg(group);
-
-    node->setLabel(label);
-    node->setMass (nodeMass_);
-    node->setValue((1.0*group)/maxGroup);
-
-    th->nodes_[id] = node;
-  }
-
-  //---
-
-  for (const auto &idConnections : idConnections_) {
-    int                    id          = idConnections.first;
-    const ConnectionsData &connections = idConnections.second;
-
-    auto pn = nodes_.find(id);
-    assert(pn != nodes_.end());
-
-    auto *node = (*pn).second;
-    assert(node);
-
-    for (const auto &connection : connections.connections) {
-      auto pn1 = nodes_.find(connection.node);
-      assert(pn1 != nodes_.end());
-
-      auto *node1 = (*pn1).second;
-      assert(node1);
-
-      auto *edge = forceDirected_->newEdge(node, node1);
-
-      edge->setLength(1.0/connection.count);
-      edge->setValue(connection.count);
-    }
-  }
-
-  //---
-
-  for (int i = 0; i < initSteps_; ++i)
-    forceDirected_->step(stepSize_);
-
-  //---
+  th->maxGroup_ = visitor.maxGroup();
 
   return true;
 }
@@ -580,8 +757,10 @@ getRowConnections(int group, const ModelVisitor::VisitData &data,
 bool
 CQChartsForceDirectedPlot::
 getNameConnections(int group, const ModelVisitor::VisitData &data,
-                   ConnectionsData &connections, int &destId, int &count) const
+                   ConnectionsData &connections, int &destId, double &count) const
 {
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
   CQChartsModelIndex namePairModelInd(data.row, namePairColumn(), data.parent);
 
   bool ok2;
@@ -590,23 +769,19 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
   if (namePairColumnType_ == ColumnType::NAME_PAIR) {
     QVariant namePairVar = modelValue(namePairModelInd, ok2);
-
-    if (! ok2)
-      return false;
+    if (! ok2) return th->addDataError(namePairModelInd, "Invalid name pair");
 
     namePair = namePairVar.value<CQChartsNamePair>();
   }
   else {
     QString namePairStr = modelString(namePairModelInd, ok2);
-
-    if (! ok2)
-      return false;
+    if (! ok2) return th->addDataError(namePairModelInd, "Invalid name pair");
 
     namePair = CQChartsNamePair(namePairStr);
   }
 
   if (! namePair.isValid())
-    return false;
+    return th->addDataError(namePairModelInd, "Invalid name pair");
 
   //---
 
@@ -614,18 +789,17 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
   bool ok3;
 
-  count = (int) modelInteger(countModelInd, ok3);
-
-  if (! ok3)
-    count = 0;
+  count = modelReal(countModelInd, ok3);
+  if (! ok3) return th->addDataError(countModelInd, "Invalid count value");
 
   //---
 
   QString srcStr  = namePair.name1();
   QString destStr = namePair.name2();
 
-  int srcId  = getStringId(srcStr);
-      destId = getStringId(destStr);
+  int srcId = getStringId(srcStr);
+
+  destId = getStringId(destStr);
 
   //---
 
@@ -870,6 +1044,8 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
   setPen(edgePen, true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
 
+  double maxLineWidth = 8.0;
+
   for (auto &edge : forceDirected_->edges()) {
     bool isTemp = false;
 
@@ -881,7 +1057,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     if (isEdgeLinesValueWidth()) {
       QPen edgePen1 = edgePen;
 
-      double w = sqrt(edge->value());
+      double w = maxLineWidth*(widthScale_*edge->value());
 
       edgePen1.setWidthF(w);
 

@@ -48,8 +48,10 @@ class CQTabSplit : public QFrame {
 
   void addWidget(QWidget *w, const QString &name);
 
-  void removeWidget(QWidget *w);
+  void removeWidget(QWidget *w, bool deleteWidget=true);
   void removeAllWidgets();
+
+  bool hasWidget(QWidget *w) const;
 
   int count() const;
 

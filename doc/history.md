@@ -1108,3 +1108,6 @@
  + Add support for CELL and COLUMN column types
  + Improve axis drawing for 3D plot
  + Restore support for point labels to 3D scatter plot
+# 05/17/2020
+ + Support hierarchical model in adjacency, force directed and sankey
+ + Add more customization for sankey

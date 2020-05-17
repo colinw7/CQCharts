@@ -878,7 +878,7 @@ calcTipId() const
 
 void
 CQChartsCorrelationCellObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }

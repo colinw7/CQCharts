@@ -194,7 +194,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
@@ -317,8 +317,6 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
-
   //---
 
   void draw(CQChartsPaintDevice *device) override;
@@ -384,8 +382,6 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
   //---
-
-  void getSelectIndices(Indices &inds) const override;
 
  private:
   using Points = std::vector<CQChartsGeom::Point>;

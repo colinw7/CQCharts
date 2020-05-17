@@ -734,7 +734,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsGeometryObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->nameColumn    ());
   addColumnSelectIndex(inds, plot_->geometryColumn());

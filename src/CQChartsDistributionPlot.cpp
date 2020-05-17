@@ -3249,7 +3249,7 @@ dataLabelRect() const
 
 void
 CQChartsDistributionBarObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   CQChartsDistributionPlot::VariantInds vinds;
 
@@ -3954,12 +3954,6 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsDistributionDensityObj::
-getSelectIndices(Indices &) const
-{
-}
-
-void
-CQChartsDistributionDensityObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
@@ -4266,12 +4260,6 @@ draw(CQChartsPaintDevice *device)
       plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
   }
-}
-
-void
-CQChartsDistributionScatterObj::
-getSelectIndices(Indices &) const
-{
 }
 
 //------

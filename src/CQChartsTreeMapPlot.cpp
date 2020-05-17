@@ -1285,7 +1285,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsTreeMapHierObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   return addColumnSelectIndex(inds, plot_->valueColumn());
 }
@@ -1546,7 +1546,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsTreeMapNodeObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->nameColumns())
     addColumnSelectIndex(inds, c);

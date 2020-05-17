@@ -124,7 +124,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -205,8 +205,6 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
-
   //---
 
   void draw(CQChartsPaintDevice *device) override;
@@ -265,8 +263,6 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   //---
 
   bool inside(const Point &p) const override;
-
-  void getSelectIndices(Indices &inds) const override;
 
   //---
 

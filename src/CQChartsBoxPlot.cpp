@@ -2078,7 +2078,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsBoxPlotWhiskerObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->setColumn  ());
   addColumnSelectIndex(inds, plot_->groupColumn());
@@ -2567,7 +2567,7 @@ calcTipId() const
 
 void
 CQChartsBoxPlotOutlierObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->setColumn  ());
   addColumnSelectIndex(inds, plot_->groupColumn());
@@ -2676,7 +2676,7 @@ calcTipId() const
 
 void
 CQChartsBoxPlotDataObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn          ());
   addColumnSelectIndex(inds, plot_->minColumn        ());
@@ -3250,7 +3250,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsBoxPlotPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }

@@ -1802,7 +1802,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsTableHeaderObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   QModelIndex modelInd = plot_->modelIndex(0, CQChartsColumn(headerObjData_.c));
 
@@ -1883,12 +1883,6 @@ draw(CQChartsPaintDevice *device)
   //---
 
   device->restore();
-}
-
-void
-CQChartsTableRowObj::
-getSelectIndices(Indices &) const
-{
 }
 
 bool
@@ -1983,7 +1977,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsTableCellObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   QModelIndex modelInd = plot_->modelIndex(cellObjData_.ind);
 

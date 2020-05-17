@@ -424,7 +424,7 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
@@ -452,8 +452,6 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void getSelectIndices(Indices &inds) const override;
-
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
  private:
@@ -480,7 +478,7 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

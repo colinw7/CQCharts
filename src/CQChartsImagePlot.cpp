@@ -730,7 +730,7 @@ calcTipId() const
 
 void
 CQChartsImageObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }

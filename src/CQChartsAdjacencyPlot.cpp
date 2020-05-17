@@ -449,17 +449,134 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  if      (namePairColumn().isValid() && countColumn().isValid())
-    return initHierObjs(objs);
-  else if (connectionsColumn().isValid())
-    return initConnectionObjs(objs);
-  else
+  bool rc = true;
+
+  if (isHierarchical())
+    rc = createHierObjs(objs);
+  else {
+    if      (namePairColumn().isValid() && countColumn().isValid())
+      rc = initNamePairObjs(objs);
+    else if (connectionsColumn().isValid())
+      rc = initConnectionObjs(objs);
+  }
+
+  if (! rc)
     return false;
+
+  //---
+
+  return true;
 }
 
 bool
 CQChartsAdjacencyPlot::
-initHierObjs(PlotObjs &objs) const
+createHierObjs(PlotObjs &objs) const
+{
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsAdjacencyPlot *plot) :
+     plot_(plot) {
+    }
+
+    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex namePairInd(data.row, plot_->namePairColumn(), data.parent);
+
+      bool ok;
+
+      QString namePairStr = plot_->modelString(namePairInd, ok);
+
+      namePairStrs_.push_back(namePairStr);
+
+      parentStr_ = namePairStrs_.join(separator_);
+
+      total_ = 0.0;
+
+      return State::OK;
+    }
+
+    State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
+      QString hierLinkStr = parentStr_;
+
+      namePairStrs_.pop_back();
+
+      parentStr_ = namePairStrs_.join(separator_);
+
+      QString namePairStr = (namePairStrs_.length() ? namePairStrs_.back() : QString());
+
+      //---
+
+      auto *srcNode  = plot_->findNode(parentStr_);
+      auto *destNode = plot_->findNode(hierLinkStr);
+
+      if (! srcNode->hasNode(destNode))
+        srcNode->addNode(destNode, total_);
+
+      if (! destNode->hasNode(srcNode))
+        destNode->addNode(srcNode, total_);
+
+      return State::OK;
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex namePairInd  (data.row, plot_->namePairColumn(), data.parent);
+      CQChartsModelIndex countModelInd(data.row, plot_->countColumn(), data.parent);
+
+      bool ok1, ok2;
+
+      QString namePairStr = plot_->modelString(namePairInd  , ok1);
+      double  count       = plot_->modelReal  (countModelInd, ok2);
+
+      if (! ok1) return addDataError(namePairInd  , "Invalid Name Pair");
+      if (! ok2) return addDataError(countModelInd, "Invalid Count");
+
+      //---
+
+      QString hierLinkStr = parentStr_ + separator_ + namePairStr;
+
+      auto *srcNode  = plot_->findNode(parentStr_);
+      auto *destNode = plot_->findNode(hierLinkStr);
+
+      if (! srcNode->hasNode(destNode))
+        srcNode->addNode(destNode, total_);
+
+      if (! destNode->hasNode(srcNode))
+        destNode->addNode(srcNode, total_);
+
+      //---
+
+      total_ += count;
+
+      return State::OK;
+    }
+
+   private:
+     State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsAdjacencyPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsAdjacencyPlot* plot_ { nullptr };
+    QChar                        separator_ { '/' };
+    QStringList                  namePairStrs_;
+    QString                      parentStr_;
+    double                       total_ { 0.0 };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
+
+  createNameNodeObjs(objs);
+
+  return true;
+}
+
+bool
+CQChartsAdjacencyPlot::
+initNamePairObjs(PlotObjs &objs) const
 {
   class RowVisitor : public ModelVisitor {
    public:
@@ -500,14 +617,10 @@ initHierObjs(PlotObjs &objs) const
       }
       else {
         QString namePairStr = plot_->modelString(namePairInd, ok2);
-
-        if (! ok2)
-          return addDataError(namePairInd, "Invalid name pair");
+        if (! ok2) return addDataError(namePairInd, "Invalid name pair");
 
         namePair = CQChartsNamePair(namePairStr);
-
-        if (! namePair.isValid())
-          return addDataError(namePairInd, "Invalid name pair");
+        if (! namePair.isValid()) return addDataError(namePairInd, "Invalid name pair");
       }
 
       //---
@@ -518,19 +631,21 @@ initHierObjs(PlotObjs &objs) const
       bool ok3;
 
       double count = plot_->modelReal(countInd, ok3);
-
-      if (! ok3)
-        return addDataError(countInd, "Invalid count value");
+      if (! ok3) return addDataError(countInd, "Invalid count value");
 
       //---
 
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
-      auto *srcNode  = plot_->getNodeByName(srcStr );
-      auto *destNode = plot_->getNodeByName(destStr);
+      auto *srcNode  = plot_->findNode(srcStr );
+      auto *destNode = plot_->findNode(destStr);
 
-      srcNode->addNode(destNode, count);
+      if (! srcNode->hasNode(destNode))
+        srcNode->addNode(destNode, count);
+
+      if (! destNode->hasNode(srcNode))
+        destNode->addNode(srcNode, count);
 
       //---
 
@@ -566,6 +681,15 @@ initHierObjs(PlotObjs &objs) const
 
   //---
 
+  createNameNodeObjs(objs);
+
+  return true;
+}
+
+void
+CQChartsAdjacencyPlot::
+createNameNodeObjs(PlotObjs &objs) const
+{
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
   for (const auto &nameNode : nameNodeMap_) {
@@ -602,10 +726,10 @@ initHierObjs(PlotObjs &objs) const
 
   //---
 
-  double y = 1.0 - tsize - yb;
+  double y = 1.0 - tsize;
 
   for (auto &node1 : sortedNodes_) {
-    double x = tsize + xb;
+    double x = tsize;
 
     for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
@@ -616,7 +740,7 @@ initHierObjs(PlotObjs &objs) const
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        auto *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
+        auto *obj = th->createObj(node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -626,10 +750,6 @@ initHierObjs(PlotObjs &objs) const
 
     y -= scale();
   }
-
-  //---
-
-  return true;
 }
 
 bool
@@ -663,6 +783,8 @@ initConnectionObjs(PlotObjs &objs) const
   RowVisitor visitor(this);
 
   visitModel(visitor);
+
+  //---
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
@@ -738,7 +860,7 @@ initConnectionObjs(PlotObjs &objs) const
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        auto *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
+        auto *obj = th->createObj(node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -752,6 +874,14 @@ initConnectionObjs(PlotObjs &objs) const
   //---
 
   return true;
+}
+
+CQChartsAdjacencyObj *
+CQChartsAdjacencyPlot::
+createObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double value,
+          const CQChartsGeom::BBox &rect, const ColorInd &ig)
+{
+  return new CQChartsAdjacencyObj(this, node1, node2, value, rect, ig);
 }
 
 bool
@@ -901,7 +1031,7 @@ decodeConnections(const QString &str, Connections &connections) const
 
 CQChartsAdjacencyNode *
 CQChartsAdjacencyPlot::
-getNodeByName(const QString &str) const
+findNode(const QString &str) const
 {
   auto p = nameNodeMap_.find(str);
 
@@ -1194,7 +1324,7 @@ calcTipId() const
 
 void
 CQChartsAdjacencyObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (auto &ind : modelInds())
     inds.insert(ind);

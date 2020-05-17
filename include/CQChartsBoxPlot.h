@@ -164,7 +164,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -209,7 +209,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -245,7 +245,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -316,7 +316,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &) const override;
+  void getObjSelectIndices(Indices &) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 

@@ -91,7 +91,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -154,7 +154,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -260,7 +260,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -342,7 +342,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -416,7 +416,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -496,7 +496,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

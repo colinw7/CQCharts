@@ -110,7 +110,7 @@ addWidget(QWidget *w, const QString &name)
 
 void
 CQTabSplit::
-removeWidget(QWidget *w)
+removeWidget(QWidget *w, bool deleteWidget)
 {
   int i = 0;
 
@@ -131,8 +131,13 @@ removeWidget(QWidget *w)
 
   widgets_.pop_back();
 
+  if (! deleteWidget)
+    data.w->setParent(nullptr);
+
   delete data.group;
-  delete data.w;
+
+  if (deleteWidget)
+    delete data.w;
 }
 
 void
@@ -145,6 +150,18 @@ removeAllWidgets()
   }
 
   widgets_.clear();
+}
+
+bool
+CQTabSplit::
+hasWidget(QWidget *w) const
+{
+  for (auto &data : widgets_) {
+    if (w == data.w)
+      return true;
+  }
+
+  return false;
 }
 
 QWidget *

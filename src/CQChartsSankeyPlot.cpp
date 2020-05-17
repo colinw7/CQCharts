@@ -10,6 +10,7 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -77,14 +78,19 @@ void
 CQChartsSankeyPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  if (analyzeModelData.parameterNameColumn.find("link") !=
-        analyzeModelData.parameterNameColumn.end())
+  bool hasLink  = (analyzeModelData.parameterNameColumn.find("link") !=
+                   analyzeModelData.parameterNameColumn.end());
+  bool hasValue = (analyzeModelData.parameterNameColumn.find("value") !=
+                   analyzeModelData.parameterNameColumn.end());
+
+  if (hasLink && hasValue)
     return;
 
   auto *details = modelData->details();
   if (! details) return;
 
   CQChartsColumn linkColumn;
+  CQChartsColumn valueColumn;
 
   int nc = details->numColumns();
 
@@ -92,13 +98,27 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
-    if (columnDetails->type() == ColumnType::STRING) {
+    if      (columnDetails->type() == ColumnType::STRING) {
       if (! linkColumn.isValid())
         linkColumn = columnDetails->column();
     }
+    else if (columnDetails->isNumeric()) {
+      if (! valueColumn.isValid())
+        valueColumn = columnDetails->column();
+    }
   }
 
-  analyzeModelData.parameterNameColumn["link"] = linkColumn;
+  if (! hasLink && linkColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["link"] = linkColumn;
+
+    hasLink = true;
+  }
+
+  if (! hasValue && valueColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["value"] = valueColumn;
+
+    hasValue = true;
+  }
 }
 
 CQChartsPlot *
@@ -183,6 +203,29 @@ setValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsSankeyPlot::
+setNodeMargin(double r)
+{
+  CQChartsUtil::testAndSet(nodeMargin_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeWidth(double r)
+{
+  CQChartsUtil::testAndSet(nodeWidth_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setMaxDepth(int d)
+{
+  CQChartsUtil::testAndSet(maxDepth_, d, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
 setAlign(const Align &a)
 {
   CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
@@ -203,9 +246,11 @@ addProperties()
 
   addBaseProperties();
 
+  // columns
   addProp("columns", "linkColumn" , "link" , "Link column");
   addProp("columns", "valueColumn", "value", "Value column");
 
+  // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
 
   addLineProperties("node/stroke", "nodeStroke", "Node");
@@ -214,6 +259,7 @@ addProperties()
 
   addFillProperties("node/fill", "nodeFill", "Node");
 
+  // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge steoke visible");
 
   addLineProperties("edge/stroke", "edgeStroke", "Edge");
@@ -222,6 +268,12 @@ addProperties()
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
+  // options
+  addProp("options", "nodeMargin", "nodeMargin", "Node Margin factor");
+  addProp("options", "nodeWidth" , "nodeWidth" , "Node width (in pixels)");
+  addProp("options", "maxDepth"  , "maxDepth"  , "Max Node depth");
+
+  // text
   addProp("text", "textVisible", "visible", "Text label visible");
   addProp("text", "align"      , "align"  , "Text label align");
 
@@ -242,8 +294,8 @@ calcRange() const
     return dataRange;
 
   if (bbox_.isSet()) {
-    double xm = bbox_.getHeight()*0.01;
-    double ym = bbox_.getWidth ()*0.01;
+    double xm = bbox_.getHeight()*boxMargin_;
+    double ym = bbox_.getWidth ()*boxMargin_;
 
     dataRange.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
     dataRange.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
@@ -252,15 +304,29 @@ calcRange() const
   return dataRange;
 }
 
+CQChartsGeom::Range
+CQChartsSankeyPlot::
+getCalcDataRange() const
+{
+  auto range = CQChartsPlot::getCalcDataRange();
+
+  if (nodeYSet_) {
+    range.setBottom(nodeYMin_);
+    range.setTop   (nodeYMax_);
+  }
+
+  return range;
+}
+
+//------
+
 bool
 CQChartsSankeyPlot::
 createObjs(PlotObjs &objs) const
 {
-  CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
-
-  NoUpdate noUpdate(this);
-
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->nodeYSet_= false;
 
   //---
 
@@ -269,6 +335,7 @@ createObjs(PlotObjs &objs) const
 
   th->clearErrors();
 
+  // link and value columns optional
   if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
 
@@ -277,14 +344,42 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  // create objects
+  bool rc = true;
+
+  if (isHierarchical())
+    rc = createHierObjs();
+  else
+    rc = createFlatObjs();
+
+  if (! rc)
+    return false;
+
+  //---
+
+  createGraph(objs);
+
+  return true;
+}
+
+bool
+CQChartsSankeyPlot::
+createHierObjs() const
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::createHierObjs");
+
+  NoUpdate noUpdate(this);
+
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  //---
+
   th->clearNodesAndEdges();
 
   //---
 
   auto *model = this->model().data();
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   //---
 
@@ -292,6 +387,168 @@ createObjs(PlotObjs &objs) const
    public:
     RowVisitor(const CQChartsSankeyPlot *plot) :
      plot_(plot) {
+      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+    }
+
+    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
+
+      bool ok;
+
+      QString linkStr = plot_->modelString(linkModelInd, ok);
+
+      linkStrs_.push_back(linkStr);
+
+      parentStr_ = linkStrs_.join(separator_);
+
+      total_ = 0.0;
+
+      return State::OK;
+    }
+
+    State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
+      QString hierLinkStr = parentStr_;
+
+      linkStrs_.pop_back();
+
+      parentStr_ = linkStrs_.join(separator_);
+
+      QString linkStr = (linkStrs_.length() ? linkStrs_.back() : QString());
+
+      //---
+
+      int srcDepth = linkStrs_.length();
+
+      CQChartsSankeyPlotNode *srcNode = nullptr;
+
+      if (plot_->maxDepth() <= 0 || srcDepth <= plot_->maxDepth())
+        srcNode = plot_->findNode(parentStr_);
+
+      int destDepth = srcDepth + 1;
+
+      CQChartsSankeyPlotNode *destNode = nullptr;
+
+      if (plot_->maxDepth() <= 0 || destDepth <= plot_->maxDepth())
+        destNode = plot_->findNode(hierLinkStr);
+
+      auto *edge = (srcNode && destNode ? plot_->createEdge(total_, srcNode, destNode) : nullptr);
+
+      if (edge) {
+        srcNode ->addDestEdge(edge);
+        destNode->addSrcEdge (edge);
+      }
+
+      if (srcNode) {
+        srcNode->setValue(total_);
+        srcNode->setName (linkStr);
+        srcNode->setDepth(srcDepth);
+      }
+
+      if (destNode)
+        destNode->setDepth(destDepth);
+
+      return State::OK;
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      int srcDepth  = linkStrs_.length();
+      int destDepth = srcDepth + 1;
+
+      //---
+
+      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      bool ok1, ok2;
+
+      QString linkStr = plot_->modelString(linkModelInd , ok1);
+      double  value   = plot_->modelReal  (valueModelInd, ok2);
+
+      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
+      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
+
+      //---
+
+      QString hierLinkStr = parentStr_ + separator_ + linkStr;
+
+      CQChartsSankeyPlotNode *srcNode = nullptr;
+
+      if (plot_->maxDepth() <= 0 || srcDepth <= plot_->maxDepth())
+        srcNode = plot_->findNode(parentStr_);
+
+      CQChartsSankeyPlotNode *destNode = nullptr;
+
+      if (plot_->maxDepth() <= 0 || destDepth <= plot_->maxDepth())
+        destNode = plot_->findNode(hierLinkStr);
+
+      auto *edge = (destNode && srcNode ? plot_->createEdge(value, srcNode, destNode) : nullptr);
+
+      if (edge) {
+        srcNode ->addDestEdge(edge);
+        destNode->addSrcEdge (edge);
+      }
+
+      if (srcNode)
+        srcNode->setDepth(srcDepth);
+
+      if (destNode) {
+        destNode->setValue(value);
+        destNode->setName (linkStr);
+        destNode->setDepth(destDepth);
+      }
+
+      total_ += value;
+
+      return State::OK;
+    }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsSankeyPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsSankeyPlot* plot_ { nullptr };
+    QChar                     separator_ { '/' };
+    QStringList               linkStrs_;
+    QString                   parentStr_;
+    double                    total_ { 0.0 };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  return true;
+}
+
+bool
+CQChartsSankeyPlot::
+createFlatObjs() const
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::createFlatObjs");
+
+  NoUpdate noUpdate(this);
+
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  //---
+
+  th->clearNodesAndEdges();
+
+  //---
+
+  auto *model = this->model().data();
+  if (! model) return false;
+
+  //---
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsSankeyPlot *plot) :
+     plot_(plot) {
+      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -308,9 +565,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      QChar separator = (plot_->separator().length() ? plot_->separator()[0] : '/');
-
-      CQChartsNamePair namePair(linkStr, separator);
+      CQChartsNamePair namePair(linkStr, separator_);
 
       if (! namePair.isValid())
         return State::SKIP;
@@ -326,6 +581,9 @@ createObjs(PlotObjs &objs) const
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
 
+      destNode->setValue(value);
+      destNode->setName (linkStr);
+
       return State::OK;
     }
 
@@ -336,16 +594,13 @@ createObjs(PlotObjs &objs) const
     }
 
    private:
-    const CQChartsSankeyPlot *plot_ { nullptr };
+    const CQChartsSankeyPlot *plot_      { nullptr };
+    QChar                     separator_ { '/' };
   };
 
   RowVisitor visitor(this);
 
   visitModel(visitor);
-
-  //---
-
-  createGraph(objs);
 
   return true;
 }
@@ -386,6 +641,7 @@ createGraph(PlotObjs &objs) const
 
   //---
 
+  // calc max height (fron node count) for each x
   th->maxHeight_ = 0;
 
   for (const auto &depthNodes : depthNodesMap)
@@ -393,6 +649,7 @@ createGraph(PlotObjs &objs) const
 
   //---
 
+  // calc max size (from value) for each x
   double totalSize = 0.0;
 
   for (const auto &depthSize : depthSizeMap)
@@ -400,19 +657,28 @@ createGraph(PlotObjs &objs) const
 
   //---
 
-  th->margin_ = (maxHeight_ > 1 ? 0.2*ys/(maxHeight_ - 1) : 0.0);
+  double nodeMargin = std::min(std::min(this->nodeMargin(), 0.0), 1.0);
 
-  th->valueScale_ = (totalSize > 0 ? ys/totalSize : 0.0);
+  double pixelNodeMargin = windowToPixelHeight(nodeMargin);
+
+  if (pixelNodeMargin < minNodeMargin_)
+    nodeMargin = pixelToWindowHeight(minNodeMargin_);
+
+  double ys1 = nodeMargin*ys;
+  double ys2 = ys - ys1;
+
+  th->valueMargin_ = (maxHeight_ > 1 ? ys1/(maxHeight_ - 1) : 0.0);
+  th->valueScale_  = (totalSize > 0.0 ? ys2/totalSize : 0.0);
 
   //---
 
   for (const auto &depthNodes : depthNodesMap)
-    createNodes(depthNodes.second);
+    createDepthNodes(depthNodes.second);
 
   //--
 
   for (const auto &edge : edges_)
-    createEdge(edge);
+    createEdgeObj(edge);
 
   //---
 
@@ -432,19 +698,21 @@ createGraph(PlotObjs &objs) const
 
 void
 CQChartsSankeyPlot::
-createNodes(const IndNodeMap &nodes) const
+createDepthNodes(const IndNodeMap &nodes) const
 {
   double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
 
-  double dx = xs/maxDepth();
+  double dx = xs/maxNodeDepth();
 
-  double xm = pixelToWindowWidth(16);
+  double xm = pixelToWindowWidth(nodeWidth());
 
   //---
 
-  double height = margin_*(int(nodes.size()) - 1);
+  // get sum of margins nodes at depth
+  double height = valueMargin_*(int(nodes.size()) - 1);
 
+  // get sum of scaled values for nodes at depth
   for (const auto &idNode : nodes) {
     auto *node = idNode.second;
 
@@ -481,26 +749,31 @@ createNodes(const IndNodeMap &nodes) const
     else if (destDepth == 0)
       rect = CQChartsGeom::BBox(x - xm, y1, x, y2);
     else
-      rect = CQChartsGeom::BBox(x - xm/2, y1, x + xm/2, y2);
+      rect = CQChartsGeom::BBox(x - xm/2.0, y1, x + xm/2.0, y2);
 
     ColorInd iv(node->ind(), numNodes);
 
     auto *nodeObj = new CQChartsSankeyNodeObj(this, rect, node, iv);
 
+    nodeObj->setHierName(node->str  ());
+    nodeObj->setName    (node->name ());
+    nodeObj->setValue   (node->value());
+    nodeObj->setDepth   (node->depth());
+
     node->setObj(nodeObj);
 
     //---
 
-    y1 = y2 - margin_;
+    y1 = y2 - valueMargin_;
   }
 }
 
-void
+CQChartsSankeyEdgeObj *
 CQChartsSankeyPlot::
-createEdge(CQChartsSankeyPlotEdge *edge) const
+createEdgeObj(CQChartsSankeyPlotEdge *edge) const
 {
-  double xm = bbox_.getHeight()*0.01;
-  double ym = bbox_.getWidth ()*0.01;
+  double xm = bbox_.getHeight()*edgeMargin_;
+  double ym = bbox_.getWidth ()*edgeMargin_;
 
   CQChartsGeom::BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
                           bbox_.getXMax() + xm, bbox_.getYMax() + ym);
@@ -508,6 +781,8 @@ createEdge(CQChartsSankeyPlotEdge *edge) const
   auto *edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
 
   edge->setObj(edgeObj);
+
+  return edgeObj;
 }
 
 void
@@ -520,7 +795,7 @@ updateMaxDepth() const
 
   th->bbox_ = CQChartsGeom::BBox(-1.0, -1.0, 1.0, 1.0);
 
-  int maxDepth = 0;
+  int maxNodeDepth = 0;
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
@@ -529,14 +804,14 @@ updateMaxDepth() const
     int destDepth = node->destDepth();
 
     if      (align() == CQChartsSankeyPlot::Align::SRC)
-      maxDepth = std::max(maxDepth, srcDepth);
+      maxNodeDepth = std::max(maxNodeDepth, srcDepth);
     else if (align() == CQChartsSankeyPlot::Align::DEST)
-      maxDepth = std::max(maxDepth, destDepth);
+      maxNodeDepth = std::max(maxNodeDepth, destDepth);
     else
-      maxDepth = std::max(std::max(maxDepth, srcDepth), destDepth);
+      maxNodeDepth = std::max(std::max(maxNodeDepth, srcDepth), destDepth);
   }
 
-  th->maxDepth_ = maxDepth;
+  th->maxNodeDepth_ = maxNodeDepth;
 }
 
 void
@@ -575,6 +850,10 @@ adjustNodes() const
   //---
 
   reorderNodeEdges();
+
+  //---
+
+  th->nodeYSet_= true;
 }
 
 void
@@ -598,7 +877,7 @@ adjustNodeCenters()
   // adjust nodes so centered on src nodes
 
   // second to last
-  for (int xpos = 1; xpos <= maxDepth(); ++xpos) {
+  for (int xpos = 1; xpos <= maxNodeDepth(); ++xpos) {
     const IndNodeMap &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
@@ -611,7 +890,7 @@ adjustNodeCenters()
   removeOverlaps();
 
   // second to last to first
-  for (int xpos = maxDepth() - 1; xpos >= 0; --xpos) {
+  for (int xpos = maxNodeDepth() - 1; xpos >= 0; --xpos) {
     const IndNodeMap &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
@@ -622,6 +901,22 @@ adjustNodeCenters()
   }
 
   removeOverlaps();
+
+  //---
+
+  nodeYMin_ = 0.0;
+  nodeYMax_ = 0.0;
+
+  for (int xpos = 1; xpos <= maxNodeDepth(); ++xpos) {
+    const IndNodeMap &indNodeMap = posNodesMap_[xpos];
+
+    for (const auto &idNode : indNodeMap) {
+      auto *node = idNode.second;
+
+      nodeYMin_ = std::min(nodeYMin_, node->obj()->rect().getYMin());
+      nodeYMax_ = std::max(nodeYMax_, node->obj()->rect().getYMax());
+    }
+  }
 }
 
 void
@@ -630,7 +925,7 @@ removeOverlaps() const
 {
   using PosNodeMap = std::map<double,CQChartsSankeyPlotNode *>;
 
-  double ym = pixelToWindowHeight(4);
+  double ym = pixelToWindowHeight(minNodeMargin_);
 
   for (const auto &posNodes : posNodesMap_) {
     const IndNodeMap &indNodeMap = posNodes.second;
@@ -817,6 +1112,8 @@ CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
 createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) const
 {
+  assert(srcNode && destNode);
+
   auto *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
@@ -878,6 +1175,9 @@ int
 CQChartsSankeyPlotNode::
 srcDepth() const
 {
+  if (depth() >= 0)
+    return depth() - 1;
+
   NodeSet visited;
 
   visited.insert(this);
@@ -894,8 +1194,9 @@ srcDepth(NodeSet &visited) const
 
   auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
-  if (srcEdges_.empty())
+  if (srcEdges_.empty()) {
     th->srcDepth_ = 0;
+  }
   else {
     int depth = 0;
 
@@ -921,6 +1222,9 @@ int
 CQChartsSankeyPlotNode::
 destDepth() const
 {
+  if (depth() >= 0)
+    return depth() + 1;
+
   NodeSet visited;
 
   visited.insert(this);
@@ -937,8 +1241,9 @@ destDepth(NodeSet &visited) const
 
   auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
-  if (destEdges_.empty())
+  if (destEdges_.empty()) {
     th->destDepth_ = 0;
+  }
   else {
     int depth = 0;
 
@@ -964,26 +1269,33 @@ int
 CQChartsSankeyPlotNode::
 calcXPos() const
 {
-  int srcDepth  = this->srcDepth ();
-  int destDepth = this->destDepth();
-
   int xpos = 0;
 
-  if      (srcDepth == 0)
-    xpos = 0;
-  else if (destDepth == 0)
-    xpos = plot_->maxDepth();
+  if (depth() >= 0) {
+    xpos = depth();
+  }
   else {
-    if      (plot_->align() == CQChartsSankeyPlot::Align::SRC)
-      xpos = srcDepth;
-    else if (plot_->align() == CQChartsSankeyPlot::Align::DEST)
-      xpos = plot_->maxDepth() - destDepth;
-    else if (plot_->align() == CQChartsSankeyPlot::Align::JUSTIFY) {
-      double f = 1.0*srcDepth/(srcDepth + destDepth);
+    int srcDepth  = this->srcDepth ();
+    int destDepth = this->destDepth();
 
-      xpos = int(f*plot_->maxDepth());
+    if      (srcDepth == 0)
+      xpos = 0;
+    else if (destDepth == 0)
+      xpos = plot_->maxNodeDepth();
+    else {
+      if      (plot_->align() == CQChartsSankeyPlot::Align::SRC)
+        xpos = srcDepth;
+      else if (plot_->align() == CQChartsSankeyPlot::Align::DEST)
+        xpos = plot_->maxNodeDepth() - destDepth;
+      else if (plot_->align() == CQChartsSankeyPlot::Align::JUSTIFY) {
+        double f = 1.0*srcDepth/(srcDepth + destDepth);
+
+        xpos = int(f*plot_->maxNodeDepth());
+      }
     }
   }
+
+  //--
 
   auto *th = const_cast<CQChartsSankeyPlotNode *>(this);
 
@@ -1065,34 +1377,63 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
 
   double x1 = rect.getXMin();
   double x2 = rect.getXMax();
-  double y3 = rect.getYMax();
+  double y1 = rect.getYMin();
+  double y2 = rect.getYMax();
 
-  for (const auto &edge : node_->srcEdges()) {
-    double h1 = plot_->valueScale()*edge->value();
+  if (node_->srcEdges().size() == 1) {
+    auto *edge = *node_->srcEdges().begin();
 
-    double y4 = y3 - h1;
+    srcEdgeRect_[edge] = CQChartsGeom::BBox(x1, y1, x2, y2);
+  }
+  else {
+    double total = 0.0;
 
-    auto p = srcEdgeRect_.find(edge);
+    for (const auto &edge : node_->srcEdges())
+      total += edge->value();
 
-    if (p == srcEdgeRect_.end())
-      srcEdgeRect_[edge] = CQChartsGeom::BBox(x1, y4, x2, y3);
+    double y3 = y2;
 
-    y3 = y4;
+    for (const auto &edge : node_->srcEdges()) {
+      double h1 = (y2 - y1)*edge->value()/total;
+
+      double y4 = y3 - h1;
+
+      auto p = srcEdgeRect_.find(edge);
+
+      if (p == srcEdgeRect_.end())
+        srcEdgeRect_[edge] = CQChartsGeom::BBox(x1, y4, x2, y3);
+
+      y3 = y4;
+    }
   }
 
-  y3 = rect.getYMax();
+  //---
 
-  for (const auto &edge : node->destEdges()) {
-    double h1 = plot_->valueScale()*edge->value();
+  if (node_->destEdges().size() == 1) {
+    auto *edge = *node_->destEdges().begin();
 
-    double y4 = y3 - h1;
+    destEdgeRect_[edge] = CQChartsGeom::BBox(x1, y1, x2, y2);
+  }
+  else {
+    double total = 0.0;
 
-    auto p = destEdgeRect_.find(edge);
+    for (const auto &edge : node_->destEdges())
+      total += edge->value();
 
-    if (p == destEdgeRect_.end())
-      destEdgeRect_[edge] = CQChartsGeom::BBox(x1, y4, x2, y3);
+    double y3 = y2;
 
-    y3 = y4;
+    for (const auto &edge : node->destEdges()) {
+      double h1 = (y2 - y1)*edge->value()/total;
+
+      double y4 = y3 - h1;
+
+      auto p = destEdgeRect_.find(edge);
+
+      if (p == destEdgeRect_.end())
+        destEdgeRect_[edge] = CQChartsGeom::BBox(x1, y4, x2, y3);
+
+      y3 = y4;
+    }
   }
 }
 
@@ -1103,6 +1444,33 @@ calcId() const
   //double value = node_->edgeSum();
 
   return QString("%1:%2").arg(typeName()).arg(iv_.i);
+}
+
+QString
+CQChartsSankeyNodeObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  QString name = this->name();
+
+  if (name == "")
+    name = this->id();
+
+  tableTip.addTableRow("Hier Name", hierName());
+  tableTip.addTableRow("Name"     , name      );
+  tableTip.addTableRow("Value"    , value   ());
+
+  if (depth() >= 0)
+    tableTip.addTableRow("Depth", depth());
+
+  //---
+
+  plot()->addTipColumns(tableTip, modelInd());
+
+  //---
+
+  return tableTip.str();
 }
 
 void
@@ -1140,8 +1508,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  double x1 = rect_.getXMin(), y1 = rect_.getYMin();
-  double x2 = rect_.getXMax(), y2 = rect_.getYMax();
+  double x1 = rect().getXMin(), y1 = rect().getYMin();
+  double x2 = rect().getXMax(), y2 = rect().getYMax();
 
   device->drawRect(CQChartsGeom::BBox(x1, y1, x2, y2));
 
@@ -1157,7 +1525,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (! plot_->isTextVisible())
     return;
 
-  auto prect = plot_->windowToPixel(rect_);
+  auto prect = plot_->windowToPixel(rect());
 
   //---
 
@@ -1181,9 +1549,12 @@ drawFg(CQChartsPaintDevice *device) const
 
   //---
 
-  QString str = node_->str();
+  double textMargin = 4; // pixels
 
-  double tx = (rect_.getXMid() < 0.5 ? prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
+  QString str = node_->name();
+
+  double tx = (rect().getXMid() < 0.5 ? prect.getXMax() + textMargin :
+                                        prect.getXMin() - textMargin - fm.width(str));
   double ty = prect.getYMid() + fm.ascent()/2;
 
   auto pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
@@ -1242,17 +1613,40 @@ QString
 CQChartsSankeyEdgeObj::
 calcId() const
 {
-  return QString("%1:%2:%3:%4").arg(typeName()).arg(edge_->srcNode()->str()).
-          arg(edge_->destNode()->str()).arg(edge_->value());
+  return QString("%1:%2:%3").arg(typeName()).arg(edge_->srcNode()->obj()->calcId()).
+          arg(edge_->destNode()->obj()->calcId());
+}
+
+QString
+CQChartsSankeyEdgeObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  QString srcName  = edge_->srcNode ()->obj()->hierName();
+  QString destName = edge_->destNode()->obj()->hierName();
+
+  if (srcName  == "") srcName  = edge_->srcNode ()->obj()->id();
+  if (destName == "") destName = edge_->destNode()->obj()->id();
+
+  tableTip.addTableRow("Src"  , srcName);
+  tableTip.addTableRow("Dest" , destName);
+  tableTip.addTableRow("Value", edge_->value());
+
+  //---
+
+  plot()->addTipColumns(tableTip, modelInd());
+
+  //---
+
+  return tableTip.str();
 }
 
 bool
 CQChartsSankeyEdgeObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  auto p1 = plot_->windowToPixel(p);
-
-  return path_.contains(p1.qpoint());
+  return path_.contains(p.qpoint());
 }
 
 void
@@ -1278,12 +1672,16 @@ draw(CQChartsPaintDevice *device)
   const auto &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
   const auto &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
-  double x1  = srcRect .getXMax(), x2  = destRect.getXMin();
+  // x from right of source rect to left of dest rect
+  double x1 = srcRect .getXMax(), x2 = destRect.getXMin();
+
+  // start y range from source node, and end y range fron dest node
   double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
   double y21 = destRect.getYMax(), y22 = destRect.getYMin();
 
   path_ = QPainterPath();
 
+  // curve control point x at 1/3 and 2/3
   double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
   double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
 

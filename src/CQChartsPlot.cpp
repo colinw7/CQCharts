@@ -1790,7 +1790,14 @@ calcDataRect() const
   if (parentPlot())
     return parentPlot()->calcDataRect();
 
-  return calcDataRange_.bbox();
+  return getCalcDataRange().bbox();
+}
+
+CQChartsGeom::Range
+CQChartsPlot::
+getCalcDataRange() const
+{
+  return calcDataRange_;
 }
 
 CQChartsGeom::BBox
@@ -3818,7 +3825,7 @@ updateRangeThread()
 
   annotationBBox_ = CQChartsGeom::BBox();
   calcDataRange_  = calcRange();
-  dataRange_      = adjustDataRange(calcDataRange_);
+  dataRange_      = adjustDataRange(getCalcDataRange());
   outerDataRange_ = dataRange_;
 
   //---
@@ -6518,7 +6525,11 @@ void
 CQChartsPlot::
 setControlColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(controlColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(controlColumns_, c, [&]() {
+    updateRangeAndObjs();
+
+    emit controlColumnsChanged();
+  } );
 }
 
 //---
@@ -9520,9 +9531,9 @@ drawBoxes(CQChartsPaintDevice *device) const
 
   //---
 
-  drawWindowColorBox(device, CQChartsUtil::rangeBBox(calcDataRange_ ), Qt::green);
-  drawWindowColorBox(device, CQChartsUtil::rangeBBox(dataRange_     ), Qt::green);
-  drawWindowColorBox(device, CQChartsUtil::rangeBBox(outerDataRange_), Qt::green);
+  drawWindowColorBox(device, CQChartsUtil::rangeBBox(getCalcDataRange()), Qt::green);
+  drawWindowColorBox(device, CQChartsUtil::rangeBBox(dataRange_        ), Qt::green);
+  drawWindowColorBox(device, CQChartsUtil::rangeBBox(outerDataRange_   ), Qt::green);
 }
 
 bool

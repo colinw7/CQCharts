@@ -161,7 +161,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   CQChartsGeom::BBox annotationBBox() const;
 

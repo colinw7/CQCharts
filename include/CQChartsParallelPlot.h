@@ -83,7 +83,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   //---
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 
@@ -128,7 +128,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 

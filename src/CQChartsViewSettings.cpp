@@ -905,12 +905,12 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //--
 
-  auto *propertiesSplit = CQUtil::makeWidget<CQTabSplit>("propertiesSplit");
+  propertiesWidgets_.propertiesSplit = CQUtil::makeWidget<CQTabSplit>("propertiesSplit");
 
-  propertiesSplit->setOrientation(Qt::Vertical);
-  propertiesSplit->setGrouped(true);
+  propertiesWidgets_.propertiesSplit->setOrientation(Qt::Vertical);
+  propertiesWidgets_.propertiesSplit->setGrouped(true);
 
-  propertiesLayout->addWidget(propertiesSplit);
+  propertiesLayout->addWidget(propertiesWidgets_.propertiesSplit);
 
   //----
 
@@ -918,7 +918,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
   auto *viewFrame       = CQUtil::makeWidget<QFrame>("viewFrame");
   auto *viewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
 
-  propertiesSplit->addWidget(viewFrame, "View");
+  propertiesWidgets_.propertiesSplit->addWidget(viewFrame, "View");
 
   //--
 
@@ -949,7 +949,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
   auto *plotsFrame       = CQUtil::makeWidget<QFrame>("plotsFrame");
   auto *plotsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(plotsFrame, 2, 2);
 
-  propertiesSplit->addWidget(plotsFrame, "Plots");
+  propertiesWidgets_.propertiesSplit->addWidget(plotsFrame, "Plots");
 
   //--
 
@@ -1001,10 +1001,11 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  auto *controlFrame       = CQUtil::makeWidget<QFrame>("controlFrame");
-  auto *controlFrameLayout = CQUtil::makeLayout<QVBoxLayout>(controlFrame, 2, 2);
+  controlWidgets_.frame = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  propertiesSplit->addWidget(controlFrame, "Quick Control");
+  auto *controlFrameLayout = CQUtil::makeLayout<QVBoxLayout>(controlWidgets_.frame, 2, 2);
+
+  propertiesWidgets_.propertiesSplit->addWidget(controlWidgets_.frame, "Quick Control");
 
   //--
 
@@ -1017,7 +1018,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
   controlWidgets_.andCheck   = CQUtil::makeLabelWidget<QCheckBox>("And"  , "andCheck");
 
   controlWidgets_.equalCheck->setChecked(true);
-  controlWidgets_.andCheck   ->setChecked(true);
+  controlWidgets_.andCheck  ->setChecked(true);
 
   connect(controlWidgets_.equalCheck, SIGNAL(stateChanged(int)),
           this, SLOT(plotControlUpdateSlot()));
@@ -1042,7 +1043,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
   int i3 = INT_MAX*0.1;
   int i2 = INT_MAX - i1 - i3;
 
-  propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
+  propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
 }
 
 void
@@ -2126,6 +2127,7 @@ updateCurrentPlot()
     if (plot) {
       disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
       disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+      disconnect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
     }
   }
 
@@ -2144,6 +2146,7 @@ updateCurrentPlot()
   if (plot) {
     connect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+    connect(plot, SIGNAL(controlColumnsChanged()), this, SLOT(updatePlotControls()));
   }
 
   //---
@@ -2489,26 +2492,58 @@ updatePlotControls()
   assert(view);
 
   auto *plot = view->currentPlot();
-  if (! plot) return;
+
+  int numControls = 0;
+
+  if (plot) {
+    numControls += addPlotControls(plot);
+
+    int n = plot->numChildPlots();
+
+    for (int i = 0; i < n; ++i)
+      numControls += addPlotControls(plot->childPlot(i));
+  }
 
   //---
 
-  addPlotControls(plot);
-
-  int n = plot->numChildPlots();
-
-  for (int i = 0; i < n; ++i)
-    addPlotControls(plot->childPlot(i));
-
-  //---
-
+  controlWidgets_.layout->setRowStretch(numControls, 1);
   controlWidgets_.layout->setColumnStretch(3, 1);
+
+  //---
+
+  if (numControls > 0) {
+    if (! propertiesWidgets_.propertiesSplit->hasWidget(controlWidgets_.frame)) {
+      propertiesWidgets_.propertiesSplit->addWidget(controlWidgets_.frame, "Quick Control");
+
+      controlWidgets_.frame->setVisible(true);
+
+      int i1 = INT_MAX*0.4;
+      int i3 = INT_MAX*0.1;
+      int i2 = INT_MAX - i1 - i3;
+
+      propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2, i3}));
+    }
+  }
+  else {
+    if (propertiesWidgets_.propertiesSplit->hasWidget(controlWidgets_.frame)) {
+      propertiesWidgets_.propertiesSplit->removeWidget(controlWidgets_.frame, /*delete*/false);
+
+      controlWidgets_.frame->setVisible(false);
+
+      int i1 = INT_MAX*0.4;
+      int i2 = INT_MAX - i1;
+
+      propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2}));
+    }
+  }
 }
 
-void
+int
 CQChartsViewSettings::
 addPlotControls(CQChartsPlot *plot)
 {
+  int n = 0;
+
   CQChartsColumns columns = plot->controlColumns();
 
   for (int ic = 0; ic < columns.count(); ++ic) {
@@ -2655,7 +2690,11 @@ addPlotControls(CQChartsPlot *plot)
 
     if (radio)
       controlWidgets_.layout->addWidget(radio, ic, col++);
+
+    ++n;
   }
+
+  return n;
 }
 
 void
@@ -2664,7 +2703,6 @@ plotControlUpdateSlot()
 {
   auto *obj = sender();
   if (! obj) return;
-
 
   QString id = obj->property("plot").toString();
 

@@ -1579,7 +1579,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsScatterPoint3DObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, scatterPlot()->xColumn());
   addColumnSelectIndex(inds, scatterPlot()->yColumn());

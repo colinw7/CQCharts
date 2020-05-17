@@ -91,7 +91,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox annotationBBox() const;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

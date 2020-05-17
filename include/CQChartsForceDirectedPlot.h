@@ -144,6 +144,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  bool createHierObjs() const;
+  bool createFlatObjs() const;
+
   void postUpdateObjs() override;
 
   //---
@@ -182,7 +185,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
                          ConnectionsData &connections) const;
 
   bool getNameConnections(int group, const ModelVisitor::VisitData &data,
-                          ConnectionsData &connections, int &destId, int &value) const;
+                          ConnectionsData &connections, int &destId, double &value) const;
 
   const ConnectionsData &getConnections(int id) const;
   ConnectionsData &getConnections(int id);
@@ -208,6 +211,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   ColumnType        namePairColumnType_    { ColumnType::NONE }; //!< name pair column type
   IdConnectionsData idConnections_;                              //!< id connections
   NodeMap           nodes_;                                      //!< force directed nodes
+  int               maxGroup_              { 1 };                //!< max group
   ForceDirected*    forceDirected_         { nullptr };          //!< force directed class
   StringIndMap      nameNodeMap_;                                //!< node name index map
   bool              running_               { true };             //!< is running
@@ -218,6 +222,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   int               initSteps_             { 100 };              //!< initial steps
   double            stepSize_              { 0.01 };             //!< step size
   double            nodeRadius_            { 6.0 };              //!< node radius (pixel)
+  double            widthScale_            { 1.0 };              //!< width scale
 };
 
 #endif

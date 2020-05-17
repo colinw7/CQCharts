@@ -1146,7 +1146,7 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsParallelLineObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
 
@@ -1323,7 +1323,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsParallelPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }

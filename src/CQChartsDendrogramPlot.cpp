@@ -586,12 +586,6 @@ textRect() const
 
 void
 CQChartsDendrogramNodeObj::
-getSelectIndices(Indices &) const
-{
-}
-
-void
-CQChartsDendrogramNodeObj::
 draw(CQChartsPaintDevice *device)
 {
   if (! node_->isPlaced()) return;

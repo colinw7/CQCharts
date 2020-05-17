@@ -84,6 +84,13 @@ setInsidePlot(bool b)
 
 void
 CQChartsTitle::
+setExpandWidth(bool b)
+{
+  CQChartsUtil::testAndSet(expandWidth_, b, [&]() { updateLocation(); redraw(); } );
+}
+
+void
+CQChartsTitle::
 redraw(bool wait)
 {
   if (wait)
@@ -121,7 +128,8 @@ updateLocation()
 
   CQChartsTitleLocation location = this->location();
 
-  auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
+  //auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
+  auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(0, 0));
 
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
@@ -179,6 +187,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(path, this, "absolutePosition" )->setDesc("Title absolute position");
   model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectangle");
   model->addProperty(path, this, "insidePlot"       )->setDesc("Title is inside plot");
+  model->addProperty(path, this, "expandWidth"      )->setDesc("Title is sized to plot width");
 
   QString fitPath = path + "/fit";
 
@@ -252,6 +261,12 @@ calcSize()
   }
   else {
     size_ = CQChartsGeom::Size();
+  }
+
+  if (isExpandWidth()) {
+    auto bbox = plot_->calcGroupedDataRange();
+
+    size_.setWidth(bbox.getWidth());
   }
 
   return size_;

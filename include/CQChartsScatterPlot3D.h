@@ -104,7 +104,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   //---
 

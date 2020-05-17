@@ -2507,7 +2507,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYBiLineObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   if (! isVisible())
     return;
@@ -2676,7 +2676,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYImpulseLineObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   if (! isVisible())
     return;
@@ -3016,7 +3016,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   if (! isVisible())
     return;
@@ -3196,7 +3196,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYLabelObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   if (! isVisible())
     return;
@@ -3413,7 +3413,7 @@ isOutlier(double y) const
 
 void
 CQChartsXYPolylineObj::
-getSelectIndices(Indices &) const
+getObjSelectIndices(Indices &) const
 {
   if (! plot()->isLines())
     return;
@@ -3729,7 +3729,7 @@ canSelect() const
 
 void
 CQChartsXYPolygonObj::
-getSelectIndices(Indices &) const
+getObjSelectIndices(Indices &) const
 {
   if (! isVisible())
     return;

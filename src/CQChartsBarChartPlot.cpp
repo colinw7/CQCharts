@@ -1704,7 +1704,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsBarChartObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->groupColumn());
 

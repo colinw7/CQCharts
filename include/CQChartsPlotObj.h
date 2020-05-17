@@ -164,7 +164,11 @@ class CQChartsPlotObj : public CQChartsObj {
 
   void getHierSelectIndices(Indices &inds) const;
 
-  virtual void getSelectIndices(Indices &) const;
+  void getSelectIndices(Indices &inds) const;
+
+  void getDefSelectIndices(Indices &inds) const;
+
+  virtual void getObjSelectIndices(Indices &) const { }
 
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
 

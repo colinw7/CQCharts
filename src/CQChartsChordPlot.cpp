@@ -200,9 +200,9 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
-  setStrokeAlpha(CQChartsAlpha(0.3));
-
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
+
+  setStrokeAlpha(CQChartsAlpha(0.3));
 
   addTitle();
 }
@@ -406,7 +406,6 @@ createObjs(PlotObjs &objs) const
   th->clearErrors();
 
   // link, value and group columns optional
-
   if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
   if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
@@ -996,7 +995,7 @@ arcData() const
 
 void
 CQChartsChordObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->linkColumn ());
   addColumnSelectIndex(inds, plot_->groupColumn());

@@ -1296,7 +1296,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPieObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->labelColumn());
 

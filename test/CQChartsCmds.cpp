@@ -8907,15 +8907,16 @@ fixTypeName(const QString &typeName)
   QString typeName1 = typeName;
 
   // adjust typename for alias (TODO: add to typeData)
-  if      (typeName1 == "piechart"     ) typeName1 = "pie";
-  else if (typeName1 == "xyplot"       ) typeName1 = "xy";
-  else if (typeName1 == "scatterplot"  ) typeName1 = "scatter";
-  else if (typeName1 == "bar"          ) typeName1 = "barchart";
-  else if (typeName1 == "boxplot"      ) typeName1 = "box";
-  else if (typeName1 == "parallelplot" ) typeName1 = "parallel";
-  else if (typeName1 == "geometryplot" ) typeName1 = "geometry";
-  else if (typeName1 == "delaunayplot" ) typeName1 = "delaunay";
-  else if (typeName1 == "adjacencyplot") typeName1 = "adjacency";
+  if      (typeName1 == "piechart"      ) typeName1 = "pie";
+  else if (typeName1 == "xyplot"        ) typeName1 = "xy";
+  else if (typeName1 == "scatterplot"   ) typeName1 = "scatter";
+  else if (typeName1 == "bar"           ) typeName1 = "barchart";
+  else if (typeName1 == "force_directed") typeName1 = "forcedirected";
+  else if (typeName1 == "boxplot"       ) typeName1 = "box";
+  else if (typeName1 == "parallelplot"  ) typeName1 = "parallel";
+  else if (typeName1 == "geometryplot"  ) typeName1 = "geometry";
+  else if (typeName1 == "delaunayplot"  ) typeName1 = "delaunay";
+  else if (typeName1 == "adjacencyplot" ) typeName1 = "adjacency";
 
   return typeName1;
 }

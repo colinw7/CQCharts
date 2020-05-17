@@ -624,6 +624,8 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::BBox outerDataRect() const;
   CQChartsGeom::BBox dataRect     () const;
 
+  virtual CQChartsGeom::Range getCalcDataRange() const;
+
   //---
 
   // inner margin
@@ -2328,6 +2330,9 @@ class CQChartsPlot : public CQChartsObj,
 
   // layers changed (active, valid)
   void layersChanged();
+
+  // control columns changed
+  void controlColumnsChanged();
 
   // key signals (key, key item pressed)
   void keyItemPressed(CQChartsKeyItem *);

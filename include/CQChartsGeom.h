@@ -286,7 +286,10 @@ class Size {
   const QSizeF &qsize() const { return size_; }
 
   double width () const { return size_.width (); }
+  void setWidth(double w) { size_.setWidth(w); }
+
   double height() const { return size_.height(); }
+  void setHeight(double h) { size_.setHeight(h); }
 
  private:
   QSizeF size_;

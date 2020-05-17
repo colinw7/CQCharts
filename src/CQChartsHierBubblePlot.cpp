@@ -1143,7 +1143,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsHierBubbleHierObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->nameColumns())
     addColumnSelectIndex(inds, c);
@@ -1305,7 +1305,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsHierBubbleNodeObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->nameColumns())
     addColumnSelectIndex(inds, c);

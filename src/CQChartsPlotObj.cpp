@@ -129,7 +129,7 @@ addSelectIndices()
 {
   Indices inds;
 
-  getHierSelectIndices(inds);
+  getSelectIndices(inds);
 
   for (const auto &ind : inds)
     plot()->addSelectIndex(ind);
@@ -139,7 +139,7 @@ void
 CQChartsPlotObj::
 getHierSelectIndices(Indices &inds) const
 {
-  getSelectIndices(inds);
+  getObjSelectIndices(inds);
 
   if (plot()->idColumn().isValid())
     addColumnSelectIndex(inds, plot()->idColumn());

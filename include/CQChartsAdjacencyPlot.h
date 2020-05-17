@@ -84,6 +84,10 @@ class CQChartsAdjacencyNode {
 
   NodeMap nodes() const { return nodes_; }
 
+  bool hasNode(CQChartsAdjacencyNode *node) const {
+    return (nodes_.find(node->id()) != nodes_.end());
+  }
+
   void addNode(CQChartsAdjacencyNode *node, double count) {
     nodes_[node->id()] = NodeValue(node, count);
 
@@ -139,7 +143,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   double value() const { return value_; }
 
-  void getSelectIndices(Indices &inds) const override;
+  void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -295,6 +299,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
+  virtual CQChartsAdjacencyObj *createObj(CQChartsAdjacencyNode *node1,
+                                          CQChartsAdjacencyNode *node2, double value,
+                                          const CQChartsGeom::BBox &rect, const ColorInd &ig);
+
   //---
 
   QColor interpGroupColor(int) const;
@@ -335,10 +343,14 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool decodeConnections(const QString &str, Connections &connections) const;
 
-  CQChartsAdjacencyNode *getNodeByName(const QString &str) const;
+  CQChartsAdjacencyNode *findNode(const QString &str) const;
 
-  bool initHierObjs(PlotObjs &objs) const;
+  bool createHierObjs(PlotObjs &objs) const;
+
+  bool initNamePairObjs  (PlotObjs &objs) const;
   bool initConnectionObjs(PlotObjs &objs) const;
+
+  void createNameNodeObjs(PlotObjs &objs) const;
 
  private:
   using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;

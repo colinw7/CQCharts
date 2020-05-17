@@ -1394,7 +1394,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsSunburstNodeObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->nameColumns())
     addColumnSelectIndex(inds, c);

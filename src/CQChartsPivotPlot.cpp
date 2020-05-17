@@ -1152,7 +1152,7 @@ dataLabelRect() const
 
 void
 CQChartsPivotBarObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->xColumns())
     addColumnSelectIndex(inds, c);
@@ -1311,7 +1311,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPivotLineObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->xColumns())
     addColumnSelectIndex(inds, c);
@@ -1461,7 +1461,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPivotPointObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->xColumns())
     addColumnSelectIndex(inds, c);
@@ -1560,7 +1560,7 @@ calcTipId() const
 
 void
 CQChartsPivotCellObj::
-getSelectIndices(Indices &inds) const
+getObjSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->xColumns())
     addColumnSelectIndex(inds, c);
