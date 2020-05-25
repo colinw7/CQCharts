@@ -10,7 +10,7 @@
 #include <CQChartsRand.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -2376,7 +2376,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsBoxPlotWhiskerObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

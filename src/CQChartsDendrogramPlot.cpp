@@ -3,7 +3,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>

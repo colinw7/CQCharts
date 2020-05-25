@@ -6,7 +6,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -495,7 +495,10 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+    double px = 0.0;
+    double py = 0.0;
+
+    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
                                                textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
@@ -583,7 +586,10 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+    double px = 0.0;
+    double py = 0.0;
+
+    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
                                                textOptions, 0, /*alignBBox*/ true);
 
     rowRects[row] = trect;
@@ -862,7 +868,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsImageObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

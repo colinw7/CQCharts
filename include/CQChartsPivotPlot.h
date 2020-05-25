@@ -88,7 +88,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
@@ -212,12 +212,12 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
-  void writeScriptGC(CQChartsScriptPainter *device,
+  void writeScriptGC(CQChartsScriptPaintDevice *device,
                      const CQChartsPenBrush &penBrush) const override;
 
-  void writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const override;
+  void writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot

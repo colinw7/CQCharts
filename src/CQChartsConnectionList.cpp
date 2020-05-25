@@ -57,7 +57,7 @@ bool
 CQChartsConnectionList::
 decodeConnection(const QString &str, Connection &connection)
 {
-  // connection is { <node> <count> }
+  // connection is { <node> <value> }
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -79,12 +79,12 @@ decodeConnection(const QString &str, Connection &connection)
   if (! CQChartsUtil::toInt(str1, node))
     return false;
 
-  long count;
+  double value;
 
-  if (! CQChartsUtil::toInt(str2, count))
+  if (! CQChartsUtil::toReal(str2, value))
     return false;
 
-  connection = Connection(int(node), int(count));
+  connection = Connection(int(node), value);
 
   return true;
 }
@@ -96,7 +96,7 @@ connectionsToString(const Connections &connections)
   QStringList strs;
 
   for (const auto &connection : connections) {
-    strs.push_back(QString("{%1 %2}").arg(connection.node).arg(connection.count));
+    strs.push_back(QString("{%1 %2}").arg(connection.node).arg(connection.value));
   }
 
   return "{" + strs.join(" ") + "}";

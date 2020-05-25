@@ -166,6 +166,9 @@ namespace Springy {
     double value() const { return value_; }
     void setValue(double v) { value_ = v; }
 
+    int group() const { return group_; }
+    void setGroup(int i) { group_ = i; }
+
     bool isFixed() const { return fixed_; }
     void setFixed(bool b) { fixed_ = b; }
 
@@ -175,6 +178,7 @@ namespace Springy {
     double  mass_   { 1.0 };   //!< mass
     QString label_;            //!< label
     double  value_  { 0.0 };   //!< value
+    int     group_  { 0 };     //!< group
     bool    fixed_  { false }; //!< is fixed
   };
 

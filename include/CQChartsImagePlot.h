@@ -72,7 +72,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 

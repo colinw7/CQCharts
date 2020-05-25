@@ -66,6 +66,7 @@ CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
 CQChartsChordPlot.cpp \
 CQChartsCompositePlot.cpp \
+CQChartsConnectionPlot.cpp \
 CQChartsCorrelationPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
@@ -204,6 +205,7 @@ CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
+CQChartsViewPlotPaintDevice.cpp \
 CQChartsPaintDevice.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsUtil.cpp \
@@ -365,6 +367,7 @@ HEADERS += \
 ../include/CQChartsBubblePlot.h \
 ../include/CQChartsChordPlot.h \
 ../include/CQChartsCompositePlot.h \
+../include/CQChartsConnectionPlot.h \
 ../include/CQChartsCorrelationPlot.h \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \
@@ -436,6 +439,7 @@ HEADERS += \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsEnv.h \
 \
+../include/CQChartsViewPlotPaintDevice.h \
 ../include/CQChartsPaintDevice.h \
 ../include/CQChartsDrawUtil.h \
 ../include/CQChartsUtil.h \

@@ -4,7 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -846,7 +846,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsBubbleHierObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   CQChartsBubbleNodeObj::writeScriptData(device);
 }
@@ -1142,7 +1142,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsBubbleNodeObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

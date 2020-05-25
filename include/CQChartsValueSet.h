@@ -589,6 +589,11 @@ class CQChartsValueSet : public QObject {
 
   //---
 
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(const CQChartsPlot *p) { plot_ = p; }
+
+  //---
+
   const CQChartsColumn &column() const { return column_; }
   void setColumn(const CQChartsColumn &c) { column_ = c; }
 

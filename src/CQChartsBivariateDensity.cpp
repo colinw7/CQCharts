@@ -1,5 +1,6 @@
 #include <CQChartsBivariateDensity.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsPlot.h>
 
 #include <CMathCorrelation.h>
 #include <CMathRound.h>

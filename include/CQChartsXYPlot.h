@@ -320,7 +320,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   void setY(double r) { pos_.setY(r); }
 
   const QString &label() const { return label_; }
-  void setLabel(const QString &v) { label_ = v; }
+  void setLabel(const QString &s) { label_ = s; }
 
   //---
 
@@ -426,7 +426,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 
@@ -506,7 +506,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 

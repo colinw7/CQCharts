@@ -4,7 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>

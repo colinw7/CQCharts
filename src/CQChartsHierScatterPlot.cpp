@@ -7,7 +7,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>

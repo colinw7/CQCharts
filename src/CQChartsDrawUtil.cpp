@@ -2,7 +2,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsRoundedPolygon.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsUtil.h>
 
 #include <CMathUtil.h>
@@ -88,10 +88,13 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &pol
 
   auto bbox = poly.boundingBox();
 
-  double xsize = device->lengthPixelWidth (xlen);
-  double ysize = device->lengthPixelHeight(ylen);
+  double pw = device->lengthPixelWidth (bbox.getWidth ());
+  double ph = device->lengthPixelHeight(bbox.getHeight());
 
-  if (bbox.getWidth() > minSize && bbox.getHeight() > minSize) {
+  if (pw > minSize && ph > minSize) {
+    double xsize = device->lengthPixelWidth (xlen);
+    double ysize = device->lengthPixelHeight(ylen);
+
     CQChartsRoundedPolygon::draw(device, poly, xsize, ysize);
   }
   else {
@@ -727,7 +730,7 @@ drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
   QPainter *ipainter = nullptr;
 
   if (device->isInteractive()) {
-    painter = dynamic_cast<CQChartsViewPlotPainter *>(device)->painter();
+    painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device)->painter();
   }
   else {
     image = CQChartsUtil::initImage(QSize(int(ptbbox.getWidth()), int(ptbbox.getHeight())));

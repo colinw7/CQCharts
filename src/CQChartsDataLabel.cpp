@@ -277,8 +277,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
       y = bbox.getYMid();
     }
 
-    CQChartsGeom::BBox          bbox;
-    CQChartsRotatedText::Points points;
+    CQChartsGeom::BBox          pbbox;
+    CQChartsRotatedText::Points ppoints;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
@@ -287,13 +287,15 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     options.angle = textAngle();
     options.align = align;
 
-    CQChartsRotatedText::calcBBoxData(x, y, ystr, device->font(), options, border,
-                                      bbox, points, /*alignBBox*/ true);
+    auto pt = device->windowToPixel(CQChartsGeom::Point(x, y));
+
+    CQChartsRotatedText::calcBBoxData(pt.x, pt.y, ystr, device->font(), options, border,
+                                      pbbox, ppoints, /*alignBBox*/ true);
 
     CQChartsGeom::Polygon poly;
 
-    for (std::size_t i = 0; i < points.size(); ++i)
-      poly.addPoint(device->pixelToWindow(points[i]));
+    for (std::size_t i = 0; i < ppoints.size(); ++i)
+      poly.addPoint(device->pixelToWindow(ppoints[i]));
 
     CQChartsBoxObj::draw(device, poly);
 
@@ -331,14 +333,14 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr) const
+calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr) const
 {
-  return calcRect(bbox, ystr, position());
+  return calcRect(pbbox, ystr, position());
 }
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &position) const
+calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr, const Position &position) const
 {
   if (! isVisible())
     return CQChartsGeom::BBox();
@@ -349,16 +351,16 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
   double ym = 2;
 
   // get inner padding
-  double xlp = lengthParentWidth (CQChartsBoxObj::padding().left  ());
-  double xrp = lengthParentWidth (CQChartsBoxObj::padding().right ());
-  double ytp = lengthParentHeight(CQChartsBoxObj::padding().top   ());
-  double ybp = lengthParentHeight(CQChartsBoxObj::padding().bottom());
+  double xlp = lengthPixelWidth (CQChartsBoxObj::padding().left  ());
+  double xrp = lengthPixelWidth (CQChartsBoxObj::padding().right ());
+  double ytp = lengthPixelHeight(CQChartsBoxObj::padding().top   ());
+  double ybp = lengthPixelHeight(CQChartsBoxObj::padding().bottom());
 
   // get outer margin
-  double xlm = lengthParentWidth (CQChartsBoxObj::margin().left  ());
-  double xrm = lengthParentWidth (CQChartsBoxObj::margin().right ());
-  double ytm = lengthParentHeight(CQChartsBoxObj::margin().top   ());
-  double ybm = lengthParentHeight(CQChartsBoxObj::margin().bottom());
+  double xlm = lengthPixelWidth (CQChartsBoxObj::margin().left  ());
+  double xrm = lengthPixelWidth (CQChartsBoxObj::margin().right ());
+  double ytm = lengthPixelHeight(CQChartsBoxObj::margin().top   ());
+  double ybm = lengthPixelHeight(CQChartsBoxObj::margin().bottom());
 
   //---
 
@@ -371,10 +373,6 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
   CQChartsGeom::BBox wbbox;
 
   if (CMathUtil::isZero(textAngle().value())) {
-    auto pbbox = plot()->windowToPixel(bbox);
-
-    //---
-
     QFontMetricsF fm(font);
 
     double tw = fm.width(ystr);
@@ -389,7 +387,8 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
     else if (position1 == Position::TOP_OUTSIDE) {
       px = pbbox.getXMid() - tw/2;
       py = pbbox.getYMin() - fm.descent() - ym - ytp;
-    } else if (position1 == Position::BOTTOM_INSIDE) {
+    }
+    else if (position1 == Position::BOTTOM_INSIDE) {
       px = pbbox.getXMid() - tw/2;
       py = pbbox.getYMax() - fm.descent() - ym - ybp;
     }
@@ -425,49 +424,49 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
   }
   else {
     // calc pixel position
-    double x = 0.0, y = 0.0;
+    double px = 0.0, py = 0.0;
 
     Qt::Alignment align = textAlignment();
 
     if      (position1 == Position::TOP_INSIDE) {
-      x = bbox.getXMid();
-      y = bbox.getYMax() + ybm + ytm;
+      px = pbbox.getXMid();
+      py = pbbox.getYMax() + ybm + ytm;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
-      x = bbox.getXMid();
-      y = bbox.getYMax() - ybm - ytm;
+      px = pbbox.getXMid();
+      py = pbbox.getYMax() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_INSIDE) {
-      x = bbox.getXMid();
-      y = bbox.getYMin() - ybm - ytm;
+      px = pbbox.getXMid();
+      py = pbbox.getYMin() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
-      x = bbox.getXMid();
-      y = bbox.getYMin() + ybm + ytm;
+      px = pbbox.getXMid();
+      py = pbbox.getYMin() + ybm + ytm;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      x = bbox.getXMin() + xlm + xrm;
-      y = bbox.getYMid();
+      px = pbbox.getXMin() + xlm + xrm;
+      py = pbbox.getYMid();
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      x = bbox.getXMin() - xlm - xrm;
-      y = bbox.getYMid();
+      px = pbbox.getXMin() - xlm - xrm;
+      py = pbbox.getYMid();
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      x = bbox.getXMax() - xlm - xrm;
-      y = bbox.getYMid();
+      px = pbbox.getXMax() - xlm - xrm;
+      py = pbbox.getYMid();
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      x = bbox.getXMax() + xlm + xrm;
-      y = bbox.getYMid();
+      px = pbbox.getXMax() + xlm + xrm;
+      py = pbbox.getYMid();
     }
     else if (position1 == Position::CENTER) {
-      x = bbox.getXMid();
-      y = bbox.getYMid();
+      px = pbbox.getXMid();
+      py = pbbox.getYMid();
     }
 
-    CQChartsGeom::BBox          bbox;
-    CQChartsRotatedText::Points points;
+    CQChartsGeom::BBox          pbbox1;
+    CQChartsRotatedText::Points ppoints;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
@@ -476,10 +475,10 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
     options.angle = textAngle();
     options.align = align;
 
-    CQChartsRotatedText::calcBBoxData(x, y, ystr, font, options, border,
-                                      bbox, points, /*alignBBox*/ true);
+    CQChartsRotatedText::calcBBoxData(px, py, ystr, font, options, border,
+                                      pbbox1, ppoints, /*alignBBox*/ true);
 
-    wbbox = bbox;
+    wbbox = plot()->pixelToWindow(pbbox1);
   }
 
   //---

@@ -1,7 +1,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQPropertyViewModel.h>
 
 CQChartsPlotObj::
@@ -226,17 +226,17 @@ drawDebugRect(CQChartsPaintDevice *device)
 
 void
 CQChartsPlotObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   writeObjScriptData(device);
 }
 
 void
 CQChartsPlotObj::
-writeObjScriptData(CQChartsScriptPainter *device) const
+writeObjScriptData(CQChartsScriptPaintDevice *device) const
 {
   auto encodeString = [&](const QString &str) {
-    return CQChartsScriptPainter::encodeString(str).toStdString();
+    return CQChartsScriptPaintDevice::encodeString(str).toStdString();
   };
 
   std::ostream &os = device->os();
@@ -295,7 +295,7 @@ writeObjScriptData(CQChartsScriptPainter *device) const
 
 void
 CQChartsPlotObj::
-writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &penBrush) const
+writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &penBrush) const
 {
   std::ostream &os = device->os();
 
@@ -335,7 +335,7 @@ contains(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPlotObj::
-writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const
+writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const
 {
   std::ostream &os = device->os();
 

@@ -9,7 +9,7 @@
 #include <CQChartsImage.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQColorsPalette.h>
@@ -505,7 +505,7 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
   if (symbol.isValid()) {
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsPixelPainter device(painter);
+    CQChartsPixelPaintDevice device(painter);
 
     CQChartsLength symbolSize(rect.height()/2.0, CQChartsUnits::PIXEL);
 
@@ -542,7 +542,7 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
   if (image.isValid()) {
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsPixelPainter device(painter);
+    CQChartsPixelPaintDevice device(painter);
 
     CQChartsGeom::BBox pbbox(option.rect);
 

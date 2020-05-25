@@ -9,9 +9,10 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsConnectionList.h>
 #include <CQChartsTip.h>
 #include <CQChartsValueSet.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -28,17 +29,7 @@ void
 CQChartsChordPlotType::
 addParameters()
 {
-  startParameterGroup("Chord");
-
-  addColumnParameter("link" , "Link" , "linkColumn" ).setBasic();
-  addColumnParameter("value", "Value", "valueColumn").setBasic();
-  addColumnParameter("group", "Group", "groupColumn");
-
-  endParameterGroup();
-
-  //---
-
-  CQChartsPlotType::addParameters();
+  CQChartsConnectionPlotType::addParameters();
 }
 
 QString
@@ -77,109 +68,14 @@ CQChartsChordPlotType::
 isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
                      CQChartsPlotParameter *parameter) const
 {
-  if (parameter->name() == "link") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
-      return true;
-
-    return false;
-  }
-
-  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+  return CQChartsConnectionPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 void
 CQChartsChordPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  bool hasLink  = (analyzeModelData.parameterNameColumn.find("link") !=
-                   analyzeModelData.parameterNameColumn.end());
-  bool hasValue = (analyzeModelData.parameterNameColumn.find("value") !=
-                   analyzeModelData.parameterNameColumn.end());
-
-  if (hasLink && hasValue)
-    return;
-
-  auto *details = modelData->details();
-  if (! details) return;
-
-  CQChartsColumn linkColumn;
-  CQChartsColumn valueColumn;
-
-  int nc = details->numColumns();
-
-  for (int c = 0; c < nc; ++c) {
-    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
-    if (! columnDetails) continue;
-
-    if      (columnDetails->type() == ColumnType::STRING) {
-      if (! linkColumn.isValid()) {
-        QModelIndex parent;
-
-        bool ok;
-
-        QString str =
-          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
-                                         0, columnDetails->column(), parent, ok);
-        if (! ok) continue;
-
-        CQChartsNamePair::Names names;
-
-        if (CQChartsNamePair::stringToNames(str, names))
-          linkColumn = columnDetails->column();
-      }
-    }
-    else if (columnDetails->isNumeric()) {
-      if (! valueColumn.isValid())
-        valueColumn = columnDetails->column();
-    }
-  }
-
-  if (! hasLink && linkColumn.isValid()) {
-    analyzeModelData.parameterNameColumn["link"] = linkColumn;
-
-    hasLink = true;
-  }
-
-  if (! hasValue && valueColumn.isValid()) {
-    analyzeModelData.parameterNameColumn["value"] = valueColumn;
-
-    hasValue = true;
-  }
-
-  //---
-
-  if (! hasLink) {
-    if (details->isHierarchical())
-      return;
-
-    int nr = details->numRows();
-    int nc = details->numColumns();
-
-    if (nr != nc - 1 && nr != nc - 2)
-      return;
-
-    int skip = (nr == nc - 2 ? 1 : 0);
-
-    bool allNumeric = true;
-
-    for (int c = skip + 1; c < nc; ++c) {
-      auto *columnDetails = details->columnDetails(CQChartsColumn(c));
-      if (! columnDetails) continue;
-
-      if (! columnDetails->isNumeric()) {
-        allNumeric = false;
-        break;
-      }
-    }
-
-    if (! allNumeric)
-      return;
-
-    analyzeModelData.parameterNameColumn["link"] = CQChartsColumn(0);
-
-    if (skip == 1)
-      analyzeModelData.parameterNameColumn["group"] = CQChartsColumn(1);
-  }
+  CQChartsConnectionPlotType::analyzeModel(modelData, analyzeModelData);
 }
 
 CQChartsPlot *
@@ -189,11 +85,11 @@ create(CQChartsView *view, const ModelP &model) const
   return new CQChartsChordPlot(view, model);
 }
 
-//---
+//------
 
 CQChartsChordPlot::
 CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("chord"), model),
+ CQChartsConnectionPlot(view, view->charts()->plotType("chord"), model),
  CQChartsObjStrokeData<CQChartsChordPlot>(this)
 {
   NoUpdate noUpdate(this);
@@ -217,36 +113,6 @@ CQChartsChordPlot::
 
 void
 CQChartsChordPlot::
-setLinkColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsChordPlot::
-setValueColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsChordPlot::
-setGroupColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsChordPlot::
-setSorted(bool b)
-{
-  CQChartsUtil::testAndSet(sorted_, b, [&]() { updateObjs(); } );
-}
-
-void
-CQChartsChordPlot::
 setInnerRadius(double r)
 {
   CQChartsUtil::testAndSet(innerRadius_, r, [&]() { drawObjs(); } );
@@ -257,6 +123,13 @@ CQChartsChordPlot::
 setLabelRadius(double r)
 {
   CQChartsUtil::testAndSet(labelRadius_, r, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsChordPlot::
+setRotatedText(bool b)
+{
+  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -309,15 +182,11 @@ addProperties()
 
   //---
 
-  addBaseProperties();
+  CQChartsConnectionPlot::addProperties();
 
-  // columns
-  addProp("columns", "linkColumn" , "link" , "Link column");
-  addProp("columns", "valueColumn", "value", "Value column");
-  addProp("columns", "groupColumn", "group", "Grouping column");
+  //---
 
   // options
-  addProp("options", "sorted"     , "", "Sort values by size");
   addProp("options", "innerRadius", "", "Radius of inside of outer strip (0-1)")->
     setMinValue(0.0).setMaxValue(1.0);
 
@@ -338,6 +207,8 @@ addProperties()
 
   addProp("labels", "labelRadius", "radius", "Radius for segment label (>= 1.0)")->
     setMinValue(1.0);
+
+  addProp("labels", "rotatedText", "rotated", "Rotate labels to segment angle");
 
   QString labelBoxPath = "labels/box";
 
@@ -401,75 +272,223 @@ createObjs(PlotObjs &objs) const
   //---
 
   // check columns
-  bool columnsValid = true;
-
-  th->clearErrors();
-
-  // link, value and group columns optional
-  if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
-  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
-  if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
-
-  if (! columnsValid)
+  if (! checkColumns())
     return false;
 
   //---
 
-  if (valueColumn().isValid())
-    return initHierObjs(objs);
+  th->groupValues_.setPlot(this);
 
-  return initTableObjs(objs);
+  th->groupValues_.clear();
+
+  if (groupColumn().isValid())
+    addColumnValues(groupColumn(), th->groupValues_);
+
+  //---
+
+  // create objects
+  bool rc = true;
+
+  if (isHierarchical())
+    rc = initHierObjs(objs);
+  else {
+    if      (linkColumn().isValid() && valueColumn().isValid())
+      rc = initLinkObjs(objs);
+    else if (connectionsColumn().isValid())
+      rc = initConnectionObjs(objs);
+    else
+      rc = initTableObjs(objs);
+  }
+
+  if (! rc)
+    return false;
+
+  //---
+
+  return true;
 }
 
 bool
 CQChartsChordPlot::
-initTableObjs(PlotObjs &objs) const
+initHierObjs(PlotObjs &objs) const
 {
-  using RowData = std::vector<QVariant>;
+  CQPerfTrace trace("CQChartsChordPlot::initHierObjs");
 
-  struct IndRowData {
-    QModelIndex ind;
-    RowData     rowData;
-  };
+  //---
 
-  using IndRowDatas = std::vector<IndRowData>;
+  auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  th->nameDataMap_.clear();
+
+  //---
+
+  CQChartsConnectionPlot::initHierObjs();
+
+  //---
+
+  th->addNameDataMap(nameDataMap_, objs);
+
+  return true;
+}
+
+void
+CQChartsChordPlot::
+initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
+                              const HierConnectionData &destHierData) const
+{
+  initHierObjsConnection(srcHierData .parentStr, srcHierData .parentLinkInd, srcHierData .total,
+                         destHierData.parentStr, destHierData.parentLinkInd, destHierData.total);
+}
+
+void
+CQChartsChordPlot::
+initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
+                              const HierConnectionData &destHierData) const
+{
+  initHierObjsConnection(srcHierData .parentStr, srcHierData .parentLinkInd, srcHierData .total,
+                         destHierData.parentStr, destHierData.parentLinkInd, destHierData.total);
+}
+
+void
+CQChartsChordPlot::
+initHierObjsConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkInd,
+                       double /*srcValue*/,
+                       const QString &destStr, const CQChartsModelIndex &destLinkInd,
+                       double destValue) const
+{
+  // find src (create if doesn't exist)
+  QModelIndex srcModelIndex  = modelIndex(srcLinkInd);
+  QModelIndex srcModelIndex1 = normalizeIndex(srcModelIndex);
+
+  auto &srcData = findNameData(srcStr, srcModelIndex1);
+
+  // find dest (create if doesn't exist)
+  QModelIndex destModelIndex  = modelIndex(destLinkInd);
+  QModelIndex destModelIndex1 = normalizeIndex(destModelIndex);
+
+  auto &destData = findNameData(destStr, destModelIndex1);
+
+  // create link from src to dest for values
+  // (hier always symmetric)
+  srcData .addValue(destData.from(), destValue, /*primary*/true );
+  destData.addValue(srcData .from(), destValue, /*primary*/false);
+}
+
+//---
+
+bool
+CQChartsChordPlot::
+initLinkObjs(PlotObjs &objs) const
+{
+  CQPerfTrace trace("CQChartsChordPlot::initLinkObjs");
+
+  //---
+
+  auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  th->nameDataMap_.clear();
+
+  //---
 
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(const CQChartsChordPlot *plot) :
      plot_(plot) {
+      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      int nc = numCols();
+      // Get group value
+      ChordData::Group group;
 
-      IndRowData indRowData;
+      if (plot_->groupColumn().isValid()) {
+        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
 
-      indRowData.rowData.resize(nc);
+        bool ok1;
+        QVariant groupVar = plot_->modelValue(groupModelInd, ok1);
 
-      for (int ic = 0; ic < numCols(); ++ic) {
-        CQChartsModelIndex columnInd(data.row, CQChartsColumn(ic), data.parent);
+        if (! ok1)
+          return addDataError(groupModelInd, "Invalid group value");
 
-        QModelIndex ind = plot_->modelIndex(columnInd);
-
-        if (ic == 0)
-          indRowData.ind = ind;
-
-        bool ok;
-
-        indRowData.rowData[ic] = plot_->modelValue(columnInd, ok);
+        group = plot_->getChordGroup(groupVar);
       }
 
-      indRowDatas_.push_back(indRowData);
+      //---
+
+      // Get link value
+      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
+
+      CQChartsNamePair namePair;
+
+      if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
+        bool ok;
+        QVariant linkVar = plot_->modelValue(linkModelInd, ok);
+        if (! ok) return addDataError(linkModelInd, "Invalid Link");
+
+        namePair = linkVar.value<CQChartsNamePair>();
+      }
+      else {
+        bool ok;
+        QString linkStr = plot_->modelString(linkModelInd , ok);
+        if (! ok) return addDataError(linkModelInd, "Invalid Link");
+
+        namePair = CQChartsNamePair(linkStr, separator_);
+      }
+
+      if (! namePair.isValid())
+        return addDataError(linkModelInd, "Invalid Link");
+
+      QModelIndex linkInd  = plot_->modelIndex(linkModelInd);
+      QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
+
+      //---
+
+      // Get value value
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      bool ok1;
+      double value = plot_->modelReal(valueModelInd, ok1);
+      if (! ok1) return addDataError(valueModelInd, "Invalid Value");
+
+      //---
+
+      QString srcStr  = namePair.name1();
+      QString destStr = namePair.name2();
+
+      addConnection(srcStr, destStr, linkInd1, group, value);
 
       return State::OK;
     }
 
-    const IndRowDatas &indRowDatas() const { return indRowDatas_; }
+   private:
+    void addConnection(const QString &srcStr, const QString &destStr,
+                       const QModelIndex &linkInd, const ChordData::Group &group,
+                       double value) {
+      // find src (create if doesn't exist)
+      auto &srcData = plot_->findNameData(srcStr, linkInd);
+
+      // find dest (create if doesn't exist)
+      auto &destData = plot_->findNameData(destStr, linkInd);
+
+      // create link from src to dest for value
+      srcData .addValue(destData.from(), value, value, /*primary*/true );
+      destData.addValue(srcData .from(), value, value, /*primary*/false);
+
+      //---
+
+      // set group if specified
+      if (group.isValid())
+        srcData.setGroup(group);
+    }
+
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
 
    private:
     const CQChartsChordPlot* plot_ { nullptr };
-    IndRowDatas              indRowDatas_;
+    QChar                    separator_ { '/' };
   };
 
   RowVisitor visitor(this);
@@ -478,147 +497,220 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
-  const IndRowDatas &indRowDatas = visitor.indRowDatas();
+  th->addNameDataMap(nameDataMap_, objs);
 
-  int nr = indRowDatas.size();
-  int nc = (nr > 0 ? int(indRowDatas[0].rowData.size()) : 0);
+  return true;
+}
 
-  int numExtraColumns = 0;
-
-  if (linkColumn ().isValid()) ++numExtraColumns;
-  if (groupColumn().isValid()) ++numExtraColumns;
-
-  int nv = std::min(nr, nc - numExtraColumns);
+bool
+CQChartsChordPlot::
+initConnectionObjs(PlotObjs &objs) const
+{
+  CQPerfTrace trace("CQChartsChordPlot::initConnectionObjs");
 
   //---
 
-  using Datas = std::vector<CQChartsChordData>;
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  Datas datas;
+  //---
+
+  using Connections = CQChartsConnectionList::Connections;
+
+  struct ConnectionsData {
+    QModelIndex      ind;
+    int              node  { 0 };
+    QString          name;
+    ChordData::Group group;
+    double           total { 0.0 };
+    Connections      connections;
+  };
+
+  using IdConnectionsData = std::map<int,ConnectionsData>;
+
+  //---
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsChordPlot *plot) :
+     plot_(plot) {
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get group value
+      ChordData::Group group;
+
+      if (plot_->groupColumn().isValid()) {
+        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+
+        bool ok1;
+        QVariant groupVar = plot_->modelValue(groupModelInd, ok1);
+
+        if (! ok1)
+          return addDataError(groupModelInd, "Invalid group value");
+
+        group = plot_->getChordGroup(groupVar);
+      }
+
+      //---
+
+      // get optional node id (default to row)
+      CQChartsModelIndex nodeModelInd;
+
+      int id = data.row;
+
+      if (plot_->nodeColumn().isValid()) {
+        nodeModelInd = CQChartsModelIndex(data.row, plot_->nodeColumn(), data.parent);
+
+        bool ok2;
+        id = (int) plot_->modelInteger(nodeModelInd, ok2);
+        if (! ok2) return addDataError(nodeModelInd, "Non-integer node value");
+      }
+
+      //---
+
+      // get connections
+      ConnectionsData connectionsData;
+
+      CQChartsModelIndex connectionsModelInd(data.row, plot_->connectionsColumn(), data.parent);
+
+      if (plot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
+        bool ok3;
+        QVariant connectionsVar = plot_->modelValue(connectionsModelInd, ok3);
+
+        connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+      }
+      else {
+        bool ok3;
+        QString connectionsStr = plot_->modelString(connectionsModelInd, ok3);
+        if (! ok3) return addDataError(connectionsModelInd, "Invalid connection string");
+
+        CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
+      }
+
+      //----
+
+      // get name
+      QString name = QString("%1").arg(id);
+
+      if (plot_->nameColumn().isValid()) {
+        CQChartsModelIndex nameModelInd(data.row, plot_->nameColumn(), data.parent);
+
+        bool ok4;
+        name = plot_->modelString(nameModelInd, ok4);
+        if (! ok4) return addDataError(nameModelInd, "Invalid name string");
+      }
+
+      //---
+
+      // calc total
+      double total = 0.0;
+
+      for (const auto &connection : connectionsData.connections)
+        total += connection.value;
+
+      //---
+
+      // return connections data
+      if (nodeModelInd.isValid()) {
+        auto nodeInd  = plot_->modelIndex(nodeModelInd);
+        auto nodeInd1 = plot_->normalizeIndex(nodeInd);
+
+        connectionsData.ind = nodeInd1;
+      }
+
+      connectionsData.node  = id;
+      connectionsData.name  = name;
+      connectionsData.group = group;
+      connectionsData.total = total;
+
+      idConnectionsData_[connectionsData.node] = connectionsData;
+
+      return State::OK;
+    }
+
+    const IdConnectionsData &idConnectionsData() const { return idConnectionsData_; }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsChordPlot* plot_ { nullptr };
+    IdConnectionsData        idConnectionsData_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
+
+  NameDataMap nameDataMap;
+
+  const IdConnectionsData &idConnectionsData = visitor.idConnectionsData();
+
+  for (const auto &idConnections : idConnectionsData) {
+    int         id              = idConnections.first;
+    const auto &connectionsData = idConnections.second;
+
+    QString srcStr = QString("%1").arg(id);
+
+    // find src (create if doesn't exist)
+    auto &srcData = findNameData(nameDataMap, srcStr, connectionsData.ind);
+
+    srcData.setName (connectionsData.name );
+    srcData.setGroup(connectionsData.group);
+
+    for (const auto &connection : connectionsData.connections) {
+      QString destStr = QString("%1").arg(connection.node);
+
+      auto &destData = findNameData(nameDataMap, destStr, connectionsData.ind);
+
+      // create link from src to dest for value
+      srcData.addValue(destData.from(), connection.value, connection.value);
+    }
+  }
+
+  //---
+
+  th->addNameDataMap(nameDataMap, objs);
+
+  return true;
+}
+
+bool
+CQChartsChordPlot::
+initTableObjs(PlotObjs &objs) const
+{
+  CQPerfTrace trace("CQChartsChordPlot::initTableObjs");
+
+  //---
+
+  TableConnectionDatas tableConnectionDatas;
+  TableConnectionInfo  tableConnectionInfo;
+
+  if (! processTableModel(tableConnectionDatas, tableConnectionInfo))
+    return false;
+
+  int nv  = tableConnectionDatas.size();
+  int nv1 = tableConnectionInfo.numNonZero;
+
+  double total = tableConnectionInfo.total;
+
+  //---
+
+  using ChordDatas = std::vector<ChordData>;
+
+  ChordDatas datas;
 
   datas.resize(nv);
 
-  //---
-
-  CQChartsValueSet groupValues(this);
-
-  if (groupColumn().isValid() && groupColumn().column() < nv) {
-    int igroup = groupColumn().column();
-
-    for (int row = 0; row < nv; ++row) {
-      QVariant group = indRowDatas[row].rowData[igroup];
-
-      groupValues.addValue(group);
-    }
-  }
-
-  //---
-
-  int nv1 = 0;
-
-  double total = 0.0;
-
   for (int row = 0; row < nv; ++row) {
-    CQChartsChordData &data = datas[row];
+    auto &tableConnectionData = const_cast<TableConnectionData &>(tableConnectionDatas[row]);
 
-    data.setFrom(row);
-
-    //---
-
-    const QModelIndex &ind = indRowDatas[row].ind;
-
-    //---
-
-    // set link
-    if (linkColumn().isValid() && linkColumn().column() < nv) {
-      CQChartsModelIndex linkModelInd(ind.row(), linkColumn(), ind.parent());
-
-      QModelIndex linkInd  = modelIndex(linkModelInd);
-      QModelIndex linkInd1 = normalizeIndex(linkInd);
-
-      QVariant var = indRowDatas[row].rowData[linkColumn().column()];
-
-      QString link;
-
-      CQChartsVariant::toString(var, link);
-
-      data.setName(link);
-
-      data.setInd(linkInd1);
-    }
-
-    //---
-
-    // set group
-    if (groupColumn().isValid() && groupColumn().column() < nv) {
-      CQChartsModelIndex groupColumnInd(ind.row(), groupColumn(), ind.parent());
-
-      int igroup = groupColumn().column();
-
-      QModelIndex groupInd  = modelIndex(groupColumnInd);
-      QModelIndex groupInd1 = normalizeIndex(groupInd);
-
-      QVariant groupVar = indRowDatas[row].rowData[igroup];
-
-      QString groupStr;
-
-      CQChartsVariant::toString(groupVar, groupStr);
-
-      int ig = groupValues.iset(groupVar);
-      int ng = groupValues.numUnique();
-
-      data.setGroup(CQChartsChordData::Group(groupStr, ig, ng));
-
-      data.setInd(groupInd1);
-    }
-
-    //---
-
-    // get values
-    int col1 = 0;
-
-    for (int col = 0; col < nv; ++col) {
-      if (col == linkColumn().column() || col == groupColumn().column())
-        continue;
-
-      //---
-
-      bool ok;
-
-      double value = CQChartsVariant::toReal(indRowDatas[row].rowData[col], ok);
-
-      //---
-
-      if (CMathUtil::isZero(value))
-        continue;
-
-      data.addValue(col1, value);
-
-      ++col1;
-    }
-
-    //---
-
-    // add to total
-    double total1 = data.total();
-
-    if (! CMathUtil::isZero(total1))
-      ++nv1;
-
-    total += total1;
-  }
-
-  //---
-
-  // sort
-  if (isSorted()) {
-    std::sort(datas.begin(), datas.end(),
-      [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
-        return lhs.total() < rhs.total();
-      });
-
-    for (auto &data : datas)
-      data.sort();
+    datas[row].setData(tableConnectionData);
   }
 
   //---
@@ -644,9 +736,14 @@ initTableObjs(PlotObjs &objs) const
   double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
-    CQChartsChordData &data = datas[row];
+    ChordData &data = datas[row];
 
-    double total1 = data.total();
+    double total1;
+
+    if (! isSymmetric())
+      total1 = data.maxTotal();
+    else
+      total1 = data.fromTotal();
 
     if (CMathUtil::isZero(total1))
       continue;
@@ -663,7 +760,7 @@ initTableObjs(PlotObjs &objs) const
   //---
 
   for (int row = 0; row < nv; ++row) {
-    CQChartsChordData &data = datas[row];
+    const ChordData &data = datas[row];
 
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
@@ -680,137 +777,58 @@ initTableObjs(PlotObjs &objs) const
   return true;
 }
 
-bool
+CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
-initHierObjs(PlotObjs &objs) const
+findNameData(const QString &name, const QModelIndex &linkInd) const
 {
-  CQChartsValueSet groupValues(this);
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  if (groupColumn().isValid())
-    addColumnValues(groupColumn(), groupValues);
+  return findNameData(th->nameDataMap_, name, linkInd);
+}
 
-  //---
+CQChartsChordPlot::ChordData &
+CQChartsChordPlot::
+findNameData(NameDataMap &nameDataMap, const QString &name, const QModelIndex &linkInd) const
+{
+  auto p = nameDataMap.find(name);
 
-  using NameDataMap = std::map<QString,CQChartsChordData>;
+  if (p == nameDataMap.end()) {
+    p = nameDataMap.insert(p, NameDataMap::value_type(name, ChordData()));
 
-  //---
+    (*p).second.setFrom(int(nameDataMap.size() - 1));
+    (*p).second.setName(name);
+    (*p).second.setLinkInd(linkInd);
+  }
 
-  class RowVisitor : public ModelVisitor {
-   public:
-    RowVisitor(const CQChartsChordPlot *plot, CQChartsValueSet &groupValues) :
-     plot_(plot), groupValues_(groupValues) {
-    }
+  return (*p).second;
+}
 
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      bool ok1, ok2;
-
-      QString linkStr = plot_->modelString(linkModelInd , ok1);
-      double  value   = plot_->modelReal  (valueModelInd, ok2);
-
-      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
-      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
-
-      //---
-
-      // decode link into src and dest
-      CQChartsNamePair linkPair(linkStr);
-
-      if (! linkPair.isValid())
-        return State::SKIP;
-
-      QModelIndex linkInd  = plot_->modelIndex(linkModelInd);
-      QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
-
-      QString srcStr  = linkPair.name1();
-      QString destStr = linkPair.name2();
-
-      // find src (create if doesn't exist)
-      auto ps = nameDataMap_.find(srcStr);
-
-      if (ps == nameDataMap_.end()) {
-        ps = nameDataMap_.insert(ps, NameDataMap::value_type(srcStr, CQChartsChordData()));
-
-        (*ps).second.setFrom(int(nameDataMap_.size() - 1));
-        (*ps).second.setName(srcStr);
-        (*ps).second.setInd (linkInd1);
-      }
-
-      // find src (create if doesn't exist)
-      auto pd = nameDataMap_.find(destStr);
-
-      if (pd == nameDataMap_.end()) {
-        pd = nameDataMap_.insert(pd, NameDataMap::value_type(destStr, CQChartsChordData()));
-
-        (*pd).second.setFrom(int(nameDataMap_.size() - 1));
-        (*pd).second.setName(destStr);
-        (*pd).second.setInd (linkInd1);
-      }
-
-      // create link from src to dest for value
-      (*ps).second.addValue((*pd).second.from(), value);
-
-      //---
-
-      // set group if specified
-      if (plot_->groupColumn().isValid()) {
-        //int igroup = plot_->groupColumn().column();
-
-        CQChartsModelIndex groupColumnInd(data.row, plot_->groupColumn(), data.parent);
-
-        bool ok;
-
-        QVariant groupVar = plot_->modelValue(groupColumnInd, ok);
-
-        QString groupStr;
-
-        CQChartsVariant::toString(groupVar, groupStr);
-
-        int ig = groupValues_.iset(groupVar);
-        int ng = groupValues_.numUnique();
-
-        (*ps).second.setGroup(CQChartsChordData::Group(groupStr, ig, ng));
-      }
-
-      return State::OK;
-    }
-
-    const NameDataMap &nameDataMap() const { return nameDataMap_; }
-
-   private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
-      return State::SKIP;
-    }
-
-   private:
-    const CQChartsChordPlot* plot_ { nullptr };
-    CQChartsValueSet&        groupValues_;
-    NameDataMap              nameDataMap_;
-  };
-
-  RowVisitor visitor(this, groupValues);
-
-  visitModel(visitor);
-
-  //---
-
-  const NameDataMap &nameDataMap = visitor.nameDataMap();
-
-  using Datas = std::vector<CQChartsChordData>;
+void
+CQChartsChordPlot::
+addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
+{
+  using Datas = std::vector<ChordData>;
 
   Datas datas;
 
   double total = 0.0;
 
   for (const auto &nameData : nameDataMap) {
-    const CQChartsChordData &data = nameData.second;
+    const ChordData &data = nameData.second;
+
+    double total1;
+
+    if (! isSymmetric())
+      total1 = data.maxTotal();
+    else
+      total1 = data.fromTotal();
+
+    if (CMathUtil::isZero(total1))
+      continue;
 
     datas.push_back(data);
 
-    total += data.total();
+    total += total1;
   }
 
   int nv = datas.size();
@@ -818,20 +836,23 @@ initHierObjs(PlotObjs &objs) const
   //---
 
   if (isSorted()) {
+    // sort by value/total
     std::sort(datas.begin(), datas.end(),
-      [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
+      [&](const ChordData &lhs, const ChordData &rhs) {
         if (lhs.group().value() != rhs.group().value())
           return lhs.group().value() < rhs.group().value();
 
-        return lhs.total() < rhs.total();
+        return lhs.fromTotal(/*primaryOnly*/ !isSymmetric()) <
+               rhs.fromTotal(/*primaryOnly*/ !isSymmetric());
       });
 
     for (auto &data : datas)
       data.sort();
   }
   else {
+    // sort by value/from
     std::sort(datas.begin(), datas.end(),
-      [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
+      [&](const ChordData &lhs, const ChordData &rhs) {
         if (lhs.group().value() != rhs.group().value())
           return lhs.group().value() < rhs.group().value();
 
@@ -865,12 +886,14 @@ initHierObjs(PlotObjs &objs) const
   double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
-    CQChartsChordData &data = datas[row];
+    ChordData &data = datas[row];
 
-    double total1 = data.total();
+    double total1;
 
-    if (CMathUtil::isZero(total1))
-      continue;
+    if (! isSymmetric())
+      total1 = data.maxTotal();
+    else
+      total1 = data.fromTotal();
 
     double dangle = valueToDegrees(total1);
 
@@ -884,22 +907,38 @@ initHierObjs(PlotObjs &objs) const
   //---
 
   for (int row = 0; row < nv; ++row) {
-    CQChartsChordData &data = datas[row];
+    const ChordData &data = datas[row];
 
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
-    ColorInd ig(data.group().i, data.group().n);
+    ColorInd ig;
+
+    if (data.group().isValid())
+      ig = ColorInd(data.group().i, data.group().n);
+
     ColorInd iv(row, nv);
 
     auto *obj = new CQChartsChordObj(this, rect, data, ig, iv);
 
     objs.push_back(obj);
   }
-
-  //---
-
-  return true;
 }
+
+CQChartsChordPlot::ChordData::Group
+CQChartsChordPlot::
+getChordGroup(const QVariant &groupVar) const
+{
+  QString groupStr;
+
+  CQChartsVariant::toString(groupVar, groupStr);
+
+  int ig = groupValues_.iset(groupVar);
+  int ng = groupValues_.numUnique();
+
+  return ChordData::Group(groupStr, ig, ng);
+}
+
+//---
 
 void
 CQChartsChordPlot::
@@ -926,13 +965,13 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsChordObj::
 CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                 const CQChartsChordData &data, const ColorInd &ig, const ColorInd &iv) :
+                 const ChordData &data, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), data_(data)
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(data.ind());
+  setModelInd(data.linkInd());
 }
 
 QString
@@ -957,7 +996,9 @@ calcTipId() const
   if (data_.group().str != "")
     tableTip.addTableRow("Group", data_.group().str);
 
-  tableTip.addTableRow("Total", data_.total());
+  tableTip.addTableRow("Total", data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric()));
+
+  tableTip.addTableRow("Count", data_.values().size());
 
   //---
 
@@ -1050,19 +1091,33 @@ draw(CQChartsPaintDevice *device)
   int from = data_.from();
 
   for (const auto &value : data_.values()) {
+    if (! value.primary)
+      continue;
+
+    //---
+
     // get arc angles
     double a1, da1;
 
-    valueAngles(value.to, a1, da1);
+    if (! plot_->isSymmetric())
+      valueAngles(value.to, a1, da1, ChordData::PrimaryType::PRIMARY);
+    else
+      valueAngles(value.to, a1, da1);
 
     if (CMathUtil::isZero(da1))
       continue;
 
+    //---
+
     auto *toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
+    if (! toObj) continue;
 
     double a2, da2;
 
-    toObj->valueAngles(from, a2, da2);
+    if (! plot_->isSymmetric())
+      toObj->valueAngles(from, a2, da2, ChordData::PrimaryType::NON_PRIMARY);
+    else
+      toObj->valueAngles(from, a2, da2);
 
     //if (CMathUtil::isZero(da2))
     //  continue;
@@ -1097,7 +1152,12 @@ drawFg(CQChartsPaintDevice *device) const
     return;
 
   // get total (skip if zero)
-  double total = data_.total();
+  double total;
+
+  if (! plot_->isSymmetric())
+    total = data_.maxTotal();
+  else
+    total = data_.fromTotal();
 
   if (CMathUtil::isZero(total))
     return;
@@ -1137,7 +1197,7 @@ drawFg(CQChartsPaintDevice *device) const
   CQChartsGeom::Point center(0, 0);
 
   plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, data_.name(),
-                                            lpen, /*isRotated*/false);
+                                            lpen, plot_->isRotatedText());
 }
 
 void
@@ -1209,7 +1269,7 @@ calcFromColor() const
 
 void
 CQChartsChordObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1218,7 +1278,7 @@ writeScriptData(CQChartsScriptPainter *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.total = " << data_.total() << ";\n";
+  os << "  this.total = " << data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric()) << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -1244,7 +1304,7 @@ textBBox() const
   if (! plot_->textBox()->isTextVisible())
     return CQChartsGeom::BBox();
 
-  double total = data_.total();
+  double total = data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric());
 
   if (CMathUtil::isZero(total))
     return CQChartsGeom::BBox();
@@ -1300,12 +1360,18 @@ plotObject(int ind) const
 
 void
 CQChartsChordObj::
-valueAngles(int ind, double &a, double &da) const
+valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) const
 {
   a = data_.angle().value();
 
   for (const auto &value : data_.values()) {
-    da = plot_->valueToDegrees(value.value);
+    if (primaryType == ChordData::PrimaryType::PRIMARY && ! value.primary)
+      continue;
+
+    if (primaryType == ChordData::PrimaryType::NON_PRIMARY && value.primary)
+      continue;
+
+    da = plot_->valueToDegrees(value.fromValue);
 
     if (ind == value.to)
       return;

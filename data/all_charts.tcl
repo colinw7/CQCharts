@@ -3,7 +3,7 @@
 set model1 [load_charts_model -tsv data/adjacency.tsv -comment_header]
 
 set plot1 [create_charts_plot -model $model1 -type adjacency \
-  -columns {{name 1} {connections 3} {name 0} {groupId 2}} -title "adjacency"]
+  -columns {{name 1} {connections 3} {name 0} {group 2}} -title "adjacency"]
 
 # Bar Chart
 
@@ -59,7 +59,7 @@ set plot8 [create_charts_plot -model $model8 -type distribution \
 set model9 [load_charts_model -tsv data/adjacency.tsv]
 
 set plot9 [create_charts_plot -model $model9 -type forcedirected \
-  -columns {{node 1} {connections 3} {name 0} {groupId 2}} -title "Force Directed"]
+  -columns {{node 1} {connections 3} {name 0} {group 2}} -title "Force Directed"]
 
 # Geometry Plot
 

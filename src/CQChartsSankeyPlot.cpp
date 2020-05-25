@@ -8,8 +8,11 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsConnectionList.h>
+#include <CQChartsValueSet.h>
+#include <CQChartsVariant.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 
@@ -25,22 +28,7 @@ void
 CQChartsSankeyPlotType::
 addParameters()
 {
-  startParameterGroup("Sankey");
-
-  addColumnParameter("link", "Source/Target", "linkColumn").
-    setRequired().setTip("Name pair for Source/Target connection");
-
-  addColumnParameter("value", "Value", "valueColumn").
-    setRequired().setNumeric().setTip("Connection value");
-
-  addStringParameter("separator", "Separator", "separator", "/").setBasic().
-   setTip("Separator for name pair in link column");
-
-  endParameterGroup();
-
-  //---
-
-  CQChartsPlotType::addParameters();
+  CQChartsConnectionPlotType::addParameters();
 }
 
 QString
@@ -64,61 +52,14 @@ CQChartsSankeyPlotType::
 isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
                      CQChartsPlotParameter *parameter) const
 {
-  if (parameter->name() == "link") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
-      return true;
-
-    return false;
-  }
-
-  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+  return CQChartsConnectionPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 void
 CQChartsSankeyPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  bool hasLink  = (analyzeModelData.parameterNameColumn.find("link") !=
-                   analyzeModelData.parameterNameColumn.end());
-  bool hasValue = (analyzeModelData.parameterNameColumn.find("value") !=
-                   analyzeModelData.parameterNameColumn.end());
-
-  if (hasLink && hasValue)
-    return;
-
-  auto *details = modelData->details();
-  if (! details) return;
-
-  CQChartsColumn linkColumn;
-  CQChartsColumn valueColumn;
-
-  int nc = details->numColumns();
-
-  for (int c = 0; c < nc; ++c) {
-    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
-    if (! columnDetails) continue;
-
-    if      (columnDetails->type() == ColumnType::STRING) {
-      if (! linkColumn.isValid())
-        linkColumn = columnDetails->column();
-    }
-    else if (columnDetails->isNumeric()) {
-      if (! valueColumn.isValid())
-        valueColumn = columnDetails->column();
-    }
-  }
-
-  if (! hasLink && linkColumn.isValid()) {
-    analyzeModelData.parameterNameColumn["link"] = linkColumn;
-
-    hasLink = true;
-  }
-
-  if (! hasValue && valueColumn.isValid()) {
-    analyzeModelData.parameterNameColumn["value"] = valueColumn;
-
-    hasValue = true;
-  }
+  CQChartsConnectionPlotType::analyzeModel(modelData, analyzeModelData);
 }
 
 CQChartsPlot *
@@ -132,7 +73,7 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsSankeyPlot::
 CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("sankey"), model),
+ CQChartsConnectionPlot(view, view->charts()->plotType("sankey"), model),
  CQChartsObjTextData     <CQChartsSankeyPlot>(this),
  CQChartsObjNodeShapeData<CQChartsSankeyPlot>(this),
  CQChartsObjEdgeShapeData<CQChartsSankeyPlot>(this)
@@ -140,6 +81,8 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
   NoUpdate noUpdate(this);
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
+
+  //---
 
   CQChartsColor bg(CQChartsColor::Type::PALETTE);
 
@@ -149,6 +92,8 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 
   setNodeStroked(true);
   setNodeStrokeAlpha(CQChartsAlpha(0.2));
+
+  //---
 
   setEdgeFilled(true);
   setEdgeFillColor(bg);
@@ -181,22 +126,6 @@ clearNodesAndEdges()
   nameNodeMap_.clear();
   indNodeMap_ .clear();
   edges_      .clear();
-}
-
-//---
-
-void
-CQChartsSankeyPlot::
-setLinkColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsSankeyPlot::
-setValueColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -244,11 +173,14 @@ addProperties()
 
   //---
 
-  addBaseProperties();
+  CQChartsConnectionPlot::addProperties();
 
-  // columns
-  addProp("columns", "linkColumn" , "link" , "Link column");
-  addProp("columns", "valueColumn", "value", "Value column");
+  //---
+
+  // options
+  addProp("options", "nodeMargin", "nodeMargin", "Node Margin factor");
+  addProp("options", "nodeWidth" , "nodeWidth" , "Node width (in pixels)");
+  addProp("options", "maxDepth"  , "maxDepth"  , "Max Node depth");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -267,11 +199,6 @@ addProperties()
   addProp("edge/fill", "edgeFilled", "visible", "Edit fill visible");
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
-
-  // options
-  addProp("options", "nodeMargin", "nodeMargin", "Node Margin factor");
-  addProp("options", "nodeWidth" , "nodeWidth" , "Node width (in pixels)");
-  addProp("options", "maxDepth"  , "maxDepth"  , "Max Node depth");
 
   // text
   addProp("text", "textVisible", "visible", "Text label visible");
@@ -324,6 +251,12 @@ bool
 CQChartsSankeyPlot::
 createObjs(PlotObjs &objs) const
 {
+  CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
+
+  NoUpdate noUpdate(this);
+
+  //---
+
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->nodeYSet_= false;
@@ -331,16 +264,16 @@ createObjs(PlotObjs &objs) const
   //---
 
   // check columns
-  bool columnsValid = true;
-
-  th->clearErrors();
-
-  // link and value columns optional
-  if (! checkColumn(linkColumn (), "Link" )) columnsValid = false;
-  if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
-
-  if (! columnsValid)
+  if (! checkColumns())
     return false;
+
+  //---
+
+  // init objects
+  th->clearNodesAndEdges();
+
+  auto *model = this->model().data();
+  if (! model) return false;
 
   //---
 
@@ -348,9 +281,15 @@ createObjs(PlotObjs &objs) const
   bool rc = true;
 
   if (isHierarchical())
-    rc = createHierObjs();
-  else
-    rc = createFlatObjs();
+    rc = initHierObjs();
+  else {
+    if      (linkColumn().isValid() && valueColumn().isValid())
+      rc = initLinkObjs();
+    else if (connectionsColumn().isValid())
+      rc = initConnectionObjs();
+    else
+      rc = initTableObjs();
+  }
 
   if (! rc)
     return false;
@@ -364,183 +303,98 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsSankeyPlot::
-createHierObjs() const
+initHierObjs() const
 {
-  CQPerfTrace trace("CQChartsSankeyPlot::createHierObjs");
-
-  NoUpdate noUpdate(this);
-
-  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+  CQPerfTrace trace("CQChartsSankeyPlot::initHierObjs");
 
   //---
 
-  th->clearNodesAndEdges();
-
-  //---
-
-  auto *model = this->model().data();
-  if (! model) return false;
-
-  //---
-
-  class RowVisitor : public ModelVisitor {
-   public:
-    RowVisitor(const CQChartsSankeyPlot *plot) :
-     plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
-    }
-
-    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
-
-      bool ok;
-
-      QString linkStr = plot_->modelString(linkModelInd, ok);
-
-      linkStrs_.push_back(linkStr);
-
-      parentStr_ = linkStrs_.join(separator_);
-
-      total_ = 0.0;
-
-      return State::OK;
-    }
-
-    State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
-      QString hierLinkStr = parentStr_;
-
-      linkStrs_.pop_back();
-
-      parentStr_ = linkStrs_.join(separator_);
-
-      QString linkStr = (linkStrs_.length() ? linkStrs_.back() : QString());
-
-      //---
-
-      int srcDepth = linkStrs_.length();
-
-      CQChartsSankeyPlotNode *srcNode = nullptr;
-
-      if (plot_->maxDepth() <= 0 || srcDepth <= plot_->maxDepth())
-        srcNode = plot_->findNode(parentStr_);
-
-      int destDepth = srcDepth + 1;
-
-      CQChartsSankeyPlotNode *destNode = nullptr;
-
-      if (plot_->maxDepth() <= 0 || destDepth <= plot_->maxDepth())
-        destNode = plot_->findNode(hierLinkStr);
-
-      auto *edge = (srcNode && destNode ? plot_->createEdge(total_, srcNode, destNode) : nullptr);
-
-      if (edge) {
-        srcNode ->addDestEdge(edge);
-        destNode->addSrcEdge (edge);
-      }
-
-      if (srcNode) {
-        srcNode->setValue(total_);
-        srcNode->setName (linkStr);
-        srcNode->setDepth(srcDepth);
-      }
-
-      if (destNode)
-        destNode->setDepth(destDepth);
-
-      return State::OK;
-    }
-
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      int srcDepth  = linkStrs_.length();
-      int destDepth = srcDepth + 1;
-
-      //---
-
-      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      bool ok1, ok2;
-
-      QString linkStr = plot_->modelString(linkModelInd , ok1);
-      double  value   = plot_->modelReal  (valueModelInd, ok2);
-
-      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
-      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
-
-      //---
-
-      QString hierLinkStr = parentStr_ + separator_ + linkStr;
-
-      CQChartsSankeyPlotNode *srcNode = nullptr;
-
-      if (plot_->maxDepth() <= 0 || srcDepth <= plot_->maxDepth())
-        srcNode = plot_->findNode(parentStr_);
-
-      CQChartsSankeyPlotNode *destNode = nullptr;
-
-      if (plot_->maxDepth() <= 0 || destDepth <= plot_->maxDepth())
-        destNode = plot_->findNode(hierLinkStr);
-
-      auto *edge = (destNode && srcNode ? plot_->createEdge(value, srcNode, destNode) : nullptr);
-
-      if (edge) {
-        srcNode ->addDestEdge(edge);
-        destNode->addSrcEdge (edge);
-      }
-
-      if (srcNode)
-        srcNode->setDepth(srcDepth);
-
-      if (destNode) {
-        destNode->setValue(value);
-        destNode->setName (linkStr);
-        destNode->setDepth(destDepth);
-      }
-
-      total_ += value;
-
-      return State::OK;
-    }
-
-   private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsSankeyPlot *>(plot_)->addDataError(ind , msg);
-      return State::SKIP;
-    }
-
-   private:
-    const CQChartsSankeyPlot* plot_ { nullptr };
-    QChar                     separator_ { '/' };
-    QStringList               linkStrs_;
-    QString                   parentStr_;
-    double                    total_ { 0.0 };
-  };
-
-  RowVisitor visitor(this);
-
-  visitModel(visitor);
+  CQChartsConnectionPlot::initHierObjs();
 
   return true;
 }
 
+void
+CQChartsSankeyPlot::
+initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
+                              const HierConnectionData &destHierData) const
+{
+  int srcDepth = srcHierData.linkStrs.size();
+
+  CQChartsSankeyPlotNode *srcNode  = nullptr;
+  CQChartsSankeyPlotNode *destNode = nullptr;
+
+  initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
+                            destHierData.total, srcNode, destNode);
+
+  if (srcNode) {
+    QString srcStr;
+
+    if (! srcHierData.linkStrs.empty())
+      srcStr = srcHierData.linkStrs.back();
+
+    srcNode->setValue(destHierData.total);
+    srcNode->setName (srcStr);
+  }
+}
+
+void
+CQChartsSankeyPlot::
+initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
+                              const HierConnectionData &destHierData) const
+{
+  int srcDepth = srcHierData.linkStrs.size();
+
+  CQChartsSankeyPlotNode *srcNode  = nullptr;
+  CQChartsSankeyPlotNode *destNode = nullptr;
+
+  initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
+                            destHierData.total, srcNode, destNode);
+
+  if (destNode) {
+    QString destStr;
+
+    if (! destHierData.linkStrs.empty())
+      destStr = destHierData.linkStrs.back();
+
+    destNode->setValue(destHierData.total);
+    destNode->setName (destStr);
+  }
+}
+
+void
+CQChartsSankeyPlot::
+initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
+                          double value, CQChartsSankeyPlotNode* &srcNode,
+                          CQChartsSankeyPlotNode* &destNode) const
+{
+  int destDepth = srcDepth + 1;
+
+  if (maxDepth() <= 0 || srcDepth <= maxDepth())
+    srcNode = findNode(srcStr);
+
+  if (maxDepth() <= 0 || destDepth <= maxDepth())
+    destNode = findNode(destStr);
+
+  auto *edge = (srcNode && destNode ?  createEdge(value, srcNode, destNode) : nullptr);
+
+  if (edge) {
+    srcNode ->addDestEdge(edge);
+    destNode->addSrcEdge (edge);
+  }
+
+  if (srcNode)
+    srcNode->setDepth(srcDepth);
+
+  if (destNode)
+    destNode->setDepth(destDepth);
+}
+
 bool
 CQChartsSankeyPlot::
-createFlatObjs() const
+initLinkObjs() const
 {
-  CQPerfTrace trace("CQChartsSankeyPlot::createFlatObjs");
-
-  NoUpdate noUpdate(this);
-
-  auto *th = const_cast<CQChartsSankeyPlot *>(this);
-
-  //---
-
-  th->clearNodesAndEdges();
-
-  //---
-
-  auto *model = this->model().data();
-  if (! model) return false;
+  CQPerfTrace trace("CQChartsSankeyPlot::initLinkObjs");
 
   //---
 
@@ -552,29 +406,78 @@ createFlatObjs() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex linkModelInd (data.row, plot_->linkColumn (), data.parent);
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+      // Get group value
+      int group = data.row;
 
-      bool ok1, ok2;
+      if (plot_->groupColumn().isValid()) {
+        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
 
-      QString linkStr = plot_->modelString(linkModelInd , ok1);
-      double  value   = plot_->modelReal  (valueModelInd, ok2);
+        bool ok1;
+        group = (int) plot_->modelInteger(groupModelInd, ok1);
 
-      if (! ok1) return addDataError(linkModelInd , "Invalid Link" );
-      if (! ok2) return addDataError(valueModelInd, "Invalid Value");
+        if (! ok1)
+          return addDataError(groupModelInd, "Non-integer group value");
+      }
 
       //---
 
-      CQChartsNamePair namePair(linkStr, separator_);
+      // Get link value
+      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
+
+      CQChartsNamePair namePair;
+
+      if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
+        bool ok;
+        QVariant linkVar = plot_->modelValue(linkModelInd, ok);
+        if (! ok) return addDataError(linkModelInd, "Invalid Link");
+
+        namePair = linkVar.value<CQChartsNamePair>();
+      }
+      else {
+        bool ok;
+        QString linkStr = plot_->modelString(linkModelInd, ok);
+        if (! ok) return addDataError(linkModelInd, "Invalid Link");
+
+        namePair = CQChartsNamePair(linkStr, separator_);
+      }
 
       if (! namePair.isValid())
-        return State::SKIP;
+        return addDataError(linkModelInd, "Invalid Link");
+
+      //---
+
+      // Get value value
+      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+      bool ok1;
+      double value = plot_->modelReal(valueModelInd, ok1);
+      if (! ok1) return addDataError(valueModelInd, "Invalid Value");
+
+      //---
+
+      // Get name value
+      CQChartsModelIndex nameInd;
+
+      if (plot_->nameColumn().isValid())
+        nameInd = CQChartsModelIndex(data.row, plot_->nameColumn(), data.parent);
+
+      //---
 
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
+      addConnection(srcStr, destStr, value, group, nameInd);
+
+      return State::OK;
+    }
+
+   private:
+    void addConnection(const QString &srcStr, const QString &destStr, double value,
+                       int group, const CQChartsModelIndex &nameInd) {
       auto *srcNode  = plot_->findNode(srcStr);
       auto *destNode = plot_->findNode(destStr);
+
+    //assert(srcNode != destNode);
 
       auto *edge = plot_->createEdge(value, srcNode, destNode);
 
@@ -582,12 +485,16 @@ createFlatObjs() const
       destNode->addSrcEdge (edge);
 
       destNode->setValue(value);
-      destNode->setName (linkStr);
 
-      return State::OK;
+      srcNode->setGroup(group);
+
+      if (nameInd.isValid()) {
+        auto nameInd1 = plot_->normalizeIndex(nameInd);
+
+        srcNode->setInd(nameInd1);
+      }
     }
 
-  private:
     State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
       const_cast<CQChartsSankeyPlot *>(plot_)->addDataError(ind , msg);
       return State::SKIP;
@@ -601,6 +508,219 @@ createFlatObjs() const
   RowVisitor visitor(this);
 
   visitModel(visitor);
+
+  return true;
+}
+
+bool
+CQChartsSankeyPlot::
+initConnectionObjs() const
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::initConnectionObjs");
+
+  //---
+
+  using Connections = CQChartsConnectionList::Connections;
+
+  struct ConnectionsData {
+    QModelIndex ind;
+    int         node  { 0 };
+    QString     name;
+    int         group { 0 };
+    double      total { 0.0 };
+    Connections connections;
+  };
+
+  using IdConnectionsData = std::map<int,ConnectionsData>;
+
+  //---
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsSankeyPlot *plot) :
+     plot_(plot) {
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get group value
+      int group = data.row;
+
+      if (plot_->groupColumn().isValid()) {
+        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+
+        bool ok1;
+        group = (int) plot_->modelInteger(groupModelInd, ok1);
+        if (! ok1) return addDataError(groupModelInd, "Non-integer group value");
+      }
+
+      //---
+
+      // get optional node id (default to row)
+      CQChartsModelIndex nodeModelInd;
+
+      int id = data.row;
+
+      if (plot_->nodeColumn().isValid()) {
+        nodeModelInd = CQChartsModelIndex(data.row, plot_->nodeColumn(), data.parent);
+
+        bool ok2;
+        id = (int) plot_->modelInteger(nodeModelInd, ok2);
+        if (! ok2) return addDataError(nodeModelInd, "Non-integer node value");
+      }
+
+      //---
+
+      // get connections
+      ConnectionsData connectionsData;
+
+      CQChartsModelIndex connectionsModelInd(data.row, plot_->connectionsColumn(), data.parent);
+
+      if (plot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
+        bool ok3;
+        QVariant connectionsVar = plot_->modelValue(connectionsModelInd, ok3);
+
+        connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+      }
+      else {
+        bool ok3;
+        QString connectionsStr = plot_->modelString(connectionsModelInd, ok3);
+        if (! ok3) return addDataError(connectionsModelInd, "Invalid connection string");
+
+        CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
+      }
+
+      //----
+
+      // get name
+      QString name = QString("%1").arg(id);
+
+      if (plot_->nameColumn().isValid()) {
+        CQChartsModelIndex nameModelInd(data.row, plot_->nameColumn(), data.parent);
+
+        bool ok4;
+        name = plot_->modelString(nameModelInd, ok4);
+        if (! ok4) return addDataError(nameModelInd, "Invalid name string");
+      }
+
+      //---
+
+      // calc total
+      double total = 0.0;
+
+      for (const auto &connection : connectionsData.connections)
+        total += connection.value;
+
+      //---
+
+      // return connections data
+      if (nodeModelInd.isValid()) {
+        auto nodeInd  = plot_->modelIndex(nodeModelInd);
+        auto nodeInd1 = plot_->normalizeIndex(nodeInd);
+
+        connectionsData.ind = nodeInd1;
+      }
+
+      connectionsData.node  = id;
+      connectionsData.name  = name;
+      connectionsData.group = group;
+      connectionsData.total = total;
+
+      idConnectionsData_[connectionsData.node] = connectionsData;
+
+      return State::OK;
+    }
+
+    const IdConnectionsData &idConnectionsData() const { return idConnectionsData_; }
+
+   private:
+    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+      const_cast<CQChartsSankeyPlot *>(plot_)->addDataError(ind , msg);
+      return State::SKIP;
+    }
+
+   private:
+    const CQChartsSankeyPlot* plot_ { nullptr };
+    IdConnectionsData         idConnectionsData_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
+
+  const IdConnectionsData &idConnectionsData = visitor.idConnectionsData();
+
+  for (const auto &idConnections : idConnectionsData) {
+    int         id              = idConnections.first;
+    const auto &connectionsData = idConnections.second;
+
+    QString srcStr = QString("%1").arg(id);
+
+    auto *srcNode = findNode(srcStr);
+
+    srcNode->setName (connectionsData.name);
+    srcNode->setGroup(connectionsData.group);
+
+    for (const auto &connection : connectionsData.connections) {
+      QString destStr = QString("%1").arg(connection.node);
+
+      auto *destNode = findNode(destStr);
+
+      auto *edge = createEdge(connection.value, srcNode, destNode);
+
+      srcNode ->addDestEdge(edge);
+      destNode->addSrcEdge (edge);
+    }
+  }
+
+  return true;
+}
+
+bool
+CQChartsSankeyPlot::
+initTableObjs() const
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::initTableObjs");
+
+  //---
+
+  TableConnectionDatas tableConnectionDatas;
+  TableConnectionInfo  tableConnectionInfo;
+
+  if (! processTableModel(tableConnectionDatas, tableConnectionInfo))
+    return false;
+
+  //---
+
+  int nv = tableConnectionDatas.size();
+
+  for (int row = 0; row < nv; ++row) {
+    const auto &tableConnectionData = tableConnectionDatas[row];
+
+    if (tableConnectionData.values().empty())
+      continue;
+
+    QString srcStr = QString("%1").arg(tableConnectionData.from());
+
+    auto *srcNode = findNode(srcStr);
+
+    srcNode->setName (tableConnectionData.name());
+    srcNode->setGroup(tableConnectionData.group().i);
+
+    for (const auto &value : tableConnectionData.values()) {
+      QString destStr = QString("%1").arg(value.to);
+
+      auto *destNode = findNode(destStr);
+
+      auto *edge = createEdge(value.toValue, srcNode, destNode);
+
+      srcNode ->addDestEdge(edge);
+      destNode->addSrcEdge (edge);
+    }
+  }
+
+  //---
 
   return true;
 }
@@ -636,7 +756,7 @@ createGraph(PlotObjs &objs) const
 
     depthSizeMap[xpos] += node->edgeSum();
 
-    depthNodesMap[xpos][node->ind()] = node;
+    depthNodesMap[xpos][node->id()] = node;
   }
 
   //---
@@ -751,7 +871,7 @@ createDepthNodes(const IndNodeMap &nodes) const
     else
       rect = CQChartsGeom::BBox(x - xm/2.0, y1, x + xm/2.0, y2);
 
-    ColorInd iv(node->ind(), numNodes);
+    ColorInd iv(node->id(), numNodes);
 
     auto *nodeObj = new CQChartsSankeyNodeObj(this, rect, node, iv);
 
@@ -866,7 +986,7 @@ initPosNodesMap()
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
 
-    posNodesMap_[node->xpos()][node->ind()] = node;
+    posNodesMap_[node->xpos()][node->id()] = node;
   }
 }
 
@@ -1097,13 +1217,15 @@ findNode(const QString &name) const
 
   auto *node = new CQChartsSankeyPlotNode(this, name);
 
-  node->setInd(nameNodeMap_.size());
+  node->setId(nameNodeMap_.size());
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
 
-  th->indNodeMap_[node->ind()] = node;
+  th->indNodeMap_[node->id()] = node;
+
+  node->setName(name);
 
   return (*p1).second;
 }
@@ -1592,7 +1714,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsSankeyNodeObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1706,8 +1828,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   // set fill and stroke
   int numNodes = plot_->numNodes();
 
-  ColorInd ic1(edge_->srcNode ()->ind(), numNodes);
-  ColorInd ic2(edge_->destNode()->ind(), numNodes);
+  ColorInd ic1(edge_->srcNode ()->id(), numNodes);
+  ColorInd ic2(edge_->destNode()->id(), numNodes);
 
   QColor fc1 = plot_->interpEdgeFillColor(ic1);
   QColor fc2 = plot_->interpEdgeFillColor(ic2);
@@ -1731,7 +1853,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsSankeyEdgeObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

@@ -101,9 +101,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr) const;
-
-  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr,
+  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr) const;
+  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr,
                               const Position &position) const;
 
   Qt::Alignment textAlignment() const;

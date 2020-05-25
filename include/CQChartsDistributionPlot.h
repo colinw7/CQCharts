@@ -231,7 +231,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   bool isUseLine() const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 
@@ -331,7 +331,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 

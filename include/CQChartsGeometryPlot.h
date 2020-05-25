@@ -122,7 +122,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
 

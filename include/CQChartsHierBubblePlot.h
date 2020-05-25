@@ -263,7 +263,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  protected:
   const CQChartsHierBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -312,7 +312,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  protected:
   CQChartsHierBubbleHierNode* hier_ { nullptr }; //!< associated hier node

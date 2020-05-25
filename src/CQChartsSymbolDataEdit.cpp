@@ -6,7 +6,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -455,7 +455,7 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   double size = data.size().value();
 
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   CQChartsLength symbolSize(CQChartsUnits::PIXEL, size);
 

@@ -1,9 +1,9 @@
 #ifndef CQChartsChordPlot_H
 #define CQChartsChordPlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsConnectionPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsValueSet.h>
 #include <QModelIndex>
 
 class CQChartsRotatedTextBoxObj;
@@ -14,7 +14,7 @@ class CQChartsRotatedTextBoxObj;
  * \brief Chord Plot Type
  * \ingroup Charts
  */
-class CQChartsChordPlotType : public CQChartsPlotType {
+class CQChartsChordPlotType : public CQChartsConnectionPlotType {
  public:
   using ColumnType = CQBaseModelType;
 
@@ -31,9 +31,6 @@ class CQChartsChordPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
   bool hasKey () const override { return false; }
-
-  bool allowXLog() const override { return false; }
-  bool allowYLog() const override { return false; }
 
   bool canProbe() const override { return false; }
 
@@ -58,78 +55,49 @@ class CQChartsChordPlot;
 
 //---
 
-/*!
- * \brief Chord Data
- * \ingroup Charts
- */
 class CQChartsChordData {
  public:
-  struct Value {
-    int    to    { -1 };
-    double value { 0.0 };
-
-    Value(int to=-1, double value=0.0) :
-     to(to), value(value) {
-    }
-  };
-
-  struct Group {
-    QString str;
-    int     i { 0 };
-    int     n { 0 };
-
-    Group(const QString &str="", int i=0, int n=1) :
-     str(str), i(i), n(n) {
-    }
-
-    double value() const { return (n > 0 ? double(i)/n : 0.0); }
-  };
-
-  using Values = std::vector<Value>;
+  using Group       = CQChartsConnectionPlot::TableConnectionData::Group;
+  using Values      = CQChartsConnectionPlot::TableConnectionData::Values;
+  using PrimaryType = CQChartsConnectionPlot::TableConnectionData::PrimaryType;
 
  public:
   CQChartsChordData() { }
 
-  int from() const { return from_; }
-  void setFrom(int i) { from_ = i; }
+  const CQChartsConnectionPlot::TableConnectionData &data() const { return data_; }
+  void setData(CQChartsConnectionPlot::TableConnectionData &data) { data_ = data; }
 
-  const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  int from() const { return data_.from(); }
+  void setFrom(int i) { data_.setFrom(i); }
 
-  const Group &group() const { return group_; }
-  void setGroup(const Group &group) { group_ = group; }
+  const QString &name() const { return data_.name(); }
+  void setName(const QString &name) { data_.setName(name); }
 
-  const Values &values() const { return values_; }
+  const Group &group() const { return data_.group(); }
+  void setGroup(const Group &group) { data_.setGroup(group); }
 
-  void addValue(int to, double value) {
-    values_.emplace_back(to, value);
+  const Values &values() const { return data_.values(); }
 
-    totalValid_ = false;
+  void addValue(int to, double fromValue, double toValue, bool primary=true) {
+    data_.addValue(to, fromValue, toValue, primary);
   }
 
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
+  const QModelIndex &linkInd() const { return data_.linkInd(); }
+  void setLinkInd(const QModelIndex &i) { data_.setLinkInd(i); }
 
-  double total() const {
-    if (totalValid_)
-      return total_;
+  double fromTotal(bool primaryOnly=false) const { return data_.fromTotal(primaryOnly); }
+  double toTotal  (bool primaryOnly=false) const { return data_.toTotal  (primaryOnly); }
 
-    auto *th = const_cast<CQChartsChordData *>(this);
+  double maxTotal() const {
+    double totalFrom = fromTotal(/*primaryOnly*/true);
+    double totalTo   = fromTotal() - totalFrom;
 
-    th->total_      = calcTotal();
-    th->totalValid_ = true;
-
-    return total_;
+    return std::max(totalFrom, totalTo);
   }
 
-  double calcTotal() const {
-    double total = 0.0;
+  void sort() { data_.sort(); }
 
-    for (auto &value : values_)
-      total += value.value;
-
-    return total;
-  }
+  //---
 
   void setAngles(const CQChartsAngle &a, const CQChartsAngle &da) {
     a_  = a;
@@ -140,23 +108,10 @@ class CQChartsChordData {
 
   const CQChartsAngle &dangle() const { return da_; }
 
-  void sort() {
-    std::sort(values_.begin(), values_.end(),
-      [](const Value &lhs, const Value &rhs) {
-        return lhs.value < rhs.value;
-      });
-  }
-
  private:
-  int           from_       { -1 };    //!< from node
-  QString       name_;                 //!< value name
-  Group         group_;                //!< group
-  Values        values_;               //!< connection values
-  QModelIndex   ind_;                  //!< model index
-  CQChartsAngle a_;                    //!< start angle
-  CQChartsAngle da_;                   //!< delta angle
-  double        total_      { 0.0 };   //!< value total
-  double        totalValid_ { false }; //!< is total valid
+  CQChartsConnectionPlot::TableConnectionData data_; //!< connection data
+  CQChartsAngle                               a_;    //!< start angle
+  CQChartsAngle                               da_;   //!< delta angle
 };
 
 //---
@@ -169,10 +124,13 @@ class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                   const CQChartsChordData &data, const ColorInd &ig, const ColorInd &iv);
+  using ChordData = CQChartsChordData;
 
-  const CQChartsChordData &data() { return data_; }
+ public:
+  CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
+                   const ChordData &data, const ColorInd &ig, const ColorInd &iv);
+
+  const ChordData &data() { return data_; }
 
   //---
 
@@ -214,7 +172,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 
@@ -223,11 +181,12 @@ class CQChartsChordObj : public CQChartsPlotObj {
  private:
   CQChartsChordObj *plotObject(int ind) const;
 
-  void valueAngles(int ind, double &a, double &da) const;
+  void valueAngles(int ind, double &a, double &da,
+                   ChordData::PrimaryType primaryType=ChordData::PrimaryType::ANY) const;
 
  private:
   const CQChartsChordPlot* plot_ { nullptr }; //!< parent plot
-  CQChartsChordData        data_;             //!< chord data
+  ChordData                data_;             //!< chord data
 };
 
 //---
@@ -247,19 +206,14 @@ class CQChartsChordObj : public CQChartsPlotObj {
  * Example
  *   + \image html chord_plot.png
  */
-class CQChartsChordPlot : public CQChartsPlot,
+class CQChartsChordPlot : public CQChartsConnectionPlot,
  public CQChartsObjStrokeData<CQChartsChordPlot> {
   Q_OBJECT
 
-  // columns
-  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
-  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
-
   // options
-  Q_PROPERTY(bool   sorted      READ isSorted    WRITE setSorted     )
-  Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
-  Q_PROPERTY(double labelRadius READ labelRadius WRITE setLabelRadius)
+  Q_PROPERTY(double innerRadius READ innerRadius   WRITE setInnerRadius)
+  Q_PROPERTY(double labelRadius READ labelRadius   WRITE setLabelRadius)
+  Q_PROPERTY(bool   rotatedText READ isRotatedText WRITE setRotatedText)
 
   // stroke
   CQCHARTS_STROKE_DATA_PROPERTIES
@@ -275,25 +229,19 @@ class CQChartsChordPlot : public CQChartsPlot,
 
  ~CQChartsChordPlot();
 
-  const CQChartsColumn &linkColumn() const { return linkColumn_; }
-  void setLinkColumn(const CQChartsColumn &c);
-
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
-
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c);
-
   //---
 
-  bool isSorted() const { return sorted_; }
-  void setSorted(bool b);
-
+  //! get/set inner radius
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r);
 
+  //! get/set label radius
   double labelRadius() const { return labelRadius_; }
   void setLabelRadius(double r);
+
+  //! get/set rotated text
+  bool isRotatedText() const { return rotatedText_; }
+  void setRotatedText(bool b);
 
   //---
 
@@ -337,22 +285,51 @@ class CQChartsChordPlot : public CQChartsPlot,
              const QString &viewVarName) const override;
 
  private:
-  bool initTableObjs(PlotObjs &objs) const;
+  using ChordData   = CQChartsChordData;
+  using NameDataMap = std::map<QString,ChordData>;
+
+  //---
+
   bool initHierObjs(PlotObjs &objs) const;
 
+  void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
+                                     const HierConnectionData &destHierData) const override;
+  void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
+                                     const HierConnectionData &destHierData) const override;
+
+  void initHierObjsConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkInd,
+                              double srcValue,
+                              const QString &destStr, const CQChartsModelIndex &destLinkInd,
+                              double destValue) const;
+
+  //---
+
+  bool initLinkObjs      (PlotObjs &objs) const;
+  bool initConnectionObjs(PlotObjs &objs) const;
+  bool initTableObjs     (PlotObjs &objs) const;
+
+  ChordData &findNameData(const QString &name, const QModelIndex &linkInd) const;
+  ChordData &findNameData(NameDataMap &nameDataMap, const QString &name,
+                          const QModelIndex &linkInd) const;
+
+  void addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs);
+
+  ChordData::Group getChordGroup(const QVariant &groupVar) const;
+
  private:
-  CQChartsColumn             linkColumn_;                 //!< link column
-  CQChartsColumn             valueColumn_;                //!< value column
-  CQChartsColumn             groupColumn_;                //!< group column
-  bool                       sorted_         { false };   //!< is sorted
-  double                     innerRadius_    { 0.9 };     //!< inner radius
-  double                     labelRadius_    { 1.1 };     //!< label radius
-  CQChartsAlpha              segmentAlpha_   { 0.7 };     //!< segment alpha
-  CQChartsAlpha              arcAlpha_       { 0.3 };     //!< arc alpha
-  CQChartsAngle              gapAngle_       { 2.0 };     //!< gap angle
-  CQChartsAngle              startAngle_     { 90.0 };    //!< start angle
+  // options
+  double        innerRadius_  { 0.9 };   //!< inner radius
+  double        labelRadius_  { 1.1 };   //!< label radius
+  bool          rotatedText_  { false }; //!< is text rotated
+  CQChartsAlpha segmentAlpha_ { 0.7 };   //!< segment alpha
+  CQChartsAlpha arcAlpha_     { 0.3 };   //!< arc alpha
+  CQChartsAngle gapAngle_     { 2.0 };   //!< gap angle
+  CQChartsAngle startAngle_   { 90.0 };  //!< start angle
+
   CQChartsRotatedTextBoxObj* textBox_        { nullptr }; //!< text box
   double                     valueToDegrees_ { 1.0 };     //!< value to degrees scale
+  CQChartsValueSet           groupValues_;                //!< group values
+  NameDataMap                nameDataMap_;                //!< name data map
 };
 
 #endif

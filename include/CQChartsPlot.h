@@ -75,9 +75,9 @@ class CQChartsTableTip;
 class CQChartsPoints;
 class CQChartsReals;
 
-class CQChartsScriptPainter;
-class CQChartsHtmlPainter;
-class CQChartsSVGPainter;
+class CQChartsScriptPaintDevice;
+class CQChartsHtmlPaintDevice;
+class CQChartsSVGPaintDevice;
 
 class CQPropertyViewModel;
 class CQPropertyViewItem;
@@ -410,13 +410,13 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void writeScript(CQChartsScriptPainter *device) const;
+  void writeScript(CQChartsScriptPaintDevice *device) const;
 
-  void writeScriptRange(CQChartsScriptPainter *device) const;
+  void writeScriptRange(CQChartsScriptPaintDevice *device) const;
 
-  void writeSVG(CQChartsSVGPainter *device) const;
+  void writeSVG(CQChartsSVGPaintDevice *device) const;
 
-  void writeHtml(CQChartsHtmlPainter *device) const;
+  void writeHtml(CQChartsHtmlPaintDevice *device) const;
 
   //---
 

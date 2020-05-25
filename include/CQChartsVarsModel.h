@@ -12,7 +12,7 @@ class CQChartsVarsModel : public CQDataModel {
   CQChartsVarsModel(int numCols, int numRows);
 
   const QStringList &varNames() const { return varNames_; }
-  void setVarNames(const QStringList &v) { varNames_ = v; }
+  void setVarNames(const QStringList &varNames) { varNames_ = varNames; }
 
   bool isTranspose() const { return transpose_; }
   void setTranspose(bool b) { transpose_ = b; }

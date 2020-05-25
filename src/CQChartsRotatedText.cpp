@@ -9,7 +9,7 @@ namespace CQChartsRotatedText {
 
 void
 drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QString &text,
-          const CQChartsTextOptions &options, bool /*alignBBox*/)
+          const CQChartsTextOptions &options, bool /*alignBBox*/, bool /*isRadial*/)
 {
   double a1 = options.angle.radians();
 
@@ -38,8 +38,11 @@ drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QSt
 
   //---
 
+  double px = 0.0;
+  double py = 0.0;
+
   auto prect  = device->windowToPixel(rect);
-  auto prect1 = calcBBox(0.0, 0.0, text, device->font(), options, 0, /*alignBBox*/ true);
+  auto prect1 = calcBBox(px, py, text, device->font(), options, 0, /*alignBBox*/true);
 
   //---
 
@@ -58,7 +61,10 @@ drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QSt
     device->setFont(CQChartsUtil::scaleFontSize(
       device->font(), scale, options.minScaleFontSize, options.maxScaleFontSize));
 
-    prect1 = calcBBox(0.0, 0.0, text, device->font(), options, 0, /*alignBBox*/ true);
+    double px1 = 0.0;
+    double py1 = 0.0;
+
+    prect1 = calcBBox(px1, py1, text, device->font(), options, 0, /*alignBBox*/true);
 
     //--
 
@@ -108,7 +114,7 @@ drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QSt
 
 void
 draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
-     const CQChartsTextOptions &options, bool alignBBox)
+     const CQChartsTextOptions &options, bool alignBBox, bool isRadial)
 {
   QFontMetricsF fm(device->font());
 
@@ -162,6 +168,22 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &t
 
   //---
 
+  if (isRadial) {
+    if (options.align & Qt::AlignLeft) {
+      tx = 0.0;
+      ty = 0.0;
+    }
+    else {
+      tx = -tw*c;
+      ty = -tw*s;
+    }
+
+    tx += -th*s/2.0;
+    ty +=  th*c/2.0;
+  }
+
+  //---
+
   double ax = -s*fm.descent();
   double ay =  c*fm.descent();
 
@@ -170,6 +192,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &t
   drawDelta(device, p, text, options, tx, ty, ax, ay);
 }
 
+// p is in window coords, tx,ty,ax,ay are pixel coords
 void
 drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
           const CQChartsTextOptions &options, double tx, double ty, double ax, double ay)
@@ -221,47 +244,48 @@ drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QStri
 }
 
 CQChartsGeom::BBox
-calcBBox(double x, double y, const QString &text, const QFont &font,
-         const CQChartsTextOptions &options, double border, bool alignBBox)
+calcBBox(double px, double py, const QString &text, const QFont &font,
+         const CQChartsTextOptions &options, double border, bool alignBBox, bool isRadial)
 {
-  CQChartsGeom::BBox bbox;
-  Points             points;
+  CQChartsGeom::BBox pbbox;
+  Points             ppoints;
 
   CQChartsGeom::Margin border1(border);
 
-  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
+  calcBBoxData(px, py, text, font, options, border1, pbbox, ppoints, alignBBox, isRadial);
 
-  return bbox;
+  return pbbox;
 }
 
 Points
-bboxPoints(double x, double y, const QString &text, const QFont &font,
-           const CQChartsTextOptions &options, double border, bool alignBBox)
+bboxPoints(double px, double py, const QString &text, const QFont &font,
+           const CQChartsTextOptions &options, double border, bool alignBBox, bool isRadial)
 {
-  CQChartsGeom::BBox bbox;
-  Points             points;
+  CQChartsGeom::BBox pbbox;
+  Points             ppoints;
 
   CQChartsGeom::Margin border1(border);
 
-  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
+  calcBBoxData(px, py, text, font, options, border1, pbbox, ppoints, alignBBox, isRadial);
 
-  return points;
+  return ppoints;
 }
 
 void
-calcBBoxData(double x, double y, const QString &text, const QFont &font,
-             const CQChartsTextOptions &options, double border, CQChartsGeom::BBox &bbox,
-             Points &points, bool alignBBox)
+calcBBoxData(double px, double py, const QString &text,
+             const QFont &font, const CQChartsTextOptions &options, double border,
+             CQChartsGeom::BBox &pbbox, Points &ppoints, bool alignBBox, bool isRadial)
 {
   CQChartsGeom::Margin border1(border);
 
-  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
+  calcBBoxData(px, py, text, font, options, border1, pbbox, ppoints, alignBBox, isRadial);
 }
 
 void
-calcBBoxData(double x, double y, const QString &text, const QFont &font,
-             const CQChartsTextOptions &options, const CQChartsGeom::Margin &border,
-             CQChartsGeom::BBox &bbox, Points &points, bool alignBBox)
+calcBBoxData(double px, double py, const QString &text,
+             const QFont &font, const CQChartsTextOptions &options,
+             const CQChartsGeom::Margin &border, CQChartsGeom::BBox &pbbox,
+             Points &ppoints, bool alignBBox, bool isRadial)
 {
   QFontMetricsF fm(font);
 
@@ -322,31 +346,47 @@ calcBBoxData(double x, double y, const QString &text, const QFont &font,
       ty = -(tw*s - th*c)/2.0;
   }
 
+  //---
+
+  if (isRadial) {
+    if (options.align & Qt::AlignLeft) {
+      tx = 0.0;
+      ty = 0.0;
+    }
+    else {
+      tx = -tw*c;
+      ty = -tw*s;
+    }
+
+    tx += -th*s/2.0;
+    ty +=  th*c/2.0;
+  }
+
   //------
 
-  double x1 = x + tx, x2 = x + tw*c + tx, x3 = x + tw*c + th*s + tx, x4 = x + th*s + tx;
-  double y1 = y + ty, y2 = y + tw*s + ty, y3 = y + tw*s - th*c + ty, y4 = y - th*c + ty;
+  double x1 = px + tx, x2 = px + tw*c + tx, x3 = px + tw*c + th*s + tx, x4 = px + th*s + tx;
+  double y1 = py + ty, y2 = py + tw*s + ty, y3 = py + tw*s - th*c + ty, y4 = py - th*c + ty;
 
-  points.clear();
+  ppoints.clear();
 
-  points.push_back(CQChartsGeom::Point(x1, y1));
-  points.push_back(CQChartsGeom::Point(x2, y2));
-  points.push_back(CQChartsGeom::Point(x3, y3));
-  points.push_back(CQChartsGeom::Point(x4, y4));
+  ppoints.push_back(CQChartsGeom::Point(x1, y1));
+  ppoints.push_back(CQChartsGeom::Point(x2, y2));
+  ppoints.push_back(CQChartsGeom::Point(x3, y3));
+  ppoints.push_back(CQChartsGeom::Point(x4, y4));
 
   //---
 
-  double xmin = points[0].x; double xmax = xmin;
-  double ymin = points[0].y; double ymax = ymin;
+  double xmin = ppoints[0].x; double xmax = xmin;
+  double ymin = ppoints[0].y; double ymax = ymin;
 
   for (int i = 1; i < 4; ++i) {
-    xmin = std::min(xmin, points[i].x);
-    ymin = std::min(ymin, points[i].y);
-    xmax = std::max(xmax, points[i].x);
-    ymax = std::max(ymax, points[i].y);
+    xmin = std::min(xmin, ppoints[i].x);
+    ymin = std::min(ymin, ppoints[i].y);
+    xmax = std::max(xmax, ppoints[i].x);
+    ymax = std::max(ymax, ppoints[i].y);
   }
 
-  bbox = CQChartsGeom::BBox(xmin, ymin, xmax, ymax);
+  pbbox = CQChartsGeom::BBox(xmin, ymin, xmax, ymax);
 }
 
 }

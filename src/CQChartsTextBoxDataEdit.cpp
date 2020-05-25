@@ -5,7 +5,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
@@ -421,7 +421,7 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   //---
 
   // draw text box
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
                                        shape.stroke().cornerSize());

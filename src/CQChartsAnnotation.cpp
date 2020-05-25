@@ -5,7 +5,6 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsSmooth.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
 #include <CQChartsVariant.h>
 #include <CQChartsArcData.h>
 #include <CQChartsDensity.h>
@@ -14,6 +13,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQCharts.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -629,9 +629,9 @@ CQChartsAnnotation::
 drawInit(CQChartsPaintDevice *device)
 {
   if (device->type() == CQChartsPaintDevice::Type::SVG) {
-    auto *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsSVGPaintDevice *>(device);
 
-    CQChartsSVGPainter::GroupData groupData;
+    CQChartsSVGPaintDevice::GroupData groupData;
 
     groupData.onclick   = true;
     groupData.clickProc = "annotationClick";
@@ -645,7 +645,7 @@ CQChartsAnnotation::
 drawTerm(CQChartsPaintDevice *device)
 {
   if (device->type() == CQChartsPaintDevice::Type::SVG) {
-    auto *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsSVGPaintDevice *>(device);
 
     painter->endGroup();
   }
@@ -4302,7 +4302,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
     QImage img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
 
@@ -4360,7 +4360,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsButtonAnnotation::
-writeHtml(CQChartsHtmlPainter *device)
+writeHtml(CQChartsHtmlPaintDevice *device)
 {
   prect_ = calcPixelRect();
   bbox_  = pixelToWindow(CQChartsGeom::BBox(prect_));

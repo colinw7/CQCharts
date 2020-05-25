@@ -27,7 +27,7 @@
 #include <CQChartsKeyEdit.h>
 #include <CQChartsTitleEdit.h>
 #include <CQChartsEditHandles.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDocument.h>
 
 #include <CQPropertyViewModel.h>
@@ -3415,7 +3415,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
   //---
 
   // draw background
-  CQChartsViewPainter device(this, painter);
+  CQChartsViewPaintDevice device(this, painter);
 
   drawBackground(&device);
 
@@ -3462,7 +3462,7 @@ drawPlots(QPainter *painter)
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
 
-      CQChartsViewPainter device(th, painter1);
+      CQChartsViewPaintDevice device(th, painter1);
 
       drawNoData(&device);
     }
@@ -3497,7 +3497,7 @@ drawPlots(QPainter *painter)
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
 
-      CQChartsViewPainter device(th, painter1);
+      CQChartsViewPaintDevice device(th, painter1);
 
       if (hasAnnotations) {
         // draw annotations
@@ -3524,7 +3524,7 @@ drawPlots(QPainter *painter)
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
 
-      CQChartsViewPainter device(th, painter1);
+      CQChartsViewPaintDevice device(th, painter1);
 
       if (hasAnnotations) {
         // draw selected annotations
@@ -3692,7 +3692,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
         if (device->isInteractive()) {
-          auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+          auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
           annotation->drawEditHandles(painter->painter());
         }
@@ -3722,7 +3722,7 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
   if (layerType == CQChartsLayer::Type::SELECTION) {
     if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
       if (device->isInteractive()) {
-        auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+        auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
         key()->drawEditHandles(painter->painter());
       }
@@ -5450,7 +5450,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   auto *th = const_cast<CQChartsView *>(this);
 
-  CQChartsSVGPainter device(th, os);
+  CQChartsSVGPaintDevice device(th, os);
 
   //---
 
@@ -5463,13 +5463,13 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   // write custom html for plots
   if (plot) {
-    CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
     plot->writeHtml(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeHtml(&device);
     }
@@ -5493,14 +5493,14 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   // draw specific plot
   if (plot) {
-    CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
     plot->writeSVG(&device);
   }
   // draw all plots
   else {
     for (auto &plot : plots()) {
-      CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeSVG(&device);
     }
@@ -5508,7 +5508,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
     //---
 
     if (hasAnnotations()) {
-      CQChartsSVGPainter device(th, os);
+      CQChartsSVGPaintDevice device(th, os);
 
       // draw annotations
       drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
@@ -5678,7 +5678,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   //---
 
   // draw background proc
-  CQChartsScriptPainter device(const_cast<CQChartsView *>(this), os);
+  CQChartsScriptPaintDevice device(const_cast<CQChartsView *>(this), os);
 
   os << "Charts.prototype.drawBackground = function() {\n";
 
@@ -5751,13 +5751,13 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   os << "\n";
 
   if (plot) {
-    CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
     plot->writeScript(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeScript(&device);
     }
@@ -5796,13 +5796,13 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   // write custom html for plots
   if (plot) {
-    CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
     plot->writeHtml(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeHtml(&device);
     }

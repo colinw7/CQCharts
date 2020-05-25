@@ -1111,3 +1111,6 @@
 # 05/17/2020
  + Support hierarchical model in adjacency, force directed and sankey
  + Add more customization for sankey
+# 05/25/2020
+ + Add base class for connection plots
+ + Improve rotated text for radial plots

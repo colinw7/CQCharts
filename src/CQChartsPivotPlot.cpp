@@ -7,7 +7,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsModelDetails.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -1216,7 +1216,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsPivotBarObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1747,7 +1747,7 @@ calcFgPenBrush(CQChartsPenBrush &fgPenBrush, bool /*updateState*/) const
 
 void
 CQChartsPivotCellObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcFgPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1761,7 +1761,7 @@ writeScriptData(CQChartsScriptPainter *device) const
 
 void
 CQChartsPivotCellObj::
-writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &) const
+writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &) const
 {
   device->setStrokeStyleName("bgStrokeColor");
   device->setFillStyleName  ("bgFillColor");
@@ -1786,7 +1786,7 @@ writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &) const
 
 void
 CQChartsPivotCellObj::
-writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const
+writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const
 {
   std::ostream &os = device->os();
 

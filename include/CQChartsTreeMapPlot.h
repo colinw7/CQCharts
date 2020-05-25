@@ -288,7 +288,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
   //---
 
@@ -340,7 +340,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
   CQChartsTreeMapHierNode* hier_ { nullptr }; //!< associated tree hier

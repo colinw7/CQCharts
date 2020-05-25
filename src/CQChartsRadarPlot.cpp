@@ -9,7 +9,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -302,7 +302,7 @@ calcAnnotationBBox() const
   if (nv > 2) {
     auto *th = const_cast<CQChartsRadarPlot *>(this);
 
-    CQChartsPlotPainter device(th, nullptr);
+    CQChartsPlotPaintDevice device(th, nullptr);
 
     QFont font = view()->plotFont(this, textFont());
 
@@ -993,7 +993,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsRadarObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

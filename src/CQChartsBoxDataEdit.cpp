@@ -8,7 +8,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -413,7 +413,7 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
   //---
 
   // draw box
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
                                        data.shape().stroke().cornerSize(),

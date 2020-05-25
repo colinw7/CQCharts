@@ -6,7 +6,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -511,7 +511,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
 
   QString text("ABC abc");
 
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   CQChartsTextOptions options;
 

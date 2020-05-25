@@ -11,7 +11,7 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -584,7 +584,10 @@ drawXLabels(CQChartsPaintDevice *device) const
       CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
-    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+    double px = 0.0;
+    double py = 0.0;
+
+    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
                                                textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
@@ -678,7 +681,10 @@ drawYLabels(CQChartsPaintDevice *device) const
       CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
-    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+    double px = 0.0;
+    double py = 0.0;
+
+    auto trect = CQChartsRotatedText::calcBBox(px, py, name, device->font(),
                                                textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
@@ -757,7 +763,10 @@ calcAnnotationBBox() const
       options.angle = xLabelTextAngle();
       options.align = xLabelTextAlign();
 
-      auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, xfont,
+      double px = 0.0;
+      double py = 0.0;
+
+      auto trect = CQChartsRotatedText::calcBBox(px, py, name, xfont,
                                                  options, 0, /*alignBBox*/ true);
 
       th = std::max(th, trect.getHeight());
@@ -789,7 +798,10 @@ calcAnnotationBBox() const
       options.angle = yLabelTextAngle();
       options.align = yLabelTextAlign();
 
-      auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, yfont,
+      double px = 0.0;
+      double py = 0.0;
+
+      auto trect = CQChartsRotatedText::calcBBox(px, py, name, yfont,
                                                  options, 0, /*alignBBox*/ true);
 
       tw = std::max(tw, trect.getWidth());
@@ -1244,7 +1256,7 @@ valueColorInd(ColorInd &ic) const
 
 void
 CQChartsCorrelationCellObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

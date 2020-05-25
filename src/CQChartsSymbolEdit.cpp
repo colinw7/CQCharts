@@ -1,6 +1,6 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsVariant.h>
 
@@ -123,7 +123,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   painter->setPen  (Qt::black);
   painter->setBrush(Qt::white);
 
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   CQChartsDrawUtil::drawSymbol(&device, symbolType, bbox1);
 

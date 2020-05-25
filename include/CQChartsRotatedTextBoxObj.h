@@ -12,10 +12,12 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   CQChartsRotatedTextBoxObj(CQChartsPlot *plot);
 
   void draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &c, const QString &text,
-            double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
+            double angle=0.0, Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
+            bool isRotated=false) const;
 
-  CQChartsGeom::BBox bbox(const CQChartsGeom::Point &center, const QString &text, double angle=0.0,
-                          Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
+  CQChartsGeom::BBox bbox(const CQChartsGeom::Point &pcenter, const QString &text, double angle=0.0,
+                          Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
+                          bool isRotated=false) const;
 
   void drawConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
                                double ro, double lr, double ta, const QString &text,

@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Connection Plots
+   + how handle different src/dest values (bi-directional connection)
  + Model
    + Bucket and Fold by Hier
  + Real iformat for % values ?

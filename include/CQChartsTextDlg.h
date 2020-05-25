@@ -47,7 +47,7 @@ class CQChartsTextCanvas : public QWidget {
   void paintEvent(QPaintEvent *) override;
 
   const QString &text() const { return text_; }
-  void setText(const QString &v) { text_ = v; }
+  void setText(const QString &s) { text_ = s; }
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { if (c != color_) { color_ = c; invalidate(); } }

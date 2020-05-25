@@ -261,7 +261,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  protected:
   const CQChartsBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -308,7 +308,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  protected:
   CQChartsBubbleHierNode* hier_ { nullptr }; //!< associated hier node

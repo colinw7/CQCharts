@@ -9,7 +9,7 @@
 #include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 
@@ -868,7 +868,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
       //---
 
       if (! device->isInteractive()) {
-        auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+        auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
 
         writeScriptRange(painter);
       }
@@ -975,7 +975,7 @@ setObjRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
 
     writeScriptRange(painter);
   }
@@ -1001,7 +1001,7 @@ setNormalizedRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
 
     writeScriptRange(painter);
   }
@@ -1226,7 +1226,7 @@ getPolyLine(CQChartsGeom::Polygon &poly) const
 
 void
 CQChartsParallelLineObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

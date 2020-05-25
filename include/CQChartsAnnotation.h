@@ -19,6 +19,8 @@ class CQChartsEditHandles;
 class CQChartsSmooth;
 class CQChartsDensity;
 class CQChartsKey;
+class CQChartsAxis;
+class CQChartsHtmlPaintDevice;
 
 class CQPropertyViewItem;
 
@@ -206,7 +208,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! write custom SVG html
-  virtual void writeHtml(CQChartsHtmlPainter *) { }
+  virtual void writeHtml(CQChartsHtmlPaintDevice *) { }
 
   //! write details (command to recreate)
   virtual void write(std::ostream &os, const QString &parentVarName="",
@@ -1110,7 +1112,7 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void writeHtml(CQChartsHtmlPainter *device) override;
+  void writeHtml(CQChartsHtmlPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;

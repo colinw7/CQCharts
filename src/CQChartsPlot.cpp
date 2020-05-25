@@ -19,7 +19,7 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
@@ -759,7 +759,7 @@ drawObjs()
 
 void
 CQChartsPlot::
-writeScript(CQChartsScriptPainter *device) const
+writeScript(CQChartsScriptPaintDevice *device) const
 {
   std::string plotId = "plot_" + this->id().toStdString();
 
@@ -1108,7 +1108,7 @@ writeScript(CQChartsScriptPainter *device) const
 
 void
 CQChartsPlot::
-writeScriptRange(CQChartsScriptPainter *device) const
+writeScriptRange(CQChartsScriptPaintDevice *device) const
 {
   std::ostream &os = device->os();
 
@@ -1123,11 +1123,11 @@ writeScriptRange(CQChartsScriptPainter *device) const
 
 void
 CQChartsPlot::
-writeSVG(CQChartsSVGPainter *device) const
+writeSVG(CQChartsSVGPaintDevice *device) const
 {
   QString plotId = "plot_" + this->id();
 
-  CQChartsSVGPainter::GroupData groupData;
+  CQChartsSVGPaintDevice::GroupData groupData;
 
   groupData.visible = isVisible();
 
@@ -1160,12 +1160,12 @@ writeSVG(CQChartsSVGPainter *device) const
   for (const auto &plotObj : plotObjects()) {
     QString objId = QString("obj_") + plotId + "_" + plotObj->id();
 
-    CQChartsSVGPainter::GroupData objGroupData;
+    CQChartsSVGPaintDevice::GroupData objGroupData;
 
     objGroupData.visible   = plotObj->isVisible();
     objGroupData.onclick   = true;
     objGroupData.clickProc = "plotObjClick";
-    objGroupData.tipStr    = CQChartsSVGPainter::encodeString(plotObj->tipId());
+    objGroupData.tipStr    = CQChartsSVGPaintDevice::encodeString(plotObj->tipId());
     objGroupData.hasTip    = plotObj->hasTipId();
 
     device->startGroup(device->encodeObjId(objId), objGroupData);
@@ -1214,7 +1214,7 @@ writeSVG(CQChartsSVGPainter *device) const
 
 void
 CQChartsPlot::
-writeHtml(CQChartsHtmlPainter *device) const
+writeHtml(CQChartsHtmlPaintDevice *device) const
 {
   if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
     if (isOverlay()) {
@@ -8343,7 +8343,7 @@ drawBackgroundParts(QPainter *painter) const
   if (painter1) {
     auto *th = const_cast<CQChartsPlot *>(this);
 
-    CQChartsPlotPainter device(th, painter1);
+    CQChartsPlotPaintDevice device(th, painter1);
 
     drawBackgroundDeviceParts(&device, bgLayer, bgAxes, bgKey);
 
@@ -8410,7 +8410,7 @@ drawMiddleParts(QPainter *painter) const
   if (painter1) {
     auto *th = const_cast<CQChartsPlot *>(this);
 
-    CQChartsPlotPainter device(th, painter1);
+    CQChartsPlotPaintDevice device(th, painter1);
 
     drawMiddleDeviceParts(&device, bg, mid, fg, annotations);
   }
@@ -8461,7 +8461,7 @@ drawForegroundParts(QPainter *painter) const
   if (painter1) {
     auto *th = const_cast<CQChartsPlot *>(this);
 
-    CQChartsPlotPainter device(th, painter1);
+    CQChartsPlotPaintDevice device(th, painter1);
 
     bool tabbed = (isTabbed() && isCurrent());
 
@@ -8621,7 +8621,7 @@ drawOverlayParts(QPainter *painter) const
   if (painter1) {
     auto *th = const_cast<CQChartsPlot *>(this);
 
-    CQChartsPlotPainter device(th, painter1);
+    CQChartsPlotPaintDevice device(th, painter1);
 
     drawOverlayDeviceParts(&device, sel_objs, sel_annotations, boxes, edit_handles,
                            over_objs, over_annotations);
@@ -8654,7 +8654,7 @@ drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_anno
 
   if (edit_handles) {
     if (device->isInteractive()) {
-      auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+      auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
       drawGroupedEditHandles(painter->painter());
     }
@@ -10617,7 +10617,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const CQCh
            const CQChartsLength &size) const
 {
   if (bufferSymbols_) {
-    auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+    auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
     if (painter) {
       double sx, sy;
@@ -10684,7 +10684,7 @@ drawBufferedSymbol(QPainter *painter, const CQChartsGeom::Point &p,
     ipainter.setPen  (imageBuffer.pen  );
     ipainter.setBrush(imageBuffer.brush);
 
-    CQChartsPixelPainter device(&ipainter);
+    CQChartsPixelPaintDevice device(&ipainter);
 
     CQChartsGeom::Point spos (size, size);
     CQChartsLength      ssize(size, CQChartsUnits::PIXEL);
@@ -10716,7 +10716,7 @@ CQChartsPlot::
 drawWindowColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                    const QColor &c) const
 {
-  auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+  auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
   if (! painter) return;
 
   if (! bbox.isSet())
@@ -10731,7 +10731,7 @@ void
 CQChartsPlot::
 drawColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QColor &c) const
 {
-  auto *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+  auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
   if (! painter) return;
 
   painter->setPen(c);

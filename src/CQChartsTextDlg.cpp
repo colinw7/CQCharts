@@ -2,7 +2,7 @@
 #include <CQChartsPropertyViewTree.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <QHBoxLayout>
 
 CQChartsTextDlg::
@@ -59,7 +59,7 @@ paintEvent(QPaintEvent *)
 
   painter.drawRect(rect_);
 
-  CQChartsPixelPainter device(&painter);
+  CQChartsPixelPaintDevice device(&painter);
 
   CQChartsTextOptions options;
 

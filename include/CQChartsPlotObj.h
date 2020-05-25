@@ -11,7 +11,7 @@ class  CQChartsPlot;
 struct CQChartsPenBrush;
 class  CQChartsLength;
 class  CQChartsPaintDevice;
-class  CQChartsScriptPainter;
+class  CQChartsScriptPaintDevice;
 class  CQPropertyViewModel;
 
 /*!
@@ -194,14 +194,14 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  virtual void writeScriptData(CQChartsScriptPainter *device) const;
+  virtual void writeScriptData(CQChartsScriptPaintDevice *device) const;
 
-  void writeObjScriptData(CQChartsScriptPainter *device) const;
+  void writeObjScriptData(CQChartsScriptPaintDevice *device) const;
 
-  virtual void writeScriptGC(CQChartsScriptPainter *device,
+  virtual void writeScriptGC(CQChartsScriptPaintDevice *device,
                              const CQChartsPenBrush &penBrush) const;
 
-  virtual void writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const;
+  virtual void writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const;
 
  protected:
   CQChartsPlot*            plot_       { nullptr };           //!< parent plot

@@ -7,7 +7,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 
 #include <CQWidgetMenu.h>
 #include <CQCheckBox.h>
@@ -400,7 +400,7 @@ draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
 
   arrow.setData(data);
 
-  CQChartsPixelPainter device(painter);
+  CQChartsPixelPaintDevice device(painter);
 
   arrow.draw(&device);
 }

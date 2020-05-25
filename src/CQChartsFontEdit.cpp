@@ -5,7 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
@@ -229,7 +229,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
     else
       painter->setFont(font.font());
 
-    CQChartsPixelPainter device(painter);
+    CQChartsPixelPaintDevice device(painter);
 
     CQChartsDrawUtil::drawTextInBox(&device, CQChartsGeom::BBox(option1.rect),
                                     "Abc", textOptions);

@@ -215,7 +215,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
   const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot
@@ -272,7 +272,7 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
   const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot

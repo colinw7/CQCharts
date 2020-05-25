@@ -10,6 +10,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
@@ -856,7 +857,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsGeometryObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

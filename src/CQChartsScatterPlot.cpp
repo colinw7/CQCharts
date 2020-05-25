@@ -13,6 +13,7 @@
 #include <CQChartsGrahamHull.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBivariateDensity.h>
 #include <CQCharts.h>
@@ -3495,7 +3496,7 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 
 void
 CQChartsScatterCellObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -3593,7 +3594,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsScatterHexObj::
-writeScriptData(CQChartsScriptPainter *device) const
+writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

@@ -93,7 +93,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
   void getPolyLine(CQChartsGeom::Polygon &poly) const;

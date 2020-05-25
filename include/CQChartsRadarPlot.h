@@ -101,7 +101,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   //---
 
-  void writeScriptData(CQChartsScriptPainter *device) const override;
+  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
   const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot
