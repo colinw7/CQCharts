@@ -50,9 +50,9 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                      const QModelIndex &ind, const ModelIndices &inds, const ColorInd &ir,
-                      const ColorInd &ic, double value);
+  CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+                      const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
+                      double value);
 
   //---
 
@@ -68,7 +68,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::BBox dataLabelRect() const;
+  BBox dataLabelRect() const;
 
   //---
 
@@ -106,9 +106,8 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                       const ModelIndices &inds, const ColorInd &ig,
-                       const CQChartsGeom::Polygon &polygon, const QString &name);
+  CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const BBox &rect, const ModelIndices &inds,
+                       const ColorInd &ig, const Polygon &polygon, const QString &name);
 
   //---
 
@@ -120,7 +119,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point&) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -128,7 +127,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPivotPlot* plot_     { nullptr }; //!< parent plot
-  CQChartsGeom::Polygon    polygon_;              //!< values
+  Polygon                  polygon_;              //!< values
   QString                  name_;                 //!< name
 };
 
@@ -142,9 +141,8 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                        const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
-                        const CQChartsGeom::Point &p, double value);
+  CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+                        const ColorInd &ir, const ColorInd &ic, const Point &p, double value);
 
   //---
 
@@ -160,7 +158,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point&) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -168,7 +166,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  CQChartsGeom::Point      p_;                 //!< position
+  Point                    p_;                 //!< position
   double                   value_ { 0.0 };     //!< value
 };
 
@@ -182,10 +180,9 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                       const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
-                       const QString &name, double value, double hnorm, double vnorm,
-                       bool valid);
+  CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+                       const ColorInd &ir, const ColorInd &ic, const QString &name,
+                       double value, double hnorm, double vnorm, bool valid);
 
   //---
 
@@ -355,7 +352,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
@@ -365,7 +362,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -387,7 +384,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
- private:
+ protected:
   std::vector<PlotType> plotTypes() const { return
     {{ PlotType::BAR, PlotType::STACKED_BAR, PlotType::LINES,
        PlotType::AREA, PlotType::POINTS, PlotType::GRID }};
@@ -401,7 +398,26 @@ class CQChartsPivotPlot : public CQChartsPlot,
   QString plotTypeName (const PlotType  &plotType ) const;
   QString valueTypeName(const ValueType &valueType) const;
 
- private slots:
+  //---
+
+  virtual CQChartsPivotBarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
+                                            const ModelIndices &inds, const ColorInd &ir,
+                                            const ColorInd &ic, double value) const;
+
+  virtual CQChartsPivotLineObj *createLineObj(const BBox &rect, const ModelIndices &inds,
+                                              const ColorInd &ig, const Polygon &polygon,
+                                              const QString &name) const;
+
+  virtual CQChartsPivotPointObj *createPointObj(const BBox &rect, const QModelIndex &ind,
+                                                const ColorInd &ir, const ColorInd &ic,
+                                                const Point &p, double value) const;
+
+  virtual CQChartsPivotCellObj *createCellObj(const BBox &rect, const QModelIndex &ind,
+                                              const ColorInd &ir, const ColorInd &ic,
+                                              const QString &name, double value, double hnorm,
+                                              double vnorm, bool valid) const;
+
+ protected slots:
   void setHorizontal(bool b);
 
   void setPlotTypeSlot (bool b);

@@ -250,8 +250,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
  public:
   CQChartsTreeMapNodeObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
-                         CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                         const ColorInd &is);
+                         CQChartsTreeMapHierObj *hierObj, const BBox &rect, const ColorInd &is);
 
   CQChartsTreeMapNode *node() const { return node_; }
 
@@ -272,7 +271,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void addChild(CQChartsTreeMapNodeObj *child) { children_.push_back(child); }
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -280,7 +279,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox);
+  void drawText(CQChartsPaintDevice *device, const BBox &bbox);
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const;
 
@@ -315,8 +314,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
  public:
   CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
-                         CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                         const ColorInd &is);
+                         CQChartsTreeMapHierObj *hierObj, const BBox &rect, const ColorInd &is);
 
   CQChartsTreeMapHierNode *hierNode() const { return hier_; }
 
@@ -328,7 +326,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -515,7 +513,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void clearPlotObjects() override;
 
@@ -529,7 +527,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
- private:
+ protected:
   void initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
                     int depth, PlotObjs &objs) const;
 
@@ -588,6 +586,15 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //---
 
   bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
+
+  //---
+
+  virtual CQChartsTreeMapHierObj *createHierObj(CQChartsTreeMapHierNode *hier,
+                                                CQChartsTreeMapHierObj *hierObj,
+                                                const BBox &rect, const ColorInd &is) const;
+  virtual CQChartsTreeMapNodeObj *createNodeObj(CQChartsTreeMapNode *node,
+                                                CQChartsTreeMapHierObj *hierObj,
+                                                const BBox &rect, const ColorInd &is) const;
 
  public slots:
   void pushSlot();

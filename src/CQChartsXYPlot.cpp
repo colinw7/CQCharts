@@ -635,7 +635,7 @@ calcRange() const
   if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -713,13 +713,13 @@ calcRange() const
       return State::OK;
     }
 
-    const CQChartsGeom::Range &range() const { return range_; }
+    const Range &range() const { return range_; }
 
    private:
     using Reals = std::vector<double>;
 
     const CQChartsXYPlot* plot_ { nullptr };
-    CQChartsGeom::Range   range_;
+    Range                 range_;
     Reals                 sum_;
     Reals                 lastSum_;
     std::vector<double>   sx_;
@@ -1047,14 +1047,14 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
         for (int i = 0; i < ny; ++i) {
           setPoly[i].inds.push_back(rowInd);
 
-          setPoly[i].poly.addPoint(CQChartsGeom::Point(x, y[i]));
+          setPoly[i].poly.addPoint(Point(x, y[i]));
         }
       }
       else {
         for (int i = 0; i < ny; ++i) {
           setPoly[data.row].inds.push_back(rowInd);
 
-          setPoly[data.row].poly.addPoint(CQChartsGeom::Point(sx_[i], y[i]));
+          setPoly[data.row].poly.addPoint(Point(sx_[i], y[i]));
         }
       }
 
@@ -1085,7 +1085,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
             if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
               continue;
 
-            poly2.setPoint(j, CQChartsGeom::Point(x2, y2 + y1));
+            poly2.setPoint(j, Point(x2, y2 + y1));
           }
         }
       }
@@ -1111,7 +1111,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
             if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
               continue;
 
-            poly.setPoint(j, CQChartsGeom::Point(x2, y1 + y2));
+            poly.setPoint(j, Point(x2, y1 + y2));
           }
         }
       }
@@ -1279,7 +1279,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       double y2 = yVals[j];
 
-      CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
+      BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
 
       if (! isFillUnderFilled()) {
         // use vertical line object for each point pair if not fill under
@@ -1295,8 +1295,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         auto &poly2 = polygons2[j - 1].poly;
 
         // build lower and upper poly line for fill under polygon
-        poly1.addPoint(CQChartsGeom::Point(x, y1));
-        poly2.addPoint(CQChartsGeom::Point(x, y2));
+        poly1.addPoint(Point(x, y1));
+        poly2.addPoint(Point(x, y2));
       }
 
       y1 = y2;
@@ -1362,8 +1362,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
           poly1.addPoint(poly2.point(k));
       }
       else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
-        CQChartsGeom::Polygon poly3, poly4;
-        CQChartsGeom::Point   pa1, pb1;
+        Polygon poly3, poly4;
+        Point   pa1, pb1;
 
         bool above1 = true;
 
@@ -1374,7 +1374,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
           bool above2 = (pa2.y > pb2.y);
 
           if (k > 0 && above1 != above2) {
-            CQChartsGeom::Point pi;
+            Point pi;
 
             CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
 
@@ -1398,8 +1398,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
         poly1 = poly3;
       }
       else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
-        CQChartsGeom::Polygon poly3, poly4;
-        CQChartsGeom::Point   pa1, pb1;
+        Polygon poly3, poly4;
+        Point   pa1, pb1;
 
         bool below1 = true;
 
@@ -1410,7 +1410,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
           bool below2 = (pa2.y < pb2.y);
 
           if (k > 0 && below1 != below2) {
-            CQChartsGeom::Point pi;
+            Point pi;
 
             CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
 
@@ -1507,7 +1507,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     //---
 
-    CQChartsGeom::Polygon polyShape, polyLine;
+    Polygon polyShape, polyLine;
 
     int np = poly.size();
     assert(prevPoly.size() == np);
@@ -1567,7 +1567,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           linePointObjs.clear();
 
-          polyLine = CQChartsGeom::Polygon();
+          polyLine = Polygon();
         }
 
         continue;
@@ -1602,7 +1602,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         ColorInd is1(is, ns);
         ColorInd iv1(ip, np);
 
-        CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+        BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig, iv1);
 
@@ -1671,7 +1671,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         }
 
         if (pointName.length()) {
-          CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+          BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
           auto *labelObj = th->createLabelObj(groupInd, bbox, x, y, pointName, xind1, is1, iv1);
 
@@ -1730,7 +1730,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
               th->addDataError(vectorYInd, "Invalid Vector Y");
           }
 
-          pointObj->setVector(CQChartsGeom::Point(vx, vy));
+          pointObj->setVector(Point(vx, vy));
         }
 
         //---
@@ -1742,7 +1742,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           double ys = std::min(y, 0.0);
           double ye = std::max(y, 0.0);
 
-          CQChartsGeom::BBox bbox(x - w/2, ys, x + w/2, ye);
+          BBox bbox(x - w/2, ys, x + w/2, ye);
 
           auto *impulseObj = th->createImpulseLineObj(groupInd, bbox, x, ys, ye, xind1, is1, iv1);
 
@@ -1767,7 +1767,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
             y1 = dataRange.ymin();
 
-          polyShape.addPoint(CQChartsGeom::Point(x, y1));
+          polyShape.addPoint(Point(x, y1));
         }
         else {
           polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
@@ -1784,7 +1784,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
             y1 = dataRange.ymin();
 
-          polyShape.addPoint(CQChartsGeom::Point(x, y1));
+          polyShape.addPoint(Point(x, y1));
         }
         else {
           polyShape.addPoint(calcFillUnderPos(x, dataRange.ymin()));
@@ -1807,7 +1807,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
             y1 = 0.0;
 
-          polyShape.addPoint(CQChartsGeom::Point(x1, y1));
+          polyShape.addPoint(Point(x1, y1));
         }
       }
     }
@@ -1821,7 +1821,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
       linePointObjs.clear();
 
-      //polyLine = CQChartsGeom::Polygon();
+      //polyLine = Polygon();
     }
 
     //---
@@ -1977,12 +1977,12 @@ calcFillUnderPos(double x, double y) const
   else if (pos.ytype() == CQChartsFillUnderPos::Type::POS)
     y1 = pos.ypos();
 
-  return CQChartsGeom::Point(x1, y1);
+  return Point(x1, y1);
 }
 
 CQChartsXYPolylineObj *
 CQChartsXYPlot::
-addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd, const ColorInd &is,
+addPolyLine(const Polygon &polyLine, int groupInd, const ColorInd &is,
             const ColorInd &ig, const QString &name, PlotObjs &pointObjs, PlotObjs &objs) const
 {
   auto bbox = polyLine.boundingBox();
@@ -2006,7 +2006,7 @@ addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd, const ColorInd 
 
 void
 CQChartsXYPlot::
-addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
+addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
            const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const
 {
   auto bbox = poly.boundingBox();
@@ -2023,57 +2023,50 @@ addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
 
 CQChartsXYPointObj *
 CQChartsXYPlot::
-createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &p,
-               const ColorInd &is, const ColorInd &ig, const ColorInd &iv)
+createPointObj(int groupInd, const BBox &rect, const Point &p, const ColorInd &is,
+               const ColorInd &ig, const ColorInd &iv) const
 {
-  return new CQChartsXYPointObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                p, is, ig, iv);
+  return new CQChartsXYPointObj(this, groupInd, rect, p, is, ig, iv);
 }
 
 CQChartsXYBiLineObj *
 CQChartsXYPlot::
-createBiLineObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y1, double y2,
-                const QModelIndex &ind, const ColorInd &is, const ColorInd &iv)
+createBiLineObj(int groupInd, const BBox &rect, double x, double y1, double y2,
+                const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsXYBiLineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                 x, y1, y2, ind, is, iv);
+  return new CQChartsXYBiLineObj(this, groupInd, rect, x, y1, y2, ind, is, iv);
 }
 
 CQChartsXYLabelObj *
 CQChartsXYPlot::
-createLabelObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y,
-               const QString &label, const QModelIndex &ind, const ColorInd &is,
-               const ColorInd &iv)
+createLabelObj(int groupInd, const BBox &rect, double x, double y, const QString &label,
+               const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsXYLabelObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                x, y, label, ind, is, iv);
+  return new CQChartsXYLabelObj(this, groupInd, rect, x, y, label, ind, is, iv);
 }
 
 CQChartsXYImpulseLineObj *
 CQChartsXYPlot::
-createImpulseLineObj(int groupInd, const CQChartsGeom::BBox &rect, double x, double y1, double y2,
-                     const QModelIndex &ind, const ColorInd &is, const ColorInd &iv)
+createImpulseLineObj(int groupInd, const BBox &rect, double x, double y1, double y2,
+                     const QModelIndex &ind, const ColorInd &is, const ColorInd &iv) const
 {
-  return new CQChartsXYImpulseLineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                      x, y1, y2, ind, is, iv);
+  return new CQChartsXYImpulseLineObj(this, groupInd, rect, x, y1, y2, ind, is, iv);
 }
 
 CQChartsXYPolylineObj *
 CQChartsXYPlot::
-createPolylineObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Polygon &poly,
-                  const QString &name, const ColorInd &is, const ColorInd &ig)
+createPolylineObj(int groupInd, const BBox &rect, const Polygon &poly, const QString &name,
+                  const ColorInd &is, const ColorInd &ig) const
 {
-  return new CQChartsXYPolylineObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                   poly, name, is, ig);
+  return new CQChartsXYPolylineObj(this, groupInd, rect, poly, name, is, ig);
 }
 
 CQChartsXYPolygonObj *
 CQChartsXYPlot::
-createPolygonObj(int groupInd, const CQChartsGeom::BBox &rect, const CQChartsGeom::Polygon &poly,
-                 const QString &name, const ColorInd &is, const ColorInd &ig, bool under)
+createPolygonObj(int groupInd, const BBox &rect, const Polygon &poly, const QString &name,
+                 const ColorInd &is, const ColorInd &ig, bool under) const
 {
-  return new CQChartsXYPolygonObj(const_cast<CQChartsXYPlot *>(this), groupInd, rect,
-                                  poly, name, is, ig, under);
+  return new CQChartsXYPolygonObj(this, groupInd, rect, poly, name, is, ig, under);
 }
 
 //---
@@ -2393,8 +2386,7 @@ addMenuItems(QMenu *menu)
 
 void
 CQChartsXYPlot::
-drawArrow(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-          const CQChartsGeom::Point &p2) const
+drawArrow(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
 {
   CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
     arrowObj_, SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));

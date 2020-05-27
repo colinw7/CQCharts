@@ -47,7 +47,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSunburstNodeObj(const CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsSunburstNodeObj(const CQChartsSunburstPlot *plot, const BBox &rect,
                           CQChartsSunburstNode *node);
 
   QString typeName() const override { return "node"; }
@@ -61,7 +61,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -381,7 +381,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void clearPlotObjects() override;
 

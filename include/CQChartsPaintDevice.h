@@ -21,6 +21,12 @@ class CQChartsPaintDevice {
   };
 
  public:
+  using Point   = CQChartsGeom::Point;
+  using BBox    = CQChartsGeom::BBox;
+  using Size    = CQChartsGeom::Size;
+  using Polygon = CQChartsGeom::Polygon;
+
+ public:
   CQChartsPaintDevice(CQChartsView *view) : view_(view) { }
   CQChartsPaintDevice(CQChartsPlot *plot) : plot_(plot) { }
   CQChartsPaintDevice() { }
@@ -39,9 +45,9 @@ class CQChartsPaintDevice {
   virtual void restore() { }
 
   virtual void setClipPath(const QPainterPath &, Qt::ClipOperation=Qt::ReplaceClip) { }
-  virtual void setClipRect(const CQChartsGeom::BBox &, Qt::ClipOperation=Qt::ReplaceClip) { }
+  virtual void setClipRect(const BBox &, Qt::ClipOperation=Qt::ReplaceClip) { }
 
-  virtual CQChartsGeom::BBox clipRect() const { return CQChartsGeom::BBox(); }
+  virtual BBox clipRect() const { return BBox(); }
 
   virtual QPen pen() const { return QPen(); }
   virtual void setPen(const QPen &) { }
@@ -53,31 +59,30 @@ class CQChartsPaintDevice {
   virtual void strokePath(const QPainterPath &, const QPen &) { }
   virtual void drawPath  (const QPainterPath &) { }
 
-  virtual void fillRect(const CQChartsGeom::BBox &, const QBrush &) { }
-  virtual void drawRect(const CQChartsGeom::BBox &) { }
+  virtual void fillRect(const BBox &, const QBrush &) { }
+  virtual void drawRect(const BBox &) { }
 
-  virtual void drawEllipse(const CQChartsGeom::BBox &, const CQChartsAngle& =CQChartsAngle()) { }
+  virtual void drawEllipse(const BBox &, const CQChartsAngle& =CQChartsAngle()) { }
 
-//virtual void drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &,
-//                     const CQChartsAngle &) { }
+//virtual void drawArc(const BBox &, const CQChartsAngle &, const CQChartsAngle &) { }
 
-  virtual void drawPolygon (const CQChartsGeom::Polygon &) { }
-  virtual void drawPolyline(const CQChartsGeom::Polygon &) { }
+  virtual void drawPolygon (const Polygon &) { }
+  virtual void drawPolyline(const Polygon &) { }
 
-  virtual void drawLine(const CQChartsGeom::Point &, const CQChartsGeom::Point &) { }
+  virtual void drawLine(const Point &, const Point &) { }
 
-  virtual void drawPoint(const CQChartsGeom::Point &) { }
+  virtual void drawPoint(const Point &) { }
 
-  virtual void drawText(const CQChartsGeom::Point &, const QString &) { }
-  virtual void drawTransformedText(const CQChartsGeom::Point &, const QString &) { }
+  virtual void drawText(const Point &, const QString &) { }
+  virtual void drawTransformedText(const Point &, const QString &) { }
 
-  virtual void drawImage(const CQChartsGeom::Point &, const QImage &) { }
-  virtual void drawImageInRect(const CQChartsGeom::BBox &, const CQChartsImage &, bool = true) { }
+  virtual void drawImage(const Point &, const QImage &) { }
+  virtual void drawImageInRect(const BBox &, const CQChartsImage &, bool = true) { }
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f) = 0;
 
-  virtual void setTransformRotate(const CQChartsGeom::Point &p, double angle) = 0;
+  virtual void setTransformRotate(const Point &p, double angle) = 0;
 
   virtual const QTransform &transform() const = 0;
   virtual void setTransform(const QTransform &t, bool combine=false) = 0;
@@ -91,17 +96,17 @@ class CQChartsPaintDevice {
 
   //---
 
-  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &r) const;
-  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &r) const;
+  BBox windowToPixel(const BBox &r) const;
+  BBox pixelToWindow(const BBox &r) const;
 
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
-  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
+  Point windowToPixel(const Point &p) const;
+  Point pixelToWindow(const Point &p) const;
 
-  CQChartsGeom::Polygon windowToPixel(const CQChartsGeom::Polygon &p) const;
+  Polygon windowToPixel(const Polygon &p) const;
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
-  CQChartsGeom::Size pixelToWindowSize(const CQChartsGeom::Size &s) const;
+  Size pixelToWindowSize(const Size &s) const;
 
   double lengthPixelWidth (const CQChartsLength &w) const;
   double lengthPixelHeight(const CQChartsLength &h) const;

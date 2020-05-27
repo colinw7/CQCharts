@@ -511,7 +511,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     ColorInd is(hier->depth(), maxDepth() + 1);
 
-    hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, is);
+    hierObj = createHierObj(hier, parentObj, rect, is);
 
     hierObj->setInd(ig_);
 
@@ -549,7 +549,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    auto *obj = new CQChartsTreeMapNodeObj(this, node, parentObj, rect, is);
+    auto *obj = createNodeObj(node, parentObj, rect, is);
 
     obj->setInd(in_);
 
@@ -1242,6 +1242,24 @@ resetNodeExpansion(CQChartsTreeMapHierNode *hierNode)
 
   for (auto &hierNode1 : hierNode->getChildren())
     resetNodeExpansion(hierNode1);
+}
+
+//---
+
+CQChartsTreeMapHierObj *
+CQChartsTreeMapPlot::
+createHierObj(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *hierObj,
+              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+{
+  return new CQChartsTreeMapHierObj(this, hier, hierObj, rect, is);
+}
+
+CQChartsTreeMapNodeObj *
+CQChartsTreeMapPlot::
+createNodeObj(CQChartsTreeMapNode *node, CQChartsTreeMapHierObj *hierObj,
+              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+{
+  return new CQChartsTreeMapNodeObj(this, node, hierObj, rect, is);
 }
 
 //------

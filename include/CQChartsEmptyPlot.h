@@ -52,7 +52,7 @@ class CQChartsEmptyPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 

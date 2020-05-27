@@ -45,7 +45,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const BBox &rect,
                            double x, double y, double value, const QModelIndex &ind,
                            const ColorInd &iv);
 
@@ -64,7 +64,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -160,7 +160,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -188,17 +188,17 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void drawVoronoi (CQChartsPaintDevice *device) const;
 
  private:
-  CQChartsColumn        xColumn_;                    //!< x column
-  CQChartsColumn        yColumn_;                    //!< y column
-  CQChartsColumn        nameColumn_;                 //!< name column
-  CQChartsColumn        valueColumn_;                //!< value column
-  bool                  delaunay_       { false };   //!< is delaunay
-  bool                  voronoi_        { true };    //!< is voronoi
-  bool                  voronoiCircles_ { false };   //!< voronoi circle
-  bool                  voronoiPolygon_ { false };   //!< voronoi polygon
-  CQChartsGeom::RMinMax valueRange_;                 //!< value range
-  CQChartsDelaunay*     delaunayData_   { nullptr }; //!< delaunay data
-  QString               yname_;                      //!< y name
+  CQChartsColumn    xColumn_;                    //!< x column
+  CQChartsColumn    yColumn_;                    //!< y column
+  CQChartsColumn    nameColumn_;                 //!< name column
+  CQChartsColumn    valueColumn_;                //!< value column
+  bool              delaunay_       { false };   //!< is delaunay
+  bool              voronoi_        { true };    //!< is voronoi
+  bool              voronoiCircles_ { false };   //!< voronoi circle
+  bool              voronoiPolygon_ { false };   //!< voronoi polygon
+  RMinMax           valueRange_;                 //!< value range
+  CQChartsDelaunay* delaunayData_   { nullptr }; //!< delaunay data
+  QString           yname_;                      //!< y name
 };
 
 #endif

@@ -121,10 +121,12 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
   setMaxRows (10*pageSize);
   setPageSize(pageSize);
 
-  setGridColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.50));
-  setTextColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.00));
-  setHeaderColor(QColor(150, 150, 200));
-  setCellColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setGridColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.50));
+  setTextColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.00));
+  setHeaderColor    (QColor(150, 150, 200));
+  setCellColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setInsideColor    (QColor(100, 100, 200));
+  setInsideTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
 
   //---
 
@@ -460,6 +462,20 @@ setCellColor(const CQChartsColor &c)
   CQChartsUtil::testAndSet(cellColor_, c, [&]() { updateObjs(); } );
 }
 
+void
+CQChartsTablePlot::
+setInsideColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(insideColor_, c, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsTablePlot::
+setInsideTextColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(insideTextColor_, c, [&]() { updateObjs(); } );
+}
+
 //---
 
 void
@@ -509,9 +525,11 @@ addProperties()
   addProp("header", "headerVisible", "visible", "Header visible");
   addProp("header", "headerColor"  , "color"  , "Header color"  );
 
-  addProp("options", "gridColor"  , "gridColor"  , "Grid color"  );
-  addProp("options", "textColor"  , "textColor"  , "Text color"  );
-  addProp("options", "cellColor"  , "cellColor"  , "Cell color"  );
+  addProp("options", "gridColor"      , "gridColor"      , "Grid color"  );
+  addProp("options", "textColor"      , "textColor"      , "Text color"  );
+  addProp("options", "cellColor"      , "cellColor"      , "Cell color"  );
+  addProp("options", "insideColor"    , "insideColor"    , "Cell inside color"  );
+  addProp("options", "insideTextColor", "insideTextColor", "Cell inside text color"  );
 
   addProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
   addProp("options", "followView", "followView", "Follow view");
@@ -521,6 +539,10 @@ CQChartsGeom::Range
 CQChartsTablePlot::
 calcRange() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::calcRange");
+
+  //---
+
   // always return range (0,0) -> (1,1)
   CQChartsGeom::Range dataRange;
 
@@ -538,6 +560,10 @@ void
 CQChartsTablePlot::
 calcTableSize() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::calcTableSize");
+
+  //---
+
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
   //---
@@ -725,6 +751,10 @@ bool
 CQChartsTablePlot::
 createObjs(PlotObjs &objs) const
 {
+  CQPerfTrace trace("CQChartsTablePlot::createObjs");
+
+  //---
+
   updatePosition();
 
   initDrawData();
@@ -732,7 +762,7 @@ createObjs(PlotObjs &objs) const
   for (const auto &pc : headerObjMap_) {
     const auto &headerObjData = pc.second;
 
-    auto *obj = new CQChartsTableHeaderObj(this, headerObjData);
+    auto *obj = createHeaderObj(headerObjData);
 
     objs.push_back(obj);
   }
@@ -740,7 +770,7 @@ createObjs(PlotObjs &objs) const
   for (const auto &pr : rowObjMap_) {
     const auto &rowObjData = pr.second;
 
-    auto *obj = new CQChartsTableRowObj(this, rowObjData);
+    auto *obj = createRowObj(rowObjData);
 
     objs.push_back(obj);
   }
@@ -748,7 +778,7 @@ createObjs(PlotObjs &objs) const
   for (const auto &pc : cellObjMap_) {
     const auto &cellObjData = pc.second;
 
-    auto *obj = new CQChartsTableCellObj(this, cellObjData);
+    auto *obj = createCellObj(cellObjData);
 
     objs.push_back(obj);
   }
@@ -1008,6 +1038,10 @@ void
 CQChartsTablePlot::
 execDrawBackground(CQChartsPaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsTablePlot::execDrawBackground");
+
+  //---
+
   device->save();
 
   setClipRect(device);
@@ -1021,6 +1055,8 @@ void
 CQChartsTablePlot::
 drawTable(CQChartsPaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsTablePlot::drawTable");
+
   updateScrollBars();
 
   updatePosition();
@@ -1032,6 +1068,10 @@ void
 CQChartsTablePlot::
 initDrawData() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::initDrawData");
+
+  //---
+
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
   th->headerObjMap_.clear();
@@ -1081,6 +1121,10 @@ void
 CQChartsTablePlot::
 updateScrollBars() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::updateScrollBars");
+
+  //---
+
   if (! isVisible()) {
     scrollData_.hbar->setVisible(false);
     scrollData_.vbar->setVisible(false);
@@ -1149,6 +1193,10 @@ void
 CQChartsTablePlot::
 updatePosition() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::updatePosition");
+
+  //---
+
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
   //---
@@ -1193,7 +1241,11 @@ drawTableBackground(CQChartsPaintDevice *device) const
   if (! isVisible())
     return;
 
-  //--
+  //---
+
+  CQPerfTrace trace("CQChartsTablePlot::drawTableBackground");
+
+  //---
 
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
@@ -1341,6 +1393,10 @@ void
 CQChartsTablePlot::
 createTableObjData() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::createTableObjData");
+
+  //---
+
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(const CQChartsTablePlot *plot, const TableData &tableData_) :
@@ -1541,7 +1597,7 @@ createTableObjData() const
       bool ok;
 
       QString str = CQChartsModelUtil::modelString(plot_->charts(), model_, ind, ok);
-      if (! ok) return;
+      if (! ok) str = "";
 
       //---
 
@@ -1719,6 +1775,10 @@ CQChartsGeom::BBox
 CQChartsTablePlot::
 calcTablePixelRect() const
 {
+  CQPerfTrace trace("CQChartsTablePlot::calcTablePixelRect");
+
+  //---
+
   auto pixelRect = calcDataPixelRect();
 
   if (! isTabbed())
@@ -1734,6 +1794,27 @@ calcTablePixelRect() const
   double tph = tabRect.getHeight();
 
   return CQChartsGeom::BBox(px1, py1, px2, py2 - tph);
+}
+
+CQChartsTableHeaderObj *
+CQChartsTablePlot::
+createHeaderObj(const HeaderObjData &headerObjData) const
+{
+  return new CQChartsTableHeaderObj(this, headerObjData);
+}
+
+CQChartsTableRowObj *
+CQChartsTablePlot::
+createRowObj(const RowObjData &rowObjData) const
+{
+  return new CQChartsTableRowObj(this, rowObjData);
+}
+
+CQChartsTableCellObj *
+CQChartsTablePlot::
+createCellObj(const CellObjData &cellObjData) const
+{
+  return new CQChartsTableCellObj(this, cellObjData);
 }
 
 //------
@@ -1940,6 +2021,21 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  // calc background pen and brush and draw
+  if (isInside()) {
+    CQChartsPenBrush bgPenBrush;
+
+    QColor c = plot_->interpColor(plot_->insideColor(), ColorInd());
+
+    plot_->setPenBrush(bgPenBrush, CQChartsPenData(false), CQChartsBrushData(true, c));
+
+    CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
+
+    device->drawRect(rect());
+  }
+
+  //---
+
   CQChartsColor textColor = plot_->textColor();
 
   auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column);
@@ -1951,8 +2047,12 @@ draw(CQChartsPaintDevice *device)
       textColor = drawColor;
   }
 
+  if (isInside())
+    textColor = plot_->insideTextColor();
+
   //---
 
+  // draw cell text
   device->setFont(plot_->tableFont());
 
   QPen textPen;

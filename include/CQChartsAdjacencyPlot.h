@@ -129,10 +129,13 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
  public:
   CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                       CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
+                       CQChartsAdjacencyNode *node2, double value, const BBox &rect,
                        const ColorInd &ig);
 
   QString typeName() const override { return "cell"; }
+
+  CQChartsAdjacencyNode *node1() const { return node1_; }
+  CQChartsAdjacencyNode *node2() const { return node2_; }
 
   QString calcId() const override;
 
@@ -255,19 +258,21 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
   virtual CQChartsAdjacencyObj *createObj(CQChartsAdjacencyNode *node1,
                                           CQChartsAdjacencyNode *node2, double value,
-                                          const CQChartsGeom::BBox &rect, const ColorInd &ig);
+                                          const BBox &rect, const ColorInd &ig);
 
   //---
 
   QColor interpGroupColor(int) const;
 
   //---
+
+  void initFactor();
 
   void autoFit() override;
 
@@ -349,7 +354,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   CQChartsLength bgMargin_     { "2px" };           //!< background margin
   NodeMap        nodes_;                            //!< all nodes
   NameNodeMap    nameNodeMap_;                      //!< name node map
-  double         factor_       { 1.0 };             //!< font factor
+  double         factor_       { -1.0 };            //!< font factor
   AdjacencyObj*  insideObj_    { nullptr };         //!< last inside object
   NodeArray      sortedNodes_;                      //!< sorted nodes
   NodeData       nodeData_;                         //!< node data

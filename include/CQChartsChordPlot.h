@@ -127,8 +127,8 @@ class CQChartsChordObj : public CQChartsPlotObj {
   using ChordData = CQChartsChordData;
 
  public:
-  CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                   const ChordData &data, const ColorInd &ig, const ColorInd &iv);
+  CQChartsChordObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
+                   const ColorInd &ig, const ColorInd &iv);
 
   const ChordData &data() { return data_; }
 
@@ -152,9 +152,11 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
+
+  PlotObjs getConnected() const override;
 
   //---
 
@@ -176,11 +178,9 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::BBox textBBox() const;
+  BBox textBBox() const;
 
  private:
-  CQChartsChordObj *plotObject(int ind) const;
-
   void valueAngles(int ind, double &a, double &da,
                    ChordData::PrimaryType primaryType=ChordData::PrimaryType::ANY) const;
 
@@ -269,11 +269,13 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  CQChartsChordObj *chordObject(int ind) const;
 
   //---
 
@@ -284,7 +286,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
- private:
+ protected:
   using ChordData   = CQChartsChordData;
   using NameDataMap = std::map<QString,ChordData>;
 
@@ -316,7 +318,14 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   ChordData::Group getChordGroup(const QVariant &groupVar) const;
 
+  //---
+
+  virtual CQChartsChordObj *createChordObj(const BBox &rect, const ChordData &data,
+                                           const ColorInd &ig, const ColorInd &iv) const;
+
  private:
+  using ChordObjs = std::vector<CQChartsChordObj *>;
+
   // options
   double        innerRadius_  { 0.9 };   //!< inner radius
   double        labelRadius_  { 1.1 };   //!< label radius
@@ -330,6 +339,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   double                     valueToDegrees_ { 1.0 };     //!< value to degrees scale
   CQChartsValueSet           groupValues_;                //!< group values
   NameDataMap                nameDataMap_;                //!< name data map
+  ChordObjs                  chordObjs_;                  //!< chord objects
 };
 
 #endif

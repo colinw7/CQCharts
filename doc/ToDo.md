@@ -5,10 +5,10 @@ Abstract Painter/Javascript
 TODO:
  + Connection Plots
    + how handle different src/dest values (bi-directional connection)
+   + more common code
  + Model
    + Bucket and Fold by Hier
  + Real iformat for % values ?
- + Title bar (connected and filled at top of plot)
  + Tip role for column to replace header name with custom value (all plots)
  + Factory classes for plots and plot objects
  + 3D plots
@@ -466,6 +466,8 @@ Bubble Plot
 Chord Plot
  + Control gap between sections
  + Separate segment and arc properties
+ + Selectable arc
+ + Color column ?
 
 Delaunay Plot
  + Faster delaunay algorithm
@@ -527,6 +529,8 @@ Table Plot
  + Header/Number Colors
  + Controls (Sort/Filter)
  + Resizable columns
+ + Mouse Over
+ + Mouse Resize
 
 Tree map
  + Rotate text if text aspect > box aspect

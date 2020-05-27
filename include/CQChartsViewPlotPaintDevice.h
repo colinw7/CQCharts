@@ -18,9 +18,9 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void restore() override;
 
   void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
-  void setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation operation) override;
+  void setClipRect(const BBox &bbox, Qt::ClipOperation operation) override;
 
-  CQChartsGeom::BBox clipRect() const override;
+  BBox clipRect() const override;
 
   QPen pen() const override;
   void setPen(const QPen &pen) override;
@@ -32,32 +32,30 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void strokePath(const QPainterPath &path, const QPen &pen) override;
   void drawPath  (const QPainterPath &path) override;
 
-  void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
-  void drawRect(const CQChartsGeom::BBox &bbox) override;
+  void fillRect(const BBox &bbox, const QBrush &brush) override;
+  void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
-//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
-//             const CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const CQChartsAngle &a1, CQChartsAngle &a2) override;
 
-  void drawPolygon (const CQChartsGeom::Polygon &poly) override;
-  void drawPolyline(const CQChartsGeom::Polygon &poly) override;
+  void drawPolygon (const Polygon &poly) override;
+  void drawPolyline(const Polygon &poly) override;
 
-  void drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) override;
+  void drawLine(const Point &p1, const Point &p2) override;
 
-  void drawPoint(const CQChartsGeom::Point &p) override;
+  void drawPoint(const Point &p) override;
 
-  void drawText(const CQChartsGeom::Point &p, const QString &text) override;
-  void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
+  void drawText(const Point &p, const QString &text) override;
+  void drawTransformedText(const Point &p, const QString &text) override;
 
-  void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
-                       bool stretch=true) override;
+  void drawImage(const Point &, const QImage &) override;
+  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
 
   const QFont &font() const override;
   void setFont(const QFont &f) override;
 
-  void setTransformRotate(const CQChartsGeom::Point &p, double angle) override;
+  void setTransformRotate(const Point &p, double angle) override;
 
   const QTransform &transform() const override;
   void setTransform(const QTransform &t, bool combine=false) override;
@@ -65,9 +63,9 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setRenderHints(QPainter::RenderHints hints, bool on) override;
 
  private:
-  QPainter*          painter_ { nullptr };
-  CQChartsGeom::BBox clipRect_;
-  QPainterPath       clipPath_;
+  QPainter*    painter_ { nullptr };
+  BBox         clipRect_;
+  QPainterPath clipPath_;
 };
 
 //---
@@ -118,7 +116,7 @@ class CQChartsHtmlPaintDevice : public CQChartsPaintDevice {
 
   void resetData();
 
-  void setTransformRotate(const CQChartsGeom::Point &p, double angle) override;
+  void setTransformRotate(const Point &p, double angle) override;
 
   const QTransform &transform() const override;
 
@@ -139,18 +137,18 @@ class CQChartsHtmlPaintDevice : public CQChartsPaintDevice {
 
   //---
 
-  void createButton(const CQChartsGeom::BBox &rect, const QString &text, const QString &id,
+  void createButton(const BBox &rect, const QString &text, const QString &id,
                     const QString &clickProc);
 
  protected:
   struct Data {
-    QPen                pen;
-    QBrush              brush;
-    QFont               font;
-    bool                hasFont { false };
-    QTransform          transform;
-    CQChartsGeom::Point transformPoint;
-    double              transformAngle { 0.0 };
+    QPen       pen;
+    QBrush     brush;
+    QFont      font;
+    bool       hasFont { false };
+    QTransform transform;
+    Point      transformPoint;
+    double     transformAngle { 0.0 };
 
     void reset() {
       pen            = QPen(Qt::NoPen);
@@ -158,7 +156,7 @@ class CQChartsHtmlPaintDevice : public CQChartsPaintDevice {
       font           = QFont();
       hasFont        = false;
       transform      = QTransform();
-      transformPoint = CQChartsGeom::Point();
+      transformPoint = Point();
       transformAngle = 0.0;
     }
   };
@@ -185,7 +183,7 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
   void restore() override;
 
   void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
-  void setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation operation) override;
+  void setClipRect(const BBox &bbox, Qt::ClipOperation operation) override;
 
   void setPen(const QPen &pen) override;
 
@@ -195,27 +193,25 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
   void strokePath(const QPainterPath &path, const QPen &pen) override;
   void drawPath  (const QPainterPath &path) override;
 
-  void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
-  void drawRect(const CQChartsGeom::BBox &bbox) override;
+  void fillRect(const BBox &bbox, const QBrush &brush) override;
+  void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
-//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
-//             const CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2) override;
 
-  void drawPolygon (const CQChartsGeom::Polygon &poly) override;
-  void drawPolyline(const CQChartsGeom::Polygon &poly) override;
+  void drawPolygon (const Polygon &poly) override;
+  void drawPolyline(const Polygon &poly) override;
 
-  void drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) override;
+  void drawLine(const Point &p1, const Point &p2) override;
 
-  void drawPoint(const CQChartsGeom::Point &p) override;
+  void drawPoint(const Point &p) override;
 
-  void drawText(const CQChartsGeom::Point &p, const QString &text) override;
-  void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
+  void drawText(const Point &p, const QString &text) override;
+  void drawTransformedText(const Point &p, const QString &text) override;
 
-  void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
-                       bool stretch=true) override;
+  void drawImage(const Point &, const QImage &) override;
+  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 
@@ -278,7 +274,7 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void restore() override;
 
   void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
-  void setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation operation) override;
+  void setClipRect(const BBox &bbox, Qt::ClipOperation operation) override;
 
   void setPen(const QPen &pen) override;
 
@@ -288,27 +284,25 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void strokePath(const QPainterPath &path, const QPen &pen) override;
   void drawPath  (const QPainterPath &path) override;
 
-  void fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush) override;
-  void drawRect(const CQChartsGeom::BBox &bbox) override;
+  void fillRect(const BBox &bbox, const QBrush &brush) override;
+  void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
 
-//void drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1,
-//             const CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2) override;
 
-  void drawPolygon (const CQChartsGeom::Polygon &poly) override;
-  void drawPolyline(const CQChartsGeom::Polygon &poly) override;
+  void drawPolygon (const Polygon &poly) override;
+  void drawPolyline(const Polygon &poly) override;
 
-  void drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) override;
+  void drawLine(const Point &p1, const Point &p2) override;
 
-  void drawPoint(const CQChartsGeom::Point &p) override;
+  void drawPoint(const Point &p) override;
 
-  void drawText(const CQChartsGeom::Point &p, const QString &text) override;
-  void drawTransformedText(const CQChartsGeom::Point &p, const QString &text) override;
+  void drawText(const Point &p, const QString &text) override;
+  void drawTransformedText(const Point &p, const QString &text) override;
 
-  void drawImage(const CQChartsGeom::Point &, const QImage &) override;
-  void drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image,
-                       bool stretch=true) override;
+  void drawImage(const Point &, const QImage &) override;
+  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 

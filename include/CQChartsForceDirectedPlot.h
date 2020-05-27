@@ -113,7 +113,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -142,13 +142,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;
-  bool selectMove   (const CQChartsGeom::Point &p, bool first=false) override;
-  bool selectRelease(const CQChartsGeom::Point &p) override;
+  bool selectPress  (const Point &p, SelMod selMod) override;
+  bool selectMove   (const Point &p, bool first=false) override;
+  bool selectRelease(const Point &p) override;
 
   void keyPress(int key, int modifier) override;
 
-  bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
+  bool tipText(const Point &p, QString &tip) const override;
 
   //---
 

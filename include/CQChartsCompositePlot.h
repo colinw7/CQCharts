@@ -82,7 +82,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -92,13 +92,13 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   void initObjTree() override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
-  void updateAxisRanges(const CQChartsGeom::BBox &adjustedRange) override;
+  void updateAxisRanges(const BBox &adjustedRange) override;
 
   //---
 
-  CQChartsGeom::BBox adjustedViewBBox(const CQChartsPlot *plot) const override;
+  BBox adjustedViewBBox(const CQChartsPlot *plot) const override;
 
   //---
 
@@ -144,9 +144,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;
-  bool selectMove   (const CQChartsGeom::Point &p, bool first=false) override;
-  bool selectRelease(const CQChartsGeom::Point &p) override;
+  bool selectPress  (const Point &p, SelMod selMod) override;
+  bool selectMove   (const Point &p, bool first=false) override;
+  bool selectRelease(const Point &p) override;
 
   //---
 

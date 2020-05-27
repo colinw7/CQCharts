@@ -152,7 +152,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   using Bucket   = CQChartsDistributionBucket;
   using BarValue = CQChartsDistributionBarValue;
 
-  CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const BBox &rect,
                              int groupInd, const Bucket &bucket, const BarValue &barValue,
                              bool isLine, const ColorInd &ig, const ColorInd &iv);
 
@@ -190,7 +190,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::BBox dataLabelRect() const;
+  BBox dataLabelRect() const;
 
   //---
 
@@ -208,7 +208,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::BBox calcRect() const;
+  BBox calcRect() const;
 
   //---
 
@@ -219,8 +219,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
-                const CQChartsColor &color, bool useLine) const;
+  void drawRect(CQChartsPaintDevice *device, const BBox &pbbox, const CQChartsColor &color,
+                bool useLine) const;
 
   void calcBarPenBrush(const CQChartsColor &color, bool useLine, CQChartsPenBrush &barPenBrush,
                        bool updateState) const;
@@ -264,7 +264,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   using Bucket = CQChartsDistributionBucket;
 
-  using Points = std::vector<CQChartsGeom::Point>;
+  using Points = std::vector<Point>;
 
   struct BucketCount {
     Bucket bucket;
@@ -288,9 +288,9 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   };
 
  public:
-  CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot,
-                                 const CQChartsGeom::BBox &rect, int groupInd,
-                                 const Data &data, double doffset, const ColorInd &is);
+  CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const BBox &rect,
+                                 int groupInd, const Data &data, double doffset,
+                                 const ColorInd &is);
 
   int groupInd() const { return groupInd_; }
 
@@ -311,11 +311,11 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return poly_; }
+  Polygon polygon() const override { return poly_; }
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   //---
 
@@ -335,7 +335,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::BBox calcRect() const;
+  BBox calcRect() const;
 
  private:
   const CQChartsDistributionPlot* plot_        { nullptr };
@@ -343,7 +343,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Data                            data_;
   double                          doffset_     { 0.0 };
   ColorInd                        is_;
-  CQChartsGeom::Polygon           poly_;
+  Polygon                         poly_;
   double                          bucketScale_ { 1.0 };
 };
 
@@ -360,10 +360,9 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   using Bucket = CQChartsDistributionBucket;
 
  public:
-  CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot,
-                                 const CQChartsGeom::BBox &rect, int groupInd,
-                                 const Bucket &bucket, int n,
-                                 const ColorInd &is, const ColorInd &iv);
+  CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const BBox &rect,
+                                 int groupInd, const Bucket &bucket, int n, const ColorInd &is,
+                                 const ColorInd &iv);
 
   int groupInd() const { return groupInd_; }
 
@@ -384,7 +383,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   //---
 
  private:
-  using Points = std::vector<CQChartsGeom::Point>;
+  using Points = std::vector<Point>;
 
   const CQChartsDistributionPlot* plot_     { nullptr };
   int                             groupInd_ { -1 };
@@ -413,7 +412,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -667,7 +666,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
@@ -683,7 +682,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -698,7 +697,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  QString posStr(const CQChartsGeom::Point &w) const override;
+  QString posStr(const Point &w) const override;
 
   //---
 
@@ -746,11 +745,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using VariantInds = std::vector<VariantInd>;
 
   struct VariantIndsData {
-    VariantInds           inds;         //!< model indices
-    double                min  { 0.0 }; //!< min value
-    double                max  { 0.0 }; //!< max value
-    CQStatData            statData;     //!< stats data
-    CQChartsGeom::RMinMax valueRange;   //!< value range
+    VariantInds inds;         //!< model indices
+    double      min  { 0.0 }; //!< min value
+    double      max  { 0.0 }; //!< max value
+    CQStatData  statData;     //!< stats data
+    RMinMax     valueRange;   //!< value range
   };
 
   using BarValue = CQChartsDistributionBarValue;
@@ -775,13 +774,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using BucketValues = std::map<Bucket,VariantIndsData>;
 
   struct Values {
-    Inds                  inds;                      //!< value indices
-    CQChartsValueSet*     valueSet      { nullptr }; //!< value set
-    BucketValues          bucketValues;              //!< bucketed values
-    CQChartsDensity*      densityData   { nullptr }; //!< density data
-    CQStatData            statData;                  //!< stat data
-    CQChartsGeom::RMinMax xValueRange;               //!< x value range
-    CQChartsGeom::RMinMax yValueRange;               //!< y value range
+    Inds              inds;                      //!< value indices
+    CQChartsValueSet* valueSet      { nullptr }; //!< value set
+    BucketValues      bucketValues;              //!< bucketed values
+    CQChartsDensity*  densityData   { nullptr }; //!< density data
+    CQStatData        statData;                  //!< stat data
+    RMinMax           xValueRange;               //!< x value range
+    RMinMax           yValueRange;               //!< y value range
 
     Values(CQChartsValueSet *valueSet);
    ~Values();
@@ -801,7 +800,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
  private:
   void bucketGroupValues() const;
 
-  CQChartsGeom::Range calcBucketRanges() const;
+  Range calcBucketRanges() const;
 
   void clearGroupValues() const;
 

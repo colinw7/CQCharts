@@ -32,12 +32,19 @@ class CQChartsPlotObj : public CQChartsObj {
     MINOR
   };
 
+  using PlotObjs     = std::vector<CQChartsPlotObj *>;
   using ModelIndices = std::vector<QModelIndex>;
   using Indices      = std::set<QModelIndex>;
   using ColorInd     = CQChartsUtil::ColorInd;
 
+  using Point    = CQChartsGeom::Point;
+  using Size     = CQChartsGeom::Size;
+  using BBox     = CQChartsGeom::BBox;
+  using Polygon  = CQChartsGeom::Polygon;
+  using Polygons = CQChartsGeom::Polygons;
+
  public:
-  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox(),
+  CQChartsPlotObj(CQChartsPlot *plot, const BBox &rect=BBox(),
                   const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
                   const ColorInd &iv=ColorInd());
 
@@ -67,7 +74,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   // shapes
   virtual bool isPolygon() const { return false; }
-  virtual CQChartsGeom::Polygon polygon() const { return CQChartsGeom::Polygon(); }
+  virtual Polygon polygon() const { return Polygon(); }
 
   virtual bool isCircle() const { return false; }
   virtual double radius() const { return 1.0; }
@@ -109,8 +116,12 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  virtual PlotObjs getConnected() const { return PlotObjs(); }
+
+  //---
+
   // is point inside (override if not simple rect shape)
-  virtual bool inside(const CQChartsGeom::Point &p) const {
+  virtual bool inside(const Point &p) const {
     if (! isVisible()) return false;
     return rect().inside(p);
   }
@@ -128,7 +139,7 @@ class CQChartsPlotObj : public CQChartsObj {
   }
 
   // is rect inside/touching (override if not simple rect shape)
-  virtual bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const {
+  virtual bool rectIntersect(const BBox &r, bool inside) const {
     if (! isVisible()) return false;
 
     if (inside)
@@ -145,7 +156,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   //---
 
@@ -188,7 +199,7 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void postDraw(CQChartsPaintDevice *) { }
 
   void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
-                          const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const;
+                          const BBox &rect, const CQChartsLength &cornerSize) const;
 
   void drawDebugRect(CQChartsPaintDevice *device);
 
@@ -223,8 +234,7 @@ class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(),
-                   const ColorInd &ig=ColorInd());
+  CQChartsGroupObj(CQChartsPlot *plot, const BBox &bbox=BBox(), const ColorInd &ig=ColorInd());
 };
 
 #endif

@@ -1075,15 +1075,13 @@ createObjs(PlotObjs &objs) const
         // multiple sets:
         //  . set per value column
         //  . group per group column unique value
-        barObj = new CQChartsBarChartObj(this, brect,
-          ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(), minInd.ind);
+        barObj = createBarObj(brect, ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(), minInd.ind);
       }
       else {
         // single set:
         //  . group per group column unique value
         //  . value per grouped values
-        barObj = new CQChartsBarChartObj(this, brect,
-          ColorInd(), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
+        barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
       }
 
       if (color.isValid())
@@ -1532,6 +1530,16 @@ CQChartsBarChartPlot::
 getPanY(bool is_shift) const
 {
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+//------
+
+CQChartsBarChartObj *
+CQChartsBarChartPlot::
+createBarObj(const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
+             const ColorInd &iv, const QModelIndex &ind) const
+{
+  return new CQChartsBarChartObj(this, rect, is, ig, iv, ind);
 }
 
 //------

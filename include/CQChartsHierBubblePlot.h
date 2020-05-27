@@ -223,7 +223,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
  public:
   CQChartsHierBubbleNodeObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
-                            CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                            CQChartsHierBubbleHierObj *hierObj, const BBox &rect,
                             const ColorInd &is);
 
   QString typeName() const override { return "bubble"; }
@@ -247,7 +247,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -255,7 +255,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox);
+  void drawText(CQChartsPaintDevice *device, const BBox &bbox);
 
   //---
 
@@ -281,7 +281,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
  public:
   CQChartsHierBubbleHierObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
-                            CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                            CQChartsHierBubbleHierObj *hierObj, const BBox &rect,
                             const ColorInd &is);
 
   CQChartsHierBubbleHierNode *hierNode() const { return hier_; }
@@ -300,7 +300,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -375,8 +375,8 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
-  const CQChartsGeom::Point &offset() const { return placeData_.offset; }
-  void setOffset(const CQChartsGeom::Point &o) { placeData_.offset = o; }
+  const Point &offset() const { return placeData_.offset; }
+  void setOffset(const Point &o) { placeData_.offset = o; }
 
   double scale() const { return placeData_.scale; }
   void setScale(double r) { placeData_.scale = r; }
@@ -414,7 +414,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void clearPlotObjects() override;
 
@@ -434,7 +434,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
- private:
+ protected:
   void initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parentObj,
                     int depth, PlotObjs &objs) const;
 
@@ -496,6 +496,15 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
 
+  //---
+
+  virtual CQChartsHierBubbleHierObj *createHierObj(CQChartsHierBubbleHierNode *hier,
+                                                   CQChartsHierBubbleHierObj *hierObj,
+                                                   const BBox &rect, const ColorInd &is) const;
+  virtual CQChartsHierBubbleNodeObj *createNodeObj(CQChartsHierBubbleNode *node,
+                                                   CQChartsHierBubbleHierObj *hierObj,
+                                                   const BBox &rect, const ColorInd &is) const;
+
  public slots:
   void pushSlot();
   void popSlot();
@@ -507,8 +516,8 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   using HierNode = CQChartsHierBubbleHierNode;
 
   struct PlaceData {
-    CQChartsGeom::Point offset { 0, 0 }; //!< draw offset
-    double              scale  { 1.0 };  //!< draw scale
+    Point  offset { 0, 0 }; //!< draw offset
+    double scale  { 1.0 };  //!< draw scale
   };
 
   struct ColorData {

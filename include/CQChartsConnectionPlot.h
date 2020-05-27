@@ -95,7 +95,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //! get/set separator
   const QString &separator() const { return separator_; }
-  void setSeparator(const QString &s) { separator_ = s; }
+  void setSeparator(const QString &s);
 
   //! get/set symmetric
   bool isSymmetric() const { return symmetric_; }
@@ -247,16 +247,16 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     }
 
    protected:
-    int           from_         { -1 };    //!< from node
-    QString       name_;                   //!< value name
-    Group         group_;                  //!< group
-    Values        values_;                 //!< connection values
-    QModelIndex   linkInd_;                //!< link model index
-    QModelIndex   groupInd_;               //!< group model index
-    double        totalValid_   { false }; //!< is total valid
-    bool          totalPrimary_ { false }; //!< is total for primary only
-    double        fromTotal_    { 0.0 };   //!< from value total
-    double        toTotal_      { 0.0 };   //!< to value total
+    int         from_         { -1 };    //!< from node
+    QString     name_;                   //!< value name
+    Group       group_;                  //!< group
+    Values      values_;                 //!< connection values
+    QModelIndex linkInd_;                //!< link model index
+    QModelIndex groupInd_;               //!< group model index
+    double      totalValid_   { false }; //!< is total valid
+    bool        totalPrimary_ { false }; //!< is total for primary only
+    double      fromTotal_    { 0.0 };   //!< from value total
+    double      toTotal_      { 0.0 };   //!< to value total
   };
 
   using TableConnectionDatas = std::vector<TableConnectionData>;

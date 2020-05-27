@@ -5281,6 +5281,20 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       return cmdBase_->setCmdRc(vars);
     }
+    // get connected objects
+    else if (name == "connected") {
+      if (! objectId.length())
+        return errorMsg("Missing object id");
+
+      std::vector<CQChartsObj *> objs = plot->getObjectConnected(objectId);
+
+      QVariantList vars;
+
+      for (const auto &obj : objs)
+        vars.push_back(obj->id());
+
+      return cmdBase_->setCmdRc(vars);
+    }
     else if (name == "plot_width") {
       QString data = argv.getParseStr("data");
 

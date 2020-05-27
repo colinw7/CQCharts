@@ -20,15 +20,19 @@ struct CQChartsGeometryShape {
     PATH
   };
 
+  using Polygons = CQChartsGeom::Polygons;
+  using Polygon  = CQChartsGeom::Polygon;
+  using BBox     = CQChartsGeom::BBox;
+
   CQChartsGeometryShape() = default;
 
   CQChartsGeometryShape(const QString &str);
 
-  Type                   type { Type::NONE };
-  CQChartsGeom::Polygons polygonList;
-  CQChartsGeom::Polygon  polygon;
-  CQChartsGeom::BBox     rect;
-  CQChartsPath           path;
+  Type         type { Type::NONE };
+  Polygons     polygonList;
+  Polygon      polygon;
+  BBox         rect;
+  CQChartsPath path;
 };
 
 /*!
@@ -81,9 +85,8 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
-  CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                      const CQChartsGeom::Polygons &polygons, const QModelIndex &ind,
-                      const ColorInd &iv);
+  CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const BBox &rect,
+                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "geom"; }
 
@@ -92,7 +95,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return polygons_[0]; }
+  Polygon polygon() const override { return polygons_[0]; }
 
   //---
 
@@ -108,7 +111,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   double value() const { return value_; }
   void setValue(double r) { value_ = r; hasValue_ = true; }
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -128,7 +131,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
  private:
   const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
-  CQChartsGeom::Polygons      polygons_;             //!< geometry polygons
+  Polygons                    polygons_;             //!< geometry polygons
   QString                     name_;                 //!< geometry name
   CQChartsColor               color_;                //!< optional color
   CQChartsStyle               style_;                //!< optional style
@@ -181,13 +184,13 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //! geometry data
   struct Geometry {
-    QString                name;     //!< name
-    CQChartsGeom::Polygons polygons; //!< polygon list
-    OptReal                value;    //!< value
-    CQChartsColor          color;    //!< custom color
-    CQChartsStyle          style;    //!< custom style
-    CQChartsGeom::BBox     bbox;     //!< bounding box
-    QModelIndex            ind;      //!< associated model index
+    QString       name;     //!< name
+    Polygons      polygons; //!< polygon list
+    OptReal       value;    //!< value
+    CQChartsColor color;    //!< custom color
+    CQChartsStyle style;    //!< custom style
+    BBox          bbox;     //!< bounding box
+    QModelIndex   ind;      //!< associated model index
   };
 
  public:
@@ -255,7 +258,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -273,9 +276,9 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  private:
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
-              CQChartsGeom::Range &dataRange) const;
+              Range &dataRange) const;
 
-  bool decodeGeometry(const QString &geomStr, CQChartsGeom::Polygons &polygons) const;
+  bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
 
  private:
   using Geometries = std::vector<Geometry>;
@@ -293,10 +296,10 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // value
-  OptReal               minValue_;                         //!< user min value
-  OptReal               maxValue_;                         //!< user max value
-  CQChartsGeom::RMinMax valueRange_;                       //!< data value range
-  ValueStyle            valueStyle_ { ValueStyle::COLOR }; //!< value style
+  OptReal    minValue_;                         //!< user min value
+  OptReal    maxValue_;                         //!< user max value
+  RMinMax    valueRange_;                       //!< data value range
+  ValueStyle valueStyle_ { ValueStyle::COLOR }; //!< value style
 
   // selectable
   bool geometrySelectable_ { true }; //!< is geometry object selectable

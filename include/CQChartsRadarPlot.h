@@ -66,9 +66,9 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   using NameValues = std::map<QString,double>;
 
  public:
-  CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
-                   const QString &name, const CQChartsGeom::Polygon &poly,
-                   const NameValues &nameValues, const QModelIndex &ind, const ColorInd &iv);
+  CQChartsRadarObj(const CQChartsRadarPlot *plot, const BBox &rect, const QString &name,
+                   const Polygon &poly, const NameValues &nameValues, const QModelIndex &ind,
+                   const ColorInd &iv);
 
   QString typeName() const override { return "poly"; }
 
@@ -81,15 +81,15 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return poly_; }
+  Polygon polygon() const override { return poly_; }
 
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
-  CQChartsGeom::BBox annotationBBox() const;
+  BBox annotationBBox() const;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -104,10 +104,10 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
-  const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot
-  QString                  name_;                   //!< row name
-  CQChartsGeom::Polygon    poly_;                   //!< polygon
-  NameValues               nameValues_;             //!< column values
+  const CQChartsRadarPlot* plot_ { nullptr }; //!< parent plot
+  QString                  name_;             //!< row name
+  Polygon                  poly_;             //!< polygon
+  NameValues               nameValues_;       //!< column values
 };
 
 //---
@@ -166,11 +166,11 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 

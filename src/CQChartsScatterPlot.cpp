@@ -1097,7 +1097,7 @@ addPointObjects(PlotObjs &objs) const
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig1, iv1);
+        auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
         pointObj->setModelInd(valuePoint.ind);
 
@@ -1218,8 +1218,6 @@ void
 CQChartsScatterPlot::
 addGridObjects(PlotObjs &objs) const
 {
-  auto *th = const_cast<CQChartsScatterPlot *>(this);
-
   int hasGroups = (numGroups() > 1);
 
   //---
@@ -1290,7 +1288,7 @@ addGridObjects(PlotObjs &objs) const
 
           CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
-          auto *cellObj = th->createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
+          auto *cellObj = createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
           objs.push_back(cellObj);
         }
@@ -1307,8 +1305,6 @@ void
 CQChartsScatterPlot::
 addHexObjects(PlotObjs &objs) const
 {
-  auto *th = const_cast<CQChartsScatterPlot *>(this);
-
   int hasGroups = (numGroups() > 1);
 
   //---
@@ -1391,7 +1387,7 @@ addHexObjects(PlotObjs &objs) const
           ColorInd is1(is, ns);
           ColorInd ig1(ig, ng);
 
-          auto *hexObj = th->createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
+          auto *hexObj = createHexObj(groupInd, bbox, is1, ig1, i, j, polygon, n, maxN);
 
           objs.push_back(hexObj);
         }
@@ -1615,29 +1611,26 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 CQChartsScatterPointObj *
 CQChartsScatterPlot::
 createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point &p,
-               const ColorInd &is, const ColorInd &ig, const ColorInd &iv)
+               const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
-  return new CQChartsScatterPointObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
-                                     p, is, ig, iv);
+  return new CQChartsScatterPointObj(this, groupInd, rect, p, is, ig, iv);
 }
 
 CQChartsScatterCellObj *
 CQChartsScatterPlot::
 createCellObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
-              const ColorInd &ig, int ix, int iy, const Points &points, int maxN)
+              const ColorInd &ig, int ix, int iy, const Points &points, int maxN) const
 {
-  return new CQChartsScatterCellObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
-                                    is, ig, ix, iy, points, maxN);
+  return new CQChartsScatterCellObj(this, groupInd, rect, is, ig, ix, iy, points, maxN);
 }
 
 CQChartsScatterHexObj *
 CQChartsScatterPlot::
 createHexObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
              const ColorInd &ig, int ix, int iy, const CQChartsGeom::Polygon &poly,
-             int n, int maxN)
+             int n, int maxN) const
 {
-  return new CQChartsScatterHexObj(const_cast<CQChartsScatterPlot *>(this), groupInd, rect,
-                                   is, ig, ix, iy, poly, n, maxN);
+  return new CQChartsScatterHexObj(this, groupInd, rect, is, ig, ix, iy, poly, n, maxN);
 }
 
 //---

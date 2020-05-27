@@ -47,7 +47,7 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const BBox &rect,
                              int row, int col, double value, const QModelIndex &ind);
 
   //---
@@ -68,13 +68,13 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::Size calcTextSize() const;
+  Size calcTextSize() const;
 
   void draw(CQChartsPaintDevice *device) override;
 
   void drawCellLabel(CQChartsPaintDevice *device, const QString &str);
   void drawCellLabel(CQChartsPaintDevice *device, const QString &str,
-                     const CQChartsGeom::BBox &rect, double fontInc=0.0);
+                     const BBox &rect, double fontInc=0.0);
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
@@ -194,7 +194,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void preDrawObjs(CQChartsPaintDevice *device) const override;
 
@@ -216,7 +216,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
  public slots:
   void setCellLabels(bool b);

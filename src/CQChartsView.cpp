@@ -169,14 +169,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   searchTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_SEARCH_TIMEOUT", searchTimeout_);
 
-  if (searchTimeout_ > 0) {
-    searchTimer_ = new QTimer(this);
-
-    searchTimer_->setInterval(searchTimeout_);
-    searchTimer_->setSingleShot(true);
-
-    connect(searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
-  }
+  setSearchTimeout(searchTimeout_);
 
   //---
 
@@ -560,6 +553,32 @@ CQChartsView::
 setFont(const CQChartsFont &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
+}
+
+//---
+
+void
+CQChartsView::
+setSearchTimeout(int i)
+{
+  searchTimeout_ = i;
+
+  if (searchTimeout_ > 0) {
+    if (! searchTimer_) {
+      searchTimer_ = new QTimer(this);
+
+      searchTimer_->setSingleShot(true);
+
+      connect(searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
+    }
+
+    searchTimer_->setInterval(searchTimeout_);
+  }
+  else {
+    delete searchTimer_;
+
+    searchTimer_ = nullptr;
+  }
 }
 
 //---
@@ -2164,10 +2183,10 @@ void
 CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
-  CQPerfTrace trace("CQChartsView::mouseMoveEvent");
-
   if (isPreview())
     return;
+
+  CQPerfTrace trace("CQChartsView::mouseMoveEvent");
 
   CQChartsGeom::Point mp(me->pos());
 
@@ -2209,6 +2228,8 @@ mouseMoveEvent(QMouseEvent *me)
 
     return;
   }
+
+  //---
 
   // get plots at point
   auto w = pixelToWindow(mouseMovePoint());
@@ -2811,6 +2832,10 @@ void
 CQChartsView::
 selectMouseMotion()
 {
+  CQPerfTrace trace("CQChartsView::selectMouseMotion");
+
+  //---
+
   updatePosText(mouseMovePoint());
 
   //---
@@ -2988,6 +3013,10 @@ void
 CQChartsView::
 updatePosText(const CQChartsGeom::Point &pos)
 {
+  CQPerfTrace trace("CQChartsView::updatePosText");
+
+  //---
+
   QString posStr;
 
   if (posTextType() == PosTextType::PLOT) {

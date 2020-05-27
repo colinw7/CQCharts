@@ -60,7 +60,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2 READ y2 WRITE setY2)
 
  public:
-  CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                       double x, double y1, double y2, const QModelIndex &ind,
                       const ColorInd &is, const ColorInd &iv);
 
@@ -89,17 +89,15 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  void drawLines(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-                 const CQChartsGeom::Point &p2);
-  void drawPoints(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-                  const CQChartsGeom::Point &p2);
+  void drawLines (CQChartsPaintDevice *device, const Point &p1, const Point &p2);
+  void drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2);
 
  private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
@@ -123,7 +121,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2 READ y2 WRITE setY2)
 
  public:
-  CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                            double x, double y1, double y2, const QModelIndex &ind,
                            const ColorInd &is, const ColorInd &iv);
 
@@ -152,7 +150,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -184,8 +182,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
 
  public:
-  CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd,
-                     const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &p,
+  CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect, const Point &p,
                      const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
  ~CQChartsXYPointObj();
@@ -251,21 +248,21 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   // vector
   bool isVector() const;
-  CQChartsGeom::Point vector() const;
-  void setVector(const CQChartsGeom::Point &v) { extraData()->vector = v; }
+  Point vector() const;
+  void setVector(const Point &v) { extraData()->vector = v; }
 
   //---
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  using OptPoint = boost::optional<CQChartsGeom::Point>;
+  using OptPoint = boost::optional<Point>;
 
   struct ExtraData {
     CQChartsSymbol symbolType { CQChartsSymbol::Type::NONE }; //!< symbol type
@@ -283,7 +280,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
  private:
   const CQChartsXYPlot*        plot_     { nullptr }; //!< parent plot
   int                          groupInd_ { -1 };      //!< group ind
-  CQChartsGeom::Point          pos_;                  //!< position
+  Point                        pos_;                  //!< position
   ExtraData*                   edata_    { nullptr }; //!< extra data
   const CQChartsXYLabelObj*    labelObj_ { nullptr }; //!< label obj
   const CQChartsXYPolylineObj* lineObj_  { nullptr }; //!< line obj
@@ -303,7 +300,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   Q_PROPERTY(QString label READ label WRITE setLabel)
 
  public:
-  CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                      double x, double y, const QString &label, const QModelIndex &ind,
                      const ColorInd &is, const ColorInd &iv);
 
@@ -340,7 +337,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -349,7 +346,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
  private:
   const CQChartsXYPlot*     plot_     { nullptr }; //!< parent plot
   int                       groupInd_ { -1 };      //!< group ind
-  CQChartsGeom::Point       pos_;                  //!< position
+  Point                     pos_;                  //!< position
   QString                   label_;                //!< label
   const CQChartsXYPointObj* pointObj_ { nullptr }; //!< point obj
 };
@@ -368,9 +365,9 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                        const CQChartsGeom::Polygon &poly, const QString &name,
-                        const ColorInd &is, const ColorInd &ig);
+  CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+                        const Polygon &poly, const QString &name, const ColorInd &is,
+                        const ColorInd &ig);
 
  ~CQChartsXYPolylineObj();
 
@@ -392,7 +389,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return poly_; }
+  Polygon polygon() const override { return poly_; }
 
   bool isSolid() const override { return false; }
 
@@ -400,9 +397,9 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
 //bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
-  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const BBox &r, bool inside) const override;
 
   bool canSelect() const override;
 
@@ -438,7 +435,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
  private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
   int                   groupInd_ { -1 };      //!< group ind
-  CQChartsGeom::Polygon poly_;                 //!< polygon
+  Polygon               poly_;                 //!< polygon
   QString               name_;                 //!< name
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
   CQChartsFitData       bestFit_;              //!< best fit data
@@ -458,9 +455,9 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                       const CQChartsGeom::Polygon &poly, const QString &name,
-                       const ColorInd &is, const ColorInd &ig, bool under);
+  CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+                       const Polygon &poly, const QString &name, const ColorInd &is,
+                       const ColorInd &ig, bool under);
 
  ~CQChartsXYPolygonObj();
 
@@ -482,15 +479,15 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return poly_; }
+  Polygon polygon() const override { return poly_; }
 
   //---
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
-  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const BBox &r, bool inside) const override;
 
   bool canSelect() const override;
 
@@ -515,7 +512,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
   int                   groupInd_ { -1 };      //!< group ind
-  CQChartsGeom::Polygon poly_;                 //!< polygon
+  Polygon               poly_;                 //!< polygon
   QString               name_;                 //!< name
   bool                  under_    { false };   //!< has under points
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
@@ -741,7 +738,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -758,42 +755,41 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  CQChartsXYPolylineObj *addPolyLine(const CQChartsGeom::Polygon &polyLine, int groupInd,
+  CQChartsXYPolylineObj *addPolyLine(const Polygon &polyLine, int groupInd,
                                      const ColorInd &is, const ColorInd &ig, const QString &name,
                                      PlotObjs &pointObjs, PlotObjs &objs) const;
 
-  void addPolygon(const CQChartsGeom::Polygon &poly, int groupInd, const ColorInd &is,
+  void addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
                   const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const;
 
   //---
 
-  virtual CQChartsXYPointObj *createPointObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                             const CQChartsGeom::Point &p, const ColorInd &is,
-                                             const ColorInd &ig, const ColorInd &iv);
+  virtual CQChartsXYPointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
+                                             const ColorInd &is, const ColorInd &ig,
+                                             const ColorInd &iv) const;
 
-  virtual CQChartsXYBiLineObj *createBiLineObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                               double x, double y1, double y2,
-                                               const QModelIndex &ind, const ColorInd &is,
-                                               const ColorInd &iv);
+  virtual CQChartsXYBiLineObj *createBiLineObj(int groupInd, const BBox &rect, double x,
+                                               double y1, double y2, const QModelIndex &ind,
+                                               const ColorInd &is, const ColorInd &iv) const;
 
-  virtual CQChartsXYLabelObj *createLabelObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                             double x, double y, const QString &label,
-                                             const QModelIndex &ind, const ColorInd &is,
-                                             const ColorInd &iv);
+  virtual CQChartsXYLabelObj *createLabelObj(int groupInd, const BBox &rect, double x, double y,
+                                             const QString &label, const QModelIndex &ind,
+                                             const ColorInd &is, const ColorInd &iv) const;
 
-  virtual CQChartsXYImpulseLineObj *createImpulseLineObj(int groupInd,
-                                                         const CQChartsGeom::BBox &rect,
-                                                         double x, double y1, double y2,
+  virtual CQChartsXYImpulseLineObj *createImpulseLineObj(int groupInd, const BBox &rect, double x,
+                                                         double y1, double y2,
                                                          const QModelIndex &ind,
-                                                         const ColorInd &is, const ColorInd &iv);
+                                                         const ColorInd &is,
+                                                         const ColorInd &iv) const;
 
-  CQChartsXYPolylineObj *createPolylineObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                           const CQChartsGeom::Polygon &poly, const QString &name,
-                                           const ColorInd &is, const ColorInd &ig);
+  virtual CQChartsXYPolylineObj *createPolylineObj(int groupInd, const BBox &rect,
+                                                   const Polygon &poly, const QString &name,
+                                                   const ColorInd &is, const ColorInd &ig) const;
 
-  CQChartsXYPolygonObj *createPolygonObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                         const CQChartsGeom::Polygon &poly, const QString &name,
-                                         const ColorInd &is, const ColorInd &ig, bool under);
+  virtual CQChartsXYPolygonObj *createPolygonObj(int groupInd, const BBox &rect,
+                                                 const Polygon &poly, const QString &name,
+                                                 const ColorInd &is, const ColorInd &ig,
+                                                 bool under) const;
 
   //---
 
@@ -814,7 +810,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  CQChartsGeom::BBox dataFitBBox() const override;
+  BBox dataFitBBox() const override;
 
   //---
 
@@ -822,8 +818,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawArrow(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-                 const CQChartsGeom::Point &p2) const;
+  void drawArrow(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const;
 
   //---
 
@@ -873,8 +868,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   struct IndPoly {
     using Inds = std::vector<QModelIndex>;
 
-    Inds                  inds;
-    CQChartsGeom::Polygon poly;
+    Inds    inds;
+    Polygon poly;
   };
 
   using SetIndPoly      = std::vector<IndPoly>;
@@ -891,7 +886,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool addLines(int groupInd, const SetIndPoly &setPoly,
                 const ColorInd &ig, PlotObjs &objs) const;
 
-  CQChartsGeom::Point calcFillUnderPos(double x, double y) const;
+  Point calcFillUnderPos(double x, double y) const;
 
   int numSets() const;
 

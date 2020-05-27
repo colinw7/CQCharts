@@ -10315,6 +10315,24 @@ getObjectInds(const QString &objectId) const
   return inds;
 }
 
+std::vector<CQChartsObj *>
+CQChartsPlot::
+getObjectConnected(const QString &objectId) const
+{
+  std::vector<CQChartsObj *> objs;
+
+  auto *plotObj = getPlotObject(objectId);
+
+  if (plotObj) {
+    auto objs1 = plotObj->getConnected();
+
+    for (auto &obj1 : objs1)
+      objs.push_back(obj1);
+  }
+
+  return objs;
+}
+
 //------
 
 CQChartsLayer *

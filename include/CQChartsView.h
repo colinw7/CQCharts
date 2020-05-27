@@ -137,6 +137,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
+  Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
+
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
   Q_ENUMS(HighlightDataMode)
@@ -298,6 +300,11 @@ class CQChartsView : public QFrame,
 
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f);
+
+  //---
+
+  int searchTimeout() const { return searchTimeout_; }
+  void setSearchTimeout(int i);
 
   //---
 

@@ -50,13 +50,13 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
  public:
   CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
-                            const CQChartsGeom::BBox &rect);
+                            const BBox &rect);
 
   QString typeName() const override { return "node"; }
 
   QString calcId() const override;
 
-  CQChartsGeom::BBox textRect() const;
+  BBox textRect() const;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -117,13 +117,13 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void addNameValue(const QString &name, double value) const;
 
@@ -136,7 +136,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  bool selectPress(const CQChartsGeom::Point &p, SelMod selMod) override;
+  bool selectPress(const Point &p, SelMod selMod) override;
 
   //---
 

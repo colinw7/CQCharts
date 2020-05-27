@@ -54,9 +54,8 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                          const CQChartsGeom::Polygon &poly, const QModelIndex &ind,
-                          const ColorInd &is);
+  CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const BBox &rect,
+                          const Polygon &poly, const QModelIndex &ind, const ColorInd &is);
 
   //---
 
@@ -69,7 +68,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  CQChartsGeom::Polygon polygon() const override { return polyLine_; }
+  Polygon polygon() const override { return polyLine_; }
 
   bool isSolid() const override { return false; }
 
@@ -77,7 +76,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   //bool interpY(double x, std::vector<double> &yvals) const;
 
@@ -96,12 +95,12 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
-  void getPolyLine(CQChartsGeom::Polygon &poly) const;
+  void getPolyLine(Polygon &poly) const;
 
  private:
-  const CQChartsParallelPlot* plot_ { nullptr };
-  CQChartsGeom::Polygon       poly_;
-  CQChartsGeom::Polygon       polyLine_;
+  const CQChartsParallelPlot* plot_ { nullptr }; //!< plot
+  Polygon                     poly_;             //!< polygon
+  Polygon                     polyLine_;         //!< polyline
 };
 
 //---
@@ -114,7 +113,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const BBox &rect,
                            double yval, double x, double y, const QModelIndex &ind,
                            const ColorInd &is, const ColorInd &iv);
 
@@ -126,7 +125,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   bool isVisible() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -192,7 +191,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  const CQChartsGeom::Range &setRange(int i) const { return setRanges_[i]; }
+  const Range &setRange(int i) const { return setRanges_[i]; }
 
   CQChartsAxis *axis(int i) { return axes_[i]; }
 
@@ -200,7 +199,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -217,9 +216,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox axesFitBBox() const override;
+  BBox axesFitBBox() const override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   bool hasFgAxes() const override;
 
@@ -241,22 +240,22 @@ class CQChartsParallelPlot : public CQChartsPlot,
     NORMALIZED
   };
 
-  using Ranges = std::vector<CQChartsGeom::Range>;
+  using Ranges = std::vector<Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
-  CQChartsColumn      xColumn_;                             //!< x value column
-  CQChartsColumns     yColumns_;                            //!< y value columns
-  bool                horizontal_      { false };           //!< horizontal bars
-  bool                linesSelectable_ { false };           //!< are lines selectable
-  Ranges              setRanges_;                           //!< value set ranges
-  Qt::Orientation     adir_            { Qt::Horizontal };  //!< axis direction
-  CQChartsAxis*       masterAxis_      { nullptr };         //!< master axis
-  YAxes               axes_;                                //!< value axes
-  mutable std::mutex  axesMutex_;                           //!< value axes
-  CQChartsGeom::Range normalizedDataRange_;                 //!< normalized data range
-  double              max_tw_          { 0.0 };             //!< max text width
-  CQChartsGeom::BBox  axesBBox_;                            //!< axes bbox
-  RangeType           rangeType_       { RangeType::NONE }; //!< current range type
+  CQChartsColumn     xColumn_;                             //!< x value column
+  CQChartsColumns    yColumns_;                            //!< y value columns
+  bool               horizontal_      { false };           //!< horizontal bars
+  bool               linesSelectable_ { false };           //!< are lines selectable
+  Ranges             setRanges_;                           //!< value set ranges
+  Qt::Orientation    adir_            { Qt::Horizontal };  //!< axis direction
+  CQChartsAxis*      masterAxis_      { nullptr };         //!< master axis
+  YAxes              axes_;                                //!< value axes
+  mutable std::mutex axesMutex_;                           //!< value axes
+  Range              normalizedDataRange_;                 //!< normalized data range
+  double             max_tw_          { 0.0 };             //!< max text width
+  BBox               axesBBox_;                            //!< axes bbox
+  RangeType          rangeType_       { RangeType::NONE }; //!< current range type
 };
 
 #endif

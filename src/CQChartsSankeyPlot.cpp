@@ -798,7 +798,7 @@ createGraph(PlotObjs &objs) const
   //--
 
   for (const auto &edge : edges_)
-    createEdgeObj(edge);
+    addEdgeObj(edge);
 
   //---
 
@@ -873,7 +873,7 @@ createDepthNodes(const IndNodeMap &nodes) const
 
     ColorInd iv(node->id(), numNodes);
 
-    auto *nodeObj = new CQChartsSankeyNodeObj(this, rect, node, iv);
+    auto *nodeObj = createNodeObj(rect, node, iv);
 
     nodeObj->setHierName(node->str  ());
     nodeObj->setName    (node->name ());
@@ -890,7 +890,7 @@ createDepthNodes(const IndNodeMap &nodes) const
 
 CQChartsSankeyEdgeObj *
 CQChartsSankeyPlot::
-createEdgeObj(CQChartsSankeyPlotEdge *edge) const
+addEdgeObj(CQChartsSankeyPlotEdge *edge) const
 {
   double xm = bbox_.getHeight()*edgeMargin_;
   double ym = bbox_.getWidth ()*edgeMargin_;
@@ -898,7 +898,7 @@ createEdgeObj(CQChartsSankeyPlotEdge *edge) const
   CQChartsGeom::BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
                           bbox_.getXMax() + xm, bbox_.getYMax() + ym);
 
-  auto *edgeObj = new CQChartsSankeyEdgeObj(this, rect, edge);
+  auto *edgeObj = createEdgeObj(rect, edge);
 
   edge->setObj(edgeObj);
 
@@ -1258,6 +1258,23 @@ keyPress(int key, int modifier)
     CQChartsPlot::keyPress(key, modifier);
 }
 
+//---
+
+CQChartsSankeyNodeObj *
+CQChartsSankeyPlot::
+createNodeObj(const CQChartsGeom::BBox &rect, CQChartsSankeyPlotNode *node,
+              const ColorInd &ind) const
+{
+  return new CQChartsSankeyNodeObj(this, rect, node, ind);
+}
+
+CQChartsSankeyEdgeObj *
+CQChartsSankeyPlot::
+createEdgeObj(const CQChartsGeom::BBox &rect, CQChartsSankeyPlotEdge *edge) const
+{
+  return new CQChartsSankeyEdgeObj(this, rect, edge);
+}
+
 //------
 
 CQChartsSankeyPlotNode::
@@ -1610,6 +1627,25 @@ moveBy(const CQChartsGeom::Point &delta)
     edgeRect.second.moveBy(delta);
 }
 
+//---
+
+CQChartsSankeyNodeObj::PlotObjs
+CQChartsSankeyNodeObj::
+getConnected() const
+{
+  PlotObjs plotObjs;
+
+  for (auto &edgeRect : srcEdgeRect_)
+    plotObjs.push_back(edgeRect.first->obj());
+
+  for (auto &edgeRect : destEdgeRect_)
+    plotObjs.push_back(edgeRect.first->obj());
+
+  return plotObjs;
+}
+
+//---
+
 void
 CQChartsSankeyNodeObj::
 draw(CQChartsPaintDevice *device)
@@ -1735,8 +1771,10 @@ QString
 CQChartsSankeyEdgeObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).arg(edge_->srcNode()->obj()->calcId()).
-          arg(edge_->destNode()->obj()->calcId());
+  auto *srcObj  = edge()->srcNode ()->obj();
+  auto *destObj = edge()->destNode()->obj();
+
+  return QString("%1:%2:%3").arg(typeName()).arg(srcObj->calcId()).arg(destObj->calcId());
 }
 
 QString
@@ -1745,15 +1783,18 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString srcName  = edge_->srcNode ()->obj()->hierName();
-  QString destName = edge_->destNode()->obj()->hierName();
+  auto *srcObj  = edge()->srcNode ()->obj();
+  auto *destObj = edge()->destNode()->obj();
 
-  if (srcName  == "") srcName  = edge_->srcNode ()->obj()->id();
-  if (destName == "") destName = edge_->destNode()->obj()->id();
+  QString srcName  = srcObj ->hierName();
+  QString destName = destObj->hierName();
+
+  if (srcName  == "") srcName  = srcObj ->id();
+  if (destName == "") destName = destObj->id();
 
   tableTip.addTableRow("Src"  , srcName);
   tableTip.addTableRow("Dest" , destName);
-  tableTip.addTableRow("Value", edge_->value());
+  tableTip.addTableRow("Value", edge()->value());
 
   //---
 
@@ -1764,12 +1805,31 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 bool
 CQChartsSankeyEdgeObj::
 inside(const CQChartsGeom::Point &p) const
 {
   return path_.contains(p.qpoint());
 }
+
+CQChartsSankeyEdgeObj::PlotObjs
+CQChartsSankeyEdgeObj::
+getConnected() const
+{
+  PlotObjs plotObjs;
+
+  auto *srcObj  = edge()->srcNode ()->obj();
+  auto *destObj = edge()->destNode()->obj();
+
+  plotObjs.push_back(srcObj);
+  plotObjs.push_back(destObj);
+
+  return plotObjs;
+}
+
+//---
 
 void
 CQChartsSankeyEdgeObj::
@@ -1791,8 +1851,11 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw edge
-  const auto &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
-  const auto &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
+  auto *srcObj  = edge()->srcNode ()->obj();
+  auto *destObj = edge()->destNode()->obj();
+
+  const auto &srcRect  = srcObj ->destEdgeRect(edge());
+  const auto &destRect = destObj->srcEdgeRect (edge());
 
   // x from right of source rect to left of dest rect
   double x1 = srcRect .getXMax(), x2 = destRect.getXMin();
@@ -1826,10 +1889,13 @@ CQChartsSankeyEdgeObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
+  auto *srcNode  = edge()->srcNode ();
+  auto *destNode = edge()->destNode();
+
   int numNodes = plot_->numNodes();
 
-  ColorInd ic1(edge_->srcNode ()->id(), numNodes);
-  ColorInd ic2(edge_->destNode()->id(), numNodes);
+  ColorInd ic1(srcNode ->id(), numNodes);
+  ColorInd ic2(destNode->id(), numNodes);
 
   QColor fc1 = plot_->interpEdgeFillColor(ic1);
   QColor fc2 = plot_->interpEdgeFillColor(ic2);
@@ -1862,5 +1928,5 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.value = " << edge_->value() << ";\n";
+  os << "  this.value = " << edge()->value() << ";\n";
 }

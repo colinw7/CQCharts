@@ -86,8 +86,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
-                 const QModelIndex &ind, const ColorInd &ig);
+  CQChartsPieObj(const CQChartsPiePlot *plot, const BBox &rect, const QModelIndex &ind,
+                 const ColorInd &ig);
 
   //---
 
@@ -159,11 +159,11 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  CQChartsGeom::BBox annotationBBox() const;
+  BBox annotationBBox() const;
 
   //---
 
@@ -171,7 +171,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void drawFg(CQChartsPaintDevice *device) const override;
 
-  void drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) const;
+  void drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const;
 
   //---
 
@@ -183,7 +183,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsGeom::Point getCenter() const;
+  Point getCenter() const;
 
   //---
 
@@ -219,8 +219,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using PieObjs = std::vector<CQChartsPieObj *>;
 
  public:
-  CQChartsPieGroupObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
-                      int groupInd, const QString &name, const ColorInd &ig);
+  CQChartsPieGroupObj(const CQChartsPiePlot *plot, const BBox &bbox, int groupInd,
+                      const QString &name, const ColorInd &ig);
 
   const CQChartsPiePlot *plot() const { return plot_; }
 
@@ -285,7 +285,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -323,7 +323,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj);
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -476,9 +476,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -576,7 +576,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   ExplodeData         explodeData_;                 //!< explode data
   InsideData          insideData_;                  //!< inside data
   CQChartsPieTextObj* textBox_         { nullptr }; //!< text box
-  CQChartsGeom::Point center_;                      //!< center point
+  Point               center_;                      //!< center point
   GroupDatas          groupDatas_;                  //!< data per group
   GroupObjs           groupObjs_;                   //!< group objects
 };

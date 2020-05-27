@@ -51,6 +51,10 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 
 class CQChartsTablePlot;
 class CQChartsTable;
+class CQChartsTableHeaderObj;
+class CQChartsTableRowObj;
+class CQChartsTableCellObj;
+
 class CQIntegerSpin;
 
 //---
@@ -75,12 +79,16 @@ class CQChartsTablePlot : public CQChartsPlot {
   Q_PROPERTY(QString           rowNums       READ rowNumsStr      WRITE setRowNumsStr   )
   Q_PROPERTY(bool              rowColumn     READ isRowColumn     WRITE setRowColumn    )
   Q_PROPERTY(bool              headerVisible READ isHeaderVisible WRITE setHeaderVisible)
-  Q_PROPERTY(CQChartsColor     headerColor   READ headerColor     WRITE setHeaderColor  )
-  Q_PROPERTY(CQChartsColor     gridColor     READ gridColor       WRITE setGridColor    )
-  Q_PROPERTY(CQChartsColor     textColor     READ textColor       WRITE setTextColor    )
-  Q_PROPERTY(CQChartsColor     cellColor     READ cellColor       WRITE setCellColor    )
-  Q_PROPERTY(double            indent        READ indent          WRITE setIndent       )
-  Q_PROPERTY(bool              followView    READ isFollowView    WRITE setFollowView   )
+
+  Q_PROPERTY(CQChartsColor headerColor     READ headerColor     WRITE setHeaderColor    )
+  Q_PROPERTY(CQChartsColor gridColor       READ gridColor       WRITE setGridColor      )
+  Q_PROPERTY(CQChartsColor textColor       READ textColor       WRITE setTextColor      )
+  Q_PROPERTY(CQChartsColor cellColor       READ cellColor       WRITE setCellColor      )
+  Q_PROPERTY(CQChartsColor insideColor     READ insideColor     WRITE setInsideColor    )
+  Q_PROPERTY(CQChartsColor insideTextColor READ insideTextColor WRITE setInsideTextColor)
+
+  Q_PROPERTY(double indent      READ indent       WRITE setIndent    )
+  Q_PROPERTY(bool   followView  READ isFollowView WRITE setFollowView)
 
   Q_ENUMS(Mode)
 
@@ -96,10 +104,10 @@ class CQChartsTablePlot : public CQChartsPlot {
   using RowNums = CQSummaryModel::RowNums;
 
   struct HeaderObjData {
-    CQChartsColumn     c;
-    CQChartsGeom::BBox rect;
-    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
-    QString            str;
+    CQChartsColumn c;
+    BBox           rect;
+    Qt::Alignment  align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString        str;
 
     HeaderObjData() = default;
 
@@ -109,10 +117,10 @@ class CQChartsTablePlot : public CQChartsPlot {
   };
 
   struct RowObjData {
-    int                r { 0 };
-    CQChartsGeom::BBox rect;
-    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
-    QString            str;
+    int           r { 0 };
+    BBox          rect;
+    Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString       str;
 
     RowObjData() = default;
 
@@ -123,7 +131,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   struct CellObjData {
     CQChartsModelIndex ind;
-    CQChartsGeom::BBox rect;
+    BBox               rect;
     Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
     QString            str;
 
@@ -231,6 +239,12 @@ class CQChartsTablePlot : public CQChartsPlot {
   const CQChartsColor &cellColor() const { return cellColor_; }
   void setCellColor(const CQChartsColor &c);
 
+  const CQChartsColor &insideColor() const { return insideColor_; }
+  void setInsideColor(const CQChartsColor &v);
+
+  const CQChartsColor &insideTextColor() const { return insideTextColor_; }
+  void setInsideTextColor(const CQChartsColor &v);
+
   //---
 
   double indent() const { return indent_; }
@@ -245,7 +259,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -286,9 +300,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   double scrollX() const;
   double scrollY() const;
 
-  CQChartsGeom::BBox calcTablePixelRect() const;
+  BBox calcTablePixelRect() const;
 
- private:
+ protected:
   void drawTable(CQChartsPaintDevice *device) const;
 
   void initDrawData() const;
@@ -306,6 +320,10 @@ class CQChartsTablePlot : public CQChartsPlot {
   }
 
   QString modeName(const Mode &mode) const;
+
+  virtual CQChartsTableHeaderObj *createHeaderObj(const HeaderObjData &headerObjData) const;
+  virtual CQChartsTableRowObj    *createRowObj   (const RowObjData &rowObjData) const;
+  virtual CQChartsTableCellObj   *createCellObj  (const CellObjData &cellObjData) const;
 
  private slots:
   void hscrollSlot(int);
@@ -391,6 +409,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   CQChartsColor   gridColor_;                //!< grid color
   CQChartsColor   textColor_;                //!< text color
   CQChartsColor   cellColor_;                //!< cell color
+  CQChartsColor   insideColor_;              //!< cell inside fill color
+  CQChartsColor   insideTextColor_;          //!< cell inside text color
   double          indent_       { 8.0 };     //!< hier indent
   double          fontScale_    { 1.0 };     //!< font scale
   bool            followView_   { false };   //!< follow view
@@ -400,9 +420,9 @@ class CQChartsTablePlot : public CQChartsPlot {
   CQIntegerSpinP  pageSizeSpin_;             //!< page size menu edit
   CQIntegerSpinP  pageNumSpin_;              //!< page number menu edit
 
-  HeaderObjMap headerObjMap_;
-  RowObjMap    rowObjMap_;
-  CellObjMap   cellObjMap_;
+  HeaderObjMap headerObjMap_; //!< header object map
+  RowObjMap    rowObjMap_;    //!< row object map
+  CellObjMap   cellObjMap_;   //!< cell object map
 };
 
 /*!
@@ -426,7 +446,7 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
   const CQChartsTablePlot*         plot_ { nullptr }; //!< parent plot
@@ -452,7 +472,7 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
   const CQChartsTablePlot*      plot_ { nullptr }; //!< parent plot
@@ -480,9 +500,9 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
-  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
   const CQChartsTablePlot*       plot_ { nullptr }; //!< parent plot

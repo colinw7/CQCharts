@@ -176,7 +176,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const BBox &rect,
                         CQChartsSankeyPlotNode *node, const ColorInd &ind);
 
   const QString &hierName() const { return hierName_; }
@@ -191,14 +191,14 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   int depth() const { return depth_; }
   void setDepth(int i) { depth_ = i; }
 
-  const CQChartsGeom::BBox &srcEdgeRect(CQChartsSankeyPlotEdge *edge) const {
+  const BBox &srcEdgeRect(CQChartsSankeyPlotEdge *edge) const {
     auto p = srcEdgeRect_.find(edge);
     assert(p != srcEdgeRect_.end());
 
     return (*p).second;
   }
 
-  const CQChartsGeom::BBox &destEdgeRect(CQChartsSankeyPlotEdge *edge) const {
+  const BBox &destEdgeRect(CQChartsSankeyPlotEdge *edge) const {
     auto p = destEdgeRect_.find(edge);
     assert(p != destEdgeRect_.end());
 
@@ -211,7 +211,11 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void moveBy(const CQChartsGeom::Point &delta);
+  void moveBy(const Point &delta);
+
+  //---
+
+  PlotObjs getConnected() const override;
 
   //---
 
@@ -226,7 +230,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
-  using EdgeRect = std::map<CQChartsSankeyPlotEdge *,CQChartsGeom::BBox>;
+  using EdgeRect = std::map<CQChartsSankeyPlotEdge *,BBox>;
 
   const CQChartsSankeyPlot* plot_ { nullptr }; //!< parent plot
   CQChartsSankeyPlotNode*   node_ { nullptr }; //!< node
@@ -248,19 +252,25 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const BBox &rect,
                         CQChartsSankeyPlotEdge *edge);
 
   QString typeName() const override { return "edge"; }
+
+  CQChartsSankeyPlotEdge *edge() const { return edge_; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
 
-  void setSrcRect (const CQChartsGeom::BBox &rect) { srcRect_  = rect; }
-  void setDestRect(const CQChartsGeom::BBox &rect) { destRect_ = rect; }
+  void setSrcRect (const BBox &rect) { srcRect_  = rect; }
+  void setDestRect(const BBox &rect) { destRect_ = rect; }
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  //---
+
+  bool inside(const Point &p) const override;
+
+  PlotObjs getConnected() const override;
 
   //---
 
@@ -275,8 +285,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
  private:
   const CQChartsSankeyPlot* plot_     { nullptr }; //!< parent plot
   CQChartsSankeyPlotEdge*   edge_     { nullptr }; //!< edge
-  CQChartsGeom::BBox        srcRect_;              //!< src rect
-  CQChartsGeom::BBox        destRect_;             //!< dest rect
+  BBox                      srcRect_;              //!< src rect
+  BBox                      destRect_;             //!< dest rect
   QPainterPath              path_;                 //!< painter path
 };
 
@@ -359,9 +369,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
-  CQChartsGeom::Range getCalcDataRange() const override;
+  Range getCalcDataRange() const override;
 
   //---
 
@@ -402,7 +412,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
- private:
+ protected:
   void clearNodesAndEdges();
 
   CQChartsSankeyPlotNode *findNode(const QString &name) const;
@@ -414,7 +424,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void createDepthNodes(const IndNodeMap &nodes) const;
 
-  CQChartsSankeyEdgeObj *createEdgeObj(CQChartsSankeyPlotEdge *edge) const;
+  CQChartsSankeyEdgeObj *addEdgeObj(CQChartsSankeyPlotEdge *edge) const;
 
   void adjustNodes() const;
 
@@ -428,6 +438,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void adjustNode(CQChartsSankeyPlotNode *node) const;
 
+  //---
+
+  virtual CQChartsSankeyNodeObj *createNodeObj(const BBox &rect, CQChartsSankeyPlotNode *node,
+                                               const ColorInd &ind) const;
+
+  virtual CQChartsSankeyEdgeObj *createEdgeObj(const BBox &rect,
+                                               CQChartsSankeyPlotEdge *edge) const;
+
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;
 
@@ -435,25 +453,25 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Align align_ { Align::JUSTIFY }; //!< align
 
   // data
-  NameNodeMap        nameNodeMap_;             //!< name node map
-  IndNodeMap         indNodeMap_;              //!< ind node map
-  PosNodesMap        posNodesMap_;             //!< pos node map
-  Edges              edges_;                   //!< edges
-  CQChartsGeom::BBox bbox_;                    //!< bbox
-  int                maxHeight_     { 0 };     //!< max height
-  int                maxNodeDepth_  { 0 };     //!< max node depth
-  double             nodeMargin_    { 0.2 };   //!< node margin
-  double             minNodeMargin_ { 4 };     //!< min node margin in pixels
-  double             nodeWidth_     { 16 };    //!< x margin in pixels
-  int                maxDepth_      { -1 };    //!< max depth
-  double             boxMargin_     { 0.01 };  //!< bounding box margin
-  double             edgeMargin_    { 0.01 };  //!< edge bounding box margin
-  double             valueScale_    { 1.0 };   //!< value scale
-  double             valueMargin_   { 0.0 };   //!< value margin
-  bool               pressed_       { false }; //!< mouse pressed
-  bool               nodeYSet_      { false }; //!< node y set
-  double             nodeYMin_      { 0.0 };   //!< node y min
-  double             nodeYMax_      { 0.0 };   //!< node y max
+  NameNodeMap nameNodeMap_;             //!< name node map
+  IndNodeMap  indNodeMap_;              //!< ind node map
+  PosNodesMap posNodesMap_;             //!< pos node map
+  Edges       edges_;                   //!< edges
+  BBox        bbox_;                    //!< bbox
+  int         maxHeight_     { 0 };     //!< max height
+  int         maxNodeDepth_  { 0 };     //!< max node depth
+  double      nodeMargin_    { 0.2 };   //!< node margin
+  double      minNodeMargin_ { 4 };     //!< min node margin in pixels
+  double      nodeWidth_     { 16 };    //!< x margin in pixels
+  int         maxDepth_      { -1 };    //!< max depth
+  double      boxMargin_     { 0.01 };  //!< bounding box margin
+  double      edgeMargin_    { 0.01 };  //!< edge bounding box margin
+  double      valueScale_    { 1.0 };   //!< value scale
+  double      valueMargin_   { 0.0 };   //!< value margin
+  bool        pressed_       { false }; //!< mouse pressed
+  bool        nodeYSet_      { false }; //!< node y set
+  double      nodeYMin_      { 0.0 };   //!< node y min
+  double      nodeYMax_      { 0.0 };   //!< node y max
 };
 
 #endif

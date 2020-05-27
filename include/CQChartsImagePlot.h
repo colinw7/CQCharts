@@ -44,9 +44,8 @@ class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                   int row, int col, double value, const QModelIndex &ind,
-                   const ColorInd &iv);
+  CQChartsImageObj(const CQChartsImagePlot *plot, const BBox &rect, int row, int col,
+                   double value, const QModelIndex &ind, const ColorInd &iv);
 
   //---
 
@@ -182,7 +181,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -202,7 +201,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
  public slots:
   void setRectStyle   (bool b);

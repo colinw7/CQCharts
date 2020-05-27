@@ -63,11 +63,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   };
 
  public:
-  using Point = CQChartsGeom::Point;
-
-  CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                          const CQChartsGeom::BBox &rect, const Point &p,
-                          const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
+  CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                          const Point &p, const ColorInd &is, const ColorInd &ig,
+                          const ColorInd &iv);
 
   const CQChartsScatterPlot *plot() const { return plot_; }
 
@@ -181,13 +179,12 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
     XY = (X | Y)
   };
 
-  using Point  = CQChartsGeom::Point;
   using Points = std::vector<Point>;
 
  public:
-  CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
-                         const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
-                         int ix, int iy, const Points &points, int maxn);
+  CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                         const ColorInd &is, const ColorInd &ig, int ix, int iy,
+                         const Points &points, int maxN);
 
   int groupInd() const { return groupInd_; }
 
@@ -242,13 +239,12 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
     XY = (X | Y)
   };
 
-  using Point  = CQChartsGeom::Point;
   using Points = std::vector<Point>;
 
  public:
-  CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd,
-                        const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
-                        int ix, int iy, const CQChartsGeom::Polygon &poly, int n, int maxN);
+  CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                        const ColorInd &is, const ColorInd &ig, int ix, int iy,
+                        const Polygon &poly, int n, int maxN);
 
   int groupInd() const { return groupInd_; }
 
@@ -279,7 +275,7 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   int                        groupInd_ { -1 };      //!< plot group index
   int                        ix_       { -1 };      //!< x index
   int                        iy_       { -1 };      //!< y index
-  CQChartsGeom::Polygon      poly_;                 //!< polygon
+  Polygon                    poly_;                 //!< polygon
   int                        n_        { 0 };       //!< number of points
   int                        maxN_     { 0 };       //!< max number of points
 };
@@ -294,9 +290,6 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
  */
 class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
-
- public:
-  using Point  = CQChartsGeom::Point;
 
  public:
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd &ic);
@@ -427,7 +420,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     HEX_CELLS
   };
 
-  using Point  = CQChartsGeom::Point;
   using Points = std::vector<Point>;
 
   struct ValueData {
@@ -445,9 +437,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using Values = std::vector<ValueData>;
 
   struct ValuesData {
-    Values                values;
-    CQChartsGeom::RMinMax xrange;
-    CQChartsGeom::RMinMax yrange;
+    Values  values;
+    RMinMax xrange;
+    RMinMax yrange;
   };
 
   using NameValues      = std::map<QString,ValuesData>;
@@ -620,7 +612,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void clearPlotObjects() override;
 
@@ -645,18 +637,17 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  virtual CQChartsScatterPointObj *createPointObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                                  const Point &p, const ColorInd &is,
-                                                  const ColorInd &ig, const ColorInd &iv);
+  virtual CQChartsScatterPointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
+                                                  const ColorInd &is, const ColorInd &ig,
+                                                  const ColorInd &iv) const;
 
-  virtual CQChartsScatterCellObj *createCellObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                                const ColorInd &is, const ColorInd &ig,
-                                                int ix, int iy, const Points &points, int maxn);
+  virtual CQChartsScatterCellObj *createCellObj(int groupInd, const BBox &rect, const ColorInd &is,
+                                                const ColorInd &ig, int ix, int iy,
+                                                const Points &points, int maxN) const;
 
-  virtual CQChartsScatterHexObj *createHexObj(int groupInd, const CQChartsGeom::BBox &rect,
-                                              const ColorInd &is, const ColorInd &ig,
-                                              int ix, int iy, const CQChartsGeom::Polygon &poly,
-                                              int n, int maxN);
+  virtual CQChartsScatterHexObj *createHexObj(int groupInd, const BBox &rect, const ColorInd &is,
+                                              const ColorInd &ig, int ix, int iy,
+                                              const Polygon &poly, int n, int maxN) const;
 
   //---
 
@@ -666,7 +657,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
@@ -681,7 +672,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
  private:
-  void initGridData(const CQChartsGeom::Range &dataRange);
+  void initGridData(const Range &dataRange);
 
   void initAxes(bool uniqueX, bool uniqueY);
 

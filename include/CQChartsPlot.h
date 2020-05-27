@@ -268,19 +268,27 @@ class CQChartsPlot : public CQChartsObj,
     Y_VALUE = int(CQChartsColorType::Y_VALUE)
   };
 
+  using Point    = CQChartsGeom::Point;
+  using BBox     = CQChartsGeom::BBox;
+  using Polygon  = CQChartsGeom::Polygon;
+  using Range    = CQChartsGeom::Range;
+  using Size     = CQChartsGeom::Size;
+  using RMinMax  = CQChartsGeom::RMinMax;
+  using Polygons = CQChartsGeom::Polygons;
+
   using SelMod = CQChartsSelMod;
 
   // associated plot for overlay/y1y2
   struct ConnectData {
-    CQChartsPlot*      parent  { nullptr }; //!< parent plot
-    bool               x1x2    { false };   //!< is double x axis plot
-    bool               y1y2    { false };   //!< is double y axis plot
-    bool               overlay { false };   //!< is overlay plot
-    bool               tabbed  { false };   //!< is tabbed plot
-    bool               current { false };   //!< is current
-    CQChartsGeom::BBox tabRect;             //!< tab rect
-    CQChartsPlot*      next    { nullptr }; //!< next plot
-    CQChartsPlot*      prev    { nullptr }; //!< previous plot
+    CQChartsPlot* parent  { nullptr }; //!< parent plot
+    bool          x1x2    { false };   //!< is double x axis plot
+    bool          y1y2    { false };   //!< is double y axis plot
+    bool          overlay { false };   //!< is overlay plot
+    bool          tabbed  { false };   //!< is tabbed plot
+    bool          current { false };   //!< is current
+    BBox          tabRect;             //!< tab rect
+    CQChartsPlot* next    { nullptr }; //!< next plot
+    CQChartsPlot* prev    { nullptr }; //!< previous plot
 
     ConnectData() { }
 
@@ -309,11 +317,11 @@ class CQChartsPlot : public CQChartsObj,
   struct ProbeData {
     using Values = std::vector<ProbeValue>;
 
-    CQChartsGeom::Point p;
-    Values              xvals;
-    Values              yvals;
-    Qt::Orientation     direction { Qt::Vertical };
-    bool                both      { false };
+    Point           p;
+    Values          xvals;
+    Values          yvals;
+    Qt::Orientation direction { Qt::Vertical };
+    bool            both      { false };
   };
 
   using ModelP          = QSharedPointer<QAbstractItemModel>;
@@ -423,16 +431,16 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsDisplayRange &displayRange() const;
   void setDisplayRange(const CQChartsDisplayRange &r);
 
-  const CQChartsGeom::Range &dataRange() const { return dataRange_; }
-  void setDataRange(const CQChartsGeom::Range &r, bool update=true);
+  const Range &dataRange() const { return dataRange_; }
+  void setDataRange(const Range &r, bool update=true);
 
   void resetDataRange(bool updateRange=true, bool updateObjs=true);
 
   //---
 
   struct ZoomData {
-    CQChartsGeom::Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
-    CQChartsGeom::Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
+    Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
+    Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
   double dataScaleX() const;
@@ -605,26 +613,26 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // get/set bbox in view range
-  const CQChartsGeom::BBox &viewBBox() const { return viewBBox_; }
-  void setViewBBox(const CQChartsGeom::BBox &bbox);
+  const BBox &viewBBox() const { return viewBBox_; }
+  void setViewBBox(const BBox &bbox);
 
-  CQChartsGeom::BBox calcViewBBox() const;
-  virtual CQChartsGeom::BBox adjustedViewBBox(const CQChartsPlot *plot) const;
+  BBox calcViewBBox() const;
+  virtual BBox adjustedViewBBox(const CQChartsPlot *plot) const;
 
   // get inner view bbox
-  CQChartsGeom::BBox innerViewBBox() const;
+  BBox innerViewBBox() const;
 
   // get/set data range
-  CQChartsGeom::BBox range() const;
-  void setRange(const CQChartsGeom::BBox &bbox);
+  BBox range() const;
+  void setRange(const BBox &bbox);
 
   //---
 
-  CQChartsGeom::BBox calcDataRect () const;
-  CQChartsGeom::BBox outerDataRect() const;
-  CQChartsGeom::BBox dataRect     () const;
+  BBox calcDataRect () const;
+  BBox outerDataRect() const;
+  BBox dataRect     () const;
 
-  virtual CQChartsGeom::Range getCalcDataRange() const;
+  virtual Range getCalcDataRange() const;
 
   //---
 
@@ -719,8 +727,8 @@ class CQChartsPlot : public CQChartsObj,
   bool isTabbed(bool checkVisible=true) const;
   void setTabbed(bool b, bool notify=true);
 
-  const CQChartsGeom::BBox &tabRect() const { return connectData_.tabRect; }
-  void setTabRect(const CQChartsGeom::BBox &rect) { connectData_.tabRect = rect; }
+  const BBox &tabRect() const { return connectData_.tabRect; }
+  void setTabRect(const BBox &rect) { connectData_.tabRect = rect; }
 
   bool isCurrent() const { return connectData_.current; }
   void setCurrent(bool b, bool notify=false);
@@ -1118,11 +1126,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQChartsGeom::Point positionToPlot (const CQChartsPosition &pos) const;
-  CQChartsGeom::Point positionToPixel(const CQChartsPosition &pos) const;
+  Point positionToPlot (const CQChartsPosition &pos) const;
+  Point positionToPixel(const CQChartsPosition &pos) const;
 
-  CQChartsGeom::BBox rectToPlot (const CQChartsRect &rect) const;
-  CQChartsGeom::BBox rectToPixel(const CQChartsRect &rect) const;
+  BBox rectToPlot (const CQChartsRect &rect) const;
+  BBox rectToPixel(const CQChartsRect &rect) const;
 
   //---
 
@@ -1144,21 +1152,21 @@ class CQChartsPlot : public CQChartsObj,
   double viewToWindowWidth (double vx) const;
   double viewToWindowHeight(double vy) const;
 
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
-  CQChartsGeom::Point windowToView (const CQChartsGeom::Point &w) const;
-  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
-  CQChartsGeom::Point viewToWindow (const CQChartsGeom::Point &v) const;
+  Point windowToPixel(const Point &w) const;
+  Point windowToView (const Point &w) const;
+  Point pixelToWindow(const Point &p) const;
+  Point viewToWindow (const Point &v) const;
 
-  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
-  CQChartsGeom::BBox windowToView (const CQChartsGeom::BBox &wrect) const;
-  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
-  CQChartsGeom::BBox viewToWindow (const CQChartsGeom::BBox &vrect) const;
+  BBox windowToPixel(const BBox &wrect) const;
+  BBox windowToView (const BBox &wrect) const;
+  BBox pixelToWindow(const BBox &prect) const;
+  BBox viewToWindow (const BBox &vrect) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
 
   double pixelToWindowSize(double ps, bool horizontal) const;
-  CQChartsGeom::Size pixelToWindowSize(const CQChartsGeom::Size &ps) const;
+  Size pixelToWindowSize(const Size &ps) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
@@ -1169,16 +1177,16 @@ class CQChartsPlot : public CQChartsObj,
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
-  CQChartsGeom::Polygon windowToPixel(const CQChartsGeom::Polygon &p) const;
+  Polygon windowToPixel(const Polygon &p) const;
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
  private:
-  void windowToPixelI(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
-  void pixelToWindowI(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
+  void windowToPixelI(const Point &w, Point &p) const;
+  void pixelToWindowI(const Point &p, Point &w) const;
 
-  void windowToPixelI(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
-  void pixelToWindowI(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
+  void windowToPixelI(const BBox &wrect, BBox &prect) const;
+  void pixelToWindowI(const BBox &prect, BBox &wrect) const;
 
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
   void viewToWindowI (double vx, double vy, double &wx, double &wy) const;
@@ -1229,7 +1237,7 @@ class CQChartsPlot : public CQChartsObj,
 
  public:
   // calculate and return range from data
-  virtual CQChartsGeom::Range calcRange() const = 0;
+  virtual Range calcRange() const = 0;
 
   virtual void postUpdateRange() { }
 
@@ -1430,23 +1438,23 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQChartsGeom::BBox findEmptyBBox(double w, double h) const;
+  BBox findEmptyBBox(double w, double h) const;
 
   //---
 
-  CQChartsGeom::BBox calcDataRange(bool adjust=true) const;
-  void calcDataRanges(CQChartsGeom::BBox &rawRange, CQChartsGeom::BBox &adjustedRange) const;
+  BBox calcDataRange(bool adjust=true) const;
+  void calcDataRanges(BBox &rawRange, BBox &adjustedRange) const;
 
-  CQChartsGeom::BBox getDataRange() const;
+  BBox getDataRange() const;
 
-  virtual void updateAxisRanges(const CQChartsGeom::BBox &adjustedRange);
+  virtual void updateAxisRanges(const BBox &adjustedRange);
 
   void updateOverlayRanges();
 
-  void setPixelRange(const CQChartsGeom::BBox &bbox);
+  void setPixelRange(const BBox &bbox);
 
   void resetWindowRange();
-  void setWindowRange(const CQChartsGeom::BBox &bbox);
+  void setWindowRange(const BBox &bbox);
 
   bool isApplyDataRange() const { return updatesData_.applyDataRange; }
 
@@ -1454,12 +1462,12 @@ class CQChartsPlot : public CQChartsObj,
 
   void applyDataRange(bool propagate=true);
 
-  CQChartsGeom::Range adjustDataRange(const CQChartsGeom::Range &range) const;
+  Range adjustDataRange(const Range &range) const;
 
-  CQChartsGeom::BBox calcGroupedDataRange(bool includeAnnotation=true) const;
+  BBox calcGroupedDataRange(bool includeAnnotation=true) const;
 
-  CQChartsGeom::BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
-  CQChartsGeom::BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
+  BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
+  BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
 
   //---
 
@@ -1470,7 +1478,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void clearPlotObjects();
 
-  bool updateInsideObjects(const CQChartsGeom::Point &w);
+  bool updateInsideObjects(const Point &w);
 
   CQChartsObj *insideObject() const;
 
@@ -1608,7 +1616,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  virtual QString posStr(const CQChartsGeom::Point &w) const;
+  virtual QString posStr(const Point &w) const;
 
   virtual QString xStr(double x) const;
   virtual QString yStr(double y) const;
@@ -1618,63 +1626,61 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // handle mouse press/move/release
-  virtual bool selectMousePress  (const CQChartsGeom::Point &p, SelMod selMod);
-  virtual bool selectMouseMove   (const CQChartsGeom::Point &p, bool first=false);
-  virtual bool selectMouseRelease(const CQChartsGeom::Point &p);
+  virtual bool selectMousePress  (const Point &p, SelMod selMod);
+  virtual bool selectMouseMove   (const Point &p, bool first=false);
+  virtual bool selectMouseRelease(const Point &p);
 
-  virtual bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod);
-  virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
-  virtual bool selectRelease(const CQChartsGeom::Point &p);
+  virtual bool selectPress  (const Point &p, SelMod selMod);
+  virtual bool selectMove   (const Point &p, bool first=false);
+  virtual bool selectRelease(const Point &p);
 
   //-
 
-  bool tabbedSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
+  bool tabbedSelectPress(const Point &w, SelMod selMod);
 
-  CQChartsPlot *tabbedPressPlot(const CQChartsGeom::Point &w, Plots &plots) const;
+  CQChartsPlot *tabbedPressPlot(const Point &w, Plots &plots) const;
 
-  bool keySelectPress  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w, SelMod selMod);
-  bool titleSelectPress(CQChartsTitle   *title, const CQChartsGeom::Point &w, SelMod selMod);
+  bool keySelectPress  (CQChartsPlotKey *key  , const Point &w, SelMod selMod);
+  bool titleSelectPress(CQChartsTitle   *title, const Point &w, SelMod selMod);
 
-  bool annotationsSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
+  bool annotationsSelectPress(const Point &w, SelMod selMod);
 
-  CQChartsObj *objectsSelectPress(const CQChartsGeom::Point &w, SelMod selMod);
+  CQChartsObj *objectsSelectPress(const Point &w, SelMod selMod);
 
   //-
 
   // handle mouse drag press/move/release
-  bool editMousePress  (const CQChartsGeom::Point &p, bool inside=false);
-  bool editMouseMove   (const CQChartsGeom::Point &p, bool first=false);
-  bool editMouseMotion (const CQChartsGeom::Point &p);
-  bool editMouseRelease(const CQChartsGeom::Point &p);
+  bool editMousePress  (const Point &p, bool inside=false);
+  bool editMouseMove   (const Point &p, bool first=false);
+  bool editMouseMotion (const Point &p);
+  bool editMouseRelease(const Point &p);
 
-  virtual bool editPress  (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
-                           bool inside=false);
-  virtual bool editMove   (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
-                           bool first=false);
-  virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
-  virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+  virtual bool editPress  (const Point &p, const Point &w, bool inside=false);
+  virtual bool editMove   (const Point &p, const Point &w, bool first=false);
+  virtual bool editMotion (const Point &p, const Point &w);
+  virtual bool editRelease(const Point &p, const Point &w);
 
   //-
 
-  bool keyEditPress  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w);
-  bool axisEditPress (CQChartsAxis    *axis , const CQChartsGeom::Point &w);
-  bool titleEditPress(CQChartsTitle   *title, const CQChartsGeom::Point &w);
+  bool keyEditPress  (CQChartsPlotKey *key  , const Point &w);
+  bool axisEditPress (CQChartsAxis    *axis , const Point &w);
+  bool titleEditPress(CQChartsTitle   *title, const Point &w);
 
-  bool annotationsEditPress(const CQChartsGeom::Point &w);
-
-  //-
-
-  bool keyEditSelect  (CQChartsPlotKey *key  , const CQChartsGeom::Point &w);
-  bool axisEditSelect (CQChartsAxis    *axis , const CQChartsGeom::Point &w);
-  bool titleEditSelect(CQChartsTitle   *title, const CQChartsGeom::Point &w);
-
-  bool annotationsEditSelect(const CQChartsGeom::Point &w);
-
-  bool objectsEditSelect(const CQChartsGeom::Point &w, bool inside);
+  bool annotationsEditPress(const Point &w);
 
   //-
 
-  virtual void editMoveBy(const CQChartsGeom::Point &d);
+  bool keyEditSelect  (CQChartsPlotKey *key  , const Point &w);
+  bool axisEditSelect (CQChartsAxis    *axis , const Point &w);
+  bool titleEditSelect(CQChartsTitle   *title, const Point &w);
+
+  bool annotationsEditSelect(const Point &w);
+
+  bool objectsEditSelect(const Point &w, bool inside);
+
+  //-
+
+  virtual void editMoveBy(const Point &d);
 
   void selectOneObj(CQChartsObj *obj, bool allObjs);
 
@@ -1686,14 +1692,14 @@ class CQChartsPlot : public CQChartsObj,
   virtual void keyPress(int key, int modifier);
 
   // get tip text at point
-  virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
+  virtual bool tipText(const Point &p, QString &tip) const;
 
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
 
   void resetObjTips();
 
   // handle rect select
-  bool rectSelect(const CQChartsGeom::BBox &r, SelMod selMod);
+  bool rectSelect(const BBox &r, SelMod selMod);
 
   //---
 
@@ -1747,7 +1753,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void adjustPan() { }
 
-  virtual void zoomTo(const CQChartsGeom::BBox &bbox);
+  virtual void zoomTo(const BBox &bbox);
 
   //---
 
@@ -1774,39 +1780,39 @@ class CQChartsPlot : public CQChartsObj,
 
   void updateKeyPosition(bool force=false);
 
-  CQChartsGeom::BBox displayRangeBBox() const;
+  BBox displayRangeBBox() const;
 
-  CQChartsGeom::BBox calcDataPixelRect() const;
+  BBox calcDataPixelRect() const;
 
-  CQChartsGeom::BBox calcPlotRect() const;
-  CQChartsGeom::BBox calcPlotPixelRect() const;
+  BBox calcPlotRect() const;
+  BBox calcPlotPixelRect() const;
 
-  CQChartsGeom::BBox calcFitPixelRect() const;
+  BBox calcFitPixelRect() const;
 
-  CQChartsGeom::Size calcPixelSize() const;
+  Size calcPixelSize() const;
 
   void calcTabData(const Plots &plots) const;
 
-  CQChartsGeom::BBox calcTabPixelRect() const;
+  BBox calcTabPixelRect() const;
 
   //---
 
   // auto fit
   virtual void autoFit();
 
-  void setFitBBox(const CQChartsGeom::BBox &bbox);
+  void setFitBBox(const BBox &bbox);
 
-  CQChartsGeom::BBox fitBBox() const;
+  BBox fitBBox() const;
 
-  virtual CQChartsGeom::BBox dataFitBBox () const;
-  virtual CQChartsGeom::BBox axesFitBBox () const;
-  virtual CQChartsGeom::BBox keyFitBBox  () const;
-  virtual CQChartsGeom::BBox titleFitBBox() const;
+  virtual BBox dataFitBBox () const;
+  virtual BBox axesFitBBox () const;
+  virtual BBox keyFitBBox  () const;
+  virtual BBox titleFitBBox() const;
 
   // get bounding box of annotations outside plot area
-  CQChartsGeom::BBox annotationBBox() const;
+  BBox annotationBBox() const;
 
-  virtual CQChartsGeom::BBox calcAnnotationBBox() const { return CQChartsGeom::BBox(); }
+  virtual BBox calcAnnotationBBox() const { return BBox(); }
 
   //---
 
@@ -1863,6 +1869,8 @@ class CQChartsPlot : public CQChartsObj,
 
   QList<QModelIndex> getObjectInds(const QString &objectId) const;
 
+  std::vector<CQChartsObj *> getObjectConnected(const QString &objectId) const;
+
   //---
 
   const Layers &layers() const { return layers_; }
@@ -1903,7 +1911,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsLayer *getLayer(const CQChartsLayer::Type &type) const;
 
  private:
-  CQChartsGeom::BBox adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const;
+  BBox adjustDataRangeBBox(const BBox &bbox) const;
 
   void setLayerActive1(const CQChartsLayer::Type &type, bool b);
 
@@ -1975,7 +1983,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void execDrawBackground(CQChartsPaintDevice *device) const;
 
-  virtual void drawBackgroundSides(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+  virtual void drawBackgroundSides(CQChartsPaintDevice *device, const BBox &bbox,
                                    const CQChartsSides &sides) const;
 
   // draw axes on background
@@ -2009,7 +2017,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void postDrawObjs(CQChartsPaintDevice *) const { }
 
-  virtual bool objInsideBox(CQChartsPlotObj *plotObj, const CQChartsGeom::BBox &bbox) const;
+  virtual bool objInsideBox(CQChartsPlotObj *plotObj, const BBox &bbox) const;
 
   //---
 
@@ -2087,18 +2095,18 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
                   const CQChartsSymbol &symbol, const CQChartsLength &size,
                   const CQChartsPenBrush &penBrush) const;
-  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
                   const CQChartsSymbol &symbol, const CQChartsLength &size) const;
 #if 0
-  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
                   const CQChartsSymbol &symbol, const CQChartsLength &size,
                   const CQChartsPenBrush &penBrush) const;
 #endif
 
-  void drawBufferedSymbol(QPainter *painter, const CQChartsGeom::Point &p,
+  void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const CQChartsSymbol &symbol, double size) const;
 
   //---
@@ -2109,10 +2117,10 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // debug draw (default to red boxes)
-  void drawWindowColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+  void drawWindowColorBox(CQChartsPaintDevice *device, const BBox &bbox,
                           const QColor &c=Qt::red) const;
 
-  void drawColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+  void drawColorBox(CQChartsPaintDevice *device, const BBox &bbox,
                     const QColor &c=Qt::red) const;
 
   //---
@@ -2293,7 +2301,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
  protected slots:
   void animateSlot();
@@ -2395,18 +2403,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
+  void objsAtPoint(const Point &p, Objs &objs) const;
 
-  void plotObjsAtPoint1(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+  void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
 
-  virtual void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+  virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs) const;
 
-  void annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const;
+  void annotationsAtPoint(const Point &p, Annotations &annotations) const;
 
-  void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs,
-                         bool inside, bool select=false) const;
+  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
 
-  virtual bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
+  virtual bool objNearestPoint(const Point &p, CQChartsPlotObj* &obj) const;
 
  protected:
   //*! update state
@@ -2592,12 +2599,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //! mouse state data
   struct MouseData {
-    CQChartsGeom::Point pressPoint { 0, 0 };
-    CQChartsGeom::Point movePoint  { 0, 0 };
-    bool                pressed    { false };
-    DragObj             dragObj    { DragObj::NONE };
-    CQChartsResizeSide  dragSide   { CQChartsResizeSide::NONE };
-    bool                dragged    { false };
+    Point              pressPoint { 0, 0 };
+    Point              movePoint  { 0, 0 };
+    bool               pressed    { false };
+    DragObj            dragObj    { DragObj::NONE };
+    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE };
+    bool               dragged    { false };
   };
 
   //! animation data
@@ -2642,14 +2649,14 @@ class CQChartsPlot : public CQChartsObj,
   QString name_; //!< custom name
 
   // ranges
-  CQChartsGeom::BBox    viewBBox_        { 0, 0, 1, 1 };     //!< view box
-  CQChartsGeom::BBox    innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
+  BBox                  viewBBox_        { 0, 0, 1, 1 };     //!< view box
+  BBox                  innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
   CQChartsPlotMargin    innerMargin_     { 0, 0, 0, 0 };     //!< inner margin
   CQChartsPlotMargin    outerMargin_     { 10, 10, 10, 10 }; //!< outer margin
   CQChartsDisplayRange* displayRange_    { nullptr };        //!< value range mapping
-  CQChartsGeom::Range   calcDataRange_;                      //!< calc data range
-  CQChartsGeom::Range   dataRange_;                          //!< data range
-  CQChartsGeom::Range   outerDataRange_;                     //!< outer data range
+  Range                 calcDataRange_;                      //!< calc data range
+  Range                 dataRange_;                          //!< data range
+  Range                 outerDataRange_;                     //!< outer data range
   ZoomData              zoomData_;                           //!< zoom data
 
   // override range
@@ -2788,9 +2795,9 @@ class CQChartsPlot : public CQChartsObj,
   bool                 editing_     { false };   //!< is editing
 
   // annotations
-  Annotations                annotations_;      //!< extra annotations
-  Annotations                pressAnnotations_; //!< press annotations
-  mutable CQChartsGeom::BBox annotationBBox_;   //!< cached annotation bbox
+  Annotations  annotations_;      //!< extra annotations
+  Annotations  pressAnnotations_; //!< press annotations
+  mutable BBox annotationBBox_;   //!< cached annotation bbox
 
   //---
 

@@ -452,6 +452,8 @@ createNameNodeObjs(PlotObjs &objs) const
 {
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
+  //---
+
   for (const auto &nameNode : nameNodeMap_) {
     const auto &node = nameNode.second;
 
@@ -472,6 +474,11 @@ createNameNodeObjs(PlotObjs &objs) const
   for (auto &node1 : sortedNodes_) {
     th->nodeData_.maxLen = std::max(th->nodeData_.maxLen, int(node1->name().size()));
   }
+
+  //---
+
+  if (factor_ < 0.0)
+    th->initFactor();
 
   //---
 
@@ -548,6 +555,8 @@ initConnectionObjs(PlotObjs &objs) const
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
+  //---
+
   const IdConnectionsData &idConnectionsData = visitor.idConnections();
 
   //---
@@ -592,6 +601,11 @@ initConnectionObjs(PlotObjs &objs) const
   for (auto &node1 : sortedNodes_) {
     th->nodeData_.maxLen = std::max(th->nodeData_.maxLen, int(node1->name().size()));
   }
+
+  //---
+
+  if (factor_ < 0.0)
+    th->initFactor();
 
   //---
 
@@ -848,6 +862,27 @@ createObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double val
 
 void
 CQChartsAdjacencyPlot::
+initFactor()
+{
+  QFontMetricsF fm(view_->QWidget::font());
+
+  double th = fm.height();
+
+  double twMax = 0.0;
+
+  for (auto &node : sortedNodes_) {
+    const QString &str = node->name();
+
+    double tw = fm.width(str) + 4;
+
+    twMax = std::max(twMax, tw);
+  }
+
+  factor_ = 1.1*twMax/(maxLen()*th);
+}
+
+void
+CQChartsAdjacencyPlot::
 autoFit()
 {
   int tries = 3;
@@ -1086,32 +1121,32 @@ QString
 CQChartsAdjacencyObj::
 calcId() const
 {
-  QString groupStr1 = QString("(%1)").arg(node1_->group());
-  QString groupStr2 = QString("(%1)").arg(node2_->group());
+  QString groupStr1 = QString("(%1)").arg(node1()->group());
+  QString groupStr2 = QString("(%1)").arg(node2()->group());
 
   return QString("%1:%2%3:%4%5:%6").arg(typeName()).
-           arg(node1_->name()).arg(groupStr1).arg(node2_->name()).arg(groupStr2).arg(value());
+           arg(node1()->name()).arg(groupStr1).arg(node2()->name()).arg(groupStr2).arg(value());
 }
 
 QString
 CQChartsAdjacencyObj::
 calcTipId() const
 {
-  QString groupStr1 = QString("(%1)").arg(node1_->group());
-  QString groupStr2 = QString("(%1)").arg(node2_->group());
+  QString groupStr1 = QString("(%1)").arg(node1()->group());
+  QString groupStr2 = QString("(%1)").arg(node2()->group());
 
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("From" , node1_->name(), groupStr1);
-  tableTip.addTableRow("To"   , node2_->name(), groupStr2);
+  tableTip.addTableRow("From" , node1()->name(), groupStr1);
+  tableTip.addTableRow("To"   , node2()->name(), groupStr2);
   tableTip.addTableRow("Value", value());
 
-  if (node1_ == node2_)
-    tableTip.addTableRow("Group", node1_->group());
+  if (node1() == node2())
+    tableTip.addTableRow("Group", node1()->group());
 
   //---
 
-  //plot()->addTipColumns(tableTip, node1_->ind());
+  //plot()->addTipColumns(tableTip, node1()->ind());
 
   //---
 
@@ -1181,13 +1216,13 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpEmptyCellFillColor(ColorInd());
 
   // node to self (diagonal)
-  if (node1_ == node2_) {
-    bc = interpGroupColor(node1_);
+  if (node1() == node2()) {
+    bc = interpGroupColor(node1());
   }
   // node to other node (scale to connections)
   else {
-    QColor c1 = interpGroupColor(node1_);
-    QColor c2 = interpGroupColor(node2_);
+    QColor c1 = interpGroupColor(node1());
+    QColor c2 = interpGroupColor(node2());
 
     double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
 
@@ -1230,9 +1265,9 @@ CQChartsAdjacencyObj::
 xColorValue(bool relative) const
 {
   if (! relative)
-    return node1_->id();
+    return node1()->id();
   else
-    return CMathUtil::map(node1_->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
+    return CMathUtil::map(node1()->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
 }
 
 double
@@ -1240,7 +1275,7 @@ CQChartsAdjacencyObj::
 yColorValue(bool relative) const
 {
   if (! relative)
-    return node2_->id();
+    return node2()->id();
   else
-    return CMathUtil::map(node2_->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
+    return CMathUtil::map(node2()->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
 }

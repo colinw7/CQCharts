@@ -264,6 +264,13 @@ setNameColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
+setSeparator(const QString &s)
+{
+  CQChartsUtil::testAndSet(separator_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
 setSymmetric(bool b)
 {
   CQChartsUtil::testAndSet(symmetric_, b, [&]() { updateObjs(); } );
@@ -301,6 +308,7 @@ addProperties()
   addProp("columns", "groupColumn", "group", "Grouping column");
   addProp("columns", "nameColumn" , "name" , "Node name column");
 
+  addProp("options", "separator", "", "Model link value separator");
   addProp("options", "symmetric", "", "Model values are symmetric");
   addProp("options", "sorted"   , "", "Sort values by size");
 }
@@ -573,6 +581,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
   if (hasGroup) {
     int igroup = groupColumn().column();
+    assert(igroup >= 0);
 
     for (int row = 0; row < nv; ++row) {
       QVariant group = indRowDatas[row].rowData[igroup];
@@ -607,6 +616,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       CQChartsModelIndex linkModelInd(ind.row(), linkColumn(), ind.parent());
 
       int ilink = linkColumn().column();
+      assert(ilink >= 0);
 
       QModelIndex linkInd  = modelIndex(linkModelInd);
       QModelIndex linkInd1 = normalizeIndex(linkInd);
@@ -628,6 +638,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       CQChartsModelIndex groupColumnInd(ind.row(), groupColumn(), ind.parent());
 
       int igroup = groupColumn().column();
+      assert(igroup >= 0);
 
       QModelIndex groupInd  = modelIndex(groupColumnInd);
       QModelIndex groupInd1 = normalizeIndex(groupInd);

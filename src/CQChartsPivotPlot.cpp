@@ -627,7 +627,7 @@ createObjs(PlotObjs &objs) const
                      x1, 0.0, x1 + dx, value);
 
           if (value != 0.0)
-            obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
+            obj = createBarObj(rect, ind, inds, ir, ic, value);
         }
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
@@ -646,7 +646,7 @@ createObjs(PlotObjs &objs) const
                      ih - 0.5, oldValue, ih + 0.5, newValue);
 
           if (oldValue != newValue)
-            obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
+            obj = createBarObj(rect, ind, inds, ir, ic, value);
         }
 
         if (obj)
@@ -730,7 +730,7 @@ createObjs(PlotObjs &objs) const
       else
         rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nh, maxValue);
 
-      auto *obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
+      auto *obj = createLineObj(rect, inds, ic, polygon, name);
 
       objs.push_back(obj);
     }
@@ -773,7 +773,7 @@ createObjs(PlotObjs &objs) const
 
         CQChartsGeom::BBox rect(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *obj = new CQChartsPivotPointObj(this, rect, ind, ir, ic, p, value);
+        auto *obj = createPointObj(rect, ind, ir, ic, p, value);
 
         objs.push_back(obj);
       }
@@ -818,8 +818,7 @@ createObjs(PlotObjs &objs) const
         auto rect = CQChartsGeom::makeDirBBox(isHorizontal(),
                       iv - 0.5, ih - 0.5, iv + 0.5, ih + 0.5);
 
-        auto *obj = new CQChartsPivotCellObj(this, rect, ind, ir, ic, name, value,
-                                             hnorm, vnorm, ok);
+        auto *obj = createCellObj(rect, ind, ir, ic, name, value, hnorm, vnorm, ok);
 
         objs.push_back(obj);
       }
@@ -1080,6 +1079,41 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//---
+
+CQChartsPivotBarObj *
+CQChartsPivotPlot::
+createBarObj(const CQChartsGeom::BBox &rect, const QModelIndex &ind, const ModelIndices &inds,
+             const ColorInd &ir, const ColorInd &ic, double value) const
+{
+  return new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
+}
+
+CQChartsPivotLineObj *
+CQChartsPivotPlot::
+createLineObj(const CQChartsGeom::BBox &rect, const ModelIndices &inds, const ColorInd &ig,
+              const CQChartsGeom::Polygon &polygon, const QString &name) const
+{
+  return new CQChartsPivotLineObj(this, rect, inds, ig, polygon, name);
+}
+
+CQChartsPivotPointObj *
+CQChartsPivotPlot::
+createPointObj(const CQChartsGeom::BBox &rect, const QModelIndex &ind, const ColorInd &ir,
+               const ColorInd &ic, const CQChartsGeom::Point &p, double value) const
+{
+  return new CQChartsPivotPointObj(this, rect, ind, ir, ic, p, value);
+}
+
+CQChartsPivotCellObj *
+CQChartsPivotPlot::
+createCellObj(const CQChartsGeom::BBox &rect, const QModelIndex &ind, const ColorInd &ir,
+              const ColorInd &ic, const QString &name, double value, double hnorm, double vnorm,
+              bool valid) const
+{
+  return new CQChartsPivotCellObj(this, rect, ind, ir, ic, name, value, hnorm, vnorm, valid);
 }
 
 //------

@@ -186,9 +186,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor color READ color    WRITE setColor)
 
  public:
-  CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
-                      const ColorInd &iset, const ColorInd &ival, const ColorInd &isval,
-                      const QModelIndex &ind);
+  CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const BBox &rect, const ColorInd &iset,
+                      const ColorInd &ival, const ColorInd &isval, const QModelIndex &ind);
 
   QString typeName() const override { return "bar"; }
 
@@ -209,7 +208,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }
 
-  CQChartsGeom::BBox dataLabelRect() const;
+  BBox dataLabelRect() const;
 
   //---
 
@@ -261,11 +260,11 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
                       const ColorInd &iv);
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
-  bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
+  bool tipText(const Point &p, QString &tip) const override;
 
   // get/set hidden
   bool isSetHidden() const;
@@ -390,7 +389,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
@@ -398,7 +397,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -449,11 +448,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // set dot lines
   void setDotLines(bool b);
 
- private:
-  void addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange) const;
+ protected:
+  void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
 
   void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
-                    CQChartsGeom::Range &dataRange) const;
+                    Range &dataRange) const;
 
   void initRangeAxes() const;
   void initRangeAxesI();
@@ -461,7 +460,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void initObjAxes() const;
   void initObjAxesI();
 
- private:
+ protected:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;
   using ValueNames    = std::vector<QString>;
   using ValueGroupInd = std::map<int,int>;
@@ -488,19 +487,24 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     return (! valueData_.valueSets.empty() ? valueData_.valueSets[0].numValues() : 0);
   }
 
- private:
+ protected:
   void initGroupValueSet() const;
 
   const CQChartsBarChartValueSet *groupValueSet(int groupId) const;
 
   CQChartsBarChartValueSet *groupValueSetI(int groupId);
 
- private:
+  virtual CQChartsBarChartObj *createBarObj(const BBox &rect, const ColorInd &is,
+                                            const ColorInd &ig, const ColorInd &iv,
+                                            const QModelIndex &ind) const;
+
+ protected:
   struct DotLineData {
     bool           enabled { false }; //!< shown
     CQChartsLength width   { "3px" }; //!< width
   };
 
+ private:
   // columns
   CQChartsColumn nameColumn_;  //!< name column
   CQChartsColumn labelColumn_; //!< data label column

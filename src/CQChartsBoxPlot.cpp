@@ -1404,8 +1404,8 @@ initRawObjs(PlotObjs &objs) const
           rect = CQChartsGeom::makeDirBBox(/*flipped*/ isHorizontal(),
                    pos - sbw, 0.0, pos + sbw, 1.0);
 
-        auto *boxObj = new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker,
-                                                     ColorInd(is, ns), ColorInd(ig, ng));
+        auto *boxObj = createWhiskerObj(rect, setId, groupInd, whisker,
+                                        ColorInd(is, ns), ColorInd(ig, ng));
 
         objs.push_back(boxObj);
 
@@ -1439,8 +1439,8 @@ initRawObjs(PlotObjs &objs) const
                 rect = CQChartsGeom::BBox(ovalue1 - osx, pos - osy, ovalue1 + osx, pos + osy);
             }
 
-            auto *outlierObj = new CQChartsBoxPlotOutlierObj(this, rect, setId, groupInd, whisker,
-                                                             ColorInd(is, ns), ColorInd(ig, ng), o);
+            auto *outlierObj = createOutlierObj(rect, setId, groupInd, whisker,
+                                                ColorInd(is, ns), ColorInd(ig, ng), o);
 
             objs.push_back(outlierObj);
           }
@@ -1467,7 +1467,7 @@ initRawObjs(PlotObjs &objs) const
 
       auto rect = getDataRange();
 
-      auto *connectedObj = new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ColorInd(ig, ng));
+      auto *connectedObj = createConnectedObj(rect, groupInd, ColorInd(ig, ng));
 
       objs.push_back(connectedObj);
     }
@@ -1530,8 +1530,8 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
         rect = CQChartsGeom::BBox(y1 - 0.01, x - 0.01, y1 + 0.01, x + 0.01);
     }
 
-    auto *pointObj = new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
-                                                 is, ig, ColorInd(iv, nv));
+    auto *pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
+                                    is, ig, ColorInd(iv, nv));
 
     objs.push_back(pointObj);
   }
@@ -1633,12 +1633,12 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
       else
         ppos.setY(prect.getYMid());
 
-      pointObj = new CQChartsBoxPlotPointObj(this, prect, setId, groupInd, ppos, value.ind,
-                                             is, ig, ColorInd(iv, nv));
+      pointObj = createPointObj(prect, setId, groupInd, ppos, value.ind,
+                                is, ig, ColorInd(iv, nv));
     }
     else {
-      pointObj = new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
-                                             is, ig, ColorInd(iv, nv));
+      pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
+                                is, ig, ColorInd(iv, nv));
     }
 
     objs.push_back(pointObj);
@@ -1669,7 +1669,7 @@ initCalcObjs(PlotObjs &objs) const
       rect = CQChartsGeom::makeDirBBox(/*flipped*/isHorizontal(),
                pos - bw, 0.0, pos + bw, 1.0);
 
-    auto *boxObj = new CQChartsBoxPlotDataObj(this, rect, whiskerData, ColorInd(is, ns));
+    auto *boxObj = createDataObj(rect, whiskerData, ColorInd(is, ns));
 
     objs.push_back(boxObj);
 
@@ -1707,8 +1707,8 @@ initCalcObjs(PlotObjs &objs) const
             rect = CQChartsGeom::BBox(ovalue1 - osx, pos - osy, ovalue1 + osx, pos + osy);
         }
 
-        auto *outlierObj = new CQChartsBoxPlotOutlierObj(this, rect, -1, -1, nullptr,
-                                                         ColorInd(is, ns), ColorInd(), io);
+        auto *outlierObj = createOutlierObj(rect, -1, -1, nullptr,
+                                            ColorInd(is, ns), ColorInd(), io);
 
         objs.push_back(outlierObj);
 
@@ -1909,6 +1909,50 @@ hasYAxis() const
     return false;
 
   return CQChartsPlot::hasYAxis();
+}
+
+//----
+
+CQChartsBoxPlotWhiskerObj *
+CQChartsBoxPlot::
+createWhiskerObj(const CQChartsGeom::BBox &rect, int setId, int groupInd,
+                 const CQChartsBoxPlotWhisker *whisker, const ColorInd &is,
+                 const ColorInd &ig) const
+{
+  return new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker, is, ig);
+}
+
+CQChartsBoxPlotOutlierObj *
+CQChartsBoxPlot::
+createOutlierObj(const CQChartsGeom::BBox &rect, int setId, int groupInd,
+                 const CQChartsBoxPlotWhisker *whisker, const ColorInd &is, const ColorInd &ig,
+                 int io) const
+{
+  return new CQChartsBoxPlotOutlierObj(this, rect, setId, groupInd, whisker, is, ig, io);
+}
+
+CQChartsBoxPlotDataObj *
+CQChartsBoxPlot::
+createDataObj(const CQChartsGeom::BBox &rect, const CQChartsBoxWhiskerData &data,
+              const ColorInd &is) const
+{
+  return new CQChartsBoxPlotDataObj(this, rect, data, is);
+}
+
+CQChartsBoxPlotConnectedObj *
+CQChartsBoxPlot::
+createConnectedObj(const CQChartsGeom::BBox &rect, int groupInd, const ColorInd &ig) const
+{
+  return new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ig);
+}
+
+CQChartsBoxPlotPointObj *
+CQChartsBoxPlot::
+createPointObj(const CQChartsGeom::BBox &rect, int setId, int groupInd,
+               const CQChartsGeom::Point &p, const QModelIndex &ind, const ColorInd &is,
+               const ColorInd &ig, const ColorInd &iv) const
+{
+  return new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, p, ind, is, ig, iv);
 }
 
 //------

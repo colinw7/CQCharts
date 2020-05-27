@@ -347,7 +347,7 @@ initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
 
     ColorInd is(hier->depth(), maxDepth() + 1);
 
-    hierObj = new CQChartsBubbleHierObj(this, hier, parentObj, rect, is);
+    hierObj = createHierObj(hier, parentObj, rect, is);
 
     objs.push_back(hierObj);
   }
@@ -371,7 +371,7 @@ initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
-    auto *obj = new CQChartsBubbleNodeObj(this, node, parentObj, rect, is);
+    auto *obj = createNodeObj(node, parentObj, rect, is);
 
     objs.push_back(obj);
   }
@@ -738,6 +738,24 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
   device->setBrush(Qt::NoBrush);
 
   device->drawEllipse(bbox);
+}
+
+//---
+
+CQChartsBubbleHierObj *
+CQChartsBubblePlot::
+createHierObj(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *hierObj,
+              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+{
+  return new CQChartsBubbleHierObj(this, hier, hierObj, rect, is);
+}
+
+CQChartsBubbleNodeObj *
+CQChartsBubblePlot::
+createNodeObj(CQChartsBubbleNode *node, CQChartsBubbleHierObj *hierObj,
+              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+{
+  return new CQChartsBubbleNodeObj(this, node, hierObj, rect, is);
 }
 
 //------

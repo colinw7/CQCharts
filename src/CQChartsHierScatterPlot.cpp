@@ -686,7 +686,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
-    auto *pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
+    auto *pointObj = createPointObj(bbox, p, iv);
 
     //---
 
@@ -779,6 +779,15 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//---
+
+CQChartsHierScatterPointObj *
+CQChartsHierScatterPlot::
+createPointObj(const CQChartsGeom::BBox &rect, const Point &p, const ColorInd &iv) const
+{
+  return new CQChartsHierScatterPointObj(this, rect, p, iv);
 }
 
 //------

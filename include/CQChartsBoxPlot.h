@@ -98,19 +98,18 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                     const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
-                     const ColorInd &iv=ColorInd());
+  CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const BBox &rect, const ColorInd &is=ColorInd(),
+                     const ColorInd &ig=ColorInd(), const ColorInd &iv=ColorInd());
 
   void drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
                  const QString &text, bool onLeft);
   void drawVText(CQChartsPaintDevice *device, double yt, double yb, double x,
                  const QString &text, bool onBottom);
 
-  void addHBBox(CQChartsGeom::BBox &pbbox, double xl, double xr, double y,
-                const QString &text, bool onLeft) const;
-  void addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
-                const QString &text, bool onBottom) const;
+  void addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text,
+                bool onLeft) const;
+  void addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text,
+                bool onBottom) const;
 
  protected:
   const CQChartsBoxPlot* plot_ { nullptr }; //!< parent plot
@@ -135,8 +134,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double notch       READ notch      )
 
  public:
-  CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                            int setId, int groupInd, const CQChartsBoxPlotWhisker *whisker,
+  CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
+                            int groupInd, const CQChartsBoxPlotWhisker *whisker,
                             const ColorInd &is, const ColorInd &ig);
 
   QString typeName() const override { return "whisker"; }
@@ -162,7 +161,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -178,7 +177,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   //---
 
-  CQChartsGeom::BBox annotationBBox() const;
+  BBox annotationBBox() const;
 
  private:
   double remapPos(double pos) const;
@@ -187,7 +186,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   int                           setId_    { 0 };       //!< set id
   int                           groupInd_ { 0 };       //!< group ind
   const CQChartsBoxPlotWhisker* whisker_  { nullptr }; //!< whisker data
-  CQChartsGeom::Polygon         poly_;                 //!< draw polygon
+  Polygon                       poly_;                 //!< draw polygon
 };
 
 //---
@@ -200,7 +199,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
+  CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
                             int groupInd, const CQChartsBoxPlotWhisker *whisker,
                             const ColorInd &is, const ColorInd &ig, int io);
 
@@ -235,7 +234,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double pos READ pos)
 
  public:
-  CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const BBox &rect,
                          const CQChartsBoxWhiskerData &data, const ColorInd &is);
 
   QString typeName() const override { return "data"; }
@@ -249,7 +248,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  CQChartsGeom::BBox annotationBBox() const;
+  BBox annotationBBox() const;
 
  private:
   double remapPos(double pos) const;
@@ -268,15 +267,15 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                              int groupInd, const ColorInd &ig);
+  CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const BBox &rect, int groupInd,
+                              const ColorInd &ig);
 
   QString typeName() const override { return "connected"; }
 
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -290,8 +289,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
  private:
   const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
   int                    groupInd_ { -1 };      //!< group ind
-  CQChartsGeom::Polygon  line_;                 //!< connected line
-  CQChartsGeom::Polygon  poly_;                 //!< connected polygon
+  Polygon                line_;                 //!< connected line
+  Polygon                poly_;                 //!< connected polygon
 };
 
 //---
@@ -304,17 +303,16 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                          int setId, int groupInd, const CQChartsGeom::Point &p,
-                          const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
-                          const ColorInd &iv);
+  CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
+                          int groupInd, const Point &p, const QModelIndex &ind,
+                          const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &) const override;
 
@@ -324,7 +322,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
   int                    setId_    { -1 };      //!< set id
   int                    groupInd_ { -1 };      //!< group id
-  CQChartsGeom::Point    p_;                    //!< point
+  Point                  p_;                    //!< point
 };
 
 //---
@@ -341,7 +339,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig);
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -485,6 +483,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   using GroupSetWhiskerMap = std::map<int,SetWhiskerMap>;
   using WhiskerDataList    = std::vector<CQChartsBoxWhiskerData>;
 
+  using RMinMax = CQChartsGeom::RMinMax;
+
  public:
   CQChartsBoxPlot(CQChartsView *view, const ModelP &model);
 
@@ -622,10 +622,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
-  CQChartsGeom::Range updateRawRange () const;
-  CQChartsGeom::Range updateCalcRange() const;
+  Range updateRawRange () const;
+  Range updateCalcRange() const;
 
   void updateRawWhiskers() const;
 
@@ -643,7 +643,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -689,7 +689,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // set error bar
   void setErrorBar(bool b);
 
- private:
+ protected:
   bool initRawObjs (PlotObjs &objs) const;
   bool initCalcObjs(PlotObjs &objs) const;
 
@@ -701,13 +701,35 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void clearRawWhiskers();
 
   void addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
-                  CQChartsGeom::Range &dataRange, CQChartsGeom::RMinMax &xrange) const;
+                  Range &dataRange, RMinMax &xrange) const;
 
   void addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const;
 
- private:
-  using RMinMax = CQChartsGeom::RMinMax;
+  //---
 
+  virtual CQChartsBoxPlotWhiskerObj *createWhiskerObj(const BBox &rect, int setId, int groupInd,
+                                                      const CQChartsBoxPlotWhisker *whisker,
+                                                      const ColorInd &is,
+                                                      const ColorInd &ig) const;
+
+  virtual CQChartsBoxPlotOutlierObj *createOutlierObj(const BBox &rect, int setId, int groupInd,
+                                                      const CQChartsBoxPlotWhisker *whisker,
+                                                      const ColorInd &is, const ColorInd &ig,
+                                                      int io) const;
+
+  virtual CQChartsBoxPlotDataObj *createDataObj(const BBox &rect,
+                                                const CQChartsBoxWhiskerData &data,
+                                                const ColorInd &is) const;
+
+  virtual CQChartsBoxPlotConnectedObj *createConnectedObj(const BBox &rect, int groupInd,
+                                                          const ColorInd &ig) const;
+
+  virtual CQChartsBoxPlotPointObj *createPointObj(const BBox &rect, int setId, int groupInd,
+                                                  const Point &p, const QModelIndex &ind,
+                                                  const ColorInd &is, const ColorInd &ig,
+                                                  const ColorInd &iv) const;
+
+ private:
   CQChartsColumns    valueColumns_;                                  //!< value columns
   CQChartsColumn     nameColumn_;                                    //!< name column
   CQChartsColumn     setColumn_;                                     //!< set column

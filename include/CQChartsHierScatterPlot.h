@@ -42,8 +42,10 @@ class CQChartsHierScatterPointGroup;
 using CQChartsHierScatterPointGroupMap = std::map<int,CQChartsHierScatterPointGroup *>;
 
 struct CQChartsHierScatterPoint {
+  using Point = CQChartsGeom::Point;
+
   CQChartsHierScatterPointGroup* group { nullptr };
-  CQChartsGeom::Point            p;
+  Point                          p;
   QString                        name;
   int                            i     { 0 };
   QModelIndex                    ind;
@@ -172,8 +174,8 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                              const CQChartsGeom::Point &p, const ColorInd &iv);
+  CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const BBox &rect,
+                              const Point &p, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -187,7 +189,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -195,7 +197,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
  private:
   const CQChartsHierScatterPlot* plot_ { nullptr };
-  CQChartsGeom::Point            p_;
+  Point                          p_;
   QString                        name_;
   CQChartsHierScatterPointGroup* group_ { nullptr };
 };
@@ -215,7 +217,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                               const ColorInd &ic);
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -297,7 +299,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void initGroupValueSets();
 
@@ -328,7 +330,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
- private:
+ protected:
   void resetAxes();
 
   void initAxes();
@@ -336,6 +338,11 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   //---
 
   bool probe(ProbeData &probeData) const override;
+
+  //---
+
+  virtual CQChartsHierScatterPointObj *createPointObj(const BBox &rect, const Point &p,
+                                                      const ColorInd &iv) const;
 
  public slots:
   void popCurrentGroup();

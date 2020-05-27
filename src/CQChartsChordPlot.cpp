@@ -759,6 +759,8 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
+  th->chordObjs_.clear();
+
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
 
@@ -767,12 +769,12 @@ initTableObjs(PlotObjs &objs) const
     ColorInd ig(data.group().i, data.group().n);
     ColorInd iv(row, nv);
 
-    auto *obj = new CQChartsChordObj(this, rect, data, ig, iv);
+    auto *obj = createChordObj(rect, data, ig, iv);
 
     objs.push_back(obj);
-  }
 
-  //---
+    th->chordObjs_.push_back(obj);
+  }
 
   return true;
 }
@@ -906,6 +908,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   //---
 
+  th->chordObjs_.clear();
+
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
 
@@ -918,9 +922,11 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
     ColorInd iv(row, nv);
 
-    auto *obj = new CQChartsChordObj(this, rect, data, ig, iv);
+    auto *obj = createChordObj(rect, data, ig, iv);
 
     objs.push_back(obj);
+
+    th->chordObjs_.push_back(obj);
   }
 }
 
@@ -937,6 +943,37 @@ getChordGroup(const QVariant &groupVar) const
 
   return ChordData::Group(groupStr, ig, ng);
 }
+
+//---
+
+CQChartsChordObj *
+CQChartsChordPlot::
+chordObject(int ind) const
+{
+  for (const auto &obj : chordObjs_) {
+    if (obj->data().from() == ind)
+      return obj;
+  }
+
+  return nullptr;
+}
+
+#if 0
+CQChartsChordObj *
+CQChartsChordPlot::
+plotObject(int ind) const
+{
+  for (int i = 0; i < numPlotObjects(); ++i) {
+    auto *obj = dynamic_cast<CQChartsChordObj *>(plotObject(i));
+    if (! obj) continue;
+
+    if (obj->data().from() == ind)
+      return obj;
+  }
+
+  return nullptr;
+}
+#endif
 
 //---
 
@@ -959,6 +996,16 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   textBox_->write(os, plotVarName);
+}
+
+//---
+
+CQChartsChordObj *
+CQChartsChordPlot::
+createChordObj(const CQChartsGeom::BBox &rect, const ChordData &data,
+               const ColorInd &ig, const ColorInd &iv) const
+{
+  return new CQChartsChordObj(this, rect, data, ig, iv);
 }
 
 //------
@@ -1034,6 +1081,8 @@ arcData() const
   return arcData;
 }
 
+//---
+
 void
 CQChartsChordObj::
 getObjSelectIndices(Indices &inds) const
@@ -1041,6 +1090,27 @@ getObjSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->linkColumn ());
   addColumnSelectIndex(inds, plot_->groupColumn());
 }
+
+CQChartsChordObj::PlotObjs
+CQChartsChordObj::
+getConnected() const
+{
+  PlotObjs plotObjs;
+
+  for (const auto &value : data_.values()) {
+    if (! value.primary)
+      continue;
+
+    auto *toObj = dynamic_cast<CQChartsChordObj *>(plot_->chordObject(value.to));
+    if (! toObj) continue;
+
+    plotObjs.push_back(toObj);
+  }
+
+  return plotObjs;
+}
+
+//---
 
 void
 CQChartsChordObj::
@@ -1109,7 +1179,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    auto *toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
+    auto *toObj = plot_->chordObject(value.to);
     if (! toObj) continue;
 
     double a2, da2;
@@ -1233,8 +1303,12 @@ calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const
 
   QColor fromColor = calcFromColor();
 
+#if 0
   ColorInd toColorInd = toObj->calcColorInd();
   QColor   toColor    = plot_->interpPaletteColor(toColorInd);
+#else
+  QColor toColor = toObj->calcFromColor();
+#endif
 
   QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
@@ -1325,7 +1399,7 @@ textBBox() const
   CQChartsGeom::BBox tbbox;
 
   plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, data_.name(),
-                                                /*isRotated*/false, tbbox);
+                                                plot_->isRotatedText(), tbbox);
 
   return tbbox;
 }
@@ -1342,20 +1416,6 @@ CQChartsChordObj::
 outerRadius() const
 {
   return 1.0;
-}
-
-CQChartsChordObj *
-CQChartsChordObj::
-plotObject(int ind) const
-{
-  for (int i = 0; i < plot_->numPlotObjects(); ++i) {
-    auto *obj = dynamic_cast<CQChartsChordObj *>(plot_->plotObject(i));
-
-    if (obj->data().from() == ind)
-      return obj;
-  }
-
-  return nullptr;
 }
 
 void
