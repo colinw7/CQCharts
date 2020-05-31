@@ -205,8 +205,12 @@ CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
-CQChartsViewPlotPaintDevice.cpp \
+CQChartsHtmlPaintDevice.cpp \
 CQChartsPaintDevice.cpp \
+CQChartsScriptPaintDevice.cpp \
+CQChartsSVGPaintDevice.cpp \
+CQChartsViewPlotPaintDevice.cpp \
+\
 CQChartsDrawUtil.cpp \
 CQChartsUtil.cpp \
 CQChartsWidgetUtil.cpp \
@@ -305,7 +309,7 @@ CQPivotModel.cpp \
 CQBucketer.cpp \
 CQTrie.cpp \
 \
-CQTabSplit.cpp \
+CQHandDrawnPainter.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
 \
@@ -439,8 +443,12 @@ HEADERS += \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsEnv.h \
 \
-../include/CQChartsViewPlotPaintDevice.h \
+../include/CQChartsHtmlPaintDevice.h \
 ../include/CQChartsPaintDevice.h \
+../include/CQChartsScriptPaintDevice.h \
+../include/CQChartsSVGPaintDevice.h \
+../include/CQChartsViewPlotPaintDevice.h \
+\
 ../include/CQChartsDrawUtil.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsWidgetUtil.h \
@@ -610,7 +618,7 @@ HEADERS += \
 ../include/CQStatData.h \
 ../include/CQValueSet.h \
 \
-../include/CQTabSplit.h \
+../include/CQHandDrawnPainter.h \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
 \

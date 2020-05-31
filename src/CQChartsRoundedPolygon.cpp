@@ -59,7 +59,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double xsize, 
       device->drawRect(bbox);
     }
     else {
-      device->fillRect(bbox, device->brush());
+      device->fillRect(bbox);
 
       if (sides.isLeft())
         device->drawLine(bbox.getLL(), bbox.getUL());

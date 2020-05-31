@@ -11,6 +11,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsHtml.h>

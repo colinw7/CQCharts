@@ -263,6 +263,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
+  QPen   strokePen() const override;
 
   bool tipText(const Point &p, QString &tip) const override;
 

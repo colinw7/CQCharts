@@ -277,7 +277,7 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(CQChartsGeom::BBox  absoluteRectangle
              READ absoluteRectangle WRITE setAbsoluteRectangle)
 
-  Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
+  Q_PROPERTY(double            spacing      READ spacing      WRITE setSpacing     )
   Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
@@ -332,9 +332,9 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  // item spacing
-  int spacing() const { return spacing_; }
-  void setSpacing(int i) { spacing_ = i; updateLayout(); }
+  // item spacing (pixels)
+  double spacing() const { return spacing_; }
+  void setSpacing(double i) { spacing_ = i; updateLayout(); }
 
   //---
 
@@ -498,7 +498,7 @@ class CQChartsPlotKey : public CQChartsKey {
   };
 
   Location           locationData_;            //!< key location data
-  int                spacing_       { 2 };     //!< key item spacing
+  double             spacing_       { 2 };     //!< key item spacing (pixels)
   bool               flipped_       { false }; //!< key order flipped
   Items              items_;                   //!< key items
   int                maxRow_        { 0 };     //!< maximum key row
@@ -673,6 +673,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Size size() const override;
 
   virtual QBrush fillBrush() const;
+  virtual QPen strokePen() const;
 
   virtual const CQChartsColor &strokeColor() const { return boxData_.shape().stroke().color(); }
   virtual void setStrokeColor(const CQChartsColor &c) { boxData_.shape().stroke().setColor(c); }

@@ -11,6 +11,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -2251,8 +2252,7 @@ draw(CQChartsPaintDevice *device)
       symbol.setType(CQChartsSymbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
-      CQChartsDensity::drawErrorBar(plot_, device, rect, mean, orientation,
-                                    symbol);
+      CQChartsDensity::drawErrorBar(plot_, device, rect, mean, orientation, symbol);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke

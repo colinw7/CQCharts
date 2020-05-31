@@ -137,6 +137,11 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
+  // hand drawn
+  Q_PROPERTY(bool   handDrawn     READ isHandDrawn   WRITE setHandDrawn    )
+  Q_PROPERTY(double handRoughness READ handRoughness WRITE setHandRoughness)
+  Q_PROPERTY(double handFillDelta READ handFillDelta WRITE setHandFillDelta)
+
   Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
 
   Q_ENUMS(Mode)
@@ -178,6 +183,11 @@ class CQChartsView : public QFrame,
   };
 
   using DrawType = CQChartsObjDrawType;
+
+  using Point   = CQChartsGeom::Point;
+  using BBox    = CQChartsGeom::BBox;
+  using Size    = CQChartsGeom::Size;
+  using Polygon = CQChartsGeom::Polygon;
 
  public:
   using Plots       = std::vector<CQChartsPlot*>;
@@ -303,6 +313,17 @@ class CQChartsView : public QFrame,
 
   //---
 
+  bool isHandDrawn() const { return handDrawn_; }
+  void setHandDrawn(bool b);
+
+  double handRoughness() const { return handRoughness_; }
+  void setHandRoughness(double r);
+
+  double handFillDelta() const { return handFillDelta_; }
+  void setHandFillDelta(double r);
+
+  //---
+
   int searchTimeout() const { return searchTimeout_; }
   void setSearchTimeout(int i);
 
@@ -317,7 +338,7 @@ class CQChartsView : public QFrame,
 
   QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled=true) const;
 
-  double calcFontScale(const CQChartsGeom::Size &size) const;
+  double calcFontScale(const Size &size) const;
 
   //---
 
@@ -333,7 +354,7 @@ class CQChartsView : public QFrame,
 
   QFont plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled=true) const;
 
-  QFont scaledFont(const QFont &font, const CQChartsGeom::Size &size) const;
+  QFont scaledFont(const QFont &font, const Size &size) const;
   QFont scaledFont(const QFont &font, double s) const;
 
   //---
@@ -408,7 +429,7 @@ class CQChartsView : public QFrame,
   //---
 
   // add/get/modify plots
-  void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox());
+  void addPlot(CQChartsPlot *plot, const BBox &bbox=BBox());
 
   int numPlots() const { return plots_.size(); }
 
@@ -533,7 +554,7 @@ class CQChartsView : public QFrame,
 
   void keyPressEvent(QKeyEvent *ke) override;
 
-  CQChartsGeom::Point adjustMousePos(const CQChartsGeom::Point &pos) const;
+  Point adjustMousePos(const Point &pos) const;
 
   //---
 
@@ -634,21 +655,19 @@ class CQChartsView : public QFrame,
   //---
 
   // probe lines
-  void showProbeLines(const CQChartsGeom::Point &p);
+  void showProbeLines(const Point &p);
 
   //---
 
   // update cursor position text
-  void updatePosText(const CQChartsGeom::Point &pos);
+  void updatePosText(const Point &pos);
 
   //---
 
   // handle region rubberband
-  void startRegionBand(const CQChartsGeom::Point &pos);
-  void updateRegionBand(CQChartsPlot *plot, const CQChartsGeom::Point &pressPoint,
-                        const CQChartsGeom::Point &movePoint);
-  void updateRegionBand(const CQChartsGeom::Point &pressPoint,
-                        const CQChartsGeom::Point &movePoint);
+  void startRegionBand(const Point &pos);
+  void updateRegionBand(CQChartsPlot *plot, const Point &pressPoint, const Point &movePoint);
+  void updateRegionBand(const Point &pressPoint, const Point &movePoint);
   void endRegionBand();
 
   //---
@@ -670,9 +689,9 @@ class CQChartsView : public QFrame,
   //---
 
   // show context menu
-  void showMenu(const CQChartsGeom::Point &p);
+  void showMenu(const Point &p);
 
-  CQChartsGeom::Point menuPos() const { return mousePressPoint(); }
+  Point menuPos() const { return mousePressPoint(); }
 
   //---
 
@@ -680,8 +699,8 @@ class CQChartsView : public QFrame,
   const Plots &mousePlots() const { return mouseData_.plots; }
   const CQChartsPlot *mousePlot() const { return mouseData_.plot; }
 
-  CQChartsGeom::Point mousePressPoint() const { return mouseData_.pressPoint; }
-  CQChartsGeom::Point mouseMovePoint () const { return mouseData_.movePoint; }
+  Point mousePressPoint() const { return mouseData_.pressPoint; }
+  Point mouseMovePoint () const { return mouseData_.movePoint; }
 
   bool mousePressed() const { return mouseData_.pressed; }
   int  mouseButton () const { return mouseData_.button; }
@@ -701,17 +720,17 @@ class CQChartsView : public QFrame,
   bool addBasePlots(PlotSet &plots, bool clear=true) const;
 
   // get plots at point
-  CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
+  CQChartsPlot *plotAt(const Point &p) const;
 
-  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
+  bool plotsAt(const Point &p, Plots &plots, CQChartsPlot* &plot,
                bool clear=true, bool first=false) const;
 
-  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, bool clear=true) const;
+  bool plotsAt(const Point &p, Plots &plots, bool clear=true) const;
 
-  bool basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear=true) const;
+  bool basePlotsAt(const Point &p, PlotSet &plots, bool clear=true) const;
 
   // get plot bbox
-  CQChartsGeom::BBox plotBBox(CQChartsPlot *plot) const;
+  BBox plotBBox(CQChartsPlot *plot) const;
 
   //---
 
@@ -767,12 +786,12 @@ class CQChartsView : public QFrame,
   //---
 
   // position, rect, length coordinate conversions
-  CQChartsGeom::Point positionToView (const CQChartsPosition &pos) const;
-  CQChartsGeom::Point positionToPixel(const CQChartsPosition &pos) const;
+  Point positionToView (const CQChartsPosition &pos) const;
+  Point positionToPixel(const CQChartsPosition &pos) const;
 
   // rect
-  CQChartsGeom::BBox rectToView (const CQChartsRect &rect) const;
-  CQChartsGeom::BBox rectToPixel(const CQChartsRect &rect) const;
+  BBox rectToView (const CQChartsRect &rect) const;
+  BBox rectToPixel(const CQChartsRect &rect) const;
 
   double lengthViewWidth (const CQChartsLength &len) const;
   double lengthViewHeight(const CQChartsLength &len) const;
@@ -783,11 +802,11 @@ class CQChartsView : public QFrame,
   //---
 
   // coordinate conversions
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
-  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
+  Point windowToPixel(const Point &w) const;
+  Point pixelToWindow(const Point &p) const;
 
-  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
-  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
+  BBox windowToPixel(const BBox &w) const;
+  BBox pixelToWindow(const BBox &p) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
@@ -801,16 +820,16 @@ class CQChartsView : public QFrame,
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
-  CQChartsGeom::Size pixelToWindowSize(const CQChartsGeom::Size &ps) const;
+  Size pixelToWindowSize(const Size &ps) const;
 
-  CQChartsGeom::Polygon windowToPixel(const CQChartsGeom::Polygon &p) const;
+  Polygon windowToPixel(const Polygon &p) const;
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
   //---
 
   // get pixel rect
-  const CQChartsGeom::BBox prect() const { return prect_; }
+  const BBox prect() const { return prect_; }
 
   // get aspect
   double aspect() const { return aspect_; }
@@ -907,6 +926,7 @@ class CQChartsView : public QFrame,
   void plotModelChanged();
   void plotConnectDataChangedSlot();
 
+  void updateAll();
   void updatePlots();
 
   void updateSlot();
@@ -1040,7 +1060,7 @@ class CQChartsView : public QFrame,
 
   int plotPos(CQChartsPlot *plot) const;
 
-  void annotationsAtPoint(const CQChartsGeom::Point &w, Annotations &annotations) const;
+  void annotationsAtPoint(const Point &w, Annotations &annotations) const;
 
   void windowToPixelI(double wx, double wy, double &px, double &py) const;
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
@@ -1075,19 +1095,19 @@ class CQChartsView : public QFrame,
 
   //! structure for mouse interaction data
   struct MouseData {
-    Plots               plots;                                   //!< plots at mouse point
-    CQChartsPlot*       plot       { nullptr };                  //!< plot at mouse point
-    CQChartsGeom::Point pressPoint { 0, 0 };                     //!< press point
-    CQChartsGeom::Point oldMovePoint;                            //!< previous move point
-    CQChartsGeom::Point movePoint  { 0, 0 };                     //!< move point
-    bool                pressed    { false };                    //!< is pressed
-    bool                escape     { false };                    //!< escape pressed
-    int                 button     { Qt::NoButton };             //!< press button
-    CQChartsSelMod      selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
-    CQChartsSelMod      clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
-    DragObj             dragObj    { DragObj::NONE };            //!< drag object
-    CQChartsResizeSide  dragSide   { CQChartsResizeSide::NONE }; //!< drag sided
-    bool                dragged    { false };                    //!< is dragged
+    Plots              plots;                                   //!< plots at mouse point
+    CQChartsPlot*      plot       { nullptr };                  //!< plot at mouse point
+    Point              pressPoint { 0, 0 };                     //!< press point
+    Point              oldMovePoint;                            //!< previous move point
+    Point              movePoint  { 0, 0 };                     //!< move point
+    bool               pressed    { false };                    //!< is pressed
+    bool               escape     { false };                    //!< escape pressed
+    int                button     { Qt::NoButton };             //!< press button
+    CQChartsSelMod     selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
+    CQChartsSelMod     clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
+    DragObj            dragObj    { DragObj::NONE };            //!< drag object
+    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE }; //!< drag sided
+    bool               dragged    { false };                    //!< is dragged
 
     void reset() {
       plots.clear();
@@ -1124,7 +1144,7 @@ class CQChartsView : public QFrame,
 
   //! structure containing the data for scrolled plots
   struct ScrollData {
-    using PlotBBox = std::map<QString,CQChartsGeom::BBox>;
+    using PlotBBox = std::map<QString, BBox>;
 
     bool     active      { false }; //!< active
     double   delta       { 100 };   //!< delta percent
@@ -1167,14 +1187,18 @@ class CQChartsView : public QFrame,
   bool                  scaleFont_         { true };              //!< auto scale font
   double                fontFactor_        { 1.0 };               //!< font scale factor
   CQChartsFont          font_;                                    //!< font
+  CQChartsFont          saveFont_;                                //!< font
+  bool                  handDrawn_         { false };
+  double                handRoughness_     { 1.0 };
+  double                handFillDelta_     { 16 };
   SizeData              sizeData_;                                //!< size control
   PosTextType           posTextType_       { PosTextType::PLOT }; //!< position text type
-  CQChartsGeom::BBox    prect_             { 0, 0, 100, 100 };    //!< plot rect
+  BBox                  prect_             { 0, 0, 100, 100 };    //!< plot rect
   double                aspect_            { 1.0 };               //!< current aspect
   MouseData             mouseData_;                               //!< mouse data
   int                   searchTimeout_     { 10 };                //!< search timeout
   QTimer*               searchTimer_       { nullptr };           //!< search timer
-  CQChartsGeom::Point   searchPos_;                               //!< search pos
+  Point                 searchPos_;                               //!< search pos
   QRubberBand*          regionBand_        { nullptr };           //!< zoom region rubberband
   ProbeBands            probeBands_;                              //!< probe lines
   QMenu*                popupMenu_         { nullptr };           //!< context menu

@@ -1887,8 +1887,8 @@ draw(CQChartsPaintDevice *device) const
 
     Cell &cell = rowColCell_[item->row()][col];
 
-    double x1 = cell.x - sx_;
-    double y1 = cell.y + sy_;
+    double x1 = cell.x - xs_;
+    double y1 = cell.y + ys_;
     double w1 = cell.width;
     double h1 = cell.height;
 
@@ -1904,7 +1904,8 @@ draw(CQChartsPaintDevice *device) const
       h1 += cell1.height;
     }
 
-    CQChartsGeom::BBox bbox(x1 + x, y1 + y - h1, x1 + x + w1, y1 + y);
+    CQChartsGeom::BBox bbox(x1 + x      + xs_/2.0, y1 + y - h1 + ys_/2.0,
+                            x1 + x + w1 - xs_/2.0, y1 + y      - ys_/2.0);
 
     item->setBBox(bbox);
 
@@ -2190,16 +2191,17 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   auto prect1 = prect.adjusted(2, 2, -2, -2, swapped);
   if (swapped) return;
 
-  ColorInd colorInd = calcColorInd();
+  //---
 
-  QColor bc    = interpStrokeColor(colorInd);
-  QBrush brush = fillBrush();
+  CQChartsPenBrush penBrush;
+
+  penBrush.pen   = strokePen();
+  penBrush.brush = fillBrush();
 
   if (isInside())
-    brush.setColor(plot->insideColor(brush.color()));
+    penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
-  device->setPen  (bc);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(prect1), cornerRadius());
 }
@@ -2230,6 +2232,15 @@ fillBrush() const
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+QPen
+CQChartsKeyColorBox::
+strokePen() const
+{
+  ColorInd ic = calcColorInd();
+
+  return interpStrokeColor(ic);
 }
 
 CQChartsKeyColorBox::ColorInd
@@ -2334,8 +2345,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     CQChartsPenData  (true, lc),
     CQChartsBrushData(true, fc));
 
-  device->setPen  (penBrush.pen);
-  device->setBrush(penBrush.brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawLine(device->pixelToWindow(CQChartsGeom::Point(x1, y)),
                    device->pixelToWindow(CQChartsGeom::Point(x2, y)));
@@ -2419,7 +2429,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   CQChartsGeom::BBox fbbox(pg1.x                    , pg2.y,
                            pg1.x + lprect.getWidth(), pg2.y + lprect.getHeight());
 
-  device->fillRect(device->pixelToWindow(fbbox), brush);
+  device->setBrush(brush);
+
+  device->fillRect(device->pixelToWindow(fbbox));
 
   //---
 

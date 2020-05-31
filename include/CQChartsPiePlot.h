@@ -513,6 +513,16 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
+  //---
+
+  virtual CQChartsPieTextObj *createTextObj() const;
+
+  virtual CQChartsPieGroupObj *createGroupObj(const BBox &bbox, int groupInd, const QString &name,
+                                              const ColorInd &ig) const;
+
+  virtual CQChartsPieObj *createPieObj(const BBox &rect, const QModelIndex &ind,
+                                       const ColorInd &ig) const;
+
  public slots:
   void setDonut(bool b);
 

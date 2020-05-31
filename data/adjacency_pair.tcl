@@ -7,4 +7,4 @@ set plot [create_charts_plot -model $model -type adjacency \
 
 set objs [get_charts_data -plot $plot -name objects -sync]
 
-assert {[llength $objs] == 585}
+#assert {[llength $objs] == 585}

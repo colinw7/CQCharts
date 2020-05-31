@@ -12,6 +12,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -382,7 +383,7 @@ addCellObj(int row, int col, double x, double y, double dx, double dy, double va
 {
   CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
 
-  auto *cellObj = new CQChartsCorrelationCellObj(this, bbox, row, col, value, ind);
+  auto *cellObj = createCellObj(bbox, row, col, value, ind);
 
   objs.push_back(cellObj);
 }
@@ -819,6 +820,15 @@ calcAnnotationBBox() const
   return bbox;
 }
 
+//---
+
+CQChartsCorrelationCellObj *
+CQChartsCorrelationPlot::
+createCellObj(const BBox &rect, int row, int col, double value, const QModelIndex &ind) const
+{
+  return new CQChartsCorrelationCellObj(this, rect, row, col, value, ind);
+}
+
 //------
 
 CQChartsCorrelationCellObj::
@@ -1031,7 +1041,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsPenBrush penBrush1 = penBrush;
 
-      penBrush1.brush = QBrush(Qt::NoBrush);
+      plot_->setBrush(penBrush1, CQChartsBrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 

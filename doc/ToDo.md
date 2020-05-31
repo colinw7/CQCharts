@@ -3,9 +3,14 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Handdrawn
+   + Purisa font
+ + remove device->setBrush/setPen calls
+ + Use PlotType/Plot class hierarchy for create plot dialog menu
  + Connection Plots
    + how handle different src/dest values (bi-directional connection)
    + more common code
+   + allow manual placment of sankey ?
  + Model
    + Bucket and Fold by Hier
  + Real iformat for % values ?

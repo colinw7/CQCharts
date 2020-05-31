@@ -407,8 +407,7 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
     data.shape().fill().isVisible(), fc, data.shape().fill().alpha(),
     data.shape().fill().pattern());
 
-  painter->setPen  (penBrush.pen);
-  painter->setBrush(penBrush.brush);
+  CQChartsDrawUtil::setPenBrush(painter, penBrush);
 
   //---
 

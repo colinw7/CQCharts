@@ -699,6 +699,38 @@ selectMousePress(const CQChartsGeom::Point &p, SelMod)
 
 //---
 
+CQChartsLine3DObj *
+CQChartsPlot3D::
+createLineObj(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
+              const QColor &color) const
+{
+  return new CQChartsLine3DObj(this, p1, p2, color);
+}
+
+CQChartsText3DObj *
+CQChartsPlot3D::
+createTextObj(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
+              const QString &text) const
+{
+  return new CQChartsText3DObj(this, p1, p2, text);
+}
+
+CQChartsPolyline3DObj *
+CQChartsPlot3D::
+createPolylineObj(const CQChartsGeom::Polygon3D &poly) const
+{
+  return new CQChartsPolyline3DObj(this, poly);
+}
+
+CQChartsPolygon3DObj *
+CQChartsPlot3D::
+createPolygonObj(const CQChartsGeom::Polygon3D &poly) const
+{
+  return new CQChartsPolygon3DObj(this, poly);
+}
+
+//---
+
 CQChartsPlot3DObj::
 CQChartsPlot3DObj(const CQChartsPlot3D *plot3D) :
  CQChartsPlotObj(const_cast<CQChartsPlot3D *>(plot3D), CQChartsGeom::BBox(0, 0, 1, 1),

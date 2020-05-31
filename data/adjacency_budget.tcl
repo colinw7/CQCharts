@@ -3,6 +3,14 @@ proc objPressed { view plot id } {
 
   set model [get_charts_data -plot $plot -name model]
 
+  set inds [get_charts_data -plot $plot -object $id -name inds]
+
+  echo "Inds"
+
+  foreach ind $inds {
+    echo "$ind"
+  }
+
   set objs [get_charts_data -plot $plot -object $id -name connected]
 
   echo "Connected"

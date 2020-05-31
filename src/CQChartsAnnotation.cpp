@@ -14,6 +14,7 @@
 #include <CQChartsKey.h>
 #include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsSVGPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -317,7 +318,7 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
   addStyleProp(path, "filled"     , "visible", "Fill visible");
   addStyleProp(path, "fillColor"  , "color"  , "Fill color"  );
   addStyleProp(path, "fillAlpha"  , "alpha"  , "Fill alpha"  );
-  addStyleProp(path, "fillPattern", "pattern", "Fill pattern", true);
+  addStyleProp(path, "fillPattern", "pattern", "Fill pattern");
 }
 
 void
@@ -2401,8 +2402,6 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw box
-  //CQChartsBoxObj::draw(device, bbox_, penBrush);
-
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
@@ -3054,7 +3053,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
   addStyleProp(fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
   addStyleProp(fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
-  addStyleProp(fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern", true);
+  addStyleProp(fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern");
 
   QString strokePath = path1 + "/stroke";
 

@@ -28,6 +28,8 @@
 #include <CQChartsTitleEdit.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
+#include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDocument.h>
 
 #include <CQPropertyViewModel.h>
@@ -319,6 +321,11 @@ addProperties()
     setMinValue(0.001);
   addStyleProp("text", "font"      , "font"  , "Global text font");
 
+  // handdrawn
+  addStyleProp("handdrawn", "handDrawn"    , "enabled"  , "Enable handdraw painter");
+  addStyleProp("handdrawn", "handRoughness", "roughness", "Handdraw roughness");
+  addStyleProp("handdrawn", "handFillDelta", "fillDelta", "Handdraw fill delta");
+
   // sizing
   addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
   addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
@@ -553,6 +560,44 @@ CQChartsView::
 setFont(const CQChartsFont &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
+}
+
+//---
+
+void
+CQChartsView::
+setHandDrawn(bool b)
+{
+  CQChartsUtil::testAndSet(handDrawn_, b, [&]() {
+    if (handDrawn_) {
+      saveFont_ = font_;
+
+      QFont f = font_.font();
+
+      f.setFamily("purisa");
+
+      font_ = CQChartsFont(f);
+    }
+    else {
+      font_ = saveFont_;
+    }
+
+    updateAll();
+  } );
+}
+
+void
+CQChartsView::
+setHandRoughness(double r)
+{
+  CQChartsUtil::testAndSet(handRoughness_, r, [&]() { updateAll(); } );
+}
+
+void
+CQChartsView::
+setHandFillDelta(double r)
+{
+  CQChartsUtil::testAndSet(handFillDelta_, r, [&]() { updateAll(); } );
 }
 
 //---
@@ -3470,7 +3515,9 @@ drawBackground(CQChartsPaintDevice *device) const
   setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
            backgroundFillAlpha(), backgroundFillPattern());
 
-  device->fillRect(prect_, brush);
+  device->setBrush(brush);
+
+  device->fillRect(prect_);
 }
 
 void
@@ -5236,12 +5283,7 @@ updateTheme()
 
   setInsideStrokeWidth(CQChartsLength("2px"));
 
-  updatePlots();
-
-  invalidateObjects();
-  invalidateOverlay();
-
-  update();
+  updateAll();
 
   emit themePalettesChanged();
 }
@@ -5259,12 +5301,7 @@ setDark(bool b)
 {
   charts()->setDark(b);
 
-  updatePlots();
-
-  invalidateObjects();
-  invalidateOverlay();
-
-  update();
+  updateAll();
 }
 
 //------
@@ -5961,6 +5998,18 @@ currentPlotSlot()
 }
 
 //------
+
+void
+CQChartsView::
+updateAll()
+{
+  updatePlots();
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+}
 
 void
 CQChartsView::

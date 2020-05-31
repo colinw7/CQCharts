@@ -55,6 +55,9 @@ while ($#argv > 0)
     setenv CQ_CHARTS_PLOT_UPDATE_TIMEOUT -1
     set opts = ($opts -record)
     shift
+  else if ("$1" == "-perf_client") then
+    set opts = ($opts -perf_client)
+    shift
   else if ("$1" == "-pixmap") then
     setenv CQ_CHARTS_LAYER_PIXMAP 1
     shift

@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQPropertyViewModel.h>
 
 CQChartsPlotObj::
@@ -62,6 +63,40 @@ yColorValue(bool relative) const
   }
   else
     return y;
+}
+
+//---
+
+QModelIndex
+CQChartsPlotObj::
+modelInd() const
+{
+  return (! modelInds_.empty() ? modelInds_[0] : QModelIndex());
+}
+
+void
+CQChartsPlotObj::
+setModelInd(const QModelIndex &ind)
+{
+  modelInds_.clear();
+
+  addModelInd(ind);
+}
+
+void
+CQChartsPlotObj::
+setModelInds(const ModelIndices &inds)
+{
+  modelInds_ = inds;
+}
+
+void
+CQChartsPlotObj::
+addModelInd(const QModelIndex &ind)
+{
+  assert(ind.isValid());
+
+  modelInds_.push_back(ind);
 }
 
 //---

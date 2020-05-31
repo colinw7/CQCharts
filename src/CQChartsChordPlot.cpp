@@ -13,6 +13,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>

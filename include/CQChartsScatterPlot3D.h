@@ -55,9 +55,9 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   using Point3D = CQChartsGeom::Point3D;
 
  public:
-  CQChartsScatterPoint3DObj(const CQChartsScatterPlot3D *plot, int groupInd,
-                            const CQChartsGeom::BBox &rect, const Point3D &pos,
-                            const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
+  CQChartsScatterPoint3DObj(const CQChartsScatterPlot3D *plot, int groupInd, const BBox &rect,
+                            const Point3D &pos, const ColorInd &is, const ColorInd &ig,
+                            const ColorInd &iv);
 
   const CQChartsScatterPlot3D *scatterPlot() const;
 
@@ -102,7 +102,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -152,7 +152,7 @@ class CQChartsScatterKeyColor3D : public CQChartsKeyColorBox {
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -214,10 +214,10 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   using Values = std::vector<ValueData>;
 
   struct ValuesData {
-    Values                values;
-    CQChartsGeom::RMinMax xrange;
-    CQChartsGeom::RMinMax yrange;
-    CQChartsGeom::RMinMax zrange;
+    Values  values;
+    RMinMax xrange;
+    RMinMax yrange;
+    RMinMax zrange;
   };
 
   using NameValues      = std::map<QString,ValuesData>;
@@ -301,7 +301,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
-  CQChartsGeom::Range calcRange() const override;
+  Range calcRange() const override;
 
   void postUpdateRange() override;
 
@@ -331,7 +331,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   bool addMenuItems(QMenu *menu) override;
 
-  CQChartsGeom::BBox calcAnnotationBBox() const override;
+  BBox calcAnnotationBBox() const override;
 
   //---
 
@@ -349,7 +349,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
  private:
   void addObjs() const;
 
-  void addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig);
+  void addBarPolygons(const Point3D &p, const ColorInd &ig);
 
   //---
 
@@ -379,6 +379,12 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   };
 
   GroupData &getGroupData(int groupId);
+
+  //---
+
+  virtual CQChartsScatterPoint3DObj *createPointObj(int groupInd, const BBox &rect,
+                                                    const Point3D &pos, const ColorInd &is,
+                                                    const ColorInd &ig, const ColorInd &iv) const;
 
  protected slots:
   void dataLabelChanged();

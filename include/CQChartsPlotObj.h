@@ -104,15 +104,13 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  QModelIndex modelInd() const {
-    return (! modelInds_.empty() ? modelInds_[0] : QModelIndex()); }
-  void setModelInd(const QModelIndex &ind) {
-    modelInds_.clear(); addModelInd(ind); }
+  QModelIndex modelInd() const;
+  void setModelInd(const QModelIndex &ind);
 
   const ModelIndices &modelInds() const { return modelInds_; }
-  void setModelInds(const ModelIndices &inds) { modelInds_ = inds; }
+  void setModelInds(const ModelIndices &inds);
 
-  void addModelInd(const QModelIndex &ind) { modelInds_.push_back(ind); }
+  void addModelInd(const QModelIndex &ind);
 
   //---
 

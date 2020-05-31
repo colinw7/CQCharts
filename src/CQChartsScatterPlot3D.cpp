@@ -715,7 +715,7 @@ addPointObjects() const
 
         CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-        auto *pointObj = new CQChartsScatterPoint3DObj(this, groupInd, bbox, p, is1, ig1, iv1);
+        auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
         pointObj->setModelInd(valuePoint.ind);
 
@@ -825,7 +825,7 @@ addPointObjects() const
           textOptions.contrast      = dataLabel()->isTextContrast();
           textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
 
-          auto *textObj = new CQChartsText3DObj(this, p, p, pointName);
+          auto *textObj = createTextObj(p, p, pointName);
 
           textObj->setPenBrush   (penBrush);
           textObj->setFont       (font);
@@ -1231,7 +1231,7 @@ addObjs() const
 
         //---
 
-        groupData.polygon = new CQChartsPolygon3DObj(this);
+        groupData.polygon = createPolygonObj();
 
         groupData.polygon->setIg(ColorInd(gp.first, ng));
 
@@ -1289,7 +1289,7 @@ addObjs() const
 
         //---
 
-        groupData.polyline = new CQChartsPolyline3DObj(this);
+        groupData.polyline = createPolylineObj();
 
         groupData.polyline->setIg(ColorInd(gp.first, ng));
 
@@ -1347,7 +1347,7 @@ addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig)
     poly.addPoint(p3);
     poly.addPoint(p4);
 
-    auto *polyObj = new CQChartsPolygon3DObj(this, poly);
+    auto *polyObj = createPolygonObj(poly);
 
     polyObj->setIg(ig);
     polyObj->setNormal(n);
@@ -1386,6 +1386,16 @@ getGroupData(int groupId)
     pg = groupObj_.insert(pg, GroupObj::value_type(groupId, GroupData()));
 
   return (*pg).second;
+}
+
+//---
+
+CQChartsScatterPoint3DObj *
+CQChartsScatterPlot3D::
+createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point3D &pos,
+               const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
+{
+  return new CQChartsScatterPoint3DObj(this, groupInd, rect, pos, is, ig, iv);
 }
 
 //------

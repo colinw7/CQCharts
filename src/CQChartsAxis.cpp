@@ -350,8 +350,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis grid fill style", true);
   addStyleProp(gridMajorFillPath, "axesGridFillColor"  , "color"  , "Axis grid fill color");
   addStyleProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
-  addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern",
-               "Axis grid fill pattern", true);
+  addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern", "Axis grid fill pattern");
 }
 
 void
@@ -1035,11 +1034,13 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     //---
 
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor fillColor = interpAxesGridFillColor(ColorInd());
 
-    plot->setBrush(brush, true, fillColor, axesGridFillAlpha(), axesGridFillPattern());
+    plot->setPenBrush(penBrush,
+      CQChartsPenData  (false),
+      CQChartsBrushData(true, fillColor, axesGridFillAlpha(), axesGridFillPattern()));
 
     //---
 
@@ -1078,7 +1079,9 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
             else
               bbox = CQChartsGeom::BBox(a1.x, pp1.y, a2.x, pp2.y);
 
-            device->fillRect(bbox, brush);
+            CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+            device->fillRect(bbox);
           }
         }
 

@@ -55,7 +55,7 @@ addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString 
   addStyleProp(bgPath, "filled"     , "visible", fillDesc + " visible");
   addStyleProp(bgPath, "fillColor"  , "color"  , fillDesc + " color");
   addStyleProp(bgPath, "fillAlpha"  , "alpha"  , fillDesc + " alpha");
-  addStyleProp(bgPath, "fillPattern", "pattern", fillDesc + " pattern", true);
+  addStyleProp(bgPath, "fillPattern", "pattern", fillDesc + " pattern");
 
   QString strokePath = path + "/stroke";
 

@@ -5,6 +5,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -732,10 +733,13 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
   //---
 
   // draw bubble
+  CQChartsPenBrush penBrush;
+
   QColor bc = interpStrokeColor(ColorInd());
 
-  device->setPen  (bc);
-  device->setBrush(Qt::NoBrush);
+  setPenBrush(penBrush, CQChartsPenData(true, bc), CQChartsBrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawEllipse(bbox);
 }

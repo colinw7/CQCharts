@@ -7,6 +7,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -356,7 +357,7 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   ColorInd colorInd(rv);
 
-  auto *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
+  auto *imageObj = createImageObj(bbox, row, col, value, ind1, colorInd);
 
   objs.push_back(imageObj);
 }
@@ -684,6 +685,16 @@ calcAnnotationBBox() const
   }
 
   return bbox;
+}
+
+//---
+
+CQChartsImageObj *
+CQChartsImagePlot::
+createImageObj(const BBox &rect, int row, int col, double value, const QModelIndex &ind,
+               const ColorInd &iv) const
+{
+  return new CQChartsImageObj(this, rect, row, col, value, ind, iv);
 }
 
 //------

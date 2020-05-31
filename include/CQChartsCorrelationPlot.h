@@ -218,6 +218,11 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   BBox calcAnnotationBBox() const override;
 
+  //---
+
+  CQChartsCorrelationCellObj *createCellObj(const BBox &rect, int row, int col,
+                                            double value, const QModelIndex &ind) const;
+
  public slots:
   void setCellLabels(bool b);
 

@@ -1303,43 +1303,46 @@ drawTableBackground(CQChartsPaintDevice *device) const
 
   // draw header background
   if (isHeaderVisible()) {
-    QBrush headerBrush;
+    CQChartsPenBrush headerPenBrush;
 
-    setBrush(headerBrush, true, interpColor(headerColor(), ColorInd()),
-             CQChartsAlpha(), CQChartsFillPattern());
+    setPenBrush(headerPenBrush,
+      CQChartsPenData  (false),
+      CQChartsBrushData(true, interpColor(headerColor(), ColorInd())));
 
-    device->setBrush(headerBrush);
+    CQChartsDrawUtil::setPenBrush(device, headerPenBrush);
 
     if (x2 > x1) {
       CQChartsGeom::BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
 
-      device->fillRect(bbox, device->brush());
+      device->fillRect(bbox);
     }
   }
 
   // draw cells background
-  QBrush cellBrush;
+  CQChartsPenBrush cellPenBrush;
 
-  setBrush(cellBrush, true, interpColor(cellColor(), ColorInd()),
-           CQChartsAlpha(), CQChartsFillPattern());
+  setPenBrush(cellPenBrush,
+    CQChartsPenData  (false),
+    CQChartsBrushData(true, interpColor(cellColor(), ColorInd())));
 
-  device->setBrush(cellBrush);
+  CQChartsDrawUtil::setPenBrush(device, cellPenBrush);
 
   if (x2 > x1 && tableData_.nvr > 0) {
     CQChartsGeom::BBox bbox(x1, y2, x2, y2 + trh);
 
-    device->fillRect(bbox, device->brush());
+    device->fillRect(bbox);
   }
 
   //---
 
   // draw table column lines
-  QPen gridPen;
+  CQChartsPenBrush gridPenBrush;
 
-  setPen(gridPen, true, interpColor(gridColor(), ColorInd()),
-         CQChartsAlpha(), 0.0, CQChartsLineDash());
+  setPenBrush(gridPenBrush,
+    CQChartsPenData  (true, interpColor(gridColor(), ColorInd())),
+    CQChartsBrushData(false));
 
-  device->setPen(gridPen);
+  CQChartsDrawUtil::setPenBrush(device, gridPenBrush);
 
   x = x1;
 

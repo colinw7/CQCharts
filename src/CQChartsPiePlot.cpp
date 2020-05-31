@@ -7,6 +7,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -95,7 +96,7 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  textBox_ = new CQChartsPieTextObj(this);
+  textBox_ = createTextObj();
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -455,8 +456,7 @@ createObjs(PlotObjs &objs) const
     // create group obj
     CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
-    auto *groupObj = new CQChartsPieGroupObj(this, rect, groupInd, groupData.name,
-                                             ColorInd(ig, ng));
+    auto *groupObj = createGroupObj(rect, groupInd, groupData.name, ColorInd(ig, ng));
 
     groupObj->setColorIndex(groupInd);
 
@@ -676,7 +676,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
     ColorInd ig = (groupObj ? groupObj->ig() : ColorInd());
 
-    obj = new CQChartsPieObj(this, rect, dataInd1, ig);
+    obj = createPieObj(rect, dataInd1, ig);
 
     if (hidden)
       obj->setVisible(false);
@@ -1160,6 +1160,29 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   textBox_->write(os, plotVarName);
+}
+
+//---
+
+CQChartsPieTextObj *
+CQChartsPiePlot::
+createTextObj() const
+{
+  return new CQChartsPieTextObj(this);
+}
+
+CQChartsPieGroupObj *
+CQChartsPiePlot::
+createGroupObj(const BBox &bbox, int groupInd, const QString &name, const ColorInd &ig) const
+{
+  return new CQChartsPieGroupObj(this, bbox, groupInd, name, ig);
+}
+
+CQChartsPieObj *
+CQChartsPiePlot::
+createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const
+{
+  return new CQChartsPieObj(this, rect, ind, ig);
 }
 
 //------

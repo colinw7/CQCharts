@@ -344,6 +344,13 @@ class CQChartsPlot : public CQChartsObj,
 
   using DrawType = CQChartsView::DrawType;
 
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using Length      = CQChartsLength;
+  using Angle       = CQChartsAngle;
+  using FillPattern = CQChartsFillPattern;
+  using LineDash    = CQChartsLineDash;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -639,39 +646,37 @@ class CQChartsPlot : public CQChartsObj,
   // inner margin
   const CQChartsPlotMargin &innerMargin() const { return innerMargin_; }
 
-  const CQChartsLength &innerMarginLeft() const { return innerMargin().left(); }
-  void setInnerMarginLeft(const CQChartsLength &l);
+  const Length &innerMarginLeft() const { return innerMargin().left(); }
+  void setInnerMarginLeft(const Length &l);
 
-  const CQChartsLength &innerMarginTop() const { return innerMargin().top(); }
-  void setInnerMarginTop(const CQChartsLength &t);
+  const Length &innerMarginTop() const { return innerMargin().top(); }
+  void setInnerMarginTop(const Length &t);
 
-  const CQChartsLength &innerMarginRight() const { return innerMargin().right(); }
-  void setInnerMarginRight(const CQChartsLength &r);
+  const Length &innerMarginRight() const { return innerMargin().right(); }
+  void setInnerMarginRight(const Length &r);
 
-  const CQChartsLength &innerMarginBottom() const { return innerMargin().bottom(); }
-  void setInnerMarginBottom(const CQChartsLength &b);
+  const Length &innerMarginBottom() const { return innerMargin().bottom(); }
+  void setInnerMarginBottom(const Length &b);
 
-  void setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
-                      const CQChartsLength &r, const CQChartsLength &b);
+  void setInnerMargin(const Length &l, const Length &t, const Length &r, const Length &b);
   void setInnerMargin(const CQChartsPlotMargin &m);
 
   // outer margin
   const CQChartsPlotMargin &outerMargin() const { return outerMargin_; }
 
-  const CQChartsLength &outerMarginLeft() const { return outerMargin().left(); }
-  void setOuterMarginLeft(const CQChartsLength &l);
+  const Length &outerMarginLeft() const { return outerMargin().left(); }
+  void setOuterMarginLeft(const Length &l);
 
-  const CQChartsLength &outerMarginTop() const { return outerMargin().top(); }
-  void setOuterMarginTop(const CQChartsLength &t);
+  const Length &outerMarginTop() const { return outerMargin().top(); }
+  void setOuterMarginTop(const Length &t);
 
-  const CQChartsLength &outerMarginRight() const { return outerMargin().right(); }
-  void setOuterMarginRight(const CQChartsLength &r);
+  const Length &outerMarginRight() const { return outerMargin().right(); }
+  void setOuterMarginRight(const Length &r);
 
-  const CQChartsLength &outerMarginBottom() const { return outerMargin().bottom(); }
-  void setOuterMarginBottom(const CQChartsLength &b);
+  const Length &outerMarginBottom() const { return outerMargin().bottom(); }
+  void setOuterMarginBottom(const Length &b);
 
-  void setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
-                      const CQChartsLength &r, const CQChartsLength &b);
+  void setOuterMargin(const Length &l, const Length &t, const Length &r, const Length &b);
   void setOuterMargin(const CQChartsPlotMargin &m);
 
   //---
@@ -1045,15 +1050,15 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
 #if 0
-  CQChartsColor modelColor(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, bool &ok) const;
-  CQChartsColor modelColor(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, int role, bool &ok) const;
+  Color modelColor(int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, bool &ok) const;
+  Color modelColor(int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, int role, bool &ok) const;
 
-  virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                   const QModelIndex &parent, int role, bool &ok) const;
-  virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                   const QModelIndex &parent, bool &ok) const;
+  virtual Color modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, int role, bool &ok) const;
+  virtual Color modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, bool &ok) const;
 #endif
 
   //---
@@ -1134,15 +1139,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  double lengthPlotSize(const CQChartsLength &len, bool horizontal) const;
+  double lengthPlotSize(const Length &len, bool horizontal) const;
 
-  double lengthPlotWidth (const CQChartsLength &len) const;
-  double lengthPlotHeight(const CQChartsLength &len) const;
+  double lengthPlotWidth (const Length &len) const;
+  double lengthPlotHeight(const Length &len) const;
 
-  double lengthPixelSize(const CQChartsLength &len, bool horizontal) const;
+  double lengthPixelSize(const Length &len, bool horizontal) const;
 
-  double lengthPixelWidth (const CQChartsLength &len) const;
-  double lengthPixelHeight(const CQChartsLength &len) const;
+  double lengthPixelWidth (const Length &len) const;
+  double lengthPixelHeight(const Length &len) const;
 
   //---
 
@@ -1197,8 +1202,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  void plotSymbolSize (const CQChartsLength &s, double &sx, double &sy) const;
-  void pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const;
+  void plotSymbolSize (const Length &s, double &sx, double &sy) const;
+  void pixelSymbolSize(const Length &s, double &sx, double &sy) const;
 
   double limitSymbolSize(double s) const;
   double limitFontSize(double s) const;
@@ -1376,7 +1381,7 @@ class CQChartsPlot : public CQChartsObj,
   void initSymbolSizeData(SymbolSizeData &symbolSizeData) const;
 
   bool columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
-                        CQChartsLength &symbolSize) const;
+                        Length &symbolSize) const;
 
   //---
 
@@ -1394,7 +1399,7 @@ class CQChartsPlot : public CQChartsObj,
   void initFontSizeData(FontSizeData &fontSizeData) const;
 
   bool columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
-                      CQChartsLength &fontSize) const;
+                      Length &fontSize) const;
 
   //---
 
@@ -1595,11 +1600,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // color column
-  bool colorColumnColor(int row, const QModelIndex &parent, CQChartsColor &color) const;
+  bool colorColumnColor(int row, const QModelIndex &parent, Color &color) const;
 
-  bool modelIndexColor(const CQChartsModelIndex &ind, CQChartsColor &color) const;
+  bool modelIndexColor(const CQChartsModelIndex &ind, Color &color) const;
 
-  bool columnValueColor(const QVariant &var, CQChartsColor &color) const;
+  bool columnValueColor(const QVariant &var, Color &color) const;
 
   //---
 
@@ -1825,18 +1830,18 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsAxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction,
                                                       double start, double end);
   CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
-                                                      const CQChartsLength &xRadius,
-                                                      const CQChartsLength &yRadius);
+                                                      const Length &xRadius,
+                                                      const Length &yRadius);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
                                                       const CQChartsImage &image);
   CQChartsKeyAnnotation       *addKeyAnnotation      ();
   CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
-                                                      const CQChartsLength &innerRadius,
-                                                      const CQChartsLength &outerRadius,
-                                                      const CQChartsAngle &startAngle,
-                                                      const CQChartsAngle &spanAngle);
+                                                      const Length &innerRadius,
+                                                      const Length &outerRadius,
+                                                      const Angle &startAngle,
+                                                      const Angle &spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsSymbol &type);
   CQChartsPointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
@@ -2096,15 +2101,10 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   void drawSymbol(CQChartsPaintDevice *device, const Point &p,
-                  const CQChartsSymbol &symbol, const CQChartsLength &size,
+                  const CQChartsSymbol &symbol, const Length &size,
                   const CQChartsPenBrush &penBrush) const;
   void drawSymbol(CQChartsPaintDevice *device, const Point &p,
-                  const CQChartsSymbol &symbol, const CQChartsLength &size) const;
-#if 0
-  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
-                  const CQChartsSymbol &symbol, const CQChartsLength &size,
-                  const CQChartsPenBrush &penBrush) const;
-#endif
+                  const CQChartsSymbol &symbol, const Length &size) const;
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const CQChartsSymbol &symbol, double size) const;
@@ -2130,23 +2130,32 @@ class CQChartsPlot : public CQChartsObj,
                    const CQChartsBrushData &brushData) const;
 
   void setPenBrush(CQChartsPenBrush &penBrush,
-                   bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-                   const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-                   bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-                   const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
+                   bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
+                   const Length &strokeWidth, const LineDash &strokeDash,
+                   bool filled, const QColor &fillColor, const QColor &altFillColor,
+                   const Alpha &fillAlpha,
+                   const FillPattern &pattern=FillPattern::Type::SOLID) const;
 
   void setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const;
 
   void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
-              const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),
-              const CQChartsLength &strokeWidth=CQChartsLength("0px"),
-              const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
+              const Alpha &strokeAlpha=Alpha(), const Length &strokeWidth=Length("0px"),
+              const LineDash &strokeDash=LineDash()) const;
 
   void setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const;
 
   void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
-                const CQChartsAlpha &fillAlpha=CQChartsAlpha(),
-                const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
+                const Alpha &fillAlpha=Alpha(),
+                const FillPattern &pattern=FillPattern::Type::SOLID) const;
+
+  //---
+
+  void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenData &penData,
+                   const CQChartsBrushData &brushData) const;
+
+  void setPen(CQChartsPaintDevice *device, const CQChartsPenData &penData) const;
+
+  void setBrush(CQChartsPaintDevice *device, const CQChartsBrushData &brushData) const;
 
   //---
 
@@ -2184,7 +2193,7 @@ class CQChartsPlot : public CQChartsObj,
   QColor interpInterfaceColor(double r) const;
 
  public:
-  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
+  QColor interpColor(const Color &c, const ColorInd &ind) const;
 
   //---
 

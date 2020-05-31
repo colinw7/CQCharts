@@ -24,6 +24,9 @@ class CQChartsViewPlotObj : public CQChartsObj {
  public:
   using DrawType = CQChartsObjDrawType;
 
+  using Point = CQChartsGeom::Point;
+  using BBox  = CQChartsGeom::BBox;
+
  public:
   CQChartsViewPlotObj(CQChartsView *view);
   CQChartsViewPlotObj(CQChartsPlot *plot);
@@ -72,8 +75,8 @@ class CQChartsViewPlotObj : public CQChartsObj {
   //---
 
   // conversion utilities
-  CQChartsGeom::Point positionToParent(const CQChartsPosition &pos) const;
-  CQChartsGeom::Point positionToPixel (const CQChartsPosition &pos) const;
+  Point positionToParent(const CQChartsPosition &pos) const;
+  Point positionToPixel (const CQChartsPosition &pos) const;
 
   double lengthParentWidth (const CQChartsLength &len) const;
   double lengthParentHeight(const CQChartsLength &len) const;
@@ -81,11 +84,11 @@ class CQChartsViewPlotObj : public CQChartsObj {
   double lengthPixelWidth (const CQChartsLength &len) const;
   double lengthPixelHeight(const CQChartsLength &len) const;
 
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
-  CQChartsGeom::BBox  windowToPixel(const CQChartsGeom::BBox  &w) const;
+  Point windowToPixel(const Point &w) const;
+  BBox  windowToPixel(const BBox  &w) const;
 
-  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &w) const;
-  CQChartsGeom::BBox  pixelToWindow(const CQChartsGeom::BBox  &w) const;
+  Point pixelToWindow(const Point &w) const;
+  BBox  pixelToWindow(const BBox  &w) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;

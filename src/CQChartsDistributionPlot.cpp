@@ -14,6 +14,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsRand.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -1813,8 +1814,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (bbox.isSet()) {
-        auto *barObj = new CQChartsDistributionDensityObj(this, bbox, groupInd, data,
-                                                          doffset, ColorInd(ig, ng));
+        auto *barObj = createDensityObj(bbox, groupInd, data, doffset, ColorInd(ig, ng));
 
         objs.push_back(barObj);
       }
@@ -1859,8 +1859,8 @@ createObjs(PlotObjs &objs) const
 
         auto bbox = makeBBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
-        auto *scatterObj = new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
-                                                              ColorInd(ig, ng), ColorInd(iv, nv));
+        auto *scatterObj = createScatterObj(bbox, groupInd, sbucket, n,
+                                            ColorInd(ig, ng), ColorInd(iv, nv));
 
         objs.push_back(scatterObj);
 
@@ -2061,8 +2061,8 @@ createObjs(PlotObjs &objs) const
           values->yValueRange.min(), values->yValueRange.max());
 
         if (bbox.isValid()) {
-          auto *barObj = new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue,
-                                                        isLine, ColorInd(ig, ng), ColorInd(iv, nv));
+          auto *barObj = createBarObj(bbox, groupInd, sbucket, barValue,
+                                      isLine, ColorInd(ig, ng), ColorInd(iv, nv));
 
           objs.push_back(barObj);
         }
@@ -3009,6 +3009,32 @@ CQChartsDistributionPlot::
 hasGroups() const
 {
   return (groupData_.groupValues.size() > 1);
+}
+
+//---
+
+CQChartsDistributionDensityObj *
+CQChartsDistributionPlot::
+createDensityObj(const BBox &rect, int groupInd, const DensityObjData &data, double doffset,
+                 const ColorInd &is) const
+{
+  return new CQChartsDistributionDensityObj(this, rect, groupInd, data, doffset, is);
+}
+
+CQChartsDistributionScatterObj *
+CQChartsDistributionPlot::
+createScatterObj(const BBox &rect, int groupInd, const Bucket &bucket, int n, const ColorInd &is,
+                 const ColorInd &iv) const
+{
+  return new CQChartsDistributionScatterObj(this, rect, groupInd, bucket, n, is, iv);
+}
+
+CQChartsDistributionBarObj *
+CQChartsDistributionPlot::
+createBarObj(const BBox &rect, int groupInd, const Bucket &bucket, const BarValue &barValue,
+             bool isLine, const ColorInd &ig, const ColorInd &iv) const
+{
+  return new CQChartsDistributionBarObj(this, rect, groupInd, bucket, barValue, isLine, ig, iv);
 }
 
 //------

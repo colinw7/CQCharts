@@ -769,6 +769,24 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasGroups() const;
 
+ protected:
+  using DensityObjData = CQChartsDistributionDensityObj::Data;
+
+  virtual CQChartsDistributionDensityObj *createDensityObj(const BBox &rect, int groupInd,
+                                                           const DensityObjData &data,
+                                                           double doffset,
+                                                           const ColorInd &is) const;
+
+  virtual CQChartsDistributionScatterObj *createScatterObj(const BBox &rect, int groupInd,
+                                                           const Bucket &bucket, int n,
+                                                           const ColorInd &is,
+                                                           const ColorInd &iv) const;
+
+  virtual CQChartsDistributionBarObj *createBarObj(const BBox &rect, int groupInd,
+                                                   const Bucket &bucket, const BarValue &barValue,
+                                                   bool isLine, const ColorInd &ig,
+                                                   const ColorInd &iv) const;
+
  private:
   using Inds         = std::vector<CQChartsModelIndex>;
   using BucketValues = std::map<Bucket,VariantIndsData>;

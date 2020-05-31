@@ -183,9 +183,15 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void setDelaunay(bool b);
   void setVoronoi(bool b);
 
- private:
+ protected:
   void drawDelaunay(CQChartsPaintDevice *device) const;
   void drawVoronoi (CQChartsPaintDevice *device) const;
+
+  //---
+
+  virtual CQChartsDelaunayPointObj *createPointObj(const BBox &rect, double x, double y,
+                                                   double value, const QModelIndex &ind,
+                                                   const ColorInd &iv) const;
 
  private:
   CQChartsColumn    xColumn_;                    //!< x column

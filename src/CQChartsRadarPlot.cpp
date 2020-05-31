@@ -10,6 +10,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>

@@ -13,6 +13,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -146,15 +147,18 @@ setSortType(const SortType &t)
   CQChartsUtil::testAndSet(sortType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
-//---
+void
+CQChartsAdjacencyPlot::
+setForceDiagonal(bool b)
+{
+  CQChartsUtil::testAndSet(forceDiagonal_, b, [&]() { updateRangeAndObjs(); } );
+}
 
 void
 CQChartsAdjacencyPlot::
 setBgMargin(const CQChartsLength &l)
 {
-  bgMargin_ = l;
-
-  updateObjs();
+  CQChartsUtil::testAndSet(bgMargin_, l, [&]() { updateObjs(); } );
 }
 
 //---
@@ -175,8 +179,9 @@ addProperties()
   //---
 
   // options
-  addProp("options", "sortType", "sort"  , "Sort type");
-  addProp("options", "bgMargin", "margin", "Background margin");
+  addProp("options", "sortType"     , "sort"         , "Sort type");
+  addProp("options", "forceDiagonal", "forceDiagonal", "Force nodes on diagonal");
+  addProp("options", "bgMargin"     , "margin"       , "Background margin");
 
   // background
   addFillProperties("background/fill", "backgroundFill", "Background");
@@ -337,8 +342,10 @@ initLinkObjs(PlotObjs &objs) const
       // Get group value
       int group = data.row;
 
+      CQChartsModelIndex groupModelInd;
+
       if (plot_->groupColumn().isValid()) {
-        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+        groupModelInd = CQChartsModelIndex(data.row, plot_->groupColumn(), data.parent);
 
         bool ok1;
         group = (int) plot_->modelInteger(groupModelInd, ok1);
@@ -391,16 +398,26 @@ initLinkObjs(PlotObjs &objs) const
 
       //---
 
+      CQChartsModelIndex modelInd = nameModelInd;
+
+      if (! modelInd.isValid())
+        modelInd = linkModelInd;
+
+      if (! modelInd.isValid())
+        modelInd = valueModelInd;
+
+      //---
+
       QString srcStr  = namePair.name1();
       QString destStr = namePair.name2();
 
-      addConnection(srcStr, destStr, value, group, nameModelInd);
+      addConnection(srcStr, destStr, value, group, modelInd);
 
       return State::OK;
     }
 
     void addConnection(const QString &srcStr, const QString &destStr, double value,
-                       int group, const CQChartsModelIndex &nameModelInd) {
+                       int group, const CQChartsModelIndex &modelInd) {
       auto *srcNode  = plot_->findNode(srcStr);
       auto *destNode = plot_->findNode(destStr);
 
@@ -417,10 +434,11 @@ initLinkObjs(PlotObjs &objs) const
 
       srcNode->setGroup(group);
 
-      if (nameModelInd.isValid()) {
-        auto nameModelInd1 = plot_->normalizeIndex(nameModelInd);
+      if (modelInd.isValid()) {
+        auto modelInd1 = plot_->normalizeIndex(modelInd);
 
-        srcNode->setInd(nameModelInd1);
+        srcNode ->setInd(destNode->id(), modelInd1);
+        destNode->setInd(srcNode ->id(), modelInd1);
       }
     }
 
@@ -493,16 +511,23 @@ createNameNodeObjs(PlotObjs &objs) const
 
   //---
 
+  double equalValue = 0.0;
+
+  if (isForceDiagonal())
+    equalValue = 1.0;
+
   double y = 1.0 - tsize;
 
   for (auto &node1 : sortedNodes_) {
     double x = tsize;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2);
+      double value = node1->nodeValue(node2, equalValue);
 
       // skip unconnected
-      if (node1 == node2 || ! CMathUtil::isZero(value)) {
+      bool connected = ! CMathUtil::isZero(value);
+
+      if (connected) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
@@ -567,7 +592,10 @@ initConnectionObjs(PlotObjs &objs) const
     const auto &name  = idConnections.second.name;
     int         group = idConnections.second.group;
 
-    auto *node = new CQChartsAdjacencyNode(id, name, group, ind);
+    auto *node = new CQChartsAdjacencyNode(id, name, group);
+
+    if (ind.isValid())
+      node->setInd(0, ind);
 
     th->nodes_[id] = node;
   }
@@ -620,16 +648,23 @@ initConnectionObjs(PlotObjs &objs) const
 
   //---
 
+  double equalValue = 0.0;
+
+  if (isForceDiagonal())
+    equalValue = 1.0;
+
   double y = 1.0 - tsize - yb;
 
   for (auto &node1 : sortedNodes_) {
     double x = tsize + xb;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2);
+      double value = node1->nodeValue(node2, equalValue);
 
       // skip unconnected
-      if (node1 == node2 || ! CMathUtil::isZero(value)) {
+      bool connected = ! CMathUtil::isZero(value);
+
+      if (connected) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
@@ -756,10 +791,12 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // get optional name
+  CQChartsModelIndex nameModelInd;
+
   QString name = QString("%1").arg(id);
 
   if (nameColumn().isValid()) {
-    CQChartsModelIndex nameModelInd(data.row, nameColumn(), data.parent);
+    nameModelInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
 
     bool ok4;
     name = modelString(nameModelInd, ok4);
@@ -841,7 +878,7 @@ findNode(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  auto *node = new CQChartsAdjacencyNode(id, str, 0, CQChartsModelIndex());
+  auto *node = new CQChartsAdjacencyNode(id, str, 0);
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
@@ -941,13 +978,9 @@ execDrawBackground(CQChartsPaintDevice *device) const
   //---
 
   // draw text
-  QPen tpen;
-
   QColor tc = interpTextColor(ColorInd());
 
-  setPen(tpen, true, tc, textAlpha());
-
-  device->setPen(tpen);
+  setPen(device, CQChartsPenData(true, tc, textAlpha()));
 
   //---
 
@@ -1013,15 +1046,15 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   //---
 
-  QBrush fillBrush;
-
   QColor fc = interpBackgroundFillColor(ColorInd());
 
-  setBrush(fillBrush, true, fc, backgroundFillAlpha(), backgroundFillPattern());
+  setPenBrush(device,
+   CQChartsPenData  (false),
+   CQChartsBrushData(true, fc, backgroundFillAlpha(), backgroundFillPattern()));
 
   CQChartsGeom::BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
-  device->fillRect(device->pixelToWindow(cellBBox), fillBrush);
+  device->fillRect(device->pixelToWindow(cellBBox));
 
   //---
 
@@ -1038,17 +1071,23 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   auto cornerSize = emptyCellCornerSize();
 
+  double equalValue = 0.0;
+
+  if (isForceDiagonal())
+    equalValue = 1.0;
+
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node1 : sortedNodes_) {
     double px = po.x + lengthPixelWidth(bgMargin()) + xts;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2);
+      double value = node1->nodeValue(node2, equalValue);
 
-      bool empty = (node1 != node2 && CMathUtil::isZero(value));
+      // draw unconnected
+      bool connected = ! CMathUtil::isZero(value);
 
-      if (empty) {
+      if (! connected) {
         CQChartsGeom::BBox cellBBox =
           device->pixelToWindow(CQChartsGeom::BBox(px, py, px + pxs, py + pys));
 
@@ -1113,8 +1152,13 @@ CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *n
 {
   setDetailHint(DetailHint::MAJOR);
 
-  addModelInd(plot->modelIndex(node1->ind()));
-  addModelInd(plot->modelIndex(node2->ind()));
+  CQChartsModelIndex ind1 = node1->ind(node2->id());
+  CQChartsModelIndex ind2 = node2->ind(node1->id());
+
+  if      (ind1.isValid())
+    addModelInd(plot->modelIndex(ind1));
+  else if (ind2.isValid())
+    addModelInd(plot->modelIndex(ind2));
 }
 
 QString

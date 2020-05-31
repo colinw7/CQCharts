@@ -55,11 +55,13 @@ class CQChartsPaintDevice {
   virtual QBrush brush() const { return QBrush(); }
   virtual void setBrush(const QBrush &) { }
 
+  virtual void setAltColor(const QColor &) { }
+
   virtual void fillPath  (const QPainterPath &, const QBrush &) { }
   virtual void strokePath(const QPainterPath &, const QPen &) { }
   virtual void drawPath  (const QPainterPath &) { }
 
-  virtual void fillRect(const BBox &, const QBrush &) { }
+  virtual void fillRect(const BBox &) { }
   virtual void drawRect(const BBox &) { }
 
   virtual void drawEllipse(const BBox &, const CQChartsAngle& =CQChartsAngle()) { }

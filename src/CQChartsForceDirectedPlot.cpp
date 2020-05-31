@@ -1005,8 +1005,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     //---
 
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor pc = interpNodeStrokeColor(ColorInd());
 
@@ -1022,12 +1021,11 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     if (node == forceDirected_->currentNode())
       fc = insideColor(fc);
 
-    setPen(pen, true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash());
+    setPenBrush(penBrush,
+      CQChartsPenData  (true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash()),
+      CQChartsBrushData(true, fc, nodeFillAlpha(), nodeFillPattern()));
 
-    setBrush(brush, true, fc, nodeFillAlpha(), nodeFillPattern());
-
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 

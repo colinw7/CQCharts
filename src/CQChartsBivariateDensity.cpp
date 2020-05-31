@@ -82,18 +82,22 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
       //---
 
       // set brush
-      QBrush brush;
+      CQChartsPenBrush penBrush;
 
       QColor c = plot->interpPaletteColor(CQChartsUtil::ColorInd(v));
 
-      plot->setBrush(brush, true, c, CQChartsAlpha(a), CQChartsFillPattern());
+      plot->setPenBrush(penBrush,
+        CQChartsPenData  (false),
+        CQChartsBrushData(true, c, CQChartsAlpha(a), CQChartsFillPattern()));
 
       //---
 
       // fill rect
       CQChartsGeom::BBox pb1(x, y, x + dx, y + dy);
 
-      device->fillRect(device->pixelToWindow(pb1), brush);
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+      device->fillRect(device->pixelToWindow(pb1));
     }
   }
 }

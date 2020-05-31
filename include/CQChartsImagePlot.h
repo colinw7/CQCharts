@@ -216,12 +216,15 @@ class CQChartsImagePlot : public CQChartsPlot,
 
 //void setScaleCellLabels(bool b);
 
- private:
+ protected:
   void addImageObj(int row, int col, double x, double y, double dx, double dy,
                    double value, const QModelIndex &ind, PlotObjs &objs) const;
 
   void drawXLabels(CQChartsPaintDevice *device) const;
   void drawYLabels(CQChartsPaintDevice *device) const;
+
+  virtual CQChartsImageObj *createImageObj(const BBox &rect, int row, int col, double value,
+                                           const QModelIndex &ind, const ColorInd &iv) const;
 
  private:
   CellStyle cellStyle_       { CellStyle::RECT }; //!< cell style

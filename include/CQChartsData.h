@@ -29,6 +29,11 @@ class CQChartsTextData {
   static int metaTypeId;
 
  public:
+  using Color = CQChartsColor;
+  using Alpha = CQChartsAlpha;
+  using Angle = CQChartsAngle;
+
+ public:
   CQChartsTextData() = default;
 
   explicit CQChartsTextData(const QString &str) {
@@ -38,23 +43,23 @@ class CQChartsTextData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
-  const CQChartsAlpha &alpha() const { return alpha_; }
-  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &a) { alpha_ = a; }
 
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &v) { font_ = v; }
 
-  const CQChartsAngle &angle() const { return angle_; }
-  void setAngle(const CQChartsAngle &a) { angle_ = a; }
+  const Angle &angle() const { return angle_; }
+  void setAngle(const Angle &a) { angle_ = a; }
 
   bool isContrast() const { return contrast_; }
   void setContrast(bool b) { contrast_ = b; }
 
-  const CQChartsAlpha &contrastAlpha() const { return contrastAlpha_; }
-  void setContrastAlpha(const CQChartsAlpha &a) { contrastAlpha_ = a; }
+  const Alpha &contrastAlpha() const { return contrastAlpha_; }
+  void setContrastAlpha(const Alpha &a) { contrastAlpha_ = a; }
 
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &v) { align_ = v; }
@@ -82,12 +87,12 @@ class CQChartsTextData {
   using ColorType = CQChartsColor::Type;
 
   bool          visible_       { true };                             //!< is visible
-  CQChartsColor color_         { ColorType::INTERFACE_VALUE, 1.0 };  //!< color
-  CQChartsAlpha alpha_;                                              //!< alpha
+  Color         color_         { ColorType::INTERFACE_VALUE, 1.0 };  //!< color
+  Alpha         alpha_;                                              //!< alpha
   CQChartsFont  font_;                                               //!< font
-  CQChartsAngle angle_;                                              //!< angle
+  Angle         angle_;                                              //!< angle
   bool          contrast_      { false };                            //!< contrast
-  CQChartsAlpha contrastAlpha_ { 0.5 };                              //!< contrast alpha
+  Alpha         contrastAlpha_ { 0.5 };                              //!< contrast alpha
   Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter }; //!< align
   bool          formatted_     { false };                            //!< formatted
   bool          scaled_        { false };                            //!< scaled
@@ -111,15 +116,21 @@ class CQChartsLineData {
   static int metaTypeId;
 
  public:
+  using Color    = CQChartsColor;
+  using Alpha    = CQChartsAlpha;
+  using Length   = CQChartsLength;
+  using LineDash = CQChartsLineDash;
+
+ public:
   CQChartsLineData() = default;
 
   explicit CQChartsLineData(const QString &str) {
     (void) fromString(str);
   }
 
-  explicit CQChartsLineData(bool visible, const CQChartsColor &color=CQChartsColor(),
-                            const CQChartsAlpha &alpha=CQChartsAlpha(),
-                            const CQChartsLength &width=CQChartsLength(),
+  explicit CQChartsLineData(bool visible, const Color &color=Color(),
+                            const Alpha &alpha=Alpha(),
+                            const Length &width=Length(),
                             const CQChartsLineDash &dash=CQChartsLineDash()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
   }
@@ -127,14 +138,14 @@ class CQChartsLineData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
-  const CQChartsAlpha &alpha() const { return alpha_; }
-  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &a) { alpha_ = a; }
 
-  const CQChartsLength &width() const { return width_; }
-  void setWidth(const CQChartsLength &v) { width_ = v; }
+  const Length &width() const { return width_; }
+  void setWidth(const Length &v) { width_ = v; }
 
   const CQChartsLineDash &dash() const { return dash_; }
   void setDash(const CQChartsLineDash &v) { dash_ = v; }
@@ -151,9 +162,9 @@ class CQChartsLineData {
 
  private:
   bool             visible_ { true };                                      //!< visible
-  CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  CQChartsAlpha    alpha_;                                                 //!< stroke alpha
-  CQChartsLength   width_   { "0px" };                                     //!< stroke width
+  Color    color_   { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
+  Alpha    alpha_;                                                 //!< stroke alpha
+  Length   width_   { "0px" };                                     //!< stroke width
   CQChartsLineDash dash_    { };                                           //!< stroke dash
 };
 
@@ -174,29 +185,36 @@ class CQChartsFillData {
   static int metaTypeId;
 
  public:
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using FillPattern = CQChartsFillPattern;
+
+ public:
   CQChartsFillData() = default;
 
   explicit CQChartsFillData(const QString &str) {
     (void) fromString(str);
   }
 
-  explicit CQChartsFillData(bool visible, const CQChartsColor &color=CQChartsColor(),
-                            const CQChartsAlpha &alpha=CQChartsAlpha(),
-                            const CQChartsFillPattern &pattern=CQChartsFillPattern()) :
+  explicit CQChartsFillData(bool visible, const Color &color=Color(), const Alpha &alpha=Alpha(),
+                            const FillPattern &pattern=FillPattern()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
-  const CQChartsAlpha &alpha() const { return alpha_; }
-  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
+  const Color &altColor() const { return altColor_; }
+  void setAltColor(const Color &v) { altColor_ = v; }
 
-  const CQChartsFillPattern &pattern() const { return pattern_; }
-  void setPattern(const CQChartsFillPattern &v) { pattern_ = v; }
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &a) { alpha_ = a; }
+
+  const FillPattern &pattern() const { return pattern_; }
+  void setPattern(const FillPattern &v) { pattern_ = v; }
 
   //---
 
@@ -209,10 +227,11 @@ class CQChartsFillData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool                visible_ { true };                                      //!< visible
-  CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
-  CQChartsAlpha       alpha_;                                                 //!< fill alpha
-  CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID };          //!< fill pattern
+  bool        visible_  { true };                              //!< visible
+  Color       color_    { Color::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
+  Color       altColor_;                                       //!< alt fill color
+  Alpha       alpha_;                                          //!< fill alpha
+  FillPattern pattern_  { FillPattern::Type::SOLID };          //!< fill pattern
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsFillData)
@@ -232,6 +251,12 @@ class CQChartsStrokeData {
   static int metaTypeId;
 
  public:
+  using Color    = CQChartsColor;
+  using Alpha    = CQChartsAlpha;
+  using Length   = CQChartsLength;
+  using LineDash = CQChartsLineDash;
+
+ public:
   CQChartsStrokeData() = default;
 
   explicit CQChartsStrokeData(const QString &str) {
@@ -241,20 +266,20 @@ class CQChartsStrokeData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
-  const CQChartsAlpha &alpha() const { return alpha_; }
-  void setAlpha(const CQChartsAlpha &a) { alpha_ = a; }
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &a) { alpha_ = a; }
 
-  const CQChartsLength &width() const { return width_; }
-  void setWidth(const CQChartsLength &v) { width_ = v; }
+  const Length &width() const { return width_; }
+  void setWidth(const Length &v) { width_ = v; }
 
   const CQChartsLineDash &dash() const { return dash_; }
   void setDash(const CQChartsLineDash &v) { dash_ = v; }
 
-  const CQChartsLength &cornerSize() const { return cornerSize_; }
-  void setCornerSize(const CQChartsLength &v) { cornerSize_ = v; }
+  const Length &cornerSize() const { return cornerSize_; }
+  void setCornerSize(const Length &v) { cornerSize_ = v; }
 
   //---
 
@@ -267,12 +292,12 @@ class CQChartsStrokeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool             visible_    { true };  //!< draw stroke
-  CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  CQChartsAlpha    alpha_;                //!< stroke color alpha
-  CQChartsLength   width_      { "0px" }; //!< stroke width
-  CQChartsLineDash dash_       { };       //!< stroke dash
-  CQChartsLength   cornerSize_ { "0px" }; //!< corner size
+  bool     visible_    { true };                              //!< draw stroke
+  Color    color_      { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
+  Alpha    alpha_;                                            //!< stroke color alpha
+  Length   width_      { "0px" };                             //!< stroke width
+  LineDash dash_       { };                                   //!< stroke dash
+  Length   cornerSize_ { "0px" };                             //!< corner size
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
@@ -292,19 +317,23 @@ class CQChartsShapeData {
   static int metaTypeId;
 
  public:
+  using FillData   = CQChartsFillData;
+  using StrokeData = CQChartsStrokeData;
+
+ public:
   CQChartsShapeData() = default;
 
   explicit CQChartsShapeData(const QString &str) {
     (void) fromString(str);
   }
 
-  CQChartsFillData &fill() { return fill_; }
-  const CQChartsFillData &fill() const { return fill_; }
-  void setFill(const CQChartsFillData &v) { fill_ = v; }
+  FillData &fill() { return fill_; }
+  const FillData &fill() const { return fill_; }
+  void setFill(const FillData &v) { fill_ = v; }
 
-  CQChartsStrokeData &stroke() { return stroke_; }
-  const CQChartsStrokeData &stroke() const { return stroke_; }
-  void setStroke(const CQChartsStrokeData &v) { stroke_ = v; }
+  StrokeData &stroke() { return stroke_; }
+  const StrokeData &stroke() const { return stroke_; }
+  void setStroke(const StrokeData &v) { stroke_ = v; }
 
   //---
 
@@ -317,8 +346,8 @@ class CQChartsShapeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  CQChartsFillData   fill_;   //!< fill data
-  CQChartsStrokeData stroke_; //!< stroke data
+  FillData   fill_;   //!< fill data
+  StrokeData stroke_; //!< stroke data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsShapeData)
@@ -340,6 +369,11 @@ class CQChartsBoxData {
   static int metaTypeId;
 
  public:
+  using Margin    = CQChartsMargin;
+  using ShapeData = CQChartsShapeData;
+  using Sides     = CQChartsSides;
+
+ public:
   CQChartsBoxData() = default;
 
   explicit CQChartsBoxData(const QString &str) {
@@ -349,18 +383,18 @@ class CQChartsBoxData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsMargin &margin() const { return margin_; }
-  void setMargin(const CQChartsMargin &m) { margin_ = m; }
+  const Margin &margin() const { return margin_; }
+  void setMargin(const Margin &m) { margin_ = m; }
 
-  const CQChartsMargin &padding() const { return padding_; }
-  void setPadding(const CQChartsMargin &m) { padding_ = m; }
+  const Margin &padding() const { return padding_; }
+  void setPadding(const Margin &m) { padding_ = m; }
 
-  CQChartsShapeData &shape() { return shape_; }
-  const CQChartsShapeData &shape() const { return shape_; }
-  void setShape(const CQChartsShapeData &v) { shape_ = v; }
+  ShapeData &shape() { return shape_; }
+  const ShapeData &shape() const { return shape_; }
+  void setShape(const ShapeData &v) { shape_ = v; }
 
-  const CQChartsSides &borderSides() const { return borderSides_; }
-  void setBorderSides(const CQChartsSides &v) { borderSides_ = v; }
+  const Sides &borderSides() const { return borderSides_; }
+  void setBorderSides(const Sides &v) { borderSides_ = v; }
 
   //---
 
@@ -373,11 +407,11 @@ class CQChartsBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool              visible_     { true };              //!< draw box
-  CQChartsMargin    margin_      { "4px 0px 4px 0px" }; //!< outer margin
-  CQChartsMargin    padding_     { "0px" };             //!< inner padding
-  CQChartsShapeData shape_;                             //!< shape data
-  CQChartsSides     borderSides_ { "tlbr" };            //!< border sides to draw
+  bool      visible_     { true };              //!< draw box
+  Margin    margin_      { "4px 0px 4px 0px" }; //!< outer margin
+  Margin    padding_     { "0px" };             //!< inner padding
+  ShapeData shape_;                             //!< shape data
+  Sides     borderSides_ { "tlbr" };            //!< border sides to draw
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsBoxData)
@@ -397,19 +431,23 @@ class CQChartsTextBoxData {
   static int metaTypeId;
 
  public:
+  using TextData = CQChartsTextData;
+  using BoxData  = CQChartsBoxData;
+
+ public:
   CQChartsTextBoxData() = default;
 
   explicit CQChartsTextBoxData(const QString &str) {
     (void) fromString(str);
   }
 
-  CQChartsTextData &text() { return text_; }
-  const CQChartsTextData &text() const { return text_; }
-  void setText(const CQChartsTextData &v) { text_ = v; }
+  TextData &text() { return text_; }
+  const TextData &text() const { return text_; }
+  void setText(const TextData &v) { text_ = v; }
 
-  CQChartsBoxData &box() { return box_; }
-  const CQChartsBoxData &box() const { return box_; }
-  void setBox(const CQChartsBoxData &v) { box_ = v; }
+  BoxData &box() { return box_; }
+  const BoxData &box() const { return box_; }
+  void setBox(const BoxData &v) { box_ = v; }
 
   //---
 
@@ -422,8 +460,8 @@ class CQChartsTextBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  CQChartsTextData text_; //!< text data
-  CQChartsBoxData  box_;  //!< box data
+  TextData text_; //!< text data
+  BoxData  box_;  //!< box data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextBoxData)
@@ -443,6 +481,12 @@ class CQChartsSymbolData {
   static int metaTypeId;
 
  public:
+  using Symbol     = CQChartsSymbol;
+  using Length     = CQChartsLength;
+  using StrokeData = CQChartsStrokeData;
+  using FillData   = CQChartsFillData;
+
+ public:
   CQChartsSymbolData() {
     fill_.setVisible(false);
   }
@@ -456,19 +500,19 @@ class CQChartsSymbolData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  const CQChartsSymbol &type() const { return type_; }
-  void setType(const CQChartsSymbol &v) { type_ = v; }
+  const Symbol &type() const { return type_; }
+  void setType(const Symbol &v) { type_ = v; }
 
-  const CQChartsLength &size() const { return size_; }
-  void setSize(const CQChartsLength &v) { size_ = v; }
+  const Length &size() const { return size_; }
+  void setSize(const Length &v) { size_ = v; }
 
-  CQChartsStrokeData &stroke() { return stroke_; }
-  const CQChartsStrokeData &stroke() const { return stroke_; }
-  void setStroke(const CQChartsStrokeData &v) { stroke_ = v; }
+  StrokeData &stroke() { return stroke_; }
+  const StrokeData &stroke() const { return stroke_; }
+  void setStroke(const StrokeData &v) { stroke_ = v; }
 
-  CQChartsFillData &fill() { return fill_; }
-  const CQChartsFillData &fill() const { return fill_; }
-  void setFill(const CQChartsFillData &v) { fill_ = v; }
+  FillData &fill() { return fill_; }
+  const FillData &fill() const { return fill_; }
+  void setFill(const FillData &v) { fill_ = v; }
 
   //---
 
@@ -481,11 +525,11 @@ class CQChartsSymbolData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool               visible_ { true };  //!< visible
-  CQChartsSymbol     type_;              //!< symbol type
-  CQChartsLength     size_    { "5px" }; //!< symbol size
-  CQChartsStrokeData stroke_;            //!< symbol stroke
-  CQChartsFillData   fill_;              //!< symbol fill
+  bool       visible_ { true };  //!< visible
+  Symbol     type_;              //!< symbol type
+  Length     size_    { "5px" }; //!< symbol size
+  StrokeData stroke_;            //!< symbol stroke
+  FillData   fill_;              //!< symbol fill
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsSymbolData)
@@ -513,6 +557,9 @@ class CQChartsArrowData {
     LINE
   };
 
+  using Length = CQChartsLength;
+  using Angle  = CQChartsAngle;
+
  public:
   CQChartsArrowData() {
     theadData_.visible = true;
@@ -527,8 +574,8 @@ class CQChartsArrowData {
 //bool isRelative() const { return relative_; }
 //void setRelative(bool b) { relative_ = b; }
 
-  const CQChartsLength &lineWidth() const { return lineWidth_; }
-  void setLineWidth(const CQChartsLength &v) { lineWidth_ = v; }
+  const Length &lineWidth() const { return lineWidth_; }
+  void setLineWidth(const Length &v) { lineWidth_ = v; }
 
   //---
 
@@ -539,14 +586,14 @@ class CQChartsArrowData {
   HeadType fheadType() const { return fheadData_.type; }
   void setFHeadType(HeadType type);
 
-  const CQChartsAngle &frontAngle() const { return fheadData_.angle; }
-  void setFrontAngle(const CQChartsAngle &a) { fheadData_.angle = a; updateFrontBackAngle(); }
+  const Angle &frontAngle() const { return fheadData_.angle; }
+  void setFrontAngle(const Angle &a) { fheadData_.angle = a; updateFrontBackAngle(); }
 
-  const CQChartsAngle &frontBackAngle() const { return fheadData_.backAngle; }
-  void setFrontBackAngle(const CQChartsAngle &a) { fheadData_.backAngle = a; }
+  const Angle &frontBackAngle() const { return fheadData_.backAngle; }
+  void setFrontBackAngle(const Angle &a) { fheadData_.backAngle = a; }
 
-  const CQChartsLength &frontLength() const { return fheadData_.length; }
-  void setFrontLength(const CQChartsLength &l) { fheadData_.length = l; }
+  const Length &frontLength() const { return fheadData_.length; }
+  void setFrontLength(const Length &l) { fheadData_.length = l; }
 
   bool isFrontLineEnds() const { return fheadData_.lineEnds; }
   void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
@@ -560,28 +607,28 @@ class CQChartsArrowData {
   HeadType theadType() const { return theadData_.type; }
   void setTHeadType(HeadType type);
 
-  const CQChartsAngle &tailAngle() const { return theadData_.angle; }
-  void setTailAngle(const CQChartsAngle &a) { theadData_.angle = a; updateTailBackAngle(); }
+  const Angle &tailAngle() const { return theadData_.angle; }
+  void setTailAngle(const Angle &a) { theadData_.angle = a; updateTailBackAngle(); }
 
-  const CQChartsAngle &tailBackAngle() const { return theadData_.backAngle; }
-  void setTailBackAngle(const CQChartsAngle &a) { theadData_.backAngle = a; }
+  const Angle &tailBackAngle() const { return theadData_.backAngle; }
+  void setTailBackAngle(const Angle &a) { theadData_.backAngle = a; }
 
-  const CQChartsLength &tailLength() const { return theadData_.length; }
-  void setTailLength(const CQChartsLength &l) { theadData_.length = l; }
+  const Length &tailLength() const { return theadData_.length; }
+  void setTailLength(const Length &l) { theadData_.length = l; }
 
   bool isTailLineEnds() const { return theadData_.lineEnds; }
   void setTailLineEnds(bool b) { theadData_.lineEnds = b; }
 
   //---
 
-  const CQChartsAngle &angle() const { return tailAngle(); }
-  void setAngle(const CQChartsAngle &a) { setFrontAngle(a); setTailAngle(a); }
+  const Angle &angle() const { return tailAngle(); }
+  void setAngle(const Angle &a) { setFrontAngle(a); setTailAngle(a); }
 
-  const CQChartsAngle &backAngle() const { return tailBackAngle(); }
-  void setBackAngle(const CQChartsAngle &a) { setFrontBackAngle(a); setTailBackAngle(a); }
+  const Angle &backAngle() const { return tailBackAngle(); }
+  void setBackAngle(const Angle &a) { setFrontBackAngle(a); setTailBackAngle(a); }
 
-  const CQChartsLength &length() const { return tailLength(); }
-  void setLength(const CQChartsLength &l) { setFrontLength(l); setTailLength(l); }
+  const Length &length() const { return tailLength(); }
+  void setLength(const Length &l) { setFrontLength(l); setTailLength(l); }
 
   bool isLineEnds() const { return isTailLineEnds(); }
   void setLineEnds(bool b) { setFrontLineEnds(b); setTailLineEnds(b); }
@@ -598,37 +645,34 @@ class CQChartsArrowData {
 
   //---
 
-  static bool getTypeAngles(const HeadType &type, CQChartsAngle &angle, CQChartsAngle &backAngle);
-  static bool checkTypeAngles(const HeadType &type, const CQChartsAngle &angle,
-                              const CQChartsAngle &backAngle);
+  static bool getTypeAngles(const HeadType &type, Angle &angle, Angle &backAngle);
+  static bool checkTypeAngles(const HeadType &type, const Angle &angle, const Angle &backAngle);
 
   static bool nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible);
 
   static bool dataToName(const HeadType &type, bool lineEnds, bool visible,
-                         const CQChartsAngle &angle, const CQChartsAngle &backAngle,
-                         QString &name);
+                         const Angle &angle, const Angle &backAngle, QString &name);
 
  private:
   void updateFrontBackAngle();
   void updateTailBackAngle ();
 
-  static bool getTypeBackAngle(const HeadType &type, const CQChartsAngle &angle,
-                               CQChartsAngle &backAngle);
+  static bool getTypeBackAngle(const HeadType &type, const Angle &angle, Angle &backAngle);
 
  private:
   struct HeadData {
-    bool           visible   { false };          //!< draw arrow head
-    HeadType       type      { HeadType::NONE }; //!< arrow head type
-    CQChartsAngle  angle     { -1 };             //!< arrow angle (default 45 if <= 0)
-    CQChartsAngle  backAngle { -1 };             //!< back angle (default 90 if <= 0)
-    CQChartsLength length    { "1V" };           //!< arrow length
-    bool           lineEnds  { false };          //!< lines at end
+    bool     visible   { false };          //!< draw arrow head
+    HeadType type      { HeadType::NONE }; //!< arrow head type
+    Angle    angle     { -1 };             //!< arrow angle (default 45 if <= 0)
+    Angle    backAngle { -1 };             //!< back angle (default 90 if <= 0)
+    Length   length    { "1V" };           //!< arrow length
+    bool     lineEnds  { false };          //!< lines at end
   };
 
-//bool           relative_   { false }; //!< to point relative to from
-  CQChartsLength lineWidth_  { -1 };    //!< connecting line width
-  HeadData       fheadData_;            //!< front head data
-  HeadData       theadData_;            //!< tail head data
+//bool     relative_   { false }; //!< to point relative to from
+  Length   lineWidth_  { -1 };    //!< connecting line width
+  HeadData fheadData_;            //!< front head data
+  HeadData theadData_;            //!< tail head data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)
@@ -662,6 +706,9 @@ struct CQChartsTitleData {
  * \ingroup Charts
  */
 struct CQChartsKeyData {
+  using Point = CQChartsGeom::Point;
+  using Alpha = CQChartsAlpha;
+
   bool                     visible      { true };
   bool                     horizontal   { false };
   bool                     autoHide     { false };
@@ -670,8 +717,8 @@ struct CQChartsKeyData {
   CQChartsKeyLocation      location;
   bool                     insideX      { false };
   bool                     insideY      { false };
-  CQChartsGeom::Point      absolutePosition;
-  CQChartsAlpha            hiddenAlpha  { 0.3 };
+  Point                    absolutePosition;
+  Alpha                    hiddenAlpha  { 0.3 };
   int                      maxRows;
   bool                     interactive  { false };
   CQChartsKeyPressBehavior pressBehavior;

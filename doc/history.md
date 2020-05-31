@@ -1114,3 +1114,6 @@
 # 05/25/2020
  + Add base class for connection plots
  + Improve rotated text for radial plots
+# 5/31/2020
+ + Add hand drawn renderer
+ + support performance message interface

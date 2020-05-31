@@ -9,6 +9,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -1816,6 +1817,8 @@ draw(CQChartsPaintDevice *device)
 
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
+    CQChartsDrawUtil::setPenBrush(device, barPenBrush);
+
     if (! plot_->isHorizontal()) {
       if (lw < 3) {
         double xc = rect.getXMid();
@@ -1942,11 +1945,12 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpBarStrokeColor(colorInd);
 
   QColor barColor = calcBarColor();
+  QColor altColor = plot_->interpColor(plot_->barFillAltColor(), colorInd);
 
   plot_->setPenBrush(penBrush,
     CQChartsPenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
                       plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    CQChartsBrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
+    CQChartsBrushData(plot_->isBarFilled(), barColor, altColor, plot_->barFillAlpha(),
                       plot_->barFillPattern()));
 
   if (updateState)
@@ -2110,7 +2114,30 @@ fillBrush() const
     barColor = CQChartsUtil::blendColors(barColor, key_->interpBgColor(),
                                          key_->hiddenAlpha().value());
 
-  return barColor;
+  QBrush brush;
+
+  CQChartsUtil::setBrush(brush, plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
+                         plot_->barFillPattern());
+
+  return brush;
+}
+
+QPen
+CQChartsBarKeyColor::
+strokePen() const
+{
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpBarStrokeColor(colorInd);
+
+  QPen pen;
+
+  double width = plot_->lengthPixelWidth(plot_->barStrokeWidth());
+
+  CQChartsUtil::setPen(pen, plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+                       width, plot_->barStrokeDash());
+
+  return pen;
 }
 
 bool

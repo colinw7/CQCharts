@@ -60,8 +60,8 @@ class CQChartsAdjacencyNode {
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
-  CQChartsAdjacencyNode(int id, const QString &name, int group, const CQChartsModelIndex &ind) :
-   id_(id), name_(name), group_(group), ind_(ind) {
+  CQChartsAdjacencyNode(int id, const QString &name, int group) :
+   id_(id), name_(name), group_(group) {
   }
 
   int id() const { return id_; }
@@ -72,8 +72,13 @@ class CQChartsAdjacencyNode {
   int group() const { return group_; }
   void setGroup(int group) { group_ = group; }
 
-  const CQChartsModelIndex &ind() const { return ind_; }
-  void setInd(const CQChartsModelIndex &ind) { ind_ = ind; }
+  CQChartsModelIndex ind(int id) const {
+    auto p = idInd_.find(id);
+    if (p == idInd_.end()) return CQChartsModelIndex();
+    return (*p).second;
+  }
+
+  void setInd(int id, const CQChartsModelIndex &ind) { idInd_[id] = ind; }
 
   double value() const { return value_; }
 
@@ -93,8 +98,8 @@ class CQChartsAdjacencyNode {
     maxValue_ = std::max(maxValue_, value);
   }
 
-  double nodeValue(CQChartsAdjacencyNode *node) const {
-    if (node == this) return 1;
+  double nodeValue(CQChartsAdjacencyNode *node, double equalValue=0.0) const {
+    if (node == this) return equalValue;
 
     auto p = nodes_.find(node->id());
 
@@ -105,13 +110,15 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  int                id_       { 0 };   //!< id
-  QString            name_;             //!< name
-  int                group_    { 0 };   //!< group
-  CQChartsModelIndex ind_;              //!< model index
-  double             value_    { 0.0 }; //!< total connections
-  double             maxValue_ { 0.0 }; //!< max connections to single node
-  NodeMap            nodes_;            //!< connected nodes
+  using IdInd = std::map<int, CQChartsModelIndex>;
+
+  int     id_       { 0 };   //!< id
+  QString name_;             //!< name
+  int     group_    { 0 };   //!< group
+  IdInd   idInd_;            //!< model index per dest id
+  double  value_    { 0.0 }; //!< total connections
+  double  maxValue_ { 0.0 }; //!< max connections to single node
+  NodeMap nodes_;            //!< connected nodes
 };
 
 //------
@@ -193,8 +200,9 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(SortType       sortType READ sortType WRITE setSortType)
-  Q_PROPERTY(CQChartsLength bgMargin READ bgMargin WRITE setBgMargin)
+  Q_PROPERTY(SortType       sortType      READ sortType        WRITE setSortType     )
+  Q_PROPERTY(bool           forceDiagonal READ isForceDiagonal WRITE setForceDiagonal)
+  Q_PROPERTY(CQChartsLength bgMargin      READ bgMargin        WRITE setBgMargin     )
 
   // background
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
@@ -230,6 +238,9 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   // options
   const SortType &sortType() const { return sortType_; }
   void setSortType(const SortType &v);
+
+  bool isForceDiagonal() const { return forceDiagonal_; }
+  void setForceDiagonal(bool b);
 
   const CQChartsLength &bgMargin() const { return bgMargin_; }
   void setBgMargin(const CQChartsLength &r);
@@ -350,14 +361,15 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using AdjacencyObj = CQChartsAdjacencyObj;
 
   // options
-  SortType       sortType_     { SortType::GROUP }; //!< sort type
-  CQChartsLength bgMargin_     { "2px" };           //!< background margin
-  NodeMap        nodes_;                            //!< all nodes
-  NameNodeMap    nameNodeMap_;                      //!< name node map
-  double         factor_       { -1.0 };            //!< font factor
-  AdjacencyObj*  insideObj_    { nullptr };         //!< last inside object
-  NodeArray      sortedNodes_;                      //!< sorted nodes
-  NodeData       nodeData_;                         //!< node data
+  SortType       sortType_      { SortType::GROUP }; //!< sort type
+  bool           forceDiagonal_ { false };           //!< force diagonal
+  CQChartsLength bgMargin_      { "2px" };           //!< background margin
+  NodeMap        nodes_;                             //!< all nodes
+  NameNodeMap    nameNodeMap_;                       //!< name node map
+  double         factor_        { -1.0 };            //!< font factor
+  AdjacencyObj*  insideObj_     { nullptr };         //!< last inside object
+  NodeArray      sortedNodes_;                       //!< sorted nodes
+  NodeData       nodeData_;                          //!< node data
 };
 
 #endif

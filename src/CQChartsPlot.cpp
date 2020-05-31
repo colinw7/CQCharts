@@ -20,6 +20,8 @@
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
+#include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
@@ -2774,7 +2776,7 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
   addStyleProp(fillPath, symbolPrefix + "Filled"     , "visible", prefix1 + " fill visible");
   addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color"  , prefix1 + " fill color");
   addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  , prefix1 + " fill alpha");
-  addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern", prefix1 + " fill pattern", true);
+  addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern", prefix1 + " fill pattern");
 
   addStyleProp(strokePath, symbolPrefix + "Stroked"    , "visible", prefix1 + " stroke visible");
   addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color"  , prefix1 + " stroke color");
@@ -2825,9 +2827,10 @@ addFillProperties(const QString &path, const QString &prefix,
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
-  addStyleProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  , hidden);
-  addStyleProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  , hidden);
-  addStyleProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern", true  );
+  addStyleProp(path, prefix + "Color"   , "color"   , prefix1 + " color"   , hidden);
+  addStyleProp(path, prefix + "AltColor", "altColor", prefix1 + " altColor", hidden);
+  addStyleProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha"   , hidden);
+  addStyleProp(path, prefix + "Pattern" , "pattern" , prefix1 + " pattern" , hidden);
 }
 
 void
@@ -8549,7 +8552,9 @@ drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentP
   CQChartsColor borderColor     (CQChartsColor::Type::INTERFACE_VALUE, 0.0);
 
   auto drawTab = [&](const CQChartsGeom::BBox &rect, bool current) {
-    device->fillRect(rect, QBrush(interpColor(current ? currentFillColor : fillColor, ColorInd())));
+    device->setBrush(interpColor(current ? currentFillColor : fillColor, ColorInd()));
+
+    device->fillRect(rect);
 
     device->setPen(interpColor(borderColor, ColorInd()));
 
@@ -8725,7 +8730,9 @@ drawBackgroundRects(CQChartsPaintDevice *device) const
 
       setBrush(brush, true, fillColor, fillAlpha, fillPattern);
 
-      device->fillRect(rect, brush);
+      device->setBrush(brush);
+
+      device->fillRect(rect);
     }
 
     if (isStroked) {
@@ -10806,7 +10813,8 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 {
   setPenBrush(penBrush,
     penData.isVisible(), penData.color(), penData.alpha(), penData.width(), penData.dash(),
-    brushData.isVisible(), brushData.color(), brushData.alpha(), brushData.pattern());
+    brushData.isVisible(), brushData.color(), brushData.altColor(), brushData.alpha(),
+    brushData.pattern());
 }
 
 void
@@ -10814,12 +10822,14 @@ CQChartsPlot::
 setPenBrush(CQChartsPenBrush &penBrush,
             bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-            bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-            const CQChartsFillPattern &pattern) const
+            bool filled, const QColor &fillColor, const QColor &altFillColor,
+            const CQChartsAlpha &fillAlpha, const CQChartsFillPattern &pattern) const
 {
   setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
 
   setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
+
+  penBrush.altColor = altFillColor;
 }
 
 void
@@ -10846,14 +10856,52 @@ setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
 {
   setBrush(penBrush.brush,
     brushData.isVisible(), brushData.color(), brushData.alpha(), brushData.pattern());
+
+  penBrush.altColor = brushData.altColor();
 }
 
 void
 CQChartsPlot::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-         const CQChartsFillPattern &pattern) const
+setBrush(QBrush &brush, bool filled, const QColor &fillColor,
+         const CQChartsAlpha &fillAlpha, const CQChartsFillPattern &pattern) const
 {
   CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
+}
+
+//------
+
+void
+CQChartsPlot::
+setPenBrush(CQChartsPaintDevice *device, const CQChartsPenData &penData,
+            const CQChartsBrushData &brushData) const
+{
+  CQChartsPenBrush penBrush;
+
+  setPenBrush(penBrush, penData, brushData);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+}
+
+void
+CQChartsPlot::
+setPen(CQChartsPaintDevice *device, const CQChartsPenData &penData) const
+{
+  CQChartsPenBrush penBrush;
+
+  setPen(penBrush, penData);
+
+  device->setPen(penBrush.pen);
+}
+
+void
+CQChartsPlot::
+setBrush(CQChartsPaintDevice *device, const CQChartsBrushData &brushData) const
+{
+  CQChartsPenBrush penBrush;
+
+  setBrush(penBrush, brushData);
+
+  device->setBrush(penBrush.brush);
 }
 
 //------

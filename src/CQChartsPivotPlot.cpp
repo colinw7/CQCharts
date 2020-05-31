@@ -8,6 +8,7 @@
 #include <CQChartsHtml.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -1718,8 +1719,12 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    device->setPen(Qt::NoPen);
-    device->setBrush(hbg);
+    CQChartsPenBrush hbgPenBrush;
+
+    plot_->setPenBrush(hbgPenBrush,
+     CQChartsPenData(false), CQChartsBrushData(true, hbg));
+
+    CQChartsDrawUtil::setPenBrush(device, hbgPenBrush);
 
     CQChartsGeom::BBox bboxh1(prect.getXMin() + m            , prect.getYMax() - bs - m,
                               prect.getXMin() + m + bw*hnorm_, prect.getYMax()      - m);
@@ -1741,8 +1746,12 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    device->setPen(Qt::NoPen);
-    device->setBrush(vbg);
+    CQChartsPenBrush vbgPenBrush;
+
+    plot_->setPenBrush(vbgPenBrush,
+     CQChartsPenData(false), CQChartsBrushData(true, vbg));
+
+    CQChartsDrawUtil::setPenBrush(device, vbgPenBrush);
 
     CQChartsGeom::BBox bboxv1(prect.getXMax() - m - bs, prect.getYMin() + m,
                               prect.getXMax() - m     , prect.getYMin() + m + bh*vnorm_);

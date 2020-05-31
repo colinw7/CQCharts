@@ -10,6 +10,7 @@
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 
@@ -589,7 +590,7 @@ createObjs(PlotObjs &objs) const
 
     ColorInd is(i, n);
 
-    auto *lineObj = new CQChartsParallelLineObj(this, bbox, poly, xind1, is);
+    auto *lineObj = createLineObj(bbox, poly, xind1, is);
 
     objs.push_back(lineObj);
 
@@ -644,7 +645,7 @@ createObjs(PlotObjs &objs) const
       ColorInd is(i, n);
       ColorInd iv(j, nl);
 
-      auto *pointObj = new CQChartsParallelPointObj(this, bbox, p.y, x, y, yind1, is, iv);
+      auto *pointObj = createPointObj(bbox, p.y, x, y, yind1, is, iv);
 
       //bool ok;
 
@@ -1005,6 +1006,24 @@ setNormalizedRange(CQChartsPaintDevice *device)
 
     writeScriptRange(painter);
   }
+}
+
+//---
+
+CQChartsParallelLineObj *
+CQChartsParallelPlot::
+createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
+              const ColorInd &is) const
+{
+  return new CQChartsParallelLineObj(this, rect, poly, ind, is);
+}
+
+CQChartsParallelPointObj *
+CQChartsParallelPlot::
+createPointObj(const BBox &rect, double yval, double x, double y, const QModelIndex &ind,
+               const ColorInd &is, const ColorInd &iv) const
+{
+  return new CQChartsParallelPointObj(this, rect, yval, x, y, ind, is, iv);
 }
 
 //------

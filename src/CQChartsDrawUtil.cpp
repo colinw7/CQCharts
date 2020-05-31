@@ -15,9 +15,19 @@ namespace CQChartsDrawUtil {
 void
 setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
 {
-  device->setPen  (penBrush.pen);
-  device->setBrush(penBrush.brush);
+  device->setPen     (penBrush.pen);
+  device->setBrush   (penBrush.brush);
+  device->setAltColor(penBrush.altColor);
 }
+
+void
+setPenBrush(QPainter *painter, const CQChartsPenBrush &penBrush)
+{
+  painter->setPen  (penBrush.pen);
+  painter->setBrush(penBrush.brush);
+}
+
+//---
 
 void
 drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,

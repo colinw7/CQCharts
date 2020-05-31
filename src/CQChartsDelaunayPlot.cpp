@@ -450,7 +450,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
   if (nr > 0)
     iv = ColorInd(r, nr);
 
-  auto *pointObj = new CQChartsDelaunayPointObj(this, bbox, x, y, value, xind1, iv);
+  auto *pointObj = createPointObj(bbox, x, y, value, xind1, iv);
 
   objs.push_back(pointObj);
 }
@@ -590,17 +590,15 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
       hull.getHull(poly);
 
-      QBrush brush = penBrush.brush;
+      CQChartsPenBrush penBrush1 = penBrush;
 
       if (valueRange_.isSet()) {
         double v = CMathUtil::map(v1->value(), valueRange_.min(), valueRange_.max(), 0.0, 1.0);
 
         QColor fc1 = interpVoronoiFillColor(ColorInd(v));
 
-        brush.setColor(fc1);
+        penBrush1.brush.setColor(fc1);
       }
-
-      CQChartsPenBrush penBrush1(penBrush.pen, brush);
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
@@ -638,14 +636,15 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
   // draw voronoi lines
   if (isVoronoiLines() || isVoronoiCircles()) {
-    QPen pen;
+    CQChartsPenBrush penBrush;
 
     QColor lc = interpVoronoiLinesColor(ColorInd());
 
-    setPen(pen, true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash());
+    setPenBrush(penBrush,
+      CQChartsPenData(true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash()),
+      CQChartsBrushData(false));
 
-    device->setPen  (pen);
-    device->setBrush(Qt::NoBrush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     for (auto pve = delaunayData_->voronoiEdgesBegin();
            pve != delaunayData_->voronoiEdgesEnd(); ++pve) {
@@ -670,6 +669,16 @@ drawVoronoi(CQChartsPaintDevice *device) const
       }
     }
   }
+}
+
+//---
+
+CQChartsDelaunayPointObj *
+CQChartsDelaunayPlot::
+createPointObj(const BBox &rect, double x, double y, double value, const QModelIndex &ind,
+               const ColorInd &iv) const
+{
+  return new CQChartsDelaunayPointObj(this, rect, x, y, value, ind, iv);
 }
 
 //------

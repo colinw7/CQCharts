@@ -64,6 +64,7 @@ struct MainData {
   bool             exit         { false };
   bool             offscreen    { false };
   bool             record       { false };
+  bool             perfClient   { false };
   int              viewWidth    { 100 };
   int              viewHeight   { 100 };
   OptReal          xmin1;
@@ -296,6 +297,10 @@ main(int argc, char **argv)
     CQPerfMonitorInst->stopRecording();
 
     CQPerfMonitorInst->setEnabled(false);
+  }
+
+  if (mainData.perfClient) {
+    CQPerfMonitorInst->createClient("CQCHARTS_PERF");
   }
 
   //---
@@ -728,6 +733,11 @@ parseArgs(int argc, char **argv, MainData &mainData)
       // record
       else if (arg == "record") {
         mainData.record = true;
+      }
+
+      // perf client
+      else if (arg == "perf_client") {
+        mainData.perfClient = true;
       }
 
       else {

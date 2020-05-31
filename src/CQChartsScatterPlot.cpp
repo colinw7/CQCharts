@@ -14,6 +14,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsViewPlotPaintDevice.h>
+#include <CQChartsScriptPaintDevice.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBivariateDensity.h>
 #include <CQCharts.h>
@@ -2868,9 +2869,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 
   double pr2 = (pr1 + pr3)/2;
 
-  QColor strokeColor = interpThemeColor(ColorInd(1.0));
+  //---
 
-  device->setPen(strokeColor);
+  QColor strokeColor = interpThemeColor(ColorInd(1.0));
 
   double xm = px - pr1 - pm;
   double ym = py - pm;
@@ -2885,9 +2886,21 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
 
-  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(pbbox1));
-  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2));
-  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(pbbox3));
+  auto drawEllipse = [&](const QColor &c, const CQChartsGeom::BBox &pbbox) {
+    CQChartsPenBrush penBrush;
+
+    setPenBrush(penBrush, CQChartsPenData(true, strokeColor), CQChartsBrushData(true, c));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->drawEllipse(device->pixelToWindow(pbbox));
+  };
+
+  drawEllipse(fillColor1, pbbox1);
+  drawEllipse(fillColor2, pbbox2);
+  drawEllipse(fillColor3, pbbox3);
+
+  //---
 
   auto drawText = [&](const Point &p, double value) {
     QString text = QString("%1").arg(value);
