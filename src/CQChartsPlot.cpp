@@ -625,6 +625,13 @@ updateRangeAndObjs()
 
 void
 CQChartsPlot::
+updateObjsSlot()
+{
+  updateObjs();
+}
+
+void
+CQChartsPlot::
 updateObjs()
 {
   if (isQueueUpdate()) {

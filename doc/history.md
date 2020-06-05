@@ -1114,6 +1114,10 @@
 # 05/25/2020
  + Add base class for connection plots
  + Improve rotated text for radial plots
-# 5/31/2020
+# 05/31/2020
  + Add hand drawn renderer
  + support performance message interface
+# 06/05/2020
+ + Add flat hierarchical path support to connection plots
+ + Add annotation clipping
+ + More typedefs to cleanup code

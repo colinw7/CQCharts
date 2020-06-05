@@ -32,10 +32,15 @@ class CQChartsPlotObj : public CQChartsObj {
     MINOR
   };
 
-  using PlotObjs     = std::vector<CQChartsPlotObj *>;
-  using ModelIndices = std::vector<QModelIndex>;
-  using Indices      = std::set<QModelIndex>;
-  using ColorInd     = CQChartsUtil::ColorInd;
+  using Plot              = CQChartsPlot;
+  using PlotObj           = CQChartsPlotObj;
+  using PlotObjs          = std::vector<PlotObj *>;
+  using ModelIndices      = std::vector<QModelIndex>;
+  using Indices           = std::set<QModelIndex>;
+  using ColorInd          = CQChartsUtil::ColorInd;
+  using PenBrush          = CQChartsPenBrush;
+  using PaintDevice       = CQChartsPaintDevice;
+  using ScriptPaintDevice = CQChartsScriptPaintDevice;
 
   using Point    = CQChartsGeom::Point;
   using Size     = CQChartsGeom::Size;
@@ -44,7 +49,7 @@ class CQChartsPlotObj : public CQChartsObj {
   using Polygons = CQChartsGeom::Polygons;
 
  public:
-  CQChartsPlotObj(CQChartsPlot *plot, const BBox &rect=BBox(),
+  CQChartsPlotObj(Plot *plot, const BBox &rect=BBox(),
                   const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
                   const ColorInd &iv=ColorInd());
 
@@ -53,7 +58,7 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   //! get parent plot
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
   //---
 
@@ -189,37 +194,36 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   // draw
-  virtual void drawBg(CQChartsPaintDevice *) const;
-  virtual void drawFg(CQChartsPaintDevice *) const;
+  virtual void drawBg(PaintDevice *) const;
+  virtual void drawFg(PaintDevice *) const;
 
-  virtual void draw(CQChartsPaintDevice *);
+  virtual void draw(PaintDevice *);
 
-  virtual void postDraw(CQChartsPaintDevice *) { }
+  virtual void postDraw(PaintDevice *) { }
 
-  void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
+  void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush,
                           const BBox &rect, const CQChartsLength &cornerSize) const;
 
-  void drawDebugRect(CQChartsPaintDevice *device);
+  void drawDebugRect(PaintDevice *device);
 
   //---
 
-  virtual void writeScriptData(CQChartsScriptPaintDevice *device) const;
+  virtual void writeScriptData(ScriptPaintDevice *device) const;
 
-  void writeObjScriptData(CQChartsScriptPaintDevice *device) const;
+  void writeObjScriptData(ScriptPaintDevice *device) const;
 
-  virtual void writeScriptGC(CQChartsScriptPaintDevice *device,
-                             const CQChartsPenBrush &penBrush) const;
+  virtual void writeScriptGC(ScriptPaintDevice *device, const PenBrush &penBrush) const;
 
-  virtual void writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const;
+  virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
  protected:
-  CQChartsPlot*            plot_       { nullptr };           //!< parent plot
-  DetailHint               detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
-  ColorInd                 is_;                               //!< set index
-  ColorInd                 ig_;                               //!< group index
-  ColorInd                 iv_;                               //!< value index
-  ModelIndices             modelInds_;                        //!< associated model indices
-  mutable CQChartsPenBrush penBrush_;                         //!< current pen/brush
+  Plot*            plot_       { nullptr };           //!< parent plot
+  DetailHint       detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
+  ColorInd         is_;                               //!< set index
+  ColorInd         ig_;                               //!< group index
+  ColorInd         iv_;                               //!< value index
+  ModelIndices     modelInds_;                        //!< associated model indices
+  mutable PenBrush penBrush_;                         //!< current pen/brush
 };
 
 //------

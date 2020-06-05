@@ -997,9 +997,7 @@ addExtraNodes(CQChartsTreeMapHierNode *hier) const
     if (colorColumn().isValid()) {
       CQChartsColor color;
 
-      CQChartsModelIndex colorInd(ind1.row(), colorColumn(), ind1.parent());
-
-      if (modelIndexColor(colorInd, color))
+      if (colorColumnColor(ind1.row(), ind1.parent(), color))
         node->setColor(color);
     }
 

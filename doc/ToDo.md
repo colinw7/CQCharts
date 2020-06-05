@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Palettes need to be more regular (red/green/blue mixes)
  + Handdrawn
    + Purisa font
  + remove device->setBrush/setPen calls

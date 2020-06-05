@@ -314,8 +314,7 @@ class CQChartsAxis : public CQChartsObj,
     CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { redraw(); } ); }
 
   const CQChartsAxisTickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
-  void setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &v) {
-    CQChartsUtil::testAndSet(tickLabelPlacement_, v, [&]() { redraw(); } ); }
+  void setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p);
 
   //---
 
@@ -466,6 +465,7 @@ class CQChartsAxis : public CQChartsObj,
 
  signals:
   void ticksChanged();
+  void tickPlacementChanged();
 
   void selectionChanged();
 

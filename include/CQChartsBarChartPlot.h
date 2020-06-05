@@ -347,16 +347,16 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   };
 
  public:
-  CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
+  CQChartsBarChartPlot(View *view, const ModelP &model);
  ~CQChartsBarChartPlot();
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumn &labelColumn() const { return labelColumn_; }
-  void setLabelColumn(const CQChartsColumn &c);
+  const Column &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const Column &c);
 
   //---
 
@@ -385,8 +385,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   bool isDotLines() const { return dotLineData_.enabled; }
 
-  const CQChartsLength &dotLineWidth() const { return dotLineData_.width; }
-  void setDotLineWidth(const CQChartsLength &l);
+  const Length &dotLineWidth() const { return dotLineData_.width; }
+  void setDotLineWidth(const Length &l);
 
   //---
 
@@ -407,10 +407,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   QString valueName() const;
   QString valueStr(double v) const;
 
-  CQChartsAxis *mappedXAxis() const override;
-  CQChartsAxis *mappedYAxis() const override;
+  Axis *mappedXAxis() const override;
+  Axis *mappedYAxis() const override;
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
    //---
 
@@ -452,7 +452,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  protected:
   void addRow(const ModelVisitor::VisitData &data, Range &dataRange) const;
 
-  void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
+  void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
                     Range &dataRange) const;
 
   void initRangeAxes() const;
@@ -501,14 +501,14 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
  protected:
   struct DotLineData {
-    bool           enabled { false }; //!< shown
-    CQChartsLength width   { "3px" }; //!< width
+    bool   enabled { false }; //!< shown
+    Length width   { "3px" }; //!< width
   };
 
  private:
   // columns
-  CQChartsColumn nameColumn_;  //!< name column
-  CQChartsColumn labelColumn_; //!< data label column
+  Column nameColumn_;  //!< name column
+  Column labelColumn_; //!< data label column
 
   // options
   PlotType  plotType_   { PlotType::NORMAL }; //!< plot type

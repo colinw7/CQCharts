@@ -50,6 +50,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
+  Q_PROPERTY(CQChartsColumn pathColumn READ pathColumn WRITE setPathColumn)
+
   Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn)
 
@@ -82,6 +84,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //! get/set value column
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
+
+  //! get/set name columns
+  const CQChartsColumn &pathColumn() const { return pathColumn_; }
+  void setPathColumn(const CQChartsColumn &c);
 
   //! get/set group column
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
@@ -269,10 +275,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
  protected:
   bool initHierObjs() const;
 
+  bool initPathObjs() const;
+
   virtual void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
   virtual void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
+
+  virtual void addPathValue(const QStringList &, double) const { }
 
   //---
 
@@ -286,6 +296,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   ColumnType     connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
   CQChartsColumn linkColumn_;                                 //!< link column
   CQChartsColumn valueColumn_;                                //!< value column
+  CQChartsColumn pathColumn_;                                 //!< path column
   CQChartsColumn groupColumn_;                                //!< group column
   ColumnType     linkColumnType_ { ColumnType::NONE };        //!< link column type
   CQChartsColumn nameColumn_;                                 //!< name column

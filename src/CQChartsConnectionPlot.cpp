@@ -44,6 +44,11 @@ addParameters()
 
   //---
 
+  addColumnParameter("path", "Path", "pathColumn").setBasic().
+    setTip("Path column").setDiscriminator();
+
+  //---
+
   startParameterGroup("General");
 
   addColumnParameter("name", "Name", "nameColumn").
@@ -246,6 +251,13 @@ setValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
+setPathColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(pathColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -303,6 +315,7 @@ addProperties()
   addProp("columns", "connectionsColumn", "connection", "Connections column");
 
   addProp("columns", "linkColumn" , "link" , "Link column");
+  addProp("columns", "pathColumn" , "path" , "Path column");
   addProp("columns", "valueColumn", "value", "Value column");
 
   addProp("columns", "groupColumn", "group", "Grouping column");
@@ -338,6 +351,8 @@ checkColumns() const
       columnsValid = false;
 
     if (! checkColumn(nodeColumn(), "Node")) columnsValid = false;
+  }
+  else if (pathColumn().isValid()) {
   }
   else {
     return th->addError("Required columns not specified");
@@ -469,6 +484,62 @@ initHierObjs() const
     QChar                         separator_ { '/' };
     HierConnectionDataList        hierDataList_;
     HierConnectionData            hierData_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsConnectionPlot::
+initPathObjs() const
+{
+  CQPerfTrace trace("CQChartsConnectionPlot::initPathObjs");
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsConnectionPlot *plot) :
+     plot_(plot) {
+      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex pathModelInd(data.row, plot_->pathColumn(), data.parent);
+
+      // get hier names from path column
+      bool ok;
+      QString pathStrs = plot_->modelString(pathModelInd, ok);
+      if (! ok) return State::SKIP;
+
+      QStringList pathStringList = pathStrs.split(separator_, QString::SkipEmptyParts);
+
+      //---
+
+      double value = 1.0;
+
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        bool ok1;
+        value = plot_->modelReal(valueModelInd, ok1);
+        if (! ok1) return State::SKIP;
+      }
+
+      //---
+
+      plot_->addPathValue(pathStringList, value);
+
+      return State::OK;
+    }
+
+   private:
+    const CQChartsConnectionPlot* plot_      { nullptr };
+    QChar                         separator_ { '/' };
   };
 
   RowVisitor visitor(this);

@@ -81,10 +81,18 @@ class CQChartsPlotType : public QObject {
   Q_ENUMS(Dimension)
 
  public:
-  using Parameters          = std::vector<CQChartsPlotParameter *>;
-  using ParameterGroups     = std::vector<CQChartsPlotParameterGroup *>;
-  using ParameterGroupMap   = std::map<int,CQChartsPlotParameterGroup *>;
+  using View                = CQChartsView;
+  using Plot                = CQChartsPlot;
+  using Parameter           = CQChartsPlotParameter;
+  using ParameterGroup      = CQChartsPlotParameterGroup;
+  using Parameters          = std::vector<Parameter *>;
+  using ParameterGroups     = std::vector<ParameterGroup *>;
+  using ParameterGroupMap   = std::map<int,ParameterGroup *>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
+  using EnumParameter       = CQChartsEnumParameter;
+  using ColumnDetails       = CQChartsModelColumnDetails;
+  using ModelData           = CQChartsModelData;
+  using AnalyzeModelData    = CQChartsAnalyzeModelData;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
 
   enum Dimension {
@@ -149,7 +157,7 @@ class CQChartsPlotType : public QObject {
 
   bool hasParameter(const QString &name) const;
 
-  const CQChartsPlotParameter &getParameter(const QString &name) const;
+  const Parameter &getParameter(const QString &name) const;
 
   //---
 
@@ -164,62 +172,49 @@ class CQChartsPlotType : public QObject {
 
   //--
 
-  CQChartsPlotParameterGroup *startParameterGroup(const QString &name);
+  ParameterGroup *startParameterGroup(const QString &name);
   void endParameterGroup();
 
   //---
 
   // type parameters
-  CQChartsPlotParameter &
-  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     int defValue=-1);
-  CQChartsPlotParameter &
-  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, int defValue=-1);
+  Parameter &addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                                int defValue=-1);
+  Parameter &addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                                const ParameterAttributes &attributes, int defValue=-1);
 
-  CQChartsPlotParameter &
-  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const QString &defValue="");
-  CQChartsPlotParameter &
-  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const ParameterAttributes &attributes, const QString &defValue);
+  Parameter &addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
+                                 const QString &defValue="");
+  Parameter &addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
+                                 const ParameterAttributes &attributes, const QString &defValue);
 
-  CQChartsPlotParameter &
-  addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const QString &defValue="");
-  CQChartsPlotParameter &
-  addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, const QString &defValue);
+  Parameter &addStringParameter(const QString &name, const QString &desc, const QString &propName,
+                                const QString &defValue="");
+  Parameter &addStringParameter(const QString &name, const QString &desc, const QString &propName,
+                                const ParameterAttributes &attributes, const QString &defValue);
 
-  CQChartsPlotParameter &
-  addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   double defValue=0.0);
-  CQChartsPlotParameter &
-  addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, double defValue);
+  Parameter &addRealParameter(const QString &name, const QString &desc, const QString &propName,
+                              double defValue=0.0);
+  Parameter &addRealParameter(const QString &name, const QString &desc, const QString &propName,
+                              const ParameterAttributes &attributes, double defValue);
 
-  CQChartsPlotParameter &
-  addIntParameter(const QString &name, const QString &desc, const QString &propName,
-                  int defValue=0);
-  CQChartsPlotParameter &
-  addIntParameter(const QString &name, const QString &desc, const QString &propName,
-                  const ParameterAttributes &attributes, int defValue);
+  Parameter &addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                             int defValue=0);
+  Parameter &addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                             const ParameterAttributes &attributes, int defValue);
 
-  CQChartsEnumParameter &
-  addEnumParameter(const QString &name, const QString &desc, const QString &propName,
-                   bool defValue=false);
-  CQChartsEnumParameter &
-  addEnumParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, bool defValue);
+  EnumParameter &addEnumParameter(const QString &name, const QString &desc,
+                                  const QString &propName, bool defValue=false);
+  EnumParameter &addEnumParameter(const QString &name, const QString &desc,
+                                  const QString &propName, const ParameterAttributes &attributes,
+                                  bool defValue);
 
-  CQChartsPlotParameter &
-  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   bool defValue=false);
-  CQChartsPlotParameter &
-  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, bool defValue);
+  Parameter &addBoolParameter(const QString &name, const QString &desc, const QString &propName,
+                              bool defValue=false);
+  Parameter &addBoolParameter(const QString &name, const QString &desc, const QString &propName,
+                              const ParameterAttributes &attributes, bool defValue);
 
-  CQChartsPlotParameter &addParameter(CQChartsPlotParameter *parameter);
+  Parameter &addParameter(Parameter *parameter);
 
   //---
 
@@ -234,17 +229,16 @@ class CQChartsPlotType : public QObject {
   //---
 
   // is column suitable for parameter
-  virtual bool isColumnForParameter(CQChartsModelColumnDetails *,
-                                    CQChartsPlotParameter *) const { return true; }
+  virtual bool isColumnForParameter(ColumnDetails *, Parameter *) const { return true; }
 
   //---
 
-  virtual void analyzeModel(CQChartsModelData *, CQChartsAnalyzeModelData &) { }
+  virtual void analyzeModel(ModelData *, AnalyzeModelData &) { }
 
   //---
 
   // create plot
-  virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
+  virtual Plot *create(View *view, const ModelP &model) const = 0;
 
  protected:
   struct PropertyData {

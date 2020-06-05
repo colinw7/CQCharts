@@ -63,10 +63,17 @@ class CQChartsSankeyPlotNode {
   using NodeSet = std::set<const CQChartsSankeyPlotNode *>;
 
  public:
-  CQChartsSankeyPlotNode(const CQChartsSankeyPlot *plot, const QString &str);
+  using Plot    = CQChartsSankeyPlot;
+  using Edge    = CQChartsSankeyPlotEdge;
+  using Node    = CQChartsSankeyPlotNode;
+  using Obj     = CQChartsSankeyNodeObj;
+  using OptReal = CQChartsOptReal;
+
+ public:
+  CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
  ~CQChartsSankeyPlotNode();
 
-  CQChartsSankeyPlotNode *parent() const { return parent_; }
+  Node *parent() const { return parent_; }
 
   QString str() const { return str_; }
 
@@ -76,8 +83,9 @@ class CQChartsSankeyPlotNode {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
+  bool hasValue() const { return value_.isSet(); }
+  const OptReal &value() const { return value_; }
+  void setValue(const OptReal &r) { value_ = r; }
 
   int group() const { return group_; }
   void setGroup(int i) { group_ = i; }
@@ -94,10 +102,10 @@ class CQChartsSankeyPlotNode {
   void setSrcEdges (const Edges &edges) { srcEdges_  = edges; }
   void setDestEdges(const Edges &edges) { destEdges_ = edges; }
 
-  void addSrcEdge (CQChartsSankeyPlotEdge *edge);
-  void addDestEdge(CQChartsSankeyPlotEdge *edge);
+  void addSrcEdge (Edge *edge);
+  void addDestEdge(Edge *edge);
 
-  CQChartsSankeyNodeObj *obj() const { return obj_; }
+  Obj *obj() const { return obj_; }
 
   int srcDepth () const;
   int destDepth() const;
@@ -110,28 +118,28 @@ class CQChartsSankeyPlotNode {
   double srcEdgeSum () const;
   double destEdgeSum() const;
 
-  void setObj(CQChartsSankeyNodeObj *obj);
+  void setObj(Obj *obj);
 
  private:
   int srcDepth (NodeSet &visited) const;
   int destDepth(NodeSet &visited) const;
 
  private:
-  const CQChartsSankeyPlot* plot_      { nullptr };
-  CQChartsSankeyPlotNode*   parent_    { nullptr };
-  QString                   str_;
-  int                       id_        { -1 };
-  CQChartsModelIndex        ind_;
-  QString                   name_;
-  double                    value_     { 0.0 };
-  int                       group_     { -1 };
-  int                       depth_     { -1 };
-  Edges                     srcEdges_;
-  Edges                     destEdges_;
-  int                       srcDepth_  { -1 };
-  int                       destDepth_ { -1 };
-  int                       xpos_      { -1 };
-  CQChartsSankeyNodeObj*    obj_       { nullptr };
+  const Plot*        plot_      { nullptr };
+  Node*              parent_    { nullptr };
+  QString            str_;
+  int                id_        { -1 };
+  CQChartsModelIndex ind_;
+  QString            name_;
+  OptReal            value_;
+  int                group_     { -1 };
+  int                depth_     { -1 };
+  Edges              srcEdges_;
+  Edges              destEdges_;
+  int                srcDepth_  { -1 };
+  int                destDepth_ { -1 };
+  int                xpos_      { -1 };
+  Obj*               obj_       { nullptr };
 };
 
 //---
@@ -142,28 +150,35 @@ class CQChartsSankeyPlotNode {
  */
 class CQChartsSankeyPlotEdge {
  public:
-  CQChartsSankeyPlotEdge(const CQChartsSankeyPlot *plot, double value,
-                         CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode);
+  using Plot    = CQChartsSankeyPlot;
+  using Node    = CQChartsSankeyPlotNode;
+  using Obj     = CQChartsSankeyEdgeObj;
+  using OptReal = CQChartsOptReal;
+
+ public:
+  CQChartsSankeyPlotEdge(const Plot *plot, const OptReal &value, Node *srcNode, Node *destNode);
 
  ~CQChartsSankeyPlotEdge();
 
   const CQChartsSankeyPlot *plot() const { return plot_; }
 
-  double value() const { return value_; }
+  bool hasValue() const { return value_.isSet(); }
+  const OptReal &value() const { return value_; }
+  void setValue(const OptReal &r) { value_ = r; }
 
-  CQChartsSankeyPlotNode *srcNode () const { return srcNode_ ; }
-  CQChartsSankeyPlotNode *destNode() const { return destNode_; }
+  Node *srcNode () const { return srcNode_ ; }
+  Node *destNode() const { return destNode_; }
 
-  CQChartsSankeyEdgeObj *obj() const { return obj_; }
+  Obj *obj() const { return obj_; }
 
-  void setObj(CQChartsSankeyEdgeObj *obj);
+  void setObj(Obj *obj);
 
  private:
-  const CQChartsSankeyPlot* plot_     { nullptr };
-  double                    value_    { 0.0 };
-  CQChartsSankeyPlotNode*   srcNode_  { nullptr };
-  CQChartsSankeyPlotNode*   destNode_ { nullptr };
-  CQChartsSankeyEdgeObj*    obj_      { nullptr };
+  const Plot* plot_     { nullptr };
+  OptReal     value_;
+  Node*       srcNode_  { nullptr };
+  Node*       destNode_ { nullptr };
+  Obj*        obj_      { nullptr };
 };
 
 //---
@@ -176,8 +191,12 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const BBox &rect,
-                        CQChartsSankeyPlotNode *node, const ColorInd &ind);
+  using Plot = CQChartsSankeyPlot;
+  using Node = CQChartsSankeyPlotNode;
+  using Edge = CQChartsSankeyPlotEdge;
+
+ public:
+  CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
 
   const QString &hierName() const { return hierName_; }
   void setHierName(const QString &s) { hierName_ = s; }
@@ -191,14 +210,14 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   int depth() const { return depth_; }
   void setDepth(int i) { depth_ = i; }
 
-  const BBox &srcEdgeRect(CQChartsSankeyPlotEdge *edge) const {
+  const BBox &srcEdgeRect(Edge *edge) const {
     auto p = srcEdgeRect_.find(edge);
     assert(p != srcEdgeRect_.end());
 
     return (*p).second;
   }
 
-  const BBox &destEdgeRect(CQChartsSankeyPlotEdge *edge) const {
+  const BBox &destEdgeRect(Edge *edge) const {
     auto p = destEdgeRect_.find(edge);
     assert(p != destEdgeRect_.end());
 
@@ -230,16 +249,16 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
-  using EdgeRect = std::map<CQChartsSankeyPlotEdge *,BBox>;
+  using EdgeRect = std::map<Edge *,BBox>;
 
-  const CQChartsSankeyPlot* plot_ { nullptr }; //!< parent plot
-  CQChartsSankeyPlotNode*   node_ { nullptr }; //!< node
-  EdgeRect                  srcEdgeRect_;      //!< edge to src
-  EdgeRect                  destEdgeRect_;     //!< edge to dest
-  QString                   hierName_;         //!< node hier name
-  QString                   name_;             //!< node name
-  double                    value_ { 0.0 };    //!< node value
-  int                       depth_ { -1 };     //!< node depth
+  const Plot* plot_ { nullptr }; //!< parent plot
+  Node*       node_ { nullptr }; //!< node
+  EdgeRect    srcEdgeRect_;      //!< edge to src
+  EdgeRect    destEdgeRect_;     //!< edge to dest
+  QString     hierName_;         //!< node hier name
+  QString     name_;             //!< node name
+  double      value_ { 0.0 };    //!< node value
+  int         depth_ { -1 };     //!< node depth
 };
 
 //---
@@ -252,12 +271,15 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const BBox &rect,
-                        CQChartsSankeyPlotEdge *edge);
+  using Plot = CQChartsSankeyPlot;
+  using Edge = CQChartsSankeyPlotEdge;
+
+ public:
+  CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
 
   QString typeName() const override { return "edge"; }
 
-  CQChartsSankeyPlotEdge *edge() const { return edge_; }
+  Edge *edge() const { return edge_; }
 
   QString calcId() const override;
 
@@ -283,11 +305,11 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPaintDevice *device) const override;
 
  private:
-  const CQChartsSankeyPlot* plot_     { nullptr }; //!< parent plot
-  CQChartsSankeyPlotEdge*   edge_     { nullptr }; //!< edge
-  BBox                      srcRect_;              //!< src rect
-  BBox                      destRect_;             //!< dest rect
-  QPainterPath              path_;                 //!< painter path
+  const Plot*  plot_     { nullptr }; //!< parent plot
+  Edge*        edge_     { nullptr }; //!< edge
+  BBox         srcRect_;              //!< src rect
+  BBox         destRect_;             //!< dest rect
+  QPainterPath path_;                 //!< painter path
 };
 
 //---
@@ -328,13 +350,17 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     JUSTIFY
   };
 
-  using NameNodeMap = std::map<QString,CQChartsSankeyPlotNode *>;
-  using IndNodeMap  = std::map<int,CQChartsSankeyPlotNode *>;
-  using NodeSet     = std::set<CQChartsSankeyPlotNode *>;
-  using Edges       = std::vector<CQChartsSankeyPlotEdge *>;
+  using Node        = CQChartsSankeyPlotNode;
+  using NameNodeMap = std::map<QString,Node *>;
+  using IndNodeMap  = std::map<int,Node *>;
+  using NodeSet     = std::set<Node *>;
+  using Edge        = CQChartsSankeyPlotEdge;
+  using Edges       = std::vector<Edge *>;
+  using NodeObj     = CQChartsSankeyNodeObj;
+  using EdgeObj     = CQChartsSankeyEdgeObj;
 
  public:
-  CQChartsSankeyPlot(CQChartsView *view, const ModelP &model);
+  CQChartsSankeyPlot(View *view, const ModelP &model);
 
  ~CQChartsSankeyPlot();
 
@@ -385,8 +411,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
                                      const HierConnectionData &destHierData) const override;
 
   void initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
-                                 double value, CQChartsSankeyPlotNode* &srcNode,
-                                 CQChartsSankeyPlotNode* &destNode) const;
+                                 double value, Node* &srcNode, Node* &destNode) const;
+
+  //---
+
+  bool initPathObjs() const;
+  void addPathValue(const QStringList &, double) const override;
+
+  //---
 
   bool initLinkObjs      () const;
   bool initConnectionObjs() const;
@@ -415,16 +447,15 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  protected:
   void clearNodesAndEdges();
 
-  CQChartsSankeyPlotNode *findNode(const QString &name) const;
+  Node *findNode(const QString &name) const;
 
-  CQChartsSankeyPlotEdge *createEdge(double value, CQChartsSankeyPlotNode *srcNode,
-                                     CQChartsSankeyPlotNode *destNode) const;
+  Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const;
 
   void createGraph(PlotObjs &objs) const;
 
   void createDepthNodes(const IndNodeMap &nodes) const;
 
-  CQChartsSankeyEdgeObj *addEdgeObj(CQChartsSankeyPlotEdge *edge) const;
+  EdgeObj *addEdgeObj(Edge *edge) const;
 
   void adjustNodes() const;
 
@@ -436,15 +467,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void reorderNodeEdges() const;
 
-  void adjustNode(CQChartsSankeyPlotNode *node) const;
+  void adjustNode(Node *node) const;
 
   //---
 
-  virtual CQChartsSankeyNodeObj *createNodeObj(const BBox &rect, CQChartsSankeyPlotNode *node,
-                                               const ColorInd &ind) const;
-
-  virtual CQChartsSankeyEdgeObj *createEdgeObj(const BBox &rect,
-                                               CQChartsSankeyPlotEdge *edge) const;
+  virtual NodeObj *createNodeObj(const BBox &rect, Node *node, const ColorInd &ind) const;
+  virtual EdgeObj *createEdgeObj(const BBox &rect, Edge *edge) const;
 
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;

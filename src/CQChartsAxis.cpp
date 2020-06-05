@@ -677,6 +677,19 @@ setTickSpaces(double *tickSpaces, uint numTickSpaces)
 
 void
 CQChartsAxis::
+setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p)
+{
+  CQChartsUtil::testAndSet(tickLabelPlacement_, p, [&]() {
+    emit tickPlacementChanged();
+
+    redraw();
+  } );
+}
+
+//---
+
+void
+CQChartsAxis::
 setIncludeZero(bool b)
 {
   CQChartsUtil::testAndSet(includeZero_, b, [&]() { updatePlotRange(); } );

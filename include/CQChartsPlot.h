@@ -327,23 +327,44 @@ class CQChartsPlot : public CQChartsObj,
   using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
-  using PlotObjs    = std::vector<CQChartsPlotObj*>;
-  using Annotations = std::vector<CQChartsAnnotation *>;
-  using Objs        = std::vector<CQChartsObj*>;
+  using PlotObj  = CQChartsPlotObj;
+  using PlotObjs = std::vector<PlotObj *>;
+
+  using Annotation  = CQChartsAnnotation;
+  using Annotations = std::vector<Annotation *>;
+
+  using Obj  = CQChartsObj;
+  using Objs = std::vector<Obj *>;
 
   using ModelIndices = std::vector<QModelIndex>;
 
+  using Column     = CQChartsColumn;
+  using Columns    = CQChartsColumns;
   using ColumnType = CQBaseModelType;
+  using ModelIndex = CQChartsModelIndex;
 
-  using Plots = std::vector<CQChartsPlot*>;
+  using Plot     = CQChartsPlot;
+  using Plots    = std::vector<Plot *>;
+  using PlotType = CQChartsPlotType;
 
-  using Buffers = std::map<CQChartsBuffer::Type,CQChartsBuffer *>;
-  using Layers  = std::map<CQChartsLayer::Type,CQChartsLayer *>;
+  using Buffer  = CQChartsBuffer;
+  using Buffers = std::map<Buffer::Type,Buffer *>;
+
+  using Layer  = CQChartsLayer;
+  using Layers = std::map<Layer::Type,Layer *>;
 
   using ColorInd = CQChartsUtil::ColorInd;
 
   using DrawType = CQChartsView::DrawType;
 
+  using View          = CQChartsView;
+  using Axis          = CQChartsAxis;
+  using Title         = CQChartsTitle;
+  using PlotKey       = CQChartsPlotKey;
+  using EditHandles   = CQChartsEditHandles;
+  using PlotParameter = CQChartsPlotParameter;
+
+  using Font        = CQChartsFont;
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
   using Length      = CQChartsLength;
@@ -351,16 +372,29 @@ class CQChartsPlot : public CQChartsObj,
   using FillPattern = CQChartsFillPattern;
   using LineDash    = CQChartsLineDash;
 
+  using PaintDevice       = CQChartsPaintDevice;
+  using ScriptPaintDevice = CQChartsScriptPaintDevice;
+  using SVGPaintDevice    = CQChartsSVGPaintDevice;
+  using HtmlPaintDevice   = CQChartsHtmlPaintDevice;
+
+  using DisplayRange = CQChartsDisplayRange;
+  using OptReal      = CQChartsOptReal;
+  using PenBrush     = CQChartsPenBrush;
+  using Sides        = CQChartsSides;
+  using PlotMargin   = CQChartsPlotMargin;
+  using Symbol       = CQChartsSymbol;
+  using PaletteName  = CQChartsPaletteName;
+
  public:
-  CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
+  CQChartsPlot(View *view, PlotType *type, const ModelP &model);
 
   virtual ~CQChartsPlot();
 
   //---
 
-  CQChartsView *view() const { return view_; }
+  View *view() const { return view_; }
 
-  CQChartsPlotType *type() const { return type_; }
+  PlotType *type() const { return type_; }
 
   QString viewId() const;
 
@@ -425,18 +459,18 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void writeScript(CQChartsScriptPaintDevice *device) const;
+  void writeScript(ScriptPaintDevice *device) const;
 
-  void writeScriptRange(CQChartsScriptPaintDevice *device) const;
+  void writeScriptRange(ScriptPaintDevice *device) const;
 
-  void writeSVG(CQChartsSVGPaintDevice *device) const;
+  void writeSVG(SVGPaintDevice *device) const;
 
-  void writeHtml(CQChartsHtmlPaintDevice *device) const;
+  void writeHtml(HtmlPaintDevice *device) const;
 
   //---
 
-  const CQChartsDisplayRange &displayRange() const;
-  void setDisplayRange(const CQChartsDisplayRange &r);
+  const DisplayRange &displayRange() const;
+  void setDisplayRange(const DisplayRange &r);
 
   const Range &dataRange() const { return dataRange_; }
   void setDataRange(const Range &r, bool update=true);
@@ -470,17 +504,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  const CQChartsOptReal &xmin() const { return xmin_; }
-  void setXMin(const CQChartsOptReal &r);
+  const OptReal &xmin() const { return xmin_; }
+  void setXMin(const OptReal &r);
 
-  const CQChartsOptReal &xmax() const { return xmax_; }
-  void setXMax(const CQChartsOptReal &r);
+  const OptReal &xmax() const { return xmax_; }
+  void setXMax(const OptReal &r);
 
-  const CQChartsOptReal &ymin() const { return ymin_; }
-  void setYMin(const CQChartsOptReal &r);
+  const OptReal &ymin() const { return ymin_; }
+  void setYMin(const OptReal &r);
 
-  const CQChartsOptReal &ymax() const { return ymax_; }
-  void setYMax(const CQChartsOptReal &r);
+  const OptReal &ymax() const { return ymax_; }
+  void setYMax(const OptReal &r);
 
   //---
 
@@ -528,8 +562,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // plot area
-  const CQChartsSides &plotBorderSides() const { return plotBorderSides_; }
-  void setPlotBorderSides(const CQChartsSides &s);
+  const Sides &plotBorderSides() const { return plotBorderSides_; }
+  void setPlotBorderSides(const Sides &s);
 
   bool isPlotClip() const { return plotClip_; }
   void setPlotClip(bool b);
@@ -537,8 +571,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // data area
-  const CQChartsSides &dataBorderSides() const { return dataBorderSides_; }
-  void setDataBorderSides(const CQChartsSides &s);
+  const Sides &dataBorderSides() const { return dataBorderSides_; }
+  void setDataBorderSides(const Sides &s);
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b);
@@ -546,20 +580,20 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // fit area
-  const CQChartsSides &fitBorderSides() const { return fitBorderSides_; }
-  void setFitBorderSides(const CQChartsSides &s);
+  const Sides &fitBorderSides() const { return fitBorderSides_; }
+  void setFitBorderSides(const Sides &s);
 
   //---
 
   // font
-  const CQChartsFont &font() const { return font_; }
-  virtual void setFont(const CQChartsFont &f);
+  const Font &font() const { return font_; }
+  virtual void setFont(const Font &f);
 
   //---
 
   // default palette
-  const CQChartsPaletteName &defaultPalette() const { return defaultPalette_; }
-  void setDefaultPalette(const CQChartsPaletteName &name);
+  const PaletteName &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const PaletteName &name);
 
   //---
 
@@ -624,7 +658,7 @@ class CQChartsPlot : public CQChartsObj,
   void setViewBBox(const BBox &bbox);
 
   BBox calcViewBBox() const;
-  virtual BBox adjustedViewBBox(const CQChartsPlot *plot) const;
+  virtual BBox adjustedViewBBox(const Plot *plot) const;
 
   // get inner view bbox
   BBox innerViewBBox() const;
@@ -644,7 +678,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // inner margin
-  const CQChartsPlotMargin &innerMargin() const { return innerMargin_; }
+  const PlotMargin &innerMargin() const { return innerMargin_; }
 
   const Length &innerMarginLeft() const { return innerMargin().left(); }
   void setInnerMarginLeft(const Length &l);
@@ -659,10 +693,10 @@ class CQChartsPlot : public CQChartsObj,
   void setInnerMarginBottom(const Length &b);
 
   void setInnerMargin(const Length &l, const Length &t, const Length &r, const Length &b);
-  void setInnerMargin(const CQChartsPlotMargin &m);
+  void setInnerMargin(const PlotMargin &m);
 
   // outer margin
-  const CQChartsPlotMargin &outerMargin() const { return outerMargin_; }
+  const PlotMargin &outerMargin() const { return outerMargin_; }
 
   const Length &outerMarginLeft() const { return outerMargin().left(); }
   void setOuterMarginLeft(const Length &l);
@@ -677,7 +711,7 @@ class CQChartsPlot : public CQChartsObj,
   void setOuterMarginBottom(const Length &b);
 
   void setOuterMargin(const Length &l, const Length &t, const Length &r, const Length &b);
-  void setOuterMargin(const CQChartsPlotMargin &m);
+  void setOuterMargin(const PlotMargin &m);
 
   //---
 
@@ -686,32 +720,32 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQChartsAxis *xAxis() const { return xAxis_; }
-  CQChartsAxis *yAxis() const { return yAxis_; }
+  Axis *xAxis() const { return xAxis_; }
+  Axis *yAxis() const { return yAxis_; }
 
-  virtual CQChartsAxis *mappedXAxis() const { return xAxis(); }
-  virtual CQChartsAxis *mappedYAxis() const { return yAxis(); }
+  virtual Axis *mappedXAxis() const { return xAxis(); }
+  virtual Axis *mappedYAxis() const { return yAxis(); }
 
   virtual bool xAxisName(QString &, const QString& ="") const { return false; }
   virtual bool yAxisName(QString &, const QString& ="") const { return false; }
 
   void setOverlayPlotsAxisNames();
-  void setPlotsAxisNames(const Plots &plots, CQChartsPlot *axisPlot);
+  void setPlotsAxisNames(const Plots &plots, Plot *axisPlot);
 
   //---
 
-  CQChartsPlotKey *key() const { return keyObj_; }
+  PlotKey *key() const { return keyObj_; }
 
-  CQChartsTitle *title() const { return titleObj_; }
+  Title *title() const { return titleObj_; }
 
   //---
 
-  CQChartsPlot *parentPlot() const { return connectData_.parent; }
-  void setParentPlot(CQChartsPlot *parent) { connectData_.parent = parent; }
+  Plot *parentPlot() const { return connectData_.parent; }
+  void setParentPlot(Plot *parent) { connectData_.parent = parent; }
 
-  virtual int childPlotIndex(const CQChartsPlot *) const { return -1; }
+  virtual int childPlotIndex(const Plot *) const { return -1; }
   virtual int numChildPlots() const { return 0; }
-  virtual CQChartsPlot *childPlot(int) const { return nullptr; }
+  virtual Plot *childPlot(int) const { return nullptr; }
 
   int plotDepth() const { return (parentPlot() ? parentPlot()->plotDepth() + 1 : 0); }
 
@@ -742,22 +776,22 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void setTabbedFont(const CQChartsFont &f);
-  const CQChartsFont &tabbedFont() const;
+  void setTabbedFont(const Font &f);
+  const Font &tabbedFont() const;
 
   //-
 
-  CQChartsPlot *prevPlot() const { return connectData_.prev; }
-  CQChartsPlot *nextPlot() const { return connectData_.next; }
+  Plot *prevPlot() const { return connectData_.prev; }
+  Plot *nextPlot() const { return connectData_.next; }
 
-  void setNextPlot(CQChartsPlot *plot, bool notify=true);
-  void setPrevPlot(CQChartsPlot *plot, bool notify=true);
+  void setNextPlot(Plot *plot, bool notify=true);
+  void setPrevPlot(Plot *plot, bool notify=true);
 
-  const CQChartsPlot *firstPlot() const;
-  CQChartsPlot *firstPlot();
+  const Plot *firstPlot() const;
+  Plot *firstPlot();
 
-  const CQChartsPlot *lastPlot() const;
-  CQChartsPlot *lastPlot();
+  const Plot *lastPlot() const;
+  Plot *lastPlot();
 
   bool isFirstPlot() const { return (firstPlot() == this); }
   bool isLastPlot () const { return (lastPlot () == this); }
@@ -812,8 +846,8 @@ class CQChartsPlot : public CQChartsObj,
     return b;
   }
 
-  void x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
-  void y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
+  void x1x2Plots(Plot* &plot1, Plot* &plot2);
+  void y1y2Plots(Plot* &plot1, Plot* &plot2);
 
   void resetConnectData(bool notify=true);
 
@@ -889,7 +923,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
-  void getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const;
+  void getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const;
 
   void hideProperty(const QString &path, QObject *object);
 
@@ -898,11 +932,11 @@ class CQChartsPlot : public CQChartsObj,
   // margins
   void updateMargins(bool update=true);
 
-  void updateMargins(const CQChartsPlotMargin &outerMargin);
+  void updateMargins(const PlotMargin &outerMargin);
 
   //---
 
-  CQChartsModelIndex normalizeIndex(const CQChartsModelIndex &ind) const;
+  ModelIndex normalizeIndex(const ModelIndex &ind) const;
   QModelIndex normalizeIndex(const QModelIndex &ind) const;
 
   QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
@@ -912,7 +946,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const;
+  void addColumnValues(const Column &column, CQChartsValueSet &valueSet) const;
 
   //---
 
@@ -922,8 +956,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool modelMappedReal(const CQChartsModelIndex &ind, double &r, bool log, double def) const;
-  bool modelMappedReal(int row, const CQChartsColumn &col, const QModelIndex &ind,
+  bool modelMappedReal(const ModelIndex &ind, double &r, bool log, double def) const;
+  bool modelMappedReal(int row, const Column &col, const QModelIndex &ind,
                        double &r, bool log, double def) const;
 
   //---
@@ -934,20 +968,20 @@ class CQChartsPlot : public CQChartsObj,
 
   //----
 
-  QModelIndex modelIndex(const CQChartsModelIndex &ind) const;
+  QModelIndex modelIndex(const ModelIndex &ind) const;
 
-  QModelIndex modelIndex(int row, const CQChartsColumn &column,
+  QModelIndex modelIndex(int row, const Column &column,
                          const QModelIndex &parent=QModelIndex()) const;
 
   //----
 
 #if 0
-  QVariant modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
-  QVariant modelHHeaderValue(const CQChartsColumn &column, bool &ok) const;
+  QVariant modelHHeaderValue(const Column &column, int role, bool &ok) const;
+  QVariant modelHHeaderValue(const Column &column, bool &ok) const;
 
-  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const Column &column,
                                      int role, bool &ok) const;
-  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const Column &column,
                                      bool &ok) const;
 #endif
 
@@ -965,17 +999,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QString modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
-  QString modelHHeaderString(const CQChartsColumn &column, bool &ok) const;
+  QString modelHHeaderString(const Column &column, int role, bool &ok) const;
+  QString modelHHeaderString(const Column &column, bool &ok) const;
 
-  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const Column &column,
                                      int role, bool &ok) const;
-  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const Column &column,
                                      bool &ok) const;
 
   //---
 
-  QString modelHHeaderTip(const CQChartsColumn &column, bool &ok) const;
+  QString modelHHeaderTip(const Column &column, bool &ok) const;
 
   //---
 
@@ -989,136 +1023,136 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QVariant modelValue(const CQChartsModelIndex &ind, int role, bool &ok) const;
-  QVariant modelValue(const CQChartsModelIndex &ind, bool &ok) const;
+  QVariant modelValue(const ModelIndex &ind, int role, bool &ok) const;
+  QVariant modelValue(const ModelIndex &ind, bool &ok) const;
 
-  QVariant modelValue(int row, const CQChartsColumn &column,
+  QVariant modelValue(int row, const Column &column,
                       const QModelIndex &parent, int role, bool &ok) const;
-  QVariant modelValue(int row, const CQChartsColumn &column,
+  QVariant modelValue(int row, const Column &column,
                       const QModelIndex &parent, bool &ok) const;
 
-  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, int role, bool &ok) const;
-  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  QString modelString(const CQChartsModelIndex &ind, int role, bool &ok) const;
-  QString modelString(const CQChartsModelIndex &ind, bool &ok) const;
+  QString modelString(const ModelIndex &ind, int role, bool &ok) const;
+  QString modelString(const ModelIndex &ind, bool &ok) const;
 
-  QString modelString(int row, const CQChartsColumn &column,
+  QString modelString(int row, const Column &column,
                       const QModelIndex &parent, int role, bool &ok) const;
-  QString modelString(int row, const CQChartsColumn &column,
+  QString modelString(int row, const Column &column,
                       const QModelIndex &parent, bool &ok) const;
 
-  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, int role, bool &ok) const;
-  virtual QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  double modelReal(int row, const CQChartsColumn &column,
+  double modelReal(int row, const Column &column,
                    const QModelIndex &parent, int role, bool &ok) const;
-  double modelReal(int row, const CQChartsColumn &column,
+  double modelReal(int row, const Column &column,
                    const QModelIndex &parent, bool &ok) const;
 
-  double modelReal(const CQChartsModelIndex &ind, int role, bool &ok) const;
-  double modelReal(const CQChartsModelIndex &ind, bool &ok) const;
+  double modelReal(const ModelIndex &ind, int role, bool &ok) const;
+  double modelReal(const ModelIndex &ind, bool &ok) const;
 
-  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual double modelReal(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, int role, bool &ok) const;
-  virtual double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual double modelReal(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  long modelInteger(int row, const CQChartsColumn &column,
+  long modelInteger(int row, const Column &column,
                     const QModelIndex &parent, int role, bool &ok) const;
-  long modelInteger(int row, const CQChartsColumn &column,
+  long modelInteger(int row, const Column &column,
                     const QModelIndex &parent, bool &ok) const;
 
-  long modelInteger(const CQChartsModelIndex &ind, int role, bool &ok) const;
-  long modelInteger(const CQChartsModelIndex &ind, bool &ok) const;
+  long modelInteger(const ModelIndex &ind, int role, bool &ok) const;
+  long modelInteger(const ModelIndex &ind, bool &ok) const;
 
-  virtual long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual long modelInteger(QAbstractItemModel *model, int row, const Column &column,
                             const QModelIndex &parent, int role, bool &ok) const;
-  virtual long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual long modelInteger(QAbstractItemModel *model, int row, const Column &column,
                             const QModelIndex &parent, bool &ok) const;
 
   //---
 
 #if 0
-  Color modelColor(int row, const CQChartsColumn &column,
+  Color modelColor(int row, const Column &column,
                    const QModelIndex &parent, bool &ok) const;
-  Color modelColor(int row, const CQChartsColumn &column,
+  Color modelColor(int row, const Column &column,
                    const QModelIndex &parent, int role, bool &ok) const;
 
-  virtual Color modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual Color modelColor(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, int role, bool &ok) const;
-  virtual Color modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  virtual Color modelColor(QAbstractItemModel *model, int row, const Column &column,
                            const QModelIndex &parent, bool &ok) const;
 #endif
 
   //---
 
-  std::vector<double> modelReals(const CQChartsModelIndex &ind, bool &ok) const;
-  std::vector<double> modelReals(int row, const CQChartsColumn &column,
+  std::vector<double> modelReals(const ModelIndex &ind, bool &ok) const;
+  std::vector<double> modelReals(int row, const Column &column,
                                  const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  QVariant modelRootValue(int row, const CQChartsColumn &column,
+  QVariant modelRootValue(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
-  QVariant modelRootValue(int row, const CQChartsColumn &column,
+  QVariant modelRootValue(int row, const Column &column,
                           const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  QVariant modelHierValue(const CQChartsModelIndex &ind, bool &ok) const;
-  QVariant modelHierValue(int row, const CQChartsColumn &column,
+  QVariant modelHierValue(const ModelIndex &ind, bool &ok) const;
+  QVariant modelHierValue(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
-  QVariant modelHierValue(int row, const CQChartsColumn &column,
+  QVariant modelHierValue(int row, const Column &column,
                           const QModelIndex &parent, bool &ok) const;
 
   //---
 
-  QString modelHierString(const CQChartsModelIndex &ind, bool &ok) const;
-  QString modelHierString(int row, const CQChartsColumn &column,
+  QString modelHierString(const ModelIndex &ind, bool &ok) const;
+  QString modelHierString(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
-  QString modelHierString(int row, const CQChartsColumn &column,
+  QString modelHierString(int row, const Column &column,
                           const QModelIndex &parent, bool &ok) const;
 
   //---
 
 #if 0
-  double modelHierReal(int row, const CQChartsColumn &column,
+  double modelHierReal(int row, const Column &column,
                        const QModelIndex &parent, int role, bool &ok) const;
-  double modelHierReal(int row, const CQChartsColumn &column,
+  double modelHierReal(int row, const Column &column,
                        const QModelIndex &parent, bool &ok) const;
 #endif
 
   //---
 
 #if 0
-  long modelHierInteger(int row, const CQChartsColumn &column,
+  long modelHierInteger(int row, const Column &column,
                         const QModelIndex &parent, int role, bool &ok) const;
-  long modelHierInteger(int row, const CQChartsColumn &column,
+  long modelHierInteger(int row, const Column &column,
                         const QModelIndex &parent, bool &ok) const;
 #endif
 
   //---
 
-  bool isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &col,
+  bool isSelectIndex(const QModelIndex &ind, int row, const Column &col,
                      const QModelIndex &parent=QModelIndex()) const;
 
-  QModelIndex selectIndex(int row, const CQChartsColumn &col,
+  QModelIndex selectIndex(int row, const Column &col,
                           const QModelIndex &parent=QModelIndex()) const;
 
   void beginSelectIndex();
 
-  void addSelectIndex(const CQChartsModelIndex &ind);
+  void addSelectIndex(const ModelIndex &ind);
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
 
@@ -1222,11 +1256,11 @@ class CQChartsPlot : public CQChartsObj,
   virtual void resetKeyItems();
 
   // add items to key
-  void doAddKeyItems(CQChartsPlotKey *key);
+  void doAddKeyItems(PlotKey *key);
 
-  virtual void addKeyItems(CQChartsPlotKey *) { }
+  virtual void addKeyItems(PlotKey *) { }
 
-  bool addColorKeyItems(CQChartsPlotKey *key);
+  bool addColorKeyItems(PlotKey *key);
 
   //---
 
@@ -1279,7 +1313,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  static void updateRangeASync(CQChartsPlot *plot);
+  static void updateRangeASync(Plot *plot);
 
   void updateRangeThread();
 
@@ -1311,7 +1345,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  static void updateObjsASync(CQChartsPlot *plot);
+  static void updateObjsASync(Plot *plot);
 
   void updateObjsThread();
 
@@ -1330,7 +1364,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  static void drawASync(CQChartsPlot *plot);
+  static void drawASync(Plot *plot);
 
   void drawThread();
 
@@ -1350,32 +1384,32 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   struct SymbolTypeData {
-    CQChartsColumn column;             //!< symbol type column
-    bool           valid    { false }; //!< symbol type valid
-    bool           mapped   { false }; //!< symbol type values mapped
-    int            data_min { 0 };     //!< model data min
-    int            data_max { 1 };     //!< model data max
-    int            map_min  { 0 };     //!< mapped size min
-    int            map_max  { 1 };     //!< mapped size max
+    Column column;             //!< symbol type column
+    bool   valid    { false }; //!< symbol type valid
+    bool   mapped   { false }; //!< symbol type values mapped
+    int    data_min { 0 };     //!< model data min
+    int    data_max { 1 };     //!< model data max
+    int    map_min  { 0 };     //!< mapped size min
+    int    map_max  { 1 };     //!< mapped size max
   };
 
   void initSymbolTypeData(SymbolTypeData &symbolTypeData) const;
 
   bool columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
-                        CQChartsSymbol &symbolType) const;
+                        Symbol &symbolType) const;
 
   //---
 
   struct SymbolSizeData {
-    CQChartsColumn column;              //!< symbol size column
-    bool           valid     { false }; //!< symbol size valid
-    bool           mapped    { false }; //!< symbol size values mapped
-    double         data_min  { 0.0 };   //!< model data min
-    double         data_max  { 1.0 };   //!< model data max
-    double         data_mean { 0.0 };   //!< model data mean
-    double         map_min   { 0.0 };   //!< mapped size min
-    double         map_max   { 1.0 };   //!< mapped size max
-    QString        units     { "px" };  //!< mapped size units
+    Column  column;              //!< symbol size column
+    bool    valid     { false }; //!< symbol size valid
+    bool    mapped    { false }; //!< symbol size values mapped
+    double  data_min  { 0.0 };   //!< model data min
+    double  data_max  { 1.0 };   //!< model data max
+    double  data_mean { 0.0 };   //!< model data mean
+    double  map_min   { 0.0 };   //!< mapped size min
+    double  map_max   { 1.0 };   //!< mapped size max
+    QString units     { "px" };  //!< mapped size units
   };
 
   void initSymbolSizeData(SymbolSizeData &symbolSizeData) const;
@@ -1386,14 +1420,14 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   struct FontSizeData {
-    CQChartsColumn column;             //!< font size column
-    bool           valid    { false }; //!< font size valid
-    bool           mapped   { false }; //!< font size values mapped
-    double         data_min { 0.0 };   //!< model data min
-    double         data_max { 1.0 };   //!< model data max
-    double         map_min  { 0.0 };   //!< mapped size min
-    double         map_max  { 1.0 };   //!< mapped size max
-    QString        units    { "px" };  //!< mapped size units
+    Column  column;             //!< font size column
+    bool    valid    { false }; //!< font size valid
+    bool    mapped   { false }; //!< font size values mapped
+    double  data_min { 0.0 };   //!< model data min
+    double  data_max { 1.0 };   //!< model data max
+    double  map_min  { 0.0 };   //!< mapped size min
+    double  map_max  { 1.0 };   //!< mapped size max
+    QString units    { "px" };  //!< mapped size units
   };
 
   void initFontSizeData(FontSizeData &fontSizeData) const;
@@ -1479,13 +1513,13 @@ class CQChartsPlot : public CQChartsObj,
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
 
-  void addPlotObject(CQChartsPlotObj *obj);
+  void addPlotObject(PlotObj *obj);
 
   virtual void clearPlotObjects();
 
   bool updateInsideObjects(const Point &w);
 
-  CQChartsObj *insideObject() const;
+  Obj *insideObject() const;
 
   void setInsideObject();
 
@@ -1503,14 +1537,14 @@ class CQChartsPlot : public CQChartsObj,
 
   // error for bad column
   struct ColumnError {
-    CQChartsColumn column;
-    QString        msg;
+    Column  column;
+    QString msg;
   };
 
   // error accessing data in model
   struct DataError {
-    CQChartsModelIndex ind;
-    QString            msg;
+    ModelIndex ind;
+    QString    msg;
   };
 
   using Errors       = std::vector<Error>;
@@ -1522,8 +1556,8 @@ class CQChartsPlot : public CQChartsObj,
   bool hasErrors() const;
 
   bool addError(const QString &msg);
-  bool addColumnError(const CQChartsColumn &c, const QString &msg);
-  bool addDataError(const CQChartsModelIndex &ind, const QString &msg);
+  bool addColumnError(const Column &c, const QString &msg);
+  bool addDataError(const ModelIndex &ind, const QString &msg);
 
   void getErrors(QStringList &errors);
 
@@ -1535,7 +1569,7 @@ class CQChartsPlot : public CQChartsObj,
 
   int numPlotObjects() const { return plotObjs_.size(); }
 
-  CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
+  PlotObj *plotObject(int i) const { return plotObjs_[i]; }
 
   bool isNoData() const { return noData_; }
   void setNoData(bool b) { noData_ = b; }
@@ -1546,32 +1580,32 @@ class CQChartsPlot : public CQChartsObj,
   //----
 
   // columns
-  const CQChartsColumn &xValueColumn() const { return xValueColumn_; }
-  void setXValueColumn(const CQChartsColumn &column);
+  const Column &xValueColumn() const { return xValueColumn_; }
+  void setXValueColumn(const Column &column);
 
-  const CQChartsColumn &yValueColumn() const { return yValueColumn_; }
-  void setYValueColumn(const CQChartsColumn &column);
+  const Column &yValueColumn() const { return yValueColumn_; }
+  void setYValueColumn(const Column &column);
 
-  const CQChartsColumn &idColumn() const { return idColumn_; }
-  void setIdColumn(const CQChartsColumn &column);
+  const Column &idColumn() const { return idColumn_; }
+  void setIdColumn(const Column &column);
 
-  const CQChartsColumns &tipColumns() const { return tipColumns_; }
-  void setTipColumns(const CQChartsColumns &columns);
+  const Columns &tipColumns() const { return tipColumns_; }
+  void setTipColumns(const Columns &columns);
 
-  const CQChartsColumn &visibleColumn() const { return visibleColumn_; }
-  void setVisibleColumn(const CQChartsColumn &column);
+  const Column &visibleColumn() const { return visibleColumn_; }
+  void setVisibleColumn(const Column &column);
 
-  const CQChartsColumn &imageColumn() const { return imageColumn_; }
-  void setImageColumn(const CQChartsColumn &column);
+  const Column &imageColumn() const { return imageColumn_; }
+  void setImageColumn(const Column &column);
 
-  const CQChartsColumn &colorColumn() const { return colorColumnData_.column; };
-  void setColorColumn(const CQChartsColumn &c);
+  const Column &colorColumn() const { return colorColumnData_.column; };
+  void setColorColumn(const Column &c);
 
-  const CQChartsColumn &fontColumn() const { return fontColumn_; };
-  void setFontColumn(const CQChartsColumn &c);
+  const Column &fontColumn() const { return fontColumn_; };
+  void setFontColumn(const Column &c);
 
-  const CQChartsColumns &controlColumns() const { return controlColumns_; }
-  void setControlColumns(const CQChartsColumns &columns);
+  const Columns &controlColumns() const { return controlColumns_; }
+  void setControlColumns(const Columns &columns);
 
   //--
 
@@ -1602,18 +1636,18 @@ class CQChartsPlot : public CQChartsObj,
   // color column
   bool colorColumnColor(int row, const QModelIndex &parent, Color &color) const;
 
-  bool modelIndexColor(const CQChartsModelIndex &ind, Color &color) const;
+  bool modelIndexColor(const ModelIndex &ind, Color &color) const;
 
   bool columnValueColor(const QVariant &var, Color &color) const;
 
   //---
 
   // font column
-  bool fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const;
+  bool fontColumnFont(int row, const QModelIndex &parent, Font &font) const;
 
-  bool modelIndexFont(const CQChartsModelIndex &ind, CQChartsFont &font) const;
+  bool modelIndexFont(const ModelIndex &ind, Font &font) const;
 
-  bool columnValueFont(const QVariant &var, CQChartsFont &font) const;
+  bool columnValueFont(const QVariant &var, Font &font) const;
 
   //---
 
@@ -1626,7 +1660,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual QString xStr(double x) const;
   virtual QString yStr(double y) const;
 
-  virtual QString columnStr(const CQChartsColumn &column, double x) const;
+  virtual QString columnStr(const Column &column, double x) const;
 
   //---
 
@@ -1643,14 +1677,14 @@ class CQChartsPlot : public CQChartsObj,
 
   bool tabbedSelectPress(const Point &w, SelMod selMod);
 
-  CQChartsPlot *tabbedPressPlot(const Point &w, Plots &plots) const;
+  Plot *tabbedPressPlot(const Point &w, Plots &plots) const;
 
-  bool keySelectPress  (CQChartsPlotKey *key  , const Point &w, SelMod selMod);
-  bool titleSelectPress(CQChartsTitle   *title, const Point &w, SelMod selMod);
+  bool keySelectPress  (PlotKey *key  , const Point &w, SelMod selMod);
+  bool titleSelectPress(Title   *title, const Point &w, SelMod selMod);
 
   bool annotationsSelectPress(const Point &w, SelMod selMod);
 
-  CQChartsObj *objectsSelectPress(const Point &w, SelMod selMod);
+  Obj *objectsSelectPress(const Point &w, SelMod selMod);
 
   //-
 
@@ -1667,17 +1701,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //-
 
-  bool keyEditPress  (CQChartsPlotKey *key  , const Point &w);
-  bool axisEditPress (CQChartsAxis    *axis , const Point &w);
-  bool titleEditPress(CQChartsTitle   *title, const Point &w);
+  bool keyEditPress  (PlotKey *key  , const Point &w);
+  bool axisEditPress (Axis    *axis , const Point &w);
+  bool titleEditPress(Title   *title, const Point &w);
 
   bool annotationsEditPress(const Point &w);
 
   //-
 
-  bool keyEditSelect  (CQChartsPlotKey *key  , const Point &w);
-  bool axisEditSelect (CQChartsAxis    *axis , const Point &w);
-  bool titleEditSelect(CQChartsTitle   *title, const Point &w);
+  bool keyEditSelect  (PlotKey *key  , const Point &w);
+  bool axisEditSelect (Axis    *axis , const Point &w);
+  bool titleEditSelect(Title   *title, const Point &w);
 
   bool annotationsEditSelect(const Point &w);
 
@@ -1687,7 +1721,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void editMoveBy(const Point &d);
 
-  void selectOneObj(CQChartsObj *obj, bool allObjs);
+  void selectOneObj(Obj *obj, bool allObjs);
 
   void deselectAllObjs();
 
@@ -1731,6 +1765,7 @@ class CQChartsPlot : public CQChartsObj,
 
  public slots:
   void updateSlot();
+  void updateObjsSlot();
 
   virtual void cycleNext();
   virtual void cyclePrev();
@@ -1843,7 +1878,7 @@ class CQChartsPlot : public CQChartsObj,
                                                       const Angle &startAngle,
                                                       const Angle &spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
-                                                      const CQChartsSymbol &type);
+                                                      const Symbol &type);
   CQChartsPointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
   CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
   CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
@@ -1857,35 +1892,34 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsButtonAnnotation    *addButtonAnnotation   (const CQChartsPosition &pos,
                                                       const QString &text);
 
-  void addAnnotation(CQChartsAnnotation *annotation);
+  void addAnnotation(Annotation *annotation);
 
-  CQChartsAnnotation *getAnnotationByName(const QString &id) const;
-  CQChartsAnnotation *getAnnotationByInd(int ind) const;
+  Annotation *getAnnotationByName(const QString &id) const;
+  Annotation *getAnnotationByInd(int ind) const;
 
-  void removeAnnotation(CQChartsAnnotation *annotation);
+  void removeAnnotation(Annotation *annotation);
 
   void removeAllAnnotations();
 
   //---
 
-  CQChartsPlotObj *getPlotObject(const QString &objectId) const;
+  PlotObj *getPlotObject(const QString &objectId) const;
 
-  CQChartsObj *getObject(const QString &objectId) const;
+  Obj *getObject(const QString &objectId) const;
 
   QList<QModelIndex> getObjectInds(const QString &objectId) const;
 
-  std::vector<CQChartsObj *> getObjectConnected(const QString &objectId) const;
+  std::vector<Obj *> getObjectConnected(const QString &objectId) const;
 
   //---
 
   const Layers &layers() const { return layers_; }
 
-  CQChartsLayer *initLayer(const CQChartsLayer::Type &type,
-                           const CQChartsBuffer::Type &buffer, bool active);
+  Layer *initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active);
 
-  void setLayerActive(const CQChartsLayer::Type &type, bool b);
+  void setLayerActive(const Layer::Type &type, bool b);
 
-  bool isLayerActive(const CQChartsLayer::Type &type) const;
+  bool isLayerActive(const Layer::Type &type) const;
 
   //---
 
@@ -1897,10 +1931,10 @@ class CQChartsPlot : public CQChartsObj,
   void execInvalidateLayers();
 
  public:
-  virtual void invalidateLayer(const CQChartsBuffer::Type &layerType);
+  virtual void invalidateLayer(const Buffer::Type &layerType);
 
  protected:
-  void execInvalidateLayer(const CQChartsBuffer::Type &layerType);
+  void execInvalidateLayer(const Buffer::Type &layerType);
 
  public:
   virtual void invalidateOverlay();
@@ -1911,16 +1945,16 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  CQChartsBuffer *getBuffer(const CQChartsBuffer::Type &type) const;
+  Buffer *getBuffer(const Buffer::Type &type) const;
 
-  CQChartsLayer *getLayer(const CQChartsLayer::Type &type) const;
+  Layer *getLayer(const Layer::Type &type) const;
 
  private:
   BBox adjustDataRangeBBox(const BBox &bbox) const;
 
-  void setLayerActive1(const CQChartsLayer::Type &type, bool b);
+  void setLayerActive1(const Layer::Type &type, bool b);
 
-  void invalidateLayer1(const CQChartsBuffer::Type &layerType);
+  void invalidateLayer1(const Buffer::Type &layerType);
 
   void setLayersChanged(bool update);
 
@@ -1939,39 +1973,39 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawParts(QPainter *painter) const;
 
   // draw plot device parts
-  virtual void drawDeviceParts(CQChartsPaintDevice *) const { }
+  virtual void drawDeviceParts(PaintDevice *) const { }
 
   // draw background layer plot parts
   virtual void drawBackgroundParts(QPainter *painter) const;
 
   // draw background layer plot device parts
-  virtual void drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+  virtual void drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
                                          bool bgKey) const;
 
   // draw middle layer plot parts
   virtual void drawMiddleParts(QPainter *painter) const;
 
   // draw middle layer plot device parts
-  virtual void drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg,
+  virtual void drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg,
                                      bool annotations) const;
 
   // draw foreground layer plot parts
   virtual void drawForegroundParts(QPainter *painter) const;
 
   // draw foreground layer plot device parts
-  virtual void drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+  virtual void drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
                                          bool title, bool foreground, bool tabbed) const;
 
-  virtual void drawTabs(CQChartsPaintDevice *device) const;
+  virtual void drawTabs(PaintDevice *device) const;
 
-  void drawTabs(CQChartsPaintDevice *device, const Plots &plots) const;
-  void drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentPlot) const;
+  void drawTabs(PaintDevice *device, const Plots &plots) const;
+  void drawTabs(PaintDevice *device, const Plots &plots, Plot *currentPlot) const;
 
   // draw overlay layer plot parts
   virtual void drawOverlayParts(QPainter *painter) const;
 
   // draw overlay layer plot device parts
-  virtual void drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs,
+  virtual void drawOverlayDeviceParts(PaintDevice *device, bool sel_objs,
                                       bool sel_annotations, bool boxes, bool edit_handles,
                                       bool over_objs, bool over_annotations) const;
 
@@ -1980,49 +2014,47 @@ class CQChartsPlot : public CQChartsObj,
   // draw background (layer and detail)
   virtual bool hasBackgroundLayer() const;
 
-  virtual void drawBackgroundLayer(CQChartsPaintDevice *device) const;
+  virtual void drawBackgroundLayer(PaintDevice *device) const;
 
-  virtual void drawBackgroundRects(CQChartsPaintDevice *device) const;
+  virtual void drawBackgroundRects(PaintDevice *device) const;
 
   virtual bool hasBackground() const;
 
-  virtual void execDrawBackground(CQChartsPaintDevice *device) const;
+  virtual void execDrawBackground(PaintDevice *device) const;
 
-  virtual void drawBackgroundSides(CQChartsPaintDevice *device, const BBox &bbox,
-                                   const CQChartsSides &sides) const;
+  virtual void drawBackgroundSides(PaintDevice *device, const BBox &bbox,
+                                   const Sides &sides) const;
 
   // draw axes on background
   virtual bool hasGroupedBgAxes() const;
 
   virtual bool hasBgAxes() const;
 
-  virtual void drawGroupedBgAxes(CQChartsPaintDevice *device) const;
+  virtual void drawGroupedBgAxes(PaintDevice *device) const;
 
-  virtual void drawBgAxes(CQChartsPaintDevice *device) const;
+  virtual void drawBgAxes(PaintDevice *device) const;
 
   // draw key on background
   virtual bool hasGroupedBgKey() const;
 
-  virtual void drawBgKey(CQChartsPaintDevice *device) const;
+  virtual void drawBgKey(PaintDevice *device) const;
 
   //---
 
   // draw objects
-  virtual bool hasGroupedObjs(const CQChartsLayer::Type &layerType) const;
+  virtual bool hasGroupedObjs(const Layer::Type &layerType) const;
 
-  virtual void drawGroupedObjs(CQChartsPaintDevice *device,
-                               const CQChartsLayer::Type &layerType) const;
+  virtual void drawGroupedObjs(PaintDevice *device, const Layer::Type &layerType) const;
 
-  virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
+  virtual bool hasObjs(const Layer::Type &layerType) const;
 
-  virtual void preDrawObjs(CQChartsPaintDevice *) const { }
+  virtual void preDrawObjs(PaintDevice *) const { }
 
-  virtual void execDrawObjs(CQChartsPaintDevice *device,
-                            const CQChartsLayer::Type &type) const;
+  virtual void execDrawObjs(PaintDevice *device, const Layer::Type &type) const;
 
-  virtual void postDrawObjs(CQChartsPaintDevice *) const { }
+  virtual void postDrawObjs(PaintDevice *) const { }
 
-  virtual bool objInsideBox(CQChartsPlotObj *plotObj, const BBox &bbox) const;
+  virtual bool objInsideBox(PlotObj *plotObj, const BBox &bbox) const;
 
   //---
 
@@ -2031,44 +2063,42 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasFgAxes() const;
 
-  virtual void drawGroupedFgAxes(CQChartsPaintDevice *device) const;
+  virtual void drawGroupedFgAxes(PaintDevice *device) const;
 
-  virtual void drawFgAxes(CQChartsPaintDevice *device) const;
+  virtual void drawFgAxes(PaintDevice *device) const;
 
   // draw key on foreground
   virtual bool hasGroupedFgKey() const;
 
-  virtual void drawFgKey(CQChartsPaintDevice *painter) const;
+  virtual void drawFgKey(PaintDevice *painter) const;
 
   // draw title
   virtual bool hasTitle() const;
 
-  virtual void drawTitle(CQChartsPaintDevice *device) const;
+  virtual void drawTitle(PaintDevice *device) const;
 
   // draw annotations
-  virtual bool hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const;
+  virtual bool hasGroupedAnnotations(const Layer::Type &layerType) const;
 
-  virtual void drawGroupedAnnotations(CQChartsPaintDevice *device,
-                                      const CQChartsLayer::Type &layerType) const;
+  virtual void drawGroupedAnnotations(PaintDevice *device, const Layer::Type &layerType) const;
 
-  virtual bool hasAnnotations(const CQChartsLayer::Type &layerType) const;
+  virtual bool hasAnnotations(const Layer::Type &layerType) const;
 
-  virtual void drawAnnotations(CQChartsPaintDevice *device,
-                               const CQChartsLayer::Type &layerType) const;
+  virtual void drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const;
 
   // draw foreground
   virtual bool hasForeground() const;
 
-  virtual void execDrawForeground(CQChartsPaintDevice *device) const;
+  virtual void execDrawForeground(PaintDevice *device) const;
 
   // draw debug boxes
   virtual bool hasGroupedBoxes() const;
 
-  virtual void drawGroupedBoxes(CQChartsPaintDevice *device) const;
+  virtual void drawGroupedBoxes(PaintDevice *device) const;
 
   virtual bool hasBoxes() const;
 
-  virtual void drawBoxes(CQChartsPaintDevice *device) const;
+  virtual void drawBoxes(PaintDevice *device) const;
 
   // draw edit handles
   virtual bool hasGroupedEditHandles() const;
@@ -2082,7 +2112,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // set clip rect
-  void setClipRect(CQChartsPaintDevice *device) const;
+  void setClipRect(PaintDevice *device) const;
 
   //---
 
@@ -2090,24 +2120,22 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter,
-                       const QRectF &rect=QRectF()) const;
-  void      endPaint  (CQChartsBuffer *layer) const;
+  QPainter *beginPaint(Buffer *layer, QPainter *painter, const QRectF &rect=QRectF()) const;
+  void      endPaint  (Buffer *layer) const;
 
   //---
 
-  CQChartsPlotKey *getFirstPlotKey() const;
+  PlotKey *getFirstPlotKey() const;
 
   //---
 
-  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
-                  const CQChartsSymbol &symbol, const Length &size,
-                  const CQChartsPenBrush &penBrush) const;
-  void drawSymbol(CQChartsPaintDevice *device, const Point &p,
-                  const CQChartsSymbol &symbol, const Length &size) const;
+  void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
+                  const Length &size, const PenBrush &penBrush) const;
+  void drawSymbol(PaintDevice *device, const Point &p,
+                  const Symbol &symbol, const Length &size) const;
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
-                          const CQChartsSymbol &symbol, double size) const;
+                          const Symbol &symbol, double size) const;
 
   //---
 
@@ -2117,32 +2145,32 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // debug draw (default to red boxes)
-  void drawWindowColorBox(CQChartsPaintDevice *device, const BBox &bbox,
+  void drawWindowColorBox(PaintDevice *device, const BBox &bbox,
                           const QColor &c=Qt::red) const;
 
-  void drawColorBox(CQChartsPaintDevice *device, const BBox &bbox,
+  void drawColorBox(PaintDevice *device, const BBox &bbox,
                     const QColor &c=Qt::red) const;
 
   //---
 
   // set pen/brush
-  void setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
+  void setPenBrush(PenBrush &penBrush, const CQChartsPenData &penData,
                    const CQChartsBrushData &brushData) const;
 
-  void setPenBrush(CQChartsPenBrush &penBrush,
+  void setPenBrush(PenBrush &penBrush,
                    bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
                    const Length &strokeWidth, const LineDash &strokeDash,
                    bool filled, const QColor &fillColor, const QColor &altFillColor,
                    const Alpha &fillAlpha,
                    const FillPattern &pattern=FillPattern::Type::SOLID) const;
 
-  void setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const;
+  void setPen(PenBrush &penBrush, const CQChartsPenData &penData) const;
 
   void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
               const Alpha &strokeAlpha=Alpha(), const Length &strokeWidth=Length("0px"),
               const LineDash &strokeDash=LineDash()) const;
 
-  void setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const;
+  void setBrush(PenBrush &penBrush, const CQChartsBrushData &brushData) const;
 
   void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
                 const Alpha &fillAlpha=Alpha(),
@@ -2150,25 +2178,25 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenData &penData,
+  void setPenBrush(PaintDevice *device, const CQChartsPenData &penData,
                    const CQChartsBrushData &brushData) const;
 
-  void setPen(CQChartsPaintDevice *device, const CQChartsPenData &penData) const;
+  void setPen(PaintDevice *device, const CQChartsPenData &penData) const;
 
-  void setBrush(CQChartsPaintDevice *device, const CQChartsBrushData &brushData) const;
+  void setBrush(PaintDevice *device, const CQChartsBrushData &brushData) const;
 
   //---
 
-  void updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
+  void updateObjPenBrushState(const Obj *obj, PenBrush &penBrush,
                               DrawType drawType=DrawType::BOX) const;
 
-  void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                              CQChartsPenBrush &penBrush, DrawType drawType) const;
+  void updateObjPenBrushState(const Obj *obj, const ColorInd &ic,
+                              PenBrush &penBrush, DrawType drawType) const;
 
  private:
-  void updateInsideObjPenBrushState  (const ColorInd &ic, CQChartsPenBrush &penBrush,
+  void updateInsideObjPenBrushState  (const ColorInd &ic, PenBrush &penBrush,
                                       bool outline, DrawType drawType) const;
-  void updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
+  void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
                                       DrawType drawType) const;
 
  public:
@@ -2202,36 +2230,35 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  ColorInd calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
+  ColorInd calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const;
 
   //---
 
-  bool checkColumns(const CQChartsColumns &columns, const QString &name,
-                    bool required=false) const;
+  bool checkColumns(const Columns &columns, const QString &name, bool required=false) const;
 
-  bool checkColumn(const CQChartsColumn &column, const QString &name,
+  bool checkColumn(const Column &column, const QString &name,
                    bool required=false) const;
 
-  bool checkColumn(const CQChartsColumn &column, const QString &name,
+  bool checkColumn(const Column &column, const QString &name,
                    ColumnType &type, bool required=false) const;
 
-  ColumnType columnValueType(const CQChartsColumn &column,
+  ColumnType columnValueType(const Column &column,
                              const ColumnType &defType=ColumnType::STRING) const;
 
-  bool columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData,
+  bool columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
                        const ColumnType &defType=ColumnType::STRING) const;
 
 #if 0
-  bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
+  bool columnTypeStr(const Column &column, QString &typeStr) const;
 
-  bool setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr);
+  bool setColumnTypeStr(const Column &column, const QString &typeStr);
 #endif
 
-  bool columnDetails(const CQChartsColumn &column, QString &typeName,
+  bool columnDetails(const Column &column, QString &typeName,
                      QVariant &minValue, QVariant &maxValue) const;
 
-  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
+  CQChartsModelColumnDetails *columnDetails(const Column &column) const;
 
   //---
 
@@ -2239,15 +2266,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
+  bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                           const QString &separator, QStringList &nameStrs,
                           ModelIndices &nameInds) const;
 
   //---
 
   // cached column names
-  QString columnsHeaderName(const CQChartsColumns &columns, bool tip=false) const;
-  QString columnHeaderName(const CQChartsColumn &column, bool tip=false) const;
+  QString columnsHeaderName(const Columns &columns, bool tip=false) const;
+  QString columnHeaderName(const Column &column, bool tip=false) const;
 
   QString idHeaderName   (bool tip=false) const { return columnHeaderName(idColumn   (), tip); }
   QString colorHeaderName(bool tip=false) const { return columnHeaderName(colorColumn(), tip); }
@@ -2256,7 +2283,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void updateColumnNames();
 
-  void setColumnHeaderName(const CQChartsColumn &column, const QString &def);
+  void setColumnHeaderName(const Column &column, const QString &def);
 
   //---
 
@@ -2280,23 +2307,23 @@ class CQChartsPlot : public CQChartsObj,
   virtual void draw(QPainter *painter);
 
   // draw plot layer
-  void drawLayer(QPainter *painter, CQChartsLayer::Type type) const;
+  void drawLayer(QPainter *painter, Layer::Type type) const;
 
   // draw all layers
   void drawLayers(QPainter *painter) const;
 
-  const CQChartsLayer::Type &drawLayerType() const;
+  const Layer::Type &drawLayerType() const;
 
   //---
 
   // print layer data
-  bool printLayer(CQChartsLayer::Type type, const QString &filename) const;
+  bool printLayer(Layer::Type type, const QString &filename) const;
 
   //---
 
   // get/set parameter
-  bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
-  bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
+  bool getParameter(PlotParameter *param, QVariant &value) const;
+  bool setParameter(PlotParameter *param, const QVariant &value);
 
   //---
 
@@ -2385,23 +2412,23 @@ class CQChartsPlot : public CQChartsObj,
 
  protected:
   struct NoUpdate {
-    NoUpdate(const CQChartsPlot *plot, bool update=false) :
-     plot_(const_cast<CQChartsPlot *>(plot)), update_(update) {
+    NoUpdate(const Plot *plot, bool update=false) :
+     plot_(const_cast<Plot *>(plot)), update_(update) {
       plot_->setUpdatesEnabled(false);
     }
 
-    NoUpdate(CQChartsPlot *plot, bool update=false) :
+    NoUpdate(Plot *plot, bool update=false) :
      plot_(plot), update_(update) {
       plot_->setUpdatesEnabled(false);
     }
 
    ~NoUpdate() { plot_->setUpdatesEnabled(true, update_); }
 
-    CQChartsPlot* plot_   { nullptr };
-    bool          update_ { false };
+    Plot* plot_   { nullptr };
+    bool  update_ { false };
   };
 
-  using ObjSet     = std::set<CQChartsObj*>;
+  using ObjSet     = std::set<Obj *>;
   using SizeObjSet = std::map<double,ObjSet>;
 
  protected:
@@ -2422,7 +2449,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
 
-  virtual bool objNearestPoint(const Point &p, CQChartsPlotObj* &obj) const;
+  virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 
  protected:
   //*! update state
@@ -2446,7 +2473,7 @@ class CQChartsPlot : public CQChartsObj,
     std::future<void> future;
     std::atomic<bool> busy { false };
 
-    void start(const CQChartsPlot *plot, const char *id) {
+    void start(const Plot *plot, const char *id) {
       if (id) {
         std::cerr << "Start: " << plot->id().toStdString() << " : " << id << "\n";
 
@@ -2456,7 +2483,7 @@ class CQChartsPlot : public CQChartsObj,
       busy.store(true);
     }
 
-    void end(const CQChartsPlot *plot, const char *id) {
+    void end(const Plot *plot, const char *id) {
       busy.store(false);
 
       if (id) {
@@ -2467,7 +2494,7 @@ class CQChartsPlot : public CQChartsObj,
       }
     }
 
-    void finish(const CQChartsPlot *plot, const char *id) {
+    void finish(const Plot *plot, const char *id) {
       if (id) {
         CHRTime dt = startTime.diffTime();
 
@@ -2483,12 +2510,12 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   struct DrawBusyData {
-    QColor       bgColor  { 255, 255, 255 };
-    QColor       fgColor  { 100, 200, 100 };
-    CQChartsFont font;
-    int          count    { 10 };
-    int          multiple { 10 };
-    mutable int  ind      { 0 };
+    QColor      bgColor  { 255, 255, 255 };
+    QColor      fgColor  { 100, 200, 100 };
+    Font        font;
+    int         count    { 10 };
+    int         multiple { 10 };
+    mutable int ind      { 0 };
   };
 
   struct UpdateData {
@@ -2544,19 +2571,19 @@ class CQChartsPlot : public CQChartsObj,
    }
 
   struct LockMutex {
-    LockMutex(CQChartsPlot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
+    LockMutex(Plot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
    ~LockMutex() { plot->updateUnLock(); }
 
-    CQChartsPlot* plot { nullptr };
+    Plot* plot { nullptr };
   };
 
   struct TryLockMutex {
-    TryLockMutex(CQChartsPlot *plot, const char *id) : plot(plot) {
+    TryLockMutex(Plot *plot, const char *id) : plot(plot) {
       locked = plot->updateTryLock(id); }
    ~TryLockMutex() { if (locked) plot->updateUnLock(); }
 
-    CQChartsPlot *plot   { nullptr };
-    bool          locked { false };
+    Plot* plot   { nullptr };
+    bool  locked { false };
   };
 
   void drawBusy(QPainter *painter, const UpdateState &updateState) const;
@@ -2572,7 +2599,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //! color column data
   struct ColorColumnData {
-    CQChartsColumn     column;
+    Column             column;
     ColorType          colorType { ColorType::AUTO };
     bool               valid     { false };
     bool               mapped    { true };
@@ -2643,13 +2670,13 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
-  using ColumnNames = std::map<CQChartsColumn,QString>;
+  using ColumnNames = std::map<Column,QString>;
 
   //---
 
  protected:
-  CQChartsView*        view_          { nullptr }; //!< parent view
-  CQChartsPlotType*    type_          { nullptr }; //!< plot type data
+  View*                view_          { nullptr }; //!< parent view
+  PlotType*            type_          { nullptr }; //!< plot type data
   ModelP               model_;                     //!< abstract model
   bool                 modelNameSet_  { false };   //!< model name set from plot
   CQPropertyViewModel* propertyModel_ { nullptr }; //!< property model
@@ -2658,21 +2685,21 @@ class CQChartsPlot : public CQChartsObj,
   QString name_; //!< custom name
 
   // ranges
-  BBox                  viewBBox_        { 0, 0, 1, 1 };     //!< view box
-  BBox                  innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
-  CQChartsPlotMargin    innerMargin_     { 0, 0, 0, 0 };     //!< inner margin
-  CQChartsPlotMargin    outerMargin_     { 10, 10, 10, 10 }; //!< outer margin
-  CQChartsDisplayRange* displayRange_    { nullptr };        //!< value range mapping
-  Range                 calcDataRange_;                      //!< calc data range
-  Range                 dataRange_;                          //!< data range
-  Range                 outerDataRange_;                     //!< outer data range
-  ZoomData              zoomData_;                           //!< zoom data
+  BBox          viewBBox_        { 0, 0, 1, 1 };     //!< view box
+  BBox          innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
+  PlotMargin    innerMargin_     { 0, 0, 0, 0 };     //!< inner margin
+  PlotMargin    outerMargin_     { 10, 10, 10, 10 }; //!< outer margin
+  DisplayRange* displayRange_    { nullptr };        //!< value range mapping
+  Range         calcDataRange_;                      //!< calc data range
+  Range         dataRange_;                          //!< data range
+  Range         outerDataRange_;                     //!< outer data range
+  ZoomData      zoomData_;                           //!< zoom data
 
   // override range
-  CQChartsOptReal xmin_; //!< xmin override
-  CQChartsOptReal ymin_; //!< ymin override
-  CQChartsOptReal xmax_; //!< xmax override
-  CQChartsOptReal ymax_; //!< ymax override
+  OptReal xmin_; //!< xmin override
+  OptReal ymin_; //!< ymin override
+  OptReal xmax_; //!< xmax override
+  OptReal ymax_; //!< ymax override
 
   // filter
   EveryData everyData_;        //!< every data
@@ -2682,34 +2709,34 @@ class CQChartsPlot : public CQChartsObj,
   bool skipBad_ { true }; //!< skip bad values
 
   // borders
-  CQChartsSides plotBorderSides_  { "tlbr" }; //!< plot border sides
-  bool          plotClip_         { true };   //!< is clipped at plot limits
-  CQChartsSides dataBorderSides_  { "tlbr" }; //!< data border sides
-  bool          dataClip_         { false };  //!< is clipped at data limits
-  CQChartsSides fitBorderSides_   { "tlbr" }; //!< fit border sides
+  Sides plotBorderSides_  { "tlbr" }; //!< plot border sides
+  bool  plotClip_         { true };   //!< is clipped at plot limits
+  Sides dataBorderSides_  { "tlbr" }; //!< data border sides
+  bool  dataClip_         { false };  //!< is clipped at data limits
+  Sides fitBorderSides_   { "tlbr" }; //!< fit border sides
 
   // title
-  CQChartsTitle* titleObj_  { nullptr }; //!< title object
-  QString        titleStr_;              //!< title string
-  QString        fileName_;              //!< associated data filename
+  Title*  titleObj_  { nullptr }; //!< title object
+  QString titleStr_;              //!< title string
+  QString fileName_;              //!< associated data filename
 
   // axes
-  CQChartsAxis* xAxis_ { nullptr }; //!< x axis object
-  CQChartsAxis* yAxis_ { nullptr }; //!< y axis object
+  Axis* xAxis_ { nullptr }; //!< x axis object
+  Axis* yAxis_ { nullptr }; //!< y axis object
 
   // key
-  CQChartsPlotKey* keyObj_   { nullptr }; //!< key object
-  bool             colorKey_ { false };   //!< use color column for key
+  PlotKey* keyObj_   { nullptr }; //!< key object
+  bool     colorKey_ { false };   //!< use color column for key
 
   // columns
-  CQChartsColumn  xValueColumn_;   //!< x axis value column
-  CQChartsColumn  yValueColumn_;   //!< y axis value column
-  CQChartsColumn  idColumn_;       //!< unique data id column (signalled)
-  CQChartsColumns tipColumns_;     //!< tip columns
-  CQChartsColumn  visibleColumn_;  //!< visible column
-  CQChartsColumn  fontColumn_;     //!< font column
-  CQChartsColumn  imageColumn_;    //!< image column
-  CQChartsColumns controlColumns_; //!< control columns
+  Column  xValueColumn_;   //!< x axis value column
+  Column  yValueColumn_;   //!< y axis value column
+  Column  idColumn_;       //!< unique data id column (signalled)
+  Columns tipColumns_;     //!< tip columns
+  Column  visibleColumn_;  //!< visible column
+  Column  fontColumn_;     //!< font column
+  Column  imageColumn_;    //!< image column
+  Columns controlColumns_; //!< control columns
 
   // color data
   ColorColumnData    colorColumnData_; //!< color color data
@@ -2719,14 +2746,14 @@ class CQChartsPlot : public CQChartsObj,
   ColumnNames columnNames_; //!< column header names
 
   // font
-  CQChartsFont font_;                      //!< font
-  double       minScaleFontSize_ { 6.0 };  //!< min scaled font size
-  double       maxScaleFontSize_ { 48.0 }; //!< max scaled font size
+  Font   font_;                      //!< font
+  double minScaleFontSize_ { 6.0 };  //!< min scaled font size
+  double maxScaleFontSize_ { 48.0 }; //!< max scaled font size
 
-  CQChartsFont tabbedFont_; //!< font for tab text
+  Font tabbedFont_; //!< font for tab text
 
   // palette
-  CQChartsPaletteName defaultPalette_; //!< default palette
+  PaletteName defaultPalette_; //!< default palette
 
   // scaling
   bool equalScale_ { false }; //!< equal scaled
@@ -2774,11 +2801,13 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // object tree data
+  using PlotObjTree = CQChartsPlotObjTree;
+
   struct ObjTreeData {
-    bool                 init   { false };   //!< needs init obj tree
-    CQChartsPlotObjTree* tree   { nullptr }; //!< plot object quad tree
-    bool                 isSet  { false };   //!< is plot object quad tree set
-    bool                 notify { false };   //!< is plot object quad tree notify
+    bool         init   { false };   //!< needs init obj tree
+    PlotObjTree* tree   { nullptr }; //!< plot object quad tree
+    bool         isSet  { false };   //!< is plot object quad tree set
+    bool         notify { false };   //!< is plot object quad tree notify
   };
 
   ObjTreeData objTreeData_; //!< object tree data
@@ -2790,9 +2819,9 @@ class CQChartsPlot : public CQChartsObj,
   AnimateData animateData_; //!< animation data
 
   // draw layers, buffers
-  Buffers                      buffers_;    //!< draw layer buffers
-  Layers                       layers_;     //!< draw layers
-  mutable CQChartsBuffer::Type drawBuffer_; //!< objects draw buffer
+  Buffers              buffers_;    //!< draw layer buffers
+  Layers               layers_;     //!< draw layers
+  mutable Buffer::Type drawBuffer_; //!< objects draw buffer
 
   IdHidden idHidden_;  //!< hidden object ids
   QVariant hideValue_; //!< hide value
@@ -2800,8 +2829,8 @@ class CQChartsPlot : public CQChartsObj,
   IndexColumnRows selIndexColumnRows_; //!< sel model indices (by col/row)
 
   // edit handles
-  CQChartsEditHandles* editHandles_ { nullptr }; //!< edit controls
-  bool                 editing_     { false };   //!< is editing
+  EditHandles* editHandles_ { nullptr }; //!< edit controls
+  bool         editing_     { false };   //!< is editing
 
   // annotations
   Annotations  annotations_;      //!< extra annotations

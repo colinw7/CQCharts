@@ -306,9 +306,16 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool initPathObjs(PlotObjs &objs) const;
+  void addPathValue(const QStringList &, double) const override;
+
+  //---
+
   bool initLinkObjs      (PlotObjs &objs) const;
   bool initConnectionObjs(PlotObjs &objs) const;
   bool initTableObjs     (PlotObjs &objs) const;
+
+  //---
 
   ChordData &findNameData(const QString &name, const QModelIndex &linkInd) const;
   ChordData &findNameData(NameDataMap &nameDataMap, const QString &name,

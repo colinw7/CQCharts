@@ -1885,7 +1885,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   //---
 
-  const auto &value = this->value();
+  const auto *value = this->value();
 
   QString minLabel = value->getNameValue("Label");
   QString maxLabel = minLabel;

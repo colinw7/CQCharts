@@ -2173,8 +2173,6 @@ void
 CQChartsView::
 mousePressEvent(QMouseEvent *me)
 {
-  CQPerfTrace trace("CQChartsView::mousePressEvent");
-
   if (isPreview())
     return;
 
@@ -2230,8 +2228,6 @@ mouseMoveEvent(QMouseEvent *me)
 {
   if (isPreview())
     return;
-
-  CQPerfTrace trace("CQChartsView::mouseMoveEvent");
 
   CQChartsGeom::Point mp(me->pos());
 
@@ -2315,8 +2311,6 @@ void
 CQChartsView::
 mouseReleaseEvent(QMouseEvent *me)
 {
-  CQPerfTrace trace("CQChartsView::mouseReleaseEvent");
-
   if (isPreview())
     return;
 
@@ -2877,10 +2871,6 @@ void
 CQChartsView::
 selectMouseMotion()
 {
-  CQPerfTrace trace("CQChartsView::selectMouseMotion");
-
-  //---
-
   updatePosText(mouseMovePoint());
 
   //---
@@ -3058,10 +3048,6 @@ void
 CQChartsView::
 updatePosText(const CQChartsGeom::Point &pos)
 {
-  CQPerfTrace trace("CQChartsView::updatePosText");
-
-  //---
-
   QString posStr;
 
   if (posTextType() == PosTextType::PLOT) {

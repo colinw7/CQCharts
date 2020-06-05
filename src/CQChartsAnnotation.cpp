@@ -629,6 +629,8 @@ void
 CQChartsAnnotation::
 drawInit(CQChartsPaintDevice *device)
 {
+  device->save();
+
   if (device->type() == CQChartsPaintDevice::Type::SVG) {
     auto *painter = dynamic_cast<CQChartsSVGPaintDevice *>(device);
 
@@ -639,6 +641,9 @@ drawInit(CQChartsPaintDevice *device)
 
     painter->startGroup(id(), groupData);
   }
+
+  if (plot())
+    plot()->setClipRect(device);
 }
 
 void
@@ -650,6 +655,8 @@ drawTerm(CQChartsPaintDevice *device)
 
     painter->endGroup();
   }
+
+  device->restore();
 }
 
 void

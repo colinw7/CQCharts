@@ -164,6 +164,9 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   setRugSymbolSize       (CQChartsLength("5px"));
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  connect(xAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
+  connect(yAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
 }
 
 CQChartsDistributionPlot::

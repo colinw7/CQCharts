@@ -540,7 +540,7 @@ loadHier(CQChartsSunburstHierNode *root) const
 
       //---
 
-      (void) plot_->addNode(parentHier(), name, size, nameInd, valueInd);
+      (void) plot_->hierAddNode(parentHier(), name, size, nameInd, valueInd);
 
       return State::OK;
     }
@@ -591,8 +591,8 @@ addHierNode(CQChartsSunburstHierNode *hier, const QString &name, const QModelInd
 
 CQChartsSunburstNode *
 CQChartsSunburstPlot::
-addNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
-        const QModelIndex &nameInd, const QModelIndex &valueInd) const
+hierAddNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
+            const QModelIndex &nameInd, const QModelIndex &valueInd) const
 {
   auto *node = new CQChartsSunburstNode(this, hier, name);
 
@@ -625,6 +625,7 @@ loadFlat(CQChartsSunburstHierNode *root) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get hier names from name columns
       QStringList  nameStrs;
       ModelIndices nameInds;
 
@@ -654,7 +655,7 @@ loadFlat(CQChartsSunburstHierNode *root) const
 
       //---
 
-      auto node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
+      auto *node = plot_->flatAddNode(root_, nameStrs, size, nameInd1, valueInd);
 
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
@@ -666,12 +667,6 @@ loadFlat(CQChartsSunburstHierNode *root) const
       }
 
       return State::OK;
-    }
-
-  private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsSunburstPlot *>(plot_)->addDataError(ind, msg);
-      return State::SKIP;
     }
 
    private:
@@ -691,9 +686,11 @@ loadFlat(CQChartsSunburstHierNode *root) const
 
 CQChartsSunburstNode *
 CQChartsSunburstPlot::
-addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size,
-        const QModelIndex &nameInd, const QModelIndex &valueInd) const
+flatAddNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size,
+            const QModelIndex &nameInd, const QModelIndex &valueInd) const
 {
+  auto *th = const_cast<CQChartsSunburstPlot *>(this);
+
   auto *parent = root;
 
   for (int i = 0; i < nameStrs.length() - 1; ++i) {
@@ -703,8 +700,6 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
       auto *root = rootNode(nameStrs[i]);
 
       if (! root) {
-        auto *th = const_cast<CQChartsSunburstPlot *>(this);
-
         root = th->createRootNode(nameStrs[i]);
 
         root->setInd(nameInd);
@@ -746,13 +741,13 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
 
   //---
 
-  QString name = nameStrs[nameStrs.length() - 1];
+  QString nodeName = nameStrs[nameStrs.length() - 1];
 
-  auto *node = childNode(parent, name);
+  auto *node = childNode(parent, nodeName);
 
   if (! node) {
     // use hier node if already created
-    auto *child = childHierNode(parent, name);
+    auto *child = childHierNode(parent, nodeName);
 
     if (child) {
       child->setSize(size);
@@ -761,7 +756,7 @@ addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size
 
     //---
 
-    node = new CQChartsSunburstNode(this, parent, name);
+    node = new CQChartsSunburstNode(this, parent, nodeName);
 
     node->setSize(size);
 
@@ -1022,8 +1017,9 @@ popTopSlot()
 {
   auto *root = currentRoot();
 
-  if (root)
+  if (root) {
     setCurrentRoot(nullptr, /*update*/true);
+  }
 }
 
 //------

@@ -288,6 +288,8 @@ createObjs(PlotObjs &objs) const
       rc = initLinkObjs();
     else if (connectionsColumn().isValid())
       rc = initConnectionObjs();
+    else if (pathColumn().isValid())
+      rc = initPathObjs();
     else
       rc = initTableObjs();
   }
@@ -334,7 +336,7 @@ initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
     if (! srcHierData.linkStrs.empty())
       srcStr = srcHierData.linkStrs.back();
 
-    srcNode->setValue(destHierData.total);
+    srcNode->setValue(OptReal(destHierData.total));
     srcNode->setName (srcStr);
   }
 }
@@ -358,7 +360,7 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
     if (! destHierData.linkStrs.empty())
       destStr = destHierData.linkStrs.back();
 
-    destNode->setValue(destHierData.total);
+    destNode->setValue(OptReal(destHierData.total));
     destNode->setName (destStr);
   }
 }
@@ -377,7 +379,7 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
   if (maxDepth() <= 0 || destDepth <= maxDepth())
     destNode = findNode(destStr);
 
-  auto *edge = (srcNode && destNode ?  createEdge(value, srcNode, destNode) : nullptr);
+  auto *edge = (srcNode && destNode ? createEdge(OptReal(value), srcNode, destNode) : nullptr);
 
   if (edge) {
     srcNode ->addDestEdge(edge);
@@ -390,6 +392,97 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
   if (destNode)
     destNode->setDepth(destDepth);
 }
+
+//---
+
+bool
+CQChartsSankeyPlot::
+initPathObjs() const
+{
+  CQChartsConnectionPlot::initPathObjs();
+
+  bool changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      // propagate set node value up to source nodes
+      if (node->hasValue()) {
+        for (const auto &edge : node->srcEdges()) {
+          if (! edge->hasValue()) {
+            edge->setValue(node->value());
+
+            changed = true;
+          }
+        }
+      }
+      // set node from dest values
+      else {
+        OptReal sum;
+
+        for (const auto &edge : node->destEdges()) {
+          if (edge->hasValue()) {
+            if (sum.isSet())
+              sum = OptReal(sum.real() + edge->value().real());
+            else
+              sum = OptReal(edge->value().real());
+          }
+        }
+
+        if (sum.isSet()) {
+          node->setValue(sum);
+
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+void
+CQChartsSankeyPlot::
+addPathValue(const QStringList &pathStrs, double value) const
+{
+  int n = pathStrs.length();
+
+  for (int i = 1; i < n; ++i) {
+    auto *srcNode  = findNode(pathStrs[i - 1]);
+    auto *destNode = findNode(pathStrs[i    ]);
+
+    if (i < n - 1) {
+      bool hasEdge = false;
+
+      for (auto &destEdge : srcNode->destEdges()) {
+        if (destEdge->destNode() == destNode) {
+          hasEdge = true;
+          break;
+        }
+      }
+
+      if (! hasEdge) {
+        auto *edge = createEdge(OptReal(), srcNode, destNode);
+
+        srcNode ->addDestEdge(edge);
+        destNode->addSrcEdge (edge);
+      }
+    }
+    else {
+      auto *edge = createEdge(OptReal(), srcNode, destNode);
+
+      srcNode ->addDestEdge(edge);
+      destNode->addSrcEdge (edge);
+
+      destNode->setValue(OptReal(value));
+    }
+  }
+}
+
+//---
 
 bool
 CQChartsSankeyPlot::
@@ -480,12 +573,12 @@ initLinkObjs() const
 
     //assert(srcNode != destNode);
 
-      auto *edge = plot_->createEdge(value, srcNode, destNode);
+      auto *edge = plot_->createEdge(OptReal(value), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
 
-      destNode->setValue(value);
+      destNode->setValue(OptReal(value));
 
       srcNode->setGroup(group);
 
@@ -512,6 +605,8 @@ initLinkObjs() const
 
   return true;
 }
+
+//---
 
 bool
 CQChartsSankeyPlot::
@@ -668,7 +763,7 @@ initConnectionObjs() const
 
       auto *destNode = findNode(destStr);
 
-      auto *edge = createEdge(connection.value, srcNode, destNode);
+      auto *edge = createEdge(OptReal(connection.value), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -677,6 +772,8 @@ initConnectionObjs() const
 
   return true;
 }
+
+//---
 
 bool
 CQChartsSankeyPlot::
@@ -714,7 +811,7 @@ initTableObjs() const
 
       auto *destNode = findNode(destStr);
 
-      auto *edge = createEdge(value.toValue, srcNode, destNode);
+      auto *edge = createEdge(OptReal(value.toValue), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -725,6 +822,8 @@ initTableObjs() const
 
   return true;
 }
+
+//---
 
 void
 CQChartsSankeyPlot::
@@ -878,8 +977,11 @@ createDepthNodes(const IndNodeMap &nodes) const
 
     nodeObj->setHierName(node->str  ());
     nodeObj->setName    (node->name ());
-    nodeObj->setValue   (node->value());
-    nodeObj->setDepth   (node->depth());
+
+    if (node->hasValue())
+      nodeObj->setValue(node->value().real());
+
+    nodeObj->setDepth(node->depth());
 
     node->setObj(nodeObj);
 
@@ -1200,6 +1302,9 @@ adjustNode(CQChartsSankeyPlotNode *node) const
     bbox += destNode->obj()->rect();
   }
 
+  if (! bbox.isValid())
+    return;
+
   double dy = bbox.getYMid() - node->obj()->rect().getYMid();
 
   node->obj()->moveBy(CQChartsGeom::Point(0, dy));
@@ -1233,7 +1338,8 @@ findNode(const QString &name) const
 
 CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
-createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) const
+createEdge(const OptReal &value, CQChartsSankeyPlotNode *srcNode,
+           CQChartsSankeyPlotNode *destNode) const
 {
   assert(srcNode && destNode);
 
@@ -1457,8 +1563,10 @@ srcEdgeSum() const
 {
   double value = 0.0;
 
-  for (const auto &edge : srcEdges_)
-    value += edge->value();
+  for (const auto &edge : srcEdges_) {
+    if (edge->hasValue())
+      value += edge->value().real();
+  }
 
   return value;
 }
@@ -1469,8 +1577,10 @@ destEdgeSum() const
 {
   double value = 0.0;
 
-  for (const auto &edge : destEdges_)
-    value += edge->value();
+  for (const auto &edge : destEdges_) {
+    if (edge->hasValue())
+      value += edge->hasValue();
+  }
 
   return value;
 }
@@ -1485,7 +1595,7 @@ setObj(CQChartsSankeyNodeObj *obj)
 //------
 
 CQChartsSankeyPlotEdge::
-CQChartsSankeyPlotEdge(const CQChartsSankeyPlot *plot, double value,
+CQChartsSankeyPlotEdge(const CQChartsSankeyPlot *plot, const OptReal &value,
                        CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) :
  plot_(plot), value_(value), srcNode_(srcNode), destNode_(destNode)
 {
@@ -1528,13 +1638,18 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
   else {
     double total = 0.0;
 
-    for (const auto &edge : node_->srcEdges())
-      total += edge->value();
+    for (const auto &edge : node_->srcEdges()) {
+      if (edge->hasValue())
+        total += edge->value().real();
+    }
 
     double y3 = y2;
 
     for (const auto &edge : node_->srcEdges()) {
-      double h1 = (y2 - y1)*edge->value()/total;
+      if (! edge->hasValue())
+        continue;
+
+      double h1 = (y2 - y1)*edge->value().real()/total;
 
       double y4 = y3 - h1;
 
@@ -1557,13 +1672,18 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
   else {
     double total = 0.0;
 
-    for (const auto &edge : node_->destEdges())
-      total += edge->value();
+    for (const auto &edge : node_->destEdges()) {
+      if (edge->hasValue())
+        total += edge->value().real();
+    }
 
     double y3 = y2;
 
     for (const auto &edge : node->destEdges()) {
-      double h1 = (y2 - y1)*edge->value()/total;
+      if (! edge->hasValue())
+        continue;
+
+      double h1 = (y2 - y1)*edge->value().real()/total;
 
       double y4 = y3 - h1;
 
@@ -1795,7 +1915,9 @@ calcTipId() const
 
   tableTip.addTableRow("Src"  , srcName);
   tableTip.addTableRow("Dest" , destName);
-  tableTip.addTableRow("Value", edge()->value());
+
+  if (edge()->hasValue())
+    tableTip.addTableRow("Value", edge()->value().real());
 
   //---
 
@@ -1926,8 +2048,10 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
   CQChartsPlotObj::writeScriptData(device);
 
-  std::ostream &os = device->os();
+  if (edge()->hasValue()) {
+    std::ostream &os = device->os();
 
-  os << "\n";
-  os << "  this.value = " << edge()->value() << ";\n";
+    os << "\n";
+    os << "  this.value = " << edge()->value().real() << ";\n";
+  }
 }

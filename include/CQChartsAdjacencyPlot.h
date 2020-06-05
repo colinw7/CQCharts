@@ -37,15 +37,13 @@ class CQChartsAdjacencyPlotType : public CQChartsConnectionPlotType {
 
   //---
 
-  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                            CQChartsPlotParameter *parameter) const override;
+  bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //------
@@ -56,7 +54,8 @@ class CQChartsAdjacencyPlotType : public CQChartsConnectionPlotType {
  */
 class CQChartsAdjacencyNode {
  public:
-  using NodeValue = std::pair<CQChartsAdjacencyNode*,double>;
+  using Node      = CQChartsAdjacencyNode;
+  using NodeValue = std::pair<Node*,double>;
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
@@ -86,11 +85,11 @@ class CQChartsAdjacencyNode {
 
   NodeMap nodes() const { return nodes_; }
 
-  bool hasNode(CQChartsAdjacencyNode *node) const {
+  bool hasNode(Node *node) const {
     return (nodes_.find(node->id()) != nodes_.end());
   }
 
-  void addNode(CQChartsAdjacencyNode *node, double value) {
+  void addNode(Node *node, double value) {
     nodes_[node->id()] = NodeValue(node, value);
 
     value_ += value;
@@ -98,7 +97,7 @@ class CQChartsAdjacencyNode {
     maxValue_ = std::max(maxValue_, value);
   }
 
-  double nodeValue(CQChartsAdjacencyNode *node, double equalValue=0.0) const {
+  double nodeValue(Node *node, double equalValue=0.0) const {
     if (node == this) return equalValue;
 
     auto p = nodes_.find(node->id());
@@ -135,14 +134,18 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                       CQChartsAdjacencyNode *node2, double value, const BBox &rect,
+  using AdjacencyPlot = CQChartsAdjacencyPlot;
+  using AdjacencyNode = CQChartsAdjacencyNode;
+
+ public:
+  CQChartsAdjacencyObj(const AdjacencyPlot *plot, AdjacencyNode *node1,
+                       AdjacencyNode *node2, double value, const BBox &rect,
                        const ColorInd &ig);
 
   QString typeName() const override { return "cell"; }
 
-  CQChartsAdjacencyNode *node1() const { return node1_; }
-  CQChartsAdjacencyNode *node2() const { return node2_; }
+  AdjacencyNode *node1() const { return node1_; }
+  AdjacencyNode *node2() const { return node2_; }
 
   QString calcId() const override;
 
@@ -152,20 +155,20 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;
 
  private:
-  const CQChartsAdjacencyPlot* plot_  { nullptr }; //!< parent plot
-  CQChartsAdjacencyNode*       node1_ { nullptr }; //!< row node
-  CQChartsAdjacencyNode*       node2_ { nullptr }; //!< column node
-  double                       value_ { 0 };       //!< connections value
+  const AdjacencyPlot* plot_  { nullptr }; //!< parent plot
+  AdjacencyNode*       node1_ { nullptr }; //!< row node
+  AdjacencyNode*       node2_ { nullptr }; //!< column node
+  double               value_ { 0 };       //!< connections value
 };
 
 //---
@@ -224,8 +227,11 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
     COUNT /*! sort by value */
   };
 
+  using AdjacencyNode = CQChartsAdjacencyNode;
+  using AdjacencyObj  = CQChartsAdjacencyObj;
+
  public:
-  CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model);
+  CQChartsAdjacencyPlot(View *view, const ModelP &model);
 
  ~CQChartsAdjacencyPlot();
 
@@ -242,13 +248,13 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   bool isForceDiagonal() const { return forceDiagonal_; }
   void setForceDiagonal(bool b);
 
-  const CQChartsLength &bgMargin() const { return bgMargin_; }
-  void setBgMargin(const CQChartsLength &r);
+  const Length &bgMargin() const { return bgMargin_; }
+  void setBgMargin(const Length &r);
 
   //---
 
-  CQChartsAdjacencyObj *insideObj() const { return insideObj_; }
-  void setInsideObj(CQChartsAdjacencyObj *obj) { insideObj_ = obj; }
+  AdjacencyObj *insideObj() const { return insideObj_; }
+  void setInsideObj(AdjacencyObj *obj) { insideObj_ = obj; }
 
   //---
 
@@ -273,9 +279,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  virtual CQChartsAdjacencyObj *createObj(CQChartsAdjacencyNode *node1,
-                                          CQChartsAdjacencyNode *node2, double value,
-                                          const BBox &rect, const ColorInd &ig);
+  virtual AdjacencyObj *createObj(AdjacencyNode *node1, AdjacencyNode *node2,
+                                  double value, const BBox &rect, const ColorInd &ig);
 
   //---
 
@@ -295,11 +300,11 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(CQChartsPaintDevice *) const override;
+  void execDrawBackground(PaintDevice *) const override;
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *) const override;
+  void execDrawForeground(PaintDevice *) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;
@@ -317,7 +322,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
  private:
   bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const;
 
-  CQChartsAdjacencyNode *findNode(const QString &str) const;
+  AdjacencyNode *findNode(const QString &str) const;
 
   //---
 
@@ -340,8 +345,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void createNameNodeObjs(PlotObjs &objs) const;
 
  private:
-  using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
-  using NodeArray = std::vector<CQChartsAdjacencyNode*>;
+  using NodeMap   = std::map<int,AdjacencyNode*>;
+  using NodeArray = std::vector<AdjacencyNode*>;
 
   struct NodeData {
     double maxValue   { 0 };   //!< max node value
@@ -356,20 +361,18 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) const;
 
  private:
-  using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
-
-  using AdjacencyObj = CQChartsAdjacencyObj;
+  using NameNodeMap = std::map<QString,AdjacencyNode *>;
 
   // options
-  SortType       sortType_      { SortType::GROUP }; //!< sort type
-  bool           forceDiagonal_ { false };           //!< force diagonal
-  CQChartsLength bgMargin_      { "2px" };           //!< background margin
-  NodeMap        nodes_;                             //!< all nodes
-  NameNodeMap    nameNodeMap_;                       //!< name node map
-  double         factor_        { -1.0 };            //!< font factor
-  AdjacencyObj*  insideObj_     { nullptr };         //!< last inside object
-  NodeArray      sortedNodes_;                       //!< sorted nodes
-  NodeData       nodeData_;                          //!< node data
+  SortType      sortType_      { SortType::GROUP }; //!< sort type
+  bool          forceDiagonal_ { false };           //!< force diagonal
+  Length        bgMargin_      { "2px" };           //!< background margin
+  NodeMap       nodes_;                             //!< all nodes
+  NameNodeMap   nameNodeMap_;                       //!< name node map
+  double        factor_        { -1.0 };            //!< font factor
+  AdjacencyObj* insideObj_     { nullptr };         //!< last inside object
+  NodeArray     sortedNodes_;                       //!< sorted nodes
+  NodeData      nodeData_;                          //!< node data
 };
 
 #endif

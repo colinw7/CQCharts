@@ -297,6 +297,8 @@ createObjs(PlotObjs &objs) const
       rc = initLinkObjs(objs);
     else if (connectionsColumn().isValid())
       rc = initConnectionObjs(objs);
+    else if (pathColumn().isValid())
+      rc = initPathObjs(objs);
     else
       rc = initTableObjs(objs);
   }
@@ -373,6 +375,44 @@ initHierObjsConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkI
   // (hier always symmetric)
   srcData .addValue(destData.from(), destValue, /*primary*/true );
   destData.addValue(srcData .from(), destValue, /*primary*/false);
+}
+
+//---
+
+bool
+CQChartsChordPlot::
+initPathObjs(PlotObjs &objs) const
+{
+  auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  th->nameDataMap_.clear();
+
+  //--
+
+  CQChartsConnectionPlot::initPathObjs();
+
+  //---
+
+  th->addNameDataMap(nameDataMap_, objs);
+
+  return true;
+}
+
+void
+CQChartsChordPlot::
+addPathValue(const QStringList &pathStrs, double value) const
+{
+  int n = pathStrs.length();
+
+  for (int i = 1; i < n; ++i) {
+    auto &srcData  = findNameData(pathStrs[i - 1], QModelIndex());
+    auto &destData = findNameData(pathStrs[i    ], QModelIndex());
+
+    if (i == n - 1) {
+      srcData .addValue(destData.from(), value, /*primary*/true );
+      destData.addValue(srcData .from(), value, /*primary*/false);
+    }
+  }
 }
 
 //---
@@ -1019,7 +1059,8 @@ CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(data.linkInd());
+  if (data.linkInd().isValid())
+    setModelInd(data.linkInd());
 }
 
 QString
