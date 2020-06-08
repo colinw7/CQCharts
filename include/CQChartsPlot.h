@@ -247,7 +247,10 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool invertY     READ isInvertY     WRITE setInvertY    )
 //Q_PROPERTY(bool logX        READ isLogX        WRITE setLogX       )
 //Q_PROPERTY(bool logY        READ isLogY        WRITE setLogY       )
-  Q_PROPERTY(bool autoFit     READ isAutoFit     WRITE setAutoFit    )
+
+  // fit
+  Q_PROPERTY(bool   autoFit   READ isAutoFit WRITE setAutoFit  )
+  Q_PROPERTY(double fitMargin READ fitMargin WRITE setFitMargin)
 
   // preview
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
@@ -378,6 +381,7 @@ class CQChartsPlot : public CQChartsObj,
   using HtmlPaintDevice   = CQChartsHtmlPaintDevice;
 
   using DisplayRange = CQChartsDisplayRange;
+  using ValueSet     = CQChartsValueSet;
   using OptReal      = CQChartsOptReal;
   using PenBrush     = CQChartsPenBrush;
   using Sides        = CQChartsSides;
@@ -625,6 +629,9 @@ class CQChartsPlot : public CQChartsObj,
 
   bool isAutoFit() const { return autoFit_; }
   void setAutoFit(bool b) { autoFit_ = b; }
+
+  double fitMargin() const { return fitMargin_; }
+  void setFitMargin(double r) { fitMargin_ = r; }
 
   //---
 
@@ -1761,6 +1768,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual double getMoveX(bool is_shift) const;
   virtual double getMoveY(bool is_shift) const;
 
+  bool isZoomFull() const;
+
   virtual double getZoomFactor(bool is_shift) const;
 
  public slots:
@@ -2762,8 +2771,9 @@ class CQChartsPlot : public CQChartsObj,
   bool followMouse_ { true }; //!< track object under mouse
 
   // fit
-  bool autoFit_      { false }; //!< auto fit on data change
-  bool needsAutoFit_ { false }; //!< needs auto fit on next draw
+  bool   autoFit_      { false }; //!< auto fit on data change
+  bool   needsAutoFit_ { false }; //!< needs auto fit on next draw
+  double fitMargin_    { 0.05 };  //!< fit margin percent
 
   // preview
   bool preview_        { false }; //!< is preview plot

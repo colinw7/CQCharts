@@ -383,13 +383,28 @@ bool
 CQChartsChordPlot::
 initPathObjs(PlotObjs &objs) const
 {
+  CQPerfTrace trace("CQChartsChordPlot::initPathObjs");
+
+  //---
+
   auto *th = const_cast<CQChartsChordPlot *>(this);
 
   th->nameDataMap_.clear();
 
+  th->maxNodeDepth_ = 0;
+
   //--
 
   CQChartsConnectionPlot::initPathObjs();
+
+  //---
+
+  if (isPropagate())
+    th->propagatePathValues();
+
+  //---
+
+  th->filterPathObjs();
 
   //---
 
@@ -403,14 +418,119 @@ CQChartsChordPlot::
 addPathValue(const QStringList &pathStrs, double value) const
 {
   int n = pathStrs.length();
+  assert(n > 0);
+
+  auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
+
+  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+
+  QString path1 = pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    auto &srcData  = findNameData(pathStrs[i - 1], QModelIndex());
-    auto &destData = findNameData(pathStrs[i    ], QModelIndex());
+    QString path2 = path1 + separator + pathStrs[i];
 
-    if (i == n - 1) {
+    auto &srcData  = findNameData(path1, QModelIndex());
+    auto &destData = findNameData(path2, QModelIndex());
+
+    srcData .setLabel(pathStrs[i - 1]);
+    destData.setLabel(pathStrs[i    ]);
+
+    srcData .setDepth(i - 1);
+    destData.setDepth(i);
+
+    if (i < n - 1) {
+      if (! srcData.hasTo(destData.from())) {
+        srcData .addValue(destData.from(), value, /*primary*/true );
+        destData.addValue(srcData .from(), value, /*primary*/false);
+
+        destData.setParent(srcData.from());
+      }
+    }
+    else {
       srcData .addValue(destData.from(), value, /*primary*/true );
       destData.addValue(srcData .from(), value, /*primary*/false);
+
+      destData.setParent(srcData.from());
+      destData.setValue (OptReal(value));
+    }
+
+    path1 = path2;
+  }
+}
+
+void
+CQChartsChordPlot::
+propagatePathValues()
+{
+  // propagate node value up through edges and parent nodes
+  for (int depth = maxNodeDepth_; depth >= 0; --depth) {
+    for (auto &p : nameDataMap_) {
+      auto &chordData = p.second;
+      if (chordData.depth() != depth) continue;
+
+      ChordData::Group group("", depth, maxNodeDepth_ + 1);
+
+      chordData.setGroup(group);
+
+      // set node value from sum of dest values
+      if (! chordData.hasValue()) {
+        if (! chordData.values().empty()) {
+          OptReal sum;
+
+          for (const auto &value : chordData.values()) {
+            if (value.value > 0.0) {
+              double v = value.value;
+
+              if (sum.isSet())
+                sum = OptReal(sum.real() + v);
+              else
+                sum = OptReal(v);
+            }
+          }
+
+          if (sum.isSet())
+            chordData.setValue(sum);
+        }
+      }
+
+      // propagate set node value up to source nodes
+      if (chordData.hasValue()) {
+        int parent = chordData.parent();
+
+        if (parent > 0) {
+          auto &parentChordData = getIndData(parent);
+
+          parentChordData.setToValue(chordData      .from(), chordData.value().real());
+          chordData      .setToValue(parentChordData.from(), chordData.value().real());
+        }
+      }
+    }
+  }
+}
+
+void
+CQChartsChordPlot::
+filterPathObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (auto &p : nameDataMap_) {
+      auto &chordData = p.second;
+
+      if (chordData.depth() > maxDepth())
+        chordData.setVisible(false);
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (auto &p : nameDataMap_) {
+      auto &chordData = p.second;
+
+      if (! chordData.value().isSet() || chordData.value().real() < minValue())
+        chordData.setVisible(false);
     }
   }
 }
@@ -512,8 +632,8 @@ initLinkObjs(PlotObjs &objs) const
       auto &destData = plot_->findNameData(destStr, linkInd);
 
       // create link from src to dest for value
-      srcData .addValue(destData.from(), value, value, /*primary*/true );
-      destData.addValue(srcData .from(), value, value, /*primary*/false);
+      srcData .addValue(destData.from(), value, /*primary*/true );
+      destData.addValue(srcData .from(), value, /*primary*/false);
 
       //---
 
@@ -784,7 +904,7 @@ initTableObjs(PlotObjs &objs) const
     if (! isSymmetric())
       total1 = data.maxTotal();
     else
-      total1 = data.fromTotal();
+      total1 = data.total();
 
     if (CMathUtil::isZero(total1))
       continue;
@@ -826,24 +946,46 @@ findNameData(const QString &name, const QModelIndex &linkInd) const
 {
   auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  return findNameData(th->nameDataMap_, name, linkInd);
+  return findNameData(th->nameDataMap_, name, linkInd, /*global*/true);
 }
 
 CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
-findNameData(NameDataMap &nameDataMap, const QString &name, const QModelIndex &linkInd) const
+findNameData(NameDataMap &nameDataMap, const QString &name,
+             const QModelIndex &linkInd, bool global) const
 {
   auto p = nameDataMap.find(name);
 
   if (p == nameDataMap.end()) {
     p = nameDataMap.insert(p, NameDataMap::value_type(name, ChordData()));
 
-    (*p).second.setFrom(int(nameDataMap.size() - 1));
+    int ind = nameDataMap.size();
+
+    (*p).second.setFrom(ind);
     (*p).second.setName(name);
     (*p).second.setLinkInd(linkInd);
+
+    if (global) {
+      auto *th = const_cast<CQChartsChordPlot *>(this);
+
+      th->indName_[ind] = name;
+    }
   }
 
   return (*p).second;
+}
+
+CQChartsChordPlot::ChordData &
+CQChartsChordPlot::
+getIndData(int ind)
+{
+  auto pi = indName_.find(ind);
+  assert(pi != indName_.end());
+
+  auto pn = nameDataMap_.find((*pi).second);
+  assert(pn != nameDataMap_.end());
+
+  return (*pn).second;
 }
 
 void
@@ -858,13 +1000,14 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   for (const auto &nameData : nameDataMap) {
     const ChordData &data = nameData.second;
+    if (! data.isVisible()) continue;
 
     double total1;
 
     if (! isSymmetric())
       total1 = data.maxTotal();
     else
-      total1 = data.fromTotal();
+      total1 = data.total();
 
     if (CMathUtil::isZero(total1))
       continue;
@@ -885,8 +1028,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
         if (lhs.group().value() != rhs.group().value())
           return lhs.group().value() < rhs.group().value();
 
-        return lhs.fromTotal(/*primaryOnly*/ !isSymmetric()) <
-               rhs.fromTotal(/*primaryOnly*/ !isSymmetric());
+        return lhs.total(/*primaryOnly*/ !isSymmetric()) <
+               rhs.total(/*primaryOnly*/ !isSymmetric());
       });
 
     for (auto &data : datas)
@@ -936,7 +1079,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     if (! isSymmetric())
       total1 = data.maxTotal();
     else
-      total1 = data.fromTotal();
+      total1 = data.total();
 
     double dangle = valueToDegrees(total1);
 
@@ -1085,7 +1228,7 @@ calcTipId() const
   if (data_.group().str != "")
     tableTip.addTableRow("Group", data_.group().str);
 
-  tableTip.addTableRow("Total", data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric()));
+  tableTip.addTableRow("Total", data_.total(/*primaryOnly*/! plot_->isSymmetric()));
 
   tableTip.addTableRow("Count", data_.values().size());
 
@@ -1269,7 +1412,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (! plot_->isSymmetric())
     total = data_.maxTotal();
   else
-    total = data_.fromTotal();
+    total = data_.total();
 
   if (CMathUtil::isZero(total))
     return;
@@ -1394,7 +1537,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
   std::ostream &os = device->os();
 
   os << "\n";
-  os << "  this.total = " << data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric()) << ";\n";
+  os << "  this.total = " << data_.total(/*primaryOnly*/! plot_->isSymmetric()) << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -1420,7 +1563,7 @@ textBBox() const
   if (! plot_->textBox()->isTextVisible())
     return CQChartsGeom::BBox();
 
-  double total = data_.fromTotal(/*primaryOnly*/! plot_->isSymmetric());
+  double total = data_.total(/*primaryOnly*/! plot_->isSymmetric());
 
   if (CMathUtil::isZero(total))
     return CQChartsGeom::BBox();
@@ -1473,7 +1616,7 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
     if (primaryType == ChordData::PrimaryType::NON_PRIMARY && value.primary)
       continue;
 
-    da = plot_->valueToDegrees(value.fromValue);
+    da = plot_->valueToDegrees(value.value);
 
     if (ind == value.to)
       return;

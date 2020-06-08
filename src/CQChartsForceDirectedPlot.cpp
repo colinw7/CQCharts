@@ -1,4 +1,5 @@
 #include <CQChartsForceDirectedPlot.h>
+#include <CQChartsConnectionList.h>
 #include <CQChartsView.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
@@ -124,6 +125,13 @@ setNodeRadius(double r)
 
 void
 CQChartsForceDirectedPlot::
+setNodeScaled(bool b)
+{
+  CQChartsUtil::testAndSet(nodeScaled_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
 setEdgeLinesValueWidth(bool b)
 {
   CQChartsUtil::testAndSet(edgeLinesValueWidth_, b, [&]() { drawObjs(); } );
@@ -134,6 +142,13 @@ CQChartsForceDirectedPlot::
 setRangeSize(double r)
 {
   CQChartsUtil::testAndSet(rangeSize_, r, [&]() { updateRange(); } );
+}
+
+void
+CQChartsForceDirectedPlot::
+setMaxLineWidth(double r)
+{
+  CQChartsUtil::testAndSet(maxLineWidth_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -168,15 +183,18 @@ addProperties()
   CQChartsConnectionPlot::addProperties();
 
   // options
-  addProp("options", "running", "", "Is running");
+  addProp("options", "running"     , "", "Is running");
+  addProp("options", "rangeSize"   , "", "Range size");
+  addProp("options", "maxLineWidth", "", "Max line width");
 
   // node/edge
-  addProp("node", "nodeRadius", "radius", "Node radius in pixels")->setMinValue(0.0);
+  addProp("node", "nodeRadius", "radius"     , "Node radius in pixels")->setMinValue(0.0);
+  addProp("node", "nodeScaled", "scaleRadius", "Node radius scaled from value")->setMinValue(0.0);
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeStroke", "Node");
 
-  addProp("edge", "edgeLinesValueWidth", "linesValueWidth", "Line width from value");
+  addProp("edge", "edgeLinesValueWidth", "scaleWidth", "Line width scaled from value");
 
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
@@ -240,6 +258,8 @@ createObjs(PlotObjs &) const
       rc = initLinkConnectionObjs();
     else if (connectionsColumn().isValid())
       rc = initLinkConnectionObjs();
+    else if (pathColumn().isValid())
+      rc = initPathObjs();
     else
       rc = initTableObjs();
   }
@@ -269,18 +289,28 @@ addIdConnections() const
 
   //---
 
-  th->maxGroup_ = 0;
-  th->maxValue_ = 0.0;
+  th->maxGroup_     = 0;
+  th->maxValue_     = 0.0;
+  th->maxDataValue_ = 0.0;
 
   for (const auto &idConnections : idConnections_) {
     const auto &connectionsData = idConnections.second;
 
+    if (! connectionsData.visible) continue;
+
     th->maxGroup_ = std::max(th->maxGroup_, connectionsData.group);
 
+    if (connectionsData.value.isSet())
+      th->maxDataValue_ = std::max(th->maxDataValue_, connectionsData.value.real());
+
     for (const auto &connection : connectionsData.connections) {
-      th->maxValue_ = std::max(th->maxValue_, connection.value);
+      if (connection.value.isSet())
+        th->maxValue_ = std::max(th->maxValue_, connection.value.real());
     }
   }
+
+  if (th->maxGroup_ <= 0)
+    th->maxGroup_ = 1;
 
   //---
 
@@ -290,33 +320,40 @@ addIdConnections() const
   for (const auto &idConnections : idConnections_) {
     const auto &connectionsData = idConnections.second;
 
-    if (connectionsData.connections.empty())
-      continue;
+    if (! connectionsData.visible) continue;
+
+    //if (connectionsData.connections.empty()) continue;
 
     int id = idConnections.first;
 
     const QString &name  = connectionsData.name;
     int            group = connectionsData.group;
 
-    auto *node = forceDirected_->newNode();
+    auto *node = forceDirected_->newNodeT<CQChartsSpringyNode>();
 
     QString label = QString("%1:%2").arg(name).arg(group);
 
     node->setLabel(label);
     node->setMass (nodeMass_);
-    node->setGroup(group);
     node->setValue((1.0*group)/maxGroup_);
+
+    node->setGroup(group);
+
+    if (connectionsData.value.isSet())
+      node->setNodeValue(connectionsData.value);
 
     th->nodes_          [id        ] = node;
     th->connectionNodes_[node->id()] = id;
   }
 
-  th->widthScale_ = (maxValue_ > 0.0 ? 1.0/maxValue_ : 1.0);
+  th->widthScale_ = (maxValue() > 0.0 ? 1.0/maxValue() : 1.0);
 
   //---
 
   for (const auto &idConnections : idConnections_) {
     const auto &connectionsData = idConnections.second;
+
+    if (! connectionsData.visible) continue;
 
     if (connectionsData.connections.empty())
       continue;
@@ -331,17 +368,22 @@ addIdConnections() const
 
     for (const auto &connection : connectionsData.connections) {
       auto pn1 = nodes_.find(connection.node);
-      assert(pn1 != nodes_.end());
+      if (pn1 == nodes_.end()) continue;
 
       auto *node1 = (*pn1).second;
       assert(node1);
 
-      assert(connection.value > 0.0);
+      if (! connection.value.isSet())
+        continue;
 
-      auto *edge = forceDirected_->newEdge(node, node1);
+      double value = connection.value.real();
 
-      edge->setLength(1.0/connection.value);
-      edge->setValue(connection.value);
+      assert(value > 0.0);
+
+      auto *edge = forceDirected_->newEdgeT<CQChartsSpringyEdge>(node, node1);
+
+      edge->setLength(1.0/value);
+      edge->setValue(value);
     }
   }
 }
@@ -397,7 +439,7 @@ initHierObjsAddConnection(const QString &srcStr, const CQChartsModelIndex &srcLi
 
   assert(srcId != destId);
 
-  auto &srcConnectionsData  = const_cast<ConnectionsData &>(getConnections(srcId));
+  auto &srcConnectionsData  = const_cast<ConnectionsData &>(getConnections(srcId ));
   auto &destConnectionsData = const_cast<ConnectionsData &>(getConnections(destId));
 
   //---
@@ -411,15 +453,15 @@ initHierObjsAddConnection(const QString &srcStr, const CQChartsModelIndex &srcLi
     srcConnectionsData.ind   = srcLinkIndex1;
     srcConnectionsData.name  = srcStr;
     srcConnectionsData.group = depth;
-    srcConnectionsData.total = srcTotal;
+    srcConnectionsData.total = OptReal(srcTotal);
 
     //---
 
     if (destLinkInd.isValid()) {
-      CQChartsConnectionList::Connection connection;
+      Connection connection;
 
       connection.node  = srcId;
-      connection.value = destTotal;
+      connection.value = OptReal(destTotal);
 
       destConnectionsData.connections.push_back(connection);
     }
@@ -436,17 +478,194 @@ initHierObjsAddConnection(const QString &srcStr, const CQChartsModelIndex &srcLi
     destConnectionsData.ind   = destLinkIndex1;
     destConnectionsData.name  = destStr;
     destConnectionsData.group = depth + 1;
-    destConnectionsData.total = destTotal;
+    destConnectionsData.total = OptReal(destTotal);
 
     //---
 
     if (srcLinkInd.isValid()) {
-      CQChartsConnectionList::Connection connection;
+      Connection connection;
 
       connection.node  = destId;
-      connection.value = destTotal;
+      connection.value = OptReal(destTotal);
 
       srcConnectionsData.connections.push_back(connection);
+    }
+  }
+}
+
+//---
+
+bool
+CQChartsForceDirectedPlot::
+initPathObjs() const
+{
+  CQPerfTrace trace("CQChartsForceDirectedPlot::initPathObjs");
+
+  //---
+
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->maxNodeDepth_ = 0;
+
+  //---
+
+  CQChartsConnectionPlot::initPathObjs();
+
+  //---
+
+  if (isPropagate())
+    th->propagatePathValues();
+
+  //---
+
+  th->filterPathObjs();
+
+  return true;
+}
+
+void
+CQChartsForceDirectedPlot::
+addPathValue(const QStringList &pathStrs, double value) const
+{
+  int n = pathStrs.length();
+  assert(n > 0);
+
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
+
+  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+
+  QString path1 = pathStrs[0];
+
+  for (int i = 1; i < n; ++i) {
+    QString path2 = path1 + separator + pathStrs[i];
+
+    auto srcId  = getStringId(path1);
+    auto destId = getStringId(path2);
+
+    assert(srcId != destId);
+
+    auto &srcConnectionsData  = const_cast<ConnectionsData &>(getConnections(srcId ));
+    auto &destConnectionsData = const_cast<ConnectionsData &>(getConnections(destId));
+
+    srcConnectionsData.name  = path1;
+    srcConnectionsData.depth = i - 1;
+    srcConnectionsData.group = srcConnectionsData.depth;
+
+    destConnectionsData.name  = path2;
+    destConnectionsData.depth = i;
+    destConnectionsData.group = destConnectionsData.depth;
+
+    if (i < n - 1) {
+      bool hasConnection = false;
+
+      for (auto &connection : srcConnectionsData.connections) {
+        if (connection.node == destId) {
+          hasConnection = true;
+          break;
+        }
+      }
+
+      if (! hasConnection) {
+        Connection connection;
+
+        connection.node = destId;
+
+        srcConnectionsData.connections.push_back(connection);
+
+        destConnectionsData.parentId = srcId;
+      }
+    }
+    else {
+      Connection connection;
+
+      connection.node  = destId;
+      connection.value = OptReal(value);
+
+      srcConnectionsData.connections.push_back(connection);
+
+      destConnectionsData.parentId = srcId;
+      destConnectionsData.value    = OptReal(value);
+    }
+
+    path1 = path2;
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+propagatePathValues()
+{
+  // propagate node value up through edges and parent nodes
+  for (int depth = maxNodeDepth_; depth >= 0; --depth) {
+    for (auto &idConnections : idConnections_) {
+      auto &connectionsData = idConnections.second;
+
+      if (connectionsData.depth != depth) continue;
+
+      int id = idConnections.first;
+
+      // set node value from sum of dest values
+      if (! connectionsData.value.isSet()) {
+        if (! connectionsData.connections.empty()) {
+          OptReal sum;
+
+          for (auto &connection : connectionsData.connections) {
+            if (connection.value.isSet()) {
+              double value = connection.value.real();
+
+              if (sum.isSet())
+                sum = OptReal(sum.real() + value);
+              else
+                sum = OptReal(value);
+            }
+          }
+
+          if (sum.isSet())
+            connectionsData.value = sum;
+        }
+      }
+
+      // propagate set node value up to source nodes
+      if (connectionsData.value.isSet()) {
+        if (connectionsData.parentId >= 0) {
+          auto pp = idConnections_.find(connectionsData.parentId);
+          assert(pp != idConnections_.end());
+
+          auto &parentConnectionsData = (*pp).second;
+
+          for (auto &parentConnection : parentConnectionsData.connections) {
+            if (parentConnection.node == id)
+              parentConnection.value = connectionsData.value;
+          }
+        }
+      }
+    }
+  }
+}
+
+void
+CQChartsForceDirectedPlot::
+filterPathObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (auto &idConnections : idConnections_) {
+      auto &connectionsData = idConnections.second;
+
+      if (connectionsData.depth > maxDepth())
+        connectionsData.visible = false;
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (auto &idConnections : idConnections_) {
+      auto &connectionsData = idConnections.second;
+
+      if (! connectionsData.value.isSet() || connectionsData.value.real() < minValue())
+        connectionsData.visible = false;
     }
   }
 }
@@ -510,10 +729,10 @@ initLinkConnectionObjs() const
     void addConnection(int srcId, int destId, double value) {
       auto &srcConnectionsData = const_cast<ConnectionsData &>(plot_->getConnections(srcId));
 
-      CQChartsConnectionList::Connection connection;
+      Connection connection;
 
       connection.node  = destId;
-      connection.value = value;
+      connection.value = OptReal(value);
 
       srcConnectionsData.connections.push_back(connection);
 
@@ -598,7 +817,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
   connectionsData.ind   = nameInd1;
   connectionsData.name  = srcStr;
   connectionsData.group = group;
-  connectionsData.total = value;
+  connectionsData.total = OptReal(value);
 
   return true;
 }
@@ -641,20 +860,31 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   //---
 
   // get connections
+  CQChartsConnectionList::Connections connections;
+
   CQChartsModelIndex connectionsModelInd(data.row, connectionsColumn(), data.parent);
 
   if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
     bool ok3;
     QVariant connectionsVar = modelValue(connectionsModelInd, ok3);
 
-    connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+    connections = connectionsVar.value<CQChartsConnectionList>().connections();
   }
   else {
     bool ok3;
     QString connectionsStr = modelString(connectionsModelInd, ok3);
     if (! ok3) return false;
 
-    CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
+    CQChartsConnectionList::stringToConnections(connectionsStr, connections);
+  }
+
+  for (auto &connection : connections) {
+    Connection connection1;
+
+    connection1.node  = connection.node;
+    connection1.value = OptReal(connection.value);
+
+    connectionsData.connections.push_back(connection1);
   }
 
   //---
@@ -677,10 +907,14 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   // set total
   double total = 0.0;
 
-  for (const auto &connection : connectionsData.connections)
-    total += connection.value;
+  for (const auto &connection : connectionsData.connections) {
+    if (! connection.value.isSet())
+      continue;
 
-  connectionsData.total = total;
+    total += connection.value.real();
+  }
+
+  connectionsData.total = OptReal(total);
 
   return true;
 }
@@ -716,10 +950,10 @@ initTableObjs() const
 
     // add connections
     for (const auto &value : tableConnectionData.values()) {
-      CQChartsConnectionList::Connection connection;
+      Connection connection;
 
       connection.node  = value.to;
-      connection.value = value.toValue;
+      connection.value = OptReal(value.value);
 
       connectionsData.connections.push_back(connection);
     }
@@ -888,7 +1122,7 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
   if (! isRunning()) {
     Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
-    auto *node = nodePoint.first;
+    CQChartsSpringyNode *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first);
     if (! node) return false;
 
     CQChartsTableTip tableTip;
@@ -900,15 +1134,21 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
     if (pc != connectionNodes_.end()) {
       auto &connectionsData = getConnections((*pc).second);
 
-      tableTip.addTableRow("Label"      , connectionsData.name);
-      tableTip.addTableRow("Group"      , connectionsData.group);
-      tableTip.addTableRow("Total"      , connectionsData.total);
+      tableTip.addTableRow("Label", connectionsData.name);
+      tableTip.addTableRow("Group", connectionsData.group);
+
+      if (connectionsData.total.isSet())
+        tableTip.addTableRow("Total", connectionsData.total.real());
+
       tableTip.addTableRow("Connections", connectionsData.connections.size());
     }
     else
       tableTip.addTableRow("Label", node->label());
 
-    tableTip.addTableRow("Value", node->value());
+    if (node->nodeValue().isSet())
+      tableTip.addTableRow("Value", node->nodeValue().real());
+    else
+      tableTip.addTableRow("Value", node->value());
 
     tip = tableTip.str();
 
@@ -931,9 +1171,8 @@ draw(QPainter *painter)
 
   UpdateState updateState = this->updateState();
 
-  if (updateState == UpdateState::READY) {
+  if (updateState == UpdateState::READY)
     setGroupedUpdateState(UpdateState::DRAWN);
-  }
   }
 }
 
@@ -943,9 +1182,13 @@ drawParts(QPainter *painter) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  CQChartsPlotPaintDevice device(th, painter);
+  if (! hasLockId()) {
+    LockMutex lock(th, "drawParts");
 
-  drawDeviceParts(&device);
+    CQChartsPlotPaintDevice device(th, painter);
+
+    drawDeviceParts(&device);
+  }
 }
 
 void
@@ -963,8 +1206,6 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
   setPen(edgePen, true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
 
-  double maxLineWidth = 8.0;
-
   for (auto &edge : forceDirected_->edges()) {
     bool isTemp = false;
 
@@ -976,17 +1217,23 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     if (isEdgeLinesValueWidth()) {
       QPen edgePen1 = edgePen;
 
-      double w = maxLineWidth*(widthScale_*edge->value());
+      double w = maxLineWidth()*(widthScale_*edge->value());
 
       edgePen1.setWidthF(w);
 
       device->setPen(edgePen1);
+
+      double ww = pixelToWindowWidth(w);
+
+      device->drawRoundedLine(CQChartsGeom::Point(p1.x(), p1.y()),
+                              CQChartsGeom::Point(p2.x(), p2.y()), ww);
     }
-    else
+    else {
       device->setPen(edgePen);
 
-    device->drawLine(CQChartsGeom::Point(p1.x(), p1.y()),
-                     CQChartsGeom::Point(p2.x(), p2.y()));
+      device->drawLine(CQChartsGeom::Point(p1.x(), p1.y()),
+                       CQChartsGeom::Point(p2.x(), p2.y()));
+    }
 
     if (isTemp)
       delete spring;
@@ -999,6 +1246,19 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   double ym = pixelToWindowHeight(2*r);
 
   for (auto &node : forceDirected_->nodes()) {
+    CQChartsSpringyNode *snode = dynamic_cast<CQChartsSpringyNode *>(node);
+
+    double rn  = r;
+    double xmn = xm;
+    double ymn = ym;
+
+    if (isNodeScaled() && snode->nodeValue().isSet()) {
+      rn = nodeRadius()*(snode->nodeValue().real()/maxDataValue());
+
+      xmn = pixelToWindowWidth (2*rn);
+      ymn = pixelToWindowHeight(2*rn);
+    }
+
     auto point = forceDirected_->point(node);
 
     const Springy::Vector &p1 = point->p();
@@ -1012,7 +1272,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     QColor fc;
 
     if      (colorType() == ColorType::GROUP)
-      fc = interpPaletteColor(ColorInd(node->group(), maxGroup_));
+      fc = interpPaletteColor(ColorInd(snode->group(), maxGroup_));
     else if (colorType() == ColorType::INDEX)
       fc = interpPaletteColor(ColorInd(node->id(), nodes_.size()));
     else
@@ -1029,7 +1289,8 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     //---
 
-    CQChartsGeom::BBox ebbox(p1.x() - xm/2.0, p1.y() - ym/2.0, p1.x() + xm/2, p1.y() + ym/2.0);
+    CQChartsGeom::BBox ebbox(p1.x() - xmn/2.0, p1.y() - ymn/2.0,
+                             p1.x() + xmn/2.0, p1.y() + ymn/2.0);
 
     device->drawEllipse(ebbox);
   }

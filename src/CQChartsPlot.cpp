@@ -2578,7 +2578,8 @@ addBaseProperties()
   addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle", true);
   addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     , true);
 
-  addProp("range", "autoFit", "autoFit", "Auto fit to data");
+  addProp("range", "autoFit"  , "autoFit"  , "Auto fit to data");
+  addProp("range", "fitMargin", "fitMargin", "Auto fit margin");
 
   if (type()->customXRange()) addProp("range", "xmin", "xmin", "Explicit minimum x value");
   if (type()->customYRange()) addProp("range", "ymin", "ymin", "Explicit minimum y value");
@@ -4554,6 +4555,8 @@ void
 CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
+  assert(obj);
+
   assert(! objTreeData_.tree->isBusy());
 
   plotObjs_.push_back(obj);
@@ -7651,6 +7654,14 @@ zoomTo(const CQChartsGeom::BBox &bbox)
   emit zoomPanChanged();
 }
 
+bool
+CQChartsPlot::
+isZoomFull() const
+{
+  return (dataScaleX () == 1.0 && dataScaleY () == 1.0 &&
+          dataOffsetX() == 0.0 && dataOffsetY() == 0.0);
+}
+
 void
 CQChartsPlot::
 zoomFull(bool notify)
@@ -8726,26 +8737,22 @@ void
 CQChartsPlot::
 drawBackgroundRects(CQChartsPaintDevice *device) const
 {
-  auto drawBackgroundRect = [&](bool isFilled, bool isStroked, const CQChartsGeom::BBox &rect,
-                                const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-                                const CQChartsFillPattern &fillPattern,
-                                const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-                                const CQChartsLength &strokeWidth,
-                                const CQChartsLineDash &strokeDash, const CQChartsSides &sides) {
-    if (isFilled) {
+  auto drawBackgroundRect = [&](const CQChartsGeom::BBox &rect, const CQChartsBrushData &brushData,
+                                const CQChartsPenData &penData, const CQChartsSides &sides) {
+    if (brushData.isVisible()) {
       QBrush brush;
 
-      setBrush(brush, true, fillColor, fillAlpha, fillPattern);
+      setBrush(brush, true, brushData.color(), brushData.alpha(), brushData.pattern());
 
       device->setBrush(brush);
 
       device->fillRect(rect);
     }
 
-    if (isStroked) {
+    if (penData.isVisible()) {
       QPen pen;
 
-      setPen(pen, true, strokeColor, strokeAlpha, strokeWidth, strokeDash);
+      setPen(pen, true, penData.color(), penData.alpha(), penData.width(), penData.dash());
 
       device->setPen(pen);
 
@@ -8754,22 +8761,16 @@ drawBackgroundRects(CQChartsPaintDevice *device) const
   };
 
   if (isPlotFilled() || isPlotStroked())
-    drawBackgroundRect(isPlotFilled(), isPlotStroked(), calcPlotRect(),
-                       interpPlotFillColor(ColorInd()), plotFillAlpha(), plotFillPattern(),
-                       interpPlotStrokeColor(ColorInd()), plotStrokeAlpha(),
-                       plotStrokeWidth(), plotStrokeDash(), plotBorderSides());
+    drawBackgroundRect(calcPlotRect(), plotBrushData(ColorInd()), plotPenData(ColorInd()),
+                       plotBorderSides());
 
   if (isFitFilled () || isFitStroked())
-    drawBackgroundRect(isFitFilled(), isFitStroked(), fitBBox(),
-                       interpFitFillColor(ColorInd()), fitFillAlpha(), fitFillPattern(),
-                       interpFitStrokeColor(ColorInd()), fitStrokeAlpha(),
-                       fitStrokeWidth(), fitStrokeDash(), fitBorderSides());
+    drawBackgroundRect(fitBBox(), fitBrushData(ColorInd()), fitPenData(ColorInd()),
+                       fitBorderSides());
 
   if (isDataFilled() || isDataStroked())
-    drawBackgroundRect(isDataFilled(), isDataStroked(), displayRangeBBox(),
-                       interpDataFillColor(ColorInd()), dataFillAlpha(), dataFillPattern(),
-                       interpDataStrokeColor(ColorInd()), dataStrokeAlpha(),
-                       dataStrokeWidth(), dataStrokeDash(), dataBorderSides());
+    drawBackgroundRect(displayRangeBBox(), dataBrushData(ColorInd()), dataPenData(ColorInd()),
+                       dataBorderSides());
 }
 
 bool
@@ -9030,7 +9031,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
         continue;
     }
 
-    if (! objInsideBox(plotObj, bbox))
+    if (isPlotClip() && ! objInsideBox(plotObj, bbox))
       continue;
 
     anyObjs = true;
@@ -9092,7 +9093,7 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
     //---
 
     // skip objects not inside plot
-    if (! objInsideBox(plotObj, bbox))
+    if (isPlotClip() && ! objInsideBox(plotObj, bbox))
       continue;
 
     //---
@@ -9124,6 +9125,11 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
 
   if (layerType == CQChartsLayer::Type::MID_PLOT)
     postDrawObjs(device);
+
+  //---
+
+  // reset draw layer
+  view()->setDrawLayerType(CQChartsLayer::Type::NONE);
 
   //---
 
@@ -9444,6 +9450,11 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
 
     annotation->draw(device);
   }
+
+  //---
+
+  // reset draw layer
+  view()->setDrawLayerType(CQChartsLayer::Type::NONE);
 }
 
 bool
@@ -9804,7 +9815,13 @@ autoFit()
 
   CQPerfTrace trace("CQChartsPlot::autoFit");
 
-  zoomFull(/*notify*/false);
+  if (! isZoomFull()) {
+    needsAutoFit_ = true;
+
+    zoomFull(/*notify*/false);
+
+    return;
+  }
 
   if (isOverlay()) {
     if (prevPlot())
@@ -9879,13 +9896,18 @@ void
 CQChartsPlot::
 setFitBBox(const CQChartsGeom::BBox &bbox)
 {
+  double dx = fitMargin()*bbox.getWidth ();
+  double dy = fitMargin()*bbox.getHeight();
+
+  auto bbox1 = bbox.expanded(-dx, -dy, dx, dy);
+
   // calc margin so plot box fits in specified box
   auto pbbox = displayRangeBBox();
 
-  double left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
-  double bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
-  double right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
-  double top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
+  double left   = 100.0*(pbbox.getXMin() - bbox1.getXMin())/bbox1.getWidth ();
+  double bottom = 100.0*(pbbox.getYMin() - bbox1.getYMin())/bbox1.getHeight();
+  double right  = 100.0*(bbox1.getXMax() - pbbox.getXMax())/bbox1.getWidth ();
+  double top    = 100.0*(bbox1.getYMax() - pbbox.getYMax())/bbox1.getHeight();
 
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
@@ -9899,6 +9921,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 fitBBox() const
 {
+  // calc fit box
   CQChartsGeom::BBox bbox;
 
   bbox += dataFitBBox   ();

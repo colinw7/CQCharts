@@ -295,6 +295,27 @@ setSorted(bool b)
   CQChartsUtil::testAndSet(sorted_, b, [&]() { updateObjs(); } );
 }
 
+void
+CQChartsConnectionPlot::
+setPropagate(bool b)
+{
+  CQChartsUtil::testAndSet(propagateData_.active, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
+setMaxDepth(int d)
+{
+  CQChartsUtil::testAndSet(maxDepth_, d, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
+setMinValue(double r)
+{
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -324,6 +345,8 @@ addProperties()
   addProp("options", "separator", "", "Model link value separator");
   addProp("options", "symmetric", "", "Model values are symmetric");
   addProp("options", "sorted"   , "", "Sort values by size");
+  addProp("options", "maxDepth" , "", "Max Node depth");
+  addProp("options", "minValue" , "", "Min Node value");
 }
 
 //---
@@ -757,7 +780,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     //---
 
     // add to total
-    double total1 = tableConnectionData.fromTotal();
+    double total1 = tableConnectionData.total();
 
     if (! CMathUtil::isZero(total1))
       ++tableConnectionInfo.numNonZero;
@@ -771,7 +794,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   if (isSorted()) {
     std::sort(tableConnectionDatas.begin(), tableConnectionDatas.end(),
       [](const TableConnectionData &lhs, const TableConnectionData &rhs) {
-        return lhs.fromTotal() < rhs.fromTotal();
+        return lhs.total() < rhs.total();
       });
 
     for (auto &tableConnectionData : tableConnectionDatas)

@@ -145,13 +145,6 @@ setNodeWidth(double r)
   CQChartsUtil::testAndSet(nodeWidth_, r, [&]() { updateRangeAndObjs(); } );
 }
 
-void
-CQChartsSankeyPlot::
-setMaxDepth(int d)
-{
-  CQChartsUtil::testAndSet(maxDepth_, d, [&]() { updateRangeAndObjs(); } );
-}
-
 //---
 
 void
@@ -181,7 +174,6 @@ addProperties()
   // options
   addProp("options", "nodeMargin", "nodeMargin", "Node Margin factor");
   addProp("options", "nodeWidth" , "nodeWidth" , "Node width (in pixels)");
-  addProp("options", "maxDepth"  , "maxDepth"  , "Max Node depth");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -399,47 +391,26 @@ bool
 CQChartsSankeyPlot::
 initPathObjs() const
 {
+  CQPerfTrace trace("CQChartsSankeyPlot::initPathObjs");
+
+  //---
+
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->maxNodeDepth_ = 0;
+
+  //--
+
   CQChartsConnectionPlot::initPathObjs();
 
-  bool changed = true;
+  //---
 
-  while (changed) {
-    changed = false;
+  if (isPropagate())
+    th->propagatePathValues();
 
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+  //---
 
-      // propagate set node value up to source nodes
-      if (node->hasValue()) {
-        for (const auto &edge : node->srcEdges()) {
-          if (! edge->hasValue()) {
-            edge->setValue(node->value());
-
-            changed = true;
-          }
-        }
-      }
-      // set node from dest values
-      else {
-        OptReal sum;
-
-        for (const auto &edge : node->destEdges()) {
-          if (edge->hasValue()) {
-            if (sum.isSet())
-              sum = OptReal(sum.real() + edge->value().real());
-            else
-              sum = OptReal(edge->value().real());
-          }
-        }
-
-        if (sum.isSet()) {
-          node->setValue(sum);
-
-          changed = true;
-        }
-      }
-    }
-  }
+  th->filterPathObjs();
 
   return true;
 }
@@ -449,10 +420,27 @@ CQChartsSankeyPlot::
 addPathValue(const QStringList &pathStrs, double value) const
 {
   int n = pathStrs.length();
+  assert(n > 0);
+
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
+
+  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+
+  QString path1 = pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    auto *srcNode  = findNode(pathStrs[i - 1]);
-    auto *destNode = findNode(pathStrs[i    ]);
+    QString path2 = path1 + separator + pathStrs[i];
+
+    auto *srcNode  = findNode(path1);
+    auto *destNode = findNode(path2);
+
+    srcNode ->setLabel(pathStrs[i - 1]);
+    destNode->setLabel(pathStrs[i    ]);
+
+    srcNode ->setDepth(i - 1);
+    destNode->setDepth(i    );
 
     if (i < n - 1) {
       bool hasEdge = false;
@@ -478,6 +466,86 @@ addPathValue(const QStringList &pathStrs, double value) const
       destNode->addSrcEdge (edge);
 
       destNode->setValue(OptReal(value));
+    }
+
+    path1 = path2;
+  }
+}
+
+void
+CQChartsSankeyPlot::
+propagatePathValues()
+{
+  // propagate node value up through edges and parent nodes
+  for (int depth = maxNodeDepth_; depth >= 0; --depth) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+      if (node->depth() != depth) continue;
+
+      // set node value from sum of dest values
+      if (! node->hasValue()) {
+        if (! node->destEdges().empty()) {
+          OptReal sum;
+
+          for (const auto &edge : node->destEdges()) {
+            if (edge->hasValue()) {
+              double value = edge->value().real();
+
+              if (sum.isSet())
+                sum = OptReal(sum.real() + value);
+              else
+                sum = OptReal(value);
+            }
+          }
+
+          if (sum.isSet())
+            node->setValue(sum);
+        }
+      }
+
+      // propagate set node value up to source nodes
+      if (node->hasValue()) {
+        if (! node->srcEdges().empty()) {
+          assert(node->srcEdges().size() == 1);
+
+          auto *srcEdge = *node->srcEdges().begin();
+
+          if (! srcEdge->hasValue())
+            srcEdge->setValue(node->value());
+
+          auto *srcNode = srcEdge->srcNode();
+
+          for (const auto &edge : srcNode->destEdges()) {
+            if (edge->destNode() == node)
+              edge->setValue(node->value());
+          }
+        }
+      }
+    }
+  }
+}
+
+void
+CQChartsSankeyPlot::
+filterPathObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (node->depth() > maxDepth())
+        node->setVisible(false);
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (! node->value().isSet() || node->value().real() < minValue())
+        node->setVisible(false);
     }
   }
 }
@@ -811,7 +879,7 @@ initTableObjs() const
 
       auto *destNode = findNode(destStr);
 
-      auto *edge = createEdge(OptReal(value.toValue), srcNode, destNode);
+      auto *edge = createEdge(OptReal(value.value), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -851,6 +919,7 @@ createGraph(PlotObjs &objs) const
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     int xpos = node->calcXPos();
 
@@ -897,8 +966,12 @@ createGraph(PlotObjs &objs) const
 
   //--
 
-  for (const auto &edge : edges_)
+  for (const auto &edge : edges_) {
+    if (! edge->srcNode()->isVisible() || ! edge->destNode()->isVisible())
+      continue;
+
     addEdgeObj(edge);
+  }
 
   //---
 
@@ -908,12 +981,21 @@ createGraph(PlotObjs &objs) const
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
+
+    assert(node->obj());
 
     objs.push_back(node->obj());
   }
 
-  for (const auto &edge : edges_)
+  for (const auto &edge : edges_) {
+    if (! edge->srcNode()->isVisible() || ! edge->destNode()->isVisible())
+      continue;
+
+    assert(edge->obj());
+
     objs.push_back(edge->obj());
+  }
 }
 
 void
@@ -947,6 +1029,7 @@ createDepthNodes(const IndNodeMap &nodes) const
 
   for (const auto &idNode : nodes) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     // draw src box
     double h = valueScale()*node->edgeSum();
@@ -1022,6 +1105,7 @@ updateMaxDepth() const
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
@@ -1050,6 +1134,7 @@ adjustNodes() const
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     th->bbox_ += node->obj()->rect();
   }
@@ -1088,6 +1173,7 @@ initPosNodesMap()
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     posNodesMap_[node->xpos()][node->id()] = node;
   }
@@ -1105,6 +1191,7 @@ adjustNodeCenters()
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
+      if (! node->isVisible()) continue;
 
       adjustNode(node);
     }
@@ -1118,6 +1205,7 @@ adjustNodeCenters()
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
+      if (! node->isVisible()) continue;
 
       adjustNode(node);
     }
@@ -1135,6 +1223,7 @@ adjustNodeCenters()
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
+      if (! node->isVisible()) continue;
 
       nodeYMin_ = std::min(nodeYMin_, node->obj()->rect().getYMin());
       nodeYMax_ = std::max(nodeYMax_, node->obj()->rect().getYMax());
@@ -1158,6 +1247,7 @@ removeOverlaps() const
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
+      if (! node->isVisible()) continue;
 
       const auto &rect = node->obj()->rect();
 
@@ -1205,6 +1295,7 @@ removeOverlaps() const
 
         for (const auto &idNode : indNodeMap) {
           auto *node = idNode.second;
+          if (! node->isVisible()) continue;
 
           node->obj()->moveBy(CQChartsGeom::Point(0, dy));
         }
@@ -1222,6 +1313,7 @@ reorderNodeEdges() const
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
+    if (! node->isVisible()) continue;
 
     //---
 
@@ -1229,6 +1321,7 @@ reorderNodeEdges() const
 
     for (const auto &edge : node->srcEdges()) {
       auto *srcNode = edge->srcNode();
+      if (! srcNode->isVisible()) continue;
 
       const auto &rect = srcNode->obj()->rect();
 
@@ -1256,6 +1349,7 @@ reorderNodeEdges() const
 
     for (const auto &edge : node->destEdges()) {
       auto *destNode = edge->destNode();
+      if (! destNode->isVisible()) continue;
 
       const auto &rect = destNode->obj()->rect();
 
@@ -1292,12 +1386,14 @@ adjustNode(CQChartsSankeyPlotNode *node) const
 
   for (const auto &edge : node->srcEdges()) {
     auto *srcNode = edge->srcNode();
+    if (! srcNode->isVisible()) continue;
 
     bbox += srcNode->obj()->rect();
   }
 
   for (const auto &edge : node->destEdges()) {
     auto *destNode = edge->destNode();
+    if (! destNode->isVisible()) continue;
 
     bbox += destNode->obj()->rect();
   }
@@ -1579,7 +1675,7 @@ destEdgeSum() const
 
   for (const auto &edge : destEdges_) {
     if (edge->hasValue())
-      value += edge->hasValue();
+      value += edge->value().real();
   }
 
   return value;
@@ -1646,8 +1742,10 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
     double y3 = y2;
 
     for (const auto &edge : node_->srcEdges()) {
-      if (! edge->hasValue())
+      if (! edge->hasValue()) {
+        srcEdgeRect_[edge] = CQChartsGeom::BBox();
         continue;
+      }
 
       double h1 = (y2 - y1)*edge->value().real()/total;
 
@@ -1680,8 +1778,10 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
     double y3 = y2;
 
     for (const auto &edge : node->destEdges()) {
-      if (! edge->hasValue())
+      if (! edge->hasValue()) {
+        destEdgeRect_[edge] = CQChartsGeom::BBox();
         continue;
+      }
 
       double h1 = (y2 - y1)*edge->value().real()/total;
 
@@ -1741,11 +1841,15 @@ moveBy(const CQChartsGeom::Point &delta)
 
   rect_.moveBy(delta);
 
-  for (auto &edgeRect : srcEdgeRect_)
-    edgeRect.second.moveBy(delta);
+  for (auto &edgeRect : srcEdgeRect_) {
+    if (edgeRect.second.isSet())
+      edgeRect.second.moveBy(delta);
+  }
 
-  for (auto &edgeRect : destEdgeRect_)
-    edgeRect.second.moveBy(delta);
+  for (auto &edgeRect : destEdgeRect_) {
+    if (edgeRect.second.isSet())
+      edgeRect.second.moveBy(delta);
+  }
 }
 
 //---
@@ -1787,10 +1891,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  double x1 = rect().getXMin(), y1 = rect().getYMin();
-  double x2 = rect().getXMax(), y2 = rect().getYMax();
-
-  device->drawRect(CQChartsGeom::BBox(x1, y1, x2, y2));
+  if (rect().isSet())
+    device->drawRect(rect());
 
   //---
 
@@ -1830,11 +1932,19 @@ drawFg(CQChartsPaintDevice *device) const
 
   double textMargin = 4; // pixels
 
-  QString str = node_->name();
+  QString str = node_->label();
 
-  double tx = (rect().getXMid() < 0.5 ? prect.getXMax() + textMargin :
-                                        prect.getXMin() - textMargin - fm.width(str));
-  double ty = prect.getYMid() + fm.ascent()/2;
+  if (! str.length())
+    str = node_->name();
+
+  double ptw = fm.width(str);
+  double tw  = plot_->pixelToWindowWidth(ptw);
+
+  double xm = plot_->getCalcDataRange().xmid();
+
+  double tx = (rect().getXMid() < xm - tw ?
+    prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
+  double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
   auto pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
 
@@ -1980,8 +2090,11 @@ draw(CQChartsPaintDevice *device)
   const auto &srcRect  = srcObj ->destEdgeRect(edge());
   const auto &destRect = destObj->srcEdgeRect (edge());
 
+  if (! srcRect.isSet() || ! destRect.isSet())
+    return;
+
   // x from right of source rect to left of dest rect
-  double x1 = srcRect .getXMax(), x2 = destRect.getXMin();
+  double x1 = srcRect.getXMax(), x2 = destRect.getXMin();
 
   // start y range from source node, and end y range fron dest node
   double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();

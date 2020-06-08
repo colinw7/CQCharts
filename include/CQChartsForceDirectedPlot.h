@@ -5,7 +5,6 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsConnectionList.h>
 #include <CQChartsForceDirected.h>
 
 /*!
@@ -49,6 +48,35 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
 //---
 
+class CQChartsSpringyNode : public Springy::Node {
+ public:
+  using OptReal = CQChartsOptReal;
+
+ public:
+  CQChartsSpringyNode(int id) :
+   Springy::Node(id) {
+  }
+
+  int group() const { return group_; }
+  void setGroup(int i) { group_ = i; }
+
+  const OptReal &nodeValue() const { return nodeValue_; }
+  void setNodeValue(const OptReal &v) { nodeValue_ = v; }
+
+ private:
+  int     group_ { -1 };
+  OptReal nodeValue_;
+};
+
+class CQChartsSpringyEdge : public Springy::Edge {
+ public:
+  CQChartsSpringyEdge(int id, Springy::Node *node1, Springy::Node *node2) :
+   Springy::Edge(id, node1, node2) {
+  }
+};
+
+//---
+
 /*!
  * \brief Force Directed Plot
  * \ingroup Charts
@@ -59,9 +87,11 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(bool   running    READ isRunning  WRITE setRunning   )
-  Q_PROPERTY(double nodeRadius READ nodeRadius WRITE setNodeRadius)
-  Q_PROPERTY(double rangeSize  READ rangeSize  WRITE setRangeSize )
+  Q_PROPERTY(bool   running      READ isRunning    WRITE setRunning     )
+  Q_PROPERTY(double nodeRadius   READ nodeRadius   WRITE setNodeRadius  )
+  Q_PROPERTY(bool   nodeScaled   READ isNodeScaled WRITE setNodeScaled  )
+  Q_PROPERTY(double rangeSize    READ rangeSize    WRITE setRangeSize   )
+  Q_PROPERTY(double maxLineWidth READ maxLineWidth WRITE setMaxLineWidth)
 
   // node stroke/fill
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
@@ -82,21 +112,35 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //----
 
-  // set/set is placement running
+  // get/set is placement running
   bool isRunning() const { return running_; }
   void setRunning(bool b);
 
-  // set/set node size (radius)
+  // get/set node size (radius)
   double nodeRadius() const { return nodeRadius_; }
   void setNodeRadius(double r);
 
-  // set/set use edge value for width
+  // get/set node scaled
+  bool isNodeScaled() const { return nodeScaled_; }
+  void setNodeScaled(bool b);
+
+  // get/set use edge value for width
   bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
   void setEdgeLinesValueWidth(bool b);
 
   // get/set range size
   double rangeSize() const { return rangeSize_; }
   void setRangeSize(double r);
+
+  // get/set max line width
+  double maxLineWidth() const { return maxLineWidth_; }
+  void setMaxLineWidth(double r);
+
+  //---
+
+  double maxValue() const { return maxValue_; }
+
+  double maxDataValue() const { return maxDataValue_; }
 
   //---
 
@@ -133,6 +177,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool initPathObjs() const;
+
+  void addPathValue(const QStringList &pathStrs, double value) const override;
+
+  void propagatePathValues();
+
+  void filterPathObjs();
+
+  //---
+
   bool initLinkConnectionObjs() const;
   bool initTableObjs         () const;
 
@@ -159,15 +213,32 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void drawDeviceParts(CQChartsPaintDevice *device) const override;
 
  private:
-  using Connections = CQChartsConnectionList::Connections;
+  // connection between nodes (edge)
+  struct Connection {
+    int     node  { -1 };
+    OptReal value;
 
+    Connection() = default;
+
+    Connection(int node, double value) :
+     node(node), value(value) {
+    }
+  };
+
+  using Connections = std::vector<Connection>;
+
+  // node connection data
   struct ConnectionsData {
-    int         node  { 0 };
-    QModelIndex ind;
-    QString     name;
-    int         group { 0 };
-    double      total { 0.0 };
-    Connections connections;
+    int         node         { 0 };    //!< unique index
+    QModelIndex ind;                   //!< model index
+    QString     name;                  //!< name
+    int         group        { 0 };    //!< group
+    OptReal     value;                 //!< value
+    OptReal     total;                 //!< total
+    int         depth        { -1 };   //!< depth
+    bool        visible      { true }; //!< is visible
+    int         parentId     { -1 };   //!< parent
+    Connections connections;           //!< connections
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;
@@ -178,16 +249,27 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   bool getRowConnections(int group, const ModelVisitor::VisitData &data) const;
 
+  //! get connections data for unique id
   const ConnectionsData &getConnections(int id) const;
   ConnectionsData &getConnections(int id);
 
+  //! get unique index for string
   int getStringId(const QString &str) const;
 
  private:
-  using NodeMap         = std::map<int,Springy::Node*>;
+  using NodeMap         = std::map<int, CQChartsSpringyNode *>;
   using ConnectionNodes = std::map<int,int>;
   using ForceDirected   = CQChartsForceDirected;
   using StringIndMap    = std::map<QString,int>;
+
+  // options
+  bool   running_             { true }; //!< is running
+  double nodeRadius_          { 6.0 };  //!< node radius (pixel)
+  bool   nodeScaled_          { true }; //!< node radius scaled
+  bool   edgeLinesValueWidth_ { true }; //!< use value for edge width
+  int    initSteps_           { 100 };  //!< initial steps
+  double stepSize_            { 0.01 }; //!< step size
+  double maxLineWidth_        { 8.0 };  //!< max line width
 
   // data
   IdConnectionsData idConnections_;              //!< id connections
@@ -195,21 +277,16 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   NodeMap           nodes_;                      //!< force directed nodes
   ConnectionNodes   connectionNodes_;            //!< ids of force directed nodes
   int               maxGroup_       { 0 };       //!< max group
-  double            maxValue_       { 0.0 };     //!< max value
+  double            maxValue_       { 0.0 };     //!< max connection value
+  double            maxDataValue_   { 0.0 };     //!< max data value
   ForceDirected*    forceDirected_  { nullptr }; //!< force directed class
 
-  // options
-  bool   running_             { true }; //!< is running
-  double nodeRadius_          { 6.0 };  //!< node radius (pixel)
-  bool   edgeLinesValueWidth_ { true }; //!< use value for edge width
-  int    initSteps_           { 100 };  //!< initial steps
-  double stepSize_            { 0.01 }; //!< step size
-
   // state
-  bool   pressed_    { false }; //!< is pressed
-  double rangeSize_  { 20.0 };  //!< range size
-  double nodeMass_   { 1.0 };   //!< node mass
-  double widthScale_ { 1.0 };  //!< width scale
+  bool   pressed_      { false }; //!< is pressed
+  double rangeSize_    { 20.0 };  //!< range size
+  double nodeMass_     { 1.0 };   //!< node mass
+  double widthScale_   { 1.0 };   //!< width scale
+  int    maxNodeDepth_ { 0 };     //!< max node depth
 };
 
 #endif

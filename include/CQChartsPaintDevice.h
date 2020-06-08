@@ -73,6 +73,8 @@ class CQChartsPaintDevice {
 
   virtual void drawLine(const Point &, const Point &) { }
 
+  void drawRoundedLine(const Point &p1, const Point &p2, double w);
+
   virtual void drawPoint(const Point &) { }
 
   virtual void drawText(const Point &, const QString &) { }

@@ -3,6 +3,16 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + fit not stable ? different results when zoomed in
+ + drawLayerType() might not be set correctly when accessed (reset to NONE and assert ?)
+ + Connection plots support path
+   + Support path
+   + propagate up optional and custom (sum, average, ...)
+   + Add depth and min value filters
+ + Improve auto fit (tolerance) for xy plot
+   + single value or both directions
+ + Bar Plot auto inside/outside for data label
+ + Depth for all hier plots (connection plot)
  + Palettes need to be more regular (red/green/blue mixes)
  + Handdrawn
    + Purisa font

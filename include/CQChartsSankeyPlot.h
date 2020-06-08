@@ -34,15 +34,13 @@ class CQChartsSankeyPlotType : public CQChartsConnectionPlotType {
 
   //---
 
-  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                            CQChartsPlotParameter *parameter) const override;
+  bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -63,11 +61,12 @@ class CQChartsSankeyPlotNode {
   using NodeSet = std::set<const CQChartsSankeyPlotNode *>;
 
  public:
-  using Plot    = CQChartsSankeyPlot;
-  using Edge    = CQChartsSankeyPlotEdge;
-  using Node    = CQChartsSankeyPlotNode;
-  using Obj     = CQChartsSankeyNodeObj;
-  using OptReal = CQChartsOptReal;
+  using Plot       = CQChartsSankeyPlot;
+  using Edge       = CQChartsSankeyPlotEdge;
+  using Node       = CQChartsSankeyPlotNode;
+  using Obj        = CQChartsSankeyNodeObj;
+  using OptReal    = CQChartsOptReal;
+  using ModelIndex = CQChartsModelIndex;
 
  public:
   CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
@@ -77,69 +76,100 @@ class CQChartsSankeyPlotNode {
 
   QString str() const { return str_; }
 
+  //! get/set unique id
   int id() const { return id_; }
   void setId(int id) { id_ = id; }
 
+  //! get/set name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
+  //! get/set label
+  const QString &label() const { return label_; }
+  void setLabel(const QString &s) { label_ = s; }
+
+  //! get/set value
   bool hasValue() const { return value_.isSet(); }
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
+  //! get/set group
   int group() const { return group_; }
   void setGroup(int i) { group_ = i; }
 
+  //! get/set depth
   int depth() const { return depth_; }
   void setDepth(int i) { depth_ = i; }
 
-  const CQChartsModelIndex &ind() const { return ind_; }
-  void setInd(const CQChartsModelIndex &ind) { ind_ = ind; }
+  //! get/set visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; }
 
-  const Edges &srcEdges () const { return srcEdges_ ; }
+  //! get/set model index
+  const ModelIndex &ind() const { return ind_; }
+  void setInd(const ModelIndex &ind) { ind_ = ind; }
+
+  //! get/set source edges
+  const Edges &srcEdges() const { return srcEdges_ ; }
+  void setSrcEdges(const Edges &edges) { srcEdges_  = edges; }
+
+  //! get/set destination edges
   const Edges &destEdges() const { return destEdges_; }
-
-  void setSrcEdges (const Edges &edges) { srcEdges_  = edges; }
   void setDestEdges(const Edges &edges) { destEdges_ = edges; }
 
+  //! add source edge
   void addSrcEdge (Edge *edge);
+
+  //! add destination edge
   void addDestEdge(Edge *edge);
 
+  //! get/set object
   Obj *obj() const { return obj_; }
-
-  int srcDepth () const;
-  int destDepth() const;
-
-  int calcXPos() const;
-
-  int xpos() const { return xpos_; }
-
-  double edgeSum    () const;
-  double srcEdgeSum () const;
-  double destEdgeSum() const;
-
   void setObj(Obj *obj);
 
+  //! get source depth (from connections)
+  int srcDepth () const;
+  //! get destination depth (from connections)
+  int destDepth() const;
+
+  //! calc x pos
+  int calcXPos() const;
+
+  // get x pos
+  int xpos() const { return xpos_; }
+
+  //! get edge (max) sum
+  double edgeSum() const;
+
+  //! get source edge (max) sum
+  double srcEdgeSum () const;
+
+  //! get destination edge (max) sum
+  double destEdgeSum() const;
+
  private:
+  //! calc src/destination depth
   int srcDepth (NodeSet &visited) const;
   int destDepth(NodeSet &visited) const;
 
  private:
-  const Plot*        plot_      { nullptr };
-  Node*              parent_    { nullptr };
-  QString            str_;
-  int                id_        { -1 };
-  CQChartsModelIndex ind_;
-  QString            name_;
-  OptReal            value_;
-  int                group_     { -1 };
-  int                depth_     { -1 };
-  Edges              srcEdges_;
-  Edges              destEdges_;
-  int                srcDepth_  { -1 };
-  int                destDepth_ { -1 };
-  int                xpos_      { -1 };
-  Obj*               obj_       { nullptr };
+  const Plot* plot_      { nullptr }; //!< associated plot
+  Node*       parent_    { nullptr }; //!< parent node
+  QString     str_;                   //!< string
+  int         id_        { -1 };      //!< id
+  bool        visible_   { true };    //!< is visible
+  ModelIndex  ind_;                   //!< model index
+  QString     name_;                  //!< name
+  QString     label_;                 //!< label
+  OptReal     value_;                 //!< value
+  int         group_     { -1 };      //!< group
+  int         depth_     { -1 };      //!< depth
+  Edges       srcEdges_;              //!< source edges
+  Edges       destEdges_;             //!< destination edges
+  int         srcDepth_  { -1 };      //!< source depth (calculated)
+  int         destDepth_ { -1 };      //!< destination depth (calculated)
+  int         xpos_      { -1 };      //!< x position
+  Obj*        obj_       { nullptr }; //!< plot object
 };
 
 //---
@@ -160,7 +190,7 @@ class CQChartsSankeyPlotEdge {
 
  ~CQChartsSankeyPlotEdge();
 
-  const CQChartsSankeyPlot *plot() const { return plot_; }
+  const Plot *plot() const { return plot_; }
 
   bool hasValue() const { return value_.isSet(); }
   const OptReal &value() const { return value_; }
@@ -238,15 +268,15 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
   using EdgeRect = std::map<Edge *,BBox>;
@@ -296,13 +326,13 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
   const Plot*  plot_     { nullptr }; //!< parent plot
@@ -329,7 +359,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // options
   Q_PROPERTY(double nodeMargin READ nodeMargin WRITE setNodeMargin)
   Q_PROPERTY(double nodeWidth  READ nodeWidth  WRITE setNodeWidth )
-  Q_PROPERTY(int    maxDepth   READ maxDepth   WRITE setMaxDepth  )
 
   // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
@@ -378,12 +407,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set max depth
-  int maxDepth() const { return maxDepth_; }
-  void setMaxDepth(int d);
-
-  //---
-
   //! get/set text align
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
@@ -416,7 +439,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   bool initPathObjs() const;
+
   void addPathValue(const QStringList &, double) const override;
+
+  void propagatePathValues();
+
+  void filterPathObjs();
 
   //---
 
@@ -491,7 +519,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   double      nodeMargin_    { 0.2 };   //!< node margin
   double      minNodeMargin_ { 4 };     //!< min node margin in pixels
   double      nodeWidth_     { 16 };    //!< x margin in pixels
-  int         maxDepth_      { -1 };    //!< max depth
   double      boxMargin_     { 0.01 };  //!< bounding box margin
   double      edgeMargin_    { 0.01 };  //!< edge bounding box margin
   double      valueScale_    { 1.0 };   //!< value scale

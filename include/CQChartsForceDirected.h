@@ -36,12 +36,22 @@ class CQChartsForceDirected {
     layout_ = new Springy::Layout(graph_, stiffness_, repulsion_, damping_);
   }
 
+  template<typename T>
+  T *newNodeT() {
+    return graph_->newNodeT<T>();
+  }
+
   Springy::Node *newNode() {
     return graph_->newNode();
   }
 
   Springy::Node *getNode(int id) {
     return graph_->getNode(id);
+  }
+
+  template<typename T>
+  T *newEdgeT(Springy::Node *node1, Springy::Node *node2) {
+    return graph_->newEdgeT<T>(node1, node2);
   }
 
   Springy::Edge *newEdge(Springy::Node *node1, Springy::Node *node2) {

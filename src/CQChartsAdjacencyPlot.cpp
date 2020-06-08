@@ -260,6 +260,8 @@ createObjs(PlotObjs &objs) const
       rc = initLinkObjs(objs);
     else if (connectionsColumn().isValid())
       rc = initConnectionObjs(objs);
+    else if (pathColumn().isValid())
+      rc = initPathObjs(objs);
     else
       rc = initTableObjs(objs);
   }
@@ -317,11 +319,164 @@ initHierObjsAddConnection(const QString &srcStr, double /*srcValue*/,
   // create link from src to dest for value
   // (hier always symmetric)
   if (! srcNode->hasNode(destNode))
-    srcNode->addNode(destNode, destValue);
+    srcNode->addNode(destNode, OptReal(destValue));
 
   if (! destNode->hasNode(srcNode))
-    destNode->addNode(srcNode, destValue);
+    destNode->addNode(srcNode, OptReal(destValue));
 }
+
+//---
+
+bool
+CQChartsAdjacencyPlot::
+initPathObjs(PlotObjs &objs) const
+{
+  CQPerfTrace trace("CQChartsAdjacencyPlot::initPathObjs");
+
+  //---
+
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
+
+  th->maxNodeDepth_ = 0;
+
+  //--
+
+  CQChartsConnectionPlot::initPathObjs();
+
+  //---
+
+  if (isPropagate())
+    th->propagatePathValues();
+
+  //---
+
+  th->filterPathObjs();
+
+  //---
+
+  createNameNodeObjs(objs);
+
+  return true;
+}
+
+void
+CQChartsAdjacencyPlot::
+addPathValue(const QStringList &pathStrs, double value) const
+{
+  int n = pathStrs.length();
+  assert(n > 0);
+
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
+
+  th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
+
+  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+
+  QString path1 = pathStrs[0];
+
+  for (int i = 1; i < n; ++i) {
+    QString path2 = path1 + separator + pathStrs[i];
+
+    auto *srcNode  = findNode(path1);
+    auto *destNode = findNode(path2);
+
+    srcNode ->setLabel(pathStrs[i - 1]);
+    destNode->setLabel(pathStrs[i    ]);
+
+    srcNode->setDepth(i - 1);
+    srcNode->setGroup(i - 1);
+
+    destNode->setDepth(i);
+    destNode->setGroup(i);
+
+    if (i < n - 1) {
+      if (! srcNode->hasNode(destNode)) {
+        srcNode->addNode(destNode);
+
+        destNode->setParent(srcNode);
+      }
+    }
+    else {
+      srcNode->addNode(destNode, OptReal(value));
+
+      destNode->setParent(srcNode);
+      destNode->setValue (OptReal(value));
+    }
+
+    path1 = path2;
+  }
+}
+
+void
+CQChartsAdjacencyPlot::
+propagatePathValues()
+{
+  // propagate node value up through edges and parent nodes
+  for (int depth = maxNodeDepth_; depth >= 0; --depth) {
+    for (auto &p : nameNodeMap_) {
+      auto *node = p.second;
+      if (node->depth() != depth) continue;
+
+      // set node value from sum of dest values
+      if (! node->hasValue()) {
+        if (! node->nodes().empty()) {
+          OptReal sum;
+
+          for (const auto &pn : node->nodes()) {
+            const auto &nodeValue = pn.second;
+
+            if (nodeValue.second.isSet()) {
+              double value = nodeValue.second.real();
+
+              if (sum.isSet())
+                sum = OptReal(sum.real() + value);
+              else
+                sum = OptReal(value);
+            }
+          }
+
+          if (sum.isSet())
+            node->setValue(sum);
+        }
+      }
+
+      // propagate set node value up to source nodes
+      if (node->hasValue()) {
+        auto *parentNode = node->parent();
+
+        if (parentNode)
+          parentNode->setNodeValue(node, node->value());
+      }
+    }
+  }
+}
+
+void
+CQChartsAdjacencyPlot::
+filterPathObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (node->depth() > maxDepth())
+        node->setVisible(false);
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (! node->value().isSet() || node->value().real() < minValue())
+        node->setVisible(false);
+    }
+  }
+}
+
+//---
 
 bool
 CQChartsAdjacencyPlot::
@@ -424,12 +579,12 @@ initLinkObjs(PlotObjs &objs) const
     //assert(srcNode != destNode);
 
       if (! srcNode->hasNode(destNode))
-        srcNode->addNode(destNode, value);
+        srcNode->addNode(destNode, OptReal(value));
 
       // connectional is directional (optional ?)
 #if 0
       if (! destNode->hasNode(srcNode))
-        destNode->addNode(srcNode, value);
+        destNode->addNode(srcNode, OptReal(value));
 #endif
 
       srcNode->setGroup(group);
@@ -473,7 +628,8 @@ createNameNodeObjs(PlotObjs &objs) const
   //---
 
   for (const auto &nameNode : nameNodeMap_) {
-    const auto &node = nameNode.second;
+    auto *node = nameNode.second;
+    if (! node->isVisible()) continue;
 
     th->nodes_[node->id()] = node;
   }
@@ -611,7 +767,7 @@ initConnectionObjs(PlotObjs &objs) const
     for (const auto &connection : connections.connections) {
       auto node1 = th->nodes_[connection.node];
 
-      node->addNode(node1, connection.value);
+      node->addNode(node1, OptReal(connection.value));
     }
   }
 
@@ -719,7 +875,7 @@ initTableObjs(PlotObjs &objs) const
       auto *destNode = findNode(destStr);
 
       if (! srcNode->hasNode(destNode))
-        srcNode->addNode(destNode, value.toValue);
+        srcNode->addNode(destNode, OptReal(value.value));
     }
   }
 
@@ -857,8 +1013,8 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   else if (sortType() == SortType::COUNT) {
     std::sort(sortedNodes.begin(), sortedNodes.end(),
       [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
-        if (lhs->value() != rhs->value())
-          return lhs->value() < rhs->value();
+        if (lhs->value().real() != rhs->value().real())
+          return lhs->value().real() < rhs->value().real();
 
         return lhs->name() < rhs->name();
       });
@@ -1260,11 +1416,11 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpEmptyCellFillColor(ColorInd());
 
   // node to self (diagonal)
-  if (node1() == node2()) {
+  if      (node1() == node2()) {
     bc = interpGroupColor(node1());
   }
   // node to other node (scale to connections)
-  else {
+  else if (node1()->group() != node2()->group()) {
     QColor c1 = interpGroupColor(node1());
     QColor c2 = interpGroupColor(node2());
 
@@ -1273,6 +1429,17 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
     double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3.0;
     double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3.0;
     double b = (c1.blueF () + c2.blueF () + s*bc.blueF ())/3.0;
+
+    bc = QColor::fromRgbF(r, g, b);
+  }
+  else {
+    QColor c = interpGroupColor(node1());
+
+    double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
+
+    double r = ((1.0 - s)*c.redF  () + s*bc.redF  ());
+    double g = ((1.0 - s)*c.greenF() + s*bc.greenF());
+    double b = ((1.0 - s)*c.blueF () + s*bc.blueF ());
 
     bc = QColor::fromRgbF(r, g, b);
   }

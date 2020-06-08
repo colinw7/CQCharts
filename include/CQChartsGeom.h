@@ -645,6 +645,16 @@ class BBox {
     return update();
   }
 
+  BBox expanded(double dx1, double dy1, double dx2, double dy2) const {
+    assert(set_);
+
+    BBox bbox(*this);
+
+    (void) bbox.expand(dx1, dy1, dx2, dy2);
+
+    return bbox;
+  }
+
   BBox adjusted(double dx1, double dy1, double dx2, double dy2) const {
     bool swapped;
 

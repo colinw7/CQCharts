@@ -152,6 +152,8 @@ namespace Springy {
       pos_ = Vector::random();
     }
 
+    virtual ~Node() { }
+
     int id() const { return id_; }
 
     const Vector &position() const { return pos_; }
@@ -166,9 +168,6 @@ namespace Springy {
     double value() const { return value_; }
     void setValue(double v) { value_ = v; }
 
-    int group() const { return group_; }
-    void setGroup(int i) { group_ = i; }
-
     bool isFixed() const { return fixed_; }
     void setFixed(bool b) { fixed_ = b; }
 
@@ -178,7 +177,6 @@ namespace Springy {
     double  mass_   { 1.0 };   //!< mass
     QString label_;            //!< label
     double  value_  { 0.0 };   //!< value
-    int     group_  { 0 };     //!< group
     bool    fixed_  { false }; //!< is fixed
   };
 
@@ -195,6 +193,8 @@ namespace Springy {
     Edge(int id, Node *source, Node *target) :
      id_(id), source_(source), target_(target), length_(1.0), value_(0) {
     }
+
+    virtual ~Edge() { }
 
     int id() const { return id_; }
 
@@ -296,12 +296,30 @@ namespace Springy {
       return edge;
     }
 
+    template<typename T>
+    T *newNodeT() {
+      auto *node = new T(nextNodeId_++);
+
+      addNode(node);
+
+      return node;
+    }
+
     Node *newNode() {
       auto *node = new Node(nextNodeId_++);
 
       addNode(node);
 
       return node;
+    }
+
+    template<typename T>
+    T *newEdgeT(Node *source, Node *target) {
+      auto *edge = new T(nextEdgeId_++, source, target);
+
+      addEdge(edge);
+
+      return edge;
     }
 
     Edge *newEdge(Node *source, Node *target) {

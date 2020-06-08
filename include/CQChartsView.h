@@ -1205,7 +1205,8 @@ class CQChartsView : public QFrame,
   QSize                 viewSizeHint_;                            //!< view size hint
   CQChartsBuffer*       objectsBuffer_     { nullptr };           //!< buffer for view objects
   CQChartsBuffer*       overlayBuffer_     { nullptr };           //!< buffer for view overlays
-  CQChartsLayer::Type   drawLayerType_;                           //!< current draw layer type
+  CQChartsLayer::Type   drawLayerType_     { CQChartsLayer::Type::NONE };
+                                                                  //!< current draw layer type
   mutable std::mutex    painterMutex_;                            //!< painter mutex
   EditAnnotationDlg*    editAnnotationDlg_ { nullptr };           //!< edit annotation dialog
   CQChartsEditAxisDlg*  editAxisDlg_       { nullptr };           //!< edit axis dialog

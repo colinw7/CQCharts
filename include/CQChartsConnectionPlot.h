@@ -26,11 +26,9 @@ class CQChartsConnectionPlotType : public CQChartsPlotType {
 
   //---
 
-  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                            CQChartsPlotParameter *parameter) const override;
+  bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 };
 
 //---
@@ -59,43 +57,45 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(QString separator READ separator WRITE setSeparator)
 
   // options
-  Q_PROPERTY(bool symmetric READ isSymmetric WRITE setSymmetric)
-  Q_PROPERTY(bool sorted    READ isSorted    WRITE setSorted   )
+  Q_PROPERTY(bool   symmetric READ isSymmetric WRITE setSymmetric)
+  Q_PROPERTY(bool   sorted    READ isSorted    WRITE setSorted   )
+  Q_PROPERTY(int    maxDepth  READ maxDepth    WRITE setMaxDepth )
+  Q_PROPERTY(double minValue  READ minValue    WRITE setMinValue )
 
  public:
-  CQChartsConnectionPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
+  CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model);
 
   virtual ~CQChartsConnectionPlot();
 
   //---
 
   // get/set node column
-  const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(const CQChartsColumn &c);
+  const Column &nodeColumn() const { return nodeColumn_; }
+  void setNodeColumn(const Column &c);
 
   // get/set connections column
-  const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(const CQChartsColumn &c);
+  const Column &connectionsColumn() const { return connectionsColumn_; }
+  void setConnectionsColumn(const Column &c);
 
   //! get/set link column
-  const CQChartsColumn &linkColumn() const { return linkColumn_; }
-  void setLinkColumn(const CQChartsColumn &c);
+  const Column &linkColumn() const { return linkColumn_; }
+  void setLinkColumn(const Column &c);
 
   //! get/set value column
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
   //! get/set name columns
-  const CQChartsColumn &pathColumn() const { return pathColumn_; }
-  void setPathColumn(const CQChartsColumn &c);
+  const Column &pathColumn() const { return pathColumn_; }
+  void setPathColumn(const Column &c);
 
   //! get/set group column
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c);
+  const Column &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const Column &c);
 
   //! get/set name column
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
   //---
 
@@ -115,6 +115,22 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  //! get/set max depth
+  int maxDepth() const { return maxDepth_; }
+  void setMaxDepth(int d);
+
+  //! get/set min value
+  double minValue() const { return minValue_; }
+  void setMinValue(double r);
+
+  //---
+
+  //! get/set propagate values
+  bool isPropagate() const { return propagateData_.active; }
+  void setPropagate(bool b);
+
+  //---
+
   const ColumnType &connectionsColumnType() const { return connectionsColumnType_; }
 
   const ColumnType &linkColumnType() const { return linkColumnType_; }
@@ -131,11 +147,11 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   struct HierConnectionData {
-    CQChartsModelIndex parentLinkInd;
-    QStringList        linkStrs;
-    QString            parentStr;
-    double             total      { 0.0 };
-    double             childTotal { 0.0 };
+    ModelIndex  parentLinkInd;
+    QStringList linkStrs;
+    QString     parentStr;
+    double      total      { 0.0 };
+    double      childTotal { 0.0 };
   };
 
   using HierConnectionDataList = std::vector<HierConnectionData>;
@@ -149,15 +165,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     };
 
     struct Value {
-      int    to        { -1 };
-      double fromValue { 0.0 };
-      double toValue   { 0.0 };
-      bool   primary   { true };
+      int    to      { -1 };
+      double value   { 0.0 };
+      bool   primary { true };
 
       Value() = default;
 
-      Value(int to, double fromValue, double toValue, bool primary) :
-       to(to), fromValue(fromValue), toValue(toValue), primary(primary) {
+      Value(int to, double value, bool primary) :
+       to(to), value(value), primary(primary) {
       }
     };
 
@@ -190,16 +205,43 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     const QString &name() const { return name_; }
     void setName(const QString &s) { name_ = s; }
 
+    const QString &label() const { return label_; }
+    void setLabel(const QString &s) { label_ = s; }
+
     const Group &group() const { return group_; }
     void setGroup(const Group &group) { group_ = group; }
 
+    int depth() const { return depth_; }
+    void setDepth(int depth) { depth_ = depth; }
+
+    //---
+
     const Values &values() const { return values_; }
 
-    void addValue(int to, double fromValue, double toValue, bool primary=true) {
-      values_.emplace_back(to, fromValue, toValue, primary);
+    void addValue(int to, double value, bool primary) {
+      values_.emplace_back(to, value, primary);
 
       totalValid_ = false;
     }
+
+    bool hasTo(int to) const {
+      for (const auto &v : values_) {
+        if (v.to == to)
+          return true;
+      }
+
+      return false;
+    }
+
+    void setToValue(int to, double value) {
+      for (auto &v : values_) {
+        if (v.to == to) {
+          v.value = value;
+        }
+      }
+    }
+
+    //---
 
     const QModelIndex &linkInd() const { return linkInd_; }
     void setLinkInd(const QModelIndex &i) { linkInd_ = i; }
@@ -207,38 +249,25 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     const QModelIndex &groupInd() const { return groupInd_; }
     void setGroupInd(const QModelIndex &i) { groupInd_ = i; }
 
-    double toTotal(bool primaryOnly=false) const {
+    double total(bool primaryOnly=false) const {
       if (totalValid_ && totalPrimary_ == primaryOnly)
-        return toTotal_;
+        return total_;
 
       auto *th = const_cast<TableConnectionData *>(this);
 
       th->calcTotal(primaryOnly);
 
-      return toTotal_;
-    }
-
-    double fromTotal(bool primaryOnly=false) const {
-      if (totalValid_ && totalPrimary_ == primaryOnly)
-        return fromTotal_;
-
-      auto *th = const_cast<TableConnectionData *>(this);
-
-      th->calcTotal(primaryOnly);
-
-      return fromTotal_;
+      return total_;
     }
 
     void calcTotal(bool primaryOnly) {
-      fromTotal_ = 0.0;
-      toTotal_   = 0.0;
+      total_ = 0.0;
 
       for (auto &value : values_) {
         if (primaryOnly && ! value.primary)
           continue;
 
-        fromTotal_ += value.fromValue;
-        toTotal_   += value.toValue;
+        total_ += value.value;
       }
 
       totalValid_   = true;
@@ -248,21 +277,22 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     void sort() {
       std::sort(values_.begin(), values_.end(),
         [](const Value &lhs, const Value &rhs) {
-          return lhs.toValue < rhs.toValue;
+          return lhs.value < rhs.value;
         });
     }
 
    protected:
     int         from_         { -1 };    //!< from node
     QString     name_;                   //!< value name
+    QString     label_;                  //!< value label
     Group       group_;                  //!< group
+    int         depth_        { 0 };     //!< depth
     Values      values_;                 //!< connection values
     QModelIndex linkInd_;                //!< link model index
     QModelIndex groupInd_;               //!< group model index
     double      totalValid_   { false }; //!< is total valid
     bool        totalPrimary_ { false }; //!< is total for primary only
-    double      fromTotal_    { 0.0 };   //!< from value total
-    double      toTotal_      { 0.0 };   //!< to value total
+    double      total_        { 0.0 };   //!< from value total
   };
 
   using TableConnectionDatas = std::vector<TableConnectionData>;
@@ -290,21 +320,37 @@ class CQChartsConnectionPlot : public CQChartsPlot {
                          TableConnectionInfo &tableConnectionInfo) const;
 
  protected:
+  struct PropagateData {
+    enum class Type {
+      SUM,
+      AVERAGE,
+      MIN,
+      MAX
+    };
+
+    bool active { true };
+    Type type   { Type::SUM };
+  };
+
   // columns
-  CQChartsColumn nodeColumn_;                                 //!< connection node column
-  CQChartsColumn connectionsColumn_;                          //!< connections column
-  ColumnType     connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
-  CQChartsColumn linkColumn_;                                 //!< link column
-  CQChartsColumn valueColumn_;                                //!< value column
-  CQChartsColumn pathColumn_;                                 //!< path column
-  CQChartsColumn groupColumn_;                                //!< group column
-  ColumnType     linkColumnType_ { ColumnType::NONE };        //!< link column type
-  CQChartsColumn nameColumn_;                                 //!< name column
+  Column     nodeColumn_;                                 //!< connection node column
+  Column     connectionsColumn_;                          //!< connections column
+  ColumnType connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
+  Column     linkColumn_;                                 //!< link column
+  Column     valueColumn_;                                //!< value column
+  Column     pathColumn_;                                 //!< path column
+  Column     groupColumn_;                                //!< group column
+  ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
+  Column     nameColumn_;                                 //!< name column
 
   // options
   QString separator_;           //!< separator
   bool    symmetric_ { true };  //!< to/from values are symmetric (from/to auto implied)
   bool    sorted_    { false }; //!< is sorted
+  int     maxDepth_  { -1 };    //!< user max depth
+  double  minValue_  { -1 };    //!< user min value
+
+  PropagateData propagateData_;
 };
 
 #endif
