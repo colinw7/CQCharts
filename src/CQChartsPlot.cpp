@@ -9882,6 +9882,12 @@ autoFitOne()
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 #else
+  outerMargin_ = CQChartsPlotMargin(0.0, 0.0, 0.0, 0.0);
+
+  updateMargins();
+
+  //---
+
   auto bbox = fitBBox();
 
   setFitBBox(bbox);
