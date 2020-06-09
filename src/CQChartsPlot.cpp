@@ -9872,7 +9872,7 @@ CQChartsPlot::
 autoFitOne()
 {
 #if 0
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 5; ++i) {
     auto bbox = fitBBox();
 
     setFitBBox(bbox);
