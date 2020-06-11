@@ -607,6 +607,19 @@ drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
                   const CQChartsAngle &a1, const CQChartsAngle &da1,
                   const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf)
 {
+  QPainterPath path;
+
+  arcsConnectorPath(path, ibbox, a1, da1, a2, da2, isSelf);
+
+  // draw path
+  device->drawPath(path);
+}
+
+void
+arcsConnectorPath(QPainterPath &path, const CQChartsGeom::BBox &ibbox,
+                  const CQChartsAngle &a1, const CQChartsAngle &da1,
+                  const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf)
+{
   // draw connecting arc between inside of two arc segments
   // . arc segments have start angle and delta angle for circles in inner and outer boxes
   // isSelf is true if connecting arcs are the same
@@ -617,8 +630,6 @@ drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
   QPointF c     = irect.center();
 
   //---
-
-  QPainterPath path;
 
   path.arcMoveTo(irect, -a1 .value());   QPointF p1 = path.currentPosition();
   path.arcMoveTo(irect, -a11.value());   QPointF p2 = path.currentPosition();
@@ -643,11 +654,6 @@ drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
 
     path.closeSubpath();
   }
-
-  //---
-
-  // draw path
-  device->drawPath(path);
 }
 
 }

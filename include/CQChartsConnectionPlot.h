@@ -165,13 +165,13 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     };
 
     struct Value {
-      int    to      { -1 };
-      double value   { 0.0 };
-      bool   primary { true };
+      int     to      { -1 };
+      OptReal value;
+      bool    primary { true };
 
       Value() = default;
 
-      Value(int to, double value, bool primary) :
+      Value(int to, const OptReal &value, bool primary) :
        to(to), value(value), primary(primary) {
       }
     };
@@ -218,7 +218,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
     const Values &values() const { return values_; }
 
-    void addValue(int to, double value, bool primary) {
+    const Value &ivalue(int i) const { return values_[i]; }
+
+    void addValue(int to, const OptReal &value, bool primary) {
       values_.emplace_back(to, value, primary);
 
       totalValid_ = false;
@@ -233,7 +235,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
       return false;
     }
 
-    void setToValue(int to, double value) {
+    void setToValue(int to, const OptReal &value) {
       for (auto &v : values_) {
         if (v.to == to) {
           v.value = value;
@@ -267,7 +269,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
         if (primaryOnly && ! value.primary)
           continue;
 
-        total_ += value.value;
+        if (value.value.isSet())
+          total_ += value.value.real();
       }
 
       totalValid_   = true;
@@ -277,7 +280,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     void sort() {
       std::sort(values_.begin(), values_.end(),
         [](const Value &lhs, const Value &rhs) {
-          return lhs.value < rhs.value;
+          return lhs.value.realOr(0.0) < rhs.value.realOr(0.0);
         });
     }
 

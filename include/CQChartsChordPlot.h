@@ -58,6 +58,7 @@ class CQChartsChordData {
   using TableConnectionData = CQChartsConnectionPlot::TableConnectionData;
   using Group               = TableConnectionData::Group;
   using Values              = TableConnectionData::Values;
+  using Value               = TableConnectionData::Value;
   using PrimaryType         = TableConnectionData::PrimaryType;
   using OptReal             = CQChartsOptReal;
   using Angle               = CQChartsAngle;
@@ -100,13 +101,15 @@ class CQChartsChordData {
   //! get/set values
   const Values &values() const { return data_.values(); }
 
+  const Value &ivalue(int i) const { return data_.ivalue(i); }
+
   //! add value
   void addValue(int to, double value, bool primary=true) {
-    data_.addValue(to, value, primary);
+    data_.addValue(to, OptReal(value), primary);
   }
 
   void setToValue(int to, double value) {
-    data_.setToValue(to, value);
+    data_.setToValue(to, OptReal(value));
   }
 
   //! has to chord
@@ -166,26 +169,28 @@ class CQChartsChordData {
 //---
 
 /*!
- * \brief Chord Plot object
+ * \brief Chord Plot Arc object
  * \ingroup Charts
  */
-class CQChartsChordObj : public CQChartsPlotObj {
+class CQChartsChordArcObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   using ChordPlot = CQChartsChordPlot;
   using ChordData = CQChartsChordData;
-  using ChordObj  = CQChartsChordObj;
+  using ArcObj    = CQChartsChordArcObj;
 
  public:
-  CQChartsChordObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
-                   const ColorInd &ig, const ColorInd &iv);
+  CQChartsChordArcObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
+                      const ColorInd &ig, const ColorInd &iv);
 
-  const ChordData &data() { return data_; }
+  const ChordData &data() const { return data_; }
+
+  int from() const { return data().from(); }
 
   //---
 
-  QString typeName() const override { return "chord"; }
+  QString typeName() const override { return "arc"; }
 
   QString calcId() const override;
 
@@ -201,9 +206,13 @@ class CQChartsChordObj : public CQChartsPlotObj {
   double innerRadius() const;
   double outerRadius() const;
 
+  QString dataName() const { return data_.name(); }
+
   //---
 
   bool inside(const Point &p) const override;
+
+  //---
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -219,8 +228,6 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void calcArcPenBrush(ChordObj *toObj, PenBrush &penBrush) const;
-
   QColor calcFromColor() const;
 
   //---
@@ -231,13 +238,78 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   BBox textBBox() const;
 
- private:
+  void dataAngles(double &a, double &da) const;
+
   void valueAngles(int ind, double &a, double &da,
                    ChordData::PrimaryType primaryType=ChordData::PrimaryType::ANY) const;
 
  private:
   const ChordPlot* plot_ { nullptr }; //!< parent plot
   ChordData        data_;             //!< chord data
+};
+
+//---
+
+/*!
+ * \brief Chord Plot Edge object
+ * \ingroup Charts
+ */
+class CQChartsChordEdgeObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using ChordPlot = CQChartsChordPlot;
+  using ChordData = CQChartsChordData;
+  using EdgeObj   = CQChartsChordEdgeObj;
+  using OptReal   = CQChartsOptReal;
+
+ public:
+  CQChartsChordEdgeObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
+                       int to, const OptReal &value);
+
+  const ChordData &data() const { return data_; }
+
+  int from() const { return data().from(); }
+  int to  () const { return to_; }
+
+  //---
+
+  QString typeName() const override { return "edge"; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void getObjSelectIndices(Indices &inds) const override;
+
+  PlotObjs getConnected() const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  //---
+
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  //---
+
+ private:
+  CQChartsChordArcObj *fromObj() const;
+  CQChartsChordArcObj *toObj  () const;
+
+ private:
+  const ChordPlot* plot_ { nullptr }; //!< parent plot
+  ChordData        data_;             //!< chord data (from)
+  int              to_ { -1 };        //!< to index
+  OptReal          value_;            //!< edge value
+  QPainterPath     path_;             //!< drawn path
 };
 
 //---
@@ -276,7 +348,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsAngle startAngle   READ startAngle   WRITE setStartAngle  )
 
  public:
-  using ChordObj          = CQChartsChordObj;
+  using ArcObj            = CQChartsChordArcObj;
+  using EdgeObj           = CQChartsChordEdgeObj;
   using RotatedTextBoxObj = CQChartsRotatedTextBoxObj;
 
  public:
@@ -330,7 +403,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  ChordObj *chordObject(int ind) const;
+  ArcObj  *arcObject (int ind) const;
+  EdgeObj *edgeObject(int from, int to) const;
 
   //---
 
@@ -389,12 +463,15 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual ChordObj *createChordObj(const BBox &rect, const ChordData &data,
-                                   const ColorInd &ig, const ColorInd &iv) const;
+  virtual ArcObj*  createArcObj(const BBox &rect, const ChordData &data,
+                                const ColorInd &ig, const ColorInd &iv) const;
+  virtual EdgeObj* createEdgeObj(const BBox &rect, const ChordData &data,
+                                 int to, const OptReal &value) const;
 
  private:
-  using ChordObjs = std::vector<ChordObj *>;
-  using IndName   = std::map<int, QString>;
+  using ArcObjs  = std::vector<ArcObj *>;
+  using EdgeObjs = std::vector<EdgeObj *>;
+  using IndName  = std::map<int, QString>;
 
   // options
   double innerRadius_  { 0.9 };   //!< inner radius
@@ -410,7 +487,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   ValueSet           groupValues_;                //!< group values
   NameDataMap        nameDataMap_;                //!< name data map
   IndName            indName_;                    //!< ind name
-  ChordObjs          chordObjs_;                  //!< chord objects
+  ArcObjs            arcObjs_;                    //!< arc objects
+  EdgeObjs           edgeObjs_;                   //!< edge objects
   int                maxNodeDepth_   { -1 };      //!< max node depth
 };
 

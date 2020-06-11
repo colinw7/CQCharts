@@ -33,19 +33,17 @@ addParameters()
   //---
 
   // connections are id pairs and values
-  startParameterGroup("Link/Value");
+  startParameterGroup("Link/Path Value");
 
   addColumnParameter("link", "Link", "linkColumn").setBasic().
     setTip("Name pair for Source/Target connection").setDiscriminator();
+  addColumnParameter("path", "Path", "pathColumn").setBasic().
+    setTip("Path for connection hierarchy").setDiscriminator();
+
   addColumnParameter("value", "Value", "valueColumn").setBasic().
     setNumeric().setTip("Connection value");
 
   endParameterGroup();
-
-  //---
-
-  addColumnParameter("path", "Path", "pathColumn").setBasic().
-    setTip("Path column").setDiscriminator();
 
   //---
 
@@ -770,7 +768,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
       // add non-empty connection
       if (ok && ! CMathUtil::isZero(value))
-        tableConnectionData.addValue(col1, value, value);
+        tableConnectionData.addValue(col1, OptReal(value), /*primary*/true);
 
       //---
 

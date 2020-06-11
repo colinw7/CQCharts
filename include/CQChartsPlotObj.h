@@ -91,6 +91,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  // colors
   virtual CQChartsColorType colorType() const { return CQChartsColorType::AUTO; }
 
   const ColorInd &is() const { return is_; }
@@ -109,6 +110,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  // model data
   QModelIndex modelInd() const;
   void setModelInd(const QModelIndex &ind);
 
@@ -119,6 +121,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  // connected
   virtual PlotObjs getConnected() const { return PlotObjs(); }
 
   //---

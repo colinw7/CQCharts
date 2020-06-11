@@ -247,7 +247,7 @@ calcAnnotationBBox() const
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
-    auto *obj = dynamic_cast<CQChartsChordObj *>(plotObj);
+    auto *obj = dynamic_cast<CQChartsChordArcObj *>(plotObj);
     if (! obj) continue;
 
     bbox += obj->textBBox();
@@ -480,8 +480,8 @@ propagatePathValues()
           OptReal sum;
 
           for (const auto &value : chordData.values()) {
-            if (value.value > 0.0) {
-              double v = value.value;
+            if (value.value.isSet()) {
+              double v = value.value.real();
 
               if (sum.isSet())
                 sum = OptReal(sum.real() + v);
@@ -920,21 +920,42 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
-  th->chordObjs_.clear();
+  th->arcObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
 
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
-    ColorInd ig(data.group().i, data.group().n);
+    ColorInd ig;
+
+    if (data.group().isValid())
+      ig = ColorInd(data.group().i, data.group().n);
+
     ColorInd iv(row, nv);
 
-    auto *obj = createChordObj(rect, data, ig, iv);
+    auto *arcObj = createArcObj(rect, data, ig, iv);
 
-    objs.push_back(obj);
+    objs.push_back(arcObj);
 
-    th->chordObjs_.push_back(obj);
+    th->arcObjs_.push_back(arcObj);
+
+    //---
+
+    int ind = 0;
+
+    for (const auto &value : data.values()) {
+      if (! value.primary)
+        continue;
+
+      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value);
+
+      objs.push_back(edgeObj);
+
+      th->edgeObjs_.push_back(edgeObj);
+
+      ++ind;
+    }
   }
 
   return true;
@@ -1092,7 +1113,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
   //---
 
-  th->chordObjs_.clear();
+  th->arcObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
@@ -1106,11 +1127,28 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
     ColorInd iv(row, nv);
 
-    auto *obj = createChordObj(rect, data, ig, iv);
+    auto *arcObj = createArcObj(rect, data, ig, iv);
 
-    objs.push_back(obj);
+    objs.push_back(arcObj);
 
-    th->chordObjs_.push_back(obj);
+    th->arcObjs_.push_back(arcObj);
+
+    //---
+
+    int ind = 0;
+
+    for (const auto &value : data.values()) {
+      if (! value.primary)
+        continue;
+
+      auto *edgeObj = createEdgeObj(rect, data, value.to, value.value);
+
+      objs.push_back(edgeObj);
+
+      th->edgeObjs_.push_back(edgeObj);
+
+      ++ind;
+    }
   }
 }
 
@@ -1130,34 +1168,29 @@ getChordGroup(const QVariant &groupVar) const
 
 //---
 
-CQChartsChordObj *
+CQChartsChordArcObj *
 CQChartsChordPlot::
-chordObject(int ind) const
+arcObject(int ind) const
 {
-  for (const auto &obj : chordObjs_) {
-    if (obj->data().from() == ind)
+  for (const auto &obj : arcObjs_) {
+    if (obj->from() == ind)
       return obj;
   }
 
   return nullptr;
 }
 
-#if 0
-CQChartsChordObj *
+CQChartsChordEdgeObj *
 CQChartsChordPlot::
-plotObject(int ind) const
+edgeObject(int from, int to) const
 {
-  for (int i = 0; i < numPlotObjects(); ++i) {
-    auto *obj = dynamic_cast<CQChartsChordObj *>(plotObject(i));
-    if (! obj) continue;
-
-    if (obj->data().from() == ind)
+  for (const auto &obj : edgeObjs_) {
+    if (obj->from() == from && obj->to() == to)
       return obj;
   }
 
   return nullptr;
 }
-#endif
 
 //---
 
@@ -1184,19 +1217,27 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 //---
 
-CQChartsChordObj *
+CQChartsChordArcObj *
 CQChartsChordPlot::
-createChordObj(const CQChartsGeom::BBox &rect, const ChordData &data,
-               const ColorInd &ig, const ColorInd &iv) const
+createArcObj(const CQChartsGeom::BBox &rect, const ChordData &data,
+             const ColorInd &ig, const ColorInd &iv) const
 {
-  return new CQChartsChordObj(this, rect, data, ig, iv);
+  return new CQChartsChordArcObj(this, rect, data, ig, iv);
+}
+
+CQChartsChordEdgeObj *
+CQChartsChordPlot::
+createEdgeObj(const CQChartsGeom::BBox &rect, const ChordData &data,
+              int to, const OptReal &value) const
+{
+  return new CQChartsChordEdgeObj(this, rect, data, to, value);
 }
 
 //------
 
-CQChartsChordObj::
-CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                 const ChordData &data, const ColorInd &ig, const ColorInd &iv) :
+CQChartsChordArcObj::
+CQChartsChordArcObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
+                    const ChordData &data, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), data_(data)
 {
@@ -1207,23 +1248,23 @@ CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
 }
 
 QString
-CQChartsChordObj::
+CQChartsChordArcObj::
 calcId() const
 {
   if (data_.group().str != "")
-    return QString("%1:%2:%3:%4").arg(typeName()).arg(data_.name()).
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).
              arg(data_.group().str).arg(iv_.i);
   else
-    return QString("%1:%2:%3").arg(typeName()).arg(data_.name()).arg(iv_.i);
+    return QString("%1:%2:%3").arg(typeName()).arg(dataName()).arg(iv_.i);
 }
 
 QString
-CQChartsChordObj::
+CQChartsChordArcObj::
 calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name", data_.name());
+  tableTip.addTableRow("Name", dataName());
 
   if (data_.group().str != "")
     tableTip.addTableRow("Group", data_.group().str);
@@ -1242,14 +1283,14 @@ calcTipId() const
 }
 
 bool
-CQChartsChordObj::
+CQChartsChordArcObj::
 inside(const CQChartsGeom::Point &p) const
 {
   return arcData().inside(p);
 }
 
 CQChartsArcData
-CQChartsChordObj::
+CQChartsChordArcObj::
 arcData() const
 {
   CQChartsArcData arcData;
@@ -1269,15 +1310,15 @@ arcData() const
 //---
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
 getObjSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->linkColumn ());
   addColumnSelectIndex(inds, plot_->groupColumn());
 }
 
-CQChartsChordObj::PlotObjs
-CQChartsChordObj::
+CQChartsChordArcObj::PlotObjs
+CQChartsChordArcObj::
 getConnected() const
 {
   PlotObjs plotObjs;
@@ -1286,7 +1327,7 @@ getConnected() const
     if (! value.primary)
       continue;
 
-    auto *toObj = dynamic_cast<CQChartsChordObj *>(plot_->chordObject(value.to));
+    auto *toObj = plot_->arcObject(value.to);
     if (! toObj) continue;
 
     plotObjs.push_back(toObj);
@@ -1298,7 +1339,7 @@ getConnected() const
 //---
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc inner outer arc rectangles
@@ -1341,66 +1382,28 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw arcs between value sets
+  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::NONE);
 
-  int from = data_.from();
+    for (const auto &value : data_.values()) {
+      if (! value.primary)
+        continue;
 
-  for (const auto &value : data_.values()) {
-    if (! value.primary)
-      continue;
+      auto *toObj = plot_->edgeObject(data_.from(), value.to);
+      if (! toObj) continue;
 
-    //---
+      toObj->setInside(true); toObj->draw(device); toObj->setInside(false);
+    }
 
-    // get arc angles
-    double a1, da1;
-
-    if (! plot_->isSymmetric())
-      valueAngles(value.to, a1, da1, ChordData::PrimaryType::PRIMARY);
-    else
-      valueAngles(value.to, a1, da1);
-
-    if (CMathUtil::isZero(da1))
-      continue;
-
-    //---
-
-    auto *toObj = plot_->chordObject(value.to);
-    if (! toObj) continue;
-
-    double a2, da2;
-
-    if (! plot_->isSymmetric())
-      toObj->valueAngles(from, a2, da2, ChordData::PrimaryType::NON_PRIMARY);
-    else
-      toObj->valueAngles(from, a2, da2);
-
-    //if (CMathUtil::isZero(da2))
-    //  continue;
-
-    //---
-
-    // set arc pen and brush
-    CQChartsPenBrush penBrush;
-
-    calcArcPenBrush(toObj, penBrush);
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    // draw connecting arc
-    bool isSelf = (from == value.to);
-
-    CQChartsDrawUtil::drawArcsConnector(device, ibbox,
-      CQChartsAngle(a1), CQChartsAngle(da1), CQChartsAngle(a2), CQChartsAngle(da2), isSelf);
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
   }
 }
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  if (data_.name() == "")
+  if (dataName() == "")
     return;
 
   if (! plot_->textBox()->isTextVisible())
@@ -1451,12 +1454,12 @@ drawFg(CQChartsPaintDevice *device) const
   // draw text using line pen
   CQChartsGeom::Point center(0, 0);
 
-  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, data_.name(),
+  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, dataName(),
                                             lpen, plot_->isRotatedText());
 }
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
@@ -1478,38 +1481,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
     plot_->updateObjPenBrushState(this, penBrush);
 }
 
-void
-CQChartsChordObj::
-calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const
-{
-  // set pen and brush
-  // TODO: separate arc stroke/fill control
-  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
-
-  QColor fromColor = calcFromColor();
-
-#if 0
-  ColorInd toColorInd = toObj->calcColorInd();
-  QColor   toColor    = plot_->interpPaletteColor(toColorInd);
-#else
-  QColor toColor = toObj->calcFromColor();
-#endif
-
-  QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
-
-  CQChartsAlpha fillAlpha;
-
-  if (! isInside() && ! isSelected())
-    fillAlpha = plot_->arcAlpha();
-
-  plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, arcStrokeColor, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(true, fillColor, fillAlpha));
-}
-
 QColor
-CQChartsChordObj::
+CQChartsChordArcObj::
 calcFromColor() const
 {
   ColorInd colorInd = calcColorInd();
@@ -1527,7 +1500,7 @@ calcFromColor() const
 }
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
 writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
@@ -1541,10 +1514,10 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 }
 
 CQChartsGeom::BBox
-CQChartsChordObj::
+CQChartsChordArcObj::
 textBBox() const
 {
-  if (! data_.name().length())
+  if (! dataName().length())
     return CQChartsGeom::BBox();
 
   //---
@@ -1583,28 +1556,36 @@ textBBox() const
 
   CQChartsGeom::BBox tbbox;
 
-  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, data_.name(),
+  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, dataName(),
                                                 plot_->isRotatedText(), tbbox);
 
   return tbbox;
 }
 
 double
-CQChartsChordObj::
+CQChartsChordArcObj::
 innerRadius() const
 {
   return std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
 }
 
 double
-CQChartsChordObj::
+CQChartsChordArcObj::
 outerRadius() const
 {
   return 1.0;
 }
 
 void
-CQChartsChordObj::
+CQChartsChordArcObj::
+dataAngles(double &a, double &da) const
+{
+  a  = data_.angle ().value();
+  da = data_.dangle().value();
+}
+
+void
+CQChartsChordArcObj::
 valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) const
 {
   a = data_.angle().value();
@@ -1616,7 +1597,7 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
     if (primaryType == ChordData::PrimaryType::NON_PRIMARY && value.primary)
       continue;
 
-    da = plot_->valueToDegrees(value.value);
+    da = plot_->valueToDegrees(value.value.realOr(0.0));
 
     if (ind == value.to)
       return;
@@ -1625,4 +1606,212 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
   }
 
   da = 0.0;
+}
+
+//------
+
+CQChartsChordEdgeObj::
+CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
+                     const ChordData &data, int to, const OptReal &value) :
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
+ plot_(plot), data_(data), to_(to), value_(value)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsChordEdgeObj::
+calcId() const
+{
+  auto *fromObj = this->fromObj();
+  auto *toObj   = this->toObj  ();
+
+  QString fromName = (fromObj ? fromObj->dataName() : QString("%1").arg(from()));
+  QString toName   = (toObj   ? toObj  ->dataName() : QString("%1").arg(to  ()));
+
+  return QString("%1:%2").arg(fromName).arg(toName);
+}
+
+QString
+CQChartsChordEdgeObj::
+calcTipId() const
+{
+  auto *fromObj = this->fromObj();
+  auto *toObj   = this->toObj  ();
+
+  CQChartsTableTip tableTip;
+
+  if (fromObj)
+    tableTip.addTableRow("From", fromObj->dataName());
+
+  if (toObj)
+    tableTip.addTableRow("To", toObj->dataName());
+
+  if (value_.isSet())
+    tableTip.addTableRow("Value", value_.real());
+
+  //---
+
+  plot()->addTipColumns(tableTip, modelInd());
+
+  //---
+
+  return tableTip.str();
+}
+
+bool
+CQChartsChordEdgeObj::
+inside(const CQChartsGeom::Point &p) const
+{
+  return path_.contains(p.qpoint());
+}
+
+//---
+
+void
+CQChartsChordEdgeObj::
+getObjSelectIndices(Indices &) const
+{
+}
+
+CQChartsChordEdgeObj::PlotObjs
+CQChartsChordEdgeObj::
+getConnected() const
+{
+  PlotObjs plotObjs;
+
+  auto *fromObj = this->fromObj();
+  auto *toObj   = this->toObj  ();
+
+  if (fromObj)
+    plotObjs.push_back(fromObj);
+
+  if (toObj)
+    plotObjs.push_back(toObj);
+
+  return plotObjs;
+}
+
+//---
+
+void
+CQChartsChordEdgeObj::
+draw(CQChartsPaintDevice *device)
+{
+  auto *fromObj = this->fromObj();
+  auto *toObj   = this->toObj  ();
+
+  if (! fromObj || ! toObj)
+    return;
+
+  //---
+
+  // calc inner outer arc rectangles
+  double ri = fromObj->innerRadius();
+
+  CQChartsGeom::Point i1(-ri, -ri);
+  CQChartsGeom::Point i2( ri,  ri);
+
+  CQChartsGeom::BBox ibbox(i1, i2);
+
+  //---
+
+  // get from/to angles
+  double a1, da1, a2, da2;
+
+  if (! plot_->isSymmetric()) {
+    fromObj->valueAngles(to  (), a1, da1, ChordData::PrimaryType::PRIMARY    );
+    toObj  ->valueAngles(from(), a2, da2, ChordData::PrimaryType::NON_PRIMARY);
+  }
+  else {
+    fromObj->valueAngles(to  (), a1, da1);
+    toObj  ->valueAngles(from(), a2, da2);
+  }
+
+  if (CMathUtil::isZero(da1))
+    return;
+//if (CMathUtil::isZero(da2))
+//  return;
+
+  //---
+
+  // set arc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw arcs between value sets
+  bool isSelf = (from() == to());
+
+  path_ = QPainterPath();
+
+  CQChartsDrawUtil::arcsConnectorPath(path_, ibbox,
+    CQChartsAngle(a1), CQChartsAngle(da1), CQChartsAngle(a2), CQChartsAngle(da2), isSelf);
+
+  device->drawPath(path_);
+
+  //---
+
+  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::NONE);
+
+    if (fromObj) { fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false); }
+    if (toObj  ) { toObj  ->setInside(true); toObj  ->draw(device); toObj  ->setInside(false); }
+
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+  }
+}
+
+void
+CQChartsChordEdgeObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  auto *fromObj = this->fromObj();
+  auto *toObj   = this->toObj  ();
+
+  if (! fromObj || ! toObj) return;
+
+  //---
+
+  // set pen and brush
+  // TODO: separate arc stroke/fill control
+  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
+
+  QColor fromColor = fromObj->calcFromColor();
+  QColor toColor   = toObj  ->calcFromColor();
+
+  QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+
+  CQChartsAlpha fillAlpha;
+
+  if (! isInside() && ! isSelected())
+    fillAlpha = plot_->arcAlpha();
+
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (true, arcStrokeColor, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(true, fillColor, fillAlpha));
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+CQChartsChordArcObj *
+CQChartsChordEdgeObj::
+fromObj() const
+{
+  return plot_->arcObject(from());
+}
+
+CQChartsChordArcObj *
+CQChartsChordEdgeObj::
+toObj() const
+{
+  return plot_->arcObject(to());
 }

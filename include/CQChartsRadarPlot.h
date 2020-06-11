@@ -36,12 +36,11 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 
   //---
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -63,10 +62,11 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name)
 
  public:
+  using RadarPlot  = CQChartsRadarPlot;
   using NameValues = std::map<QString,double>;
 
  public:
-  CQChartsRadarObj(const CQChartsRadarPlot *plot, const BBox &rect, const QString &name,
+  CQChartsRadarObj(const RadarPlot *plot, const BBox &rect, const QString &name,
                    const Polygon &poly, const NameValues &nameValues, const QModelIndex &ind,
                    const ColorInd &iv);
 
@@ -95,19 +95,19 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
   //---
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
-  const CQChartsRadarPlot* plot_ { nullptr }; //!< parent plot
-  QString                  name_;             //!< row name
-  Polygon                  poly_;             //!< polygon
-  NameValues               nameValues_;       //!< column values
+  const RadarPlot* plot_ { nullptr }; //!< parent plot
+  QString          name_;             //!< row name
+  Polygon          poly_;             //!< polygon
+  NameValues       nameValues_;       //!< column values
 };
 
 //---
@@ -140,27 +140,27 @@ class CQChartsRadarPlot : public CQChartsPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  CQChartsRadarPlot(CQChartsView *view, const ModelP &model);
+  CQChartsRadarPlot(View *view, const ModelP &model);
 
  ~CQChartsRadarPlot();
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
   //---
 
-  const CQChartsColumns &valueColumns() const { return valueColumns_; }
-  void setValueColumns(const CQChartsColumns &c);
+  const Columns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const Columns &c);
 
   //---
 
-  const CQChartsAngle &angleStart() const { return angleStart_; }
-  void setAngleStart(const CQChartsAngle &a);
+  const Angle &angleStart() const { return angleStart_; }
+  void setAngleStart(const Angle &a);
 
-  const CQChartsAngle &angleExtent() const { return angleExtent_; }
-  void setAngleExtent(const CQChartsAngle &a);
+  const Angle &angleExtent() const { return angleExtent_; }
+  void setAngleExtent(const Angle &a);
 
   //----
 
@@ -172,7 +172,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   BBox calcAnnotationBBox() const override;
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   //---
 
@@ -182,12 +182,18 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(CQChartsPaintDevice *device) const override;
+  void execDrawBackground(PaintDevice *device) const override;
+
+  //---
+
+  virtual CQChartsRadarObj *createObj(const BBox &rect, const QString &name, const Polygon &poly,
+                                      const CQChartsRadarObj::NameValues &nameValues,
+                                      const QModelIndex &ind, const ColorInd &iv);
 
  private:
   bool addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;
 
-  bool columnValue(const CQChartsModelIndex &ind, double &value) const;
+  bool columnValue(const ModelIndex &ind, double &value) const;
 
   Qt::Alignment alignForPosition(double x, double y) const;
 
@@ -226,12 +232,12 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   using ValueDatas = std::map<int,ValueData>;
 
-  CQChartsColumn  nameColumn_;             //!< name column
-  CQChartsColumns valueColumns_;           //!< value columns
-  CQChartsAngle   angleStart_   { 90.0 };  //!< angle start
-  CQChartsAngle   angleExtent_  { 360.0 }; //!< angle extent
-  ValueDatas      valueDatas_;             //!< value
-  double          valueRadius_  { 1.0 };   //!< max value (radius)
+  Column     nameColumn_;             //!< name column
+  Columns    valueColumns_;           //!< value columns
+  Angle      angleStart_   { 90.0 };  //!< angle start
+  Angle      angleExtent_  { 360.0 }; //!< angle extent
+  ValueDatas valueDatas_;             //!< value
+  double     valueRadius_  { 1.0 };   //!< max value (radius)
 };
 
 #endif

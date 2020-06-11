@@ -204,6 +204,10 @@ void drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ib
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
                        const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
 
+void arcsConnectorPath(QPainterPath &path, const CQChartsGeom::BBox &ibbox,
+                       const CQChartsAngle &a1, const CQChartsAngle &da1,
+                       const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
+
 }
 
 //---

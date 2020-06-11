@@ -3,25 +3,27 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + fit not stable ? different results when zoomed in
- + drawLayerType() might not be set correctly when accessed (reset to NONE and assert ?)
- + Connection plots support path
-   + Support path
+ + fit
+   + not stable ? different results when zoomed in
+ + View drawLayerType
+   + might not be set correctly when accessed (reset to NONE and assert ?)
+ + Connection plots
    + propagate up optional and custom (sum, average, ...)
-   + Add depth and min value filters
+   + Add depth and min value filters (all connection data sources)
  + Improve auto fit (tolerance) for xy plot
    + single value or both directions
  + Bar Plot auto inside/outside for data label
  + Depth for all hier plots (connection plot)
  + Palettes need to be more regular (red/green/blue mixes)
  + Handdrawn
-   + Purisa font
+   + Better paths
  + remove device->setBrush/setPen calls
  + Use PlotType/Plot class hierarchy for create plot dialog menu
  + Connection Plots
    + how handle different src/dest values (bi-directional connection)
    + more common code
-   + allow manual placment of sankey ?
+   + allow manual placement of sankey nodes ? (object editable)
+   + object for chord plot connection
  + Model
    + Bucket and Fold by Hier
  + Real iformat for % values ?

@@ -528,7 +528,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 
   ColorInd is(data.row, nr);
 
-  auto *radarObj = new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, is);
+  auto *radarObj = th->createObj(bbox, name, poly, nameValues, nameInd1, is);
 
   objs.push_back(radarObj);
 
@@ -791,6 +791,15 @@ alignForPosition(double x, double y) const
   else if (y < 0)                align |= Qt::AlignTop;
 
   return align;
+}
+
+CQChartsRadarObj *
+CQChartsRadarPlot::
+createObj(const BBox &rect, const QString &name, const Polygon &poly,
+          const CQChartsRadarObj::NameValues &nameValues, const QModelIndex &ind,
+          const ColorInd &iv)
+{
+  return new CQChartsRadarObj(this, rect, name, poly, nameValues, ind, iv);
 }
 
 //------
