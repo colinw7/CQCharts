@@ -3186,7 +3186,7 @@ addHBBox(CQChartsGeom::BBox &pbbox, double xl, double xr, double y,
 
   double x = ((onLeft && ! invertX) || (! onLeft && invertX) ? xl : xr);
 
-  QFont font = plot_->view()->plotFont(plot_, plot_->textFont());
+  QFont font = plot_->qfont(plot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3218,7 +3218,7 @@ addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
 
   double y = ((onBottom && ! invertY) || (! onBottom && invertY) ? yb : yt);
 
-  QFont font = plot_->view()->plotFont(plot_, plot_->textFont());
+  QFont font = plot_->qfont(plot_->textFont());
 
   QFontMetricsF fm(font);
 

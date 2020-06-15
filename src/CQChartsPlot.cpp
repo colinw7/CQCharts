@@ -1682,6 +1682,20 @@ setFont(const CQChartsFont &f)
   CQChartsUtil::testAndSet(font_, f, [&]() { drawObjs(); } );
 }
 
+QFont
+CQChartsPlot::
+qfont() const
+{
+  return qfont(this->font());
+}
+
+QFont
+CQChartsPlot::
+qfont(const CQChartsFont &font) const
+{
+  return view()->plotFont(this, font);
+}
+
 //---
 
 void

@@ -54,10 +54,21 @@ class CQChartsAdjacencyPlotType : public CQChartsConnectionPlotType {
  */
 class CQChartsAdjacencyNode {
  public:
-  using OptReal   = CQChartsOptReal;
-  using Node      = CQChartsAdjacencyNode;
-  using NodeValue = std::pair<Node*,OptReal>;
-  using NodeMap   = std::map<int,NodeValue>;
+  using OptReal = CQChartsOptReal;
+
+  struct EdgeData {
+    int     to { -1 };
+    OptReal value;
+
+    EdgeData() = default;
+
+    EdgeData(int to, const OptReal &value) :
+     to(to), value(value) {
+    }
+  };
+
+  using Node    = CQChartsAdjacencyNode;
+  using EdgeMap = std::map<int,EdgeData>;
 
  public:
   CQChartsAdjacencyNode(int id, const QString &name, int group) :
@@ -101,74 +112,84 @@ class CQChartsAdjacencyNode {
 
   void setInd(int id, const CQChartsModelIndex &ind) { idInd_[id] = ind; }
 
+  //! get total connected values
+  double totalValue() const { return totalValue_; }
+
   //! get max connected value
   double maxValue() const { return maxValue_; }
 
-  //! get connected nodes
-  const NodeMap &nodes() const { return nodes_; }
+  //! get connected edges
+  const EdgeMap &edges() const { return edges_; }
 
   //! had connected node
   bool hasNode(Node *node) const {
-    return (nodes_.find(node->id()) != nodes_.end());
+    return (edges_.find(node->id()) != edges_.end());
   }
 
-  //! add connected node
-  void addNode(Node *node, const OptReal &value=OptReal()) {
-    nodes_[node->id()] = NodeValue(node, value);
+  //! add edge to another node
+  void addEdge(Node *node, const OptReal &value=OptReal()) {
+    edges_[node->id()] = EdgeData(node->id(), value);
 
-    if (value.isSet())
-      updateMaxValue(value);
+    if (value.isSet()) {
+      totalValue_ += value.real();
+
+      updateMaxValue(value.real());
+    }
   }
 
   // get connected node value
-  double nodeValue(Node *node, double equalValue=0.0) const {
+  double edgeValue(Node *node, double equalValue=0.0) const {
     if (node == this) return equalValue;
 
-    auto p = nodes_.find(node->id());
-    if (p == nodes_.end()) return 0.0;
+    auto p = edges_.find(node->id());
+    if (p == edges_.end()) return 0.0;
 
-    if (! (*p).second.second.isSet())
+    const EdgeData &edgeData = (*p).second;
+
+    if (! edgeData.value.isSet())
       return 0.0;
 
-    return (*p).second.second.real();
+    return edgeData.value.real();
   }
 
-  void setNodeValue(Node *node, const OptReal &value) {
-    auto p = nodes_.find(node->id());
-    if (p == nodes_.end()) return;
+  void setEdgeValue(Node *node, const OptReal &value) {
+    auto p = edges_.find(node->id());
+    if (p == edges_.end()) return;
 
-    (*p).second.second = value;
+    EdgeData &edgeData = (*p).second;
 
-    updateMaxValue(value);
+    if (edgeData.value.isSet())
+      updateMaxValue(-edgeData.value.real());
+
+    edgeData.value = value;
+
+    if (value.isSet())
+      updateMaxValue(value.real());
   }
 
   Node *parent() const { return parent_; }
   void setParent(Node *p) { parent_ = p; }
 
  private:
-  void updateMaxValue(const OptReal &value) {
-    if (! value_.isSet())
-      value_ = value;
-    else
-      value_ = OptReal(value_.real() + value.real());
-
-    maxValue_ = std::max(maxValue_, value.real());
+  void updateMaxValue(double value) {
+    maxValue_ = std::max(maxValue_, value);
   }
 
  private:
   using IdInd = std::map<int, CQChartsModelIndex>;
 
-  int     id_       { 0 };       //!< id
-  QString name_;                 //!< name
-  QString label_;                //!< label
-  int     group_    { 0 };       //!< group
-  int     depth_    { -1 };      //!< depth
-  bool    visible_   { true };   //!< is visible
-  IdInd   idInd_;                //!< model index per dest id
-  OptReal value_;                //!< total connections
-  double  maxValue_ { 0.0 };     //!< max connections to single node
-  NodeMap nodes_;                //!< connected nodes
-  Node*   parent_   { nullptr }; //!< parent node
+  int     id_         { 0 };       //!< id
+  QString name_;                   //!< name
+  QString label_;                  //!< label
+  int     group_      { 0 };       //!< group
+  int     depth_      { -1 };      //!< depth
+  bool    visible_    { true };    //!< is visible
+  IdInd   idInd_;                  //!< model index per dest id
+  OptReal value_;                  //!< total connections
+  double  totalValue_ { 0.0 };     //!< max edge value
+  double  maxValue_   { 0.0 };     //!< max edge value
+  EdgeMap edges_;                  //!< connected edges
+  Node*   parent_     { nullptr }; //!< parent node
 };
 
 //------
@@ -181,7 +202,7 @@ class CQChartsAdjacencyPlot;
  *
  * node1->node2 with connections value
  */
-class CQChartsAdjacencyObj : public CQChartsPlotObj {
+class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
@@ -189,9 +210,9 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   using AdjacencyNode = CQChartsAdjacencyNode;
 
  public:
-  CQChartsAdjacencyObj(const AdjacencyPlot *plot, AdjacencyNode *node1,
-                       AdjacencyNode *node2, double value, const BBox &rect,
-                       const ColorInd &ig);
+  CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, AdjacencyNode *node1,
+                           AdjacencyNode *node2, double value, const BBox &rect,
+                           const ColorInd &ig);
 
   QString typeName() const override { return "cell"; }
 
@@ -279,7 +300,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   };
 
   using AdjacencyNode = CQChartsAdjacencyNode;
-  using AdjacencyObj  = CQChartsAdjacencyObj;
+  using CellObj       = CQChartsAdjacencyCellObj;
 
  public:
   CQChartsAdjacencyPlot(View *view, const ModelP &model);
@@ -304,8 +325,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  AdjacencyObj *insideObj() const { return insideObj_; }
-  void setInsideObj(AdjacencyObj *obj) { insideObj_ = obj; }
+  CellObj *insideObj() const { return insideObj_; }
+  void setInsideObj(CellObj *obj) { insideObj_ = obj; }
 
   //---
 
@@ -320,7 +341,9 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  int numNodes() const { return sortedNodes_.size(); }
+  int numVisibleNodes() const { return sortedNodes_.size(); }
+
+  int numNodes() const { return nodes_.size(); }
 
   //---
 
@@ -330,8 +353,8 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  virtual AdjacencyObj *createObj(AdjacencyNode *node1, AdjacencyNode *node2,
-                                  double value, const BBox &rect, const ColorInd &ig);
+  virtual CellObj *createCellObj(AdjacencyNode *node1, AdjacencyNode *node2,
+                                 double value, const BBox &rect, const ColorInd &ig);
 
   //---
 
@@ -425,16 +448,16 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using NameNodeMap = std::map<QString,AdjacencyNode *>;
 
   // options
-  SortType      sortType_      { SortType::GROUP }; //!< sort type
-  bool          forceDiagonal_ { false };           //!< force diagonal
-  Length        bgMargin_      { "2px" };           //!< background margin
-  NodeMap       nodes_;                             //!< all nodes
-  NameNodeMap   nameNodeMap_;                       //!< name node map
-  double        factor_        { -1.0 };            //!< font factor
-  AdjacencyObj* insideObj_     { nullptr };         //!< last inside object
-  NodeArray     sortedNodes_;                       //!< sorted nodes
-  NodeData      nodeData_;                          //!< node data
-  int           maxNodeDepth_  { -1 };
+  SortType    sortType_      { SortType::GROUP }; //!< sort type
+  bool        forceDiagonal_ { false };           //!< force diagonal
+  Length      bgMargin_      { "2px" };           //!< background margin
+  NodeMap     nodes_;                             //!< all nodes
+  NameNodeMap nameNodeMap_;                       //!< name node map
+  double      factor_        { -1.0 };            //!< font factor
+  CellObj*    insideObj_     { nullptr };         //!< last inside object
+  NodeArray   sortedNodes_;                       //!< sorted nodes
+  NodeData    nodeData_;                          //!< node data
+  int         maxNodeDepth_  { -1 };
 };
 
 #endif

@@ -830,7 +830,7 @@ initConnectionObjs(PlotObjs &objs) const
       auto &destData = findNameData(nameDataMap, destStr, connectionsData.ind);
 
       // create link from src to dest for value
-      srcData.addValue(destData.from(), connection.value, connection.value);
+      srcData.addValue(destData.from(), connection.value, /*primary*/true);
     }
   }
 
@@ -920,7 +920,8 @@ initTableObjs(PlotObjs &objs) const
 
   //---
 
-  th->arcObjs_.clear();
+  th->arcObjs_ .clear();
+  th->edgeObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];

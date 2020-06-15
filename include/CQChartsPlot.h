@@ -593,6 +593,9 @@ class CQChartsPlot : public CQChartsObj,
   const Font &font() const { return font_; }
   virtual void setFont(const Font &f);
 
+  QFont qfont() const;
+  QFont qfont(const Font &font) const;
+
   //---
 
   // default palette

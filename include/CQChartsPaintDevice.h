@@ -68,8 +68,12 @@ class CQChartsPaintDevice {
 
 //virtual void drawArc(const BBox &, const CQChartsAngle &, const CQChartsAngle &) { }
 
+  void drawPolygonSides(const BBox &, int);
+
   virtual void drawPolygon (const Polygon &) { }
   virtual void drawPolyline(const Polygon &) { }
+
+  void drawDiamond(const BBox &bbox);
 
   virtual void drawLine(const Point &, const Point &) { }
 

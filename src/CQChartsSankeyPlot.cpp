@@ -13,7 +13,9 @@
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsArrow.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 
@@ -145,6 +147,34 @@ setNodeWidth(double r)
   CQChartsUtil::testAndSet(nodeWidth_, r, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsSankeyPlot::
+setNodeScaled(bool b)
+{
+  CQChartsUtil::testAndSet(nodeScaled_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setNodeShape(const NodeShape &s)
+{
+  CQChartsUtil::testAndSet(nodeShape_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setEdgeShape(const EdgeShape &s)
+{
+  CQChartsUtil::testAndSet(edgeShape_, s, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setEdgeScaled(bool b)
+{
+  CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -171,9 +201,11 @@ addProperties()
 
   //---
 
-  // options
-  addProp("options", "nodeMargin", "nodeMargin", "Node Margin factor");
-  addProp("options", "nodeWidth" , "nodeWidth" , "Node width (in pixels)");
+  // node
+  addProp("node", "nodeShape" , "shape" , "Node shape");
+  addProp("node", "nodeMargin", "margin", "Node Margin factor");
+  addProp("node", "nodeWidth" , "width" , "Node width (in pixels)");
+  addProp("node", "nodeScaled", "scaled", "Node is scaled");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -184,6 +216,12 @@ addProperties()
 
   addFillProperties("node/fill", "nodeFill", "Node");
 
+  //---
+
+  // edge
+  addProp("edge", "edgeShape" , "shape" , "Edge shape");
+  addProp("edge", "edgeScaled", "scaled", "Edge is scaled");
+
   // edge style
   addProp("edge/stroke", "edgeStroked", "visible", "Edge steoke visible");
 
@@ -193,6 +231,8 @@ addProperties()
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
+  //---
+
   // text
   addProp("text", "textVisible", "visible", "Text label visible");
   addProp("text", "align"      , "align"  , "Text label align");
@@ -200,11 +240,17 @@ addProperties()
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 }
 
+//---
+
 CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::calcRange");
+
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->nodeYSet_ = false;
 
   CQChartsGeom::Range dataRange;
 
@@ -219,6 +265,14 @@ calcRange() const
 
     dataRange.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
     dataRange.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+  }
+
+  //---
+
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    dataRange.equalScale(aspect);
   }
 
   return dataRange;
@@ -252,7 +306,7 @@ createObjs(PlotObjs &objs) const
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
-  th->nodeYSet_= false;
+  th->nodeYSet_ = false;
 
   //---
 
@@ -282,6 +336,8 @@ createObjs(PlotObjs &objs) const
       rc = initConnectionObjs();
     else if (pathColumn().isValid())
       rc = initPathObjs();
+    else if (fromColumn().isValid() && toColumn().isValid())
+      rc = initFromToObjs();
     else
       rc = initTableObjs();
   }
@@ -290,6 +346,8 @@ createObjs(PlotObjs &objs) const
     return false;
 
   //---
+
+  th->filterObjs();
 
   createGraph(objs);
 
@@ -316,8 +374,8 @@ initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
 {
   int srcDepth = srcHierData.linkStrs.size();
 
-  CQChartsSankeyPlotNode *srcNode  = nullptr;
-  CQChartsSankeyPlotNode *destNode = nullptr;
+  Node *srcNode  = nullptr;
+  Node *destNode = nullptr;
 
   initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
                             destHierData.total, srcNode, destNode);
@@ -340,8 +398,8 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 {
   int srcDepth = srcHierData.linkStrs.size();
 
-  CQChartsSankeyPlotNode *srcNode  = nullptr;
-  CQChartsSankeyPlotNode *destNode = nullptr;
+  Node *srcNode  = nullptr;
+  Node *destNode = nullptr;
 
   initHierObjsAddConnection(srcHierData.parentStr, destHierData.parentStr, srcDepth,
                             destHierData.total, srcNode, destNode);
@@ -360,8 +418,7 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 void
 CQChartsSankeyPlot::
 initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int srcDepth,
-                          double value, CQChartsSankeyPlotNode* &srcNode,
-                          CQChartsSankeyPlotNode* &destNode) const
+                          double value, Node* &srcNode, Node* &destNode) const
 {
   int destDepth = srcDepth + 1;
 
@@ -407,10 +464,6 @@ initPathObjs() const
 
   if (isPropagate())
     th->propagatePathValues();
-
-  //---
-
-  th->filterPathObjs();
 
   return true;
 }
@@ -525,27 +578,83 @@ propagatePathValues()
   }
 }
 
+//---
+
+bool
+CQChartsSankeyPlot::
+initFromToObjs() const
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::initFromToObjs");
+
+  CQChartsConnectionPlot::initFromToObjs();
+
+  return true;
+}
+
 void
 CQChartsSankeyPlot::
-filterPathObjs()
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const CQChartsNameValues &nameValues) const
 {
-  // hide nodes below depth
-  if (maxDepth() > 0) {
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+  auto *srcNode = findNode(fromStr);
 
-      if (node->depth() > maxDepth())
-        node->setVisible(false);
+  // Just node
+  if (toStr == "") {
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+        if      (value == "diamond")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_DIAMOND);
+        else if (value == "box")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_BOX);
+        else if (value == "polygon")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_POLYGON);
+        else if (value == "circle")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_CIRCLE);
+        else if (value == "doublecircle")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_DOUBLE_CIRCLE);
+        else if (value == "record")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_BOX);
+        else if (value == "plaintext")
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_BOX);
+        else
+          srcNode->setShape(CQChartsSankeyPlotNode::SHAPE_BOX);
+      }
+      else if (nv.first == "num_sides") {
+        bool ok;
+
+        int n = value.toInt(&ok);
+
+        if (ok)
+          srcNode->setNumSides(n);
+      }
+      else if (nv.first == "label") {
+        srcNode->setLabel(value);
+      }
+      else if (nv.first == "color") {
+        srcNode->setColor(QColor(value));
+      }
     }
   }
+  else {
+    auto *destNode = findNode(toStr);
 
-  // hide nodes less than min value
-  if (minValue() > 0) {
-    for (const auto &p : nameNodeMap_) {
-      auto *node = p.second;
+    auto *edge = createEdge(OptReal(value), srcNode, destNode);
 
-      if (! node->value().isSet() || node->value().real() < minValue())
-        node->setVisible(false);
+    srcNode ->addDestEdge(edge, /*primary*/true );
+    destNode->addSrcEdge (edge, /*primary*/false);
+
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+        if (value == "arrow")
+          edge->setShape(CQChartsSankeyPlotEdge::SHAPE_ARROW);
+      }
+      else if (nv.first == "label") {
+        edge->setLabel(value);
+      }
     }
   }
 }
@@ -895,6 +1004,33 @@ initTableObjs() const
 
 void
 CQChartsSankeyPlot::
+filterObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (node->depth() > maxDepth())
+        node->setVisible(false);
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (const auto &p : nameNodeMap_) {
+      auto *node = p.second;
+
+      if (! node->value().isSet() || node->value().real() < minValue())
+        node->setVisible(false);
+    }
+  }
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
 createGraph(PlotObjs &objs) const
 {
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
@@ -957,12 +1093,17 @@ createGraph(PlotObjs &objs) const
   double ys2 = ys - ys1;
 
   th->valueMargin_ = (maxHeight_ > 1 ? ys1/(maxHeight_ - 1) : 0.0);
-  th->valueScale_  = (totalSize > 0.0 ? ys2/totalSize : 0.0);
+
+  if (isNodeScaled())
+    th->valueScale_ = (totalSize > 0.0 ? ys2/totalSize : 1.0);
+  else
+    th->valueScale_ = (maxHeight_ > 0 ? ys2/maxHeight_ : 1.0);
 
   //---
 
-  for (const auto &depthNodes : depthNodesMap)
+  for (const auto &depthNodes : depthNodesMap) {
     createDepthNodes(depthNodes.second);
+  }
 
   //--
 
@@ -1005,20 +1146,32 @@ createDepthNodes(const IndNodeMap &nodes) const
   double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
 
-  double dx = xs/maxNodeDepth();
+  double dx = (maxNodeDepth() > 0 ? xs/maxNodeDepth() : 1.0);
 
-  double xm = pixelToWindowWidth(nodeWidth());
+  double xm = pixelToWindowWidth (nodeWidth());
+//double ym = pixelToWindowHeight(nodeWidth());
 
   //---
 
   // get sum of margins nodes at depth
-  double height = valueMargin_*(int(nodes.size()) - 1);
+  double height = 0.0;
+
+  if (isNodeScaled())
+    height = valueMargin_*(int(nodes.size()) - 1);
+  else
+    height = valueMargin_*(maxHeight_ - 1);
 
   // get sum of scaled values for nodes at depth
-  for (const auto &idNode : nodes) {
-    auto *node = idNode.second;
+  if (isNodeScaled()) {
+    for (const auto &idNode : nodes) {
+      auto *node = idNode.second;
+      if (! node->isVisible()) continue;
 
-    height += valueScale()*node->edgeSum();
+      height += valueScale()*node->edgeSum();
+    }
+  }
+  else {
+    height += maxHeight_*valueScale();
   }
 
   //---
@@ -1032,7 +1185,18 @@ createDepthNodes(const IndNodeMap &nodes) const
     if (! node->isVisible()) continue;
 
     // draw src box
-    double h = valueScale()*node->edgeSum();
+    double h = 0.0;
+
+    if (isNodeScaled())
+      h = valueScale()*node->edgeSum();
+    else {
+      h = valueScale();
+
+      h = std::min(0.8*dx, h);
+    }
+
+    if (h <= 0.0)
+      h = 0.1;
 
     //---
 
@@ -1047,17 +1211,35 @@ createDepthNodes(const IndNodeMap &nodes) const
 
     CQChartsGeom::BBox rect;
 
-    if      (srcDepth == 0)
-      rect = CQChartsGeom::BBox(x, y1, x + xm, y2);
-    else if (destDepth == 0)
-      rect = CQChartsGeom::BBox(x - xm, y1, x, y2);
-    else
-      rect = CQChartsGeom::BBox(x - xm/2.0, y1, x + xm/2.0, y2);
+    NodeObj::Shape shape = (NodeObj::Shape) node->shape();
+
+    if (shape == NodeObj::SHAPE_NONE)
+      shape = (NodeObj::Shape) nodeShape();
+
+    if (shape == (NodeObj::Shape) NODE_SHAPE_DIAMOND ||
+        shape == (NodeObj::Shape) NODE_SHAPE_BOX ||
+        shape == (NodeObj::Shape) NODE_SHAPE_POLYGON ||
+        shape == (NodeObj::Shape) NODE_SHAPE_CIRCLE ||
+        shape == (NodeObj::Shape) NODE_SHAPE_DOUBLE_CIRCLE) {
+      double y12 = (y1 + y2)/2.0;
+
+      rect = CQChartsGeom::BBox(x - h/2.0, y12 - h/2.0, x + h/2.0, y12 + h/2.0);
+    }
+    else {
+      if      (srcDepth == 0)
+        rect = CQChartsGeom::BBox(x         , y1, x + xm    , y2); // no inputs (left align)
+      else if (destDepth == 0)
+        rect = CQChartsGeom::BBox(x - xm    , y1, x         , y2); // no outputs (right align)
+      else
+        rect = CQChartsGeom::BBox(x - xm/2.0, y1, x + xm/2.0, y2); // center align
+    }
 
     ColorInd iv(node->id(), numNodes);
 
     auto *nodeObj = createNodeObj(rect, node, iv);
 
+    nodeObj->setShape   (shape);
+    nodeObj->setNumSides(node->numSides());
     nodeObj->setHierName(node->str  ());
     nodeObj->setName    (node->name ());
 
@@ -1065,6 +1247,9 @@ createDepthNodes(const IndNodeMap &nodes) const
       nodeObj->setValue(node->value().real());
 
     nodeObj->setDepth(node->depth());
+
+    if (node->color().isValid())
+      nodeObj->setColor(node->color());
 
     node->setObj(nodeObj);
 
@@ -1076,7 +1261,7 @@ createDepthNodes(const IndNodeMap &nodes) const
 
 CQChartsSankeyEdgeObj *
 CQChartsSankeyPlot::
-addEdgeObj(CQChartsSankeyPlotEdge *edge) const
+addEdgeObj(Edge *edge) const
 {
   double xm = bbox_.getHeight()*edgeMargin_;
   double ym = bbox_.getWidth ()*edgeMargin_;
@@ -1085,6 +1270,13 @@ addEdgeObj(CQChartsSankeyPlotEdge *edge) const
                           bbox_.getXMax() + xm, bbox_.getYMax() + ym);
 
   auto *edgeObj = createEdgeObj(rect, edge);
+
+  EdgeObj::Shape shape = (EdgeObj::Shape) edge->shape();
+
+  if (shape == EdgeObj::SHAPE_NONE)
+    shape = (EdgeObj::Shape) edgeShape();
+
+  edgeObj->setShape(shape);
 
   edge->setObj(edgeObj);
 
@@ -1161,7 +1353,7 @@ adjustNodes() const
 
   //---
 
-  th->nodeYSet_= true;
+  th->nodeYSet_ = true;
 }
 
 void
@@ -1186,8 +1378,10 @@ adjustNodeCenters()
   // adjust nodes so centered on src nodes
 
   // second to last
-  for (int xpos = 1; xpos <= maxNodeDepth(); ++xpos) {
-    const IndNodeMap &indNodeMap = posNodesMap_[xpos];
+  int posNodesDepth = posNodesMap_.size();
+
+  for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
+    const auto &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
@@ -1200,8 +1394,8 @@ adjustNodeCenters()
   removeOverlaps();
 
   // second to last to first
-  for (int xpos = maxNodeDepth() - 1; xpos >= 0; --xpos) {
-    const IndNodeMap &indNodeMap = posNodesMap_[xpos];
+  for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
+    const auto &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
@@ -1218,8 +1412,8 @@ adjustNodeCenters()
   nodeYMin_ = 0.0;
   nodeYMax_ = 0.0;
 
-  for (int xpos = 1; xpos <= maxNodeDepth(); ++xpos) {
-    const IndNodeMap &indNodeMap = posNodesMap_[xpos];
+  for (int xpos = 0; xpos <= posNodesDepth; ++xpos) {
+    const auto &indNodeMap = posNodesMap_[xpos];
 
     for (const auto &idNode : indNodeMap) {
       auto *node = idNode.second;
@@ -1235,7 +1429,7 @@ void
 CQChartsSankeyPlot::
 removeOverlaps() const
 {
-  using PosNodeMap = std::map<double,CQChartsSankeyPlotNode *>;
+  using PosNodeMap = std::map<double, Node *>;
 
   double ym = pixelToWindowHeight(minNodeMargin_);
 
@@ -1267,7 +1461,7 @@ removeOverlaps() const
     //---
 
     // remove overlaps between nodes
-    CQChartsSankeyPlotNode *node1 = nullptr;
+    Node *node1 = nullptr;
 
     for (const auto &posNode : posNodeMap) {
       auto *node2 = posNode.second;
@@ -1309,7 +1503,7 @@ CQChartsSankeyPlot::
 reorderNodeEdges() const
 {
   // sort node edges nodes by bbox
-  using PosEdgeMap = std::map<double,CQChartsSankeyPlotEdge *>;
+  using PosEdgeMap = std::map<double, Edge *>;
 
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
@@ -1380,7 +1574,7 @@ reorderNodeEdges() const
 
 void
 CQChartsSankeyPlot::
-adjustNode(CQChartsSankeyPlotNode *node) const
+adjustNode(Node *node) const
 {
   CQChartsGeom::BBox bbox;
 
@@ -1415,9 +1609,16 @@ findNode(const QString &name) const
   if (p != nameNodeMap_.end())
     return (*p).second;
 
-  //---
+  auto *node = createNode(name);
 
-  auto *node = new CQChartsSankeyPlotNode(this, name);
+  return node;
+}
+
+CQChartsSankeyPlotNode *
+CQChartsSankeyPlot::
+createNode(const QString &name) const
+{
+  auto *node = new Node(this, name);
 
   node->setId(nameNodeMap_.size());
 
@@ -1425,25 +1626,28 @@ findNode(const QString &name) const
 
   auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
 
+  assert(node == (*p1).second);
+
   th->indNodeMap_[node->id()] = node;
 
   node->setName(name);
 
-  return (*p1).second;
+  return node;
 }
 
 CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
-createEdge(const OptReal &value, CQChartsSankeyPlotNode *srcNode,
-           CQChartsSankeyPlotNode *destNode) const
+createEdge(const OptReal &value, Node *srcNode, Node *destNode) const
 {
   assert(srcNode && destNode);
 
-  auto *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
+  auto *edge = new Edge(this, value, srcNode, destNode);
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->edges_.push_back(edge);
+
+  edge->setId(th->edges_.size());
 
   return edge;
 }
@@ -1465,17 +1669,16 @@ keyPress(int key, int modifier)
 
 CQChartsSankeyNodeObj *
 CQChartsSankeyPlot::
-createNodeObj(const CQChartsGeom::BBox &rect, CQChartsSankeyPlotNode *node,
-              const ColorInd &ind) const
+createNodeObj(const CQChartsGeom::BBox &rect, Node *node, const ColorInd &ind) const
 {
-  return new CQChartsSankeyNodeObj(this, rect, node, ind);
+  return new NodeObj(this, rect, node, ind);
 }
 
 CQChartsSankeyEdgeObj *
 CQChartsSankeyPlot::
-createEdgeObj(const CQChartsGeom::BBox &rect, CQChartsSankeyPlotEdge *edge) const
+createEdgeObj(const CQChartsGeom::BBox &rect, Edge *edge) const
 {
-  return new CQChartsSankeyEdgeObj(this, rect, edge);
+  return new EdgeObj(this, rect, edge);
 }
 
 //------
@@ -1493,24 +1696,30 @@ CQChartsSankeyPlotNode::
 
 void
 CQChartsSankeyPlotNode::
-addSrcEdge(CQChartsSankeyPlotEdge *edge)
+addSrcEdge(CQChartsSankeyPlotEdge *edge, bool primary)
 {
   edge->destNode()->parent_ = edge->srcNode();
 
   srcEdges_.push_back(edge);
 
   srcDepth_ = -1;
+
+  if (! primary)
+    nonPrimaryEdges_.push_back(edge);
 }
 
 void
 CQChartsSankeyPlotNode::
-addDestEdge(CQChartsSankeyPlotEdge *edge)
+addDestEdge(CQChartsSankeyPlotEdge *edge, bool primary)
 {
   edge->destNode()->parent_ = edge->srcNode();
 
   destEdges_.push_back(edge);
 
   destDepth_ = -1;
+
+  if (! primary)
+    nonPrimaryEdges_.push_back(edge);
 }
 
 int
@@ -1524,12 +1733,12 @@ srcDepth() const
 
   visited.insert(this);
 
-  return srcDepth(visited);
+  return calcSrcDepth(visited);
 }
 
 int
 CQChartsSankeyPlotNode::
-srcDepth(NodeSet &visited) const
+calcSrcDepth(NodeSet &visited) const
 {
   if (srcDepth_ >= 0)
     return srcDepth_;
@@ -1543,6 +1752,8 @@ srcDepth(NodeSet &visited) const
     int depth = 0;
 
     for (const auto &edge : srcEdges_) {
+      if (edge->isSelf()) continue;
+
       auto *node = edge->srcNode();
 
       auto p = visited.find(node);
@@ -1550,7 +1761,7 @@ srcDepth(NodeSet &visited) const
       if (p == visited.end()) {
         visited.insert(node);
 
-        depth = std::max(depth, node->srcDepth(visited));
+        depth = std::max(depth, node->calcSrcDepth(visited));
       }
     }
 
@@ -1571,12 +1782,12 @@ destDepth() const
 
   visited.insert(this);
 
-  return destDepth(visited);
+  return calcDestDepth(visited);
 }
 
 int
 CQChartsSankeyPlotNode::
-destDepth(NodeSet &visited) const
+calcDestDepth(NodeSet &visited) const
 {
   if (destDepth_ >= 0)
     return destDepth_;
@@ -1590,6 +1801,8 @@ destDepth(NodeSet &visited) const
     int depth = 0;
 
     for (const auto &edge : destEdges_) {
+      if (edge->isSelf()) continue;
+
       auto *node = edge->destNode();
 
       auto p = visited.find(node);
@@ -1597,7 +1810,7 @@ destDepth(NodeSet &visited) const
       if (p == visited.end()) {
         visited.insert(node);
 
-        depth = std::max(depth, node->destDepth(visited));
+        depth = std::max(depth, node->calcDestDepth(visited));
       }
     }
 
@@ -1747,7 +1960,7 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
         continue;
       }
 
-      double h1 = (y2 - y1)*edge->value().real()/total;
+      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
 
       double y4 = y3 - h1;
 
@@ -1783,7 +1996,7 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
         continue;
       }
 
-      double h1 = (y2 - y1)*edge->value().real()/total;
+      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
 
       double y4 = y3 - h1;
 
@@ -1801,8 +2014,6 @@ QString
 CQChartsSankeyNodeObj::
 calcId() const
 {
-  //double value = node_->edgeSum();
-
   return QString("%1:%2").arg(typeName()).arg(iv_.i);
 }
 
@@ -1837,7 +2048,7 @@ void
 CQChartsSankeyNodeObj::
 moveBy(const CQChartsGeom::Point &delta)
 {
-  //std::cerr << "  Move " << node_->str().toStdString() << " by " << delta.y << "\n";
+  //std::cerr << "  Move " << node()->str().toStdString() << " by " << delta.y << "\n";
 
   rect_.moveBy(delta);
 
@@ -1891,8 +2102,29 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  if (rect().isSet())
-    device->drawRect(rect());
+  if (rect().isSet()) {
+    if      (shape() == SHAPE_DIAMOND)
+      device->drawDiamond(rect());
+    else if (shape() == SHAPE_BOX)
+      device->drawRect(rect());
+    else if (shape() == SHAPE_POLYGON)
+      device->drawPolygonSides(rect(), numSides());
+    else if (shape() == SHAPE_CIRCLE)
+      device->drawEllipse(rect());
+    else if (shape() == SHAPE_DOUBLE_CIRCLE) {
+      auto rect = this->rect();
+
+      double dx = rect.getWidth ()/10.0;
+      double dy = rect.getHeight()/10.0;
+
+      auto rect1 = rect.expanded(dx, dy, -dx, -dy);
+
+      device->drawEllipse(rect );
+      device->drawEllipse(rect1);
+    }
+    else
+      device->drawRect(rect());
+  }
 
   //---
 
@@ -1932,10 +2164,10 @@ drawFg(CQChartsPaintDevice *device) const
 
   double textMargin = 4; // pixels
 
-  QString str = node_->label();
+  QString str = node()->label();
 
   if (! str.length())
-    str = node_->name();
+    str = node()->name();
 
   double ptw = fm.width(str);
   double tw  = plot_->pixelToWindowWidth(ptw);
@@ -1952,11 +2184,21 @@ drawFg(CQChartsPaintDevice *device) const
   CQChartsTextOptions options;
 
   options.angle         = CQChartsAngle(0);
-  options.align         = Qt::AlignLeft;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  if (shape() == SHAPE_DIAMOND || shape() == SHAPE_BOX ||
+      shape() == SHAPE_POLYGON || shape() == SHAPE_CIRCLE ||
+      shape() == SHAPE_DOUBLE_CIRCLE) {
+    options.align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+    CQChartsDrawUtil::drawTextInBox(device, rect(), str, options);
+  }
+  else {
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  }
 }
 
 void
@@ -1968,6 +2210,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   QColor bc = plot_->interpNodeStrokeColor(ic);
   QColor fc = plot_->interpNodeFillColor  (ic);
+
+  if (color_.isValid())
+    fc = color_;
 
   plot_->setPenBrush(penBrush,
     CQChartsPenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
@@ -2083,41 +2328,241 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw edge
+  // get connection rect of source and destination object
   auto *srcObj  = edge()->srcNode ()->obj();
   auto *destObj = edge()->destNode()->obj();
 
-  const auto &srcRect  = srcObj ->destEdgeRect(edge());
-  const auto &destRect = destObj->srcEdgeRect (edge());
+  bool isSelf = (srcObj == destObj);
+
+  auto srcRect  = srcObj ->destEdgeRect(edge());
+  auto destRect = destObj->srcEdgeRect (edge());
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return;
 
-  // x from right of source rect to left of dest rect
-  double x1 = srcRect.getXMax(), x2 = destRect.getXMin();
+  if (shape() == SHAPE_ARROW || ! plot_->isEdgeScaled()) {
+    if (edge()->srcNode()->shape() == Node::SHAPE_DIAMOND ||
+        edge()->srcNode()->shape() == Node::SHAPE_POLYGON ||
+        edge()->srcNode()->shape() == Node::SHAPE_CIRCLE ||
+        edge()->srcNode()->shape() == Node::SHAPE_DOUBLE_CIRCLE) {
+      srcRect = srcObj->rect();
+    }
 
-  // start y range from source node, and end y range fron dest node
-  double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
-  double y21 = destRect.getYMax(), y22 = destRect.getYMin();
-
-  path_ = QPainterPath();
-
-  // curve control point x at 1/3 and 2/3
-  double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-  double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
-
-  path_.moveTo (QPointF(x1, y11));
-  path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
-  path_.lineTo (QPointF(x2, y22));
-  path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
-
-  path_.closeSubpath();
+    if (edge()->destNode()->shape() == Node::SHAPE_DIAMOND ||
+        edge()->destNode()->shape() == Node::SHAPE_POLYGON ||
+        edge()->destNode()->shape() == Node::SHAPE_CIRCLE ||
+        edge()->destNode()->shape() == Node::SHAPE_DOUBLE_CIRCLE) {
+      destRect = destObj->rect();
+    }
+  }
 
   //---
 
-  device->drawPath(path_);
+  // x from right of source rect to left of dest rect
+  bool swapped = false;
+
+  double x1 = srcRect.getXMax(), x2 = destRect.getXMin();
+
+  if (x1 > x2) {
+    x1 = destRect.getXMax(), x2 = srcRect.getXMin();
+
+    swapped = true;
+  }
+
+  //---
+
+  // draw edge
+  path_ = QPainterPath();
+
+  if (shape() == SHAPE_ARROW) {
+    double y1 = srcRect .getYMid();
+    double y2 = destRect.getYMid();
+
+    if (swapped)
+      std::swap(y1, y2);
+
+    plot()->setUpdatesEnabled(false);
+
+    CQChartsArrow arrow(plot(), CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2));
+
+    arrow.setRectilinear (true);
+    arrow.setLineWidth   (CQChartsLength(8, CQChartsUnits::PIXEL));
+    arrow.setFrontVisible(false);
+    arrow.setFilled      (true);
+    arrow.setFillColor   (penBrush.brush.color());
+    arrow.setStroked     (true);
+    arrow.setStrokeColor (penBrush.pen.color());
+
+    arrow.draw(device);
+
+    path_ = arrow.drawnPath();
+
+    plot()->setUpdatesEnabled(true);
+  }
+  else {
+    if (plot_->isEdgeScaled()) {
+      // start y range from source node, and end y range fron dest node
+      double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
+      double y21 = destRect.getYMax(), y22 = destRect.getYMin();
+
+      if (swapped) {
+        std::swap(y11, y21);
+        std::swap(y12, y22);
+      }
+
+      // curve control point x at 1/3 and 2/3
+      double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+      double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+
+      path_.moveTo (QPointF(x1, y11));
+      path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
+      path_.lineTo (QPointF(x2, y22));
+      path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
+
+      path_.closeSubpath();
+
+      //---
+
+      device->drawPath(path_);
+    }
+    else {
+      double lw = plot_->pixelToWindowWidth(8);
+
+      if (! isSelf) {
+        // start y range from source node, and end y range fron dest node
+        double y1 = srcRect .getYMid();
+        double y2 = destRect.getYMid();
+
+        double y11 = y1 + lw/2.0, y12 = y1 - lw/2.0;
+        double y21 = y2 + lw/2.0, y22 = y2 - lw/2.0;
+
+        if (swapped) {
+          std::swap(y11, y21);
+          std::swap(y12, y22);
+        }
+
+        // curve control point x at 1/3 and 2/3
+        double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+        double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+
+        path_.moveTo (QPointF(x1, y11));
+        path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
+        path_.lineTo (QPointF(x2, y22));
+        path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
+
+        path_.closeSubpath();
+
+        //---
+
+        device->drawPath(path_);
+      }
+      else {
+        double xr = srcRect.getWidth ()/2.0;
+        double yr = srcRect.getHeight()/2.0;
+
+        double a = M_PI/4.0;
+
+        double c = cos(a);
+        double s = sin(a);
+
+        double xm = srcRect.getXMid();
+        double ym = srcRect.getYMid();
+
+        double yt = srcRect.getYMax() + yr/2.0;
+        double yt1 = yt - lw/2.0;
+        double yt2 = yt + lw/2.0;
+
+        double x1 = xm - xr*c, y1 = ym + xr*s;
+        double x2 = xm + xr*c, y2 = y1;
+
+        double lw1 = sqrt(2)*lw/2.0;
+
+        path_.moveTo (QPointF(x1 - lw1, y1 - lw1));
+        path_.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
+        path_.lineTo (QPointF(x2 - lw1, y2 + lw1));
+        path_.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
+
+        path_.closeSubpath();
+
+        //---
+
+        device->drawPath(path_);
+      }
+    }
+  }
 
   device->resetColorNames();
+}
+
+void
+CQChartsSankeyEdgeObj::
+drawFg(CQChartsPaintDevice *device) const
+{
+  if (! plot_->isTextVisible())
+    return;
+
+  //---
+
+  // get connection rect of source and destination object
+  auto *srcObj  = edge()->srcNode ()->obj();
+  auto *destObj = edge()->destNode()->obj();
+
+  bool isSelf = (srcObj == destObj);
+
+  auto srcRect  = srcObj ->destEdgeRect(edge());
+  auto destRect = destObj->srcEdgeRect (edge());
+
+  if (! srcRect.isSet() || ! destRect.isSet())
+    return;
+
+  auto rect = (isSelf ? srcRect : srcRect + destRect);
+
+  auto prect = plot_->windowToPixel(rect);
+
+  //---
+
+  // set font
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+
+  QFontMetricsF fm(device->font());
+
+  //---
+
+  // set text pen
+  ColorInd ic = calcColorInd();
+
+  QPen pen;
+
+  QColor c = plot_->interpTextColor(ic);
+
+  plot_->setPen(pen, true, c, plot_->textAlpha());
+
+  device->setPen(pen);
+
+  //---
+
+  double textMargin = 4; // pixels
+
+  QString str = edge()->label();
+
+  if (! str.length())
+    return;
+
+  double ptw = fm.width(str);
+
+  double tx = prect.getXMid() - textMargin - ptw/2.0;
+  double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
+
+  auto pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
+
+  // only support contrast
+  CQChartsTextOptions options;
+
+  options.angle         = CQChartsAngle(0);
+  options.contrast      = plot_->isTextContrast();
+  options.contrastAlpha = plot_->textContrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
 }
 
 void

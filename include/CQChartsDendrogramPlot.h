@@ -36,7 +36,7 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -49,8 +49,11 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
-                            const BBox &rect);
+  using Plot = CQChartsDendrogramPlot;
+  using Node = CQChartsDendrogram::Node;
+
+ public:
+  CQChartsDendrogramNodeObj(const Plot *plot, Node *node, const BBox &rect);
 
   QString typeName() const override { return "node"; }
 
@@ -58,11 +61,11 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   BBox textRect() const;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  private:
-  const CQChartsDendrogramPlot* plot_ { nullptr };
-  CQChartsDendrogram::Node*     node_ { nullptr };
+  const Plot* plot_ { nullptr };
+  Node*       node_ { nullptr };
 };
 
 //---
@@ -95,17 +98,21 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model);
+  using HierNode = CQChartsDendrogram::HierNode;
+  using Node     = CQChartsDendrogram::Node;
+
+ public:
+  CQChartsDendrogramPlot(View *view, const ModelP &model);
 
  ~CQChartsDendrogramPlot();
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
   //---
 
@@ -131,8 +138,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const;
-  void addNodeObj (CQChartsDendrogram::Node *node, PlotObjs &objs) const;
+  void addNodeObjs(HierNode *hier, int depth, PlotObjs &objs) const;
+  void addNodeObj (Node *node, PlotObjs &objs) const;
 
   //---
 
@@ -142,19 +149,24 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *) const override;
+  void execDrawForeground(PaintDevice *) const override;
 
-  void drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const;
+  void drawNodes(PaintDevice *device, HierNode *hier, int depth) const;
 
-  void drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
-                CQChartsDendrogram::Node *node) const;
+  void drawNode(PaintDevice *device, HierNode *hier, Node *node) const;
+
+  //---
+
+  virtual CQChartsDendrogramNodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
  private:
-  CQChartsColumn      nameColumn_;              //!< name column
-  CQChartsColumn      valueColumn_;             //!< value column
-  CQChartsDendrogram* dendrogram_  { nullptr }; //!< dendrogram class
-  double              circleSize_  { 8.0 };     //!< circle size
-  double              textMargin_  { 4.0 };     //!< text margin
+  using Dendrogram = CQChartsDendrogram;
+
+  Column      nameColumn_;              //!< name column
+  Column      valueColumn_;             //!< value column
+  Dendrogram* dendrogram_  { nullptr }; //!< dendrogram class
+  double      circleSize_  { 8.0 };     //!< circle size
+  double      textMargin_  { 4.0 };     //!< text margin
 };
 
 #endif

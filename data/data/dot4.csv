@@ -1,0 +1,6 @@
+From,To,Attributes
+a,,"label='one\ltwo three\lfour five six seven\l',shape=circle"
+a,b,"shape=arrow"
+b,,"label='one\ntwo three\nfour five six seven',shape=circle"
+b,c,"shape=arrow"
+c,,"label='one\rtwo three\rfour five six seven\r',shape=circle"

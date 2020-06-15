@@ -407,7 +407,7 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
 
   CQChartsGeom::BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
 
-  auto *obj = new CQChartsDendrogramNodeObj(this, node, rect);
+  auto *obj = createNodeObj(node, rect);
 
   objs.push_back(obj);
 }
@@ -527,6 +527,13 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
   updateObjs();
 
   return true;
+}
+
+CQChartsDendrogramNodeObj *
+CQChartsDendrogramPlot::
+createNodeObj(CQChartsDendrogram::Node *node, const BBox &rect) const
+{
+  return new CQChartsDendrogramNodeObj(this, node, rect);
 }
 
 //------

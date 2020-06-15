@@ -11,17 +11,15 @@
 #include <QPainterPath>
 
 CQChartsArrow::
-CQChartsArrow(CQChartsView *view, const CQChartsGeom::Point &from, const CQChartsGeom::Point &to) :
- CQChartsObjShapeData<CQChartsArrow>(this),
- view_(view), from_(from), to_(to)
+CQChartsArrow(View *view, const Point &from, const Point &to) :
+ CQChartsObjShapeData<CQChartsArrow>(this), view_(view), from_(from), to_(to)
 {
   init();
 }
 
 CQChartsArrow::
-CQChartsArrow(CQChartsPlot *plot, const CQChartsGeom::Point &from, const CQChartsGeom::Point &to) :
- CQChartsObjShapeData<CQChartsArrow>(this),
- plot_(plot), from_(from), to_(to)
+CQChartsArrow(Plot *plot, const Point &from, const Point &to) :
+ CQChartsObjShapeData<CQChartsArrow>(this), plot_(plot), from_(from), to_(to)
 {
   init();
 }
@@ -50,7 +48,7 @@ void
 CQChartsArrow::
 draw(CQChartsPaintDevice *device) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor fc = interpFillColor  (ColorInd());
   QColor sc = interpStrokeColor(ColorInd());
@@ -64,7 +62,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsArrow::
-draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush) const
+draw(CQChartsPaintDevice *device, const PenBrush &penBrush) const
 {
   device_ = device;
 
@@ -73,7 +71,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush) const
 
 void
 CQChartsArrow::
-drawContents(const CQChartsPenBrush &penBrush) const
+drawContents(const PenBrush &penBrush) const
 {
   frontLine1_.reset();
   frontLine2_.reset();
@@ -88,55 +86,54 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
   struct Angle {
     double angle { 0.0 };
-    double cos   { 0.0 };
     double sin   { 0.0 };
+    double cos   { 1.0 };
+
+    Angle() = default;
 
     Angle(double angle) :
      angle(angle) {
       init();
     }
 
-    Angle(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
+    Angle(const Point &p1, const Point &p2) {
       angle = CQChartsGeom::pointAngle(p1, p2);
 
       init();
     }
 
     void init() {
-      cos = std::cos(angle);
       sin = std::sin(angle);
+      cos = std::cos(angle);
     }
   };
 
   //---
 
-  auto movePointOnLine = [](const CQChartsGeom::Point &p, const Angle &a, double d) {
-    return CQChartsGeom::Point(p.x + d*a.cos, p.y + d*a.sin);
+  auto movePointOnLine = [](const Point &p, const Angle &a, double d) {
+    return Point(p.x + d*a.cos, p.y + d*a.sin);
   };
 
-  auto movePointPerpLine = [](const CQChartsGeom::Point &p, const Angle &a, double d) {
-    return CQChartsGeom::Point(p.x + d*a.sin, p.y - d*a.cos);
+  auto movePointPerpLine = [](const Point &p, const Angle &a, double d) {
+    return Point(p.x + d*a.sin, p.y - d*a.cos);
   };
 
-  auto addWidthToPoint = [](const CQChartsGeom::Point &p, const Angle &a, double lw,
-                            CQChartsGeom::Point &p1, CQChartsGeom::Point &p2) {
+  auto addWidthToPoint = [](const Point &p, const Angle &a, double lw, Point &p1, Point &p2) {
     double dx = lw*a.sin/2.0;
     double dy = lw*a.cos/2.0;
 
-    p1 = CQChartsGeom::Point(p.x - dx, p.y + dy);
-    p2 = CQChartsGeom::Point(p.x + dx, p.y - dy);
+    p1 = Point(p.x - dx, p.y + dy);
+    p2 = Point(p.x + dx, p.y - dy);
   };
 
-  auto intersectLine = [](const CQChartsGeom::Point &l1s, const CQChartsGeom::Point &l1e,
-                          const CQChartsGeom::Point &l2s, const CQChartsGeom::Point &l2e,
-                          CQChartsGeom::Point &pi, bool &inside) {
+  auto intersectLine = [](const Point &l1s, const Point &l1e,
+                          const Point &l2s, const Point &l2e, Point &pi, bool &inside) {
     double xi, yi;
 
     inside = CQChartsUtil::intersectLines(l1s.x, l1s.y, l1e.x, l1e.y,
-                                          l2s.x, l2s.y, l2e.x, l2e.y,
-                                          xi, yi);
+                                          l2s.x, l2s.y, l2e.x, l2e.y, xi, yi);
 
-    pi = CQChartsGeom::Point(xi, yi);
+    pi = Point(xi, yi);
 
     return inside;
   };
@@ -144,16 +141,16 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
 #if DEBUG_LABELS
-  PointLabels pointLabels;
+  pointLabels_.clear();
 
-  auto addPointLabel = [&](const CQChartsGeom::Point &point, const QString &text, bool above) {
-    pointLabels.push_back(PointLabel(point, text, above));
+  auto addPointLabel = [&](const Point &point, const QString &text, bool above) {
+    pointLabels_.push_back(PointLabel(point, text, above));
   };
 #endif
 
   //---
 
-  auto windowToPixel = [&](const CQChartsGeom::Point &w) {
+  auto windowToPixel = [&](const Point &w) {
     if      (plot()) return plot()->windowToPixel(w);
     else if (view()) return view()->windowToPixel(w);
     else             return w;
@@ -230,7 +227,10 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // calc line angle (radians)
-  Angle a(p1, p4);
+  Angle a;
+
+  if (! isRectilinear())
+    a = Angle(p1, p4);
 
   // calc front/tail arrow angles (radians)
   Angle faa(CMathUtil::Deg2Rad(frontAngle().value() > 0 ? frontAngle().value() : 45));
@@ -283,7 +283,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // create polygon for arrow shape if has width
-  CQChartsGeom::Point pl1, pl2, pl3, pl4;
+  Point pl1, pl2, pl3, pl4;
 
   if (linePoly) {
     // calc front head mid point offset by line width
@@ -296,7 +296,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   CQChartsGeom::Polygon fHeadPoints;
-  CQChartsGeom::Point   pf1, pf2;
+  Point   pf1, pf2;
 
   if (isFrontVisible()) {
     // calc front head angle (relative to line)
@@ -341,7 +341,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
         // intersect front head lines to line offset by width
         bool inside;
 
-        CQChartsGeom::Point pf41, pf51;
+        Point pf41, pf51;
 
         intersectLine(pl2, pl4, pf21, pf31, pf41, inside);
         intersectLine(pl1, pl3, pf11, pf31, pf51, inside);
@@ -403,7 +403,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   CQChartsGeom::Polygon tHeadPoints;
-  CQChartsGeom::Point   pt1, pt2;
+  Point   pt1, pt2;
 
   if (isTailVisible()) {
     // calc tail head angle (relative to line)
@@ -448,7 +448,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
         // intersect tail head lines to line offset by width
         bool inside;
 
-        CQChartsGeom::Point pt41, pt51;
+        Point pt41, pt51;
 
         intersectLine(pl2, pl4, pt21, pt31, pt41, inside);
         intersectLine(pl1, pl3, pt11, pt31, pt51, inside);
@@ -510,10 +510,10 @@ drawContents(const CQChartsPenBrush &penBrush) const
   //---
 
   // update head and tail (non line) polygon for arrow shape with line width
-  if (linePoly) {
+  if (linePoly && ! isRectilinear()) {
     // intersect front head point lines with arrow line (offset by width)
     if (! fHeadPoints.empty() && ! isFrontLineEnds) {
-      CQChartsGeom::Point fl1, fl2;
+      Point fl1, fl2;
 
       int np = fHeadPoints.size();
 
@@ -544,7 +544,7 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
     // intersect front head point lines with arrow line (offset by width)
     if (! tHeadPoints.empty() && ! isTailLineEnds) {
-      CQChartsGeom::Point tl1, tl2;
+      Point tl1, tl2;
 
       int np = tHeadPoints.size();
 
@@ -615,9 +615,28 @@ drawContents(const CQChartsPenBrush &penBrush) const
       points.addPoint(pl4); // tail head above mid line
     };
 
-    auto addLinePoints = [&]() {
-      addFrontLinePoints();
-      addTailLinePoints ();
+    auto addLMidPoints = [&]() {
+      if (isRectilinear()) {
+        Point prm = (p1 + p4)/2.0;
+
+        Point pr1(prm.x + lpw/2.0, pl1.y);
+        Point pr2(prm.x + lpw/2.0, pl3.y);
+
+        points.addPoint(pr1);
+        points.addPoint(pr2);
+      }
+    };
+
+    auto addUMidPoints = [&]() {
+      if (isRectilinear()) {
+        Point prm = (p1 + p4)/2.0;
+
+        Point pr1(prm.x - lpw/2.0, pl4.y);
+        Point pr2(prm.x - lpw/2.0, pl2.y);
+
+        points.addPoint(pr1);
+        points.addPoint(pr2);
+      }
     };
 
     auto addFHeadPoints = [&]() {
@@ -634,19 +653,20 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
     if      (! isFrontLineEnds && ! isTailLineEnds) {
       if      (isFrontVisible() && isTailVisible()) {
-        addFrontPoints();
-        addTailPoints ();
+        addFrontPoints(); addLMidPoints();
+        addTailPoints (); addUMidPoints();
       }
       else if (isTailVisible()) {
-        addFrontLinePoints();
-        addTailPoints     ();
+        addFrontLinePoints(); addLMidPoints();
+        addTailPoints     (); addUMidPoints();
       }
       else if (isFrontVisible()) {
-        addFrontPoints   ();
-        addTailLinePoints();
+        addFrontPoints   (); addLMidPoints();
+        addTailLinePoints(); addUMidPoints();
       }
       else {
-        addLinePoints();
+        addFrontLinePoints(); addLMidPoints();
+        addTailLinePoints (); addUMidPoints();
       }
     }
     else if (isFrontLineEnds && ! isTailLineEnds) {
@@ -689,41 +709,41 @@ drawContents(const CQChartsPenBrush &penBrush) const
 
 #if DEBUG_LABELS
   // draw debug labels
-  for (const auto &pointLabel : pointLabels)
+  for (const auto &pointLabel : pointLabels_)
     drawPointLabel(pointLabel.point, pointLabel.text, pointLabel.above);
 #endif
 }
 
 void
 CQChartsArrow::
-drawPolygon(const CQChartsGeom::Polygon &points, double width, bool filled, bool stroked,
-            const CQChartsPenBrush &penBrush) const
+drawPolygon(const GeomPolygon &points, double width, bool filled, bool stroked,
+            const PenBrush &penBrush) const
 {
-  QPainterPath path;
+  path_ = QPainterPath();
 
   auto p0 = device_->pixelToWindow(points.point(0));
 
-  path.moveTo(p0.qpoint());
+  path_.moveTo(p0.qpoint());
 
   for (int i = 1; i < points.size(); ++i) {
     auto p1 = device_->pixelToWindow(points.point(i));
 
-    path.lineTo(p1.qpoint());
+    path_.lineTo(p1.qpoint());
   }
 
-  path.closeSubpath();
+  path_.closeSubpath();
 
   //---
 
   if (filled) {
-    device_->fillPath(path, penBrush.brush);
+    device_->fillPath(path_, penBrush.brush);
 
     if (stroked) {
       QPen pen1 = penBrush.pen;
 
       pen1.setWidthF(width);
 
-      device_->strokePath(path, pen1);
+      device_->strokePath(path_, pen1);
     }
   }
   else {
@@ -734,21 +754,20 @@ drawPolygon(const CQChartsGeom::Polygon &points, double width, bool filled, bool
 
     pen1.setWidthF(width);
 
-    device_->strokePath(path, pen1);
+    device_->strokePath(path_, pen1);
   }
 }
 
 void
 CQChartsArrow::
-drawLine(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2, double width,
-         const CQChartsPenBrush &penBrush) const
+drawLine(const Point &point1, const Point &point2, double width, const PenBrush &penBrush) const
 {
   bool isStroked = (penBrush.pen  .style() != Qt::NoPen  );
   bool isFilled  = (penBrush.brush.style() != Qt::NoBrush);
 
   //---
 
-  auto pixelToWindow = [&](const CQChartsGeom::Point &w) {
+  auto pixelToWindow = [&](const Point &w) {
     if      (plot()) return plot()->pixelToWindow(w);
     else if (view()) return view()->pixelToWindow(w);
     else             return w;
@@ -772,13 +791,13 @@ drawLine(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2, d
   auto p1 = pixelToWindow(point1);
   auto p2 = pixelToWindow(point2);
 
-  device_->drawLine(CQChartsGeom::Point(p1), CQChartsGeom::Point(p2));
+  device_->drawLine(Point(p1), Point(p2));
 }
 
 #if DEBUG_LABELS
 void
 CQChartsArrow::
-drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above) const
+drawPointLabel(const Point &point, const QString &text, bool above) const
 {
   // draw cross symbol
   QPen tpen;
@@ -789,10 +808,10 @@ drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above
 
   device_->setPen(tpen);
 
-  CQChartsGeom::Point p1(point.x - 4, point.y    );
-  CQChartsGeom::Point p2(point.x + 4, point.y    );
-  CQChartsGeom::Point p3(point.x    , point.y - 4);
-  CQChartsGeom::Point p4(point.x    , point.y + 4);
+  Point p1(point.x - 4, point.y    );
+  Point p2(point.x + 4, point.y    );
+  Point p3(point.x    , point.y - 4);
+  Point p4(point.x    , point.y + 4);
 
   device_->drawLine(device_->pixelToWindow(p1), device_->pixelToWindow(p2));
   device_->drawLine(device_->pixelToWindow(p3), device_->pixelToWindow(p4));
@@ -805,10 +824,9 @@ drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above
   double fa = fm.ascent();
   double fd = fm.descent();
 
-  CQChartsGeom::Point pt(point.x - fw/2, point.y + (above ? -(fd + 4) : fa + 4));
+  Point pt(point.x - fw/2, point.y + (above ? -(fd + 4) : fa + 4));
 
-  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text,
-                                     CQChartsAlpha(0.5));
+  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text, CQChartsAlpha(0.5));
 }
 #endif
 
@@ -816,7 +834,7 @@ drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above
 
 bool
 CQChartsArrow::
-contains(const CQChartsGeom::Point &p) const
+contains(const Point &p) const
 {
   if (arrowPoly_.valid && arrowPoly_.points.containsPoint(p, Qt::OddEvenFill))
     return true;
@@ -847,13 +865,11 @@ contains(const CQChartsGeom::Point &p) const
 
 double
 CQChartsArrow::
-pointLineDistance(const CQChartsGeom::Point &p, const CQChartsGeom::Point &p1,
-                  const CQChartsGeom::Point &p2)
+pointLineDistance(const Point &p, const Point &p1, const Point &p2)
 {
   double d;
 
-  (void) CQChartsUtil::PointLineDistance(CQChartsGeom::Point(p),
-           CQChartsGeom::Point(p1), CQChartsGeom::Point(p2), &d);
+  (void) CQChartsUtil::PointLineDistance(Point(p), Point(p1), Point(p2), &d);
 
   return d;
 }

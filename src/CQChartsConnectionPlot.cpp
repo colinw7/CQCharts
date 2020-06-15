@@ -39,6 +39,10 @@ addParameters()
     setTip("Name pair for Source/Target connection").setDiscriminator();
   addColumnParameter("path", "Path", "pathColumn").setBasic().
     setTip("Path for connection hierarchy").setDiscriminator();
+  addColumnParameter("from", "From", "fromColumn").setBasic().
+    setTip("From connection node").setDiscriminator();
+  addColumnParameter("to"  , "To", "toColumn").setBasic().
+    setTip("To connection node").setDiscriminator();
 
   addColumnParameter("value", "Value", "valueColumn").setBasic().
     setNumeric().setTip("Connection value");
@@ -48,6 +52,9 @@ addParameters()
   //---
 
   startParameterGroup("General");
+
+  addColumnParameter("attributes", "Attributes", "attributesColumn").setBasic().
+    setString().setTip("Node/Edge attributes");
 
   addColumnParameter("name", "Name", "nameColumn").
     setString().setTip("Optional node name");
@@ -242,13 +249,6 @@ setLinkColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
-setValueColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsConnectionPlot::
 setPathColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(pathColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -256,9 +256,39 @@ setPathColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
+setFromColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(fromColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
+setToColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(toColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
+setValueColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsConnectionPlot::
+setAttributesColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(attributesColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -335,7 +365,11 @@ addProperties()
 
   addProp("columns", "linkColumn" , "link" , "Link column");
   addProp("columns", "pathColumn" , "path" , "Path column");
+  addProp("columns", "fromColumn" , "from" , "From column");
+  addProp("columns", "toColumn"   , "to"   , "To column");
   addProp("columns", "valueColumn", "value", "Value column");
+
+  addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
   addProp("columns", "groupColumn", "group", "Grouping column");
   addProp("columns", "nameColumn" , "name" , "Node name column");
@@ -375,9 +409,16 @@ checkColumns() const
   }
   else if (pathColumn().isValid()) {
   }
+  else if (fromColumn().isValid()) {
+  }
+  else if (toColumn().isValid()) {
+  }
   else {
     return th->addError("Required columns not specified");
   }
+
+  // attributes optional
+  if (! checkColumn(attributesColumn(), "Attributes")) columnsValid = false;
 
   // value optional
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
@@ -554,6 +595,80 @@ initPathObjs() const
       //---
 
       plot_->addPathValue(pathStringList, value);
+
+      return State::OK;
+    }
+
+   private:
+    const CQChartsConnectionPlot* plot_      { nullptr };
+    QChar                         separator_ { '/' };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsConnectionPlot::
+initFromToObjs() const
+{
+  CQPerfTrace trace("CQChartsConnectionPlot::initFromToObjs");
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(const CQChartsConnectionPlot *plot) :
+     plot_(plot) {
+    }
+
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex fromModelInd(data.row, plot_->fromColumn(), data.parent);
+      CQChartsModelIndex toModelInd  (data.row, plot_->toColumn  (), data.parent);
+
+      // get from/to node names
+      bool ok1;
+      QString fromName = plot_->modelString(fromModelInd, ok1);
+      if (! ok1) return State::SKIP;
+
+      bool ok2;
+      QString toName = plot_->modelString(toModelInd, ok2);
+      if (! ok2) return State::SKIP;
+
+      //---
+
+      // get value from optional value column
+      double value = 1.0;
+
+      if (plot_->valueColumn().isValid()) {
+        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+
+        bool ok3;
+        value = plot_->modelReal(valueModelInd, ok3);
+        if (! ok3) return State::SKIP;
+      }
+
+      //---
+
+      // get attrinutes from optional column
+      CQChartsNameValues nameValues;
+
+      if (plot_->attributesColumn().isValid()) {
+        CQChartsModelIndex attributesModelInd(data.row, plot_->attributesColumn(), data.parent);
+
+        bool ok4;
+        QString attributesStr = plot_->modelString(attributesModelInd, ok4);
+        if (! ok4) return State::SKIP;
+
+        nameValues = CQChartsNameValues(attributesStr);
+      }
+
+      //---
+
+      plot_->addFromToValue(fromName, toName, value, nameValues);
 
       return State::OK;
     }

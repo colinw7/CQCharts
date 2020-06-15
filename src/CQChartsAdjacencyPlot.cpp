@@ -319,10 +319,10 @@ initHierObjsAddConnection(const QString &srcStr, double /*srcValue*/,
   // create link from src to dest for value
   // (hier always symmetric)
   if (! srcNode->hasNode(destNode))
-    srcNode->addNode(destNode, OptReal(destValue));
+    srcNode->addEdge(destNode, OptReal(destValue));
 
   if (! destNode->hasNode(srcNode))
-    destNode->addNode(srcNode, OptReal(destValue));
+    destNode->addEdge(srcNode, OptReal(destValue));
 }
 
 //---
@@ -391,13 +391,13 @@ addPathValue(const QStringList &pathStrs, double value) const
 
     if (i < n - 1) {
       if (! srcNode->hasNode(destNode)) {
-        srcNode->addNode(destNode);
+        srcNode->addEdge(destNode);
 
         destNode->setParent(srcNode);
       }
     }
     else {
-      srcNode->addNode(destNode, OptReal(value));
+      srcNode->addEdge(destNode, OptReal(value));
 
       destNode->setParent(srcNode);
       destNode->setValue (OptReal(value));
@@ -419,14 +419,14 @@ propagatePathValues()
 
       // set node value from sum of dest values
       if (! node->hasValue()) {
-        if (! node->nodes().empty()) {
+        if (! node->edges().empty()) {
           OptReal sum;
 
-          for (const auto &pn : node->nodes()) {
-            const auto &nodeValue = pn.second;
+          for (const auto &pn : node->edges()) {
+            const auto &edgeData = pn.second;
 
-            if (nodeValue.second.isSet()) {
-              double value = nodeValue.second.real();
+            if (edgeData.value.isSet()) {
+              double value = edgeData.value.real();
 
               if (sum.isSet())
                 sum = OptReal(sum.real() + value);
@@ -445,7 +445,7 @@ propagatePathValues()
         auto *parentNode = node->parent();
 
         if (parentNode)
-          parentNode->setNodeValue(node, node->value());
+          parentNode->setEdgeValue(node, node->value());
       }
     }
   }
@@ -579,13 +579,13 @@ initLinkObjs(PlotObjs &objs) const
     //assert(srcNode != destNode);
 
       if (! srcNode->hasNode(destNode))
-        srcNode->addNode(destNode, OptReal(value));
+        srcNode->addEdge(destNode, OptReal(value));
 
       // connectional is directional (optional ?)
-#if 0
-      if (! destNode->hasNode(srcNode))
-        destNode->addNode(srcNode, OptReal(value));
-#endif
+      if (plot_->isSymmetric()) {
+        if (! destNode->hasNode(srcNode))
+          destNode->addEdge(srcNode, OptReal(value));
+      }
 
       srcNode->setGroup(group);
 
@@ -656,7 +656,7 @@ createNameNodeObjs(PlotObjs &objs) const
 
   //---
 
-  int nn = numNodes();
+  int nn = numVisibleNodes();
 
   if (nn + maxLen()*factor_ > 0)
     th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
@@ -669,26 +669,28 @@ createNameNodeObjs(PlotObjs &objs) const
 
   double equalValue = 0.0;
 
-  if (isForceDiagonal())
-    equalValue = 1.0;
-
   double y = 1.0 - tsize;
 
   for (auto &node1 : sortedNodes_) {
     double x = tsize;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2, equalValue);
+      double value = node1->edgeValue(node2, equalValue);
 
       // skip unconnected
-      bool connected = ! CMathUtil::isZero(value);
+      bool connected;
+
+      if (node1 == node2)
+        connected = isForceDiagonal();
+      else
+        connected = ! CMathUtil::isZero(value);
 
       if (connected) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        auto *obj = th->createObj(node1, node2, value, bbox, ig);
+        auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -767,7 +769,7 @@ initConnectionObjs(PlotObjs &objs) const
     for (const auto &connection : connections.connections) {
       auto node1 = th->nodes_[connection.node];
 
-      node->addNode(node1, OptReal(connection.value));
+      node->addEdge(node1, OptReal(connection.value));
     }
   }
 
@@ -793,7 +795,7 @@ initConnectionObjs(PlotObjs &objs) const
 
   //---
 
-  int nn = numNodes();
+  int nn = numVisibleNodes();
 
   if (nn + maxLen()*factor_ > 0)
     th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
@@ -806,26 +808,28 @@ initConnectionObjs(PlotObjs &objs) const
 
   double equalValue = 0.0;
 
-  if (isForceDiagonal())
-    equalValue = 1.0;
-
   double y = 1.0 - tsize - yb;
 
   for (auto &node1 : sortedNodes_) {
     double x = tsize + xb;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2, equalValue);
+      double value = node1->edgeValue(node2, equalValue);
 
       // skip unconnected
-      bool connected = ! CMathUtil::isZero(value);
+      bool connected;
+
+      if (node1 == node2)
+        connected = isForceDiagonal();
+      else
+        connected = ! CMathUtil::isZero(value);
 
       if (connected) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
-        auto *obj = th->createObj(node1, node2, value, bbox, ig);
+        auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -875,7 +879,7 @@ initTableObjs(PlotObjs &objs) const
       auto *destNode = findNode(destStr);
 
       if (! srcNode->hasNode(destNode))
-        srcNode->addNode(destNode, OptReal(value.value));
+        srcNode->addEdge(destNode, OptReal(value.value));
     }
   }
 
@@ -1043,12 +1047,12 @@ findNode(const QString &str) const
   return (*p1).second;
 }
 
-CQChartsAdjacencyObj *
+CQChartsAdjacencyCellObj *
 CQChartsAdjacencyPlot::
-createObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double value,
-          const CQChartsGeom::BBox &rect, const ColorInd &ig)
+createCellObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double value,
+              const CQChartsGeom::BBox &rect, const ColorInd &ig)
 {
-  return new CQChartsAdjacencyObj(this, node1, node2, value, rect, ig);
+  return new CQChartsAdjacencyCellObj(this, node1, node2, value, rect, ig);
 }
 
 //---
@@ -1195,7 +1199,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   //---
 
-  int nn = numNodes();
+  int nn = numVisibleNodes();
 
   px = po.x + lengthPixelWidth (bgMargin()) + xts;
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
@@ -1229,19 +1233,21 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   double equalValue = 0.0;
 
-  if (isForceDiagonal())
-    equalValue = 1.0;
-
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node1 : sortedNodes_) {
     double px = po.x + lengthPixelWidth(bgMargin()) + xts;
 
     for (auto &node2 : sortedNodes_) {
-      double value = node1->nodeValue(node2, equalValue);
+      double value = node1->edgeValue(node2, equalValue);
 
       // draw unconnected
-      bool connected = ! CMathUtil::isZero(value);
+      bool connected;
+
+      if (node1 == node2)
+        connected = isForceDiagonal();
+      else
+        connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
         CQChartsGeom::BBox cellBBox =
@@ -1299,10 +1305,10 @@ interpGroupColor(int group) const
 
 //------
 
-CQChartsAdjacencyObj::
-CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                     CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
-                     const ColorInd &ig) :
+CQChartsAdjacencyCellObj::
+CQChartsAdjacencyCellObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
+                         CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
+                         const ColorInd &ig) :
  CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
@@ -1318,7 +1324,7 @@ CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *n
 }
 
 QString
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 calcId() const
 {
   QString groupStr1 = QString("(%1)").arg(node1()->group());
@@ -1329,20 +1335,26 @@ calcId() const
 }
 
 QString
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 calcTipId() const
 {
-  QString groupStr1 = QString("(%1)").arg(node1()->group());
-  QString groupStr2 = QString("(%1)").arg(node2()->group());
-
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("From" , node1()->name(), groupStr1);
-  tableTip.addTableRow("To"   , node2()->name(), groupStr2);
-  tableTip.addTableRow("Value", value());
+  if (node1() != node2()) {
+    QString groupStr1 = QString("(%1)").arg(node1()->group());
+    QString groupStr2 = QString("(%1)").arg(node2()->group());
 
-  if (node1() == node2())
+    tableTip.addTableRow("From", node1()->name(), groupStr1);
+    tableTip.addTableRow("To"  , node2()->name(), groupStr2);
+  }
+  else {
+    tableTip.addTableRow("Name" , node1()->name());
     tableTip.addTableRow("Group", node1()->group());
+    tableTip.addTableRow("Total", node1()->totalValue());
+  }
+
+  if (value() > 0.0)
+    tableTip.addTableRow("Value", value());
 
   //---
 
@@ -1354,7 +1366,7 @@ calcTipId() const
 }
 
 void
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 getObjSelectIndices(Indices &inds) const
 {
   for (auto &ind : modelInds())
@@ -1362,7 +1374,7 @@ getObjSelectIndices(Indices &inds) const
 }
 
 void
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 draw(CQChartsPaintDevice *device)
 {
   // draw inside object
@@ -1370,7 +1382,7 @@ draw(CQChartsPaintDevice *device)
     if (plot_->insideObj() != this) {
       auto *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
 
-      plot->setInsideObj(const_cast<CQChartsAdjacencyObj *>(this));
+      plot->setInsideObj(const_cast<CQChartsAdjacencyCellObj *>(this));
 
       plot->drawForeground();
     }
@@ -1396,59 +1408,73 @@ draw(CQChartsPaintDevice *device)
 }
 
 void
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 
   //---
 
-  auto interpGroupColor = [&](CQChartsAdjacencyNode *node) {
-    if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
-      return plot_->interpGroupColor(node->group());
+  // get fill color for node
+  auto nodeFillColor = [&](CQChartsAdjacencyNode *node) {
+    if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO ||
+             plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+      return plot_->interpFillColor(ColorInd(node->group(), plot_->maxGroup() + 1));
+    else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+      return plot_->interpFillColor(ColorInd(node->id(), plot_->numNodes()));
     else
       return plot_->interpFillColor(colorInd);
   };
 
+  auto nodesFillColor = [&](CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2) {
+    if  (node1 == node2)
+      return nodeFillColor(node1);
+    else
+      return CQChartsUtil::blendColors(nodeFillColor(node1), nodeFillColor(node2), 0.5);
+  };
+
   //---
 
-  // calc fill color
-  QColor bc = plot_->interpEmptyCellFillColor(ColorInd());
+  // get stroke color for node
+  auto nodeStrokeColor = [&](CQChartsAdjacencyNode *node) {
+    if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO ||
+             plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+      return plot_->interpStrokeColor(ColorInd(node->group(), plot_->maxGroup() + 1));
+    else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+      return plot_->interpStrokeColor(ColorInd(node->id(), plot_->numNodes()));
+    else
+      return plot_->interpStrokeColor(colorInd);
+  };
 
-  // node to self (diagonal)
-  if      (node1() == node2()) {
-    bc = interpGroupColor(node1());
-  }
-  // node to other node (scale to connections)
-  else if (node1()->group() != node2()->group()) {
-    QColor c1 = interpGroupColor(node1());
-    QColor c2 = interpGroupColor(node2());
+  auto nodesStrokeColor = [&](CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2) {
+    if  (node1 == node2)
+      return nodeStrokeColor(node1);
+    else
+      return CQChartsUtil::blendColors(nodeStrokeColor(node1), nodeStrokeColor(node2), 0.5);
+  };
 
+  //---
+
+  // get background color
+  QColor bg = plot_->interpEmptyCellFillColor(ColorInd());
+
+  //--
+
+  // calc brush color (scaled to value)
+  QColor bc = nodesFillColor(node1(), node2());
+
+  if (node1() != node2()) {
     double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
 
-    double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3.0;
-    double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3.0;
-    double b = (c1.blueF () + c2.blueF () + s*bc.blueF ())/3.0;
-
-    bc = QColor::fromRgbF(r, g, b);
+    bc = CQChartsUtil::blendColors(bc, bg, s);
   }
-  else {
-    QColor c = interpGroupColor(node1());
 
-    double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
-
-    double r = ((1.0 - s)*c.redF  () + s*bc.redF  ());
-    double g = ((1.0 - s)*c.greenF() + s*bc.greenF());
-    double b = ((1.0 - s)*c.blueF () + s*bc.blueF ());
-
-    bc = QColor::fromRgbF(r, g, b);
-  }
+  // calc pen color (not scaled)
+  QColor pc = nodesStrokeColor(node1(), node2());
 
   //---
 
   // calc pen and brush
-  QColor pc = plot_->interpStrokeColor(colorInd);
-
   plot_->setPenBrush(penBrush,
     CQChartsPenData  (true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
     CQChartsBrushData(true, bc, plot_->fillAlpha(), plot_->fillPattern()));
@@ -1458,7 +1484,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 }
 
 void
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 writeScriptData(CQChartsScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
@@ -1472,7 +1498,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 }
 
 double
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 xColorValue(bool relative) const
 {
   if (! relative)
@@ -1482,7 +1508,7 @@ xColorValue(bool relative) const
 }
 
 double
-CQChartsAdjacencyObj::
+CQChartsAdjacencyCellObj::
 yColorValue(bool relative) const
 {
   if (! relative)

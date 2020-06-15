@@ -102,10 +102,12 @@ invalidate(bool reload)
   getObjPlotViewChart(obj_, plot, view, charts);
 
   if      (plot) {
-    if (reload)
-      plot->updateRangeAndObjs();
-    else
-      plot->drawObjs();
+    if (plot->isUpdatesEnabled()) {
+      if (reload)
+        plot->updateRangeAndObjs();
+      else
+        plot->drawObjs();
+    }
 
     auto *key = qobject_cast<CQChartsPlotKey *>(obj_);
 

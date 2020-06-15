@@ -1,0 +1,12 @@
+From,To,Attributes
+A,,"shape=circle"
+A,B,"shape=arrow"
+A,C,"shape=arrow"
+A,D,"shape=arrow"
+B,,"shape=circle"
+B,F,"shape=arrow"
+C,,"shape=circle"
+C,F,"shape=arrow"
+D,,"shape=circle"
+D,F,"shape=arrow"
+F,,"shape=circle"

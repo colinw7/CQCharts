@@ -57,6 +57,15 @@ class CQChartsSankeyEdgeObj;
  */
 class CQChartsSankeyPlotNode {
  public:
+  enum Shape {
+    SHAPE_NONE,
+    SHAPE_DIAMOND,
+    SHAPE_BOX,
+    SHAPE_POLYGON,
+    SHAPE_CIRCLE,
+    SHAPE_DOUBLE_CIRCLE
+  };
+
   using Edges   = std::vector<CQChartsSankeyPlotEdge *>;
   using NodeSet = std::set<const CQChartsSankeyPlotNode *>;
 
@@ -118,10 +127,10 @@ class CQChartsSankeyPlotNode {
   void setDestEdges(const Edges &edges) { destEdges_ = edges; }
 
   //! add source edge
-  void addSrcEdge (Edge *edge);
+  void addSrcEdge(Edge *edge, bool primary=true);
 
   //! add destination edge
-  void addDestEdge(Edge *edge);
+  void addDestEdge(Edge *edge, bool primary=true);
 
   //! get/set object
   Obj *obj() const { return obj_; }
@@ -131,6 +140,18 @@ class CQChartsSankeyPlotNode {
   int srcDepth () const;
   //! get destination depth (from connections)
   int destDepth() const;
+
+  //! get/set shape
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &s) { shape_ = s; }
+
+  //! get/set num side
+  int numSides() const { return numSides_; }
+  void setNumSides(int n) { numSides_ = n; }
+
+  //! get/set color
+  const QColor &color() const { return color_; }
+  void setColor(const QColor &v) { color_ = v; }
 
   //! calc x pos
   int calcXPos() const;
@@ -149,27 +170,31 @@ class CQChartsSankeyPlotNode {
 
  private:
   //! calc src/destination depth
-  int srcDepth (NodeSet &visited) const;
-  int destDepth(NodeSet &visited) const;
+  int calcSrcDepth (NodeSet &visited) const;
+  int calcDestDepth(NodeSet &visited) const;
 
  private:
-  const Plot* plot_      { nullptr }; //!< associated plot
-  Node*       parent_    { nullptr }; //!< parent node
-  QString     str_;                   //!< string
-  int         id_        { -1 };      //!< id
-  bool        visible_   { true };    //!< is visible
-  ModelIndex  ind_;                   //!< model index
-  QString     name_;                  //!< name
-  QString     label_;                 //!< label
-  OptReal     value_;                 //!< value
-  int         group_     { -1 };      //!< group
-  int         depth_     { -1 };      //!< depth
-  Edges       srcEdges_;              //!< source edges
-  Edges       destEdges_;             //!< destination edges
-  int         srcDepth_  { -1 };      //!< source depth (calculated)
-  int         destDepth_ { -1 };      //!< destination depth (calculated)
-  int         xpos_      { -1 };      //!< x position
-  Obj*        obj_       { nullptr }; //!< plot object
+  const Plot* plot_      { nullptr };    //!< associated plot
+  Node*       parent_    { nullptr };    //!< parent node
+  QString     str_;                      //!< string
+  int         id_        { -1 };         //!< id
+  bool        visible_   { true };       //!< is visible
+  ModelIndex  ind_;                      //!< model index
+  QString     name_;                     //!< name
+  QString     label_;                    //!< label
+  OptReal     value_;                    //!< value
+  int         group_     { -1 };         //!< group
+  int         depth_     { -1 };         //!< depth
+  Shape       shape_     { SHAPE_NONE }; //!< shape
+  int         numSides_  { 4 };          //!< number of polygon sides
+  QColor      color_;                    //!< fill color
+  Edges       srcEdges_;                 //!< source edges
+  Edges       destEdges_;                //!< destination edges
+  Edges       nonPrimaryEdges_;          //!< non-priary edges
+  int         srcDepth_  { -1 };         //!< source depth (calculated)
+  int         destDepth_ { -1 };         //!< destination depth (calculated)
+  int         xpos_      { -1 };         //!< x position
+  Obj*        obj_       { nullptr };    //!< plot object
 };
 
 //---
@@ -180,6 +205,12 @@ class CQChartsSankeyPlotNode {
  */
 class CQChartsSankeyPlotEdge {
  public:
+  enum Shape {
+    SHAPE_NONE,
+    SHAPE_ARC,
+    SHAPE_ARROW
+  };
+
   using Plot    = CQChartsSankeyPlot;
   using Node    = CQChartsSankeyPlotNode;
   using Obj     = CQChartsSankeyEdgeObj;
@@ -192,23 +223,45 @@ class CQChartsSankeyPlotEdge {
 
   const Plot *plot() const { return plot_; }
 
+  //! get/set unique id
+  int id() const { return id_; }
+  void setId(int id) { id_ = id; }
+
+  //! get/set value
   bool hasValue() const { return value_.isSet(); }
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
-  Node *srcNode () const { return srcNode_ ; }
+  //! get/set label
+  const QString &label() const { return label_; }
+  void setLabel(const QString &s) { label_ = s; }
+
+  // get source node
+  Node *srcNode() const { return srcNode_; }
+
+  // get destination node
   Node *destNode() const { return destNode_; }
 
-  Obj *obj() const { return obj_; }
+  // is self connect
+  bool isSelf() const { return srcNode() == destNode(); }
 
+  //! get/set shape
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &s) { shape_ = s; }
+
+  //! get/set object
+  Obj *obj() const { return obj_; }
   void setObj(Obj *obj);
 
  private:
-  const Plot* plot_     { nullptr };
-  OptReal     value_;
-  Node*       srcNode_  { nullptr };
-  Node*       destNode_ { nullptr };
-  Obj*        obj_      { nullptr };
+  const Plot* plot_     { nullptr };    //!< plot
+  int         id_       { -1 };         //!< unique id
+  OptReal     value_;                   //!< value
+  QString     label_;                   //!< label
+  Node*       srcNode_  { nullptr };    //!< source node
+  Node*       destNode_ { nullptr };    //!< destination node
+  Shape       shape_    { SHAPE_NONE }; //!< shape
+  Obj*        obj_      { nullptr };    //!< associated edge object
 };
 
 //---
@@ -220,13 +273,28 @@ class CQChartsSankeyPlotEdge {
 class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(Shape shape READ shape WRITE setShape)
+
+  Q_ENUMS(Shape)
+
  public:
+  enum Shape {
+    SHAPE_NONE,
+    SHAPE_DIAMOND,
+    SHAPE_BOX,
+    SHAPE_POLYGON,
+    SHAPE_CIRCLE,
+    SHAPE_DOUBLE_CIRCLE
+  };
+
   using Plot = CQChartsSankeyPlot;
   using Node = CQChartsSankeyPlotNode;
   using Edge = CQChartsSankeyPlotEdge;
 
  public:
   CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
+
+  Node *node() const { return node_; }
 
   const QString &hierName() const { return hierName_; }
   void setHierName(const QString &s) { hierName_ = s; }
@@ -253,6 +321,20 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
     return (*p).second;
   }
+
+  //! get/set shape
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &s) { shape_ = s; }
+
+  //! get/set num side
+  int numSides() const { return numSides_; }
+  void setNumSides(int n) { numSides_ = n; }
+
+  //! get/set color
+  const QColor &color() const { return color_; }
+  void setColor(const QColor &v) { color_ = v; }
+
+  //---
 
   QString typeName() const override { return "node"; }
 
@@ -281,14 +363,17 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
  private:
   using EdgeRect = std::map<Edge *,BBox>;
 
-  const Plot* plot_ { nullptr }; //!< parent plot
-  Node*       node_ { nullptr }; //!< node
-  EdgeRect    srcEdgeRect_;      //!< edge to src
-  EdgeRect    destEdgeRect_;     //!< edge to dest
-  QString     hierName_;         //!< node hier name
-  QString     name_;             //!< node name
-  double      value_ { 0.0 };    //!< node value
-  int         depth_ { -1 };     //!< node depth
+  const Plot* plot_     { nullptr };    //!< parent plot
+  Node*       node_     { nullptr };    //!< node
+  EdgeRect    srcEdgeRect_;             //!< edge to src
+  EdgeRect    destEdgeRect_;            //!< edge to dest
+  QString     hierName_;                //!< node hier name
+  QString     name_;                    //!< node name
+  double      value_    { 0.0 };        //!< node value
+  int         depth_    { -1 };         //!< node depth
+  Shape       shape_    { SHAPE_NONE }; //!< shape
+  int         numSides_ { 4 };          //!< num sides
+  QColor      color_;                   //!< custom color
 };
 
 //---
@@ -300,33 +385,57 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(Shape shape READ shape WRITE setShape)
+
+  Q_ENUMS(Shape)
+
  public:
+  enum Shape {
+    SHAPE_NONE,
+    SHAPE_ARC,
+    SHAPE_ARROW
+  };
+
   using Plot = CQChartsSankeyPlot;
   using Edge = CQChartsSankeyPlotEdge;
+  using Node = CQChartsSankeyPlotNode;
 
  public:
   CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
 
+  //! typename
   QString typeName() const override { return "edge"; }
 
+  //! get edge
   Edge *edge() const { return edge_; }
 
+  //! get unique id
   QString calcId() const override;
 
+  //! get tip string
   QString calcTipId() const override;
 
+  //! get source/destination rect
   void setSrcRect (const BBox &rect) { srcRect_  = rect; }
   void setDestRect(const BBox &rect) { destRect_ = rect; }
 
+  //! get/set shape
+  const Shape &shape() const { return shape_; }
+  void setShape(const Shape &s) { shape_ = s; }
+
   //---
 
+  //! is point inside
   bool inside(const Point &p) const override;
 
+  //! get connected objects
   PlotObjs getConnected() const override;
 
   //---
 
   void draw(PaintDevice *device) override;
+
+  void drawFg(PaintDevice *device) const override;
 
   //---
 
@@ -335,11 +444,12 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
-  const Plot*  plot_     { nullptr }; //!< parent plot
-  Edge*        edge_     { nullptr }; //!< edge
-  BBox         srcRect_;              //!< src rect
-  BBox         destRect_;             //!< dest rect
-  QPainterPath path_;                 //!< painter path
+  const Plot*  plot_     { nullptr };   //!< parent plot
+  Edge*        edge_     { nullptr };   //!< edge
+  BBox         srcRect_;                //!< src rect
+  BBox         destRect_;               //!< dest rect
+  Shape        shape_    { SHAPE_ARC }; //!< shape
+  QPainterPath path_;                   //!< painter path
 };
 
 //---
@@ -357,8 +467,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(double nodeMargin READ nodeMargin WRITE setNodeMargin)
-  Q_PROPERTY(double nodeWidth  READ nodeWidth  WRITE setNodeWidth )
+  Q_PROPERTY(double    nodeMargin READ nodeMargin   WRITE setNodeMargin)
+  Q_PROPERTY(double    nodeWidth  READ nodeWidth    WRITE setNodeWidth )
+  Q_PROPERTY(bool      nodeScaled READ isNodeScaled WRITE setNodeScaled)
+  Q_PROPERTY(NodeShape nodeShape  READ nodeShape    WRITE setNodeShape )
+  Q_PROPERTY(EdgeShape edgeShape  READ edgeShape    WRITE setEdgeShape )
+  Q_PROPERTY(bool      edgeScaled READ isEdgeScaled WRITE setEdgeScaled)
 
   // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
@@ -371,12 +485,29 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_ENUMS(Align)
+  Q_ENUMS(NodeShape)
+  Q_ENUMS(EdgeShape)
 
  public:
   enum class Align {
     SRC,
     DEST,
     JUSTIFY
+  };
+
+  enum NodeShape {
+    NODE_SHAPE_NONE,
+    NODE_SHAPE_DIAMOND,
+    NODE_SHAPE_BOX,
+    NODE_SHAPE_POLYGON,
+    NODE_SHAPE_CIRCLE,
+    NODE_SHAPE_DOUBLE_CIRCLE
+  };
+
+  enum EdgeShape {
+    EDGE_SHAPE_NONE,
+    EDGE_SHAPE_ARC,
+    EDGE_SHAPE_ARROW
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -404,6 +535,22 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set x margin
   double nodeWidth() const { return nodeWidth_; }
   void setNodeWidth(double r);
+
+  //! get/set is node scaled
+  bool isNodeScaled() const { return nodeScaled_; }
+  void setNodeScaled(bool b);
+
+  //! get/set node shape
+  const NodeShape &nodeShape() const { return nodeShape_; }
+  void setNodeShape(const NodeShape &s);
+
+  //! get/set edge shape
+  const EdgeShape &edgeShape() const { return edgeShape_; }
+  void setEdgeShape(const EdgeShape &s);
+
+  //! get/set is edge scaled
+  bool isEdgeScaled() const { return edgeScaled_; }
+  void setEdgeScaled(bool b);
 
   //---
 
@@ -444,13 +591,20 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void propagatePathValues();
 
-  void filterPathObjs();
+  //---
+
+  bool initFromToObjs() const;
+
+  void addFromToValue(const QString &, const QString &, double,
+                      const CQChartsNameValues &) const override;
 
   //---
 
   bool initLinkObjs      () const;
   bool initConnectionObjs() const;
   bool initTableObjs     () const;
+
+  void filterObjs();
 
   //---
 
@@ -477,6 +631,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   Node *findNode(const QString &name) const;
 
+  Node *createNode(const QString &name) const;
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const;
 
   void createGraph(PlotObjs &objs) const;
@@ -506,7 +661,13 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using PosNodesMap = std::map<int,IndNodeMap>;
 
   // options
-  Align align_ { Align::JUSTIFY }; //!< align
+  Align     align_      { Align::JUSTIFY };  //!< align
+  double    nodeMargin_ { 0.2 };             //!< node margin
+  double    nodeWidth_  { 16 };              //!< node x margin in pixels
+  bool      nodeScaled_ { true };            //!< is node scaled
+  NodeShape nodeShape_  { NODE_SHAPE_NONE }; //!< node shape
+  EdgeShape edgeShape_  { EDGE_SHAPE_ARC };  //!< edge shape
+  bool      edgeScaled_ { true };            //!< is edge scaled
 
   // data
   NameNodeMap nameNodeMap_;             //!< name node map
@@ -516,9 +677,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   BBox        bbox_;                    //!< bbox
   int         maxHeight_     { 0 };     //!< max height
   int         maxNodeDepth_  { 0 };     //!< max node depth
-  double      nodeMargin_    { 0.2 };   //!< node margin
   double      minNodeMargin_ { 4 };     //!< min node margin in pixels
-  double      nodeWidth_     { 16 };    //!< x margin in pixels
   double      boxMargin_     { 0.01 };  //!< bounding box margin
   double      edgeMargin_    { 0.01 };  //!< edge bounding box margin
   double      valueScale_    { 1.0 };   //!< value scale

@@ -45,10 +45,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
 
-  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
+  Q_PROPERTY(CQChartsColumn linkColumn READ linkColumn WRITE setLinkColumn)
+  Q_PROPERTY(CQChartsColumn pathColumn READ pathColumn WRITE setPathColumn)
+  Q_PROPERTY(CQChartsColumn fromColumn READ fromColumn WRITE setFromColumn)
+  Q_PROPERTY(CQChartsColumn toColumn   READ toColumn   WRITE setToColumn  )
+
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
-  Q_PROPERTY(CQChartsColumn pathColumn READ pathColumn WRITE setPathColumn)
+  Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
 
   Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn)
@@ -81,13 +85,25 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   const Column &linkColumn() const { return linkColumn_; }
   void setLinkColumn(const Column &c);
 
+  //! get/set path column
+  const Column &pathColumn() const { return pathColumn_; }
+  void setPathColumn(const Column &c);
+
+  //! get/set from column
+  const Column &fromColumn() const { return fromColumn_; }
+  void setFromColumn(const Column &c);
+
+  //! get/set to column
+  const Column &toColumn() const { return toColumn_; }
+  void setToColumn(const Column &c);
+
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
 
-  //! get/set name columns
-  const Column &pathColumn() const { return pathColumn_; }
-  void setPathColumn(const Column &c);
+  //! get/set attributes column
+  const Column &attributesColumn() const { return attributesColumn_; }
+  void setAttributesColumn(const Column &c);
 
   //! get/set group column
   const Column &groupColumn() const { return groupColumn_; }
@@ -295,7 +311,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     QModelIndex groupInd_;               //!< group model index
     double      totalValid_   { false }; //!< is total valid
     bool        totalPrimary_ { false }; //!< is total for primary only
-    double      total_        { 0.0 };   //!< from value total
+    double      total_        { 0.0 };   //!< value total
   };
 
   using TableConnectionDatas = std::vector<TableConnectionData>;
@@ -310,12 +326,17 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   bool initPathObjs() const;
 
+  bool initFromToObjs() const;
+
   virtual void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
   virtual void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
 
   virtual void addPathValue(const QStringList &, double) const { }
+
+  virtual void addFromToValue(const QString &, const QString &, double,
+                              const CQChartsNameValues &) const { }
 
   //---
 
@@ -340,8 +361,11 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Column     connectionsColumn_;                          //!< connections column
   ColumnType connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
   Column     linkColumn_;                                 //!< link column
-  Column     valueColumn_;                                //!< value column
   Column     pathColumn_;                                 //!< path column
+  Column     fromColumn_;                                 //!< from column
+  Column     toColumn_;                                   //!< to column
+  Column     valueColumn_;                                //!< value column
+  Column     attributesColumn_;                           //!< attributes column
   Column     groupColumn_;                                //!< group column
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
   Column     nameColumn_;                                 //!< name column

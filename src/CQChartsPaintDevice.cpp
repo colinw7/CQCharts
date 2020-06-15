@@ -4,6 +4,62 @@
 
 void
 CQChartsPaintDevice::
+drawPolygonSides(const BBox &bbox, int n)
+{
+  if (n < 3) return;
+
+  double xc = bbox.getXMid();
+  double yc = bbox.getYMid();
+
+  double r = bbox.getWidth()/2.0;
+
+  double a  = M_PI/2.0;
+  double da = 2.0*M_PI/n;
+
+  QPainterPath path;
+
+  for (int i = 0; i < n; ++i) {
+    double c = cos(a);
+    double s = sin(a);
+
+    double x = xc + c*r;
+    double y = yc + s*r;
+
+    if (i == 0)
+      path.moveTo(QPointF(x, y));
+    else
+      path.lineTo(QPointF(x, y));
+
+    a += da;
+  }
+
+  path.closeSubpath();
+
+  drawPath(path);
+}
+
+void
+CQChartsPaintDevice::
+drawDiamond(const BBox &bbox)
+{
+  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
+  double x2 = bbox.getXMid(), y2 = bbox.getYMid();
+  double x3 = bbox.getXMax(), y3 = bbox.getYMax();
+
+  QPainterPath path;
+
+  path.moveTo(QPointF(x1, y2));
+  path.lineTo(QPointF(x2, y1));
+  path.lineTo(QPointF(x3, y2));
+  path.lineTo(QPointF(x2, y3));
+
+  path.closeSubpath();
+
+  drawPath(path);
+}
+
+void
+CQChartsPaintDevice::
 drawRoundedLine(const Point &p1, const Point &p2, double w)
 {
   double w2 = w/2.0;

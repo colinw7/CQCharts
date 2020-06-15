@@ -32,13 +32,14 @@ class CQChartsPlotObj : public CQChartsObj {
     MINOR
   };
 
-  using Plot              = CQChartsPlot;
-  using PlotObj           = CQChartsPlotObj;
-  using PlotObjs          = std::vector<PlotObj *>;
-  using ModelIndices      = std::vector<QModelIndex>;
-  using Indices           = std::set<QModelIndex>;
-  using ColorInd          = CQChartsUtil::ColorInd;
-  using PenBrush          = CQChartsPenBrush;
+  using Plot         = CQChartsPlot;
+  using PlotObj      = CQChartsPlotObj;
+  using PlotObjs     = std::vector<PlotObj *>;
+  using ModelIndices = std::vector<QModelIndex>;
+  using Indices      = std::set<QModelIndex>;
+  using ColorInd     = CQChartsUtil::ColorInd;
+  using PenBrush     = CQChartsPenBrush;
+
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
 

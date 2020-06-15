@@ -1121,3 +1121,7 @@
  + Add flat hierarchical path support to connection plots
  + Add annotation clipping
  + More typedefs to cleanup code
+# 06/14/2020
+ + Support more styles and shapes in sankey plot
+ + Support from/to columns in connection plot
+ + Allow rectilinear arrow line
