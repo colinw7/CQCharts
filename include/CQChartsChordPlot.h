@@ -421,7 +421,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initHierObjs(PlotObjs &objs) const;
+  bool initHierObjs() const;
 
   void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                                      const HierConnectionData &destHierData) const override;
@@ -435,25 +435,35 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initPathObjs(PlotObjs &objs) const;
+  bool initPathObjs() const;
 
   void addPathValue(const QStringList &, double) const override;
 
   void propagatePathValues();
 
-  void filterPathObjs();
+  //---
+
+  bool initFromToObjs() const;
+
+  void addFromToValue(const QString &, const QString &, double,
+                      const CQChartsNameValues &) const override;
 
   //---
 
-  bool initLinkObjs      (PlotObjs &objs) const;
-  bool initConnectionObjs(PlotObjs &objs) const;
-  bool initTableObjs     (PlotObjs &objs) const;
+  bool initLinkObjs      () const;
+  bool initConnectionObjs() const;
+
+  bool initTableObjs(PlotObjs &objs) const;
+
+  void filterObjs();
 
   //---
 
   ChordData &findNameData(const QString &name, const QModelIndex &linkInd) const;
   ChordData &findNameData(NameDataMap &nameDataMap, const QString &name,
                           const QModelIndex &linkInd, bool global=false) const;
+
+  void addEdge(ChordData &srcData, ChordData &destData, double value, bool symmetric) const;
 
   ChordData &getIndData(int ind);
 

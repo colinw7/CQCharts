@@ -383,8 +383,6 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
 {
   if (! bbox.isSet()) return;
 
-  const QImage qimage = image.image();
-
   auto pbbox = windowToPixel(bbox);
 
   double w = pbbox.getWidth ();
@@ -393,8 +391,8 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
   CQChartsGeom::BBox pbbox1;
 
   if (! stretch) {
-    int iw = qimage.width ();
-    int ih = qimage.height();
+    int iw = image.width ();
+    int ih = image.height();
 
     double xs = (iw > 0 ? w/iw : 1.0);
     double ys = (ih > 0 ? h/ih : 1.0);
@@ -417,10 +415,12 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
     pbbox1 = pbbox;
   }
 
+  QImage qimage = image.sizedImage(int(w), int(h));
+
   if (handDrawn_)
-    hdPainter_->drawImage(pbbox1.qrect(), qimage.scaled(int(w), int(h), Qt::IgnoreAspectRatio));
+    hdPainter_->drawImage(pbbox1.qrect(), qimage);
   else
-    painter_->drawImage(pbbox1.qrect(), qimage.scaled(int(w), int(h), Qt::IgnoreAspectRatio));
+    painter_->drawImage(pbbox1.qrect(), qimage);
 }
 
 void

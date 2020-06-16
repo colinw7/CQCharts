@@ -373,8 +373,6 @@ void
 CQChartsSVGPaintDevice::
 drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
 {
-  const QImage qimage = image.image();
-
   auto pbbox = windowToPixel(bbox);
 
   double px = pbbox.getXMin();
@@ -382,8 +380,9 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
 
   auto pw = pixelToWindow(CQChartsGeom::Point(px, py));
 
-  drawImage(pw,
-    qimage.scaled(int(pbbox.getWidth()), int(pbbox.getHeight()), Qt::IgnoreAspectRatio));
+  QImage qimage = image.sizedImage(int(pbbox.getWidth()), int(pbbox.getHeight()));
+
+  drawImage(pw, qimage);
 }
 
 void

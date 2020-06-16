@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QImage>
+#include <QIcon>
 #include <cassert>
 
 /*!
@@ -16,50 +17,53 @@ class CQChartsImage {
   static int metaTypeId;
 
  public:
+  enum class Type {
+    NONE,
+    IMAGE,
+    ICON
+  };
+
+ public:
   CQChartsImage() = default;
   CQChartsImage(const QImage &image);
-  CQChartsImage(const QString &s);
-
-  bool isValid() const { return fileName_.length() || ! image_.isNull(); }
+  CQChartsImage(const QString &s, Type type=Type::IMAGE);
 
   //---
 
+  const QImage &image() const;
+
+  Type type() const { return type_; }
+
   const QString &fileName() const { return fileName_; }
 
-  const QImage &image() const { return image_; }
+  //---
 
-  int width() const {
-    if (! image_.isNull()) return image_.width();
-    return 100;
-  }
+  bool isValid() const { return fileName_.length() || ! image_.isNull(); }
 
-  int height() const {
-    if (! image_.isNull()) return image_.height();
-    return 100;
-  }
+  int width () const;
+  int height() const;
 
   QSize size() const { return QSize(width(), height()); }
 
   //---
 
-  QString id() const {
-    return image_.text("id");
-  }
+  QString id() const;
+  void setId(const QString &id);
 
-  void setId(const QString &id) {
-    image_.setText("id", id);
-  }
+  //---
+
+  QImage sizedImage(int w, int h) const;
 
   //---
 
   QString toString() const;
 
-  bool fromString(const QString &s);
+  bool fromString(const QString &s, Type type=Type::NONE);
 
   //---
 
   friend bool operator==(const CQChartsImage &lhs, const CQChartsImage &rhs) {
-    return (lhs.fileName_ == rhs.fileName_);
+    return ((lhs.type() == rhs.type()) && (lhs.fileName() == rhs.fileName()));
   }
 
   friend bool operator!=(const CQChartsImage &lhs, const CQChartsImage &rhs) {
@@ -68,6 +72,8 @@ class CQChartsImage {
 
  private:
   QImage  image_;
+  QIcon   icon_;
+  Type    type_ { Type::NONE };
   QString fileName_;
 };
 

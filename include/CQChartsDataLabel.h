@@ -13,10 +13,11 @@ class CQChartsPlot;
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(Position        position   READ position     WRITE setPosition  )
-  Q_PROPERTY(Qt::Orientation direction  READ direction    WRITE setDirection )
-  Q_PROPERTY(bool            clip       READ isClip       WRITE setClip      )
-  Q_PROPERTY(bool            sendSignal READ isSendSignal WRITE setSendSignal)
+  Q_PROPERTY(Position        position    READ position     WRITE setPosition   )
+  Q_PROPERTY(Qt::Orientation direction   READ direction    WRITE setDirection  )
+  Q_PROPERTY(bool            clip        READ isClip       WRITE setClip       )
+  Q_PROPERTY(bool            moveClipped READ moveClipped  WRITE setMoveClipped)
+  Q_PROPERTY(bool            sendSignal  READ isSendSignal WRITE setSendSignal )
 
   Q_ENUMS(Position)
 
@@ -55,6 +56,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   //! clip
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; textBoxDataInvalidate(); }
+
+  //! move clipped
+  bool moveClipped() const { return moveClipped_; }
+  void setMoveClipped(bool b) { moveClipped_ = b; }
 
   //! send signal
   bool isSendSignal() const { return sendSignal_; }
@@ -130,11 +135,12 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
  private:
   using BBox = CQChartsGeom::BBox;
 
-  Position        position_   { Position::TOP_INSIDE }; //!< position relative to parent
-  Qt::Orientation direction_  { Qt::Vertical };         //!< parent object direction
-  bool            clip_       { false };                //!< clip to parent
-  bool            sendSignal_ { false };                //!< send signal on data change
-  mutable BBox    bbox_;                                //!< last drawn bbox
+  Position        position_    { Position::TOP_INSIDE }; //!< position relative to parent
+  Qt::Orientation direction_   { Qt::Vertical };         //!< parent object direction
+  bool            clip_        { true };                 //!< clip to parent
+  bool            moveClipped_ { true };                 //!< move clipped
+  bool            sendSignal_  { false };                //!< send signal on data change
+  mutable BBox    bbox_;                                 //!< last drawn bbox
 };
 
 #endif

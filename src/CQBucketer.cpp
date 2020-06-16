@@ -287,7 +287,7 @@ bucketName(int imin, int imax, NameFormat format)
       return QString("%1").arg(imin);
   }
   else if (format == NameFormat::BRACKETED)
-    return QString("(%1,%2]").arg(imin).arg(imax);
+    return QString("[%1,%2)").arg(imin).arg(imax);
   else
     assert(false);
 }
@@ -303,7 +303,7 @@ bucketName(double rmin, double rmax, NameFormat format)
   else if (format == NameFormat::ARROW)
     return QString("%1%2%3").arg(rmin).arg(arrowChar).arg(rmax);
   else if (format == NameFormat::BRACKETED)
-    return QString("(%1,%2]").arg(rmin).arg(rmax);
+    return QString("[%1,%2)").arg(rmin).arg(rmax);
   else
     assert(false);
 }

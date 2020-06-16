@@ -251,19 +251,25 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  bool rc = true;
+  bool rc      = true;
+  bool addObjs = true;
 
   if (isHierarchical())
-    rc = initHierObjs(objs);
+    rc = initHierObjs();
   else {
     if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs(objs);
-    else if (connectionsColumn().isValid())
+      rc = initLinkObjs();
+    else if (connectionsColumn().isValid()) {
       rc = initConnectionObjs(objs);
+
+      addObjs = false;
+    }
     else if (pathColumn().isValid())
-      rc = initPathObjs(objs);
+      rc = initPathObjs();
+    else if (fromColumn().isValid() && toColumn().isValid())
+      rc = initFromToObjs();
     else
-      rc = initTableObjs(objs);
+      rc = initTableObjs();
   }
 
   if (! rc)
@@ -271,18 +277,22 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  if (addObjs) {
+    th->filterObjs();
+
+    createNameNodeObjs(objs);
+  }
+
   return true;
 }
 
 bool
 CQChartsAdjacencyPlot::
-initHierObjs(PlotObjs &objs) const
+initHierObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initHierObjs");
 
   CQChartsConnectionPlot::initHierObjs();
-
-  createNameNodeObjs(objs);
 
   return true;
 }
@@ -329,7 +339,7 @@ initHierObjsAddConnection(const QString &srcStr, double /*srcValue*/,
 
 bool
 CQChartsAdjacencyPlot::
-initPathObjs(PlotObjs &objs) const
+initPathObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initPathObjs");
 
@@ -349,12 +359,6 @@ initPathObjs(PlotObjs &objs) const
     th->propagatePathValues();
 
   //---
-
-  th->filterPathObjs();
-
-  //---
-
-  createNameNodeObjs(objs);
 
   return true;
 }
@@ -451,9 +455,64 @@ propagatePathValues()
   }
 }
 
+//---
+
+bool
+CQChartsAdjacencyPlot::
+initFromToObjs() const
+{
+  CQPerfTrace trace("CQChartsAdjacencyPlot::initFromToObjs");
+
+  CQChartsConnectionPlot::initFromToObjs();
+
+  return true;
+}
+
 void
 CQChartsAdjacencyPlot::
-filterPathObjs()
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const CQChartsNameValues &nameValues) const
+{
+  auto *srcNode = findNode(fromStr);
+
+  // Just node
+  if (toStr == "") {
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "num_sides") {
+      }
+      else if (nv.first == "label") {
+        srcNode->setLabel(value);
+      }
+      else if (nv.first == "color") {
+        //srcNode->setColor(QColor(value));
+      }
+    }
+  }
+  else {
+    auto *destNode = findNode(toStr);
+
+    srcNode->addEdge(destNode, OptReal(value));
+
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "label") {
+      }
+    }
+  }
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+filterObjs()
 {
   // hide nodes below depth
   if (maxDepth() > 0) {
@@ -480,7 +539,7 @@ filterPathObjs()
 
 bool
 CQChartsAdjacencyPlot::
-initLinkObjs(PlotObjs &objs) const
+initLinkObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initLinkObjs");
 
@@ -612,94 +671,7 @@ initLinkObjs(PlotObjs &objs) const
 
   visitModel(visitor);
 
-  //---
-
-  createNameNodeObjs(objs);
-
   return true;
-}
-
-void
-CQChartsAdjacencyPlot::
-createNameNodeObjs(PlotObjs &objs) const
-{
-  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
-
-  //---
-
-  for (const auto &nameNode : nameNodeMap_) {
-    auto *node = nameNode.second;
-    if (! node->isVisible()) continue;
-
-    th->nodes_[node->id()] = node;
-  }
-
-  //---
-
-  sortNodes(nodes_, th->sortedNodes_, th->nodeData_);
-
-  //---
-
-  double xb = lengthPlotWidth (bgMargin());
-  double yb = lengthPlotHeight(bgMargin());
-
-  th->nodeData_.maxLen = 0;
-
-  for (auto &node1 : sortedNodes_) {
-    th->nodeData_.maxLen = std::max(th->nodeData_.maxLen, int(node1->name().size()));
-  }
-
-  //---
-
-  if (factor_ < 0.0)
-    th->initFactor();
-
-  //---
-
-  int nn = numVisibleNodes();
-
-  if (nn + maxLen()*factor_ > 0)
-    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
-  else
-    th->nodeData_.scale = 1.0;
-
-  double tsize = maxLen()*factor_*scale();
-
-  //---
-
-  double equalValue = 0.0;
-
-  double y = 1.0 - tsize;
-
-  for (auto &node1 : sortedNodes_) {
-    double x = tsize;
-
-    for (auto &node2 : sortedNodes_) {
-      double value = node1->edgeValue(node2, equalValue);
-
-      // skip unconnected
-      bool connected;
-
-      if (node1 == node2)
-        connected = isForceDiagonal();
-      else
-        connected = ! CMathUtil::isZero(value);
-
-      if (connected) {
-        CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
-
-        ColorInd ig(node1->group(), maxGroup() + 1);
-
-        auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
-
-        objs.push_back(obj);
-      }
-
-      x += scale();
-    }
-
-    y -= scale();
-  }
 }
 
 bool
@@ -820,7 +792,7 @@ initConnectionObjs(PlotObjs &objs) const
       bool connected;
 
       if (node1 == node2)
-        connected = isForceDiagonal();
+        connected = (value > 0.0 || isForceDiagonal());
       else
         connected = ! CMathUtil::isZero(value);
 
@@ -847,7 +819,7 @@ initConnectionObjs(PlotObjs &objs) const
 
 bool
 CQChartsAdjacencyPlot::
-initTableObjs(PlotObjs &objs) const
+initTableObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initTableObjs");
 
@@ -882,10 +854,6 @@ initTableObjs(PlotObjs &objs) const
         srcNode->addEdge(destNode, OptReal(value.value));
     }
   }
-
-  //---
-
-  createNameNodeObjs(objs);
 
   return true;
 }
@@ -1024,6 +992,93 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
       });
   }
 }
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+createNameNodeObjs(PlotObjs &objs) const
+{
+  auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
+
+  //---
+
+  for (const auto &nameNode : nameNodeMap_) {
+    auto *node = nameNode.second;
+    if (! node->isVisible()) continue;
+
+    th->nodes_[node->id()] = node;
+  }
+
+  //---
+
+  sortNodes(nodes_, th->sortedNodes_, th->nodeData_);
+
+  //---
+
+  double xb = lengthPlotWidth (bgMargin());
+  double yb = lengthPlotHeight(bgMargin());
+
+  th->nodeData_.maxLen = 0;
+
+  for (auto &node1 : sortedNodes_) {
+    th->nodeData_.maxLen = std::max(th->nodeData_.maxLen, int(node1->name().size()));
+  }
+
+  //---
+
+  if (factor_ < 0.0)
+    th->initFactor();
+
+  //---
+
+  int nn = numVisibleNodes();
+
+  if (nn + maxLen()*factor_ > 0)
+    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
+  else
+    th->nodeData_.scale = 1.0;
+
+  double tsize = maxLen()*factor_*scale();
+
+  //---
+
+  double equalValue = 0.0;
+
+  double y = 1.0 - tsize;
+
+  for (auto &node1 : sortedNodes_) {
+    double x = tsize;
+
+    for (auto &node2 : sortedNodes_) {
+      double value = node1->edgeValue(node2, equalValue);
+
+      // skip unconnected
+      bool connected;
+
+      if (node1 == node2)
+        connected = (value > 0.0 || isForceDiagonal());
+      else
+        connected = ! CMathUtil::isZero(value);
+
+      if (connected) {
+        CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
+
+        ColorInd ig(node1->group(), maxGroup() + 1);
+
+        auto *obj = th->createCellObj(node1, node2, value, bbox, ig);
+
+        objs.push_back(obj);
+      }
+
+      x += scale();
+    }
+
+    y -= scale();
+  }
+}
+
+//---
 
 CQChartsAdjacencyNode *
 CQChartsAdjacencyPlot::
@@ -1245,7 +1300,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
       bool connected;
 
       if (node1 == node2)
-        connected = isForceDiagonal();
+        connected = (value > 0.0 || isForceDiagonal());
       else
         connected = ! CMathUtil::isZero(value);
 

@@ -2383,19 +2383,55 @@ draw(CQChartsPaintDevice *device)
 
     plot()->setUpdatesEnabled(false);
 
-    CQChartsArrow arrow(plot(), CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2));
+    if (! isSelf) {
+      CQChartsArrow arrow(plot(), CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2));
 
-    arrow.setRectilinear (true);
-    arrow.setLineWidth   (CQChartsLength(8, CQChartsUnits::PIXEL));
-    arrow.setFrontVisible(false);
-    arrow.setFilled      (true);
-    arrow.setFillColor   (penBrush.brush.color());
-    arrow.setStroked     (true);
-    arrow.setStrokeColor (penBrush.pen.color());
+      arrow.setRectilinear (true);
+      arrow.setLineWidth   (CQChartsLength(8, CQChartsUnits::PIXEL));
+      arrow.setFrontVisible(false);
+      arrow.setFilled      (true);
+      arrow.setFillColor   (penBrush.brush.color());
+      arrow.setStroked     (true);
+      arrow.setStrokeColor (penBrush.pen.color());
 
-    arrow.draw(device);
+      arrow.draw(device);
 
-    path_ = arrow.drawnPath();
+      path_ = arrow.drawnPath();
+    }
+    else {
+      CQChartsArrowData arrowData;
+
+      arrowData.setFHead(true);
+      arrowData.setTHead(true);
+      arrowData.setLineWidth(CQChartsLength(8, CQChartsUnits::PIXEL));
+
+      double xr = srcRect.getWidth ()/2.0;
+      double yr = srcRect.getHeight()/2.0;
+
+      double a = M_PI/4.0;
+
+      double c = cos(a);
+      double s = sin(a);
+
+      double xm = srcRect.getXMid();
+      double ym = srcRect.getYMid();
+
+      double yt = srcRect.getYMax() + yr/2.0;
+
+      double x1 = xm - xr*c, y1 = ym + xr*s;
+      double x2 = xm + xr*c, y2 = y1;
+
+      QPainterPath path;
+
+      path.moveTo (QPointF(x1, y1));
+      path.cubicTo(QPointF(x1, yt), QPointF(x2, yt), QPointF(x2, y2));
+
+      //---
+
+      CQChartsArrow::pathAddArrows(plot(), path, arrowData, path_);
+
+      device->drawPath(path_);
+    }
 
     plot()->setUpdatesEnabled(true);
   }

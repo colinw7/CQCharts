@@ -29,8 +29,9 @@ addPathProperties(const QString &path, const QString &desc)
 
   addBasicProperties(path, desc);
 
-  addProp(path, "position", "", desc + " position");
-  addProp(path, "clip"    , "", desc + " is clipped");
+  addProp(path, "position"   , "", desc + " position");
+  addProp(path, "clip"       , "", desc + " is clipped");
+  addProp(path, "moveClipped", "", desc + " move clipped");
 
   addTextProperties(path, desc);
 
@@ -146,6 +147,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     QFontMetricsF fm(device->font());
 
     double tw = fm.width(ystr);
+    double th = fm.descent() + fm.ascent();
 
     // calc text pixel position
     double px = 0.0, py = 0.0;
@@ -191,8 +193,47 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     bool clipped = false;
 
     if (isClip()) {
-      if (tw >= pbbox.getWidth())
+      if (tw >= pbbox.getWidth()) {
         clipped = true;
+
+        if (moveClipped()) {
+          if      (position1 == Position::LEFT_INSIDE) {
+            position1 = Position::LEFT_OUTSIDE;
+
+            px = pbbox.getXMin() - tw - xm - pxlp;
+            py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
+          }
+          else if (position1 == Position::RIGHT_INSIDE) {
+            position1 = Position::RIGHT_OUTSIDE;
+
+            px = pbbox.getXMax() + xm + pxrp;
+            py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
+          }
+        }
+      }
+
+      if (th >= pbbox.getHeight()) {
+        clipped = true;
+
+        if (moveClipped()) {
+          if      (position1 == Position::TOP_INSIDE) {
+            position1 = Position::TOP_OUTSIDE;
+
+            px = pbbox.getXMid() - tw/2;
+            py = pbbox.getYMin() - fm.descent() - ym - pytp;
+
+            clipped = false;
+          }
+          else if (position1 == Position::BOTTOM_INSIDE) {
+            position1 = Position::BOTTOM_OUTSIDE;
+
+            px = pbbox.getXMid() - tw/2;
+            py = pbbox.getYMax() + fm.ascent () + ym + pybp;
+
+            clipped = false;
+          }
+        }
+      }
     }
 
     if (isClip()) {

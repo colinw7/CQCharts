@@ -139,15 +139,15 @@ class CQChartsAdjacencyNode {
 
   // get connected node value
   double edgeValue(Node *node, double equalValue=0.0) const {
-    if (node == this) return equalValue;
+    double defValue = (node == this ? equalValue : 0.0);
 
     auto p = edges_.find(node->id());
-    if (p == edges_.end()) return 0.0;
+    if (p == edges_.end()) return defValue;
 
     const EdgeData &edgeData = (*p).second;
 
     if (! edgeData.value.isSet())
-      return 0.0;
+      return defValue;
 
     return edgeData.value.real();
   }
@@ -400,7 +400,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initHierObjs(PlotObjs &objs) const;
+  bool initHierObjs() const;
 
   void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                                      const HierConnectionData &destHierData) const override;
@@ -412,19 +412,29 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initPathObjs(PlotObjs &objs) const;
+  bool initPathObjs() const;
 
   void addPathValue(const QStringList &pathStrs, double value) const override;
 
   void propagatePathValues();
 
-  void filterPathObjs();
-
   //--
 
-  bool initLinkObjs      (PlotObjs &objs) const;
+  bool initFromToObjs() const;
+
+  void addFromToValue(const QString &, const QString &, double,
+                      const CQChartsNameValues &) const override;
+
+  //---
+
+  bool initLinkObjs () const;
+  bool initTableObjs() const;
+
   bool initConnectionObjs(PlotObjs &objs) const;
-  bool initTableObjs     (PlotObjs &objs) const;
+
+  void filterObjs();
+
+  //---
 
   void createNameNodeObjs(PlotObjs &objs) const;
 

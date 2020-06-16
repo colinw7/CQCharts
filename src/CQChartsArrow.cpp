@@ -84,62 +84,6 @@ drawContents(const PenBrush &penBrush) const
 
   //---
 
-  struct Angle {
-    double angle { 0.0 };
-    double sin   { 0.0 };
-    double cos   { 1.0 };
-
-    Angle() = default;
-
-    Angle(double angle) :
-     angle(angle) {
-      init();
-    }
-
-    Angle(const Point &p1, const Point &p2) {
-      angle = CQChartsGeom::pointAngle(p1, p2);
-
-      init();
-    }
-
-    void init() {
-      sin = std::sin(angle);
-      cos = std::cos(angle);
-    }
-  };
-
-  //---
-
-  auto movePointOnLine = [](const Point &p, const Angle &a, double d) {
-    return Point(p.x + d*a.cos, p.y + d*a.sin);
-  };
-
-  auto movePointPerpLine = [](const Point &p, const Angle &a, double d) {
-    return Point(p.x + d*a.sin, p.y - d*a.cos);
-  };
-
-  auto addWidthToPoint = [](const Point &p, const Angle &a, double lw, Point &p1, Point &p2) {
-    double dx = lw*a.sin/2.0;
-    double dy = lw*a.cos/2.0;
-
-    p1 = Point(p.x - dx, p.y + dy);
-    p2 = Point(p.x + dx, p.y - dy);
-  };
-
-  auto intersectLine = [](const Point &l1s, const Point &l1e,
-                          const Point &l2s, const Point &l2e, Point &pi, bool &inside) {
-    double xi, yi;
-
-    inside = CQChartsUtil::intersectLines(l1s.x, l1s.y, l1e.x, l1e.y,
-                                          l2s.x, l2s.y, l2e.x, l2e.y, xi, yi);
-
-    pi = Point(xi, yi);
-
-    return inside;
-  };
-
-  //---
-
 #if DEBUG_LABELS
   pointLabels_.clear();
 
@@ -227,18 +171,18 @@ drawContents(const PenBrush &penBrush) const
   //---
 
   // calc line angle (radians)
-  Angle a;
+  ArrowAngle a;
 
   if (! isRectilinear())
-    a = Angle(p1, p4);
+    a = ArrowAngle(p1, p4);
 
   // calc front/tail arrow angles (radians)
-  Angle faa(CMathUtil::Deg2Rad(frontAngle().value() > 0 ? frontAngle().value() : 45));
-  Angle taa(CMathUtil::Deg2Rad(tailAngle ().value() > 0 ? tailAngle ().value() : 45));
+  ArrowAngle faa(CMathUtil::Deg2Rad(frontAngle().value() > 0 ? frontAngle().value() : 45));
+  ArrowAngle taa(CMathUtil::Deg2Rad(tailAngle ().value() > 0 ? tailAngle ().value() : 45));
 
   // calc front/tail arrow back angles (radians)
-  Angle fba(CMathUtil::Deg2Rad(frontBackAngle().value() > 0 ? frontBackAngle().value() : 90));
-  Angle tba(CMathUtil::Deg2Rad(tailBackAngle ().value() > 0 ? tailBackAngle ().value() : 90));
+  ArrowAngle fba(CMathUtil::Deg2Rad(frontBackAngle().value() > 0 ? frontBackAngle().value() : 90));
+  ArrowAngle tba(CMathUtil::Deg2Rad(tailBackAngle ().value() > 0 ? tailBackAngle ().value() : 90));
 
   //---
 
@@ -300,8 +244,8 @@ drawContents(const PenBrush &penBrush) const
 
   if (isFrontVisible()) {
     // calc front head angle (relative to line)
-    Angle a1 = a.angle + faa.angle;
-    Angle a2 = a.angle - faa.angle;
+    ArrowAngle a1 = a.angle + faa.angle;
+    ArrowAngle a2 = a.angle - faa.angle;
 
     //---
 
@@ -328,8 +272,8 @@ drawContents(const PenBrush &penBrush) const
       }
       else {
         // calc front head angle (relative to line)
-        Angle a1 = a.angle + faa.angle;
-        Angle a2 = a.angle - faa.angle;
+        ArrowAngle a1 = a.angle + faa.angle;
+        ArrowAngle a2 = a.angle - faa.angle;
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
         auto pf11 = movePointPerpLine(pf1, a1,  lpw);
@@ -372,7 +316,7 @@ drawContents(const PenBrush &penBrush) const
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (fba.angle > faa.angle && fba.angle < M_PI) {
-        Angle a3 = a.angle + fba.angle;
+        ArrowAngle a3 = a.angle + fba.angle;
 
         auto pf1t = movePointOnLine(pf1, a3, -10);
 
@@ -407,8 +351,8 @@ drawContents(const PenBrush &penBrush) const
 
   if (isTailVisible()) {
     // calc tail head angle (relative to line)
-    Angle a1 = a.angle + M_PI - taa.angle;
-    Angle a2 = a.angle + M_PI + taa.angle;
+    ArrowAngle a1 = a.angle + M_PI - taa.angle;
+    ArrowAngle a2 = a.angle + M_PI + taa.angle;
 
     //---
 
@@ -435,8 +379,8 @@ drawContents(const PenBrush &penBrush) const
       }
       else {
         // calc tail head angle (relative to line)
-        Angle a1 = a.angle + M_PI - taa.angle;
-        Angle a2 = a.angle + M_PI + taa.angle;
+        ArrowAngle a1 = a.angle + M_PI - taa.angle;
+        ArrowAngle a2 = a.angle + M_PI + taa.angle;
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
         auto pt11 = movePointPerpLine(pt1, a1, -lpw);
@@ -479,7 +423,7 @@ drawContents(const PenBrush &penBrush) const
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (tba.angle > taa.angle && tba.angle < M_PI) {
-        Angle a3 = a.angle + M_PI - tba.angle;
+        ArrowAngle a3 = a.angle + M_PI - tba.angle;
 
         auto pt1t = movePointOnLine(pt1, a3, -10);
 
@@ -903,4 +847,224 @@ write(std::ostream &os, const QString &varName) const
 
     os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
+}
+
+//----
+
+void
+CQChartsArrow::
+pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
+              const CQChartsArrowData &arrowData, QPainterPath &arrowPath)
+{
+  bool first = true;
+
+  double lw = plot->lengthPlotWidth(arrowData.lineWidth());
+
+  QPainterPath arrowPath1, arrowPath2;
+
+  // start is front point, end is end point
+  int n = path.elementCount();
+
+  Point p1, p2;
+
+  for (int i = 0; i < n; ++i) {
+    const QPainterPath::Element &e = path.elementAt(i);
+
+    if      (e.isMoveTo()) {
+      p1 = Point(e.x, e.y);
+      p2 = p1;
+    }
+    else if (e.isLineTo()) {
+      p1 = p2;
+      p2 = Point(e.x, e.y);
+
+      ArrowAngle a(p1, p2);
+
+      Point lp1, lp2;
+
+      addWidthToPoint(p1, a, lw, lp2, lp1); // above/below
+
+      if (first) {
+        if (arrowData.isFHead()) {
+          auto pf = movePointOnLine(p1, a, -lw);
+
+          arrowPath1.moveTo(pf.qpoint());
+          arrowPath2.moveTo(pf.qpoint());
+
+          Point ap1, ap2;
+
+          addWidthToPoint(p1, a, 2*lw, ap2, ap1); // above/below
+
+          arrowPath1.lineTo(ap1.qpoint());
+          arrowPath2.lineTo(ap2.qpoint());
+
+          arrowPath1.lineTo(lp1.qpoint());
+          arrowPath2.lineTo(lp2.qpoint());
+        }
+        else {
+          arrowPath1.moveTo(lp1.qpoint());
+          arrowPath2.moveTo(lp2.qpoint());
+        }
+
+        first = false;
+      }
+
+      addWidthToPoint(p2, a, lw, lp1, lp2);
+
+      arrowPath1.lineTo(lp1.qpoint());
+      arrowPath2.lineTo(lp2.qpoint());
+    }
+    else if (e.isCurveTo()) {
+      p1 = p2;
+
+      QPainterPath::Element     e1, e2;
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+
+      auto pc1 = Point(e.x, e.y);
+
+      ArrowAngle a(p1, pc1);
+
+      if (first) {
+        Point lp1, lp2;
+
+        addWidthToPoint(p1, a, lw, lp2, lp1); // above/below
+
+        if (arrowData.isFHead()) {
+          auto pf = movePointOnLine(p1, a, -lw);
+
+          arrowPath1.moveTo(pf.qpoint());
+          arrowPath2.moveTo(pf.qpoint());
+
+          Point ap1, ap2;
+
+          addWidthToPoint(p1, a, 2*lw, ap2, ap1); // above/below
+
+          arrowPath1.lineTo(ap1.qpoint());
+          arrowPath2.lineTo(ap2.qpoint());
+
+          arrowPath1.lineTo(lp1.qpoint());
+          arrowPath2.lineTo(lp2.qpoint());
+        }
+        else {
+          arrowPath1.moveTo(lp1.qpoint());
+          arrowPath2.moveTo(lp2.qpoint());
+        }
+
+        first = false;
+      }
+
+      if (i < n - 1) {
+        e1  = path.elementAt(i + 1);
+        e1t = e1.type;
+      }
+
+      if (i < n - 2) {
+        e2  = path.elementAt(i + 2);
+        e2t = e2.type;
+      }
+
+      if (e1t == QPainterPath::CurveToDataElement) {
+        if (e2t == QPainterPath::CurveToDataElement) {
+          auto pc2 = Point(e1.x, e1.y); ++i;
+
+          p2 = Point(e2.x, e2.y); ++i;
+
+          Point lp11, lp21, lp12, lp22, lp13, lp23;
+
+          addWidthToPoint(pc1, ArrowAngle(p1 , pc1), lw, lp21, lp11); // above/below
+          addWidthToPoint(pc2, ArrowAngle(pc2, pc2), lw, lp22, lp12); // above/below
+          addWidthToPoint(p2 , ArrowAngle(pc2, p2 ), lw, lp23, lp13); // above/below
+
+          arrowPath1.cubicTo(lp11.qpoint(), lp12.qpoint(), lp13.qpoint());
+          arrowPath2.cubicTo(lp21.qpoint(), lp22.qpoint(), lp23.qpoint());
+        }
+        else {
+          p2 = Point(e1.x, e1.y); ++i;
+
+          Point lp11, lp21, lp12, lp22, lp13, lp23;
+
+          addWidthToPoint(pc1, ArrowAngle(p1 , pc1), lw, lp21, lp11); // above/below
+          addWidthToPoint(p2 , ArrowAngle(pc1, p2 ), lw, lp22, lp12); // above/below
+
+          arrowPath1.quadTo(lp11.qpoint(), lp12.qpoint());
+          arrowPath2.quadTo(lp21.qpoint(), lp22.qpoint());
+        }
+      }
+    }
+    else {
+      assert(false);
+    }
+  }
+
+  if (! first) {
+    if (arrowData.isTHead()) {
+      ArrowAngle a(p1, p2);
+
+      Point lp1, lp2;
+
+      addWidthToPoint(p2, a, lw, lp2, lp1); // above/below
+
+      arrowPath1.lineTo(lp1.qpoint());
+      arrowPath2.lineTo(lp2.qpoint());
+
+      Point ap1, ap2;
+
+      addWidthToPoint(p2, a, 2*lw, ap2, ap1); // above/below
+
+      arrowPath1.lineTo(ap1.qpoint());
+      arrowPath2.lineTo(ap2.qpoint());
+
+      auto pf = movePointOnLine(p2, a, lw);
+
+      arrowPath1.lineTo(pf.qpoint());
+      arrowPath2.lineTo(pf.qpoint());
+    }
+  }
+
+  arrowPath2 = arrowPath2.toReversed();
+
+  arrowPath1.addPath(arrowPath2);
+
+  arrowPath = arrowPath1;
+}
+
+void
+CQChartsArrow::
+addWidthToPoint(const Point &p, const ArrowAngle &a, double lw, Point &p1, Point &p2)
+{
+  double dx = lw*a.sin/2.0;
+  double dy = lw*a.cos/2.0;
+
+  p1 = Point(p.x - dx, p.y + dy); // above
+  p2 = Point(p.x + dx, p.y - dy); // below
+}
+
+CQChartsArrow::Point
+CQChartsArrow::
+movePointOnLine(const Point &p, const ArrowAngle &a, double d)
+{
+  return Point(p.x + d*a.cos, p.y + d*a.sin);
+}
+
+CQChartsArrow::Point
+CQChartsArrow::
+movePointPerpLine(const Point &p, const ArrowAngle &a, double d)
+{
+  return Point(p.x + d*a.sin, p.y - d*a.cos);
+}
+
+bool
+CQChartsArrow::
+intersectLine(const Point &l1s, const Point &l1e,
+              const Point &l2s, const Point &l2e, Point &pi, bool &inside)
+{
+  double xi, yi;
+
+  inside = CQChartsUtil::intersectLines(l1s.x, l1s.y, l1e.x, l1e.y,
+                                        l2s.x, l2s.y, l2e.x, l2e.y, xi, yi);
+
+  pi = Point(xi, yi);
+
+  return inside;
 }

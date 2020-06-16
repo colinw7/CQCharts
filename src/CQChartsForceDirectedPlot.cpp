@@ -260,6 +260,8 @@ createObjs(PlotObjs &) const
       rc = initLinkConnectionObjs();
     else if (pathColumn().isValid())
       rc = initPathObjs();
+    else if (fromColumn().isValid() && toColumn().isValid())
+      rc = initFromToObjs();
     else
       rc = initTableObjs();
   }
@@ -268,6 +270,8 @@ createObjs(PlotObjs &) const
     return false;
 
   //---
+
+  th->filterObjs();
 
   addIdConnections();
 
@@ -516,10 +520,6 @@ initPathObjs() const
   if (isPropagate())
     th->propagatePathValues();
 
-  //---
-
-  th->filterPathObjs();
-
   return true;
 }
 
@@ -541,19 +541,16 @@ addPathValue(const QStringList &pathStrs, double value) const
   for (int i = 1; i < n; ++i) {
     QString path2 = path1 + separator + pathStrs[i];
 
-    auto srcId  = getStringId(path1);
-    auto destId = getStringId(path2);
-
-    assert(srcId != destId);
-
-    auto &srcConnectionsData  = const_cast<ConnectionsData &>(getConnections(srcId ));
-    auto &destConnectionsData = const_cast<ConnectionsData &>(getConnections(destId));
+    auto &srcConnectionsData  = th->getConnections(path1);
+    auto &destConnectionsData = th->getConnections(path2);
 
     srcConnectionsData.name  = path1;
+    srcConnectionsData.label = pathStrs[i - 1];
     srcConnectionsData.depth = i - 1;
     srcConnectionsData.group = srcConnectionsData.depth;
 
     destConnectionsData.name  = path2;
+    destConnectionsData.label = pathStrs[i];
     destConnectionsData.depth = i;
     destConnectionsData.group = destConnectionsData.depth;
 
@@ -561,7 +558,7 @@ addPathValue(const QStringList &pathStrs, double value) const
       bool hasConnection = false;
 
       for (auto &connection : srcConnectionsData.connections) {
-        if (connection.node == destId) {
+        if (connection.node == destConnectionsData.node) {
           hasConnection = true;
           break;
         }
@@ -570,22 +567,22 @@ addPathValue(const QStringList &pathStrs, double value) const
       if (! hasConnection) {
         Connection connection;
 
-        connection.node = destId;
+        connection.node = destConnectionsData.node;
 
         srcConnectionsData.connections.push_back(connection);
 
-        destConnectionsData.parentId = srcId;
+        destConnectionsData.parentId = srcConnectionsData.node;
       }
     }
     else {
       Connection connection;
 
-      connection.node  = destId;
+      connection.node  = destConnectionsData.node;
       connection.value = OptReal(value);
 
       srcConnectionsData.connections.push_back(connection);
 
-      destConnectionsData.parentId = srcId;
+      destConnectionsData.parentId = srcConnectionsData.node;
       destConnectionsData.value    = OptReal(value);
     }
 
@@ -645,27 +642,60 @@ propagatePathValues()
   }
 }
 
+//---
+
+bool
+CQChartsForceDirectedPlot::
+initFromToObjs() const
+{
+  CQPerfTrace trace("CQChartsForceDirectedPlot::initFromToObjs");
+
+  CQChartsConnectionPlot::initFromToObjs();
+
+  return true;
+}
+
 void
 CQChartsForceDirectedPlot::
-filterPathObjs()
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const CQChartsNameValues &nameValues) const
 {
-  // hide nodes below depth
-  if (maxDepth() > 0) {
-    for (auto &idConnections : idConnections_) {
-      auto &connectionsData = idConnections.second;
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-      if (connectionsData.depth > maxDepth())
-        connectionsData.visible = false;
+  auto &srcConnectionsData = th->getConnections(fromStr);
+
+  // Just node
+  if (toStr == "") {
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "num_sides") {
+      }
+      else if (nv.first == "label") {
+        srcConnectionsData.label = value;
+      }
+      else if (nv.first == "color") {
+        //srcConnectionsData.color = QColor(value);
+      }
     }
   }
+  else {
+    if (fromStr == toStr)
+      return;
 
-  // hide nodes less than min value
-  if (minValue() > 0) {
-    for (auto &idConnections : idConnections_) {
-      auto &connectionsData = idConnections.second;
+    auto &destConnectionsData = th->getConnections(toStr);
 
-      if (! connectionsData.value.isSet() || connectionsData.value.real() < minValue())
-        connectionsData.visible = false;
+    addEdge(srcConnectionsData, destConnectionsData, value);
+
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "label") {
+      }
     }
   }
 }
@@ -962,6 +992,44 @@ initTableObjs() const
   return true;
 }
 
+//---
+
+void
+CQChartsForceDirectedPlot::
+filterObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (auto &idConnections : idConnections_) {
+      auto &connectionsData = idConnections.second;
+
+      if (connectionsData.depth > maxDepth())
+        connectionsData.visible = false;
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (auto &idConnections : idConnections_) {
+      auto &connectionsData = idConnections.second;
+
+      if (! connectionsData.value.isSet() || connectionsData.value.real() < minValue())
+        connectionsData.visible = false;
+    }
+  }
+}
+
+//---
+
+CQChartsForceDirectedPlot::ConnectionsData &
+CQChartsForceDirectedPlot::
+getConnections(const QString &str)
+{
+  auto id = getStringId(str);
+
+  return getConnections(id);
+}
+
 const CQChartsForceDirectedPlot::ConnectionsData &
 CQChartsForceDirectedPlot::
 getConnections(int id) const
@@ -990,6 +1058,23 @@ getConnections(int id)
 
   return (*p).second;
 }
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+addEdge(ConnectionsData &srcConnectionsData,
+        ConnectionsData &destConnectionsData, double value) const
+{
+  Connection connection;
+
+  connection.node  = destConnectionsData.node;
+  connection.value = OptReal(value);
+
+  srcConnectionsData.connections.push_back(connection);
+}
+
+//---
 
 int
 CQChartsForceDirectedPlot::

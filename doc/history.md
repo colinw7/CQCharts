@@ -1125,3 +1125,7 @@
  + Support more styles and shapes in sankey plot
  + Support from/to columns in connection plot
  + Allow rectilinear arrow line
+# 06/16/2020
+ + Add from/to columns to all connection s
+ + Support resizable icon in image
+ + Allow clipped bar label to be auto moved outside

@@ -214,6 +214,44 @@ class CQChartsArrow : public QObject,
   // write to script
   void write(std::ostream &os, const QString &varName) const;
 
+  //---
+
+  struct ArrowAngle {
+    double angle { 0.0 };
+    double sin   { 0.0 };
+    double cos   { 1.0 };
+
+    ArrowAngle() = default;
+
+    ArrowAngle(double angle) :
+     angle(angle) {
+      init();
+    }
+
+    ArrowAngle(const Point &p1, const Point &p2) {
+      angle = CQChartsGeom::pointAngle(p1, p2);
+
+      init();
+    }
+
+    void init() {
+      sin = std::sin(angle);
+      cos = std::cos(angle);
+    }
+  };
+
+  static void pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
+                            const CQChartsArrowData &arrowData, QPainterPath &arrowPath);
+
+  static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,
+                              Point &p1, Point &p2);
+
+  static Point movePointOnLine  (const Point &p, const ArrowAngle &a, double d);
+  static Point movePointPerpLine(const Point &p, const ArrowAngle &a, double d);
+
+  static bool intersectLine(const Point &l1s, const Point &l1e,
+                            const Point &l2s, const Point &l2e, Point &pi, bool &inside);
+
  private:
   void init();
 

@@ -6394,7 +6394,10 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
   argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
 
-  argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image");
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image file");
+  argv.addCmdArg("-icon" , CQChartsCmdArg::Type::String, "icon file");
+  argv.endCmdGroup();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
@@ -6426,12 +6429,24 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  QString name = argv.getParseStr("image");
+  CQChartsImage image;
 
-  CQChartsImage image(name);
+  if      (argv.hasParseArg("image")) {
+    QString imageName = argv.getParseStr("image");
 
-  if (! image.isValid())
-    return errorMsg(QString("Invalid image filename '%1'").arg(name));
+    image = CQChartsImage(imageName, CQChartsImage::Type::IMAGE);
+
+    if (! image.isValid())
+      return errorMsg(QString("Invalid image filename '%1'").arg(imageName));
+  }
+  else {
+    QString iconName = argv.getParseStr("icon");
+
+    image = CQChartsImage(iconName, CQChartsImage::Type::ICON);
+
+    if (! image.isValid())
+      return errorMsg(QString("Invalid image filename '%1'").arg(iconName));
+  }
 
   //---
 

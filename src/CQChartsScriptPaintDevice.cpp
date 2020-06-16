@@ -304,8 +304,6 @@ void
 CQChartsScriptPaintDevice::
 drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
 {
-  const QImage qimage = image.image();
-
   double x = (! isInvertX() ? bbox.getXMin() : bbox.getXMax());
   double y = (! isInvertY() ? bbox.getYMax() : bbox.getYMin());
 
@@ -314,7 +312,9 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  drawImage(CQChartsGeom::Point(x, y), qimage.scaled(int(w), int(h), Qt::IgnoreAspectRatio));
+  QImage qimage = image.sizedImage(int(w), int(h));
+
+  drawImage(CQChartsGeom::Point(x, y), qimage);
 }
 
 void

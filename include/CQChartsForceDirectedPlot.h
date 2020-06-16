@@ -183,7 +183,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void propagatePathValues();
 
-  void filterPathObjs();
+  //---
+
+  bool initFromToObjs() const;
+
+  void addFromToValue(const QString &, const QString &, double,
+                      const CQChartsNameValues &) const override;
 
   //---
 
@@ -191,6 +196,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool initTableObjs         () const;
 
   void postUpdateObjs() override;
+
+  void filterObjs();
 
   void addIdConnections() const;
 
@@ -232,6 +239,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     int         node         { 0 };    //!< unique index
     QModelIndex ind;                   //!< model index
     QString     name;                  //!< name
+    QString     label;                 //!< label
     int         group        { 0 };    //!< group
     OptReal     value;                 //!< value
     OptReal     total;                 //!< total
@@ -250,8 +258,13 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool getRowConnections(int group, const ModelVisitor::VisitData &data) const;
 
   //! get connections data for unique id
+  ConnectionsData &getConnections(const QString &str);
+
   const ConnectionsData &getConnections(int id) const;
   ConnectionsData &getConnections(int id);
+
+  void addEdge(ConnectionsData &srcConnectionsData,
+               ConnectionsData &destConnectionsData, double value) const;
 
   //! get unique index for string
   int getStringId(const QString &str) const;

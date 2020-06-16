@@ -288,23 +288,39 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create objects
-  bool rc = true;
+  th->nameDataMap_.clear();
+
+  bool rc      = true;
+  bool addObjs = true;
 
   if (isHierarchical())
-    rc = initHierObjs(objs);
+    rc = initHierObjs();
   else {
     if      (linkColumn().isValid() && valueColumn().isValid())
-      rc = initLinkObjs(objs);
+      rc = initLinkObjs();
     else if (connectionsColumn().isValid())
-      rc = initConnectionObjs(objs);
+      rc = initConnectionObjs();
     else if (pathColumn().isValid())
-      rc = initPathObjs(objs);
-    else
+      rc = initPathObjs();
+    else if (fromColumn().isValid() && toColumn().isValid())
+      rc = initFromToObjs();
+    else {
       rc = initTableObjs(objs);
+
+      addObjs = false;
+    }
   }
 
   if (! rc)
     return false;
+
+  //---
+
+  if (addObjs) {
+    th->filterObjs();
+
+    th->addNameDataMap(nameDataMap_, objs);
+  }
 
   //---
 
@@ -313,23 +329,13 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsChordPlot::
-initHierObjs(PlotObjs &objs) const
+initHierObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initHierObjs");
 
   //---
 
-  auto *th = const_cast<CQChartsChordPlot *>(this);
-
-  th->nameDataMap_.clear();
-
-  //---
-
   CQChartsConnectionPlot::initHierObjs();
-
-  //---
-
-  th->addNameDataMap(nameDataMap_, objs);
 
   return true;
 }
@@ -373,23 +379,20 @@ initHierObjsConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkI
 
   // create link from src to dest for values
   // (hier always symmetric)
-  srcData .addValue(destData.from(), destValue, /*primary*/true );
-  destData.addValue(srcData .from(), destValue, /*primary*/false);
+  addEdge(srcData, destData, destValue, /*symmetric*/true);
 }
 
 //---
 
 bool
 CQChartsChordPlot::
-initPathObjs(PlotObjs &objs) const
+initPathObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initPathObjs");
 
   //---
 
   auto *th = const_cast<CQChartsChordPlot *>(this);
-
-  th->nameDataMap_.clear();
 
   th->maxNodeDepth_ = 0;
 
@@ -401,14 +404,6 @@ initPathObjs(PlotObjs &objs) const
 
   if (isPropagate())
     th->propagatePathValues();
-
-  //---
-
-  th->filterPathObjs();
-
-  //---
-
-  th->addNameDataMap(nameDataMap_, objs);
 
   return true;
 }
@@ -442,15 +437,13 @@ addPathValue(const QStringList &pathStrs, double value) const
 
     if (i < n - 1) {
       if (! srcData.hasTo(destData.from())) {
-        srcData .addValue(destData.from(), value, /*primary*/true );
-        destData.addValue(srcData .from(), value, /*primary*/false);
+        addEdge(srcData, destData, value, /*symmetric*/true);
 
         destData.setParent(srcData.from());
       }
     }
     else {
-      srcData .addValue(destData.from(), value, /*primary*/true );
-      destData.addValue(srcData .from(), value, /*primary*/false);
+      addEdge(srcData, destData, value, /*symmetric*/true);
 
       destData.setParent(srcData.from());
       destData.setValue (OptReal(value));
@@ -510,27 +503,55 @@ propagatePathValues()
   }
 }
 
+//---
+
+bool
+CQChartsChordPlot::
+initFromToObjs() const
+{
+  CQPerfTrace trace("CQChartsChordPlot::initFromToObjs");
+
+  CQChartsConnectionPlot::initFromToObjs();
+
+  return true;
+}
+
 void
 CQChartsChordPlot::
-filterPathObjs()
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const CQChartsNameValues &nameValues) const
 {
-  // hide nodes below depth
-  if (maxDepth() > 0) {
-    for (auto &p : nameDataMap_) {
-      auto &chordData = p.second;
+  auto &srcData = findNameData(fromStr, QModelIndex());
 
-      if (chordData.depth() > maxDepth())
-        chordData.setVisible(false);
+  // Just node
+  if (toStr == "") {
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "num_sides") {
+      }
+      else if (nv.first == "label") {
+        srcData.setLabel(value);
+      }
+      else if (nv.first == "color") {
+        //srcData.setColor(QColor(value));
+      }
     }
   }
+  else {
+    auto &destData = findNameData(toStr, QModelIndex());
 
-  // hide nodes less than min value
-  if (minValue() > 0) {
-    for (auto &p : nameDataMap_) {
-      auto &chordData = p.second;
+    addEdge(srcData, destData, value, /*symmetric*/true);
 
-      if (! chordData.value().isSet() || chordData.value().real() < minValue())
-        chordData.setVisible(false);
+    for (const auto &nv : nameValues.nameValues()) {
+      QString value = nv.second.toString();
+
+      if      (nv.first == "shape") {
+      }
+      else if (nv.first == "label") {
+      }
     }
   }
 }
@@ -539,15 +560,9 @@ filterPathObjs()
 
 bool
 CQChartsChordPlot::
-initLinkObjs(PlotObjs &objs) const
+initLinkObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initLinkObjs");
-
-  //---
-
-  auto *th = const_cast<CQChartsChordPlot *>(this);
-
-  th->nameDataMap_.clear();
 
   //---
 
@@ -632,8 +647,7 @@ initLinkObjs(PlotObjs &objs) const
       auto &destData = plot_->findNameData(destStr, linkInd);
 
       // create link from src to dest for value
-      srcData .addValue(destData.from(), value, /*primary*/true );
-      destData.addValue(srcData .from(), value, /*primary*/false);
+      plot_->addEdge(srcData, destData, value, /*symmetric*/true);
 
       //---
 
@@ -656,22 +670,14 @@ initLinkObjs(PlotObjs &objs) const
 
   visitModel(visitor);
 
-  //---
-
-  th->addNameDataMap(nameDataMap_, objs);
-
   return true;
 }
 
 bool
 CQChartsChordPlot::
-initConnectionObjs(PlotObjs &objs) const
+initConnectionObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initConnectionObjs");
-
-  //---
-
-  auto *th = const_cast<CQChartsChordPlot *>(this);
 
   //---
 
@@ -830,13 +836,9 @@ initConnectionObjs(PlotObjs &objs) const
       auto &destData = findNameData(nameDataMap, destStr, connectionsData.ind);
 
       // create link from src to dest for value
-      srcData.addValue(destData.from(), connection.value, /*primary*/true);
+      addEdge(srcData, destData, connection.value, /*symmetric*/false);
     }
   }
-
-  //---
-
-  th->addNameDataMap(nameDataMap, objs);
 
   return true;
 }
@@ -962,6 +964,8 @@ initTableObjs(PlotObjs &objs) const
   return true;
 }
 
+//---
+
 CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
 findNameData(const QString &name, const QModelIndex &linkInd) const
@@ -997,6 +1001,20 @@ findNameData(NameDataMap &nameDataMap, const QString &name,
   return (*p).second;
 }
 
+//---
+
+void
+CQChartsChordPlot::
+addEdge(ChordData &srcData, ChordData &destData, double value, bool symmetric) const
+{
+  srcData.addValue(destData.from(), value, /*primary*/true );
+
+  if (symmetric)
+    destData.addValue(srcData.from(), value, /*primary*/false);
+}
+
+//---
+
 CQChartsChordPlot::ChordData &
 CQChartsChordPlot::
 getIndData(int ind)
@@ -1009,6 +1027,35 @@ getIndData(int ind)
 
   return (*pn).second;
 }
+
+//---
+
+void
+CQChartsChordPlot::
+filterObjs()
+{
+  // hide nodes below depth
+  if (maxDepth() > 0) {
+    for (auto &p : nameDataMap_) {
+      auto &chordData = p.second;
+
+      if (chordData.depth() > maxDepth())
+        chordData.setVisible(false);
+    }
+  }
+
+  // hide nodes less than min value
+  if (minValue() > 0) {
+    for (auto &p : nameDataMap_) {
+      auto &chordData = p.second;
+
+      if (! chordData.value().isSet() || chordData.value().real() < minValue())
+        chordData.setVisible(false);
+    }
+  }
+}
+
+//---
 
 void
 CQChartsChordPlot::
@@ -1152,6 +1199,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     }
   }
 }
+
+//---
 
 CQChartsChordPlot::ChordData::Group
 CQChartsChordPlot::
