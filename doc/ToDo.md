@@ -4,7 +4,6 @@ Abstract Painter/Javascript
 
 TODO:
  + Better handling of scaled (icon) images like SVG
- + bar/dist label inside/outside bar
  + tcl proc to run command with current location ? tcl state machine to add annotation ?
  + filterObjs for all connection types (chord, ...)
  + add from/to for all connection types

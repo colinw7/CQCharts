@@ -1670,8 +1670,6 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  auto prect = plot_->windowToPixel(rect());
-
   const auto &value = this->value();
 
   QString label = value->getNameValue("Label");
@@ -1685,7 +1683,7 @@ dataLabelRect() const
     label = plot_->valueStr(value);
   }
 
-  return plot_->dataLabel()->calcRect(prect, label);
+  return plot_->dataLabel()->calcRect(rect(), label);
 }
 
 //---

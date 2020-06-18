@@ -59,7 +59,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //! move clipped
   bool moveClipped() const { return moveClipped_; }
-  void setMoveClipped(bool b) { moveClipped_ = b; }
+  void setMoveClipped(bool b) { moveClipped_ = b; textBoxDataInvalidate(); }
 
   //! send signal
   bool isSendSignal() const { return sendSignal_; }

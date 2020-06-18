@@ -2409,6 +2409,9 @@ class CQChartsPlot : public CQChartsObj,
   void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
+  // pressed
+  void selectPressSignal(const CQChartsGeom::Point &p);
+
   // zoom/pan changed
   void zoomPanChanged();
 

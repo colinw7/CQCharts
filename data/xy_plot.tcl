@@ -23,9 +23,14 @@ proc objPressed { view plot id } {
   }
 }
 
+proc selectPress { view plot x y } {
+  echo "$view $plot $x $y"
+}
+
 set model [load_charts_model -tsv data/multi_series.tsv -comment_header \
   -column_type {{{time} {format %Y%m%d} {oformat %F}}}]
 
 set plot [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "XY Plot"]
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed
+connect_charts_signal -plot $plot -from selectPress -to selectPress

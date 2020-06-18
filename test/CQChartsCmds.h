@@ -7,6 +7,7 @@
 #include <CQCharts.h>
 #include <CQChartsInitData.h>
 #include <CQChartsGeom.h>
+
 #include <QObject>
 #include <QString>
 #include <QSharedPointer>

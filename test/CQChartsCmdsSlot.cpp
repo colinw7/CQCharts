@@ -108,6 +108,17 @@ selectionChanged()
 
 void
 CQChartsCmdsSlot::
+selectPress(const CQChartsGeom::Point &p)
+{
+  QString cmd = getTclCmd();
+
+  cmd += QString(" %1 %2").arg(p.x).arg(p.y);
+
+  evalCmd(cmd);
+}
+
+void
+CQChartsCmdsSlot::
 themeChanged()
 {
   disconnect(cmds_->charts(), SIGNAL(themeChanged()), this, SLOT(themeChanged()));

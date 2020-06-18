@@ -3262,7 +3262,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  auto rect = calcRect();
+  auto bbox = calcRect();
 
   QString ystr;
 
@@ -3273,7 +3273,7 @@ dataLabelRect() const
   else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
   else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
-  return plot_->dataLabel()->calcRect(rect, ystr);
+  return plot_->dataLabel()->calcRect(bbox, ystr);
 }
 
 void
@@ -3314,7 +3314,7 @@ void
 CQChartsDistributionBarObj::
 draw(CQChartsPaintDevice *device)
 {
-  auto pbbox = calcRect();
+  auto bbox = calcRect();
 
   //---
 
@@ -3352,6 +3352,8 @@ draw(CQChartsPaintDevice *device)
   colorData_ = ColorData();
 
   if (getBarColoredRects(colorData_)) {
+    auto pbbox = plot_->windowToPixel(bbox);
+
     double size = (! plot_->isHorizontal() ? pbbox.getHeight() : pbbox.getWidth());
 
     if      (plot_->isValueCount()) {
@@ -3377,7 +3379,9 @@ draw(CQChartsPaintDevice *device)
 
         //---
 
-        drawRect(device, pbbox1, color, useLine);
+        auto bbox1 = device->pixelToWindow(pbbox1);
+
+        drawRect(device, bbox1, color, useLine);
       }
     }
     else if (plot_->isValueSum()) {
@@ -3401,18 +3405,24 @@ draw(CQChartsPaintDevice *device)
 
         //---
 
-        drawRect(device, pbbox1, color, useLine);
+        auto bbox1 = device->pixelToWindow(pbbox1);
+
+        drawRect(device, bbox1, color, useLine);
       }
     }
   }
   else {
     QColor barColor = this->barColor();
 
-    drawRect(device, pbbox, barColor, useLine);
+    drawRect(device, bbox, barColor, useLine);
   }
 
-  if (image.isValid())
-    device->drawImageInRect(device->pixelToWindow(pbbox), image);
+  //---
+
+  // draw image
+  if (image.isValid()) {
+    device->drawImageInRect(bbox, image);
+  }
 }
 
 void
@@ -3420,7 +3430,7 @@ CQChartsDistributionBarObj::
 drawFg(CQChartsPaintDevice *device) const
 {
   if (! isLine()) {
-    auto pbbox = calcRect();
+    auto bbox = calcRect();
 
     //---
 
@@ -3433,7 +3443,7 @@ drawFg(CQChartsPaintDevice *device) const
     else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
     else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
-    plot_->dataLabel()->draw(device, device->pixelToWindow(pbbox), ystr);
+    plot_->dataLabel()->draw(device, bbox, ystr);
   }
 
   //---
@@ -3618,11 +3628,9 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
+drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
          const CQChartsColor &color, bool useLine) const
 {
-  auto bbox = device->pixelToWindow(pbbox);
-
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
 
@@ -3644,7 +3652,7 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
       CQChartsDrawUtil::drawRoundedPolygon(device, bbox, plot_->barCornerSize());
     }
     else {
-      if (pbbox.getWidth() < pbbox.getHeight()) { // vertical
+      if (bbox.getWidth() < bbox.getHeight()) { // vertical
         double xc = bbox.getXMid();
 
         device->drawLine(CQChartsGeom::Point(xc, bbox.getYMin()),
@@ -3659,6 +3667,8 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
     }
   }
   else {
+    auto pbbox = device->pixelToWindow(bbox);
+
     // draw line
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
@@ -3774,7 +3784,8 @@ isUseLine() const
   bool useLine = false;
 
   if (! plot_->isDotLines()) {
-    auto pbbox = calcRect();
+    auto bbox  = calcRect();
+    auto pbbox = plot_->windowToPixel(bbox);
 
     double s = (! plot_->isHorizontal() ? pbbox.getWidth() : pbbox.getHeight());
 
@@ -3857,7 +3868,7 @@ calcRect() const
 
   prect.expandExtent(-ml, -mr, ! plot_->isHorizontal());
 
-  return prect;
+  return plot_->pixelToWindow(prect);
 }
 
 double
@@ -4013,9 +4024,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsGeom::BBox bbox(value1, 0, value2, y);
 
-      auto pbbox = plot_->windowToPixel(bbox);
-
-      device->drawRect(device->pixelToWindow(pbbox));
+      device->drawRect(bbox);
     }
   }
 

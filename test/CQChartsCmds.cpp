@@ -8088,6 +8088,10 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
     else if (fromName == "selectionChanged") {
       connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
     }
+    else if (fromName == "selectPress") {
+      connect(plot, SIGNAL(selectPressSignal(const CQChartsGeom::Point &)),
+              createCmdsSlot(), SLOT(selectPress(const CQChartsGeom::Point &)));
+    }
     else if (fromName == "?") {
       QStringList names = QStringList() <<
         "objIdPressed" << "annotationIdPressed" << "plotObjsAdded" << "selectionChanged";

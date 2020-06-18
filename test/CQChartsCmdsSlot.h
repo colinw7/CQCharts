@@ -1,6 +1,8 @@
 #ifndef CQChartsCmdsSlot_H
 #define CQChartsCmdsSlot_H
 
+#include <CQChartsGeom.h>
+
 #include <QObject>
 
 class CQChartsCmds;
@@ -30,6 +32,7 @@ class CQChartsCmdsSlot : public QObject {
   void annotationIdPressed  (const QString &);
   void plotObjsAdded        ();
   void selectionChanged     ();
+  void selectPress          (const CQChartsGeom::Point &);
   void themeChanged         ();
   void interfaceThemeChanged();
 

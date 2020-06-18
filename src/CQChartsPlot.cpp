@@ -5144,7 +5144,12 @@ selectMousePress(const CQChartsGeom::Point &p, SelMod selMod)
 
   auto w = pixelToWindow(p);
 
-  return selectPress(w, selMod);
+  if (selectPress(w, selMod))
+    return true;
+
+  emit selectPressSignal(w);
+
+  return true;
 }
 
 bool
@@ -5172,7 +5177,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
   if (objectsSelectPress(w, selMod))
     return true;
 
-  return true;
+  return false;
 }
 
 bool
@@ -10797,9 +10802,10 @@ drawWindowColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
   if (! bbox.isSet())
     return;
 
-  auto prect = windowToPixel(bbox);
+  //auto prect = windowToPixel(bbox);
+  //drawColorBox(painter, prect, c);
 
-  drawColorBox(painter, prect, c);
+  drawColorBox(painter, bbox, c);
 }
 
 void

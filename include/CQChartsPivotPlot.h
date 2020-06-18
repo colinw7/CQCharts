@@ -33,7 +33,7 @@ class CQChartsPivotPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -50,7 +50,10 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+  using PivotPlot = CQChartsPivotPlot;
+
+ public:
+  CQChartsPivotBarObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
                       const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
                       double value);
 
@@ -80,20 +83,20 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
   //---
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  double                   value_ { 0.0 };     //!< value
-  QModelIndex              ind_;               //!< pivot model index
+  const PivotPlot* plot_  { nullptr }; //!< parent plot
+  double           value_ { 0.0 };     //!< value
+  QModelIndex      ind_;               //!< pivot model index
 };
 
 //---
@@ -106,7 +109,10 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const BBox &rect, const ModelIndices &inds,
+  using PivotPlot = CQChartsPivotPlot;
+
+ public:
+  CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const ModelIndices &inds,
                        const ColorInd &ig, const Polygon &polygon, const QString &name);
 
   //---
@@ -123,12 +129,12 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  protected:
-  const CQChartsPivotPlot* plot_     { nullptr }; //!< parent plot
-  Polygon                  polygon_;              //!< values
-  QString                  name_;                 //!< name
+  const PivotPlot* plot_     { nullptr }; //!< parent plot
+  Polygon          polygon_;              //!< values
+  QString          name_;                 //!< name
 };
 
 //---
@@ -141,7 +147,10 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+  using PivotPlot = CQChartsPivotPlot;
+
+ public:
+  CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
                         const ColorInd &ir, const ColorInd &ic, const Point &p, double value);
 
   //---
@@ -162,12 +171,12 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  protected:
-  const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  Point                    p_;                 //!< position
-  double                   value_ { 0.0 };     //!< value
+  const PivotPlot* plot_  { nullptr }; //!< parent plot
+  Point            p_;                 //!< position
+  double           value_ { 0.0 };     //!< value
 };
 
 //---
@@ -180,7 +189,11 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+  using PivotPlot = CQChartsPivotPlot;
+  using Color     = CQChartsColor;
+
+ public:
+  CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
                        const ColorInd &ir, const ColorInd &ic, const QString &name,
                        double value, double hnorm, double vnorm, bool valid);
 
@@ -202,28 +215,27 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const;
-  void calcFgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const;
+  void calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const;
+  void calcFgPenBrush(PenBrush &bgPenBrush, bool updateState) const;
 
   //---
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
-  void writeScriptGC(CQChartsScriptPaintDevice *device,
-                     const CQChartsPenBrush &penBrush) const override;
+  void writeScriptGC(ScriptPaintDevice *device, const PenBrush &penBrush) const override;
 
-  void writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const override;
+  void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const override;
 
  protected:
-  const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  QString                  name_;              //!< name
-  double                   value_ { 0.0 };     //!< value
-  double                   hnorm_ { 0.0 };     //!< value normalized to horizontal value range
-  double                   vnorm_ { 0.0 };     //!< value normalized to vertical value range
-  bool                     valid_ { false };   //!< is valid
-  CQChartsColor            color_;             //!< background color
+  const PivotPlot* plot_  { nullptr }; //!< parent plot
+  QString          name_;              //!< name
+  double           value_ { 0.0 };     //!< value
+  double           hnorm_ { 0.0 };     //!< value normalized to horizontal value range
+  double           vnorm_ { 0.0 };     //!< value normalized to vertical value range
+  bool             valid_ { false };   //!< is valid
+  Color            color_;             //!< background color
 };
 
 //---
@@ -238,7 +250,10 @@ class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsPivotKeyColor(CQChartsPivotPlot *plot, const ColorInd &ic);
+  using PivotPlot = CQChartsPivotPlot;
+
+ public:
+  CQChartsPivotKeyColor(PivotPlot *plot, const ColorInd &ic);
 
   QBrush fillBrush() const override;
 };
@@ -251,7 +266,10 @@ class CQChartsPivotKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsPivotKeyText(CQChartsPivotPlot *plot, const QString &name);
+  using PivotPlot = CQChartsPivotPlot;
+
+ public:
+  CQChartsPivotKeyText(PivotPlot *plot, const QString &name);
 };
 
 //---
@@ -305,19 +323,22 @@ class CQChartsPivotPlot : public CQChartsPlot,
   };
 
  public:
-  CQChartsPivotPlot(CQChartsView *view, const ModelP &model);
+  using DataLabel = CQChartsDataLabel;
+
+ public:
+  CQChartsPivotPlot(View *view, const ModelP &model);
  ~CQChartsPivotPlot();
 
   //---
 
-  const CQChartsColumns &xColumns() const { return xColumns_; }
-  void setXColumns(const CQChartsColumns &c);
+  const Columns &xColumns() const { return xColumns_; }
+  void setXColumns(const Columns &c);
 
-  const CQChartsColumns &yColumns() const { return yColumns_; }
-  void setYColumns(const CQChartsColumns &c);
+  const Columns &yColumns() const { return yColumns_; }
+  void setYColumns(const Columns &c);
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
   const PlotType &plotType() const { return plotType_; }
   void setPlotType(const PlotType &v);
@@ -343,8 +364,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
   //---
 
   // data label
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_; }
+  DataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -368,12 +389,12 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsAxis *mappedXAxis() const override;
-  CQChartsAxis *mappedYAxis() const override;
+  Axis *mappedXAxis() const override;
+  Axis *mappedYAxis() const override;
 
   //---
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   bool addMenuItems(QMenu *menu) override;
 
@@ -385,6 +406,11 @@ class CQChartsPivotPlot : public CQChartsPlot,
              const QString &viewVarName) const override;
 
  protected:
+  using BarObj   = CQChartsPivotBarObj;
+  using LineObj  = CQChartsPivotLineObj;
+  using PointObj = CQChartsPivotPointObj;
+  using CellObj  = CQChartsPivotCellObj;
+
   std::vector<PlotType> plotTypes() const { return
     {{ PlotType::BAR, PlotType::STACKED_BAR, PlotType::LINES,
        PlotType::AREA, PlotType::POINTS, PlotType::GRID }};
@@ -400,22 +426,22 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  virtual CQChartsPivotBarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
-                                            const ModelIndices &inds, const ColorInd &ir,
-                                            const ColorInd &ic, double value) const;
+  virtual BarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
+                               const ModelIndices &inds, const ColorInd &ir,
+                               const ColorInd &ic, double value) const;
 
-  virtual CQChartsPivotLineObj *createLineObj(const BBox &rect, const ModelIndices &inds,
-                                              const ColorInd &ig, const Polygon &polygon,
-                                              const QString &name) const;
+  virtual LineObj *createLineObj(const BBox &rect, const ModelIndices &inds,
+                                 const ColorInd &ig, const Polygon &polygon,
+                                 const QString &name) const;
 
-  virtual CQChartsPivotPointObj *createPointObj(const BBox &rect, const QModelIndex &ind,
-                                                const ColorInd &ir, const ColorInd &ic,
-                                                const Point &p, double value) const;
+  virtual PointObj *createPointObj(const BBox &rect, const QModelIndex &ind,
+                                   const ColorInd &ir, const ColorInd &ic,
+                                   const Point &p, double value) const;
 
-  virtual CQChartsPivotCellObj *createCellObj(const BBox &rect, const QModelIndex &ind,
-                                              const ColorInd &ir, const ColorInd &ic,
-                                              const QString &name, double value, double hnorm,
-                                              double vnorm, bool valid) const;
+  virtual CellObj *createCellObj(const BBox &rect, const QModelIndex &ind,
+                                 const ColorInd &ir, const ColorInd &ic,
+                                 const QString &name, double value, double hnorm,
+                                 double vnorm, bool valid) const;
 
  protected slots:
   void setHorizontal(bool b);
@@ -424,17 +450,17 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueTypeSlot(bool b);
 
  private:
-  CQChartsColumns    xColumns_;                       //!< x columns
-  CQChartsColumns    yColumns_;                       //!< y columns
-  CQChartsColumn     valueColumn_;                    //!< value columns
-  PlotType           plotType_    { PlotType::BAR };  //!< plot type
-  ValueType          valueType_   { ValueType::SUM }; //!< value type
-  bool               horizontal_  { false };          //!< horizontal
-  bool               xsorted_     { true };           //!< x keys are sorted
-  bool               ysorted_     { true };           //!< y keys are sorted
-  bool               gridBars_    { true };           //!< draw bars on grid
-  CQPivotModel*      pivotModel_  { nullptr };        //!< pivot model
-  CQChartsDataLabel* dataLabel_   { nullptr };        //!< data label data
+  Columns       xColumns_;                       //!< x columns
+  Columns       yColumns_;                       //!< y columns
+  Column        valueColumn_;                    //!< value columns
+  PlotType      plotType_    { PlotType::BAR };  //!< plot type
+  ValueType     valueType_   { ValueType::SUM }; //!< value type
+  bool          horizontal_  { false };          //!< horizontal
+  bool          xsorted_     { true };           //!< x keys are sorted
+  bool          ysorted_     { true };           //!< y keys are sorted
+  bool          gridBars_    { true };           //!< draw bars on grid
+  CQPivotModel* pivotModel_  { nullptr };        //!< pivot model
+  DataLabel*    dataLabel_   { nullptr };        //!< data label data
 };
 
 #endif
