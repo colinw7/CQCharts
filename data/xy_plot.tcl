@@ -32,5 +32,7 @@ set model [load_charts_model -tsv data/multi_series.tsv -comment_header \
 
 set plot [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "XY Plot"]
 
+set_charts_property -plot $plot -name columns.label -value -1
+
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed
 connect_charts_signal -plot $plot -from selectPress -to selectPress

@@ -2,9 +2,9 @@
 #include <CQChartsPlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
-#include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
@@ -15,8 +15,6 @@ CQChartsTitle(CQChartsPlot *plot) :
  CQChartsTextBoxObj(plot)
 {
   setObjectName("title");
-
-  editHandles_ = new CQChartsEditHandles(plot);
 
   setTextStr("Title");
 
@@ -37,7 +35,6 @@ CQChartsTitle(CQChartsPlot *plot) :
 CQChartsTitle::
 ~CQChartsTitle()
 {
-  delete editHandles_;
 }
 
 QString
@@ -309,7 +306,7 @@ bool
 CQChartsTitle::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   if (location() != CQChartsTitleLocation::Type::ABSOLUTE_POSITION &&
       location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
@@ -325,8 +322,8 @@ bool
 CQChartsTitle::
 editMove(const CQChartsGeom::Point &p)
 {
-  const auto &dragPos  = editHandles_->dragPos();
-  const auto &dragSide = editHandles_->dragSide();
+  const auto &dragPos  = editHandles()->dragPos();
+  const auto &dragSide = editHandles()->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -340,12 +337,12 @@ editMove(const CQChartsGeom::Point &p)
   else {
     setLocation(CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE);
 
-    editHandles_->updateBBox(dx, dy);
+    editHandles()->updateBBox(dx, dy);
 
-    setAbsolutePlotRectangle(editHandles_->bbox());
+    setAbsolutePlotRectangle(editHandles()->bbox());
   }
 
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   redraw(/*wait*/false);
 
@@ -356,14 +353,7 @@ bool
 CQChartsTitle::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_->selectInside(p);
-}
-
-bool
-CQChartsTitle::
-editRelease(const CQChartsGeom::Point &)
-{
-  return true;
+  return editHandles()->selectInside(p);
 }
 
 void
@@ -514,10 +504,12 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
-    const_cast<CQChartsTitle *>(this)->editHandles_->setBBox(this->bbox());
+  auto *th = const_cast<CQChartsTitle *>(this);
 
-  editHandles_->draw(painter);
+  if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
+    th->editHandles()->setBBox(this->bbox());
+
+  editHandles()->draw(painter);
 }
 
 void

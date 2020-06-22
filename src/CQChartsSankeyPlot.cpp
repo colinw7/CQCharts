@@ -16,6 +16,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsArrow.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 
@@ -104,6 +105,10 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 
   setEdgeStroked(true);
   setEdgeStrokeAlpha(CQChartsAlpha(0.2));
+
+  //---
+
+  addTitle();
 
   //---
 
@@ -2061,6 +2066,50 @@ moveBy(const CQChartsGeom::Point &delta)
     if (edgeRect.second.isSet())
       edgeRect.second.moveBy(delta);
   }
+}
+
+//---
+
+bool
+CQChartsSankeyNodeObj::
+editPress(const CQChartsGeom::Point &p)
+{
+  editHandles()->setDragPos(p);
+
+  return true;
+}
+
+bool
+CQChartsSankeyNodeObj::
+editMove(const CQChartsGeom::Point &p)
+{
+  const auto &dragPos  = editHandles()->dragPos();
+  const auto &dragSide = editHandles()->dragSide();
+
+  double dx = p.x - dragPos.x;
+  double dy = p.y - dragPos.y;
+
+  editHandles()->updateBBox(dx, dy);
+
+  setEditBBox(editHandles()->bbox(), dragSide);
+
+  editHandles()->setDragPos(p);
+
+  return true;
+}
+
+bool
+CQChartsSankeyNodeObj::
+editMotion(const CQChartsGeom::Point &p)
+{
+  return editHandles()->selectInside(p);
+}
+
+void
+CQChartsSankeyNodeObj::
+setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
+{
+  rect_ = bbox;
 }
 
 //---

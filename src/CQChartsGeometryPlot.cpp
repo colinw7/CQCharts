@@ -620,7 +620,7 @@ createObjs(PlotObjs &objs) const
 
     ColorInd iv(i, n);
 
-    auto *geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv);
+    auto *geomObj = createGeometryObj(bbox, geometry.polygons, geometry.ind, iv);
 
     geomObj->setName (geometry.name);
     geomObj->setColor(geometry.color);
@@ -669,6 +669,16 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//---
+
+CQChartsGeometryObj *
+CQChartsGeometryPlot::
+createGeometryObj(const BBox &rect, const Polygons &polygons,
+                  const QModelIndex &ind, const ColorInd &iv) const
+{
+  return new CQChartsGeometryObj(this, rect, polygons, ind, iv);
 }
 
 //------

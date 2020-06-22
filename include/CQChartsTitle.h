@@ -9,7 +9,6 @@
 #include <vector>
 
 class CQChartsPlot;
-class CQChartsEditHandles;
 class CQPropertyViewModel;
 class CQChartsPaintDevice;
 class QPainter;
@@ -72,8 +71,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   const CQChartsGeom::Point &position() const { return position_; }
   void setPosition(const CQChartsGeom::Point &p) { position_ = p; }
 
-  CQChartsEditHandles *editHandles() { return editHandles_; }
-
   //---
 
   QString locationStr() const;
@@ -124,7 +121,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   virtual bool editPress  (const CQChartsGeom::Point &);
   virtual bool editMove   (const CQChartsGeom::Point &);
   virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &);
+  virtual bool editRelease(const CQChartsGeom::Point &) { return true; }
 
   virtual void editMoveBy(const CQChartsGeom::Point &d);
 
@@ -134,7 +131,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void draw(CQChartsPaintDevice *device);
 
-  void drawEditHandles(QPainter *painter) const;
+  void drawEditHandles(QPainter *painter) const override;
 
  private:
   void updateLocation();
@@ -159,7 +156,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   Point                 position_          { 0, 0 };    //!< position
   Size                  size_;                          //!< size
   mutable BBox          bbox_;                          //!< bbox
-  CQChartsEditHandles*  editHandles_       { nullptr }; //!< edit handles
   FitData               fitData_;                       //!< fit data
 };
 

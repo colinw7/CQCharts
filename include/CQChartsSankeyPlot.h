@@ -336,6 +336,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
+  bool isEditable() const override { return true; }
+
   QString typeName() const override { return "node"; }
 
   QString calcId() const override;
@@ -343,6 +345,14 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   void moveBy(const Point &delta);
+
+  //---
+
+  bool editPress (const CQChartsGeom::Point &p) override;
+  bool editMove  (const CQChartsGeom::Point &p) override;
+  bool editMotion(const CQChartsGeom::Point &p) override;
+
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &) override;
 
   //---
 

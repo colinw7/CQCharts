@@ -1129,3 +1129,6 @@
  + Add from/to columns to all connection s
  + Support resizable icon in image
  + Allow clipped bar label to be auto moved outside
+# 06/21/2020
+ + Allow edit/move of plot object
+ + Support move of sankey nodes

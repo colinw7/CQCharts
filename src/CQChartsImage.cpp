@@ -106,10 +106,12 @@ fromString(const QString &s, Type type)
     auto pos = s1.indexOf(':');
 
     if (pos > 0) {
-      QString typeName = s1.mid(0, pos - 1);
+      QString typeName = s1.mid(0, pos);
 
-      if (typeName == "icon")
+      if (typeName == "icon") {
         type = Type::ICON;
+        s1   = s1.mid(pos + 1);
+      }
       else
         type = Type::IMAGE;
     }
@@ -117,13 +119,21 @@ fromString(const QString &s, Type type)
       type = Type::IMAGE;
   }
 
-  fileName_ = s;
+  fileName_ = s1;
   type_     = type;
 
-  if (type_ == Type::IMAGE)
-    image_ = QImage(fileName_);
-  else
-    icon_ = QIcon(fileName_);
+  if (type_ == Type::IMAGE) {
+    image_ = QImage();
+
+    if (fileName_ != "")
+      image_.load(fileName_);
+  }
+  else {
+    icon_ = QIcon();
+
+    if (fileName_ != "")
+      icon_ = QIcon(fileName_);
+  }
 
   image_.setText("", fileName_);
 

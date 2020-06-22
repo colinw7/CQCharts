@@ -387,6 +387,7 @@ class CQChartsPlot : public CQChartsObj,
   using Sides        = CQChartsSides;
   using PlotMargin   = CQChartsPlotMargin;
   using Symbol       = CQChartsSymbol;
+  using ColorStops   = CQChartsColorStops;
   using PaletteName  = CQChartsPaletteName;
 
  public:
@@ -1635,11 +1636,11 @@ class CQChartsPlot : public CQChartsObj,
   const QString &colorMapPalette() const { return colorColumnData_.palette; }
   void setColorMapPalette(const QString &s);
 
-  const CQChartsColorStops &colorXStops() const { return colorColumnData_.xStops; }
-  void setColorXStops(const CQChartsColorStops &s);
+  const ColorStops &colorXStops() const { return colorColumnData_.xStops; }
+  void setColorXStops(const ColorStops &s);
 
-  const CQChartsColorStops &colorYStops() const { return colorColumnData_.yStops; }
-  void setColorYStops(const CQChartsColorStops &s);
+  const ColorStops &colorYStops() const { return colorColumnData_.yStops; }
+  void setColorYStops(const ColorStops &s);
 
   //---
 
@@ -1716,6 +1717,8 @@ class CQChartsPlot : public CQChartsObj,
   bool titleEditPress(Title   *title, const Point &w);
 
   bool annotationsEditPress(const Point &w);
+
+  bool objectsEditPress(const Point &w, bool inside);
 
   //-
 
@@ -2614,18 +2617,18 @@ class CQChartsPlot : public CQChartsObj,
 
   //! color column data
   struct ColorColumnData {
-    Column             column;
-    ColorType          colorType { ColorType::AUTO };
-    bool               valid     { false };
-    bool               mapped    { true };
-    double             map_min   { 0.0 };
-    double             map_max   { 1.0 };
-    double             data_min  { 0.0 };
-    double             data_max  { 1.0 };
-    ColumnType         modelType;
-    QString            palette;
-    CQChartsColorStops xStops;
-    CQChartsColorStops yStops;
+    Column     column;
+    ColorType  colorType { ColorType::AUTO };
+    bool       valid     { false };
+    bool       mapped    { true };
+    double     map_min   { 0.0 };
+    double     map_max   { 1.0 };
+    double     data_min  { 0.0 };
+    double     data_max  { 1.0 };
+    ColumnType modelType;
+    QString    palette;
+    ColorStops xStops;
+    ColorStops yStops;
   };
 
   //! every row selection data
@@ -2644,6 +2647,7 @@ class CQChartsPlot : public CQChartsObj,
     YAXIS,
     TITLE,
     ANNOTATION,
+    OBJECT,
     PLOT,
     PLOT_HANDLE
   };
@@ -2779,7 +2783,7 @@ class CQChartsPlot : public CQChartsObj,
   // fit
   bool   autoFit_      { false }; //!< auto fit on data change
   bool   needsAutoFit_ { false }; //!< needs auto fit on next draw
-  double fitMargin_    { 0.05 };  //!< fit margin percent
+  double fitMargin_    { 0.01 };  //!< fit margin percent
 
   // preview
   bool preview_        { false }; //!< is preview plot

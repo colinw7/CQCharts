@@ -13,6 +13,7 @@ class  CQChartsLength;
 class  CQChartsPaintDevice;
 class  CQChartsScriptPaintDevice;
 class  CQPropertyViewModel;
+class  CQChartsEditHandles;
 
 /*!
  * \brief Plot Object base class
@@ -24,7 +25,8 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
   Q_PROPERTY(QString typeName READ typeName)
-  Q_PROPERTY(bool    visible  READ isVisible WRITE setVisible)
+  Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible)
+  Q_PROPERTY(bool    editable READ isEditable WRITE setEditable)
 
  public:
   enum class DetailHint {
@@ -54,7 +56,7 @@ class CQChartsPlotObj : public CQChartsObj {
                   const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
                   const ColorInd &iv=ColorInd());
 
-  virtual ~CQChartsPlotObj() { }
+  virtual ~CQChartsPlotObj();
 
   //---
 
@@ -155,11 +157,43 @@ class CQChartsPlotObj : public CQChartsObj {
       return r.overlaps(rect());
   }
 
+  //---
+
+  // is ediable
+  virtual bool isEditable() const { return editable_; }
+  void setEditable(bool b) { editable_ = b; }
+
+  //---
+
   //virtual void postResize() { }
 
+  //---
+
+  //! handle select press
   virtual void selectPress() { }
 
   virtual bool canSelect() const { return true; }
+
+  //---
+
+  //! handle edit press, move, motion, release
+  virtual bool editPress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool editMove   (const CQChartsGeom::Point &) { return false; }
+  virtual bool editMotion (const CQChartsGeom::Point &) { return false; }
+  virtual bool editRelease(const CQChartsGeom::Point &) { return false; }
+
+  //! handle edit move by
+  virtual void editMoveBy(const CQChartsGeom::Point &) { }
+
+  //! set new bounding box
+  virtual void setEditBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
+
+  //---
+
+  //! get edit handles
+  CQChartsEditHandles *editHandles() const;
+
+  virtual void drawEditHandles(QPainter *painter) const;
 
   //---
 
@@ -221,13 +255,15 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
  protected:
-  Plot*            plot_       { nullptr };           //!< parent plot
-  DetailHint       detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
-  ColorInd         is_;                               //!< set index
-  ColorInd         ig_;                               //!< group index
-  ColorInd         iv_;                               //!< value index
-  ModelIndices     modelInds_;                        //!< associated model indices
-  mutable PenBrush penBrush_;                         //!< current pen/brush
+  Plot*                plot_        { nullptr };           //!< parent plot
+  DetailHint           detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
+  bool                 editable_    { false };             //!< editable
+  ColorInd             is_;                                //!< set index
+  ColorInd             ig_;                                //!< group index
+  ColorInd             iv_;                                //!< value index
+  ModelIndices         modelInds_;                         //!< associated model indices
+  CQChartsEditHandles* editHandles_ { nullptr };           //!< edit handles
+  mutable PenBrush     penBrush_;                          //!< current pen/brush
 };
 
 //------

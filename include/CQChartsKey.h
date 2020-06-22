@@ -13,7 +13,6 @@
 
 class CQChartsPlot;
 class CQChartsKeyItem;
-class CQChartsEditHandles;
 class CQChartsPaintDevice;
 class CQPropertyViewModel;
 class QScrollBar;
@@ -140,19 +139,13 @@ class CQChartsKey : public CQChartsBoxObj,
   virtual bool editPress  (const Point &) = 0;
   virtual bool editMove   (const Point &) = 0;
   virtual bool editMotion (const Point &) = 0;
-  virtual bool editRelease(const Point &) = 0;
+  virtual bool editRelease(const Point &) { return true; }
 
   //---
 
   virtual void redraw(bool /*queued*/=true) = 0;
 
   virtual void draw(CQChartsPaintDevice *device) const = 0;
-
-  virtual void drawEditHandles(QPainter *painter) const = 0;
-
-  //---
-
-  CQChartsEditHandles *editHandles() { return editHandles_; }
 
  protected:
   void init();
@@ -180,7 +173,6 @@ class CQChartsKey : public CQChartsBoxObj,
   int                      maxRows_        { 100 };     //!< max rows
   CQChartsKeyPressBehavior pressBehavior_;              //!< press behavior
   mutable ScrollData       scrollData_;                 //!< scrollbar data
-  CQChartsEditHandles*     editHandles_    { nullptr }; //!< edit handles
 };
 
 //------
@@ -223,10 +215,9 @@ class CQChartsViewKey : public CQChartsKey {
   bool selectMove   (const Point &w) override;
   bool selectRelease(const Point &w) override;
 
-  bool editPress  (const Point &w) override;
-  bool editMove   (const Point &w) override;
-  bool editMotion (const Point &w) override;
-  bool editRelease(const Point &w) override;
+  bool editPress (const Point &w) override;
+  bool editMove  (const Point &w) override;
+  bool editMotion(const Point &w) override;
 
   virtual void doShow  (int i, CQChartsSelMod selMod);
   virtual void doSelect(int i, CQChartsSelMod selMod);
@@ -420,10 +411,9 @@ class CQChartsPlotKey : public CQChartsKey {
   bool selectMove   (const Point &w) override;
   bool selectRelease(const Point &w) override;
 
-  bool editPress  (const Point &w) override;
-  bool editMove   (const Point &w) override;
-  bool editMotion (const Point &w) override;
-  bool editRelease(const Point &w) override;
+  bool editPress (const Point &w) override;
+  bool editMove  (const Point &w) override;
+  bool editMotion(const Point &w) override;
 
   virtual void editMoveBy(const Point &d);
 

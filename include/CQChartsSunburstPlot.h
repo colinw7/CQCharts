@@ -417,6 +417,10 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
+  //---
+
+  virtual NodeObj *createNodeObj(const BBox &rect, Node *node) const;
+
  private:
   void resetRoots();
 

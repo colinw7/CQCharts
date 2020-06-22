@@ -57,15 +57,13 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 
   //---
 
-  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                            CQChartsPlotParameter *parameter) const override;
+  bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -85,8 +83,13 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
-  CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const BBox &rect,
-                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv);
+  using GeometryPlot = CQChartsGeometryPlot;
+  using Style        = CQChartsStyle;
+  using Color        = CQChartsColor;
+
+ public:
+  CQChartsGeometryObj(const GeometryPlot *plot, const BBox &rect, const Polygons &polygons,
+                      const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "geom"; }
 
@@ -102,11 +105,11 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &c) { color_ = c; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &c) { color_ = c; }
 
-  const CQChartsStyle &style() const { return style_; }
-  void setStyle(const CQChartsStyle &s) { style_ = s; }
+  const Style &style() const { return style_; }
+  void setStyle(const Style &s) { style_ = s; }
 
   double value() const { return value_; }
   void setValue(double r) { value_ = r; hasValue_ = true; }
@@ -117,26 +120,26 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
-
- private:
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
  private:
-  const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
-  Polygons                    polygons_;             //!< geometry polygons
-  QString                     name_;                 //!< geometry name
-  CQChartsColor               color_;                //!< optional color
-  CQChartsStyle               style_;                //!< optional style
-  double                      value_    { 0.0 };     //!< geometry value
-  bool                        hasValue_ { false };   //!< has value
+
+ private:
+  const GeometryPlot* plot_     { nullptr }; //!< parent plot
+  Polygons            polygons_;             //!< geometry polygons
+  QString             name_;                 //!< geometry name
+  Color               color_;                //!< optional color
+  Style               style_;                //!< optional style
+  double              value_    { 0.0 };     //!< geometry value
+  bool                hasValue_ { false };   //!< has value
 };
 
 //---
@@ -181,36 +184,40 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   };
 
   using OptReal = boost::optional<double>;
+  using Style   = CQChartsStyle;
 
   //! geometry data
   struct Geometry {
-    QString       name;     //!< name
-    Polygons      polygons; //!< polygon list
-    OptReal       value;    //!< value
-    CQChartsColor color;    //!< custom color
-    CQChartsStyle style;    //!< custom style
-    BBox          bbox;     //!< bounding box
-    QModelIndex   ind;      //!< associated model index
+    QString     name;     //!< name
+    Polygons    polygons; //!< polygon list
+    OptReal     value;    //!< value
+    Color       color;    //!< custom color
+    Style       style;    //!< custom style
+    BBox        bbox;     //!< bounding box
+    QModelIndex ind;      //!< associated model index
   };
 
+  using DataLabel   = CQChartsDataLabel;
+  using GeometryObj = CQChartsGeometryObj;
+
  public:
-  CQChartsGeometryPlot(CQChartsView *view, const ModelP &model);
+  CQChartsGeometryPlot(View *view, const ModelP &model);
 
  ~CQChartsGeometryPlot();
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumn &geometryColumn() const { return geometryColumn_; }
-  void setGeometryColumn(const CQChartsColumn &c);
+  const Column &geometryColumn() const { return geometryColumn_; }
+  void setGeometryColumn(const Column &c);
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
-  const CQChartsColumn &styleColumn() const { return styleColumn_; }
-  void setStyleColumn(const CQChartsColumn &c);
+  const Column &styleColumn() const { return styleColumn_; }
+  void setStyleColumn(const Column &c);
 
   //---
 
@@ -247,8 +254,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_; }
+  DataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -271,6 +278,11 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
              const QString &viewVarName) const override;
 
+  //---
+
+  virtual GeometryObj *createGeometryObj(const BBox &rect, const Polygons &polygons,
+                                         const QModelIndex &ind, const ColorInd &iv) const;
+
  public slots:
   void setValueStyle(const ValueStyle &style);
 
@@ -284,16 +296,16 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   using Geometries = std::vector<Geometry>;
 
   // columns
-  CQChartsColumn nameColumn_;                              //!< name column
-  CQChartsColumn geometryColumn_;                          //!< geometry column
-  CQChartsColumn valueColumn_;                             //!< value column
-  CQChartsColumn styleColumn_;                             //!< style column
-  ColumnType     geometryColumnType_ { ColumnType::NONE }; //!< geometry column type
-  ColumnType     colorColumnType_    { ColumnType::NONE }; //!< color column type
-  ColumnType     styleColumnType_    { ColumnType::NONE }; //!< style column type
+  Column     nameColumn_;                              //!< name column
+  Column     geometryColumn_;                          //!< geometry column
+  Column     valueColumn_;                             //!< value column
+  Column     styleColumn_;                             //!< style column
+  ColumnType geometryColumnType_ { ColumnType::NONE }; //!< geometry column type
+  ColumnType colorColumnType_    { ColumnType::NONE }; //!< color column type
+  ColumnType styleColumnType_    { ColumnType::NONE }; //!< style column type
 
   // labels
-  CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
+  DataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // value
   OptReal    minValue_;                         //!< user min value

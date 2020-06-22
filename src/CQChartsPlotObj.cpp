@@ -1,5 +1,6 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlot.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
@@ -18,6 +19,27 @@ CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorI
   assert(is_.isValid());
   assert(ig_.isValid());
   assert(iv_.isValid());
+}
+
+CQChartsPlotObj::
+~CQChartsPlotObj()
+{
+  delete editHandles_;
+}
+
+//---
+
+CQChartsEditHandles *
+CQChartsPlotObj::
+editHandles() const
+{
+  if (! editHandles_) {
+    auto *th = const_cast<CQChartsPlotObj *>(this);
+
+    th->editHandles_ = new CQChartsEditHandles(plot(), CQChartsEditHandles::Mode::MOVE);
+  }
+
+  return editHandles_;
 }
 
 //---
@@ -224,6 +246,8 @@ addSelectIndex(Indices &inds, const QModelIndex &ind) const
   inds.insert(ind);
 }
 
+//---
+
 void
 CQChartsPlotObj::
 drawBg(CQChartsPaintDevice *) const
@@ -244,6 +268,19 @@ draw(CQChartsPaintDevice *)
 
 void
 CQChartsPlotObj::
+drawEditHandles(QPainter *painter) const
+{
+  assert(plot()->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+
+  auto *th = const_cast<CQChartsPlotObj *>(this);
+
+  th->editHandles()->setBBox(this->rect());
+
+  editHandles()->draw(painter);
+}
+
+void
+CQChartsPlotObj::
 drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
                    const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const
 {
@@ -258,6 +295,8 @@ drawDebugRect(CQChartsPaintDevice *device)
 {
   plot()->drawWindowColorBox(device, rect());
 }
+
+//---
 
 void
 CQChartsPlotObj::

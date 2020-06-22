@@ -24,7 +24,11 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(bool               inside   READ isInside   WRITE setInside  )
 
  public:
-  CQChartsObj(CQCharts *charts, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
+
+ public:
+  CQChartsObj(CQCharts *charts, const BBox &rect=BBox());
 
   //---
 
@@ -44,8 +48,8 @@ class CQChartsObj : public QObject {
   //---
 
   //! get set rect
-  const CQChartsGeom::BBox &rect() const { return rect_; }
-  virtual void setRect(const CQChartsGeom::BBox &r) { rect_ = r; dataInvalidate(); }
+  const BBox &rect() const { return rect_; }
+  virtual void setRect(const BBox &r) { rect_ = r; dataInvalidate(); }
 
   //---
 
@@ -75,7 +79,7 @@ class CQChartsObj : public QObject {
 
   //---
 
-  virtual bool contains(const CQChartsGeom::Point &p) const = 0;
+  virtual bool contains(const Point &p) const = 0;
 
   //---
 
@@ -90,7 +94,7 @@ class CQChartsObj : public QObject {
 
   CQCharts*          charts_   { nullptr }; //!< charts
   OptString          id_;                   //!< id
-  CQChartsGeom::BBox rect_;                 //!< bbox
+  BBox               rect_;                 //!< bbox
   OptString          tipId_;                //!< tip id
   bool               visible_  { true };    //!< is visible
   bool               selected_ { false };   //!< is selected

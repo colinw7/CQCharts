@@ -1339,6 +1339,8 @@ inside(const CQChartsGeom::Point &p) const
   return arcData().inside(p);
 }
 
+//---
+
 CQChartsArcData
 CQChartsChordArcObj::
 arcData() const

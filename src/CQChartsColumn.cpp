@@ -210,9 +210,9 @@ CQChartsColumn::
 fromString(const QString &s)
 {
   if (! setValue(s))
-    type_ = Type::NONE;
+    return false;
 
-  return (type_ != Type::NONE);
+  return true;
 }
 
 int
@@ -414,6 +414,11 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   long column1 { 0 };
 
   if (parse.readInteger(&column1)) {
+    // allow pecial value for unset
+    if (column1 == -1) {
+      type = Type::NONE; return true;
+    }
+
     if (column1 < 0)
       return false;
   }

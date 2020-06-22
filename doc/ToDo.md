@@ -3,6 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Dot language (Sankey)
+   + More support
+   + Better arrow connectors
+   + Better node shapes
+   + Manually move/place nodes
  + Better handling of scaled (icon) images like SVG
  + tcl proc to run command with current location ? tcl state machine to add annotation ?
  + filterObjs for all connection types (chord, ...)

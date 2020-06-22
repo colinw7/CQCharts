@@ -88,10 +88,24 @@ initWidgets()
     createPolyLineFrame();
   else if (annotation_->type() == CQChartsAnnotation::Type::TEXT)
     createTextFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::IMAGE)
+    createImageFrame();
   else if (annotation_->type() == CQChartsAnnotation::Type::ARROW)
     createArrowFrame();
   else if (annotation_->type() == CQChartsAnnotation::Type::POINT)
     createPointFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::PIE_SLICE)
+    createPieSliceFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::AXIS)
+    createAxisFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::KEY)
+    createKeyFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::POINT_SET)
+    createPointSetFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::VALUE_SET)
+    createValueSetFrame();
+  else if (annotation_->type() == CQChartsAnnotation::Type::BUTTON)
+    createButtonFrame();
 
   layout->addLayout(frameLayout_);
 
@@ -113,12 +127,13 @@ initWidgets()
   layout->addWidget(buttons);
 }
 
+//------
+
 void
 CQChartsEditAnnotationDlg::
 createRectFrame()
 {
-  CQChartsRectangleAnnotation *annotation =
-    dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
   assert(annotation);
 
   //---
@@ -141,8 +156,6 @@ createRectFrame()
 
   // rect
   rectWidgets_.rectEdit = CQUtil::makeWidget<CQChartsRectEdit>("rectEdit");
-
-  rectWidgets_.rectEdit->setRect(CQChartsRect());
 
   rectWidgets_.rectEdit->setRect(annotation->rectangle());
 
@@ -195,9 +208,9 @@ createEllipseFrame()
 
   //---
 
-  ellipseWidgets_.centerEdit = new CQChartsPositionEdit;
-  ellipseWidgets_.rxEdit     = new CQChartsLengthEdit;
-  ellipseWidgets_.ryEdit     = new CQChartsLengthEdit;
+  ellipseWidgets_.centerEdit = CQUtil::makeWidget<CQChartsPositionEdit>("centerEdit");
+  ellipseWidgets_.rxEdit     = CQUtil::makeWidget<CQChartsLengthEdit  >("rxEdit");
+  ellipseWidgets_.ryEdit     = CQUtil::makeWidget<CQChartsLengthEdit  >("ryEdit");
 
   ellipseWidgets_.centerEdit->setToolTip("Ellipse Center Poistion");
   ellipseWidgets_.rxEdit    ->setToolTip("Ellipse X Radius Length");
@@ -250,7 +263,7 @@ createPolygonFrame()
 
   //---
 
-  polygonWidgets_.pointsEdit = new CQChartsPolygonEdit;
+  polygonWidgets_.pointsEdit = CQUtil::makeWidget<CQChartsPolygonEdit>("pointsEdit");
 
   addLabelWidget(frameLayout, "Points", polygonWidgets_.pointsEdit);
 
@@ -285,7 +298,7 @@ createPolyLineFrame()
 
   //---
 
-  polylineWidgets_.pointsEdit = new CQChartsPolygonEdit;
+  polylineWidgets_.pointsEdit = CQUtil::makeWidget<CQChartsPolygonEdit>("pointsEdit");
 
   addLabelWidget(frameLayout, "Points", polylineWidgets_.pointsEdit);
 
@@ -324,7 +337,7 @@ createTextFrame()
   auto *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
   textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
-  textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
+  textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect"    , "rectRadio");
 
   textWidgets_.positionRadio->setToolTip("Position text at point");
   textWidgets_.rectRadio    ->setToolTip("Place text in rectangle");
@@ -335,8 +348,8 @@ createTextFrame()
 
   connect(textWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(textPositionSlot(bool)));
 
-  textWidgets_.positionEdit = new CQChartsPositionEdit;
-  textWidgets_.rectEdit     = new CQChartsRectEdit;
+  textWidgets_.positionEdit = CQUtil::makeWidget<CQChartsPositionEdit>("positionEdit");
+  textWidgets_.rectEdit     = CQUtil::makeWidget<CQChartsRectEdit    >("rectEdit");
 
   if (annotation->position().isSet()) {
     textWidgets_.positionRadio->setChecked(true);
@@ -412,6 +425,104 @@ createTextFrame()
 
 void
 CQChartsEditAnnotationDlg::
+createImageFrame()
+{
+  auto *annotation = dynamic_cast<CQChartsImageAnnotation *>(annotation_);
+  assert(annotation);
+
+  //---
+
+  imageWidgets_.frame = CQUtil::makeWidget<QFrame>("imageFrame");
+
+  frameLayout_->addWidget(imageWidgets_.frame);
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(imageWidgets_.frame, 2, 2);
+
+  //----
+
+  auto *positionRectFrame  = CQUtil::makeWidget<QFrame>("positionRectFrame");
+  auto *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
+
+  imageWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
+  imageWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect"    , "rectRadio");
+
+  imageWidgets_.positionRadio->setToolTip("Position image at point");
+  imageWidgets_.rectRadio    ->setToolTip("Place image in rectangle");
+
+  positionRectLayout->addWidget(imageWidgets_.positionRadio);
+  positionRectLayout->addWidget(imageWidgets_.rectRadio);
+  positionRectLayout->addStretch(1);
+
+  connect(imageWidgets_.positionRadio, SIGNAL(toggled(bool)), this, SLOT(imagePositionSlot(bool)));
+
+  imageWidgets_.positionEdit = CQUtil::makeWidget<CQChartsPositionEdit>("positionEdit");
+  imageWidgets_.rectEdit     = CQUtil::makeWidget<CQChartsRectEdit    >("rectEdit");
+
+  if (annotation->position().isSet()) {
+    imageWidgets_.positionRadio->setChecked(true);
+
+    imageWidgets_.positionEdit->setPosition(annotation->positionValue());
+  }
+
+  if (annotation->rectangle().isSet()) {
+    imageWidgets_.rectRadio->setChecked(true);
+
+    imageWidgets_.rectEdit->setRect(annotation->rectangleValue());
+  }
+
+  frameLayout->addWidget(positionRectFrame);
+
+  imagePositionSlot(true);
+
+  //---
+
+  auto *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout1);
+
+  int row1 = 0;
+
+  //--
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Position", imageWidgets_.positionEdit, row1);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Rect"    , imageWidgets_.rectEdit    , row1);
+
+  //--
+
+  imageWidgets_.imageEdit = CQUtil::makeWidget<CQChartsLineEdit>("imageEdit");
+
+  imageWidgets_.imageEdit->setText(annotation->image().toString());
+  imageWidgets_.imageEdit->setToolTip("Image");
+
+  //---
+
+  imageWidgets_.disabledImageEdit = CQUtil::makeWidget<CQChartsLineEdit>("disabledImageEdit");
+
+  imageWidgets_.disabledImageEdit->setText(annotation->disabledImage().toString());
+  imageWidgets_.disabledImageEdit->setToolTip("Disabled Image");
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //--
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Image",
+    imageWidgets_.imageEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Disabled",
+    imageWidgets_.disabledImageEdit, row);
+
+  //---
+
+  frameLayout->addStretch(1);
+}
+
+void
+CQChartsEditAnnotationDlg::
 createArrowFrame()
 {
   auto *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
@@ -441,11 +552,11 @@ createArrowFrame()
   //--
 
   // start, end point
-  arrowWidgets_.startEdit = new CQChartsPositionEdit;
-  arrowWidgets_.endEdit   = new CQChartsPositionEdit;
+  arrowWidgets_.startEdit = CQUtil::makeWidget<CQChartsPositionEdit>("startEdit");
+  arrowWidgets_.endEdit   = CQUtil::makeWidget<CQChartsPositionEdit>("endEdit");
 
   arrowWidgets_.startEdit->setPosition(annotation->start());
-  arrowWidgets_.endEdit  ->setPosition(annotation->end());
+  arrowWidgets_.endEdit  ->setPosition(annotation->end  ());
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start", arrowWidgets_.startEdit, row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "End"  , arrowWidgets_.endEdit  , row);
@@ -453,7 +564,7 @@ createArrowFrame()
   //---
 
   // arrow data edit
-  arrowWidgets_.dataEdit = new CQChartsArrowDataEdit;
+  arrowWidgets_.dataEdit = CQUtil::makeWidget<CQChartsArrowDataEdit>("dataEdit");
 
   arrowWidgets_.dataEdit->setPlot(annotation->plot());
   arrowWidgets_.dataEdit->setView(annotation->view());
@@ -472,10 +583,10 @@ createArrowFrame()
   //--
 
   // stroke width, stroke color, filled and fill color
-  arrowWidgets_.strokeWidthEdit = new CQChartsLengthEdit;
-  arrowWidgets_.strokeColorEdit = new CQChartsColorLineEdit;
-  arrowWidgets_.filledCheck     = CQUtil::makeWidget<CQCheckBox>("filledCheck");
-  arrowWidgets_.fillColorEdit   = new CQChartsColorLineEdit;
+  arrowWidgets_.strokeWidthEdit = CQUtil::makeWidget<CQChartsLengthEdit   >("strokeWidthEdit");
+  arrowWidgets_.strokeColorEdit = CQUtil::makeWidget<CQChartsColorLineEdit>("strokeColorEdit");
+  arrowWidgets_.filledCheck     = CQUtil::makeWidget<CQCheckBox           >("filledCheck");
+  arrowWidgets_.fillColorEdit   = CQUtil::makeWidget<CQChartsColorLineEdit>("fillColorEdit");
 
   arrowWidgets_.strokeWidthEdit->setLength  (stroke.width());
   arrowWidgets_.strokeColorEdit->setColor   (stroke.color());
@@ -524,7 +635,7 @@ createPointFrame()
   //--
 
   // position
-  pointWidgets_.positionEdit = new CQChartsPositionEdit;
+  pointWidgets_.positionEdit = CQUtil::makeWidget<CQChartsPositionEdit>("positionEdit");
 
   pointWidgets_.positionEdit->setPosition(annotation->position());
 
@@ -547,6 +658,44 @@ createPointFrame()
 
 void
 CQChartsEditAnnotationDlg::
+createPieSliceFrame()
+{
+}
+
+void
+CQChartsEditAnnotationDlg::
+createAxisFrame()
+{
+}
+
+void
+CQChartsEditAnnotationDlg::
+createKeyFrame()
+{
+}
+
+void
+CQChartsEditAnnotationDlg::
+createPointSetFrame()
+{
+}
+
+void
+CQChartsEditAnnotationDlg::
+createValueSetFrame()
+{
+}
+
+void
+CQChartsEditAnnotationDlg::
+createButtonFrame()
+{
+}
+
+//------
+
+void
+CQChartsEditAnnotationDlg::
 addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 {
   CQChartsBoxData boxData = annotation_->boxData();
@@ -555,7 +704,7 @@ addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 
   //---
 
-  widgets.backgroundDataEdit = new CQChartsFillDataEdit;
+  widgets.backgroundDataEdit = CQUtil::makeWidget<CQChartsFillDataEdit>("backgroundDataEdit");
 
   widgets.backgroundDataEdit->setTitle("Fill");
   widgets.backgroundDataEdit->setData(fillData);
@@ -574,9 +723,8 @@ addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
 
   //---
 
-  widgets.strokeDataEdit =
-    new CQChartsStrokeDataEdit(nullptr,
-          CQChartsStrokeDataEditConfig().setCornerSize(cornerSize));
+  widgets.strokeDataEdit = new CQChartsStrokeDataEdit(nullptr,
+                             CQChartsStrokeDataEditConfig().setCornerSize(cornerSize));
 
   widgets.strokeDataEdit->setTitle("Stroke");
   widgets.strokeDataEdit->setData(strokeData);
@@ -643,6 +791,20 @@ textPositionSlot(bool)
 
 void
 CQChartsEditAnnotationDlg::
+imagePositionSlot(bool)
+{
+  if (imageWidgets_.positionRadio->isChecked()) {
+    imageWidgets_.positionEdit->setEnabled(true);
+    imageWidgets_.rectEdit    ->setEnabled(false);
+  }
+  else {
+    imageWidgets_.positionEdit->setEnabled(false);
+    imageWidgets_.rectEdit    ->setEnabled(true);
+  }
+}
+
+void
+CQChartsEditAnnotationDlg::
 okSlot()
 {
   if (applySlot())
@@ -665,13 +827,29 @@ applySlot()
     rc = updatePolylineAnnotation();
   else if (annotation_->type() == CQChartsAnnotation::Type::TEXT)
     rc = updateTextAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::IMAGE)
+    rc = updateImageAnnotation();
   else if (annotation_->type() == CQChartsAnnotation::Type::ARROW)
     rc = updateArrowAnnotation();
   else if (annotation_->type() == CQChartsAnnotation::Type::POINT)
     rc = updatePointAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::PIE_SLICE)
+    rc = updatePieSliceAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::AXIS)
+    rc = updateAxisAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::KEY)
+    rc = updateKeyAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::POINT_SET)
+    rc = updatePointSetAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::VALUE_SET)
+    rc = updateValueSetAnnotation();
+  else if (annotation_->type() == CQChartsAnnotation::Type::BUTTON)
+    rc = updateButtonAnnotation();
 
   return rc;
 }
+
+//------
 
 bool
 CQChartsEditAnnotationDlg::
@@ -845,7 +1023,7 @@ bool
 CQChartsEditAnnotationDlg::
 updateTextAnnotation()
 {
-  CQChartsBoxData  boxData;
+  CQChartsBoxData boxData;
 
   CQChartsShapeData &shapeData = boxData.shape();
 
@@ -893,6 +1071,43 @@ updateTextAnnotation()
 
   annotation->setTextData(textData);
   annotation->setBoxData (boxData );
+
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updateImageAnnotation()
+{
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto pos  = imageWidgets_.positionEdit->position();
+  auto rect = imageWidgets_.rectEdit->rect();
+
+  auto imageStr         = imageWidgets_.imageEdit->text();
+  auto disabledImageStr = imageWidgets_.disabledImageEdit->text();
+
+  if (! imageWidgets_.positionRadio->isChecked()) {
+    if (! rect.isValid())
+      return setErrorMsg("Invalid image rectangle");
+  }
+
+  //---
+
+  auto *annotation = dynamic_cast<CQChartsImageAnnotation *>(annotation_);
+  assert(annotation);
+
+  annotation->setId(id);
+  annotation->setTipId(tipId);
+
+  annotation->setImage        (CQChartsImage(imageStr        , CQChartsImage::Type::NONE));
+  annotation->setDisabledImage(CQChartsImage(disabledImageStr, CQChartsImage::Type::NONE));
+
+  if (imageWidgets_.positionRadio->isChecked())
+    annotation->setPosition(pos);
+  else
+    annotation->setRectangle(rect);
 
   return true;
 }
@@ -969,6 +1184,50 @@ updatePointAnnotation()
 
   return true;
 }
+
+bool
+CQChartsEditAnnotationDlg::
+updatePieSliceAnnotation()
+{
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updateAxisAnnotation()
+{
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updateKeyAnnotation()
+{
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updatePointSetAnnotation()
+{
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updateValueSetAnnotation()
+{
+  return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updateButtonAnnotation()
+{
+  return true;
+}
+
+//------
 
 void
 CQChartsEditAnnotationDlg::

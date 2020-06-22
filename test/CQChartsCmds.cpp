@@ -1773,7 +1773,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
     if (! view) return errorMsg("Invalid view '" + viewName + "'");
 
     if (! view->setProperty(name, value))
-      return errorMsg("Failed to set view property '" + name + "'");
+      return errorMsg("Failed to set view property '" + name + "' '" + value + "'");
   }
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
@@ -1782,7 +1782,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
     if (! plot) return errorMsg("Invalid plot '" + plotName + "'");
 
     if (! plot->setProperty(name, value))
-      return errorMsg("Failed to set plot property '" + name + "'");
+      return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
   }
   else if (argv.hasParseArg("annotation")) {
     QString annotationName = argv.getParseStr("annotation");
@@ -1791,7 +1791,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
     if (! annotation) return false;
 
     if (! annotation->setProperty(name, value))
-      return errorMsg("Failed to set annotation property '" + name + "'");
+      return errorMsg("Failed to set annotation property '" + name + "' '" + value + "'");
   }
   else if (argv.hasParseArg("model")) {
     int modelInd = argv.getParseInt("model", -1);
@@ -1800,7 +1800,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
     if (! modelData) return errorMsg("No model data");
 
     if (! modelData->setPropertyData(name, value))
-      return errorMsg("Failed to set model property '" + name + "'");
+      return errorMsg("Failed to set model property '" + name + "' '" + value + "'");
   }
 
   return true;
@@ -5723,7 +5723,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       }
       else {
         if (! modelData->setPropertyData(name1, value))
-          return errorMsg("Failed to set model property '" + name1 + "'");
+          return errorMsg("Failed to set model property '" + name1 + "' '" + value + "'");
       }
     }
 #endif
@@ -8829,7 +8829,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       QString scol = column.toString();
 
       if (! plot->setParameter(parameter, scol)) {
-        (void) errorMsg("Failed to set parameter " + parameter->propName());
+        (void) errorMsg("Failed to set parameter " + parameter->propName() + " '" + scol + "'");
         continue;
       }
     }
@@ -8851,7 +8851,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       QString s = CQChartsColumn::columnsToString(columns);
 
       if (! plot->setParameter(parameter, QVariant(s))) {
-        (void) errorMsg("Failed to set parameter " + parameter->propName());
+        (void) errorMsg("Failed to set parameter " + parameter->propName() + " '" + s + "'");
         continue;
       }
     }
@@ -8915,7 +8915,8 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       }
 
       if (! plot->setParameter(parameter, var)) {
-        (void) errorMsg("Failed to set parameter " + parameter->propName());
+        (void) errorMsg("Failed to set parameter " + parameter->propName() +
+                        "'" + var.toString() + "'");
         continue;
       }
     }

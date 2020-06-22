@@ -83,6 +83,15 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
+  struct ImageWidgets : public Widgets {
+    QRadioButton*         positionRadio     { nullptr };
+    QRadioButton*         rectRadio         { nullptr };
+    CQChartsPositionEdit* positionEdit      { nullptr };
+    CQChartsRectEdit*     rectEdit          { nullptr };
+    CQChartsLineEdit*     imageEdit         { nullptr };
+    CQChartsLineEdit*     disabledImageEdit { nullptr };
+  };
+
   struct ArrowWidgets : public Widgets {
     CQChartsPositionEdit*  startEdit       { nullptr };
     CQChartsPositionEdit*  endEdit         { nullptr };
@@ -108,8 +117,15 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void createPolygonFrame ();
   void createPolyLineFrame();
   void createTextFrame    ();
+  void createImageFrame   ();
   void createArrowFrame   ();
   void createPointFrame   ();
+  void createPieSliceFrame();
+  void createAxisFrame    ();
+  void createKeyFrame     ();
+  void createPointSetFrame();
+  void createValueSetFrame();
+  void createButtonFrame  ();
 
   void addFillWidgets  (Widgets &widgets, QBoxLayout *playout);
   void addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool corner);
@@ -123,6 +139,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool createPolygonAnnotation  ();
   bool createPolylineAnnotation ();
   bool createTextAnnotation     ();
+  bool createImageAnnotation    ();
   bool createArrowAnnotation    ();
   bool createPointAnnotation    ();
 
@@ -132,7 +149,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
  private slots:
   void typeSlot(int ind);
 
-  void textPositionSlot(bool);
+  void textPositionSlot (bool);
+  void imagePositionSlot(bool);
 
   void okSlot();
   bool applySlot();
@@ -150,6 +168,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   PolygonWidgets    polygonWidgets_;               //!< polygon edit widgets
   PolylineWidgets   polylineWidgets_;              //!< polyline edit widgets
   TextWidgets       textWidgets_;                  //!< text edit widgets
+  ImageWidgets      imageWidgets_;                 //!< image edit widgets
   ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
   PointWidgets      pointWidgets_;                 //!< point edit widgets
   QLabel*           msgLabel_         { nullptr }; //!< error message label

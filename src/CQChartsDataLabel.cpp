@@ -190,24 +190,27 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     }
 
     // clip if needed
-    bool clipped = false;
+    bool hclipped = false;
+    bool vclipped = false;
 
-    if (tw >= pbbox.getWidth()) {
-      clipped = true;
+    if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
+        position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
+        position1 == Position::CENTER) {
+      if (tw >= pbbox.getWidth())
+        hclipped = true;
+
+      if (th >= pbbox.getHeight())
+        vclipped = true;
     }
 
-    if (th >= pbbox.getHeight()) {
-      clipped = true;
-    }
-
-    if (moveClipped()) {
+    if (hclipped && moveClipped()) {
       if      (position1 == Position::LEFT_INSIDE) {
         position1 = Position::LEFT_OUTSIDE;
 
         px = pbbox.getXMin() - tw - xm - pxlp;
         py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
 
-        clipped = false;
+        hclipped = false;
       }
       else if (position1 == Position::RIGHT_INSIDE) {
         position1 = Position::RIGHT_OUTSIDE;
@@ -215,15 +218,18 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
         px = pbbox.getXMax() + xm + pxrp;
         py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
 
-        clipped = false;
+        hclipped = false;
       }
-      else if      (position1 == Position::TOP_INSIDE) {
+    }
+
+    if (vclipped && moveClipped()) {
+      if      (position1 == Position::TOP_INSIDE) {
         position1 = Position::TOP_OUTSIDE;
 
         px = pbbox.getXMid() - tw/2;
         py = pbbox.getYMin() - fm.descent() - ym - pytp;
 
-        clipped = false;
+        vclipped = false;
       }
       else if (position1 == Position::BOTTOM_INSIDE) {
         position1 = Position::BOTTOM_OUTSIDE;
@@ -231,15 +237,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
         px = pbbox.getXMid() - tw/2;
         py = pbbox.getYMax() + fm.ascent () + ym + pybp;
 
-        clipped = false;
-      }
-    }
-
-    if (isClip()) {
-      if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
-          position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
-          position1 == Position::CENTER) {
-        device->setClipRect(bbox);
+        vclipped = false;
       }
     }
 
@@ -250,8 +248,22 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     CQChartsBoxObj::draw(device, device->pixelToWindow(tpbbox));
 
     // draw text
-    if (! clipped) {
-      if (ystr.length()) {
+    if (ystr.length()) {
+      bool clipped = false;
+
+      if (isClip()) {
+        if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
+            position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
+            position1 == Position::CENTER) {
+          device->setClipRect(bbox);
+
+          clipped = true;
+        }
+      }
+
+      bool textClipped = (! clipped && (hclipped || vclipped));
+
+      if (! textClipped) {
         device->setPen(penBrush.pen);
 
         auto p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));

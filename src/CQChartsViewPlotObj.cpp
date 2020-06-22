@@ -1,6 +1,7 @@
 #include <CQChartsViewPlotObj.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsEditHandles.h>
 
 CQChartsViewPlotObj::
 CQChartsViewPlotObj(CQChartsView *view) :
@@ -14,6 +15,14 @@ CQChartsViewPlotObj(CQChartsPlot *plot) :
 {
 }
 
+CQChartsViewPlotObj::
+~CQChartsViewPlotObj()
+{
+  delete editHandles_;
+}
+
+//---
+
 CQCharts *
 CQChartsViewPlotObj::
 charts() const
@@ -26,6 +35,37 @@ CQChartsViewPlotObj::
 view() const
 {
   return (plot_ ? plot_->view() : view_);
+}
+
+//---
+
+CQChartsEditHandles *
+CQChartsViewPlotObj::
+editHandles() const
+{
+  if (! editHandles_) {
+    auto *th = const_cast<CQChartsViewPlotObj *>(this);
+
+    if      (plot())
+      th->editHandles_ = new CQChartsEditHandles(plot(), CQChartsEditHandles::Mode::MOVE);
+    else if (view())
+      th->editHandles_ = new CQChartsEditHandles(view(), CQChartsEditHandles::Mode::MOVE);
+  }
+
+  return editHandles_;
+}
+
+void
+CQChartsViewPlotObj::
+drawEditHandles(QPainter *painter) const
+{
+  assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+
+  auto *th = const_cast<CQChartsViewPlotObj *>(this);
+
+  th->editHandles()->setBBox(this->rect());
+
+  editHandles()->draw(painter);
 }
 
 //---

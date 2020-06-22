@@ -26,8 +26,6 @@ CQChartsKey(CQChartsView *view) :
   init();
 
   setStateColoring(false);
-
-  editHandles_ = new CQChartsEditHandles(view, CQChartsEditHandles::Mode::MOVE);
 }
 
 CQChartsKey::
@@ -40,8 +38,6 @@ CQChartsKey(CQChartsPlot *plot) :
 
   setFilled(true);
   setFillAlpha(CQChartsAlpha(0.5));
-
-  editHandles_ = new CQChartsEditHandles(plot, CQChartsEditHandles::Mode::MOVE);
 }
 
 void
@@ -64,7 +60,6 @@ init()
 CQChartsKey::
 ~CQChartsKey()
 {
-  delete editHandles_;
 }
 
 QString
@@ -450,13 +445,11 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  auto *th = const_cast<CQChartsViewKey *>(this);
+  editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
 
-  th->editHandles_->setMode(CQChartsEditHandles::Mode::MOVE);
+  editHandles()->setBBox(pbbox_);
 
-  th->editHandles_->setBBox(pbbox_);
-
-  editHandles_->draw(painter);
+  editHandles()->draw(painter);
 }
 
 void
@@ -531,7 +524,7 @@ bool
 CQChartsViewKey::
 editPress(const CQChartsGeom::Point &w)
 {
-  editHandles_->setDragPos(w);
+  editHandles()->setDragPos(w);
 
   return true;
 }
@@ -540,7 +533,7 @@ bool
 CQChartsViewKey::
 editMove(const CQChartsGeom::Point &w)
 {
-  const auto &dragPos = editHandles_->dragPos();
+  const auto &dragPos = editHandles()->dragPos();
 
   double dx = w.x - dragPos.x;
   double dy = w.y - dragPos.y;
@@ -550,7 +543,7 @@ editMove(const CQChartsGeom::Point &w)
   wposition_ = wposition_ + CQChartsGeom::Point(dx, dy);
   pposition_ = view()->windowToPixel(wposition_);
 
-  editHandles_->setDragPos(w);
+  editHandles()->setDragPos(w);
 
   updatePosition(/*queued*/false);
 
@@ -561,14 +554,7 @@ bool
 CQChartsViewKey::
 editMotion(const CQChartsGeom::Point &w)
 {
-  return editHandles_->selectInside(w);
-}
-
-bool
-CQChartsViewKey::
-editRelease(const CQChartsGeom::Point &)
-{
-  return true;
+  return editHandles()->selectInside(w);
 }
 
 //------
@@ -1406,7 +1392,7 @@ bool
 CQChartsPlotKey::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   CQChartsKeyLocation::Type locationType = this->location().type();
 
@@ -1424,8 +1410,8 @@ bool
 CQChartsPlotKey::
 editMove(const CQChartsGeom::Point &p)
 {
-  const auto &dragPos  = editHandles_->dragPos();
-  const auto &dragSide = editHandles_->dragSide();
+  const auto &dragPos  = editHandles()->dragPos();
+  const auto &dragSide = editHandles()->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -1438,9 +1424,9 @@ editMove(const CQChartsGeom::Point &p)
   else {
     location_ = CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE;
 
-    editHandles_->updateBBox(dx, dy);
+    editHandles()->updateBBox(dx, dy);
 
-    wbbox_ = editHandles_->bbox();
+    wbbox_ = editHandles()->bbox();
 
     setAbsolutePlotRectangle(wbbox_);
 
@@ -1453,7 +1439,7 @@ editMove(const CQChartsGeom::Point &p)
     invalidateLayout();
   }
 
-  editHandles_->setDragPos(p);
+  editHandles()->setDragPos(p);
 
   updatePosition(/*queued*/false);
 
@@ -1464,14 +1450,7 @@ bool
 CQChartsPlotKey::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_->selectInside(p);
-}
-
-bool
-CQChartsPlotKey::
-editRelease(const CQChartsGeom::Point &)
-{
-  return true;
+  return editHandles()->selectInside(p);
 }
 
 void
@@ -1939,17 +1918,15 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  auto *th = const_cast<CQChartsPlotKey *>(this);
-
   if (scrollData_.height.isSet() || scrollData_.width.isSet() ||
       layoutData_.vscrolled || layoutData_.hscrolled)
-    th->editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+    editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
   else
-    th->editHandles_->setMode(CQChartsEditHandles::Mode::MOVE);
+    editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
 
-  th->editHandles_->setBBox(this->bbox());
+  editHandles()->setBBox(this->bbox());
 
-  editHandles_->draw(painter);
+  editHandles()->draw(painter);
 }
 
 QColor

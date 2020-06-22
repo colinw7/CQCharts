@@ -15,7 +15,6 @@
 #include <CQChartsGridCell.h>
 #include <CQChartsAngle.h>
 
-class CQChartsEditHandles;
 class CQChartsSmooth;
 class CQChartsDensity;
 class CQChartsKey;
@@ -104,10 +103,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! get bounding box
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-
-  //! get edit handles
-  CQChartsEditHandles *editHandles() { return editHandles_; }
+  const BBox &bbox() const { return bbox_; }
 
   //---
 
@@ -152,18 +148,18 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! is point inside (also checks visible)
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   //! is point inside
-  virtual bool inside(const CQChartsGeom::Point &p) const;
+  virtual bool inside(const Point &p) const;
 
   //---
 
   using SelMod = CQChartsSelMod;
 
-  virtual void mousePress  (const CQChartsGeom::Point &, SelMod) { }
-  virtual void mouseMove   (const CQChartsGeom::Point &) { }
-  virtual void mouseRelease(const CQChartsGeom::Point &) { }
+  virtual void mousePress  (const Point &, SelMod) { }
+  virtual void mouseMove   (const Point &) { }
+  virtual void mouseRelease(const Point &) { }
 
   //---
 
@@ -173,19 +169,19 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! handle select press
-  virtual bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod);
+  virtual bool selectPress(const Point &p, CQChartsSelMod selMod);
 
   //! handle edit press, move, motion, release
-  virtual bool editPress  (const CQChartsGeom::Point &);
-  virtual bool editMove   (const CQChartsGeom::Point &);
-  virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &);
+  virtual bool editPress  (const Point &);
+  virtual bool editMove   (const Point &);
+  virtual bool editMotion (const Point &);
+  virtual bool editRelease(const Point &) { return true; }
 
   //! handle edit move by
-  virtual void editMoveBy(const CQChartsGeom::Point &d);
+  virtual void editMoveBy(const Point &d);
 
   //! set new bounding box
-  virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
+  virtual void setEditBBox(const BBox &, const CQChartsResizeSide &) { }
 
   //---
 
@@ -201,9 +197,6 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   virtual void drawInit(CQChartsPaintDevice *device);
   virtual void drawTerm(CQChartsPaintDevice *device);
-
-  //! draw edit handles
-  void drawEditHandles(QPainter *painter) const;
 
   //---
 
@@ -225,7 +218,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 #endif
 
   //! write polygon points
-  void writePoints(std::ostream &os, const CQChartsGeom::Polygon &polygon) const;
+  void writePoints(std::ostream &os, const Polygon &polygon) const;
 
   //! write properties
   void writeProperties(std::ostream &os, const QString &varName="") const;
@@ -246,13 +239,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void invalidateSlot() { invalidate(); }
 
  protected:
-  Type                 type_        { Type::NONE }; //!< type
-  int                  ind_         { 0 };          //!< unique ind
-  bool                 enabled_     { true };       //!< is enabled
-  bool                 checkable_   { false };      //!< is checkable
-  bool                 checked_     { false };      //!< is checked
-  CQChartsGeom::BBox   bbox_;                       //!< bbox (plot coords)
-  CQChartsEditHandles* editHandles_ { nullptr };    //!< edit handles
+  Type type_      { Type::NONE }; //!< type
+  int  ind_       { 0 };          //!< unique ind
+  bool enabled_   { true };       //!< is enabled
+  bool checkable_ { false };      //!< is checkable
+  bool checked_   { false };      //!< is checked
+  BBox bbox_;                     //!< bbox (plot coords)
 };
 
 //---
@@ -294,7 +286,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -347,7 +339,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -402,7 +394,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -465,7 +457,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -538,7 +530,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -610,6 +602,12 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   CQChartsRect rectangleValue() const;
   void setRectangle(const CQChartsRect &r);
 
+  const CQChartsImage &image() const { return image_; }
+  void setImage(const CQChartsImage &image);
+
+  const CQChartsImage &disabledImage() const { return disabledImage_; }
+  void setDisabledImage(const CQChartsImage &image);
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
@@ -619,7 +617,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -696,7 +694,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -752,7 +750,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -824,7 +822,7 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -871,7 +869,7 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -913,7 +911,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -981,7 +979,7 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -1042,7 +1040,7 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+  void setEditBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

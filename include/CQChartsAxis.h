@@ -419,7 +419,7 @@ class CQChartsAxis : public CQChartsObj,
   virtual bool editPress  (const CQChartsGeom::Point &);
   virtual bool editMove   (const CQChartsGeom::Point &);
   virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &);
+  virtual bool editRelease(const CQChartsGeom::Point &) { return true; }
 
   virtual void editMoveBy(const CQChartsGeom::Point &d);
 

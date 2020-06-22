@@ -964,13 +964,6 @@ editMotion(const CQChartsGeom::Point &p)
   return editHandles_->selectInside(p);
 }
 
-bool
-CQChartsAxis::
-editRelease(const CQChartsGeom::Point &)
-{
-  return true;
-}
-
 void
 CQChartsAxis::
 editMoveBy(const CQChartsGeom::Point &d)
