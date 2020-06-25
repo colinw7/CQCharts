@@ -15,6 +15,10 @@ adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
       return plot->pixelToWindowWidth(plot->view()->windowToPixelWidth(len.value()));
     else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getWidth()*len.value()/100.0;
+    else if (len.units() == CQChartsUnits::EM)
+      return plot->pixelToWindowWidth(len.value()*plot->view()->fontEm());
+    else if (len.units() == CQChartsUnits::EX)
+      return plot->pixelToWindowWidth(len.value()*plot->view()->fontEx());
     else
       return len.value();
   };
@@ -28,6 +32,10 @@ adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
       return plot->pixelToWindowHeight(plot->view()->windowToPixelHeight(len.value()));
     else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getHeight()*len.value()/100.0;
+    else if (len.units() == CQChartsUnits::EM)
+      return plot->pixelToWindowHeight(len.value()*plot->view()->fontEm());
+    else if (len.units() == CQChartsUnits::EX)
+      return plot->pixelToWindowHeight(len.value()*plot->view()->fontEx());
     else
       return len.value();
   };
@@ -68,6 +76,10 @@ adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
       return len.value();
     else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getWidth()*len.value()/100.0;
+    else if (len.units() == CQChartsUnits::EM)
+      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEm());
+    else if (len.units() == CQChartsUnits::EX)
+      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEx());
     else
       return len.value();
   };
@@ -81,6 +93,10 @@ adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
       return len.value();
     else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getHeight()*len.value()/100.0;
+    else if (len.units() == CQChartsUnits::EM)
+      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEm());
+    else if (len.units() == CQChartsUnits::EX)
+      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEx());
     else
       return len.value();
   };

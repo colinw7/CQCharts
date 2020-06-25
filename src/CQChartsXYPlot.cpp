@@ -619,14 +619,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsXYPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsXYPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn (xColumn(), "X", th->xColumnType_, /*required*/true))
     columnsValid = false;
@@ -1929,8 +1931,10 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
     y.push_back(y1);
   }
 
-  if (nc && y.empty())
+  if (nc && y.empty()) {
+    th->addDataError(xModelInd, "Invalid Y Value(s)");
     return false;
+  }
 
   return (ok1 && ok2);
 }

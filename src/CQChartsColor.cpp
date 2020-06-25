@@ -75,6 +75,12 @@ colorStr() const
     if (type() == Type::INTERFACE_VALUE)
       strs << QString::number(value());
   }
+  else if (type() == Type::CONTRAST || type() == Type::CONTRAST_VALUE) {
+    strs << "contrast";
+
+    if (type() == Type::CONTRAST_VALUE)
+      strs << QString::number(value());
+  }
   else if (type() == Type::MODEL || type() == Type::MODEL_VALUE) {
     int r, g, b;
 
@@ -235,6 +241,18 @@ setColorStr(const QString &str)
     }
     else
       setValue(Type::INTERFACE, 0.0);
+  }
+  else if (strs[0] == "contrast") {
+    if (strs.length() > 1) {
+      bool ok;
+
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
+
+      setValue(Type::CONTRAST_VALUE, value);
+    }
+    else
+      setValue(Type::CONTRAST, 0.0);
   }
   else if (strs[0] == "model") {
     if (strs.length() < 4)

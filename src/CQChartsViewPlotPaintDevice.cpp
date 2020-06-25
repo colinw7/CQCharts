@@ -268,7 +268,14 @@ drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a)
   if (! prect.isValid()) return;
 
   if (handDrawn_) {
-    assert(false);
+    // TODO: rotated ellipsse
+    //assert(false);
+
+    QPainterPath path;
+
+    path.addEllipse(prect);
+
+    hdPainter_->drawPath(path);
   }
   else {
     if (a.value() != 0.0) {

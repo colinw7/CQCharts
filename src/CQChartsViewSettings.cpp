@@ -783,6 +783,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   updateErrorsTimer_ = new QTimer;
 
+  updateErrorsTimer_->setSingleShot(true);
+
   connect(updateErrorsTimer_, SIGNAL(timeout()), this, SLOT(updateErrors()));
 }
 

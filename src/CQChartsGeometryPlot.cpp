@@ -314,14 +314,18 @@ calcRange() const
 
   NoUpdate noUpdate(this);
 
+  auto *th = const_cast<CQChartsGeometryPlot *>(this);
+
+  th->clearErrors();
+
+  //---
+
   CQChartsGeom::Range dataRange;
 
   auto *model = this->model().data();
   if (! model) return dataRange;
 
   //---
-
-  auto *th = const_cast<CQChartsGeometryPlot *>(this);
 
   th->geometries_.clear();
 
@@ -331,8 +335,6 @@ calcRange() const
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // geometry column required
   // value, color and style columns optional

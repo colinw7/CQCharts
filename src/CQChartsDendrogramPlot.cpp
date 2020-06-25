@@ -152,14 +152,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDendrogramPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsDendrogramPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;

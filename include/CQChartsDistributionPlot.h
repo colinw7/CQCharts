@@ -247,6 +247,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   double                          value2_   { 1.0 };
   bool                            isLine_   { false };
   ColorData                       colorData_;
+  mutable QColor                  barColor_;
 };
 
 //---

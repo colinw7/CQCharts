@@ -294,9 +294,11 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsSunburstPlot *>(this);
+
+  th->clearErrors();
+
+  //---
 
   // init value sets
   //initValueSets();
@@ -305,8 +307,6 @@ createObjs(PlotObjs &objs) const
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value column required
   // name, id, color columns optional

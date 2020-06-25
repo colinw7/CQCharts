@@ -3,6 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Auto size title/axis to outer margin
+ + Pie chart mouse over center label
+ + Gradient fill
+ + Contrast Color
+ + More length units (EX, EM)
+ + Annotation Dialogs (all types)
  + Dot language (Sankey)
    + More support
    + Better arrow connectors

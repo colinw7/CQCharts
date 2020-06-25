@@ -83,8 +83,9 @@ class CQChartsModelExprMatch {
   // string
   QVariant matchCmd(const Values &values) const;
 
-  // math
-  QVariant isnanCmd(const Values &values) const;
+  // special values
+  QVariant definedCmd(const Values &values) const;
+  QVariant isnanCmd  (const Values &values) const;
 
   // details
   QVariant detailsCmd(const QString &name, const Values &values) const;

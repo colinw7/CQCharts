@@ -280,6 +280,8 @@ inline QString unitsString(const CQChartsUnits &units) {
   else if (units == CQChartsUnits::PERCENT) return "%" ;
   else if (units == CQChartsUnits::PLOT   ) return "P" ;
   else if (units == CQChartsUnits::VIEW   ) return "V" ;
+  else if (units == CQChartsUnits::EM     ) return "em";
+  else if (units == CQChartsUnits::EX     ) return "ex";
   else                                      return ""  ;
 }
 

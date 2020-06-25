@@ -96,8 +96,9 @@ addBuiltinFunctions()
   // string
   addFunction("match");
 
-  // math
-  addFunction("isnan");
+  // special values
+  addFunction("defined");
+  addFunction("isnan"  );
 }
 
 void
@@ -246,7 +247,8 @@ processCmd(const QString &name, const Values &values)
   else if (name == "match") return matchCmd(values);
 
   // math
-  else if (name == "isnan") return isnanCmd(values);
+  else if (name == "defined") return definedCmd(values);
+  else if (name == "isnan"  ) return isnanCmd  (values);
 
   // details
   else if (name == "min"         ) return detailsCmd(name, values);
@@ -415,6 +417,34 @@ matchCmd(const Values &values) const
   QRegExp regexp(pattern);
 
   return regexp.exactMatch(str);
+}
+
+//---
+
+// column value is valid
+//  defined(column)
+QVariant
+CQChartsModelExprMatch::
+definedCmd(const Values &values) const
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  if (! getColumn(cmdValues, col))
+    return QVariant();
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant(false);
+
+  //---
+
+  QVariant var = getCmdData(row, col);
+
+  return QVariant(var.isValid());
 }
 
 //---

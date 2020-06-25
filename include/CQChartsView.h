@@ -311,6 +311,9 @@ class CQChartsView : public QFrame,
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f);
 
+  double fontEm() const;
+  double fontEx() const;
+
   //---
 
   bool isHandDrawn() const { return handDrawn_; }
@@ -1106,7 +1109,7 @@ class CQChartsView : public QFrame,
     CQChartsSelMod     selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
     CQChartsSelMod     clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
     DragObj            dragObj    { DragObj::NONE };            //!< drag object
-    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE }; //!< drag sided
+    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE }; //!< drag side
     bool               dragged    { false };                    //!< is dragged
 
     void reset() {

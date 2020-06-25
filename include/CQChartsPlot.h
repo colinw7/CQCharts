@@ -1499,6 +1499,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void updateAxisRanges(const BBox &adjustedRange);
 
+  void crearOverlayErrors();
   void updateOverlayRanges();
 
   void setPixelRange(const BBox &bbox);

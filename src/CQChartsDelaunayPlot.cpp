@@ -226,14 +226,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsDelaunayPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn(xColumn    (), "X"    )) columnsValid = false;
   if (! checkColumn(yColumn    (), "Y"    )) columnsValid = false;

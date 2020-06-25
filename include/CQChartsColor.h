@@ -12,32 +12,32 @@ class QObject;
  * \ingroup Charts
  *
  * A charts color can be:
- *  . An interpolated palette color ("palette" "palette#<ind>")
- *  . An explicit palette color ("palette <value>" "palette#<ind> <value>")
- *  . An indexed palette color ("ind_palette" "ind_palette#<ind>")
- *  . An explicit indexed palette color ("ind_palette <value>" "ind_palette#<ind> <value>")
- *  . An interpolated interface color ("interface")
- *  . An explicit interface color ("interface <value>")
- *  . A model color ("model <r> <g> <b>")
- *  . An explicit model color ("model <r> <g> <b> <value>")
- *  . An explicit rgb color ("<name>")
+ *  . An interpolated palette color     : "palette" "palette#<ind>"
+ *  . An explicit palette color         : "palette <value>" "palette#<ind> <value>"
+ *  . An indexed palette color          : "ind_palette" "ind_palette#<ind>"
+ *  . An explicit indexed palette color : "ind_palette <value>" "ind_palette#<ind> <value>"
+ *  . An interpolated interface color   : "interface"
+ *  . An explicit interface color       : "interface <value>"
+ *  . An interpolated contrast color    : "contrast"
+ *  . An explicit contrast color        : "contrast <value>"
+ *  . A lighter color                   : "lighter" <factor>
+ *  . A darker color                    : "darker" <factor>
+ *  . An explicit contrast color        : "contrast <value>"
+ *  . A model color                     : "model <r> <g> <b>"
+ *  . An explicit model color           : "model <r> <g> <b> <value>"
+ *  . An explicit rgb color name        : "<name>"
  */
 class CQChartsColor {
  public:
   enum class Type {
     NONE,
-    PALETTE,
-    PALETTE_VALUE,
-    INDEXED,
-    INDEXED_VALUE,
-    INTERFACE,
-    INTERFACE_VALUE,
-    MODEL,
-    MODEL_VALUE,
-    LIGHTER,
-    LIGHTER_VALUE,
-    DARKER,
-    DARKER_VALUE,
+    PALETTE  , PALETTE_VALUE,
+    INDEXED  , INDEXED_VALUE,
+    INTERFACE, INTERFACE_VALUE,
+    CONTRAST , CONTRAST_VALUE,
+    MODEL    , MODEL_VALUE,
+    LIGHTER  , LIGHTER_VALUE,
+    DARKER   , DARKER_VALUE,
     COLOR
   };
 
@@ -133,6 +133,7 @@ class CQChartsColor {
     return (type_ == Type::PALETTE_VALUE   ||
             type_ == Type::INDEXED_VALUE   ||
             type_ == Type::INTERFACE_VALUE ||
+            type_ == Type::CONTRAST_VALUE ||
             type_ == Type::MODEL_VALUE ||
             type_ == Type::COLOR);
   }

@@ -196,6 +196,10 @@ class CQCharts : public QObject {
   const CQColorsTheme *theme() const;
   CQColorsTheme *theme();
 
+  const QColor &contrastColor() const { return contrastColor_; }
+  void setContrastColor(const QColor &c) { contrastColor_ = c; }
+  void resetContrastColor() { contrastColor_ = QColor(); }
+
   //---
 
   QColor interpModelColor(const CQChartsColor &c, double value) const;
@@ -359,6 +363,7 @@ class CQCharts : public QObject {
   CQChartsColumnTypeMgr*   columnTypeMgr_   { nullptr }; //!< column type manager
   CQChartsInterfaceTheme*  interfaceTheme_  { nullptr }; //!< interface theme
   CQChartsThemeName        plotTheme_;                   //!< plot theme name
+  QColor                   contrastColor_;               //!< color for contrast color calc
   int                      currentModelInd_ { -1 };      //!< current model index
   ModelDatas               modelDatas_;                  //!< model datas
   int                      lastModelInd_    { 0 };       //!< last model ind

@@ -232,9 +232,11 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
+
+  th->clearErrors();
+
+  //---
 
   th->clearNodes();
 

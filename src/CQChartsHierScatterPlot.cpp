@@ -248,14 +248,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsHierScatterPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn(xColumn(), "X", /*required*/true))
     columnsValid = false;

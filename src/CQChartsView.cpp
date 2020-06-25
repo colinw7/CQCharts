@@ -562,6 +562,26 @@ setFont(const CQChartsFont &f)
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
 }
 
+double
+CQChartsView::
+fontEm() const
+{
+  QFont qfont = this->font().font();
+  QFontMetricsF fm(qfont);
+
+  return fm.height();
+}
+
+double
+CQChartsView::
+fontEx() const
+{
+  QFont qfont = this->font().font();
+  QFontMetricsF fm(qfont);
+
+  return fm.width("x");
+}
+
 //---
 
 void
@@ -2881,8 +2901,6 @@ selectMouseMotion()
     searchTimer_->start();
   else
     searchSlot();
-
-  return;
 }
 
 void
@@ -3101,7 +3119,7 @@ void
 CQChartsView::
 zoomMouseMove()
 {
-  mouseData_.movePoint = mouseMovePoint();
+//mouseData_.movePoint = mouseMovePoint();
 
   if      (mouseData_.escape)
     endRegionBand();
@@ -6548,6 +6566,12 @@ positionToView(const CQChartsPosition &pos) const
     p1.setX(p.getX()*width ()/100.0);
     p1.setY(p.getY()*height()/100.0);
   }
+  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
+    double x = pixelToWindowWidth (p.getX()*fontEx());
+    double y = pixelToWindowHeight(p.getY()*fontEm());
+
+    return Point(x, y);
+  }
 
   return p1;
 }
@@ -6566,6 +6590,12 @@ positionToPixel(const CQChartsPosition &pos) const
   else if (pos.units() == CQChartsUnits::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
     p1.setY(p.getY()*height()/100.0);
+  }
+  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
+    double x = p.getX()*fontEx();
+    double y = p.getY()*fontEm();
+
+    return Point(x, y);
   }
 
   return p1;
@@ -6590,6 +6620,14 @@ rectToView(const CQChartsRect &rect) const
     r1.setXMax(r.getXMax()*width ()/100.0);
     r1.setYMax(r.getYMax()*height()/100.0);
   }
+  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
+    double x1 = pixelToWindowWidth (r.getXMin()*fontEx());
+    double y1 = pixelToWindowHeight(r.getYMin()*fontEm());
+    double x2 = pixelToWindowWidth (r.getXMax()*fontEx());
+    double y2 = pixelToWindowHeight(r.getYMax()*fontEm());
+
+    return BBox(x1, y1, x2, y2);
+  }
 
   return r1;
 }
@@ -6611,6 +6649,14 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setXMax(r.getXMax()*width ()/100.0);
     r1.setYMax(r.getYMax()*height()/100.0);
   }
+  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
+    double x1 = r.getXMin()*fontEx();
+    double y1 = r.getYMin()*fontEm();
+    double x2 = r.getXMax()*fontEx();
+    double y2 = r.getYMax()*fontEm();
+
+    return BBox(x1, y1, x2, y2);
+  }
 
   return r1;
 }
@@ -6627,8 +6673,12 @@ lengthViewWidth(const CQChartsLength &len) const
     return len.value();
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToWindowWidth(len.value()*fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToWindowWidth(len.value()*fontEx());
+
+  return len.value();
 }
 
 double
@@ -6641,8 +6691,12 @@ lengthViewHeight(const CQChartsLength &len) const
     return len.value();
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*viewportRange()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToWindowHeight(len.value()*fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToWindowHeight(len.value()*fontEx());
+
+  return len.value();
 }
 
 double
@@ -6658,8 +6712,12 @@ lengthPixelWidth(const CQChartsLength &len) const
 
     return len.value()*w/100.0;
   }
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return len.value()*fontEm();
+  else if (len.units() == CQChartsUnits::EX)
+    return len.value()*fontEx();
+
+  return len.value();
 }
 
 double
@@ -6675,8 +6733,12 @@ lengthPixelHeight(const CQChartsLength &len) const
 
     return len.value()*h/100.0;
   }
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return len.value()*fontEm();
+  else if (len.units() == CQChartsUnits::EX)
+    return len.value()*fontEx();
+
+  return len.value();
 }
 
 //------

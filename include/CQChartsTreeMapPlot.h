@@ -334,6 +334,8 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
+  void drawText(CQChartsPaintDevice *device, const BBox &bbox);
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
   //---

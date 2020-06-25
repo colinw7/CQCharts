@@ -328,18 +328,18 @@ calcRange() const
 
   NoUpdate noUpdate(this);
 
-  CQChartsGeom::Range dataRange;
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
-  auto *th = const_cast<CQChartsBarChartPlot *>(this);
+  CQChartsGeom::Range dataRange;
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value columns required
   // name, label, group, color columns optional
@@ -1899,6 +1899,14 @@ drawFg(CQChartsPaintDevice *device) const
 
   auto pos = plot_->dataLabel()->position();
 
+  if (! plot_->dataLabel()->isPositionOutside()) {
+    CQChartsPenBrush barPenBrush;
+
+    calcPenBrush(barPenBrush, /*updateState*/false);
+
+    plot_->charts()->setContrastColor(barPenBrush.brush.color());
+  }
+
   if (minLabel == maxLabel) {
     if (! plot_->labelColumn().isValid() && minInd.value < 0)
       pos = CQChartsDataLabel::flipPosition(pos);
@@ -1922,6 +1930,8 @@ drawFg(CQChartsPaintDevice *device) const
       plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
   }
+
+  plot_->charts()->resetContrastColor();
 }
 
 void

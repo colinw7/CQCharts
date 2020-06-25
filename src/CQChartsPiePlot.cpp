@@ -302,14 +302,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPiePlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsPiePlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value column required
   // name, id, color columns optional

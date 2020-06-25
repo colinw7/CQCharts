@@ -209,6 +209,12 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
+  auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  th->clearErrors();
+
   //---
 
   // check columns

@@ -392,8 +392,6 @@ checkColumns() const
   // check columns
   bool columnsValid = true;
 
-  th->clearErrors();
-
   if      (linkColumn().isValid()) {
     // link required
     if (! checkColumn(linkColumn(), "Link", th->linkColumnType_, /*required*/true))

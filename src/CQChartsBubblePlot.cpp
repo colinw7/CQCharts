@@ -259,9 +259,11 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsBubblePlot *>(this);
+
+  th->clearErrors();
+
+  //---
 
   // init value sets
 //initValueSets();
@@ -270,8 +272,6 @@ createObjs(PlotObjs &objs) const
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value column required
   // name, id, color columns optional
@@ -1020,6 +1020,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc text pen
+  plot_->charts()->setContrastColor(penBrush.brush.color());
+
   ColorInd colorInd = calcColorInd();
 
   CQChartsPenBrush tPenBrush;
@@ -1109,6 +1111,8 @@ draw(CQChartsPaintDevice *device)
   else {
     assert(false);
   }
+
+  plot_->charts()->resetContrastColor();
 
   //---
 

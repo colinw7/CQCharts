@@ -60,6 +60,11 @@ INCLUDEPATH += \
 ../../COS/include \
 /usr/include/tcl \
 
+PRE_TARGETDEPS = \
+../../CQPropertyView/lib/libCQPropertyView.a \
+../../CQModelView/lib/libCQModelView.a \
+../../CQColors/lib/libCQColors.a \
+
 unix:LIBS += \
 -L../lib \
 -L../../CQPropertyView/lib \

@@ -1132,3 +1132,8 @@
 # 06/21/2020
  + Allow edit/move of plot object
  + Support move of sankey nodes
+# 06/25/2020
+ + Add contrast color type (for text labels)
+ + Support em/ex as units for length
+ + Add defined function to model filter
+ + fix clear errors for overlay plots

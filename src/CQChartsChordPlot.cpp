@@ -266,9 +266,9 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  th->clearErrors();
 
   //---
 

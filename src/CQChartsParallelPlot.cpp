@@ -308,14 +308,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcRange");
 
-  auto *th =  const_cast<CQChartsParallelPlot *>(this);
+  NoUpdate noUpdate(this);
+
+  auto *th = const_cast<CQChartsParallelPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn (xColumn(), "X", /*required*/true))
     columnsValid = false;

@@ -322,13 +322,13 @@ connectSlots(bool b)
     CQChartsWidgetUtil::connectDisconnect(connected_, w, from, this, to);
   };
 
-//connectDisconnect(relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(lengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
-  connectDisconnect(angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
+//connectDisconnect(relativeEdit_ , SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(lengthEdit_   , SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(angleEdit_    , SIGNAL(angleChanged()), SLOT(widgetsToData()));
   connectDisconnect(backAngleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
-  connectDisconnect(fheadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(theadEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(lineEndsEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(fheadEdit_    , SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(theadEdit_    , SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(lineEndsEdit_ , SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(lineWidthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
 }
 
@@ -357,12 +357,12 @@ CQChartsArrowDataEdit::
 widgetsToData()
 {
 //data_.setRelative (relativeEdit_->isChecked());
-  data_.setLength   (lengthEdit_->length());
-  data_.setAngle    (angleEdit_->angle());
+  data_.setLength   (lengthEdit_   ->length());
+  data_.setAngle    (angleEdit_    ->angle());
   data_.setBackAngle(backAngleEdit_->angle());
-  data_.setFHead    (fheadEdit_->isChecked());
-  data_.setTHead    (theadEdit_->isChecked());
-  data_.setLineEnds (lineEndsEdit_->isChecked());
+  data_.setFHead    (fheadEdit_    ->isChecked());
+  data_.setTHead    (theadEdit_    ->isChecked());
+  data_.setLineEnds (lineEndsEdit_ ->isChecked());
   data_.setLineWidth(lineWidthEdit_->length());
 
   preview_->update();

@@ -326,7 +326,7 @@ CQChartsColorEdit(QWidget *parent) :
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItems(QStringList() << "None" <<
-    "Palette" << "Indexed Palette" << "Interface" <<
+    "Palette" << "Indexed Palette" << "Interface" << "Contrast" <<
     "Model" << "Lighter" << "Darker" << "Color");
 
   typeCombo_->setToolTip("Color value type");
@@ -425,7 +425,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
-  valueEdit_->setToolTip("Palette or interface value (0-1 if not scaled)");
+  valueEdit_->setToolTip("Palette, interface or contrast value (0-1 if not scaled)");
 
   addCheckWidget("Value", valueEdit_);
 
@@ -607,9 +607,15 @@ colorToWidgets()
 
       hasValue = (color_.type() == CQChartsColor::Type::INTERFACE_VALUE);
     }
+    else if (color_.type() == CQChartsColor::Type::CONTRAST ||
+             color_.type() == CQChartsColor::Type::CONTRAST_VALUE) {
+      typeCombo_->setCurrentIndex(4);
+
+      hasValue = (color_.type() == CQChartsColor::Type::INTERFACE_VALUE);
+    }
     else if (color_.type() == CQChartsColor::Type::MODEL ||
              color_.type() == CQChartsColor::Type::MODEL_VALUE) {
-      typeCombo_->setCurrentIndex(4);
+      typeCombo_->setCurrentIndex(5);
 
       int r, g, b;
 
@@ -627,18 +633,18 @@ colorToWidgets()
     }
     else if (color_.type() == CQChartsColor::Type::LIGHTER ||
              color_.type() == CQChartsColor::Type::LIGHTER_VALUE) {
-      typeCombo_->setCurrentIndex(5);
+      typeCombo_->setCurrentIndex(6);
 
       hasValue = (color_.type() == CQChartsColor::Type::LIGHTER_VALUE);
     }
     else if (color_.type() == CQChartsColor::Type::DARKER ||
              color_.type() == CQChartsColor::Type::DARKER_VALUE) {
-      typeCombo_->setCurrentIndex(6);
+      typeCombo_->setCurrentIndex(7);
 
       hasValue = (color_.type() == CQChartsColor::Type::DARKER_VALUE);
     }
     else if (color_.type() == CQChartsColor::Type::COLOR) {
-      typeCombo_->setCurrentIndex(7);
+      typeCombo_->setCurrentIndex(8);
 
       colorEdit_->setColor(color_.color());
     }
@@ -712,6 +718,15 @@ widgetsToColor()
   }
   else if (typeInd == 4) {
     if (valueCheck_->isChecked())
+      color = CQChartsColor(CQChartsColor::Type::CONTRAST_VALUE);
+    else
+      color = CQChartsColor(CQChartsColor::Type::CONTRAST);
+
+    if (valueCheck_->isChecked())
+      color.setValue(CQChartsColor::Type::CONTRAST_VALUE, valueEdit_->value());
+  }
+  else if (typeInd == 5) {
+    if (valueCheck_->isChecked())
       color = CQChartsColor(CQChartsColor::Type::MODEL_VALUE);
     else
       color = CQChartsColor(CQChartsColor::Type::MODEL);
@@ -725,7 +740,7 @@ widgetsToColor()
     if (valueCheck_->isChecked())
       color.setValue(CQChartsColor::Type::MODEL_VALUE, valueEdit_->value());
   }
-  else if (typeInd == 5) {
+  else if (typeInd == 6) {
     if (valueCheck_->isChecked())
       color = CQChartsColor(CQChartsColor::Type::LIGHTER_VALUE);
     else
@@ -734,7 +749,7 @@ widgetsToColor()
     if (valueCheck_->isChecked())
       color.setValue(CQChartsColor::Type::LIGHTER_VALUE, valueEdit_->value());
   }
-  else if (typeInd == 6) {
+  else if (typeInd == 7) {
     if (valueCheck_->isChecked())
       color = CQChartsColor(CQChartsColor::Type::DARKER_VALUE);
     else
@@ -743,7 +758,7 @@ widgetsToColor()
     if (valueCheck_->isChecked())
       color.setValue(CQChartsColor::Type::DARKER_VALUE, valueEdit_->value());
   }
-  else if (typeInd == 7) {
+  else if (typeInd == 8) {
     color = CQChartsColor(CQChartsColor::Type::COLOR);
 
     QColor c = colorEdit_->color();
@@ -802,6 +817,10 @@ updateState()
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE ||
              color_.type() == CQChartsColor::Type::INTERFACE_VALUE) {
+      setEditVisible(valueEdit_, true);
+    }
+    else if (color_.type() == CQChartsColor::Type::CONTRAST ||
+             color_.type() == CQChartsColor::Type::CONTRAST_VALUE) {
       setEditVisible(valueEdit_, true);
     }
     else if (color_.type() == CQChartsColor::Type::MODEL ||

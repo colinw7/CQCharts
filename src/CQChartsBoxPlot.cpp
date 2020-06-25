@@ -566,6 +566,12 @@ calcRange() const
 
   NoUpdate noUpdate(this);
 
+  auto *th = const_cast<CQChartsBoxPlot *>(this);
+
+  th->clearErrors();
+
+  //---
+
   CQChartsGeom::Range dataRange;
 
   //---
@@ -603,8 +609,6 @@ updateRawRange() const
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value columns required
   // name, group and set column optional
@@ -795,7 +799,7 @@ groupSetColumnName(const QString &def) const
   QString xname = xLabel();
 
   if (! xname.length() && groupColumn().isValid())
-    xname = modelHHeaderString(groupColumn(), ok);
+    xname = groupColumnName();
 
   if (! xname.length() && setColumn().isValid())
     xname = modelHHeaderString(setColumn(), ok);
@@ -883,8 +887,6 @@ updateCalcRange() const
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // min, lowerMedian, median, upperMedia, max required (already checked)
   // x, outliers optional (value list)
@@ -1376,6 +1378,7 @@ initRawObjs(PlotObjs &objs) const
 
         if (whisker->values().empty())
           continue;
+
 #if 0
         if (whisker->lowerMedian() >= whisker->upperMedian())
           continue;
@@ -2109,7 +2112,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
   model->addProperty(path1, this, "pos"        )->setDesc("Position");
-  model->addProperty(path1, this, "min"        )->setDesc("Minumum");
+  model->addProperty(path1, this, "min"        )->setDesc("Minimum");
   model->addProperty(path1, this, "lowerMedian")->setDesc("Lower median");
   model->addProperty(path1, this, "median"     )->setDesc("Median");
   model->addProperty(path1, this, "upperMedian")->setDesc("Upper median");
@@ -3305,9 +3308,6 @@ draw(CQChartsPaintDevice *device)
 {
   CQChartsSymbol symbolType = plot_->jitterSymbolType();
   CQChartsLength symbolSize = plot_->jitterSymbolSize();
-
-  //double sx, sy;
-  //plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 

@@ -3843,6 +3843,9 @@ updateRangeThread()
 
   //---
 
+  if (isOverlay())
+    crearOverlayErrors();
+
   annotationBBox_ = BBox();
   calcDataRange_  = calcRange();
   dataRange_      = adjustDataRange(getCalcDataRange());
@@ -4382,6 +4385,20 @@ updateAxisRanges(const BBox &adjustedRange)
 
   if (yAxis())
     yAxis()->setRange(adjustedRange.getYMin(), adjustedRange.getYMax());
+}
+
+void
+CQChartsPlot::
+crearOverlayErrors()
+{
+  if (! isFirstPlot())
+    return firstPlot()->crearOverlayErrors();
+
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      plot->clearErrors();
+    });
+  }
 }
 
 void
@@ -5698,19 +5715,20 @@ annotationsEditPress(const Point &w)
 {
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
-    if (annotation->isSelected()) {
-      mouseData_.dragSide = annotation->editHandles()->inside(w);
+    if (! annotation->isSelected())
+      continue;
 
-      if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-        mouseData_.dragObj = DragObj::ANNOTATION;
+    mouseData_.dragSide = annotation->editHandles()->inside(w);
 
-        annotation->editHandles()->setDragSide(mouseData_.dragSide);
-        annotation->editHandles()->setDragPos (w);
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+      mouseData_.dragObj = DragObj::ANNOTATION;
 
-        invalidateOverlay();
+      annotation->editHandles()->setDragSide(mouseData_.dragSide);
+      annotation->editHandles()->setDragPos (w);
 
-        return true;
-      }
+      invalidateOverlay();
+
+      return true;
     }
   }
 
@@ -5723,19 +5741,23 @@ objectsEditPress(const Point &w, bool)
 {
   // start drag on already selected object handle
   for (auto &plotObj : plotObjects()) {
-    if (plotObj->isSelected()) {
-      mouseData_.dragSide = plotObj->editHandles()->inside(w);
+    if (! plotObj->isEditable())
+      continue;
 
-      if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-        mouseData_.dragObj = DragObj::OBJECT;
+    if (! plotObj->isSelected())
+      continue;
 
-        plotObj->editHandles()->setDragSide(mouseData_.dragSide);
-        plotObj->editHandles()->setDragPos (w);
+    mouseData_.dragSide = plotObj->editHandles()->inside(w);
 
-        invalidateOverlay();
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+      mouseData_.dragObj = DragObj::OBJECT;
 
-        return true;
-      }
+      plotObj->editHandles()->setDragSide(mouseData_.dragSide);
+      plotObj->editHandles()->setDragPos (w);
+
+      invalidateOverlay();
+
+      return true;
     }
   }
 
@@ -5874,6 +5896,9 @@ objectsEditSelect(const Point &w, bool inside)
   for (const auto &obj : objs) {
     auto *plotObj = dynamic_cast<CQChartsPlotObj *>(obj);
     if (! plotObj) continue;
+
+    if (! plotObj->isEditable())
+      continue;
 
     if (! plotObj->isSelected()) {
       selectOneObj(plotObj, /*allObjs*/false);
@@ -6104,12 +6129,13 @@ editMove(const Point &p, const Point &w, bool /*first*/)
     bool edited = false;
 
     for (const auto &annotation : annotations()) {
-      if (annotation->isSelected()) {
-        if (annotation->editMove(w))
-          mouseData_.dragged = true;
+      if (! annotation->isSelected())
+        continue;
 
-        edited = true;
-      }
+      if (annotation->editMove(w))
+        mouseData_.dragged = true;
+
+      edited = true;
     }
 
     if (! edited)
@@ -6119,12 +6145,16 @@ editMove(const Point &p, const Point &w, bool /*first*/)
     bool edited = false;
 
     for (const auto &plotObj : plotObjects()) {
-      if (plotObj->isSelected()) {
-        if (plotObj->editMove(w))
-          mouseData_.dragged = true;
+      if (! plotObj->isEditable())
+        continue;
 
-        edited = true;
-      }
+      if (! plotObj->isSelected())
+        continue;
+
+      if (plotObj->editMove(w))
+        mouseData_.dragged = true;
+
+      edited = true;
     }
 
     if (! edited)
@@ -6274,20 +6304,25 @@ editMotion(const Point &, const Point &w)
     bool edited = false;
 
     for (const auto &annotation : annotations()) {
-      if (annotation->isSelected()) {
-        if (annotation->editMotion(w)) {
-          edited = true;
-          break;
-        }
+      if (! annotation->isSelected())
+        continue;
+
+      if (annotation->editMotion(w)) {
+        edited = true;
+        break;
       }
     }
 
     for (const auto &plotObj : plotObjects()) {
-      if (plotObj->isSelected()) {
-        if (plotObj->editMotion(w)) {
-          edited = true;
-          break;
-        }
+      if (! plotObj->isEditable())
+        continue;
+
+      if (! plotObj->isSelected())
+        continue;
+
+      if (plotObj->editMotion(w)) {
+        edited = true;
+        break;
       }
     }
 
@@ -6347,30 +6382,62 @@ editMoveBy(const Point &d)
 
   Point dp(dw, dh);
 
+  bool selected = false;
+
   if      (isSelected()) {
+    selected = true;
   }
   else if (key() && key()->isSelected()) {
     key()->editMoveBy(dp);
+
+    selected = true;
   }
   else if (xAxis() && xAxis()->isSelected()) {
     xAxis()->editMoveBy(dp);
+
+    selected = true;
   }
   else if (yAxis() && yAxis()->isSelected()) {
     yAxis()->editMoveBy(dp);
+
+    selected = true;
   }
   else if (title() && title()->isSelected()) {
     title()->editMoveBy(dp);
+
+    selected = true;
   }
   else {
     for (const auto &annotation : annotations()) {
-      if (annotation->isSelected()) {
-        (void) annotation->editMoveBy(dp);
+      if (! annotation->isSelected())
+        continue;
+
+      (void) annotation->editMoveBy(dp);
+
+      selected = true;
+
+      break;
+    }
+
+    if (! selected) {
+      for (auto &plotObj : plotObjects()) {
+        if (! plotObj->isEditable())
+          continue;
+
+        if (! plotObj->isSelected())
+          continue;
+
+        (void) plotObj->editMoveBy(dp);
+
+        selected = true;
+
         break;
       }
     }
   }
 
-  invalidateOverlay();
+  if (selected)
+    invalidateOverlay();
 }
 
 //------
@@ -9718,19 +9785,26 @@ hasEditHandles() const
 
   if (! selected) {
     for (const auto &annotation : annotations()) {
-      if (annotation->isSelected()) {
-        selected = true;
-        break;
-      }
+      if (! annotation->isSelected())
+        continue;
+
+      selected = true;
+
+      break;
     }
   }
 
   if (! selected) {
     for (auto &plotObj : plotObjects()) {
-      if (plotObj->isSelected()) {
-        selected = true;
-        break;
-      }
+      if (! plotObj->isEditable())
+        continue;
+
+      if (! plotObj->isSelected())
+        continue;
+
+      selected = true;
+
+      break;
     }
   }
 
@@ -9776,13 +9850,20 @@ drawEditHandles(QPainter *painter) const
   }
 
   for (const auto &annotation : annotations()) {
-    if (annotation->isSelected())
-      annotation->drawEditHandles(painter);
+    if (! annotation->isSelected())
+      continue;
+
+    annotation->drawEditHandles(painter);
   }
 
   for (auto &plotObj : plotObjects()) {
-    if (plotObj->isSelected())
-      plotObj->drawEditHandles(painter);
+    if (! plotObj->isEditable())
+      continue;
+
+    if (! plotObj->isSelected())
+      continue;
+
+    plotObj->drawEditHandles(painter);
   }
 }
 
@@ -12534,6 +12615,12 @@ positionToPlot(const CQChartsPosition &pos) const
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
+  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
+    double x = pixelToWindowWidth (p.getX()*view()->fontEx());
+    double y = pixelToWindowHeight(p.getY()*view()->fontEm());
+
+    return Point(x, y);
+  }
 
   return p1;
 }
@@ -12556,6 +12643,12 @@ positionToPixel(const CQChartsPosition &pos) const
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
+  }
+  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
+    double x = p.getX()*view()->fontEx();
+    double y = p.getY()*view()->fontEm();
+
+    return Point(x, y);
   }
 
   return p1;
@@ -12584,6 +12677,14 @@ rectToPlot(const CQChartsRect &rect) const
     r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
   }
+  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
+    double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEx());
+    double y1 = pixelToWindowHeight(r.getYMin()*view()->fontEm());
+    double x2 = pixelToWindowWidth (r.getXMax()*view()->fontEx());
+    double y2 = pixelToWindowHeight(r.getYMax()*view()->fontEm());
+
+    return BBox(x1, y1, x2, y2);
+  }
 
   return r1;
 }
@@ -12608,6 +12709,14 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setYMin(r.getYMin()*pbbox.getHeight()/100.0);
     r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
+  }
+  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
+    double x1 = r.getXMin()*view()->fontEx();
+    double y1 = r.getYMin()*view()->fontEm();
+    double x2 = r.getXMax()*view()->fontEx();
+    double y2 = r.getYMax()*view()->fontEm();
+
+    return BBox(x1, y1, x2, y2);
   }
 
   return r1;
@@ -12634,8 +12743,12 @@ lengthPlotWidth(const CQChartsLength &len) const
     return pixelToWindowWidth(view()->windowToPixelWidth(len.value()));
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*displayRangeBBox().getWidth()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToWindowWidth(len.value()*view()->fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToWindowWidth(len.value()*view()->fontEx());
+
+  return len.value();
 }
 
 double
@@ -12650,8 +12763,12 @@ lengthPlotHeight(const CQChartsLength &len) const
     return pixelToWindowHeight(view()->windowToPixelHeight(len.value()));
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*displayRangeBBox().getHeight()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToWindowHeight(len.value()*view()->fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToWindowHeight(len.value()*view()->fontEx());
+
+  return len.value();
 }
 
 double
@@ -12673,8 +12790,12 @@ lengthPixelWidth(const CQChartsLength &len) const
     return view()->windowToPixelWidth(len.value());
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*calcPlotPixelRect().getWidth()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return len.value()*view()->fontEm();
+  else if (len.units() == CQChartsUnits::EX)
+    return len.value()*view()->fontEx();
+
+  return len.value();
 }
 
 double
@@ -12689,8 +12810,12 @@ lengthPixelHeight(const CQChartsLength &len) const
     return view()->windowToPixelHeight(len.value());
   else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*calcPlotPixelRect().getHeight()/100.0;
-  else
-    return len.value();
+  else if (len.units() == CQChartsUnits::EM)
+    return len.value()*view()->fontEm();
+  else if (len.units() == CQChartsUnits::EX)
+    return len.value()*view()->fontEx();
+
+  return len.value();
 }
 
 //------

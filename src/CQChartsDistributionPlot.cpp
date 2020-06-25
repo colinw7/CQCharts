@@ -668,16 +668,14 @@ calcRange() const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsDistributionPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value columns required
   // name, data, color columns optional
@@ -3320,6 +3318,8 @@ draw(CQChartsPaintDevice *device)
 
   bool useLine = (isLine() || this->isUseLine());
 
+  barColor_ = QColor();
+
   //---
 
   CQChartsImage image;
@@ -3412,9 +3412,9 @@ draw(CQChartsPaintDevice *device)
     }
   }
   else {
-    QColor barColor = this->barColor();
+    barColor_ = this->barColor();
 
-    drawRect(device, bbox, barColor, useLine);
+    drawRect(device, bbox, barColor_, useLine);
   }
 
   //---
@@ -3422,6 +3422,8 @@ draw(CQChartsPaintDevice *device)
   // draw image
   if (image.isValid()) {
     device->drawImageInRect(bbox, image);
+
+    barColor_ = QColor();
   }
 }
 
@@ -3434,6 +3436,11 @@ drawFg(CQChartsPaintDevice *device) const
 
     //---
 
+    if (! plot_->dataLabel()->isPositionOutside() && barColor_.isValid())
+      plot_->charts()->setContrastColor(barColor_);
+
+    //----
+
     QString ystr;
 
     if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
@@ -3444,6 +3451,10 @@ drawFg(CQChartsPaintDevice *device) const
     else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
     plot_->dataLabel()->draw(device, bbox, ystr);
+
+    //---
+
+    plot_->charts()->resetContrastColor();
   }
 
   //---

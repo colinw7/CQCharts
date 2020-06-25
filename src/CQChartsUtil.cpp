@@ -1286,6 +1286,10 @@ bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &
     units = CQChartsUnits::VIEW;
   else if (parse.isString("P" ) || parse.isString("plot"))
     units = CQChartsUnits::PLOT;
+  else if (parse.isString("em"))
+    units = CQChartsUnits::EM;
+  else if (parse.isString("ex"))
+    units = CQChartsUnits::EX;
   else if (parse.eof())
     units = defUnits;
   else
@@ -1295,14 +1299,16 @@ bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &
 }
 
 QStringList unitNames(bool includeNone) {
-  static QStringList names      = QStringList() << "px" << "%" << "P" << "V";
+  static QStringList names      = QStringList() << "px" << "%" << "P" << "V" << "em" << "ex";
   static QStringList none_names = QStringList() << "none" << names;
 
   return (includeNone ? none_names : names);
 }
 
 QStringList unitTipNames(bool includeNone) {
-  static QStringList names      = QStringList() << "Pixel" << "Percent" << "Plot" << "View";
+  static QStringList names = QStringList() <<
+    "Pixel" << "Percent" << "Plot" << "View" << "Em" << "Ex";
+
   static QStringList none_names = QStringList() << "None" << names;
 
   return (includeNone ? none_names : names);

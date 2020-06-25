@@ -307,9 +307,11 @@ createObjs(PlotObjs &objs) const
 
   NoUpdate noUpdate(this);
 
-  //---
-
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->clearErrors();
+
+  //---
 
   th->nodeYSet_ = false;
 
@@ -2094,6 +2096,8 @@ editMove(const CQChartsGeom::Point &p)
   setEditBBox(editHandles()->bbox(), dragSide);
 
   editHandles()->setDragPos(p);
+
+  plot()->drawObjs();
 
   return true;
 }

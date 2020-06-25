@@ -593,14 +593,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumn(xColumn(), "X", th->xColumnType_, /*required*/true))
     columnsValid = false;

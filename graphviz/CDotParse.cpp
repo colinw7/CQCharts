@@ -518,18 +518,36 @@ void
 CDotParse::
 skipSpace()
 {
-  parse_->skipSpace();
-
-  while (parse_->isString("//")) {
-    parse_->skipChar(2);
-
-    while (! parse_->eof() && ! parse_->isChar('\n'))
-      parse_->skipChar();
-
-    if (parse_->isChar('\n'))
-      parse_->skipChar();
-
+  while (true) {
+    // skip space
     parse_->skipSpace();
+
+    // skip comments
+    if      (parse_->isString("//")) {
+      while (parse_->isString("//")) {
+        parse_->skipChar(2);
+
+        while (! parse_->eof() && ! parse_->isChar('\n'))
+          parse_->skipChar();
+
+        if (parse_->isChar('\n'))
+          parse_->skipChar();
+
+        parse_->skipSpace();
+      }
+    }
+    else if (parse_->isString("/*")) {
+      parse_->skipChar(2);
+
+      while (! parse_->eof() && ! parse_->isString("*/")) {
+        parse_->skipChar();
+      }
+
+      if (parse_->isString("*/"))
+        parse_->skipChar(2);
+    }
+    else
+      break;
   }
 }
 

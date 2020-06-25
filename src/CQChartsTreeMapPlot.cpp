@@ -72,7 +72,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   NoUpdate noUpdate(this);
 
   setHeaderFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.4));
-  setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
+  setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
 
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
@@ -82,16 +82,14 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 
   setHeaderFilled(true);
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE ));
+  setTextColor(CQChartsColor(CQChartsColor::Type::CONTRAST));
 
   setFilled (true);
   setStroked(true);
 
   setTextFontSize(14.0);
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
-
-  setTextContrast(true);
 
   setOuterMargin(CQChartsLength("4px"), CQChartsLength("4px"),
                  CQChartsLength("4px"), CQChartsLength("4px"));
@@ -426,12 +424,12 @@ createObjs(PlotObjs &objs) const
 
   auto *th = const_cast<CQChartsTreeMapPlot *>(this);
 
+  th->clearErrors();
+
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // name column required
   // value, color columns optional
@@ -1350,13 +1348,24 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  if (! hier_->isShowTitle())
-    return;
+  if (hier_->isShowTitle())
+    drawText(device, bbox);
+}
+
+void
+CQChartsTreeMapHierObj::
+drawText(CQChartsPaintDevice *device, const BBox &bbox)
+{
+  // get label (name)
+  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
 
   //---
 
-  // get label (name)
-  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
+  CQChartsPenBrush penBrush;
+
+  calcPenBrush(penBrush, /*updateState*/false);
+
+  plot_->charts()->setContrastColor(penBrush.brush.color());
 
   //---
 
@@ -1425,6 +1434,8 @@ draw(CQChartsPaintDevice *device)
   }
 
   //---
+
+  plot_->charts()->resetContrastColor();
 
   device->restore();
 }
@@ -1670,6 +1681,14 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
   //---
 
+  CQChartsPenBrush penBrush;
+
+  calcPenBrush(penBrush, /*isPoint*/false, /*updateState*/false);
+
+  plot_->charts()->setContrastColor(penBrush.brush.color());
+
+  //---
+
   // calc text pen
   ColorInd colorInd = calcColorInd();
 
@@ -1754,6 +1773,8 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
   }
 
   //---
+
+  plot_->charts()->resetContrastColor();
 
   device->restore();
 }

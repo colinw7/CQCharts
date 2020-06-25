@@ -296,14 +296,16 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsPivotPlot::calcRange");
 
+  NoUpdate noUpdate(this);
+
   auto *th = const_cast<CQChartsPivotPlot *>(this);
+
+  th->clearErrors();
 
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   if (! checkColumns(xColumns(), "X", /*required*/true))
     columnsValid = false;

@@ -184,6 +184,9 @@ double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
   if (var.type() == QVariant::Double)
     return var.value<double>();
 
+  if (var.type() == QVariant::Int)
+    return var.value<int>();
+
   converted = true;
 
   QString str = toString(var, ok);

@@ -33,7 +33,9 @@ enum class CQChartsUnits {
   VIEW,
   PLOT,
   PIXEL,
-  PERCENT
+  PERCENT,
+  EM,
+  EX
 };
 
 //! resize side

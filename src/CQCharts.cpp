@@ -601,6 +601,23 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
     else
       return interpThemeColor(ColorInd(value));
   }
+  else if (c.type() == CQChartsColor::Type::CONTRAST ||
+           c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
+    QColor cc = contrastColor();
+
+    if (! cc.isValid())
+      return interpThemeColor(ColorInd(value));
+
+    QColor c1 = CQChartsUtil::bwColor(cc);
+
+    if (c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
+      QColor c2 = CQChartsUtil::bwColor(c1);
+
+      c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(c.value(), 0.0, 1.0));
+    }
+
+    return c1;
+  }
   else if (c.type() == CQChartsColor::Type::MODEL ||
            c.type() == CQChartsColor::Type::MODEL_VALUE) {
     if (c.type() == CQChartsColor::Type::MODEL_VALUE)

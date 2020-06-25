@@ -373,12 +373,12 @@ createObjs(PlotObjs &objs) const
 
   auto *th = const_cast<CQChartsRadarPlot *>(this);
 
+  th->clearErrors();
+
   //---
 
   // check columns
   bool columnsValid = true;
-
-  th->clearErrors();
 
   // value column required
   // name column optional
