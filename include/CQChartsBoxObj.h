@@ -50,19 +50,17 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const;
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const;
+  void draw(CQChartsPaintDevice *device, const BBox &bbox) const;
+  void draw(CQChartsPaintDevice *device, const Polygon &poly) const;
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+  void draw(CQChartsPaintDevice *device, const BBox &bbox,
             const CQChartsPenBrush &penBrush) const;
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
  protected:
-  using BBox = CQChartsGeom::BBox;
-
   bool         stateColoring_ { true }; //!< color depending on inside/selected state
   mutable BBox bbox_;                   //!< last drawn bbox
 };

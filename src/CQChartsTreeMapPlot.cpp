@@ -91,8 +91,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setTextFontSize(14.0);
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
-  setOuterMargin(CQChartsLength("4px"), CQChartsLength("4px"),
-                 CQChartsLength("4px"), CQChartsLength("4px"));
+  setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
+                                    Length("4px"), Length("4px")));
 
   addTitle();
 }
@@ -387,7 +387,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsTreeMapPlot::calcRange");
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   double r = 1.0;
 
@@ -506,7 +506,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
   CQChartsTreeMapHierObj *hierObj = nullptr;
 
   if (hier != root()) {
-    CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
+    BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
     ColorInd is(hier->depth(), maxDepth() + 1);
 
@@ -544,7 +544,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     //---
 
-    CQChartsGeom::BBox rect(node->x(), node->y(), node->x() + node->w(), node->y() + node->h());
+    BBox rect(node->x(), node->y(), node->x() + node->w(), node->y() + node->h());
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
@@ -1112,7 +1112,7 @@ pushSlot()
     auto gpos = view()->menuPos();
     auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
-    auto w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -1246,7 +1246,7 @@ resetNodeExpansion(CQChartsTreeMapHierNode *hierNode)
 CQChartsTreeMapHierObj *
 CQChartsTreeMapPlot::
 createHierObj(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *hierObj,
-              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+              const BBox &rect, const ColorInd &is) const
 {
   return new CQChartsTreeMapHierObj(this, hier, hierObj, rect, is);
 }
@@ -1254,7 +1254,7 @@ createHierObj(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *hierObj,
 CQChartsTreeMapNodeObj *
 CQChartsTreeMapPlot::
 createNodeObj(CQChartsTreeMapNode *node, CQChartsTreeMapHierObj *hierObj,
-              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+              const BBox &rect, const ColorInd &is) const
 {
   return new CQChartsTreeMapNodeObj(this, node, hierObj, rect, is);
 }
@@ -1263,8 +1263,7 @@ createNodeObj(CQChartsTreeMapNode *node, CQChartsTreeMapHierObj *hierObj,
 
 CQChartsTreeMapHierObj::
 CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
-                       CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                       const ColorInd &is) :
+                       CQChartsTreeMapHierObj *hierObj, const BBox &rect, const ColorInd &is) :
  CQChartsTreeMapNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
   setModelInd(hier_->ind());
@@ -1288,9 +1287,9 @@ calcTipId() const
 
 bool
 CQChartsTreeMapHierObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
-  CQChartsGeom::BBox bbox(hier_->x(), hier_->y(), hier_->x() + hier_->w(), hier_->y() + hier_->h());
+  BBox bbox(hier_->x(), hier_->y(), hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
   if (bbox.inside(p))
     return true;
@@ -1321,10 +1320,10 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::Point p1(hier_->x()             , hier_->y()             );
-  CQChartsGeom::Point p2(hier_->x() + hier_->w(), hier_->y() + hier_->h());
+  Point p1(hier_->x()             , hier_->y()             );
+  Point p2(hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
-  CQChartsGeom::BBox bbox(p1.x, p2.y, p2.x, p1.y);
+  BBox bbox(p1.x, p2.y, p2.x, p1.y);
 
   //---
 
@@ -1374,7 +1373,7 @@ drawText(CQChartsPaintDevice *device, const BBox &bbox)
 
   QColor tc = plot_->interpHeaderTextColor(ColorInd());
 
-  plot_->setPen(tPenBrush.pen, true, tc, plot_->headerTextAlpha());
+  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->headerTextAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -1427,8 +1426,8 @@ drawText(CQChartsPaintDevice *device, const BBox &bbox)
 
     double hh = plot_->calcTitleHeight(); // title height in pixels
 
-    CQChartsGeom::BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
-                              pbbox.getXMax() - m, pbbox.getYMin() + hh);
+    BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
+                pbbox.getXMax() - m, pbbox.getYMin() + hh);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pbbox1), name, textOptions);
   }
@@ -1492,8 +1491,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
 CQChartsTreeMapNodeObj::
 CQChartsTreeMapNodeObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
-                       CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                       const ColorInd &is) :
+                       CQChartsTreeMapHierObj *hierObj, const BBox &rect, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsTreeMapPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), node_(node), hierObj_(hierObj)
 {
@@ -1562,9 +1560,9 @@ calcTipId() const
 
 bool
 CQChartsTreeMapNodeObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
-  CQChartsGeom::BBox bbox(node_->x(), node_->y(), node_->x() + node_->w(), node_->y() + node_->h());
+  BBox bbox(node_->x(), node_->y(), node_->x() + node_->w(), node_->y() + node_->h());
 
   if (bbox.inside(p))
     return true;
@@ -1593,20 +1591,18 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::Point p1 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
-  CQChartsGeom::Point p2 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
+  Point p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
+  Point p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
   bool isPoint = this->isPoint();
 
-  CQChartsGeom::BBox  bbox;
-  CQChartsGeom::Point point;
+  BBox  bbox;
+  Point point;
 
   if (isPoint)
-    point = CQChartsGeom::Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
+    point = Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
   else
-    bbox = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
+    bbox = BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
 
   //---
 
@@ -1644,7 +1640,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsTreeMapNodeObj::
-drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
+drawText(CQChartsPaintDevice *device, const BBox &bbox)
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1696,7 +1692,7 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
   QColor tc = plot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush.pen, true, tc, plot_->textAlpha());
+  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->textAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -1763,8 +1759,8 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 
       auto pc = ibbox.getCenter();
 
-      CQChartsGeom::Point tp1(pc.x, pc.y - th/2);
-      CQChartsGeom::Point tp2(pc.x, pc.y + th/2);
+      Point tp1(pc.x, pc.y - th/2);
+      Point tp2(pc.x, pc.y + th/2);
 
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);
@@ -1814,10 +1810,8 @@ bool
 CQChartsTreeMapNodeObj::
 isPoint() const
 {
-  CQChartsGeom::Point p1 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
-  CQChartsGeom::Point p2 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
+  Point p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
+  Point p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
   double pw = std::abs(p2.x - p1.x) - 2;
   double ph = std::abs(p2.y - p1.y) - 2;

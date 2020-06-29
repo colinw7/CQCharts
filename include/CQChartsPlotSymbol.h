@@ -82,7 +82,10 @@ class CQChartsPlot;
  */
 class CQChartsPlotSymbolRenderer {
  public:
-  CQChartsPlotSymbolRenderer(CQChartsPaintDevice *painter, const CQChartsGeom::Point &p,
+  using Point = CQChartsGeom::Point;
+
+ public:
+  CQChartsPlotSymbolRenderer(CQChartsPaintDevice *painter, const Point &p,
                              const CQChartsLength &size);
 
   void drawSymbol  (CQChartsSymbol type);
@@ -119,7 +122,7 @@ class CQChartsPlotSymbolRenderer {
 
  private:
   CQChartsPaintDevice* device_  { nullptr };  //!< device
-  CQChartsGeom::Point  p_       { 0.0, 0.0 }; //!< symbol center
+  Point                p_       { 0.0, 0.0 }; //!< symbol center
   CQChartsLength       size_;                 //!< size as length
   double               w_       { 0.0 };      //!< line width
   QPainterPath         path_;                 //!< path

@@ -334,7 +334,7 @@ calcRange() const
 
   //---
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   //---
 
@@ -386,7 +386,7 @@ calcRange() const
   // process model data
   class BarChartVisitor : public ModelVisitor {
    public:
-    BarChartVisitor(const CQChartsBarChartPlot *plot, CQChartsGeom::Range &dataRange) :
+    BarChartVisitor(const CQChartsBarChartPlot *plot, Range &dataRange) :
      plot_(plot), dataRange_(dataRange) {
     }
 
@@ -398,7 +398,7 @@ calcRange() const
 
    private:
     const CQChartsBarChartPlot* plot_ { nullptr };
-    CQChartsGeom::Range&        dataRange_;
+    Range&                      dataRange_;
   };
 
   BarChartVisitor barChartVisitor(this, dataRange);
@@ -540,7 +540,7 @@ initRangeAxesI()
 
 void
 CQChartsBarChartPlot::
-addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange) const
+addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
 {
   // add value for each column (non-range)
   if (isValueValue()) {
@@ -559,7 +559,7 @@ addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange) cons
 void
 CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
-             CQChartsGeom::Range &dataRange) const
+             Range &dataRange) const
 {
   if (isColorKey() && colorColumn().isValid()) {
     CQChartsModelIndex colorModelInd(data.row, colorColumn(), data.parent);
@@ -878,7 +878,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsBarChartPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   auto position = dataLabel()->position();
 
@@ -1000,7 +1000,7 @@ createObjs(PlotObjs &objs) const
       //---
 
       // create bar rect
-      CQChartsGeom::BBox brect;
+      BBox brect;
 
       double value1 { 0.0 }, value2 { 0.0 };
 
@@ -1537,8 +1537,8 @@ getPanY(bool is_shift) const
 
 CQChartsBarChartObj *
 CQChartsBarChartPlot::
-createBarObj(const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
-             const ColorInd &iv, const QModelIndex &ind) const
+createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+             const QModelIndex &ind) const
 {
   return new CQChartsBarChartObj(this, rect, is, ig, iv, ind);
 }
@@ -1546,9 +1546,8 @@ createBarObj(const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd 
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
-                    const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
-                    const QModelIndex &ind) :
+CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const BBox &rect, const ColorInd &is,
+                    const ColorInd &ig, const ColorInd &iv, const QModelIndex &ind) :
  CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect, is, ig, iv),
  plot_(plot)
 {
@@ -1668,7 +1667,7 @@ CQChartsBarChartObj::
 dataLabelRect() const
 {
   if (! plot_->dataLabel()->isVisible())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   const auto &value = this->value();
 
@@ -1821,13 +1820,12 @@ draw(CQChartsPaintDevice *device)
       if (lw < 3) {
         double xc = rect.getXMid();
 
-        device->drawLine(CQChartsGeom::Point(xc, rect.getYMin()),
-                         CQChartsGeom::Point(xc, rect.getYMax()));
+        device->drawLine(Point(xc, rect.getYMin()), Point(xc, rect.getYMax()));
       }
       else {
         double xc = prect.getXMid();
 
-        CQChartsGeom::BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
+        BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
 
         CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
       }
@@ -1836,13 +1834,12 @@ draw(CQChartsPaintDevice *device)
       if (lw < 3) {
         double yc = rect.getYMid();
 
-        device->drawLine(CQChartsGeom::Point(rect.getXMin(), yc),
-                         CQChartsGeom::Point(rect.getXMax(), yc));
+        device->drawLine(Point(rect.getXMin(), yc), Point(rect.getXMax(), yc));
       }
       else {
         double yc = prect.getYMid();
 
-        CQChartsGeom::BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
+        BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
 
         CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
       }
@@ -1860,12 +1857,12 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsDrawUtil::setPenBrush(device, barPenBrush);
 
-    CQChartsGeom::Point p;
+    Point p;
 
     if (! plot_->isHorizontal())
-      p = CQChartsGeom::Point(rect.getXMid(), rect.getYMax());
+      p = Point(rect.getXMid(), rect.getYMax());
     else
-      p = CQChartsGeom::Point(rect.getXMax(), rect.getYMid());
+      p = Point(rect.getXMax(), rect.getYMid());
 
     plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush);
 
@@ -1953,12 +1950,11 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpBarStrokeColor(colorInd);
 
   QColor barColor = calcBarColor();
-  QColor altColor = plot_->interpColor(plot_->barFillAltColor(), colorInd);
 
   plot_->setPenBrush(penBrush,
     CQChartsPenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
                       plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    CQChartsBrushData(plot_->isBarFilled(), barColor, altColor, plot_->barFillAlpha(),
+    CQChartsBrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
                       plot_->barFillPattern()));
 
   if (updateState)
@@ -2049,7 +2045,7 @@ CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorI
 
 bool
 CQChartsBarKeyColor::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
+selectPress(const Point &, CQChartsSelMod selMod)
 {
   if (selMod == CQChartsSelMod::ADD) {
     for (int i = 0; i < iv_.n; ++i) {
@@ -2124,8 +2120,10 @@ fillBrush() const
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
-                         plot_->barFillPattern());
+  CQChartsBrushData barBrushData(plot_->isBarFilled(), barColor,
+                                 plot_->barFillAlpha(), plot_->barFillPattern());
+
+  CQChartsDrawUtil::setBrush(brush, barBrushData);
 
   return brush;
 }
@@ -2150,7 +2148,7 @@ strokePen() const
 
 bool
 CQChartsBarKeyColor::
-tipText(const CQChartsGeom::Point &, QString &tip) const
+tipText(const Point &, QString &tip) const
 {
   int    count  = -1;
   bool   hasSum = true;

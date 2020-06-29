@@ -68,7 +68,8 @@ CQChartsSunburstPlot(View *view, const ModelP &model) :
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
-  setOuterMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px"));
+  setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
+                                    Length("4px"), Length("4px")));
 
   // addKey() // TODO
 
@@ -1193,7 +1194,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   QColor tc = interpTextColor(colorInd);
 
-  setPen(tPenBrush.pen, true, tc, textAlpha());
+  setPen(tPenBrush, CQChartsPenData(true, tc, textAlpha()));
 
   if (nodeObj)
     updateObjPenBrushState(nodeObj, tPenBrush);

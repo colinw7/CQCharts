@@ -322,6 +322,17 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   };
 
  protected:
+  struct GroupData {
+    int     id { -1 };
+    QString name;
+
+    GroupData(int id=-1, const QString &name="") :
+     id(id), name(name) {
+    }
+  };
+
+  //---
+
   bool initHierObjs() const;
 
   bool initPathObjs() const;
@@ -336,12 +347,16 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   virtual void addPathValue(const QStringList &, double) const { }
 
   virtual void addFromToValue(const QString &, const QString &, double,
-                              const CQChartsNameValues &) const { }
+                              const CQChartsNameValues &, const GroupData &) const { }
 
   //---
 
   bool processTableModel(TableConnectionDatas &tableConnectionDatas,
                          TableConnectionInfo &tableConnectionInfo) const;
+
+  //---
+
+  void groupColumnData(const CQChartsModelIndex &groupModelInd, GroupData &groupData) const;
 
  protected:
   struct PropagateData {

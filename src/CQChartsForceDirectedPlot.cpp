@@ -96,7 +96,7 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
 
   forceDirected_ = new CQChartsForceDirected;
 
-  setOuterMargin(0, 0, 0, 0);
+  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
 
   setNodeStrokeAlpha(CQChartsAlpha(0.5));
 }
@@ -219,12 +219,12 @@ calcRange() const
 
   // check columns
   if (! checkColumns())
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
   // TODO: calculate good range size from data or auto scale/fit ?
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   double rangeSize = this->rangeSize();
 
@@ -664,7 +664,7 @@ initFromToObjs() const
 void
 CQChartsForceDirectedPlot::
 addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const CQChartsNameValues &nameValues) const
+               const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
@@ -1143,7 +1143,7 @@ animateStep()
 
 bool
 CQChartsForceDirectedPlot::
-selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
+selectPress(const Point &p, SelMod /*selMod*/)
 {
   Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
@@ -1159,7 +1159,7 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 
 bool
 CQChartsForceDirectedPlot::
-selectMove(const CQChartsGeom::Point &p, bool first)
+selectMove(const Point &p, bool first)
 {
   if (pressed_) {
     if (forceDirected_->currentPoint())
@@ -1181,7 +1181,7 @@ selectMove(const CQChartsGeom::Point &p, bool first)
 
 bool
 CQChartsForceDirectedPlot::
-selectRelease(const CQChartsGeom::Point &p)
+selectRelease(const Point &p)
 {
   if (forceDirected_->currentPoint())
     forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));
@@ -1208,7 +1208,7 @@ keyPress(int key, int modifier)
 
 bool
 CQChartsForceDirectedPlot::
-tipText(const CQChartsGeom::Point &p, QString &tip) const
+tipText(const Point &p, QString &tip) const
 {
   if (! isRunning()) {
     Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
@@ -1291,11 +1291,12 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   setClipRect(device);
 
   // draw edges
-  QPen edgePen;
+  CQChartsPenBrush edgePenBrush;
 
   QColor edgeColor = this->interpEdgeLinesColor(ColorInd());
 
-  setPen(edgePen, true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
+  setPen(edgePenBrush,
+    CQChartsPenData(true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash()));
 
   for (auto &edge : forceDirected_->edges()) {
     bool isTemp = false;
@@ -1306,24 +1307,22 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     const Springy::Vector &p2 = spring->point2()->p();
 
     if (isEdgeLinesValueWidth()) {
-      QPen edgePen1 = edgePen;
+      CQChartsPenBrush edgePenBrush1 = edgePenBrush;
 
       double w = maxLineWidth()*(widthScale_*edge->value());
 
-      edgePen1.setWidthF(w);
+      edgePenBrush1.pen.setWidthF(w);
 
-      device->setPen(edgePen1);
+      device->setPen(edgePenBrush1.pen);
 
       double ww = pixelToWindowWidth(w);
 
-      device->drawRoundedLine(CQChartsGeom::Point(p1.x(), p1.y()),
-                              CQChartsGeom::Point(p2.x(), p2.y()), ww);
+      device->drawRoundedLine(Point(p1.x(), p1.y()), Point(p2.x(), p2.y()), ww);
     }
     else {
-      device->setPen(edgePen);
+      device->setPen(edgePenBrush.pen);
 
-      device->drawLine(CQChartsGeom::Point(p1.x(), p1.y()),
-                       CQChartsGeom::Point(p2.x(), p2.y()));
+      device->drawLine(Point(p1.x(), p1.y()), Point(p2.x(), p2.y()));
     }
 
     if (isTemp)
@@ -1380,8 +1379,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     //---
 
-    CQChartsGeom::BBox ebbox(p1.x() - xmn/2.0, p1.y() - ymn/2.0,
-                             p1.x() + xmn/2.0, p1.y() + ymn/2.0);
+    BBox ebbox(p1.x() - xmn/2.0, p1.y() - ymn/2.0, p1.x() + xmn/2.0, p1.y() + ymn/2.0);
 
     device->drawEllipse(ebbox);
   }

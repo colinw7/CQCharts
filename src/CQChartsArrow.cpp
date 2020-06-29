@@ -53,9 +53,8 @@ draw(CQChartsPaintDevice *device) const
   QColor fc = interpFillColor  (ColorInd());
   QColor sc = interpStrokeColor(ColorInd());
 
-  CQChartsUtil::setPenBrush(penBrush,
-    isStroked(), sc, strokeAlpha(), 0.0, CQChartsLineDash(),
-    isFilled (), fc, fillAlpha(), fillPattern());
+  CQChartsUtil::setPen  (penBrush.pen  , isStroked(), sc, strokeAlpha(), 0.0, CQChartsLineDash());
+  CQChartsUtil::setBrush(penBrush.brush, isFilled (), fc, fillAlpha(), fillPattern());
 
   draw(device, penBrush);
 }

@@ -26,6 +26,10 @@ namespace Math {
   inline double map(double r1, double r2, double f) {
     return r1 + (r2 - r1)*f;
   }
+
+  inline double degToRad(double a) {
+    return M_PI*a/180.0;
+  }
 }
 
 //---
@@ -131,15 +135,15 @@ fillPatternPath(const QPainterPath &path)
   }
   else if (painter_->brush().style() == Qt::BDiagPattern) {
     fillData.fillType = FillType::HATCH;
-    fillData.angle    = M_PI/4.0;
+    fillData.angle    = Math::degToRad(fillAngle());
   }
   else if (painter_->brush().style() == Qt::FDiagPattern) {
     fillData.fillType = FillType::HATCH;
-    fillData.angle    = -M_PI/4.0;
+    fillData.angle    = -Math::degToRad(fillAngle());
   }
   else if (painter_->brush().style() == Qt::DiagCrossPattern) {
     fillData.fillType = FillType::CROSS_HATCH;
-    fillData.angle    = -M_PI/4.0;
+    fillData.angle    = -Math::degToRad(fillAngle());
   }
   else {
     assert(false);

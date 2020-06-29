@@ -10,32 +10,35 @@ struct CQChartsTextOptions;
 
 namespace CQChartsRotatedText {
 
-using Points = std::vector<CQChartsGeom::Point>;
+using Point  = CQChartsGeom::Point;
+using Points = std::vector<Point>;
+using BBox   = CQChartsGeom::BBox;
+using Margin = CQChartsGeom::Margin;
 
-void drawInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect, const QString &text,
+void drawInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
                const CQChartsTextOptions &options, bool alignBBox=false, bool isRadial=false);
 
-void draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
+void draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
           const CQChartsTextOptions &options, bool alignBBox=false, bool isRadial=false);
 
-void drawDelta(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
+void drawDelta(CQChartsPaintDevice *device, const Point &p, const QString &text,
                const CQChartsTextOptions &options, double tx, double ty, double ax, double ay);
 
-CQChartsGeom::BBox calcBBox(double px, double py, const QString &text, const QFont &font,
-                            const CQChartsTextOptions &options, double border=0.0,
-                            bool alignBBox=false, bool isRadial=false);
+BBox calcBBox(double px, double py, const QString &text, const QFont &font,
+              const CQChartsTextOptions &options, double border=0.0,
+              bool alignBBox=false, bool isRadial=false);
 
-Points bboxPoints(double px, double py, const QString &text,
-                  const QFont &font, const CQChartsTextOptions &options, double border=0.0,
+Points bboxPoints(double px, double py, const QString &text, const QFont &font,
+                  const CQChartsTextOptions &options, double border=0.0,
                   bool alignBBox=false, bool isRadial=false);
 
 void calcBBoxData(double px, double py, const QString &text, const QFont &font,
                   const CQChartsTextOptions &options, double border,
-                  CQChartsGeom::BBox &bbox, Points &points, bool alignBBox=false,
+                  BBox &bbox, Points &points, bool alignBBox=false,
                   bool isRadial=false);
 void calcBBoxData(double px, double py, const QString &text, const QFont &font,
-                  const CQChartsTextOptions &options, const CQChartsGeom::Margin &border,
-                  CQChartsGeom::BBox &bbox, Points &points, bool alignBBox=false,
+                  const CQChartsTextOptions &options, const Margin &border,
+                  BBox &bbox, Points &points, bool alignBBox=false,
                   bool isRadial=false);
 
 }

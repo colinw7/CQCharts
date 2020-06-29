@@ -401,9 +401,10 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
 
   double width = CQChartsUtil::limitLineWidth(data.shape().stroke().width().value());
 
-  CQChartsUtil::setPenBrush(penBrush,
+  CQChartsUtil::setPen(penBrush.pen,
     data.shape().stroke().isVisible(), pc, data.shape().stroke().alpha(),
-    width, data.shape().stroke().dash(),
+    width, data.shape().stroke().dash());
+  CQChartsUtil::setBrush(penBrush.brush,
     data.shape().fill().isVisible(), fc, data.shape().fill().alpha(),
     data.shape().fill().pattern());
 

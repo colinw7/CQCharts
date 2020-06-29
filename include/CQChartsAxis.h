@@ -391,11 +391,10 @@ class CQChartsAxis : public CQChartsObj,
 
   //--
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) {
-    CQChartsUtil::testAndSet(bbox_, b, [&]() { redraw(); } ); }
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &b) { CQChartsUtil::testAndSet(bbox_, b, [&]() { redraw(); } ); }
 
-  CQChartsGeom::BBox fitBBox() const;
+  BBox fitBBox() const;
 
   //--
 
@@ -403,7 +402,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void updatePlotPosition();
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   //---
 
@@ -416,12 +415,12 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  virtual bool editPress  (const CQChartsGeom::Point &);
-  virtual bool editMove   (const CQChartsGeom::Point &);
-  virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &) { return true; }
+  virtual bool editPress  (const Point &);
+  virtual bool editMove   (const Point &);
+  virtual bool editMotion (const Point &);
+  virtual bool editRelease(const Point &) { return true; }
 
-  virtual void editMoveBy(const CQChartsGeom::Point &d);
+  virtual void editMoveBy(const Point &d);
 
   //---
 
@@ -479,22 +478,21 @@ class CQChartsAxis : public CQChartsObj,
   };
 
   struct AxisTickLabelDrawData {
-    AxisTickLabelDrawData(const CQChartsGeom::Point &p, const CQChartsGeom::BBox &bbox,
-                          const QString &text) :
+    AxisTickLabelDrawData(const Point &p, const BBox &bbox, const QString &text) :
      p(p), bbox(bbox), text(text) {
     }
 
-    AxisTickLabelDrawData(const CQChartsGeom::Point &p, const CQChartsGeom::BBox &bbox,
-                          const QString &text, const CQChartsAngle &angle, Qt::Alignment align) :
+    AxisTickLabelDrawData(const Point &p, const BBox &bbox, const QString &text,
+                          const CQChartsAngle &angle, Qt::Alignment align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
     }
 
-    CQChartsGeom::Point p;
-    CQChartsGeom::BBox  bbox;
-    QString             text;
-    CQChartsAngle       angle;
-    Qt::Alignment       align   { Qt::AlignHCenter };
-    bool                visible { true };
+    Point         p;
+    BBox          bbox;
+    QString       text;
+    CQChartsAngle angle;
+    Qt::Alignment align   { Qt::AlignHCenter };
+    bool          visible { true };
   };
 
   using AxisTickLabelDrawDatas = std::vector<AxisTickLabelDrawData>;
@@ -508,7 +506,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void emitSelectionChanged();
 
-  CQChartsGeom::Point windowToPixel(const CQChartsPlot *plot, double x, double y) const;
+  Point windowToPixel(const CQChartsPlot *plot, double x, double y) const;
 
  private:
   using TickSpaces         = std::vector<double>;
@@ -583,12 +581,12 @@ class CQChartsAxis : public CQChartsObj,
   CQChartsEditHandlesP  editHandles_; //!< edit handles
 
   // bbox draw state
-  CQChartsGeom::BBox     bbox_;                   //!< axis box
-  CQChartsGeom::BBox     fitBBox_;                //!< fit box
-  CQChartsGeom::BBox     fitLBBox_;               //!< label fit box
-  CQChartsGeom::BBox     fitTLBBox_;              //!< tick label fit box
-  CQChartsGeom::BBox     lbbox_;                  //!< label box
-//CQChartsGeom::BBox     lastTickLabelRect_;      //!< last tick box (for auto hide)
+  BBox                   bbox_;                   //!< axis box
+  BBox                   fitBBox_;                //!< fit box
+  BBox                   fitLBBox_;               //!< label fit box
+  BBox                   fitTLBBox_;              //!< tick label fit box
+  BBox                   lbbox_;                  //!< label box
+//BBox                   lastTickLabelRect_;      //!< last tick box (for auto hide)
   AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
 };
 

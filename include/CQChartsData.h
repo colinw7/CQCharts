@@ -207,9 +207,6 @@ class CQChartsFillData {
   const Color &color() const { return color_; }
   void setColor(const Color &v) { color_ = v; }
 
-  const Color &altColor() const { return altColor_; }
-  void setAltColor(const Color &v) { altColor_ = v; }
-
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
@@ -229,7 +226,6 @@ class CQChartsFillData {
  private:
   bool        visible_  { true };                              //!< visible
   Color       color_    { Color::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
-  Color       altColor_;                                       //!< alt fill color
   Alpha       alpha_;                                          //!< fill alpha
   FillPattern pattern_  { FillPattern::Type::SOLID };          //!< fill pattern
 };

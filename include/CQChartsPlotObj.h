@@ -177,16 +177,16 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   //! handle edit press, move, motion, release
-  virtual bool editPress  (const CQChartsGeom::Point &) { return false; }
-  virtual bool editMove   (const CQChartsGeom::Point &) { return false; }
-  virtual bool editMotion (const CQChartsGeom::Point &) { return false; }
-  virtual bool editRelease(const CQChartsGeom::Point &) { return false; }
+  virtual bool editPress  (const Point &) { return false; }
+  virtual bool editMove   (const Point &) { return false; }
+  virtual bool editMotion (const Point &) { return false; }
+  virtual bool editRelease(const Point &) { return false; }
 
   //! handle edit move by
-  virtual void editMoveBy(const CQChartsGeom::Point &) { }
+  virtual void editMoveBy(const Point &) { }
 
   //! set new bounding box
-  virtual void setEditBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
+  virtual void setEditBBox(const BBox &, const CQChartsResizeSide &) { }
 
   //---
 

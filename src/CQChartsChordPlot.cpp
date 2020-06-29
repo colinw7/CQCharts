@@ -224,7 +224,7 @@ calcRange() const
 
   double lr = std::max(labelRadius(), 1.0);
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   dataRange.updateRange(-lr, -lr);
   dataRange.updateRange( lr,  lr);
@@ -244,7 +244,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsChordPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
     auto *obj = dynamic_cast<CQChartsChordArcObj *>(plotObj);
@@ -519,7 +519,7 @@ initFromToObjs() const
 void
 CQChartsChordPlot::
 addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const CQChartsNameValues &nameValues) const
+               const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto &srcData = findNameData(fromStr, QModelIndex());
 
@@ -928,7 +928,7 @@ initTableObjs(PlotObjs &objs) const
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
 
-    CQChartsGeom::BBox rect(-1, -1, 1, 1);
+    BBox rect(-1, -1, 1, 1);
 
     ColorInd ig;
 
@@ -1166,7 +1166,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   for (int row = 0; row < nv; ++row) {
     const ChordData &data = datas[row];
 
-    CQChartsGeom::BBox rect(-1, -1, 1, 1);
+    BBox rect(-1, -1, 1, 1);
 
     ColorInd ig;
 
@@ -1269,16 +1269,14 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsChordArcObj *
 CQChartsChordPlot::
-createArcObj(const CQChartsGeom::BBox &rect, const ChordData &data,
-             const ColorInd &ig, const ColorInd &iv) const
+createArcObj(const BBox &rect, const ChordData &data, const ColorInd &ig, const ColorInd &iv) const
 {
   return new CQChartsChordArcObj(this, rect, data, ig, iv);
 }
 
 CQChartsChordEdgeObj *
 CQChartsChordPlot::
-createEdgeObj(const CQChartsGeom::BBox &rect, const ChordData &data,
-              int to, const OptReal &value) const
+createEdgeObj(const BBox &rect, const ChordData &data, int to, const OptReal &value) const
 {
   return new CQChartsChordEdgeObj(this, rect, data, to, value);
 }
@@ -1286,8 +1284,8 @@ createEdgeObj(const CQChartsGeom::BBox &rect, const ChordData &data,
 //------
 
 CQChartsChordArcObj::
-CQChartsChordArcObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                    const ChordData &data, const ColorInd &ig, const ColorInd &iv) :
+CQChartsChordArcObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
+                    const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), data_(data)
 {
@@ -1334,7 +1332,7 @@ calcTipId() const
 
 bool
 CQChartsChordArcObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   return arcData().inside(p);
 }
@@ -1398,13 +1396,13 @@ draw(CQChartsPaintDevice *device)
   double ri = innerRadius();
   double ro = outerRadius();
 
-  CQChartsGeom::Point o1(-ro, -ro);
-  CQChartsGeom::Point o2( ro,  ro);
-  CQChartsGeom::Point i1(-ri, -ri);
-  CQChartsGeom::Point i2( ri,  ri);
+  Point o1(-ro, -ro);
+  Point o2( ro,  ro);
+  Point i1(-ri, -ri);
+  Point i2( ri,  ri);
 
-  CQChartsGeom::BBox obbox(o1, o2);
-  CQChartsGeom::BBox ibbox(i1, i2);
+  BBox obbox(o1, o2);
+  BBox ibbox(i1, i2);
 
   //---
 
@@ -1495,19 +1493,19 @@ drawFg(CQChartsPaintDevice *device) const
   // TODO: separate text and line pen control
   ColorInd colorInd = calcColorInd();
 
-  QPen lpen;
+  CQChartsPenBrush lpenBrush;
 
   QColor bg = plot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpen, true, bg, CQChartsAlpha());
+  plot_->setPen(lpenBrush, CQChartsPenData(true, bg, CQChartsAlpha()));
 
   //---
 
   // draw text using line pen
-  CQChartsGeom::Point center(0, 0);
+  Point center(0, 0);
 
   plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, dataName(),
-                                            lpen, plot_->isRotatedText());
+                                            lpenBrush.pen, plot_->isRotatedText());
 }
 
 void
@@ -1570,7 +1568,7 @@ CQChartsChordArcObj::
 textBBox() const
 {
   if (! dataName().length())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   //---
 
@@ -1586,12 +1584,12 @@ textBBox() const
   //---
 
   if (! plot_->textBox()->isTextVisible())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   double total = data_.total(/*primaryOnly*/! plot_->isSymmetric());
 
   if (CMathUtil::isZero(total))
-    return CQChartsGeom::BBox();
+    return BBox();
 
   //---
 
@@ -1600,13 +1598,13 @@ textBBox() const
 
   double ta = CMathUtil::avg(angle1, angle2);
 
-  CQChartsGeom::Point center(0, 0);
+  Point center(0, 0);
 
   double lr1 = ri + lr*(ro - ri);
 
   lr1 = std::max(lr1, 0.01);
 
-  CQChartsGeom::BBox tbbox;
+  BBox tbbox;
 
   plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, dataName(),
                                                 plot_->isRotatedText(), tbbox);
@@ -1663,8 +1661,8 @@ valueAngles(int ind, double &a, double &da, ChordData::PrimaryType primaryType) 
 //------
 
 CQChartsChordEdgeObj::
-CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                     const ChordData &data, int to, const OptReal &value) :
+CQChartsChordEdgeObj(const CQChartsChordPlot *plot, const BBox &rect, const ChordData &data,
+                     int to, const OptReal &value) :
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
  plot_(plot), data_(data), to_(to), value_(value)
 {
@@ -1713,7 +1711,7 @@ calcTipId() const
 
 bool
 CQChartsChordEdgeObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   return path_.contains(p.qpoint());
 }
@@ -1761,10 +1759,10 @@ draw(CQChartsPaintDevice *device)
   // calc inner outer arc rectangles
   double ri = fromObj->innerRadius();
 
-  CQChartsGeom::Point i1(-ri, -ri);
-  CQChartsGeom::Point i2( ri,  ri);
+  Point i1(-ri, -ri);
+  Point i2( ri,  ri);
 
-  CQChartsGeom::BBox ibbox(i1, i2);
+  BBox ibbox(i1, i2);
 
   //---
 

@@ -167,7 +167,7 @@ calcRange() const
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -222,7 +222,7 @@ calcRange() const
       return State::OK;
     }
 
-    const CQChartsGeom::Range &range() const { return range_; }
+    const Range &range() const { return range_; }
 
    private:
     State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
@@ -232,7 +232,7 @@ calcRange() const
 
    private:
     const CQChartsDendrogramPlot* plot_ { nullptr };
-    CQChartsGeom::Range           range_;
+    Range                         range_;
   };
 
   RowVisitor visitor(this);
@@ -334,7 +334,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsDendrogramPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
     auto *nodeObj = dynamic_cast<CQChartsDendrogramNodeObj *>(plotObj);
@@ -407,7 +407,7 @@ addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs) const
   double xc = node->x();
   double yc = node->yc();
 
-  CQChartsGeom::BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
+  BBox rect(xc - cw/2.0, yc - ch/2.0, xc + cw/2.0, yc + ch/2.0);
 
   auto *obj = createNodeObj(node, rect);
 
@@ -466,7 +466,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 {
   if (! node->isPlaced()) return;
 
-  auto pn = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
+  auto pn = windowToPixel(Point(node->x(), node->yc()));
 
   double cs = std::max(circleSize(), 1.0);
 //double tm = std::max(textMargin(), 1.0);
@@ -475,7 +475,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
   // draw edge
   if (hier) {
-    auto ph = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
+    auto ph = windowToPixel(Point(hier->x(), hier->yc()));
 
 //  double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
     double x1 = ph.x + cs/2.0;      double y1 = ph.y;
@@ -489,7 +489,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
 
-    setBrush(lPenBrush.brush, false);
+    setBrush(lPenBrush, CQChartsBrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, lPenBrush);
 
@@ -497,10 +497,10 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     QPainterPath path;
 
-    auto p1 = device->pixelToWindow(CQChartsGeom::Point(x1, y1));
-    auto p2 = device->pixelToWindow(CQChartsGeom::Point(x2, y2));
-    auto p3 = device->pixelToWindow(CQChartsGeom::Point(x3, y3));
-    auto p4 = device->pixelToWindow(CQChartsGeom::Point(x4, y4));
+    auto p1 = device->pixelToWindow(Point(x1, y1));
+    auto p2 = device->pixelToWindow(Point(x2, y2));
+    auto p3 = device->pixelToWindow(Point(x3, y3));
+    auto p4 = device->pixelToWindow(Point(x4, y4));
 
     path.moveTo (p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
@@ -511,7 +511,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
 bool
 CQChartsDendrogramPlot::
-selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
+selectPress(const Point &p, SelMod /*selMod*/)
 {
   double cs = circleSize();
 
@@ -542,7 +542,7 @@ createNodeObj(CQChartsDendrogram::Node *node, const BBox &rect) const
 
 CQChartsDendrogramNodeObj::
 CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
-                          const CQChartsGeom::BBox &rect) :
+                          const BBox &rect) :
  CQChartsPlotObj(const_cast<CQChartsDendrogramPlot *>(plot), rect), plot_(plot), node_(node)
 {
 }
@@ -558,7 +558,7 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
-  auto pn = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
+  auto pn = plot_->windowToPixel(Point(node_->x(), node_->yc()));
 
   double cs = plot_->circleSize();
 
@@ -572,21 +572,21 @@ textRect() const
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
-  CQChartsGeom::Point p;
+  Point p;
 
   double dy = (fm.ascent() - fm.descent())/2;
 
   if (is_hier)
-    p = CQChartsGeom::Point(pn.x - cs - fm.width(name), pn.y + dy);
+    p = Point(pn.x - cs - fm.width(name), pn.y + dy);
   else
-    p = CQChartsGeom::Point(pn.x + cs, pn.y + dy);
+    p = Point(pn.x + cs, pn.y + dy);
 
-  CQChartsGeom::Point p1(p.x                 , p.y - fm.ascent());
-  CQChartsGeom::Point p2(p.x + fm.width(name), p.y + fm.ascent());
+  Point p1(p.x                 , p.y - fm.ascent());
+  Point p2(p.x + fm.width(name), p.y + fm.ascent());
 
-  CQChartsGeom::BBox pbbox(p1, p2);
+  BBox pbbox(p1, p2);
 
   auto wbbox = plot_->pixelToWindow(pbbox);
 
@@ -599,14 +599,14 @@ draw(CQChartsPaintDevice *device)
 {
   if (! node_->isPlaced()) return;
 
-  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
+  auto p1 = plot_->windowToPixel(Point(node_->x(), node_->yc()));
 
   double cs = std::max(plot_->circleSize(), 1.0);
   double tm = std::max(plot_->textMargin(), 1.0);
 
 //p1.x += tm;
 
-  CQChartsGeom::BBox bbox(p1.x - cs/2.0, p1.y - cs/2.0, p1.x + cs/2.0, p1.y + cs/2.0);
+  BBox bbox(p1.x - cs/2.0, p1.y - cs/2.0, p1.x + cs/2.0, p1.y + cs/2.0);
 
   //---
 
@@ -635,13 +635,13 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node text
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = plot_->interpTextColor(ColorInd());
 
-  plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha());
+  plot_->setPen(tpenBrush, CQChartsPenData(/*stroked*/true, tc, plot_->textAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -657,12 +657,12 @@ draw(CQChartsPaintDevice *device)
 
   double dy = (fm.ascent() - fm.descent())/2;
 
-  CQChartsGeom::Point p;
+  Point p;
 
   if (is_hier)
-    p = CQChartsGeom::Point(p1.x - cs - fm.width(name) - tm, p1.y + dy); // align right
+    p = Point(p1.x - cs - fm.width(name) - tm, p1.y + dy); // align right
   else
-    p = CQChartsGeom::Point(p1.x + cs + tm, p1.y + dy); // align left
+    p = Point(p1.x + cs + tm, p1.y + dy); // align left
 
   // only support contrast
   CQChartsTextOptions options;

@@ -246,7 +246,7 @@ calcRange() const
 
    private:
     const CQChartsImagePlot* plot_     { nullptr };
-    CQChartsGeom::RMinMax    valueRange_;
+    RMinMax                  valueRange_;
   };
 
   RowVisitor visitor(this);
@@ -269,7 +269,7 @@ calcRange() const
   //---
 
   // size is (num columns, num rows)
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   th->nr_ = visitor.numProcessedRows();
   th->nc_ = visitor.numCols();
@@ -351,7 +351,7 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 {
   QModelIndex ind1 = normalizeIndex(ind);
 
-  CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
+  BBox bbox(x, y, x + dx, y + dy);
 
   double rv = CMathUtil::map(value, minValue(), maxValue(), 0.0, 1.0);
 
@@ -456,13 +456,13 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpXLabelTextColor(ColorInd());
 
-  setPen(tpen, true, tc, xLabelTextAlpha());
+  setPen(tpenBrush, CQChartsPenData(true, tc, xLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -481,7 +481,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,CQChartsGeom::BBox>;
+  using ColRects = std::map<int,BBox>;
 
   ColRects colRects;
 
@@ -520,7 +520,7 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    CQChartsGeom::Point p(c + 0.5, 0);
+    Point p(c + 0.5, 0);
 
     auto p1 = windowToPixel(p);
 
@@ -528,12 +528,12 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     double tw1 = trect.getWidth();
 
-    CQChartsGeom::BBox tbbox1;
+    BBox tbbox1;
 
     if (! isInvertY())
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
+      tbbox1 = BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
+      tbbox1 = BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
@@ -547,13 +547,13 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpYLabelTextColor(ColorInd());
 
-  setPen(tpen, true, tc, yLabelTextAlpha());
+  setPen(tpenBrush, CQChartsPenData(true, tc, yLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -572,7 +572,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,CQChartsGeom::BBox>;
+  using RowRects = std::map<int,BBox>;
 
   RowRects rowRects;
 
@@ -609,7 +609,7 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    CQChartsGeom::Point p(0, row + 0.5);
+    Point p(0, row + 0.5);
 
     auto p1 = windowToPixel(p);
 
@@ -617,12 +617,12 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     double th1 = trect.getHeight();
 
-    CQChartsGeom::BBox tbbox1;
+    BBox tbbox1;
 
     if (! isInvertX())
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
+      tbbox1 = BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
+      tbbox1 = BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
@@ -640,7 +640,7 @@ calcAnnotationBBox() const
 
   QFontMetricsF fm(font);
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   double tm = 4;
 
@@ -660,7 +660,7 @@ calcAnnotationBBox() const
 
     double tw1 = pixelToWindowHeight(tw + tm);
 
-    CQChartsGeom::BBox tbbox(0, -tw1, numColumns(), 0);
+    BBox tbbox(0, -tw1, numColumns(), 0);
 
     bbox += tbbox;
   }
@@ -679,7 +679,7 @@ calcAnnotationBBox() const
 
     double tw1 = pixelToWindowWidth(tw + tm);
 
-    CQChartsGeom::BBox tbbox(-tw1, 0, 0, numRows());
+    BBox tbbox(-tw1, 0, 0, numRows());
 
     bbox += tbbox;
   }
@@ -700,8 +700,8 @@ createImageObj(const BBox &rect, int row, int col, double value, const QModelInd
 //------
 
 CQChartsImageObj::
-CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                 int row, int col, double value, const QModelIndex &ind, const ColorInd &iv) :
+CQChartsImageObj(const CQChartsImagePlot *plot, const BBox &rect, int row, int col, double value,
+                 const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), row_(row), col_(col), value_(value)
 {
@@ -800,7 +800,7 @@ draw(CQChartsPaintDevice *device)
 
       QColor tc = plot_->interpCellLabelTextColor(ic);
 
-      plot_->setPen(tPenBrush.pen, true, tc, plot_->cellLabelTextAlpha());
+      plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->cellLabelTextAlpha()));
 
       plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -836,8 +836,8 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsGeom::BBox ebbox(prect.getXMid() - s1/2, prect.getYMid() - s1/2,
-                             prect.getXMid() + s1/2, prect.getYMid() + s1/2);
+    BBox ebbox(prect.getXMid() - s1/2, prect.getYMid() - s1/2,
+               prect.getXMid() + s1/2, prect.getYMid() + s1/2);
 
     device->drawEllipse(device->pixelToWindow(ebbox));
   }

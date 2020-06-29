@@ -518,10 +518,10 @@ CQChartsPointPlot::
 drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const ColorInd &ic) const
 {
   // calc fit shape at each pixel
-  CQChartsGeom::Polygon bpoly, poly, tpoly;
+  Polygon bpoly, poly, tpoly;
 
-  auto pl = windowToPixel(CQChartsGeom::Point(fitData.xmin(), 0));
-  auto pr = windowToPixel(CQChartsGeom::Point(fitData.xmax(), 0));
+  auto pl = windowToPixel(Point(fitData.xmin(), 0));
+  auto pr = windowToPixel(Point(fitData.xmax(), 0));
 
   double dx = std::max((pr.x - pl.x)/100, 1.0);
 
@@ -529,21 +529,21 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
     if (isInterrupt())
       return;
 
-    auto p1 = pixelToWindow(CQChartsGeom::Point(px, 0.0));
+    auto p1 = pixelToWindow(Point(px, 0.0));
 
     double y2 = fitData.interp(p1.x);
 
-    auto p2 = CQChartsGeom::Point(p1.x, y2);
+    auto p2 = Point(p1.x, y2);
 
     poly.addPoint(p2);
 
     // deviation curve above/below
     if (isBestFitDeviation()) {
-      p2 = CQChartsGeom::Point(p1.x, y2 - fitData.deviation());
+      p2 = Point(p1.x, y2 - fitData.deviation());
 
       bpoly.addPoint(p2);
 
-      p2 = CQChartsGeom::Point(p1.x, y2 + fitData.deviation());
+      p2 = Point(p1.x, y2 + fitData.deviation());
 
       tpoly.addPoint(p2);
     }
@@ -572,7 +572,7 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
 
     // draw fit deviation shape
     if (isBestFitDeviation()) {
-      CQChartsGeom::Polygon dpoly;
+      Polygon dpoly;
 
       for (int i = 0; i < bpoly.size(); ++i) {
         if (isInterrupt())

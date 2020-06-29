@@ -1843,7 +1843,7 @@ draw(CQChartsPaintDevice *device) const
 
     QColor tc = interpHeaderTextColor(ColorInd());
 
-    plot()->setPen(tPenBrush.pen, true, tc, headerTextAlpha());
+    plot()->setPen(tPenBrush, CQChartsPenData(true, tc, headerTextAlpha()));
 
     plot()->updateObjPenBrushState(this, tPenBrush);
 
@@ -2433,13 +2433,13 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   //---
 
   // set text pen
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor tc = plot_->interpThemeColor(ColorInd(1.0));
 
-  plot_->setPen(pen, true, tc, CQChartsAlpha());
+  plot_->setPen(penBrush, CQChartsPenData(true, tc, CQChartsAlpha()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 

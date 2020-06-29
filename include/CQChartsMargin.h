@@ -87,6 +87,17 @@ class CQChartsMargin {
 
   bool fromString(const QString &s);
 
+  //---
+
+  friend bool operator==(const CQChartsMargin &lhs, const CQChartsMargin &rhs) {
+    return (lhs.left_  == rhs.left_  && lhs.top_    == rhs.top_ &&
+            lhs.right_ == rhs.right_ && lhs.bottom_ == rhs.bottom_);
+  }
+
+  friend bool operator!=(const CQChartsMargin &lhs, const CQChartsMargin &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
  protected:
   CQChartsLength left_;
   CQChartsLength top_;

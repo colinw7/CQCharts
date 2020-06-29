@@ -413,8 +413,14 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, shape.fill().isVisible(), fc,
-                         shape.fill().alpha(), shape.fill().pattern());
+  CQChartsBrushData brushData;
+
+  brushData.setVisible(shape.fill().isVisible());
+  brushData.setColor  (fc);
+  brushData.setAlpha  (shape.fill().alpha());
+  brushData.setPattern(shape.fill().pattern());
+
+  CQChartsDrawUtil::setBrush(brush, brushData);
 
   painter->setBrush(brush);
 

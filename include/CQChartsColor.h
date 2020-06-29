@@ -22,7 +22,6 @@ class QObject;
  *  . An explicit contrast color        : "contrast <value>"
  *  . A lighter color                   : "lighter" <factor>
  *  . A darker color                    : "darker" <factor>
- *  . An explicit contrast color        : "contrast <value>"
  *  . A model color                     : "model <r> <g> <b>"
  *  . An explicit model color           : "model <r> <g> <b> <value>"
  *  . An explicit rgb color name        : "<name>"

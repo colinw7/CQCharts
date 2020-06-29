@@ -195,14 +195,14 @@ CQChartsGeom::Range
 CQChartsCompositePlot::
 calcRange() const
 {
-  CQChartsGeom::Range dataRange;
-  CQChartsGeom::Range currentDataRange;
+  Range dataRange;
+  Range currentDataRange;
 
   for (auto &plot : plots_) {
     if (! plot->isVisible())
       continue;
 
-    CQChartsGeom::Range dataRange1 = plot->calcRange();
+    Range dataRange1 = plot->calcRange();
 
     if (plot == currentPlot())
       currentDataRange = dataRange1;
@@ -224,12 +224,12 @@ calcRange() const
     return currentDataRange;
   }
   else if (! isCommonXRange()) {
-    return CQChartsGeom::Range(currentDataRange.xmin(), dataRange.ymin(),
-                               currentDataRange.xmax(), dataRange.ymax());
+    return Range(currentDataRange.xmin(), dataRange.ymin(),
+                 currentDataRange.xmax(), dataRange.ymax());
   }
   else if (! isCommonYRange()) {
-    return CQChartsGeom::Range(dataRange.xmin(), currentDataRange.ymin(),
-                               dataRange.xmax(), currentDataRange.ymax());
+    return Range(dataRange.xmin(), currentDataRange.ymin(),
+                 dataRange.xmax(), currentDataRange.ymax());
   }
   else {
     return dataRange;
@@ -298,7 +298,7 @@ CQChartsGeom::BBox
 CQChartsCompositePlot::
 calcAnnotationBBox() const
 {
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -312,7 +312,7 @@ calcAnnotationBBox() const
 
 void
 CQChartsCompositePlot::
-updateAxisRanges(const CQChartsGeom::BBox &adjustedRange)
+updateAxisRanges(const BBox &adjustedRange)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -330,14 +330,14 @@ CQChartsGeom::BBox
 CQChartsCompositePlot::
 adjustedViewBBox(const CQChartsPlot *plot) const
 {
-  CQChartsGeom::BBox bbox = plot->viewBBox();
+  BBox bbox = plot->viewBBox();
 
   if (compositeType_ == CompositeType::TABBED) {
     calcTabData(plots_);
 
     double h = view()->pixelToWindowHeight(tabData_.pth*plot->plotDepth());
 
-    bbox = CQChartsGeom::BBox(bbox.getXMin(), bbox.getYMin() + h, bbox.getXMax(), bbox.getYMax());
+    bbox = BBox(bbox.getXMin(), bbox.getYMin() + h, bbox.getXMax(), bbox.getYMax());
   }
 
   return bbox;
@@ -814,7 +814,7 @@ resetKeyItems()
 
 bool
 CQChartsCompositePlot::
-selectPress(const CQChartsGeom::Point &w, SelMod selMod)
+selectPress(const Point &w, SelMod selMod)
 {
   if (tabbedSelectPress(w, selMod))
     return true;
@@ -847,7 +847,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
 bool
 CQChartsCompositePlot::
-selectMove(const CQChartsGeom::Point &w, bool first)
+selectMove(const Point &w, bool first)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -865,7 +865,7 @@ selectMove(const CQChartsGeom::Point &w, bool first)
 
 bool
 CQChartsCompositePlot::
-selectRelease(const CQChartsGeom::Point &w)
+selectRelease(const Point &w)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())

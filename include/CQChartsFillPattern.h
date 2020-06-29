@@ -2,12 +2,13 @@
 #define CQChartsFillPattern_H
 
 #include <CQChartsEnum.h>
+#include <CQChartsColor.h>
 
 /*!
  * \brief fill pattern
  * \ingroup Charts
  */
-class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
+class CQChartsFillPattern {
  public:
   enum class Type {
     NONE,
@@ -17,7 +18,10 @@ class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
     HORIZ,
     VERT,
     FDIAG,
-    BDIAG
+    BDIAG,
+    LGRADIENT,
+    RGRADIENT,
+    PALETTE
   };
 
  public:
@@ -48,12 +52,27 @@ class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
 
   //---
 
-  QString toString() const override;
-  bool fromString(const QString &s) override;
+  const QString &palette() const { return palette_; }
+  void setPalette(const QString &s) { palette_ = s; }
 
   //---
 
-  QStringList enumNames() const override;
+  double angle() const { return angle_; }
+  void setAngle(double r) { angle_ = r; }
+
+  //---
+
+  const CQChartsColor &altColor() const { return altColor_; }
+  void setAltColor(const CQChartsColor &c) { altColor_ = c; }
+
+  //---
+
+  QString toString() const;
+  bool fromString(const QString &s);
+
+  //---
+
+  QStringList enumNames() const;
 
   //---
 
@@ -69,12 +88,38 @@ class CQChartsFillPattern : public CQChartsEnum<CQChartsFillPattern> {
 
   //---
 
+  friend bool operator==(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
+    return (lhs.type    () == rhs.type    () &&
+            lhs.scale   () == rhs.scale   () &&
+            lhs.palette () == rhs.palette () &&
+            lhs.angle   () == rhs.angle   () &&
+            lhs.altColor() == rhs.altColor());
+  }
+
+  friend bool operator!=(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
+  //---
+
+  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillPattern &t) {
+    t.print(os);
+    return os;
+  }
+
+  void print(std::ostream &os) const {
+    os << toString().toStdString();
+  }
+
  private:
   bool setValue(const QString &str);
 
  private:
-  Type   type_  { Type::NONE };
-  double scale_ { 1.0 };
+  Type          type_  { Type::NONE };
+  double        scale_ { 1.0 };
+  QString       palette_;
+  double        angle_ { 0.0 };
+  CQChartsColor altColor_;
 };
 
 //---

@@ -15,9 +15,10 @@ namespace CQChartsDrawUtil {
 void
 setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
 {
-  device->setPen     (penBrush.pen);
-  device->setBrush   (penBrush.brush);
-  device->setAltColor(penBrush.altColor);
+  device->setPen      (penBrush.pen);
+  device->setBrush    (penBrush.brush);
+  device->setAltColor (penBrush.altColor);
+  device->setFillAngle(penBrush.fillAngle);
 }
 
 void
@@ -25,6 +26,12 @@ setPenBrush(QPainter *painter, const CQChartsPenBrush &penBrush)
 {
   painter->setPen  (penBrush.pen);
   painter->setBrush(penBrush.brush);
+}
+
+void
+setBrush(QBrush &brush, const CQChartsBrushData &data)
+{
+  CQChartsUtil::setBrush(brush, data.isVisible(), data.color(), data.alpha(), data.pattern());
 }
 
 //---
@@ -272,6 +279,27 @@ void
 drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &point, const QString &text,
                 const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
+  // handle html separately
+  if (options.html) {
+    CQChartsGeom::Size psize =
+      CQChartsDrawPrivate::calcHtmlTextSize(text, device->font(), options.margin);
+
+    auto sw = device->pixelToWindowWidth (psize.width () + 4);
+    auto sh = device->pixelToWindowHeight(psize.height() + 4);
+
+    CQChartsGeom::BBox rect(point.x - sw/2.0, point.y - sh/2.0,
+                            point.x + sw/2.0, point.y + sh/2.0);
+
+    if (options.scaled)
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
+    else
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
+
+    return;
+  }
+
+  //---
+
   QFontMetricsF fm(device->font());
 
   double ta = fm.ascent();

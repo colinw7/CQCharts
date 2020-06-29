@@ -152,6 +152,8 @@ typeNames() const
   return strs;
 }
 
+//------
+
 void
 CQChartsCreateAnnotationDlg::
 createRectFrame()
@@ -160,7 +162,7 @@ createRectFrame()
 
   auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
 
-  //----
+  //---
 
   auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
@@ -539,6 +541,7 @@ createPointFrame()
 
   //---
 
+  // position
   pointWidgets_.positionEdit = createPositionEdit("positionEdit", 0.0, 0.0, "Point Position");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", pointWidgets_.positionEdit, row);

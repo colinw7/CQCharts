@@ -271,7 +271,7 @@ calcRange() const
   // set range
   double r = valueRadius_;
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   if (r > 0.0) {
     dataRange.updateRange(-r, -r);
@@ -295,7 +295,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsRadarPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   int nv = valueColumns().count();
 
@@ -335,9 +335,8 @@ calcAnnotationBBox() const
       if (name.length()) {
         Qt::Alignment align = alignForPosition(x, y);
 
-        CQChartsGeom::BBox tbbox =
-          CQChartsDrawUtil::calcAlignedTextRect(&device, font, CQChartsGeom::Point(x, y),
-                                                name, align, 2, 2);
+        BBox tbbox =
+          CQChartsDrawUtil::calcAlignedTextRect(&device, font, Point(x, y), name, align, 2, 2);
 
         bbox += tbbox;
       }
@@ -463,7 +462,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   //---
 
   // calc polygon points
-  CQChartsGeom::Polygon        poly;
+  Polygon                      poly;
   CQChartsRadarObj::NameValues nameValues;
 
   double a = (nv > 2 ? angleStart().value() : 0.0);
@@ -505,7 +504,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     double x = value*cos(ra)/scale;
     double y = value*sin(ra)/scale;
 
-    poly.addPoint(CQChartsGeom::Point(x, y));
+    poly.addPoint(Point(x, y));
 
     //---
 
@@ -524,7 +523,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   if (nameInd.isValid())
     nameInd1 = normalizeIndex(modelIndex(nameInd));
 
-  CQChartsGeom::BBox bbox(-1, -1, 1, 1);
+  BBox bbox(-1, -1, 1, 1);
 
   ColorInd is(data.row, nr);
 
@@ -671,7 +670,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
       //---
 
-      auto p1 = windowToPixel(CQChartsGeom::Point(0.0, 0.0));
+      auto p1 = windowToPixel(Point(0.0, 0.0));
 
       double a = angleStart().value();
 
@@ -681,7 +680,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
         double x = valueRadius_*cos(ra);
         double y = valueRadius_*sin(ra);
 
-        auto p2 = windowToPixel(CQChartsGeom::Point(x, y));
+        auto p2 = windowToPixel(Point(x, y));
 
         device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
 
@@ -697,11 +696,11 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     //---
 
-    QPen tpen;
+    CQChartsPenBrush tpenBrush;
 
     QColor tc = interpTextColor(ColorInd());
 
-    setPen(tpen, true, tc, textAlpha());
+    setPen(tpenBrush, CQChartsPenData(true, tc, textAlpha()));
 
     //---
 
@@ -715,7 +714,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
       double a = angleStart().value();
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
@@ -723,14 +722,14 @@ execDrawBackground(CQChartsPaintDevice *device) const
         double x = r*cos(ra);
         double y = r*sin(ra);
 
-        CQChartsGeom::Point p1(x, y);
+        Point p1(x, y);
 
         poly.addPoint(p1);
 
         //---
 
         if (i == nl) {
-          device->setPen(tpen);
+          device->setPen(tpenBrush.pen);
 
           //---
 
@@ -805,9 +804,9 @@ createObj(const BBox &rect, const QString &name, const Polygon &poly,
 //------
 
 CQChartsRadarObj::
-CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
-                 const QString &name, const CQChartsGeom::Polygon &poly,
-                 const NameValues &nameValues, const QModelIndex &ind, const ColorInd &is) :
+CQChartsRadarObj(const CQChartsRadarPlot *plot, const BBox &rect, const QString &name,
+                 const Polygon &poly, const NameValues &nameValues, const QModelIndex &ind,
+                 const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), name_(name), poly_(poly), nameValues_(nameValues)
 {
@@ -865,7 +864,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 bool
 CQChartsRadarObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -901,7 +900,7 @@ CQChartsGeom::BBox
 CQChartsRadarObj::
 annotationBBox() const
 {
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   if (! isVisible())
     return bbox;
@@ -929,7 +928,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get pixel origin
-  auto po = plot_->windowToPixel(CQChartsGeom::Point(0.0, 0.0));
+  auto po = plot_->windowToPixel(Point(0.0, 0.0));
 
   //---
 
@@ -959,7 +958,7 @@ draw(CQChartsPaintDevice *device)
 
     double r = p1.x - po.x;
 
-    CQChartsGeom::BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
+    BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
 
     device->drawEllipse(device->pixelToWindow(pbbox));
   }
@@ -971,7 +970,7 @@ draw(CQChartsPaintDevice *device)
     double xr = p1.x - po.x;
     double yr = p2.y - po.y;
 
-    CQChartsGeom::BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
+    BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
 
     device->drawEllipse(device->pixelToWindow(pbbox));
   }

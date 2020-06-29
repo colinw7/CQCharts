@@ -15,19 +15,24 @@ class CQChartsPaintDevice;
  */
 class CQChartsGrahamHull {
  public:
+  using Point   = CQChartsGeom::Point;
+  using BBox    = CQChartsGeom::BBox;
+  using Polygon = CQChartsGeom::Polygon;
+
+ public:
   CQChartsGrahamHull();
 
   int numPoints() const { return points_.size(); }
 
   void clear();
 
-  void addPoint(const CQChartsGeom::Point &point);
+  void addPoint(const Point &point);
 
-  void getHull(CQChartsGeom::Polygon &points) const;
+  void getHull(Polygon &points) const;
 
   void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device) const;
 
-  CQChartsGeom::BBox bbox() const;
+  BBox bbox() const;
 
  private:
   bool constCalc() const;
@@ -38,14 +43,12 @@ class CQChartsGrahamHull {
   void findLowest();
   bool doScan();
 
-  static bool pointLineLeft(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
-                            const CQChartsGeom::Point &c);
+  static bool pointLineLeft(const Point &a, const Point &b, const Point &c);
 
-  static int areaSign(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
-                      const CQChartsGeom::Point &c);
+  static int areaSign(const Point &a, const Point &b, const Point &c);
 
  private:
-  using Points    = std::vector<CQChartsGeom::Point>;
+  using Points    = std::vector<Point>;
   using IPoints   = std::vector<int>;
   using DelPoints = std::set<int>;
 

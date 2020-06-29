@@ -21,8 +21,7 @@ CQChartsResizeHandle::
 draw(QPainter *painter) const
 {
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor pc = strokeColor();
   QColor bc = fillColor();
@@ -31,16 +30,16 @@ draw(QPainter *painter) const
     bc = CQChartsUtil::invColor(bc);
 
   if      (plot()) {
-    plot()->setPen  (pen  , true, pc, CQChartsAlpha());
-    plot()->setBrush(brush, true, bc, fillAlpha());
+    plot()->setPen  (penBrush, CQChartsPenData(true, pc, CQChartsAlpha()));
+    plot()->setBrush(penBrush, CQChartsBrushData(true, bc, fillAlpha()));
   }
   else if (view()) {
-    view()->setPen  (pen  , true, pc, CQChartsAlpha());
-    view()->setBrush(brush, true, bc, fillAlpha());
+    view()->setPen  (penBrush, CQChartsPenData(true, pc, CQChartsAlpha()));
+    view()->setBrush(penBrush, CQChartsBrushData(true, bc, fillAlpha()));
   }
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  painter->setPen  (penBrush.pen);
+  painter->setBrush(penBrush.brush);
 
   //---
 

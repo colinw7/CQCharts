@@ -688,7 +688,7 @@ calcRange() const
   if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range();
+    return Range();
 
   //---
 
@@ -947,10 +947,10 @@ calcBucketRanges() const
 
   int i2 = 0;
 
-  CQChartsGeom::IMinMax nRange(0);
-  CQChartsGeom::IMinMax bucketRange;
-  CQChartsGeom::RMinMax valueRange;
-  CQChartsGeom::BBox    densityBBox;
+  IMinMax nRange(0);
+  IMinMax bucketRange;
+  RMinMax valueRange;
+  BBox    densityBBox;
 
   th->groupData_.groupBucketRange.clear();
 
@@ -1140,7 +1140,7 @@ calcBucketRanges() const
   //---
 
   // set range
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   auto mapValue = [&](double y) {
     return (isLogY() ? logValue(y) : y);
@@ -1376,7 +1376,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   // add data labels
   CQChartsDataLabel::Position position = dataLabel()->position();
@@ -1399,15 +1399,15 @@ calcAnnotationBBox() const
 
     const auto &dataRange = this->dataRange();
 
-    CQChartsGeom::Point p1, p2;
+    Point p1, p2;
 
     if (! isHorizontal()) {
-      p1 = CQChartsGeom::Point(dataRange.xmin(), dataRange.ymin()       );
-      p2 = CQChartsGeom::Point(dataRange.xmax(), dataRange.ymin() - 2*sy);
+      p1 = Point(dataRange.xmin(), dataRange.ymin()       );
+      p2 = Point(dataRange.xmax(), dataRange.ymin() - 2*sy);
     }
     else {
-      p1 = CQChartsGeom::Point(dataRange.xmin()       , dataRange.ymin());
-      p2 = CQChartsGeom::Point(dataRange.xmin() - 2*sx, dataRange.ymax());
+      p1 = Point(dataRange.xmin()       , dataRange.ymin());
+      p2 = Point(dataRange.xmin() - 2*sx, dataRange.ymax());
     }
 
     bbox += p1;
@@ -1758,9 +1758,9 @@ createObjs(PlotObjs &objs) const
 
   auto makeBBox = [&](double xmin, double ymin, double xmax, double ymax) {
     if (! isHorizontal())
-      return CQChartsGeom::BBox(xmin, ymin, xmax, ymax);
+      return BBox(xmin, ymin, xmax, ymax);
     else
-      return CQChartsGeom::BBox(ymin, xmin, ymax, xmax);
+      return BBox(ymin, xmin, ymax, xmax);
   };
 
   //---
@@ -1803,7 +1803,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      CQChartsGeom::BBox bbox;
+      BBox bbox;
 
       if (! isHorizontal()) {
         bbox.add(data.xmin, data.ymin + doffset);
@@ -1992,8 +1992,8 @@ createObjs(PlotObjs &objs) const
           return (isLogY() ? logValue(y) : y);
         };
 
-        CQChartsGeom::BBox bbox;
-        bool               isLine = false;
+        BBox bbox;
+        bool isLine = false;
 
         if      (isStackedActive) {
           double total = valueSetRunningTotal[bucket];
@@ -2056,10 +2056,8 @@ createObjs(PlotObjs &objs) const
             bbox = makeBBox(vpos - 0.5, v1, vpos + 0.5, v2);
         }
 
-        barValue.xr = CQChartsGeom::RangeValue(value1,
-          values->xValueRange.min(), values->xValueRange.max());
-        barValue.yr = CQChartsGeom::RangeValue(barValue.n2,
-          values->yValueRange.min(), values->yValueRange.max());
+        barValue.xr = RangeValue(value1     , values->xValueRange.min(), values->xValueRange.max());
+        barValue.yr = RangeValue(barValue.n2, values->yValueRange.min(), values->yValueRange.max());
 
         if (bbox.isValid()) {
           auto *barObj = createBarObj(bbox, groupInd, sbucket, barValue,
@@ -2249,7 +2247,7 @@ void
 CQChartsDistributionPlot::
 calcVarIndsData(VariantIndsData &varInds) const
 {
-  CQChartsGeom::RMinMax valueRange;
+  RMinMax valueRange;
 
   CQChartsRValues rvals;
 
@@ -2410,8 +2408,8 @@ addKeyItems(CQChartsPlotKey *key)
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
-  auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const CQChartsGeom::RangeValue &xv,
-                       const CQChartsGeom::RangeValue &yv, const QString &name) {
+  auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const RangeValue &xv,
+                       const RangeValue &yv, const QString &name) {
     auto *keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
     auto *keyText  = new CQChartsDistKeyText    (this, name, iv);
 
@@ -2442,8 +2440,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       QString groupName = groupIndName(groupInd);
 
-      addKeyRow(ColorInd(ig, ng), ColorInd(), CQChartsGeom::RangeValue(),
-                CQChartsGeom::RangeValue(), groupName);
+      addKeyRow(ColorInd(ig, ng), ColorInd(), RangeValue(), RangeValue(), groupName);
 
       ++ig;
     }
@@ -2464,8 +2461,8 @@ addKeyItems(CQChartsPlotKey *key)
         QVariant value = columnDetails->uniqueValue(iv);
 
         CQChartsDistKeyColorBox *colorBox =
-          addKeyRow(ColorInd(), ColorInd(iv, nv), CQChartsGeom::RangeValue(),
-                    CQChartsGeom::RangeValue(), value.toString()).first;
+          addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
+                    value.toString()).first;
 
         bool ok;
 
@@ -2504,10 +2501,10 @@ addKeyItems(CQChartsPlotKey *key)
 
         QString bucketName = bucketValuesStr(groupInd, bucket, values);
 
-        CQChartsGeom::RangeValue xv(CMathUtil::avg(value1, value2),
-          values->xValueRange.min(), values->xValueRange.max());
-        CQChartsGeom::RangeValue yv(barValue.n2,
-          values->yValueRange.min(), values->yValueRange.max());
+        RangeValue xv(CMathUtil::avg(value1, value2),
+                      values->xValueRange.min(), values->xValueRange.max());
+        RangeValue yv(barValue.n2,
+                      values->yValueRange.min(), values->yValueRange.max());
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), xv, yv, bucketName);
 
@@ -2672,7 +2669,7 @@ isConsistentBucketer() const
 
 QString
 CQChartsDistributionPlot::
-posStr(const CQChartsGeom::Point &w) const
+posStr(const Point &w) const
 {
   if (isDensity() || isScatter())
     return CQChartsPlot::posStr(w);
@@ -2852,11 +2849,12 @@ drawStatsLines(CQChartsPaintDevice *device) const
   // set pen
   QColor bc = interpStatsLinesColor(ColorInd());
 
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
-  setPen(pen, true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash());
+  setPen(penBrush,
+    CQChartsPenData(true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
@@ -2878,8 +2876,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
     //---
 
     for (const auto &plotObj : plotObjects()) {
-      const CQChartsDistributionBarObj *barObj =
-        dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      const auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
       if (! barObj)
         continue;
@@ -2902,15 +2899,15 @@ drawStatsLines(CQChartsPaintDevice *device) const
     //---
 
     auto drawStatLine = [&](double value) {
-      CQChartsGeom::Point p1, p2;
+      Point p1, p2;
 
       if (! isHorizontal()) {
-        p1 = CQChartsGeom::Point(value, dataRange.ymin());
-        p2 = CQChartsGeom::Point(value, dataRange.ymax());
+        p1 = Point(value, dataRange.ymin());
+        p2 = Point(value, dataRange.ymax());
       }
       else {
-        p1 = CQChartsGeom::Point(dataRange.xmin(), value);
-        p2 = CQChartsGeom::Point(dataRange.xmax(), value);
+        p1 = Point(dataRange.xmin(), value);
+        p2 = Point(dataRange.xmax(), value);
       }
 
       device->drawLine(p1, p2);
@@ -2940,7 +2937,7 @@ pushSlot()
     auto gpos = view()->menuPos();
     auto pos  = view()->mapFromGlobal(QPoint(gpos.x, gpos.y));
 
-    auto w = pixelToWindow(CQChartsGeom::Point(pos));
+    auto w = pixelToWindow(Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -3041,7 +3038,7 @@ createBarObj(const BBox &rect, int groupInd, const Bucket &bucket, const BarValu
 //------
 
 CQChartsDistributionBarObj::
-CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const BBox &rect,
                            int groupInd, const Bucket &bucket, const BarValue &barValue,
                            bool isLine, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect, ColorInd(), ig, iv),
@@ -3258,7 +3255,7 @@ CQChartsDistributionBarObj::
 dataLabelRect() const
 {
   if (! plot_->dataLabel()->isVisible())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   auto bbox = calcRect();
 
@@ -3368,21 +3365,26 @@ draw(CQChartsPaintDevice *device)
         pos1 = pos2;
         pos2 = pos1 + dsize*n;
 
-        CQChartsGeom::BBox pbbox1;
+        BBox pbbox1;
 
         if (! plot_->isHorizontal())
-          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
-                                      pbbox.getXMax(), pbbox.getYMax() - pos1);
+          pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                        pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
-          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
-                                      pbbox.getXMin() + pos2, pbbox.getYMax());
+          pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                        pbbox.getXMin() + pos2, pbbox.getYMax());
 
         //---
 
         auto bbox1 = device->pixelToWindow(pbbox1);
 
         drawRect(device, bbox1, color, useLine);
+
+        barColor_ = color.color();
       }
+
+      if (colorData_.colorSet.size() != 1)
+        barColor_ = QColor();
     }
     else if (plot_->isValueSum()) {
       double pos1 = 0.0, pos2 = 0.0;
@@ -3394,21 +3396,26 @@ draw(CQChartsPaintDevice *device)
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
 
-        CQChartsGeom::BBox pbbox1;
+        BBox pbbox1;
 
         if (! plot_->isHorizontal())
-          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
-                                      pbbox.getXMax(), pbbox.getYMax() - pos1);
+          pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                        pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
-          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
-                                      pbbox.getXMin() + pos2, pbbox.getYMax());
+          pbbox1 = BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                        pbbox.getXMin() + pos2, pbbox.getYMax());
 
         //---
 
         auto bbox1 = device->pixelToWindow(pbbox1);
 
         drawRect(device, bbox1, color, useLine);
+
+        barColor_ = color.color();
       }
+
+      if (colorData_.colorSizes.size() != 1)
+        barColor_ = QColor();
     }
   }
   else {
@@ -3436,11 +3443,6 @@ drawFg(CQChartsPaintDevice *device) const
 
     //---
 
-    if (! plot_->dataLabel()->isPositionOutside() && barColor_.isValid())
-      plot_->charts()->setContrastColor(barColor_);
-
-    //----
-
     QString ystr;
 
     if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
@@ -3450,9 +3452,14 @@ drawFg(CQChartsPaintDevice *device) const
     else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
     else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
-    plot_->dataLabel()->draw(device, bbox, ystr);
-
     //---
+
+    auto pbbox = device->windowToPixel(bbox);
+
+    if (! plot_->dataLabel()->isAdjustedPositionOutside(pbbox, ystr) && barColor_.isValid())
+      plot_->charts()->setContrastColor(barColor_);
+
+    plot_->dataLabel()->draw(device, bbox, ystr);
 
     plot_->charts()->resetContrastColor();
   }
@@ -3502,12 +3509,12 @@ drawRug(CQChartsPaintDevice *device) const
   for (const auto &x : xvals) {
     double x1 = mapValue(x);
 
-    CQChartsGeom::Point p;
+    Point p;
 
     if (! plot_->isHorizontal())
-      p = CQChartsGeom::Point(x1, dataRange.ymin());
+      p = Point(x1, dataRange.ymin());
     else
-      p = CQChartsGeom::Point(dataRange.xmin(), x1);
+      p = Point(dataRange.xmin(), x1);
 
     auto ps = plot_->windowToPixel(p);
 
@@ -3639,7 +3646,7 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+drawRect(CQChartsPaintDevice *device, const BBox &bbox,
          const CQChartsColor &color, bool useLine) const
 {
   // calc pen and brush
@@ -3666,14 +3673,12 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
       if (bbox.getWidth() < bbox.getHeight()) { // vertical
         double xc = bbox.getXMid();
 
-        device->drawLine(CQChartsGeom::Point(xc, bbox.getYMin()),
-                         CQChartsGeom::Point(xc, bbox.getYMax()));
+        device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
       }
       else {
         double yc = bbox.getYMid();
 
-        device->drawLine(CQChartsGeom::Point(bbox.getXMin(), yc),
-                         CQChartsGeom::Point(bbox.getXMax(), yc));
+        device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
       }
     }
   }
@@ -3687,13 +3692,12 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
       if (lw < 3.0) {
         double xc = bbox.getXMid();
 
-        device->drawLine(CQChartsGeom::Point(xc, bbox.getYMin()),
-                         CQChartsGeom::Point(xc, bbox.getYMax()));
+        device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
       }
       else {
         double pxc = pbbox.getXMid();
 
-        CQChartsGeom::BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
+        BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
 
         auto bbox1 = device->pixelToWindow(pbbox1);
 
@@ -3704,13 +3708,12 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
       if (lw < 3.0) {
         double yc = bbox.getYMid();
 
-        device->drawLine(CQChartsGeom::Point(bbox.getXMin(), yc),
-                         CQChartsGeom::Point(bbox.getXMax(), yc));
+        device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
       }
       else {
         double pyc = pbbox.getYMid();
 
-        CQChartsGeom::BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
+        BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
 
         auto bbox1 = device->pixelToWindow(pbbox1);
 
@@ -3738,12 +3741,12 @@ drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
     //---
 
     // draw dot
-    CQChartsGeom::Point p;
+    Point p;
 
     if (! plot_->isHorizontal())
-      p = CQChartsGeom::Point(bbox.getXMid(), bbox.getYMax());
+      p = Point(bbox.getXMid(), bbox.getYMax());
     else
-      p = CQChartsGeom::Point(bbox.getXMax(), bbox.getYMid());
+      p = Point(bbox.getXMax(), bbox.getYMid());
 
     plot_->drawSymbol(device, p, symbolType, symbolSize);
   }
@@ -3899,7 +3902,7 @@ yColorValue(bool relative) const
 //------
 
 CQChartsDistributionDensityObj::
-CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const BBox &rect,
                                int groupInd, const Data &data, double doffset, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
  groupInd_(groupInd), data_(data), doffset_(doffset), is_(is)
@@ -3912,7 +3915,7 @@ CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const CQCha
   int np = data_.points.size();
 
   if (np < 2) {
-    poly_ = CQChartsGeom::Polygon();
+    poly_ = Polygon();
     return;
   }
 
@@ -3920,11 +3923,11 @@ CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const CQCha
 
   if (! plot->isHorizontal()) {
     for (int i = 0; i < np; ++i)
-      poly_.addPoint(CQChartsGeom::Point(data_.points[i].x, data_.points[i].y - y1 + doffset_));
+      poly_.addPoint(Point(data_.points[i].x, data_.points[i].y - y1 + doffset_));
   }
   else {
     for (int i = 0; i < np; ++i)
-      poly_.addPoint(CQChartsGeom::Point(data_.points[i].y - y1 + doffset_, data_.points[i].x));
+      poly_.addPoint(Point(data_.points[i].y - y1 + doffset_, data_.points[i].x));
   }
 
   //----
@@ -3995,7 +3998,7 @@ numSamples() const
 
 bool
 CQChartsDistributionDensityObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -4033,7 +4036,7 @@ draw(CQChartsPaintDevice *device)
 
       plot_->bucketValues(groupInd_, Bucket(data_.buckets[i].bucket), value1, value2);
 
-      CQChartsGeom::BBox bbox(value1, 0, value2, y);
+      BBox bbox(value1, 0, value2, y);
 
       device->drawRect(bbox);
     }
@@ -4065,27 +4068,28 @@ drawStatsLines(CQChartsPaintDevice *device) const
   // set pen
   QColor bc = plot_->interpStatsLinesColor(ColorInd());
 
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
-  plot_->setPen(pen, true, bc, plot_->statsLinesAlpha(),
-                plot_->statsLinesWidth(), plot_->statsLinesDash());
+  plot_->setPen(penBrush,
+    CQChartsPenData(true, bc, plot_->statsLinesAlpha(), plot_->statsLinesWidth(),
+                    plot_->statsLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
   const auto &dataRange = plot_->dataRange();
 
   auto drawStatLine = [&](double value) {
-    CQChartsGeom::Point p1, p2;
+    Point p1, p2;
 
     if (! plot_->isHorizontal()) {
-      p1 = CQChartsGeom::Point(value, dataRange.ymin());
-      p2 = CQChartsGeom::Point(value, dataRange.ymax());
+      p1 = Point(value, dataRange.ymin());
+      p2 = Point(value, dataRange.ymax());
     }
     else {
-      p1 = CQChartsGeom::Point(dataRange.xmin(), value);
-      p2 = CQChartsGeom::Point(dataRange.xmax(), value);
+      p1 = Point(dataRange.xmin(), value);
+      p2 = Point(dataRange.xmax(), value);
     }
 
     device->drawLine(p1, p2);
@@ -4135,12 +4139,12 @@ drawRug(CQChartsPaintDevice *device) const
   (void) plot_->getRealValues(groupInd_, xvals, statData);
 
   for (const auto &x1 : xvals) {
-    CQChartsGeom::Point p1;
+    Point p1;
 
     if (! plot_->isHorizontal())
-      p1 = CQChartsGeom::Point(x1, dataRange.ymin());
+      p1 = Point(x1, dataRange.ymin());
     else
-      p1 = CQChartsGeom::Point(dataRange.xmin(), x1);
+      p1 = Point(dataRange.xmin(), x1);
 
     auto ps = plot_->windowToPixel(p1);
 
@@ -4172,15 +4176,15 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (plot_->isDensityGradient()) {
     auto pixelRect = plot_->calcPlotPixelRect();
 
-    CQChartsGeom::Point pg1, pg2;
+    Point pg1, pg2;
 
     if (! plot_->isHorizontal()) {
-      pg1 = CQChartsGeom::Point(pixelRect.getXMin(), pixelRect.getYMin());
-      pg2 = CQChartsGeom::Point(pixelRect.getXMax(), pixelRect.getYMin());
+      pg1 = Point(pixelRect.getXMin(), pixelRect.getYMin());
+      pg2 = Point(pixelRect.getXMax(), pixelRect.getYMin());
     }
     else {
-      pg1 = CQChartsGeom::Point(pixelRect.getXMin(), pixelRect.getYMax());
-      pg2 = CQChartsGeom::Point(pixelRect.getXMin(), pixelRect.getYMin());
+      pg1 = Point(pixelRect.getXMin(), pixelRect.getYMax());
+      pg2 = Point(pixelRect.getXMin(), pixelRect.getYMin());
     }
 
     QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
@@ -4207,7 +4211,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsDistributionScatterObj::
-CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const BBox &rect,
                                int groupInd, const Bucket &bucket, int n,
                                const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
@@ -4225,7 +4229,7 @@ CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const CQCha
   points_.resize(nf);
 
   for (int i = 0; i < nf; ++i)
-    points_[i] = CQChartsGeom::Point(rand.gen(), rand.gen());
+    points_[i] = Point(rand.gen(), rand.gen());
 }
 
 QString
@@ -4294,7 +4298,7 @@ draw(CQChartsPaintDevice *device)
       double px = plot_->windowToPixelWidth (point.x);
       double py = plot_->windowToPixelHeight(point.y);
 
-      CQChartsGeom::Point p(pc.x - px/2, pc.y - py/2);
+      Point p(pc.x - px/2, pc.y - py/2);
 
       plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
@@ -4304,7 +4308,7 @@ draw(CQChartsPaintDevice *device)
       double px = plot_->windowToPixelWidth (point.y);
       double py = plot_->windowToPixelHeight(point.x);
 
-      CQChartsGeom::Point p(pc.x - px/2, pc.y - py/2);
+      Point p(pc.x - px/2, pc.y - py/2);
 
       plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
@@ -4322,7 +4326,7 @@ CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, const ColorInd &ig, cons
 
 bool
 CQChartsDistKeyColorBox::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
+selectPress(const Point &, CQChartsSelMod)
 {
   setSetHidden(! isSetHidden());
 

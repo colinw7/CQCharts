@@ -83,8 +83,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   setPenBrush(penBrush,
-    true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
-    true, bgColor, fillAlpha(), fillPattern());
+    CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(true, bgColor, fillAlpha(), fillPattern()));
 
   if (isStateColoring())
     updatePenBrushState(penBrush);
@@ -150,8 +150,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
     QColor bgColor = interpFillColor(ColorInd());
 
     setPenBrush(penBrush,
-      false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash(),
-      true , bgColor, fillAlpha(), fillPattern());
+      CQChartsPenData(false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash()),
+      CQChartsBrushData(true , bgColor, fillAlpha(), fillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -164,8 +164,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
     QColor strokeColor = interpStrokeColor(ColorInd());
 
     setPenBrush(penBrush,
-      true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
-      false, QColor(), CQChartsAlpha(), CQChartsFillPattern());
+      CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+      CQChartsBrushData(false, QColor(), CQChartsAlpha(), CQChartsFillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

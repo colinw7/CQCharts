@@ -11,29 +11,28 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
   CQChartsRotatedTextBoxObj(CQChartsPlot *plot);
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &c, const QString &text,
+  void draw(CQChartsPaintDevice *device, const Point &c, const QString &text,
             double angle=0.0, Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
             bool isRotated=false) const;
 
-  CQChartsGeom::BBox bbox(const CQChartsGeom::Point &pcenter, const QString &text, double angle=0.0,
-                          Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
-                          bool isRotated=false) const;
+  BBox bbox(const Point &pcenter, const QString &text, double angle=0.0,
+            Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
+            bool isRotated=false) const;
 
-  void drawConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
+  void drawConnectedRadialText(CQChartsPaintDevice *device, const Point &center,
                                double ro, double lr, double ta, const QString &text,
                                const QPen &lpen, bool isRotated);
 
-  void calcConnectedRadialTextBBox(const CQChartsGeom::Point &center, double ro, double lr,
-                                   double ta, const QString &text, bool isRotated,
-                                   CQChartsGeom::BBox &tbbox);
+  void calcConnectedRadialTextBBox(const Point &center, double ro, double lr, double ta,
+                                   const QString &text, bool isRotated, BBox &tbbox);
 
  private:
-  void drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
+  void drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center,
                                    double ro, double lr, double ta, const QString &text,
-                                   const QPen &lpen, bool isRotated, CQChartsGeom::BBox &tbbox);
+                                   const QPen &lpen, bool isRotated, BBox &tbbox);
 
  private:
-  mutable CQChartsGeom::BBox bbox_;
+  mutable BBox bbox_;
 };
 
 #endif

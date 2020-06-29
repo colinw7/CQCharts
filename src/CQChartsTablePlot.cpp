@@ -130,7 +130,7 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  setOuterMargin(0, 0, 0, 0);
+  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
 
   addTitle();
 
@@ -544,7 +544,7 @@ calcRange() const
   //---
 
   // always return range (0,0) -> (1,1)
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   dataRange.updateRange(0.0, 0.0);
   dataRange.updateRange(1.0, 1.0);
@@ -1312,7 +1312,7 @@ drawTableBackground(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, headerPenBrush);
 
     if (x2 > x1) {
-      CQChartsGeom::BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
+      BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
 
       device->fillRect(bbox);
     }
@@ -1328,7 +1328,7 @@ drawTableBackground(CQChartsPaintDevice *device) const
   CQChartsDrawUtil::setPenBrush(device, cellPenBrush);
 
   if (x2 > x1 && tableData_.nvr > 0) {
-    CQChartsGeom::BBox bbox(x1, y2, x2, y2 + trh);
+    BBox bbox(x1, y2, x2, y2 + trh);
 
     device->fillRect(bbox);
   }
@@ -1350,7 +1350,7 @@ drawTableBackground(CQChartsPaintDevice *device) const
   if (isRowColumn()) {
     const ColumnData &data = th->tableData_.rowColumnData;
 
-    device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
+    device->drawLine(Point(x, y1), Point(x, y2));
 
     x += data.drawWidth;
   }
@@ -1361,31 +1361,31 @@ drawTableBackground(CQChartsPaintDevice *device) const
 
     const ColumnData &data = th->tableData_.columnDataMap[c];
 
-    device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
+    device->drawLine(Point(x, y1), Point(x, y2));
 
     x += data.drawWidth;
   }
 
   // right edge
-  device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
+  device->drawLine(Point(x, y1), Point(x, y2));
 
   // draw header and row lines
   double y = th->tableData_.yo - th->tableData_.sy;
 
   if (isHeaderVisible()) {
-    device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
+    device->drawLine(Point(x1, y), Point(x2, y));
 
     y += tableData_.rh;
   }
 
   for (int i = 0; i < tableData_.nvr; ++i) {
-    device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
+    device->drawLine(Point(x1, y), Point(x2, y));
 
     y += tableData_.rh;
   }
 
   // bottom edge
-  device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
+  device->drawLine(Point(x1, y), Point(x2, y));
 
   //---
 
@@ -1522,8 +1522,7 @@ createTableObjData() const
 
         const ColumnData &cdata = tableData_.rowColumnData;
 
-        headerObjData.rect =
-          CQChartsGeom::BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
         //---
 
@@ -1554,8 +1553,7 @@ createTableObjData() const
         else
           headerObjData.align = Qt::AlignLeft | Qt::AlignVCenter;
 
-        headerObjData.rect =
-          CQChartsGeom::BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
         //---
 
@@ -1572,8 +1570,7 @@ createTableObjData() const
 
       rowObjData.align = Qt::AlignRight | Qt::AlignVCenter;
 
-      rowObjData.rect =
-        CQChartsGeom::BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+      rowObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
       rowObjData.str = QString("%1").arg(n);
     }
@@ -1624,8 +1621,7 @@ createTableObjData() const
       if (ic == 0)
         x1 += depth_*xd_;
 
-      cellObjData.rect =
-        CQChartsGeom::BBox(x1 + xm_, y, x1 + cdata.drawWidth - xm_, y + tableData_.rh);
+      cellObjData.rect = BBox(x1 + xm_, y, x1 + cdata.drawWidth - xm_, y + tableData_.rh);
     }
 
    private:
@@ -1796,7 +1792,7 @@ calcTablePixelRect() const
 
   double tph = tabRect.getHeight();
 
-  return CQChartsGeom::BBox(px1, py1, px2, py2 - tph);
+  return BBox(px1, py1, px2, py2 - tph);
 }
 
 CQChartsTableHeaderObj *
@@ -1864,12 +1860,13 @@ draw(CQChartsPaintDevice *device)
 
   device->setFont(plot_->tableFont());
 
-  QPen textPen;
+  CQChartsPenBrush textPenBrush;
 
-  plot_->setPen(textPen, true, plot_->interpColor(plot_->textColor(), ColorInd()),
-                CQChartsAlpha(), 0.0, CQChartsLineDash());
+  plot_->setPen(textPenBrush,
+    CQChartsPenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
+                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
-  device->setPen(textPen);
+  device->setPen(textPenBrush.pen);
 
   CQChartsTextOptions textOptions;
 
@@ -1895,9 +1892,9 @@ getObjSelectIndices(Indices &inds) const
 
 bool
 CQChartsTableHeaderObj::
-rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const BBox &r, bool inside) const
 {
-  CQChartsGeom::BBox rect = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  BBox rect = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -1949,12 +1946,13 @@ draw(CQChartsPaintDevice *device)
 
   device->setFont(plot_->tableFont());
 
-  QPen textPen;
+  CQChartsPenBrush textPenBrush;
 
-  plot_->setPen(textPen, true, plot_->interpColor(plot_->textColor(), ColorInd()),
-                CQChartsAlpha(), 0.0, CQChartsLineDash());
+  plot_->setPen(textPenBrush,
+    CQChartsPenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
+                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
-  device->setPen(textPen);
+  device->setPen(textPenBrush.pen);
 
   CQChartsTextOptions textOptions;
 
@@ -1971,9 +1969,9 @@ draw(CQChartsPaintDevice *device)
 
 bool
 CQChartsTableRowObj::
-rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const BBox &r, bool inside) const
 {
-  CQChartsGeom::BBox rect = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  BBox rect = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2058,12 +2056,13 @@ draw(CQChartsPaintDevice *device)
   // draw cell text
   device->setFont(plot_->tableFont());
 
-  QPen textPen;
+  CQChartsPenBrush textPenBrush;
 
-  plot_->setPen(textPen, true, plot_->interpColor(textColor, ColorInd()),
-                CQChartsAlpha(), 0.0, CQChartsLineDash());
+  plot_->setPen(textPenBrush,
+    CQChartsPenData(true, plot_->interpColor(textColor, ColorInd()),
+                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
-  device->setPen(textPen);
+  device->setPen(textPenBrush.pen);
 
   CQChartsTextOptions textOptions;
 
@@ -2089,20 +2088,20 @@ getObjSelectIndices(Indices &inds) const
 
 bool
 CQChartsTableCellObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible()) return false;
 
-  CQChartsGeom::BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   return rect.inside(p);
 }
 
 bool
 CQChartsTableCellObj::
-rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const BBox &r, bool inside) const
 {
-  CQChartsGeom::BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);

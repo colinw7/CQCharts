@@ -34,6 +34,9 @@ class CQChartsXYPlane {
 
 class CQChartsCamera {
  public:
+  using Point3D = CQChartsGeom::Point3D;
+
+ public:
   CQChartsCamera(CQChartsPlot3D *plot=nullptr);
 
   virtual ~CQChartsCamera();
@@ -106,11 +109,11 @@ class CQChartsCamera {
   void zoomIn (double f=1.1) { scaleX_ *= f; scaleY_ *= f; scaleZ_ *= f; }
   void zoomOut(double f=1.1) { scaleX_ /= f; scaleY_ /= f; scaleZ_ /= f; }
 
-  void setPosition(const CQChartsGeom::Point3D &position) {
+  void setPosition(const Point3D &position) {
     coordFrame_.setOrigin(CPoint3D(position.x, position.y, position.z));
   }
 
-  void setDirection(const CQChartsGeom::Point3D &dir);
+  void setDirection(const Point3D &dir);
 
   void moveDX(double dx) { coordFrame_.moveX(dx); }
   void moveDY(double dy) { coordFrame_.moveY(dy); }
@@ -134,34 +137,34 @@ class CQChartsCamera {
 
   void planeZRange(double &zmin, double &zmax) const;
 
-  CQChartsGeom::Point3D transform  (const CQChartsGeom::Point3D &p) const;
-  CQChartsGeom::Point3D untransform(const CQChartsGeom::Point3D &p) const;
+  Point3D transform  (const Point3D &p) const;
+  Point3D untransform(const Point3D &p) const;
 
   void showView(std::ostream &os) const;
 
   void unsetView();
 
  private:
-  CQChartsPlot3D*       plot_       { nullptr };
-  bool                  enabled_    { true };
-  double                xmin_       { -1 };
-  double                xmax_       {  1 };
-  double                ymin_       { -1 };
-  double                ymax_       {  1 };
-  double                near_       { 0.1 };
-  double                far_        { 100 };
-  double                rotateX_    { 60.0 };
-  double                rotateY_    {  0.0 };
-  double                rotateZ_    { 30.0 };
-  double                scaleX_     { 0.707 };
-  double                scaleY_     { 0.707 };
-  double                scaleZ_     { 0.707 };
-  CCoordFrame3D         coordFrame_;
-  CQChartsGeom::Point3D direction_  { 0, 0, 1 };
-//double                fov_        { 90 };
-  CQChartsXYPlane       xyPlane_;
-  mutable CMatrix3DH    projMatrix_;
-  mutable CMatrix3DH    iprojMatrix_;
+  CQChartsPlot3D*    plot_       { nullptr };
+  bool               enabled_    { true };
+  double             xmin_       { -1 };
+  double             xmax_       {  1 };
+  double             ymin_       { -1 };
+  double             ymax_       {  1 };
+  double             near_       { 0.1 };
+  double             far_        { 100 };
+  double             rotateX_    { 60.0 };
+  double             rotateY_    {  0.0 };
+  double             rotateZ_    { 30.0 };
+  double             scaleX_     { 0.707 };
+  double             scaleY_     { 0.707 };
+  double             scaleZ_     { 0.707 };
+  CCoordFrame3D      coordFrame_;
+  Point3D            direction_  { 0, 0, 1 };
+//double             fov_        { 90 };
+  CQChartsXYPlane    xyPlane_;
+  mutable CMatrix3DH projMatrix_;
+  mutable CMatrix3DH iprojMatrix_;
 };
 
 typedef std::shared_ptr<CQChartsCamera> CQChartsCameraP;

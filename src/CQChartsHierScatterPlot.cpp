@@ -268,7 +268,7 @@ calcRange() const
   if (! checkColumns(groupColumns(), "Group")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -313,11 +313,11 @@ calcRange() const
       return State::OK;
     }
 
-    const CQChartsGeom::Range &range() const { return range_; }
+    const Range &range() const { return range_; }
 
    private:
     const CQChartsHierScatterPlot* plot_ { nullptr };
-    CQChartsGeom::Range            range_;
+    Range                          range_;
   };
 
   RowVisitor visitor(this);
@@ -684,7 +684,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
   for (const auto &point : group->points()) {
     const auto &p = point.p;
 
-    CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+    BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
     ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
@@ -787,7 +787,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsHierScatterPointObj *
 CQChartsHierScatterPlot::
-createPointObj(const CQChartsGeom::BBox &rect, const Point &p, const ColorInd &iv) const
+createPointObj(const BBox &rect, const Point &p, const ColorInd &iv) const
 {
   return new CQChartsHierScatterPointObj(this, rect, p, iv);
 }
@@ -795,8 +795,8 @@ createPointObj(const CQChartsGeom::BBox &rect, const Point &p, const ColorInd &i
 //------
 
 CQChartsHierScatterPointObj::
-CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                            const CQChartsGeom::Point &p, const ColorInd &iv) :
+CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const BBox &rect,
+                            const Point &p, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsHierScatterPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), p_(p)
 {
@@ -829,7 +829,7 @@ calcTipId() const
 
 bool
 CQChartsHierScatterPointObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   double sx, sy;
 
@@ -837,7 +837,7 @@ inside(const CQChartsGeom::Point &p) const
 
   auto p1 = plot_->windowToPixel(p_);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -895,7 +895,7 @@ draw(CQChartsPaintDevice *device)
 
     plot_->pixelSymbolSize(symbolSize, sx, sy);
 
-    CQChartsGeom::BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+    BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
     dataLabel->draw(device, device->pixelToWindow(ebbox), name_);
   }
@@ -912,7 +912,7 @@ CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPo
 
 bool
 CQChartsHierScatterKeyColor::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
+selectPress(const Point &, CQChartsSelMod)
 {
   auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 

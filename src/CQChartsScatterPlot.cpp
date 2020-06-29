@@ -613,7 +613,7 @@ calcRange() const
   if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -708,7 +708,7 @@ calcRange() const
       return (details_ ? details_->columnDetails(column) : nullptr);
     }
 
-    const CQChartsGeom::Range &range() const { return range_; }
+    const Range &range() const { return range_; }
 
     bool isUniqueX() const { return uniqueX_ == numRows(); }
     bool isUniqueY() const { return uniqueY_ == numRows(); }
@@ -716,7 +716,7 @@ calcRange() const
    private:
     const CQChartsScatterPlot* plot_      { nullptr };
     int                        hasGroups_ { false };
-    CQChartsGeom::Range        range_;
+    Range                      range_;
     CQChartsModelDetails*      details_   { nullptr };
     int                        uniqueX_   { 0 };
     int                        uniqueY_   { 0 };
@@ -793,7 +793,7 @@ calcRange() const
 
 void
 CQChartsScatterPlot::
-initGridData(const CQChartsGeom::Range &dataRange)
+initGridData(const Range &dataRange)
 {
   if (dataRange.isSet()) {
     gridData_.setXInterval(dataRange.xmin(), dataRange.xmax());
@@ -1098,7 +1098,7 @@ addPointObjects(PlotObjs &objs) const
         ColorInd ig1(ig, ng);
         ColorInd iv1(iv, nv);
 
-        CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+        BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
@@ -1289,7 +1289,7 @@ addGridObjects(PlotObjs &objs) const
           ColorInd is1(is, ns);
           ColorInd ig1(ig, ng);
 
-          CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
+          BBox bbox(xmin, ymin, xmax, ymax);
 
           auto *cellObj = createCellObj(groupInd, bbox, is1, ig1, ix, iy, points, maxN);
 
@@ -1373,7 +1373,7 @@ addHexObjects(PlotObjs &objs) const
 
           hexMap.indexPolygon(i, j, ipolygon);
 
-          CQChartsGeom::Polygon polygon;
+          Polygon polygon;
 
           for (auto &p : ipolygon) {
             Point pv(p.x, p.y);
@@ -1613,25 +1613,24 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
 CQChartsScatterPointObj *
 CQChartsScatterPlot::
-createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point &p,
-               const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
+createPointObj(int groupInd, const BBox &rect, const Point &p, const ColorInd &is,
+               const ColorInd &ig, const ColorInd &iv) const
 {
   return new CQChartsScatterPointObj(this, groupInd, rect, p, is, ig, iv);
 }
 
 CQChartsScatterCellObj *
 CQChartsScatterPlot::
-createCellObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
-              const ColorInd &ig, int ix, int iy, const Points &points, int maxN) const
+createCellObj(int groupInd, const BBox &rect, const ColorInd &is, const ColorInd &ig,
+              int ix, int iy, const Points &points, int maxN) const
 {
   return new CQChartsScatterCellObj(this, groupInd, rect, is, ig, ix, iy, points, maxN);
 }
 
 CQChartsScatterHexObj *
 CQChartsScatterPlot::
-createHexObj(int groupInd, const CQChartsGeom::BBox &rect, const ColorInd &is,
-             const ColorInd &ig, int ix, int iy, const CQChartsGeom::Polygon &poly,
-             int n, int maxN) const
+createHexObj(int groupInd, const BBox &rect, const ColorInd &is, const ColorInd &ig,
+             int ix, int iy, const Polygon &poly, int n, int maxN) const
 {
   return new CQChartsScatterHexObj(this, groupInd, rect, is, ig, ix, iy, poly, n, maxN);
 }
@@ -1864,7 +1863,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   if (isXRug() || isYRug() || isXDensity() || isYDensity() || isXWhisker() || isYWhisker()) {
     const auto &dataRange = this->dataRange();
@@ -2041,7 +2040,7 @@ initGroupBestFit(int groupInd) const
 
         //---
 
-        CQChartsGeom::Polygon poly;
+        Polygon poly;
 
         for (const auto &p : points) {
           if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
@@ -2453,7 +2452,7 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   double pos = (xDensitySide() == YSide::BOTTOM ?  dataRange.ymin() - dh : dataRange.ymax());
 
-  CQChartsGeom::BBox rect(xmin, pos, xmax, pos + dh);
+  BBox rect(xmin, pos, xmax, pos + dh);
 
   density.drawDistribution(this, device, rect, Qt::Horizontal);
 }
@@ -2488,7 +2487,7 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
   double pos = (yDensitySide() == XSide::LEFT ?  dataRange.xmin() - dw : dataRange.xmax());
 
-  CQChartsGeom::BBox rect(pos, xmin, pos + dw, xmax);
+  BBox rect(pos, xmin, pos + dw, xmax);
 
   density.drawDistribution(this, device, rect, Qt::Vertical);
 }
@@ -2676,7 +2675,7 @@ drawXWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
   double pos = (xWhiskerSide() == YSide::BOTTOM ?
     dataRange.ymin() - (ig.i + 1)*ww - wm : dataRange.ymax() + ig.i*ww + wm);
 
-  CQChartsGeom::BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
+  BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
 
   CQChartsBoxWhiskerUtil::drawWhisker(this, device, whiskerData.xWhisker,
                                       rect, whiskerWidth(), Qt::Horizontal);
@@ -2709,7 +2708,7 @@ drawYWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
   double pos = (yWhiskerSide() == XSide::LEFT ?
     dataRange.xmin() - (ig.i + 1)*ww - wm : dataRange.xmax() + ig.i*ww + wm);
 
-  CQChartsGeom::BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
+  BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
 
   CQChartsBoxWhiskerUtil::drawWhisker(this, device, whiskerData.yWhisker,
                                       rect, whiskerWidth(), Qt::Vertical);
@@ -2878,9 +2877,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   double xm = px - pr1 - pm;
   double ym = py - pm;
 
-  CQChartsGeom::BBox pbbox1(xm - pr1, ym - 2*pr1, xm + pr1, ym);
-  CQChartsGeom::BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
-  CQChartsGeom::BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
+  BBox pbbox1(xm - pr1, ym - 2*pr1, xm + pr1, ym);
+  BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
+  BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
 
   auto a = symbolMapKeyAlpha();
 
@@ -2888,7 +2887,7 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
 
-  auto drawEllipse = [&](const QColor &c, const CQChartsGeom::BBox &pbbox) {
+  auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
     CQChartsPenBrush penBrush;
 
     setPenBrush(penBrush, CQChartsPenData(true, strokeColor), CQChartsBrushData(true, c));
@@ -2928,9 +2927,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                        const CQChartsGeom::BBox &rect, const Point &pos,
-                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                        const Point &pos, const ColorInd &is, const ColorInd &ig,
+                        const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
 {
@@ -3111,7 +3110,7 @@ inside(const Point &p) const
 
   auto p1 = plot_->windowToPixel(pos_);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -3223,7 +3222,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
       sy = sx*(1.0/aspect);
     }
 
-    CQChartsGeom::BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+    BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
     device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
   }
@@ -3286,7 +3285,7 @@ drawDataLabel(CQChartsPaintDevice *device) const
   //---
 
   // draw text
-  CQChartsGeom::BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
   dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name_, dataLabel->position(), penBrush);
 
@@ -3348,9 +3347,9 @@ yColorValue(bool relative) const
 //------
 
 CQChartsScatterCellObj::
-CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
-                       const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
-                       int ix, int iy, const Points &points, int maxn) :
+CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                       const ColorInd &is, const ColorInd &ig, int ix, int iy,
+                       const Points &points, int maxn) :
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
@@ -3519,9 +3518,9 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsScatterHexObj::
-CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd,
-                       const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
-                       int ix, int iy, const CQChartsGeom::Polygon &poly, int n, int maxN) :
+CQChartsScatterHexObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
+                      const ColorInd &is, const ColorInd &ig, int ix, int iy,
+                      const Polygon &poly, int n, int maxN) :
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), ix_(ix), iy_(iy), poly_(poly), n_(n), maxN_(maxN)
 {

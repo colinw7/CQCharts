@@ -10,9 +10,17 @@ define_charts_proc color_value { arg } {
   return [expr {$arg < 0.0 ? "#aa4444" : "#44aa44"}]
 }
 
+define_charts_proc dark_color_value { arg } {
+  return [expr {$arg < 0.0 ? "#440000" : "#004400"}]
+}
+
 set model [load_charts_model -csv data/gaussian.txt -comment_header]
 
-process_charts_model -model $model -add -expr "color_value(column(0))" -header "color" -type color
+process_charts_model -model $model -add \
+  -expr "color_value(column(0))" -header "color" -type color
+
+#process_charts_model -model $model -add \
+  -expr "dark_color_value(column(0))" -header "color" -type color
 
 set plot [create_charts_plot -model $model -type distribution \
   -columns {{value 0} {color 1}} \

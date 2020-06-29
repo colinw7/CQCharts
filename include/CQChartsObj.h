@@ -25,6 +25,7 @@ class CQChartsObj : public QObject {
 
  public:
   using BBox  = CQChartsGeom::BBox;
+  using Size  = CQChartsGeom::Size;
   using Point = CQChartsGeom::Point;
 
  public:

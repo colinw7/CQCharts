@@ -62,7 +62,7 @@ decodeString(const QString &str, CQChartsUnits &units, double &value,
     QString str0 = strs[0];
 
     for (int i = 0; i < str0.length(); ++i) {
-      if (! str0[i].isLetter() || str0[i] != '%') continue;
+      if (! str0[i].isLetter() && str0[i] != '%') continue;
 
       CQChartsUnits units1;
 

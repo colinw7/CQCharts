@@ -68,8 +68,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const CQChartsGeom::Point &position() const { return position_; }
-  void setPosition(const CQChartsGeom::Point &p) { position_ = p; }
+  const Point &position() const { return position_; }
+  void setPosition(const Point &p) { position_ = p; }
 
   //---
 
@@ -78,16 +78,16 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  CQChartsGeom::Point absolutePlotPosition() const;
-  void setAbsolutePlotPosition(const CQChartsGeom::Point &p);
+  Point absolutePlotPosition() const;
+  void setAbsolutePlotPosition(const Point &p);
 
-  CQChartsGeom::BBox absolutePlotRectangle() const;
-  void setAbsolutePlotRectangle(const CQChartsGeom::BBox &r);
+  BBox absolutePlotRectangle() const;
+  void setAbsolutePlotRectangle(const BBox &r);
 
   //---
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &b) { bbox_ = b; }
 
   //---
 
@@ -100,9 +100,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  CQChartsGeom::Size calcSize();
+  Size calcSize();
 
-  CQChartsGeom::BBox fitBBox() const;
+  BBox fitBBox() const;
 
   //---
 
@@ -110,20 +110,20 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   //---
 
-  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
-  virtual bool selectMove   (const CQChartsGeom::Point &) { return false; }
-  virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
+  virtual bool selectMove   (const Point &) { return false; }
+  virtual bool selectRelease(const Point &) { return false; }
 
-  virtual bool editPress  (const CQChartsGeom::Point &);
-  virtual bool editMove   (const CQChartsGeom::Point &);
-  virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &) { return true; }
+  virtual bool editPress  (const Point &);
+  virtual bool editMove   (const Point &);
+  virtual bool editMotion (const Point &);
+  virtual bool editRelease(const Point &) { return true; }
 
-  virtual void editMoveBy(const CQChartsGeom::Point &d);
+  virtual void editMoveBy(const Point &d);
 
   //---
 
@@ -139,10 +139,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void textBoxDataInvalidate() override;
 
  private:
-  using BBox  = CQChartsGeom::BBox;
-  using Size  = CQChartsGeom::Size;
-  using Point = CQChartsGeom::Point;
-
   struct FitData {
     bool horizontal { true };
     bool vertical   { true };

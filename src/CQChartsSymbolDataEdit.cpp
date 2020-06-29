@@ -443,8 +443,14 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, data.fill().isVisible(), fc,
-                         data.fill().alpha(), data.fill().pattern());
+  CQChartsBrushData brushData;
+
+  brushData.setVisible(data.fill().isVisible());
+  brushData.setColor  (fc);
+  brushData.setAlpha  (data.fill().alpha());
+  brushData.setPattern(data.fill().pattern());
+
+  CQChartsDrawUtil::setBrush(brush, brushData);
 
   painter->setBrush(brush);
 

@@ -249,8 +249,12 @@ class CQChartsPlot : public CQChartsObj,
 //Q_PROPERTY(bool logY        READ isLogY        WRITE setLogY       )
 
   // fit
-  Q_PROPERTY(bool   autoFit   READ isAutoFit WRITE setAutoFit  )
-  Q_PROPERTY(double fitMargin READ fitMargin WRITE setFitMargin)
+  Q_PROPERTY(bool autoFit READ isAutoFit WRITE setAutoFit)
+
+  Q_PROPERTY(CQChartsLength fitMarginLeft   READ fitMarginLeft   WRITE setFitMarginLeft  )
+  Q_PROPERTY(CQChartsLength fitMarginTop    READ fitMarginTop    WRITE setFitMarginTop   )
+  Q_PROPERTY(CQChartsLength fitMarginRight  READ fitMarginRight  WRITE setFitMarginRight )
+  Q_PROPERTY(CQChartsLength fitMarginBottom READ fitMarginBottom WRITE setFitMarginBottom)
 
   // preview
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
@@ -277,6 +281,7 @@ class CQChartsPlot : public CQChartsObj,
   using Range    = CQChartsGeom::Range;
   using Size     = CQChartsGeom::Size;
   using RMinMax  = CQChartsGeom::RMinMax;
+  using IMinMax  = CQChartsGeom::IMinMax;
   using Polygons = CQChartsGeom::Polygons;
 
   using SelMod = CQChartsSelMod;
@@ -631,11 +636,26 @@ class CQChartsPlot : public CQChartsObj,
   bool isFollowMouse() const { return followMouse_; }
   void setFollowMouse(bool b) { followMouse_ = b; }
 
-  bool isAutoFit() const { return autoFit_; }
-  void setAutoFit(bool b) { autoFit_ = b; }
+  //---
 
-  double fitMargin() const { return fitMargin_; }
-  void setFitMargin(double r) { fitMargin_ = r; }
+  // fit
+  bool isAutoFit() const { return autoFit_; }
+  void setAutoFit(bool b);
+
+  const PlotMargin &fitMargin() const { return fitMargin_; }
+  void setFitMargin(const PlotMargin &m);
+
+  const Length &fitMarginLeft() const { return fitMargin().left(); }
+  void setFitMarginLeft(const Length &l);
+
+  const Length &fitMarginTop() const { return fitMargin().top(); }
+  void setFitMarginTop(const Length &t);
+
+  const Length &fitMarginRight() const { return fitMargin().right(); }
+  void setFitMarginRight(const Length &r);
+
+  const Length &fitMarginBottom() const { return fitMargin().bottom(); }
+  void setFitMarginBottom(const Length &b);
 
   //---
 
@@ -690,6 +710,7 @@ class CQChartsPlot : public CQChartsObj,
 
   // inner margin
   const PlotMargin &innerMargin() const { return innerMargin_; }
+  void setInnerMargin(const PlotMargin &m);
 
   const Length &innerMarginLeft() const { return innerMargin().left(); }
   void setInnerMarginLeft(const Length &l);
@@ -703,11 +724,9 @@ class CQChartsPlot : public CQChartsObj,
   const Length &innerMarginBottom() const { return innerMargin().bottom(); }
   void setInnerMarginBottom(const Length &b);
 
-  void setInnerMargin(const Length &l, const Length &t, const Length &r, const Length &b);
-  void setInnerMargin(const PlotMargin &m);
-
   // outer margin
   const PlotMargin &outerMargin() const { return outerMargin_; }
+  void setOuterMargin(const PlotMargin &m);
 
   const Length &outerMarginLeft() const { return outerMargin().left(); }
   void setOuterMarginLeft(const Length &l);
@@ -720,9 +739,6 @@ class CQChartsPlot : public CQChartsObj,
 
   const Length &outerMarginBottom() const { return outerMargin().bottom(); }
   void setOuterMarginBottom(const Length &b);
-
-  void setOuterMargin(const Length &l, const Length &t, const Length &r, const Length &b);
-  void setOuterMargin(const PlotMargin &m);
 
   //---
 
@@ -2169,30 +2185,14 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+ public:
   // set pen/brush
   void setPenBrush(PenBrush &penBrush, const CQChartsPenData &penData,
                    const CQChartsBrushData &brushData) const;
 
-  void setPenBrush(PenBrush &penBrush,
-                   bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
-                   const Length &strokeWidth, const LineDash &strokeDash,
-                   bool filled, const QColor &fillColor, const QColor &altFillColor,
-                   const Alpha &fillAlpha,
-                   const FillPattern &pattern=FillPattern::Type::SOLID) const;
-
   void setPen(PenBrush &penBrush, const CQChartsPenData &penData) const;
 
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
-              const Alpha &strokeAlpha=Alpha(), const Length &strokeWidth=Length("0px"),
-              const LineDash &strokeDash=LineDash()) const;
-
   void setBrush(PenBrush &penBrush, const CQChartsBrushData &brushData) const;
-
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
-                const Alpha &fillAlpha=Alpha(),
-                const FillPattern &pattern=FillPattern::Type::SOLID) const;
-
-  //---
 
   void setPenBrush(PaintDevice *device, const CQChartsPenData &penData,
                    const CQChartsBrushData &brushData) const;
@@ -2782,9 +2782,9 @@ class CQChartsPlot : public CQChartsObj,
   bool followMouse_ { true }; //!< track object under mouse
 
   // fit
-  bool   autoFit_      { false }; //!< auto fit on data change
-  bool   needsAutoFit_ { false }; //!< needs auto fit on next draw
-  double fitMargin_    { 0.01 };  //!< fit margin percent
+  bool       autoFit_      { false };      //!< auto fit on data change
+  PlotMargin fitMargin_    { 1, 1, 1, 1 }; //!< fit margin
+  bool       needsAutoFit_ { false };      //!< needs auto fit on next draw
 
   // preview
   bool preview_        { false }; //!< is preview plot

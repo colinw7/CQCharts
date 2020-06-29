@@ -67,17 +67,20 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //--
 
-  bool isPositionInside() const {
-    return (position_ == Position::TOP_INSIDE || position_ == Position::BOTTOM_INSIDE);
+  bool isPositionInside () const { return isPositionInside (position()); }
+  bool isPositionOutside() const { return isPositionOutside(position()); }
+
+  static bool isPositionInside(const Position &position) {
+    return (position == Position::TOP_INSIDE || position == Position::BOTTOM_INSIDE);
   }
 
-  bool isPositionOutside() const {
-    return (position_ == Position::TOP_OUTSIDE || position_ == Position::BOTTOM_OUTSIDE);
+  static bool isPositionOutside(const Position &position) {
+    return (position == Position::TOP_OUTSIDE || position == Position::BOTTOM_OUTSIDE);
   }
 
-  Position flipPosition() const {
-    return flipPosition(position());
-  }
+  //--
+
+  Position flipPosition() const { return flipPosition(position()); }
 
   static Position flipPosition(const Position &position) {
     switch (position) {
@@ -106,6 +109,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
+  bool isAdjustedPositionOutside(const CQChartsGeom::BBox &pbbox, const QString &ystr) const;
+
+  //---
+
   CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr) const;
   CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr,
                               const Position &position) const;
@@ -120,7 +127,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   //---
 

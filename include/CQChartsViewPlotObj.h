@@ -41,6 +41,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
   using TextOptions = CQChartsTextOptions;
 
   using Polygon = CQChartsGeom::Polygon;
+  using RMinMax = CQChartsGeom::RMinMax;
 
  public:
   CQChartsViewPlotObj(View *view);
@@ -67,18 +68,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
   // set pen/brush
   void setPenBrush(PenBrush &penBrush, const PenData &penData, const BrushData &brushData) const;
 
-  void setPenBrush(PenBrush &penBrush,
-                   bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
-                   const Length &strokeWidth, const LineDash &strokeDash,
-                   bool filled, const QColor &fillColor, const Alpha &fillAlpha,
-                   const FillPattern &pattern) const;
-
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor,
-              const Alpha &strokeAlpha=Alpha(), const Length &strokeWidth=Length("0px"),
-              const LineDash &strokeDash=LineDash()) const;
-
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
-                const Alpha &fillAlpha=Alpha(), const FillPattern &pattern=FillPattern()) const;
+  void setPen(PenBrush &penBrush, const PenData &penData) const;
 
   void updatePenBrushState(PenBrush &penBrush, DrawType drawType=DrawType::BOX) const;
 

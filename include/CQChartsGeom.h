@@ -920,6 +920,18 @@ class BBox {
 
   //---
 
+  void scale(double xf, double yf) {
+    double w = getWidth ()*xf;
+    double h = getHeight()*yf;
+
+    BBox rect(getXMin(), getYMin(), getXMin() + w, getYMin() + h);
+
+    pmin_ = rect.getLL();
+    pmax_ = rect.getUR();
+  }
+
+  //---
+
   // true if ok, false if changed (swapped)
   bool update() {
     assert(set_);
@@ -1215,6 +1227,9 @@ namespace CQChartsGeom {
 
 class Polygon {
  public:
+  using Point = CQChartsGeom::Point;
+
+ public:
   Polygon() { }
 
   explicit Polygon(const QPolygonF &qpoly) :
@@ -1233,7 +1248,7 @@ class Polygon {
   int size() const { return qpoly_.count(); }
 
   const QPointF &qpoint(int i) const { return qpoly_.at(i); }
-  CQChartsGeom::Point point(int i) const { return CQChartsGeom::Point(qpoly_.at(i)); }
+  Point point(int i) const { return Point(qpoly_.at(i)); }
 
   void addPoint(const Point &p) { qpoly_ << p.qpoint(); }
   void addPoint(const QPointF &p) { qpoly_ << p; }
@@ -2211,16 +2226,17 @@ struct RangeValue {
 
 namespace CQChartsGeom {
 
+using Point = CQChartsGeom::Point;
+
 // point on circle perimeter (center (c), radius(r), radian angle (a))
-inline CQChartsGeom::Point circlePoint(const CQChartsGeom::Point &c, double r, double a) {
+inline Point circlePoint(const Point &c, double r, double a) {
   double ca = cos(a); double sa = sin(a);
 
-  return CQChartsGeom::Point(c.x + r*ca, c.y + r*sa);
+  return Point(c.x + r*ca, c.y + r*sa);
 }
 
 #if 0
-inline CQChartsGeom::Point ellipsePoint(const CQChartsGeom::Point &c,
-                                        double xr, double yr, double a) {
+inline Point ellipsePoint(const Point &c, double xr, double yr, double a) {
   double ca = cos(a); double sa = sin(a);
 
   double n = xr*yr;
@@ -2228,11 +2244,11 @@ inline CQChartsGeom::Point ellipsePoint(const CQChartsGeom::Point &c,
 
   double rt = (d > 0.0 ? n/d : 0.0);
 
-  return CQChartsGeom::Point(c.x + rt*ca, c.y + rt*sa);
+  return Point(c.x + rt*ca, c.y + rt*sa);
 }
 #endif
 
-inline double pointAngle(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
+inline double pointAngle(const Point &p1, const Point &p2) {
   return std::atan2(p2.y - p1.y, p2.x - p1.x);
 }
 

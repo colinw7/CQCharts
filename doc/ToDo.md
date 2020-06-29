@@ -3,11 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + Annotations
+   + Widget annotations (combox, text edit, check, radio, ...)
+ + Recalc margin from current value on resize as may have changed due to font change
  + Auto size title/axis to outer margin
  + Pie chart mouse over center label
- + Gradient fill
- + Contrast Color
- + More length units (EX, EM)
  + Annotation Dialogs (all types)
  + Dot language (Sankey)
    + More support

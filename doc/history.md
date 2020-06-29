@@ -1137,3 +1137,10 @@
  + Support em/ex as units for length
  + Add defined function to model filter
  + fix clear errors for overlay plots
+# 06/28/2020
+ + Improve gradient fill pattern support
+ + Improve alt color for line fill
+ + Add control over lighter color for disabled/unchecked annotations
+ + Cleanup more pen/brush arg lists
+ + Use margin with units for fit margin
+ + Support nested graphs for nodes in sankey plot

@@ -605,16 +605,20 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
            c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
     QColor cc = contrastColor();
 
-    if (! cc.isValid())
-      return interpThemeColor(ColorInd(value));
+    if (! cc.isValid()) {
+      if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
+        return interpThemeColor(ColorInd(1.0 - c.value()));
+      else
+        return interpThemeColor(ColorInd(1.0 - value));
+    }
 
     QColor c1 = CQChartsUtil::bwColor(cc);
+    QColor c2 = CQChartsUtil::bwColor(c1);
 
-    if (c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
-      QColor c2 = CQChartsUtil::bwColor(c1);
-
+    if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
       c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(c.value(), 0.0, 1.0));
-    }
+    else
+      c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(value, 0.0, 1.0));
 
     return c1;
   }

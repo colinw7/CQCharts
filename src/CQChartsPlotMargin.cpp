@@ -94,9 +94,9 @@ adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
     else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getHeight()*len.value()/100.0;
     else if (len.units() == CQChartsUnits::EM)
-      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEm());
+      return plot->view()->pixelToWindowHeight(len.value()*plot->view()->fontEm());
     else if (len.units() == CQChartsUnits::EX)
-      return plot->view()->pixelToWindowWidth(len.value()*plot->view()->fontEx());
+      return plot->view()->pixelToWindowHeight(len.value()*plot->view()->fontEx());
     else
       return len.value();
   };

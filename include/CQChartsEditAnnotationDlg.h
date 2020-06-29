@@ -4,11 +4,16 @@
 #include <QDialog>
 
 class CQChartsAnnotation;
+class CQChartsPosition;
 class CQChartsPositionEdit;
+class CQChartsRect;
 class CQChartsRectEdit;
+class CQChartsLength;
 class CQChartsLengthEdit;
+class CQChartsMargin;
 class CQChartsMarginEdit;
 class CQChartsSidesEdit;
+class CQChartsPolygon;
 class CQChartsPolygonEdit;
 class CQChartsSymbolDataEdit;
 class CQChartsTextDataEdit;
@@ -119,12 +124,31 @@ class CQChartsEditAnnotationDlg : public QDialog {
   void createValueSetFrame();
   void createButtonFrame  ();
 
+  //---
+
   void addFillWidgets  (Widgets &widgets, QBoxLayout *playout);
   void addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool corner);
 
   void addSidesWidget(Widgets &widgets, QBoxLayout *playout);
 
   QHBoxLayout *addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget);
+
+  //---
+
+  CQChartsLineEdit*     createLineEdit(const QString &name, const QString &text,
+                                       const QString &tip) const;
+  CQChartsPositionEdit* createPositionEdit(const QString &name, const CQChartsPosition &pos,
+                                           const QString &tip) const;
+  CQChartsLengthEdit*   createLengthEdit(const QString &name, const CQChartsLength &len,
+                                         const QString &tip) const;
+  CQChartsRectEdit*     createRectEdit(const QString &name, const CQChartsRect &rect,
+                                       const QString &tip) const;
+  CQChartsPolygonEdit*  createPolygonEdit(const QString &name, const CQChartsPolygon &poly,
+                                          const QString &tip) const;
+  CQChartsMarginEdit*   createMarginEdit(const QString &name, const CQChartsMargin &margin,
+                                         const QString &tip) const;
+
+  //---
 
   bool updateRectangleAnnotation();
   bool updateEllipseAnnotation  ();
@@ -140,6 +164,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
   bool updatePointSetAnnotation ();
   bool updateValueSetAnnotation ();
   bool updateButtonAnnotation   ();
+
+  //---
 
   bool setErrorMsg(const QString &msg);
   void clearErrorMsg();

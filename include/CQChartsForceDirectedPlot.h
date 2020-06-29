@@ -188,7 +188,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   bool initFromToObjs() const;
 
   void addFromToValue(const QString &, const QString &, double,
-                      const CQChartsNameValues &) const override;
+                      const CQChartsNameValues &, const GroupData &) const override;
 
   //---
 

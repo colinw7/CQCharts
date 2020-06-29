@@ -27,6 +27,10 @@ class CQChartsDisplayRange {
     BASELINE
   };
 
+  using Point  = CQChartsGeom::Point;
+  using BBox   = CQChartsGeom::BBox;
+  using Matrix = CQChartsGeom::Matrix;
+
  public:
   template<typename T>
   struct RangeT {
@@ -108,20 +112,18 @@ class CQChartsDisplayRange {
     window_.get(window_xmin, window_ymin, window_xmax, window_ymax);
   }
 
-  void getWindowRange(CQChartsGeom::BBox &bbox) const {
+  void getWindowRange(BBox &bbox) const {
     double window_xmin, window_ymin, window_xmax, window_ymax;
 
     getWindowRange(&window_xmin, &window_ymin, &window_xmax, &window_ymax);
 
-    bbox = CQChartsGeom::BBox(CQChartsGeom::Point(window_xmin, window_ymin),
-                              CQChartsGeom::Point(window_xmax, window_ymax));
+    bbox = BBox(Point(window_xmin, window_ymin), Point(window_xmax, window_ymax));
   }
 
   double getWindowWidth () const { return window_.dx(); }
   double getWindowHeight() const { return window_.dy(); }
 
-  CQChartsGeom::Point getWindowCenter() const {
-    return CQChartsGeom::Point(window_.xmid(), window_.ymid()); }
+  Point getWindowCenter() const { return Point(window_.xmid(), window_.ymid()); }
 
   // get/set equal scale flag
   bool getEqualScale() const { return equal_scale_; }
@@ -248,7 +250,7 @@ class CQChartsDisplayRange {
 
     //------
 
-    CQChartsGeom::Matrix matrix1, matrix2, matrix3;
+    Matrix matrix1, matrix2, matrix3;
 
     if (equal_scale_) {
       matrix1.setTranslation(pixel_.xmin + pdx_, pixel_.ymin + pdy_);
@@ -267,7 +269,7 @@ class CQChartsDisplayRange {
       imatrix_.setIdentity();
   }
 
-  void windowToPixel(const CQChartsGeom::Point &window, CQChartsGeom::Point &pixel) const {
+  void windowToPixel(const Point &window, Point &pixel) const {
     windowToPixel(window.x, window.y, &pixel.x, &pixel.y);
   }
 
@@ -296,7 +298,7 @@ class CQChartsDisplayRange {
     ipy = pixel_.ymax - (py - pixel_.ymin);
   }
 
-  void pixelToWindow(const CQChartsGeom::Point &pixel, CQChartsGeom::Point &window) const {
+  void pixelToWindow(const Point &pixel, Point &window) const {
     pixelToWindow(pixel.x, pixel.y, &window.x, &window.y);
   }
 
@@ -369,8 +371,8 @@ class CQChartsDisplayRange {
     return (x >= pixel_.xmin && x <= pixel_.xmin && y >= pixel_.ymin && y <= pixel_.ymin);
   }
 
-  const CQChartsGeom::Matrix &getMatrix () const { return matrix_ ; }
-  const CQChartsGeom::Matrix &getIMatrix() const { return imatrix_; }
+  const Matrix &getMatrix () const { return matrix_ ; }
+  const Matrix &getIMatrix() const { return imatrix_; }
 
   static double roundReal(double x) {
     double x1;
@@ -416,8 +418,8 @@ class CQChartsDisplayRange {
   bool flip_x_ { false };
   bool flip_y_ { false };
 
-  CQChartsGeom::Matrix matrix_;
-  CQChartsGeom::Matrix imatrix_;
+  Matrix matrix_;
+  Matrix imatrix_;
 };
 
 #endif

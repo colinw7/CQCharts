@@ -384,6 +384,56 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
   device->restore();
 }
 
+bool
+CQChartsDataLabel::
+isAdjustedPositionOutside(const CQChartsGeom::BBox &pbbox, const QString &ystr) const
+{
+  Position position1 = adjustPosition(position());
+
+  //---
+
+  if (CMathUtil::isZero(textAngle().value())) {
+    QFont font = plot()->view()->plotFont(plot(), textFont());
+
+    QFontMetricsF fm(font);
+
+    double tw = fm.width(ystr);
+    double th = fm.descent() + fm.ascent();
+
+    // clip if needed
+    bool hclipped = false;
+    bool vclipped = false;
+
+    if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
+        position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
+        position1 == Position::CENTER) {
+      if (tw >= pbbox.getWidth())
+        hclipped = true;
+
+      if (th >= pbbox.getHeight())
+        vclipped = true;
+    }
+
+    if (hclipped && moveClipped()) {
+      if      (position1 == Position::LEFT_INSIDE)
+        position1 = Position::LEFT_OUTSIDE;
+      else if (position1 == Position::RIGHT_INSIDE)
+        position1 = Position::RIGHT_OUTSIDE;
+    }
+
+    if (vclipped && moveClipped()) {
+      if      (position1 == Position::TOP_INSIDE)
+        position1 = Position::TOP_OUTSIDE;
+      else if (position1 == Position::BOTTOM_INSIDE)
+        position1 = Position::BOTTOM_OUTSIDE;
+    }
+  }
+
+  //---
+
+  return isPositionOutside(position1);
+}
+
 //---
 
 CQChartsGeom::BBox

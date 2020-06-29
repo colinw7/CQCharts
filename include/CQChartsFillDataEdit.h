@@ -50,7 +50,7 @@ class CQChartsFillDataLineEdit : public CQChartsLineEditBase {
 
 class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
-class CQChartsFillPatternEdit;
+class CQChartsFillPatternLineEdit;
 class CQChartsFillDataEditPreview;
 class CQGroupBox;
 
@@ -89,7 +89,7 @@ class CQChartsFillDataEdit : public CQChartsEditBase {
   CQGroupBox*                  groupBox_    { nullptr }; //!< group box
   CQChartsColorLineEdit*       colorEdit_   { nullptr }; //!< color edit
   CQChartsAlphaEdit*           alphaEdit_   { nullptr }; //!< alpha edit
-  CQChartsFillPatternEdit*     patternEdit_ { nullptr }; //!< pattern edit
+  CQChartsFillPatternLineEdit* patternEdit_ { nullptr }; //!< pattern edit
   CQChartsFillDataEditPreview* preview_     { nullptr }; //!< preview widget
   bool                         connected_   { false };   //!< is connected
 };

@@ -72,7 +72,7 @@ CQChartsGeom::Range
 CQChartsEmptyPlot::
 calcRange() const
 {
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   dataRange.updateRange(0.0, 0.0);
   dataRange.updateRange(1.0, 1.0);

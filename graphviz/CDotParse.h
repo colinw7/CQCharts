@@ -2,9 +2,11 @@
 #define CDotParse_H
 
 #include <CFileParse.h>
-#include <memory>
+
 #include <map>
+#include <set>
 #include <vector>
+#include <memory>
 
 class CDotParse {
  public:
@@ -112,6 +114,10 @@ class CDotParse {
    public:
     Edge(Node *fromNode, Node *toNode);
 
+    const Graph *graph() const {
+      return (fromNode()->graph() == toNode()->graph() ? fromNode()->graph() : nullptr);
+    }
+
     Node *fromNode() const { return fromNode_; }
     Node *toNode  () const { return toNode_  ; }
 
@@ -134,9 +140,19 @@ class CDotParse {
    public:
     Graph(const std::string &name);
 
+    Graph *parent() const { return parent_; }
+    void setParent(Graph *p) { parent_ = p; }
+
     const std::string &name() const { return name_; }
 
-    Node *getNode(const std::string &name);
+    std::string hierName() const {
+      if (parent_)
+        return parent_->hierName() + "/" + name_;
+      else
+        return name_;
+    }
+
+    Node *getNode(const std::string &name, bool create);
 
     const Attributes &attributes() const { return attributes_; }
     void setAttribute(const std::string &name, const std::string &value);
@@ -147,22 +163,29 @@ class CDotParse {
     const Attributes &edgeAttributes() const { return edgeAttributes_; }
     void setEdgeAttribute(const std::string &name, const std::string &value);
 
+    void addGraph(Graph *graph) { graphs_.insert(graph); }
+
     void print() const;
 
     void outputCSV() const;
 
    private:
+    using Graphs = std::set<Graph *>;
+
+    Graph*      parent_ { nullptr };
     std::string name_;
     NodeMap     nodes_;
     Attributes  attributes_;
     Attributes  nodeAttributes_;
     Attributes  edgeAttributes_;
+    Graphs      graphs_;
   };
 
   using GraphMap = std::map<std::string, Graph *>;
 
  private:
   Graph *getGraph(const std::string &name);
+  Node  *getNode(const std::string &name);
 
  private:
   using ParseP = std::unique_ptr<CFileParse>;

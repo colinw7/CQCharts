@@ -113,7 +113,7 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setOuterMargin(0, 0, 0, 0);
+  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
 
   addTitle();
 }
@@ -207,7 +207,7 @@ CQChartsAdjacencyPlot::
 calcRange() const
 {
   // base range always (0,0) - (1,1)
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   dataRange.updateRange(0.0, 0.0);
   dataRange.updateRange(1.0, 1.0);
@@ -473,7 +473,7 @@ initFromToObjs() const
 void
 CQChartsAdjacencyPlot::
 addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const CQChartsNameValues &nameValues) const
+               const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto *srcNode = findNode(fromStr);
 
@@ -799,7 +799,7 @@ initConnectionObjs(PlotObjs &objs) const
         connected = ! CMathUtil::isZero(value);
 
       if (connected) {
-        CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
+        BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
@@ -1064,7 +1064,7 @@ createNameNodeObjs(PlotObjs &objs) const
         connected = ! CMathUtil::isZero(value);
 
       if (connected) {
-        CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
+        BBox bbox(x, y - scale(), x + scale(), y);
 
         ColorInd ig(node1->group(), maxGroup() + 1);
 
@@ -1107,7 +1107,7 @@ findNode(const QString &str) const
 CQChartsAdjacencyCellObj *
 CQChartsAdjacencyPlot::
 createCellObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double value,
-              const CQChartsGeom::BBox &rect, const ColorInd &ig)
+              const BBox &rect, const ColorInd &ig)
 {
   return new CQChartsAdjacencyCellObj(this, node1, node2, value, rect, ig);
 }
@@ -1171,7 +1171,7 @@ CQChartsAdjacencyPlot::
 execDrawBackground(CQChartsPaintDevice *device) const
 {
   // calc text size
-  auto po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
+  auto po = windowToPixel(Point(0.0, 1.0));
 
   double pxs = windowToPixelWidth (scale());
   double pys = windowToPixelHeight(scale());
@@ -1214,7 +1214,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     twMax = std::max(twMax, tw);
 
-    CQChartsGeom::Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
+    Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
 
     CQChartsTextOptions options;
 
@@ -1239,7 +1239,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
-    CQChartsGeom::Point p1(px + pxs/2, py - 2);
+    Point p1(px + pxs/2, py - 2);
 
     CQChartsTextOptions options;
 
@@ -1269,7 +1269,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
    CQChartsPenData  (false),
    CQChartsBrushData(true, fc, backgroundFillAlpha(), backgroundFillPattern()));
 
-  CQChartsGeom::BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
+  BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
   device->fillRect(device->pixelToWindow(cellBBox));
 
@@ -1307,8 +1307,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
         connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
-        CQChartsGeom::BBox cellBBox =
-          device->pixelToWindow(CQChartsGeom::BBox(px, py, px + pxs, py + pys));
+        BBox cellBBox = device->pixelToWindow(BBox(px, py, px + pxs, py + pys));
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 
@@ -1364,7 +1363,7 @@ interpGroupColor(int group) const
 
 CQChartsAdjacencyCellObj::
 CQChartsAdjacencyCellObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                         CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
+                         CQChartsAdjacencyNode *node2, double value, const BBox &rect,
                          const ColorInd &ig) :
  CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
@@ -1459,7 +1458,7 @@ draw(CQChartsPaintDevice *device)
   // draw box
   device->setColorNames();
 
-  drawRoundedPolygon(device, penBrush, CQChartsGeom::BBox(rect()), plot_->cornerSize());
+  drawRoundedPolygon(device, penBrush, BBox(rect()), plot_->cornerSize());
 
   device->resetColorNames();
 }

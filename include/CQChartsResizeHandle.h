@@ -24,6 +24,10 @@ class CQChartsResizeHandle : QObject {
   Q_PROPERTY(QColor        strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
+  using Point = CQChartsGeom::Point;
+  using BBox  = CQChartsGeom::BBox;
+
+ public:
   CQChartsResizeHandle() = default;
 
   CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side);
@@ -32,8 +36,8 @@ class CQChartsResizeHandle : QObject {
   const CQChartsView* view() const { return view_; }
   const CQChartsPlot* plot() const { return plot_; }
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &v) { bbox_ = v; }
 
   const CQChartsResizeSide &side() const { return side_; }
 
@@ -51,17 +55,17 @@ class CQChartsResizeHandle : QObject {
 
   void draw(QPainter *painter) const;
 
-  bool selectInside(const CQChartsGeom::Point &p);
+  bool selectInside(const Point &p);
 
-  bool inside(const CQChartsGeom::Point &p) const;
+  bool inside(const Point &p) const;
 
  private:
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
+  Point windowToPixel(const Point &p) const;
 
  private:
   const CQChartsView*  view_        { nullptr };
   const CQChartsPlot*  plot_        { nullptr };
-  CQChartsGeom::BBox   bbox_;
+  BBox                 bbox_;
   CQChartsResizeSide   side_        { CQChartsResizeSide::NONE };
   bool                 selected_    { false };
   QColor               fillColor_   { "#4444aa" };

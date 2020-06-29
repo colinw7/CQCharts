@@ -47,6 +47,8 @@ parse()
   }
 
   if (isCSV()) {
+    std::cout << "From,To,Attributes,Graph\n";
+
     for (const auto &pg : graphs_)
       pg.second->outputCSV();
   }
@@ -161,8 +163,20 @@ parseStatement()
 
     skipSpace();
 
-    if (! parseID(id))
+    if (! parseID(id1))
       return errorMsg("expected identfier");
+
+    //---
+
+    auto *subGraph = getGraph(id1);
+
+    subGraph->setParent(currentGraph_);
+
+    currentGraph_->addGraph(subGraph);
+
+    currentGraph_ = subGraph;
+
+    //---
 
     skipSpace();
 
@@ -179,6 +193,8 @@ parseStatement()
 
       parse_->skipChar();
     }
+
+    currentGraph_ = subGraph->parent();
   }
   // name = value
   else if (parse_->isChar('=')) {
@@ -193,7 +209,7 @@ parseStatement()
   }
   // node [ <attributes> ]
   else if (parse_->isChar('[')) {
-    currentNode_ = currentGraph_->getNode(id);
+    currentNode_ = getNode(id);
 
     parseAttrList("");
   }
@@ -205,7 +221,7 @@ parseStatement()
 
     std::vector<Node *> nodes1;
 
-    Node *node1 = currentGraph_->getNode(id);
+    Node *node1 = getNode(id);
 
     nodes1.push_back(node1);
 
@@ -223,7 +239,7 @@ parseStatement()
           if (! parseID(id1))
             return errorMsg("expected identfier");
 
-          Node *node2 = currentGraph_->getNode(id1);
+          Node *node2 = getNode(id1);
 
           nodes2.push_back(node2);
 
@@ -257,7 +273,7 @@ parseStatement()
         if (! parseID(id1))
           return errorMsg("expected identfier");
 
-        Node *node2 = currentGraph_->getNode(id1);
+        Node *node2 = getNode(id1);
 
         nodes2.push_back(node2);
 
@@ -290,10 +306,10 @@ parseStatement()
     currentEdge_ = nullptr;
   }
   else if (parse_->isChar('}')) {
-    currentNode_ = currentGraph_->getNode(id);
+    currentNode_ = getNode(id);
   }
   else {
-    currentNode_ = currentGraph_->getNode(id);
+    currentNode_ = getNode(id);
   }
 
   return true;
@@ -603,6 +619,20 @@ getGraph(const std::string &name)
   return (*p).second;
 }
 
+CDotParse::Node *
+CDotParse::
+getNode(const std::string &name)
+{
+  for (auto &pg : graphs_) {
+    auto *graph = pg.second;
+
+    auto *node = graph->getNode(name, /*create*/false);
+    if (node) return node;
+  }
+
+  return currentGraph_->getNode(name, /*create*/true);
+}
+
 //---
 
 CDotParse::Graph::
@@ -613,11 +643,16 @@ Graph(const std::string &name) :
 
 CDotParse::Node *
 CDotParse::Graph::
-getNode(const std::string &name)
+getNode(const std::string &name, bool create)
 {
   auto p = nodes_.find(name);
 
   if (p == nodes_.end()) {
+    if (! create)
+      return nullptr;
+
+    //---
+
     Node *node = new Node(name);
 
     node->setGraph(this);
@@ -668,11 +703,8 @@ void
 CDotParse::Graph::
 outputCSV() const
 {
-  std::cout << "From,To,Attributes\n";
-
-  for (auto &pn : nodes_) {
+  for (auto &pn : nodes_)
     pn.second->outputCSV();
-  }
 }
 
 //---
@@ -719,7 +751,12 @@ void
 CDotParse::Edge::
 outputCSV() const
 {
-  std::cout << fromNode_->name() << "," << toNode_->name() << "," << attributesCSVStr() << "\n";
+  std::cout << fromNode_->name() << "," << toNode_->name() << "," << attributesCSVStr() << ",";
+
+  if (graph())
+    std::cout << graph()->hierName();
+
+  std::cout << "\n";
 }
 
 std::string
@@ -826,7 +863,12 @@ void
 CDotParse::Node::
 outputCSV() const
 {
-  std::cout << name() << ",," << attributesCSVStr() << "\n";
+  std::cout << name() << ",," << attributesCSVStr() << ",";
+
+  if (graph())
+    std::cout << graph()->hierName();
+
+  std::cout << "\n";
 
   for (const auto &edge : edges_) {
     edge->outputCSV();
@@ -852,7 +894,11 @@ attributesCSVStr() const
     }
     else if (name == "label") {
     }
-    else if (name == "color") {
+    else if (name == "color" || name == "fillcolor") {
+    }
+    else if (name == "style") {
+    }
+    else if (name == "gradientangle") {
     }
     else if (name == "fontname") {
       name = "font";

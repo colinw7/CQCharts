@@ -83,6 +83,17 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 
 void
 CQChartsViewPlotObj::
+setPen(PenBrush &penBrush, const PenData &penData) const
+{
+  if      (plot())
+    plot()->setPen(penBrush, penData);
+  else if (view())
+    view()->setPen(penBrush, penData);
+}
+
+#if 0
+void
+CQChartsViewPlotObj::
 setPenBrush(CQChartsPenBrush &penBrush,
             bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
@@ -120,6 +131,7 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlph
   else if (view())
     view()->setBrush(brush, filled, fillColor, fillAlpha, pattern);
 }
+#endif
 
 void
 CQChartsViewPlotObj::

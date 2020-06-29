@@ -281,6 +281,11 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path, "enabled"  , "enabled"  , "Is enabled"   );
   addProp(path, "checkable", "checkable", "Is checkable" );
   addProp(path, "checked"  , "checked"  , "Is checked"   );
+
+  QString coloringPath = path + "/coloring";
+
+  addProp(coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" );
+  addProp(coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked");
 }
 
 void
@@ -861,8 +866,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -1056,8 +1063,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -1267,8 +1276,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -1496,11 +1507,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setPen(penBrush,
+    CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
 
   //---
 
@@ -1520,7 +1532,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw path
-  device->strokePath(path, pen);
+  device->strokePath(path, penBrush.pen);
 
   //---
 
@@ -1895,13 +1907,17 @@ draw(CQChartsPaintDevice *device)
 
   if (isEnabled()) {
     if (isCheckable() && ! isChecked()) {
-      bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-      strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+      double f = uncheckedLighter();
+
+      bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+      strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
     }
   }
   else {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.8);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.8);
+    double f = disabledLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -1926,14 +1942,19 @@ draw(CQChartsPaintDevice *device)
   QColor c = interpColor(textColor(), ColorInd());
 
   if (isEnabled()) {
-    if (isCheckable() && ! isChecked())
-      c = CQChartsUtil::blendColors(backgroundColor(), c, 0.5);
+    if (isCheckable() && ! isChecked()) {
+      double f = uncheckedLighter();
+
+      c = CQChartsUtil::blendColors(backgroundColor(), c, f);
+    }
   }
   else {
-    c = CQChartsUtil::blendColors(backgroundColor(), c, 0.8);
+    double f = disabledLighter();
+
+    c = CQChartsUtil::blendColors(backgroundColor(), c, f);
   }
 
-  setPen(penBrush.pen, true, c, textAlpha());
+  setPen(penBrush, CQChartsPenData(true, c, textAlpha()));
 
   penBrush.brush.setStyle(Qt::NoBrush);
 
@@ -2391,8 +2412,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -2436,6 +2459,8 @@ draw(CQChartsPaintDevice *device)
 
   // draw image
   if (isCheckable() && ! isChecked()) {
+    double f = uncheckedLighter();
+
     QColor bg = backgroundColor();
 
     if (! disabledImage_.isValid()) {
@@ -2457,7 +2482,7 @@ draw(CQChartsPaintDevice *device)
 
           QColor c(r, g, b ,a);
 
-          QColor c1 = CQChartsUtil::blendColors(bg, c, 0.5);
+          QColor c1 = CQChartsUtil::blendColors(bg, c, f);
 
           c1.setAlpha(a);
 
@@ -2819,8 +2844,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = arrow()->interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor, 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -3142,8 +3169,10 @@ draw(CQChartsPaintDevice *device)
   QColor fillColor = interpColor(fillData  .color(), ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    lineColor = CQChartsUtil::blendColors(backgroundColor(), lineColor, 0.5);
-    fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, 0.5);
+    double f = uncheckedLighter();
+
+    lineColor = CQChartsUtil::blendColors(backgroundColor(), lineColor, f);
+    fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, f);
   }
 
   setPenBrush(penBrush,
@@ -3350,8 +3379,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,
@@ -3489,8 +3520,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
@@ -3657,8 +3690,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
@@ -3819,8 +3854,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
@@ -4117,8 +4154,10 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
   setPenBrush(penBrush,

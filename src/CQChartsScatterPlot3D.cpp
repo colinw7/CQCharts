@@ -715,7 +715,7 @@ addPointObjects() const
         ColorInd ig1(ig, ng);
         ColorInd iv1(iv, nv);
 
-        CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
+        BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
@@ -1160,7 +1160,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsScatterPlot3D::calcAnnotationBBox");
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   return bbox;
 }
@@ -1394,7 +1394,7 @@ getGroupData(int groupId)
 
 CQChartsScatterPoint3DObj *
 CQChartsScatterPlot3D::
-createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point3D &pos,
+createPointObj(int groupInd, const BBox &rect, const Point3D &pos,
                const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
   return new CQChartsScatterPoint3DObj(this, groupInd, rect, pos, is, ig, iv);
@@ -1404,7 +1404,7 @@ createPointObj(int groupInd, const CQChartsGeom::BBox &rect, const Point3D &pos,
 
 CQChartsScatterPoint3DObj::
 CQChartsScatterPoint3DObj(const CQChartsScatterPlot3D *plot, int groupInd,
-                          const CQChartsGeom::BBox &rect, const Point3D &pos,
+                          const BBox &rect, const Point3D &pos,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlot3DObj(plot), groupInd_(groupInd), pos_(pos)
 {
@@ -1570,7 +1570,7 @@ calcTipId() const
 
 bool
 CQChartsScatterPoint3DObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   double sx, sy;
 
@@ -1580,9 +1580,9 @@ inside(const CQChartsGeom::Point &p) const
 
   auto pt = camera->transform(point());
 
-  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(pt.x, pt.y));
+  auto p1 = plot_->windowToPixel(Point(pt.x, pt.y));
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -1669,7 +1669,7 @@ postDraw(CQChartsPaintDevice *device)
   double sx = plot_->lengthPlotWidth (symbolSize);
   double sy = plot_->lengthPlotHeight(symbolSize);
 
-  setDrawBBox(CQChartsGeom::BBox(pt2.x - sx, pt2.y - sy, pt2.x + sx, pt2.y + sy));
+  setDrawBBox(BBox(pt2.x - sx, pt2.y - sy, pt2.x + sx, pt2.y + sy));
 }
 
 //------
@@ -1682,7 +1682,7 @@ CQChartsScatterKeyColor3D(CQChartsScatterPlot3D *plot, int groupInd, const Color
 
 bool
 CQChartsScatterKeyColor3D::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
+selectPress(const Point &, CQChartsSelMod selMod)
 {
   auto *plot = qobject_cast<CQChartsScatterPlot3D *>(plot_);
 

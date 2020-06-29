@@ -16,7 +16,10 @@ class QPainter;
  */
 class CQChartsPlotObjTree {
  public:
-  using Objs = std::vector<CQChartsPlotObj*>;
+  using Obj   = CQChartsPlotObj;
+  using Objs  = std::vector<Obj*>;
+  using Point = CQChartsGeom::Point;
+  using BBox  = CQChartsGeom::BBox;
 
  public:
   CQChartsPlotObjTree(CQChartsPlot *plot, bool wait=false);
@@ -27,23 +30,22 @@ class CQChartsPlotObjTree {
 
   void clearObjects();
 
-  void objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
+  void objectsAtPoint(const Point &p, Objs &objs) const;
 
-  void objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
+  void objectsIntersectRect(const BBox &r, Objs &objs, bool inside) const;
 
-  bool objectNearest(const CQChartsGeom::Point &p, double searchX, double searchY,
-                     CQChartsPlotObj* &obj) const;
+  bool objectNearest(const Point &p, double searchX, double searchY, Obj* &obj) const;
 
   bool isBusy() const { return busy_.load(); }
 
-  CQChartsGeom::BBox findEmptyBBox(double w, double h) const;
+  BBox findEmptyBBox(double w, double h) const;
 
   bool waitTree() const;
 
   void draw(QPainter *painter);
 
  private:
-  using PlotObjTree       = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
+  using PlotObjTree       = CQChartsQuadTree<Obj, BBox>;
   using PlotObjTreeFuture = std::future<PlotObjTree*>;
 
  private:

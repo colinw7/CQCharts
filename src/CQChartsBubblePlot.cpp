@@ -94,8 +94,8 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
-  setOuterMargin(CQChartsLength("4px"), CQChartsLength("4px"),
-                 CQChartsLength("4px"), CQChartsLength("4px"));
+  setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
+                                    Length("4px"), Length("4px")));
 
   addTitle();
 }
@@ -220,7 +220,7 @@ calcRange() const
 
   double r = 1.0;
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   dataRange.updateRange(-r, -r);
   dataRange.updateRange( r,  r);
@@ -344,7 +344,7 @@ initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
   if (hier != nodeData_.root) {
     double r = hier->radius();
 
-    CQChartsGeom::BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
+    BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
 
     ColorInd is(hier->depth(), maxDepth() + 1);
 
@@ -368,7 +368,7 @@ initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
 
     double r = node->radius();
 
-    CQChartsGeom::BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
+    BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
 
     ColorInd is(node->depth(), maxDepth() + 1);
 
@@ -430,7 +430,7 @@ placeNodes(CQChartsBubbleHierNode *hier) const
 
   hier->packNodes();
 
-  th->placeData_.offset = CQChartsGeom::Point(hier->x(), hier->y());
+  th->placeData_.offset = Point(hier->x(), hier->y());
   th->placeData_.scale  = (hier->radius() > 0.0 ? 1.0/hier->radius() : 1.0);
 
   //---
@@ -725,10 +725,10 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
 
   //---
 
-  CQChartsGeom::Point p1(xc - r, yc - r);
-  CQChartsGeom::Point p2(xc + r, yc + r);
+  Point p1(xc - r, yc - r);
+  Point p2(xc + r, yc + r);
 
-  CQChartsGeom::BBox bbox(p1, p2);
+  BBox bbox(p1, p2);
 
   //---
 
@@ -749,7 +749,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
 CQChartsBubbleHierObj *
 CQChartsBubblePlot::
 createHierObj(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *hierObj,
-              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+              const BBox &rect, const ColorInd &is) const
 {
   return new CQChartsBubbleHierObj(this, hier, hierObj, rect, is);
 }
@@ -757,7 +757,7 @@ createHierObj(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *hierObj,
 CQChartsBubbleNodeObj *
 CQChartsBubblePlot::
 createNodeObj(CQChartsBubbleNode *node, CQChartsBubbleHierObj *hierObj,
-              const CQChartsGeom::BBox &rect, const ColorInd &is) const
+              const BBox &rect, const ColorInd &is) const
 {
   return new CQChartsBubbleNodeObj(this, node, hierObj, rect, is);
 }
@@ -766,8 +766,7 @@ createNodeObj(CQChartsBubbleNode *node, CQChartsBubbleHierObj *hierObj,
 
 CQChartsBubbleHierObj::
 CQChartsBubbleHierObj(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *hier,
-                      CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                      const ColorInd &is) :
+                      CQChartsBubbleHierObj *hierObj, const BBox &rect, const ColorInd &is) :
  CQChartsBubbleNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
   setModelInd(hier_->ind());
@@ -791,10 +790,9 @@ calcTipId() const
 
 bool
 CQChartsBubbleHierObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p,
-        CQChartsGeom::Point(hier_->x(), hier_->y())) < this->radius())
+  if (CQChartsUtil::PointPointDistance(p, Point(hier_->x(), hier_->y())) < this->radius())
     return true;
 
   return false;
@@ -821,10 +819,10 @@ draw(CQChartsPaintDevice *device)
 
   double r = this->radius();
 
-  CQChartsGeom::Point p1(hier_->x() - r, hier_->y() - r);
-  CQChartsGeom::Point p2(hier_->x() + r, hier_->y() + r);
+  Point p1(hier_->x() - r, hier_->y() - r);
+  Point p2(hier_->x() + r, hier_->y() + r);
 
-  CQChartsGeom::BBox bbox(p1, p2);
+  BBox bbox(p1, p2);
 
   //---
 
@@ -877,8 +875,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
 CQChartsBubbleNodeObj::
 CQChartsBubbleNodeObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
-                      CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                      const ColorInd &is) :
+                      CQChartsBubbleHierObj *hierObj, const BBox &rect, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsBubblePlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), node_(node), hierObj_(hierObj)
 {
@@ -936,10 +933,9 @@ calcTipId() const
 
 bool
 CQChartsBubbleNodeObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p,
-        CQChartsGeom::Point(node_->x(), node_->y())) < this->radius())
+  if (CQChartsUtil::PointPointDistance(p, Point(node_->x(), node_->y())) < this->radius())
     return true;
 
   return false;
@@ -959,19 +955,19 @@ draw(CQChartsPaintDevice *device)
 {
   double r = this->radius();
 
-  CQChartsGeom::Point p1(node_->x() - r, node_->y() - r);
-  CQChartsGeom::Point p2(node_->x() + r, node_->y() + r);
+  Point p1(node_->x() - r, node_->y() - r);
+  Point p2(node_->x() + r, node_->y() + r);
 
-  CQChartsGeom::BBox bbox(p1, p2);
+  BBox bbox(p1, p2);
 
   //---
 
   bool isPoint = this->isPoint();
 
-  CQChartsGeom::Point point;
+  Point point;
 
   if (isPoint)
-    point = CQChartsGeom::Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+    point = Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
 
   //---
 
@@ -1028,7 +1024,7 @@ draw(CQChartsPaintDevice *device)
 
   QColor tc = plot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush.pen, true, tc, plot_->textAlpha());
+  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->textAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -1071,7 +1067,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc text position
-  auto pc = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->y()));
+  auto pc = plot_->windowToPixel(Point(node_->x(), node_->y()));
 
   //---
 
@@ -1102,8 +1098,8 @@ draw(CQChartsPaintDevice *device)
 
     double th = fm.height();
 
-    auto tp1 = device->pixelToWindow(CQChartsGeom::Point(tp.x, tp.y - th/2));
-    auto tp2 = device->pixelToWindow(CQChartsGeom::Point(tp.x, tp.y + th/2));
+    auto tp1 = device->pixelToWindow(Point(tp.x, tp.y - th/2));
+    auto tp2 = device->pixelToWindow(Point(tp.x, tp.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);

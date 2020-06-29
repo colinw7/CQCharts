@@ -5,10 +5,13 @@
 
 class CQChartsArcData {
  public:
+  using Point = CQChartsGeom::Point;
+
+ public:
   CQChartsArcData() { }
 
-  const CQChartsGeom::Point &center() const { return c_; }
-  void setCenter(const CQChartsGeom::Point &c) { c_ = c; }
+  const Point &center() const { return c_; }
+  void setCenter(const Point &c) { c_ = c; }
 
   double innerRadius() const { return ri_; }
   void setInnerRadius(double r) { ri_ = r; }
@@ -22,7 +25,7 @@ class CQChartsArcData {
   const CQChartsAngle &angle2() const { return a2_; }
   void setAngle2(const CQChartsAngle &a) { a2_ = a; }
 
-  bool inside(const CQChartsGeom::Point &p) const {
+  bool inside(const Point &p) const {
     // calc distance from center (radius)
     double r = p.distanceTo(center());
 
@@ -61,11 +64,11 @@ class CQChartsArcData {
   }
 
  private:
-  CQChartsGeom::Point c_  { 0.0, 0.0 };
-  double              ri_ { 0.0 };
-  double              ro_ { 1.0 };
-  CQChartsAngle       a1_ { 0.0 };
-  CQChartsAngle       a2_ { 360.0 };
+  Point         c_  { 0.0, 0.0 };
+  double        ri_ { 0.0 };
+  double        ro_ { 1.0 };
+  CQChartsAngle a1_ { 0.0 };
+  CQChartsAngle a2_ { 360.0 };
 };
 
 #endif

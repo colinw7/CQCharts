@@ -243,7 +243,7 @@ calcRange() const
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -276,7 +276,7 @@ calcRange() const
       return State::OK;
     }
 
-    const CQChartsGeom::Range &range() const { return range_; }
+    const Range &range() const { return range_; }
 
    private:
     void addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
@@ -285,7 +285,7 @@ calcRange() const
 
    private:
     const CQChartsDelaunayPlot* plot_ { nullptr };
-    CQChartsGeom::Range         range_;
+    Range                       range_;
   };
 
   RowVisitor visitor(this);
@@ -355,7 +355,7 @@ createObjs(PlotObjs &objs) const
       nr_ = numRows();
     }
 
-    const CQChartsGeom::RMinMax &valueRange() const { return valueRange_; }
+    const RMinMax &valueRange() const { return valueRange_; }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex xInd(data.row, plot_->xColumn(), data.parent);
@@ -405,7 +405,7 @@ createObjs(PlotObjs &objs) const
     const CQChartsDelaunayPlot* plot_      { nullptr };
     PlotObjs&                   objs_;
     int                         nr_        { 0 };
-    CQChartsGeom::RMinMax       valueRange_;
+    RMinMax                     valueRange_;
   };
 
   RowVisitor visitor(this, objs);
@@ -445,7 +445,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 
   QModelIndex xind1 = normalizeIndex(xind);
 
-  CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
+  BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
 
   ColorInd iv;
 
@@ -540,9 +540,9 @@ drawDelaunay(CQChartsPaintDevice *device) const
       auto *v2 = f->vertex(1);
       auto *v3 = f->vertex(2);
 
-      CQChartsGeom::Point p1(v1->x(), v1->y());
-      CQChartsGeom::Point p2(v2->x(), v2->y());
-      CQChartsGeom::Point p3(v3->x(), v3->y());
+      Point p1(v1->x(), v1->y());
+      Point p2(v2->x(), v2->y());
+      Point p3(v3->x(), v3->y());
 
       QPainterPath path;
 
@@ -583,12 +583,12 @@ drawVoronoi(CQChartsPaintDevice *device) const
       CQChartsGrahamHull hull;
 
       for (const auto &v2 : v1->voronoi()) {
-        CQChartsGeom::Point p(v2->x(), v2->y());
+        Point p(v2->x(), v2->y());
 
         hull.addPoint(p);
       }
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       hull.getHull(poly);
 
@@ -628,7 +628,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
       auto *v = f->getVoronoi();
       if (! v) continue;
 
-      CQChartsGeom::Point p(v->x(), v->y());
+      Point p(v->x(), v->y());
 
       drawSymbol(device, p, symbolType, symbolSize, penBrush);
     }
@@ -656,8 +656,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
       auto *v2 = e->end  ();
 
       if (isVoronoiLines()) {
-        CQChartsGeom::Point p1(v1->x(), v1->y());
-        CQChartsGeom::Point p2(v2->x(), v2->y());
+        Point p1(v1->x(), v1->y());
+        Point p2(v2->x(), v2->y());
 
         device->drawLine(p1, p2);
       }
@@ -665,7 +665,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
       if (isVoronoiCircles()) {
         double r = v1->z();
 
-        CQChartsGeom::BBox bbox(v1->x() - r, v1->y() - r, v1->x() + r, v1->y() + r);
+        BBox bbox(v1->x() - r, v1->y() - r, v1->x() + r, v1->y() + r);
 
         device->drawEllipse(bbox);
       }
@@ -686,7 +686,7 @@ createPointObj(const BBox &rect, double x, double y, double value, const QModelI
 //------
 
 CQChartsDelaunayPointObj::
-CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const BBox &rect,
                          double x, double y, double value, const QModelIndex &ind,
                          const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
@@ -767,18 +767,18 @@ isVisible() const
 
 bool
 CQChartsDelaunayPointObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
 
-  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
+  auto p1 = plot_->windowToPixel(Point(x_, y_));
 
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -820,7 +820,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  CQChartsGeom::Point p(x_, y_);
+  Point p(x_, y_);
 
   plot_->drawSymbol(device, p, symbolType, symbolSize, penBrush);
 }

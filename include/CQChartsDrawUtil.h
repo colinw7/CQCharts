@@ -21,6 +21,7 @@ struct CQChartsPenBrush {
   QPen   pen;
   QBrush brush;
   QColor altColor;
+  double fillAngle { 45 };
 
   CQChartsPenBrush() = default;
 
@@ -31,6 +32,11 @@ struct CQChartsPenBrush {
 
 //---
 
+/*!
+ * \brief Pen Data
+ *
+ * visible, color, alpha, width, dash
+ */
 class CQChartsPenData {
  public:
   using Alpha    = CQChartsAlpha;
@@ -70,6 +76,11 @@ class CQChartsPenData {
 
 //---
 
+/*!
+ * \brief Brush Data
+ *
+ * visible, color, alpha, pattern
+ */
 class CQChartsBrushData {
  public:
   using Alpha       = CQChartsAlpha;
@@ -83,19 +94,11 @@ class CQChartsBrushData {
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 
-  explicit CQChartsBrushData(bool visible, const QColor &color, const QColor &altColor,
-                             const Alpha &alpha=Alpha(), const FillPattern &pattern=FillPattern()) :
-   visible_(visible), color_(color), altColor_(altColor), alpha_(alpha), pattern_(pattern) {
-  }
-
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
   const QColor &color() const { return color_; }
   void setColor(const QColor &v) { color_ = v; }
-
-  const QColor &altColor() const { return altColor_; }
-  void setAltColor(const QColor &v) { altColor_ = v; }
 
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
@@ -106,18 +109,20 @@ class CQChartsBrushData {
   //---
 
  private:
-  bool        visible_ { true };                             //!< visible
-  QColor      color_;                                        //!< fill color
-  QColor      altColor_;                                     //!< alt fill color
-  Alpha       alpha_;                                        //!< fill alpha
-  FillPattern pattern_ { CQChartsFillPattern::Type::SOLID }; //!< fill pattern
+  bool        visible_ { true };                     //!< visible
+  QColor      color_;                                //!< fill color
+  Alpha       alpha_;                                //!< fill alpha
+  FillPattern pattern_ { FillPattern::Type::SOLID }; //!< fill pattern
 };
 
 //---
 
+// polygon
 namespace CQChartsDrawUtil {
 
-inline QPainterPath polygonToPath(const CQChartsGeom::Polygon &polygon, bool closed=false) {
+using Polygon = CQChartsGeom::Polygon;
+
+inline QPainterPath polygonToPath(const Polygon &polygon, bool closed=false) {
   QPainterPath path;
 
   path.moveTo(polygon.qpoint(0));
@@ -135,76 +140,84 @@ inline QPainterPath polygonToPath(const CQChartsGeom::Polygon &polygon, bool clo
 
 //---
 
+// pen/brush
 namespace CQChartsDrawUtil {
 
 void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush);
 void setPenBrush(QPainter *device, const CQChartsPenBrush &penBrush);
 
-void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+void setBrush(QBrush &brush, const CQChartsBrushData &data);
+
+}
+
+//---
+
+// misc drawing
+namespace CQChartsDrawUtil {
+
+using BBox  = CQChartsGeom::BBox;
+using Size  = CQChartsGeom::Size;
+using Point = CQChartsGeom::Point;
+
+void drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
                         const CQChartsLength &size=CQChartsLength(),
                         const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
-void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
                         const CQChartsLength &xsize, const CQChartsLength &ysize,
                         const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
 
-void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
                         const CQChartsLength &size=CQChartsLength());
-void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
                         const CQChartsLength &xsize, const CQChartsLength &ysize);
 
-void drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
-                   const QString &text, const CQChartsTextOptions &options);
+void drawTextInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
+                   const CQChartsTextOptions &options);
 
-void drawStringsInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
-                       const QStringList &strs, const CQChartsTextOptions &options);
+void drawStringsInBox(CQChartsPaintDevice *device, const BBox &rect, const QStringList &strs,
+                      const CQChartsTextOptions &options);
 
-void drawRotatedTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
-                          const QString &text, const QPen &pen, const CQChartsTextOptions &options);
+void drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
+                          const QPen &pen, const CQChartsTextOptions &options);
 
-void drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
+void drawTextAtPoint(CQChartsPaintDevice *device, const Point &p, const QString &text,
                      const CQChartsTextOptions &options=CQChartsTextOptions(),
                      bool centered=false, double dx=0.0, double dy=0.0);
 
-void drawAlignedText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
-                     const QString &text, Qt::Alignment align, double dx=0.0, double dy=0.0);
+void drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text,
+                     Qt::Alignment align, double dx=0.0, double dy=0.0);
 
-CQChartsGeom::BBox calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font,
-                                       const CQChartsGeom::Point &p, const QString &text,
-                                       Qt::Alignment align, double dx, double dy);
+BBox calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point &p,
+                         const QString &text, Qt::Alignment align, double dx, double dy);
 
-void drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
-                      const QString &text, const CQChartsAlpha &alpha);
+void drawContrastText(CQChartsPaintDevice *device, const Point &p, const QString &text,
+                      const CQChartsAlpha &alpha);
 
-CQChartsGeom::Size calcTextSize(const QString &text, const QFont &font,
-                                const CQChartsTextOptions &options);
+Size calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options);
 
-void drawCenteredText(CQChartsPaintDevice *device, const CQChartsGeom::Point &pos,
-                      const QString &text);
+void drawCenteredText(CQChartsPaintDevice *device, const Point &pos, const QString &text);
 
-void drawSimpleText(CQChartsPaintDevice *device, const CQChartsGeom::Point &pos,
-                    const QString &text);
+void drawSimpleText(CQChartsPaintDevice *device, const Point &pos, const QString &text);
 
-void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
-                const CQChartsGeom::Point &c, const CQChartsLength &size);
-void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
-                const CQChartsGeom::BBox &bbox);
+void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const Point &c,
+                const CQChartsLength &size);
+void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const BBox &bbox);
 
-void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
-                  double ri, double ro, const CQChartsAngle &a1, const CQChartsAngle &a2,
+void drawPieSlice(CQChartsPaintDevice *device, const Point &c, double ri, double ro,
+                  const CQChartsAngle &a1, const CQChartsAngle &a2,
                   bool isInvertX=false, bool isInvertY=false);
 
-void drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
-             const CQChartsAngle &angle, const CQChartsAngle &dangle);
+void drawArc(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsAngle &angle,
+             const CQChartsAngle &dangle);
 
-void drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
-                    const CQChartsGeom::BBox &obbox, const CQChartsAngle &angle,
-                    const CQChartsAngle &dangle);
+void drawArcSegment(CQChartsPaintDevice *device, const BBox &ibbox, const BBox &obbox,
+                    const CQChartsAngle &angle, const CQChartsAngle &dangle);
 
-void drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
+void drawArcsConnector(CQChartsPaintDevice *device, const BBox &ibbox,
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
                        const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
 
-void arcsConnectorPath(QPainterPath &path, const CQChartsGeom::BBox &ibbox,
+void arcsConnectorPath(QPainterPath &path, const BBox &ibbox,
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
                        const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
 
@@ -212,15 +225,19 @@ void arcsConnectorPath(QPainterPath &path, const CQChartsGeom::BBox &ibbox,
 
 //---
 
+// html text
 namespace CQChartsDrawPrivate {
 
-// private
-CQChartsGeom::Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
+using BBox = CQChartsGeom::BBox;
+using Size = CQChartsGeom::Size;
 
-void drawScaledHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
+// private
+Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
+
+void drawScaledHtmlText(CQChartsPaintDevice *device, const BBox &tbbox,
                         const QString &text, const CQChartsTextOptions &options);
 
-void drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
+void drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox,
                   const QString &text, const CQChartsTextOptions &options);
 
 }

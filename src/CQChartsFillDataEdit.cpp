@@ -218,39 +218,41 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   auto *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
+  int row = 0;
+
   // color
   auto *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  groupLayout->addWidget(colorLabel, 0, 0);
-  groupLayout->addWidget(colorEdit_, 0, 1);
+  groupLayout->addWidget(colorLabel, row, 0);
+  groupLayout->addWidget(colorEdit_, row, 1); ++row;
 
   // alpha
   auto *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
-  groupLayout->addWidget(alphaLabel, 1, 0);
-  groupLayout->addWidget(alphaEdit_, 1, 1);
+  groupLayout->addWidget(alphaLabel, row, 0);
+  groupLayout->addWidget(alphaEdit_, row, 1); ++row;
 
   // pattern
   auto *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
 
-  patternEdit_ = new CQChartsFillPatternEdit;
+  patternEdit_ = new CQChartsFillPatternLineEdit;
 
-  groupLayout->addWidget(patternLabel, 2, 0);
-  groupLayout->addWidget(patternEdit_, 2, 1);
+  groupLayout->addWidget(patternLabel, row, 0);
+  groupLayout->addWidget(patternEdit_, row, 1); ++row;
 
   //---
 
   preview_ = new CQChartsFillDataEditPreview(this);
 
-  groupLayout->addWidget(preview_, 3, 1);
+  groupLayout->addWidget(preview_, row, 1); ++row;
 
   //---
 
-  groupLayout->setRowStretch(4, 1);
+  groupLayout->setRowStretch(row, 1);
 
   //---
 
@@ -312,8 +314,7 @@ dataToWidgets()
 {
   connectSlots(false);
 
-  groupBox_->setChecked(data_.isVisible());
-
+  groupBox_   ->setChecked    (data_.isVisible());
   colorEdit_  ->setColor      (data_.color());
   alphaEdit_  ->setAlpha      (data_.alpha());
   patternEdit_->setFillPattern(data_.pattern());
@@ -365,7 +366,14 @@ draw(QPainter *painter, const CQChartsFillData &data, const QRect &rect,
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, data.isVisible(), fc, data.alpha(), data.pattern());
+  CQChartsBrushData brushData;
+
+  brushData.setVisible(data.isVisible());
+  brushData.setColor  (fc);
+  brushData.setAlpha  (data.alpha());
+  brushData.setPattern(data.pattern());
+
+  CQChartsDrawUtil::setBrush(brush, brushData);
 
   //---
 

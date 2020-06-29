@@ -100,11 +100,11 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
   // draw text
   QColor c = interpTextColor(ColorInd());
 
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
-  setPen(pen, true, c, textAlpha());
+  setPen(penBrush, CQChartsPenData(true, c, textAlpha()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   CQChartsGeom::Point p1(pcenter.x + cdx, pcenter.y + cdy);
 

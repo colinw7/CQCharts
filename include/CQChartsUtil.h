@@ -75,20 +75,21 @@ QString formatInteger(long   i, const QString &fmt="%ld");
 
 namespace CQChartsUtil {
 
+using Point = CQChartsGeom::Point;
+
 // intersect lines
-bool intersectLines(const CQChartsGeom::Point &l1s, const CQChartsGeom::Point &l1e,
-                    const CQChartsGeom::Point &l2s, const CQChartsGeom::Point &l2e,
-                    CQChartsGeom::Point &pi);
+bool intersectLines(const Point &l1s, const Point &l1e, const Point &l2s, const Point &l2e,
+                    Point &pi);
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
                     double &xi, double &yi);
 
 // distance between two points
-double PointPointDistance(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2);
+double PointPointDistance(const Point &point1, const Point &point2);
 
 // distance between point and line
-bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Point &lineStart,
-                       const CQChartsGeom::Point &lineEnd, double *dist);
+bool PointLineDistance(const Point &point, const Point &lineStart, const Point &lineEnd,
+                       double *dist);
 
 }
 
@@ -172,6 +173,15 @@ std::vector<double> stringToReals(const QString &str, bool &ok);
 int countLeadingBraces(const QString &str);
 int countLeadingBraces(CQStrParse &parse);
 
+}
+
+//---
+
+namespace CQChartsUtil {
+
+using BBox  = CQChartsGeom::BBox;
+using Point = CQChartsGeom::Point;
+
 QString polygonListToString(const CQChartsGeom::Polygons &polyList);
 bool stringToPolygons(const QString &str, CQChartsGeom::Polygons &polyList);
 bool parsePolygons(CQStrParse &parse, CQChartsGeom::Polygons &polyList);
@@ -180,16 +190,16 @@ QString polygonToString(const CQChartsGeom::Polygon &poly);
 bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly);
 bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly);
 
-QString bboxToString(const CQChartsGeom::BBox &bbox);
-bool stringToBBox(const QString &str, CQChartsGeom::BBox &bbox);
+QString bboxToString(const BBox &bbox);
+bool stringToBBox(const QString &str, BBox &bbox);
 
 QString sizeToString(const CQChartsGeom::Size &s);
 
-QString pointToString(const CQChartsGeom::Point &p);
-bool stringToPoint(const QString &str, CQChartsGeom::Point &point);
+QString pointToString(const Point &p);
+bool stringToPoint(const QString &str, Point &point);
 
-bool parseBBox (CQStrParse &parse, CQChartsGeom::BBox  &rect , bool terminated=true);
-bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &point, bool terminated=true);
+bool parseBBox (CQStrParse &parse, BBox  &rect , bool terminated=true);
+bool parsePoint(CQStrParse &parse, Point &point, bool terminated=true);
 
 //------
 
@@ -252,12 +262,6 @@ void findStringCaseSplits(const QString &str, std::vector<int> &splits);
 namespace CQChartsUtil {
 
 void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
-
-void setPenBrush(CQChartsPenBrush &penBrush,
-                 bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-                 double strokeWidth, const CQChartsLineDash &strokeDash,
-                 bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-                 const CQChartsFillPattern &pattern);
 
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
             const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),

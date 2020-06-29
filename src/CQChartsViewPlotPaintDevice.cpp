@@ -190,8 +190,29 @@ void
 CQChartsViewPlotPaintDevice::
 setAltColor(const QColor &c)
 {
+  if (c.isValid()) {
+    painter_->setBackgroundMode(Qt::OpaqueMode);
+    painter_->setBackground(c);
+  }
+  else {
+    painter_->setBackgroundMode(Qt::TransparentMode);
+    painter_->setBackground(c);
+  }
+
   if (handDrawn_)
     hdPainter_->setAltColor(c);
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setFillAngle(double a)
+{
+  if (handDrawn_) {
+    if (a > 0.0)
+      hdPainter_->setFillAngle(a);
+    else
+      hdPainter_->setFillAngle(45.0);
+  }
 }
 
 void

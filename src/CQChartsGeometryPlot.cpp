@@ -320,7 +320,7 @@ calcRange() const
 
   //---
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   auto *model = this->model().data();
   if (! model) return dataRange;
@@ -329,7 +329,7 @@ calcRange() const
 
   th->geometries_.clear();
 
-  th->valueRange_ = CQChartsGeom::RMinMax();
+  th->valueRange_ = RMinMax();
 
   //---
 
@@ -369,11 +369,11 @@ calcRange() const
       return State::OK;
     }
 
-    const CQChartsGeom::Range &dataRange() const { return dataRange_; }
+    const Range &dataRange() const { return dataRange_; }
 
    private:
     const CQChartsGeometryPlot *plot_ { nullptr };
-    CQChartsGeom::Range         dataRange_;
+    Range                       dataRange_;
   };
 
   GeometryPlotVisitor geometryPlotVisitor(this);
@@ -386,7 +386,7 @@ calcRange() const
 void
 CQChartsGeometryPlot::
 addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
-       CQChartsGeom::Range &dataRange) const
+       Range &dataRange) const
 {
   auto *th = const_cast<CQChartsGeometryPlot *>(this);
 
@@ -430,7 +430,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     if      (geometryColumnType_ == ColumnType::RECT) {
       auto bbox = CQChartsVariant::toBBox(rvar, ok3);
 
-      geometry.polygons.push_back(CQChartsGeom::Polygon(bbox));
+      geometry.polygons.push_back(Polygon(bbox));
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
       auto poly = CQChartsVariant::toPolygon(rvar, ok3);
@@ -462,7 +462,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else if (geometryColumnType_ == ColumnType::PATH) {
       CQChartsPath path = CQChartsVariant::toPath(rvar, ok3);
 
-      auto poly = CQChartsGeom::Polygon(path.path().toFillPolygon());
+      auto poly = Polygon(path.path().toFillPolygon());
 
       geometry.polygons.push_back(poly);
     }
@@ -488,7 +488,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     }
 
     if      (shape.type == CQChartsGeometryShape::Type::RECT)
-      geometry.polygons.push_back(CQChartsGeom::Polygon(shape.rect));
+      geometry.polygons.push_back(Polygon(shape.rect));
     else if (shape.type == CQChartsGeometryShape::Type::POLYGON) {
       if (shape.polygon.size() < 2) {
         th->addDataError(geometryInd, "Too few points for polygon '" + geomStr + "'");
@@ -501,7 +501,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       geometry.polygons = shape.polygonList;
     }
     else if (shape.type == CQChartsGeometryShape::Type::PATH) {
-      auto poly = CQChartsGeom::Polygon(shape.path.qpoly());
+      auto poly = Polygon(shape.path.qpoly());
 
       geometry.polygons.push_back(poly);
     }
@@ -686,9 +686,8 @@ createGeometryObj(const BBox &rect, const Polygons &polygons,
 //------
 
 CQChartsGeometryObj::
-CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                    const CQChartsGeom::Polygons &polygons, const QModelIndex &ind,
-                    const ColorInd &iv) :
+CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const BBox &rect, const Polygons &polygons,
+                    const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), polygons_(polygons)
 {
@@ -729,7 +728,7 @@ calcTipId() const
 
 bool
 CQChartsGeometryObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! plot_->isGeometrySelectable())
     return false;
@@ -777,7 +776,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   for (const auto &ppoly : polygons_)
-    device->drawPolygon(CQChartsGeom::Polygon(ppoly));
+    device->drawPolygon(Polygon(ppoly));
 
   device->resetColorNames();
 }
@@ -821,8 +820,8 @@ drawFg(CQChartsPaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    CQChartsGeom::BBox ebbox(prect.getXMid() - s/2, prect.getYMid() - s/2,
-                             prect.getXMid() + s/2, prect.getYMid() + s/2);
+    BBox ebbox(prect.getXMid() - s/2, prect.getYMid() - s/2,
+               prect.getXMid() + s/2, prect.getYMid() + s/2);
 
     device->drawEllipse(device->pixelToWindow(ebbox));
   }

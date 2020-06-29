@@ -1750,6 +1750,53 @@ setEqualScale(bool b)
   CQChartsUtil::testAndSet(equalScale_, b, [&]() { updateRange(); });
 }
 
+//---
+
+void
+CQChartsPlot::
+setAutoFit(bool b)
+{
+  CQChartsUtil::testAndSet(autoFit_, b, [&]() { postResize(); });
+}
+
+// fit margin
+void
+CQChartsPlot::
+setFitMarginLeft(const CQChartsLength &l)
+{
+  if (l != fitMargin_.left()) { fitMargin_.setLeft(l); postResize(); }
+}
+
+void
+CQChartsPlot::
+setFitMarginTop(const CQChartsLength &t)
+{
+  if (t != fitMargin_.top()) { fitMargin_.setTop(t); postResize(); }
+}
+
+void
+CQChartsPlot::
+setFitMarginRight(const CQChartsLength &r)
+{
+  if (r != fitMargin_.right()) { fitMargin_.setRight(r); postResize(); }
+}
+
+void
+CQChartsPlot::
+setFitMarginBottom(const CQChartsLength &b)
+{
+  if (b != fitMargin_.bottom()) { fitMargin_.setBottom(b); postResize(); }
+}
+
+void
+CQChartsPlot::
+setFitMargin(const CQChartsPlotMargin &m)
+{
+  if (m != fitMargin_) { fitMargin_ = m; postResize(); }
+}
+
+//---
+
 void
 CQChartsPlot::
 setShowBoxes(bool b)
@@ -1917,61 +1964,35 @@ void
 CQChartsPlot::
 setInnerMarginLeft(const CQChartsLength &l)
 {
-  if (l != innerMargin_.left()) {
-    innerMargin_.setLeft(l);
-
-    applyDataRangeAndDraw();
-  }
+  if (l != innerMargin_.left()) { innerMargin_.setLeft(l); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
 setInnerMarginTop(const CQChartsLength &t)
 {
-  if (t != innerMargin_.top()) {
-    innerMargin_.setTop(t);
-
-    applyDataRangeAndDraw();
-  }
+  if (t != innerMargin_.top()) { innerMargin_.setTop(t); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
 setInnerMarginRight(const CQChartsLength &r)
 {
-  if (r != innerMargin_.right()) {
-    innerMargin_.setRight(r);
-
-    applyDataRangeAndDraw();
-  }
+  if (r != innerMargin_.right()) { innerMargin_.setRight(r); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
 setInnerMarginBottom(const CQChartsLength &b)
 {
-  if (b != innerMargin_.bottom()) {
-    innerMargin_.setBottom(b);
-
-    applyDataRangeAndDraw();
-  }
-}
-
-void
-CQChartsPlot::
-setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
-               const CQChartsLength &r, const CQChartsLength &b)
-{
-  setInnerMargin(CQChartsPlotMargin(l, t, r, b));
+  if (b != innerMargin_.bottom()) { innerMargin_.setBottom(b); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
 setInnerMargin(const CQChartsPlotMargin &m)
 {
-  innerMargin_ = m;
-
-  applyDataRangeAndDraw();
+  if (m != innerMargin_) { innerMargin_ = m; applyDataRangeAndDraw(); }
 }
 
 //---
@@ -1980,61 +2001,35 @@ void
 CQChartsPlot::
 setOuterMarginLeft(const CQChartsLength &l)
 {
-  if (l != outerMargin_.left()) {
-    outerMargin_.setLeft(l);
-
-    updateMargins();
-  }
+  if (l != outerMargin_.left()) { outerMargin_.setLeft(l); updateMargins(); }
 }
 
 void
 CQChartsPlot::
 setOuterMarginTop(const CQChartsLength &t)
 {
-  if (t != outerMargin_.top()) {
-    outerMargin_.setTop(t);
-
-    updateMargins();
-  }
+  if (t != outerMargin_.top()) { outerMargin_.setTop(t); updateMargins(); }
 }
 
 void
 CQChartsPlot::
 setOuterMarginRight(const CQChartsLength &r)
 {
-  if (r != outerMargin_.right()) {
-    outerMargin_.setRight(r);
-
-    updateMargins();
-  }
+  if (r != outerMargin_.right()) { outerMargin_.setRight(r); updateMargins(); }
 }
 
 void
 CQChartsPlot::
 setOuterMarginBottom(const CQChartsLength &b)
 {
-  if (b != outerMargin_.bottom()) {
-    outerMargin_.setBottom(b);
-
-    updateMargins();
-  }
-}
-
-void
-CQChartsPlot::
-setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
-               const CQChartsLength &r, const CQChartsLength &b)
-{
-  return setOuterMargin(CQChartsPlotMargin(l, t, r, b));
+  if (b != outerMargin_.bottom()) { outerMargin_.setBottom(b); updateMargins(); }
 }
 
 void
 CQChartsPlot::
 setOuterMargin(const CQChartsPlotMargin &m)
 {
-  outerMargin_ = m;
-
-  updateMargins();
+  if (m != outerMargin_) { outerMargin_ = m; updateMargins(); }
 }
 
 //---
@@ -2587,8 +2582,7 @@ addBaseProperties()
   addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle", true);
   addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     , true);
 
-  addProp("range", "autoFit"  , "autoFit"  , "Auto fit to data");
-  addProp("range", "fitMargin", "fitMargin", "Auto fit margin");
+  addProp("range", "autoFit", "autoFit", "Auto fit to data");
 
   if (type()->customXRange()) addProp("range", "xmin", "xmin", "Explicit minimum x value");
   if (type()->customYRange()) addProp("range", "ymin", "ymin", "Explicit minimum y value");
@@ -2705,6 +2699,11 @@ addBaseProperties()
   addProp("margins/outer", "outerMarginTop"   , "top"   , "Size of outer margin at top of plot");
   addProp("margins/outer", "outerMarginRight" , "right" , "Size of outer margin at right of plot");
   addProp("margins/outer", "outerMarginBottom", "bottom", "Size of outer margin at bottom of plot");
+
+  addProp("margins/fit", "fitMarginLeft"  , "left"  , "Size of fit margin at left of plot");
+  addProp("margins/fit", "fitMarginTop"   , "top"   , "Size of fit margin at top of plot");
+  addProp("margins/fit", "fitMarginRight" , "right" , "Size of fit margin at right of plot");
+  addProp("margins/fit", "fitMarginBottom", "bottom", "Size of fit margin at bottom of plot");
 
   //---
 
@@ -2844,10 +2843,9 @@ addFillProperties(const QString &path, const QString &prefix,
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
-  addStyleProp(path, prefix + "Color"   , "color"   , prefix1 + " color"   , hidden);
-  addStyleProp(path, prefix + "AltColor", "altColor", prefix1 + " altColor", hidden);
-  addStyleProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha"   , hidden);
-  addStyleProp(path, prefix + "Pattern" , "pattern" , prefix1 + " pattern" , hidden);
+  addStyleProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  , hidden);
+  addStyleProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  , hidden);
+  addStyleProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern", hidden);
 }
 
 void
@@ -8893,21 +8891,23 @@ drawBackgroundRects(CQChartsPaintDevice *device) const
   auto drawBackgroundRect = [&](const BBox &rect, const CQChartsBrushData &brushData,
                                 const CQChartsPenData &penData, const CQChartsSides &sides) {
     if (brushData.isVisible()) {
-      QBrush brush;
+      CQChartsPenBrush penBrush;
 
-      setBrush(brush, true, brushData.color(), brushData.alpha(), brushData.pattern());
+      setBrush(penBrush,
+        CQChartsBrushData(true, brushData.color(), brushData.alpha(), brushData.pattern()));
 
-      device->setBrush(brush);
+      device->setBrush(penBrush.brush);
 
       device->fillRect(rect);
     }
 
     if (penData.isVisible()) {
-      QPen pen;
+      CQChartsPenBrush penBrush;
 
-      setPen(pen, true, penData.color(), penData.alpha(), penData.width(), penData.dash());
+      setPen(penBrush,
+        CQChartsPenData(true, penData.color(), penData.alpha(), penData.width(), penData.dash()));
 
-      device->setPen(pen);
+      device->setPen(penBrush.pen);
 
       drawBackgroundSides(device, rect, sides);
     }
@@ -10086,10 +10086,7 @@ void
 CQChartsPlot::
 setFitBBox(const BBox &bbox)
 {
-  double dx = fitMargin()*bbox.getWidth ();
-  double dy = fitMargin()*bbox.getHeight();
-
-  auto bbox1 = bbox.expanded(-dx, -dy, dx, dy);
+  auto bbox1 = fitMargin().adjustPlotRange(this, bbox, /*inside*/true);
 
   // calc margin so plot box fits in specified box
   auto pbbox = displayRangeBBox();
@@ -11031,61 +11028,32 @@ CQChartsPlot::
 setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
             const CQChartsBrushData &brushData) const
 {
-  setPenBrush(penBrush,
-    penData.isVisible(), penData.color(), penData.alpha(), penData.width(), penData.dash(),
-    brushData.isVisible(), brushData.color(), brushData.altColor(), brushData.alpha(),
-    brushData.pattern());
-}
-
-void
-CQChartsPlot::
-setPenBrush(CQChartsPenBrush &penBrush,
-            bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-            const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
-            bool filled, const QColor &fillColor, const QColor &altFillColor,
-            const CQChartsAlpha &fillAlpha, const CQChartsFillPattern &pattern) const
-{
-  setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
-
-  setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
-
-  penBrush.altColor = altFillColor;
+  setPen  (penBrush, penData  );
+  setBrush(penBrush, brushData);
 }
 
 void
 CQChartsPlot::
 setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
 {
-  setPen(penBrush.pen,
-    penData.isVisible(), penData.color(), penData.alpha(), penData.width(), penData.dash());
-}
+  double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
-void
-CQChartsPlot::
-setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
-{
-  double width = lengthPixelWidth(strokeWidth);
-
-  CQChartsUtil::setPen(pen, stroked, strokeColor, strokeAlpha, width, strokeDash);
+  CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
+                       width, penData.dash());
 }
 
 void
 CQChartsPlot::
 setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
 {
-  setBrush(penBrush.brush,
-    brushData.isVisible(), brushData.color(), brushData.alpha(), brushData.pattern());
+  CQChartsDrawUtil::setBrush(penBrush.brush, brushData);
 
-  penBrush.altColor = brushData.altColor();
-}
+  if (brushData.pattern().altColor().isValid())
+    penBrush.altColor = brushData.pattern().altColor().color();
+  else
+    penBrush.altColor = QColor();
 
-void
-CQChartsPlot::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor,
-         const CQChartsAlpha &fillAlpha, const CQChartsFillPattern &pattern) const
-{
-  CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
+  penBrush.fillAngle = brushData.pattern().angle();
 }
 
 //------
@@ -12615,9 +12583,15 @@ positionToPlot(const CQChartsPosition &pos) const
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
-  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
-    double x = pixelToWindowWidth (p.getX()*view()->fontEx());
+  else if (pos.units() == CQChartsUnits::EM) {
+    double x = pixelToWindowWidth (p.getX()*view()->fontEm());
     double y = pixelToWindowHeight(p.getY()*view()->fontEm());
+
+    return Point(x, y);
+  }
+  else if (pos.units() == CQChartsUnits::EX) {
+    double x = pixelToWindowWidth (p.getX()*view()->fontEx());
+    double y = pixelToWindowHeight(p.getY()*view()->fontEx());
 
     return Point(x, y);
   }
@@ -12644,9 +12618,15 @@ positionToPixel(const CQChartsPosition &pos) const
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
-  else if (pos.units() == CQChartsUnits::EM || pos.units() == CQChartsUnits::EX) {
-    double x = p.getX()*view()->fontEx();
+  else if (pos.units() == CQChartsUnits::EM) {
+    double x = p.getX()*view()->fontEm();
     double y = p.getY()*view()->fontEm();
+
+    return Point(x, y);
+  }
+  else if (pos.units() == CQChartsUnits::EX) {
+    double x = p.getX()*view()->fontEx();
+    double y = p.getY()*view()->fontEx();
 
     return Point(x, y);
   }
@@ -12677,11 +12657,19 @@ rectToPlot(const CQChartsRect &rect) const
     r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
   }
-  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
-    double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEx());
+  else if (rect.units() == CQChartsUnits::EM) {
+    double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEm());
     double y1 = pixelToWindowHeight(r.getYMin()*view()->fontEm());
-    double x2 = pixelToWindowWidth (r.getXMax()*view()->fontEx());
+    double x2 = pixelToWindowWidth (r.getXMax()*view()->fontEm());
     double y2 = pixelToWindowHeight(r.getYMax()*view()->fontEm());
+
+    return BBox(x1, y1, x2, y2);
+  }
+  else if (rect.units() == CQChartsUnits::EX) {
+    double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEx());
+    double y1 = pixelToWindowHeight(r.getYMin()*view()->fontEx());
+    double x2 = pixelToWindowWidth (r.getXMax()*view()->fontEx());
+    double y2 = pixelToWindowHeight(r.getYMax()*view()->fontEx());
 
     return BBox(x1, y1, x2, y2);
   }
@@ -12710,11 +12698,19 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
   }
-  else if (rect.units() == CQChartsUnits::EM || rect.units() == CQChartsUnits::EX) {
-    double x1 = r.getXMin()*view()->fontEx();
+  else if (rect.units() == CQChartsUnits::EM) {
+    double x1 = r.getXMin()*view()->fontEm();
     double y1 = r.getYMin()*view()->fontEm();
-    double x2 = r.getXMax()*view()->fontEx();
+    double x2 = r.getXMax()*view()->fontEm();
     double y2 = r.getYMax()*view()->fontEm();
+
+    return BBox(x1, y1, x2, y2);
+  }
+  else if (rect.units() == CQChartsUnits::EX) {
+    double x1 = r.getXMin()*view()->fontEx();
+    double y1 = r.getYMin()*view()->fontEx();
+    double x2 = r.getXMax()*view()->fontEx();
+    double y2 = r.getYMax()*view()->fontEx();
 
     return BBox(x1, y1, x2, y2);
   }

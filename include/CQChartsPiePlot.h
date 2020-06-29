@@ -105,6 +105,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  void calcTipData(QString &groupName, QString &label, QString &valueStr) const;
+
   //---
 
   bool isArc() const override { return true; }
@@ -296,7 +298,11 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   QString calcTipId() const override;
 
+  //---
+
   bool inside(const Point &p) const override;
+
+  //---
 
   void draw(PaintDevice *device) override;
 
@@ -398,7 +404,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent   WRITE setAngleExtent)
   Q_PROPERTY(CQChartsAngle gapAngle    READ gapAngle      WRITE setGapAngle   )
 
-  // rotated text
+  // text
+  Q_PROPERTY(bool textVisible READ isTextVisible WRITE setTextVisible)
   Q_PROPERTY(bool rotatedText READ isRotatedText WRITE setRotatedText)
 
   // explode
@@ -469,6 +476,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   const Angle &gapAngle() const { return gapAngle_; }
   void setGapAngle(const Angle &a);
+
+  //---
+
+  bool isTextVisible() const;
+  void setTextVisible(bool b);
 
   //---
 

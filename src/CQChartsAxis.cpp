@@ -1524,13 +1524,14 @@ void
 CQChartsAxis::
 drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double amin, double amax)
 {
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor lc = interpAxesLinesColor(ColorInd());
 
-  plot_->setPen(pen, true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash());
+  plot_->setPen(penBrush,
+    CQChartsPenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
@@ -1545,14 +1546,15 @@ CQChartsAxis::
 drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
                   double apos, double dmin, double dmax)
 {
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor lc = interpAxesMajorGridLinesColor(ColorInd());
 
-  plot_->setPen(pen, true, lc, axesMajorGridLinesAlpha(),
-                axesMajorGridLinesWidth(), axesMajorGridLinesDash());
+  plot_->setPen(penBrush,
+    CQChartsPenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
+                    axesMajorGridLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
@@ -1567,14 +1569,15 @@ CQChartsAxis::
 drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
                   double apos, double dmin, double dmax)
 {
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor lc = interpAxesMinorGridLinesColor(ColorInd());
 
-  plot_->setPen(pen, true, lc, axesMinorGridLinesAlpha(),
-                axesMinorGridLinesWidth(), axesMinorGridLinesDash());
+  plot_->setPen(penBrush,
+    CQChartsPenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
+                    axesMinorGridLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
@@ -1624,13 +1627,14 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   //---
 
-  QPen pen;
+  CQChartsPenBrush penBrush;
 
   QColor lc = interpAxesLinesColor(ColorInd());
 
-  plot_->setPen(pen, true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash());
+  plot_->setPen(penBrush,
+   CQChartsPenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
-  device->setPen(pen);
+  device->setPen(penBrush.pen);
 
   //---
 
@@ -2255,13 +2259,13 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpAxesTickLabelTextColor(ColorInd());
 
-  plot->setPen(tpen, true, tc, axesTickLabelTextAlpha());
+  plot->setPen(tpenBrush, CQChartsPenData(true, tc, axesTickLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //view()->setPlotPainterFont(plot, device, axesTickLabelTextFont());
 
@@ -2315,13 +2319,13 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpAxesLabelTextColor(ColorInd());
 
-  plot->setPen(tpen, true, tc, axesLabelTextAlpha());
+  plot->setPen(tpenBrush, CQChartsPenData(true, tc, axesLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   view()->setPlotPainterFont(plot, device, axesLabelTextFont());
 

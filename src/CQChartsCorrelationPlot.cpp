@@ -256,7 +256,7 @@ CQChartsGeom::Range
 CQChartsCorrelationPlot::
 calcRange() const
 {
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   // square (nc, nc)
   int nc = std::max(correlationModel_->columnCount(), 1);
@@ -283,7 +283,7 @@ preDrawObjs(CQChartsPaintDevice *device) const
 
     double maxWidth = 0.0, maxHeight = 0.0;
 
-    CQChartsGeom::Size cellSize;
+    Size cellSize;
 
     for (auto &plotObj : plotObjects()) {
       auto *cellObj = dynamic_cast<CQChartsCorrelationCellObj *>(plotObj);
@@ -381,7 +381,7 @@ CQChartsCorrelationPlot::
 addCellObj(int row, int col, double x, double y, double dx, double dy, double value,
            const QModelIndex &ind, PlotObjs &objs) const
 {
-  CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
+  BBox bbox(x, y, x + dx, y + dy);
 
   auto *cellObj = createCellObj(bbox, row, col, value, ind);
 
@@ -542,13 +542,13 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpXLabelTextColor(ColorInd());
 
-  setPen(tpen, true, tc, xLabelTextAlpha());
+  setPen(tpenBrush, CQChartsPenData(true, tc, xLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -567,7 +567,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,CQChartsGeom::BBox>;
+  using ColRects = std::map<int,BBox>;
 
   ColRects colRects;
 
@@ -612,7 +612,7 @@ drawXLabels(CQChartsPaintDevice *device) const
       CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
-    CQChartsGeom::Point p(c + 0.5, 0);
+    Point p(c + 0.5, 0);
 
     auto p1 = windowToPixel(p);
 
@@ -620,12 +620,12 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     double tw1 = std::max(trect.getWidth(), cw);
 
-    CQChartsGeom::BBox tbbox1;
+    BBox tbbox1;
 
     if (! isInvertY())
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
+      tbbox1 = BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
+      tbbox1 = BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
@@ -639,13 +639,13 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  QPen tpen;
+  CQChartsPenBrush tpenBrush;
 
   QColor tc = interpYLabelTextColor(ColorInd());
 
-  setPen(tpen, true, tc, yLabelTextAlpha());
+  setPen(tpenBrush, CQChartsPenData(true, tc, yLabelTextAlpha()));
 
-  device->setPen(tpen);
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -664,7 +664,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,CQChartsGeom::BBox>;
+  using RowRects = std::map<int,BBox>;
 
   RowRects colRects;
 
@@ -709,7 +709,7 @@ drawYLabels(CQChartsPaintDevice *device) const
       CQChartsModelUtil::modelHHeaderString(correlationModel_, col, Qt::DisplayRole, ok);
     if (! name.length()) continue;
 
-    CQChartsGeom::Point p(0, (nc - 1 - c) + 0.5);
+    Point p(0, (nc - 1 - c) + 0.5);
 
     auto p1 = windowToPixel(p);
 
@@ -717,12 +717,12 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     double th1 = std::max(trect.getHeight(), ch);
 
-    CQChartsGeom::BBox tbbox1;
+    BBox tbbox1;
 
     if (! isInvertX())
-      tbbox1 = CQChartsGeom::BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
+      tbbox1 = BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
+      tbbox1 = BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
@@ -739,7 +739,7 @@ calcAnnotationBBox() const
   QFont xfont = view()->plotFont(this, xLabelTextFont());
   QFont yfont = view()->plotFont(this, yLabelTextFont());
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   double tm = 4;
 
@@ -775,7 +775,7 @@ calcAnnotationBBox() const
 
     double th1 = pixelToWindowHeight(th + tm);
 
-    CQChartsGeom::BBox tbbox(0, -th1, nc, 0);
+    BBox tbbox(0, -th1, nc, 0);
 
     bbox += tbbox;
   }
@@ -810,7 +810,7 @@ calcAnnotationBBox() const
 
     double tw1 = pixelToWindowWidth(tw + tm);
 
-    CQChartsGeom::BBox tbbox(-tw1, 0, 0, nc);
+    BBox tbbox(-tw1, 0, 0, nc);
 
     bbox += tbbox;
   }
@@ -832,7 +832,7 @@ createCellObj(const BBox &rect, int row, int col, double value, const QModelInde
 //------
 
 CQChartsCorrelationCellObj::
-CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const BBox &rect,
                            int row, int col, double value, const QModelIndex &ind) :
  CQChartsPlotObj(const_cast<CQChartsCorrelationPlot *>(plot), rect),
  plot_(plot), row_(row), col_(col), value_(value)
@@ -910,7 +910,7 @@ CQChartsCorrelationCellObj::
 calcTextSize() const
 {
   if (! plot_->isCellLabels())
-    return CQChartsGeom::Size();
+    return Size();
 
   QFont font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
 
@@ -973,8 +973,8 @@ draw(CQChartsPaintDevice *device)
       double w  = rect().getWidth ();
       double h  = rect().getHeight();
 
-      CQChartsGeom::BBox rect1(x1, y1, x1 + w/2.0, y1 + h/2.0);
-      CQChartsGeom::BBox rect2(x2 - w/2.0, y2 - h/2.0, x2, y2);
+      BBox rect1(x1, y1, x1 + w/2.0, y1 + h/2.0);
+      BBox rect2(x2 - w/2.0, y2 - h/2.0, x2, y2);
 
       drawCellLabel(device, QString("%1").arg(minMax.min()), rect1, -4);
       drawCellLabel(device, QString("%1").arg(minMax.max()), rect2, -4);
@@ -999,13 +999,13 @@ draw(CQChartsPaintDevice *device)
 
       double s  = rect().getMinSize()/2.0;
       auto   rc = rect().getCenter();
-      auto   ps = CQChartsGeom::Point(s, s);
+      auto   ps = Point(s, s);
 
-      CQChartsGeom::BBox rect1(rc - ps, rc + ps);
+      BBox rect1(rc - ps, rc + ps);
 
       //---
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       CQChartsWhiskerOpts opts;
 
@@ -1035,9 +1035,9 @@ draw(CQChartsPaintDevice *device)
       auto rc = rect().getCenter();
 
       double s  = rect().getMinSize()/2.0;
-      auto   ps = CQChartsGeom::Point(s, s);
+      auto   ps = Point(s, s);
 
-      CQChartsGeom::BBox rect1(rc - ps, rc + ps);
+      BBox rect1(rc - ps, rc + ps);
 
       CQChartsPenBrush penBrush1 = penBrush;
 
@@ -1097,8 +1097,8 @@ draw(CQChartsPaintDevice *device)
       double dx1 = CMathUtil::map(xdev, 0, (rmax - rmin)/2.0, 0, s);
       double dy1 = CMathUtil::map(ydev, 0, (cmax - cmin)/2.0, 0, s);
 
-      CQChartsGeom::BBox ebbox(CQChartsGeom::Point(rect().getXMid() - dx1, rect().getYMid() - dy1),
-                               CQChartsGeom::Point(rect().getXMid() + dx1, rect().getYMid() + dy1));
+      BBox ebbox(Point(rect().getXMid() - dx1, rect().getYMid() - dy1),
+                 Point(rect().getXMid() + dx1, rect().getYMid() + dy1));
 
       device->drawEllipse(ebbox, CQChartsAngle(45));
 
@@ -1109,7 +1109,7 @@ draw(CQChartsPaintDevice *device)
 
       double dx = std::max(prect.getWidth()/100, 1.0);
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       for (double px = prect.getXMin(); px <= prect.getXMax(); px += dx) {
         double px1 = CMathUtil::map(px, prect.getXMin(), prect.getXMax(), rmin, rmax);
@@ -1118,7 +1118,7 @@ draw(CQChartsPaintDevice *device)
         double py1 = bestFit.interp(px1);
         double py2 = CMathUtil::map(py1, cmin, cmax, -s, s);
 
-        poly.addPoint(CQChartsGeom::Point(rect().getXMid() + px2, rect().getYMid() + py2));
+        poly.addPoint(Point(rect().getXMid() + px2, rect().getYMid() + py2));
       }
 
       QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
@@ -1147,7 +1147,7 @@ draw(CQChartsPaintDevice *device)
         double x1 = rect().getXMid() + CMathUtil::map(p.x, rmin, rmax, -s, s);
         double y1 = rect().getYMid() + CMathUtil::map(p.y, cmin, cmax, -s, s);
 
-        CQChartsGeom::Point ps(x1, y1);
+        Point ps(x1, y1);
 
         plot_->drawSymbol(device, ps, CQChartsSymbol::Type::CIRCLE, sx, penBrush);
       }
@@ -1183,8 +1183,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str)
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(CQChartsPaintDevice *device, const QString &str,
-              const CQChartsGeom::BBox &rect, double fontInc)
+drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect, double fontInc)
 {
   // calc pen and brush
   ColorInd ic;
@@ -1208,7 +1207,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str,
 
   QColor tc = plot_->interpCellLabelTextColor(ic);
 
-  plot_->setPen(tPenBrush.pen, true, tc, plot_->cellLabelTextAlpha());
+  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->cellLabelTextAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 

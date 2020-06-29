@@ -42,6 +42,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setBrush(const QBrush &brush) override;
 
   void setAltColor(const QColor &c) override;
+  void setFillAngle(double a) override;
 
   void fillPath  (const QPainterPath &path, const QBrush &brush) override;
   void strokePath(const QPainterPath &path, const QPen &pen) override;

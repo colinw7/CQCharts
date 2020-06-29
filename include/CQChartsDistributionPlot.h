@@ -549,6 +549,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   using Bucket = CQChartsDistributionBucket;
 
+  using RangeValue = CQChartsGeom::RangeValue;
+
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
 
@@ -814,7 +816,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using Filters     = std::vector<Filter>;
   using FilterStack = std::vector<Filters>;
 
-  using GroupBucketRange = std::map<int,CQChartsGeom::IMinMax>;
+  using GroupBucketRange = std::map<int,IMinMax>;
 
  private:
   void bucketGroupValues() const;

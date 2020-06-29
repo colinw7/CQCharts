@@ -10,6 +10,9 @@
  */
 class CQChartsFitData {
  public:
+  using Point = CQChartsGeom::Point;
+
+ public:
   CQChartsFitData() { }
 
   //---
@@ -46,7 +49,7 @@ class CQChartsFitData {
 
   //---
 
-  void calc(const std::vector<CQChartsGeom::Point> &points, int order=-1) {
+  void calc(const std::vector<Point> &points, int order=-1) {
     int np = points.size();
 
     std::vector<double> x, y;
@@ -98,7 +101,7 @@ class CQChartsFitData {
       xmax_ = xmin_;
 
       for (int i = 0; i < np; ++i) {
-        CQChartsGeom::Point p = poly.point(i);
+        Point p = poly.point(i);
 
         x.push_back(p.x);
         y.push_back(p.y);

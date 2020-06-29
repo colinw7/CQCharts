@@ -6,7 +6,8 @@
 
 class CQChartsGridCell {
  public:
-  using Points   = std::vector<CQChartsGeom::Point>;
+  using Point    = CQChartsGeom::Point;
+  using Points   = std::vector<Point>;
   using YPoints  = std::map<int,Points>;
   using XYPoints = std::map<int,YPoints>;
 
@@ -69,7 +70,7 @@ class CQChartsGridCell {
     maxN_ = 0;
   }
 
-  void addPoint(const CQChartsGeom::Point &p) {
+  void addPoint(const Point &p) {
     int ix = xValueInterval(p.x);
     int iy = yValueInterval(p.y);
 

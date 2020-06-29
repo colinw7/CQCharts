@@ -651,7 +651,7 @@ initFromToObjs() const
 
       //---
 
-      // get attrinutes from optional column
+      // get attributes from optional column
       CQChartsNameValues nameValues;
 
       if (plot_->attributesColumn().isValid()) {
@@ -666,7 +666,18 @@ initFromToObjs() const
 
       //---
 
-      plot_->addFromToValue(fromName, toName, value, nameValues);
+      // Get group value
+      GroupData groupData(data.row);
+
+      if (plot_->groupColumn().isValid()) {
+        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+
+        plot_->groupColumnData(groupModelInd, groupData);
+      }
+
+      //---
+
+      plot_->addFromToValue(fromName, toName, value, nameValues, groupData);
 
       return State::OK;
     }
@@ -915,4 +926,27 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
   //---
 
   return true;
+}
+
+//---
+
+void
+CQChartsConnectionPlot::
+groupColumnData(const CQChartsModelIndex &groupModelInd, GroupData &groupData) const
+{
+  bool ok;
+
+  groupData.id = (int) modelInteger(groupModelInd, ok);
+
+  if (! ok) {
+    auto *groupDetails = columnDetails(groupColumn());
+
+    QVariant groupVar = modelValue(groupModelInd, ok);
+
+    groupData.id   = groupDetails->uniqueId(groupVar);
+    groupData.name = groupVar.toString();
+  }
+
+  if (! groupData.name.length())
+    groupData.name = QString("%1").arg(groupData.id);
 }

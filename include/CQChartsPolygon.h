@@ -12,6 +12,9 @@
  */
 class CQChartsPolygon {
  public:
+  using Point = CQChartsGeom::Point;
+
+ public:
   static void registerMetaType();
 
   static int metaTypeId;
@@ -60,11 +63,11 @@ class CQChartsPolygon {
 
   int numPoints() const { return polygon_.size(); }
 
-  CQChartsGeom::Point point(int i) const { return polygon_.point(i); }
+  Point point(int i) const { return polygon_.point(i); }
 
-  void setPoint(int i, const CQChartsGeom::Point &p) { polygon_.setPoint(i, p); }
+  void setPoint(int i, const Point &p) { polygon_.setPoint(i, p); }
 
-  void addPoint(const CQChartsGeom::Point &p) { polygon_.addPoint(p); }
+  void addPoint(const Point &p) { polygon_.addPoint(p); }
 
   void removePoint() { polygon_.removePoint(); }
 

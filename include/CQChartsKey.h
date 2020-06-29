@@ -44,9 +44,6 @@ class CQChartsKey : public CQChartsBoxObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
 
  public:
-  using Point = CQChartsGeom::Point;
-
- public:
   CQChartsKey(CQChartsView *view);
   CQChartsKey(CQChartsPlot *plot);
 
@@ -185,10 +182,6 @@ class CQChartsViewKey : public CQChartsKey {
   Q_OBJECT
 
  public:
-  using BBox  = CQChartsGeom::BBox;
-  using Point = CQChartsGeom::Point;
-
- public:
   CQChartsViewKey(CQChartsView *view);
 
  ~CQChartsViewKey();
@@ -238,7 +231,6 @@ class CQChartsViewKey : public CQChartsKey {
   void doLayout();
 
  private:
-  using Size  = CQChartsGeom::Size;
   using Rects = std::vector<BBox>;
 
   int           numPlots_  { 0 };    //!< number of plots
@@ -271,11 +263,6 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(double            spacing      READ spacing      WRITE setSpacing     )
   Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
-
- public:
-  using BBox  = CQChartsGeom::BBox;
-  using Size  = CQChartsGeom::Size;
-  using Point = CQChartsGeom::Point;
 
  public:
   CQChartsPlotKey(CQChartsPlot *plot);
@@ -611,10 +598,6 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
-  using BBox = CQChartsGeom::BBox;
-  using Size = CQChartsGeom::Size;
-
- public:
   CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic);
 
   CQChartsPlot *plot() const { return plot_; }
@@ -646,8 +629,6 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_PROPERTY(CQChartsColor  strokeColor  READ strokeColor  WRITE setStrokeColor )
 
  public:
-  using BBox       = CQChartsGeom::BBox;
-  using Size       = CQChartsGeom::Size;
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
@@ -711,8 +692,6 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  using BBox       = CQChartsGeom::BBox;
-  using Size       = CQChartsGeom::Size;
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
@@ -760,9 +739,9 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
  public:
   CQChartsGradientKeyItem(CQChartsPlot *plot);
 
-  CQChartsGeom::Size size() const override;
+  Size size() const override;
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
 
   virtual int maxN() const = 0;
 

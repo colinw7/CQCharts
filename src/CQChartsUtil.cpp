@@ -5,6 +5,9 @@
 #include <CQChartsStyle.h>
 #include <CQCharts.h>
 
+#include <CQColors.h>
+#include <CQColorsPalette.h>
+
 #include <CQTclUtil.h>
 #include <CQUtil.h>
 #include <CQStrUtil.h>
@@ -825,7 +828,7 @@ bool parseBBox(CQStrParse &parse, CQChartsGeom::BBox &bbox, bool terminated) {
   if (! parsePoint(parse, p1, /*terminated*/ false))
     return false;
 
-  if (! parsePoint(parse, p2, /*terminated*/ true))
+  if (! parsePoint(parse, p2, terminated))
     return false;
 
   //---
@@ -1205,17 +1208,6 @@ formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BB
 
 namespace CQChartsUtil {
 
-void setPenBrush(CQChartsPenBrush &penBrush,
-                 bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-                 double strokeWidth, const CQChartsLineDash &strokeDash,
-                 bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-                 const CQChartsFillPattern &pattern)
-{
-  setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
-
-  setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
-}
-
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
             double strokeWidth, const CQChartsLineDash &strokeDash) {
   double width = limitLineWidth(strokeWidth);
@@ -1246,13 +1238,45 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChart
               const CQChartsFillPattern &pattern) {
   // calc brush (fill)
   if (filled) {
-    QColor color = fillColor;
+    if      (pattern.type() == CQChartsFillPattern::Type::LGRADIENT) {
+      QLinearGradient lg(0, 0, 1, 1);
 
-    color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
+      lg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
-    brush.setColor(color);
+      lg.setColorAt(0, fillColor);
+      lg.setColorAt(1, Qt::white);
 
-    brush.setStyle(pattern.style());
+      brush = QBrush(lg);
+    }
+    else if (pattern.type() == CQChartsFillPattern::Type::PALETTE) {
+      int paletteInd = CQColorsMgrInst->getNamedPaletteInd(pattern.palette());
+      if (paletteInd < 0) paletteInd = 0;
+
+      auto *palette = CQColorsMgrInst->getIndPalette(paletteInd);
+      if (! palette) return;
+
+      double a = CMathUtil::Deg2Rad(pattern.angle());
+
+      double c = std::cos(a);
+      double s = std::sin(a);
+
+      QLinearGradient lg(0, 0, c, s);
+
+      lg.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+      palette->setLinearGradient(lg, 1.0);
+
+      brush = QBrush(lg);
+    }
+    else {
+      brush.setStyle(pattern.style());
+
+      QColor color = fillColor;
+
+      color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
+
+      brush.setColor(color);
+    }
 
     if (pattern.scale() != 1.0)
       brush.setTransform(QTransform::fromScale(pattern.scale(), pattern.scale()));

@@ -54,7 +54,7 @@ decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
 {
   CQStrParse parse(str);
 
-  if (! CQChartsUtil::parseBBox(parse, bbox))
+  if (! CQChartsUtil::parseBBox(parse, bbox, /*terminated*/false))
     return false;
 
   parse.skipSpace();

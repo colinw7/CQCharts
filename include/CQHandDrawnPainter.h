@@ -45,6 +45,9 @@ class CQHandDrawnPainter {
   const QColor &altColor() const { return altColor_; }
   void setAltColor(const QColor &c) { altColor_ = c; }
 
+  double fillAngle() const { return fillAngle_; }
+  void setFillAngle(double r) { fillAngle_ = r; }
+
   //--
 
   void setSize(int width, int height);
@@ -108,6 +111,7 @@ class CQHandDrawnPainter {
   double         roughness_ { 2.7 };
   double         fillDelta_ { 16 };
   mutable QColor altColor_;
+  mutable double fillAngle_ { 45.0 };
   mutable double dampen_    { 1.0 };
   mutable int    width_     { 100 };
   mutable int    height_    { 100 };

@@ -325,7 +325,7 @@ calcRange() const
     columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(0.0, 0.0, 1.0, 1.0);
+    return Range(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -428,7 +428,7 @@ calcRange() const
 
   //---
 
-  CQChartsGeom::Range dataRange;
+  Range dataRange;
 
   auto updateRange = [&](double x, double y) {
     if (! isHorizontal())
@@ -495,7 +495,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create polyline for value from each set
-  using Polygons = std::vector<CQChartsGeom::Polygon>;
+  using Polygons = std::vector<Polygon>;
   using Indices  = std::vector<QModelIndex>;
 
   class RowVisitor : public ModelVisitor {
@@ -508,7 +508,7 @@ createObjs(PlotObjs &objs) const
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       QModelIndex xind = plot_->modelIndex(xModelInd);
 
@@ -529,9 +529,9 @@ createObjs(PlotObjs &objs) const
           continue;
 
         if (! plot_->isHorizontal())
-          poly.addPoint(CQChartsGeom::Point(x, y));
+          poly.addPoint(Point(x, y));
         else
-          poly.addPoint(CQChartsGeom::Point(y, x));
+          poly.addPoint(Point(y, x));
       }
 
       polys_.push_back(poly);
@@ -586,9 +586,8 @@ createObjs(PlotObjs &objs) const
 
     QString xname = modelString(xModelInd, ok);
 
-    CQChartsGeom::BBox bbox =
-      CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                         normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
+    BBox bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                     normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
     ColorInd is(i, n);
 
@@ -642,7 +641,7 @@ createObjs(PlotObjs &objs) const
         y = j;
       }
 
-      CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+      BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
       ColorInd is(i, n);
       ColorInd iv(j, nl);
@@ -803,14 +802,14 @@ calcAnnotationBBox() const
   else
     ts = pixelToWindowWidth(max_tw_ + tm);
 
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   if (! isHorizontal())
-    bbox = CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                              normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
+    bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
   else
-    bbox = CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                              normalizedDataRange_.xmax() + ts, normalizedDataRange_.ymax());
+    bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                normalizedDataRange_.xmax() + ts, normalizedDataRange_.ymax());
 
   return bbox;
 }
@@ -834,7 +833,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
   //---
 
-  th->axesBBox_ = CQChartsGeom::BBox();
+  th->axesBBox_ = BBox();
 
   th->max_tw_ = 0.0;
 
@@ -889,13 +888,13 @@ drawFgAxes(CQChartsPaintDevice *device) const
     // draw set label
     QString label = axis->label().string();
 
-    CQChartsGeom::Point p;
+    Point p;
 
     if (dataRange_.isSet()) {
       if (! isHorizontal())
-        p = windowToPixel(CQChartsGeom::Point(j, dataRange_.ymax()));
+        p = windowToPixel(Point(j, dataRange_.ymax()));
       else
-        p = windowToPixel(CQChartsGeom::Point(dataRange_.xmax(), j));
+        p = windowToPixel(Point(dataRange_.xmax(), j));
     }
 
     double tw = fm.width(label);
@@ -904,20 +903,20 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     th->max_tw_ = std::max(max_tw_, tw);
 
-    QPen tpen;
+    CQChartsPenBrush tpenBrush;
 
     QColor tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
 
-    setPen(tpen, true, tc, masterAxis_->axesLabelTextAlpha());
+    setPen(tpenBrush, CQChartsPenData(true, tc, masterAxis_->axesLabelTextAlpha()));
 
-    device->setPen(tpen);
+    device->setPen(tpenBrush.pen);
 
-    CQChartsGeom::Point tp;
+    Point tp;
 
     if (! isHorizontal())
-      tp = CQChartsGeom::Point(p.x - tw/2.0, p.y - td - tm);
+      tp = Point(p.x - tw/2.0, p.y - td - tm);
     else
-      tp = CQChartsGeom::Point(p.x + tm, p.y - (ta - td)/2);
+      tp = Point(p.x + tm, p.y - (ta - td)/2);
 
     CQChartsTextOptions options;
 
@@ -1031,9 +1030,8 @@ createPointObj(const BBox &rect, double yval, double x, double y, const QModelIn
 //------
 
 CQChartsParallelLineObj::
-CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                        const CQChartsGeom::Polygon &poly, const QModelIndex &ind,
-                        const ColorInd &is) :
+CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const BBox &rect, const Polygon &poly,
+                        const QModelIndex &ind, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), poly_(poly)
 {
@@ -1102,7 +1100,7 @@ isVisible() const
 
 bool
 CQChartsParallelLineObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -1113,7 +1111,7 @@ inside(const CQChartsGeom::Point &p) const
   // TODO: check as lines created, only need to create lines close to point
 
   // create unnormalized polygon
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   getPolyLine(poly);
 
@@ -1126,8 +1124,8 @@ inside(const CQChartsGeom::Point &p) const
 
     double d;
 
-    CQChartsGeom::Point pl1(x1, y1);
-    CQChartsGeom::Point pl2(x2, y2);
+    Point pl1(x1, y1);
+    Point pl2(x2, y2);
 
     if (CQChartsUtil::PointLineDistance(p, pl1, pl2, &d) && d < 1E-3)
       return true;
@@ -1144,7 +1142,7 @@ interpY(double x, std::vector<double> &yvals) const
   if (! isVisible())
     return false;
 
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   getPolyLine(poly);
 
@@ -1198,7 +1196,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  polyLine_ = CQChartsGeom::Polygon();
+  polyLine_ = Polygon();
 
   getPolyLine(polyLine_);
 
@@ -1216,7 +1214,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   plot_->setLineDataPen(penBrush.pen, colorInd);
 
-  plot_->setBrush(penBrush.brush, false);
+  plot_->setBrush(penBrush, CQChartsBrushData(false));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1224,7 +1222,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsParallelLineObj::
-getPolyLine(CQChartsGeom::Polygon &poly) const
+getPolyLine(Polygon &poly) const
 {
   // create unnormalized polyline
   for (int i = 0; i < poly_.size(); ++i) {
@@ -1241,7 +1239,7 @@ getPolyLine(CQChartsGeom::Polygon &poly) const
       y = poly_.point(i).y;
     }
 
-    poly.addPoint(CQChartsGeom::Point(x, y));
+    poly.addPoint(Point(x, y));
   }
 }
 
@@ -1257,9 +1255,9 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                         double yval, double x, double y, const QModelIndex &ind,
-                         const ColorInd &is, const ColorInd &iv) :
+CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const BBox &rect, double yval,
+                         double x, double y, const QModelIndex &ind, const ColorInd &is,
+                         const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), iv),
  plot_(plot), yval_(yval), x_(x), y_(y)
 {
@@ -1324,18 +1322,18 @@ isVisible() const
 
 bool
 CQChartsParallelPointObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
 
-  auto p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
+  auto p1 = plot_->windowToPixel(Point(x_, y_));
 
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot_->windowToPixel(p);
 
@@ -1393,7 +1391,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  CQChartsGeom::Point p(x_, y_);
+  Point p(x_, y_);
 
   plot->drawSymbol(device, p, symbolType, symbolSize1, penBrush);
 

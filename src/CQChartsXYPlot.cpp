@@ -2417,7 +2417,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 //------
 
 CQChartsXYBiLineObj::
-CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                     double x, double y1, double y2, const QModelIndex &ind,
                     const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
@@ -2483,19 +2483,19 @@ isVisible() const
 
 bool
 CQChartsXYBiLineObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
 
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
   double sx, sy;
 
   plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p2.x + sx, p2.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p2.x + sx, p2.y + sy);
 
   auto pp = plot()->windowToPixel(p);
 
@@ -2521,8 +2521,8 @@ draw(CQChartsPaintDevice *device)
   if (! isVisible())
     return;
 
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
   if (plot()->isLines())
     drawLines(device, p1, p2);
@@ -2533,8 +2533,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsXYBiLineObj::
-drawLines(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-          const CQChartsGeom::Point &p2)
+drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
 {
   // calc pen and brush
   CQChartsPenBrush penBrush;
@@ -2558,8 +2557,7 @@ drawLines(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
 
 void
 CQChartsXYBiLineObj::
-drawPoints(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
-           const CQChartsGeom::Point &p2)
+drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
 {
   // get symbol and size
   auto symbol = plot()->symbolType();
@@ -2589,7 +2587,7 @@ drawPoints(CQChartsPaintDevice *device, const CQChartsGeom::Point &p1,
 //------
 
 CQChartsXYImpulseLineObj::
-CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                          double x, double y1, double y2, const QModelIndex &ind,
                          const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
@@ -2652,19 +2650,19 @@ isVisible() const
 
 bool
 CQChartsXYImpulseLineObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
 
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
   double b = 2;
 
   double lw = std::max(plot()->lengthPixelWidth(plot()->impulseLinesWidth()), 2*b);
 
-  CQChartsGeom::BBox pbbox(p1.x - lw/2, p1.y - b, p2.x + lw/2, p2.y + b);
+  BBox pbbox(p1.x - lw/2, p1.y - b, p2.x + lw/2, p2.y + b);
 
   auto pp = plot()->windowToPixel(p);
 
@@ -2722,14 +2720,14 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw impulse
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
-  auto p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
+  auto p1 = plot()->windowToPixel(Point(x(), y1()));
+  auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
   if (lw <= 1) {
     device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
   }
   else {
-    CQChartsGeom::BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
+    BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
 
     CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(bbox));
   }
@@ -2738,8 +2736,7 @@ draw(CQChartsPaintDevice *device)
 //------
 
 CQChartsXYPointObj::
-CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd,
-                   const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &pos,
+CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect, const Point &pos,
                    const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
@@ -2849,7 +2846,7 @@ CQChartsGeom::Point
 CQChartsXYPointObj::
 vector() const
 {
-  return (extraData() ? *extraData()->vector : CQChartsGeom::Point());
+  return (extraData() ? *extraData()->vector : Point());
 }
 
 //---
@@ -2993,7 +2990,7 @@ calcTipId() const
 
 bool
 CQChartsXYPointObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -3002,9 +2999,9 @@ inside(const CQChartsGeom::Point &p) const
 
   plot()->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  auto p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y()));
+  auto p1 = plot()->windowToPixel(Point(x(), y()));
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   auto pp = plot()->windowToPixel(p);
 
@@ -3095,7 +3092,7 @@ draw(CQChartsPaintDevice *device)
 
       plot()->pixelSymbolSize(symbolSize, sx, sy);
 
-      CQChartsGeom::BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
+      BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
       device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
     }
@@ -3116,7 +3113,7 @@ draw(CQChartsPaintDevice *device)
 //------
 
 CQChartsXYLabelObj::
-CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
                    double x, double y, const QString &label, const QModelIndex &ind,
                    const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
@@ -3173,18 +3170,18 @@ isVisible() const
 
 bool
 CQChartsXYLabelObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
 
-  auto ppos = plot()->windowToPixel(CQChartsGeom::Point(pos_));
+  auto ppos = plot()->windowToPixel(Point(pos_));
 
   // TODO: better text bounding box
   double sx = 16;
   double sy = 16;
 
-  CQChartsGeom::BBox pbbox(ppos.x - sx, ppos.y - sy, ppos.x + sx, ppos.y + sy);
+  BBox pbbox(ppos.x - sx, ppos.y - sy, ppos.x + sx, ppos.y + sy);
 
   auto pp = plot()->windowToPixel(p);
 
@@ -3255,7 +3252,7 @@ draw(CQChartsPaintDevice *device)
   double sx = 16.0;
   double sy = 16.0;
 
-  CQChartsGeom::BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
+  BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
   dataLabel->draw(device, ebbox, label_, dataLabel->position(), penBrush);
 
@@ -3273,8 +3270,8 @@ draw(CQChartsPaintDevice *device)
 //------
 
 CQChartsXYPolylineObj::
-CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                      const CQChartsGeom::Polygon &poly, const QString &name, const ColorInd &is,
+CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+                      const Polygon &poly, const QString &name, const ColorInd &is,
                       const ColorInd &ig) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name)
@@ -3327,7 +3324,7 @@ isVisible() const
 
 bool
 CQChartsXYPolylineObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! plot()->isLines())
     return false;
@@ -3355,7 +3352,7 @@ inside(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsXYPolylineObj::
-rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const BBox &r, bool inside) const
 {
   return CQChartsPlotObj::rectIntersect(r, inside);
 }
@@ -3447,7 +3444,7 @@ initBestFit()
 
       //---
 
-      CQChartsGeom::Polygon poly;
+      Polygon poly;
 
       for (const auto &p : poly_.qpoly()) {
         if (! statData_.isOutlier(p.y()))
@@ -3605,8 +3602,8 @@ draw(CQChartsPaintDevice *device)
     const auto &dataRange = plot()->dataRange();
 
     auto drawStatLine = [&](double y) {
-      CQChartsGeom::Point p1(dataRange.xmin(), y);
-      CQChartsGeom::Point p2(dataRange.xmax(), y);
+      Point p1(dataRange.xmin(), y);
+      Point p2(dataRange.xmax(), y);
 
       device->drawLine(p1, p2);
     };
@@ -3647,8 +3644,8 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsXYPolygonObj::
-CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                     const CQChartsGeom::Polygon &poly, const QString &name, const ColorInd &is,
+CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+                     const Polygon &poly, const QString &name, const ColorInd &is,
                      const ColorInd &ig, bool under) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name), under_(under)
@@ -3699,7 +3696,7 @@ isVisible() const
 
 bool
 CQChartsXYPolygonObj::
-inside(const CQChartsGeom::Point &p) const
+inside(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -3712,7 +3709,7 @@ inside(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsXYPolygonObj::
-rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const BBox &r, bool inside) const
 {
   return CQChartsPlotObj::rectIntersect(r, inside);
 }
@@ -3863,7 +3860,7 @@ QBrush
 CQChartsXYKeyColor::
 fillBrush() const
 {
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor              c;
   CQChartsAlpha       alpha;
@@ -3889,9 +3886,9 @@ fillBrush() const
   if (plot()->isSetHidden(is_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
-  plot()->setBrush(brush, true, c, alpha, pattern);
+  plot()->setBrush(penBrush, CQChartsBrushData(true, c, alpha, pattern));
 
-  return brush;
+  return penBrush.brush;
 }
 
 CQChartsPlotObj *
@@ -3935,7 +3932,7 @@ size() const
   double ww = keyPlot->pixelToWindowWidth (w + 8);
   double wh = keyPlot->pixelToWindowHeight(h + 2);
 
-  return CQChartsGeom::Size(ww, wh);
+  return Size(ww, wh);
 }
 
 void
@@ -3969,7 +3966,7 @@ doSelect(CQChartsSelMod selMod)
 
 void
 CQChartsXYKeyLine::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
+draw(CQChartsPaintDevice *device, const BBox &rect) const
 {
   device->save();
 
@@ -4010,7 +4007,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     if (isInside())
       fillBrush.setColor(plot()->insideColor(fillBrush.color()));
 
-    CQChartsGeom::BBox pbbox1(x1, y1, x2, y2);
+    BBox pbbox1(x1, y1, x2, y2);
 
     device->fillRect(pbbox1, fillBrush);
   }
@@ -4062,8 +4059,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
     device->setPen(linePenBrush.pen);
 
-    device->drawLine(device->pixelToWindow(CQChartsGeom::Point(x1, y)),
-                     device->pixelToWindow(CQChartsGeom::Point(x2, y)));
+    device->drawLine(device->pixelToWindow(Point(x1, y)), device->pixelToWindow(Point(x2, y)));
   }
 
   if (plot()->isPoints()) {
@@ -4073,8 +4069,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     double x2 = rect.getXMax() - dx;
     double y  = rect.getYMid();
 
-    auto p1 = keyPlot->windowToPixel(CQChartsGeom::Point(x1, y));
-    auto p2 = keyPlot->windowToPixel(CQChartsGeom::Point(x2, y));
+    auto p1 = keyPlot->windowToPixel(Point(x1, y));
+    auto p2 = keyPlot->windowToPixel(Point(x2, y));
 
     //---
 
@@ -4106,7 +4102,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     auto symbolType = plot()->symbolType();
     auto symbolSize = plot()->symbolSize();
 
-    CQChartsGeom::Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
+    Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
     plot()->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }

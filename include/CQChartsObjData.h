@@ -66,7 +66,10 @@ class CQChartsObjLineData {
   void setLineDataPen(QPen &pen, const CQChartsUtil::ColorInd &ind) const {
     QColor lc = interpLinesColor(ind);
 
-    lineDataObj_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
+    CQChartsPenBrush penBrush;
+    lineDataObj_->setPen(penBrush,
+      CQChartsPenData(isLines(), lc, linesAlpha(), linesWidth(), linesDash()));
+    pen = penBrush.pen;
   }
 
   //---
@@ -153,8 +156,11 @@ class CQChartsObj##UNAME##LineData { \
   void set##UNAME##LineDataPen(QPen &pen, const CQChartsUtil::ColorInd &ind) const { \
     QColor lc = interp##UNAME##LinesColor(ind); \
 \
-    LNAME##LineDataObj_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
-                                LNAME##LinesWidth(), LNAME##LinesDash()); \
+    CQChartsPenBrush penBrush; \
+    LNAME##LineDataObj_->setPen(penBrush, \
+      CQChartsPenData(is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
+                      LNAME##LinesWidth(), LNAME##LinesDash())); \
+    pen = penBrush.pen; \
   } \
 \
   const CQChartsLineData &LNAME##LineData() const { return LNAME##LineData_; } \
@@ -182,31 +188,29 @@ class CQChartsObj##UNAME##LineData { \
 Q_PROPERTY(CQChartsSymbolData symbolData READ symbolData WRITE setSymbolData) \
 \
 Q_PROPERTY(bool                points \
-           READ isPoints           WRITE setPoints           ) \
+           READ isPoints          WRITE setPoints           ) \
 Q_PROPERTY(CQChartsSymbol      symbolType \
-           READ symbolType         WRITE setSymbolType       ) \
+           READ symbolType        WRITE setSymbolType       ) \
 Q_PROPERTY(CQChartsLength      symbolSize \
-           READ symbolSize         WRITE setSymbolSize       ) \
+           READ symbolSize        WRITE setSymbolSize       ) \
 Q_PROPERTY(bool                symbolStroked \
-           READ isSymbolStroked    WRITE setSymbolStroked    ) \
+           READ isSymbolStroked   WRITE setSymbolStroked    ) \
 Q_PROPERTY(CQChartsColor       symbolStrokeColor \
-           READ symbolStrokeColor  WRITE setSymbolStrokeColor) \
+           READ symbolStrokeColor WRITE setSymbolStrokeColor) \
 Q_PROPERTY(CQChartsAlpha       symbolStrokeAlpha \
-           READ symbolStrokeAlpha  WRITE setSymbolStrokeAlpha) \
+           READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha) \
 Q_PROPERTY(CQChartsLength      symbolStrokeWidth \
-           READ symbolStrokeWidth  WRITE setSymbolStrokeWidth) \
+           READ symbolStrokeWidth WRITE setSymbolStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash    symbolStrokeDash \
-           READ symbolStrokeDash   WRITE setSymbolStrokeDash ) \
+           READ symbolStrokeDash  WRITE setSymbolStrokeDash ) \
 Q_PROPERTY(bool                symbolFilled \
-           READ isSymbolFilled     WRITE setSymbolFilled     ) \
+           READ isSymbolFilled    WRITE setSymbolFilled     ) \
 Q_PROPERTY(CQChartsColor       symbolFillColor \
-           READ symbolFillColor    WRITE setSymbolFillColor  ) \
-Q_PROPERTY(CQChartsColor       symbolFillAltColor \
-           READ symbolFillAltColor WRITE setSymbolFillAltColor  ) \
+           READ symbolFillColor   WRITE setSymbolFillColor  ) \
 Q_PROPERTY(CQChartsAlpha       symbolFillAlpha \
-           READ symbolFillAlpha    WRITE setSymbolFillAlpha  ) \
+           READ symbolFillAlpha   WRITE setSymbolFillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
-           READ symbolFillPattern  WRITE setSymbolFillPattern) \
+           READ symbolFillPattern WRITE setSymbolFillPattern) \
 
 /*!
  * \brief Object point data
@@ -290,12 +294,6 @@ class CQChartsObjPointData {
     return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), ind);
   }
 
-  const CQChartsColor &symbolFillAltColor() const { return pointData_.fill().altColor(); }
-  void setSymbolFillAltColor(const CQChartsColor &c) {
-    if (c != pointData_.fill().altColor()) {
-      pointData_.fill().setAltColor(c); pointDataInvalidate(); }
-  }
-
   const CQChartsAlpha &symbolFillAlpha() const { return pointData_.fill().alpha(); }
   void setSymbolFillAlpha(const CQChartsAlpha &a) {
     if (a != pointData_.fill().alpha()) {
@@ -312,10 +310,10 @@ class CQChartsObjPointData {
 
   void setSymbolPenBrush(CQChartsPenBrush &penBrush, const CQChartsUtil::ColorInd &ind) const {
     pointDataObj_->setPenBrush(penBrush,
-      isSymbolStroked(), interpSymbolStrokeColor(ind), symbolStrokeAlpha(),
-      symbolStrokeWidth(), symbolStrokeDash(),
-      isSymbolFilled(), interpSymbolFillColor(ind), QColor(), symbolFillAlpha(),
-      symbolFillPattern());
+      CQChartsPenData(isSymbolStroked(), interpSymbolStrokeColor(ind), symbolStrokeAlpha(),
+                      symbolStrokeWidth(), symbolStrokeDash()),
+      CQChartsBrushData(isSymbolFilled(), interpSymbolFillColor(ind), symbolFillAlpha(),
+                        symbolFillPattern()));
   }
 
   //---
@@ -346,31 +344,29 @@ Q_PROPERTY(CQChartsSymbolData LNAME##SymbolData \
            READ LNAME##SymbolData WRITE set##UNAME##SymbolData) \
 \
 Q_PROPERTY(bool                LNAME##Points \
-           READ is##UNAME##Points         WRITE set##UNAME##Points           ) \
+           READ is##UNAME##Points        WRITE set##UNAME##Points           ) \
 Q_PROPERTY(CQChartsSymbol      LNAME##SymbolType \
-           READ LNAME##SymbolType         WRITE set##UNAME##SymbolType       ) \
+           READ LNAME##SymbolType        WRITE set##UNAME##SymbolType       ) \
 Q_PROPERTY(CQChartsLength      LNAME##SymbolSize \
-           READ LNAME##SymbolSize         WRITE set##UNAME##SymbolSize       ) \
+           READ LNAME##SymbolSize        WRITE set##UNAME##SymbolSize       ) \
 Q_PROPERTY(bool                LNAME##SymbolStroked \
-           READ is##UNAME##SymbolStroked  WRITE set##UNAME##SymbolStroked    ) \
+           READ is##UNAME##SymbolStroked WRITE set##UNAME##SymbolStroked    ) \
 Q_PROPERTY(CQChartsColor       LNAME##SymbolStrokeColor \
-           READ LNAME##SymbolStrokeColor  WRITE set##UNAME##SymbolStrokeColor) \
+           READ LNAME##SymbolStrokeColor WRITE set##UNAME##SymbolStrokeColor) \
 Q_PROPERTY(CQChartsAlpha       LNAME##SymbolStrokeAlpha \
-           READ LNAME##SymbolStrokeAlpha  WRITE set##UNAME##SymbolStrokeAlpha) \
+           READ LNAME##SymbolStrokeAlpha WRITE set##UNAME##SymbolStrokeAlpha) \
 Q_PROPERTY(CQChartsLength      LNAME##SymbolStrokeWidth \
-           READ LNAME##SymbolStrokeWidth  WRITE set##UNAME##SymbolStrokeWidth) \
+           READ LNAME##SymbolStrokeWidth WRITE set##UNAME##SymbolStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash    LNAME##SymbolStrokeDash \
-           READ LNAME##SymbolStrokeDash   WRITE set##UNAME##SymbolStrokeDash ) \
+           READ LNAME##SymbolStrokeDash  WRITE set##UNAME##SymbolStrokeDash ) \
 Q_PROPERTY(bool                LNAME##SymbolFilled \
-           READ is##UNAME##SymbolFilled   WRITE set##UNAME##SymbolFilled     ) \
+           READ is##UNAME##SymbolFilled  WRITE set##UNAME##SymbolFilled     ) \
 Q_PROPERTY(CQChartsColor       LNAME##SymbolFillColor \
-           READ LNAME##SymbolFillColor    WRITE set##UNAME##SymbolFillColor  ) \
-Q_PROPERTY(CQChartsColor       LNAME##SymbolFillAltColor \
-           READ LNAME##SymbolFillAltColor WRITE set##UNAME##SymbolFillAltColor  ) \
+           READ LNAME##SymbolFillColor   WRITE set##UNAME##SymbolFillColor  ) \
 Q_PROPERTY(CQChartsAlpha       LNAME##SymbolFillAlpha \
-           READ LNAME##SymbolFillAlpha    WRITE set##UNAME##SymbolFillAlpha  ) \
+           READ LNAME##SymbolFillAlpha   WRITE set##UNAME##SymbolFillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
-           READ LNAME##SymbolFillPattern  WRITE set##UNAME##SymbolFillPattern)
+           READ LNAME##SymbolFillPattern WRITE set##UNAME##SymbolFillPattern)
 
 /*!
  * \brief Object named point data
@@ -462,13 +458,6 @@ class CQChartsObj##UNAME##PointData { \
     return CQChartsInterpolator(LNAME##PointDataObj_).interpColor(LNAME##SymbolFillColor(), ind); \
   } \
 \
-  const CQChartsColor &LNAME##SymbolFillAltColor() const { \
-    return LNAME##PointData_.fill().altColor(); } \
-  void set##UNAME##SymbolFillAltColor(const CQChartsColor &c) { \
-    if (c != LNAME##PointData_.fill().altColor()) { \
-      LNAME##PointData_.fill().setAltColor(c); LNAME##PointDataInvalidate(); } \
-  } \
-\
   const CQChartsAlpha &LNAME##SymbolFillAlpha() const { \
     return LNAME##PointData_.fill().alpha(); } \
   void set##UNAME##SymbolFillAlpha(const CQChartsAlpha &a) { \
@@ -485,27 +474,30 @@ class CQChartsObj##UNAME##PointData { \
 \
   void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, int i, int n) const { \
     LNAME##PointDataObj_->setPenBrush(penBrush, \
-      is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
-      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
-      is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
-      LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
+      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
+                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
+                      LNAME##SymbolStrokeDash()), \
+      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
+                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
   } \
 \
   void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, double r) const { \
     LNAME##PointDataObj_->setPenBrush(penBrush, \
-      is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(r), \
-      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
-      is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(r), \
-      LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
+      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(r), \
+                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
+                      LNAME##SymbolStrokeDash()), \
+      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(r), \
+                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
   } \
 \
   void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, \
                                   const CQChartsUtil::ColorInd &ind) const { \
     LNAME##PointDataObj_->setPenBrush(penBrush, \
-      is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
-      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
-      is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
-      QColor(), LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
+      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
+                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
+                      LNAME##SymbolStrokeDash()), \
+      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
+                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
   } \
 \
   const CQChartsSymbolData &LNAME##SymbolData() const { return LNAME##PointData_; } \
@@ -533,15 +525,13 @@ class CQChartsObj##UNAME##PointData { \
 Q_PROPERTY(CQChartsFillData LNAME##FillData READ LNAME##FillData WRITE set##UNAME##FillData) \
 \
 Q_PROPERTY(bool                LNAME##Filled \
-           READ is##UNAME##Filled   WRITE set##UNAME##Filled     ) \
+           READ is##UNAME##Filled  WRITE set##UNAME##Filled     ) \
 Q_PROPERTY(CQChartsColor       LNAME##FillColor \
-           READ LNAME##FillColor    WRITE set##UNAME##FillColor  ) \
-Q_PROPERTY(CQChartsColor       LNAME##FillAltColor \
-           READ LNAME##FillAltColor WRITE set##UNAME##FillAltColor  ) \
+           READ LNAME##FillColor   WRITE set##UNAME##FillColor  ) \
 Q_PROPERTY(CQChartsAlpha       LNAME##FillAlpha \
-           READ LNAME##FillAlpha    WRITE set##UNAME##FillAlpha  ) \
+           READ LNAME##FillAlpha   WRITE set##UNAME##FillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
-           READ LNAME##FillPattern  WRITE set##UNAME##FillPattern)
+           READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
 /*!
  * \brief Object named fill data
@@ -572,12 +562,6 @@ class CQChartsObj##UNAME##FillData { \
 \
   QColor interp##UNAME##FillColor(const CQChartsUtil::ColorInd &ind) const { \
     return CQChartsInterpolator(LNAME##FillDataObj_).interpColor(LNAME##FillColor(), ind); \
-  } \
-\
-  const CQChartsColor &LNAME##FillAltColor() const { return LNAME##FillData_.altColor(); } \
-  void set##UNAME##FillAltColor(const CQChartsColor &c) { \
-    if (c != LNAME##FillData_.altColor()) { \
-      LNAME##FillData_.setAltColor(c); LNAME##FillDataInvalidate(); } \
   } \
 \
   const CQChartsAlpha &LNAME##FillAlpha() const { return LNAME##FillData_.alpha(); } \
@@ -961,18 +945,17 @@ class CQChartsObjStrokeData {
 #define CQCHARTS_SHAPE_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsShapeData shapeData READ shapeData WRITE setShapeData) \
 \
-Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
-Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
-Q_PROPERTY(CQChartsAlpha     strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
-Q_PROPERTY(CQChartsLength    strokeWidth READ strokeWidth WRITE setStrokeWidth) \
-Q_PROPERTY(CQChartsLineDash  strokeDash  READ strokeDash  WRITE setStrokeDash ) \
-Q_PROPERTY(CQChartsLength    cornerSize  READ cornerSize  WRITE setCornerSize ) \
+Q_PROPERTY(bool             stroked     READ isStroked   WRITE setStroked    ) \
+Q_PROPERTY(CQChartsColor    strokeColor READ strokeColor WRITE setStrokeColor) \
+Q_PROPERTY(CQChartsAlpha    strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
+Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
+Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
+Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
-Q_PROPERTY(bool                filled       READ isFilled     WRITE setFilled      ) \
-Q_PROPERTY(CQChartsColor       fillColor    READ fillColor    WRITE setFillColor   ) \
-Q_PROPERTY(CQChartsColor       fillAltColor READ fillAltColor WRITE setFillAltColor) \
-Q_PROPERTY(CQChartsAlpha       fillAlpha    READ fillAlpha    WRITE setFillAlpha   ) \
-Q_PROPERTY(CQChartsFillPattern fillPattern  READ fillPattern  WRITE setFillPattern )
+Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
+Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  ) \
+Q_PROPERTY(CQChartsAlpha       fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
 
 /*!
  * \brief Object shape data
@@ -1044,12 +1027,6 @@ class CQChartsObjShapeData {
       shapeData_.fill().setColor(c); shapeDataInvalidate(); }
   }
 
-  const CQChartsColor &fillAltColor() const { return shapeData_.fill().altColor(); }
-  void setFillAltColor(const CQChartsColor &c) {
-    if (c != shapeData_.fill().altColor()) {
-      shapeData_.fill().setAltColor(c); shapeDataInvalidate(); }
-  }
-
   const CQChartsAlpha &fillAlpha() const { return shapeData_.fill().alpha(); }
   void setFillAlpha(const CQChartsAlpha &a) {
     if (a != shapeData_.fill().alpha()) {
@@ -1109,15 +1086,13 @@ Q_PROPERTY(CQChartsLength   LNAME##CornerSize \
            READ LNAME##CornerSize  WRITE set##UNAME##CornerSize ) \
 \
 Q_PROPERTY(bool                LNAME##Filled \
-           READ is##UNAME##Filled   WRITE set##UNAME##Filled      ) \
+           READ is##UNAME##Filled  WRITE set##UNAME##Filled      ) \
 Q_PROPERTY(CQChartsColor       LNAME##FillColor \
-           READ LNAME##FillColor    WRITE set##UNAME##FillColor   ) \
-Q_PROPERTY(CQChartsColor       LNAME##FillAltColor \
-           READ LNAME##FillAltColor WRITE set##UNAME##FillAltColor) \
+           READ LNAME##FillColor   WRITE set##UNAME##FillColor   ) \
 Q_PROPERTY(CQChartsAlpha       LNAME##FillAlpha \
-           READ LNAME##FillAlpha    WRITE set##UNAME##FillAlpha   ) \
+           READ LNAME##FillAlpha   WRITE set##UNAME##FillAlpha   ) \
 Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
-           READ LNAME##FillPattern  WRITE set##UNAME##FillPattern )
+           READ LNAME##FillPattern WRITE set##UNAME##FillPattern )
 
 /*!
  * \brief Object named shape data
@@ -1188,13 +1163,6 @@ class CQChartsObj##UNAME##ShapeData { \
       LNAME##ShapeData_.fill().setColor(c); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  const CQChartsColor &LNAME##FillAltColor() const { \
-    return LNAME##ShapeData_.fill().altColor(); } \
-  void set##UNAME##FillAltColor(const CQChartsColor &c) { \
-    if (c != LNAME##ShapeData_.fill().altColor()) { \
-      LNAME##ShapeData_.fill().setAltColor(c); LNAME##ShapeDataInvalidate(); } \
-  } \
-\
   const CQChartsAlpha &LNAME##FillAlpha() const { return LNAME##ShapeData_.fill().alpha(); } \
   void set##UNAME##FillAlpha(const CQChartsAlpha &a) { \
     if (a != LNAME##ShapeData_.fill().alpha()) { \
@@ -1250,18 +1218,17 @@ Q_PROPERTY(bool           visible READ isVisible WRITE setVisible) \
 Q_PROPERTY(CQChartsMargin margin  READ margin    WRITE setMargin ) \
 Q_PROPERTY(CQChartsMargin padding READ padding   WRITE setPadding) \
 \
-Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
-Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
-Q_PROPERTY(CQChartsAlpha     strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
-Q_PROPERTY(CQChartsLength    strokeWidth READ strokeWidth WRITE setStrokeWidth) \
-Q_PROPERTY(CQChartsLineDash  strokeDash  READ strokeDash  WRITE setStrokeDash ) \
-Q_PROPERTY(CQChartsLength    cornerSize  READ cornerSize  WRITE setCornerSize ) \
+Q_PROPERTY(bool             stroked     READ isStroked   WRITE setStroked    ) \
+Q_PROPERTY(CQChartsColor    strokeColor READ strokeColor WRITE setStrokeColor) \
+Q_PROPERTY(CQChartsAlpha    strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
+Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
+Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
+Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
-Q_PROPERTY(bool                filled       READ isFilled     WRITE setFilled      ) \
-Q_PROPERTY(CQChartsColor       fillColor    READ fillColor    WRITE setFillColor   ) \
-Q_PROPERTY(CQChartsColor       fillAltColor READ fillAltColor WRITE setFillAltColor) \
-Q_PROPERTY(CQChartsAlpha       fillAlpha    READ fillAlpha    WRITE setFillAlpha   ) \
-Q_PROPERTY(CQChartsFillPattern fillPattern  READ fillPattern  WRITE setFillPattern ) \
+Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
+Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  ) \
+Q_PROPERTY(CQChartsAlpha       fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern) \
 \
 Q_PROPERTY(CQChartsSides borderSides READ borderSides WRITE setBorderSides)
 
@@ -1346,12 +1313,6 @@ class CQChartsObjBoxData {
   void setFillColor(const CQChartsColor &c) {
     if (c != boxData_.shape().fill().color()) {
       boxData_.shape().fill().setColor(c); boxDataInvalidate(); }
-  }
-
-  const CQChartsColor &fillAltColor() const { return boxData_.shape().fill().altColor(); }
-  void setFillAltColor(const CQChartsColor &c) {
-    if (c != boxData_.shape().fill().altColor()) {
-      boxData_.shape().fill().setAltColor(c); boxDataInvalidate(); }
   }
 
   const CQChartsAlpha &fillAlpha() const { return boxData_.shape().fill().alpha(); }

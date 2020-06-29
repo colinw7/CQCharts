@@ -57,6 +57,8 @@ class CQChartsPaintDevice {
 
   virtual void setAltColor(const QColor &) { }
 
+  virtual void setFillAngle(double) { }
+
   virtual void fillPath  (const QPainterPath &, const QBrush &) { }
   virtual void strokePath(const QPainterPath &, const QPen &) { }
   virtual void drawPath  (const QPainterPath &) { }
