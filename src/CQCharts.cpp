@@ -87,6 +87,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsPoints.h>
 #include <CQChartsReals.h>
+#include <CQChartsObjRef.h>
 
 #include <CQChartsOptInt.h>
 #include <CQChartsOptReal.h>
@@ -288,6 +289,7 @@ CQCharts()
   CQChartsLineData              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
+  CQChartsObjRef                ::registerMetaType();
   CQChartsPaletteName           ::registerMetaType();
   CQChartsPath                  ::registerMetaType();
   CQChartsPoints                ::registerMetaType();
@@ -452,6 +454,7 @@ init()
     viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
     viewMgr->addType("CQChartsMargin"          , new CQChartsMarginPropertyViewType          );
+//  viewMgr->addType("CQChartsObjRef"          , new CQChartsObjRefPropertyViewType          );
     viewMgr->addType("CQChartsPaletteName"     , new CQChartsPaletteNamePropertyViewType     );
 //  viewMgr->addType("CQChartsPoints"          , new CQChartsPointsPropertyViewType          );
     viewMgr->addType("CQChartsPolygon"         , new CQChartsPolygonPropertyViewType         );

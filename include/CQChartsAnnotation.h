@@ -14,6 +14,7 @@
 #include <CQChartsGrahamHull.h>
 #include <CQChartsGridCell.h>
 #include <CQChartsAngle.h>
+#include <CQChartsObjRef.h>
 
 class CQChartsSmooth;
 class CQChartsDensity;
@@ -122,7 +123,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! get bounding box
-  const BBox &bbox() const { return bbox_; }
+  const BBox &annotationBBox() const { return annotationBBox_; }
+  void  setAnnotationBBox(const BBox &bbox);
 
   //---
 
@@ -186,19 +188,20 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! handle select press
-  virtual bool selectPress(const Point &p, SelMod selMod);
+  bool selectPress(const Point &p, SelMod selMod) override;
 
-  //! handle edit press, move, motion, release
-  virtual bool editPress  (const Point &);
-  virtual bool editMove   (const Point &);
-  virtual bool editMotion (const Point &);
-  virtual bool editRelease(const Point &) { return true; }
+  //---
 
-  //! handle edit move by
-  virtual void editMoveBy(const Point &d);
+  // implement edit interface
+  bool editPress (const Point &) override;
+  bool editMove  (const Point &) override;
+  bool editMotion(const Point &) override;
 
-  //! set new bounding box
-  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
+  void editMoveBy(const Point &d) override;
+
+  //---
+
+  virtual void flip(Qt::Orientation) { }
 
   //---
 
@@ -256,6 +259,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void invalidateSlot() { invalidate(); }
 
  protected:
+  void init(int &lastInd);
+
+ protected:
   Type   type_               { Type::NONE }; //!< type
   int    ind_                { 0 };          //!< unique ind
   bool   enabled_            { true };       //!< is enabled
@@ -263,7 +269,26 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool   checked_            { false };      //!< is checked
   double disabledLighter_    { 0.8 };        //!< disabled lighter
   double uncheckedLighter_   { 0.5 };        //!< unchecked lighter
-  BBox   bbox_;                              //!< bbox (plot coords)
+  BBox   annotationBBox_;                    //!< bbox (plot coords) (remove ?)
+};
+
+//---
+
+class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+ public:
+  using Polygon = CQChartsPolygon;
+
+ public:
+  CQChartsPolyShapeAnnotation(View *view, Type type, const Polygon &polygon=Polygon());
+  CQChartsPolyShapeAnnotation(Plot *plot, Type type, const Polygon &polygon=Polygon());
+
+  const Polygon &polygon() const { return polygon_; }
+  void setPolygon(const Polygon &polygon) { polygon_ = polygon; emit dataChanged(); }
+
+ protected:
+  Polygon polygon_; //!< polygon points
 };
 
 //---
@@ -280,6 +305,21 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle)
   Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
   Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
+  Q_PROPERTY(ShapeType        shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(int              numSides  READ numSides  WRITE setNumSides )
+
+  Q_ENUMS(ShapeType)
+
+ public:
+  enum class ShapeType {
+    NONE          = (int) CQChartsAnnotation::ShapeType::NONE,
+    TRIANGLE      = (int) CQChartsAnnotation::ShapeType::TRIANGLE,
+    DIAMOND       = (int) CQChartsAnnotation::ShapeType::DIAMOND,
+    BOX           = (int) CQChartsAnnotation::ShapeType::BOX,
+    POLYGON       = (int) CQChartsAnnotation::ShapeType::POLYGON,
+    CIRCLE        = (int) CQChartsAnnotation::ShapeType::CIRCLE,
+    DOUBLE_CIRCLE = (int) CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE
+  };
 
  public:
   using Rect     = CQChartsRect;
@@ -291,18 +331,38 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsRectangleAnnotation();
 
+  //---
+
   const char *typeName() const override { return "rectangle"; }
 
+  //---
+
+  //! get/set rectangle
   const Rect &rectangle() const { return rectangle_; }
   void setRectangle(const Rect &rectangle);
-
   void setRectangle(const Position &start, const Position &end);
 
+  //! get/set start
   Position start() const;
   void setStart(const Position &p);
 
+  //! get/set end
   Position end() const;
   void setEnd(const Position &p);
+
+  //! get/set shape
+  const ShapeType &shapeType() const { return shapeType_; }
+  void setShapeType(const ShapeType &s);
+
+  //! get/set number of sides
+  int numSides() const { return numSides_; }
+  void setNumSides(int n);
+
+  //---
+
+  bool intersectShape(const Point &p1, const Point &p2, Point &pi) const override;
+
+  //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
@@ -320,7 +380,9 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  Rect rectangle_; //!< rectangle
+  Rect      rectangle_;                     //!< rectangle
+  ShapeType shapeType_ { ShapeType::NONE }; //!< shape type
+  int       numSides_ { -1 };               //!< number of sides
 };
 
 //---
@@ -392,14 +454,11 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
  *
  * Filled and/or Stroked polygon. Lines can be rounded
  */
-class CQChartsPolygonAnnotation : public CQChartsAnnotation {
+class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
   Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
-
- public:
-  using Polygon = CQChartsPolygon;
 
  public:
   CQChartsPolygonAnnotation(View *view, const Polygon &polygon);
@@ -408,9 +467,6 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   virtual ~CQChartsPolygonAnnotation();
 
   const char *typeName() const override { return "polygon"; }
-
-  const Polygon &polygon() const { return polygon_; }
-  void setPolygon(const Polygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
@@ -443,7 +499,6 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
  private:
   using Smooth = CQChartsSmooth;
 
-  Polygon polygon_;                  //!< polygon points
   bool    roundedLines_ { false };   //!< draw rounded (smooth) lines
   Smooth* smooth_       { nullptr }; //!< smooth object
 };
@@ -458,14 +513,11 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
  *
  * Stroked polyline. Lines can be rounded
  */
-class CQChartsPolylineAnnotation : public CQChartsAnnotation {
+class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
   Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
-
- public:
-  using Polygon = CQChartsPolygon;
 
  public:
   CQChartsPolylineAnnotation(View *view, const Polygon &polygon);
@@ -476,9 +528,6 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   const char *typeName() const override { return "polyline"; }
 
   //---
-
-  const Polygon &polygon() const { return polygon_; }
-  void setPolygon(const Polygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
@@ -511,7 +560,6 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
  private:
   using Smooth = CQChartsSmooth;
 
-  Polygon polygon_;                  //!< polyline points
   bool    roundedLines_ { false };   //!< draw rounded (smooth) lines
   Smooth* smooth_       { nullptr }; //!< smooth object
 };
@@ -705,11 +753,14 @@ class CQChartsArrow;
 class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
-  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsPosition start       READ start       WRITE setStart      )
+  Q_PROPERTY(CQChartsObjRef   startObjRef READ startObjRef WRITE setStartObjRef)
+  Q_PROPERTY(CQChartsPosition end         READ end         WRITE setEnd        )
+  Q_PROPERTY(CQChartsObjRef   endObjRef   READ endObjRef   WRITE setEndObjRef  )
 
  public:
   using Position = CQChartsPosition;
+  using ObjRef   = CQChartsObjRef;
 
  public:
   CQChartsArrowAnnotation(View *view, const Position &start=Position(),
@@ -719,18 +770,32 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsArrowAnnotation();
 
+  //---
+
   const char *typeName() const override { return "arrow"; }
+
+  //---
 
   const Position &start() const { return start_; }
   void setStart(const Position &p) { start_ = p; emit dataChanged(); }
 
+  const ObjRef &startObjRef() const { return startObjRef_; }
+  void setStartObjRef(const ObjRef &v) { startObjRef_ = v; }
+
   const Position &end() const { return end_; }
   void setEnd(const Position &p) { end_ = p; emit dataChanged(); }
+
+  const ObjRef &endObjRef() const { return endObjRef_; }
+  void setEndObjRef(const ObjRef &v) { endObjRef_ = v; }
+
+  //---
 
   CQChartsArrow *arrow() const { return arrow_.get(); }
 
   const CQChartsArrowData &arrowData() const;
   void setArrowData(const CQChartsArrowData &data);
+
+  //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
@@ -739,7 +804,13 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
+  //---
+
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  void flip(Qt::Orientation orient) override;
+
+  //---
 
   bool inside(const Point &p) const override;
 
@@ -756,9 +827,11 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
  private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
-  Position start_ { Point(0, 0) }; //!< arrow start
-  Position end_   { Point(1, 1) }; //!< arrow end
-  ArrowP   arrow_;                 //!< arrow data
+  Position start_       { Point(0, 0) }; //!< arrow start
+  ObjRef   startObjRef_;                 //!< arrow start reference object
+  Position end_         { Point(1, 1) }; //!< arrow end
+  ObjRef   endObjRef_;                   //!< arrow end reference object
+  ArrowP   arrow_;                       //!< arrow data
 };
 
 //---

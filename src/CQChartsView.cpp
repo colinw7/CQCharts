@@ -2284,8 +2284,11 @@ mouseMoveEvent(QMouseEvent *me)
   //---
 
   if (! mousePressed()) {
-    if (mode() == Mode::EDIT)
+    if (mode() == Mode::EDIT) {
+      updatePosText(mouseMovePoint());
+
       editMouseMotion();
+    }
 
     return;
   }

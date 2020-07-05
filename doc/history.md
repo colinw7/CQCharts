@@ -1144,3 +1144,9 @@
  + Cleanup more pen/brush arg lists
  + Use margin with units for fit margin
  + Support nested graphs for nodes in sankey plot
+# 07/05/2020
+ + Add reference object support to arrow annotation start/end points
+ + Improve Sankey sub-graph placement and edit support (move/resize)
+ + Fix bugs in rectilinear arrow drawing
+ + Add error handling for data line edit's (using name/values)
+ + Cleanup select/edit interface for objects (editable and selectable support everywhere)

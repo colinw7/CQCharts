@@ -50,6 +50,9 @@ class CQChartsViewToolBar : public QFrame {
 
   void panResetSlot();
 
+  void flipHSlot();
+  void flipVSlot();
+
   void autoFitSlot();
 
   void leftSlot();

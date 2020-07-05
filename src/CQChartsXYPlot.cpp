@@ -3359,7 +3359,7 @@ rectIntersect(const BBox &r, bool inside) const
 
 bool
 CQChartsXYPolylineObj::
-canSelect() const
+isSelectable() const
 {
   return plot()->isLinesSelectable();
 }
@@ -3716,7 +3716,7 @@ rectIntersect(const BBox &r, bool inside) const
 
 bool
 CQChartsXYPolygonObj::
-canSelect() const
+isSelectable() const
 {
   return plot()->isFillUnderSelectable();
 }

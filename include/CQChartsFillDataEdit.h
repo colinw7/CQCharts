@@ -61,6 +61,8 @@ class CQGroupBox;
 class CQChartsFillDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsFillData data READ data WRITE setData)
+
  public:
   CQChartsFillDataEdit(QWidget *parent=nullptr);
 

@@ -73,26 +73,30 @@ bool
 CQChartsTextData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
-    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha, bool &ok) {
+    double r; (void) nameValues.nameValueReal(name, r, ok); alpha = CQChartsAlpha(r);
+    return true;
   };
 
-  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle) {
-    double r; nameValues.nameValueReal(name, r); angle = CQChartsAngle(r);
+  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle, bool &ok) {
+    double r; (void) nameValues.nameValueReal(name, r, ok); angle = CQChartsAngle(r);
+    return true;
   };
 
-  nameValues.nameValueBool ("visible"  , visible_);
-  nameValues.nameValueColor("color"    , color_);
-  nameValueAlpha           ("alpha"    , alpha_);
-  nameValues.nameValueFont ("font"     , font_);
-  nameValueAngle           ("angle"    , angle_);
-  nameValues.nameValueBool ("contrast" , contrast_);
-  nameValues.nameValueAlign("align"    , align_);
-  nameValues.nameValueBool ("formatted", formatted_);
-  nameValues.nameValueBool ("scaled"   , scaled_);
-  nameValues.nameValueBool ("html"     , html_);
+  bool ok = true, ok1 = true;
 
-  return true;
+  (void) nameValues.nameValueBool ("visible"  , visible_  , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueColor("color"    , color_    , ok1); if (! ok1) ok = false;
+  (void) nameValueAlpha           ("alpha"    , alpha_    , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueFont ("font"     , font_     , ok1); if (! ok1) ok = false;
+  (void) nameValueAngle           ("angle"    , angle_    , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueBool ("contrast" , contrast_ , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueAlign("align"    , align_    , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueBool ("formatted", formatted_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueBool ("scaled"   , scaled_   , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueBool ("html"     , html_     , ok1); if (! ok1) ok = false;
+
+  return ok;
 }
 
 //------
@@ -152,18 +156,21 @@ bool
 CQChartsLineData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
-    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha, bool &ok) {
+    double r; nameValues.nameValueReal(name, r, ok); alpha = CQChartsAlpha(r);
+    return true;
   };
 
-  nameValues.nameValueBool ("visible", visible_);
-  nameValues.nameValueColor("color"  , color_);
-  nameValueAlpha           ("alpha"  , alpha_);
+  bool ok = true, ok1 = true;
 
-  nameValues.nameValueType<CQChartsLength>  ("width", width_);
-  nameValues.nameValueType<CQChartsLineDash>("dash" , dash_);
+  (void) nameValues.nameValueBool ("visible", visible_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueColor("color"  , color_  , ok1); if (! ok1) ok = false;
+  (void) nameValueAlpha           ("alpha"  , alpha_  , ok1); if (! ok1) ok = false;
 
-  return true;
+  (void) nameValues.nameValueType<CQChartsLength>  ("width", width_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<CQChartsLineDash>("dash" , dash_ , ok1); if (! ok1) ok = false;
+
+  return ok;
 }
 
 //------
@@ -213,10 +220,12 @@ bool
 CQChartsShapeData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  fill_  .getNameValues(nameValues);
-  stroke_.getNameValues(nameValues);
+  bool ok = true;
 
-  return true;
+  if (! fill_  .getNameValues(nameValues)) ok = false;
+  if (! stroke_.getNameValues(nameValues)) ok = false;
+
+  return ok;
 }
 
 //------
@@ -273,22 +282,24 @@ bool
 CQChartsBoxData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  bool ok = true, ok1 = true;
+
   QString str;
 
-  nameValues.nameValueBool("visible", visible_);
+  nameValues.nameValueBool("visible", visible_, ok1); if (! ok1) ok = false;
 
-  if (nameValues.nameValueString("margin", str))
+  if (nameValues.nameValueString("margin", str, ok1))
     margin_ = CQChartsMargin(str);
 
-  if (nameValues.nameValueString("padding", str))
+  if (nameValues.nameValueString("padding", str, ok1))
     padding_ = CQChartsMargin(str);
 
-  shape_.getNameValues(nameValues);
+  if (! shape_.getNameValues(nameValues)) ok = false;
 
-  if (nameValues.nameValueString("border_sides", str))
+  if (nameValues.nameValueString("border_sides", str, ok1))
     borderSides_ = CQChartsSides(str);
 
-  return true;
+  return ok;
 }
 
 //------
@@ -338,10 +349,12 @@ bool
 CQChartsTextBoxData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  text_.getNameValues(nameValues);
-  box_ .getNameValues(nameValues);
+  bool ok = true;
 
-  return true;
+  if (! text_.getNameValues(nameValues)) ok = false;
+  if (! box_ .getNameValues(nameValues)) ok = false;
+
+  return ok;
 }
 
 //------
@@ -398,17 +411,21 @@ bool
 CQChartsFillData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
-    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha, bool &ok) {
+    double r; nameValues.nameValueReal(name, r, ok); alpha = CQChartsAlpha(r);
+    return true;
   };
 
-  nameValues.nameValueBool ("filled", visible_);
-  nameValues.nameValueColor("fillColor", color_);
-  nameValueAlpha           ("fillAlpha", alpha_);
+  bool ok = true, ok1 = true;
 
-  nameValues.nameValueType<CQChartsFillPattern>("fillPattern", pattern_);
+  (void) nameValues.nameValueBool ("filled"   , visible_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueColor("fillColor", color_  , ok1); if (! ok1) ok = false;
+  (void) nameValueAlpha           ("fillAlpha", alpha_  , ok1); if (! ok1) ok = false;
 
-  return true;
+  (void) nameValues.nameValueType<CQChartsFillPattern>("fillPattern", pattern_, ok1);
+  if (! ok1) ok = false;
+
+  return ok;
 }
 
 //------
@@ -471,21 +488,27 @@ bool
 CQChartsStrokeData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha) {
-    double r; nameValues.nameValueReal(name, r); alpha = CQChartsAlpha(r);
+  auto nameValueAlpha = [&](const QString &name, CQChartsAlpha &alpha, bool &ok) {
+    double r; nameValues.nameValueReal(name, r, ok); alpha = CQChartsAlpha(r);
+    return true;
   };
 
-  nameValues.nameValueBool ("stroked"    , visible_);
-  nameValues.nameValueColor("strokeColor", color_);
-  nameValueAlpha           ("strokeAlpha", alpha_);
+  bool ok = true, ok1 = true;
 
-  nameValues.nameValueType<CQChartsLength>("strokeWidth", width_);
+  (void) nameValues.nameValueBool ("stroked"    , visible_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueColor("strokeColor", color_  , ok1); if (! ok1) ok = false;
+  (void) nameValueAlpha           ("strokeAlpha", alpha_  , ok1); if (! ok1) ok = false;
 
-  nameValues.nameValueType<CQChartsLineDash>("strokeDash", dash_);
+  (void) nameValues.nameValueType<CQChartsLength>("strokeWidth", width_, ok1);
+  if (! ok1) ok = false;
 
-  nameValues.nameValueType<CQChartsLength>("strokeCornerSize", cornerSize_);
+  (void) nameValues.nameValueType<CQChartsLineDash>("strokeDash", dash_, ok1);
+  if (! ok1) ok = false;
 
-  return true;
+  (void) nameValues.nameValueType<CQChartsLength>("strokeCornerSize", cornerSize_, ok1);
+  if (! ok1) ok = false;
+
+  return ok;
 }
 
 //------
@@ -540,15 +563,17 @@ bool
 CQChartsSymbolData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  nameValues.nameValueBool("visible", visible_);
+  bool ok = true, ok1 = true;
 
-  nameValues.nameValueType<CQChartsSymbol>("type", type_);
-  nameValues.nameValueType<CQChartsLength>("size", size_);
+  (void) nameValues.nameValueBool("visible", visible_, ok1); if (! ok1) ok = false;
 
-  stroke_.getNameValues(nameValues);
-  fill_  .getNameValues(nameValues);
+  (void) nameValues.nameValueType<CQChartsSymbol>("type", type_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<CQChartsLength>("size", size_, ok1); if (! ok1) ok = false;
 
-  return true;
+  if (! stroke_.getNameValues(nameValues)) ok = false;
+  if (! fill_  .getNameValues(nameValues)) ok = false;
+
+  return ok;
 }
 
 //------
@@ -701,27 +726,41 @@ bool
 CQChartsArrowData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle) {
-    double r; nameValues.nameValueReal(name, r); angle = CQChartsAngle(r);
+  auto nameValueAngle = [&](const QString &name, CQChartsAngle &angle, bool &ok) {
+    double r; nameValues.nameValueReal(name, r, ok); angle = CQChartsAngle(r);
+    return true;
   };
 
-//nameValues.nameValueBool("relative", relative_);
+  bool ok = true, ok1 = true;
 
-  nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_);
+//nameValues.nameValueBool("relative", relative_, ok1); if (! ok1) ok = false;
 
-  nameValues.nameValueBool                ("front_visible"   , fheadData_.visible);
-  nameValueAngle                          ("front_angle"     , fheadData_.angle);
-  nameValueAngle                          ("front_back_angle", fheadData_.backAngle);
-  nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
-  nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds);
+  (void) nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_, ok1);
+  if (! ok1) ok = false;
 
-  nameValues.nameValueBool                ("tail_visible"    , theadData_.visible);
-  nameValueAngle                          ("tail_angle"      , theadData_.angle);
-  nameValueAngle                          ("tail_back_angle" , theadData_.backAngle);
-  nameValues.nameValueType<CQChartsLength>("tail_length"     , theadData_.length);
-  nameValues.nameValueBool                ("tail_line_ends"  , theadData_.lineEnds);
+  (void) nameValues.nameValueBool                ("front_visible"   , fheadData_.visible  , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                          ("front_angle"     , fheadData_.angle    , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                          ("front_back_angle", fheadData_.backAngle, ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length   , ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds , ok1);
+  if (! ok1) ok = false;
 
-  return true;
+  (void) nameValues.nameValueBool                ("tail_visible"    , theadData_.visible  , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                          ("tail_angle"      , theadData_.angle    , ok1);
+  if (! ok1) ok = false;
+  (void) nameValueAngle                          ("tail_back_angle" , theadData_.backAngle, ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueType<CQChartsLength>("tail_length"     , theadData_.length   , ok1);
+  if (! ok1) ok = false;
+  (void) nameValues.nameValueBool                ("tail_line_ends"  , theadData_.lineEnds , ok1);
+  if (! ok1) ok = false;
+
+  return ok;
 }
 
 bool

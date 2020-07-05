@@ -415,12 +415,16 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
+  // Edit Interface
+
+  // handle edit press, move, motion, release
   virtual bool editPress  (const Point &);
   virtual bool editMove   (const Point &);
   virtual bool editMotion (const Point &);
   virtual bool editRelease(const Point &) { return true; }
 
-  virtual void editMoveBy(const Point &d);
+  //! handle edit move by (move)
+  virtual void editMoveBy(const Point &);
 
   //---
 

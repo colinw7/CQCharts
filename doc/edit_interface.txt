@@ -1,0 +1,16 @@
+Edit Interface
+--------------
+
+ . Single (draggable) object editable at time
+ . Can be moved or resized
+
+ Routines called:
+  editPress   : press/select object for mouse edit
+  editMotion  : move object for mouse edit
+  editRelease : release object for mouse edit
+
+ Editable Objects
+  . CQChartsPlot
+  . CQChartsPlotObj
+  . CQChartsAxis
+  . CQChartsViewPlotObj (CQChartsKey, CQChartsTitle, CQChartsAnnotation)

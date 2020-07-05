@@ -5,6 +5,8 @@
 
 class CQChartsViewSettingsViewPropertiesWidget;
 class CQChartsViewSettingsPlotPropertiesWidget;
+class CQChartsViewSettingsObjectPropertiesWidget;
+
 class CQChartsViewSettingsFilterEdit;
 class CQChartsViewSettingsModelTable;
 class CQChartsViewSettingsPlotTable;
@@ -31,6 +33,7 @@ class CQChartsViewError;
 class CQColorsEditCanvas;
 class CQColorsEditControl;
 class CQColorsEditList;
+class CQPropertyViewModel;
 
 class CQTabWidget;
 class CQIntegerSpin;
@@ -91,6 +94,8 @@ class CQChartsViewSettings : public QFrame {
   int addPlotControls(CQChartsPlot *plot);
 
   void updateAnnotations();
+
+  void updatePlotObjects();
 
   void updateLayers();
 
@@ -190,6 +195,7 @@ class CQChartsViewSettings : public QFrame {
   void initModelsFrame     (QFrame *modelsFrame);
   void initPlotsFrame      (QFrame *plotsFrame);
   void initAnnotationsFrame(QFrame *annotationsFrame);
+  void initObjectsFrame    (QFrame *objectsFrame);
   void initThemeFrame      (QFrame *themeFrame);
   void initLayersFrame     (QFrame *layersFrame);
   void initErrorsFrame     (QFrame *errorsFrame);
@@ -205,8 +211,11 @@ class CQChartsViewSettings : public QFrame {
   void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
 
  private:
+  using ViewPropertiesWidget   = CQChartsViewSettingsViewPropertiesWidget;
+  using PlotPropertiesWidget   = CQChartsViewSettingsPlotPropertiesWidget;
+  using ObjectPropertiesWidget = CQChartsViewSettingsObjectPropertiesWidget;
+
   using FilterEdit           = CQChartsViewSettingsFilterEdit;
-  using ViewPropertiesWidget = CQChartsViewSettingsViewPropertiesWidget;
   using ModelTable           = CQChartsViewSettingsModelTable;
   using PlotTable            = CQChartsViewSettingsPlotTable;
   using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;
@@ -258,6 +267,11 @@ class CQChartsViewSettings : public QFrame {
     QPushButton*          writeButton  { nullptr }; //!< write button
   };
 
+  struct ObjectsWidgets {
+    ObjectPropertiesWidget* propertyTree  { nullptr };
+    CQPropertyViewModel*    propertyModel { nullptr };
+  };
+
   struct ThemeWidgets {
     CQColorsEditList*    palettesList     { nullptr }; //!< palettes list
     QComboBox*           palettesCombo    { nullptr }; //!< palettes name combo
@@ -297,6 +311,7 @@ class CQChartsViewSettings : public QFrame {
   ModelsWidgets      modelsWidgets_;                   //!< models widgets
   PlotsWidgets       plotsWidgets_;                    //!< plots widgets
   AnnotationsWidgets annotationsWidgets_;              //!< annotations widgets
+  ObjectsWidgets     objectsWidgets_;
   ThemeWidgets       themeWidgets_;                    //!< theme widgets
   LayersWidgets      layersWidgets_;                   //!< layers widgets
   CQChartsViewError* error_               { nullptr }; //!< error widget
@@ -353,6 +368,34 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
 
  public:
   CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChartsPlot *plot);
+
+  CQChartsPlot *plot() const { return plot_; }
+
+  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
+
+ signals:
+  void propertyItemSelected(QObject *obj, const QString &path);
+
+ private slots:
+  void filterStateSlot(bool show, bool focus);
+
+ private:
+  CQChartsPlot*                   plot_         { nullptr };
+  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
+  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
+};
+
+//---
+
+/*!
+ * \brief View settings plot object properties widget
+ * \ingroup Charts
+ */
+class CQChartsViewSettingsObjectPropertiesWidget : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsViewSettingsObjectPropertiesWidget(CQChartsViewSettings *settings);
 
   CQChartsPlot *plot() const { return plot_; }
 

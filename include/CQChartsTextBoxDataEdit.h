@@ -59,6 +59,8 @@ class CQChartsTextBoxDataEditPreview;
 class CQChartsTextBoxDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsTextBoxData data READ data WRITE setData)
+
  public:
   CQChartsTextBoxDataEdit(QWidget *parent=nullptr, bool tabbed=false);
 

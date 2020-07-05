@@ -99,8 +99,10 @@ setNameValue(const QString &name, const QVariant &value)
 
 bool
 CQModelNameValues::
-nameValueString(const QString &name, QString &value) const
+nameValueString(const QString &name, QString &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
@@ -113,40 +115,42 @@ nameValueString(const QString &name, QString &value) const
 
 bool
 CQModelNameValues::
-nameValueInteger(const QString &name, int &value) const
+nameValueInteger(const QString &name, int &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
-
-  bool ok;
 
   value = var.toInt(&ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQModelNameValues::
-nameValueReal(const QString &name, double &value) const
+nameValueReal(const QString &name, double &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
 
-  bool ok;
-
   value = var.toDouble(&ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQModelNameValues::
-nameValueBool(const QString &name, bool &value) const
+nameValueBool(const QString &name, bool &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
@@ -159,8 +163,10 @@ nameValueBool(const QString &name, bool &value) const
 
 bool
 CQModelNameValues::
-nameValueColor(const QString &name, QColor &color) const
+nameValueColor(const QString &name, QColor &color, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
@@ -171,13 +177,17 @@ nameValueColor(const QString &name, QColor &color) const
   else
     color = QColor(var.toString());
 
-  return color.isValid();
+  ok = color.isValid();
+
+  return true;
 }
 
 bool
 CQModelNameValues::
-nameValueFont(const QString &name, QFont &font) const
+nameValueFont(const QString &name, QFont &font, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
@@ -193,7 +203,7 @@ nameValueFont(const QString &name, QFont &font) const
 
 bool
 CQModelNameValues::
-nameValueAlign(const QString &name, Qt::Alignment &align) const
+nameValueAlign(const QString &name, Qt::Alignment &align, bool &ok) const
 {
   QVariant var;
 
@@ -201,7 +211,7 @@ nameValueAlign(const QString &name, Qt::Alignment &align) const
     return false;
 
   if (! CQUtil::stringToAlign(var.toString(), align))
-    return false;
+    ok = false;
 
   return true;
 }

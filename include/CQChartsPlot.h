@@ -487,6 +487,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void resetDataRange(bool updateRange=true, bool updateObjs=true);
 
+  virtual Range objTreeRange() const { return dataRange_; }
+
   //---
 
   struct ZoomData {
@@ -920,7 +922,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void addBaseProperties();
 
-  void addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix);
+  void addSymbolProperties(const QString &path, const QString &prefix,
+                           const QString &descPrefix, bool hidden=false);
 
   void addLineProperties(const QString &path, const QString &prefix,
                          const QString &descPrefix, bool hidden=false);
@@ -928,7 +931,8 @@ class CQChartsPlot : public CQChartsObj,
                          const QString &descPrefix, bool hidden=false);
 
   void addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix,
-                         uint valueTypes=CQChartsTextOptions::ValueType::SIMPLE);
+                         uint valueTypes=CQChartsTextOptions::ValueType::SIMPLE,
+                         bool hidden=false);
 
   void addColorMapProperties();
 
@@ -1545,6 +1549,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void clearPlotObjects();
 
+  void invalidateObjTree();
+
   bool updateInsideObjects(const Point &w);
 
   Obj *insideObject() const;
@@ -1716,6 +1722,20 @@ class CQChartsPlot : public CQChartsObj,
 
   //-
 
+  //! drag object
+  enum class DragObjType {
+    NONE,        //!< none
+    PLOT,        //!< plot (move)
+    PLOT_HANDLE, //!< plot handles (resize)
+    OBJECT,      //!< plot object
+    XAXIS,       //!< xaxis
+    YAXIS,       //!< yaxis
+    KEY,         //!< key
+    TITLE,       //!< title
+    ANNOTATION   //!< annotation
+  };
+
+  //! mouse state data
   // handle mouse drag press/move/release
   bool editMousePress  (const Point &p, bool inside=false);
   bool editMouseMove   (const Point &p, bool first=false);
@@ -1726,6 +1746,12 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool editMove   (const Point &p, const Point &w, bool first=false);
   virtual bool editMotion (const Point &p, const Point &w);
   virtual bool editRelease(const Point &p, const Point &w);
+
+  virtual void editMoveBy(const Point &d);
+
+  void setDragObj(DragObjType objType, CQChartsObj *obj);
+
+  void flipSelected(Qt::Orientation orient);
 
   //-
 
@@ -1748,8 +1774,6 @@ class CQChartsPlot : public CQChartsObj,
   bool objectsEditSelect(const Point &w, bool inside);
 
   //-
-
-  virtual void editMoveBy(const Point &d);
 
   void selectOneObj(Obj *obj, bool allObjs);
 
@@ -1926,7 +1950,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void addAnnotation(Annotation *annotation);
 
-  Annotation *getAnnotationByName(const QString &id) const;
+  Annotation *getAnnotationById(const QString &id) const;
+  Annotation *getAnnotationByPathId(const QString &pathId) const;
   Annotation *getAnnotationByInd(int ind) const;
 
   void removeAnnotation(Annotation *annotation);
@@ -2640,27 +2665,14 @@ class CQChartsPlot : public CQChartsObj,
     int  step    { 1 };
   };
 
-  //! drag object
-  enum class DragObj {
-    NONE,
-    KEY,
-    XAXIS,
-    YAXIS,
-    TITLE,
-    ANNOTATION,
-    OBJECT,
-    PLOT,
-    PLOT_HANDLE
-  };
-
-  //! mouse state data
   struct MouseData {
-    Point              pressPoint { 0, 0 };
-    Point              movePoint  { 0, 0 };
-    bool               pressed    { false };
-    DragObj            dragObj    { DragObj::NONE };
-    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE };
-    bool               dragged    { false };
+    Point              pressPoint  { 0, 0 };
+    Point              movePoint   { 0, 0 };
+    bool               pressed     { false };
+    DragObjType        dragObjType { DragObjType::NONE };
+    CQChartsObj*       dragObj     { nullptr };
+    CQChartsResizeSide dragSide    { CQChartsResizeSide::NONE };
+    bool               dragged     { false };
   };
 
   //! animation data

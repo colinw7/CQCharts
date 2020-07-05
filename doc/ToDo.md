@@ -3,6 +3,15 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + arrow relative position to other object (start/end)
+ + support shapes/sides for annotation (which ?)
+ + arrow position is shape dependent
+ + text overlap graph/remover/clipper (text movable, clippable, priority)
+ + cleanup edit interface (move to base class)
+ + Arrow annotation new style
+ + Better pattern fills (pattern shape as fill)
+ + Sankey editing
+   + Better feedback for selected/over object
  + Annotations
    + Widget annotations (combox, text edit, check, radio, ...)
  + Recalc margin from current value on resize as may have changed due to font change

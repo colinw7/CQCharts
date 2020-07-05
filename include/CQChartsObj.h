@@ -16,12 +16,14 @@ class CQCharts;
 class CQChartsObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QString            id       READ id         WRITE setId      )
-  Q_PROPERTY(CQChartsGeom::BBox rect     READ rect       WRITE setRect    )
-  Q_PROPERTY(QString            tipId    READ tipId      WRITE setTipId   )
-  Q_PROPERTY(bool               visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(bool               selected READ isSelected WRITE setSelected)
-  Q_PROPERTY(bool               inside   READ isInside   WRITE setInside  )
+  Q_PROPERTY(QString            id         READ id           WRITE setId        )
+  Q_PROPERTY(CQChartsGeom::BBox rect       READ rect         WRITE setRect      )
+  Q_PROPERTY(QString            tipId      READ tipId        WRITE setTipId     )
+  Q_PROPERTY(bool               visible    READ isVisible    WRITE setVisible   )
+  Q_PROPERTY(bool               selected   READ isSelected   WRITE setSelected  )
+  Q_PROPERTY(bool               inside     READ isInside     WRITE setInside    )
+  Q_PROPERTY(bool               selectable READ isSelectable WRITE setSelectable)
+  Q_PROPERTY(bool               editable   READ isEditable   WRITE setEditable  )
 
  public:
   using BBox  = CQChartsGeom::BBox;
@@ -54,6 +56,11 @@ class CQChartsObj : public QObject {
 
   //---
 
+  virtual bool intersectShape(const Point & /*p1*/, const Point & /*p2*/,
+                              Point & /*pi*/) const { return false; }
+
+  //---
+
   // tip id for object (string to display in tooltip)
   bool hasTipId() const { return !!tipId_; }
 
@@ -80,6 +87,16 @@ class CQChartsObj : public QObject {
 
   //---
 
+  // is selectable
+  virtual bool isSelectable() const { return selectable_; }
+  virtual void setSelectable(bool b) { selectable_ = b; }
+
+  // is editable
+  virtual bool isEditable() const { return editable_; }
+  virtual void setEditable(bool b) { editable_ = b; }
+
+  //---
+
   virtual bool contains(const Point &p) const = 0;
 
   //---
@@ -93,14 +110,16 @@ class CQChartsObj : public QObject {
  protected:
   using OptString = boost::optional<QString>;
 
-  CQCharts*          charts_   { nullptr }; //!< charts
-  OptString          id_;                   //!< id
-  BBox               rect_;                 //!< bbox
-  OptString          tipId_;                //!< tip id
-  bool               visible_  { true };    //!< is visible
-  bool               selected_ { false };   //!< is selected
-  bool               inside_   { false };   //!< is mouse inside
-  mutable std::mutex mutex_;                //!< mutex
+  CQCharts*          charts_     { nullptr }; //!< charts
+  OptString          id_;                     //!< id
+  BBox               rect_;                   //!< bbox
+  OptString          tipId_;                  //!< tip id
+  bool               visible_    { true };    //!< is visible
+  bool               selected_   { false };   //!< is selected
+  bool               inside_     { false };   //!< is mouse inside
+  bool               editable_   { false };   //!< is editable
+  bool               selectable_ { true };    //!< is selectable
+  mutable std::mutex mutex_;                  //!< mutex
 };
 
 #endif

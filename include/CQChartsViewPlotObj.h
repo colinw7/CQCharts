@@ -14,6 +14,7 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsEditHandles;
 class CQChartsPaintDevice;
+class CQChartsObjRef;
 
 /*!
  * \brief Object which could be on a view or a plot
@@ -39,6 +40,8 @@ class CQChartsViewPlotObj : public CQChartsObj {
   using Font        = CQChartsFont;
   using PaintDevice = CQChartsPaintDevice;
   using TextOptions = CQChartsTextOptions;
+  using ResizeSide  = CQChartsResizeSide;
+  using ObjRef      = CQChartsObjRef;
 
   using Polygon = CQChartsGeom::Polygon;
   using RMinMax = CQChartsGeom::RMinMax;
@@ -55,6 +58,31 @@ class CQChartsViewPlotObj : public CQChartsObj {
 
   View *view() const;
   Plot *plot() const { return plot_; }
+
+  //---
+
+  // Select Interface
+
+  //! handle select press, move, release
+  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
+  virtual bool selectMove   (const Point &) { return false; }
+  virtual bool selectRelease(const Point &) { return false; }
+
+  //---
+
+  // Edit Interface
+
+  // handle edit press, move, motion, release
+  virtual bool editPress  (const Point &) { return false; }
+  virtual bool editMove   (const Point &) { return false; }
+  virtual bool editMotion (const Point &) { return false; }
+  virtual bool editRelease(const Point &) { return true; }
+
+  //! handle edit move by (move)
+  virtual void editMoveBy(const Point &) { }
+
+  //! set new bounding box (resize)
+  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
 
   //---
 
@@ -84,8 +112,17 @@ class CQChartsViewPlotObj : public CQChartsObj {
   //---
 
   // conversion utilities
+  Point positionToParent(const ObjRef &objRef, const Position &pos) const;
+  Point positionToPixel (const ObjRef &objRef, const Position &pos) const;
+
   Point positionToParent(const Position &pos) const;
   Point positionToPixel (const Position &pos) const;
+
+  Point intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const;
+
+  bool objectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const;
+
+  //---
 
   double lengthParentWidth (const Length &len) const;
   double lengthParentHeight(const Length &len) const;

@@ -70,6 +70,8 @@ class CQGroupBox;
 class CQChartsStrokeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsStrokeData data READ data WRITE setData)
+
  public:
   CQChartsStrokeDataEdit(QWidget *parent=nullptr,
    const CQChartsStrokeDataEditConfig &config=CQChartsStrokeDataEditConfig());

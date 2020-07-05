@@ -25,8 +25,6 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
   Q_PROPERTY(QString typeName READ typeName)
-  Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible)
-  Q_PROPERTY(bool    editable READ isEditable WRITE setEditable)
 
  public:
   enum class DetailHint {
@@ -41,6 +39,7 @@ class CQChartsPlotObj : public CQChartsObj {
   using Indices      = std::set<QModelIndex>;
   using ColorInd     = CQChartsUtil::ColorInd;
   using PenBrush     = CQChartsPenBrush;
+  using ResizeSide   = CQChartsResizeSide;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -159,34 +158,38 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  // is ediable
-  virtual bool isEditable() const { return editable_; }
-  void setEditable(bool b) { editable_ = b; }
-
-  //---
-
   //virtual void postResize() { }
 
   //---
 
-  //! handle select press
-  virtual void selectPress() { }
+  // Select Interface
 
-  virtual bool canSelect() const { return true; }
+  //! handle select press, move, release
+  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
+  virtual bool selectMove   (const Point &) { return false; }
+  virtual bool selectRelease(const Point &) { return false; }
 
   //---
+
+  // Edit Interface
 
   //! handle edit press, move, motion, release
   virtual bool editPress  (const Point &) { return false; }
   virtual bool editMove   (const Point &) { return false; }
   virtual bool editMotion (const Point &) { return false; }
-  virtual bool editRelease(const Point &) { return false; }
+  virtual bool editRelease(const Point &) { return true; }
 
   //! handle edit move by
   virtual void editMoveBy(const Point &) { }
 
   //! set new bounding box
-  virtual void setEditBBox(const BBox &, const CQChartsResizeSide &) { }
+  virtual void setEditBBox(const BBox &, const ResizeSide &) { }
+
+  virtual bool isEditResize() const { return false; }
+
+  //---
+
+  virtual void flip(Qt::Orientation) { }
 
   //---
 
@@ -257,7 +260,6 @@ class CQChartsPlotObj : public CQChartsObj {
  protected:
   Plot*                plot_        { nullptr };           //!< parent plot
   DetailHint           detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
-  bool                 editable_    { false };             //!< editable
   ColorInd             is_;                                //!< set index
   ColorInd             ig_;                                //!< group index
   ColorInd             iv_;                                //!< value index

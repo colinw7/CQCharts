@@ -24,6 +24,16 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
  public:
   using ColorInd = CQChartsUtil::ColorInd;
 
+  enum class ShapeType {
+    NONE,
+    TRIANGLE,
+    DIAMOND,
+    BOX,
+    POLYGON,
+    CIRCLE,
+    DOUBLE_CIRCLE
+  };
+
  public:
   CQChartsBoxObj(CQChartsView *view);
   CQChartsBoxObj(CQChartsPlot *plot);

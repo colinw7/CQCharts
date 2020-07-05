@@ -183,6 +183,14 @@ drawContents(const PenBrush &penBrush) const
   ArrowAngle fba(CMathUtil::Deg2Rad(frontBackAngle().value() > 0 ? frontBackAngle().value() : 90));
   ArrowAngle tba(CMathUtil::Deg2Rad(tailBackAngle ().value() > 0 ? tailBackAngle ().value() : 90));
 
+  if (isRectilinear()) {
+    faa = ArrowAngle(CMathUtil::Deg2Rad(30));
+    taa = ArrowAngle(CMathUtil::Deg2Rad(30));
+
+    fba = ArrowAngle(CMathUtil::Deg2Rad(90));
+    tba = ArrowAngle(CMathUtil::Deg2Rad(90));
+  }
+
   //---
 
   // calc front/tail arrow length along line
@@ -204,8 +212,13 @@ drawContents(const PenBrush &penBrush) const
 
   //---
 
-  bool isFrontLineEnds = (this->isFrontLineEnds() && isFrontVisible());
-  bool isTailLineEnds  = (this->isTailLineEnds () && isTailVisible ());
+  bool isFrontLineEnds = false;
+  bool isTailLineEnds  = false;
+
+  if (! isRectilinear()) {
+    isFrontLineEnds = (this->isFrontLineEnds() && isFrontVisible());
+    isTailLineEnds  = (this->isTailLineEnds () && isTailVisible ());
+  }
 
   //---
 
@@ -238,8 +251,8 @@ drawContents(const PenBrush &penBrush) const
 
   //---
 
-  CQChartsGeom::Polygon fHeadPoints;
-  Point   pf1, pf2;
+  GeomPolygon fHeadPoints;
+  Point       pf1, pf2;
 
   if (isFrontVisible()) {
     // calc front head angle (relative to line)
@@ -345,8 +358,8 @@ drawContents(const PenBrush &penBrush) const
 
   //---
 
-  CQChartsGeom::Polygon tHeadPoints;
-  Point   pt1, pt2;
+  GeomPolygon tHeadPoints;
+  Point       pt1, pt2;
 
   if (isTailVisible()) {
     // calc tail head angle (relative to line)
@@ -453,84 +466,97 @@ drawContents(const PenBrush &penBrush) const
   //---
 
   // update head and tail (non line) polygon for arrow shape with line width
-  if (linePoly && ! isRectilinear()) {
-    // intersect front head point lines with arrow line (offset by width)
-    if (! fHeadPoints.empty() && ! isFrontLineEnds) {
-      Point fl1, fl2;
+  if (linePoly) {
+    if (! isRectilinear()) {
+      // intersect front head point lines with arrow line (offset by width)
+      if (! fHeadPoints.empty() && ! isFrontLineEnds) {
+        Point fl1, fl2;
 
-      int np = fHeadPoints.size();
+        int np = fHeadPoints.size();
 
-      auto pi1 = pl1;
-      auto pi2 = pl2;
+        auto pi1 = pl1;
+        auto pi2 = pl2;
 
-      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
-        bool inside;
+        for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
+          bool inside;
 
-        intersectLine(pl1, pl3, fHeadPoints.point(i1), fHeadPoints.point(i2), fl1, inside);
+          intersectLine(pl1, pl3, fHeadPoints.point(i1), fHeadPoints.point(i2), fl1, inside);
 
-        // if intersect inside, and more to right, update intersection (above)
-        if (inside && (fl1.x > pi1.x))
-          pi1 = fl1;
+          // if intersect inside, and more to right, update intersection (above)
+          if (inside && (fl1.x > pi1.x))
+            pi1 = fl1;
 
-        intersectLine(pl2, pl4, fHeadPoints.point(i1), fHeadPoints.point(i2), fl2, inside);
+          intersectLine(pl2, pl4, fHeadPoints.point(i1), fHeadPoints.point(i2), fl2, inside);
 
-        // if intersect inside, and more to right, update intersection (below)
-        if (inside && (fl2.x > pi2.x))
-          pi2 = fl2;
+          // if intersect inside, and more to right, update intersection (below)
+          if (inside && (fl2.x > pi2.x))
+            pi2 = fl2;
+        }
+
+        pl1 = pi1;
+        pl2 = pi2;
       }
 
-      pl1 = pi1;
-      pl2 = pi2;
-    }
+      //---
 
-    //---
+      // intersect front head point lines with arrow line (offset by width)
+      if (! tHeadPoints.empty() && ! isTailLineEnds) {
+        Point tl1, tl2;
 
-    // intersect front head point lines with arrow line (offset by width)
-    if (! tHeadPoints.empty() && ! isTailLineEnds) {
-      Point tl1, tl2;
+        int np = tHeadPoints.size();
 
-      int np = tHeadPoints.size();
+        auto pi3 = pl3;
+        auto pi4 = pl4;
 
-      auto pi3 = pl3;
-      auto pi4 = pl4;
+        for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
+          bool inside;
 
-      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
-        bool inside;
+          intersectLine(pl1, pl3, tHeadPoints.point(i1), tHeadPoints.point(i2), tl1, inside);
 
-        intersectLine(pl1, pl3, tHeadPoints.point(i1), tHeadPoints.point(i2), tl1, inside);
+          // if intersect inside, and more to left, update intersection (above)
+          if (inside && (tl1.x < pi3.x))
+            pi3 = tl1;
 
-        // if intersect inside, and more to left, update intersection (above)
-        if (inside && (tl1.x < pi3.x))
-          pi3 = tl1;
+          intersectLine(pl2, pl4, tHeadPoints.point(i1), tHeadPoints.point(i2), tl2, inside);
 
-        intersectLine(pl2, pl4, tHeadPoints.point(i1), tHeadPoints.point(i2), tl2, inside);
+          // if intersect inside, and more to left, update intersection (below)
+          if (inside && (tl2.x < pi4.x))
+            pi4 = tl2;
+        }
 
-        // if intersect inside, and more to left, update intersection (below)
-        if (inside && (tl2.x < pi4.x))
-          pi4 = tl2;
+        pl3 = pi3;
+        pl4 = pi4;
       }
-
-      pl3 = pi3;
-      pl4 = pi4;
     }
+    else {
+      if (isFrontVisible())
+        addWidthToPoint(p2, a, lpw, pl1, pl2);
+      else
+        addWidthToPoint(p1, a, lpw, pl1, pl2);
 
-    //---
+      if (isTailVisible())
+        addWidthToPoint(p3, a, lpw, pl3, pl4);
+      else
+        addWidthToPoint(p4, a, lpw, pl3, pl4);
+    }
+  }
+
+  //---
 
 #if DEBUG_LABELS
-    if (isDebugLabels()) {
-      addPointLabel(pl1, "pl1", /*above*/false);
-      addPointLabel(pl2, "pl2", /*above*/true );
-      addPointLabel(pl3, "pl3", /*above*/false);
-      addPointLabel(pl4, "pl4", /*above*/true );
-    }
+   if (isDebugLabels()) {
+     addPointLabel(pl1, "pl1", /*above*/false);
+     addPointLabel(pl2, "pl2", /*above*/true );
+     addPointLabel(pl3, "pl3", /*above*/false);
+     addPointLabel(pl4, "pl4", /*above*/true );
+   }
 #endif
-  }
 
   //---
 
   if (linePoly) {
     // draw line polygon (has line width)
-    CQChartsGeom::Polygon points;
+    GeomPolygon points;
 
     auto addFrontPoints = [&]() {
       points.addPoint(pl2); // front head above mid line
@@ -562,11 +588,26 @@ drawContents(const PenBrush &penBrush) const
       if (isRectilinear()) {
         Point prm = (p1 + p4)/2.0;
 
-        Point pr1(prm.x + lpw/2.0, pl1.y);
-        Point pr2(prm.x + lpw/2.0, pl3.y);
+        Point plr1, plr2;
 
-        points.addPoint(pr1);
-        points.addPoint(pr2);
+        if (p1.y > p4.y) {
+          plr1 = Point(prm.x + lpw/2.0, pl1.y);
+          plr2 = Point(prm.x + lpw/2.0, pl3.y);
+        }
+        else {
+          plr1 = Point(prm.x - lpw/2.0, pl1.y);
+          plr2 = Point(prm.x - lpw/2.0, pl3.y);
+        }
+
+        points.addPoint(plr1);
+        points.addPoint(plr2);
+
+#if DEBUG_LABELS
+       if (isDebugLabels()) {
+         addPointLabel(plr1, "plr1", /*above*/false);
+         addPointLabel(plr2, "plr2", /*above*/false);
+       }
+#endif
       }
     };
 
@@ -574,11 +615,26 @@ drawContents(const PenBrush &penBrush) const
       if (isRectilinear()) {
         Point prm = (p1 + p4)/2.0;
 
-        Point pr1(prm.x - lpw/2.0, pl4.y);
-        Point pr2(prm.x - lpw/2.0, pl2.y);
+        Point pur1, pur2;
 
-        points.addPoint(pr1);
-        points.addPoint(pr2);
+        if (p1.y > p4.y) {
+          pur1 = Point(prm.x - lpw/2.0, pl4.y);
+          pur2 = Point(prm.x - lpw/2.0, pl2.y);
+        }
+        else {
+          pur1 = Point(prm.x + lpw/2.0, pl4.y);
+          pur2 = Point(prm.x + lpw/2.0, pl2.y);
+        }
+
+        points.addPoint(pur1);
+        points.addPoint(pur2);
+
+#if DEBUG_LABELS
+       if (isDebugLabels()) {
+         addPointLabel(pur1, "pur1", /*above*/true);
+         addPointLabel(pur2, "pur2", /*above*/true);
+       }
+#endif
       }
     };
 

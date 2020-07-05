@@ -1,6 +1,9 @@
 #include <CQChartsViewPlotObj.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsPlotObj.h>
+#include <CQChartsAnnotation.h>
+#include <CQChartsObjRef.h>
 #include <CQChartsEditHandles.h>
 
 CQChartsViewPlotObj::
@@ -63,7 +66,12 @@ drawEditHandles(QPainter *painter) const
 
   auto *th = const_cast<CQChartsViewPlotObj *>(this);
 
-  th->editHandles()->setBBox(this->rect());
+  BBox rect = this->rect();
+
+  if (! rect.isValid())
+    return;
+
+  th->editHandles()->setBBox(rect);
 
   editHandles()->draw(painter);
 }
@@ -193,7 +201,98 @@ adjustTextOptions(CQChartsTextOptions &textOptions) const
 
 CQChartsGeom::Point
 CQChartsViewPlotObj::
-positionToParent(const CQChartsPosition &pos) const
+positionToParent(const ObjRef &objRef, const Position &pos) const
+{
+  BBox         bbox;
+  CQChartsObj *obj = nullptr;
+
+  if (! objectRect(objRef, obj, bbox))
+    return positionToParent(pos);
+
+  CQChartsLength xlen(pos.p().x, pos.units());
+  CQChartsLength ylen(pos.p().y, pos.units());
+
+  auto x = lengthParentWidth (xlen);
+  auto y = lengthParentHeight(ylen);
+
+  Point p(x, y);
+
+  if      (objRef.location() == ObjRef::Location::LEFT)
+    p += bbox.getMidL();
+  else if (objRef.location() == ObjRef::Location::RIGHT)
+    p += bbox.getMidR();
+  else if (objRef.location() == ObjRef::Location::BOTTOM)
+    p += bbox.getMidB();
+  else if (objRef.location() == ObjRef::Location::TOP)
+    p += bbox.getMidT();
+  else if (objRef.location() == ObjRef::Location::INTERSECT)
+    p = bbox.getCenter();
+  else
+    p += bbox.getCenter();
+
+  return p;
+}
+
+CQChartsGeom::Point
+CQChartsViewPlotObj::
+intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const
+{
+  BBox         bbox;
+  CQChartsObj *obj = nullptr;
+
+  if (! objectRect(objRef, obj, bbox))
+    return p1;
+
+  Point pi;
+
+  if (! obj->intersectShape(p1, p2, pi))
+    return p1;
+
+  return pi;
+}
+
+CQChartsGeom::Point
+CQChartsViewPlotObj::
+positionToPixel(const ObjRef &objRef, const Position &pos) const
+{
+  auto p = positionToParent(objRef, pos);
+
+  return windowToPixel(p);
+}
+
+bool
+CQChartsViewPlotObj::
+objectRect(const ObjRef &objRef, CQChartsObj* &obj, BBox &bbox) const
+{
+  obj = nullptr;
+
+  if (! objRef.isValid())
+    return false;
+
+  if (! plot())
+    return false;
+
+  auto *plotObj = plot()->getPlotObject(objRef.name());
+
+  if (plotObj) {
+    obj  = plotObj;
+    bbox = plotObj->rect();
+  }
+  else {
+    auto *annotation = plot()->getAnnotationByPathId(objRef.name());
+
+    if (annotation) {
+      obj  = annotation;
+      bbox = annotation->rect();
+    }
+  }
+
+  return (obj != nullptr);
+}
+
+CQChartsGeom::Point
+CQChartsViewPlotObj::
+positionToParent(const Position &pos) const
 {
   CQChartsGeom::Point p;
 
@@ -207,7 +306,7 @@ positionToParent(const CQChartsPosition &pos) const
 
 CQChartsGeom::Point
 CQChartsViewPlotObj::
-positionToPixel(const CQChartsPosition &pos) const
+positionToPixel(const Position &pos) const
 {
   CQChartsGeom::Point p;
 
@@ -398,11 +497,11 @@ makePosition(CQChartsView *view, CQChartsPlot *plot, double x, double y)
   assert(view || plot);
 
   if      (view)
-    return CQChartsPosition(CQChartsGeom::Point(x, y), CQChartsUnits::VIEW);
+    return Position(CQChartsGeom::Point(x, y), CQChartsUnits::VIEW);
   else if (plot)
-    return CQChartsPosition(CQChartsGeom::Point(x, y), CQChartsUnits::PLOT);
+    return Position(CQChartsGeom::Point(x, y), CQChartsUnits::PLOT);
   else
-    return CQChartsPosition();
+    return Position();
 }
 
 CQChartsRect
@@ -421,8 +520,7 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, double x1, double y1, double x2
 
 CQChartsRect
 CQChartsViewPlotObj::
-makeRect(CQChartsView *view, CQChartsPlot *plot,
-         const CQChartsPosition &start, const CQChartsPosition &end)
+makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Position &end)
 {
   assert(view || plot);
 

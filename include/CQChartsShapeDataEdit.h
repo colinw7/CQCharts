@@ -59,6 +59,8 @@ class CQChartsShapeDataEditPreview;
 class CQChartsShapeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsShapeData data READ data WRITE setData)
+
  public:
   CQChartsShapeDataEdit(QWidget *parent=nullptr, bool tabbed=false);
 

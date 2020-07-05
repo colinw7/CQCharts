@@ -60,8 +60,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
-                          const char *receiver, bool checkable=false, bool checked=false) {
+  auto createIconButton = [&](const QString &name, const QString &iconName, const QString &tip,
+                              const char *receiver, bool checkable=false, bool checked=false) {
     auto *button = CQUtil::makeWidget<QToolButton>(name);
 
     if (CQPixmapCacheInst->hasPixmap(iconName + "_LIGHT"))
@@ -87,7 +87,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto createCheckedButton = [&](const QString &name, const QString &iconName, const QString &tip,
                                  const char *receiver, bool checked=false) {
-    return createButton(name, iconName, tip, receiver, true, checked);
+    return createIconButton(name, iconName, tip, receiver, true, checked);
   };
 
   //---
@@ -130,19 +130,50 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
+  auto makePushButton = [&](const QString &label, const QString &name, const QString &tip,
+                            const char *slotName) {
+    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, name);
+
+    button->setFocusPolicy(Qt::NoFocus);
+    button->setToolTip(tip);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    return button;
+  };
+
+  auto makeRadioButton = [&](const QString &label, const QString &name, const QString &tip) {
+    auto *button = CQUtil::makeLabelWidget<QRadioButton>(label, name);
+
+    button->setFocusPolicy(Qt::NoFocus);
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  auto makeCheckBox = [&](const QString &label, const QString &name, bool isChecked,
+                          const QString &tip, const char *slotName) {
+    auto *check = CQUtil::makeLabelWidget<QCheckBox>(label, name);
+
+    check->setFocusPolicy(Qt::NoFocus);
+    check->setToolTip(tip);
+
+    check->setChecked(isChecked);
+
+    connect(check, SIGNAL(stateChanged(int)), this, slotName);
+
+    return check;
+  };
+
+  //---
+
   auto *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
   auto *selectButtonGroup = new QButtonGroup(this);
 
-  selectPointButton_ = CQUtil::makeLabelWidget<QRadioButton>("Point", "point");
-
-  selectPointButton_->setFocusPolicy(Qt::NoFocus);
-  selectPointButton_->setToolTip("Select objects at point");
-
-  selectRectButton_ = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rect");
-
-  selectRectButton_->setFocusPolicy(Qt::NoFocus);
-  selectRectButton_->setToolTip("Select objects inside/touching rectangle");
+  selectPointButton_ = makeRadioButton("Point", "point", "Select objects at point");
+  selectRectButton_  = makeRadioButton("Rect" , "rect" ,
+                         "Select objects inside/touching rectangle");
 
   if (view()->selectMode() == CQChartsView::SelectMode::POINT)
     selectPointButton_->setChecked(true);
@@ -159,14 +190,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //--
 
-  selectInsideCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Inside", "selectInside");
-
-  selectInsideCheck_->setFocusPolicy(Qt::NoFocus);
-  selectInsideCheck_->setToolTip("Rectangle intersect inside (checked) or touching (unchecked)");
-
-  selectInsideCheck_->setChecked(view()->isSelectInside());
-
-  connect(selectInsideCheck_, SIGNAL(stateChanged(int)), this, SLOT(selectInsideSlot(int)));
+  selectInsideCheck_ = makeCheckBox("Inside", "selectInside", view()->isSelectInside(),
+    "Rectangle intersect inside (checked) or touching (unchecked)",
+    SLOT(selectInsideSlot(int)));
 
   selectControlsLayout->addWidget(selectInsideCheck_);
 
@@ -178,12 +204,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *zoomControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomControls, 0, 2);
 
-  auto *zoomButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
-
-  zoomButton->setFocusPolicy(Qt::NoFocus);
-  zoomButton->setToolTip("Reset Zoom");
-
-  connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomFullSlot()));
+  auto *zoomButton = makePushButton("Reset", "reset", "Reset Zoom", SLOT(zoomFullSlot()));
 
   zoomControlsLayout->addWidget(zoomButton);
 
@@ -191,14 +212,19 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
 
-  auto *panButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
-
-  panButton->setFocusPolicy(Qt::NoFocus);
-  panButton->setToolTip("Reset Pan");
-
-  connect(panButton, SIGNAL(clicked()), this, SLOT(panResetSlot()));
+  auto *panButton = makePushButton("Reset", "reset", "Reset Pan", SLOT(panResetSlot()));
 
   panControlsLayout->addWidget(panButton);
+
+  //-----
+
+  auto *editControlsLayout = CQUtil::makeLayout<QHBoxLayout>(editControls, 0, 2);
+
+  auto *flipHButton = makePushButton("Flip H", "fliph", "Flip Horizontal", SLOT(flipHSlot()));
+  auto *flipVButton = makePushButton("Flip V", "flipv", "Flip Vertical"  , SLOT(flipVSlot()));
+
+  editControlsLayout->addWidget(flipHButton);
+  editControlsLayout->addWidget(flipVButton);
 
   //-----
 
@@ -221,28 +247,28 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   //-----
 
   manageModelsDlgButton_ =
-    createButton("modelDlg", "MODELS", "Manage Models", SLOT(manageModelsSlot()));
+    createIconButton("modelDlg", "MODELS", "Manage Models", SLOT(manageModelsSlot()));
   createPlotDlgButton_ =
-    createButton("plotDlg" , "CHARTS", "Add Plot", SLOT(addPlotSlot()));
+    createIconButton("plotDlg" , "CHARTS", "Add Plot", SLOT(addPlotSlot()));
 
   layout->addWidget(manageModelsDlgButton_);
   layout->addWidget(createPlotDlgButton_);
 
-  autoFitButton_ = createButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()));
+  autoFitButton_ = createIconButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()));
 
   layout->addWidget(autoFitButton_);
 
   //---
 
-  leftButton_  = createButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
-  rightButton_ = createButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+  leftButton_  = createIconButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
+  rightButton_ = createIconButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
 
   layout->addWidget(leftButton_);
   layout->addWidget(rightButton_);
 
   //---
 
-  auto *helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
+  auto *helpButton = createIconButton("help", "INFO", "Help" , SLOT(helpSlot()));
 
   layout->addWidget(helpButton);
 
@@ -321,15 +347,35 @@ CQChartsViewToolBar::
 zoomFullSlot()
 {
   auto *plot = view()->currentPlot(/*remap*/true);
+  if (! plot) return;
 
-  if (plot)
-    plot->zoomFull();
+  plot->zoomFull();
 }
 
 void
 CQChartsViewToolBar::
 panResetSlot()
 {
+}
+
+void
+CQChartsViewToolBar::
+flipHSlot()
+{
+  auto *plot = view()->currentPlot(/*remap*/true);
+  if (! plot) return;
+
+  plot->flipSelected(Qt::Horizontal);
+}
+
+void
+CQChartsViewToolBar::
+flipVSlot()
+{
+  auto *plot = view()->currentPlot(/*remap*/true);
+  if (! plot) return;
+
+  plot->flipSelected(Qt::Vertical);
 }
 
 void

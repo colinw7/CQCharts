@@ -41,19 +41,23 @@ bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &name
 }
 
 bool nameValueString(const CQChartsNameValues &nameValues, const QString &name, QString &value) {
-  return nameValues.nameValueString(name, value);
+  bool ok;
+  return nameValues.nameValueString(name, value, ok) && ok;
 }
 
 bool nameValueInteger(const CQChartsNameValues &nameValues, const QString &name, int &value) {
-  return nameValues.nameValueInteger(name, value);
+  bool ok;
+  return nameValues.nameValueInteger(name, value, ok) && ok;
 }
 
 bool nameValueReal(const CQChartsNameValues &nameValues, const QString &name, double &value) {
-  return nameValues.nameValueReal(name, value);
+  bool ok;
+  return nameValues.nameValueReal(name, value, ok) && ok;
 }
 
 bool nameValueBool(const CQChartsNameValues &nameValues, const QString &name, bool &value) {
-  return nameValues.nameValueBool(name, value);
+  bool ok;
+  return nameValues.nameValueBool(name, value, ok) && ok;
 }
 
 int varInteger(const QVariant &var, int def) {

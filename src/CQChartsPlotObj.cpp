@@ -4,7 +4,9 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 
 CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorInd &is,
@@ -141,8 +143,13 @@ propertyId() const
 
 void
 CQChartsPlotObj::
-addProperties(CQPropertyViewModel *, const QString &)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
+  model->addProperty(path, this, "rect"      )->setDesc("Bounding box");
+  model->addProperty(path, this, "visible"   )->setDesc("Is Visible");
+  model->addProperty(path, this, "selected"  )->setDesc("Is Selected");
+  model->addProperty(path, this, "selectable")->setDesc("Is Selectable");
+  model->addProperty(path, this, "editable"  )->setDesc("Is Editable");
 }
 
 //---
@@ -272,9 +279,12 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot()->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  auto *th = const_cast<CQChartsPlotObj *>(this);
+  if (isEditResize())
+    editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
+  else
+    editHandles()->setMode(CQChartsEditHandles::Mode::MOVE);
 
-  th->editHandles()->setBBox(this->rect());
+  editHandles()->setBBox(this->rect());
 
   editHandles()->draw(painter);
 }

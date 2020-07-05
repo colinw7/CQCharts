@@ -55,7 +55,7 @@ addObjectsThread()
   CQChartsPlot::PlotObjs plotObjs = plot_->plotObjects();
 
   if (! plotObjs.empty() && ! plot_->isNoData()) {
-    const auto &range = plot_->dataRange();
+    const auto &range = plot_->objTreeRange();
 
     if (range.isSet()) {
       CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());

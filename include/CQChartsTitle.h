@@ -114,16 +114,13 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
-  virtual bool selectMove   (const Point &) { return false; }
-  virtual bool selectRelease(const Point &) { return false; }
+  // Implement edit interface
 
-  virtual bool editPress  (const Point &);
-  virtual bool editMove   (const Point &);
-  virtual bool editMotion (const Point &);
-  virtual bool editRelease(const Point &) { return true; }
+  bool editPress (const Point &) override;
+  bool editMove  (const Point &) override;
+  bool editMotion(const Point &) override;
 
-  virtual void editMoveBy(const Point &d);
+  void editMoveBy(const Point &d) override;
 
   //---
 

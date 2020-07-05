@@ -238,6 +238,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp("visible"   , "Is visible");
   addProp("selected"  , "Is selected");
+  addProp("editable"  , "Is editable");
   addProp("horizontal", "Draw items horizontally");
   addProp("autoHide"  , "Auto hide key when too large");
   addProp("clipped"   , "Clip key to view");
@@ -502,20 +503,6 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
   redraw();
 
   return true;
-}
-
-bool
-CQChartsViewKey::
-selectMove(const CQChartsGeom::Point &)
-{
-  return false;
-}
-
-bool
-CQChartsViewKey::
-selectRelease(const CQChartsGeom::Point &)
-{
-  return false;
 }
 
 //------
@@ -872,6 +859,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp("visible"   , "Is visible");
   addProp("selected"  , "Is selected");
+  addProp("editable"  , "Is editable");
   addProp("horizontal", "Draw items horizontally");
   addProp("flipped"   , "Draw name value flipped");
   addProp("autoHide"  , "Auto hide key when too large");
@@ -1342,13 +1330,6 @@ getItemAt(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsPlotKey::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
-{
-  return false;
-}
-
-bool
-CQChartsPlotKey::
 selectMove(const CQChartsGeom::Point &w)
 {
   bool changed = false;
@@ -1376,13 +1357,6 @@ selectMove(const CQChartsGeom::Point &w)
   if (changed)
     redraw();
 
-  return false;
-}
-
-bool
-CQChartsPlotKey::
-selectRelease(const CQChartsGeom::Point &)
-{
   return false;
 }
 

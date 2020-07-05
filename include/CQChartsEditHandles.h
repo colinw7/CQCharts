@@ -25,13 +25,16 @@ class CQChartsEditHandles : public QObject {
   };
 
  public:
-  using BBox   = CQChartsGeom::BBox;
-  using Point  = CQChartsGeom::Point;
-  using Handle = CQChartsResizeHandle;
+  using View       = CQChartsView;
+  using Plot       = CQChartsPlot;
+  using BBox       = CQChartsGeom::BBox;
+  using Point      = CQChartsGeom::Point;
+  using Handle     = CQChartsResizeHandle;
+  using ResizeSide = CQChartsResizeSide;
 
  public:
-  CQChartsEditHandles(const CQChartsView *view, const Mode &mode=Mode::RESIZE);
-  CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode=Mode::RESIZE);
+  CQChartsEditHandles(const View *view, const Mode &mode=Mode::RESIZE);
+  CQChartsEditHandles(const Plot *plot, const Mode &mode=Mode::RESIZE);
 
  ~CQChartsEditHandles();
 
@@ -51,12 +54,12 @@ class CQChartsEditHandles : public QObject {
   const Point &dragPos() const { return dragPos_; }
   void setDragPos(const Point &p) { dragPos_ = p; }
 
-  const CQChartsResizeSide &dragSide() const { return dragSide_; }
-  void setDragSide(const CQChartsResizeSide &s) { dragSide_ = s; }
+  const ResizeSide &dragSide() const { return dragSide_; }
+  void setDragSide(const ResizeSide &s) { dragSide_ = s; }
 
   bool selectInside(const Point &p);
 
-  CQChartsResizeSide inside(const Point &p) const;
+  ResizeSide inside(const Point &p) const;
 
   void updateBBox(double dx, double dy);
 
@@ -68,17 +71,17 @@ class CQChartsEditHandles : public QObject {
   Point windowToPixel(const Point &p) const;
 
  private:
-  const CQChartsView* view_       { nullptr };                  //!< parent view
-  const CQChartsPlot* plot_       { nullptr };                  //!< parent plot
-  Mode                mode_       { Mode::RESIZE };             //!< handle mode
-  BBox                bbox_       { 0, 0, 1, 1 };               //!< handle bbox
-  Handle*             moveHandle_ { nullptr };                  //!< move handle
-  Handle*             llHandle_   { nullptr };                  //!< lower left resize handle
-  Handle*             lrHandle_   { nullptr };                  //!< lower right resize handle
-  Handle*             ulHandle_   { nullptr };                  //!< upper left resize handle
-  Handle*             urHandle_   { nullptr };                  //!< upper right resize handle
-  Point               dragPos_    { 0, 0 };                     //!< drag position
-  CQChartsResizeSide  dragSide_   { CQChartsResizeSide::NONE }; //!< drag side
+  const View* view_       { nullptr };          //!< parent view
+  const Plot* plot_       { nullptr };          //!< parent plot
+  Mode        mode_       { Mode::RESIZE };     //!< handle mode
+  BBox        bbox_       { 0, 0, 1, 1 };       //!< handle bbox
+  Handle*     moveHandle_ { nullptr };          //!< move handle
+  Handle*     llHandle_   { nullptr };          //!< lower left resize handle
+  Handle*     lrHandle_   { nullptr };          //!< lower right resize handle
+  Handle*     ulHandle_   { nullptr };          //!< upper left resize handle
+  Handle*     urHandle_   { nullptr };          //!< upper right resize handle
+  Point       dragPos_    { 0, 0 };             //!< drag position
+  ResizeSide  dragSide_   { ResizeSide::NONE }; //!< drag side
 };
 
 #endif

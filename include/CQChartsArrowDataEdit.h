@@ -60,6 +60,8 @@ class CQCheckBox;
 class CQChartsArrowDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsArrowData data READ data WRITE setData)
+
  public:
   CQChartsArrowDataEdit(QWidget *parent=nullptr);
 

@@ -422,6 +422,9 @@ selectionSlot(QItemSelectionModel *sm)
 
   // select objects with matching indices
   for (auto &plotObj : plotObjects()) {
+    if (! plotObj->isSelectable())
+      continue;
+
     CQChartsPlotObj::Indices indices;
 
     plotObj->getSelectIndices(indices);
@@ -2554,11 +2557,14 @@ addBaseProperties()
     return item;
   };
 
+  //---
+
   // data
   addProp("", "viewId"  , "view"    , "Parent view id", true);
   addProp("", "typeStr" , "type"    , "Type name"     , true);
   addProp("", "visible" , "visible" , "Plot visible"  , true);
   addProp("", "selected", "selected", "Plot selected" , true);
+  addProp("", "editable", "editable", "Plot editable" , true);
 
   addProp("", "name", "name", "Plot name", true);
 
@@ -2760,11 +2766,14 @@ addBaseProperties()
 
 void
 CQChartsPlot::
-addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix)
+addSymbolProperties(const QString &path, const QString &prefix,
+                    const QString &descPrefix, bool hidden)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden) {
+    auto *item = &(this->addProperty(path, this, name, alias)->setDesc(desc));
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
@@ -2776,29 +2785,37 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   QString symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
 
-  addProp(path, symbolPrefix + "Type", "type", prefix1 + " type");
-  addProp(path, symbolPrefix + "Size", "size", prefix1 + " size");
+  addProp(path, symbolPrefix + "Type", "type", prefix1 + " type", hidden);
+  addProp(path, symbolPrefix + "Size", "size", prefix1 + " size", hidden);
 
   //---
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc);
+                          const QString &desc, bool hidden) {
+    auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
-    if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
-  addStyleProp(fillPath, symbolPrefix + "Filled"     , "visible", prefix1 + " fill visible");
-  addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color"  , prefix1 + " fill color");
-  addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  , prefix1 + " fill alpha");
-  addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern", prefix1 + " fill pattern");
+  addStyleProp(fillPath, symbolPrefix + "Filled"     , "visible",
+               prefix1 + " fill visible", hidden);
+  addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color"  ,
+               prefix1 + " fill color", hidden);
+  addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  ,
+               prefix1 + " fill alpha", hidden);
+  addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern",
+               prefix1 + " fill pattern", hidden);
 
-  addStyleProp(strokePath, symbolPrefix + "Stroked"    , "visible", prefix1 + " stroke visible");
-  addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color"  , prefix1 + " stroke color");
-  addStyleProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  , prefix1 + " stroke alpha");
-  addStyleProp(strokePath, symbolPrefix + "StrokeWidth", "width"  , prefix1 + " stroke width");
-  addStyleProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   , prefix1 + " stroke dash");
+  addStyleProp(strokePath, symbolPrefix + "Stroked"    , "visible",
+               prefix1 + " stroke visible", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color"  ,
+               prefix1 + " stroke color", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  ,
+               prefix1 + " stroke alpha", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeWidth", "width"  ,
+               prefix1 + " stroke width", hidden);
+  addStyleProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   ,
+               prefix1 + " stroke dash", hidden);
 }
 
 void
@@ -2851,13 +2868,14 @@ addFillProperties(const QString &path, const QString &prefix,
 void
 CQChartsPlot::
 addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix,
-                  uint valueTypes)
+                  uint valueTypes, bool hidden)
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
+                          const QString &desc, bool hidden) {
     auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
@@ -2866,30 +2884,32 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
   // style
-  addStyleProp(path, prefix + "Color", "color", prefix1 + " color");
-  addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha");
-  addStyleProp(path, prefix + "Font" , "font" , prefix1 + " font");
+  addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
+  addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
+  addStyleProp(path, prefix + "Font" , "font" , prefix1 + " font" , hidden);
 
   // options
   if (valueTypes & CQChartsTextOptions::ValueType::ANGLE)
-    addStyleProp(path, prefix + "Angle", "angle", prefix1 + " angle");
+    addStyleProp(path, prefix + "Angle", "angle", prefix1 + " angle", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::ALIGN)
-    addStyleProp(path, prefix + "Align", "align", prefix1 + " align");
+    addStyleProp(path, prefix + "Align", "align", prefix1 + " align", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::CONTRAST) {
-    addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast");
-    addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha", prefix1 + " contrast alpha");
+    addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast", hidden);
+    addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha",
+                 prefix1 + " contrast alpha", hidden);
   }
 
   if (valueTypes & CQChartsTextOptions::ValueType::HTML)
-    addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML");
+    addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::FORMATTED)
-    addStyleProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
+    addStyleProp(path, prefix + "Formatted", "formatted",
+                 prefix1 + " formatted to fit box", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::SCALED)
-    addStyleProp(path, prefix + "Scaled", "scaled", prefix1 + " scaled to box");
+    addStyleProp(path, prefix + "Scaled", "scaled", prefix1 + " scaled to box", hidden);
 }
 
 void
@@ -3049,47 +3069,60 @@ propertyItemSelected(QObject *obj, const QString &)
   bool changed = false;
 
   if      (obj == this) {
-    setSelected(true);
+    if (isSelectable()) {
+      setSelected(true);
 
-    view()->setCurrentPlot(this);
+      view()->setCurrentPlot(this);
 
-    drawObjs();
+      drawObjs();
 
-    changed = true;
+      changed = true;
+    }
   }
   else if (obj == title()) {
-    title()->setSelected(true);
+    if (title()->isSelectable()) {
+      title()->setSelected(true);
 
-    drawForeground();
+      drawForeground();
 
-    changed = true;
+      changed = true;
+    }
   }
-  else if (obj == keyObj_) {
-    keyObj_->setSelected(true);
+  else if (obj == key()) {
+    if (key()->isSelectable()) {
+      key()->setSelected(true);
 
-    drawBackground();
-    drawForeground();
+      drawBackground();
+      drawForeground();
 
-    changed = true;
+      changed = true;
+    }
   }
-  else if (obj == xAxis_) {
-    xAxis_->setSelected(true);
+  else if (obj == xAxis()) {
+    if (xAxis()->isSelectable()) {
+      xAxis()->setSelected(true);
 
-    drawBackground();
-    drawForeground();
+      drawBackground();
+      drawForeground();
 
-    changed = true;
+      changed = true;
+    }
   }
-  else if (obj == yAxis_) {
-    yAxis_->setSelected(true);
+  else if (obj == yAxis()) {
+    if (yAxis()->isSelectable()) {
+      yAxis()->setSelected(true);
 
-    drawBackground();
-    drawForeground();
+      drawBackground();
+      drawForeground();
 
-    changed = true;
+      changed = true;
+    }
   }
   else {
     for (const auto &annotation : annotations()) {
+      if (! annotation->isSelectable())
+        continue;
+
       if (obj == annotation) {
         annotation->setSelected(true);
 
@@ -3101,6 +3134,9 @@ propertyItemSelected(QObject *obj, const QString &)
 
     if (! changed) {
       for (auto &plotObj : plotObjects()) {
+        if (! plotObj->isSelectable())
+          continue;
+
         if (obj == plotObj) {
           plotObj->setSelected(true);
 
@@ -4658,7 +4694,7 @@ initPlotObjs()
 
   // init search tree
   if (changed)
-    objTreeData_.init = true;
+    invalidateObjTree();
 
   //---
 
@@ -4843,6 +4879,15 @@ clearPlotObjects()
 
   insideObjs_    .clear();
   sizeInsideObjs_.clear();
+}
+
+void
+CQChartsPlot::
+invalidateObjTree()
+{
+  objTreeData_.init = true;
+
+  objTreeData_.tree->clearObjects();
 }
 
 CQChartsGeom::BBox
@@ -5395,15 +5440,18 @@ objectsSelectPress(const Point &w, SelMod selMod)
       continue;
 
     if (! objSelected.second)
-      setObjSelected(objSelected.first, objSelected.second);
+      setObjSelected(objSelected.first, false);
   }
 
   for (const auto &objSelected : objsSelected) {
+    if (! objSelected.first->isSelectable())
+      continue;
+
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
     if (objSelected.second)
-      setObjSelected(objSelected.first, objSelected.second);
+      setObjSelected(objSelected.first, true);
   }
 
   //----
@@ -5569,7 +5617,8 @@ editPress(const Point &p, const Point &w, bool inside)
 
   //---
 
-  mouseData_.dragObj    = DragObj::NONE;
+  setDragObj(DragObjType::NONE, nullptr);
+
   mouseData_.pressPoint = p;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.dragged    = false;
@@ -5577,14 +5626,14 @@ editPress(const Point &p, const Point &w, bool inside)
   //---
 
   // start drag on already selected plot handle
-  if (isSelected()) {
+  if (isEditable() && isSelected()) {
     auto v = windowToView(w);
 
     // to edit must be in handle
     mouseData_.dragSide = editHandles_->inside(v);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::PLOT_HANDLE;
+      setDragObj(DragObjType::PLOT_HANDLE, this);
 
       editHandles_->setDragSide(mouseData_.dragSide);
       editHandles_->setDragPos (w);
@@ -5636,22 +5685,29 @@ bool
 CQChartsPlot::
 keyEditPress(CQChartsPlotKey *key, const Point &w)
 {
+  if (! key)
+    return false;
+
+  if (! key->isEditable())
+    return false;
+
+  if (! key->isSelected())
+    return false;
+
   // start drag on already selected key handle
-  if (key && key->isSelected()) {
-    mouseData_.dragSide = key->editHandles()->inside(w);
+  mouseData_.dragSide = key->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::KEY;
+  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    setDragObj(DragObjType::KEY, key);
 
-      key->editPress(w);
+    key->editPress(w);
 
-      key->editHandles()->setDragSide(mouseData_.dragSide);
-      key->editHandles()->setDragPos (w);
+    key->editHandles()->setDragSide(mouseData_.dragSide);
+    key->editHandles()->setDragPos (w);
 
-      invalidateOverlay();
+    invalidateOverlay();
 
-      return true;
-    }
+    return true;
   }
 
   return false;
@@ -5661,22 +5717,29 @@ bool
 CQChartsPlot::
 axisEditPress(CQChartsAxis *axis, const Point &w)
 {
+  if (! axis)
+    return false;
+
+  if (! axis->isEditable())
+    return false;
+
+  if (! axis->isSelected())
+    return false;
+
   // start drag on already selected axis handle
-  if (axis && axis->isSelected()) {
-    mouseData_.dragSide = axis->editHandles()->inside(w);
+  mouseData_.dragSide = axis->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = (axis == xAxis() ? DragObj::XAXIS : DragObj::YAXIS);
+  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    setDragObj(axis == xAxis() ? DragObjType::XAXIS : DragObjType::YAXIS, axis);
 
-      axis->editPress(w);
+    axis->editPress(w);
 
-      axis->editHandles()->setDragSide(mouseData_.dragSide);
-      axis->editHandles()->setDragPos (w);
+    axis->editHandles()->setDragSide(mouseData_.dragSide);
+    axis->editHandles()->setDragPos (w);
 
-      invalidateOverlay();
+    invalidateOverlay();
 
-      return true;
-    }
+    return true;
   }
 
   return false;
@@ -5686,22 +5749,29 @@ bool
 CQChartsPlot::
 titleEditPress(CQChartsTitle *title, const Point &w)
 {
+  if (! title)
+    return false;
+
+  if (! title->isEditable())
+    return false;
+
+  if (! title->isSelected())
+    return false;
+
   // start drag on already selected title handle
-  if (title && title->isSelected()) {
-    mouseData_.dragSide = title->editHandles()->inside(w);
+  mouseData_.dragSide = title->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::TITLE;
+  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    setDragObj(DragObjType::TITLE, title);
 
-      title->editPress(w);
+    title->editPress(w);
 
-      title->editHandles()->setDragSide(mouseData_.dragSide);
-      title->editHandles()->setDragPos (w);
+    title->editHandles()->setDragSide(mouseData_.dragSide);
+    title->editHandles()->setDragPos (w);
 
-      invalidateOverlay();
+    invalidateOverlay();
 
-      return true;
-    }
+    return true;
   }
 
   return false;
@@ -5713,13 +5783,16 @@ annotationsEditPress(const Point &w)
 {
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
+    if (! annotation->isEditable())
+      continue;
+
     if (! annotation->isSelected())
       continue;
 
     mouseData_.dragSide = annotation->editHandles()->inside(w);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::ANNOTATION;
+      setDragObj(DragObjType::ANNOTATION, annotation);
 
       annotation->editHandles()->setDragSide(mouseData_.dragSide);
       annotation->editHandles()->setDragPos (w);
@@ -5748,7 +5821,7 @@ objectsEditPress(const Point &w, bool)
     mouseData_.dragSide = plotObj->editHandles()->inside(w);
 
     if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::OBJECT;
+      setDragObj(DragObjType::OBJECT, plotObj);
 
       plotObj->editHandles()->setDragSide(mouseData_.dragSide);
       plotObj->editHandles()->setDragPos (w);
@@ -5768,21 +5841,25 @@ bool
 CQChartsPlot::
 keyEditSelect(CQChartsPlotKey *key, const Point &w)
 {
+  if (! key)
+    return false;
+
+  if (! key->isEditable())
+    return false;
+
+  if (! key->contains(w))
+    return false;
+
   // select/deselect key
-  if (key && key->contains(w)) {
-    if (! key->isSelected()) {
-      selectOneObj(key, /*allObjs*/false);
+  if (! key->isSelected()) {
+    selectOneObj(key, /*allObjs*/false);
+    return true;
+  }
 
-      return true;
-    }
-
-    if (key->editPress(w)) {
-      mouseData_.dragObj = DragObj::KEY;
-
-      invalidateOverlay();
-
-      return true;
-    }
+  if (key->editPress(w)) {
+    setDragObj(DragObjType::KEY, key);
+    invalidateOverlay();
+    return true;
   }
 
   return false;
@@ -5792,21 +5869,25 @@ bool
 CQChartsPlot::
 axisEditSelect(CQChartsAxis *axis, const Point &w)
 {
+  if (! axis)
+    return false;
+
+  if (! axis->isEditable())
+    return false;
+
+  if (! axis->contains(w))
+    return false;
+
   // select/deselect x axis
-  if (axis && axis->contains(w)) {
-    if (! axis->isSelected()) {
-      selectOneObj(axis, /*allObjs*/false);
+  if (! axis->isSelected()) {
+    selectOneObj(axis, /*allObjs*/false);
+    return true;
+  }
 
-      return true;
-    }
-
-    if (axis->editPress(w)) {
-      mouseData_.dragObj = (axis == xAxis() ? DragObj::XAXIS : DragObj::YAXIS);
-
-      invalidateOverlay();
-
-      return true;
-    }
+  if (axis->editPress(w)) {
+    setDragObj(axis == xAxis() ? DragObjType::XAXIS : DragObjType::YAXIS, axis);
+    invalidateOverlay();
+    return true;
   }
 
   return false;
@@ -5816,21 +5897,25 @@ bool
 CQChartsPlot::
 titleEditSelect(CQChartsTitle *title, const Point &w)
 {
+  if (! title)
+    return false;
+
+  if (! title->isEditable())
+    return false;
+
+  if (! title->contains(w))
+    return false;
+
   // select/deselect title
-  if (title && title->contains(w)) {
-    if (! title->isSelected()) {
-      selectOneObj(title, /*allObjs*/false);
+  if (! title->isSelected()) {
+    selectOneObj(title, /*allObjs*/false);
+    return true;
+  }
 
-      return true;
-    }
-
-    if (title->editPress(w)) {
-      mouseData_.dragObj = DragObj::TITLE;
-
-      invalidateOverlay();
-
-      return true;
-    }
+  if (title->editPress(w)) {
+    setDragObj(DragObjType::TITLE, title);
+    invalidateOverlay();
+    return true;
   }
 
   return false;
@@ -5845,17 +5930,20 @@ annotationsEditSelect(const Point &w)
   annotationsAtPoint(w, annotations);
 
   for (const auto &annotation : annotations) {
+    if (! annotation->isEditable())
+      continue;
+
+    if (! annotation->contains(w))
+      continue;
+
     if (! annotation->isSelected()) {
       selectOneObj(annotation, /*allObjs*/false);
-
       return true;
     }
 
     if (annotation->editPress(w)) {
-      mouseData_.dragObj = DragObj::ANNOTATION;
-
+      setDragObj(DragObjType::ANNOTATION, annotation);
       invalidateOverlay();
-
       return true;
     }
 
@@ -5900,15 +5988,12 @@ objectsEditSelect(const Point &w, bool inside)
 
     if (! plotObj->isSelected()) {
       selectOneObj(plotObj, /*allObjs*/false);
-
       return true;
     }
 
     if (plotObj->editPress(w)) {
-      mouseData_.dragObj = DragObj::OBJECT;
-
+      setDragObj(DragObjType::OBJECT, plotObj);
       invalidateOverlay();
-
       return true;
     }
   }
@@ -5916,25 +6001,23 @@ objectsEditSelect(const Point &w, bool inside)
   //---
 
   if (! objs.empty()) {
-    if (! isSelected()) {
-      selectPlot();
+    if (isEditable()) {
+      if (! isSelected()) {
+        selectPlot();
+        return true;
+      }
 
+      setDragObj(DragObjType::PLOT, this);
+      invalidateOverlay();
       return true;
     }
 
-    mouseData_.dragObj = DragObj::PLOT;
-
-    invalidateOverlay();
-
-    return true;
-  }
-
-  if (inside) {
-    if (contains(w)) {
-      if (! isSelected()) {
-        selectPlot();
-
-        return true;
+    if (inside) {
+      if (contains(w)) {
+        if (! isSelected()) {
+          selectPlot();
+          return true;
+        }
       }
     }
   }
@@ -6104,26 +6187,26 @@ editMove(const Point &p, const Point &w, bool /*first*/)
 
   mouseData_.movePoint = p;
 
-  if (mouseData_.dragObj == DragObj::NONE)
+  if (mouseData_.dragObjType == DragObjType::NONE)
     return false;
 
-  if      (mouseData_.dragObj == DragObj::KEY) {
+  if      (mouseData_.dragObjType == DragObjType::KEY) {
     if (key()->editMove(w))
       mouseData_.dragged = true;
   }
-  else if (mouseData_.dragObj == DragObj::XAXIS) {
+  else if (mouseData_.dragObjType == DragObjType::XAXIS) {
     if (xAxis()->editMove(w))
       mouseData_.dragged = true;
   }
-  else if (mouseData_.dragObj == DragObj::YAXIS) {
+  else if (mouseData_.dragObjType == DragObjType::YAXIS) {
     if (yAxis()->editMove(w))
       mouseData_.dragged = true;
   }
-  else if (mouseData_.dragObj == DragObj::TITLE) {
+  else if (mouseData_.dragObjType == DragObjType::TITLE) {
     if (title()->editMove(w))
       mouseData_.dragged = true;
   }
-  else if (mouseData_.dragObj == DragObj::ANNOTATION) {
+  else if (mouseData_.dragObjType == DragObjType::ANNOTATION) {
     bool edited = false;
 
     for (const auto &annotation : annotations()) {
@@ -6139,7 +6222,7 @@ editMove(const Point &p, const Point &w, bool /*first*/)
     if (! edited)
       return false;
   }
-  else if (mouseData_.dragObj == DragObj::OBJECT) {
+  else if (mouseData_.dragObjType == DragObjType::OBJECT) {
     bool edited = false;
 
     for (const auto &plotObj : plotObjects()) {
@@ -6158,7 +6241,8 @@ editMove(const Point &p, const Point &w, bool /*first*/)
     if (! edited)
       return false;
   }
-  else if (mouseData_.dragObj == DragObj::PLOT) {
+  else if (mouseData_.dragObjType == DragObjType::PLOT ||
+           mouseData_.dragObjType == DragObjType::PLOT_HANDLE) {
     double dx = mouseData_.movePoint.x - lastMovePoint.x;
     double dy = lastMovePoint.y - mouseData_.movePoint.y;
 
@@ -6167,7 +6251,13 @@ editMove(const Point &p, const Point &w, bool /*first*/)
 
     if (isOverlay()) {
       processOverlayPlots([&](CQChartsPlot *plot) {
-        plot->viewBBox_.moveBy(Point(dx1, dy1));
+        if (mouseData_.dragObjType == DragObjType::PLOT)
+          plot->viewBBox_.moveBy(Point(dx1, dy1));
+        else {
+          editHandles_->updateBBox(dx1, dy1);
+
+          plot->viewBBox_ = editHandles_->bbox();
+        }
 
         if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
           plot->updateMargins(false);
@@ -6182,52 +6272,13 @@ editMove(const Point &p, const Point &w, bool /*first*/)
       });
     }
     else {
-      viewBBox_.moveBy(Point(dx1, dy1));
-
-      if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
-        updateMargins(false);
-      else
-        updateMargins();
-
-      invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
-      invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
-
-      invalidateOverlay();
-    }
-
-    if (dx != 0.0 || dy != 0.0)
-      mouseData_.dragged = true;
-  }
-  else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
-    double dx = mouseData_.movePoint.x - lastMovePoint.x;
-    double dy = lastMovePoint.y - mouseData_.movePoint.y;
-
-    double dx1 =  view()->pixelToSignedWindowWidth (dx);
-    double dy1 = -view()->pixelToSignedWindowHeight(dy);
-
-    if (isOverlay()) {
-      processOverlayPlots([&](CQChartsPlot *plot) {
+      if (mouseData_.dragObjType == DragObjType::PLOT)
+        viewBBox_.moveBy(Point(dx1, dy1));
+      else {
         editHandles_->updateBBox(dx1, dy1);
 
-        plot->viewBBox_ = editHandles_->bbox();
-
-        if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
-          plot->updateMargins(false);
-        else
-          plot->updateMargins();
-
-        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-        plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
-        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
-
-        plot->invalidateOverlay();
-      });
-    }
-    else {
-      editHandles_->updateBBox(dx1, dy1);
-
-      viewBBox_ = editHandles_->bbox();
+        viewBBox_ = editHandles_->bbox();
+      }
 
       if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
         updateMargins(false);
@@ -6349,14 +6400,45 @@ editMouseRelease(const Point &pos)
 
 bool
 CQChartsPlot::
-editRelease(const Point & /*p*/, const Point & /*w*/)
+editRelease(const Point &, const Point &w)
 {
   if (isOverlay() && ! isFirstPlot())
     return false;
 
   //---
 
-  mouseData_.dragObj = DragObj::NONE;
+  if (mouseData_.dragObj) {
+    if (mouseData_.dragObjType == DragObjType::PLOT ||
+        mouseData_.dragObjType == DragObjType::PLOT_HANDLE) {
+      auto *plot = dynamic_cast<CQChartsPlot *>(mouseData_.dragObj);
+      assert(plot);
+    }
+    else if (mouseData_.dragObjType == DragObjType::OBJECT) {
+      auto *plotObj = dynamic_cast<CQChartsPlotObj *>(mouseData_.dragObj);
+      assert(plotObj);
+
+      plotObj->editRelease(w);
+    }
+    else if (mouseData_.dragObjType == DragObjType::XAXIS ||
+             mouseData_.dragObjType == DragObjType::YAXIS) {
+      auto *axis = dynamic_cast<CQChartsAxis *>(mouseData_.dragObj);
+      assert(axis);
+
+      axis->editRelease(w);
+    }
+    else if (mouseData_.dragObjType == DragObjType::KEY ||
+             mouseData_.dragObjType == DragObjType::TITLE ||
+             mouseData_.dragObjType == DragObjType::ANNOTATION) {
+      auto *obj = dynamic_cast<CQChartsViewPlotObj *>(mouseData_.dragObj);
+      assert(obj);
+
+      obj->editRelease(w);
+    }
+  }
+
+  //---
+
+  setDragObj(DragObjType::NONE, nullptr);
 
   if (mouseData_.dragged)
     drawObjs();
@@ -6436,6 +6518,43 @@ editMoveBy(const Point &d)
 
   if (selected)
     invalidateOverlay();
+}
+
+void
+CQChartsPlot::
+setDragObj(DragObjType objType, CQChartsObj *obj)
+{
+  mouseData_.dragObjType = objType;
+  mouseData_.dragObj     = obj;
+}
+
+//---
+
+void
+CQChartsPlot::
+flipSelected(Qt::Orientation orient)
+{
+  for (auto &annotation : annotations()) {
+    if (annotation->isSelected())
+      annotation->flip(orient);
+  }
+
+  //---
+
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      for (auto &plotObj : plot->plotObjects()) {
+        if (plotObj->isSelected())
+          plotObj->flip(orient);
+      }
+    });
+  }
+  else {
+    for (auto &plotObj : plotObjects()) {
+      if (plotObj->isSelected())
+        plotObj->flip(orient);
+    }
+  }
 }
 
 //------
@@ -6523,15 +6642,18 @@ rectSelect(const BBox &r, SelMod selMod)
       continue;
 
     if (! objSelected.second)
-      setObjSelected(objSelected.first, objSelected.second);
+      setObjSelected(objSelected.first, false);
   }
 
   for (const auto &objSelected : objsSelected) {
+    if (! objSelected.first->isSelectable())
+      continue;
+
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
     if (objSelected.second)
-      setObjSelected(objSelected.first, objSelected.second);
+      setObjSelected(objSelected.first, true);
   }
 
   //----
@@ -8001,7 +8123,7 @@ objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
       plot->objTreeData_.tree->objectsIntersectRect(r1, plotObjs, inside);
 
       for (const auto &plotObj : plotObjs) {
-        if (select && ! plotObj->canSelect())
+        if (select && ! plotObj->isSelectable())
           continue;
 
         objs.push_back(plotObj);
@@ -8014,7 +8136,7 @@ objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
     objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
 
     for (const auto &plotObj : plotObjs) {
-      if (select && ! plotObj->canSelect())
+      if (select && ! plotObj->isSelectable())
         continue;
 
       objs.push_back(plotObj);
@@ -9825,45 +9947,38 @@ drawEditHandles(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawEditHandles");
 
-  auto *key1 = getFirstPlotKey();
-
-  if      (isSelected()) {
+  if      (isEditable() && isSelected()) {
     const_cast<CQChartsPlot *>(this)->editHandles_->setBBox(this->calcViewBBox());
 
     editHandles_->draw(painter);
   }
 
-  if (title() && title()->isSelected()) {
+  if (title() && title()->isEditable() && title()->isSelected()) {
     title()->drawEditHandles(painter);
   }
 
-  if (key1 && key1->isSelected()) {
+  auto *key1 = getFirstPlotKey();
+
+  if (key1 && key1->isEditable() && key1->isSelected()) {
     key1->drawEditHandles(painter);
   }
 
-  if (xAxis() && xAxis()->isSelected()) {
+  if (xAxis() && xAxis()->isEditable() && xAxis()->isSelected()) {
     xAxis()->drawEditHandles(painter);
   }
 
-  if (yAxis() && yAxis()->isSelected()) {
+  if (yAxis() && yAxis()->isEditable() && yAxis()->isSelected()) {
     yAxis()->drawEditHandles(painter);
   }
 
   for (const auto &annotation : annotations()) {
-    if (! annotation->isSelected())
-      continue;
-
-    annotation->drawEditHandles(painter);
+    if (annotation->isEditable() && annotation->isSelected())
+      annotation->drawEditHandles(painter);
   }
 
   for (auto &plotObj : plotObjects()) {
-    if (! plotObj->isEditable())
-      continue;
-
-    if (! plotObj->isSelected())
-      continue;
-
-    plotObj->drawEditHandles(painter);
+    if (plotObj->isEditable() && plotObj->isSelected())
+      plotObj->drawEditHandles(painter);
   }
 }
 
@@ -10407,10 +10522,22 @@ addAnnotation(CQChartsAnnotation *annotation)
 
 CQChartsAnnotation *
 CQChartsPlot::
-getAnnotationByName(const QString &id) const
+getAnnotationById(const QString &id) const
 {
   for (auto &annotation : annotations()) {
     if (annotation->id() == id)
+      return annotation;
+  }
+
+  return nullptr;
+}
+
+CQChartsAnnotation *
+CQChartsPlot::
+getAnnotationByPathId(const QString &pathId) const
+{
+  for (auto &annotation : annotations()) {
+    if (annotation->pathId() == pathId)
       return annotation;
   }
 
@@ -10482,7 +10609,7 @@ updateAnnotationSlot()
     invalidateOverlay();
   }
   else
-    drawForeground();
+    drawObjs();
 
   emit annotationsChanged();
 }

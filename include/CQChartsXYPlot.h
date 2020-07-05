@@ -401,7 +401,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool rectIntersect(const BBox &r, bool inside) const override;
 
-  bool canSelect() const override;
+  bool isSelectable() const override;
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
@@ -489,7 +489,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool rectIntersect(const BBox &r, bool inside) const override;
 
-  bool canSelect() const override;
+  bool isSelectable() const override;
 
   //---
 

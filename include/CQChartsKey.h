@@ -129,17 +129,6 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  virtual bool selectPress  (const Point &, CQChartsSelMod) = 0;
-  virtual bool selectMove   (const Point &) = 0;
-  virtual bool selectRelease(const Point &) = 0;
-
-  virtual bool editPress  (const Point &) = 0;
-  virtual bool editMove   (const Point &) = 0;
-  virtual bool editMotion (const Point &) = 0;
-  virtual bool editRelease(const Point &) { return true; }
-
-  //---
-
   virtual void redraw(bool /*queued*/=true) = 0;
 
   virtual void draw(CQChartsPaintDevice *device) const = 0;
@@ -204,13 +193,19 @@ class CQChartsViewKey : public CQChartsKey {
 
   bool contains(const Point &p) const override;
 
-  bool selectPress  (const Point &w, CQChartsSelMod selMod) override;
-  bool selectMove   (const Point &w) override;
-  bool selectRelease(const Point &w) override;
+  //---
 
+  // implement select interface
+  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+
+  //---
+
+  // implement edit interface
   bool editPress (const Point &w) override;
   bool editMove  (const Point &w) override;
   bool editMotion(const Point &w) override;
+
+  //---
 
   virtual void doShow  (int i, CQChartsSelMod selMod);
   virtual void doSelect(int i, CQChartsSelMod selMod);
@@ -394,15 +389,16 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  bool selectPress  (const Point &w, CQChartsSelMod selMod) override;
-  bool selectMove   (const Point &w) override;
-  bool selectRelease(const Point &w) override;
+  bool selectMove(const Point &w) override;
 
+  //---
+
+  // implement edit interface
   bool editPress (const Point &w) override;
   bool editMove  (const Point &w) override;
   bool editMotion(const Point &w) override;
 
-  virtual void editMoveBy(const Point &d);
+  void editMoveBy(const Point &d) override;
 
   //---
 
@@ -561,6 +557,8 @@ class CQChartsKeyItem : public QObject {
 
   virtual bool selectPress(const Point &, CQChartsSelMod);
   virtual bool selectMove (const Point &);
+
+  //---
 
   virtual void doShow  (CQChartsSelMod selMod);
   virtual void doSelect(CQChartsSelMod selMod);

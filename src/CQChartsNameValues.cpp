@@ -16,80 +16,78 @@ CQChartsNameValues(const QString &str) :
 
 bool
 CQChartsNameValues::
-nameValueInteger(const QString &name, int &value) const
+nameValueInteger(const QString &name, int &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
-
-  bool ok;
 
   value = (int) CQChartsVariant::toInt(var, ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQChartsNameValues::
-nameValueReal(const QString &name, double &value) const
+nameValueReal(const QString &name, double &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
-
-  bool ok;
 
   value = CQChartsVariant::toReal(var, ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQChartsNameValues::
-nameValueBool(const QString &name, bool &value) const
+nameValueBool(const QString &name, bool &value, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
-
-  bool ok;
 
   value = CQChartsVariant::toBool(var, ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQChartsNameValues::
-nameValueColor(const QString &name, CQChartsColor &color) const
+nameValueColor(const QString &name, CQChartsColor &color, bool &ok) const
 {
+  ok = true;
+
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
-
-  bool ok;
 
   color = CQChartsVariant::toColor(var, ok);
 
-  return ok;
+  return true;
 }
 
 bool
 CQChartsNameValues::
-nameValueFont(const QString &name, CQChartsFont &font) const
+nameValueFont(const QString &name, CQChartsFont &font, bool &ok) const
 {
   QVariant var;
 
   if (! nameValue(name, var))
     return false;
 
-  bool ok;
-
   font = CQChartsVariant::toFont(var, ok);
 
-  return ok;
+  return true;
 }

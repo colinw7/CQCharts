@@ -689,6 +689,25 @@ class BBox {
     return 2*getWidth() + 2*getHeight();
   }
 
+  void equalScale(double aspect) {
+    Point c = getCenter();
+
+    double w = getWidth ();
+    double h = getHeight();
+
+    if (aspect > 1.0) {
+      h = std::max(w, h);
+      w = h*aspect;
+    }
+    else {
+      w = std::max(w, h);
+      h = w/aspect;
+    }
+
+    pmin_ = Point(c.x - w/2, c.y - h/2);
+    pmax_ = Point(c.x + w/2, c.y + h/2);
+  }
+
   Point getMin() const { assert(set_); return pmin_; }
   Point getMax() const { assert(set_); return pmax_; }
 
@@ -702,8 +721,8 @@ class BBox {
   double getXMax() const { return getMax().x; }
   double getYMax() const { return getMax().y; }
 
-  double getXMid() const { return (getXMin() + getXMax())/2; }
-  double getYMid() const { return (getYMin() + getYMax())/2; }
+  double getXMid() const { return CMathUtil::avg(getXMin(), getXMax()); }
+  double getYMid() const { return CMathUtil::avg(getYMin(), getYMax()); }
 
   double getXYMid(bool horizontal) const { return (horizontal ? getXMid() : getYMid()); }
 
@@ -826,6 +845,11 @@ class BBox {
   Point getLR() const { assert(set_); return Point(pmax_.x, pmin_.y); }
   Point getUL() const { assert(set_); return Point(pmin_.x, pmax_.y); }
   Point getUR() const { return getMax(); }
+
+  Point getMidL() const { assert(set_); return Point(pmin_.x, getYMid()); }
+  Point getMidR() const { assert(set_); return Point(pmax_.x, getYMid()); }
+  Point getMidB() const { assert(set_); return Point(getXMid(), pmin_.y); }
+  Point getMidT() const { assert(set_); return Point(getXMid(), pmax_.y); }
 
 #if 0
   Size getSize() const {
@@ -1027,8 +1051,8 @@ class Range {
   double dx() const { assert(set_); return x2_ - x1_; }
   double dy() const { assert(set_); return y2_ - y1_; }
 
-  double xmid() const { assert(set_); return (x2_ + x1_)/2; }
-  double ymid() const { assert(set_); return (y2_ + y1_)/2; }
+  double xmid() const { assert(set_); return CMathUtil::avg(x1_, x2_); }
+  double ymid() const { assert(set_); return CMathUtil::avg(y1_, y2_); }
 
   double xmin() const { assert(set_); return std::min(x1_, x2_); }
   double ymin() const { assert(set_); return std::min(y1_, y2_); }
@@ -1100,7 +1124,9 @@ class Range {
     }
   }
 
-  Point center() const { assert(set_); return Point((x1_ + x2_)/2.0, (y1_ + y2_)/2.0); }
+  Point center() const {
+    assert(set_); return Point(CMathUtil::avg(x1_, x2_), CMathUtil::avg(y1_, y2_));
+  }
 
   void inc(double dx, double dy) {
     assert(set_);
@@ -2345,9 +2371,9 @@ class Range3D {
   double ymax() const { assert(set_); return std::max(y1_, y2_); }
   double zmax() const { assert(set_); return std::max(z1_, z2_); }
 
-  double xmid() const { assert(set_); return (x2_ + x1_)/2; }
-  double ymid() const { assert(set_); return (y2_ + y1_)/2; }
-  double zmid() const { assert(set_); return (z2_ + z1_)/2; }
+  double xmid() const { assert(set_); return CMathUtil::avg(x1_, x2_); }
+  double ymid() const { assert(set_); return CMathUtil::avg(y1_, y2_); }
+  double zmid() const { assert(set_); return CMathUtil::avg(z1_, z2_); }
 
   double xsize() const { return xmax() - xmin(); }
   double ysize() const { return ymax() - ymin(); }

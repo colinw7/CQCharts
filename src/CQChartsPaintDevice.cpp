@@ -2,11 +2,13 @@
 #include <CQChartsPlot.h>
 #include <QBuffer>
 
-void
+bool
 CQChartsPaintDevice::
-drawPolygonSides(const BBox &bbox, int n)
+polygonSidesPath(const BBox &bbox, int n, QPainterPath &path)
 {
-  if (n < 3) return;
+  path = QPainterPath();
+
+  if (n < 3) return false;
 
   double xc = bbox.getXMid();
   double yc = bbox.getYMid();
@@ -15,8 +17,6 @@ drawPolygonSides(const BBox &bbox, int n)
 
   double a  = M_PI/2.0;
   double da = 2.0*M_PI/n;
-
-  QPainterPath path;
 
   for (int i = 0; i < n; ++i) {
     double c = cos(a);
@@ -35,18 +35,30 @@ drawPolygonSides(const BBox &bbox, int n)
 
   path.closeSubpath();
 
-  drawPath(path);
+  return true;
 }
 
 void
 CQChartsPaintDevice::
-drawDiamond(const BBox &bbox)
+drawPolygonSides(const BBox &bbox, int n)
 {
+  QPainterPath path;
+
+  if (! polygonSidesPath(bbox, n, path))
+    return;
+
+  drawPath(path);
+}
+
+bool
+CQChartsPaintDevice::
+diamondPath(const BBox &bbox, QPainterPath &path)
+{
+  path = QPainterPath();
+
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMid(), y2 = bbox.getYMid();
   double x3 = bbox.getXMax(), y3 = bbox.getYMax();
-
-  QPainterPath path;
 
   path.moveTo(QPointF(x1, y2));
   path.lineTo(QPointF(x2, y1));
@@ -54,6 +66,18 @@ drawDiamond(const BBox &bbox)
   path.lineTo(QPointF(x2, y3));
 
   path.closeSubpath();
+
+  return true;
+}
+
+void
+CQChartsPaintDevice::
+drawDiamond(const BBox &bbox)
+{
+  QPainterPath path;
+
+  if (! diamondPath(bbox, path))
+    return;
 
   drawPath(path);
 }

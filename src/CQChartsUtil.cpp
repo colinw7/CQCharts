@@ -1331,7 +1331,8 @@ QStringList unitNames(bool includeNone) {
 
 QStringList unitTipNames(bool includeNone) {
   static QStringList names = QStringList() <<
-    "Pixel" << "Percent" << "Plot" << "View" << "Em" << "Ex";
+    "px (Pixel)" << "% (Percent)" << "P (Plot)" << "V (View)" <<
+    "em (Font Height)" << "ex (Font 'x' Character Width)";
 
   static QStringList none_names = QStringList() << "None" << names;
 

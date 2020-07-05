@@ -194,23 +194,25 @@ CQChartsAxis::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = &(model->addProperty(path, this, name, alias)->setDesc(desc));
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
-    if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
   //---
 
-  addProp(path, "direction", "", "Axis direction")->setHidden(true).setEditable(false);
+  addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
 
   addProp(path, "visible"  , "", "Axis visible");
+  addProp(path, "editable" , "", "Axis editable");
   addProp(path, "side"     , "", "Axis plot side");
   addProp(path, "valueType", "", "Axis value type");
   addProp(path, "format"   , "", "Axis tick value format string");

@@ -179,12 +179,19 @@ void
 CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  model->addProperty(path, this, "visible"          )->setDesc("Title visible");
-  model->addProperty(path, this, "location"         )->setDesc("Title location");
-  model->addProperty(path, this, "absolutePosition" )->setDesc("Title absolute position");
-  model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectangle");
-  model->addProperty(path, this, "insidePlot"       )->setDesc("Title is inside plot");
-  model->addProperty(path, this, "expandWidth"      )->setDesc("Title is sized to plot width");
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    model->addProperty(path, this, name)->setDesc(desc).setHidden(hidden);
+  };
+
+  //---
+
+  addProp("visible"          , "Title visible");
+  addProp("editable"         , "Title editable");
+  addProp("location"         , "Title location");
+  addProp("absolutePosition" , "Title absolute position");
+  addProp("absoluteRectangle", "Title absolute rectangle");
+  addProp("insidePlot"       , "Title is inside plot");
+  addProp("expandWidth"      , "Title is sized to plot width");
 
   QString fitPath = path + "/fit";
 

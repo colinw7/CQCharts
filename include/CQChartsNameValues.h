@@ -15,17 +15,17 @@ class CQChartsNameValues : public CQModelNameValues {
   CQChartsNameValues();
   CQChartsNameValues(const QString &str);
 
-  bool nameValueInteger(const QString &name, int &value) const override;
-  bool nameValueReal   (const QString &name, double &value) const override;
-  bool nameValueBool   (const QString &name, bool &value) const override;
+  bool nameValueInteger(const QString &name, int &value, bool &ok) const override;
+  bool nameValueReal   (const QString &name, double &value, bool &ok) const override;
+  bool nameValueBool   (const QString &name, bool &value, bool &ok) const override;
 
-  bool nameValueColor(const QString &name, QColor &color) const override {
-    return CQModelNameValues::nameValueColor(name, color); }
-  bool nameValueColor(const QString &name, CQChartsColor &color) const;
+  bool nameValueColor(const QString &name, QColor &color, bool &ok) const override {
+    return CQModelNameValues::nameValueColor(name, color, ok); }
+  bool nameValueColor(const QString &name, CQChartsColor &color, bool &ok) const;
 
-  bool nameValueFont(const QString &name, QFont &font) const override {
-    return CQModelNameValues::nameValueFont(name, font); }
-  bool nameValueFont(const QString &name, CQChartsFont &font) const;
+  bool nameValueFont(const QString &name, QFont &font, bool &ok) const override {
+    return CQModelNameValues::nameValueFont(name, font, ok); }
+  bool nameValueFont(const QString &name, CQChartsFont &font, bool &ok) const;
 };
 
 #endif
