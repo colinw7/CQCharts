@@ -22,7 +22,7 @@ clear()
 
 void
 CQChartsGrahamHull::
-addPoint(const CQChartsGeom::Point &point)
+addPoint(const Point &point)
 {
   points_.push_back(point);
 
@@ -124,7 +124,7 @@ doScan()
 
 void
 CQChartsGrahamHull::
-getHull(CQChartsGeom::Polygon &poly) const
+getHull(Polygon &poly) const
 {
   constCalc();
 
@@ -235,15 +235,14 @@ squash()
 
 bool
 CQChartsGrahamHull::
-pointLineLeft(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
-              const CQChartsGeom::Point &c)
+pointLineLeft(const Point &a, const Point &b, const Point &c)
 {
   return areaSign(a, b, c) > 0;
 }
 
 int
 CQChartsGrahamHull::
-areaSign(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b, const CQChartsGeom::Point &c)
+areaSign(const Point &a, const Point &b, const Point &c)
 {
   double area2 = (b.x- a.x)*(c.y - a.y) - (c.x- a.x)*(b.y - a.y);
 
@@ -260,7 +259,7 @@ draw(const CQChartsPlot *, CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsGeom::Polygon hpoly;
+  Polygon hpoly;
 
   getHull(hpoly);
 
@@ -282,7 +281,7 @@ bbox() const
 
   //---
 
-  CQChartsGeom::Polygon hpoly;
+  Polygon hpoly;
 
   getHull(hpoly);
 

@@ -9,14 +9,17 @@ class CQChartsPaintDevice;
 
 class CQChartsBivariateDensity {
  public:
-  using Values = std::vector<CQChartsGeom::Point>;
+  using Point   = CQChartsGeom::Point;
+  using Values  = std::vector<Point>;
+  using BBox    = CQChartsGeom::BBox;
+  using RMinMax = CQChartsGeom::RMinMax;
 
   struct Data {
-    int                   gridSize;
-    double                delta;
-    Values                values;
-    CQChartsGeom::RMinMax xrange;
-    CQChartsGeom::RMinMax yrange;
+    int     gridSize;
+    double  delta;
+    Values  values;
+    RMinMax xrange;
+    RMinMax yrange;
   };
 
  public:

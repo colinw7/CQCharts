@@ -521,12 +521,14 @@ loadHier(HierNode *root) const
 
       //---
 
+      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
       double size = 1.0;
 
       QModelIndex valueInd;
 
       if (plot_->valueColumn().isValid()) {
-        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
         valueInd = plot_->modelIndex(valueModelInd);
 
@@ -552,7 +554,9 @@ loadHier(HierNode *root) const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      CQChartsModelIndex nameModelInd(data.row, plot_->nameColumns().column(), data.parent);
+      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
+      ModelIndex nameModelInd(plot, data.row, plot_->nameColumns().column(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -625,8 +629,8 @@ loadFlat(HierNode *root) const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // get hier names from name columns
-      QStringList  nameStrs;
-      ModelIndices nameInds;
+      QStringList   nameStrs;
+      QModelIndices nameInds;
 
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
                                       plot_->separator(), nameStrs, nameInds))
@@ -636,12 +640,14 @@ loadFlat(HierNode *root) const
 
       //---
 
+      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
       double size = 1.0;
 
       QModelIndex valueInd;
 
       if (plot_->valueColumn().isValid()) {
-        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
         valueInd = plot_->modelIndex(valueModelInd);
 
@@ -659,7 +665,7 @@ loadFlat(HierNode *root) const
       if (node && plot_->colorColumn().isValid()) {
         Color color;
 
-        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
@@ -860,7 +866,7 @@ childNode(HierNode *parent, const QString &name) const
 
 bool
 CQChartsSunburstPlot::
-getValueSize(const CQChartsModelIndex &ind, double &size) const
+getValueSize(const ModelIndex &ind, double &size) const
 {
   auto addDataError = [&](const QString &msg) {
     const_cast<CQChartsSunburstPlot *>(this)->addDataError(ind, msg);
@@ -1335,7 +1341,8 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    CQChartsModelIndex colorModelInd(ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorModelInd(const_cast<CQChartsSunburstPlot *>(plot_),
+                             ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 

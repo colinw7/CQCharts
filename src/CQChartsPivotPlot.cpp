@@ -660,18 +660,18 @@ createObjs(PlotObjs &objs) const
   else if (plotType() == PlotType::LINES || plotType() == PlotType::AREA) {
     bool isFilled = (plotType() == CQChartsPivotPlot::PlotType::AREA);
 
-    using ModelIndices = std::vector<QModelIndex>;
+    using QModelIndices = std::vector<QModelIndex>;
 
     for (int ih = 0; ih < nh; ++ih) {
       int c = pivotModel()->hkeyCol(hkeys[ih]);
 
       int c1 = c + 1;
 
-      Polygon      polygon;
-      ModelIndices inds;
-      double       minValue { 0.0 };
-      double       maxValue { 0.0 };
-      int          lastR    { -1 };
+      Polygon       polygon;
+      QModelIndices inds;
+      double        minValue { 0.0 };
+      double        maxValue { 0.0 };
+      int           lastR    { -1 };
 
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
@@ -1087,7 +1087,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsPivotBarObj *
 CQChartsPivotPlot::
-createBarObj(const BBox &rect, const QModelIndex &ind, const ModelIndices &inds,
+createBarObj(const BBox &rect, const QModelIndex &ind, const QModelIndices &inds,
              const ColorInd &ir, const ColorInd &ic, double value) const
 {
   return new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
@@ -1095,7 +1095,7 @@ createBarObj(const BBox &rect, const QModelIndex &ind, const ModelIndices &inds,
 
 CQChartsPivotLineObj *
 CQChartsPivotPlot::
-createLineObj(const BBox &rect, const ModelIndices &inds, const ColorInd &ig,
+createLineObj(const BBox &rect, const QModelIndices &inds, const ColorInd &ig,
               const Polygon &polygon, const QString &name) const
 {
   return new CQChartsPivotLineObj(this, rect, inds, ig, polygon, name);
@@ -1111,9 +1111,8 @@ createPointObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ir,
 
 CQChartsPivotCellObj *
 CQChartsPivotPlot::
-createCellObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ir,
-              const ColorInd &ic, const QString &name, double value, double hnorm, double vnorm,
-              bool valid) const
+createCellObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
+              const QString &name, double value, double hnorm, double vnorm, bool valid) const
 {
   return new CQChartsPivotCellObj(this, rect, ind, ir, ic, name, value, hnorm, vnorm, valid);
 }
@@ -1121,9 +1120,9 @@ createCellObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ir,
 //------
 
 CQChartsPivotBarObj::
-CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const BBox &rect,
-                    const QModelIndex &ind, const ModelIndices &inds, const ColorInd &ir,
-                    const ColorInd &ic, double value) :
+CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+                    const QModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
+                    double value) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ir, ic),
  plot_(plot), value_(value), ind_(ind)
 {
@@ -1265,7 +1264,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsPivotLineObj::
-CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const BBox &rect, const ModelIndices &inds,
+CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const BBox &rect, const QModelIndices &inds,
                      const ColorInd &ic, const Polygon &polygon, const QString &name) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ColorInd()),
  plot_(plot), polygon_(polygon), name_(name)

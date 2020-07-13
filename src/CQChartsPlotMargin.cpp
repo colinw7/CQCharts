@@ -4,7 +4,7 @@
 
 CQChartsGeom::BBox
 CQChartsPlotMargin::
-adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool inside) const
+adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
 {
   auto plotViewWidth = [&](const CQChartsLength &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)
@@ -65,7 +65,7 @@ adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool i
 
 CQChartsGeom::BBox
 CQChartsPlotMargin::
-adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool inside) const
+adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
 {
   auto lengthViewWidth = [&](const CQChartsLength &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)

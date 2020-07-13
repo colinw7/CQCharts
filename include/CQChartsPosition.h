@@ -18,17 +18,18 @@ class CQChartsPosition {
 
  public:
   using Point = CQChartsGeom::Point;
+  using Units = CQChartsUnits;
 
  public:
-  CQChartsPosition(const CQChartsUnits &units, const Point &p) :
+  CQChartsPosition(const Units &units, const Point &p) :
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const Point &p=Point(0,0), const CQChartsUnits &units=CQChartsUnits::PLOT) :
+  CQChartsPosition(const Point &p=Point(0,0), const Units &units=Units::PLOT) :
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const QString &s, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
+  CQChartsPosition(const QString &s, const Units &defUnits=Units::PIXEL) {
     setPoint(s, defUnits);
   }
 
@@ -43,19 +44,19 @@ class CQChartsPosition {
     return *this;
   }
 
-  const CQChartsUnits &units() const { return units_; }
-  const Point         &p    () const { return p_; }
+  const Units &units() const { return units_; }
+  const Point &p    () const { return p_; }
 
-  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+  bool isValid() const { return units_ != Units::NONE; }
 
-  void setPoint(const CQChartsUnits &units, const Point &p) {
+  void setPoint(const Units &units, const Point &p) {
     units_ = units;
     p_     = p;
   }
 
-  bool setPoint(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
-    CQChartsUnits units;
-    Point         p;
+  bool setPoint(const QString &str, const Units &defUnits=Units::PIXEL) {
+    Units units;
+    Point p;
 
     if (! decodeString(str, units, p, defUnits))
       return false;
@@ -67,7 +68,7 @@ class CQChartsPosition {
   }
 
   bool isSet() const {
-    return (units_ != CQChartsUnits::NONE);
+    return (units_ != Units::NONE);
   }
 
   //---
@@ -78,7 +79,7 @@ class CQChartsPosition {
     return QString("%1 %2 %3").arg(p_.x).arg(p_.y).arg(ustr);
   }
 
-  bool fromString(const QString &s, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
+  bool fromString(const QString &s, const Units &defUnits=Units::PIXEL) {
     return setPoint(s, defUnits);
   }
 
@@ -110,12 +111,12 @@ class CQChartsPosition {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units, Point &point,
-                           const CQChartsUnits &defUnits=CQChartsUnits::PIXEL);
+  static bool decodeString(const QString &str, Units &units, Point &point,
+                           const Units &defUnits=Units::PIXEL);
 
  private:
-  CQChartsUnits units_ { CQChartsUnits::PIXEL };
-  Point         p_     { 0, 0 };
+  Units units_ { Units::PIXEL };
+  Point p_     { 0, 0 };
 };
 
 //---

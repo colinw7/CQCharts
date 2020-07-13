@@ -54,3 +54,13 @@ Grouping
   column
   bucket (auto/fixed real/integer range, auto/fixed string pattern)
   optimal number of buckets (for auto)
+
+#---
+
+Indices
+  Plot model indices can be normalized or unnormalized.
+
+  Normalized are mapped to source model  (non-proxy model)
+  Unnormalized are mapped to proxy model (sort/filter model)
+
+  Selection Indices are normalized (for safer compare ?)

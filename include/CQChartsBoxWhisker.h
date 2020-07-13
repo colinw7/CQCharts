@@ -227,12 +227,16 @@ class CQChartsPlot;
  */
 namespace CQChartsBoxWhiskerUtil {
 
+using Point   = CQChartsGeom::Point;
+using BBox    = CQChartsGeom::BBox;
+using Polygon = CQChartsGeom::Polygon;
+
 void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                 const CQChartsBoxWhisker &whisker, const CQChartsGeom::BBox &bbox,
+                 const CQChartsBoxWhisker &whisker, const BBox &bbox,
                  const CQChartsLength &width, const Qt::Orientation &orientation,
                  const CQChartsLength &cornerSize=CQChartsLength());
 void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                 const CQStatData &data, const CQChartsGeom::BBox &bbox,
+                 const CQStatData &data, const BBox &bbox,
                  const CQChartsLength &width, const Qt::Orientation &orientation,
                  const CQChartsLength &cornerSize=CQChartsLength());
 

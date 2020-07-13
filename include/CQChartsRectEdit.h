@@ -31,7 +31,7 @@ class CQChartsRectEdit : public QFrame {
 
  private:
   void rectToWidgets();
-  void widgetsToRect();
+//void widgetsToRect();
 
   void connectSlots(bool b);
 

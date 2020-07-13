@@ -680,9 +680,13 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // show context menu
-  void showMenu(const Point &p);
+  // show context menu (override for custom menu)
+  virtual void showMenu(const Point &p);
 
+  // create new menu (lifetime handled by view)
+  virtual QMenu *createPopupMenu();
+
+  // get menu position
   Point menuPos() const { return mousePressPoint(); }
 
   //---

@@ -10,6 +10,7 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsOptString.h>
 #include <CQChartsAxisTickLabelPlacement.h>
+#include <CQChartsModelIndex.h>
 #include <CInterval.h>
 
 #include <map>
@@ -130,7 +131,8 @@ class CQChartsAxis : public CQChartsObj,
     MAJOR
   };
 
-  using ColorInd = CQChartsUtil::ColorInd;
+  using ColorInd   = CQChartsUtil::ColorInd;
+  using ModelIndex = CQChartsModelIndex;
 
  public:
   CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,

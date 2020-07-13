@@ -40,8 +40,11 @@ class CQChartsDensity : public QObject {
     ERROR_BAR
   };
 
-  using XVals  = std::vector<double>;
-  using Points = std::vector<CQChartsGeom::Point>;
+  using XVals   = std::vector<double>;
+  using Point   = CQChartsGeom::Point;
+  using Points  = std::vector<Point>;
+  using BBox    = CQChartsGeom::BBox;
+  using Polygon = CQChartsGeom::Polygon;
 
  public:
   CQChartsDensity();
@@ -84,42 +87,41 @@ class CQChartsDensity : public QObject {
 
   //---
 
-  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-            const CQChartsGeom::BBox &rect);
+  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect);
 
-  CQChartsGeom::BBox bbox(const CQChartsGeom::BBox &rect) const;
+  BBox bbox(const BBox &rect) const;
 
   //---
 
-  void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                   const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation) const;
-  void drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                      const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation) const;
+  void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                   const Qt::Orientation &orientation) const;
+  void drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                      const Qt::Orientation &orientation) const;
 
-  void drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                        const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
+  void drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                        const Qt::Orientation &orientation,
                         const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
-  void calcDistributionPoly(CQChartsGeom::Polygon &ppoly, const CQChartsPlot *plot,
-                            const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
+  void calcDistributionPoly(Polygon &ppoly, const CQChartsPlot *plot, const BBox &rect,
+                            const Qt::Orientation &orientation,
                             const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
   //---
 
-  static void drawCrossBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                           const CQChartsGeom::BBox &rect, double mean,
-                           const Qt::Orientation &orientation, const CQChartsLength &cornerSize);
+  static void drawCrossBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                           double mean, const Qt::Orientation &orientation,
+                           const CQChartsLength &cornerSize);
 
   static void drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                             const CQChartsGeom::BBox &rect, double mean,
+                             const BBox &rect, double mean,
                              const Qt::Orientation &orientation, const CQChartsSymbolData &symbol);
 
   static void drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                           const CQChartsGeom::BBox &rect, double mean,
+                           const BBox &rect, double mean,
                            const Qt::Orientation &orientation, const CQChartsSymbolData &symbol);
 
   static void drawLineRange(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                            const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation);
+                            const BBox &rect, const Qt::Orientation &orientation);
 
  private:
   void invalidate() {

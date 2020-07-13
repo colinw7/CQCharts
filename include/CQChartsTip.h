@@ -1,6 +1,9 @@
 #ifndef CQChartsTip_H
 #define CQChartsTip_H
 
+#include <CQChartsColumn.h>
+#include <set>
+
 /*!
  * \brief class to build tip text as an HTML table
  * \ingroup Charts
@@ -57,6 +60,14 @@ class CQChartsTableTip {
     return str_;
   }
 
+  void addColumn(const CQChartsColumn &c) {
+    columnSet_.insert(c);
+  }
+
+  bool hasColumn(const CQChartsColumn &c) const {
+    return (columnSet_.find(c) != columnSet_.end());
+  }
+
  private:
   QString escapeText(const QString &str) const {
     QString str1;
@@ -85,8 +96,11 @@ class CQChartsTableTip {
   }
 
  private:
-  QString str_;
-  bool    inTable_ { false };
+  using ColumnSet = std::set<CQChartsColumn>;
+
+  QString   str_;
+  bool      inTable_ { false };
+  ColumnSet columnSet_;
 };
 
 #endif

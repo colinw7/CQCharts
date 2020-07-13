@@ -56,7 +56,7 @@ class CQChartsChordPlot;
 class CQChartsChordData {
  public:
   using TableConnectionData = CQChartsConnectionPlot::TableConnectionData;
-  using Group               = TableConnectionData::Group;
+  using Group               = CQChartsConnectionPlot::GroupData;
   using Values              = TableConnectionData::Values;
   using Value               = TableConnectionData::Value;
   using PrimaryType         = TableConnectionData::PrimaryType;
@@ -435,6 +435,12 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
+  bool initLinkObjs() const;
+
+  void addLinkConnection(const LinkConnectionData &linkConnectionData) const override;
+
+  //---
+
   bool initPathObjs() const;
 
   void addPathValue(const QStringList &, double) const override;
@@ -450,8 +456,11 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initLinkObjs      () const;
   bool initConnectionObjs() const;
+
+  void addConnectionObj(int id, const ConnectionsData &connectionsData) const override;
+
+  //---
 
   bool initTableObjs(PlotObjs &objs) const;
 
@@ -468,8 +477,6 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   ChordData &getIndData(int ind);
 
   void addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs);
-
-  ChordData::Group getChordGroup(const QVariant &groupVar) const;
 
   //---
 
@@ -494,8 +501,8 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   RotatedTextBoxObj* textBox_        { nullptr }; //!< text box
   double             valueToDegrees_ { 1.0 };     //!< value to degrees scale
-  ValueSet           groupValues_;                //!< group values
   NameDataMap        nameDataMap_;                //!< name data map
+  NameDataMap        connectionNameDataMap_;      //!< name data map for connections
   IndName            indName_;                    //!< ind name
   ArcObjs            arcObjs_;                    //!< arc objects
   EdgeObjs           edgeObjs_;                   //!< edge objects

@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsConnectionList.h>
 
 #include <CQPerfMonitor.h>
 
@@ -32,6 +33,9 @@ class CQChartsConnectionPlotType : public CQChartsPlotType {
 };
 
 //---
+
+CQCHARTS_NAMED_SHAPE_DATA(Graph,graph)
+CQCHARTS_NAMED_SHAPE_DATA(Edge,edge)
 
 /*!
  * \brief Connection Plot Base Class
@@ -172,6 +176,27 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   using HierConnectionDataList = std::vector<HierConnectionData>;
 
+  struct GroupData {
+    int     id { -1 };
+    QString name;
+    int     ig { 0 };
+    int     ng { 0 };
+
+    GroupData() = default;
+
+    GroupData(int id, const QString &name) :
+     id(id), name(name) {
+    }
+
+    GroupData(const QString &name, int ig, int ng) :
+     name(name), ig(ig), ng(ng) {
+    }
+
+    bool isValid() const { return ng > 0; }
+
+    double value() const { return (isValid() ? double(ig)/ng : 0.0); }
+  };
+
   class TableConnectionData {
    public:
     enum class PrimaryType {
@@ -192,24 +217,6 @@ class CQChartsConnectionPlot : public CQChartsPlot {
       }
     };
 
-    struct Group {
-      QString str;
-      int     i { 0 };
-      int     n { 0 };
-
-      Group() = default;
-
-      Group(const QString &str, int i, int n) :
-       str(str), i(i), n(n) {
-      }
-
-      Group(const Group &group) = default;
-
-      bool isValid() const { return n > 0; }
-
-      double value() const { return (isValid() ? double(i)/n : 0.0); }
-    };
-
     using Values = std::vector<Value>;
 
    public:
@@ -224,8 +231,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     const QString &label() const { return label_; }
     void setLabel(const QString &s) { label_ = s; }
 
-    const Group &group() const { return group_; }
-    void setGroup(const Group &group) { group_ = group; }
+    const GroupData &group() const { return group_; }
+    void setGroup(const GroupData &group) { group_ = group; }
 
     int depth() const { return depth_; }
     void setDepth(int depth) { depth_ = depth; }
@@ -304,7 +311,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     int         from_         { -1 };    //!< from node
     QString     name_;                   //!< value name
     QString     label_;                  //!< value label
-    Group       group_;                  //!< group
+    GroupData   group_;                  //!< group
     int         depth_        { 0 };     //!< depth
     Values      values_;                 //!< connection values
     QModelIndex linkInd_;                //!< link model index
@@ -322,29 +329,62 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   };
 
  protected:
-  struct GroupData {
-    int     id { -1 };
-    QString name;
-
-    GroupData(int id=-1, const QString &name="") :
-     id(id), name(name) {
-    }
+  struct LinkConnectionData {
+    QString    srcStr;
+    QString    destStr;
+    double     value { 0.0 };
+    GroupData  groupData;
+    ModelIndex groupModelInd;
+    ModelIndex linkModelInd;
+    ModelIndex valueModelInd;
+    ModelIndex nameModelInd;
   };
 
   //---
 
   bool initHierObjs() const;
 
-  bool initPathObjs() const;
-
-  bool initFromToObjs() const;
-
   virtual void initHierObjsAddHierConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
   virtual void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                                              const HierConnectionData &destHierData) const = 0;
 
+  //---
+
+  bool initLinkObjs() const;
+
+  virtual void addLinkConnection(const LinkConnectionData &linkConnectionData) const = 0;
+
+  //---
+
+  using Connections = CQChartsConnectionList::Connections;
+
+  struct ConnectionsData {
+    QModelIndex ind;
+    int         node    { -1 };
+    QString     name;
+    GroupData   groupData;
+    double      total   { 0.0 };
+    Connections connections;
+  };
+
+  using IdConnectionsData = std::map<int,ConnectionsData>;
+
+  //--
+
+  bool initConnectionObjs() const;
+
+  virtual void addConnectionObj(int, const ConnectionsData &) const { }
+
+  //---
+
+  bool initPathObjs() const;
+
   virtual void addPathValue(const QStringList &, double) const { }
+
+  //---
+
+  bool initFromToObjs() const;
 
   virtual void addFromToValue(const QString &, const QString &, double,
                               const CQChartsNameValues &, const GroupData &) const { }
@@ -356,7 +396,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
-  void groupColumnData(const CQChartsModelIndex &groupModelInd, GroupData &groupData) const;
+  bool groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const;
 
  protected:
   struct PropagateData {

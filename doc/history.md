@@ -1150,3 +1150,6 @@
  + Fix bugs in rectilinear arrow drawing
  + Add error handling for data line edit's (using name/values)
  + Cleanup select/edit interface for objects (editable and selectable support everywhere)
+# 07/12/2020
+ + Add Graph Plot
+ + Cleanup duplicate connection plot code

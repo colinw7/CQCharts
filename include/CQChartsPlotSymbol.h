@@ -83,6 +83,7 @@ class CQChartsPlot;
 class CQChartsPlotSymbolRenderer {
  public:
   using Point = CQChartsGeom::Point;
+  using BBox  = CQChartsGeom::BBox;
 
  public:
   CQChartsPlotSymbolRenderer(CQChartsPaintDevice *painter, const Point &p,

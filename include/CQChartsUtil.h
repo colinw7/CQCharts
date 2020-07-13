@@ -23,6 +23,11 @@ class CQStrParse;
 
 namespace CQChartsUtil {
 
+using BBox  = CQChartsGeom::BBox;
+using Range = CQChartsGeom::Range;
+
+//---
+
 double toReal(const QString &str, bool &ok);
 bool   toReal(const QString &str, double &r);
 
@@ -41,18 +46,18 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns);
 
 //------
 
-inline CQChartsGeom::BBox rangeBBox(const CQChartsGeom::Range &range) {
+inline BBox rangeBBox(const Range &range) {
   if (range.isSet())
-    return CQChartsGeom::BBox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+    return BBox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
   else
-    return CQChartsGeom::BBox();
+    return BBox();
 }
 
-inline CQChartsGeom::Range bboxRange(const CQChartsGeom::BBox &bbox) {
+inline Range bboxRange(const BBox &bbox) {
   if (bbox.isSet())
-    return CQChartsGeom::Range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+    return Range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
   else
-    return CQChartsGeom::Range();
+    return Range();
 }
 
 }
@@ -179,21 +184,24 @@ int countLeadingBraces(CQStrParse &parse);
 
 namespace CQChartsUtil {
 
-using BBox  = CQChartsGeom::BBox;
-using Point = CQChartsGeom::Point;
+using BBox     = CQChartsGeom::BBox;
+using Size     = CQChartsGeom::Size;
+using Point    = CQChartsGeom::Point;
+using Polygon  = CQChartsGeom::Polygon;
+using Polygons = CQChartsGeom::Polygons;
 
-QString polygonListToString(const CQChartsGeom::Polygons &polyList);
-bool stringToPolygons(const QString &str, CQChartsGeom::Polygons &polyList);
-bool parsePolygons(CQStrParse &parse, CQChartsGeom::Polygons &polyList);
+QString polygonListToString(const Polygons &polyList);
+bool stringToPolygons(const QString &str, Polygons &polyList);
+bool parsePolygons(CQStrParse &parse, Polygons &polyList);
 
-QString polygonToString(const CQChartsGeom::Polygon &poly);
-bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly);
-bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly);
+QString polygonToString(const Polygon &poly);
+bool stringToPolygon(const QString &str, Polygon &poly);
+bool parsePolygon(CQStrParse &parse, Polygon &poly);
 
 QString bboxToString(const BBox &bbox);
 bool stringToBBox(const QString &str, BBox &bbox);
 
-QString sizeToString(const CQChartsGeom::Size &s);
+QString sizeToString(const Size &s);
 
 QString pointToString(const Point &p);
 bool stringToPoint(const QString &str, Point &point);
@@ -222,6 +230,8 @@ bool    stringToTime(const QString &fmt, const QString &str, double &t);
 
 namespace CQChartsUtil {
 
+using BBox = CQChartsGeom::BBox;
+
 struct FormatData {
   QString seps;
 
@@ -240,9 +250,8 @@ struct FormatData {
   }
 };
 
-bool formatStringInRect(const QString &str, const QFont &font,
-                        const CQChartsGeom::BBox &rect, QStringList &strs,
-                        const FormatData &formatData=FormatData());
+bool formatStringInRect(const QString &str, const QFont &font, const BBox &rect,
+                        QStringList &strs, const FormatData &formatData=FormatData());
 
 void findStringCustomSplits(const QString &str, std::vector<int> &splits,
                             const CQChartsUtil::FormatData &formatData);

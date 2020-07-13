@@ -354,30 +354,6 @@ class CQChartsColumns {
 
 //---
 
-#include <QModelIndex>
-
-struct CQChartsModelIndex {
-  int            row { -1 };
-  CQChartsColumn column;
-  QModelIndex    parent;
-  int            cellCol { -1 };
-
-  CQChartsModelIndex() = default;
-
-  CQChartsModelIndex(int row, const CQChartsColumn &column,
-                     const QModelIndex &parent=QModelIndex()) :
-   row(row), column(column), parent(parent) {
-  }
-
-  bool isValid() const { return (row >= 0); }
-
-  QString toString() const {
-    return QString("Row:%1 Col:%2").arg(row).arg(column.toString());
-  }
-};
-
-//---
-
 #include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColumn)

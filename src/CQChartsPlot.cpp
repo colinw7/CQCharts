@@ -400,18 +400,10 @@ void
 CQChartsPlot::
 selectionSlot(QItemSelectionModel *sm)
 {
-  QModelIndexList indices = sm->selectedIndexes();
-  if (indices.empty()) return;
-
+  // get selected (normalized) indices from selection model
   CQChartsPlotObj::Indices selectIndices;
 
-  for (int i = 0; i < indices.size(); ++i) {
-    const QModelIndex &ind = indices[i];
-
-    QModelIndex ind1 = normalizeIndex(ind);
-
-    selectIndices.insert(ind1);
-  }
+  getSelectIndices(sm, selectIndices);
 
   //---
 
@@ -425,20 +417,7 @@ selectionSlot(QItemSelectionModel *sm)
     if (! plotObj->isSelectable())
       continue;
 
-    CQChartsPlotObj::Indices indices;
-
-    plotObj->getSelectIndices(indices);
-
-    bool found = false;
-
-    for (const auto &ind : indices) {
-      if (selectIndices.find(ind) != selectIndices.end()) {
-        found = true;
-        break;
-      }
-    }
-
-    if (found)
+    if (plotObj->isSelectIndices(selectIndices))
       plotObj->setSelected(true);
   }
 
@@ -450,6 +429,22 @@ selectionSlot(QItemSelectionModel *sm)
 
   if (selectInvalidateObjs())
     drawObjs();
+}
+
+void
+CQChartsPlot::
+getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &selectIndices)
+{
+  QModelIndexList indices = sm->selectedIndexes();
+  if (indices.empty()) return;
+
+  for (int i = 0; i < indices.size(); ++i) {
+    const QModelIndex &ind = indices[i];
+
+    QModelIndex ind1 = normalizeIndex(ind);
+
+    selectIndices.insert(ind1);
+  }
 }
 
 //---
@@ -2574,6 +2569,7 @@ addBaseProperties()
   // columns
   addProp("columns", "idColumn"      , "id"      , "Id column");
   addProp("columns", "tipColumns"    , "tips"    , "Tip columns");
+  addProp("columns", "noTipColumns"  , "notips"  , "No Tip columns");
   addProp("columns", "visibleColumn" , "visible" , "Visible column");
   addProp("columns", "colorColumn"   , "color"   , "Color column");
   addProp("columns", "fontColumn"    , "font"    , "Font column");
@@ -4906,7 +4902,7 @@ updateInsideObjects(const Point &w)
   // get objects at point
   Objs objs;
 
-  objsAtPoint(w, objs);
+  objsAtPoint(w, objs, Constraints::SELECTABLE);
 
   //---
 
@@ -5107,7 +5103,7 @@ addColumnError(const CQChartsColumn &c, const QString &msg)
 
 bool
 CQChartsPlot::
-addDataError(const CQChartsModelIndex &ind, const QString &msg)
+addDataError(const ModelIndex &ind, const QString &msg)
 {
   if (! isPreview()) {
     DataError err { ind, msg };
@@ -5391,7 +5387,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   else {
     Objs objs;
 
-    objsAtPoint(w, objs);
+    objsAtPoint(w, objs, Constraints::SELECTABLE);
 
     if (! objs.empty())
       selectObj = *objs.begin();
@@ -5977,7 +5973,7 @@ objectsEditSelect(const Point &w, bool inside)
   // (to select point must be inside a plot object)
   Objs objs;
 
-  objsAtPoint(w, objs);
+  objsAtPoint(w, objs, Constraints::EDITABLE);
 
   for (const auto &obj : objs) {
     auto *plotObj = dynamic_cast<CQChartsPlotObj *>(obj);
@@ -6797,6 +6793,13 @@ setTipColumns(const CQChartsColumns &c)
 
 void
 CQChartsPlot::
+setNoTipColumns(const CQChartsColumns &c)
+{
+  CQChartsUtil::testAndSet(noTipColumns_, c, [&]() { resetObjTips(); } );
+}
+
+void
+CQChartsPlot::
 setVisibleColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(visibleColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -6947,14 +6950,16 @@ bool
 CQChartsPlot::
 colorColumnColor(int row, const QModelIndex &parent, Color &color) const
 {
-  CQChartsModelIndex colorInd(row, colorColumn(), parent);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  ModelIndex colorInd(th, row, colorColumn(), parent);
 
   return modelIndexColor(colorInd, color);
 }
 
 bool
 CQChartsPlot::
-modelIndexColor(const CQChartsModelIndex &colorInd, Color &color) const
+modelIndexColor(const ModelIndex &colorInd, Color &color) const
 {
   if (! colorColumnData_.valid)
     return false;
@@ -7057,14 +7062,16 @@ bool
 CQChartsPlot::
 fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const
 {
-  CQChartsModelIndex fontInd(row, fontColumn(), parent);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  ModelIndex fontInd(th, row, fontColumn(), parent);
 
   return modelIndexFont(fontInd, font);
 }
 
 bool
 CQChartsPlot::
-modelIndexFont(const CQChartsModelIndex &fontInd, CQChartsFont &font) const
+modelIndexFont(const ModelIndex &fontInd, CQChartsFont &font) const
 {
   // get model edit value
   bool ok;
@@ -7167,7 +7174,9 @@ columnSymbolType(int row, const QModelIndex &parent,
   if (! symbolTypeData.valid)
     return false;
 
-  CQChartsModelIndex symbolTypeModelInd(row, symbolTypeData.column, parent);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  ModelIndex symbolTypeModelInd(th, row, symbolTypeData.column, parent);
 
   bool ok;
 
@@ -7291,11 +7300,13 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
   if (! symbolSizeData.valid)
     return false;
 
+  auto *th = const_cast<CQChartsPlot *>(this);
+
   CQChartsUnits units = CQChartsUnits::PIXEL;
 
   (void) CQChartsUtil::decodeUnits(symbolSizeData.units, units);
 
-  CQChartsModelIndex symbolSizeModelInd(row, symbolSizeData.column, parent);
+  ModelIndex symbolSizeModelInd(th, row, symbolSizeData.column, parent);
 
   bool ok;
 
@@ -7414,11 +7425,13 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
   if (! fontSizeData.valid)
     return false;
 
+  auto *th = const_cast<CQChartsPlot *>(this);
+
   CQChartsUnits units = CQChartsUnits::PIXEL;
 
   (void) CQChartsUtil::decodeUnits(fontSizeData.units, units);
 
-  CQChartsModelIndex fontSizeModelInd(row, fontSizeData.column, parent);
+  ModelIndex fontSizeModelInd(th, row, fontSizeData.column, parent);
 
   bool ok;
 
@@ -7990,7 +8003,7 @@ tipText(const Point &p, QString &tip) const
   else {
     Objs objs;
 
-    objsAtPoint(p, objs);
+    objsAtPoint(p, objs, Constraints::SELECTABLE);
 
     numObjs = objs.size();
 
@@ -8016,23 +8029,41 @@ void
 CQChartsPlot::
 addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
 {
+  auto *th = const_cast<CQChartsPlot *>(this);
+
   for (const auto &c : tipColumns().columns()) {
-    if (c.isValid()) {
-      CQChartsModelIndex tipModelInd(ind.row(), c, ind.parent());
+    if (! c.isValid()) continue;
 
-      QModelIndex tipInd  = modelIndex(tipModelInd);
-      QModelIndex tipInd1 = unnormalizeIndex(tipInd);
+    if (tableTip.hasColumn(c))
+      continue;
 
-      CQChartsModelIndex tipModelInd1(tipInd1.row(), c, tipInd1.parent());
+    ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
 
-      bool ok1, ok2;
+    QModelIndex tipInd  = modelIndex(tipModelInd);
+    QModelIndex tipInd1 = unnormalizeIndex(tipInd);
 
-      QString name  = modelHHeaderString(c, ok1);
-      QString value = modelString(tipModelInd1, ok2);
+    ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
 
-      if (ok1 && ok2)
-        tableTip.addTableRow(name, value);
-    }
+    bool ok1, ok2;
+
+    QString name  = modelHHeaderString(c, ok1);
+    QString value = modelString(tipModelInd1, ok2);
+
+    if (ok1 && ok2)
+      tableTip.addTableRow(name, value);
+
+    tableTip.addColumn(c);
+  }
+}
+
+void
+CQChartsPlot::
+addNoTipColumns(CQChartsTableTip &tableTip) const
+{
+  for (const auto &c : noTipColumns().columns()) {
+    if (! c.isValid()) continue;
+
+    tableTip.addColumn(c);
   }
 }
 
@@ -8048,14 +8079,23 @@ resetObjTips()
 
 void
 CQChartsPlot::
-objsAtPoint(const Point &p, Objs &objs) const
+objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const
 {
   PlotObjs plotObjs;
 
   plotObjsAtPoint1(p, plotObjs);
 
-  for (const auto &plotObj : plotObjs)
+  int iconstraints = (int) constraints;
+
+  for (const auto &plotObj : plotObjs) {
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! plotObj->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! plotObj->isEditable())
+      continue;
+
     objs.push_back(plotObj);
+  }
 
   //---
 
@@ -8063,8 +8103,15 @@ objsAtPoint(const Point &p, Objs &objs) const
 
   annotationsAtPoint(p, annotations);
 
-  for (const auto &annotation : annotations)
+  for (const auto &annotation : annotations) {
+    if ((iconstraints & (int) Constraints::SELECTABLE) && ! annotation->isSelectable())
+      continue;
+
+    if ((iconstraints & (int) Constraints::EDITABLE) && ! annotation->isEditable())
+      continue;
+
     objs.push_back(annotation);
+  }
 }
 
 void
@@ -10657,10 +10704,13 @@ getObjectInds(const QString &objectId) const
   if (plotObj) {
     CQChartsPlotObj::Indices inds1;
 
-    plotObj->getSelectIndices(inds1);
+    plotObj->getSelectIndices(inds1); // normalized
 
-    for (auto &ind1 : inds1)
-      inds.push_back(ind1);
+    for (auto &ind1 : inds1) {
+      auto ind2 = unnormalizeIndex(ind1);
+
+      inds.push_back(ind2);
+    }
   }
 
   return inds;
@@ -11574,10 +11624,12 @@ getModelData() const
 bool
 CQChartsPlot::
 getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
-                   const QString &separator, QStringList &nameStrs, ModelIndices &nameInds) const
+                   const QString &separator, QStringList &nameStrs, QModelIndices &nameInds) const
 {
   auto *model = this->model().data();
   assert(model);
+
+  auto *th = const_cast<CQChartsPlot *>(this);
 
   // single column (separated names)
   if (nameColumns.count() == 1) {
@@ -11585,7 +11637,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
 
     //---
 
-    CQChartsModelIndex nameModelInd(row, nameColumn, parent);
+    ModelIndex nameModelInd(th, row, nameColumn, parent);
 
     bool ok;
 
@@ -11607,7 +11659,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
   }
   else {
     for (auto &nameColumn : nameColumns) {
-      CQChartsModelIndex nameModelInd(row, nameColumn, parent);
+      ModelIndex nameModelInd(th, row, nameColumn, parent);
 
       bool ok;
 
@@ -11631,16 +11683,48 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
 
 //------
 
-CQChartsModelIndex
+CQChartsPlot::ModelIndex
 CQChartsPlot::
-normalizeIndex(const CQChartsModelIndex &ind) const
+normalizeIndex(const ModelIndex &ind) const
 {
+  assert(ind.plot() == this && ! ind.isNormalized());
+
+  auto *th = const_cast<CQChartsPlot *>(this);
+
   QModelIndex ind1 = normalizeIndex(modelIndex(ind));
 
-  if (ind1.column() == ind.column.column())
-    return CQChartsModelIndex(ind1.row(), ind.column, ind1.parent());
+  ModelIndex nind;
+
+  if (ind1.column() == ind.column().column())
+    nind = ModelIndex(th, ind1.row(), ind.column(), ind1.parent());
   else
-    return CQChartsModelIndex(ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+    nind = ModelIndex(th, ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+
+  nind.setNormalized(true);
+
+  return nind;
+}
+
+CQChartsPlot::ModelIndex
+CQChartsPlot::
+unnormalizeIndex(const ModelIndex &ind) const
+{
+  assert(ind.plot() == this && ind.isNormalized());
+
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  QModelIndex ind1 = unnormalizeIndex(modelIndex(ind));
+
+  ModelIndex nind;
+
+  if (ind1.column() == ind.column().column())
+    nind = ModelIndex(th, ind1.row(), ind.column(), ind1.parent());
+  else
+    nind = ModelIndex(th, ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+
+  nind.setNormalized(false);
+
+  return nind;
 }
 
 QModelIndex
@@ -11746,7 +11830,9 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex columnInd(data.row, column_, data.parent);
+      auto *plot = const_cast<CQChartsPlot *>(plot_);
+
+      ModelIndex columnInd(plot, data.row, column_, data.parent);
 
       bool ok;
 
@@ -11797,12 +11883,14 @@ CQChartsPlot::
 modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
                 double &r, bool log, double def) const
 {
-  return modelMappedReal(CQChartsModelIndex(row, column, parent), r, log, def);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelMappedReal(ModelIndex(th, row, column, parent), r, log, def);
 }
 
 bool
 CQChartsPlot::
-modelMappedReal(const CQChartsModelIndex &ind, double &r, bool log, double def) const
+modelMappedReal(const ModelIndex &ind, double &r, bool log, double def) const
 {
   bool ok = false;
 
@@ -11879,7 +11967,9 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
   if (! idColumn().isValid())
     return "";
 
-  CQChartsModelIndex idColumnInd(row, idColumn(), parent);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  ModelIndex idColumnInd(th, row, idColumn(), parent);
 
   QVariant var = modelValue(idColumnInd, ok);
 
@@ -11905,22 +11995,35 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 
 QModelIndex
 CQChartsPlot::
-modelIndex(const CQChartsModelIndex &ind) const
+modelIndex(const ModelIndex &ind) const
 {
-  return modelIndex(ind.row, ind.column, ind.parent);
+  assert(ind.plot() == this);
+
+  return modelIndex(ind.row(), ind.column(), ind.parent(), ind.isNormalized());
 }
 
 QModelIndex
 CQChartsPlot::
-modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
+modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent,
+           bool normalized /*=false*/) const
 {
   if (! column.hasColumn())
     return QModelIndex();
 
-  auto *model = this->model().data();
-  if (! model) return QModelIndex();
+  if (! normalized) {
+    auto *model = this->model().data();
+    if (! model) return QModelIndex();
 
-  return model->index(row, column.column(), parent);
+    return model->index(row, column.column(), parent);
+  }
+  else {
+    std::vector<QSortFilterProxyModel *> proxyModels;
+    QAbstractItemModel*                  sourceModel;
+
+    this->proxyModels(proxyModels, sourceModel);
+
+    return sourceModel->index(row, column.column(), parent);
+  }
 }
 
 //------
@@ -12074,50 +12177,54 @@ CQChartsPlot::
 modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
            int role, bool &ok) const
 {
-  return modelValue(CQChartsModelIndex(row, column, parent), role, ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelValue(ModelIndex(th, row, column, parent), role, ok);
 }
 
 QVariant
 CQChartsPlot::
 modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelValue(CQChartsModelIndex(row, column, parent), ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelValue(ModelIndex(th, row, column, parent), ok);
 }
 
 QVariant
 CQChartsPlot::
-modelValue(const CQChartsModelIndex &ind, int role, bool &ok) const
+modelValue(const ModelIndex &ind, int role, bool &ok) const
 {
-  if (ind.column.isColumn() || ind.column.isCell()) {
-    CQChartsColumn c = ind.column;
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    CQChartsColumn c = ind.column();
 
-    if (ind.column.isColumn())
-      c.setColumnCol(ind.cellCol);
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
     else
-      c.setCellCol(ind.cellCol);
+      c.setCellCol(ind.cellCol());
 
-    return modelValue(model().data(), ind.row, c, ind.parent, role, ok);
+    return modelValue(model().data(), ind.row(), c, ind.parent(), role, ok);
   }
   else
-    return modelValue(model().data(), ind.row, ind.column, ind.parent, role, ok);
+    return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelValue(const CQChartsModelIndex &ind, bool &ok) const
+modelValue(const ModelIndex &ind, bool &ok) const
 {
-  if (ind.column.isColumn() || ind.column.isCell()) {
-    CQChartsColumn c = ind.column;
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    CQChartsColumn c = ind.column();
 
-    if (ind.column.isColumn())
-      c.setColumnCol(ind.cellCol);
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
     else
-      c.setCellCol(ind.cellCol);
+      c.setCellCol(ind.cellCol());
 
-    return modelValue(model().data(), ind.row, c, ind.parent, ok);
+    return modelValue(model().data(), ind.row(), c, ind.parent(), ok);
   }
   else
-    return modelValue(model().data(), ind.row, ind.column, ind.parent, ok);
+    return modelValue(model().data(), ind.row(), ind.column(), ind.parent(), ok);
 }
 
 QVariant
@@ -12143,28 +12250,39 @@ CQChartsPlot::
 modelString(int row, const CQChartsColumn &column, const QModelIndex &parent,
             int role, bool &ok) const
 {
-  return modelString(CQChartsModelIndex(row, column, parent), role, ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelString(ModelIndex(th, row, column, parent), role, ok);
 }
 
 QString
 CQChartsPlot::
 modelString(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelString(CQChartsModelIndex(row, column, parent), ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelString(ModelIndex(th, row, column, parent), ok);
 }
 
 QString
 CQChartsPlot::
-modelString(const CQChartsModelIndex &ind, int role, bool &ok) const
+modelString(const ModelIndex &ind, int role, bool &ok) const
 {
-  return modelString(model().data(), ind.row, ind.column, ind.parent, role, ok);
+  return modelString(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
 }
 
 QString
 CQChartsPlot::
-modelString(const CQChartsModelIndex &ind, bool &ok) const
+modelString(const ModelIndex &ind, bool &ok) const
 {
-  return modelString(model().data(), ind.row, ind.column, ind.parent, ok);
+  return modelString(model().data(), ind.row(), ind.column(), ind.parent(), ok);
+}
+
+QString
+CQChartsPlot::
+modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const
+{
+  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(), ind.parent(), ok);
 }
 
 QString
@@ -12190,50 +12308,54 @@ CQChartsPlot::
 modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
           int role, bool &ok) const
 {
-  return modelReal(CQChartsModelIndex(row, column, parent), role, ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelReal(ModelIndex(th, row, column, parent), role, ok);
 }
 
 double
 CQChartsPlot::
 modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelReal(CQChartsModelIndex(row, column, parent), ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelReal(ModelIndex(th, row, column, parent), ok);
 }
 
 double
 CQChartsPlot::
-modelReal(const CQChartsModelIndex &ind, int role, bool &ok) const
+modelReal(const ModelIndex &ind, int role, bool &ok) const
 {
-  if (ind.column.isColumn() || ind.column.isCell()) {
-    CQChartsColumn c = ind.column;
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    CQChartsColumn c = ind.column();
 
-    if (ind.column.isColumn())
-      c.setColumnCol(ind.cellCol);
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
     else
-      c.setCellCol(ind.cellCol);
+      c.setCellCol(ind.cellCol());
 
-    return modelReal(model().data(), ind.row, c, ind.parent, role, ok);
+    return modelReal(model().data(), ind.row(), c, ind.parent(), role, ok);
   }
   else
-    return modelReal(model().data(), ind.row, ind.column, ind.parent, role, ok);
+    return modelReal(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
 }
 
 double
 CQChartsPlot::
-modelReal(const CQChartsModelIndex &ind, bool &ok) const
+modelReal(const ModelIndex &ind, bool &ok) const
 {
-  if (ind.column.isColumn() || ind.column.isCell()) {
-    CQChartsColumn c = ind.column;
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    CQChartsColumn c = ind.column();
 
-    if (ind.column.isColumn())
-      c.setColumnCol(ind.cellCol);
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
     else
-      c.setCellCol(ind.cellCol);
+      c.setCellCol(ind.cellCol());
 
-    return modelReal(model().data(), ind.row, c, ind.parent, ok);
+    return modelReal(model().data(), ind.row(), c, ind.parent(), ok);
   }
   else
-    return modelReal(model().data(), ind.row, ind.column, ind.parent, ok);
+    return modelReal(model().data(), ind.row(), ind.column(), ind.parent(), ok);
 }
 
 double
@@ -12259,28 +12381,32 @@ CQChartsPlot::
 modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent,
              int role, bool &ok) const
 {
-  return modelInteger(CQChartsModelIndex(row, column, parent), role, ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelInteger(ModelIndex(th, row, column, parent), role, ok);
 }
 
 long
 CQChartsPlot::
 modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelInteger(CQChartsModelIndex(row, column, parent), ok);
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  return modelInteger(ModelIndex(th, row, column, parent), ok);
 }
 
 long
 CQChartsPlot::
-modelInteger(const CQChartsModelIndex &ind, int role, bool &ok) const
+modelInteger(const ModelIndex &ind, int role, bool &ok) const
 {
-  return modelInteger(model().data(), ind.row, ind.column, ind.parent, role, ok);
+  return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
 }
 
 long
 CQChartsPlot::
-modelInteger(const CQChartsModelIndex &ind, bool &ok) const
+modelInteger(const ModelIndex &ind, bool &ok) const
 {
-  return modelInteger(model().data(), ind.row, ind.column, ind.parent, ok);
+  return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), ok);
 }
 
 long
@@ -12338,9 +12464,9 @@ modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 std::vector<double>
 CQChartsPlot::
-modelReals(const CQChartsModelIndex &ind, bool &ok) const
+modelReals(const ModelIndex &ind, bool &ok) const
 {
-  return modelReals(ind.row, ind.column, ind.parent, ok);
+  return modelReals(ind.row(), ind.column(), ind.parent(), ok);
 }
 
 std::vector<double>
@@ -12358,6 +12484,13 @@ modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
 }
 
 //------
+
+QVariant
+CQChartsPlot::
+modelRootValue(const ModelIndex &ind, int role, bool &ok) const
+{
+  return modelRootValue(ind.row(), ind.column(), ind.parent(), role, ok);
+}
 
 QVariant
 CQChartsPlot::
@@ -12384,9 +12517,9 @@ modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QVariant
 CQChartsPlot::
-modelHierValue(const CQChartsModelIndex &ind, bool &ok) const
+modelHierValue(const ModelIndex &ind, bool &ok) const
 {
-  return modelHierValue(ind.row, ind.column, ind.parent, ok);
+  return modelHierValue(ind.row(), ind.column(), ind.parent(), ok);
 }
 
 QVariant
@@ -12436,9 +12569,9 @@ modelHierValue(int row, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelHierString(const CQChartsModelIndex &ind, bool &ok) const
+modelHierString(const ModelIndex &ind, bool &ok) const
 {
-  return modelHierString(ind.row, ind.column, ind.parent, ok);
+  return modelHierString(ind.row(), ind.column(), ind.parent(), ok);
 }
 
 QString
@@ -12574,9 +12707,9 @@ beginSelectIndex()
 
 void
 CQChartsPlot::
-addSelectIndex(const CQChartsModelIndex &ind)
+addSelectIndex(const ModelIndex &ind)
 {
-  addSelectIndex(ind.row, ind.column.column(), ind.parent);
+  addSelectIndex(ind.row(), ind.column().column(), ind.parent());
 }
 
 void
@@ -12707,8 +12840,8 @@ positionToPlot(const CQChartsPosition &pos) const
   else if (pos.units() == CQChartsUnits::PERCENT) {
     auto pbbox = displayRangeBBox();
 
-    p1.setX(p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(p.getY()*pbbox.getHeight()/100.0);
+    p1.setX(pbbox.getXMin() + p.getX()*pbbox.getWidth ()/100.0);
+    p1.setY(pbbox.getYMin() + p.getY()*pbbox.getHeight()/100.0);
   }
   else if (pos.units() == CQChartsUnits::EM) {
     double x = pixelToWindowWidth (p.getX()*view()->fontEm());
@@ -12742,8 +12875,8 @@ positionToPixel(const CQChartsPosition &pos) const
   else if (pos.units() == CQChartsUnits::PERCENT) {
     auto pbbox = calcPlotPixelRect();
 
-    p1.setX(p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(p.getY()*pbbox.getHeight()/100.0);
+    p1.setX(pbbox.getXMin() + p.getX()*pbbox.getWidth ()/100.0);
+    p1.setY(pbbox.getYMin() + p.getY()*pbbox.getHeight()/100.0);
   }
   else if (pos.units() == CQChartsUnits::EM) {
     double x = p.getX()*view()->fontEm();
@@ -12779,10 +12912,10 @@ rectToPlot(const CQChartsRect &rect) const
   else if (rect.units() == CQChartsUnits::PERCENT) {
     auto pbbox = displayRangeBBox();
 
-    r1.setXMin(r.getXMin()*pbbox.getWidth ()/100.0);
-    r1.setYMin(r.getYMin()*pbbox.getHeight()/100.0);
-    r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
-    r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
+    r1.setXMin(pbbox.getXMin() + r.getXMin()*pbbox.getWidth ()/100.0);
+    r1.setYMin(pbbox.getYMin() + r.getYMin()*pbbox.getHeight()/100.0);
+    r1.setXMax(pbbox.getXMin() + r.getXMax()*pbbox.getWidth ()/100.0);
+    r1.setYMax(pbbox.getYMin() + r.getYMax()*pbbox.getHeight()/100.0);
   }
   else if (rect.units() == CQChartsUnits::EM) {
     double x1 = pixelToWindowWidth (r.getXMin()*view()->fontEm());
@@ -12820,10 +12953,10 @@ rectToPixel(const CQChartsRect &rect) const
   else if (rect.units() == CQChartsUnits::PERCENT) {
     auto pbbox = calcPlotPixelRect();
 
-    r1.setXMin(r.getXMin()*pbbox.getWidth ()/100.0);
-    r1.setYMin(r.getYMin()*pbbox.getHeight()/100.0);
-    r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
-    r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
+    r1.setXMin(pbbox.getXMin() + r.getXMin()*pbbox.getWidth ()/100.0);
+    r1.setYMin(pbbox.getYMin() + r.getYMin()*pbbox.getHeight()/100.0);
+    r1.setXMax(pbbox.getXMin() + r.getXMax()*pbbox.getWidth ()/100.0);
+    r1.setYMax(pbbox.getYMin() + r.getYMax()*pbbox.getHeight()/100.0);
   }
   else if (rect.units() == CQChartsUnits::EM) {
     double x1 = r.getXMin()*view()->fontEm();

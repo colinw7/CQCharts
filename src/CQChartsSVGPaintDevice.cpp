@@ -47,7 +47,7 @@ setClipPath(const QPainterPath &, Qt::ClipOperation)
 
 void
 CQChartsSVGPaintDevice::
-setClipRect(const CQChartsGeom::BBox &, Qt::ClipOperation)
+setClipRect(const BBox &, Qt::ClipOperation)
 {
   // TODO
 }
@@ -174,7 +174,7 @@ addPathParts(const QPainterPath &path)
 
 void
 CQChartsSVGPaintDevice::
-fillRect(const CQChartsGeom::BBox &bbox)
+fillRect(const BBox &bbox)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -190,7 +190,7 @@ fillRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsSVGPaintDevice::
-drawRect(const CQChartsGeom::BBox &bbox)
+drawRect(const BBox &bbox)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -207,7 +207,7 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsSVGPaintDevice::
-drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
+drawEllipse(const BBox &bbox, const CQChartsAngle &)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -225,7 +225,7 @@ drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
 #if 0
 void
 CQChartsSVGPaintDevice::
-drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &, const CQChartsAngle &)
+drawArc(const BBox &, const CQChartsAngle &, const CQChartsAngle &)
 {
   // TODO
 }
@@ -233,7 +233,7 @@ drawArc(const CQChartsGeom::BBox &, const CQChartsAngle &, const CQChartsAngle &
 
 void
 CQChartsSVGPaintDevice::
-drawPolygon(const CQChartsGeom::Polygon &poly)
+drawPolygon(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
@@ -262,7 +262,7 @@ drawPolygon(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsSVGPaintDevice::
-drawPolyline(const CQChartsGeom::Polygon &poly)
+drawPolyline(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
@@ -288,7 +288,7 @@ drawPolyline(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsSVGPaintDevice::
-drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
+drawLine(const Point &p1, const Point &p2)
 {
   auto pp1 = windowToPixel(p1);
   auto pp2 = windowToPixel(p2);
@@ -305,7 +305,7 @@ drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 
 void
 CQChartsSVGPaintDevice::
-drawPoint(const CQChartsGeom::Point &p)
+drawPoint(const Point &p)
 {
   auto pp = windowToPixel(p);
 
@@ -320,7 +320,7 @@ drawPoint(const CQChartsGeom::Point &p)
 
 void
 CQChartsSVGPaintDevice::
-drawText(const CQChartsGeom::Point &p, const QString &text)
+drawText(const Point &p, const QString &text)
 {
   auto pp = windowToPixel(p);
 
@@ -342,9 +342,9 @@ drawText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsSVGPaintDevice::
-drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
+drawTransformedText(const Point &p, const QString &text)
 {
-  CQChartsGeom::Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
+  Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
 
   auto ppt = windowToPixel(pt);
 
@@ -371,14 +371,14 @@ drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsSVGPaintDevice::
-drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
+drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
 {
   auto pbbox = windowToPixel(bbox);
 
   double px = pbbox.getXMin();
   double py = pbbox.getYMin();
 
-  auto pw = pixelToWindow(CQChartsGeom::Point(px, py));
+  auto pw = pixelToWindow(Point(px, py));
 
   QImage qimage = image.sizedImage(int(pbbox.getWidth()), int(pbbox.getHeight()));
 
@@ -387,7 +387,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
 
 void
 CQChartsSVGPaintDevice::
-drawImage(const CQChartsGeom::Point &p, const QImage &image)
+drawImage(const Point &p, const QImage &image)
 {
   auto pt = windowToPixel(p);
 

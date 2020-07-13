@@ -28,6 +28,11 @@ class CQDataModel : public CQBaseModel {
 
   //---
 
+  //! resize
+  void resizeMode(int numCols, int numRows) { init(numCols, numRows); }
+
+  //---
+
   //! get/set read only
   bool isReadOnly() const { return readOnly_; }
   void setReadOnly(bool b) { readOnly_ = b; }

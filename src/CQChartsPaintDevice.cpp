@@ -133,42 +133,42 @@ drawRoundedLine(const Point &p1, const Point &p2, double w)
 
 CQChartsGeom::BBox
 CQChartsPaintDevice::
-windowToPixel(const CQChartsGeom::BBox &r) const
+windowToPixel(const BBox &r) const
 {
   return (! view_ ? (! plot_ ? r : plot_->windowToPixel(r)) : view_->windowToPixel(r));
 }
 
 CQChartsGeom::BBox
 CQChartsPaintDevice::
-pixelToWindow(const CQChartsGeom::BBox &r) const
+pixelToWindow(const BBox &r) const
 {
   return (! view_ ? (! plot_ ? r : plot_->pixelToWindow(r)) : view_->pixelToWindow(r));
 }
 
 CQChartsGeom::Point
 CQChartsPaintDevice::
-windowToPixel(const CQChartsGeom::Point &p) const
+windowToPixel(const Point &p) const
 {
   return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
 }
 
 CQChartsGeom::Point
 CQChartsPaintDevice::
-pixelToWindow(const CQChartsGeom::Point &p) const
+pixelToWindow(const Point &p) const
 {
   return (! view_ ? (! plot_ ? p : plot_->pixelToWindow(p)) : view_->pixelToWindow(p));
 }
 
 CQChartsGeom::Polygon
 CQChartsPaintDevice::
-windowToPixel(const CQChartsGeom::Polygon &p) const
+windowToPixel(const Polygon &p) const
 {
   return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
 }
 
 CQChartsGeom::Size
 CQChartsPaintDevice::
-pixelToWindowSize(const CQChartsGeom::Size &s) const
+pixelToWindowSize(const Size &s) const
 {
   return (! view_ ? (! plot_ ? s : plot_->pixelToWindowSize(s)) : view_->pixelToWindowSize(s));
 }

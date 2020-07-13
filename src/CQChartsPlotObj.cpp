@@ -9,7 +9,7 @@
 #include <CQPropertyViewItem.h>
 
 CQChartsPlotObj::
-CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorInd &is,
+CQChartsPlotObj(CQChartsPlot *plot, const BBox &rect, const ColorInd &is,
                 const ColorInd &ig, const ColorInd &iv) :
  CQChartsObj(plot->charts(), rect), plot_(plot), is_(is), ig_(ig), iv_(iv)
 {
@@ -109,7 +109,7 @@ setModelInd(const QModelIndex &ind)
 
 void
 CQChartsPlotObj::
-setModelInds(const ModelIndices &inds)
+setModelInds(const QModelIndices &inds)
 {
   modelInds_ = inds;
 }
@@ -172,6 +172,24 @@ isSelectIndex(const QModelIndex &ind) const
   return false;
 }
 
+bool
+CQChartsPlotObj::
+isSelectIndices(const Indices &indices) const
+{
+  Indices inds;
+
+  getHierSelectIndices(inds);
+
+  for (auto &ind1 : inds) {
+    QModelIndex ind2 = plot()->normalizeIndex(ind1);
+
+    if (indices.find(ind2) != indices.end())
+      return true;
+  }
+
+  return false;
+}
+
 void
 CQChartsPlotObj::
 getSelectIndices(Indices &indices) const
@@ -227,9 +245,9 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsPlotObj::
-addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const
+addSelectIndex(Indices &inds, const ModelIndex &ind) const
 {
-  addSelectIndex(inds, ind.row, ind.column, ind.parent);
+  addSelectIndex(inds, ind.row(), ind.column(), ind.parent());
 }
 
 void
@@ -292,7 +310,7 @@ drawEditHandles(QPainter *painter) const
 void
 CQChartsPlotObj::
 drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
-                   const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const
+                   const BBox &rect, const CQChartsLength &cornerSize) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -412,7 +430,7 @@ writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &penBrus
 
 bool
 CQChartsPlotObj::
-contains(const CQChartsGeom::Point &p) const
+contains(const Point &p) const
 {
   return inside(p);
 }
@@ -446,7 +464,7 @@ writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const
 //------
 
 CQChartsGroupObj::
-CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, const ColorInd &ig) :
+CQChartsGroupObj(CQChartsPlot *plot, const BBox &bbox, const ColorInd &ig) :
  CQChartsPlotObj(plot, bbox, ColorInd(), ig, ColorInd())
 {
 }

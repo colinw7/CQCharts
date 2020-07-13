@@ -572,7 +572,8 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
   using ColumnValues = std::vector<CMathCorrelation::Values>;
   using ColumnNames  = std::vector<QString>;
-  using ColumnMinMax = std::vector<CQChartsGeom::RMinMax>;
+  using RMinMax      = CQChartsGeom::RMinMax;
+  using ColumnMinMax = std::vector<RMinMax>;
 
   ColumnValues columnValues;
   ColumnNames  columnNames;
@@ -679,6 +680,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
   using ColumnDevData       = std::map<int,DevData>;
   using ColumnColumnDevData = std::map<int,ColumnDevData>;
   using ColumnDensity       = std::map<int,CQChartsDensity *>;
+  using Point               = CQChartsGeom::Point;
 
   ColumnReal          columnSumSq;
   ColumnColumnReal    columnsCorr;
@@ -712,8 +714,8 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
         int nv1 = values1.size();
 
         for (int j = 0; j < nv1; ++j) {
-          points1.push_back(CQChartsGeom::Point(values1[j], values2[j]));
-          points2.push_back(CQChartsGeom::Point(values2[j], values1[j]));
+          points1.push_back(Point(values1[j], values2[j]));
+          points2.push_back(Point(values2[j], values1[j]));
         }
 
         columnsPoints[ic1][ic2] = points1;

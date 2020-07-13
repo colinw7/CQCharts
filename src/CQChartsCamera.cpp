@@ -19,13 +19,13 @@ init()
 {
   coordFrame_.init();
 
-  setDirection(CQChartsGeom::Point3D(0, 0, 1));
+  setDirection(Point3D(0, 0, 1));
 
 //projMatrix_.buildPerspective(fov, 1.0, near, far);
 //projMatrix_.buildOrtho(xmin_, xmax_, ymin_, ymax_, near_, far_);
 //projMatrix_.buildFrustrum(-2, 2, -2, 2, near, far);
 
-  const CQChartsGeom::Range3D &range3D = plot_->range3D();
+  const Range3D &range3D = plot_->range3D();
 
   if (range3D.isSet()) {
     double xmin = range3D.xmin();
@@ -70,7 +70,7 @@ reset()
   scaleY_      = 1.0;
   scaleZ_      = 1.0;
   coordFrame_  = CCoordFrame3D();
-  direction_   = CQChartsGeom::Point3D(0, 0, 1);
+  direction_   = Point3D(0, 0, 1);
 //fov_         = 90;
   projMatrix_  = CMatrix3DH();
   iprojMatrix_ = CMatrix3DH();
@@ -91,7 +91,7 @@ setMap()
 
 void
 CQChartsCamera::
-setDirection(const CQChartsGeom::Point3D &dir)
+setDirection(const Point3D &dir)
 {
   CVector3D right, up, dir1;
 
@@ -113,14 +113,14 @@ setDirection(const CQChartsGeom::Point3D &dir)
 
 CQChartsGeom::Point3D
 CQChartsCamera::
-transform(const CQChartsGeom::Point3D &p) const
+transform(const Point3D &p) const
 {
   if (! enabled_) return p;
 
   //---
 
   // map to unit radius cube centered at 0,0
-  const CQChartsGeom::Range3D &range3D = plot_->range3D();
+  const Range3D &range3D = plot_->range3D();
 
   if (! range3D.isSet())
     return p;
@@ -161,17 +161,17 @@ transform(const CQChartsGeom::Point3D &p) const
   double y3 = CMathUtil::map(p3.y, -1, 1, ymin, ymax);
   double z3 = CMathUtil::map(p3.z, -1, 1, zmin, zmax);
 
-  return CQChartsGeom::Point3D(x3, y3, z3);
+  return Point3D(x3, y3, z3);
 }
 
 CQChartsGeom::Point3D
 CQChartsCamera::
-untransform(const CQChartsGeom::Point3D &p) const
+untransform(const Point3D &p) const
 {
   if (! enabled_) return p;
 
   // map to unit radius cube centered at 0,0
-  const CQChartsGeom::Range3D &range3D = plot_->range3D();
+  const Range3D &range3D = plot_->range3D();
 
   if (! range3D.isSet())
     return p;
@@ -210,14 +210,14 @@ untransform(const CQChartsGeom::Point3D &p) const
   double y = CMathUtil::map(p1.y, -scaleY_, scaleY_, ymin, ymax);
   double z = CMathUtil::map(p1.z, -scaleZ_, scaleZ_, zmin, zmax);
 
-  return CQChartsGeom::Point3D(x, y, z);
+  return Point3D(x, y, z);
 }
 
 void
 CQChartsCamera::
 planeZRange(double &zmin, double &zmax) const
 {
-  const CQChartsGeom::Range3D &range3D = plot_->range3D();
+  const Range3D &range3D = plot_->range3D();
 
   zmin = range3D.zmin();
   zmax = range3D.zmax();

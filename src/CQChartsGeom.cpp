@@ -25,7 +25,7 @@ bool
 BBox::
 fromString(const QString &s)
 {
-  CQChartsGeom::BBox bbox;
+  BBox bbox;
 
   if (! CQChartsUtil::stringToBBox(s, bbox))
     return false;
@@ -50,7 +50,7 @@ bool
 Point::
 fromString(const QString &s)
 {
-  CQChartsGeom::Point p;
+  Point p;
 
   if (! CQChartsUtil::stringToPoint(s, p))
     return false;

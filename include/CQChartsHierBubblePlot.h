@@ -494,7 +494,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
-  bool getValueSize(const CQChartsModelIndex &ind, double &size) const;
+  bool getValueSize(const ModelIndex &ind, double &size) const;
 
   //---
 

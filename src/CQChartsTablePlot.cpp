@@ -60,7 +60,7 @@ description() const
 
 void
 CQChartsTablePlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   auto *details = modelData->details();
   if (! details) return;
@@ -77,7 +77,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsTablePlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsTablePlot(view, model);
 }
@@ -85,7 +85,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsTablePlot::
-CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
+CQChartsTablePlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("table"), model)
 {
   NoUpdate noUpdate(this);
@@ -99,13 +99,13 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
 
   setDataClip(false);
 
-  setPlotFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
-  setDataFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
-  setFitFillColor (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setFitFillColor (Color(Color::Type::INTERFACE_VALUE, 0.00));
 
   //---
 
-  CQChartsFont font;
+  Font font;
 
   font.decFontSize(8);
 
@@ -121,16 +121,16 @@ CQChartsTablePlot(CQChartsView *view, const ModelP &model) :
   setMaxRows (10*pageSize);
   setPageSize(pageSize);
 
-  setGridColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.50));
-  setTextColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.00));
+  setGridColor      (Color(Color::Type::INTERFACE_VALUE, 0.50));
+  setTextColor      (Color(Color::Type::INTERFACE_VALUE, 1.00));
   setHeaderColor    (QColor(150, 150, 200));
-  setCellColor      (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setCellColor      (Color(Color::Type::INTERFACE_VALUE, 0.00));
   setInsideColor    (QColor(100, 100, 200));
-  setInsideTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setInsideTextColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
 
   //---
 
-  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
+  setOuterMargin(PlotMargin(0, 0, 0, 0));
 
   addTitle();
 
@@ -203,7 +203,7 @@ vscrollSlot(int v)
 
 void
 CQChartsTablePlot::
-setColumns(const CQChartsColumns &c)
+setColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(columns_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -212,7 +212,7 @@ setColumns(const CQChartsColumns &c)
 
 void
 CQChartsTablePlot::
-setFont(const CQChartsFont &f)
+setFont(const Font &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { updateRangeAndObjs(); } );
 }
@@ -265,12 +265,12 @@ CQChartsColumnNum
 CQChartsTablePlot::
 sortColumn() const
 {
-  return (summaryModel_ ? CQChartsColumnNum(summaryModel_->sortColumn()) : CQChartsColumnNum());
+  return (summaryModel_ ? ColumnNum(summaryModel_->sortColumn()) : ColumnNum());
 }
 
 void
 CQChartsTablePlot::
-setSortColumn(const CQChartsColumnNum &c)
+setSortColumn(const ColumnNum &c)
 {
   if (c != sortColumn()) {
     if (summaryModel_)
@@ -434,7 +434,7 @@ setHeaderVisible(bool b)
 
 void
 CQChartsTablePlot::
-setHeaderColor(const CQChartsColor &c)
+setHeaderColor(const Color &c)
 {
   CQChartsUtil::testAndSet(headerData_.color, c, [&]() { updateObjs(); } );
 }
@@ -443,35 +443,35 @@ setHeaderColor(const CQChartsColor &c)
 
 void
 CQChartsTablePlot::
-setGridColor(const CQChartsColor &c)
+setGridColor(const Color &c)
 {
   CQChartsUtil::testAndSet(gridColor_, c, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsTablePlot::
-setTextColor(const CQChartsColor &c)
+setTextColor(const Color &c)
 {
   CQChartsUtil::testAndSet(textColor_, c, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsTablePlot::
-setCellColor(const CQChartsColor &c)
+setCellColor(const Color &c)
 {
   CQChartsUtil::testAndSet(cellColor_, c, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsTablePlot::
-setInsideColor(const CQChartsColor &c)
+setInsideColor(const Color &c)
 {
   CQChartsUtil::testAndSet(insideColor_, c, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsTablePlot::
-setInsideTextColor(const CQChartsColor &c)
+setInsideTextColor(const Color &c)
 {
   CQChartsUtil::testAndSet(insideTextColor_, c, [&]() { updateObjs(); } );
 }
@@ -680,14 +680,16 @@ calcTableSize() const
 
       //---
 
+      auto *plot = const_cast<CQChartsTablePlot *>(plot_);
+
       for (int i = 0; i < tableData_.nc; ++i) {
         const auto &c = plot_->columns().getColumn(i);
 
-        CQChartsModelIndex ind(data.row, c, data.parent);
+        ModelIndex ind(plot, data.row, c, data.parent);
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelString(plot_->charts(), model_, ind, ok);
+        QString str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
         if (! ok) continue;
 
         ColumnData &data = tableData_.columnDataMap[c];
@@ -986,7 +988,7 @@ void
 CQChartsTablePlot::
 sortColumnSlot()
 {
-  setSortColumn(CQChartsColumnNum(sortColumnSpin_->value() - 1));
+  setSortColumn(ColumnNum(sortColumnSpin_->value() - 1));
 
   if (sender()->metaObject()->method(senderSignalIndex()).name() == "editingFinished")
     menu_->close();
@@ -1036,7 +1038,7 @@ hasBackground() const
 
 void
 CQChartsTablePlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsTablePlot::execDrawBackground");
 
@@ -1053,7 +1055,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
 void
 CQChartsTablePlot::
-drawTable(CQChartsPaintDevice *device) const
+drawTable(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsTablePlot::drawTable");
 
@@ -1236,7 +1238,7 @@ updatePosition() const
 
 void
 CQChartsTablePlot::
-drawTableBackground(CQChartsPaintDevice *device) const
+drawTableBackground(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1512,7 +1514,7 @@ createTableObjData() const
 
       // draw empty line number area
       if (plot_->isRowColumn()) {
-        CQChartsColumn c;
+        Column c;
 
         auto &headerObjData = plot_->getHeaderObjData(c);
 
@@ -1592,11 +1594,13 @@ createTableObjData() const
 
       //---
 
-      CQChartsModelIndex ind(data.row, c, data.parent);
+      auto *plot = const_cast<CQChartsTablePlot *>(plot_);
+
+      ModelIndex ind(plot, data.row, c, data.parent);
 
       bool ok;
 
-      QString str = CQChartsModelUtil::modelString(plot_->charts(), model_, ind, ok);
+      QString str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
       if (! ok) str = "";
 
       //---
@@ -1647,7 +1651,7 @@ createTableObjData() const
 
 CQChartsTablePlot::HeaderObjData &
 CQChartsTablePlot::
-getHeaderObjData(const CQChartsColumn &c) const
+getHeaderObjData(const Column &c) const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
@@ -1677,7 +1681,7 @@ getRowObjData(int r) const
 
 CQChartsTablePlot::CellObjData &
 CQChartsTablePlot::
-getCellObjData(const CQChartsModelIndex &ind) const
+getCellObjData(const ModelIndex &ind) const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
@@ -1819,10 +1823,8 @@ createCellObj(const CellObjData &cellObjData) const
 //------
 
 CQChartsTableHeaderObj::
-CQChartsTableHeaderObj(const CQChartsTablePlot *plot,
-                       const CQChartsTablePlot::HeaderObjData &headerObjData) :
- CQChartsPlotObj(const_cast<CQChartsTablePlot *>(plot), headerObjData.rect,
-                 ColorInd(), ColorInd(), ColorInd()),
+CQChartsTableHeaderObj(const Plot *plot, const Plot::HeaderObjData &headerObjData) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), headerObjData.rect, ColorInd(), ColorInd(), ColorInd()),
  plot_(plot), headerObjData_(headerObjData)
 {
 }
@@ -1848,7 +1850,7 @@ calcTipId() const
 
 void
 CQChartsTableHeaderObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   device->save();
 
@@ -1905,10 +1907,8 @@ rectIntersect(const BBox &r, bool inside) const
 //------
 
 CQChartsTableRowObj::
-CQChartsTableRowObj(const CQChartsTablePlot *plot,
-                    const CQChartsTablePlot::RowObjData &rowObjData) :
- CQChartsPlotObj(const_cast<CQChartsTablePlot *>(plot), rowObjData.rect,
-                 ColorInd(), ColorInd(), ColorInd()),
+CQChartsTableRowObj(const Plot *plot, const Plot::RowObjData &rowObjData) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rowObjData.rect, ColorInd(), ColorInd(), ColorInd()),
  plot_(plot), rowObjData_(rowObjData)
 {
 }
@@ -1934,7 +1934,7 @@ calcTipId() const
 
 void
 CQChartsTableRowObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   device->save();
 
@@ -1982,10 +1982,8 @@ rectIntersect(const BBox &r, bool inside) const
 //------
 
 CQChartsTableCellObj::
-CQChartsTableCellObj(const CQChartsTablePlot *plot,
-                     const CQChartsTablePlot::CellObjData &cellObjData) :
- CQChartsPlotObj(const_cast<CQChartsTablePlot *>(plot), cellObjData.rect,
-                 ColorInd(), ColorInd(), ColorInd()),
+CQChartsTableCellObj(const Plot *plot, const Plot::CellObjData &cellObjData) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), cellObjData.rect, ColorInd(), ColorInd(), ColorInd()),
  plot_(plot), cellObjData_(cellObjData)
 {
 }
@@ -1995,7 +1993,7 @@ CQChartsTableCellObj::
 calcId() const
 {
   return QString("%1:%2:%3").arg(typeName()).
-           arg(cellObjData_.ind.row).arg(cellObjData_.ind.column.column());
+           arg(cellObjData_.ind.row()).arg(cellObjData_.ind.column().column());
 }
 
 QString
@@ -2005,14 +2003,14 @@ calcTipId() const
   QString id = cellObjData_.str;
 
   if (! id.length())
-    id = QString("%1").arg(cellObjData_.ind.column.column());
+    id = QString("%1").arg(cellObjData_.ind.column().column());
 
   return id;
 }
 
 void
 CQChartsTableCellObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   device->save();
 
@@ -2039,7 +2037,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsColor textColor = plot_->textColor();
 
-  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column);
+  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
 
   if (columnDetails) {
     const auto &drawColor = columnDetails->tableDrawColor();

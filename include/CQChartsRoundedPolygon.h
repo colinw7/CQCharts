@@ -8,12 +8,13 @@ class CQChartsPaintDevice;
 
 namespace CQChartsRoundedPolygon {
 
-void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
-          double xsize=0.0, double ysize=0.0,
+using BBox    = CQChartsGeom::BBox;
+using Polygon = CQChartsGeom::Polygon;
+
+void draw(CQChartsPaintDevice *device, const BBox &bbox, double xsize=0.0, double ysize=0.0,
           const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
 
-void draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
-          double xsize=0.0, double ysize=0.0);
+void draw(CQChartsPaintDevice *device, const Polygon &poly, double xsize=0.0, double ysize=0.0);
 
 }
 

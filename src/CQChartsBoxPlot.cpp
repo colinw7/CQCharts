@@ -1013,7 +1013,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   //---
 
   if (xColumn().isValid()) {
-    CQChartsModelIndex xInd(vdata.row, xColumn(), vdata.parent);
+    ModelIndex xInd(th, vdata.row, xColumn(), vdata.parent);
 
     // x column can be string or real
     if (xType_ == ColumnType::STRING) {
@@ -1042,11 +1042,11 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
   //---
 
-  CQChartsModelIndex minInd        (vdata.row, minColumn        (), vdata.parent);
-  CQChartsModelIndex lowerMedianInd(vdata.row, lowerMedianColumn(), vdata.parent);
-  CQChartsModelIndex medianInd     (vdata.row, medianColumn     (), vdata.parent);
-  CQChartsModelIndex upperMedianInd(vdata.row, upperMedianColumn(), vdata.parent);
-  CQChartsModelIndex maxInd        (vdata.row, maxColumn        (), vdata.parent);
+  ModelIndex minInd        (th, vdata.row, minColumn        (), vdata.parent);
+  ModelIndex lowerMedianInd(th, vdata.row, lowerMedianColumn(), vdata.parent);
+  ModelIndex medianInd     (th, vdata.row, medianColumn     (), vdata.parent);
+  ModelIndex upperMedianInd(th, vdata.row, upperMedianColumn(), vdata.parent);
+  ModelIndex maxInd        (th, vdata.row, maxColumn        (), vdata.parent);
 
   data.statData.min         = modelReal(minInd        , ok);
   if (! ok) { th->addDataError(minInd        , "Invalid min value"); return; }
@@ -1063,7 +1063,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
   data.dataMax = data.statData.max;
 
   if (isShowOutliers() && outliersColumn().isValid()) {
-    CQChartsModelIndex outliersInd(vdata.row, outliersColumn(), vdata.parent);
+    ModelIndex outliersInd(th, vdata.row, outliersColumn(), vdata.parent);
 
     data.outliers = modelReals(outliersInd, ok);
 
@@ -1093,7 +1093,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
   if (! data.name.length()) {
     if (idColumn().isValid()) {
-      CQChartsModelIndex idInd(vdata.row, idColumn(), vdata.parent);
+      ModelIndex idInd(th, vdata.row, idColumn(), vdata.parent);
 
       QString id = modelString(idInd, ok);
 
@@ -1196,7 +1196,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
   QVariant setVal;
 
   if (setColumn().isValid()) {
-    CQChartsModelIndex setInd(vdata.row, setColumn(), vdata.parent);
+    ModelIndex setInd(th, vdata.row, setColumn(), vdata.parent);
 
     bool ok1;
 
@@ -1213,7 +1213,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
   //---
 
   for (const auto &valueColumn : valueColumns()) {
-    CQChartsModelIndex ind(vdata.row, valueColumn, vdata.parent);
+    ModelIndex ind(th, vdata.row, valueColumn, vdata.parent);
 
     // get group
     int groupInd = rowGroupInd(ind);

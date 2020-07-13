@@ -12,10 +12,13 @@ class CQChartsUnitsEdit : public QComboBox {
   Q_OBJECT
 
  public:
+  using Units = CQChartsUnits;
+
+ public:
   CQChartsUnitsEdit(QWidget *parent=nullptr);
 
-  const CQChartsUnits &units() const;
-  void setUnits(const CQChartsUnits &units);
+  const Units &units() const;
+  void setUnits(const Units &units);
 
   QSize sizeHint() const override;
 
@@ -29,7 +32,7 @@ class CQChartsUnitsEdit : public QComboBox {
   void indexChanged();
 
  private:
-  CQChartsUnits units_ { CQChartsUnits::NONE };
+  Units units_ { Units::NONE };
 };
 
 #endif

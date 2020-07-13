@@ -575,8 +575,10 @@ void
 CQChartsPiePlot::
 addRow(const ModelVisitor::VisitData &data, PlotObjs &objs) const
 {
+  auto *th = const_cast<CQChartsPiePlot *>(this);
+
   for (const auto &column : valueColumns()) {
-    CQChartsModelIndex ind(data.row, column, data.parent);
+    ModelIndex ind(th, data.row, column, data.parent);
 
     addRowColumn(ind, objs);
   }
@@ -584,9 +586,11 @@ addRow(const ModelVisitor::VisitData &data, PlotObjs &objs) const
 
 void
 CQChartsPiePlot::
-addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
+addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 {
   assert(! isCount() || isDonut());
+
+  auto *th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 
@@ -606,7 +610,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   bool hasRadius = false;
 
   if (radiusColumn().isValid()) {
-    CQChartsModelIndex rind(ind.row, radiusColumn(), ind.parent);
+    ModelIndex rind(th, ind.row(), radiusColumn(), ind.parent());
 
     hasRadius = getColumnSizeValue(rind, radius, radiusMissing);
   }
@@ -614,7 +618,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get value label (used for unique values in group)
-  CQChartsModelIndex lind(ind.row, labelColumn(), ind.parent);
+  ModelIndex lind(th, ind.row(), labelColumn(), ind.parent());
 
   bool ok;
 
@@ -622,7 +626,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
   if (numGroups() > 1) {
     if (valueColumns().count() > 1 && ! isGroupHeaders())
-      label = modelHHeaderString(ind.column, ok);
+      label = modelHHeaderString(ind.column(), ok);
     else
       label = modelString(lind, ok);
   }
@@ -631,7 +635,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   }
 
   if (! label.length())
-    label = QString("%1").arg(ind.row);
+    label = QString("%1").arg(ind.row());
 
   //---
 
@@ -639,7 +643,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
   QString keyLabel = label;
 
   if (keyLabelColumn().isValid()) {
-    CQChartsModelIndex kind(ind.row, keyLabelColumn(), ind.parent);
+    ModelIndex kind(th, ind.row(), keyLabelColumn(), ind.parent());
 
     bool ok;
 
@@ -717,7 +721,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
     CQChartsColor color;
 
-    if (colorColumnColor(ind.row, ind.parent, color))
+    if (colorColumnColor(ind.row(), ind.parent(), color))
       obj->setColor(color);
 
     //---
@@ -774,8 +778,10 @@ void
 CQChartsPiePlot::
 addRowDataTotal(const ModelVisitor::VisitData &data) const
 {
+  auto *th = const_cast<CQChartsPiePlot *>(this);
+
   for (const auto &column : valueColumns()) {
-    CQChartsModelIndex ind(data.row, column, data.parent);
+    ModelIndex ind(th, data.row, column, data.parent);
 
     addRowColumnDataTotal(ind);
   }
@@ -783,7 +789,7 @@ addRowDataTotal(const ModelVisitor::VisitData &data) const
 
 void
 CQChartsPiePlot::
-addRowColumnDataTotal(const CQChartsModelIndex &ind) const
+addRowColumnDataTotal(const ModelIndex &ind) const
 {
   auto *th = const_cast<CQChartsPiePlot *>(this);
 
@@ -836,7 +842,7 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 
   // get max radius
   if (radiusColumn().isValid()) {
-    CQChartsModelIndex rind(ind.row, radiusColumn(), ind.parent);
+    ModelIndex rind(th, ind.row(), radiusColumn(), ind.parent());
 
     double radius        = 0.0;
     bool   radiusMissing = false;
@@ -854,14 +860,14 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 
 bool
 CQChartsPiePlot::
-getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) const
+getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const
 {
   auto *th = const_cast<CQChartsPiePlot *>(this);
 
   missing = false;
   value   = 1.0;
 
-  ColumnType columnType = columnValueType(ind.column);
+  ColumnType columnType = columnValueType(ind.column());
 
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;
@@ -1057,13 +1063,15 @@ adjustObjAngles() const
 
 bool
 CQChartsPiePlot::
-isIndexHidden(const CQChartsModelIndex &ind) const
+isIndexHidden(const ModelIndex &ind) const
 {
+  auto *th = const_cast<CQChartsPiePlot *>(this);
+
   // hide all objects of group or individual objects of single group
   bool hidden = false;
 
   if (isColorKey() && colorColumn().isValid()) {
-    CQChartsModelIndex colorInd(ind.row, colorColumn(), ind.parent);
+    ModelIndex colorInd(th, ind.row(), colorColumn(), ind.parent());
 
     bool ok;
 
@@ -1078,7 +1086,7 @@ isIndexHidden(const CQChartsModelIndex &ind) const
       hidden = isSetHidden(groupInd);
     }
     else
-      hidden = isSetHidden(ind.row);
+      hidden = isSetHidden(ind.row());
   }
 
   return hidden;
@@ -1265,7 +1273,7 @@ calcTipData(QString &groupName, QString &label, QString &valueStr) const
 
   bool ok;
 
-  CQChartsModelIndex lind(ind.row(), plot_->labelColumn(), ind.parent());
+  ModelIndex lind(plot(), ind.row(), plot_->labelColumn(), ind.parent());
 
   if (hasGroup) {
     auto *groupObj = this->groupObj();

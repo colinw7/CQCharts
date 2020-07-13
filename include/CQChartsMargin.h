@@ -15,45 +15,45 @@ class CQChartsMargin {
   static int metaTypeId;
 
  public:
+  using Length = CQChartsLength;
+  using Units  = CQChartsUnits;
+
+ public:
   explicit CQChartsMargin(const QString &str) {
     setValue(str);
   }
 
   CQChartsMargin() { }
 
-  CQChartsMargin(const CQChartsLength &l, const CQChartsLength &t,
-                 const CQChartsLength &r, const CQChartsLength &b) {
+  CQChartsMargin(const Length &l, const Length &t, const Length &r, const Length &b) {
     set(l, t, r, b);
   }
 
   CQChartsMargin(double l, double t, double r, double b) {
-    set(CQChartsLength(l, CQChartsUnits::PERCENT),
-        CQChartsLength(t, CQChartsUnits::PERCENT),
-        CQChartsLength(r, CQChartsUnits::PERCENT),
-        CQChartsLength(b, CQChartsUnits::PERCENT));
+    set(Length(l, Units::PERCENT), Length(t, Units::PERCENT),
+        Length(r, Units::PERCENT), Length(b, Units::PERCENT));
   }
 
-  explicit CQChartsMargin(const CQChartsLength &l) {
+  explicit CQChartsMargin(const Length &l) {
     set(l);
   }
 
   explicit CQChartsMargin(double l) {
-    set(CQChartsLength(l, CQChartsUnits::PERCENT));
+    set(Length(l, Units::PERCENT));
   }
 
   virtual ~CQChartsMargin() { }
 
   //---
 
-  void set(const CQChartsLength &l, const CQChartsLength &t,
-           const CQChartsLength &r, const CQChartsLength &b) {
+  void set(const Length &l, const Length &t, const Length &r, const Length &b) {
     left_   = l;
     top_    = t;
     right_  = r;
     bottom_ = b;
   }
 
-  void set(const CQChartsLength &l) {
+  void set(const Length &l) {
     left_   = l;
     top_    = l;
     right_  = l;
@@ -69,17 +69,17 @@ class CQChartsMargin {
 
   //---
 
-  const CQChartsLength &left() const { return left_; }
-  void setLeft(const CQChartsLength &v) { left_ = v; }
+  const Length &left() const { return left_; }
+  void setLeft(const Length &v) { left_ = v; }
 
-  const CQChartsLength &top() const { return top_; }
-  void setTop(const CQChartsLength &v) { top_ = v; }
+  const Length &top() const { return top_; }
+  void setTop(const Length &v) { top_ = v; }
 
-  const CQChartsLength &right() const { return right_; }
-  void setRight(const CQChartsLength &v) { right_ = v; }
+  const Length &right() const { return right_; }
+  void setRight(const Length &v) { right_ = v; }
 
-  const CQChartsLength &bottom() const { return bottom_; }
-  void setBottom(const CQChartsLength &v) { bottom_ = v; }
+  const Length &bottom() const { return bottom_; }
+  void setBottom(const Length &v) { bottom_ = v; }
 
   //---
 
@@ -99,10 +99,10 @@ class CQChartsMargin {
   }
 
  protected:
-  CQChartsLength left_;
-  CQChartsLength top_;
-  CQChartsLength right_;
-  CQChartsLength bottom_;
+  Length left_;
+  Length top_;
+  Length right_;
+  Length bottom_;
 };
 
 //---

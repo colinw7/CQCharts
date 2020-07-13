@@ -7,6 +7,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsFilterModel.h>
+#include <CQChartsModelIndex.h>
 #include <CQCharts.h>
 
 #include <CQCsvModel.h>
@@ -1369,11 +1370,13 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
   return str;
 }
 
+#if 0
 QString modelString(CQCharts *charts, const QAbstractItemModel *model,
                     const CQChartsModelIndex &ind, bool &ok)
 {
-  return modelString(charts, model, ind.row, ind.column, ind.parent, ok);
+  return modelString(charts, model, ind.row(), ind.column(), ind.parent(), ok);
 }
+#endif
 
 //---
 
@@ -1811,8 +1814,24 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
   return rc;
 }
 
+#if 0
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
                       CQChartsModelIndex &ind) {
+  int            row { 0 };
+  CQChartsColumn column;
+
+  if (! stringToModelInd(model, str, row, column))
+    return false;
+
+  ind = CQChartsModelIndex(nullptr, row, column);
+
+  return true;
+}
+#endif
+
+bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
+                      int &row, CQChartsColumn &column)
+{
   QStringList strs;
 
   if (! CQTcl::splitList(str, strs))
@@ -1823,12 +1842,10 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 
   bool ok;
 
-  int row = strs[0].toInt(&ok);
+  row = strs[0].toInt(&ok);
 
   if (! ok)
     return false;
-
-  CQChartsColumn column;
 
   if (! stringToColumn(model, strs[1], column)) {
     bool ok;
@@ -1840,8 +1857,6 @@ bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
 
     column = CQChartsColumn(icol);
   }
-
-  ind = CQChartsModelIndex(row, column);
 
   return true;
 }

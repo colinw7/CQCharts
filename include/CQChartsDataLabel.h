@@ -34,6 +34,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     RIGHT_OUTSIDE
   };
 
+  using BBox = CQChartsGeom::BBox;
+
  public:
   CQChartsDataLabel(CQChartsPlot *plot);
 
@@ -100,22 +102,20 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
-            const QString &str) const;
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
-            const QString &str, const Position &position) const;
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
-            const QString &str, const Position &position, const CQChartsPenBrush &tpen) const;
+  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str) const;
+  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str,
+            const Position &position) const;
+  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str,
+            const Position &position, const CQChartsPenBrush &tpen) const;
 
   //---
 
-  bool isAdjustedPositionOutside(const CQChartsGeom::BBox &pbbox, const QString &ystr) const;
+  bool isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const;
 
   //---
 
-  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr) const;
-  CQChartsGeom::BBox calcRect(const CQChartsGeom::BBox &pbbox, const QString &ystr,
-                              const Position &position) const;
+  BBox calcRect(const BBox &pbbox, const QString &ystr) const;
+  BBox calcRect(const BBox &pbbox, const QString &ystr, const Position &position) const;
 
   Qt::Alignment textAlignment() const;
 
@@ -140,8 +140,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Position adjustPosition(Position position) const;
 
  private:
-  using BBox = CQChartsGeom::BBox;
-
   Position        position_    { Position::TOP_INSIDE }; //!< position relative to parent
   Qt::Orientation direction_   { Qt::Vertical };         //!< parent object direction
   bool            clip_        { true };                 //!< clip to parent

@@ -6,7 +6,7 @@
 
 CQChartsNoDataObj::
 CQChartsNoDataObj(CQChartsPlot *plot) :
- CQChartsPlotObj(plot, CQChartsGeom::BBox(0, 0, 1, 1))
+ CQChartsPlotObj(plot, BBox(0, 0, 1, 1))
 {
 }
 
@@ -23,7 +23,7 @@ draw(CQChartsPaintDevice *device)
   double xm = bbox.getXMid();
   double ym = bbox.getYMid();
 
-  CQChartsGeom::Point c(xm, ym);
+  Point c(xm, ym);
 
   //--
 

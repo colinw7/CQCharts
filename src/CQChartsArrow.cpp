@@ -1037,7 +1037,7 @@ pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
         else {
           p2 = Point(e1.x, e1.y); ++i;
 
-          Point lp11, lp21, lp12, lp22, lp13, lp23;
+          Point lp11, lp21, lp12, lp22;
 
           addWidthToPoint(pc1, ArrowAngle(p1 , pc1), lw, lp21, lp11); // above/below
           addWidthToPoint(p2 , ArrowAngle(pc1, p2 ), lw, lp22, lp12); // above/below

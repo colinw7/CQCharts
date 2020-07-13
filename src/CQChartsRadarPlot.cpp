@@ -220,10 +220,12 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
+
       for (int iv = 0; iv < nv_; ++iv) {
         const CQChartsColumn &column = plot_->valueColumns().getColumn(iv);
 
-        CQChartsModelIndex ind(data.row, column, data.parent);
+        ModelIndex ind(plot, data.row, column, data.parent);
 
         double value;
 
@@ -435,12 +437,12 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   //---
 
   // get row name
-  CQChartsModelIndex nameInd;
+  ModelIndex nameInd;
 
   QString name;
 
   if (nameColumn().isValid()) {
-    nameInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
+    nameInd = ModelIndex(th, data.row, nameColumn(), data.parent);
 
     bool ok;
 
@@ -473,7 +475,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     //---
 
     // get column value
-    CQChartsModelIndex valueInd(data.row, valueColumn, data.parent);
+    ModelIndex valueInd(th, data.row, valueColumn, data.parent);
 
     double value;
 
@@ -536,9 +538,9 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 
 bool
 CQChartsRadarPlot::
-columnValue(const CQChartsModelIndex &ind, double &value) const
+columnValue(const ModelIndex &ind, double &value) const
 {
-  ColumnType columnType = columnValueType(ind.column);
+  ColumnType columnType = columnValueType(ind.column());
 
   value = 1.0;
 
@@ -579,10 +581,12 @@ addKeyItems(CQChartsPlotKey *key)
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
+
       QString name;
 
       if (plot_->nameColumn().isValid()) {
-        CQChartsModelIndex nameInd(data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameInd(plot, data.row, plot_->nameColumn(), data.parent);
 
         bool ok;
 
@@ -590,8 +594,6 @@ addKeyItems(CQChartsPlotKey *key)
       }
 
       //---
-
-      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
       ColorInd ic(data.row, numRows());
 

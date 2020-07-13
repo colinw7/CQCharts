@@ -108,6 +108,9 @@ addParameters()
   addColumnsParameter("tips", "Tips", "tipColumns").
     setString().setBasic().setTip("Row Tip Columns");
 
+  addColumnsParameter("notips", "No Tips", "noTipColumns").
+    setString().setBasic().setTip("Row No Tip Columns");
+
   addColumnParameter("visible", "Visible", "visibleColumn").
     setBool().setTip("Row Visible Column");
 

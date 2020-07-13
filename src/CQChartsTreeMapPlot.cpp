@@ -711,8 +711,10 @@ loadHier() const
 
       double size = 1.0;
 
+      auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
       if (plot_->valueColumn().isValid()) {
-        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
@@ -728,7 +730,7 @@ loadHier() const
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
@@ -745,7 +747,9 @@ loadHier() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      CQChartsModelIndex nameModelInd(data.row, plot_->nameColumns().column(), data.parent);
+      auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
+      ModelIndex nameModelInd(plot, data.row, plot_->nameColumns().column(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -835,18 +839,20 @@ loadFlat() const
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       // get hier names from name columns
-      QStringList  nameStrs;
-      ModelIndices nameInds;
+      QStringList   nameStrs;
+      QModelIndices nameInds;
 
       if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
                                       plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
+      auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
       QString     name;
       QModelIndex nameInd;
 
       if (plot_->idColumn().isValid()) {
-        CQChartsModelIndex idModelInd(data.row, plot_->idColumn(), data.parent);
+        ModelIndex idModelInd(plot, data.row, plot_->idColumn(), data.parent);
 
         bool ok;
 
@@ -869,7 +875,7 @@ loadFlat() const
       double size = 1.0;
 
       if (plot_->valueColumn().isValid()) {
-        CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+        ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
         if (! plot_->getValueSize(valueModelInd, size))
           return State::SKIP;
@@ -885,7 +891,7 @@ loadFlat() const
       if (node && plot_->colorColumn().isValid()) {
         CQChartsColor color;
 
-        CQChartsModelIndex colorInd(data.row, plot_->colorColumn(), data.parent);
+        ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
         if (plot_->modelIndexColor(colorInd, color))
           node->setColor(color);
@@ -1035,7 +1041,7 @@ childNode(CQChartsTreeMapHierNode *parent, const QString &name) const
 
 bool
 CQChartsTreeMapPlot::
-getValueSize(const CQChartsModelIndex &ind, double &size) const
+getValueSize(const ModelIndex &ind, double &size) const
 {
   auto addDataError = [&](const QString &msg) {
     const_cast<CQChartsTreeMapPlot *>(this)->addDataError(ind, msg);
@@ -1540,7 +1546,9 @@ calcTipId() const
     QModelIndex ind1 =
       plot_->unnormalizeIndex(node_->isFiller() ? node_->parent()->ind() : node_->ind());
 
-    CQChartsModelIndex colorInd1(ind1.row(), plot_->colorColumn(), ind1.parent());
+    auto *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
+    ModelIndex colorInd1(plot, ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 

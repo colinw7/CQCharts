@@ -410,7 +410,7 @@ fillSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
 //------
 
 CQChartsPlotSymbolRenderer::
-CQChartsPlotSymbolRenderer(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+CQChartsPlotSymbolRenderer(CQChartsPaintDevice *device, const Point &p,
                            const CQChartsLength &size) :
  device_(device), p_(p), size_(size)
 {
@@ -498,7 +498,7 @@ drawPoint(double x, double y) const
 
   mapXY(x, y, sx, sy);
 
-  CQChartsGeom::Point p(p_.x + sx, p_.y + sy);
+  Point p(p_.x + sx, p_.y + sy);
 
   save();
 
@@ -518,8 +518,8 @@ drawLine(double x1, double y1, double x2, double y2) const
   mapXY(x1, y1, sx1, sy1);
   mapXY(x2, y2, sx2, sy2);
 
-  CQChartsGeom::Point p1(p_.x + sx1, p_.y + sy1);
-  CQChartsGeom::Point p2(p_.x + sx2, p_.y + sy2);
+  Point p1(p_.x + sx1, p_.y + sy1);
+  Point p2(p_.x + sx2, p_.y + sy2);
 
   save();
 
@@ -539,7 +539,7 @@ fillRect(double x1, double y1, double x2, double y2) const
   mapXY(x1, y1, sx1, sy1);
   mapXY(x2, y2, sx2, sy2);
 
-  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 
@@ -560,7 +560,7 @@ strokeCircle(double x, double y, double r) const
   mapXY(x - r, y - r, sx1, sy1);
   mapXY(x + r, y + r, sx2, sy2);
 
-  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 
@@ -581,7 +581,7 @@ fillCircle(double x, double y, double r) const
   mapXY(x - r, y - r, sx1, sy1);
   mapXY(x + r, y + r, sx2, sy2);
 
-  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
+  BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 

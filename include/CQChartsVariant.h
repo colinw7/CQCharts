@@ -195,19 +195,11 @@ std::vector<double> toReals(const QVariant &var, bool &ok);
 
 namespace CQChartsVariant {
 
-CQChartsGeom::Point toPoint(const QVariant &var, bool &ok);
+using Point = CQChartsGeom::Point;
 
-QVariant fromPoint(const CQChartsGeom::Point &point);
+Point toPoint(const QVariant &var, bool &ok);
 
-}
-
-//---
-
-namespace CQChartsVariant {
-
-CQChartsGeom::BBox toBBox  (const QVariant &var, bool &ok);
-
-QVariant fromBBox(const CQChartsGeom::BBox &bbox);
+QVariant fromPoint(const Point &point);
 
 }
 
@@ -215,7 +207,21 @@ QVariant fromBBox(const CQChartsGeom::BBox &bbox);
 
 namespace CQChartsVariant {
 
-CQChartsGeom::Polygon toPolygon(const QVariant &var, bool &ok);
+using BBox = CQChartsGeom::BBox;
+
+BBox toBBox  (const QVariant &var, bool &ok);
+
+QVariant fromBBox(const BBox &bbox);
+
+}
+
+//---
+
+namespace CQChartsVariant {
+
+using Polygon = CQChartsGeom::Polygon;
+
+Polygon toPolygon(const QVariant &var, bool &ok);
 
 }
 

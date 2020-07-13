@@ -117,7 +117,7 @@ restore()
   painter_->restore();
 
   clipPath_ = QPainterPath();
-  clipRect_ = CQChartsGeom::BBox();
+  clipRect_ = BBox();
 }
 
 void
@@ -125,7 +125,7 @@ CQChartsViewPlotPaintDevice::
 setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 {
   clipPath_ = path;
-  clipRect_ = CQChartsGeom::BBox();
+  clipRect_ = BBox();
 
   QPainterPath ppath = windowToPixel(path);
 
@@ -134,7 +134,7 @@ setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 
 void
 CQChartsViewPlotPaintDevice::
-setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation operation)
+setClipRect(const BBox &bbox, Qt::ClipOperation operation)
 {
   if (! bbox.isValid()) return;
 
@@ -153,9 +153,9 @@ clipRect() const
   if      (clipRect_.isValid())
     return clipRect_;
   else if (clipPath_.isEmpty())
-    return CQChartsGeom::BBox(clipPath_.boundingRect());
+    return BBox(clipPath_.boundingRect());
   else
-    return CQChartsGeom::BBox();
+    return BBox();
 }
 
 QPen
@@ -253,7 +253,7 @@ drawPath(const QPainterPath &path)
 
 void
 CQChartsViewPlotPaintDevice::
-fillRect(const CQChartsGeom::BBox &bbox)
+fillRect(const BBox &bbox)
 {
   if (! bbox.isValid()) return;
 
@@ -267,7 +267,7 @@ fillRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsViewPlotPaintDevice::
-drawRect(const CQChartsGeom::BBox &bbox)
+drawRect(const BBox &bbox)
 {
   if (! bbox.isValid()) return;
 
@@ -281,7 +281,7 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsViewPlotPaintDevice::
-drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a)
+drawEllipse(const BBox &bbox, const CQChartsAngle &a)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -319,7 +319,7 @@ drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a)
 #if 0
 void
 CQChartsViewPlotPaintDevice::
-drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2)
+drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -335,7 +335,7 @@ drawArc(const CQChartsGeom::BBox &rect, const CQChartsAngle &a1, const CQChartsA
 
 void
 CQChartsViewPlotPaintDevice::
-drawPolygon(const CQChartsGeom::Polygon &poly)
+drawPolygon(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
@@ -347,7 +347,7 @@ drawPolygon(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsViewPlotPaintDevice::
-drawPolyline(const CQChartsGeom::Polygon &poly)
+drawPolyline(const Polygon &poly)
 {
   auto ppoly = windowToPixel(poly);
 
@@ -359,7 +359,7 @@ drawPolyline(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsViewPlotPaintDevice::
-drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
+drawLine(const Point &p1, const Point &p2)
 {
   auto pp1 = windowToPixel(p1);
   auto pp2 = windowToPixel(p2);
@@ -372,7 +372,7 @@ drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 
 void
 CQChartsViewPlotPaintDevice::
-drawPoint(const CQChartsGeom::Point &p)
+drawPoint(const Point &p)
 {
   auto pp = windowToPixel(p);
 
@@ -384,7 +384,7 @@ drawPoint(const CQChartsGeom::Point &p)
 
 void
 CQChartsViewPlotPaintDevice::
-drawText(const CQChartsGeom::Point &p, const QString &text)
+drawText(const Point &p, const QString &text)
 {
   auto pp = windowToPixel(p);
 
@@ -396,7 +396,7 @@ drawText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsViewPlotPaintDevice::
-drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
+drawTransformedText(const Point &p, const QString &text)
 {
   // NOTE: p is in pixels
   if (handDrawn_)
@@ -407,7 +407,7 @@ drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsViewPlotPaintDevice::
-drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool stretch)
+drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch)
 {
   if (! bbox.isSet()) return;
 
@@ -416,7 +416,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  CQChartsGeom::BBox pbbox1;
+  BBox pbbox1;
 
   if (! stretch) {
     int iw = image.width ();
@@ -436,8 +436,8 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
       h1 = ys*ih;
     }
 
-    pbbox1 = CQChartsGeom::BBox(pbbox.getXMid() - w1/2.0, pbbox.getYMid() - h1/2.0,
-                                pbbox.getXMid() + w1/2.0, pbbox.getYMid() + h1/2.0);
+    pbbox1 = BBox(pbbox.getXMid() - w1/2.0, pbbox.getYMid() - h1/2.0,
+                  pbbox.getXMid() + w1/2.0, pbbox.getYMid() + h1/2.0);
   }
   else {
     pbbox1 = pbbox;
@@ -453,7 +453,7 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
 
 void
 CQChartsViewPlotPaintDevice::
-drawImage(const CQChartsGeom::Point &p, const QImage &image)
+drawImage(const Point &p, const QImage &image)
 {
   auto pp = windowToPixel(p);
 
@@ -479,7 +479,7 @@ setFont(const QFont &f)
 
 void
 CQChartsViewPlotPaintDevice::
-setTransformRotate(const CQChartsGeom::Point &p, double angle)
+setTransformRotate(const Point &p, double angle)
 {
   auto p1 = windowToPixel(p);
 

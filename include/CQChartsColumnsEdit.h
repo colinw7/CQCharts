@@ -7,6 +7,8 @@
 class CQChartsColumnsEdit;
 class CQChartsColumnCombo;
 
+class QAbstractItemModel;
+
 /*!
  * \brief Columns line edit
  * \ingroup Charts

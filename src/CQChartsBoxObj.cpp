@@ -74,7 +74,7 @@ addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString 
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const
+draw(CQChartsPaintDevice *device, const BBox &bbox) const
 {
   // set pen and brush
   CQChartsPenBrush penBrush;
@@ -94,8 +94,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
-     const CQChartsPenBrush &penBrush) const
+draw(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsPenBrush &penBrush) const
 {
   bbox_ = bbox;
 
@@ -142,7 +141,7 @@ boxDataInvalidate()
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
+draw(CQChartsPaintDevice *device, const Polygon &poly) const
 {
   if (isFilled()) {
     CQChartsPenBrush penBrush;
@@ -177,7 +176,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
 
 bool
 CQChartsBoxObj::
-contains(const CQChartsGeom::Point &p) const
+contains(const Point &p) const
 {
   return bbox_.inside(p);
 }

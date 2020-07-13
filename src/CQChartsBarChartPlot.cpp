@@ -561,8 +561,10 @@ CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
              Range &dataRange) const
 {
+  auto *th = const_cast<CQChartsBarChartPlot *>(this);
+
   if (isColorKey() && colorColumn().isValid()) {
-    CQChartsModelIndex colorModelInd(data.row, colorColumn(), data.parent);
+    ModelIndex colorModelInd(th, data.row, colorColumn(), data.parent);
 
     bool ok;
 
@@ -583,21 +585,19 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
       dataRange.updateRange(y, x);
   };
 
-  auto *th = const_cast<CQChartsBarChartPlot *>(this);
-
   //---
 
-  CQChartsModelIndex ind;
+  ModelIndex ind;
 
   if (isValueValue()) {
     assert(valueColumns.count() > 0);
 
     const auto &valueColumn = valueColumns.column();
 
-    ind = CQChartsModelIndex(data.row, valueColumn, data.parent);
+    ind = ModelIndex(th, data.row, valueColumn, data.parent);
   }
   else {
-    ind = CQChartsModelIndex(data.row, CQChartsColumn(), data.parent);
+    ind = ModelIndex(th, data.row, CQChartsColumn(), data.parent);
   }
 
   //---
@@ -618,7 +618,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString group;
 
   if (groupColumn().isValid()) {
-    CQChartsModelIndex groupModelInd(data.row, groupColumn(), data.parent);
+    ModelIndex groupModelInd(th, data.row, groupColumn(), data.parent);
 
     bool ok1;
 
@@ -633,7 +633,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString name;
 
   if (nameColumn().isValid()) {
-    CQChartsModelIndex nameInd(data.row, nameColumn(), data.parent);
+    ModelIndex nameInd(th, data.row, nameColumn(), data.parent);
 
     bool ok2;
 
@@ -657,7 +657,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString labelStr;
 
   if (labelColumn().isValid()) {
-    CQChartsModelIndex labelInd(data.row, labelColumn(), data.parent);
+    ModelIndex labelInd(th, data.row, labelColumn(), data.parent);
 
     bool ok3;
 
@@ -670,7 +670,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   QString colorStr;
 
   if (colorColumn().isValid()) {
-    CQChartsModelIndex colorModelInd(data.row, colorColumn(), data.parent);
+    ModelIndex colorModelInd(th, data.row, colorColumn(), data.parent);
 
     bool ok4;
 
@@ -692,7 +692,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   // add values for columns (1 column normally, all columns when grouped)
   for (const auto &valueColumn : valueColumns) {
-    CQChartsModelIndex valueModelInd(data.row, valueColumn, data.parent);
+    ModelIndex valueModelInd(th, data.row, valueColumn, data.parent);
 
     double r;
 

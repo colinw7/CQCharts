@@ -14,16 +14,19 @@ class CQChartsRect {
   static int metaTypeId;
 
  public:
-  CQChartsRect(const CQChartsUnits &units, const CQChartsGeom::BBox &bbox) :
+  using BBox  = CQChartsGeom::BBox;
+  using Units = CQChartsUnits;
+
+ public:
+  CQChartsRect(const Units &units, const BBox &bbox) :
    units_(units), bbox_(bbox) {
   }
 
-  CQChartsRect(const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(),
-               const CQChartsUnits &units=CQChartsUnits::PLOT) :
+  CQChartsRect(const BBox &bbox=BBox(), const Units &units=Units::PLOT) :
    units_(units), bbox_(bbox) {
   }
 
-  CQChartsRect(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
+  CQChartsRect(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
   }
 
@@ -33,23 +36,23 @@ class CQChartsRect {
 
   //---
 
-  const CQChartsUnits &units() const { return units_; }
-  void setUnits(const CQChartsUnits &units) { units_ = units; }
+  const Units &units() const { return units_; }
+  void setUnits(const Units &units) { units_ = units; }
 
-  bool hasUnits() const { return units_ != CQChartsUnits::NONE; }
-
-  //---
-
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  bool hasUnits() const { return units_ != Units::NONE; }
 
   //---
 
-  void setValue(const CQChartsUnits &units, const CQChartsGeom::BBox &bbox) {
+  const BBox &bbox() const { return bbox_; }
+
+  //---
+
+  void setValue(const Units &units, const BBox &bbox) {
     units_ = units;
     bbox_  = bbox;
   }
 
-  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+  bool setValue(const QString &str, const Units &defUnits=Units::PLOT);
 
   bool isSet() const { return bbox_.isSet(); }
 
@@ -89,12 +92,12 @@ class CQChartsRect {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
-                           const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+  static bool decodeString(const QString &str, Units &units, BBox &bbox,
+                           const Units &defUnits=Units::PLOT);
 
  private:
-  CQChartsUnits      units_ { CQChartsUnits::PLOT };
-  CQChartsGeom::BBox bbox_;
+  Units units_ { Units::PLOT };
+  BBox  bbox_;
 };
 
 //---

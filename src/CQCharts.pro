@@ -31,6 +31,7 @@ CQChartsCorrelationModel.cpp \
 CQChartsColumn.cpp \
 CQChartsColumnNum.cpp \
 CQChartsColumnType.cpp \
+CQChartsModelIndex.cpp \
 \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
@@ -74,6 +75,7 @@ CQChartsDistributionPlot.cpp \
 CQChartsEmptyPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
+CQChartsGraphPlot.cpp \
 CQChartsHierBubblePlot.cpp \
 CQChartsHierScatterPlot.cpp \
 CQChartsImagePlot.cpp \
@@ -337,6 +339,7 @@ HEADERS += \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnNum.h \
 ../include/CQChartsColumnType.h \
+../include/CQChartsModelIndex.h \
 \
 ../include/CQChartsTable.h \
 ../include/CQChartsTree.h \
@@ -380,6 +383,7 @@ HEADERS += \
 ../include/CQChartsEmptyPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
+../include/CQChartsGraphPlot.h \
 ../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsHierScatterPlot.h \
 ../include/CQChartsImagePlot.h \

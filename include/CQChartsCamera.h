@@ -35,6 +35,7 @@ class CQChartsXYPlane {
 class CQChartsCamera {
  public:
   using Point3D = CQChartsGeom::Point3D;
+  using Range3D = CQChartsGeom::Range3D;
 
  public:
   CQChartsCamera(CQChartsPlot3D *plot=nullptr);

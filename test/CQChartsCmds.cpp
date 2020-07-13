@@ -4561,13 +4561,13 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     auto row    = argv.getParseRow("row");
 
     if (argv.hasParseArg("ind")) {
-      CQChartsModelIndex modelInd;
+      int irow { 0 };
 
-      if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"), modelInd))
+      if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"),
+                                                irow, column))
         return errorMsg("Invalid model index");
 
-      row    = modelInd.row;
-      column = modelInd.column;
+      row = CQChartsRow(irow);
     }
 
     //---
@@ -5627,28 +5627,27 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   // model data
   if      (argv.hasParseArg("model")) {
-    int modelInd = argv.getParseInt("model", -1);
+    auto modelInd = argv.getParseInt("model", -1);
 
     // get model
     auto *modelData = getModelDataOrCurrent(modelInd);
     if (! modelData) return errorMsg("No model data");
 
-    ModelP model = modelData->currentModel();
+    auto model = modelData->currentModel();
 
     //---
 
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
-
-    CQChartsRow row = argv.getParseRow("row");
+    auto column = argv.getParseColumn("column", model.data());
+    auto row    = argv.getParseRow("row");
 
     if (argv.hasParseArg("ind")) {
-      CQChartsModelIndex modelInd;
+      int irow { 0 };
 
-      if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"), modelInd))
+      if (! CQChartsModelUtil::stringToModelInd(model.data(), argv.getParseStr("ind"),
+                                                irow, column))
         return errorMsg("Invalid model index");
 
-      row    = modelInd.row;
-      column = modelInd.column;
+      row = CQChartsRow(irow);
     }
 
     //---
@@ -7913,9 +7912,7 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
     if (! annotation) return false;
 
     keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
-
-    if (! keyAnnotation)
-      return errorMsg("value must be a key annotation");
+    if (! keyAnnotation) return errorMsg("value must be a key annotation");
   }
   else {
     return errorMsg("-view, -plot or -annotation needed");

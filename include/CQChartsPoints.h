@@ -18,13 +18,14 @@ class CQChartsPoints {
 
  public:
   using Points = std::vector<CQChartsPosition>;
+  using Units  = CQChartsUnits;
 
  public:
   CQChartsPoints(const Points &points=Points()) :
    points_(points) {
   }
 
-  explicit CQChartsPoints(const QString &s, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
+  explicit CQChartsPoints(const QString &s, const Units &defUnits=Units::PIXEL) {
     fromString(s, defUnits);
   }
 
@@ -38,7 +39,7 @@ class CQChartsPoints {
 
   QString toString() const;
 
-  bool fromString(const QString &s, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL);
+  bool fromString(const QString &s, const Units &defUnits=Units::PIXEL);
 
   //---
 

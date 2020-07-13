@@ -42,7 +42,7 @@ resetData()
 
 void
 CQChartsHtmlPaintDevice::
-setTransformRotate(const CQChartsGeom::Point &p, double angle)
+setTransformRotate(const Point &p, double angle)
 {
   QTransform t = data_.transform;
 
@@ -92,8 +92,7 @@ resetColorNames()
 
 void
 CQChartsHtmlPaintDevice::
-createButton(const CQChartsGeom::BBox &bbox, const QString &text, const QString &id,
-             const QString &clickProc)
+createButton(const BBox &bbox, const QString &text, const QString &id, const QString &clickProc)
 {
   if (! bbox.isValid()) return;
 

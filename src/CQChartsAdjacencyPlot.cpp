@@ -294,9 +294,7 @@ initHierObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initHierObjs");
 
-  CQChartsConnectionPlot::initHierObjs();
-
-  return true;
+  return CQChartsConnectionPlot::initHierObjs();
 }
 
 void
@@ -545,136 +543,64 @@ initLinkObjs() const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::initLinkObjs");
 
+  return CQChartsConnectionPlot::initLinkObjs();
+}
+
+void
+CQChartsAdjacencyPlot::
+addLinkConnection(const LinkConnectionData &linkConnectionData) const
+{
+  // Get group value
+  int group = linkConnectionData.valueModelInd.row();
+
+  if (groupColumn().isValid()) {
+    bool ok1;
+
+    group = (int) modelInteger(linkConnectionData.groupModelInd, ok1);
+
+    if (! ok1) {
+      auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
+      th->addDataError(linkConnectionData.groupModelInd, "Non-integer group value");
+      return;
+    }
+  }
+
   //---
 
-  class RowVisitor : public ModelVisitor {
-   public:
-    RowVisitor(const CQChartsAdjacencyPlot *plot) :
-     plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
-    }
+  ModelIndex modelInd = linkConnectionData.nameModelInd;
 
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // Get group value
-      int group = data.row;
+  if (! modelInd.isValid())
+    modelInd = linkConnectionData.linkModelInd;
 
-      CQChartsModelIndex groupModelInd;
+  if (! modelInd.isValid())
+    modelInd = linkConnectionData.valueModelInd;
 
-      if (plot_->groupColumn().isValid()) {
-        groupModelInd = CQChartsModelIndex(data.row, plot_->groupColumn(), data.parent);
+  //---
 
-        bool ok1;
-        group = (int) plot_->modelInteger(groupModelInd, ok1);
+  auto *srcNode  = findNode(linkConnectionData.srcStr);
+  auto *destNode = findNode(linkConnectionData.destStr);
+//assert(srcNode != destNode);
 
-        if (! ok1)
-          return addDataError(groupModelInd, "Non-integer group value");
-      }
+  if (! srcNode->hasNode(destNode))
+    srcNode->addEdge(destNode, OptReal(linkConnectionData.value));
 
-      //---
+  // connectional is directional (optional ?)
+  if (isSymmetric()) {
+    if (! destNode->hasNode(srcNode))
+      destNode->addEdge(srcNode, OptReal(linkConnectionData.value));
+  }
 
-      // Get link value
-      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
+  srcNode->setGroup(group);
 
-      CQChartsNamePair namePair;
+  if (modelInd.isValid()) {
+    auto modelInd1 = normalizeIndex(modelInd);
 
-      if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
-        bool ok;
-        QVariant linkVar = plot_->modelValue(linkModelInd, ok);
-        if (! ok) return addDataError(linkModelInd, "Invalid Link");
-
-        namePair = linkVar.value<CQChartsNamePair>();
-      }
-      else {
-        bool ok;
-        QString linkStr = plot_->modelString(linkModelInd, ok);
-        if (! ok) return addDataError(linkModelInd, "Invalid Link");
-
-        namePair = CQChartsNamePair(linkStr, separator_);
-      }
-
-      if (! namePair.isValid())
-        return addDataError(linkModelInd, "Invalid Link");
-
-      //---
-
-      // Get value value
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      bool ok1;
-      double value = plot_->modelReal(valueModelInd, ok1);
-      if (! ok1) return addDataError(valueModelInd, "Invalid value");
-
-      //---
-
-      // Get name value
-      CQChartsModelIndex nameModelInd;
-
-      if (plot_->nameColumn().isValid())
-        nameModelInd = CQChartsModelIndex(data.row, plot_->nameColumn(), data.parent);
-
-      //---
-
-      CQChartsModelIndex modelInd = nameModelInd;
-
-      if (! modelInd.isValid())
-        modelInd = linkModelInd;
-
-      if (! modelInd.isValid())
-        modelInd = valueModelInd;
-
-      //---
-
-      QString srcStr  = namePair.name1();
-      QString destStr = namePair.name2();
-
-      addConnection(srcStr, destStr, value, group, modelInd);
-
-      return State::OK;
-    }
-
-    void addConnection(const QString &srcStr, const QString &destStr, double value,
-                       int group, const CQChartsModelIndex &modelInd) {
-      auto *srcNode  = plot_->findNode(srcStr);
-      auto *destNode = plot_->findNode(destStr);
-
-    //assert(srcNode != destNode);
-
-      if (! srcNode->hasNode(destNode))
-        srcNode->addEdge(destNode, OptReal(value));
-
-      // connectional is directional (optional ?)
-      if (plot_->isSymmetric()) {
-        if (! destNode->hasNode(srcNode))
-          destNode->addEdge(srcNode, OptReal(value));
-      }
-
-      srcNode->setGroup(group);
-
-      if (modelInd.isValid()) {
-        auto modelInd1 = plot_->normalizeIndex(modelInd);
-
-        srcNode ->setInd(destNode->id(), modelInd1);
-        destNode->setInd(srcNode ->id(), modelInd1);
-      }
-    }
-
-   private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) {
-      const_cast<CQChartsAdjacencyPlot *>(plot_)->addDataError(ind, msg);
-      return State::SKIP;
-    }
-
-   private:
-    const CQChartsAdjacencyPlot *plot_      { nullptr };
-    QChar                        separator_ { '/' };
-  };
-
-  RowVisitor visitor(this);
-
-  visitModel(visitor);
-
-  return true;
+    srcNode ->setInd(destNode->id(), modelInd1);
+    destNode->setInd(srcNode ->id(), modelInd1);
+  }
 }
+
+//------
 
 bool
 CQChartsAdjacencyPlot::
@@ -845,7 +771,7 @@ initTableObjs() const
     auto *srcNode = findNode(srcStr);
 
     srcNode->setName (tableConnectionData.name());
-    srcNode->setGroup(tableConnectionData.group().i);
+    srcNode->setGroup(tableConnectionData.group().ig);
 
     for (const auto &value : tableConnectionData.values()) {
       QString destStr = QString("%1").arg(value.to);
@@ -874,7 +800,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   int group = data.row;
 
   if (groupColumn().isValid()) {
-    CQChartsModelIndex groupInd(data.row, groupColumn(), data.parent);
+    ModelIndex groupInd(th, data.row, groupColumn(), data.parent);
 
     bool ok1;
 
@@ -887,12 +813,12 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // get optional node id (default to row)
-  CQChartsModelIndex nodeModelInd;
+  ModelIndex nodeModelInd;
 
   int id = data.row;
 
   if (nodeColumn().isValid()) {
-    nodeModelInd = CQChartsModelIndex(data.row, nodeColumn(), data.parent);
+    nodeModelInd = ModelIndex(th, data.row, nodeColumn(), data.parent);
 
     bool ok2;
     id = (int) modelInteger(nodeModelInd, ok2);
@@ -902,7 +828,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // get connections
-  CQChartsModelIndex connectionsInd(data.row, connectionsColumn(), data.parent);
+  ModelIndex connectionsInd(th, data.row, connectionsColumn(), data.parent);
 
   if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
     bool ok3;
@@ -921,12 +847,12 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   //---
 
   // get optional name
-  CQChartsModelIndex nameModelInd;
+  ModelIndex nameModelInd;
 
   QString name = QString("%1").arg(id);
 
   if (nameColumn().isValid()) {
-    nameModelInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
+    nameModelInd = ModelIndex(th, data.row, nameColumn(), data.parent);
 
     bool ok4;
     name = modelString(nameModelInd, ok4);
@@ -1370,8 +1296,8 @@ CQChartsAdjacencyCellObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNod
 {
   setDetailHint(DetailHint::MAJOR);
 
-  CQChartsModelIndex ind1 = node1->ind(node2->id());
-  CQChartsModelIndex ind2 = node2->ind(node1->id());
+  ModelIndex ind1 = node1->ind(node2->id());
+  ModelIndex ind2 = node2->ind(node1->id());
 
   if      (ind1.isValid())
     addModelInd(plot->modelIndex(ind1));

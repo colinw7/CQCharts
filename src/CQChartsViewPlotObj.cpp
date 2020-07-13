@@ -294,7 +294,7 @@ CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToParent(const Position &pos) const
 {
-  CQChartsGeom::Point p;
+  Point p;
 
   if      (plot())
     p = plot()->positionToPlot(pos);
@@ -308,7 +308,7 @@ CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToPixel(const Position &pos) const
 {
-  CQChartsGeom::Point p;
+  Point p;
 
   if      (plot())
     p = plot()->positionToPixel(pos);
@@ -376,9 +376,9 @@ lengthPixelHeight(const CQChartsLength &len) const
 
 CQChartsGeom::Point
 CQChartsViewPlotObj::
-windowToPixel(const CQChartsGeom::Point &w) const
+windowToPixel(const Point &w) const
 {
-  CQChartsGeom::Point p;
+  Point p;
 
   if      (plot())
     p = plot()->windowToPixel(w);
@@ -390,9 +390,9 @@ windowToPixel(const CQChartsGeom::Point &w) const
 
 CQChartsGeom::BBox
 CQChartsViewPlotObj::
-windowToPixel(const CQChartsGeom::BBox &w) const
+windowToPixel(const BBox &w) const
 {
-  CQChartsGeom::BBox p;
+  BBox p;
 
   if      (plot())
     p = plot()->windowToPixel(w);
@@ -404,9 +404,9 @@ windowToPixel(const CQChartsGeom::BBox &w) const
 
 CQChartsGeom::Point
 CQChartsViewPlotObj::
-pixelToWindow(const CQChartsGeom::Point &w) const
+pixelToWindow(const Point &w) const
 {
-  CQChartsGeom::Point p;
+  Point p;
 
   if      (plot())
     p = plot()->pixelToWindow(w);
@@ -418,9 +418,9 @@ pixelToWindow(const CQChartsGeom::Point &w) const
 
 CQChartsGeom::BBox
 CQChartsViewPlotObj::
-pixelToWindow(const CQChartsGeom::BBox &w) const
+pixelToWindow(const BBox &w) const
 {
-  CQChartsGeom::BBox p;
+  BBox p;
 
   if      (plot())
     p = plot()->pixelToWindow(w);
@@ -497,9 +497,9 @@ makePosition(CQChartsView *view, CQChartsPlot *plot, double x, double y)
   assert(view || plot);
 
   if      (view)
-    return Position(CQChartsGeom::Point(x, y), CQChartsUnits::VIEW);
+    return Position(Point(x, y), CQChartsUnits::VIEW);
   else if (plot)
-    return Position(CQChartsGeom::Point(x, y), CQChartsUnits::PLOT);
+    return Position(Point(x, y), CQChartsUnits::PLOT);
   else
     return Position();
 }
@@ -511,9 +511,9 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, double x1, double y1, double x2
   assert(view || plot);
 
   if      (view)
-    return CQChartsRect(CQChartsGeom::BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
+    return CQChartsRect(BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
   else if (plot)
-    return CQChartsRect(CQChartsGeom::BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
+    return CQChartsRect(BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
   else
     return CQChartsRect();
 }
@@ -528,7 +528,7 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Po
 
   // if different units then convert rectangle
   if (start.units() != end.units()) {
-    CQChartsGeom::Point pstart, pend;
+    Point pstart, pend;
 
     if      (plot) {
       pstart = plot->positionToPlot(start);
@@ -539,7 +539,7 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Po
       pend   = view->positionToView(end);
     }
 
-    CQChartsGeom::BBox bbox(pstart, pend);
+    BBox bbox(pstart, pend);
 
     if      (plot)
       rectangle = CQChartsRect(bbox, CQChartsUnits::PLOT);
@@ -547,7 +547,7 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Po
       rectangle = CQChartsRect(bbox, CQChartsUnits::VIEW);
   }
   else {
-    rectangle = CQChartsRect(CQChartsGeom::BBox(start.p(), end.p()), start.units());
+    rectangle = CQChartsRect(BBox(start.p(), end.p()), start.units());
   }
 
   return rectangle;

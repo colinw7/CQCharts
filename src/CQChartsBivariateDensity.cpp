@@ -37,7 +37,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   //---
 
   // calc pixel grid
-  CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
+  BBox bbox(xmin, ymin, xmax, ymax);
 
   auto pbbox = device->windowToPixel(bbox);
 
@@ -61,7 +61,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   for (int y = y1; y <= y2; y += dy) {
     for (int x = x1; x <= x2; x += dx) {
       // calc value at normalized pixel sample point (use box center ?)
-      auto p = device->pixelToWindow(CQChartsGeom::Point(x, y));
+      auto p = device->pixelToWindow(Point(x, y));
 
       double x1 = (xmax > xmin ? CMathUtil::norm(p.x, xmin, xmax) : 0.0);
       double y1 = (ymax > ymin ? CMathUtil::norm(p.y, ymin, ymax) : 0.0);
@@ -93,7 +93,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
       //---
 
       // fill rect
-      CQChartsGeom::BBox pb1(x, y, x + dx, y + dy);
+      BBox pb1(x, y, x + dx, y + dy);
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 

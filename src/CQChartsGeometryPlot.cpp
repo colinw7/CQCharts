@@ -113,12 +113,16 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     auto *columnDetails = details->columnDetails(CQChartsColumn(c));
     if (! columnDetails) continue;
 
-    CQChartsModelIndex ind(/*row*/0, columnDetails->column(), /*parent*/QModelIndex());
+    int         row = 0;
+    QModelIndex parent;
+
+    //ModelIndex ind(nullptr, row, columnDetails->column(), parent);
 
     if (columnDetails->type() == ColumnType::STRING) {
       bool ok;
 
-      auto str = CQChartsModelUtil::modelString(charts, model, ind, ok);
+      auto str = CQChartsModelUtil::modelString(charts, model, row, columnDetails->column(),
+                                                parent, ok);
       if (! ok) continue;
 
       CQChartsGeometryShape shape(str);
@@ -397,10 +401,10 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry name
-  CQChartsModelIndex nameInd;
+  ModelIndex nameInd;
 
   if (nameColumn().isValid()) {
-    nameInd = CQChartsModelIndex(data.row, nameColumn(), data.parent);
+    nameInd = ModelIndex(th, data.row, nameColumn(), data.parent);
 
     bool ok1;
 
@@ -410,7 +414,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // decode geometry column value into polygons
-  CQChartsModelIndex geometryInd(data.row, geometryColumn(), data.parent);
+  ModelIndex geometryInd(th, data.row, geometryColumn(), data.parent);
 
   if (geometryColumnType_ == ColumnType::RECT ||
       geometryColumnType_ == ColumnType::POLYGON ||
@@ -529,7 +533,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry associated value
   if (valueColumn().isValid()) {
-    CQChartsModelIndex valueInd(data.row, valueColumn(), data.parent);
+    ModelIndex valueInd(th, data.row, valueColumn(), data.parent);
 
     bool ok3;
 
@@ -556,7 +560,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry custom color
   if (colorColumn().isValid()) {
-    CQChartsModelIndex colorInd(data.row, colorColumn(), data.parent);
+    ModelIndex colorInd(th, data.row, colorColumn(), data.parent);
 
     if (colorColumnType_ == ColumnType::COLOR) {
       CQChartsColor c;
@@ -578,7 +582,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry custom style
   if (styleColumn().isValid()) {
-    CQChartsModelIndex styleInd(data.row, styleColumn(), data.parent);
+    ModelIndex styleInd(th, data.row, styleColumn(), data.parent);
 
     bool ok4;
 

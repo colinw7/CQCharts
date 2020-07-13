@@ -39,12 +39,11 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 
   //---
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -104,14 +103,14 @@ class CQChartsTablePlot : public CQChartsPlot {
   using RowNums = CQSummaryModel::RowNums;
 
   struct HeaderObjData {
-    CQChartsColumn c;
-    BBox           rect;
-    Qt::Alignment  align { Qt::AlignLeft | Qt::AlignVCenter };
-    QString        str;
+    Column        c;
+    BBox          rect;
+    Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString       str;
 
     HeaderObjData() = default;
 
-    HeaderObjData(const CQChartsColumn &c) :
+    HeaderObjData(const Column &c) :
      c(c) {
     }
   };
@@ -130,20 +129,23 @@ class CQChartsTablePlot : public CQChartsPlot {
   };
 
   struct CellObjData {
-    CQChartsModelIndex ind;
-    BBox               rect;
-    Qt::Alignment      align { Qt::AlignLeft | Qt::AlignVCenter };
-    QString            str;
+    ModelIndex    ind;
+    BBox          rect;
+    Qt::Alignment align { Qt::AlignLeft | Qt::AlignVCenter };
+    QString       str;
 
     CellObjData() = default;
 
-    CellObjData(const CQChartsModelIndex &ind) :
+    CellObjData(const ModelIndex &ind) :
      ind(ind) {
     }
   };
 
  public:
-  CQChartsTablePlot(CQChartsView *view, const ModelP &model);
+  using ColumnNum = CQChartsColumnNum;
+
+ public:
+  CQChartsTablePlot(View *view, const ModelP &model);
 
  ~CQChartsTablePlot();
 
@@ -154,8 +156,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   // columns
-  const CQChartsColumns &columns() const { return columns_; }
-  void setColumns(const CQChartsColumns &c);
+  const Columns &columns() const { return columns_; }
+  void setColumns(const Columns &c);
 
   //---
 
@@ -163,7 +165,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
-  void setFont(const CQChartsFont &f) override;
+  void setFont(const Font &f) override;
 
   //---
 
@@ -188,8 +190,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   // sort data
-  CQChartsColumnNum sortColumn() const;
-  void setSortColumn(const CQChartsColumnNum &c);
+  ColumnNum sortColumn() const;
+  void setSortColumn(const ColumnNum &c);
 
   int sortRole() const;
   void setSortRole(int r);
@@ -225,25 +227,25 @@ class CQChartsTablePlot : public CQChartsPlot {
   bool isHeaderVisible() const { return headerData_.visible; }
   void setHeaderVisible(bool b);
 
-  const CQChartsColor &headerColor() const { return headerData_.color; }
-  void setHeaderColor(const CQChartsColor &c);
+  const Color &headerColor() const { return headerData_.color; }
+  void setHeaderColor(const Color &c);
 
   //---
 
-  const CQChartsColor &gridColor() const { return gridColor_; }
-  void setGridColor(const CQChartsColor &c);
+  const Color &gridColor() const { return gridColor_; }
+  void setGridColor(const Color &c);
 
-  const CQChartsColor &textColor() const { return textColor_; }
-  void setTextColor(const CQChartsColor &c);
+  const Color &textColor() const { return textColor_; }
+  void setTextColor(const Color &c);
 
-  const CQChartsColor &cellColor() const { return cellColor_; }
-  void setCellColor(const CQChartsColor &c);
+  const Color &cellColor() const { return cellColor_; }
+  void setCellColor(const Color &c);
 
-  const CQChartsColor &insideColor() const { return insideColor_; }
-  void setInsideColor(const CQChartsColor &v);
+  const Color &insideColor() const { return insideColor_; }
+  void setInsideColor(const Color &v);
 
-  const CQChartsColor &insideTextColor() const { return insideTextColor_; }
-  void setInsideTextColor(const CQChartsColor &v);
+  const Color &insideTextColor() const { return insideTextColor_; }
+  void setInsideTextColor(const Color &v);
 
   //---
 
@@ -283,7 +285,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   bool hasBackground() const override;
 
-  void execDrawBackground(CQChartsPaintDevice *device) const override;
+  void execDrawBackground(PaintDevice *device) const override;
 
   //---
 
@@ -303,7 +305,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   BBox calcTablePixelRect() const;
 
  protected:
-  void drawTable(CQChartsPaintDevice *device) const;
+  void drawTable(PaintDevice *device) const;
 
   void initDrawData() const;
 
@@ -311,7 +313,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   void updatePosition() const;
 
-  void drawTableBackground(CQChartsPaintDevice *device) const;
+  void drawTableBackground(PaintDevice *device) const;
 
   void createTableObjData() const;
 
@@ -321,9 +323,13 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   QString modeName(const Mode &mode) const;
 
-  virtual CQChartsTableHeaderObj *createHeaderObj(const HeaderObjData &headerObjData) const;
-  virtual CQChartsTableRowObj    *createRowObj   (const RowObjData &rowObjData) const;
-  virtual CQChartsTableCellObj   *createCellObj  (const CellObjData &cellObjData) const;
+  using HeaderObj = CQChartsTableHeaderObj;
+  using RowObj    = CQChartsTableRowObj;
+  using CellObj   = CQChartsTableCellObj;
+
+  virtual HeaderObj *createHeaderObj(const HeaderObjData &headerObjData) const;
+  virtual RowObj    *createRowObj   (const RowObjData &rowObjData) const;
+  virtual CellObj   *createCellObj  (const CellObjData &cellObjData) const;
 
  private slots:
   void hscrollSlot(int);
@@ -345,7 +351,7 @@ class CQChartsTablePlot : public CQChartsPlot {
     bool   numeric   { false };
   };
 
-  using ColumnDataMap = std::map<CQChartsColumn,ColumnData>;
+  using ColumnDataMap = std::map<Column, ColumnData>;
 
   using CQIntegerSpinP = QPointer<CQIntegerSpin>;
 
@@ -380,8 +386,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   };
 
   struct HeaderData {
-    bool          visible { true }; //!< header visible
-    CQChartsColor color;            //!< header color
+    bool  visible { true }; //!< header visible
+    Color color;            //!< header color
   };
 
   struct FitData {
@@ -394,23 +400,23 @@ class CQChartsTablePlot : public CQChartsPlot {
   using CellObjMap   = std::map<QModelIndex,CellObjData>;
 
  private:
-  HeaderObjData& getHeaderObjData(const CQChartsColumn &c) const;
+  HeaderObjData& getHeaderObjData(const Column &c) const;
   RowObjData&    getRowObjData   (int row) const;
-  CellObjData&   getCellObjData  (const CQChartsModelIndex &ind) const;
+  CellObjData&   getCellObjData  (const ModelIndex &ind) const;
 
  private:
   TableData       tableData_;                //!< cached table data
   ScrollData      scrollData_;               //!< scroll bar data
-  CQChartsColumns columns_;                  //!< columns
+  Columns         columns_;                  //!< columns
   CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
   bool            rowColumn_    { false };   //!< draw row numbers column
   HeaderData      headerData_;               //!< header data
   FitData         fitData_;                  //!< fit data
-  CQChartsColor   gridColor_;                //!< grid color
-  CQChartsColor   textColor_;                //!< text color
-  CQChartsColor   cellColor_;                //!< cell color
-  CQChartsColor   insideColor_;              //!< cell inside fill color
-  CQChartsColor   insideTextColor_;          //!< cell inside text color
+  Color           gridColor_;                //!< grid color
+  Color           textColor_;                //!< text color
+  Color           cellColor_;                //!< cell color
+  Color           insideColor_;              //!< cell inside fill color
+  Color           insideTextColor_;          //!< cell inside text color
   double          indent_       { 8.0 };     //!< hier indent
   double          fontScale_    { 1.0 };     //!< font scale
   bool            followView_   { false };   //!< follow view
@@ -433,8 +439,10 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsTableHeaderObj(const CQChartsTablePlot *plot,
-                         const CQChartsTablePlot::HeaderObjData &headerObjData);
+  using Plot = CQChartsTablePlot;
+
+ public:
+  CQChartsTableHeaderObj(const Plot *plot, const Plot::HeaderObjData &headerObjData);
 
   QString typeName() const override { return "header"; }
 
@@ -442,15 +450,15 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const CQChartsTablePlot*         plot_ { nullptr }; //!< parent plot
-  CQChartsTablePlot::HeaderObjData headerObjData_;
+  const Plot*         plot_ { nullptr }; //!< parent plot
+  Plot::HeaderObjData headerObjData_;
 };
 
 /*!
@@ -461,8 +469,10 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsTableRowObj(const CQChartsTablePlot *plot,
-                      const CQChartsTablePlot::RowObjData &rowObjData);
+  using Plot = CQChartsTablePlot;
+
+ public:
+  CQChartsTableRowObj(const Plot *plot, const Plot::RowObjData &rowObjData);
 
   QString typeName() const override { return "row"; }
 
@@ -470,13 +480,13 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const CQChartsTablePlot*      plot_ { nullptr }; //!< parent plot
-  CQChartsTablePlot::RowObjData rowObjData_;
+  const Plot*      plot_ { nullptr }; //!< parent plot
+  Plot::RowObjData rowObjData_;
 };
 
 /*!
@@ -487,8 +497,10 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsTableCellObj(const CQChartsTablePlot *plot,
-                       const CQChartsTablePlot::CellObjData &cellObjData);
+  using Plot = CQChartsTablePlot;
+
+ public:
+  CQChartsTableCellObj(const Plot *plot, const Plot::CellObjData &cellObjData);
 
   QString typeName() const override { return "cell"; }
 
@@ -496,7 +508,7 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -505,8 +517,8 @@ class CQChartsTableCellObj : public CQChartsPlotObj {
   bool rectIntersect(const BBox &r, bool inside) const override;
 
  private:
-  const CQChartsTablePlot*       plot_ { nullptr }; //!< parent plot
-  CQChartsTablePlot::CellObjData cellObjData_;
+  const Plot*       plot_ { nullptr }; //!< parent plot
+  Plot::CellObjData cellObjData_;
 };
 
 #endif

@@ -433,7 +433,7 @@ initGroup(CQChartsGroupData &data) const
 
 std::vector<int>
 CQChartsGroupPlot::
-rowHierGroupInds(const CQChartsModelIndex &ind) const
+rowHierGroupInds(const ModelIndex &ind) const
 {
   std::vector<int> inds;
 
@@ -445,7 +445,7 @@ rowHierGroupInds(const CQChartsModelIndex &ind) const
 
 int
 CQChartsGroupPlot::
-rowGroupInd(const CQChartsModelIndex &ind) const
+rowGroupInd(const ModelIndex &ind) const
 {
   std::vector<int> inds;
 
@@ -465,7 +465,7 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
 bool
 CQChartsGroupPlot::
-rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) const
+rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
 {
   auto *model = this->model().data();
   if (! model) return false;
@@ -475,7 +475,7 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
 
   // header has multiple groups (one per column)
   if      (groupBucket_->dataType() == CQChartsColumnBucket::DataType::HEADER) {
-    int ind1 = groupBucket_->ind(ind.column.column());
+    int ind1 = groupBucket_->ind(ind.column().column());
 
     inds.push_back(ind1);
   }
@@ -487,9 +487,9 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
     QVariant value;
 
     if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
-      value = modelRootValue(ind.row, groupBucket_->column(), ind.parent, ok);
+      value = modelRootValue(ind.row(), groupBucket_->column(), ind.parent(), ok);
     else
-      value = modelHierValue(ind.row, groupBucket_->column(), ind.parent, ok);
+      value = modelHierValue(ind.row(), groupBucket_->column(), ind.parent(), ok);
 
     if (! value.isValid())
       return false;
@@ -523,7 +523,7 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
   }
   // get group id from parent path name
   else if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsModelUtil::parentPath(model, ind.parent);
+    QString path = CQChartsModelUtil::parentPath(model, ind.parent());
 
     if (hier) {
       inds = pathInds(path);
@@ -535,7 +535,7 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
     }
   }
   else if (groupBucket_->isUseRow()) {
-    int ind1 = ind.row; // default to row
+    int ind1 = ind.row(); // default to row
 
     inds.push_back(ind1);
   }
@@ -593,7 +593,7 @@ pathStrs(const QString &path) const
 
 void
 CQChartsGroupPlot::
-setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
+setModelGroupInd(const ModelIndex &ind, int groupInd)
 {
   auto *model = this->model().data();
   assert(model);
@@ -602,7 +602,7 @@ setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
 
   int role = (int) CQBaseModelRole::Group;
 
-  model->setHeaderData(ind.row, Qt::Vertical, var, role);
+  model->setHeaderData(ind.row(), Qt::Vertical, var, role);
 }
 
 bool

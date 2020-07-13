@@ -67,8 +67,9 @@ class CQChartsAdjacencyNode {
     }
   };
 
-  using Node    = CQChartsAdjacencyNode;
-  using EdgeMap = std::map<int,EdgeData>;
+  using Node      = CQChartsAdjacencyNode;
+  using EdgeMap    = std::map<int,EdgeData>;
+  using ModelIndex = CQChartsModelIndex;
 
  public:
   CQChartsAdjacencyNode(int id, const QString &name, int group) :
@@ -104,13 +105,13 @@ class CQChartsAdjacencyNode {
   void setVisible(bool b) { visible_ = b; }
 
   //! get/set model index (per id)
-  CQChartsModelIndex ind(int id) const {
+  ModelIndex ind(int id) const {
     auto p = idInd_.find(id);
-    if (p == idInd_.end()) return CQChartsModelIndex();
+    if (p == idInd_.end()) return ModelIndex();
     return (*p).second;
   }
 
-  void setInd(int id, const CQChartsModelIndex &ind) { idInd_[id] = ind; }
+  void setInd(int id, const ModelIndex &ind) { idInd_[id] = ind; }
 
   //! get total connected values
   double totalValue() const { return totalValue_; }
@@ -176,7 +177,7 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  using IdInd = std::map<int, CQChartsModelIndex>;
+  using IdInd = std::map<int, ModelIndex>;
 
   int     id_         { 0 };       //!< id
   QString name_;                   //!< name
@@ -384,11 +385,11 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
-    CQChartsModelIndex ind;          //!< model index
-    int                node  { -1 }; //!< node numbe
-    QString            name;         //!< name
-    int                group { -1 }; //!< group index
-    Connections        connections;  //!< connections list
+    ModelIndex  ind;          //!< model index
+    int         node  { -1 }; //!< node number
+    QString     name;         //!< name
+    int         group { -1 }; //!< group index
+    Connections connections;  //!< connections list
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;
@@ -427,7 +428,12 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  bool initLinkObjs () const;
+  bool initLinkObjs() const;
+
+  void addLinkConnection(const LinkConnectionData &linkConnectionData) const override;
+
+  //---
+
   bool initTableObjs() const;
 
   bool initConnectionObjs(PlotObjs &objs) const;

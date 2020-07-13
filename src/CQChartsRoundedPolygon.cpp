@@ -42,7 +42,7 @@ void interpLine(const QPointF &p1, const QPointF &p2, double xsize, double ysize
 namespace CQChartsRoundedPolygon {
 
 void
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double xsize, double ysize,
+draw(CQChartsPaintDevice *device, const BBox &bbox, double xsize, double ysize,
      const CQChartsSides &sides)
 {
   if (xsize > 0 || ysize > 0) {
@@ -77,7 +77,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double xsize, 
 }
 
 void
-draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly, double xsize, double ysize)
+draw(CQChartsPaintDevice *device, const Polygon &poly, double xsize, double ysize)
 {
   QPainterPath path;
 

@@ -5,6 +5,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsArcData.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsModelIndex.h>
 #include <set>
 
 class  CQChartsPlot;
@@ -32,14 +33,15 @@ class CQChartsPlotObj : public CQChartsObj {
     MINOR
   };
 
-  using Plot         = CQChartsPlot;
-  using PlotObj      = CQChartsPlotObj;
-  using PlotObjs     = std::vector<PlotObj *>;
-  using ModelIndices = std::vector<QModelIndex>;
-  using Indices      = std::set<QModelIndex>;
-  using ColorInd     = CQChartsUtil::ColorInd;
-  using PenBrush     = CQChartsPenBrush;
-  using ResizeSide   = CQChartsResizeSide;
+  using Plot          = CQChartsPlot;
+  using PlotObj       = CQChartsPlotObj;
+  using PlotObjs      = std::vector<PlotObj *>;
+  using QModelIndices = std::vector<QModelIndex>;
+  using Indices       = std::set<QModelIndex>;
+  using ColorInd      = CQChartsUtil::ColorInd;
+  using PenBrush      = CQChartsPenBrush;
+  using ResizeSide    = CQChartsResizeSide;
+  using ModelIndex    = CQChartsModelIndex;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -116,8 +118,8 @@ class CQChartsPlotObj : public CQChartsObj {
   QModelIndex modelInd() const;
   void setModelInd(const QModelIndex &ind);
 
-  const ModelIndices &modelInds() const { return modelInds_; }
-  void setModelInds(const ModelIndices &inds);
+  const QModelIndices &modelInds() const { return modelInds_; }
+  void setModelInds(const QModelIndices &inds);
 
   void addModelInd(const QModelIndex &ind);
 
@@ -214,6 +216,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   // select
   bool isSelectIndex(const QModelIndex &ind) const;
+  bool isSelectIndices(const Indices &inds) const;
 
   void addSelectIndices();
 
@@ -227,7 +230,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
 
-  void addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const;
+  void addSelectIndex(Indices &inds, const ModelIndex &ind) const;
   void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                       const QModelIndex &parent=QModelIndex()) const;
   void addSelectIndex(Indices &inds, const QModelIndex &ind) const;
@@ -263,7 +266,7 @@ class CQChartsPlotObj : public CQChartsObj {
   ColorInd             is_;                                //!< set index
   ColorInd             ig_;                                //!< group index
   ColorInd             iv_;                                //!< value index
-  ModelIndices         modelInds_;                         //!< associated model indices
+  QModelIndices        modelInds_;                         //!< associated model indices
   CQChartsEditHandles* editHandles_ { nullptr };           //!< edit handles
   mutable PenBrush     penBrush_;                          //!< current pen/brush
 };

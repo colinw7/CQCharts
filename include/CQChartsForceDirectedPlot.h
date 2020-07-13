@@ -35,15 +35,13 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
   //---
 
-  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                            CQChartsPlotParameter *parameter) const override;
+  bool isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const override;
 
-  void analyzeModel(CQChartsModelData *modelData,
-                    CQChartsAnalyzeModelData &analyzeModelData) override;
+  void analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData) override;
 
   //---
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -170,9 +168,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   void initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
                                      const HierConnectionData &destHierData) const override;
 
-  void initHierObjsAddConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkInd,
+  void initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd,
                                  double srcTotal,
-                                 const QString &destStr, const CQChartsModelIndex &destLinkInd,
+                                 const QString &destStr, const ModelIndex &destLinkInd,
                                  double destTotal, int depth) const;
 
   //---
@@ -193,7 +191,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //---
 
   bool initLinkConnectionObjs() const;
-  bool initTableObjs         () const;
+
+  void addLinkConnection(const LinkConnectionData &) const override { }
+
+  bool initTableObjs() const;
+
+  //---
 
   void postUpdateObjs() override;
 
@@ -236,8 +239,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   // node connection data
   struct ConnectionsData {
-    int         node         { 0 };    //!< unique index
     QModelIndex ind;                   //!< model index
+    int         node         { 0 };    //!< unique index
     QString     name;                  //!< name
     QString     label;                 //!< label
     int         group        { 0 };    //!< group

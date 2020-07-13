@@ -51,7 +51,7 @@ setClipPath(const QPainterPath &, Qt::ClipOperation op)
 
 void
 CQChartsScriptPaintDevice::
-setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation op)
+setClipRect(const BBox &bbox, Qt::ClipOperation op)
 {
   *os_ << "  charts.setClipRect(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -190,7 +190,7 @@ addPathParts(const QPainterPath &path)
 
 void
 CQChartsScriptPaintDevice::
-fillRect(const CQChartsGeom::BBox &bbox)
+fillRect(const BBox &bbox)
 {
   *os_ << "  " << context() << ".fillRect(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -199,7 +199,7 @@ fillRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsScriptPaintDevice::
-drawRect(const CQChartsGeom::BBox &bbox)
+drawRect(const BBox &bbox)
 {
   *os_ << "  " << context() << ".drawRect(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -208,7 +208,7 @@ drawRect(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsScriptPaintDevice::
-drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
+drawEllipse(const BBox &bbox, const CQChartsAngle &)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -218,7 +218,7 @@ drawEllipse(const CQChartsGeom::BBox &bbox, const CQChartsAngle &)
 #if 0
 void
 CQChartsScriptPaintDevice::
-drawArc(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a1, const CQChartsAngle &a2)
+drawArc(const BBox &bbox, const CQChartsAngle &a1, const CQChartsAngle &a2)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
           bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
@@ -229,7 +229,7 @@ drawArc(const CQChartsGeom::BBox &bbox, const CQChartsAngle &a1, const CQChartsA
 
 void
 CQChartsScriptPaintDevice::
-drawPolygon(const CQChartsGeom::Polygon &poly)
+drawPolygon(const Polygon &poly)
 {
   *os_ << "  " << context() << ".drawPolygon([";
 
@@ -248,7 +248,7 @@ drawPolygon(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsScriptPaintDevice::
-drawPolyline(const CQChartsGeom::Polygon &poly)
+drawPolyline(const Polygon &poly)
 {
   *os_ << "  " << context() << ".drawPolyline([";
 
@@ -267,7 +267,7 @@ drawPolyline(const CQChartsGeom::Polygon &poly)
 
 void
 CQChartsScriptPaintDevice::
-drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
+drawLine(const Point &p1, const Point &p2)
 {
   *os_ << "  " << context() << ".drawLine(" <<
     p1.x << ", " << p1.y << ", " << p2.x << ", " << p2.y << ");\n";
@@ -275,14 +275,14 @@ drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 
 void
 CQChartsScriptPaintDevice::
-drawPoint(const CQChartsGeom::Point &p)
+drawPoint(const Point &p)
 {
   *os_ << "  " << context() << ".drawPoint(" << p.x << ", " << p.y << ");\n";
 }
 
 void
 CQChartsScriptPaintDevice::
-drawText(const CQChartsGeom::Point &p, const QString &text)
+drawText(const Point &p, const QString &text)
 {
   *os_ << "  " << context() << ".drawText(" << p.x << ", " << p.y << ", \"" <<
     text.toStdString() << "\");\n";
@@ -290,9 +290,9 @@ drawText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsScriptPaintDevice::
-drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
+drawTransformedText(const Point &p, const QString &text)
 {
-  CQChartsGeom::Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
+  Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
 
   double a = CMathUtil::Deg2Rad(data_.transformAngle);
 
@@ -302,7 +302,7 @@ drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 
 void
 CQChartsScriptPaintDevice::
-drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
+drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
 {
   double x = (! isInvertX() ? bbox.getXMin() : bbox.getXMax());
   double y = (! isInvertY() ? bbox.getYMax() : bbox.getYMin());
@@ -314,12 +314,12 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const CQChartsImage &image, bool
 
   QImage qimage = image.sizedImage(int(w), int(h));
 
-  drawImage(CQChartsGeom::Point(x, y), qimage);
+  drawImage(Point(x, y), qimage);
 }
 
 void
 CQChartsScriptPaintDevice::
-drawImage(const CQChartsGeom::Point &p, const QImage &image)
+drawImage(const Point &p, const QImage &image)
 {
   // writes image into ba in PNG format
   QByteArray ba;

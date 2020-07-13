@@ -2,6 +2,9 @@
 #define CQChartsPlotType_H
 
 #include <CQChartsPlotParameter.h>
+#include <CQChartsColumn.h>
+#include <CQChartsModelIndex.h>
+
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 #include <QObject>
@@ -94,6 +97,7 @@ class CQChartsPlotType : public QObject {
   using ModelData           = CQChartsModelData;
   using AnalyzeModelData    = CQChartsAnalyzeModelData;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
+  using ModelIndex          = CQChartsModelIndex;
 
   enum Dimension {
     NONE,

@@ -48,7 +48,7 @@ calc()
     double x = xmin_ + i*step;
     double y = eval(x);
 
-    points[i] = CQChartsGeom::Point(x, y);
+    points[i] = Point(x, y);
 
     if (i == 0) {
       ymin_ = y;
@@ -124,7 +124,7 @@ calc()
   double xl = xmax1_ - xmin1_;
   double yl = ymax_ - ymin_;
 
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   int np = numSamples_ + nr + nl;
 
@@ -133,20 +133,19 @@ calc()
   int i = 0;
 
   for (auto &p : lpoints) {
-    poly.setPoint(nl - i - 1,
-      CQChartsGeom::Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
+    poly.setPoint(nl - i - 1, Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
 
     ++i;
   }
 
   for (auto &p : points) {
-    poly.setPoint(i, CQChartsGeom::Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
+    poly.setPoint(i, Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
 
     ++i;
   }
 
   for (auto &p : rpoints) {
-    poly.setPoint(i, CQChartsGeom::Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
+    poly.setPoint(i, Point((p.x - xmin1_)/xl, std::max(p.y - ymin_, 0.0)/yl));
 
     ++i;
   }
@@ -161,7 +160,7 @@ calc()
   for (int i = 0; i < np; ++i) {
     auto p = poly.point(i);
 
-    opoints_[i] = CQChartsGeom::Point(p.x*xl + xmin1_, p.y/area_);
+    opoints_[i] = Point(p.x*xl + xmin1_, p.y/area_);
   }
 
   ymin1_ = 0.0;
@@ -283,16 +282,16 @@ eval(double x) const
 
 void
 CQChartsDensity::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect)
+draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect)
 {
   constInit();
 
-  CQChartsGeom::BBox rect1;
+  BBox rect1;
 
   if (orientation() == Qt::Horizontal)
-    rect1 = CQChartsGeom::BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
+    rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
   else
-    rect1 = CQChartsGeom::BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
+    rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
 
   //---
 
@@ -327,14 +326,14 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQChartsGeom::
 
 CQChartsGeom::BBox
 CQChartsDensity::
-bbox(const CQChartsGeom::BBox &rect) const
+bbox(const BBox &rect) const
 {
-  CQChartsGeom::BBox rect1;
+  BBox rect1;
 
   if (orientation() == Qt::Horizontal)
-    rect1 = CQChartsGeom::BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
+    rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
   else
-    rect1 = CQChartsGeom::BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
+    rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
 
   return rect1;
 }
@@ -343,8 +342,8 @@ bbox(const CQChartsGeom::BBox &rect) const
 
 void
 CQChartsDensity::
-drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-            const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation) const
+drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+            const Qt::Orientation &orientation) const
 {
   if (orientation == Qt::Horizontal)
     CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, rect, rect.getHeight(),
@@ -356,8 +355,8 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsDensity::
-drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-               const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation) const
+drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+               const Qt::Orientation &orientation) const
 {
   std::vector<double> outliers;
 
@@ -384,11 +383,10 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsDensity::
-drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                 const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
-                 const CQChartsWhiskerOpts &opts) const
+drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                 const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   calcDistributionPoly(poly, plot, rect, orientation, opts);
 
@@ -397,9 +395,8 @@ drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsDensity::
-calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
-                     const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
-                     const CQChartsWhiskerOpts &opts) const
+calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
+                     const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
   assert(rect.isSet());
 
@@ -471,7 +468,7 @@ calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
       py = rect.getYMid();
   }
 
-  CQChartsGeom::Point p1, p2;
+  Point p1, p2;
 
   double x0, xn;
 
@@ -489,21 +486,21 @@ calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
 
   if (orientation != Qt::Horizontal) {
     if (bottomLeft) {
-      p1 = CQChartsGeom::Point(px - y0, py + x0);
-      p2 = CQChartsGeom::Point(px - yn, py + xn);
+      p1 = Point(px - y0, py + x0);
+      p2 = Point(px - yn, py + xn);
     }
     else {
-      p1 = CQChartsGeom::Point(px + y0, py + x0);
-      p2 = CQChartsGeom::Point(px + yn, py + xn);
+      p1 = Point(px + y0, py + x0);
+      p2 = Point(px + yn, py + xn);
     }
   }
   else {
-    p1 = CQChartsGeom::Point(px + x0, py + y0);
-    p2 = CQChartsGeom::Point(px + xn, py + yn);
+    p1 = Point(px + x0, py + y0);
+    p2 = Point(px + xn, py + yn);
   }
 
-  poly.setPoint(0     , CQChartsGeom::Point(p1.x, p1.y));
-  poly.setPoint(no + 1, CQChartsGeom::Point(p2.x, p2.y));
+  poly.setPoint(0     , Point(p1.x, p1.y));
+  poly.setPoint(no + 1, Point(p2.x, p2.y));
 
   int ip = 0;
 
@@ -518,34 +515,34 @@ calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
     double y1 = (p.y - ymin1)*vys;
 
     if (! opts.violin) {
-      CQChartsGeom::Point p1;
+      Point p1;
 
       if (orientation != Qt::Horizontal) {
         if (bottomLeft)
-          p1 = CQChartsGeom::Point(px - y1, py + x1);
+          p1 = Point(px - y1, py + x1);
         else
-          p1 = CQChartsGeom::Point(px + y1, py + x1);
+          p1 = Point(px + y1, py + x1);
       }
       else {
-        p1 = CQChartsGeom::Point(px + x1, py + y1);
+        p1 = Point(px + x1, py + y1);
       }
 
-      poly.setPoint(ip + 1, CQChartsGeom::Point(p1.x, p1.y));
+      poly.setPoint(ip + 1, Point(p1.x, p1.y));
     }
     else {
-      CQChartsGeom::Point p1, p2;
+      Point p1, p2;
 
       if (orientation != Qt::Horizontal) {
-        p1 = CQChartsGeom::Point(px - y1, py + x1);
-        p2 = CQChartsGeom::Point(px + y1, py + x1);
+        p1 = Point(px - y1, py + x1);
+        p2 = Point(px + y1, py + x1);
       }
       else {
-        p1 = CQChartsGeom::Point(px + x1, py - y1);
-        p2 = CQChartsGeom::Point(px + x1, py + y1);
+        p1 = Point(px + x1, py - y1);
+        p2 = Point(px + x1, py + y1);
       }
 
-      poly.setPoint(ip + 1     , CQChartsGeom::Point(p1.x, p1.y));
-      poly.setPoint(np - ip - 1, CQChartsGeom::Point(p2.x, p2.y));
+      poly.setPoint(ip + 1     , Point(p1.x, p1.y));
+      poly.setPoint(np - ip - 1, Point(p2.x, p2.y));
     }
 
     ++ip;
@@ -556,7 +553,7 @@ calcDistributionPoly(CQChartsGeom::Polygon &poly, const CQChartsPlot *plot,
 
 void
 CQChartsDensity::
-drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
+drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
              double mean, const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
 {
   double lpos, tpos, bl, br;
@@ -576,23 +573,23 @@ drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const CQChartsGe
     br = rect.getYMax();
   }
 
-  CQChartsGeom::Point p1, p2, pm;
+  Point p1, p2, pm;
 
   if (orientation != Qt::Horizontal) {
-    p1 = CQChartsGeom::Point(bl, lpos);
-    p2 = CQChartsGeom::Point(br, tpos);
-    pm = CQChartsGeom::Point(bl, mean);
+    p1 = Point(bl, lpos);
+    p2 = Point(br, tpos);
+    pm = Point(bl, mean);
   }
   else {
-    p1 = CQChartsGeom::Point(lpos, bl);
-    p2 = CQChartsGeom::Point(tpos, br);
-    pm = CQChartsGeom::Point(mean, bl);
+    p1 = Point(lpos, bl);
+    p2 = Point(tpos, br);
+    pm = Point(mean, bl);
   }
 
   //---
 
   // draw box
-  CQChartsGeom::BBox pbbox(p1, p2);
+  BBox pbbox(p1, p2);
 
   CQChartsDrawUtil::drawRoundedPolygon(device, pbbox, cornerSize);
 
@@ -600,36 +597,34 @@ drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const CQChartsGe
 
   // draw mean line
   if (orientation != Qt::Horizontal)
-    device->drawLine(CQChartsGeom::Point(p1.x, pm.y), CQChartsGeom::Point(p2.x, pm.y));
+    device->drawLine(Point(p1.x, pm.y), Point(p2.x, pm.y));
   else
-    device->drawLine(CQChartsGeom::Point(pm.x, p1.y), CQChartsGeom::Point(pm.x, p2.y));
+    device->drawLine(Point(pm.x, p1.y), Point(pm.x, p2.y));
 }
 
 void
 CQChartsDensity::
-drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-               const CQChartsGeom::BBox &rect, double mean, const Qt::Orientation &orientation,
-               const CQChartsSymbolData &symbol)
+drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+               double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
 {
   // draw line
   drawLineRange(plot, device, rect, orientation);
 
   // draw symbol at mean
-  CQChartsGeom::Point pm;
+  Point pm;
 
   if (orientation != Qt::Horizontal)
-    pm = CQChartsGeom::Point(rect.getXMid(), mean);
+    pm = Point(rect.getXMid(), mean);
   else
-    pm = CQChartsGeom::Point(mean, rect.getYMid());
+    pm = Point(mean, rect.getYMid());
 
-  plot->drawSymbol(device, CQChartsGeom::Point(pm.x, pm.y), symbol.type(), symbol.size());
+  plot->drawSymbol(device, Point(pm.x, pm.y), symbol.type(), symbol.size());
 }
 
 void
 CQChartsDensity::
-drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-             const CQChartsGeom::BBox &rect, double mean, const Qt::Orientation &orientation,
-             const CQChartsSymbolData &symbol)
+drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+             double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
 {
   double lpos, tpos, bl, bm, br;
 
@@ -650,50 +645,50 @@ drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     br = rect.getYMax();
   }
 
-  CQChartsGeom::Point p1, p2, p3;
+  Point p1, p2, p3;
 
   if (orientation != Qt::Horizontal) {
-    p1 = CQChartsGeom::Point(bl, lpos);
-    p2 = CQChartsGeom::Point(bm, lpos);
-    p3 = CQChartsGeom::Point(br, tpos);
+    p1 = Point(bl, lpos);
+    p2 = Point(bm, lpos);
+    p3 = Point(br, tpos);
   }
   else {
-    p1 = CQChartsGeom::Point(lpos, bl);
-    p2 = CQChartsGeom::Point(lpos, bm);
-    p3 = CQChartsGeom::Point(tpos, br);
+    p1 = Point(lpos, bl);
+    p2 = Point(lpos, bm);
+    p3 = Point(tpos, br);
   }
 
   //---
 
   // draw error bar
   if (orientation != Qt::Horizontal) {
-    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p3.x, p1.y)); // htop
-    device->drawLine(CQChartsGeom::Point(p1.x, p3.y), CQChartsGeom::Point(p3.x, p3.y)); // hbottom
-    device->drawLine(CQChartsGeom::Point(p2.x, p1.y), CQChartsGeom::Point(p2.x, p3.y)); // vline
+    device->drawLine(Point(p1.x, p1.y), Point(p3.x, p1.y)); // htop
+    device->drawLine(Point(p1.x, p3.y), Point(p3.x, p3.y)); // hbottom
+    device->drawLine(Point(p2.x, p1.y), Point(p2.x, p3.y)); // vline
   }
   else {
-    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p1.x, p3.y)); // vleft
-    device->drawLine(CQChartsGeom::Point(p3.x, p1.y), CQChartsGeom::Point(p3.x, p3.y)); // vright
-    device->drawLine(CQChartsGeom::Point(p1.x, p2.y), CQChartsGeom::Point(p3.x, p2.y)); // hline
+    device->drawLine(Point(p1.x, p1.y), Point(p1.x, p3.y)); // vleft
+    device->drawLine(Point(p3.x, p1.y), Point(p3.x, p3.y)); // vright
+    device->drawLine(Point(p1.x, p2.y), Point(p3.x, p2.y)); // hline
   }
 
   //---
 
   // draw symbol at mean
-  CQChartsGeom::Point pm;
+  Point pm;
 
   if (orientation != Qt::Horizontal)
-    pm = CQChartsGeom::Point(rect.getXMid(), mean);
+    pm = Point(rect.getXMid(), mean);
   else
-    pm = CQChartsGeom::Point(mean, rect.getYMid());
+    pm = Point(mean, rect.getYMid());
 
-  plot->drawSymbol(device, CQChartsGeom::Point(pm.x, pm.y), symbol.type(), symbol.size());
+  plot->drawSymbol(device, Point(pm.x, pm.y), symbol.type(), symbol.size());
 }
 
 void
 CQChartsDensity::
-drawLineRange(const CQChartsPlot *, CQChartsPaintDevice *device,
-              const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation)
+drawLineRange(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
+              const Qt::Orientation &orientation)
 {
   double lpos, tpos, bm;
 
@@ -710,22 +705,22 @@ drawLineRange(const CQChartsPlot *, CQChartsPaintDevice *device,
     bm = rect.getYMid();
   }
 
-  CQChartsGeom::Point p1, p2;
+  Point p1, p2;
 
   if (orientation != Qt::Horizontal) {
-    p1 = CQChartsGeom::Point(bm, lpos);
-    p2 = CQChartsGeom::Point(bm, tpos);
+    p1 = Point(bm, lpos);
+    p2 = Point(bm, tpos);
   }
   else {
-    p1 = CQChartsGeom::Point(lpos, bm);
-    p2 = CQChartsGeom::Point(tpos, bm);
+    p1 = Point(lpos, bm);
+    p2 = Point(tpos, bm);
   }
 
   //---
 
   // draw error line
   if (orientation != Qt::Horizontal)
-    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p1.x, p2.y)); // vline
+    device->drawLine(Point(p1.x, p1.y), Point(p1.x, p2.y)); // vline
   else
-    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p2.x, p1.y)); // hline
+    device->drawLine(Point(p1.x, p1.y), Point(p2.x, p1.y)); // hline
 }

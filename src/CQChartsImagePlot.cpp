@@ -227,8 +227,10 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsImagePlot *>(plot_);
+
       for (int col = 0; col < numCols(); ++col) {
-        CQChartsModelIndex columnModelInd(data.row, CQChartsColumn(col), data.parent);
+        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
 
         bool ok;
 
@@ -301,10 +303,12 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsImagePlot *>(plot_);
+
       x_ = 0.0;
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        CQChartsModelIndex columnModelInd(data.row, CQChartsColumn(ic), data.parent);
+        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(ic), data.parent);
 
         QModelIndex ind = plot_->modelIndex(columnModelInd);
 

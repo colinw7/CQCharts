@@ -370,7 +370,7 @@ calcRange() const
   if (! checkColumn(labelColumn(), "Label")) columnsValid = false;
 
   if (! columnsValid)
-    return CQChartsGeom::Range(-1.0, -1.0, 1.0, 1.0);
+    return Range(-1.0, -1.0, 1.0, 1.0);
 
   //---
 
@@ -392,8 +392,10 @@ calcRange() const
 
       //---
 
+      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
+
       // init group
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
 
       int groupInd = plot_->rowGroupInd(xModelInd);
 
@@ -419,13 +421,15 @@ calcRange() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
-      CQChartsModelIndex zModelInd(data.row, plot_->zColumn(), data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
 
-      xModelInd.cellCol = col;
-      yModelInd.cellCol = col;
-      zModelInd.cellCol = col;
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex zModelInd(plot, data.row, plot_->zColumn(), data.parent);
+
+      xModelInd.setCellCol(col);
+      yModelInd.setCellCol(col);
+      zModelInd.setCellCol(col);
 
       //---
 
@@ -434,7 +438,7 @@ calcRange() const
 
       //---
 
-      auto modelValue = [&](const ColumnType &columnType, const CQChartsModelIndex &modelInd,
+      auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog, int &numUnique) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
           ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
@@ -442,9 +446,9 @@ calcRange() const
         else if (columnType == ColumnType::TIME) {
           value = plot_->modelReal(modelInd, ok);
         }
-        else if (modelInd.column.isRow() ||
-                 modelInd.column.isColumn() ||
-                 modelInd.column.isCell())
+        else if (modelInd.column().isRow() ||
+                 modelInd.column().isColumn() ||
+                 modelInd.column().isCell())
           value = plot_->modelReal(modelInd, ok);
         else {
           value = uniqueId(modelInd); ++numUnique;
@@ -468,13 +472,13 @@ calcRange() const
       return State::OK;
     }
 
-    int uniqueId(const CQChartsModelIndex &columnInd) {
+    int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
       QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
-      auto *columnDetails = this->columnDetails(columnInd.column);
+      auto *columnDetails = this->columnDetails(columnInd.column());
 
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
@@ -489,7 +493,7 @@ calcRange() const
       return (details_ ? details_->columnDetails(column) : nullptr);
     }
 
-    const CQChartsGeom::Range3D &range3D() const { return range3D_; }
+    const Range3D &range3D() const { return range3D_; }
 
     bool isUniqueX() const { return uniqueX_ == numRows(); }
     bool isUniqueY() const { return uniqueY_ == numRows(); }
@@ -498,7 +502,7 @@ calcRange() const
    private:
     const CQChartsScatterPlot3D* plot_      { nullptr };
     int                          hasGroups_ { false };
-    CQChartsGeom::Range3D        range3D_;
+    Range3D                      range3D_;
     CQChartsModelDetails*        details_   { nullptr };
     int                          uniqueX_   { 0 };
     int                          uniqueY_   { 0 };
@@ -523,7 +527,7 @@ calcRange() const
   bool uniqueZ = visitor.isUniqueZ();
 
   if (isInterrupt())
-    return CQChartsGeom::Range(-1, -1, 1, 1);
+    return Range(-1, -1, 1, 1);
 
   //---
 
@@ -554,7 +558,7 @@ calcRange() const
 
   th->groupNameValues_.clear();
 
-  return CQChartsGeom::Range(-1, -1, 1, 1);
+  return Range(-1, -1, 1, 1);
 }
 
 void
@@ -771,12 +775,12 @@ addPointObjects() const
           bool ok;
 
           if (labelColumn().isValid()) {
-            CQChartsModelIndex labelInd(valuePoint.row, labelColumn(), valuePoint.ind.parent());
+            ModelIndex labelInd(th, valuePoint.row, labelColumn(), valuePoint.ind.parent());
 
             pointName = modelString(labelInd, ok);
           }
           else {
-            CQChartsModelIndex nameInd(valuePoint.row, nameColumn(), valuePoint.ind.parent());
+            ModelIndex nameInd(th, valuePoint.row, nameColumn(), valuePoint.ind.parent());
 
             pointName = modelString(nameInd, ok);
           }
@@ -878,13 +882,15 @@ addNameValues() const
     }
 
     State visitCell(int col, const VisitData &data) {
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
-      CQChartsModelIndex zModelInd(data.row, plot_->zColumn(), data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
 
-      xModelInd.cellCol = col;
-      yModelInd.cellCol = col;
-      zModelInd.cellCol = col;
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
+      ModelIndex zModelInd(plot, data.row, plot_->zColumn(), data.parent);
+
+      xModelInd.setCellCol(col);
+      yModelInd.setCellCol(col);
+      zModelInd.setCellCol(col);
 
       //---
 
@@ -902,7 +908,7 @@ addNameValues() const
 
       //---
 
-      auto modelValue = [&](const ColumnType &columnType, const CQChartsModelIndex &modelInd,
+      auto modelValue = [&](const ColumnType &columnType, const ModelIndex &modelInd,
                             double &value, bool &ok, bool isLog) {
         if      (columnType == ColumnType::REAL || columnType == ColumnType::INTEGER) {
           ok = plot_->modelMappedReal(modelInd, value, isLog, data.row);
@@ -910,9 +916,9 @@ addNameValues() const
         else if (columnType == ColumnType::TIME) {
           value = plot_->modelReal(modelInd, ok);
         }
-        else if (modelInd.column.isRow() ||
-                 modelInd.column.isColumn() ||
-                 modelInd.column.isCell())
+        else if (modelInd.column().isRow() ||
+                 modelInd.column().isColumn() ||
+                 modelInd.column().isCell())
           value = plot_->modelReal(modelInd, ok);
         else {
           value = uniqueId(modelInd);
@@ -937,7 +943,7 @@ addNameValues() const
       QString name;
 
       if (plot_->nameColumn().isValid()) {
-        CQChartsModelIndex nameColumnInd(data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameColumnInd(plot, data.row, plot_->nameColumn(), data.parent);
 
         bool ok;
 
@@ -959,8 +965,6 @@ addNameValues() const
 
       //---
 
-      auto *plot = const_cast<CQChartsScatterPlot3D *>(plot_);
-
       Point3D p(x, y, z);
 
       plot->addNameValue(groupInd, name, p, data.row, xInd1, color);
@@ -968,13 +972,13 @@ addNameValues() const
       return State::OK;
     }
 
-    int uniqueId(const CQChartsModelIndex &columnInd) {
+    int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
       QVariant var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
-      auto *columnDetails = this->columnDetails(columnInd.column);
+      auto *columnDetails = this->columnDetails(columnInd.column());
 
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
@@ -1242,7 +1246,7 @@ addObjs() const
 
       //---
 
-      using Points = std::set<CQChartsGeom::Point3D>;
+      using Points = std::set<Point3D>;
 
       Points points;
 
@@ -1253,13 +1257,13 @@ addObjs() const
 
       bool first = true;
 
-      CQChartsGeom::Point3D p2;
+      Point3D p2;
 
       for (const auto &p : points) {
         p2 = p;
 
         if (first) {
-          CQChartsGeom::Point3D p1(p2.x, p2.y, range3D_.zmin());
+          Point3D p1(p2.x, p2.y, range3D_.zmin());
 
           groupData.polygon->addPoint(p1);
 
@@ -1270,7 +1274,7 @@ addObjs() const
       }
 
       if (! first) {
-        CQChartsGeom::Point3D p1(p2.x, p2.y, range3D_.zmin());
+        Point3D p1(p2.x, p2.y, range3D_.zmin());
 
         groupData.polygon->addPoint(p1);
       }
@@ -1300,7 +1304,7 @@ addObjs() const
 
       //---
 
-      using Points = std::set<CQChartsGeom::Point3D>;
+      using Points = std::set<Point3D>;
 
       Points points;
 
@@ -1319,7 +1323,7 @@ addObjs() const
 
 void
 CQChartsScatterPlot3D::
-addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig)
+addBarPolygons(const Point3D &p, const ColorInd &ig)
 {
   const auto &range3D = this->range3D();
 
@@ -1329,20 +1333,19 @@ addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig)
   double dy = dt*range3D.ysize();
 //double dz = dt*range3D.zsize();
 
-  CQChartsGeom::Point3D p1(p.x - dx, p.y - dy, p.z);
-  CQChartsGeom::Point3D p2(p.x + dx, p.y - dy, p.z);
-  CQChartsGeom::Point3D p3(p.x + dx, p.y + dy, p.z);
-  CQChartsGeom::Point3D p4(p.x - dx, p.y + dy, p.z);
+  Point3D p1(p.x - dx, p.y - dy, p.z);
+  Point3D p2(p.x + dx, p.y - dy, p.z);
+  Point3D p3(p.x + dx, p.y + dy, p.z);
+  Point3D p4(p.x - dx, p.y + dy, p.z);
 
-  CQChartsGeom::Point3D p5(p.x - dx, p.y - dy, range3D.zmin());
-  CQChartsGeom::Point3D p6(p.x + dx, p.y - dy, range3D.zmin());
-  CQChartsGeom::Point3D p7(p.x + dx, p.y + dy, range3D.zmin());
-  CQChartsGeom::Point3D p8(p.x - dx, p.y + dy, range3D.zmin());
+  Point3D p5(p.x - dx, p.y - dy, range3D.zmin());
+  Point3D p6(p.x + dx, p.y - dy, range3D.zmin());
+  Point3D p7(p.x + dx, p.y + dy, range3D.zmin());
+  Point3D p8(p.x - dx, p.y + dy, range3D.zmin());
 
-  auto createPoly = [&](const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
-                        const CQChartsGeom::Point3D &p3, const CQChartsGeom::Point3D &p4,
-                        const CQChartsGeom::Point3D &n) {
-    CQChartsGeom::Polygon3D poly;
+  auto createPoly = [&](const Point3D &p1, const Point3D &p2, const Point3D &p3, const Point3D &p4,
+                        const Point3D &n) {
+    Polygon3D poly;
 
     poly.addPoint(p1);
     poly.addPoint(p2);
@@ -1354,19 +1357,19 @@ addBarPolygons(const CQChartsGeom::Point3D &p, const ColorInd &ig)
     polyObj->setIg(ig);
     polyObj->setNormal(n);
 
-    CQChartsGeom::Point3D pm((p1 + p2 + p3 + p4)/4.0);
+    Point3D pm((p1 + p2 + p3 + p4)/4.0);
 
-    CQChartsGeom::Point3D pm1(pm.x, pm.y, range3D.zmin());
+    Point3D pm1(pm.x, pm.y, range3D.zmin());
 
     addPointObj(pm1, polyObj);
   };
 
-  createPoly(p1, p2, p6, p5, CQChartsGeom::Point3D( 0, -1,  0));
-  createPoly(p2, p3, p7, p6, CQChartsGeom::Point3D( 1,  0,  0));
-  createPoly(p3, p4, p8, p7, CQChartsGeom::Point3D( 0,  1,  0));
-  createPoly(p4, p1, p5, p8, CQChartsGeom::Point3D(-1,  0,  0));
-  createPoly(p1, p2, p3, p4, CQChartsGeom::Point3D( 0,  0,  1));
-  createPoly(p5, p6, p7, p8, CQChartsGeom::Point3D( 0,  0, -1));
+  createPoly(p1, p2, p6, p5, Point3D( 0, -1,  0));
+  createPoly(p2, p3, p7, p6, Point3D( 1,  0,  0));
+  createPoly(p3, p4, p8, p7, Point3D( 0,  1,  0));
+  createPoly(p4, p1, p5, p8, Point3D(-1,  0,  0));
+  createPoly(p1, p2, p3, p4, Point3D( 0,  0,  1));
+  createPoly(p5, p6, p7, p8, Point3D( 0,  0, -1));
 }
 
 //---
@@ -1539,7 +1542,9 @@ calcTipId() const
   auto addColumnRowValue = [&](const CQChartsColumn &column) {
     if (! column.isValid()) return;
 
-    CQChartsModelIndex columnInd(modelInd().row(), column, modelInd().parent());
+    auto *plot = const_cast<CQChartsScatterPlot3D *>(scatterPlot());
+
+    ModelIndex columnInd(plot, modelInd().row(), column, modelInd().parent());
 
     bool ok;
 
@@ -1576,7 +1581,7 @@ inside(const Point &p) const
 
   plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   auto pt = camera->transform(point());
 
@@ -1656,7 +1661,7 @@ postDraw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   auto pt = camera->transform(point());
 

@@ -52,14 +52,15 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
 
  public:
+  using Plot    = CQChartsScatterPlot3D;
   using Point3D = CQChartsGeom::Point3D;
 
  public:
-  CQChartsScatterPoint3DObj(const CQChartsScatterPlot3D *plot, int groupInd, const BBox &rect,
+  CQChartsScatterPoint3DObj(const Plot *plot, int groupInd, const BBox &rect,
                             const Point3D &pos, const ColorInd &is, const ColorInd &ig,
                             const ColorInd &iv);
 
-  const CQChartsScatterPlot3D *scatterPlot() const;
+  const Plot *scatterPlot() const;
 
   int groupInd() const { return groupInd_; }
 
@@ -147,7 +148,10 @@ class CQChartsScatterKeyColor3D : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsScatterKeyColor3D(CQChartsScatterPlot3D *plot, int groupInd, const ColorInd &ic);
+  using Plot = CQChartsScatterPlot3D;
+
+ public:
+  CQChartsScatterKeyColor3D(Plot *plot, int groupInd, const ColorInd &ic);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }

@@ -465,8 +465,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets    WRITE setNumAutoBuckets  )
 
   // options
-  Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
-  Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
+  Q_PROPERTY(PlotType        plotType  READ plotType  WRITE setPlotType )
+  Q_PROPERTY(ValueType       valueType READ valueType WRITE setValueType)
+  Q_PROPERTY(CQChartsOptReal minValue  READ minValue  WRITE setMinValue )
 
   Q_PROPERTY(bool percent   READ isPercent   WRITE setPercent  )
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
@@ -610,6 +611,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  //! get/set min value
+  const CQChartsOptReal &minValue() const { return minValue_; }
+  void setMinValue(const CQChartsOptReal &r);
+
+  bool isEmptyValue(double r) const;
+
+  //---
+
   double densityOffset() const { return densityData_.offset; }
   void setDensityOffset(double o);
 
@@ -736,11 +745,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
  public:
   struct VariantInd {
-    QVariant           var;
-    CQChartsModelIndex ind;
-    QVariant           dvar;
+    QVariant   var;
+    ModelIndex ind;
+    QVariant   dvar;
 
-    VariantInd(const QVariant &var, const CQChartsModelIndex &ind, const QVariant &dvar) :
+    VariantInd(const QVariant &var, const ModelIndex &ind, const QVariant &dvar) :
      var(var), ind(ind), dvar(dvar) {
     }
   };
@@ -791,7 +800,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
                                                    const ColorInd &iv) const;
 
  private:
-  using Inds         = std::vector<CQChartsModelIndex>;
+  using Inds         = std::vector<ModelIndex>;
   using BucketValues = std::map<Bucket,VariantIndsData>;
 
   struct Values {
@@ -827,14 +836,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void addRow(const ModelVisitor::VisitData &data) const;
 
-  void addRowColumn(const CQChartsModelIndex &ind) const;
+  void addRowColumn(const ModelIndex &ind) const;
 
   //---
 
   QString bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
                           BucketValueType type=BucketValueType::ALL) const;
 
-  Values *getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const;
+  Values *getGroupIndValues(int groupInd, const ModelIndex &ind) const;
 
   const Values *getGroupValues(int groupInd) const;
 
@@ -923,6 +932,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQChartsColumn     dataColumn_;                          //!< data column
   PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
   ValueType          valueType_      { ValueType::COUNT }; //!< show value count
+  OptReal            minValue_;                            //!< min value
   bool               percent_        { false };            //!< percent values
   bool               skipEmpty_      { false };            /*!< skip empty buckets
                                                                 (non contiguous range) */

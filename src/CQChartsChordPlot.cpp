@@ -278,15 +278,6 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  th->groupValues_.setPlot(this);
-
-  th->groupValues_.clear();
-
-  if (groupColumn().isValid())
-    addColumnValues(groupColumn(), th->groupValues_);
-
-  //---
-
   // create objects
   th->nameDataMap_.clear();
 
@@ -333,11 +324,7 @@ initHierObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initHierObjs");
 
-  //---
-
-  CQChartsConnectionPlot::initHierObjs();
-
-  return true;
+  return CQChartsConnectionPlot::initHierObjs();
 }
 
 void
@@ -360,9 +347,8 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 
 void
 CQChartsChordPlot::
-initHierObjsConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkInd,
-                       double /*srcValue*/,
-                       const QString &destStr, const CQChartsModelIndex &destLinkInd,
+initHierObjsConnection(const QString &srcStr, const ModelIndex &srcLinkInd, double /*srcValue*/,
+                       const QString &destStr, const ModelIndex &destLinkInd,
                        double destValue) const
 {
   // find src (create if doesn't exist)
@@ -398,7 +384,8 @@ initPathObjs() const
 
   //--
 
-  CQChartsConnectionPlot::initPathObjs();
+  if (! CQChartsConnectionPlot::initPathObjs())
+    return false;
 
   //---
 
@@ -511,9 +498,7 @@ initFromToObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initFromToObjs");
 
-  CQChartsConnectionPlot::initFromToObjs();
-
-  return true;
+  return CQChartsConnectionPlot::initFromToObjs();
 }
 
 void
@@ -564,114 +549,49 @@ initLinkObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initLinkObjs");
 
+  return CQChartsConnectionPlot::initLinkObjs();
+}
+
+void
+CQChartsChordPlot::
+addLinkConnection(const LinkConnectionData &linkConnectionData) const
+{
+  // Get group value
+  GroupData groupData;
+
+  if (groupColumn().isValid()) {
+    if (! groupColumnData(linkConnectionData.groupModelInd, groupData)) {
+      auto *th = const_cast<CQChartsChordPlot *>(this);
+      th->addDataError(linkConnectionData.groupModelInd, "Invalid group value");
+      return;
+    }
+  }
+
   //---
 
-  class RowVisitor : public ModelVisitor {
-   public:
-    RowVisitor(const CQChartsChordPlot *plot) :
-     plot_(plot) {
-      separator_ = (plot_->separator().length() ? plot_->separator()[0] : '/');
-    }
+  // Get link value
+  QModelIndex linkInd  = modelIndex(linkConnectionData.linkModelInd);
+  QModelIndex linkInd1 = normalizeIndex(linkInd);
 
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // Get group value
-      ChordData::Group group;
+  //---
 
-      if (plot_->groupColumn().isValid()) {
-        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+  // find src (create if doesn't exist)
+  auto &srcData = findNameData(linkConnectionData.srcStr, linkInd1);
 
-        bool ok1;
-        QVariant groupVar = plot_->modelValue(groupModelInd, ok1);
+  // find dest (create if doesn't exist)
+  auto &destData = findNameData(linkConnectionData.destStr, linkInd1);
 
-        if (! ok1)
-          return addDataError(groupModelInd, "Invalid group value");
+  // create link from src to dest for value
+  addEdge(srcData, destData, linkConnectionData.value, /*symmetric*/true);
 
-        group = plot_->getChordGroup(groupVar);
-      }
+  //---
 
-      //---
-
-      // Get link value
-      CQChartsModelIndex linkModelInd(data.row, plot_->linkColumn(), data.parent);
-
-      CQChartsNamePair namePair;
-
-      if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
-        bool ok;
-        QVariant linkVar = plot_->modelValue(linkModelInd, ok);
-        if (! ok) return addDataError(linkModelInd, "Invalid Link");
-
-        namePair = linkVar.value<CQChartsNamePair>();
-      }
-      else {
-        bool ok;
-        QString linkStr = plot_->modelString(linkModelInd , ok);
-        if (! ok) return addDataError(linkModelInd, "Invalid Link");
-
-        namePair = CQChartsNamePair(linkStr, separator_);
-      }
-
-      if (! namePair.isValid())
-        return addDataError(linkModelInd, "Invalid Link");
-
-      QModelIndex linkInd  = plot_->modelIndex(linkModelInd);
-      QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
-
-      //---
-
-      // Get value value
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
-
-      bool ok1;
-      double value = plot_->modelReal(valueModelInd, ok1);
-      if (! ok1) return addDataError(valueModelInd, "Invalid Value");
-
-      //---
-
-      QString srcStr  = namePair.name1();
-      QString destStr = namePair.name2();
-
-      addConnection(srcStr, destStr, linkInd1, group, value);
-
-      return State::OK;
-    }
-
-   private:
-    void addConnection(const QString &srcStr, const QString &destStr,
-                       const QModelIndex &linkInd, const ChordData::Group &group,
-                       double value) {
-      // find src (create if doesn't exist)
-      auto &srcData = plot_->findNameData(srcStr, linkInd);
-
-      // find dest (create if doesn't exist)
-      auto &destData = plot_->findNameData(destStr, linkInd);
-
-      // create link from src to dest for value
-      plot_->addEdge(srcData, destData, value, /*symmetric*/true);
-
-      //---
-
-      // set group if specified
-      if (group.isValid())
-        srcData.setGroup(group);
-    }
-
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
-      return State::SKIP;
-    }
-
-   private:
-    const CQChartsChordPlot* plot_ { nullptr };
-    QChar                    separator_ { '/' };
-  };
-
-  RowVisitor visitor(this);
-
-  visitModel(visitor);
-
-  return true;
+  // set group if specified
+  if (groupData.isValid())
+    srcData.setGroup(groupData);
 }
+
+//------
 
 bool
 CQChartsChordPlot::
@@ -679,169 +599,38 @@ initConnectionObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initConnectionObjs");
 
-  //---
+  auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  using Connections = CQChartsConnectionList::Connections;
+  th->connectionNameDataMap_.clear();
 
-  struct ConnectionsData {
-    QModelIndex      ind;
-    int              node  { 0 };
-    QString          name;
-    ChordData::Group group;
-    double           total { 0.0 };
-    Connections      connections;
-  };
-
-  using IdConnectionsData = std::map<int,ConnectionsData>;
-
-  //---
-
-  class RowVisitor : public ModelVisitor {
-   public:
-    RowVisitor(const CQChartsChordPlot *plot) :
-     plot_(plot) {
-    }
-
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      // get group value
-      ChordData::Group group;
-
-      if (plot_->groupColumn().isValid()) {
-        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
-
-        bool ok1;
-        QVariant groupVar = plot_->modelValue(groupModelInd, ok1);
-
-        if (! ok1)
-          return addDataError(groupModelInd, "Invalid group value");
-
-        group = plot_->getChordGroup(groupVar);
-      }
-
-      //---
-
-      // get optional node id (default to row)
-      CQChartsModelIndex nodeModelInd;
-
-      int id = data.row;
-
-      if (plot_->nodeColumn().isValid()) {
-        nodeModelInd = CQChartsModelIndex(data.row, plot_->nodeColumn(), data.parent);
-
-        bool ok2;
-        id = (int) plot_->modelInteger(nodeModelInd, ok2);
-        if (! ok2) return addDataError(nodeModelInd, "Non-integer node value");
-      }
-
-      //---
-
-      // get connections
-      ConnectionsData connectionsData;
-
-      CQChartsModelIndex connectionsModelInd(data.row, plot_->connectionsColumn(), data.parent);
-
-      if (plot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
-        bool ok3;
-        QVariant connectionsVar = plot_->modelValue(connectionsModelInd, ok3);
-
-        connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
-      }
-      else {
-        bool ok3;
-        QString connectionsStr = plot_->modelString(connectionsModelInd, ok3);
-        if (! ok3) return addDataError(connectionsModelInd, "Invalid connection string");
-
-        CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
-      }
-
-      //----
-
-      // get name
-      QString name = QString("%1").arg(id);
-
-      if (plot_->nameColumn().isValid()) {
-        CQChartsModelIndex nameModelInd(data.row, plot_->nameColumn(), data.parent);
-
-        bool ok4;
-        name = plot_->modelString(nameModelInd, ok4);
-        if (! ok4) return addDataError(nameModelInd, "Invalid name string");
-      }
-
-      //---
-
-      // calc total
-      double total = 0.0;
-
-      for (const auto &connection : connectionsData.connections)
-        total += connection.value;
-
-      //---
-
-      // return connections data
-      if (nodeModelInd.isValid()) {
-        auto nodeInd  = plot_->modelIndex(nodeModelInd);
-        auto nodeInd1 = plot_->normalizeIndex(nodeInd);
-
-        connectionsData.ind = nodeInd1;
-      }
-
-      connectionsData.node  = id;
-      connectionsData.name  = name;
-      connectionsData.group = group;
-      connectionsData.total = total;
-
-      idConnectionsData_[connectionsData.node] = connectionsData;
-
-      return State::OK;
-    }
-
-    const IdConnectionsData &idConnectionsData() const { return idConnectionsData_; }
-
-   private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
-      const_cast<CQChartsChordPlot *>(plot_)->addDataError(ind , msg);
-      return State::SKIP;
-    }
-
-   private:
-    const CQChartsChordPlot* plot_ { nullptr };
-    IdConnectionsData        idConnectionsData_;
-  };
-
-  RowVisitor visitor(this);
-
-  visitModel(visitor);
-
-  //---
-
-  NameDataMap nameDataMap;
-
-  const IdConnectionsData &idConnectionsData = visitor.idConnectionsData();
-
-  for (const auto &idConnections : idConnectionsData) {
-    int         id              = idConnections.first;
-    const auto &connectionsData = idConnections.second;
-
-    QString srcStr = QString("%1").arg(id);
-
-    // find src (create if doesn't exist)
-    auto &srcData = findNameData(nameDataMap, srcStr, connectionsData.ind);
-
-    srcData.setName (connectionsData.name );
-    srcData.setGroup(connectionsData.group);
-
-    for (const auto &connection : connectionsData.connections) {
-      QString destStr = QString("%1").arg(connection.node);
-
-      auto &destData = findNameData(nameDataMap, destStr, connectionsData.ind);
-
-      // create link from src to dest for value
-      addEdge(srcData, destData, connection.value, /*symmetric*/false);
-    }
-  }
-
-  return true;
+  return CQChartsConnectionPlot::initConnectionObjs();
 }
+
+void
+CQChartsChordPlot::
+addConnectionObj(int id, const ConnectionsData &connectionsData) const
+{
+  auto *th = const_cast<CQChartsChordPlot *>(this);
+
+  QString srcStr = QString("%1").arg(id);
+
+  // find src (create if doesn't exist)
+  auto &srcData = findNameData(th->connectionNameDataMap_, srcStr, connectionsData.ind);
+
+  srcData.setName (connectionsData.name);
+  srcData.setGroup(connectionsData.groupData);
+
+  for (const auto &connection : connectionsData.connections) {
+    QString destStr = QString("%1").arg(connection.node);
+
+    auto &destData = findNameData(th->connectionNameDataMap_, destStr, connectionsData.ind);
+
+    // create link from src to dest for value
+    addEdge(srcData, destData, connection.value, /*symmetric*/false);
+  }
+}
+
+//------
 
 bool
 CQChartsChordPlot::
@@ -933,7 +722,7 @@ initTableObjs(PlotObjs &objs) const
     ColorInd ig;
 
     if (data.group().isValid())
-      ig = ColorInd(data.group().i, data.group().n);
+      ig = ColorInd(data.group().ig, data.group().ng);
 
     ColorInd iv(row, nv);
 
@@ -1171,7 +960,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     ColorInd ig;
 
     if (data.group().isValid())
-      ig = ColorInd(data.group().i, data.group().n);
+      ig = ColorInd(data.group().ig, data.group().ng);
 
     ColorInd iv(row, nv);
 
@@ -1198,22 +987,6 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
       ++ind;
     }
   }
-}
-
-//---
-
-CQChartsChordPlot::ChordData::Group
-CQChartsChordPlot::
-getChordGroup(const QVariant &groupVar) const
-{
-  QString groupStr;
-
-  CQChartsVariant::toString(groupVar, groupStr);
-
-  int ig = groupValues_.iset(groupVar);
-  int ng = groupValues_.numUnique();
-
-  return ChordData::Group(groupStr, ig, ng);
 }
 
 //---
@@ -1299,9 +1072,9 @@ QString
 CQChartsChordArcObj::
 calcId() const
 {
-  if (data_.group().str != "")
+  if (data_.group().name != "")
     return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).
-             arg(data_.group().str).arg(iv_.i);
+             arg(data_.group().name).arg(iv_.i);
   else
     return QString("%1:%2:%3").arg(typeName()).arg(dataName()).arg(iv_.i);
 }
@@ -1314,8 +1087,8 @@ calcTipId() const
 
   tableTip.addTableRow("Name", dataName());
 
-  if (data_.group().str != "")
-    tableTip.addTableRow("Group", data_.group().str);
+  if (data_.group().name != "")
+    tableTip.addTableRow("Group", data_.group().name);
 
   tableTip.addTableRow("Total", data_.total(/*primaryOnly*/! plot_->isSymmetric()));
 

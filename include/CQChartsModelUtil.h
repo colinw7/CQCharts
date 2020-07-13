@@ -9,6 +9,7 @@
 class CQDataModel;
 class CQHierSepModel;
 class CQChartsColumn;
+//class CQChartsModelIndex;
 
 class QSortFilterProxyModel;
 class QAbstractItemModel;
@@ -198,8 +199,10 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
 QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
+#if 0
 QString modelString(CQCharts *charts, const QAbstractItemModel *model,
                     const CQChartsModelIndex &ind, bool &ok);
+#endif
 
 #if 0
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
@@ -276,8 +279,13 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
 bool stringToColumns(const QAbstractItemModel *model, const QString &str,
                      std::vector<CQChartsColumn> &columns);
 
+#if 0
 bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
                       CQChartsModelIndex &ind);
+#endif
+
+bool stringToModelInd(const QAbstractItemModel *model, const QString &str,
+                      int &row, CQChartsColumn &column);
 
 }
 

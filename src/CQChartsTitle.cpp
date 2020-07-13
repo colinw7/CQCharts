@@ -125,8 +125,8 @@ updateLocation()
 
   CQChartsTitleLocation location = this->location();
 
-  //auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
-  auto marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(0, 0));
+  //auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
+  auto marginSize = plot_->pixelToWindowSize(Size(0, 0));
 
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
@@ -160,7 +160,7 @@ updateLocation()
     ky = bbox.getYMid() - ts.height()/2;
   }
 
-  CQChartsGeom::Point kp(kx, ky);
+  Point kp(kx, ky);
 
   if      (location == CQChartsTitleLocation::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
@@ -169,7 +169,7 @@ updateLocation()
     auto bbox = absolutePlotRectangle();
 
     if (bbox.isValid())
-      kp = CQChartsGeom::Point(bbox.getUL());
+      kp = Point(bbox.getUL());
   }
 
   setPosition(kp);
@@ -212,7 +212,7 @@ absolutePlotPosition() const
 
 void
 CQChartsTitle::
-setAbsolutePlotPosition(const CQChartsGeom::Point &p)
+setAbsolutePlotPosition(const Point &p)
 {
   setAbsolutePosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
 }
@@ -226,7 +226,7 @@ absolutePlotRectangle() const
 
 void
 CQChartsTitle::
-setAbsolutePlotRectangle(const CQChartsGeom::BBox &bbox)
+setAbsolutePlotRectangle(const BBox &bbox)
 {
   setAbsoluteRectangle(CQChartsRect(plot_->windowToView(bbox), CQChartsUnits::VIEW));
 }
@@ -260,11 +260,10 @@ calcSize()
     double ytp = lengthParentHeight(padding().top   ());
     double ybp = lengthParentHeight(padding().bottom());
 
-    size_ = CQChartsGeom::Size(wsize.width () + xlp + xrp + xlm + xrm,
-                               wsize.height() + ybp + ytp + + ybm + ytm);
+    size_ = Size(wsize.width() + xlp + xrp + xlm + xrm, wsize.height() + ybp + ytp + + ybm + ytm);
   }
   else {
-    size_ = CQChartsGeom::Size();
+    size_ = Size();
   }
 
   if (isExpandWidth()) {
@@ -280,7 +279,7 @@ CQChartsGeom::BBox
 CQChartsTitle::
 fitBBox() const
 {
-  CQChartsGeom::BBox bbox = this->bbox();
+  BBox bbox = this->bbox();
 
   if (! bbox.isValid())
     return bbox;
@@ -289,17 +288,17 @@ fitBBox() const
     return bbox;
 
   if (isFitHorizontal())
-    return CQChartsGeom::BBox(bbox.getXMin(), bbox.getYMid(), bbox.getXMax(), bbox.getYMid());
+    return BBox(bbox.getXMin(), bbox.getYMid(), bbox.getXMax(), bbox.getYMid());
 
   if (isFitVertical())
-    return CQChartsGeom::BBox(bbox.getXMid(), bbox.getYMin(), bbox.getXMid(), bbox.getYMax());
+    return BBox(bbox.getXMid(), bbox.getYMin(), bbox.getXMid(), bbox.getYMax());
 
-  return CQChartsGeom::BBox();
+  return BBox();
 }
 
 bool
 CQChartsTitle::
-contains(const CQChartsGeom::Point &p) const
+contains(const Point &p) const
 {
   if (! isVisible())
     return false;
@@ -311,7 +310,7 @@ contains(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsTitle::
-editPress(const CQChartsGeom::Point &p)
+editPress(const Point &p)
 {
   editHandles()->setDragPos(p);
 
@@ -327,7 +326,7 @@ editPress(const CQChartsGeom::Point &p)
 
 bool
 CQChartsTitle::
-editMove(const CQChartsGeom::Point &p)
+editMove(const Point &p)
 {
   const auto &dragPos  = editHandles()->dragPos();
   const auto &dragSide = editHandles()->dragSide();
@@ -339,7 +338,7 @@ editMove(const CQChartsGeom::Point &p)
       dragSide == CQChartsResizeSide::MOVE) {
     setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
 
-    setAbsolutePlotPosition(absolutePlotPosition() + CQChartsGeom::Point(dx, dy));
+    setAbsolutePlotPosition(absolutePlotPosition() + Point(dx, dy));
   }
   else {
     setLocation(CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE);
@@ -358,14 +357,14 @@ editMove(const CQChartsGeom::Point &p)
 
 bool
 CQChartsTitle::
-editMotion(const CQChartsGeom::Point &p)
+editMotion(const Point &p)
 {
   return editHandles()->selectInside(p);
 }
 
 void
 CQChartsTitle::
-editMoveBy(const CQChartsGeom::Point &d)
+editMoveBy(const Point &d)
 {
   setLocation(CQChartsTitleLocation::Type::ABSOLUTE_POSITION);
 
@@ -422,7 +421,7 @@ draw(CQChartsPaintDevice *device)
     w = size_.width ();
     h = size_.height();
 
-    bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+    bbox_ = BBox(x, y, x + w, y + h);
   }
   else {
     bbox_ = absolutePlotRectangle();
@@ -446,11 +445,8 @@ draw(CQChartsPaintDevice *device)
   double ytp = device->lengthWindowHeight(padding().top   ());
   double ybp = device->lengthWindowHeight(padding().bottom());
 
-  CQChartsGeom::BBox ibbox(x     + xlp, y     + ybp,
-                           x + w - xrp, y + h - ytp);
-
-  CQChartsGeom::BBox tbbox(x     + xlp + xlm, y     + ybp + ybm,
-                           x + w - xrp - xrm, y + h - ytp - ytm);
+  BBox ibbox(x     + xlp      , y + ybp      , x + w - xrp      , y + h - ytp      );
+  BBox tbbox(x     + xlp + xlm, y + ybp + ybm, x + w - xrp - xrm, y + h - ytp - ytm);
 
   //---
 
@@ -524,7 +520,7 @@ CQChartsTitle::
 textBoxDataInvalidate()
 {
   if (! isDrawn())
-    bbox_ = CQChartsGeom::BBox();
+    bbox_ = BBox();
 
   plot_->drawObjs();
 }

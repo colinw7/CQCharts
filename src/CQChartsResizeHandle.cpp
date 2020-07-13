@@ -92,7 +92,7 @@ draw(QPainter *painter) const
 
 bool
 CQChartsResizeHandle::
-selectInside(const CQChartsGeom::Point &p)
+selectInside(const Point &p)
 {
   bool selected = inside(p);
 
@@ -106,7 +106,7 @@ selectInside(const CQChartsGeom::Point &p)
 
 bool
 CQChartsResizeHandle::
-inside(const CQChartsGeom::Point &w) const
+inside(const Point &w) const
 {
   auto p = windowToPixel(w);
 
@@ -115,7 +115,7 @@ inside(const CQChartsGeom::Point &w) const
 
 CQChartsGeom::Point
 CQChartsResizeHandle::
-windowToPixel(const CQChartsGeom::Point &p) const
+windowToPixel(const Point &p) const
 {
   if (view_) return view_->windowToPixel(p);
   if (plot_) return plot_->windowToPixel(p);

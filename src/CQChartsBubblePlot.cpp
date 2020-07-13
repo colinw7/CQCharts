@@ -550,7 +550,9 @@ loadModel() const
 
    private:
     CQChartsBubbleHierNode *parentHier(const VisitData &data) const {
-      CQChartsModelIndex ind(data.row, plot_->valueColumn(), data.parent);
+      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+
+      ModelIndex ind(plot, data.row, plot_->valueColumn(), data.parent);
 
       std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
 
@@ -566,12 +568,14 @@ loadModel() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      CQChartsModelIndex nameModelInd;
+      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+
+      ModelIndex nameModelInd;
 
       if (plot_->nameColumn().isValid())
-        nameModelInd = CQChartsModelIndex(data.row, plot_->nameColumn(), data.parent);
+        nameModelInd = ModelIndex(plot, data.row, plot_->nameColumn(), data.parent);
       else
-        nameModelInd = CQChartsModelIndex(data.row, plot_->idColumn(), data.parent);
+        nameModelInd = ModelIndex(plot, data.row, plot_->idColumn(), data.parent);
 
       nameInd = plot_->modelIndex(nameModelInd);
 
@@ -588,9 +592,11 @@ loadModel() const
       if (! plot_->valueColumn().isValid())
         return true;
 
+      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+
       bool ok = true;
 
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
       if      (plot_->valueColumnType() == ColumnType::REAL)
         size = plot_->modelReal(valueModelInd, ok);
@@ -911,7 +917,7 @@ calcTipId() const
   if (plot_->colorColumn().isValid()) {
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    CQChartsModelIndex colorModelInd(ind1.row(), plot_->colorColumn(), ind1.parent());
+    ModelIndex colorModelInd(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 

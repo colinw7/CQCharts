@@ -67,6 +67,8 @@ class CQChartsTableDelegate : public QItemDelegate {
   void updateBoolean();
 
  private:
+  void init();
+
   bool drawType(QPainter *painter, const QStyleOptionViewItem &option,
                 const QModelIndex &index) const;
 

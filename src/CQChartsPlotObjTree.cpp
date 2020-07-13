@@ -58,7 +58,7 @@ addObjectsThread()
     const auto &range = plot_->objTreeRange();
 
     if (range.isSet()) {
-      CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+      BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
 
       plotObjTree = new PlotObjTree(bbox);
 
@@ -122,7 +122,7 @@ waitTree() const
 
 void
 CQChartsPlotObjTree::
-objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
+objectsAtPoint(const Point &p, Objs &objs) const
 {
   if (! waitTree()) return;
 
@@ -141,7 +141,7 @@ objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 
 void
 CQChartsPlotObjTree::
-objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
+objectsIntersectRect(const BBox &r, Objs &objs, bool inside) const
 {
   if (! waitTree()) return;
 
@@ -163,14 +163,13 @@ objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 
 bool
 CQChartsPlotObjTree::
-objectNearest(const CQChartsGeom::Point &p, double searchX, double searchY,
-              CQChartsPlotObj* &obj) const
+objectNearest(const Point &p, double searchX, double searchY, CQChartsPlotObj* &obj) const
 {
   obj = nullptr;
 
   if (! waitTree()) return false;
 
-  CQChartsGeom::BBox bbox(p.x - searchX, p.y - searchY, p.x + searchX, p.y + searchY);
+  BBox bbox(p.x - searchX, p.y - searchY, p.x + searchX, p.y + searchY);
 
   Objs objs;
 
@@ -195,7 +194,7 @@ CQChartsPlotObjTree::
 findEmptyBBox(double w, double h) const
 {
   if (! waitTree())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   auto rect = plotObjTree_->fitRect(w, h);
 
@@ -208,7 +207,7 @@ draw(QPainter *painter)
 {
   if (! waitTree()) return;
 
-  auto drawRect = [&](const CQChartsGeom::BBox &bbox, int n) {
+  auto drawRect = [&](const BBox &bbox, int n) {
     auto pbbox = plot_->windowToPixel(bbox);
 
     double g = 1.0 - std::min(std::max((n/16.0), 0.0), 1.0);

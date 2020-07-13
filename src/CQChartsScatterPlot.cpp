@@ -633,8 +633,10 @@ calcRange() const
       if (plot_->isInterrupt())
         return State::TERMINATE;
 
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
 
       // init group
       int groupInd = plot_->rowGroupInd(xModelInd);
@@ -655,7 +657,7 @@ calcRange() const
           x = plot_->modelReal(xModelInd, okx);
         }
         else {
-          x = uniqueId(data, plot_->xColumn()); ++uniqueX_;
+          x = uniqueId(data, plot_->xColumn()); ++numUniqueX_;
         }
 
         //---
@@ -668,7 +670,7 @@ calcRange() const
           y = plot_->modelReal(yModelInd, oky);
         }
         else {
-          y = uniqueId(data, plot_->yColumn()); ++uniqueY_;
+          y = uniqueId(data, plot_->yColumn()); ++numUniqueY_;
         }
 
         //---
@@ -686,7 +688,9 @@ calcRange() const
     }
 
     int uniqueId(const VisitData &data, const CQChartsColumn &column) {
-      CQChartsModelIndex columnInd(data.row, column, data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      ModelIndex columnInd(plot, data.row, column, data.parent);
 
       bool ok;
 
@@ -710,16 +714,16 @@ calcRange() const
 
     const Range &range() const { return range_; }
 
-    bool isUniqueX() const { return uniqueX_ == numRows(); }
-    bool isUniqueY() const { return uniqueY_ == numRows(); }
+    bool isUniqueX() const { return numUniqueX_ == numRows(); }
+    bool isUniqueY() const { return numUniqueY_ == numRows(); }
 
    private:
-    const CQChartsScatterPlot* plot_      { nullptr };
-    int                        hasGroups_ { false };
+    const CQChartsScatterPlot* plot_       { nullptr };
+    int                        hasGroups_  { false };
     Range                      range_;
-    CQChartsModelDetails*      details_   { nullptr };
-    int                        uniqueX_   { 0 };
-    int                        uniqueY_   { 0 };
+    CQChartsModelDetails*      details_    { nullptr };
+    int                        numUniqueX_ { 0 };
+    int                        numUniqueY_ { 0 };
   };
 
   RowVisitor visitor(this);
@@ -728,8 +732,8 @@ calcRange() const
 
   auto dataRange = visitor.range();
 
-  bool uniqueX = visitor.isUniqueX();
-  bool uniqueY = visitor.isUniqueY();
+  th->uniqueX_ = visitor.isUniqueX();
+  th->uniqueY_ = visitor.isUniqueY();
 
   if (isInterrupt())
     return dataRange;
@@ -737,8 +741,8 @@ calcRange() const
   //---
 
   if (dataRange.isSet()) {
-    if (uniqueX || uniqueY) {
-      if (uniqueX) {
+    if (isUniqueX() || isUniqueY()) {
+      if (isUniqueX()) {
         auto *columnDetails = this->columnDetails(xColumn());
 
         for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
@@ -748,7 +752,7 @@ calcRange() const
         dataRange.updateRange(dataRange.xmax() + 0.5, dataRange.ymin());
       }
 
-      if (uniqueY) {
+      if (isUniqueY()) {
         auto *columnDetails = this->columnDetails(yColumn());
 
         for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
@@ -784,7 +788,7 @@ calcRange() const
 
   //---
 
-  th->initAxes(uniqueX, uniqueY);
+  th->initAxes();
 
   //---
 
@@ -807,7 +811,7 @@ initGridData(const Range &dataRange)
 
 void
 CQChartsScatterPlot::
-initAxes(bool uniqueX, bool uniqueY)
+initAxes()
 {
   setXValueColumn(xColumn());
   setYValueColumn(yColumn());
@@ -847,8 +851,8 @@ initAxes(bool uniqueX, bool uniqueY)
   if (isLogX()) xType = CQChartsAxisValueType::Type::LOG;
   if (isLogY()) yType = CQChartsAxisValueType::Type::LOG;
 
-  if (uniqueX) xType = CQChartsAxisValueType::Type::INTEGER;
-  if (uniqueY) yType = CQChartsAxisValueType::Type::INTEGER;
+  if (isUniqueX()) xType = CQChartsAxisValueType::Type::INTEGER;
+  if (isUniqueY()) yType = CQChartsAxisValueType::Type::INTEGER;
 
   xAxis()->setValueType(xType, /*notify*/false);
   yAxis()->setValueType(yType, /*notify*/false);
@@ -1044,7 +1048,7 @@ addPointObjects(PlotObjs &objs) const
     if (pg == th->groupPoints_.end())
       pg = th->groupPoints_.insert(pg, GroupPoints::value_type(groupInd, Points()));
 
-    Points &points = const_cast<Points &>((*pg).second);
+    auto &points = const_cast<Points &>((*pg).second);
 
     //---
 
@@ -1164,27 +1168,30 @@ addPointObjects(PlotObjs &objs) const
 
         // set optional point label
         QString pointName;
+        Column  pointNameColumn;
 
         if (labelColumn().isValid() || nameColumn().isValid()) {
           bool ok;
 
           if (labelColumn().isValid()) {
-            CQChartsModelIndex labelInd(valuePoint.row, labelColumn(), valuePoint.ind.parent());
+            ModelIndex labelInd(th, valuePoint.row, labelColumn(), valuePoint.ind.parent());
 
             pointName = modelString(labelInd, ok);
+            if (ok) pointNameColumn = labelColumn();
           }
-          else {
-            CQChartsModelIndex nameInd(valuePoint.row, nameColumn(), valuePoint.ind.parent());
+
+          if (nameColumn().isValid() && ! pointNameColumn.isValid()) {
+            ModelIndex nameInd(th, valuePoint.row, nameColumn(), valuePoint.ind.parent());
 
             pointName = modelString(nameInd, ok);
+            if (ok) pointNameColumn = nameColumn();
           }
-
-          if (! ok)
-            pointName = "";
         }
 
-        if (pointName.length())
-          pointObj->setName(pointName);
+        if (pointNameColumn.isValid() && pointName.length()) {
+          pointObj->setName      (pointName);
+          pointObj->setNameColumn(pointNameColumn);
+        }
 
         //---
 
@@ -1192,7 +1199,7 @@ addPointObjects(PlotObjs &objs) const
         CQChartsImage image;
 
         if (imageColumn().isValid()) {
-          CQChartsModelIndex imageModelInd(valuePoint.row, imageColumn(), valuePoint.ind.parent());
+          ModelIndex imageModelInd(th, valuePoint.row, imageColumn(), valuePoint.ind.parent());
 
           bool ok;
 
@@ -1416,8 +1423,10 @@ addNameValues() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
 
       // get group
       int groupInd = plot_->rowGroupInd(xModelInd);
@@ -1471,7 +1480,7 @@ addNameValues() const
       QString name;
 
       if (plot_->nameColumn().isValid()) {
-        CQChartsModelIndex nameColumnInd(data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameColumnInd(plot, data.row, plot_->nameColumn(), data.parent);
 
         bool ok;
 
@@ -1496,8 +1505,6 @@ addNameValues() const
 
       //---
 
-      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
-
       Point p(x, y);
 
       plot->addNameValue(groupInd, name, p, data.row, xInd1, color);
@@ -1506,7 +1513,9 @@ addNameValues() const
     }
 
     int uniqueId(const VisitData &data, const CQChartsColumn &column) {
-      CQChartsModelIndex columnInd(data.row, column, data.parent);
+      auto *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      ModelIndex columnInd(plot, data.row, column, data.parent);
 
       bool ok;
 
@@ -3017,9 +3026,18 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
+  plot()->addNoTipColumns(tableTip);
+
+  //---
+
   // add name (label or name column) as header
-  if (name_.length())
-    tableTip.addBoldLine(name_);
+  if (nameColumn().isValid() && name().length()) {
+    if (! tableTip.hasColumn(nameColumn())) {
+      tableTip.addBoldLine(name());
+
+      tableTip.addColumn(nameColumn());
+    }
+  }
 
   //---
 
@@ -3027,7 +3045,7 @@ calcTipId() const
 
   //---
 
-  // add group column
+  // add group column (TODO: check group column)
   if (ig_.n > 1) {
     QString groupName = plot_->groupIndName(groupInd_);
 
@@ -3037,11 +3055,65 @@ calcTipId() const
   //---
 
   // add x, y columns
-  QString xstr = plot()->xStr(pos_.x);
-  QString ystr = plot()->yStr(pos_.y);
+  if (! tableTip.hasColumn(plot()->xColumn())) {
+    QString xstr;
 
-  tableTip.addTableRow(plot_->xHeaderName(/*tip*/true), xstr);
-  tableTip.addTableRow(plot_->yHeaderName(/*tip*/true), ystr);
+    if (plot()->isUniqueX()) {
+      auto *columnDetails = plot()->columnDetails(plot()->xColumn());
+
+      xstr = (columnDetails ? columnDetails->uniqueValue(pos_.x).toString() : plot()->xStr(pos_.x));
+    }
+    else
+      xstr = plot()->xStr(pos_.x);
+
+    tableTip.addTableRow(plot_->xHeaderName(/*tip*/true), xstr);
+
+    tableTip.addColumn(plot()->xColumn());
+  }
+
+  if (! tableTip.hasColumn(plot()->yColumn())) {
+    QString ystr;
+
+    if (plot()->isUniqueY()) {
+      auto *columnDetails = plot()->columnDetails(plot()->yColumn());
+
+      ystr = (columnDetails ? columnDetails->uniqueValue(pos_.y).toString() : plot()->yStr(pos_.y));
+    }
+    else
+      ystr = plot()->yStr(pos_.y);
+
+    tableTip.addTableRow(plot_->yHeaderName(/*tip*/true), ystr);
+
+    tableTip.addColumn(plot()->yColumn());
+  }
+
+  //---
+
+  auto addColumnRowValue = [&](const CQChartsColumn &column) {
+    if (! column.isValid()) return;
+
+    if (tableTip.hasColumn(column))
+      return;
+
+    ModelIndex columnInd(const_cast<CQChartsScatterPlot *>(plot_),
+                         modelInd().row(), column, modelInd().parent());
+
+    bool ok;
+
+    QString str = plot_->modelString(columnInd, ok);
+    if (! ok) return;
+
+    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
+
+    tableTip.addColumn(column);
+  };
+
+  //---
+
+  // add symbol type, symbol size and font size columns
+  addColumnRowValue(plot_->symbolTypeColumn());
+  addColumnRowValue(plot_->symbolSizeColumn());
+  addColumnRowValue(plot_->fontSizeColumn  ());
 
   //---
 
@@ -3051,35 +3123,13 @@ calcTipId() const
   auto pg = plot_->groupNameValues().find(groupInd_);
   assert(pg != plot_->groupNameValues().end());
 
-  auto p = (*pg).second.find(name_);
+  auto p = (*pg).second.find(name());
 
   if (p != (*pg).second.end()) {
     const auto &values = (*p).second.values;
 
     valuePoint = values[iv_.i];
   }
-
-  //---
-
-  auto addColumnRowValue = [&](const CQChartsColumn &column) {
-    if (! column.isValid()) return;
-
-    CQChartsModelIndex columnInd(modelInd().row(), column, modelInd().parent());
-
-    bool ok;
-
-    QString str = plot_->modelString(columnInd, ok);
-    if (! ok) return;
-
-    tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
-  };
-
-  //---
-
-  // add symbol type, symbol size and font size columns
-  addColumnRowValue(plot_->symbolTypeColumn());
-  addColumnRowValue(plot_->symbolSizeColumn());
-  addColumnRowValue(plot_->fontSizeColumn  ());
 
   //---
 
@@ -3287,7 +3337,7 @@ drawDataLabel(CQChartsPaintDevice *device) const
   // draw text
   BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-  dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name_, dataLabel->position(), penBrush);
+  dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name(), dataLabel->position(), penBrush);
 
   //---
 

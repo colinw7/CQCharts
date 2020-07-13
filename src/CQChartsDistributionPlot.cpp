@@ -357,6 +357,8 @@ addProperties()
   addProp("options", "scatterMargin", "", "Scatter bar margin")->
    setMinValue(0.0).setMaxValue(1.0).setHidden(true);
 
+  addProp("filter", "minValue", "minValue", "Min value");
+
   // density
   addProp("density", "density"        , "visible" , "Show density plot");
   addProp("density", "densityOffset"  , "offset"  , "Density plot offset");
@@ -517,6 +519,25 @@ setValueSum(bool b)
 {
   CQChartsUtil::testAndSet(valueType_,
     (b ? ValueType::SUM : ValueType::COUNT), [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+setMinValue(const CQChartsOptReal &r)
+{
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+bool
+CQChartsDistributionPlot::
+isEmptyValue(double r) const
+{
+  if (minValue().isSet())
+    return r < minValue().value();
+
+  return (r <= 0.0);
 }
 
 //---
@@ -879,7 +900,7 @@ bucketGroupValues() const
           QString str;
 
           if (hierValue) {
-            QVariant value = modelRootValue(ind.row, ind.column, ind.parent, Qt::DisplayRole, ok);
+            QVariant value = modelRootValue(ind, Qt::DisplayRole, ok);
 
             str = value.toString();
           }
@@ -905,7 +926,7 @@ bucketGroupValues() const
       QVariant dvalue;
 
       if (dataColumn().isValid()) {
-        CQChartsModelIndex dind(ind.row, dataColumn(), ind.parent);
+        ModelIndex dind(th, ind.row(), dataColumn(), ind.parent());
 
         bool ok;
 
@@ -1265,8 +1286,12 @@ calcBucketRanges() const
       else {
         if (isPercent())
           updateRange2(-1.0, 0, i2, 1);
-        else
-          updateRange2(-1.0, 0, i2, (n2 > 0 ? mapValue(n2) : 0.0));
+        else {
+          if (! isEmptyValue(n2))
+            updateRange2(-1.0, 0.2, i2, mapValue(n2));
+          else
+            updateRange2(-1.0, 0.0, i2, 0.0);
+        }
       }
     }
   }
@@ -1296,13 +1321,15 @@ void
 CQChartsDistributionPlot::
 addRow(const ModelVisitor::VisitData &data) const
 {
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
+
   for (const auto &valueColumn : valueColumns())
-    addRowColumn(CQChartsModelIndex(data.row, valueColumn, data.parent));
+    addRowColumn(ModelIndex(th, data.row, valueColumn, data.parent));
 }
 
 void
 CQChartsDistributionPlot::
-addRowColumn(const CQChartsModelIndex &ind) const
+addRowColumn(const ModelIndex &ind) const
 {
   // get optional group for value
   int groupInd = rowGroupInd(ind);
@@ -1333,7 +1360,7 @@ addRowColumn(const CQChartsModelIndex &ind) const
 
 CQChartsDistributionPlot::Values *
 CQChartsDistributionPlot::
-getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
+getGroupIndValues(int groupInd, const ModelIndex &ind) const
 {
   auto *values = const_cast<Values *>(getGroupValues(groupInd));
 
@@ -1346,7 +1373,7 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 
   auto *valueSet = new CQChartsValueSet(this);
 
-  valueSet->setColumn(ind.column);
+  valueSet->setColumn(ind.column());
 
   auto pg = th->groupData_.groupValues.insert(th->groupData_.groupValues.end(),
               GroupValues::value_type(groupInd, new Values(valueSet)));
@@ -1675,8 +1702,10 @@ createObjs(PlotObjs &objs) const
 
       int n = varsData.inds.size();
 
-      if (isSkipEmpty() && n == 0)
-        continue;
+      if (isSkipEmpty()) {
+        if (isEmptyValue(n))
+          continue;
+      }
 
       bucketInd[bucket] = 0;
     }
@@ -1954,6 +1983,11 @@ createObjs(PlotObjs &objs) const
         //  continue;
 
         BarValue barValue = varIndsValue(*pVarsData);
+
+        if (minValue().isSet()) {
+          if (barValue.n2 < minValue().value())
+            continue;
+        }
 
         //---
 
@@ -3106,7 +3140,7 @@ calcTipId() const
   QModelIndex parent;
 
   for (const auto &row : colorData_.colorRows) {
-    CQChartsModelIndex colorColumnInd(row, plot_->colorColumn(), parent);
+    ModelIndex colorColumnInd(plot(), row, plot_->colorColumn(), parent);
 
     bool ok;
 
@@ -3280,9 +3314,9 @@ getObjSelectIndices(Indices &inds) const
   plot_->getInds(groupInd_, bucket_, vinds);
 
   for (auto &vind : vinds) {
-    const CQChartsModelIndex &ind = vind.ind;
+    const ModelIndex &ind = vind.ind;
 
-    addSelectIndex(inds, ind);
+    addSelectIndex(inds, plot()->normalizeIndex(ind));
   }
 }
 
@@ -3296,11 +3330,11 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
     plot_->getInds(groupInd_, bucket_, vinds);
 
     for (auto &vind : vinds) {
-      CQChartsModelIndex ind = vind.ind;
+      ModelIndex ind = vind.ind;
 
-      ind.column = column;
+      ind.setColumn(column);
 
-      addSelectIndex(inds, ind);
+      addSelectIndex(inds, plot()->normalizeIndex(ind));
     }
   }
 }
@@ -3327,9 +3361,9 @@ draw(CQChartsPaintDevice *device)
     plot_->getInds(groupInd_, bucket_, vinds);
 
     for (auto &vind : vinds) {
-      CQChartsModelIndex ind = vind.ind;
+      ModelIndex ind = vind.ind;
 
-      ind.column = plot_->imageColumn();
+      ind.setColumn(plot_->imageColumn());
 
       bool ok;
 
@@ -3571,7 +3605,7 @@ getBarColoredRects(ColorData &colorData) const
   double bsize = 1.0/nvi;
 
   for (const auto &vind : vinds) {
-    const CQChartsModelIndex &ind = vind.ind;
+    const ModelIndex &ind = vind.ind;
 
     //---
 
@@ -3594,7 +3628,7 @@ getBarColoredRects(ColorData &colorData) const
     // set color from value
     CQChartsColor color;
 
-    if (plot_->colorColumnColor(ind.row, ind.parent, color)) {
+    if (plot_->colorColumnColor(ind.row(), ind.parent(), color)) {
       QColor c1 = plot_->interpColor(color, ColorInd());
 
       c1.setAlphaF(plot_->barFillAlpha().value());
@@ -3615,7 +3649,7 @@ getBarColoredRects(ColorData &colorData) const
     auto p = colorData.colorSet.find(color);
 
     if (p == colorData.colorSet.end()) {
-      colorData.colorRows.insert(ind.row);
+      colorData.colorRows.insert(ind.row());
 
       int ind = colorData.colorSet.size();
 

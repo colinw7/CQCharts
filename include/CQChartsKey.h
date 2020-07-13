@@ -44,6 +44,9 @@ class CQChartsKey : public CQChartsBoxObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
 
  public:
+  using SelMod = CQChartsSelMod;
+
+ public:
   CQChartsKey(CQChartsView *view);
   CQChartsKey(CQChartsPlot *plot);
 
@@ -196,7 +199,7 @@ class CQChartsViewKey : public CQChartsKey {
   //---
 
   // implement select interface
-  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &w, SelMod selMod) override;
 
   //---
 
@@ -207,8 +210,8 @@ class CQChartsViewKey : public CQChartsKey {
 
   //---
 
-  virtual void doShow  (int i, CQChartsSelMod selMod);
-  virtual void doSelect(int i, CQChartsSelMod selMod);
+  virtual void doShow  (int i, SelMod selMod);
+  virtual void doSelect(int i, SelMod selMod);
 
   //---
 
@@ -511,6 +514,7 @@ class CQChartsKeyItem : public QObject {
   using Size     = CQChartsGeom::Size;
   using Point    = CQChartsGeom::Point;
   using ColorInd = CQChartsUtil::ColorInd;
+  using SelMod   = CQChartsSelMod;
 
  public:
   CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic);
@@ -555,13 +559,13 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual bool selectPress(const Point &, CQChartsSelMod);
+  virtual bool selectPress(const Point &, SelMod);
   virtual bool selectMove (const Point &);
 
   //---
 
-  virtual void doShow  (CQChartsSelMod selMod);
-  virtual void doSelect(CQChartsSelMod selMod);
+  virtual void doShow  (SelMod selMod);
+  virtual void doSelect(SelMod selMod);
 
   //---
 
@@ -628,6 +632,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
  public:
   using RangeValue = CQChartsGeom::RangeValue;
+  using Color      = CQChartsColor;
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,
@@ -644,8 +649,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   virtual QBrush fillBrush() const;
   virtual QPen strokePen() const;
 
-  virtual const CQChartsColor &strokeColor() const { return boxData_.shape().stroke().color(); }
-  virtual void setStrokeColor(const CQChartsColor &c) { boxData_.shape().stroke().setColor(c); }
+  virtual const Color &strokeColor() const { return boxData_.shape().stroke().color(); }
+  virtual void setStrokeColor(const Color &c) { boxData_.shape().stroke().setColor(c); }
 
   QColor interpStrokeColor(const ColorInd &ic) const;
 
@@ -654,15 +659,15 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   virtual double xColorValue(bool relative=true) const;
   virtual double yColorValue(bool relative=true) const;
 
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &color) { color_ = color; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &color) { color_ = color; }
 
   const QVariant &value() const { return value_; }
   void setValue(const QVariant &v) { value_ = v; }
 
   //---
 
-  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &w, SelMod selMod) override;
 
   //---
 
@@ -676,7 +681,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   ColorInd        iv_;                   //!< number of groups
   RangeValue      xv_;                   //!< x value
   RangeValue      yv_;                   //!< y value
-  CQChartsColor   color_;                //!< custom color
+  Color           color_;                //!< custom color
   QVariant        value_;                //!< associated value
 };
 
@@ -711,7 +716,7 @@ class CQChartsKeyLine : public CQChartsKeyItem {
 
   //---
 
-  bool selectPress(const Point &w, CQChartsSelMod selMod) override;
+  bool selectPress(const Point &w, SelMod selMod) override;
 
   //---
 

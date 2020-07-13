@@ -17,15 +17,18 @@ class CQChartsLength {
   static int metaTypeId;
 
  public:
-  CQChartsLength(const CQChartsUnits &units, double value) :
+  using Units = CQChartsUnits;
+
+ public:
+  CQChartsLength(const Units &units, double value) :
    units_(units), value_(value) {
   }
 
-  CQChartsLength(double value=0.0, const CQChartsUnits &units=CQChartsUnits::PLOT) :
+  CQChartsLength(double value=0.0, const Units &units=Units::PLOT) :
    units_(units), value_(value) {
   }
 
-  explicit CQChartsLength(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
+  explicit CQChartsLength(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
   }
 
@@ -44,26 +47,26 @@ class CQChartsLength {
 
   //---
 
-  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+  bool isValid() const { return units_ != Units::NONE; }
 
-  bool isSet() const { return (units_ != CQChartsUnits::PIXEL || value_ != 0.0); }
+  bool isSet() const { return (units_ != Units::PIXEL || value_ != 0.0); }
 
   //---
 
-  const CQChartsUnits &units() const { return units_; }
+  const Units &units() const { return units_; }
 
-  double unitsValue(const CQChartsUnits &units) const {
+  double unitsValue(const Units &units) const {
     assert(isValid() && units_ == units); return value_;
   }
 
   double value() const { assert(isValid()); return value_; }
 
-  void setValue(const CQChartsUnits &units, double value) {
+  void setValue(const Units &units, double value) {
     units_ = units;
     value_ = value;
   }
 
-  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+  bool setValue(const QString &str, const Units &defUnits=Units::PLOT);
 
   //---
 
@@ -101,12 +104,12 @@ class CQChartsLength {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units, double &value,
-                           const CQChartsUnits &defUnits=CQChartsUnits::PIXEL);
+  static bool decodeString(const QString &str, Units &units, double &value,
+                           const Units &defUnits=Units::PIXEL);
 
  private:
-  CQChartsUnits units_ { CQChartsUnits::PIXEL };
-  double        value_ { 0.0 };
+  Units  units_ { Units::PIXEL };
+  double value_ { 0.0 };
 };
 
 //---

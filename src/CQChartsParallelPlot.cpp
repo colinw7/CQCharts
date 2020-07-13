@@ -506,7 +506,9 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
+      auto *plot = const_cast<CQChartsParallelPlot *>(plot_);
+
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
 
       Polygon poly;
 
@@ -559,6 +561,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  auto *th = const_cast<CQChartsParallelPlot *>(this);
+
   // TODO: use actual symbol size
   const auto &dataRange = this->dataRange();
 
@@ -580,7 +584,7 @@ createObjs(PlotObjs &objs) const
     //---
 
     // add poly line object
-    CQChartsModelIndex xModelInd(xind.row(), CQChartsColumn(xind.column()), xind.parent());
+    ModelIndex xModelInd(th, xind.row(), CQChartsColumn(xind.column()), xind.parent());
 
     bool ok;
 
@@ -603,7 +607,7 @@ createObjs(PlotObjs &objs) const
     for (int j = 0; j < nl; ++j) {
       const auto &setColumn = yColumns().getColumn(j);
 
-      CQChartsModelIndex setColumnInd(i, setColumn, xind.parent());
+      ModelIndex setColumnInd(th, i, setColumn, xind.parent());
 
       QModelIndex yind  = modelIndex(setColumnInd);
       QModelIndex yind1 = normalizeIndex(yind);
@@ -1044,11 +1048,11 @@ QString
 CQChartsParallelLineObj::
 calcId() const
 {
-  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
 
   bool ok;
 
-  QString xname = plot_->modelString(xModelInd, ok);
+  QString xname = plot()->modelString(xModelInd, ok);
 
   return QString("%1:%2").arg(typeName()).arg(xname);
 }
@@ -1057,7 +1061,7 @@ QString
 CQChartsParallelLineObj::
 calcTipId() const
 {
-  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
 
   bool ok;
 
@@ -1268,7 +1272,7 @@ QString
 CQChartsParallelPointObj::
 calcId() const
 {
-  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
 
   bool ok;
 
@@ -1285,7 +1289,7 @@ QString
 CQChartsParallelPointObj::
 calcTipId() const
 {
-  CQChartsModelIndex xModelInd(modelInd().row(), plot_->xColumn(), modelInd().parent());
+  ModelIndex xModelInd(plot(), modelInd().row(), plot_->xColumn(), modelInd().parent());
 
   CQChartsTableTip tableTip;
 

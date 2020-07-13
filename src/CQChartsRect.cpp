@@ -21,7 +21,7 @@ CQChartsRect::
 setValue(const QString &str, const CQChartsUnits &defUnits)
 {
   CQChartsUnits units;
-  CQChartsGeom::BBox        bbox;
+  BBox          bbox;
 
   if (! decodeString(str, units, bbox, defUnits))
     return false;
@@ -49,8 +49,7 @@ toString() const
 
 bool
 CQChartsRect::
-decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
-             const CQChartsUnits &defUnits)
+decodeString(const QString &str, CQChartsUnits &units, BBox &bbox, const CQChartsUnits &defUnits)
 {
   CQStrParse parse(str);
 

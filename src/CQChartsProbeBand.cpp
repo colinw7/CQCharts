@@ -6,6 +6,9 @@
 #include <QRubberBand>
 #include <QLabel>
 
+using Point = CQChartsGeom::Point;
+using BBox  = CQChartsGeom::BBox;
+
 CQChartsProbeBand::
 CQChartsProbeBand(CQChartsView *view) :
  view_(view)
@@ -31,12 +34,12 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
 {
   int tickLen = 8;
 
-  CQChartsGeom::Point p1(px          , py1);
-  CQChartsGeom::Point p2(px          , py2);
-  CQChartsGeom::Point p3(px + tickLen, py2);
+  Point p1(px          , py1);
+  Point p2(px          , py2);
+  Point p3(px + tickLen, py2);
 
-  vband_->setGeometry(CQChartsGeom::BBox(p1, p2).qrecti());
-  hband_->setGeometry(CQChartsGeom::BBox(p2, p3).qrecti());
+  vband_->setGeometry(BBox(p1, p2).qrecti());
+  hband_->setGeometry(BBox(p2, p3).qrecti());
 
   vband_->show();
   hband_->show();
@@ -44,13 +47,13 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
   if (text.length()) {
     tip_->setText(text);
 
-    CQChartsGeom::Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2.0);
+    Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2.0);
 
     QPoint pos = p4.qpointi();
 
     QPoint gpos = view_->mapToGlobal(pos);
 
-    auto wpos = view_->pixelToWindow(CQChartsGeom::Point(pos.x(), pos.y()));
+    auto wpos = view_->pixelToWindow(Point(pos.x(), pos.y()));
 
     auto bbox = view_->plotBBox(plot);
 
@@ -76,12 +79,12 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
 {
   int tickLen = 8;
 
-  CQChartsGeom::Point p1(px1, py);
-  CQChartsGeom::Point p2(px2, py);
-  CQChartsGeom::Point p3(px2, py - tickLen);
+  Point p1(px1, py);
+  Point p2(px2, py);
+  Point p3(px2, py - tickLen);
 
-  hband_->setGeometry(CQChartsGeom::BBox(p1, p2).qrecti());
-  vband_->setGeometry(CQChartsGeom::BBox(p2, p3).qrecti());
+  hband_->setGeometry(BBox(p1, p2).qrecti());
+  vband_->setGeometry(BBox(p2, p3).qrecti());
 
   hband_->show();
   vband_->show();
@@ -89,14 +92,13 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
   if (text.length()) {
     tip_->setText(text);
 
-    CQChartsGeom::Point p4(px2 -  tip_->sizeHint().width()/2.0,
-                           py - tickLen - 2 - tip_->sizeHint().height());
+    Point p4(px2 -  tip_->sizeHint().width()/2.0, py - tickLen - 2 - tip_->sizeHint().height());
 
     QPoint pos = p4.qpointi();
 
     QPoint gpos = view_->mapToGlobal(pos);
 
-    auto wpos = view_->pixelToWindow(CQChartsGeom::Point(pos.x(), pos.y()));
+    auto wpos = view_->pixelToWindow(Point(pos.x(), pos.y()));
 
     auto bbox = view_->plotBBox(plot);
 

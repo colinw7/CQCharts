@@ -186,7 +186,7 @@ deletePointObjs()
 
 bool
 CQChartsPlot3D::
-objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &nearestObj) const
+objNearestPoint(const Point &p, CQChartsPlotObj* &nearestObj) const
 {
   for (auto &po : pointObjs_) {
     for (const auto &obj : po.second) {
@@ -204,7 +204,7 @@ objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &nearestObj) cons
 
 void
 CQChartsPlot3D::
-plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
+plotObjsAtPoint(const Point &p, PlotObjs &objs) const
 {
   for (auto &po : pointObjs_) {
     for (const auto &obj : po.second) {
@@ -274,22 +274,22 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
       //---
 
       // add tick line
-      CQChartsGeom::Point3D pt1, pt2, pt3;
+      Point3D pt1, pt2, pt3;
 
       if      (axis.dir == Axis::Dir::X) {
-        pt1 = CQChartsGeom::Point3D(min, range3D_.ymin()       , range3D_.zmin());
-        pt2 = CQChartsGeom::Point3D(min, range3D_.ymin() -   dy, range3D_.zmin());
-        pt3 = CQChartsGeom::Point3D(min, range3D_.ymin() - 2*dy, range3D_.zmin());
+        pt1 = Point3D(min, range3D_.ymin()       , range3D_.zmin());
+        pt2 = Point3D(min, range3D_.ymin() -   dy, range3D_.zmin());
+        pt3 = Point3D(min, range3D_.ymin() - 2*dy, range3D_.zmin());
       }
       else if (axis.dir == Axis::Dir::Y) {
-        pt1 = CQChartsGeom::Point3D(range3D_.xmax()       , min, range3D_.zmin());
-        pt2 = CQChartsGeom::Point3D(range3D_.xmax() +   dx, min, range3D_.zmin());
-        pt3 = CQChartsGeom::Point3D(range3D_.xmax() + 2*dx, min, range3D_.zmin());
+        pt1 = Point3D(range3D_.xmax()       , min, range3D_.zmin());
+        pt2 = Point3D(range3D_.xmax() +   dx, min, range3D_.zmin());
+        pt3 = Point3D(range3D_.xmax() + 2*dx, min, range3D_.zmin());
       }
       else if (axis.dir == Axis::Dir::Z) {
-        pt1 = CQChartsGeom::Point3D(range3D_.xmax()       , range3D_.ymax(), min);
-        pt2 = CQChartsGeom::Point3D(range3D_.xmax() +   dx, range3D_.ymax(), min);
-        pt3 = CQChartsGeom::Point3D(range3D_.xmax() + 2*dx, range3D_.ymax(), min);
+        pt1 = Point3D(range3D_.xmax()       , range3D_.ymax(), min);
+        pt2 = Point3D(range3D_.xmax() +   dx, range3D_.ymax(), min);
+        pt3 = Point3D(range3D_.xmax() + 2*dx, range3D_.ymax(), min);
       }
 
       auto *tickLineObj = new CQChartsLine3DObj(this, pt1, pt2, pc);
@@ -301,29 +301,28 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
 
   //---
 
-  CQChartsGeom::Point3D pxs0(range3D_.xmin(), range3D_.ymin(), range3D_.zmin());
-  CQChartsGeom::Point3D pxs1(range3D_.xmin(), range3D_.ymax(), range3D_.zmin());
-  CQChartsGeom::Point3D pxs2(range3D_.xmin(), range3D_.ymax(), range3D_.zmax());
-  CQChartsGeom::Point3D pxs3(range3D_.xmin(), range3D_.ymin(), range3D_.zmax());
+  Point3D pxs0(range3D_.xmin(), range3D_.ymin(), range3D_.zmin());
+  Point3D pxs1(range3D_.xmin(), range3D_.ymax(), range3D_.zmin());
+  Point3D pxs2(range3D_.xmin(), range3D_.ymax(), range3D_.zmax());
+  Point3D pxs3(range3D_.xmin(), range3D_.ymin(), range3D_.zmax());
 
-  CQChartsGeom::Point3D pxs4(range3D_.xmax(), range3D_.ymin(), range3D_.zmin());
-  CQChartsGeom::Point3D pxs5(range3D_.xmax(), range3D_.ymax(), range3D_.zmin());
-  CQChartsGeom::Point3D pxs6(range3D_.xmax(), range3D_.ymax(), range3D_.zmax());
-  CQChartsGeom::Point3D pxs7(range3D_.xmax(), range3D_.ymin(), range3D_.zmax());
+  Point3D pxs4(range3D_.xmax(), range3D_.ymin(), range3D_.zmin());
+  Point3D pxs5(range3D_.xmax(), range3D_.ymax(), range3D_.zmin());
+  Point3D pxs6(range3D_.xmax(), range3D_.ymax(), range3D_.zmax());
+  Point3D pxs7(range3D_.xmax(), range3D_.ymin(), range3D_.zmax());
 
   //---
 
-  auto addZPoly = [&](const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
-                      const CQChartsGeom::Point3D &p3, const CQChartsGeom::Point3D &p4,
-                      const QColor &c, const CQChartsGeom::Point3D &n) {
-    CQChartsGeom::Polygon3D poly;
+  auto addZPoly = [&](const Point3D &p1, const Point3D &p2, const Point3D &p3, const Point3D &p4,
+                      const QColor &c, const Point3D &n) {
+    Polygon3D poly;
 
     poly.addPoint(p1);
     poly.addPoint(p2);
     poly.addPoint(p3);
     poly.addPoint(p4);
 
-    CQChartsGeom::Point3D pm = (p1 + p2 + p3 + p4)/4.0;
+    Point3D pm = (p1 + p2 + p3 + p4)/4.0;
 
     auto *polyObj = new CQChartsAxisPolygon3DObj(this, poly);
 
@@ -338,13 +337,12 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
   auto addAxisLines =[&](CQChartsAxisPolygon3DObj *polyObj,
                          CQChartsAxisPolygon3DObj *polyObj1, CQChartsAxisPolygon3DObj *polyObj2,
                          const Axis &axis1, const Axis &axis2, double pos) {
-    auto isLabelPoint = [&](const CQChartsGeom::Point3D &p) {
+    auto isLabelPoint = [&](const Point3D &p) {
       return (p.z == range3D_.zmin() || (p.z != range3D_.zmax() && p.x != range3D_.xmin()));
     };
 
     // add tick text
-    auto addText = [&](const CQChartsGeom::Point3D &p, double value,
-                       CQChartsAxisPolygon3DObj *poly) {
+    auto addText = [&](const Point3D &p, double value, CQChartsAxisPolygon3DObj *poly) {
       //bool ok1 = (p.z == range3D_.zmin();
       //bool ok2 = (p.z != range3D_.zmax() && p.x != range3D_.xmin());
 
@@ -387,8 +385,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
 
       if      (axis1.dir == Axis::Dir::X) {
         if      (axis2.dir == Axis::Dir::Y) {
-          CQChartsGeom::Point3D pg1(min, range3D_.ymin(), pos);
-          CQChartsGeom::Point3D pg2(min, range3D_.ymax(), pos);
+          Point3D pg1(min, range3D_.ymin(), pos);
+          Point3D pg2(min, range3D_.ymax(), pos);
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -398,8 +396,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
           }
         }
         else if (axis2.dir == Axis::Dir::Z) {
-          CQChartsGeom::Point3D pg1(min, pos, range3D_.zmin());
-          CQChartsGeom::Point3D pg2(min, pos, range3D_.zmax());
+          Point3D pg1(min, pos, range3D_.zmin());
+          Point3D pg2(min, pos, range3D_.zmax());
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -409,8 +407,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
       }
       else if (axis1.dir == Axis::Dir::Y) {
         if      (axis2.dir == Axis::Dir::X) {
-          CQChartsGeom::Point3D pg1(range3D_.xmin(), min, pos);
-          CQChartsGeom::Point3D pg2(range3D_.xmax(), min, pos);
+          Point3D pg1(range3D_.xmin(), min, pos);
+          Point3D pg2(range3D_.xmax(), min, pos);
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -420,8 +418,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
           }
         }
         else if (axis2.dir == Axis::Dir::Z) {
-          CQChartsGeom::Point3D pg1(pos, min, range3D_.zmin());
-          CQChartsGeom::Point3D pg2(pos, min, range3D_.zmax());
+          Point3D pg1(pos, min, range3D_.zmin());
+          Point3D pg2(pos, min, range3D_.zmax());
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -431,8 +429,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
       }
       else if (axis1.dir == Axis::Dir::Z) {
         if      (axis2.dir == Axis::Dir::X) {
-          CQChartsGeom::Point3D pg1(range3D_.xmin(), pos, min);
-          CQChartsGeom::Point3D pg2(range3D_.xmax(), pos, min);
+          Point3D pg1(range3D_.xmin(), pos, min);
+          Point3D pg2(range3D_.xmax(), pos, min);
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -440,8 +438,8 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
           addText(pg2, min, polyObj2);
         }
         else if (axis2.dir == Axis::Dir::Y) {
-          CQChartsGeom::Point3D pg1(pos, range3D_.ymin(), min);
-          CQChartsGeom::Point3D pg2(pos, range3D_.ymax(), min);
+          Point3D pg1(pos, range3D_.ymin(), min);
+          Point3D pg2(pos, range3D_.ymax(), min);
 
           polyObj->addGridLine(pg1, pg2);
 
@@ -454,17 +452,17 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
     //---
 
     // draw axis text
-    CQChartsGeom::Point3D pl1, pl2;
-    QString               label;
+    Point3D pl1, pl2;
+    QString label;
 
     if      (axis1.dir == Axis::Dir::X) {
       if      (axis2.dir == Axis::Dir::Y) {
-        pl1 = CQChartsGeom::Point3D(range3D_.xmid(), range3D_.ymin(), pos);
-        pl2 = CQChartsGeom::Point3D(range3D_.xmid(), range3D_.ymax(), pos);
+        pl1 = Point3D(range3D_.xmid(), range3D_.ymin(), pos);
+        pl2 = Point3D(range3D_.xmid(), range3D_.ymax(), pos);
       }
       else if (axis2.dir == Axis::Dir::Z) {
-        pl1 = CQChartsGeom::Point3D(range3D_.xmid(), pos, range3D_.zmin());
-        pl2 = CQChartsGeom::Point3D(range3D_.xmid(), pos, range3D_.zmax());
+        pl1 = Point3D(range3D_.xmid(), pos, range3D_.zmin());
+        pl2 = Point3D(range3D_.xmid(), pos, range3D_.zmax());
       }
 
       bool ok;
@@ -473,12 +471,12 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
     }
     else if (axis1.dir == Axis::Dir::Y) {
       if      (axis2.dir == Axis::Dir::X) {
-        pl1 = CQChartsGeom::Point3D(range3D_.xmin(), range3D_.ymid(), pos);
-        pl2 = CQChartsGeom::Point3D(range3D_.xmax(), range3D_.ymid(), pos);
+        pl1 = Point3D(range3D_.xmin(), range3D_.ymid(), pos);
+        pl2 = Point3D(range3D_.xmax(), range3D_.ymid(), pos);
       }
       else if (axis2.dir == Axis::Dir::Z) {
-        pl1 = CQChartsGeom::Point3D(pos, range3D_.ymid(), range3D_.zmin());
-        pl2 = CQChartsGeom::Point3D(pos, range3D_.ymid(), range3D_.zmax());
+        pl1 = Point3D(pos, range3D_.ymid(), range3D_.zmin());
+        pl2 = Point3D(pos, range3D_.ymid(), range3D_.zmax());
       }
 
       bool ok;
@@ -487,12 +485,12 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
     }
     else if (axis1.dir == Axis::Dir::Z) {
       if      (axis2.dir == Axis::Dir::X) {
-        pl1 = CQChartsGeom::Point3D(range3D_.xmin(), pos, range3D_.zmid());
-        pl2 = CQChartsGeom::Point3D(range3D_.xmax(), pos, range3D_.zmid());
+        pl1 = Point3D(range3D_.xmin(), pos, range3D_.zmid());
+        pl2 = Point3D(range3D_.xmax(), pos, range3D_.zmid());
       }
       else if (axis2.dir == Axis::Dir::Y) {
-        pl1 = CQChartsGeom::Point3D(pos, range3D_.ymin(), range3D_.zmid());
-        pl2 = CQChartsGeom::Point3D(pos, range3D_.ymax(), range3D_.zmid());
+        pl1 = Point3D(pos, range3D_.ymin(), range3D_.zmid());
+        pl2 = Point3D(pos, range3D_.ymax(), range3D_.zmid());
       }
 
       bool ok;
@@ -511,12 +509,12 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
   QColor bc2(200, 200, 200);
   QColor bc3(190, 190, 190);
 
-  auto *xPolyObj1 = addZPoly(pxs0, pxs1, pxs2, pxs3, bc1, CQChartsGeom::Point3D( 1, 0, 0));
-  auto *xPolyObj2 = addZPoly(pxs4, pxs5, pxs6, pxs7, bc1, CQChartsGeom::Point3D(-1, 0, 0));
-  auto *yPolyObj1 = addZPoly(pxs0, pxs4, pxs7, pxs3, bc2, CQChartsGeom::Point3D(0,  1, 0));
-  auto *yPolyObj2 = addZPoly(pxs1, pxs5, pxs6, pxs2, bc2, CQChartsGeom::Point3D(0, -1, 0));
-  auto *zPolyObj1 = addZPoly(pxs0, pxs4, pxs5, pxs1, bc3, CQChartsGeom::Point3D(0, 0,  1));
-  auto *zPolyObj2 = addZPoly(pxs3, pxs7, pxs6, pxs2, bc3, CQChartsGeom::Point3D(0, 0, -1));
+  auto *xPolyObj1 = addZPoly(pxs0, pxs1, pxs2, pxs3, bc1, Point3D( 1, 0, 0));
+  auto *xPolyObj2 = addZPoly(pxs4, pxs5, pxs6, pxs7, bc1, Point3D(-1, 0, 0));
+  auto *yPolyObj1 = addZPoly(pxs0, pxs4, pxs7, pxs3, bc2, Point3D(0,  1, 0));
+  auto *yPolyObj2 = addZPoly(pxs1, pxs5, pxs6, pxs2, bc2, Point3D(0, -1, 0));
+  auto *zPolyObj1 = addZPoly(pxs0, pxs4, pxs5, pxs1, bc3, Point3D(0, 0,  1));
+  auto *zPolyObj2 = addZPoly(pxs3, pxs7, pxs6, pxs2, bc3, Point3D(0, 0, -1));
 
   zPolyObj1->addSidePolygon(xPolyObj1, pxs0, pxs1);
   zPolyObj1->addSidePolygon(yPolyObj1, pxs0, pxs4);
@@ -555,7 +553,7 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
 
 void
 CQChartsPlot3D::
-addBgPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj)
+addBgPointObj(const Point3D &p, CQChartsPlot3DObj *obj)
 {
   obj->setRefPoint(p);
 
@@ -564,7 +562,7 @@ addBgPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj)
 
 void
 CQChartsPlot3D::
-addPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj)
+addPointObj(const Point3D &p, CQChartsPlot3DObj *obj)
 {
   obj->setRefPoint(p);
 
@@ -573,7 +571,7 @@ addPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj)
 
 void
 CQChartsPlot3D::
-addFgPointObj(const CQChartsGeom::Point3D &p, CQChartsPlot3DObj *obj)
+addFgPointObj(const Point3D &p, CQChartsPlot3DObj *obj)
 {
   obj->setRefPoint(p);
 
@@ -584,29 +582,21 @@ void
 CQChartsPlot3D::
 drawPointObjs(CQChartsPaintDevice *device) const
 {
-  CQChartsCamera *camera = this->camera();
+  auto *camera = this->camera();
 
   const auto &range3D = this->range3D();
 
   if (range3D.isSet()) {
     double z[8];
 
-    z[0] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmin(), range3D.ymin(), range3D.zmin())).z;
-    z[1] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmax(), range3D.ymin(), range3D.zmin())).z;
-    z[2] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmax(), range3D.ymax(), range3D.zmin())).z;
-    z[3] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmin(), range3D.ymax(), range3D.zmin())).z;
-    z[4] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmin(), range3D.ymin(), range3D.zmax())).z;
-    z[5] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmax(), range3D.ymin(), range3D.zmax())).z;
-    z[6] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmax(), range3D.ymax(), range3D.zmax())).z;
-    z[7] = camera->transform(
-      CQChartsGeom::Point3D(range3D.xmin(), range3D.ymax(), range3D.zmax())).z;
+    z[0] = camera->transform(Point3D(range3D.xmin(), range3D.ymin(), range3D.zmin())).z;
+    z[1] = camera->transform(Point3D(range3D.xmax(), range3D.ymin(), range3D.zmin())).z;
+    z[2] = camera->transform(Point3D(range3D.xmax(), range3D.ymax(), range3D.zmin())).z;
+    z[3] = camera->transform(Point3D(range3D.xmin(), range3D.ymax(), range3D.zmin())).z;
+    z[4] = camera->transform(Point3D(range3D.xmin(), range3D.ymin(), range3D.zmax())).z;
+    z[5] = camera->transform(Point3D(range3D.xmax(), range3D.ymin(), range3D.zmax())).z;
+    z[6] = camera->transform(Point3D(range3D.xmax(), range3D.ymax(), range3D.zmax())).z;
+    z[7] = camera->transform(Point3D(range3D.xmin(), range3D.ymax(), range3D.zmax())).z;
 
     auto *th = const_cast<CQChartsPlot3D *>(this);
 
@@ -676,7 +666,7 @@ drawPointObjs(CQChartsPaintDevice *device) const
 
 bool
 CQChartsPlot3D::
-selectMousePress(const CQChartsGeom::Point &p, SelMod)
+selectMousePress(const Point &p, SelMod)
 {
   if (! isReady()) return false;
 
@@ -688,9 +678,9 @@ selectMousePress(const CQChartsGeom::Point &p, SelMod)
     std::cerr << obj->id().toStdString() << "\n";
   }
 
-  CQChartsCamera *camera = this->camera();
+  auto *camera = this->camera();
 
-  auto w1 = camera->untransform(CQChartsGeom::Point3D(w.x, w.y, 0.0));
+  auto w1 = camera->untransform(Point3D(w.x, w.y, 0.0));
 
   std::cerr << w1.x << " " << w1.y << " " << w1.z << "\n";
 
@@ -701,30 +691,28 @@ selectMousePress(const CQChartsGeom::Point &p, SelMod)
 
 CQChartsLine3DObj *
 CQChartsPlot3D::
-createLineObj(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
-              const QColor &color) const
+createLineObj(const Point3D &p1, const Point3D &p2, const QColor &color) const
 {
   return new CQChartsLine3DObj(this, p1, p2, color);
 }
 
 CQChartsText3DObj *
 CQChartsPlot3D::
-createTextObj(const CQChartsGeom::Point3D &p1, const CQChartsGeom::Point3D &p2,
-              const QString &text) const
+createTextObj(const Point3D &p1, const Point3D &p2, const QString &text) const
 {
   return new CQChartsText3DObj(this, p1, p2, text);
 }
 
 CQChartsPolyline3DObj *
 CQChartsPlot3D::
-createPolylineObj(const CQChartsGeom::Polygon3D &poly) const
+createPolylineObj(const Polygon3D &poly) const
 {
   return new CQChartsPolyline3DObj(this, poly);
 }
 
 CQChartsPolygon3DObj *
 CQChartsPlot3D::
-createPolygonObj(const CQChartsGeom::Polygon3D &poly) const
+createPolygonObj(const Polygon3D &poly) const
 {
   return new CQChartsPolygon3DObj(this, poly);
 }
@@ -733,7 +721,7 @@ createPolygonObj(const CQChartsGeom::Polygon3D &poly) const
 
 CQChartsPlot3DObj::
 CQChartsPlot3DObj(const CQChartsPlot3D *plot3D) :
- CQChartsPlotObj(const_cast<CQChartsPlot3D *>(plot3D), CQChartsGeom::BBox(0, 0, 1, 1),
+ CQChartsPlotObj(const_cast<CQChartsPlot3D *>(plot3D), BBox(0, 0, 1, 1),
                  ColorInd(), ColorInd(), ColorInd()),
  plot3D_(plot3D)
 {
@@ -742,8 +730,8 @@ CQChartsPlot3DObj(const CQChartsPlot3D *plot3D) :
 //---
 
 CQChartsLine3DObj::
-CQChartsLine3DObj(const CQChartsPlot3D *plot, const CQChartsGeom::Point3D &p1,
-                  const CQChartsGeom::Point3D &p2, const QColor &color) :
+CQChartsLine3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &p2,
+                  const QColor &color) :
  CQChartsPlot3DObj(plot), p1_(p1), p2_(p2), color_(color)
 {
 }
@@ -752,7 +740,7 @@ void
 CQChartsLine3DObj::
 postDraw(CQChartsPaintDevice *device)
 {
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   CQChartsPenBrush penBrush;
 
@@ -766,8 +754,8 @@ postDraw(CQChartsPaintDevice *device)
 //---
 
 CQChartsText3DObj::
-CQChartsText3DObj(const CQChartsPlot3D *plot, const CQChartsGeom::Point3D &p1,
-                  const CQChartsGeom::Point3D &p2, const QString &text) :
+CQChartsText3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &p2,
+                  const QString &text) :
  CQChartsPlot3DObj(plot), p1_(p1), p2_(p2), text_(text)
 {
 }
@@ -776,7 +764,7 @@ void
 CQChartsText3DObj::
 postDraw(CQChartsPaintDevice *device)
 {
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   auto pt1 = camera->transform(p1()).point2D();
   auto pt2 = camera->transform(p2()).point2D();
@@ -788,7 +776,7 @@ postDraw(CQChartsPaintDevice *device)
   //---
 
   if (isAutoAlign()) {
-    double angle = CMathUtil::Rad2Deg(CQChartsGeom::pointAngle(pt1, pt2));
+    double angle = CMathUtil::Rad2Deg(pointAngle(pt1, pt2));
 
     textOptions.align = 0;
 
@@ -828,7 +816,7 @@ postDraw(CQChartsPaintDevice *device)
 //------
 
 CQChartsPolygon3DObj::
-CQChartsPolygon3DObj(const CQChartsPlot3D *plot, const CQChartsGeom::Polygon3D &poly) :
+CQChartsPolygon3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
  CQChartsPlot3DObj(plot), poly_(poly)
 {
 }
@@ -842,7 +830,7 @@ postDraw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   //---
 
@@ -873,7 +861,7 @@ postDraw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   for (const auto &p : poly_.points())
     poly.addPoint(camera->transform(p).point2D());
@@ -894,11 +882,11 @@ bool
 CQChartsPolygon3DObj::
 checkVisible() const
 {
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   //---
 
-  auto p1 = camera->transform(CQChartsGeom::Point3D(0, 0, 0));
+  auto p1 = camera->transform(Point3D(0, 0, 0));
   auto p2 = camera->transform(normal());
 
   double dz = p2.z - p1.z;
@@ -909,7 +897,7 @@ checkVisible() const
 //------
 
 CQChartsPolyline3DObj::
-CQChartsPolyline3DObj(const CQChartsPlot3D *plot, const CQChartsGeom::Polygon3D &poly) :
+CQChartsPolyline3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
  CQChartsPlot3DObj(plot), poly_(poly)
 {
 }
@@ -926,9 +914,9 @@ postDraw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
-  CQChartsGeom::Polygon poly;
+  Polygon poly;
 
   for (const auto &p : poly_.points())
     poly.addPoint(camera->transform(p).point2D());
@@ -939,7 +927,7 @@ postDraw(CQChartsPaintDevice *device)
 //------
 
 CQChartsAxisPolygon3DObj::
-CQChartsAxisPolygon3DObj(const CQChartsPlot3D *plot, const CQChartsGeom::Polygon3D &poly) :
+CQChartsAxisPolygon3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
  CQChartsPolygon3DObj(plot, poly)
 {
 }
@@ -957,7 +945,7 @@ postDraw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsCamera *camera = plot3D()->camera();
+  auto *camera = plot3D()->camera();
 
   const auto &range3D = plot3D()->range3D();
 
@@ -1029,9 +1017,9 @@ postDraw(CQChartsPaintDevice *device)
     //---
 
     auto p1 = text.p;
-    auto p2 = p1 + CQChartsGeom::Point3D(-0.01*text.poly->normal().x*dx,
-                                         -0.01*text.poly->normal().y*dy,
-                                         -0.01*text.poly->normal().z*dz);
+    auto p2 = p1 + Point3D(-0.01*text.poly->normal().x*dx,
+                           -0.01*text.poly->normal().y*dy,
+                           -0.01*text.poly->normal().z*dz);
 
     //---
 
@@ -1073,9 +1061,9 @@ postDraw(CQChartsPaintDevice *device)
 
     auto p = text.p;
 
-    p += CQChartsGeom::Point3D(-0.1*text.poly->normal().x*dx,
-                               -0.1*text.poly->normal().y*dy,
-                               -0.1*text.poly->normal().z*dz);
+    p += Point3D(-0.1*text.poly->normal().x*dx,
+                 -0.1*text.poly->normal().y*dy,
+                 -0.1*text.poly->normal().z*dz);
 
     //---
 

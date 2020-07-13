@@ -189,8 +189,10 @@ calcRange() const
 
       //---
 
-      CQChartsModelIndex nameModelInd (data.row, plot_->nameColumn (), data.parent);
-      CQChartsModelIndex valueModelInd(data.row, plot_->valueColumn(), data.parent);
+      auto *plot = const_cast<CQChartsDendrogramPlot *>(plot_);
+
+      ModelIndex nameModelInd (plot, data.row, plot_->nameColumn (), data.parent);
+      ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
     //QModelIndex nameInd  = modelIndex(nameModelInd);
     //QModelIndex nameInd1 = normalizeIndex(nameInd);
@@ -225,7 +227,7 @@ calcRange() const
     const Range &range() const { return range_; }
 
    private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+    State addDataError(const ModelIndex &ind, const QString &msg) const {
       const_cast<CQChartsDendrogramPlot *>(plot_)->addDataError(ind , msg);
       return State::SKIP;
     }
@@ -572,11 +574,9 @@ textRect() const
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
-  BBox bbox;
+  double dy = (fm.ascent() - fm.descent())/2;
 
   Point p;
-
-  double dy = (fm.ascent() - fm.descent())/2;
 
   if (is_hier)
     p = Point(pn.x - cs - fm.width(name), pn.y + dy);

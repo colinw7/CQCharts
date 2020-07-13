@@ -11,8 +11,8 @@ CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
 
 void
 CQChartsRotatedTextBoxObj::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
-     const QString &text, double angle, Qt::Alignment align, bool isRotated) const
+draw(CQChartsPaintDevice *device, const Point &center, const QString &text,
+     double angle, Qt::Alignment align, bool isRotated) const
 {
   device->save();
 
@@ -48,7 +48,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
     cd  = xlm;
   }
 
-  CQChartsGeom::BBox pbbox(cx, cy, cx + tw1, cy + th1);
+  BBox pbbox(cx, cy, cx + tw1, cy + th1);
 
   bbox_ = device->pixelToWindow(pbbox);
 
@@ -64,7 +64,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
     cdy = 0.0;
   }
   else {
-    CQChartsGeom::BBox          pbbox;
+    BBox                        pbbox;
     CQChartsRotatedText::Points ppoints;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
@@ -77,7 +77,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
     CQChartsRotatedText::calcBBoxData(pcenter.x, pcenter.y, text, device->font(), options, border,
                                       pbbox, ppoints, /*alignBBox*/true, /*radial*/isRotated);
 
-    CQChartsGeom::Polygon poly;
+    Polygon poly;
 
     for (std::size_t i = 0; i < ppoints.size(); ++i)
       poly.addPoint(pixelToWindow(ppoints[i]));
@@ -106,7 +106,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
 
   device->setPen(penBrush.pen);
 
-  CQChartsGeom::Point p1(pcenter.x + cdx, pcenter.y + cdy);
+  Point p1(pcenter.x + cdx, pcenter.y + cdy);
 
   CQChartsTextOptions options;
 
@@ -124,8 +124,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
 // center in pixels
 CQChartsGeom::BBox
 CQChartsRotatedTextBoxObj::
-bbox(const CQChartsGeom::Point &pcenter, const QString &text, double angle,
-     Qt::Alignment align, bool isRotated) const
+bbox(const Point &pcenter, const QString &text, double angle, Qt::Alignment align,
+     bool isRotated) const
 {
   QFont font = calcFont(textFont());
 
@@ -152,10 +152,10 @@ bbox(const CQChartsGeom::Point &pcenter, const QString &text, double angle,
     cx -= tw1;
   }
 
-  CQChartsGeom::BBox pbbox;
+  BBox pbbox;
 
   if (angle != 0.0) {
-    pbbox = CQChartsGeom::BBox(cx, cy, cx + tw1, cy + th1);
+    pbbox = BBox(cx, cy, cx + tw1, cy + th1);
   }
   else {
     CQChartsRotatedText::Points ppoints;
@@ -176,19 +176,18 @@ bbox(const CQChartsGeom::Point &pcenter, const QString &text, double angle,
 
 void
 CQChartsRotatedTextBoxObj::
-drawConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
-                        double ro, double lr, double ta, const QString &text,
-                        const QPen &lpen, bool isRotated)
+drawConnectedRadialText(CQChartsPaintDevice *device, const Point &center, double ro, double lr,
+                        double ta, const QString &text, const QPen &lpen, bool isRotated)
 {
-  CQChartsGeom::BBox tbbox;
+  BBox tbbox;
 
   drawCalcConnectedRadialText(device, center, ro, lr, ta, text, lpen, isRotated, tbbox);
 }
 
 void
 CQChartsRotatedTextBoxObj::
-calcConnectedRadialTextBBox(const CQChartsGeom::Point &center, double ro, double lr, double ta,
-                            const QString &text, bool isRotated, CQChartsGeom::BBox &tbbox)
+calcConnectedRadialTextBBox(const Point &center, double ro, double lr, double ta,
+                            const QString &text, bool isRotated, BBox &tbbox)
 {
   QPen lpen;
 
@@ -198,9 +197,9 @@ calcConnectedRadialTextBBox(const CQChartsGeom::Point &center, double ro, double
 
 void
 CQChartsRotatedTextBoxObj::
-drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Point &center,
-                            double ro, double lr, double ta, const QString &text,
-                            const QPen &lpen, bool isRotated, CQChartsGeom::BBox &tbbox)
+drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center, double ro,
+                            double lr, double ta, const QString &text,
+                            const QPen &lpen, bool isRotated, BBox &tbbox)
 {
   if (device)
     device->save();
@@ -215,7 +214,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
   double tx = center.x + lr*tc;
   double ty = center.y + lr*ts;
 
-  auto pt = windowToPixel(CQChartsGeom::Point(tx, ty));
+  auto pt = windowToPixel(Point(tx, ty));
 
   //---
 
@@ -229,8 +228,8 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
     double lx2 = center.x + lr*tc;
     double ly2 = center.y + lr*ts;
 
-    auto lp1 = windowToPixel(CQChartsGeom::Point(lx1, ly1));
-    auto lp2 = windowToPixel(CQChartsGeom::Point(lx2, ly2));
+    auto lp1 = windowToPixel(Point(lx1, ly1));
+    auto lp2 = windowToPixel(Point(lx2, ly2));
 
     int tickSize = 16; // TODO: allow customize
 
@@ -251,7 +250,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
     if (device) {
       device->setPen(lpen);
 
-      CQChartsGeom::Point lp3(lp2.x + dx, lp2.y);
+      Point lp3(lp2.x + dx, lp2.y);
 
       auto l1 = device->pixelToWindow(lp1);
       auto l2 = device->pixelToWindow(lp2);
@@ -265,7 +264,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const CQChartsGeom::Poi
   //---
 
   // draw text
-  CQChartsGeom::Point pt1(pt.x + dx, pt.y);
+  Point pt1(pt.x + dx, pt.y);
 
   double angle = 0.0;
 

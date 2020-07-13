@@ -83,14 +83,14 @@ addTextProperties(const QString &path, const QString &desc)
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &str) const
+draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &str) const
 {
   draw(device, bbox, str, position());
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &str,
+draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &str,
      const Position &position) const
 {
   if (! isVisible())
@@ -107,7 +107,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
+draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
      const Position &position, const CQChartsPenBrush &penBrush) const
 {
   bbox_ = bbox;
@@ -242,8 +242,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     }
 
     // draw box
-    CQChartsGeom::BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
-                              px + tw + pxrm, py + fm.descent() + pytm);
+    BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
+                px + tw + pxrm, py + fm.descent() + pytm);
 
     CQChartsBoxObj::draw(device, device->pixelToWindow(tpbbox));
 
@@ -266,7 +266,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
       if (! textClipped) {
         device->setPen(penBrush.pen);
 
-        auto p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
+        auto p1 = device->pixelToWindow(Point(px, py));
 
         CQChartsTextOptions options;
 
@@ -330,7 +330,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
       py = bbox.getYMid();
     }
 
-    CQChartsGeom::BBox          pbbox;
+    BBox                        pbbox;
     CQChartsRotatedText::Points ppoints;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
@@ -340,13 +340,13 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
     options.angle = textAngle();
     options.align = align;
 
-    auto pt = device->windowToPixel(CQChartsGeom::Point(px, py));
+    auto pt = device->windowToPixel(Point(px, py));
 
     CQChartsRotatedText::calcBBoxData(pt.x, pt.y, ystr, device->font(), options, border,
                                       pbbox, ppoints, /*alignBBox*/ true);
 
     // draw polygon
-    CQChartsGeom::Polygon poly;
+    Polygon poly;
 
     for (std::size_t i = 0; i < ppoints.size(); ++i)
       poly.addPoint(device->pixelToWindow(ppoints[i]));
@@ -357,7 +357,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
     // draw text
     if (ystr.length()) {
-      auto p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
+      auto p1 = device->pixelToWindow(Point(px, py));
 
       CQChartsTextOptions options;
 
@@ -386,7 +386,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString 
 
 bool
 CQChartsDataLabel::
-isAdjustedPositionOutside(const CQChartsGeom::BBox &pbbox, const QString &ystr) const
+isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const
 {
   Position position1 = adjustPosition(position());
 
@@ -438,17 +438,17 @@ isAdjustedPositionOutside(const CQChartsGeom::BBox &pbbox, const QString &ystr) 
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr) const
+calcRect(const BBox &bbox, const QString &ystr) const
 {
   return calcRect(bbox, ystr, position());
 }
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &position) const
+calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 {
   if (! isVisible())
-    return CQChartsGeom::BBox();
+    return BBox();
 
   //---
 
@@ -477,7 +477,7 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
 
   //---
 
-  CQChartsGeom::BBox wbbox;
+  BBox wbbox;
 
   if (CMathUtil::isZero(textAngle().value())) {
     QFontMetricsF fm(font);
@@ -524,8 +524,7 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
       py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
 
-    CQChartsGeom::BBox pbbox1(px -      xlm, py - fm.ascent () - ybm,
-                              px + tw + xrm, py + fm.descent() + ytm);
+    BBox pbbox1(px - xlm, py - fm.ascent () - ybm, px + tw + xrm, py + fm.descent() + ytm);
 
     wbbox = plot()->pixelToWindow(pbbox1);
   }
@@ -572,7 +571,7 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
       py = pbbox.getYMid();
     }
 
-    CQChartsGeom::BBox          pbbox1;
+    BBox                        pbbox1;
     CQChartsRotatedText::Points ppoints;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
@@ -687,7 +686,7 @@ textBoxDataInvalidate()
 
 bool
 CQChartsDataLabel::
-contains(const CQChartsGeom::Point &p) const
+contains(const Point &p) const
 {
   return bbox_.inside(p);
 }

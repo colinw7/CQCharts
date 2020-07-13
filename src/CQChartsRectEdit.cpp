@@ -101,6 +101,7 @@ rectToWidgets()
   connectSlots(true);
 }
 
+#if 0
 void
 CQChartsRectEdit::
 widgetsToRect()
@@ -115,6 +116,7 @@ widgetsToRect()
 
   rect_ = rect;
 }
+#endif
 
 void
 CQChartsRectEdit::

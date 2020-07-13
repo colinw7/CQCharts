@@ -3,7 +3,7 @@
 #include <CQChartsUtil.h>
 
 CQChartsObj::
-CQChartsObj(CQCharts *charts, const CQChartsGeom::BBox &rect) :
+CQChartsObj(CQCharts *charts, const BBox &rect) :
  QObject(nullptr), charts_(charts), rect_(rect)
 {
   assert(charts_);

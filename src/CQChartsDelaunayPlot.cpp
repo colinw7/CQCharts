@@ -255,8 +255,10 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex xInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yInd(data.row, plot_->yColumn(), data.parent);
+      auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
+
+      ModelIndex xInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yInd(plot, data.row, plot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
@@ -279,7 +281,7 @@ calcRange() const
     const Range &range() const { return range_; }
 
    private:
-    void addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+    void addDataError(const ModelIndex &ind, const QString &msg) const {
       const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
     }
 
@@ -358,8 +360,10 @@ createObjs(PlotObjs &objs) const
     const RMinMax &valueRange() const { return valueRange_; }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsModelIndex xInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yInd(data.row, plot_->yColumn(), data.parent);
+      auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
+
+      ModelIndex xInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yInd(plot, data.row, plot_->yColumn(), data.parent);
 
       bool ok1, ok2;
 
@@ -374,7 +378,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      CQChartsModelIndex valueInd(data.row, plot_->valueColumn(), data.parent);
+      ModelIndex valueInd(plot, data.row, plot_->valueColumn(), data.parent);
 
       bool ok3;
 
@@ -397,7 +401,7 @@ createObjs(PlotObjs &objs) const
     }
 
    private:
-    void addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+    void addDataError(const ModelIndex &ind, const QString &msg) const {
       const_cast<CQChartsDelaunayPlot *>(plot_)->addDataError(ind, msg);
     }
 
@@ -702,10 +706,11 @@ calcId() const
   QString name1;
 
   if (plot_->nameColumn().isValid()) {
+    auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
+
+    ModelIndex nameInd(plot, modelInd().row(), plot_->nameColumn(), modelInd().parent());
+
     bool ok;
-
-    CQChartsModelIndex nameInd(modelInd().row(), plot_->nameColumn(), modelInd().parent());
-
     name1 = plot_->modelString(nameInd, ok);
   }
   else
@@ -724,10 +729,11 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (plot_->nameColumn().isValid()) {
-    CQChartsModelIndex nameInd(modelInd().row(), plot_->nameColumn(), modelInd().parent());
+    auto *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
+
+    ModelIndex nameInd(plot, modelInd().row(), plot_->nameColumn(), modelInd().parent());
 
     bool ok;
-
     QString name = plot_->modelString(nameInd, ok);
 
     if (ok && name.length())

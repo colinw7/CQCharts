@@ -3,6 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + consistent model indices in tcl (-model and object indices)
+ + hide tip columns if not supported
+ + Move dot/graphviz plot to separate plot type (out of sankey)
+ + more common code in connection plot
+ + skip empty for distribution plot filter range
+ + support notip/tip columns in all plots
  + arrow relative position to other object (start/end)
  + support shapes/sides for annotation (which ?)
  + arrow position is shape dependent

@@ -6,6 +6,8 @@
 #include <CQUtil.h>
 #include <QLabel>
 
+using Point = CQChartsGeom::Point;
+
 CQChartsViewToolTip::
 CQChartsViewToolTip(CQChartsView *view) :
  view_(view) {
@@ -59,7 +61,7 @@ showTip(const QPoint &gpos)
 {
   QPoint p = view_->mapFromGlobal(gpos);
 
-  auto wpos = view_->pixelToWindow(CQChartsGeom::Point(p.x(), p.y()));
+  auto wpos = view_->pixelToWindow(Point(p.x(), p.y()));
 
   CQChartsView::Plots plots;
 
@@ -74,7 +76,7 @@ showTip(const QPoint &gpos)
     if (! plot->isVisible())
       continue;
 
-    auto w = plot->pixelToWindow(CQChartsGeom::Point(p));
+    auto w = plot->pixelToWindow(Point(p));
 
     QString tip1;
 
@@ -91,7 +93,7 @@ showTip(const QPoint &gpos)
       auto *key = plot->key();
       if (! key) continue;
 
-      auto w = plot->pixelToWindow(CQChartsGeom::Point(p));
+      auto w = plot->pixelToWindow(Point(p));
 
       if (key->contains(w)) {
         QString tip1;

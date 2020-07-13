@@ -23,6 +23,7 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsModelTypes.h>
+#include <CQChartsModelIndex.h>
 #include <CHRTime.h>
 
 #include <QAbstractItemModel>
@@ -136,6 +137,7 @@ class CQChartsPlot : public CQChartsObj,
   // generic columns and control
   Q_PROPERTY(CQChartsColumn  idColumn       READ idColumn       WRITE setIdColumn      )
   Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
+  Q_PROPERTY(CQChartsColumns noTipColumns   READ noTipColumns   WRITE setNoTipColumns  )
   Q_PROPERTY(CQChartsColumn  visibleColumn  READ visibleColumn  WRITE setVisibleColumn )
   Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
   Q_PROPERTY(CQChartsColumn  fontColumn     READ fontColumn     WRITE setFontColumn    )
@@ -344,7 +346,8 @@ class CQChartsPlot : public CQChartsObj,
   using Obj  = CQChartsObj;
   using Objs = std::vector<Obj *>;
 
-  using ModelIndices = std::vector<QModelIndex>;
+  using QModelIndices  = std::vector<QModelIndex>;
+  using QModelIndexSet = std::set<QModelIndex>;
 
   using Column     = CQChartsColumn;
   using Columns    = CQChartsColumns;
@@ -967,9 +970,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  ModelIndex normalizeIndex(const ModelIndex &ind) const;
+  ModelIndex  normalizeIndex(const ModelIndex &ind) const;
   QModelIndex normalizeIndex(const QModelIndex &ind) const;
 
+  ModelIndex  unnormalizeIndex(const ModelIndex &ind) const;
   QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
 
   void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
@@ -1002,7 +1006,7 @@ class CQChartsPlot : public CQChartsObj,
   QModelIndex modelIndex(const ModelIndex &ind) const;
 
   QModelIndex modelIndex(int row, const Column &column,
-                         const QModelIndex &parent=QModelIndex()) const;
+                         const QModelIndex &parent=QModelIndex(), bool normalized=false) const;
 
   //----
 
@@ -1077,6 +1081,8 @@ class CQChartsPlot : public CQChartsObj,
   QString modelString(int row, const Column &column,
                       const QModelIndex &parent, bool &ok) const;
 
+  QString modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const;
+
   virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
                               const QModelIndex &parent, int role, bool &ok) const;
   virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
@@ -1133,6 +1139,8 @@ class CQChartsPlot : public CQChartsObj,
                                  const QModelIndex &parent, bool &ok) const;
 
   //---
+
+  QVariant modelRootValue(const ModelIndex &ind, int role, bool &ok) const;
 
   QVariant modelRootValue(int row, const Column &column,
                           const QModelIndex &parent, int role, bool &ok) const;
@@ -1626,6 +1634,9 @@ class CQChartsPlot : public CQChartsObj,
   const Columns &tipColumns() const { return tipColumns_; }
   void setTipColumns(const Columns &columns);
 
+  const Columns &noTipColumns() const { return noTipColumns_; }
+  void setNoTipColumns(const Columns &columns);
+
   const Column &visibleColumn() const { return visibleColumn_; }
   void setVisibleColumn(const Column &column);
 
@@ -1787,6 +1798,7 @@ class CQChartsPlot : public CQChartsObj,
   // get tip text at point
   virtual bool tipText(const Point &p, QString &tip) const;
 
+  void addNoTipColumns(CQChartsTableTip &tableTip) const;
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
 
   void resetObjTips();
@@ -2309,7 +2321,7 @@ class CQChartsPlot : public CQChartsObj,
 
   bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                           const QString &separator, QStringList &nameStrs,
-                          ModelIndices &nameInds) const;
+                          QModelIndices &nameInds) const;
 
   //---
 
@@ -2483,7 +2495,13 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void objsAtPoint(const Point &p, Objs &objs) const;
+  enum class Constraints {
+    NONE       = 0,
+    SELECTABLE = (1<<0),
+    EDITABLE   = (1<<1)
+  };
+
+  void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
 
   void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
 
@@ -2494,6 +2512,10 @@ class CQChartsPlot : public CQChartsObj,
   void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
 
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
+
+  //---
+
+  void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  protected:
   //*! update state
@@ -2765,6 +2787,7 @@ class CQChartsPlot : public CQChartsObj,
   Column  yValueColumn_;   //!< y axis value column
   Column  idColumn_;       //!< unique data id column (signalled)
   Columns tipColumns_;     //!< tip columns
+  Columns noTipColumns_;   //!< no tip columns
   Column  visibleColumn_;  //!< visible column
   Column  fontColumn_;     //!< font column
   Column  imageColumn_;    //!< image column

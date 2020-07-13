@@ -54,7 +54,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
  public:
   CQChartsPivotBarObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
-                      const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
+                      const QModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
                       double value);
 
   //---
@@ -112,7 +112,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
   using PivotPlot = CQChartsPivotPlot;
 
  public:
-  CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const ModelIndices &inds,
+  CQChartsPivotLineObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
                        const ColorInd &ig, const Polygon &polygon, const QString &name);
 
   //---
@@ -427,10 +427,10 @@ class CQChartsPivotPlot : public CQChartsPlot,
   //---
 
   virtual BarObj *createBarObj(const BBox &rect, const QModelIndex &ind,
-                               const ModelIndices &inds, const ColorInd &ir,
+                               const QModelIndices &inds, const ColorInd &ir,
                                const ColorInd &ic, double value) const;
 
-  virtual LineObj *createLineObj(const BBox &rect, const ModelIndices &inds,
+  virtual LineObj *createLineObj(const BBox &rect, const QModelIndices &inds,
                                  const ColorInd &ig, const Polygon &polygon,
                                  const QString &name) const;
 

@@ -12,7 +12,9 @@
  */
 class CQChartsPolygon {
  public:
-  using Point = CQChartsGeom::Point;
+  using Polygon = CQChartsGeom::Polygon;
+  using Point   = CQChartsGeom::Point;
+  using Units   = CQChartsUnits;
 
  public:
   static void registerMetaType();
@@ -20,16 +22,15 @@ class CQChartsPolygon {
   static int metaTypeId;
 
  public:
-  CQChartsPolygon(const CQChartsUnits &units, const CQChartsGeom::Polygon &polygon) :
+  CQChartsPolygon(const Units &units, const Polygon &polygon) :
    units_(units), polygon_(polygon) {
   }
 
-  CQChartsPolygon(const CQChartsGeom::Polygon &polygon=CQChartsGeom::Polygon(),
-                  const CQChartsUnits &units=CQChartsUnits::PLOT) :
+  CQChartsPolygon(const Polygon &polygon=Polygon(), const Units &units=Units::PLOT) :
    units_(units), polygon_(polygon) {
   }
 
-  CQChartsPolygon(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
+  CQChartsPolygon(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
   }
 
@@ -52,14 +53,14 @@ class CQChartsPolygon {
 
   //---
 
-  const CQChartsUnits &units() const { return units_; }
-  void setUnits(const CQChartsUnits &units) { units_ = units; }
+  const Units &units() const { return units_; }
+  void setUnits(const Units &units) { units_ = units; }
 
-  bool hasUnits() const { return units_ != CQChartsUnits::NONE; }
+  bool hasUnits() const { return units_ != Units::NONE; }
 
   //---
 
-  const CQChartsGeom::Polygon &polygon() const { return polygon_; }
+  const Polygon &polygon() const { return polygon_; }
 
   int numPoints() const { return polygon_.size(); }
 
@@ -73,14 +74,14 @@ class CQChartsPolygon {
 
   //---
 
-  void setValue(const CQChartsUnits &units, const CQChartsGeom::Polygon &polygon) {
+  void setValue(const Units &units, const Polygon &polygon) {
     units_   = units;
     polygon_ = polygon;
   }
 
-  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
-    CQChartsUnits         units;
-    CQChartsGeom::Polygon polygon;
+  bool setValue(const QString &str, const Units &defUnits=Units::PLOT) {
+    Units   units;
+    Polygon polygon;
 
     if (! decodeString(str, units, polygon, defUnits))
       return false;
@@ -146,13 +147,12 @@ class CQChartsPolygon {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units,
-                           CQChartsGeom::Polygon &polygon,
-                           const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+  static bool decodeString(const QString &str, Units &units, Polygon &polygon,
+                           const Units &defUnits=Units::PLOT);
 
  private:
-  CQChartsUnits         units_ { CQChartsUnits::PIXEL };
-  CQChartsGeom::Polygon polygon_;
+  Units   units_ { Units::PIXEL };
+  Polygon polygon_;
 };
 
 //---

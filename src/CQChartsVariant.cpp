@@ -2,6 +2,11 @@
 
 namespace CQChartsVariant {
 
+using Point   = CQChartsGeom::Point;
+using Size    = CQChartsGeom::Size;
+using BBox    = CQChartsGeom::BBox;
+using Polygon = CQChartsGeom::Polygon;
+
 bool toString(const QVariant &var, QString &str) {
   if (! var.isValid())
     return false;
@@ -20,37 +25,37 @@ bool toString(const QVariant &var, QString &str) {
   else if (var.type() == QVariant::Point) {
     QPoint point = var.value<QPoint>();
 
-    str = CQChartsUtil::pointToString(CQChartsGeom::Point(point));
+    str = CQChartsUtil::pointToString(Point(point));
   }
   else if (var.type() == QVariant::PointF) {
     QPointF point = var.value<QPointF>();
 
-    str = CQChartsUtil::pointToString(CQChartsGeom::Point(point));
+    str = CQChartsUtil::pointToString(Point(point));
   }
   else if (var.type() == QVariant::Size) {
     QSize size = var.value<QSize>();
 
-    str = CQChartsUtil::sizeToString(CQChartsGeom::Size(QSizeF(size)));
+    str = CQChartsUtil::sizeToString(Size(QSizeF(size)));
   }
   else if (var.type() == QVariant::SizeF) {
     QSizeF size = var.value<QSizeF>();
 
-    str = CQChartsUtil::sizeToString(CQChartsGeom::Size(size));
+    str = CQChartsUtil::sizeToString(Size(size));
   }
   else if (var.type() == QVariant::Rect) {
     QRect rect = var.value<QRect>();
 
-    str = CQChartsUtil::bboxToString(CQChartsGeom::BBox(QRectF(rect)));
+    str = CQChartsUtil::bboxToString(BBox(QRectF(rect)));
   }
   else if (var.type() == QVariant::RectF) {
     QRectF rect = var.value<QRectF>();
 
-    str = CQChartsUtil::bboxToString(CQChartsGeom::BBox(rect));
+    str = CQChartsUtil::bboxToString(BBox(rect));
   }
   else if (var.type() == QVariant::PolygonF) {
     QPolygonF poly = var.value<QPolygonF>();
 
-    str = CQChartsUtil::polygonToString(CQChartsGeom::Polygon(poly));
+    str = CQChartsUtil::polygonToString(Polygon(poly));
   }
   else if (var.type() == QVariant::Image) {
     QImage image = var.value<QImage>();
@@ -419,8 +424,8 @@ std::vector<double> toReals(const QVariant &var, bool &ok) {
 
 //---
 
-CQChartsGeom::Point toPoint(const QVariant &var, bool &ok) {
-  CQChartsGeom::Point point;
+Point toPoint(const QVariant &var, bool &ok) {
+  Point point;
 
   ok = false;
 
@@ -433,14 +438,14 @@ CQChartsGeom::Point toPoint(const QVariant &var, bool &ok) {
 
     QPointF p = var.value<QPointF>();
 
-    point = CQChartsGeom::Point(p);
+    point = Point(p);
   }
   else if (var.type() == QVariant::Point) {
     ok = true;
 
     QPoint p = var.value<QPoint>();
 
-    point = CQChartsGeom::Point(p);
+    point = Point(p);
   }
   else if (var.type() == QVariant::UserType) {
     QString str;
@@ -459,14 +464,14 @@ CQChartsGeom::Point toPoint(const QVariant &var, bool &ok) {
   return point;
 }
 
-QVariant fromPoint(const CQChartsGeom::Point &point) {
-  return QVariant::fromValue<CQChartsGeom::Point>(point);
+QVariant fromPoint(const Point &point) {
+  return QVariant::fromValue<Point>(point);
 }
 
 //---
 
-CQChartsGeom::BBox toBBox(const QVariant &var, bool &ok) {
-  CQChartsGeom::BBox bbox;
+BBox toBBox(const QVariant &var, bool &ok) {
+  BBox bbox;
 
   ok = false;
 
@@ -479,14 +484,14 @@ CQChartsGeom::BBox toBBox(const QVariant &var, bool &ok) {
 
     QRectF r = var.value<QRectF>();
 
-    bbox = CQChartsGeom::BBox(r);
+    bbox = BBox(r);
   }
   else if (var.type() == QVariant::Rect) {
     ok = true;
 
     QRect r = var.value<QRect>();
 
-    bbox = CQChartsGeom::BBox(QRectF(r));
+    bbox = BBox(QRectF(r));
   }
   else if (var.type() == QVariant::UserType) {
     QString str;
@@ -505,14 +510,14 @@ CQChartsGeom::BBox toBBox(const QVariant &var, bool &ok) {
   return bbox;
 }
 
-QVariant fromBBox(const CQChartsGeom::BBox &bbox) {
-  return QVariant::fromValue<CQChartsGeom::BBox>(bbox);
+QVariant fromBBox(const BBox &bbox) {
+  return QVariant::fromValue<BBox>(bbox);
 }
 
 //---
 
-CQChartsGeom::Polygon toPolygon(const QVariant &var, bool &ok) {
-  CQChartsGeom::Polygon poly;
+Polygon toPolygon(const QVariant &var, bool &ok) {
+  Polygon poly;
 
   ok = false;
 

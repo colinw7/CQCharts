@@ -4179,9 +4179,7 @@ void
 CQChartsView::
 showMenu(const Point &p)
 {
-  delete popupMenu_;
-
-  popupMenu_ = new QMenu(this);
+  auto *popupMenu = createPopupMenu();
 
   //---
 
@@ -4273,18 +4271,18 @@ showMenu(const Point &p)
   //---
 
   if (hasPlots)
-    addCheckAction(popupMenu_, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
+    addCheckAction(popupMenu, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
 
-  addCheckAction(popupMenu_, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
+  addCheckAction(popupMenu, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
 
   //---
 
   if (hasPlots) {
-    popupMenu_->addSeparator();
+    popupMenu->addSeparator();
 
     //---
 
-    auto *modeMenu = addSubMenu(popupMenu_, "Mode");
+    auto *modeMenu = addSubMenu(popupMenu, "Mode");
 
     auto *modeActionGroup = createActionGroup(modeMenu);
 
@@ -4306,7 +4304,7 @@ showMenu(const Point &p)
   //---
 
   if (hasPlots) {
-    popupMenu_->addSeparator();
+    popupMenu->addSeparator();
 
     //---
 
@@ -4321,32 +4319,32 @@ showMenu(const Point &p)
       auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
       if (annotation || axis || key || title)
-        addAction(popupMenu_, "Edit", SLOT(editObjectSlot()));
+        addAction(popupMenu, "Edit", SLOT(editObjectSlot()));
     }
   }
 
   //---
 
   if (hasPlots) {
-    addCheckAction(popupMenu_, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));
+    addCheckAction(popupMenu, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));
 
     if (! isAutoSize())
-      addAction(popupMenu_, "Resize to View", SLOT(resizeToView()));
+      addAction(popupMenu, "Resize to View", SLOT(resizeToView()));
   }
 
   //---
 
   if (basePlots.size() > 1) {
     if (! isScrolled())
-      addAction(popupMenu_, "Maximize", SLOT(maximizePlotsSlot()));
+      addAction(popupMenu, "Maximize", SLOT(maximizePlotsSlot()));
     else
-      addAction(popupMenu_, "Restore", SLOT(restorePlotsSlot()));
+      addAction(popupMenu, "Restore", SLOT(restorePlotsSlot()));
   }
 
   //---
 
   if (key() && basePlots.size() > 1) {
-    auto *viewKeyMenu = addSubMenu(popupMenu_, "View Key");
+    auto *viewKeyMenu = addSubMenu(popupMenu, "View Key");
 
     addCheckAction(viewKeyMenu, "Visible", key()->isVisible(), SLOT(viewKeyVisibleSlot(bool)));
 
@@ -4403,15 +4401,15 @@ showMenu(const Point &p)
   //---
 
   if (allPlots.size() == 1 && window()) {
-    addCheckAction(popupMenu_, "X Overview", window()->isXRangeMap(), SLOT(xRangeMapSlot(bool)));
-    addCheckAction(popupMenu_, "Y Overview", window()->isYRangeMap(), SLOT(yRangeMapSlot(bool)));
+    addCheckAction(popupMenu, "X Overview", window()->isXRangeMap(), SLOT(xRangeMapSlot(bool)));
+    addCheckAction(popupMenu, "Y Overview", window()->isYRangeMap(), SLOT(yRangeMapSlot(bool)));
   }
 
   //---
 
   // Add plots
   if (allPlots.size() > 1) {
-    auto *plotsMenu = addSubMenu(popupMenu_, "Plots");
+    auto *plotsMenu = addSubMenu(popupMenu, "Plots");
 
     auto *plotsGroup = createActionGroup(plotsMenu);
 
@@ -4435,7 +4433,7 @@ showMenu(const Point &p)
   //------
 
   if (plotType && plotType->hasKey()) {
-    auto *plotKeyMenu = addSubMenu(popupMenu_, "Plot Key");
+    auto *plotKeyMenu = addSubMenu(popupMenu, "Plot Key");
 
     //---
 
@@ -4540,7 +4538,7 @@ showMenu(const Point &p)
   if (currentPlot && currentPlot->hasXAxis()) {
     auto *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
 
-    auto *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
+    auto *xAxisMenu = addSubMenu(popupMenu, "X Axis");
 
     //---
 
@@ -4593,7 +4591,7 @@ showMenu(const Point &p)
   if (currentPlot && currentPlot->hasYAxis()) {
     auto *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
 
-    auto *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
+    auto *yAxisMenu = addSubMenu(popupMenu, "Y Axis");
 
     //---
 
@@ -4646,7 +4644,7 @@ showMenu(const Point &p)
   if (plotType && plotType->hasTitle()) {
     auto *title = (basePlot ? basePlot->title() : nullptr);
 
-    auto *titleMenu = addSubMenu(popupMenu_, "Title");
+    auto *titleMenu = addSubMenu(popupMenu, "Title");
 
     auto *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
@@ -4701,8 +4699,8 @@ showMenu(const Point &p)
   //------
 
   if (hasPlots) {
-    auto *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
-    auto *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
+    auto *invertXAction = addCheckAction(popupMenu, "Invert X", false, SLOT(invertXSlot(bool)));
+    auto *invertYAction = addCheckAction(popupMenu, "Invert Y", false, SLOT(invertYSlot(bool)));
 
     if (basePlot) {
       invertXAction->setChecked(basePlot->isInvertX());
@@ -4713,26 +4711,26 @@ showMenu(const Point &p)
   //------
 
   if (basePlot && basePlot->isTabbed()) {
-    popupMenu_->addSeparator();
+    popupMenu->addSeparator();
 
-    addAction(popupMenu_, "Next", SLOT(nextSlot()));
-    addAction(popupMenu_, "Prev", SLOT(prevSlot()));
+    addAction(popupMenu, "Next", SLOT(nextSlot()));
+    addAction(popupMenu, "Prev", SLOT(prevSlot()));
   }
 
   //---
 
   if (hasPlots) {
-    popupMenu_->addSeparator();
+    popupMenu->addSeparator();
 
-    addAction(popupMenu_, "Fit"      , SLOT(fitSlot()));
-    addAction(popupMenu_, "Zoom Full", SLOT(zoomFullSlot()));
+    addAction(popupMenu, "Fit"      , SLOT(fitSlot()));
+    addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
   }
 
   //---
 
-  popupMenu_->addSeparator();
+  popupMenu->addSeparator();
 
-  auto *themeMenu = addSubMenu(popupMenu_, "Theme");
+  auto *themeMenu = addSubMenu(popupMenu, "Theme");
 
   auto *interfaceGroup = createActionGroup(themeMenu);
   auto *themeGroup     = createActionGroup(themeMenu);
@@ -4792,14 +4790,14 @@ showMenu(const Point &p)
   // add Menus for current plot
 
   if (currentPlot) {
-    if (currentPlot->addMenuItems(popupMenu_))
-      popupMenu_->addSeparator();
+    if (currentPlot->addMenuItems(popupMenu))
+      popupMenu->addSeparator();
   }
 
   //---
 
   if (hasPlots) {
-    auto *printMenu = addSubMenu(popupMenu_, "Print");
+    auto *printMenu = addSubMenu(popupMenu, "Print");
 
     addAction(printMenu, "PNG", SLOT(printPNGSlot()));
     addAction(printMenu, "SVG", SLOT(printSVGSlot()));
@@ -4813,20 +4811,31 @@ showMenu(const Point &p)
   if (hasPlots) {
     if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
       auto *showBoxesAction =
-        addCheckAction(popupMenu_, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
+        addCheckAction(popupMenu, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
       if (basePlot)
         showBoxesAction->setChecked(basePlot->showBoxes());
 
       //---
 
-      addCheckAction(popupMenu_, "Buffer Layers", isBufferLayers(), SLOT(bufferLayersSlot(bool)));
+      addCheckAction(popupMenu, "Buffer Layers", isBufferLayers(), SLOT(bufferLayersSlot(bool)));
     }
   }
 
   //---
 
-  popupMenu_->popup(mapToGlobal(p.qpointi()));
+  popupMenu->popup(mapToGlobal(p.qpointi()));
+}
+
+QMenu *
+CQChartsView::
+createPopupMenu()
+{
+  delete popupMenu_;
+
+  popupMenu_ = new QMenu(this);
+
+  return popupMenu_;
 }
 
 //------
@@ -6555,8 +6564,8 @@ positionToView(const CQChartsPosition &pos) const
   else if (pos.units() == CQChartsUnits::VIEW)
     p1 = p;
   else if (pos.units() == CQChartsUnits::PERCENT) {
-    p1.setX(p.getX()*width ()/100.0);
-    p1.setY(p.getY()*height()/100.0);
+    p1.setX(p.getX()*viewportRange()/100.0);
+    p1.setY(p.getY()*viewportRange()/100.0);
   }
   else if (pos.units() == CQChartsUnits::EM) {
     double x = pixelToWindowWidth (p.getX()*fontEm());
@@ -6619,10 +6628,10 @@ rectToView(const CQChartsRect &rect) const
   else if (rect.units() == CQChartsUnits::VIEW)
     r1 = r;
   else if (rect.units() == CQChartsUnits::PERCENT) {
-    r1.setXMin(r.getXMin()*width ()/100.0);
-    r1.setYMin(r.getYMin()*height()/100.0);
-    r1.setXMax(r.getXMax()*width ()/100.0);
-    r1.setYMax(r.getYMax()*height()/100.0);
+    r1.setXMin(r.getXMin()*viewportRange()/100.0);
+    r1.setYMin(r.getYMin()*viewportRange()/100.0);
+    r1.setXMax(r.getXMax()*viewportRange()/100.0);
+    r1.setYMax(r.getYMax()*viewportRange()/100.0);
   }
   else if (rect.units() == CQChartsUnits::EM) {
     double x1 = pixelToWindowWidth (r.getXMin()*fontEm());

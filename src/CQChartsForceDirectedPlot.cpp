@@ -404,11 +404,7 @@ initHierObjs() const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::initHierObjs");
 
-  //---
-
-  CQChartsConnectionPlot::initHierObjs();
-
-  return true;
+  return CQChartsConnectionPlot::initHierObjs();
 }
 
 void
@@ -437,10 +433,9 @@ initHierObjsAddLeafConnection(const HierConnectionData &srcHierData,
 
 void
 CQChartsForceDirectedPlot::
-initHierObjsAddConnection(const QString &srcStr, const CQChartsModelIndex &srcLinkInd,
-                          double srcTotal,
-                          const QString &destStr, const CQChartsModelIndex &destLinkInd,
-                          double destTotal, int depth) const
+initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, double srcTotal,
+                          const QString &destStr, const ModelIndex &destLinkInd, double destTotal,
+                          int depth) const
 {
   assert(destTotal > 0.0);
 
@@ -724,11 +719,13 @@ initLinkConnectionObjs() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      auto *plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
+
       // Get group value
       int group = data.row;
 
       if (plot_->groupColumn().isValid()) {
-        CQChartsModelIndex groupModelInd(data.row, plot_->groupColumn(), data.parent);
+        ModelIndex groupModelInd(plot, data.row, plot_->groupColumn(), data.parent);
 
         bool ok1;
         group = (int) plot_->modelInteger(groupModelInd, ok1);
@@ -776,7 +773,7 @@ initLinkConnectionObjs() const
     }
 
    private:
-    State addDataError(const CQChartsModelIndex &ind, const QString &msg) const {
+    State addDataError(const ModelIndex &ind, const QString &msg) const {
       const_cast<CQChartsForceDirectedPlot *>(plot_)->addDataError(ind , msg);
       return State::SKIP;
     }
@@ -803,7 +800,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
   //---
 
   // Get link value
-  CQChartsModelIndex linkModelInd(data.row, linkColumn(), data.parent);
+  ModelIndex linkModelInd(th, data.row, linkColumn(), data.parent);
 
   CQChartsNamePair namePair;
 
@@ -828,7 +825,7 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
   //---
 
   // Get value value
-  CQChartsModelIndex valueModelInd(data.row, valueColumn(), data.parent);
+  ModelIndex valueModelInd(th, data.row, valueColumn(), data.parent);
 
   bool ok1;
   value = modelReal(valueModelInd, ok1);
@@ -865,12 +862,12 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   // get optional node id (default to row)
-  CQChartsModelIndex nodeModelInd;
+  ModelIndex nodeModelInd;
 
   int id = data.row;
 
   if (nodeColumn().isValid()) {
-    nodeModelInd = CQChartsModelIndex(data.row, nodeColumn(), data.parent);
+    nodeModelInd = ModelIndex(th, data.row, nodeColumn(), data.parent);
 
     bool ok2;
     id = (int) modelInteger(nodeModelInd, ok2);
@@ -898,7 +895,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   // get connections
   CQChartsConnectionList::Connections connections;
 
-  CQChartsModelIndex connectionsModelInd(data.row, connectionsColumn(), data.parent);
+  ModelIndex connectionsModelInd(th, data.row, connectionsColumn(), data.parent);
 
   if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
     bool ok3;
@@ -929,7 +926,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   QString name = QString("%1").arg(id);
 
   if (nameColumn().isValid()) {
-    CQChartsModelIndex nameModelInd(data.row, nameColumn(), data.parent);
+    ModelIndex nameModelInd(th, data.row, nameColumn(), data.parent);
 
     bool ok4;
     name = modelString(nameModelInd, ok4);
@@ -982,7 +979,7 @@ initTableObjs() const
 
     connectionsData.ind   = tableConnectionData.linkInd();
     connectionsData.name  = tableConnectionData.name();
-    connectionsData.group = tableConnectionData.group().i;
+    connectionsData.group = tableConnectionData.group().ig;
 
     // add connections
     for (const auto &value : tableConnectionData.values()) {
@@ -1213,7 +1210,7 @@ tipText(const Point &p, QString &tip) const
   if (! isRunning()) {
     Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));
 
-    CQChartsSpringyNode *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first);
+    auto *node = dynamic_cast<CQChartsSpringyNode *>(nodePoint.first);
     if (! node) return false;
 
     CQChartsTableTip tableTip;
@@ -1336,7 +1333,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   double ym = pixelToWindowHeight(2*r);
 
   for (auto &node : forceDirected_->nodes()) {
-    CQChartsSpringyNode *snode = dynamic_cast<CQChartsSpringyNode *>(node);
+    auto *snode = dynamic_cast<CQChartsSpringyNode *>(node);
 
     double rn  = r;
     double xmn = xm;

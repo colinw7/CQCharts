@@ -291,9 +291,11 @@ calcRange() const
 
       //---
 
+      auto *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
+
       // get x, y value
-      CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-      CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+      ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+      ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
 
       double x, y;
 
@@ -347,12 +349,14 @@ int
 CQChartsHierScatterPlot::
 acceptsRow(int row, const QModelIndex &parent) const
 {
+  auto *th = const_cast<CQChartsHierScatterPlot *>(this);
+
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
     const auto &column = groupValues_.getColumn(i);
 
-    CQChartsModelIndex modelInd(row, column, parent);
+    ModelIndex modelInd(th, row, column, parent);
 
     bool ok;
 
@@ -454,11 +458,13 @@ void
 CQChartsHierScatterPlot::
 addRowGroupValueSets(const ModelVisitor::VisitData &data) const
 {
+  auto *th = const_cast<CQChartsHierScatterPlot *>(this);
+
   for (const auto &groupValueSet : groupValueSets_) {
     auto  groupColumn = groupValueSet.first;
     auto *valueSet    = groupValueSet.second;
 
-    CQChartsModelIndex groupModelInd(data.row, groupColumn, data.parent);
+    ModelIndex groupModelInd(th, data.row, groupColumn, data.parent);
 
     bool ok;
 
@@ -516,9 +522,11 @@ createObjs(PlotObjs &objs) const
 
         //---
 
+        auto *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
+
         // get x, y value
-        CQChartsModelIndex xModelInd(data.row, plot_->xColumn(), data.parent);
-        CQChartsModelIndex yModelInd(data.row, plot_->yColumn(), data.parent);
+        ModelIndex xModelInd(plot, data.row, plot_->xColumn(), data.parent);
+        ModelIndex yModelInd(plot, data.row, plot_->yColumn(), data.parent);
 
         double x, y;
 
@@ -536,7 +544,7 @@ createObjs(PlotObjs &objs) const
         // get optional name
         bool ok;
 
-        CQChartsModelIndex nameModelInd(data.row, plot_->nameColumn(), data.parent);
+        ModelIndex nameModelInd(plot, data.row, plot_->nameColumn(), data.parent);
 
         QString name = plot_->modelString(nameModelInd, ok);
 
@@ -609,6 +617,8 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
   //---
 
+  auto *th = const_cast<CQChartsHierScatterPlot *>(this);
+
   std::vector<GroupData> groupDatas;
 
   for (const auto &groupValue : groupValues_) {
@@ -621,7 +631,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
     if (pv != groupValueSets_.end())
       groupData.valueSet = (*pv).second;
 
-    CQChartsModelIndex groupModelInd(data.row, groupData.column, data.parent);
+    ModelIndex groupModelInd(th, data.row, groupData.column, data.parent);
 
     bool ok3;
 
@@ -649,7 +659,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
   //---
 
-  CQChartsModelIndex xModelInd(data.row, xColumn(), data.parent);
+  ModelIndex xModelInd(th, data.row, xColumn(), data.parent);
 
   QModelIndex xInd  = modelIndex(xModelInd);
   QModelIndex xInd1 = normalizeIndex(xInd);

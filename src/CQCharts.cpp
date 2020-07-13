@@ -15,6 +15,7 @@
 #include <CQChartsEmptyPlot.h>
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
+#include <CQChartsGraphPlot.h>
 #include <CQChartsHierBubblePlot.h>
 #include <CQChartsHierScatterPlot.h>
 #include <CQChartsImagePlot.h>
@@ -34,6 +35,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsFileType.h>
 #include <CQChartsImage.h>
+#include <CQChartsModelIndex.h>
 
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsAngleEdit.h>
@@ -155,6 +157,8 @@ description()
         IMG("images/forcedirected.png")),
      LI("Geometry : General polygon geometry colored by value" +
         IMG("images/geometryplot.png")),
+     LI("Graph : Graph plot of connected values" +
+        IMG("images/graph.png")),
      LI("HierBubble : Hierarchical bubble plot where circle is size of column value" +
         IMG("images/hierbubble.png")),
      LI("Image : Image/regular grid plot (x, y, color)" +
@@ -219,6 +223,8 @@ description()
     p("Force directed connectivity chart").
    h3("Geometry").
     p("General polygon geometry colored by value").
+   h3("Graph").
+    p("Graph plot of connected values").
    h3("HierBubble").
     p("Hierarchical bubble plot where circle is size of column value.").
     p("Hierarchical circles are packed in minimum enclosing circle.").
@@ -288,6 +294,7 @@ CQCharts()
   CQChartsLineDash              ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
+  CQChartsModelIndex            ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
   CQChartsObjRef                ::registerMetaType();
   CQChartsPaletteName           ::registerMetaType();
@@ -378,6 +385,7 @@ init()
   plotTypeMgr_->addType("empty"        , new CQChartsEmptyPlotType        );
   plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
   plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
+  plotTypeMgr_->addType("graph"        , new CQChartsGraphPlotType        );
   plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
   plotTypeMgr_->addType("hierscatter"  , new CQChartsHierScatterPlotType  );
   plotTypeMgr_->addType("image"        , new CQChartsImagePlotType        );

@@ -23,14 +23,10 @@ namespace CQChartsGeom {
  */
 class Point {
  public:
-  Point() { }
+  Point() = default;
 
   Point(double x1, double y1) :
    x(x1), y(y1) {
-  }
-
-  Point(const Point &point) :
-   x(point.x), y(point.y) {
   }
 
   explicit Point(const QPointF &point) :
@@ -42,13 +38,6 @@ class Point {
   }
 
   //---
-
-  Point &operator=(const Point &point) {
-    x = point.x;
-    y = point.y;
-
-    return *this;
-  }
 
   double getX() const { return x; }
   double getY() const { return y; }
@@ -273,7 +262,7 @@ namespace CQChartsGeom {
  */
 class Size {
  public:
-  Size() { }
+  Size() = default;
 
   Size(double w, double h) :
    size_(w, h) {
@@ -315,13 +304,7 @@ namespace CQChartsGeom {
  */
 class BBox {
  public:
-  BBox() :
-   pmin_(), pmax_(), set_(false) {
-  }
-
-  BBox(const BBox &bbox) :
-   pmin_(bbox.pmin_), pmax_(bbox.pmax_), set_(bbox.set_) {
-  }
+  BBox() = default;
 
   explicit BBox(const Point &point) :
    pmin_(point), pmax_(point), set_(true) {
@@ -1020,7 +1003,7 @@ namespace CQChartsGeom {
  */
 class Range {
  public:
-  Range() { }
+  Range() = default;
 
   Range(double x1, double y1, double x2, double y2) :
    set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
@@ -1155,14 +1138,6 @@ class Range {
     }
   }
 
-  Range &operator=(const Range &range) {
-    set_ = range.set_;
-    x1_  = range.x1_; y1_ = range.y1_;
-    x2_  = range.x2_; y2_ = range.y2_;
-
-    return *this;
-  }
-
   friend bool operator==(const Range &lhs, const Range &rhs) {
     if (! lhs.set_ && ! rhs.set_) return true;
     if (! lhs.set_ || ! rhs.set_) return false;
@@ -1256,7 +1231,7 @@ class Polygon {
   using Point = CQChartsGeom::Point;
 
  public:
-  Polygon() { }
+  Polygon() = default;
 
   explicit Polygon(const QPolygonF &qpoly) :
    qpoly_(qpoly) {
@@ -1324,7 +1299,7 @@ namespace CQChartsGeom {
  */
 class Margin {
  public:
-  Margin() { }
+  Margin() = default;
 
   Margin(double l) : l_(l), t_(l), r_(l), b_(l) { }
 
@@ -1366,7 +1341,7 @@ namespace CQChartsGeom {
 template<typename T>
 class MinMax {
  public:
-  MinMax() { }
+  MinMax() = default;
 
   MinMax(const T &t) {
     add(t);
@@ -1432,7 +1407,7 @@ class Matrix {
 
  public:
   // constructor/destructor
-  Matrix() { }
+  Matrix() = default;
 
  ~Matrix() { }
 
@@ -2290,22 +2265,10 @@ namespace CQChartsGeom {
  */
 class Point3D {
  public:
-  Point3D() { }
+  Point3D() = default;
 
   Point3D(double x1, double y1, double z1) :
    x(x1), y(y1), z(z1) {
-  }
-
-  Point3D(const Point3D &point) :
-   x(point.x), y(point.y), z(point.z) {
-  }
-
-  Point3D &operator=(const Point3D &point) {
-    x = point.x;
-    y = point.y;
-    z = point.z;
-
-    return *this;
   }
 
   //---
@@ -2356,7 +2319,7 @@ class Point3D {
 
 class Range3D {
  public:
-  Range3D() { }
+  Range3D() = default;
 
   Range3D(double x1, double y1, double z1, double x2, double y2, double z2) :
    set_(true), x1_(x1), y1_(y1), z1_(z1), x2_(x2), y2_(y2), z2_(z2) {
@@ -2409,7 +2372,7 @@ class Polygon3D {
   using Points = std::vector<Point3D>;
 
  public:
-  Polygon3D() { }
+  Polygon3D() = default;
 
   const Points &points() const { return points_; }
 

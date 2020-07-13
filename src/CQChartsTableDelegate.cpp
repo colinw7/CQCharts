@@ -18,17 +18,30 @@
 
 CQChartsTableDelegate::
 CQChartsTableDelegate(CQChartsTable *table) :
- table_(table) {
+ table_(table)
+{
+  init();
 }
 
 CQChartsTableDelegate::
 CQChartsTableDelegate(CQChartsTree *tree) :
- tree_(tree) {
+ tree_(tree)
+{
+  init();
 }
 
 CQChartsTableDelegate::
 CQChartsTableDelegate(CQChartsModelView *view) :
- view_(view) {
+ view_(view)
+{
+  init();
+}
+
+void
+CQChartsTableDelegate::
+init()
+{
+  //setClipping(false);
 }
 
 void
