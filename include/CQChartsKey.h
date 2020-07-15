@@ -633,6 +633,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
  public:
   using RangeValue = CQChartsGeom::RangeValue;
   using Color      = CQChartsColor;
+  using Alpha      = CQChartsAlpha;
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,

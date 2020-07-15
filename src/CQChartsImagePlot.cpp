@@ -78,7 +78,7 @@ CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
 
   addTitle();
 
-  setCellFillColor     (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setCellFillColor     (Color(Color::Type::PALETTE));
   setCellStroked       (false);
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   setXLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);

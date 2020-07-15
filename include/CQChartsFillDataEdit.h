@@ -7,6 +7,7 @@
 class CQChartsFillDataEdit;
 class CQChartsPlot;
 class CQChartsView;
+class CQDragLabel;
 
 /*!
  * \brief Fill Data line edit
@@ -84,12 +85,15 @@ class CQChartsFillDataEdit : public CQChartsEditBase {
  private slots:
   void widgetsToData();
 
+  void alphaDragValueChanged(double);
+
  private:
   CQChartsPlot*                plot_        { nullptr }; //!< parent plot
   CQChartsView*                view_        { nullptr }; //!< parent view
   CQChartsFillData             data_;                    //!< fill data
   CQGroupBox*                  groupBox_    { nullptr }; //!< group box
   CQChartsColorLineEdit*       colorEdit_   { nullptr }; //!< color edit
+  CQDragLabel*                 alphaLabel_  { nullptr }; //!< alpha edit
   CQChartsAlphaEdit*           alphaEdit_   { nullptr }; //!< alpha edit
   CQChartsFillPatternLineEdit* patternEdit_ { nullptr }; //!< pattern edit
   CQChartsFillDataEditPreview* preview_     { nullptr }; //!< preview widget

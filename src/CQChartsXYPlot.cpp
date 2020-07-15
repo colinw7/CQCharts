@@ -189,7 +189,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsXYPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsXYPlot(view, model);
 }
@@ -197,7 +197,7 @@ create(CQChartsView *view, const ModelP &model) const
 //---
 
 CQChartsXYPlot::
-CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
+CQChartsXYPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("xy"), model),
  CQChartsObjLineData         <CQChartsXYPlot>(this),
  CQChartsObjPointData        <CQChartsXYPlot>(this),
@@ -212,15 +212,15 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   setImpulseLines  (false);
   setBivariateLines(false);
 
-  setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setLinesColor(Color(Color::Type::PALETTE));
 
-  setImpulseLinesColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
-  setBivariateLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setImpulseLinesColor  (Color(Color::Type::PALETTE));
+  setBivariateLinesColor(Color(Color::Type::PALETTE));
 
   setLines (true);
   setPoints(false);
 
-  setLinesWidth(CQChartsLength("3px"));
+  setLinesWidth(Length("3px"));
 
   //---
 
@@ -234,8 +234,8 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   //---
 
   setFillUnderFilled   (false);
-  setFillUnderFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setFillUnderFillAlpha(CQChartsAlpha(0.5));
+  setFillUnderFillColor(Color(Color::Type::PALETTE));
+  setFillUnderFillAlpha(Alpha(0.5));
 
   //---
 
@@ -256,21 +256,21 @@ CQChartsXYPlot::
 
 void
 CQChartsXYPlot::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
-setYColumns(const CQChartsColumns &c)
+setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
-setLabelColumn(const CQChartsColumn &c)
+setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -279,14 +279,14 @@ setLabelColumn(const CQChartsColumn &c)
 
 void
 CQChartsXYPlot::
-setVectorXColumn(const CQChartsColumn &c)
+setVectorXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
-setVectorYColumn(const CQChartsColumn &c)
+setVectorYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -399,6 +399,15 @@ setRoundedLines(bool b)
 
 void
 CQChartsXYPlot::
+setKeyLine(bool b)
+{
+  CQChartsUtil::testAndSet(keyLine_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
 setFillUnderSelectable(bool b)
 {
   CQChartsUtil::testAndSet(fillUnderData_.selectable, b, [&]() { drawObjs(); } );
@@ -482,6 +491,10 @@ addProperties()
   addProp("lines", "roundedLines"   , "rounded"   , "Smooth lines");
 
   addLineProperties("lines/stroke", "lines", "Lines");
+
+  //---
+
+  addProp("key", "keyLine", "drawLine", "Draw lines on key");
 
   //---
 
@@ -580,8 +593,11 @@ addProperties()
 
 QColor
 CQChartsXYPlot::
-interpPaletteColor(const ColorInd &ind, bool scale) const
+interpColor(const Color &c, const ColorInd &ind) const
 {
+  if (c.type() != Color::Type::PALETTE)
+    return CQChartsPlot::interpColor(c, ind);
+
   if (isOverlay()) {
     int i = ind.i;
     int n = ind.n;
@@ -604,10 +620,10 @@ interpPaletteColor(const ColorInd &ind, bool scale) const
       plot1 = plot1->prevPlot();
     }
 
-    return CQChartsPlot::interpPaletteColor(ColorInd(i, n), scale);
+    return view()->interpPaletteColor(ColorInd(i, n), c.isScale());
   }
   else {
-    return CQChartsPlot::interpPaletteColor(ind, scale);
+    return view()->interpPaletteColor(ind, c.isScale());
   }
 }
 
@@ -642,7 +658,7 @@ calcRange() const
 
   //---
 
-  initGroupData(CQChartsColumns(), CQChartsColumn());
+  initGroupData(Columns(), Column());
 
   //---
 
@@ -770,13 +786,12 @@ initAxes()
   //---
 
   // set x axis column and name
-  CQChartsColumn xAxisColumn;
+  Column xAxisColumn;
 
   if (! isColumnSeries())
     xAxisColumn = xColumn();
   else {
-    xAxisColumn =
-      CQChartsColumn(CQChartsColumn::Type::HHEADER, yColumns().getColumn(0).column(), "");
+    xAxisColumn = Column(Column::Type::HHEADER, yColumns().getColumn(0).column(), "");
   }
 
   if (isOverlay()) {
@@ -891,7 +906,7 @@ yColumnName(QString &name, const QString &def, bool tip) const
     if (! name.length()) {
       auto yColumn1 = yColumns().getColumn(0);
 
-      CQChartsColumn yColumn2;
+      Column yColumn2;
 
       if (ns > 1)
         yColumn2 = yColumns().getColumn(1);
@@ -1319,7 +1334,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
     if (! name.length()) {
       auto yColumn1 = yColumns().getColumn(0);
 
-      CQChartsColumn yColumn2;
+      Column yColumn2;
 
       if (yColumns().count() > 1)
         yColumn2 = yColumns().getColumn(1);
@@ -1592,11 +1607,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // get symbol size (needed for bounding box)
-        CQChartsLength symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize(CQChartsUnits::NONE, 0.0);
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(ip, xind1.parent(), symbolSize))
-            symbolSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
+            symbolSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
         double sx, sy;
@@ -1613,7 +1628,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         auto *pointObj = th->createPointObj(groupInd, bbox, p, is1, ig, iv1);
 
-        pointObj->setModelInd(xind1);
+        if (xind1.isValid())
+          pointObj->setModelInd(xind1);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
@@ -1638,11 +1654,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional font size
-        CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize(CQChartsUnits::NONE, 0.0);
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(ip, xind1.parent(), fontSize))
-            fontSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
+            fontSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
         if (fontSize.isValid())
@@ -1651,11 +1667,11 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         //---
 
         // set optional symbol fill color
-        CQChartsColor symbolColor(CQChartsColor::Type::NONE);
+        Color symbolColor(Color::Type::NONE);
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(ip, xind1.parent(), symbolColor))
-            symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
+            symbolColor = Color(Color::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -2148,7 +2164,7 @@ addKeyItems(CQChartsPlotKey *key)
     if (! name.length()) {
       auto yColumn1 = yColumns().getColumn(0);
 
-      CQChartsColumn yColumn2;
+      Column yColumn2;
 
       if (ns > 1)
         yColumn2 = yColumns().getColumn(1);
@@ -2821,7 +2837,7 @@ CQChartsColor
 CQChartsXYPointObj::
 color() const
 {
-  CQChartsColor color;
+  Color color;
 
   if (extraData())
     color = extraData()->color;
@@ -3077,43 +3093,22 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  ColorInd ic;
-
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    // default for xy is set or group color (not value color !!)
-    if      (is_.n > 1)
-      ic = is_;
-    else if (ig_.n > 1)
-      ic = ig_;
-  }
-  else
-    ic = calcColorInd();
-
-  //---
-
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  plot()->setSymbolPenBrush(penBrush, ic);
+  bool updateState = device->isInteractive();
 
-  // override symbol fill color for custom color
-  auto color = this->color();
+  calcPenBrush(penBrush, updateState);
 
-  if (color.isValid()) {
-    QColor c = plot()->interpColor(color, ic);
-
-    c.setAlphaF(plot_->symbolFillAlpha().value());
-
-    penBrush.brush.setColor(c);
-  }
-
-  plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  //---
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   if (isVisible()) {
+    device->setColorNames();
+
     // override symbol type for custom symbol
     auto symbolType = this->symbolType();
     auto symbolSize = this->symbolSize();
@@ -3136,6 +3131,8 @@ draw(CQChartsPaintDevice *device)
 
       device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
     }
+
+    device->resetColorNames();
   }
 
   //---
@@ -3148,6 +3145,42 @@ draw(CQChartsPaintDevice *device)
 
     plot()->drawArrow(device, p1, p2);
   }
+}
+
+void
+CQChartsXYPointObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    // default for xy is set or group color (not value color !!)
+    if      (is_.n > 1)
+      ic = is_;
+    else if (ig_.n > 1)
+      ic = ig_;
+  }
+  else
+    ic = calcColorInd();
+
+  //---
+
+  // calc pen and brush
+  plot()->setSymbolPenBrush(penBrush, ic);
+
+  // override symbol fill color for custom color
+  auto color = this->color();
+
+  if (color.isValid()) {
+    QColor c = plot()->interpColor(color, ic);
+
+    c.setAlphaF(plot_->symbolFillAlpha().value());
+
+    penBrush.brush.setColor(c);
+  }
+
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 //------
@@ -3896,6 +3929,172 @@ doSelect(CQChartsSelMod selMod)
   key_->redraw(/*wait*/ true);
 }
 
+void
+CQChartsXYKeyColor::
+draw(CQChartsPaintDevice *device, const BBox &rect) const
+{
+  if (plot()->isKeyLine())
+    drawLine(device, rect);
+  else
+    CQChartsKeyColorBox::draw(device, rect);
+}
+
+void
+CQChartsXYKeyColor::
+drawLine(CQChartsPaintDevice *device, const BBox &rect) const
+{
+  device->save();
+
+  auto *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
+
+  //auto *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
+  //if (! xyKeyPlot) xyKeyPlot = plot();
+
+  auto prect = keyPlot->windowToPixel(rect);
+
+  bool swapped;
+  auto pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
+  if (swapped) return;
+
+  device->setClipRect(keyPlot->pixelToWindow(pbbox1), Qt::IntersectClip);
+
+  QColor hideBg;
+  Alpha  hideAlpha;
+
+  if (plot()->isSetHidden(ic_.i)) {
+    hideBg    = key_->interpBgColor();
+    hideAlpha = key_->hiddenAlpha();
+  }
+
+  if (plot()->isFillUnderFilled()) {
+    CQChartsPenBrush fillPenBrush;
+
+    QColor fillColor = plot()->interpFillUnderFillColor(ic_);
+
+    plot()->setPenBrush(fillPenBrush,
+      CQChartsPenData  (false),
+      CQChartsBrushData(true, fillColor, plot()->fillUnderFillAlpha(),
+                        plot()->fillUnderFillPattern()));
+
+    double x1 = prect.getXMin() + 4;
+    double x2 = prect.getXMax() - 4;
+    double y1 = prect.getYMin() + 4;
+    double y2 = prect.getYMax() - 4;
+
+    if (isInside())
+      fillPenBrush.brush.setColor(plot()->insideColor(fillPenBrush.brush.color()));
+
+    CQChartsDrawUtil::setPenBrush(device, fillPenBrush);
+
+    BBox pbbox1(x1, y1, x2, y2);
+
+    device->fillRect(pbbox1);
+  }
+
+  if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
+    double x1 = prect.getXMin() + 4;
+    double x2 = prect.getXMax() - 4;
+    double y  = prect.getYMid();
+
+    CQChartsPenBrush linePenBrush;
+
+    if      (plot()->isLines()) {
+      QColor lineColor = plot()->interpLinesColor(ic_);
+
+      if (plot()->isSetHidden(ic_.i))
+        lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
+
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, lineColor, plot()->linesAlpha(),
+                          plot()->linesWidth(), plot()->linesDash()),
+        CQChartsBrushData(false));
+    }
+    else if (plot()->isBestFit()) {
+      QColor fitColor = plot()->interpBestFitStrokeColor(ic_);
+
+      if (plot()->isSetHidden(ic_.i))
+        fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
+
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, fitColor, plot()->bestFitStrokeAlpha(),
+                          plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash()),
+        CQChartsBrushData(false));
+    }
+    else {
+      QColor impulseColor = plot()->interpImpulseLinesColor(ic_);
+
+      if (plot()->isSetHidden(ic_.i))
+        impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
+
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, impulseColor, plot()->impulseLinesAlpha(),
+                          plot()->impulseLinesWidth(), plot()->impulseLinesDash()),
+        CQChartsBrushData(false));
+    }
+
+    linePenBrush.brush = QBrush(Qt::NoBrush);
+
+    auto *obj = plotObj();
+
+    if (obj)
+      plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
+
+    if (isInside())
+      linePenBrush.pen = plot()->insideColor(linePenBrush.pen.color());
+
+    device->setPen(linePenBrush.pen);
+
+    device->drawLine(device->pixelToWindow(Point(x1, y)), device->pixelToWindow(Point(x2, y)));
+  }
+
+  if (plot()->isPoints()) {
+    double dx = keyPlot->pixelToWindowWidth(4);
+
+    double x1 = rect.getXMin() + dx;
+    double x2 = rect.getXMax() - dx;
+    double y  = rect.getYMid();
+
+    auto p1 = keyPlot->windowToPixel(Point(x1, y));
+    auto p2 = keyPlot->windowToPixel(Point(x2, y));
+
+    //---
+
+    QColor pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
+    QColor pointFillColor   = plot()->interpSymbolFillColor  (ic_);
+
+    if (plot()->isSetHidden(ic_.i)) {
+      pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, hideBg, hideAlpha);
+      pointFillColor   = CQChartsUtil::blendColors(pointFillColor  , hideBg, hideAlpha);
+    }
+
+    //---
+
+    CQChartsPenBrush penBrush;
+
+    plot()->setPenBrush(penBrush,
+      CQChartsPenData  (plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
+                        plot()->symbolStrokeWidth(), plot()->symbolStrokeDash()),
+      CQChartsBrushData(plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),
+                        plot()->symbolFillPattern()));
+
+    auto *obj = plotObj();
+
+    if (obj)
+      plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
+
+    //---
+
+    auto symbolType = plot()->symbolType();
+    auto symbolSize = plot()->symbolSize();
+
+    Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
+
+    plot()->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+  }
+
+  device->restore();
+}
+
 QBrush
 CQChartsXYKeyColor::
 fillBrush() const
@@ -3903,7 +4102,7 @@ fillBrush() const
   CQChartsPenBrush penBrush;
 
   QColor              c;
-  CQChartsAlpha       alpha;
+  Alpha               alpha;
   CQChartsFillPattern pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot()->isBivariateLines()) {
@@ -4023,8 +4222,8 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
   device->setClipRect(pbbox1, Qt::IntersectClip);
 
-  QColor        hideBg;
-  CQChartsAlpha hideAlpha;
+  QColor hideBg;
+  Alpha  hideAlpha;
 
   if (plot()->isSetHidden(ic_.i)) {
     hideBg    = key_->interpBgColor();
@@ -4032,12 +4231,14 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
   }
 
   if (plot()->isFillUnderFilled()) {
-    QBrush fillBrush;
+    CQChartsPenBrush fillPenBrush;
 
     QColor fillColor = plot()->interpFillUnderFillColor(ic_);
 
-    plot()->setBrush(fillBrush, true, fillColor, plot()->fillUnderFillAlpha(),
-                     plot()->fillUnderFillPattern());
+    plot()->setPenBrush(fillPenBrush,
+      CQChartsPenData  (false),
+      CQChartsBrushData(true, fillColor, plot()->fillUnderFillAlpha(),
+                        plot()->fillUnderFillPattern()));
 
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
@@ -4045,11 +4246,13 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
     double y2 = prect.getYMax() - 4;
 
     if (isInside())
-      fillBrush.setColor(plot()->insideColor(fillBrush.color()));
+      fillPenBrush.brush.setColor(plot()->insideColor(fillPenBrush.brush.color()));
+
+    CQChartsDrawUtil::setPenBrush(device, fillPenBrush);
 
     BBox pbbox1(x1, y1, x2, y2);
 
-    device->fillRect(pbbox1, fillBrush);
+    device->fillRect(pbbox1);
   }
 
   if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
@@ -4065,8 +4268,10 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePenBrush.pen, true, lineColor, plot()->linesAlpha(),
-                     plot()->linesWidth(), plot()->linesDash());
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, lineColor, plot()->linesAlpha(),
+                          plot()->linesWidth(), plot()->linesDash());
+        CQChartsBrushData(false));
     }
     else if (plot()->isBestFit()) {
       QColor fitColor = plot()->interpBestFitStrokeColor(ic_);
@@ -4074,8 +4279,10 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePenBrush.pen, true, fitColor, plot()->bestFitStrokeAlpha(),
-                     plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, fitColor, plot()->bestFitStrokeAlpha(),
+                          plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
+        CQChartsBrushData(false));
     }
     else {
       QColor impulseColor = plot()->interpImpulseLinesColor(ic_);
@@ -4083,8 +4290,10 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePenBrush.pen, true, impulseColor, plot()->impulseLinesAlpha(),
-                     plot()->impulseLinesWidth(), plot()->impulseLinesDash());
+      plot()->setPenBrush(linePenBrush,
+        CQChartsPenData  (true, impulseColor, plot()->impulseLinesAlpha(),
+                          plot()->impulseLinesWidth(), plot()->impulseLinesDash());
+        CQChartsBrushData(false));
     }
 
     linePenBrush.brush = QBrush(Qt::NoBrush);

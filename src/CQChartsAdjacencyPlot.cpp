@@ -103,15 +103,15 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
+  setBackgroundFillColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
 
-  setStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setStrokeColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
   setStrokeAlpha(CQChartsAlpha(0.5));
 
-  setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
-  setEmptyCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
+  setEmptyCellFillColor  (Color(Color::Type::INTERFACE_VALUE, 0.1));
+  setEmptyCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
 
   setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
 

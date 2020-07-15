@@ -11323,7 +11323,13 @@ QColor
 CQChartsPlot::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  return view()->interpPaletteColor(ind, scale);
+  Color c(Color::Type::PALETTE);
+
+  c.setScale(scale);
+
+  return interpColor(c, ind);
+
+  //return view()->interpPaletteColor(ind, scale);
 }
 
 QColor
@@ -11364,10 +11370,10 @@ QColor
 CQChartsPlot::
 interpColor(const Color &c, const ColorInd &ind) const
 {
-  if (! defaultPalette_.isValid())
-    return view()->interpColor(c, ind);
+  Color c1 = c;
 
-  Color c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
+  if (defaultPalette_.isValid())
+    c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
 
   return view()->interpColor(c1, ind);
 }

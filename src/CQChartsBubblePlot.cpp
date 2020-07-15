@@ -84,7 +84,7 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
 
   setStroked(true);
   setFilled (true);
@@ -92,7 +92,7 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
   setTextContrast(true);
   setTextFontSize(12.0);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
   setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
                                     Length("4px"), Length("4px")));
@@ -539,7 +539,7 @@ loadModel() const
       auto *node = plot_->addNode(parentHier(data), name, size, nameInd1);
 
       if (node) {
-        CQChartsColor color;
+        Color color;
 
         if (plot_->colorColumnColor(data.row, data.parent, color))
           node->setColor(color);

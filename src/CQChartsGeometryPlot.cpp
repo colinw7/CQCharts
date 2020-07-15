@@ -156,7 +156,7 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 
   dataLabel_ = new CQChartsDataLabel(this);
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
 
   setFilled (true);
   setStroked(true);
@@ -563,7 +563,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     ModelIndex colorInd(th, data.row, colorColumn(), data.parent);
 
     if (colorColumnType_ == ColumnType::COLOR) {
-      CQChartsColor c;
+      Color c;
 
       if (colorColumnColor(data.row, data.parent, c))
         geometry.color = c;
@@ -574,7 +574,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       QString str = modelString(colorInd, ok4);
 
       if (ok4)
-        geometry.color = CQChartsColor(str);
+        geometry.color = Color(str);
     }
   }
 

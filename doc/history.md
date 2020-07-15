@@ -1153,3 +1153,5 @@
 # 07/12/2020
  + Add Graph Plot
  + Cleanup duplicate connection plot code
+# 07/14/2020
+ + Update interpColor virtual for plots (fix for xy overlay colors)

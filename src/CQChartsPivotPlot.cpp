@@ -92,7 +92,7 @@ CQChartsPivotPlot(CQChartsView *view, const ModelP &model) :
   //---
 
   setBarFilled   (true);
-  setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBarFillColor(Color(Color::Type::PALETTE));
 
   setBarStroked(true);
 
@@ -1548,7 +1548,7 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const BBox &rect, const QMod
     color_ = columnDetails->tableDrawColor();
 
   if (! color_.isValid())
-    color_ = CQChartsColor(CQChartsColor::Type::PALETTE);
+    color_ = Color(Color::Type::PALETTE);
 }
 
 QString

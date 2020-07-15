@@ -119,13 +119,13 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setLinesColor(Color(Color::Type::PALETTE));
 
   setPoints(true);
 
   setSymbolStrokeAlpha(CQChartsAlpha(0.25));
   setSymbolFilled     (true);
-  setSymbolFillColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolFillColor  (Color(Color::Type::PALETTE));
   setSymbolFillAlpha  (CQChartsAlpha(0.5));
 
   masterAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);

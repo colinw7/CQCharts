@@ -90,7 +90,7 @@ CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model) :
 
   addTitle();
 
-  setCellFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setCellFillColor(Color(Color::Type::PALETTE));
 
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 

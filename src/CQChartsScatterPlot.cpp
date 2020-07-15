@@ -120,7 +120,7 @@ create(CQChartsView *view, const ModelP &model) const
 //---
 
 CQChartsScatterPlot::
-CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
+CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("scatter"), model),
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
  CQChartsObjRugPointData     <CQChartsScatterPlot>(this),
@@ -133,14 +133,14 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setSymbolType(CQChartsSymbol::Type::CIRCLE);
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolFillColor(Color(Color::Type::PALETTE));
 
   setRugSymbolType(CQChartsSymbol::Type::NONE);
-  setRugSymbolSize(CQChartsLength("5px"));
+  setRugSymbolSize(Length("5px"));
 
   setGridCellFilled (true);
   setGridCellStroked(true);
-  setGridCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
+  setGridCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.1));
 
   setDataClip(false);
 
@@ -376,7 +376,7 @@ setYDensitySide(const XSide &s)
 
 void
 CQChartsScatterPlot::
-setDensityWidth(const CQChartsLength &l)
+setDensityWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(axisDensityData_.width, l, [&]() { drawObjs(); } );
 }
@@ -443,14 +443,14 @@ setYWhiskerSide(const XSide &s)
 
 void
 CQChartsScatterPlot::
-setWhiskerWidth(const CQChartsLength &l)
+setWhiskerWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(axisWhiskerData_.width, l, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
-setWhiskerMargin(const CQChartsLength &l)
+setWhiskerMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(axisWhiskerData_.margin, l, [&]() { drawObjs(); } );
 }
@@ -1084,11 +1084,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // get symbol size (needed for bounding box)
-        CQChartsLength symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize(CQChartsUnits::NONE, 0.0);
 
         if (symbolSizeColumn().isValid()) {
           if (! columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize))
-            symbolSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
+            symbolSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
         double sx, sy;
@@ -1131,11 +1131,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional font size
-        CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize(CQChartsUnits::NONE, 0.0);
 
         if (fontSizeColumn().isValid()) {
           if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize))
-            fontSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
+            fontSize = Length(CQChartsUnits::NONE, 0.0);
         }
 
         if (fontSize.isValid())
@@ -1154,11 +1154,11 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // set optional symbol fill color
-        CQChartsColor symbolColor(CQChartsColor::Type::NONE);
+        Color symbolColor(Color::Type::NONE);
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
-            symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
+            symbolColor = Color(Color::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -1496,7 +1496,7 @@ addNameValues() const
       //---
 
       // get symbol type, size, font size and color
-      CQChartsColor color;
+      Color color;
 
       // get color label (needed if not string ?)
       if (plot_->colorColumn().isValid()) {
@@ -1550,7 +1550,7 @@ addNameValues() const
 void
 CQChartsScatterPlot::
 addNameValue(int groupInd, const QString &name, const Point &p, int row,
-             const QModelIndex &xind, const CQChartsColor &color)
+             const QModelIndex &xind, const Color &color)
 {
   if      (isGridCells()) {
     auto pi = groupNameGridData_.find(groupInd);
@@ -1698,7 +1698,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           double r = CMathUtil::map(groupInd, colorColumnData_.data_min, colorColumnData_.data_max,
                                     colorMapMin(), colorMapMax());
 
-          auto color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+          auto color = Color(Color::Type::PALETTE_VALUE, r);
 
           if (color.isValid())
             colorItem->setColor(color);
@@ -1734,7 +1734,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           if (nv > 0) {
             const ValueData &valuePoint = values[0];
 
-            CQChartsColor color;
+            Color color;
 
             if (colorColumnColor(valuePoint.row, valuePoint.ind.parent(), color))
               colorItem->setColor(color);
@@ -1986,7 +1986,7 @@ hasBackground() const
 
 void
 CQChartsScatterPlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
@@ -2016,7 +2016,7 @@ hasForeground() const
 
 void
 CQChartsScatterPlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   if (isSymbolMapKey())
     drawSymbolMapKey(device);
@@ -2100,7 +2100,7 @@ initGroupStats(int groupInd) const
 
 void
 CQChartsScatterPlot::
-drawBestFit(CQChartsPaintDevice *device) const
+drawBestFit(PaintDevice *device) const
 {
   // init fit data
   for (const auto &groupNameValue : groupNameValues_) {
@@ -2143,7 +2143,7 @@ drawBestFit(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawStatsLines(CQChartsPaintDevice *device) const
+drawStatsLines(PaintDevice *device) const
 {
   // init stats data
   for (const auto &groupNameValue : groupNameValues_) {
@@ -2225,7 +2225,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawHull(CQChartsPaintDevice *device) const
+drawHull(PaintDevice *device) const
 {
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
@@ -2289,7 +2289,7 @@ drawHull(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawXRug(CQChartsPaintDevice *device) const
+drawXRug(PaintDevice *device) const
 {
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
@@ -2308,7 +2308,7 @@ drawXRug(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawYRug(CQChartsPaintDevice *device) const
+drawYRug(PaintDevice *device) const
 {
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
@@ -2329,7 +2329,7 @@ drawYRug(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawXDensity(CQChartsPaintDevice *device) const
+drawXDensity(PaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2381,7 +2381,7 @@ drawXDensity(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawYDensity(CQChartsPaintDevice *device) const
+drawYDensity(PaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2433,7 +2433,7 @@ drawYDensity(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
+drawXDensityWhisker(PaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
@@ -2468,7 +2468,7 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
 void
 CQChartsScatterPlot::
-drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
+drawYDensityWhisker(PaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
@@ -2503,7 +2503,7 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
 void
 CQChartsScatterPlot::
-drawDensityMap(CQChartsPaintDevice *device) const
+drawDensityMap(PaintDevice *device) const
 {
   device->save();
 
@@ -2555,7 +2555,7 @@ drawDensityMap(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawXWhisker(CQChartsPaintDevice *device) const
+drawXWhisker(PaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2607,7 +2607,7 @@ drawXWhisker(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawYWhisker(CQChartsPaintDevice *device) const
+drawYWhisker(PaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2659,7 +2659,7 @@ drawYWhisker(CQChartsPaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-drawXWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
+drawXWhiskerWhisker(PaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
@@ -2692,7 +2692,7 @@ drawXWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whi
 
 void
 CQChartsScatterPlot::
-drawYWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
+drawYWhiskerWhisker(PaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
@@ -2848,7 +2848,7 @@ initWhiskerData() const
 
 void
 CQChartsScatterPlot::
-drawSymbolMapKey(CQChartsPaintDevice *device) const
+drawSymbolMapKey(PaintDevice *device) const
 {
   if (! symbolSizeColumn().isValid())
     return;
@@ -2936,11 +2936,10 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
-                        const Point &pos, const ColorInd &is, const ColorInd &ig,
-                        const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv),
- plot_(plot), groupInd_(groupInd), pos_(pos)
+CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
+                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv), plot_(plot),
+ groupInd_(groupInd), pos_(pos)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -2980,7 +2979,7 @@ fontSize() const
   if (! fontSize.isValid()) {
     double dataLabelFontSize = plot()->dataLabel()->textFont().pointSizeF();
 
-    fontSize = CQChartsLength(dataLabelFontSize, CQChartsUnits::PIXEL);
+    fontSize = Length(dataLabelFontSize, CQChartsUnits::PIXEL);
   }
 
   return fontSize;
@@ -3061,7 +3060,8 @@ calcTipId() const
     if (plot()->isUniqueX()) {
       auto *columnDetails = plot()->columnDetails(plot()->xColumn());
 
-      xstr = (columnDetails ? columnDetails->uniqueValue(pos_.x).toString() : plot()->xStr(pos_.x));
+      xstr = (columnDetails ? columnDetails->uniqueValue(int(pos_.x)).toString() :
+                              plot()->xStr(pos_.x));
     }
     else
       xstr = plot()->xStr(pos_.x);
@@ -3077,7 +3077,8 @@ calcTipId() const
     if (plot()->isUniqueY()) {
       auto *columnDetails = plot()->columnDetails(plot()->yColumn());
 
-      ystr = (columnDetails ? columnDetails->uniqueValue(pos_.y).toString() : plot()->yStr(pos_.y));
+      ystr = (columnDetails ? columnDetails->uniqueValue(int(pos_.y)).toString() :
+                              plot()->yStr(pos_.y));
     }
     else
       ystr = plot()->yStr(pos_.y);
@@ -3184,14 +3185,14 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsScatterPointObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   drawDir(device, Dir::XY);
 }
 
 void
 CQChartsScatterPointObj::
-drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
+drawDir(PaintDevice *device, const Dir &dir, bool flip) const
 {
   // calc pen and brush
   CQChartsPenBrush penBrush;
@@ -3210,7 +3211,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 
   // get symbol type and size
   CQChartsSymbol symbolType;
-  CQChartsLength symbolSize;
+  Length         symbolSize;
 
   if (dir != Dir::XY) {
     symbolType = plot_->rugSymbolType();
@@ -3226,7 +3227,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(symbolSize, sx, sy);
+  plot()->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -3288,7 +3289,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 
 void
 CQChartsScatterPointObj::
-drawDataLabel(CQChartsPaintDevice *device) const
+drawDataLabel(PaintDevice *device) const
 {
   const auto *dataLabel = plot_->dataLabel();
 
@@ -3351,7 +3352,19 @@ void
 CQChartsScatterPointObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
-  ColorInd ic = calcColorInd();
+  ColorInd ic;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    // default for scatter is set or group color (not value color !!)
+    if      (is_.n > 1)
+      ic = is_;
+    else if (ig_.n > 1)
+      ic = ig_;
+  }
+  else
+    ic = calcColorInd();
+
+  //--
 
   plot_->setSymbolPenBrush(penBrush, ic);
 
@@ -3367,7 +3380,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   }
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 }
 
 double
@@ -3397,10 +3410,9 @@ yColorValue(bool relative) const
 //------
 
 CQChartsScatterCellObj::
-CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect,
-                       const ColorInd &is, const ColorInd &ig, int ix, int iy,
-                       const Points &points, int maxn) :
- CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+CQChartsScatterCellObj(const Plot *plot, int groupInd, const BBox &rect, const ColorInd &is,
+                       const ColorInd &ig, int ix, int iy, const Points &points, int maxn) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -3446,7 +3458,7 @@ inside(const Point &p) const
 
 void
 CQChartsScatterCellObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   // calc pen and brush
   CQChartsPenBrush penBrush;
@@ -3493,7 +3505,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsScatterCellObj::
-drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
+drawRugSymbol(PaintDevice *device, const Dir &dir, bool flip) const
 {
   ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
@@ -3604,7 +3616,7 @@ inside(const Point &p) const
 
 void
 CQChartsScatterHexObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   // calc pen and brush
   CQChartsPenBrush penBrush;

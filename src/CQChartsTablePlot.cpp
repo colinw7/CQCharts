@@ -2035,7 +2035,7 @@ draw(PaintDevice *device)
 
   //---
 
-  CQChartsColor textColor = plot_->textColor();
+  Color textColor = plot_->textColor();
 
   auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
 

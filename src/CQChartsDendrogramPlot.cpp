@@ -67,7 +67,7 @@ CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setNodeFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setNodeFillColor(Color(Color::Type::PALETTE));
 
   //---
 

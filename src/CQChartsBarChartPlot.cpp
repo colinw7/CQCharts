@@ -993,7 +993,7 @@ createObjs(PlotObjs &objs) const
 
       QModelIndex parent; // TODO
 
-      CQChartsColor color;
+      Color color;
 
       (void) colorColumnColor(minInd.vrow, parent, color);
 
@@ -1321,8 +1321,8 @@ addKeyItems(CQChartsPlotKey *key)
 
             const auto &ind0 = valueInds[0];
 
-            QModelIndex   parent; // TODO
-            CQChartsColor color;
+            QModelIndex parent; // TODO
+            Color       color;
 
             if (colorColumnColor(ind0.vrow, parent, color))
               c = interpColor(color, ColorInd());
@@ -1349,8 +1349,8 @@ addKeyItems(CQChartsPlotKey *key)
 
         QColor c;
 
-        QModelIndex   parent; // TODO
-        CQChartsColor color;
+        QModelIndex parent; // TODO
+        Color       color;
 
         if (colorColumnColor(ind0.vrow, parent, color))
           c = interpColor(color, ColorInd());
@@ -1376,8 +1376,8 @@ addKeyItems(CQChartsPlotKey *key)
 
           const auto &ind0 = valueInds[0];
 
-          QModelIndex   parent; // TODO
-          CQChartsColor color;
+          QModelIndex parent; // TODO
+          Color       color;
 
           if (colorColumnColor(ind0.vrow, parent, color))
             c = interpColor(color, ColorInd());

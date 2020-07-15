@@ -195,6 +195,7 @@ class CQChartsView : public QFrame,
   using PlotSet     = std::set<CQChartsPlot*>;
   using Annotations = std::vector<CQChartsAnnotation *>;
 
+  using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
@@ -540,7 +541,7 @@ class CQChartsView : public QFrame,
 
   QColor interpInterfaceColor(double r) const;
 
-  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
+  QColor interpColor(const Color &c, const ColorInd &ind) const;
 
   //---
 

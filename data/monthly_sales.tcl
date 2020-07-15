@@ -14,8 +14,8 @@ set_charts_property -view $view -name title.string -value "Monthly Sales Data"
 
 ###---
 
-set_charts_palette -theme default -name palettes \
-  -value [list default palette1 palette2 set2 set1 set3 plasma chromajs distinct1 distinct2]
+#set_charts_palette -theme default -name palettes \
+#  -value [list default palette1 palette2 set2 set1 set3 plasma chromajs distinct1 distinct2]
 
 set_charts_palette -palette default -name defined_colors \
   -value {{0 "#6d78ad"} {1 "#51cda0"} {2 "#df7970"}}
@@ -53,7 +53,7 @@ set_charts_property -plot $plot1 -name "yaxis.grid.lines"         -value MAJOR
 #set_charts_property -plot $plot1 -name "yaxis.ticks.label.color"  -value {interface 1}
 #set_charts_property -plot $plot1 -name key.visible                -value 0
 set_charts_property -plot $plot1 -name key.insideY                -value 1
-set_charts_property -plot $plot1 -name key.location               -value bc
+#set_charts_property -plot $plot1 -name key.location               -value bc
 set_charts_property -plot $plot1 -name key.horizontal             -value 1
 set_charts_property -plot $plot1 -name key.fill.visible           -value 0
 set_charts_property -plot $plot1 -name key.stroke.visible         -value 0

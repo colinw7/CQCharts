@@ -10,6 +10,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
+#include <CQDragLabel.h>
 #include <CQUtil.h>
 
 #include <QLabel>
@@ -229,12 +230,12 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, row, 1); ++row;
 
   // alpha
-  auto *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
+  alphaLabel_ = CQUtil::makeLabelWidget<CQDragLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
-  groupLayout->addWidget(alphaLabel, row, 0);
-  groupLayout->addWidget(alphaEdit_, row, 1); ++row;
+  groupLayout->addWidget(alphaLabel_, row, 0);
+  groupLayout->addWidget(alphaEdit_ , row, 1); ++row;
 
   // pattern
   auto *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
@@ -305,6 +306,8 @@ connectSlots(bool b)
   connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
   connectDisconnect(colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
   connectDisconnect(alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
+  connectDisconnect(alphaLabel_, SIGNAL(dragValueChanged(double)),
+                    SLOT(alphaDragValueChanged(double)));
   connectDisconnect(patternEdit_, SIGNAL(fillPatternChanged()), SLOT(widgetsToData()));
 }
 
@@ -336,6 +339,17 @@ widgetsToData()
   preview_->update();
 
   emit fillDataChanged();
+}
+
+void
+CQChartsFillDataEdit::
+alphaDragValueChanged(double da)
+{
+  double a = std::min(std::max(data_.alpha().value() + da, 0.0), 1.0);
+
+  alphaEdit_->setAlpha(CQChartsAlpha(a));
+
+  widgetsToData();
 }
 
 //------

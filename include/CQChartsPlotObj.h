@@ -42,6 +42,7 @@ class CQChartsPlotObj : public CQChartsObj {
   using PenBrush      = CQChartsPenBrush;
   using ResizeSide    = CQChartsResizeSide;
   using ModelIndex    = CQChartsModelIndex;
+  using Color         = CQChartsColor;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;

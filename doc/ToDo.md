@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + xy overlap key position
+ + option to switch to line in xy plot key
+ + scatter point color (auto)
  + consistent model indices in tcl (-model and object indices)
  + hide tip columns if not supported
  + Move dot/graphviz plot to separate plot type (out of sankey)

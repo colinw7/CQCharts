@@ -13,7 +13,7 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
   NoUpdate noUpdate(this);
 
   setBarFilled   (true);
-  setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBarFillColor(Color(Color::Type::PALETTE));
 
   setBarStroked(true);
 

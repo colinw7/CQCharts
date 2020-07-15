@@ -274,7 +274,11 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(PaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
  private:
   using OptPoint = boost::optional<Point>;
@@ -578,9 +582,14 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 
   void doSelect(SelMod selMod) override;
 
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+
   QBrush fillBrush() const override;
 
   Obj *plotObj() const;
+
+ protected:
+  void drawLine(CQChartsPaintDevice *device, const BBox &rect) const;
 
  protected:
   Plot* plot_ { nullptr }; //!< parent plot
@@ -669,6 +678,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
 
   CQCHARTS_LINE_DATA_PROPERTIES
+
+  // key
+  Q_PROPERTY(bool keyLine READ isKeyLine WRITE setKeyLine)
 
   // fill under
   Q_PROPERTY(bool                  fillUnderSelectable
@@ -759,6 +771,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  // draw line on key
+  bool isKeyLine() const { return keyLine_; }
+  void setKeyLine(bool b);
+
  private:
   void resetBestFit();
 
@@ -782,7 +798,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const override;
+  QColor interpColor(const Color &c, const ColorInd &ind) const override;
 
   //---
 
@@ -964,6 +980,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool cumulative_      { false }; //!< cumulate values
   bool roundedLines_    { false }; //!< draw rounded (smooth) lines
   bool linesSelectable_ { false }; //!< are lines selectable
+
+  // key
+  bool keyLine_ { false }; //!< draw line on key
 
   // fill under data
   FillUnderData fillUnderData_; //!< fill under data

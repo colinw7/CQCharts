@@ -135,7 +135,7 @@ CQChartsScatterPlot3D(CQChartsView *view, const ModelP &model) :
   setSymbolType(CQChartsSymbol::Type::CIRCLE);
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolFillColor(Color(Color::Type::PALETTE));
 
   setDataClip(false);
 
@@ -756,11 +756,11 @@ addPointObjects() const
         //---
 
         // set optional symbol fill color
-        CQChartsColor symbolColor(CQChartsColor::Type::NONE);
+        Color symbolColor(Color::Type::NONE);
 
         if (colorColumn().isValid()) {
           if (! colorColumnColor(valuePoint.row, valuePoint.ind.parent(), symbolColor))
-            symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
+            symbolColor = Color(Color::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -956,7 +956,7 @@ addNameValues() const
       //---
 
       // get symbol type, size, font size and color
-      CQChartsColor color;
+      Color color;
 
       // get color label (needed if not string ?)
       if (plot_->colorColumn().isValid()) {
@@ -1006,7 +1006,7 @@ addNameValues() const
 void
 CQChartsScatterPlot3D::
 addNameValue(int groupInd, const QString &name, const Point3D &p, int row,
-             const QModelIndex &xind, const CQChartsColor &color)
+             const QModelIndex &xind, const Color &color)
 {
   ValuesData &valuesData = groupNameValues_[groupInd][name];
 
@@ -1064,7 +1064,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           double r = CMathUtil::map(groupInd, colorColumnData_.data_min, colorColumnData_.data_max,
                                     colorMapMin(), colorMapMax());
 
-          auto color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+          auto color = Color(Color::Type::PALETTE_VALUE, r);
 
           if (color.isValid())
             colorItem->setColor(color);
@@ -1100,7 +1100,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           if (nv > 0) {
             const ValueData &valuePoint = values[0];
 
-            CQChartsColor color;
+            Color color;
 
             if (colorColumnColor(valuePoint.row, valuePoint.ind.parent(), color))
               colorItem->setColor(color);

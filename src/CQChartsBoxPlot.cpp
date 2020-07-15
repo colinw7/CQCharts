@@ -183,7 +183,7 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setBoxFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBoxFillColor(Color(Color::Type::PALETTE));
 
   setBoxStroked(true);
   setBoxFilled (true);
@@ -191,12 +191,12 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
   setOutlierSymbolType(CQChartsSymbol::Type::CIRCLE);
   setOutlierSymbolSize(CQChartsLength("4px"));
   setOutlierSymbolFilled(true);
-  setOutlierSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
   setJitterSymbolType(CQChartsSymbol::Type::CIRCLE);
   setJitterSymbolSize(CQChartsLength("4px"));
   setJitterSymbolFilled(true);
-  setJitterSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setJitterSymbolFillColor(Color(Color::Type::PALETTE));
 
   addAxes();
 

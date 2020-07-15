@@ -87,7 +87,7 @@ CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
   setSymbolType(CQChartsSymbol::Type::CIRCLE);
   setSymbolStroked(true);
   setSymbolFilled (true);
-  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolFillColor(Color(Color::Type::PALETTE));
 
   //---
 

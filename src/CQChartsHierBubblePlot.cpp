@@ -63,7 +63,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
 
   setFilled (true);
   setStroked(true);
@@ -71,7 +71,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
   setTextContrast(true);
   setTextFontSize(12.0);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
   setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
                                     Length("4px"), Length("4px")));
@@ -572,7 +572,7 @@ loadHier() const
       auto node = plot_->addNode(parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
-        CQChartsColor color;
+        Color color;
 
         ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
@@ -708,7 +708,7 @@ loadFlat() const
       auto node = plot_->addNode(nameStrs, size, nameInds[0]);
 
       if (node && plot_->colorColumn().isValid()) {
-        CQChartsColor color;
+        Color color;
 
         ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
@@ -818,7 +818,7 @@ addExtraNodes(CQChartsHierBubbleHierNode *hier) const
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
-    CQChartsColor color;
+    Color color;
 
     if (colorColumnColor(ind1.row(), ind1.parent(), color))
       node->setColor(color);

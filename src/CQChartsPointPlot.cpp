@@ -75,11 +75,11 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
   // best fit
   setBestFit(false);
   setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
-  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBestFitFillColor(Color(Color::Type::PALETTE));
   setBestFitFillAlpha(CQChartsAlpha(0.5));
 
   // hull
-  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setHullFillColor(Color(Color::Type::PALETTE));
 
   // stats
   setStatsLines(false);

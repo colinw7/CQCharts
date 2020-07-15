@@ -2260,7 +2260,7 @@ class CQChartsPlot : public CQChartsObj,
 
  public:
   // get palette color for index
-  virtual QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
 
  public:
   virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
@@ -2274,7 +2274,7 @@ class CQChartsPlot : public CQChartsObj,
   QColor interpInterfaceColor(double r) const;
 
  public:
-  QColor interpColor(const Color &c, const ColorInd &ind) const;
+  virtual QColor interpColor(const Color &c, const ColorInd &ind) const;
 
   //---
 

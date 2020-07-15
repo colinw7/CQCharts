@@ -2148,7 +2148,13 @@ QColor
 CQChartsView::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  return charts()->interpPaletteColor(ind, scale);
+  Color c(CQChartsColor::Type::PALETTE);
+
+  c.setScale(scale);
+
+  return interpColor(c, ind);
+
+  //return charts()->interpPaletteColor(ind, scale);
 }
 
 QColor

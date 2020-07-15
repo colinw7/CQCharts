@@ -158,12 +158,12 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   setDotSymbolType     (CQChartsSymbol::Type::CIRCLE);
   setDotSymbolSize     (CQChartsLength("7px"));
   setDotSymbolFilled   (true);
-  setDotSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setDotSymbolFillColor(Color(Color::Type::PALETTE));
 
   setRugSymbolType       (CQChartsSymbol::Type::NONE);
   setRugSymbolSize       (CQChartsLength("5px"));
   setRugSymbolStroked    (true);
-  setRugSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
 
   connect(xAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
   connect(yAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
@@ -2500,7 +2500,7 @@ addKeyItems(CQChartsPlotKey *key)
 
         bool ok;
 
-        CQChartsColor c = CQChartsVariant::toColor(value, ok);
+        Color c = CQChartsVariant::toColor(value, ok);
 
         if (ok) {
           QColor c1 = interpColor(c, ColorInd());
@@ -3393,8 +3393,8 @@ draw(CQChartsPaintDevice *device)
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &p : colorData_.colorSet) {
-        const CQChartsColor &color = p.first;
-        int                  n     = colorData_.colorCount[p.second];
+        const Color &color = p.first;
+        int          n     = colorData_.colorCount[p.second];
 
         pos1 = pos2;
         pos2 = pos1 + dsize*n;
@@ -3424,8 +3424,8 @@ draw(CQChartsPaintDevice *device)
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &cs : colorData_.colorSizes) {
-        const CQChartsColor &color = cs.first;
-        double               dsize = cs.second;
+        const Color &color = cs.first;
+        double       dsize = cs.second;
 
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
@@ -3626,7 +3626,7 @@ getBarColoredRects(ColorData &colorData) const
     //---
 
     // set color from value
-    CQChartsColor color;
+    Color color;
 
     if (plot_->colorColumnColor(ind.row(), ind.parent(), color)) {
       QColor c1 = plot_->interpColor(color, ColorInd());
@@ -3680,8 +3680,7 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(CQChartsPaintDevice *device, const BBox &bbox,
-         const CQChartsColor &color, bool useLine) const
+drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
 {
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
@@ -3790,8 +3789,8 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox,
 
 void
 CQChartsDistributionBarObj::
-calcBarPenBrush(const CQChartsColor &color, bool useLine,
-                CQChartsPenBrush &barPenBrush, bool updateState) const
+calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
+                bool updateState) const
 {
   // set pen and brush
   QColor bc = plot_->interpBarStrokeColor(ColorInd());

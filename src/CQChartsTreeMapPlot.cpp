@@ -71,8 +71,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setHeaderFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.4));
-  setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setHeaderFillColor(Color(Color::Type::INTERFACE_VALUE, 0.4));
+  setHeaderTextColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
 
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
@@ -82,8 +82,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 
   setHeaderFilled(true);
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE ));
-  setTextColor(CQChartsColor(CQChartsColor::Type::CONTRAST));
+  setFillColor(Color(Color::Type::PALETTE ));
+  setTextColor(Color(Color::Type::CONTRAST));
 
   setFilled (true);
   setStroked(true);
@@ -728,7 +728,7 @@ loadHier() const
       auto *node = plot_->hierAddNode(parentHier(), name, size, nameInd);
 
       if (node && plot_->colorColumn().isValid()) {
-        CQChartsColor color;
+        Color color;
 
         ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
@@ -889,7 +889,7 @@ loadFlat() const
       auto *node = plot_->flatAddNode(nameStrs, size, nameInd1, name);
 
       if (node && plot_->colorColumn().isValid()) {
-        CQChartsColor color;
+        Color color;
 
         ModelIndex colorInd(plot, data.row, plot_->colorColumn(), data.parent);
 
@@ -999,7 +999,7 @@ addExtraNodes(CQChartsTreeMapHierNode *hier) const
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
     if (colorColumn().isValid()) {
-      CQChartsColor color;
+      Color color;
 
       if (colorColumnColor(ind1.row(), ind1.parent(), color))
         node->setColor(color);

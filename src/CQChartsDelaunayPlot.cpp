@@ -94,8 +94,8 @@ CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
 
   setPoints(true);
 
-  setSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setVoronoiFillColor (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolStrokeColor(Color(Color::Type::PALETTE));
+  setVoronoiFillColor (Color(Color::Type::PALETTE));
 
   addAxes();
 

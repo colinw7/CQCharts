@@ -89,10 +89,10 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
 
   setGridLines(false);
-  setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
+  setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
 
   //---
 
@@ -719,7 +719,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
     //---
 
-    CQChartsColor color;
+    Color color;
 
     if (colorColumnColor(ind.row(), ind.parent(), color))
       obj->setColor(color);
@@ -1701,7 +1701,7 @@ fillColor() const
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     if      (color().isValid())
       fc = plot_->interpColor(color(), ColorInd());
-    else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
+    else if (plot_->fillColor().type() != Color::Type::PALETTE)
       fc = plot_->interpColor(plot_->fillColor(), iv_);
     else if (groupObj)
       fc = plot_->interpGroupPaletteColor(ig_, iv_);

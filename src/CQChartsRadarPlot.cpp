@@ -109,15 +109,15 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
+  setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
 
-  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(Color(Color::Type::PALETTE));
   setFillAlpha(CQChartsAlpha(0.5));
 
   setFilled (true);
   setStroked(true);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
+  setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
   addKey();
 
