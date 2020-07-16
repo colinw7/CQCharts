@@ -558,7 +558,7 @@ pathInds(const QString &path) const
   QStringList paths = pathStrs(path);
 
   for (int i = 0; i < paths.length(); ++i) {
-    const QString &path1 = paths[i];
+    const auto &path1 = paths[i];
 
     int ind = groupBucket_->ind(path1);
 

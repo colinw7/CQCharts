@@ -1480,6 +1480,7 @@ drawText(CQChartsPaintDevice *device, const BBox &bbox)
 
   textOptions.contrast      = plot_->isTextContrast ();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
+  textOptions.clipLength    = plot_->textClipLength();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

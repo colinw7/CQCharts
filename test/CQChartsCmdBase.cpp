@@ -275,7 +275,7 @@ assertCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  const Vars &pargs = argv.getParseArgs();
+  const auto &pargs = argv.getParseArgs();
 
   QString expr = (! pargs.empty() ? pargs[0].toString() : "");
 
@@ -302,7 +302,7 @@ shellCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  const Vars &pargs = argv.getParseArgs();
+  const auto &pargs = argv.getParseArgs();
 
   QString cmd = (! pargs.empty() ? pargs[0].toString() : "");
 
@@ -331,7 +331,7 @@ helpCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  const Vars &pargs = argv.getParseArgs();
+  const auto &pargs = argv.getParseArgs();
 
   QString pattern = (! pargs.empty() ? pargs[0].toString() : "");
 

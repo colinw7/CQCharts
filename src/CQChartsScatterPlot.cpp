@@ -1031,8 +1031,8 @@ addPointObjects(PlotObjs &objs) const
     if (isInterrupt())
       break;
 
-    int               groupInd   = groupNameValue.first;
-    const NameValues &nameValues = groupNameValue.second;
+    int         groupInd   = groupNameValue.first;
+    const auto &nameValues = groupNameValue.second;
 
     //---
 
@@ -1065,8 +1065,8 @@ addPointObjects(PlotObjs &objs) const
 
       //---
 
-    //const QString &name   = nameValue.first;
-      const Values  &values = nameValue.second.values;
+    //const auto &name   = nameValue.first;
+      const auto &values = nameValue.second.values;
 
       int nv = values.size();
 
@@ -1077,7 +1077,7 @@ addPointObjects(PlotObjs &objs) const
         //---
 
         // get point position
-        const ValueData &valuePoint = values[iv];
+        const auto &valuePoint = values[iv];
 
         const auto &p = valuePoint.p;
 
@@ -1241,8 +1241,8 @@ addGridObjects(PlotObjs &objs) const
     if (isInterrupt())
       break;
 
-    int                 groupInd     = pg.first;
-    const NameGridData &nameGridData = pg.second;
+    int         groupInd     = pg.first;
+    const auto &nameGridData = pg.second;
 
     //---
 
@@ -1328,8 +1328,8 @@ addHexObjects(PlotObjs &objs) const
     if (isInterrupt())
       break;
 
-    int                groupInd    = pg.first;
-    const NameHexData &nameHexData = pg.second;
+    int         groupInd    = pg.first;
+    const auto &nameHexData = pg.second;
 
     //---
 
@@ -1558,7 +1558,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     if (pi == groupNameGridData_.end())
       pi = groupNameGridData_.insert(pi, GroupNameGridData::value_type(groupInd, NameGridData()));
 
-    NameGridData &nameGridData = (*pi).second;
+    auto &nameGridData = (*pi).second;
 
     auto pn = nameGridData.find(name);
 
@@ -1577,7 +1577,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     if (pi == groupNameHexData_.end())
       pi = groupNameHexData_.insert(pi, GroupNameHexData::value_type(groupInd, NameHexData()));
 
-    NameHexData &nameHexData = (*pi).second;
+    auto &nameHexData = (*pi).second;
 
     auto pn = nameHexData.find(name);
 
@@ -1609,7 +1609,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
     hexMapMaxN_ = std::max(hexMapMaxN_, hexMap.numData(hi, hj));
   }
   else {
-    ValuesData &valuesData = groupNameValues_[groupInd][name];
+    auto &valuesData = groupNameValues_[groupInd][name];
 
     valuesData.xrange.add(p.x);
     valuesData.yrange.add(p.y);
@@ -1712,7 +1712,7 @@ addPointKeyItems(CQChartsPlotKey *key)
   }
   // single group - key item per value set
   else if (ng > 0) {
-    const NameValues &nameValues = (*groupNameValues_.begin()).second;
+    const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int ns = nameValues.size();
 
@@ -1720,19 +1720,19 @@ addPointKeyItems(CQChartsPlotKey *key)
       int is = 0;
 
       for (const auto &nameValue : nameValues) {
-        const QString &name = nameValue.first;
+        const auto &name = nameValue.first;
 
         auto *colorItem = addKeyItem(-1, name, is, ns);
 
         //--
 
         if (colorColumn().isValid()) {
-          const Values &values = nameValue.second.values;
+          const auto &values = nameValue.second.values;
 
           int nv = values.size();
 
           if (nv > 0) {
-            const ValueData &valuePoint = values[0];
+            const auto &valuePoint = values[0];
 
             Color color;
 
@@ -1748,7 +1748,7 @@ addPointKeyItems(CQChartsPlotKey *key)
     }
     else {
       if (parentPlot() && ! nameValues.empty()) {
-        const QString &name = nameValues.begin()->first;
+        const auto &name = nameValues.begin()->first;
 
         int ig = parentPlot()->childPlotIndex(this);
         int ng = parentPlot()->numChildPlots();
@@ -2035,7 +2035,7 @@ initGroupBestFit(int groupInd) const
     auto p = groupPoints_.find(groupInd);
 
     if (p != groupPoints_.end()) {
-      const Points &points = (*p).second;
+      const auto &points = (*p).second;
 
       if (! isBestFitOutliers()) {
         initGroupStats(groupInd);
@@ -2045,7 +2045,7 @@ initGroupBestFit(int groupInd) const
         auto ps = groupStatData_.find(groupInd);
         assert(ps != groupStatData_.end());
 
-        const StatData &statData = (*ps).second;
+        const auto &statData = (*ps).second;
 
         //---
 
@@ -2074,13 +2074,13 @@ initGroupStats(int groupInd) const
   // init stats data
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
-  StatData &statData = th->groupStatData_[groupInd];
+  auto &statData = th->groupStatData_[groupInd];
 
   if (! statData.xstat.set || ! statData.ystat.set) {
     auto p = groupPoints_.find(groupInd);
 
     if (p != groupPoints_.end()) {
-      const Points &points = (*p).second;
+      const auto &points = (*p).second;
 
       std::vector<double> x, y;
 
@@ -2170,7 +2170,7 @@ drawStatsLines(PaintDevice *device) const
     auto ps = groupStatData_.find(groupInd);
     assert(ps != groupStatData_.end());
 
-    const StatData &statData = (*ps).second;
+    const auto &statData = (*ps).second;
 
     //---
 
@@ -2250,7 +2250,7 @@ drawHull(PaintDevice *device) const
 
       auto *hull = (*ph).second;
 
-      const Points &points = th->groupPoints_[groupInd];
+      const auto &points = th->groupPoints_[groupInd];
 
       std::vector<double> x, y;
 
@@ -2526,13 +2526,13 @@ drawDensityMap(PaintDevice *device) const
     if (isInterrupt())
       return;
 
-    const NameValues &nameValues = groupNameValue.second;
+    const auto &nameValues = groupNameValue.second;
 
     for (const auto &nameValue : nameValues) {
       if (isInterrupt())
         return;
 
-      const ValuesData &values = nameValue.second;
+      const auto &values = nameValue.second;
 
       data.values.clear();
 

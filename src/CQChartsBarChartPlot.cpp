@@ -936,7 +936,7 @@ createObjs(PlotObjs &objs) const
 
     const auto &valueSet = this->valueSet(iv);
 
-    //const QString &setName = valueSet.name;
+    //const auto &setName = valueSet.name;
 
     //---
 
@@ -1597,8 +1597,8 @@ calcTipId() const
   const auto &value = this->value();
 
   for (const auto &nameValue : value->nameValues()) {
-    const QString &name  = nameValue.first;
-    const QString &value = nameValue.second;
+    const auto &name  = nameValue.first;
+    const auto &value = nameValue.second;
 
     if (value.length())
       tableTip.addTableRow(name, value);

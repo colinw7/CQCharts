@@ -408,7 +408,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
           QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
-            const QString &nameValue = strs[j];
+            const auto &nameValue = strs[j];
 
             auto pos = nameValue.indexOf('=');
 
@@ -451,7 +451,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
           QStringList strs = boolStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
-            const QString &nameValue = strs[j];
+            const auto &nameValue = strs[j];
 
             auto pos = nameValue.indexOf('=');
 
@@ -486,7 +486,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
           QStringList strs = stringStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
-            const QString &nameValue = strs[j];
+            const auto &nameValue = strs[j];
 
             auto pos = nameValue.indexOf('=');
 
@@ -513,7 +513,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
           QStringList strs = realStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
-            const QString &nameValue = strs[j];
+            const auto &nameValue = strs[j];
 
             auto pos = nameValue.indexOf('=');
 

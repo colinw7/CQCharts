@@ -282,6 +282,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis tick label text contrast");
   addStyleProp(ticksLabelTextPath, "axesTickLabelTextContrastAlpha", "contrastAlpha",
                "Axis tick label text contrast alpha");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextClipLength"   , "clipLength",
+               "Axis tick label text clip length");
 
   addProp(ticksPath, "tickInside" , "inside", "Axis ticks drawn inside plot");
   addProp(ticksPath, "mirrorTicks", "mirror", "Axis tick are mirrored on other side of plot");
@@ -309,6 +311,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis label text contrast");
   addStyleProp(labelTextPath, "axesLabelTextContrastAlpha", "contrastAlpha",
                "Axis label text contrast alpha");
+  addStyleProp(labelTextPath, "axesLabelTextClipLength"   , "clipLength",
+               "Axis label text clip length");
 
   //---
 
@@ -425,7 +429,7 @@ setTickLabelsStr(const QString &str)
     return;
 
   for (int i = 0; i < strs.length(); ++i) {
-    const QString &str1 = strs[i];
+    const auto &str1 = strs[i];
 
     QStringList strs1;
 
@@ -512,7 +516,7 @@ setCustomTickLabelsStr(const QString &str)
     return;
 
   for (int i = 0; i < strs.length(); ++i) {
-    const QString &str1 = strs[i];
+    const auto &str1 = strs[i];
 
     QStringList strs1;
 
@@ -1699,16 +1703,16 @@ CQChartsAxis::
 drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
               double apos, double tpos, bool inside)
 {
+  QString text = valueStr(plot, tpos);
+  if (! text.length()) return;
+
+  //---
+
   int tgap  = 2;
   int tlen1 = majorTickLen();
   int tlen2 = minorTickLen();
 
   auto pp = windowToPixel(plot, tpos, apos);
-
-  QString text = valueStr(plot, tpos);
-
-  if (! text.length())
-    return;
 
   //---
 
@@ -1724,13 +1728,16 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   view()->setPlotPainterFont(plot, device, axesTickLabelTextFont());
 
+  auto angle      = axesTickLabelTextAngle();
+  auto clipLength = axesTickLabelTextClipLength();
+
   QFontMetricsF fm(device->font());
 
-  double tw = fm.width(text);
+  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength);
+
+  double tw = fm.width(text1);
   double ta = fm.ascent();
   double td = fm.descent();
-
-  CQChartsAngle angle = axesTickLabelTextAngle();
 
   if (isHorizontal()) {
     bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
@@ -1814,10 +1821,11 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       else {
         CQChartsTextOptions options;
 
-        options.angle = angle;
-        options.align = align;
+        options.angle      = angle;
+        options.align      = align;
+        options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -1921,10 +1929,11 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       else {
         CQChartsTextOptions options;
 
-        options.angle = angle;
-        options.align = align;
+        options.angle      = angle;
+        options.align      = align;
+        options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -2057,10 +2066,11 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       else {
         CQChartsTextOptions options;
 
-        options.angle = angle;
-        options.align = align;
+        options.angle      = angle;
+        options.align      = align;
+        options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -2165,10 +2175,11 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       else {
         CQChartsTextOptions options;
 
-        options.angle = angle;
-        options.align = align;
+        options.angle      = angle;
+        options.align      = align;
+        options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -2247,7 +2258,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
         auto prevBBox = firstBBox;
 
         for (int i = 1; i < n - 1; ++i) {
-          AxisTickLabelDrawData &data = axisTickLabelDrawDatas_[i];
+          auto &data = axisTickLabelDrawDatas_[i];
 
           if (data.bbox.overlaps(prevBBox) || data.bbox.overlaps(lastBBox))
             data.visible = false;
@@ -2289,6 +2300,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     options.contrast      = isAxesTickLabelTextContrast();
     options.contrastAlpha = axesTickLabelTextContrastAlpha();
     options.formatted     = isAxesTickLabelTextFormatted();
+    options.clipLength    = axesTickLabelTextClipLength();
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
   }
@@ -2331,9 +2343,13 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   view()->setPlotPainterFont(plot, device, axesLabelTextFont());
 
+  auto clipLength = axesLabelTextClipLength();
+
   QFontMetricsF fm(device->font());
 
-  double tw = fm.width(text);
+  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength);
+
+  double tw = fm.width(text1);
   double ta = fm.ascent();
   double td = fm.descent();
 
@@ -2366,6 +2382,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.clipLength    = clipLength;
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
@@ -2395,6 +2412,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.clipLength    = clipLength;
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
@@ -2440,6 +2458,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.clipLength    = clipLength;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 
@@ -2470,7 +2489,8 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.angle         = CQChartsAngle(-90);
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
       options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesTickLabelTextContrastAlpha();
+      options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.clipLength    = clipLength;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #else
@@ -2485,7 +2505,8 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.angle         = CQChartsAngle(90);
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
       options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesTickLabelTextContrastAlpha();
+      options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.clipLength    = clipLength;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #endif

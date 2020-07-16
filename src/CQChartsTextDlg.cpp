@@ -34,6 +34,7 @@ CQChartsTextDlg(QWidget *parent) :
   propertyModel_->addProperty("", canvas_, "formatted"    );
   propertyModel_->addProperty("", canvas_, "scaled"       );
   propertyModel_->addProperty("", canvas_, "html"         );
+  propertyModel_->addProperty("", canvas_, "clipLength"   );
 }
 
 QSize
@@ -64,12 +65,13 @@ paintEvent(QPaintEvent *)
   CQChartsTextOptions options;
 
   options.angle            = angle();
-  options.align            = align();
   options.contrast         = isContrast();
   options.contrastAlpha    = contrastAlpha();
+  options.align            = align();
   options.formatted        = isFormatted();
   options.scaled           = isScaled();
   options.html             = isHtml();
+  options.clipLength       = clipLength();
   options.minScaleFontSize = 4.0;
   options.maxScaleFontSize = 400.0;
 

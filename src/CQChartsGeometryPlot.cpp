@@ -620,7 +620,7 @@ createObjs(PlotObjs &objs) const
   int n = geometries_.size();
 
   for (int i = 0; i < n; ++i) {
-    const Geometry &geometry = geometries_[i];
+    const auto &geometry = geometries_[i];
 
     auto bbox = geometry.bbox;
 

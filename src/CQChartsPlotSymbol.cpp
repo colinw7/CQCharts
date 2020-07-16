@@ -56,7 +56,7 @@ class CQChartsPlotSymbolList {
 
     //---
 
-    const CQChartsPlotSymbol &s = getSymbol(type);
+    const auto &s = getSymbol(type);
 
     double w = renderer->lineWidth();
 
@@ -146,7 +146,7 @@ class CQChartsPlotSymbolList {
 
     //---
 
-    const CQChartsPlotSymbol &s = getSymbol(type);
+    const auto &s = getSymbol(type);
 
     renderer->save();
 

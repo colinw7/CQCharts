@@ -153,7 +153,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
   bool ok = true;
 
   for (int i = 0; i < strs.size(); ++i) {
-    const QString &str = strs[i];
+    const auto &str = strs[i];
 
     if (str.left(1) != "(") {
       // support column numeric range <n>-<m>

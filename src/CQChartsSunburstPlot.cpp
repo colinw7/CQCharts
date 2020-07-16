@@ -1287,6 +1287,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
   options.align         = align;
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
+  options.clipLength    = textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
 
@@ -1714,8 +1715,8 @@ bool
 CQChartsSunburstNodeNameCmp::
 operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2)
 {
-  const QString &name1 = n1->name();
-  const QString &name2 = n2->name();
+  const auto &name1 = n1->name();
+  const auto &name2 = n2->name();
 
   int l1 = name1.size();
   int l2 = name2.size();

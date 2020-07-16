@@ -30,7 +30,7 @@ toString() const
     return "";
 
   for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path_->elementAt(i);
+    const auto &e = path_->elementAt(i);
 
     if (str.length())
       str += " ";

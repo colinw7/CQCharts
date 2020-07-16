@@ -157,6 +157,8 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
     device->save();
 
   if (CMathUtil::isZero(options.angle.value())) {
+    auto text1 = clipTextToLength(device, text, options.clipLength);
+
     if (options.clipped)
       device->setClipRect(rect, Qt::IntersectClip);
 
@@ -169,11 +171,11 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
     if (options.formatted) {
       auto prect = device->windowToPixel(rect);
 
-      CQChartsUtil::formatStringInRect(text, device->font(), prect, strs,
+      CQChartsUtil::formatStringInRect(text1, device->font(), prect, strs,
                                        CQChartsUtil::FormatData(options.formatSeps));
     }
     else
-      strs << text;
+      strs << text1;
 
     //---
 
@@ -278,9 +280,13 @@ void
 drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
                 const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
+  auto text1 = clipTextToLength(device, text, options.clipLength);
+
+  //---
+
   // handle html separately
   if (options.html) {
-    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text, device->font(), options.margin);
+    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
 
     auto sw = device->pixelToWindowWidth (psize.width () + 4);
     auto sh = device->pixelToWindowHeight(psize.height() + 4);
@@ -289,9 +295,9 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
               point.x + sw/2.0, point.y + sh/2.0);
 
     if (options.scaled)
-      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text1, options);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text1, options);
 
     return;
   }
@@ -303,7 +309,9 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
   double ta = fm.ascent();
   double td = fm.descent();
 
-  auto tw = [&]() { return fm.width(text); };
+  auto tw = [&]() { return fm.width(text1); };
+
+  //---
 
   if (CMathUtil::isZero(options.angle.value())) {
     // calc dx : point is left or hcenter of text (
@@ -333,9 +341,9 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
     }
 
     if (options.contrast)
-      drawContrastText(device, tp, text, options.contrastAlpha);
+      drawContrastText(device, tp, text1, options.contrastAlpha);
     else
-      drawSimpleText(device, tp, text);
+      drawSimpleText(device, tp, text1);
   }
   else {
     // calc dx : point is left or hcenter of text
@@ -350,7 +358,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
       tp = device->pixelToWindow(Point(pp.x + dx1, pp.y));
     }
 
-    CQChartsRotatedText::draw(device, tp, text, options, /*alignBox*/true);
+    CQChartsRotatedText::draw(device, tp, text1, options, /*alignBox*/true);
   }
 }
 
@@ -676,6 +684,90 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const CQChartsAngle &a1
 
     path.closeSubpath();
   }
+}
+
+QString
+clipTextToLength(CQChartsPaintDevice *device, const QString &text,
+                 const CQChartsLength &clipLength)
+{
+  if (! clipLength.isValid())
+    return text;
+
+  double clipLengthPixels = device->lengthPixelWidth(clipLength);
+
+  return clipTextToLength(text, device->font(), clipLengthPixels);
+}
+
+QString
+clipTextToLength(const QString &text, const QFont &font, double clipLength)
+{
+  if (clipLength <= 0.0)
+    return text;
+
+  //---
+
+  QFontMetricsF fm(font);
+
+  double ellipsisWidth = fm.width("...");
+
+  if (ellipsisWidth > clipLength)
+    return "";
+
+  double clipLength1 = clipLength - ellipsisWidth;
+
+  //---
+
+  auto isClipped = [&](const QString &str) {
+    double w = fm.width(str);
+
+    return (w > clipLength1);
+  };
+
+  auto isLenClipped = [&](const QString &str, int len) {
+    return isClipped(str.mid(0, len));
+  };
+
+  //---
+
+  using LenClipped = std::map<int,bool>;
+
+  LenClipped lenClipped;
+
+  int len = text.length();
+
+  int len1 = 0;
+  int len2 = len;
+
+  int midLen = (len1 + len2)/2;
+
+  while (true) {
+    auto pl = lenClipped.find(midLen);
+
+    bool clipped;
+
+    if (pl == lenClipped.end()) {
+      clipped = isLenClipped(text, midLen);
+
+      lenClipped[midLen] = clipped;
+    }
+    else {
+      clipped = (*pl).second;
+
+      if (! clipped && midLen == len1)
+        break;
+    }
+
+    if (clipped)
+      len2 = midLen;
+    else
+      len1 = midLen;
+
+    midLen = (len1 + len2)/2;
+  }
+
+  QString text1 = text.mid(0, midLen) + "...";
+
+  return text1;
 }
 
 }

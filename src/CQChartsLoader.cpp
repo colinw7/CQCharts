@@ -345,20 +345,20 @@ createVarsModel(const CQChartsInputData &inputData)
       nr = 0;
 
       for (auto &i : indColumnValues) {
-        ColumnValues &columnValues = i.second;
+        auto &columnValues = i.second;
 
         nr = std::max(nr, int(columnValues.size()));
       }
 
       for (auto &i : indColumnValues) {
-        ColumnValues &columnValues = i.second;
+        auto &columnValues = i.second;
 
         while (int(columnValues.size()) < nr)
           columnValues.push_back("");
       }
 
       for (auto &i : indColumnValues) {
-        ColumnValues &columnValues = i.second;
+        auto &columnValues = i.second;
 
         varColumns.push_back(columnValues);
       }

@@ -923,7 +923,7 @@ pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
   Point p1, p2;
 
   for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path.elementAt(i);
+    const auto &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
       p1 = Point(e.x, e.y);

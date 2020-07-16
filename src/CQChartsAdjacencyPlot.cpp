@@ -640,7 +640,7 @@ initConnectionObjs(PlotObjs &objs) const
 
   //---
 
-  const IdConnectionsData &idConnectionsData = visitor.idConnections();
+  const auto &idConnectionsData = visitor.idConnections();
 
   //---
 
@@ -661,8 +661,8 @@ initConnectionObjs(PlotObjs &objs) const
   //---
 
   for (const auto &idConnections : idConnectionsData) {
-    int                    id          = idConnections.first;
-    const ConnectionsData &connections = idConnections.second;
+    int         id          = idConnections.first;
+    const auto &connections = idConnections.second;
 
     auto node = th->nodes_[id];
 
@@ -1051,7 +1051,7 @@ initFactor()
   double twMax = 0.0;
 
   for (auto &node : sortedNodes_) {
-    const QString &str = node->name();
+    const auto &str = node->name();
 
     double tw = fm.width(str) + 4;
 
@@ -1134,7 +1134,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   double py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
-    const QString &str = node->name();
+    const auto &str = node->name();
 
     double tw = fm.width(str) + 4;
 
@@ -1148,6 +1148,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     options.align         = Qt::AlignLeft;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
+    options.clipLength    = textClipLength();
 
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(pt), str,
                                       options, /*centered*/false);
@@ -1173,6 +1174,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
     options.align         = Qt::AlignHCenter | Qt::AlignBottom;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
+    options.clipLength    = textClipLength();
 
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p1), node->name(),
                                       options, /*centered*/ true);

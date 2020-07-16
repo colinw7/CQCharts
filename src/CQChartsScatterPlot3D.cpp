@@ -653,8 +653,8 @@ addPointObjects() const
     if (isInterrupt())
       break;
 
-    int               groupInd   = groupNameValue.first;
-    const NameValues &nameValues = groupNameValue.second;
+    int         groupInd   = groupNameValue.first;
+    const auto &nameValues = groupNameValue.second;
 
     //---
 
@@ -670,7 +670,7 @@ addPointObjects() const
     if (pg == th->groupPoints_.end())
       pg = th->groupPoints_.insert(pg, GroupPoints::value_type(groupInd, Points()));
 
-    Points &points = const_cast<Points &>((*pg).second);
+    auto &points = const_cast<Points &>((*pg).second);
 
     //---
 
@@ -687,8 +687,8 @@ addPointObjects() const
 
       //---
 
-    //const QString &name   = nameValue.first;
-      const Values  &values = nameValue.second.values;
+    //const auto &name   = nameValue.first;
+      const auto &values = nameValue.second.values;
 
       int nv = values.size();
 
@@ -699,7 +699,7 @@ addPointObjects() const
         //---
 
         // get point position
-        const ValueData &valuePoint = values[iv];
+        const auto &valuePoint = values[iv];
 
         const auto &p = valuePoint.p;
 
@@ -830,6 +830,7 @@ addPointObjects() const
           textOptions.align         = Qt::AlignHCenter|Qt::AlignBottom;
           textOptions.contrast      = dataLabel()->isTextContrast();
           textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
+          textOptions.clipLength    = dataLabel()->textClipLength();
 
           auto *textObj = createTextObj(p, p, pointName);
 
@@ -1008,7 +1009,7 @@ CQChartsScatterPlot3D::
 addNameValue(int groupInd, const QString &name, const Point3D &p, int row,
              const QModelIndex &xind, const Color &color)
 {
-  ValuesData &valuesData = groupNameValues_[groupInd][name];
+  auto &valuesData = groupNameValues_[groupInd][name];
 
   valuesData.xrange.add(p.x);
   valuesData.yrange.add(p.y);
@@ -1078,7 +1079,7 @@ addPointKeyItems(CQChartsPlotKey *key)
   }
   // single group - key item per value set
   else if (ng > 0) {
-    const NameValues &nameValues = (*groupNameValues_.begin()).second;
+    const auto &nameValues = (*groupNameValues_.begin()).second;
 
     int ns = nameValues.size();
 
@@ -1086,19 +1087,19 @@ addPointKeyItems(CQChartsPlotKey *key)
       int is = 0;
 
       for (const auto &nameValue : nameValues) {
-        const QString &name = nameValue.first;
+        const auto &name = nameValue.first;
 
         auto *colorItem = addKeyItem(-1, name, is, ns);
 
         //--
 
         if (colorColumn().isValid()) {
-          const Values &values = nameValue.second.values;
+          const auto &values = nameValue.second.values;
 
           int nv = values.size();
 
           if (nv > 0) {
-            const ValueData &valuePoint = values[0];
+            const auto &valuePoint = values[0];
 
             Color color;
 
@@ -1114,7 +1115,7 @@ addPointKeyItems(CQChartsPlotKey *key)
     }
     else {
       if (parentPlot() && ! nameValues.empty()) {
-        const QString &name = nameValues.begin()->first;
+        const auto &name = nameValues.begin()->first;
 
         int ig = parentPlot()->childPlotIndex(this);
         int ng = parentPlot()->numChildPlots();

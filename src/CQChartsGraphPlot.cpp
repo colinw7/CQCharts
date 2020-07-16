@@ -1104,8 +1104,8 @@ placeGraphNodes(Graph *graph, const Nodes &nodes) const
   graph->setTotalSize(0.0);
 
   for (const auto &depthNodes : graph->depthNodesMap()) {
-    const Nodes &nodes = depthNodes.second.nodes;
-    double       size  = depthNodes.second.size;
+    const auto &nodes = depthNodes.second.nodes;
+    double      size  = depthNodes.second.size;
 
     graph->setMaxHeight(std::max(graph->maxHeight(), int(nodes.size())));
     graph->setTotalSize(std::max(graph->totalSize(), size));
@@ -1188,7 +1188,7 @@ autoCreateGraphs() const
   NodeNodeSet nodeNodeSet;
 
   for (const auto &node : noSrcNodes) {
-    NodeSet &nodeSet = nodeNodeSet[node];
+    auto &nodeSet = nodeNodeSet[node];
 
     NodeQueue workSet;
 
@@ -1384,8 +1384,8 @@ placeDepthNodes(Graph *graph) const
 {
   // place node objects at each depth (xpos)
   for (const auto &depthNodes : graph->depthNodesMap()) {
-    int          xpos  = depthNodes.first;
-    const Nodes &nodes = depthNodes.second.nodes;
+    int         xpos  = depthNodes.first;
+    const auto &nodes = depthNodes.second.nodes;
 
     placeDepthSubNodes(graph, xpos, nodes);
   }
@@ -2128,8 +2128,8 @@ printStats()
   }
 
   for (auto &pn : nodeData) {
-    Node           *node     = pn.first;
-    const NameData &nameData = pn.second;
+    Node       *node     = pn.first;
+    const auto &nameData = pn.second;
 
     for (auto &pd : nameData) {
       std::cerr << node->name().toStdString() << " " << pd.first.toStdString() << "\n";
@@ -2825,6 +2825,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.angle         = CQChartsAngle(0);
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.clipLength    = plot_->textClipLength();
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
@@ -3256,6 +3257,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.angle         = CQChartsAngle(0);
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.clipLength    = plot_->textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
 }

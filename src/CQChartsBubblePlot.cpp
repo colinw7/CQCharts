@@ -928,7 +928,7 @@ calcTipId() const
 
   //---
 
-  const QModelIndex &ind = node_->ind();
+  const auto &ind = node_->ind();
 
   plot()->addTipColumns(tableTip, ind);
 
@@ -1089,6 +1089,7 @@ draw(CQChartsPaintDevice *device)
 
   textOptions.contrast      = plot_->isTextContrast();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
+  textOptions.clipLength    = plot_->textClipLength();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

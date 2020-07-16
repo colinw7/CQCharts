@@ -386,7 +386,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     if (! view)
       return;
 
-    const CQChartsView::Annotations &viewAnnotations = view->annotations();
+    const auto &viewAnnotations = view->annotations();
 
     int nv = viewAnnotations.size();
 
@@ -458,7 +458,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     if (! plot)
       return;
 
-    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+    const auto &plotAnnotations = plot->annotations();
 
     int np = plotAnnotations.size();
 
@@ -3014,7 +3014,7 @@ writeAnnotationSlot()
 
   //---
 
-  const CQChartsView::Annotations &viewAnnotations = view->annotations();
+  const auto &viewAnnotations = view->annotations();
 
   for (const auto &annotation : viewAnnotations)
     annotation->write(fs);
@@ -3026,7 +3026,7 @@ writeAnnotationSlot()
   view->getPlots(plots);
 
   for (const auto &plot : plots) {
-    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+    const auto &plotAnnotations = plot->annotations();
 
     for (const auto &annotation : plotAnnotations)
       annotation->write(fs);

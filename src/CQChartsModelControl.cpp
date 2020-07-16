@@ -967,7 +967,7 @@ setColumnData(int column)
         columnEditData_.paramEdits.push_back(paramEdit);
       }
 
-      ParamEdit &paramEdit = columnEditData_.paramEdits[paramInd];
+      auto &paramEdit = columnEditData_.paramEdits[paramInd];
 
       paramEdit.label->setText(param->name());
 
@@ -994,7 +994,7 @@ setColumnData(int column)
     }
 
     while (paramInd < int(columnEditData_.paramEdits.size())) {
-      ParamEdit &paramEdit1 = columnEditData_.paramEdits.back();
+      auto &paramEdit1 = columnEditData_.paramEdits.back();
 
       CQUtil::removeGridRow(columnEditData_.editLayout, paramEdit1.row, /*delete*/false);
 

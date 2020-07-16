@@ -214,7 +214,7 @@ writeCSVModel(const QString &fileName)
 
     writeMetaColumnData("type", typeName);
 
-    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
+    const auto &drawColor = columnDetails->tableDrawColor();
 
     auto::TableDrawType tableDrawType  = columnDetails->tableDrawType();
     CQChartsColorStops  tableDrawStops = columnDetails->tableDrawStops();

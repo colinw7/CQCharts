@@ -333,7 +333,7 @@ previewFileSlot()
   bool allowMeta = (typeCombo_->currentIndex() == 0); // CSV
 
   for (int i = 0; i < lines.length(); ++i) {
-    const QString &line = lines[i];
+    const auto &line = lines[i];
 
     CQStrParse parse(line);
 
@@ -823,7 +823,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
     auto p = columnTypes_.find(c);
 
     if (p != columnTypes_.end()) {
-      const QString &type = (*p).second;
+      const auto &type = (*p).second;
 
       CQChartsModelUtil::setColumnTypeStr(charts(), modelP.data(), CQChartsColumn(ic), type);
     }

@@ -19,8 +19,8 @@
  * \brief Text Properties
  * \ingroup Charts
  *
- *   visible, color, alpha, font, angle, contrast (shadow), contrast alpha,
- *   formatted, format separators, scaled
+ * visible, color, alpha, font, angle, contrast (shadow), contrast alpha,
+ * alignment, formatted, scaled, html, clip length
  */
 class CQChartsTextData {
  public:
@@ -29,57 +29,95 @@ class CQChartsTextData {
   static int metaTypeId;
 
  public:
-  using Color = CQChartsColor;
-  using Alpha = CQChartsAlpha;
-  using Angle = CQChartsAngle;
+  using Color  = CQChartsColor;
+  using Alpha  = CQChartsAlpha;
+  using Font   = CQChartsFont;
+  using Angle  = CQChartsAngle;
+  using Length = CQChartsLength;
 
  public:
   CQChartsTextData() = default;
 
+  //! create from string
   explicit CQChartsTextData(const QString &str) {
     (void) fromString(str);
   }
 
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  //! get/set color
   const Color &color() const { return color_; }
-  void setColor(const Color &v) { color_ = v; }
+  void setColor(const Color &c) { color_ = c; }
 
+  //! get/set alpha
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
-  const CQChartsFont &font() const { return font_; }
-  void setFont(const CQChartsFont &v) { font_ = v; }
+  //! get/set font
+  const Font &font() const { return font_; }
+  void setFont(const Font &f) { font_ = f; }
 
+  //! get/set angle
   const Angle &angle() const { return angle_; }
   void setAngle(const Angle &a) { angle_ = a; }
 
+  //! get/set draw contrast background
   bool isContrast() const { return contrast_; }
   void setContrast(bool b) { contrast_ = b; }
 
+  //! get/set contrast alpha
   const Alpha &contrastAlpha() const { return contrastAlpha_; }
   void setContrastAlpha(const Alpha &a) { contrastAlpha_ = a; }
 
+  //! get/set text alignment
   const Qt::Alignment &align() const { return align_; }
-  void setAlign(const Qt::Alignment &v) { align_ = v; }
+  void setAlign(const Qt::Alignment &a) { align_ = a; }
 
+  //! get/set is formatted in rectangle (lines broken to fit)
   bool isFormatted() const { return formatted_; }
   void setFormatted(bool b) { formatted_ = b; }
 
+  //! get/set is scaled
   bool isScaled() const { return scaled_; }
   void setScaled(bool b) { scaled_ = b; }
 
+  //! get/set text is html
   bool isHtml() const { return html_; }
   void setHtml(bool b) { html_ = b; }
 
+  //! get/set clip length
+  const Length &clipLength() const { return clipLength_; }
+  void setClipLength(const Length &l) { clipLength_ = l; }
+
   //---
 
+  //! get is valid
   bool isValid() const { return true; }
 
+  //---
+
+  //! convert to/from string representation (property)
   QString toString() const;
   bool fromString(const QString &s);
 
+  //---
+
+  /*! get/set properties from name value pairs
+   *    "visible"       : is visible
+   *    "color"         : color
+   *    "alpha"         : alpha
+   *    "font"          : font
+   *    "angle"         : angle
+   *    "contrast"      : is contrast
+   *    "contrastAlpha" : contrast alpha
+   *    "align"         : alignment
+   *    "formatted"     : formatted
+   *    "scaled"        : scaled
+   *    "html"          : is html
+   *    "clipLength"    : clip length
+   */
   void setNameValues(CQChartsNameValues &nameValues) const;
   bool getNameValues(const CQChartsNameValues &nameValues);
 
@@ -89,7 +127,7 @@ class CQChartsTextData {
   bool          visible_       { true };                             //!< is visible
   Color         color_         { ColorType::INTERFACE_VALUE, 1.0 };  //!< color
   Alpha         alpha_;                                              //!< alpha
-  CQChartsFont  font_;                                               //!< font
+  Font          font_;                                               //!< font
   Angle         angle_;                                              //!< angle
   bool          contrast_      { false };                            //!< contrast
   Alpha         contrastAlpha_ { 0.5 };                              //!< contrast alpha
@@ -97,6 +135,7 @@ class CQChartsTextData {
   bool          formatted_     { false };                            //!< formatted
   bool          scaled_        { false };                            //!< scaled
   bool          html_          { false };                            //!< html
+  Length        clipLength_;                                         //!< clip length
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)
@@ -139,16 +178,16 @@ class CQChartsLineData {
   void setVisible(bool b) { visible_ = b; }
 
   const Color &color() const { return color_; }
-  void setColor(const Color &v) { color_ = v; }
+  void setColor(const Color &c) { color_ = c; }
 
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
   const Length &width() const { return width_; }
-  void setWidth(const Length &v) { width_ = v; }
+  void setWidth(const Length &l) { width_ = l; }
 
   const CQChartsLineDash &dash() const { return dash_; }
-  void setDash(const CQChartsLineDash &v) { dash_ = v; }
+  void setDash(const CQChartsLineDash &d) { dash_ = d; }
 
   //---
 
@@ -205,13 +244,13 @@ class CQChartsFillData {
   void setVisible(bool b) { visible_ = b; }
 
   const Color &color() const { return color_; }
-  void setColor(const Color &v) { color_ = v; }
+  void setColor(const Color &c) { color_ = c; }
 
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
   const FillPattern &pattern() const { return pattern_; }
-  void setPattern(const FillPattern &v) { pattern_ = v; }
+  void setPattern(const FillPattern &p) { pattern_ = p; }
 
   //---
 
@@ -263,19 +302,19 @@ class CQChartsStrokeData {
   void setVisible(bool b) { visible_ = b; }
 
   const Color &color() const { return color_; }
-  void setColor(const Color &v) { color_ = v; }
+  void setColor(const Color &c) { color_ = c; }
 
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
   const Length &width() const { return width_; }
-  void setWidth(const Length &v) { width_ = v; }
+  void setWidth(const Length &w) { width_ = w; }
 
   const CQChartsLineDash &dash() const { return dash_; }
-  void setDash(const CQChartsLineDash &v) { dash_ = v; }
+  void setDash(const CQChartsLineDash &d) { dash_ = d; }
 
   const Length &cornerSize() const { return cornerSize_; }
-  void setCornerSize(const Length &v) { cornerSize_ = v; }
+  void setCornerSize(const Length &l) { cornerSize_ = l; }
 
   //---
 
@@ -325,11 +364,11 @@ class CQChartsShapeData {
 
   FillData &fill() { return fill_; }
   const FillData &fill() const { return fill_; }
-  void setFill(const FillData &v) { fill_ = v; }
+  void setFill(const FillData &f) { fill_ = f; }
 
   StrokeData &stroke() { return stroke_; }
   const StrokeData &stroke() const { return stroke_; }
-  void setStroke(const StrokeData &v) { stroke_ = v; }
+  void setStroke(const StrokeData &s) { stroke_ = s; }
 
   //---
 
@@ -387,10 +426,10 @@ class CQChartsBoxData {
 
   ShapeData &shape() { return shape_; }
   const ShapeData &shape() const { return shape_; }
-  void setShape(const ShapeData &v) { shape_ = v; }
+  void setShape(const ShapeData &s) { shape_ = s; }
 
   const Sides &borderSides() const { return borderSides_; }
-  void setBorderSides(const Sides &v) { borderSides_ = v; }
+  void setBorderSides(const Sides &s) { borderSides_ = s; }
 
   //---
 
@@ -439,11 +478,11 @@ class CQChartsTextBoxData {
 
   TextData &text() { return text_; }
   const TextData &text() const { return text_; }
-  void setText(const TextData &v) { text_ = v; }
+  void setText(const TextData &t) { text_ = t; }
 
   BoxData &box() { return box_; }
   const BoxData &box() const { return box_; }
-  void setBox(const BoxData &v) { box_ = v; }
+  void setBox(const BoxData &b) { box_ = b; }
 
   //---
 
@@ -497,18 +536,18 @@ class CQChartsSymbolData {
   void setVisible(bool b) { visible_ = b; }
 
   const Symbol &type() const { return type_; }
-  void setType(const Symbol &v) { type_ = v; }
+  void setType(const Symbol &s) { type_ = s; }
 
   const Length &size() const { return size_; }
-  void setSize(const Length &v) { size_ = v; }
+  void setSize(const Length &l) { size_ = l; }
 
   StrokeData &stroke() { return stroke_; }
   const StrokeData &stroke() const { return stroke_; }
-  void setStroke(const StrokeData &v) { stroke_ = v; }
+  void setStroke(const StrokeData &s) { stroke_ = s; }
 
   FillData &fill() { return fill_; }
   const FillData &fill() const { return fill_; }
-  void setFill(const FillData &v) { fill_ = v; }
+  void setFill(const FillData &f) { fill_ = f; }
 
   //---
 
@@ -571,7 +610,7 @@ class CQChartsArrowData {
 //void setRelative(bool b) { relative_ = b; }
 
   const Length &lineWidth() const { return lineWidth_; }
-  void setLineWidth(const Length &v) { lineWidth_ = v; }
+  void setLineWidth(const Length &l) { lineWidth_ = l; }
 
   //---
 

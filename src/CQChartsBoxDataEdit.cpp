@@ -121,7 +121,7 @@ void
 CQChartsBoxDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  CQChartsBoxData data = this->boxData();
+  auto data = this->boxData();
 
   CQChartsBoxDataEditPreview::draw(painter, data, rect, plot(), view());
 }
@@ -140,7 +140,7 @@ CQChartsBoxDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsBoxData data = value.value<CQChartsBoxData>();
+  auto data = value.value<CQChartsBoxData>();
 
   CQChartsBoxDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -190,7 +190,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsBoxDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsBoxData data = var.value<CQChartsBoxData>();
+  auto data = var.value<CQChartsBoxData>();
 
   edit->setBoxData(data);
 }
@@ -383,7 +383,7 @@ void
 CQChartsBoxDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsBoxData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }

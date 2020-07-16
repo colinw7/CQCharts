@@ -278,6 +278,8 @@ addProperties()
                    "Axis tick label text contrast");
   addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextContrastAlpha", "contrastAlpha",
                    "Axis tick label text contrast alpha");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextClipLength"   , "clipLength",
+                   "Axis tick label text clip length");
 
   //---
 
@@ -298,6 +300,8 @@ addProperties()
                    "Axis label text contrast");
   addAxisStyleProp(labelTextPath, "axesLabelTextContrastAlpha", "contrastAlpha",
                    "Axis label text contrast alpha");
+  addAxisStyleProp(labelTextPath, "axesLabelTextClipLength"   , "clipLength",
+                   "Axis label text clip length");
 
 //masterAxis_->addProperties(propertyModel(), "axis");
 }
@@ -556,8 +560,8 @@ createObjs(PlotObjs &objs) const
 
   visitModel(visitor);
 
-  const Polygons &polys = visitor.polys();
-  const Indices  &xinds = visitor.xinds();
+  const auto &polys = visitor.polys();
+  const auto &xinds = visitor.xinds();
 
   //---
 
@@ -928,6 +932,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
     options.align         = Qt::AlignLeft;
     options.contrast      = masterAxis_->isAxesLabelTextContrast();
     options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
+    options.clipLength    = masterAxis_->axesLabelTextClipLength();
 
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), label,
                                       options, /*centered*/false);

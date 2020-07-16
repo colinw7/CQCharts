@@ -25,7 +25,7 @@ init()
 //projMatrix_.buildOrtho(xmin_, xmax_, ymin_, ymax_, near_, far_);
 //projMatrix_.buildFrustrum(-2, 2, -2, 2, near, far);
 
-  const Range3D &range3D = plot_->range3D();
+  const auto &range3D = plot_->range3D();
 
   if (range3D.isSet()) {
     double xmin = range3D.xmin();
@@ -120,7 +120,7 @@ transform(const Point3D &p) const
   //---
 
   // map to unit radius cube centered at 0,0
-  const Range3D &range3D = plot_->range3D();
+  const auto &range3D = plot_->range3D();
 
   if (! range3D.isSet())
     return p;
@@ -171,7 +171,7 @@ untransform(const Point3D &p) const
   if (! enabled_) return p;
 
   // map to unit radius cube centered at 0,0
-  const Range3D &range3D = plot_->range3D();
+  const auto &range3D = plot_->range3D();
 
   if (! range3D.isSet())
     return p;
@@ -217,7 +217,7 @@ void
 CQChartsCamera::
 planeZRange(double &zmin, double &zmax) const
 {
-  const Range3D &range3D = plot_->range3D();
+  const auto &range3D = plot_->range3D();
 
   zmin = range3D.zmin();
   zmax = range3D.zmax();

@@ -383,7 +383,7 @@ void
 CQChartsStrokeDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsStrokeData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }

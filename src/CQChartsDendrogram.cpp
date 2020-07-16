@@ -6,8 +6,8 @@
 struct NodeCmp {
   // sort reverse alphabetic no case
   bool operator()(const CQChartsDendrogram::Node *n1, const CQChartsDendrogram::Node *n2) {
-    const QString &name1 = n1->name();
-    const QString &name2 = n2->name();
+    const auto &name1 = n1->name();
+    const auto &name2 = n2->name();
 
     int l1 = name1.size();
     int l2 = name2.size();
@@ -367,7 +367,7 @@ setGaps()
   int d = depthNodes_.size();
 
   for (int i = 0; i < d; ++i) {
-    Nodes &dnodes = depthNodes_[i];
+    auto &dnodes = depthNodes_[i];
 
     int n = dnodes.size();
 
@@ -420,7 +420,7 @@ printGaps() const
   int d = depthNodes_.size();
 
   for (int i = 0; i < d; ++i) {
-    const Nodes &dnodes = depthNodes_[i];
+    const auto &dnodes = depthNodes_[i];
 
     int n = dnodes.size();
 
@@ -453,7 +453,7 @@ compressNodes()
   int d = depthNodes_.size();
 
   for (int i = d - 1; i > 0; --i) {
-    Nodes &dnodes = depthNodes_[i];
+    auto &dnodes = depthNodes_[i];
 
     int n = dnodes.size();
 
@@ -532,7 +532,7 @@ CQChartsDendrogram::RootNode::
 canMoveNode(Node *node, double &move_gap, Nodes &lowestChildren)
 {
   // find location of node in depth nodes array
-  Nodes &dnodes = depthNodes_[node->depth()];
+  auto &dnodes = depthNodes_[node->depth()];
 
   int n = dnodes.size();
 
@@ -580,14 +580,14 @@ getLowestChild(HierNode *hierNode)
 {
   Node *lowestNode = nullptr;
 
-  const Children &children = hierNode->getChildren();
+  const auto &children = hierNode->getChildren();
 
   for (const auto &c : children) {
     if (! lowestNode || c->row() < lowestNode->row())
       lowestNode = c;
   }
 
-  const Nodes &nodes = hierNode->getNodes();
+  const auto &nodes = hierNode->getNodes();
 
   for (const auto &n : nodes) {
     if (! lowestNode || n->row() < lowestNode->row())
@@ -605,7 +605,7 @@ setOpenDepth(int depth)
   int d = depthNodes_.size();
 
   for (int i = 0; i < d; ++i) {
-    Nodes &dnodes = depthNodes_[i];
+    auto &dnodes = depthNodes_[i];
 
     int n = dnodes.size();
 
@@ -622,7 +622,7 @@ void
 CQChartsDendrogram::RootNode::
 openNode(int depth, const QString &name)
 {
-  Nodes &dnodes = depthNodes_[depth];
+  auto &dnodes = depthNodes_[depth];
 
   int n = dnodes.size();
 
@@ -679,7 +679,7 @@ moveChildNodes(HierNode *hierNode, double d)
   if (! hierNode->isOpen())
     return;
 
-  const Children &children = hierNode->getChildren();
+  const auto &children = hierNode->getChildren();
 
   for (const auto &c : children_) {
     c->moveNode(d);
@@ -687,7 +687,7 @@ moveChildNodes(HierNode *hierNode, double d)
     moveChildNodes(c, d);
   }
 
-  const Nodes &nodes = hierNode->getNodes();
+  const auto &nodes = hierNode->getNodes();
 
   for (const auto &n : nodes) {
     n->moveNode(d);
@@ -715,7 +715,7 @@ void
 CQChartsDendrogram::RootNode::
 moveHigherNodes(Node *node, double d)
 {
-  Nodes &dnodes = depthNodes_[node->depth()];
+  auto &dnodes = depthNodes_[node->depth()];
 
   // work down from top until hit node
   int n = dnodes.size();

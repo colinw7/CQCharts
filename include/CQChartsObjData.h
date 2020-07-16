@@ -600,17 +600,18 @@ class CQChartsObj##UNAME##FillData { \
 #define CQCHARTS_TEXT_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsTextData textData READ textData WRITE setTextData) \
 \
-Q_PROPERTY(bool          textVisible       READ isTextVisible     WRITE setTextVisible      ) \
-Q_PROPERTY(CQChartsColor textColor         READ textColor         WRITE setTextColor        ) \
-Q_PROPERTY(CQChartsAlpha textAlpha         READ textAlpha         WRITE setTextAlpha        ) \
-Q_PROPERTY(CQChartsFont  textFont          READ textFont          WRITE setTextFont         ) \
-Q_PROPERTY(CQChartsAngle textAngle         READ textAngle         WRITE setTextAngle        ) \
-Q_PROPERTY(bool          textContrast      READ isTextContrast    WRITE setTextContrast     ) \
-Q_PROPERTY(CQChartsAlpha textContrastAlpha READ textContrastAlpha WRITE setTextContrastAlpha) \
-Q_PROPERTY(Qt::Alignment textAlign         READ textAlign         WRITE setTextAlign        ) \
-Q_PROPERTY(bool          textFormatted     READ isTextFormatted   WRITE setTextFormatted    ) \
-Q_PROPERTY(bool          textScaled        READ isTextScaled      WRITE setTextScaled       ) \
-Q_PROPERTY(bool          textHtml          READ isTextHtml        WRITE setTextHtml         )
+Q_PROPERTY(bool           textVisible       READ isTextVisible     WRITE setTextVisible      ) \
+Q_PROPERTY(CQChartsColor  textColor         READ textColor         WRITE setTextColor        ) \
+Q_PROPERTY(CQChartsAlpha  textAlpha         READ textAlpha         WRITE setTextAlpha        ) \
+Q_PROPERTY(CQChartsFont   textFont          READ textFont          WRITE setTextFont         ) \
+Q_PROPERTY(CQChartsAngle  textAngle         READ textAngle         WRITE setTextAngle        ) \
+Q_PROPERTY(bool           textContrast      READ isTextContrast    WRITE setTextContrast     ) \
+Q_PROPERTY(CQChartsAlpha  textContrastAlpha READ textContrastAlpha WRITE setTextContrastAlpha) \
+Q_PROPERTY(Qt::Alignment  textAlign         READ textAlign         WRITE setTextAlign        ) \
+Q_PROPERTY(bool           textFormatted     READ isTextFormatted   WRITE setTextFormatted    ) \
+Q_PROPERTY(bool           textScaled        READ isTextScaled      WRITE setTextScaled       ) \
+Q_PROPERTY(bool           textHtml          READ isTextHtml        WRITE setTextHtml         ) \
+Q_PROPERTY(CQChartsLength textClipLength    READ textClipLength    WRITE setTextClipLength   )
 
 /*!
  * \brief Object text data
@@ -696,6 +697,12 @@ class CQChartsObjTextData {
       textData_.setHtml(b); textDataInvalidate(); }
   }
 
+  const CQChartsLength &textClipLength() const { return textData_.clipLength(); }
+  void setTextClipLength(const CQChartsLength &l) {
+    if (l != textData_.clipLength()) {
+      textData_.setClipLength(l); textDataInvalidate(); }
+  }
+
   //---
 
   const CQChartsTextData &textData() const { return textData_; }
@@ -722,28 +729,30 @@ class CQChartsObjTextData {
 #define CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(UNAME,LNAME) \
 Q_PROPERTY(CQChartsTextData LNAME##TextData READ LNAME##TextData WRITE set##UNAME##TextData) \
 \
-Q_PROPERTY(bool          LNAME##TextVisible \
-           READ is##UNAME##TextVisible   WRITE set##UNAME##TextVisible      ) \
-Q_PROPERTY(CQChartsColor LNAME##TextColor \
-           READ LNAME##TextColor         WRITE set##UNAME##TextColor        ) \
-Q_PROPERTY(CQChartsAlpha LNAME##TextAlpha \
-           READ LNAME##TextAlpha         WRITE set##UNAME##TextAlpha        ) \
-Q_PROPERTY(CQChartsFont  LNAME##TextFont \
-           READ LNAME##TextFont          WRITE set##UNAME##TextFont         ) \
-Q_PROPERTY(CQChartsAngle LNAME##TextAngle \
-           READ LNAME##TextAngle         WRITE set##UNAME##TextAngle        ) \
-Q_PROPERTY(bool          LNAME##TextContrast \
-           READ is##UNAME##TextContrast  WRITE set##UNAME##TextContrast     ) \
-Q_PROPERTY(CQChartsAlpha LNAME##TextContrastAlpha \
-           READ LNAME##TextContrastAlpha WRITE set##UNAME##TextContrastAlpha) \
-Q_PROPERTY(Qt::Alignment LNAME##TextAlign \
-           READ LNAME##TextAlign         WRITE set##UNAME##TextAlign        ) \
-Q_PROPERTY(bool          LNAME##TextFormatted \
-           READ is##UNAME##TextFormatted WRITE set##UNAME##TextFormatted    ) \
-Q_PROPERTY(bool          LNAME##TextScaled \
-           READ is##UNAME##TextScaled    WRITE set##UNAME##TextScaled       ) \
-Q_PROPERTY(bool          LNAME##TextHtml \
-           READ is##UNAME##TextHtml      WRITE set##UNAME##TextHtml         )
+Q_PROPERTY(bool           LNAME##TextVisible \
+           READ is##UNAME##TextVisible    WRITE set##UNAME##TextVisible      ) \
+Q_PROPERTY(CQChartsColor  LNAME##TextColor \
+           READ LNAME##TextColor          WRITE set##UNAME##TextColor        ) \
+Q_PROPERTY(CQChartsAlpha  LNAME##TextAlpha \
+           READ LNAME##TextAlpha          WRITE set##UNAME##TextAlpha        ) \
+Q_PROPERTY(CQChartsFont   LNAME##TextFont \
+           READ LNAME##TextFont           WRITE set##UNAME##TextFont         ) \
+Q_PROPERTY(CQChartsAngle  LNAME##TextAngle \
+           READ LNAME##TextAngle          WRITE set##UNAME##TextAngle        ) \
+Q_PROPERTY(bool           LNAME##TextContrast \
+           READ is##UNAME##TextContrast   WRITE set##UNAME##TextContrast     ) \
+Q_PROPERTY(CQChartsAlpha  LNAME##TextContrastAlpha \
+           READ LNAME##TextContrastAlpha  WRITE set##UNAME##TextContrastAlpha) \
+Q_PROPERTY(Qt::Alignment  LNAME##TextAlign \
+           READ LNAME##TextAlign          WRITE set##UNAME##TextAlign        ) \
+Q_PROPERTY(bool           LNAME##TextFormatted \
+           READ is##UNAME##TextFormatted  WRITE set##UNAME##TextFormatted    ) \
+Q_PROPERTY(bool           LNAME##TextScaled \
+           READ is##UNAME##TextScaled     WRITE set##UNAME##TextScaled       ) \
+Q_PROPERTY(bool           LNAME##TextHtml \
+           READ is##UNAME##TextHtml       WRITE set##UNAME##TextHtml         ) \
+Q_PROPERTY(CQChartsLength LNAME##TextClipLength \
+           READ LNAME##TextClipLength WRITE set##UNAME##TextClipLength       )
 
 /*!
  * \brief Object named text data
@@ -829,6 +838,12 @@ class CQChartsObj##UNAME##TextData { \
   void set##UNAME##TextHtml(bool b) { \
     if (b != LNAME##TextData_.isHtml()) { \
       LNAME##TextData_.setHtml(b); LNAME##TextDataInvalidate(); } \
+  } \
+\
+  const CQChartsLength &LNAME##TextClipLength() const { return LNAME##TextData_.clipLength(); } \
+  void set##UNAME##TextClipLength(const CQChartsLength &l) { \
+    if (l != LNAME##TextData_.clipLength()) { \
+      LNAME##TextData_.setClipLength(l); LNAME##TextDataInvalidate(); } \
   } \
 \
   const CQChartsTextData &LNAME##TextData() const { return LNAME##TextData_; } \

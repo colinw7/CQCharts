@@ -55,6 +55,7 @@ class CQChartsAlphaEdit;
 class CQChartsTextDataEditPreview;
 class CQChartsFontLineEdit;
 class CQChartsAngleEdit;
+class CQChartsLengthEdit;
 
 class CQAlignEdit;
 class CQGroupBox;
@@ -93,21 +94,23 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsPlot*                plot_          { nullptr }; //!< parent plot
-  CQChartsView*                view_          { nullptr }; //!< parent view
-  CQChartsTextData             data_;                      //!< text data
-  CQGroupBox*                  groupBox_      { nullptr }; //!< group box
-  CQChartsFontLineEdit*        fontEdit_      { nullptr }; //!< font edit
-  CQChartsColorLineEdit*       colorEdit_     { nullptr }; //!< color edit
-  CQChartsAlphaEdit*           alphaEdit_     { nullptr }; //!< alpha edit
-  CQChartsAngleEdit*           angleEdit_     { nullptr }; //!< angle edit
-  CQCheckBox*                  contrastEdit_  { nullptr }; //!< contrast edit
-  CQAlignEdit*                 alignEdit_     { nullptr }; //!< align edit
-  CQCheckBox*                  formattedEdit_ { nullptr }; //!< formatted edit
-  CQCheckBox*                  scaledEdit_    { nullptr }; //!< scaled edit
-  CQCheckBox*                  htmlEdit_      { nullptr }; //!< html edit
-  CQChartsTextDataEditPreview* preview_       { nullptr }; //!< preview
-  bool                         connected_     { false };   //!< is connected
+  CQChartsPlot*                plot_              { nullptr }; //!< parent plot
+  CQChartsView*                view_              { nullptr }; //!< parent view
+  CQChartsTextData             data_;                          //!< text data
+  CQGroupBox*                  groupBox_          { nullptr }; //!< group box
+  CQChartsColorLineEdit*       colorEdit_         { nullptr }; //!< color edit
+  CQChartsAlphaEdit*           alphaEdit_         { nullptr }; //!< alpha edit
+  CQChartsFontLineEdit*        fontEdit_          { nullptr }; //!< font edit
+  CQChartsAngleEdit*           angleEdit_         { nullptr }; //!< angle edit
+  CQCheckBox*                  contrastEdit_      { nullptr }; //!< contrast edit
+  CQChartsAlphaEdit*           contrastAlphaEdit_ { nullptr }; //!< contrast alpha edit
+  CQAlignEdit*                 alignEdit_         { nullptr }; //!< align edit
+  CQCheckBox*                  formattedEdit_     { nullptr }; //!< formatted edit
+  CQCheckBox*                  scaledEdit_        { nullptr }; //!< scaled edit
+  CQCheckBox*                  htmlEdit_          { nullptr }; //!< html edit
+  CQChartsLengthEdit*          clipLengthEdit_    { nullptr }; //!< clip length edit
+  CQChartsTextDataEditPreview* preview_           { nullptr }; //!< preview
+  bool                         connected_         { false };   //!< is connected
 };
 
 //---

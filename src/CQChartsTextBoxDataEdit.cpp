@@ -134,7 +134,7 @@ CQChartsTextBoxDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsTextBoxData data = value.value<CQChartsTextBoxData>();
+  auto data = value.value<CQChartsTextBoxData>();
 
   CQChartsTextBoxDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -184,7 +184,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsTextBoxData data = var.value<CQChartsTextBoxData>();
+  auto data = var.value<CQChartsTextBoxData>();
 
   edit->setTextBoxData(data);
 }
@@ -378,7 +378,7 @@ void
 CQChartsTextBoxDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsTextBoxData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }
@@ -388,9 +388,8 @@ CQChartsTextBoxDataEditPreview::
 draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
-  const CQChartsBoxData &box = data.box();
-
-  const CQChartsShapeData &shape = box.shape();
+  const auto &box   = data.box();
+  const auto &shape = box.shape();
 
   //---
 

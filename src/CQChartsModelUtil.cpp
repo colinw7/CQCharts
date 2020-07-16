@@ -1774,7 +1774,7 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
   bool rc = true;
 
   for (int i = 0; i < strs.length(); ++i) {
-    const QString &str = strs[i];
+    const auto &str = strs[i];
 
     int pos = str.indexOf('~');
 

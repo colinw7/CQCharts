@@ -118,7 +118,7 @@ void
 CQChartsArrowDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  CQChartsArrowData data = this->arrowData();
+  auto data = this->arrowData();
 
   data.setLength   (CQChartsLength(16, CQChartsUnits::PIXEL));
   data.setLineWidth(CQChartsLength( 6, CQChartsUnits::PIXEL));
@@ -140,7 +140,7 @@ CQChartsArrowDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsArrowData data = value.value<CQChartsArrowData>();
+  auto data = value.value<CQChartsArrowData>();
 
   CQChartsArrowDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -190,7 +190,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsArrowDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsArrowData data = var.value<CQChartsArrowData>();
+  auto data = var.value<CQChartsArrowData>();
 
   edit->setArrowData(data);
 }
@@ -383,7 +383,7 @@ void
 CQChartsArrowDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsArrowData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }

@@ -599,7 +599,7 @@ calcTableSize() const
 
   // calc column widths
   if (isRowColumn()) {
-    ColumnData &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowColumnData;
 
     const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
@@ -613,7 +613,7 @@ calcTableSize() const
     auto *columnDetails = this->columnDetails(c);
     if (! columnDetails) continue;
 
-    ColumnData &data = th->tableData_.columnDataMap[c];
+    auto &data = th->tableData_.columnDataMap[c];
 
     bool ok;
 
@@ -692,7 +692,7 @@ calcTableSize() const
         QString str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
         if (! ok) continue;
 
-        ColumnData &data = tableData_.columnDataMap[c];
+        auto &data = tableData_.columnDataMap[c];
 
         double cw = fm_.width(str) + 2*tableData_.pmargin;
 
@@ -732,7 +732,7 @@ calcTableSize() const
   th->tableData_.pcw = 0.0;
 
   if (isRowColumn()) {
-    const ColumnData &data = th->tableData_.rowColumnData;
+    const auto &data = th->tableData_.rowColumnData;
 
     th->tableData_.pcw += data.pwidth;
   }
@@ -740,7 +740,7 @@ calcTableSize() const
   for (int i = 0; i < tableData_.nc; ++i) {
     const auto &c = columns().getColumn(i);
 
-    const ColumnData &data = th->tableData_.columnDataMap[c];
+    const auto &data = th->tableData_.columnDataMap[c];
 
     if (data.prefWidth > 0)
       th->tableData_.pcw += data.prefWidth + 2*tableData_.pmargin;
@@ -1090,7 +1090,7 @@ initDrawData() const
   double x = th->tableData_.xo;
 
   if (isRowColumn()) {
-    ColumnData &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowColumnData;
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1101,7 +1101,7 @@ initDrawData() const
   for (int i = 0; i < tableData_.nc; ++i) {
     const auto &c = columns().getColumn(i);
 
-    ColumnData &data = th->tableData_.columnDataMap[c];
+    auto &data = th->tableData_.columnDataMap[c];
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1263,7 +1263,7 @@ drawTableBackground(PaintDevice *device) const
   double x = th->tableData_.xo + th->tableData_.sx;
 
   if (isRowColumn()) {
-    ColumnData &data = th->tableData_.rowColumnData;
+    auto &data = th->tableData_.rowColumnData;
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1274,7 +1274,7 @@ drawTableBackground(PaintDevice *device) const
   for (int i = 0; i < tableData_.nc; ++i) {
     const auto &c = columns().getColumn(i);
 
-    ColumnData &data = th->tableData_.columnDataMap[c];
+    auto &data = th->tableData_.columnDataMap[c];
 
     data.width     = pixelToWindowWidth(data.pwidth);
     data.drawWidth = data.width;
@@ -1350,7 +1350,7 @@ drawTableBackground(PaintDevice *device) const
 
   // number column vertical line
   if (isRowColumn()) {
-    const ColumnData &data = th->tableData_.rowColumnData;
+    const auto &data = th->tableData_.rowColumnData;
 
     device->drawLine(Point(x, y1), Point(x, y2));
 
@@ -1361,7 +1361,7 @@ drawTableBackground(PaintDevice *device) const
   for (int i = 0; i < tableData_.nc; ++i) {
     const auto &c = columns().getColumn(i);
 
-    const ColumnData &data = th->tableData_.columnDataMap[c];
+    const auto &data = th->tableData_.columnDataMap[c];
 
     device->drawLine(Point(x, y1), Point(x, y2));
 
@@ -1432,7 +1432,7 @@ createTableObjData() const
 
       // draw line number
       if (plot_->isRowColumn()) {
-        const ColumnData &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
 
@@ -1490,7 +1490,7 @@ createTableObjData() const
 
       // draw line number
       if (plot_->isRowColumn()) {
-        const ColumnData &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowColumnData;
 
         drawRowNumber(x, y, data.vrow + 1);
 
@@ -1522,7 +1522,7 @@ createTableObjData() const
 
         //---
 
-        const ColumnData &cdata = tableData_.rowColumnData;
+        const auto &cdata = tableData_.rowColumnData;
 
         headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
@@ -1548,7 +1548,7 @@ createTableObjData() const
 
         //---
 
-        const ColumnData &cdata = tableData_.columnDataMap[c];
+        const auto &cdata = tableData_.columnDataMap[c];
 
         if (cdata.numeric)
           headerObjData.align = Qt::AlignRight | Qt::AlignVCenter;
@@ -1564,7 +1564,7 @@ createTableObjData() const
     }
 
     void drawRowNumber(double x, double y, int n) {
-      const ColumnData &cdata = tableData_.rowColumnData;
+      const auto &cdata = tableData_.rowColumnData;
 
       //---
 
@@ -1581,7 +1581,7 @@ createTableObjData() const
       for (int ic = 0; ic < tableData_.nc; ++ic) {
         const auto &c = plot_->columns().getColumn(ic);
 
-        const ColumnData &cdata = tableData_.columnDataMap[c];
+        const auto &cdata = tableData_.columnDataMap[c];
 
         drawCellValue(x, y, data, ic);
 
@@ -1611,7 +1611,7 @@ createTableObjData() const
 
       //---
 
-      const ColumnData &cdata = tableData_.columnDataMap[c];
+      const auto &cdata = tableData_.columnDataMap[c];
 
       if (cdata.numeric)
         cellObjData.align = Qt::AlignRight | Qt::AlignVCenter;

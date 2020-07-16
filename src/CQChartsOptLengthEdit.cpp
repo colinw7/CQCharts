@@ -45,7 +45,7 @@ QString
 CQChartsOptLengthEdit::
 valueToText()
 {
-  const CQChartsLength &l = value_.length();
+  const auto &l = value_.length();
 
   return l.toString();
 }

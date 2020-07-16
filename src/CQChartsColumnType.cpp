@@ -306,7 +306,7 @@ getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &co
 {
   bool ok;
 
-  const CacheData &cacheData = getModelCacheData(model, ok);
+  const auto &cacheData = getModelCacheData(model, ok);
 
   //---
 
@@ -320,7 +320,7 @@ getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &co
     if (pc == cacheData.columnTypeCache.end()) {
       std::unique_lock<std::mutex> lock(mutex_);
 
-      CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+      auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
       auto pc1 = cacheData1.columnTypeCache.find(column);
 
@@ -349,7 +349,7 @@ getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &co
     typeCacheData = &(*pc).second;
   }
   else {
-    TypeCacheData &typeCacheData1 = const_cast<TypeCacheData &>(cacheData.typeCacheData);
+    auto &typeCacheData1 = const_cast<TypeCacheData &>(cacheData.typeCacheData);
 
     if (getModelColumnType(model, column, typeCacheData1.typeData)) {
       typeCacheData1.columnType = getType(typeCacheData1.typeData.type);
@@ -408,13 +408,13 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
   if (! var1.isValid()) {
     bool ok;
 
-    const CacheData &cacheData = getModelCacheData(model, ok);
+    const auto &cacheData = getModelCacheData(model, ok);
 
     if (ok) {
       auto pc = cacheData.columnTypeCache.find(column);
 
       if (pc != cacheData.columnTypeCache.end()) {
-        const TypeCacheData &typeCacheData = (*pc).second;
+        const auto &typeCacheData = (*pc).second;
 
         typeData = typeCacheData.typeData;
 
@@ -531,16 +531,16 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   if (! rc1) {
     bool ok;
 
-    const CacheData &cacheData = getModelCacheData(model, ok);
+    const auto &cacheData = getModelCacheData(model, ok);
 
     // if in cache, update cache
     if (ok) {
-      CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+      auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
       auto pc = cacheData1.columnTypeCache.find(column);
 
       if (pc != cacheData1.columnTypeCache.end()) {
-        TypeCacheData &typeCacheData = (*pc).second;
+        auto &typeCacheData = (*pc).second;
 
         typeCacheData.typeData.type       = type;
         typeCacheData.typeData.nameValues = nameValues;
@@ -617,16 +617,16 @@ setModelHeaderType(QAbstractItemModel *model, const CQChartsColumn &column,
   if (! rc1) {
     bool ok;
 
-    const CacheData &cacheData = getModelCacheData(model, ok);
+    const auto &cacheData = getModelCacheData(model, ok);
 
     // if in cache, update cache
     if (ok) {
-      CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+      auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
       auto pc = cacheData1.columnTypeCache.find(column);
 
       if (pc != cacheData1.columnTypeCache.end()) {
-        TypeCacheData &typeCacheData = (*pc).second;
+        auto &typeCacheData = (*pc).second;
 
         typeCacheData.typeData.headerType       = type;
         typeCacheData.typeData.headerNameValues = nameValues;
@@ -689,12 +689,12 @@ startCache(const QAbstractItemModel *model)
 {
   bool ok;
 
-  const CacheData &cacheData = getModelCacheData(model, ok);
+  const auto &cacheData = getModelCacheData(model, ok);
   if (! ok) return;
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+  auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
   ++cacheData1.depth;
 }
@@ -705,12 +705,12 @@ endCache(const QAbstractItemModel *model)
 {
   bool ok;
 
-  const CacheData &cacheData = getModelCacheData(model, ok);
+  const auto &cacheData = getModelCacheData(model, ok);
   if (! ok) return;
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+  auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
   assert(cacheData1.depth > 0);
 
@@ -761,7 +761,7 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
     pm = th->modelCacheData_.insert(pm, ModelCacheData::value_type(modelInd, CacheData()));
   }
 
-  const CacheData &cacheData = (*pm).second;
+  const auto &cacheData = (*pm).second;
 
   return cacheData;
 }

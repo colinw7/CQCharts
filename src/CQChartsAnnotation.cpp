@@ -472,8 +472,8 @@ setProperties(const QString &properties)
   CQChartsNameValues nameValues(properties);
 
   for (const auto &nv : nameValues.nameValues()) {
-    const QString  &name  = nv.first;
-    const QVariant &value = nv.second;
+    const auto &name  = nv.first;
+    const auto &value = nv.second;
 
     if (! setProperty(name, value))
       rc = false;
@@ -661,6 +661,8 @@ drawInit(PaintDevice *device)
 
   if (plot())
     plot()->setClipRect(device);
+
+  bbox_ = rect_;
 }
 
 void
@@ -857,7 +859,7 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
     int n = path.elementCount();
 
     for (int i = 0; i < n; ++i) {
-      const QPainterPath::Element &e = path.elementAt(i);
+      const auto &e = path.elementAt(i);
 
       if      (e.isMoveTo()) {
         assert(i == 0);
@@ -1237,7 +1239,7 @@ draw(PaintDevice *device)
   // create path
   QPainterPath path;
 
-  path.addEllipse(bbox_.qrect());
+  path.addEllipse(rect_.qrect());
 
   //---
 
@@ -1360,13 +1362,13 @@ void
 CQChartsPolygonAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
-  double sx = (bbox_.getWidth () > 0 ? bbox.getWidth ()/bbox_.getWidth () : 1.0);
-  double sy = (bbox_.getHeight() > 0 ? bbox.getHeight()/bbox_.getHeight() : 1.0);
+  double dx = bbox.getXMin() - rect_.getXMin();
+  double dy = bbox.getYMin() - rect_.getYMin();
+  double sx = (rect_.getWidth () > 0 ? bbox.getWidth ()/rect_.getWidth () : 1.0);
+  double sy = (rect_.getHeight() > 0 ? bbox.getHeight()/rect_.getHeight() : 1.0);
 
-  double x1 = bbox_.getXMin();
-  double y1 = bbox_.getYMin();
+  double x1 = rect_.getXMin();
+  double y1 = rect_.getYMin();
 
   auto poly = polygon_.polygon();
 
@@ -1381,7 +1383,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   if (polygon.isValid(/*closed*/true)) {
     polygon_ = polygon;
-    bbox_    = bbox;
+    rect_    = bbox;
   }
 }
 
@@ -1579,13 +1581,13 @@ void
 CQChartsPolylineAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
-  double sx = (bbox_.getWidth () > 0 ? bbox.getWidth ()/bbox_.getWidth () : 1.0);
-  double sy = (bbox_.getHeight() > 0 ? bbox.getHeight()/bbox_.getHeight() : 1.0);
+  double dx = bbox.getXMin() - rect_.getXMin();
+  double dy = bbox.getYMin() - rect_.getYMin();
+  double sx = (rect_.getWidth () > 0 ? bbox.getWidth ()/rect_.getWidth () : 1.0);
+  double sy = (rect_.getHeight() > 0 ? bbox.getHeight()/rect_.getHeight() : 1.0);
 
-  double x1 = bbox_.getXMin();
-  double y1 = bbox_.getYMin();
+  double x1 = rect_.getXMin();
+  double y1 = rect_.getYMin();
 
   auto qpoly = polygon_.polygon();
 
@@ -1600,7 +1602,7 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   if (polygon.isValid(/*closed*/false)) {
     polygon_ = polygon;
-    bbox_    = bbox;
+    rect_    = bbox;
   }
 }
 
@@ -1891,16 +1893,17 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp(textPath, "textStr", "string", "Text string");
 
-  addStyleProp(textPath, "textData"     , "style"    , "Text style", true);
-  addStyleProp(textPath, "textColor"    , "color"    , "Text color");
-  addStyleProp(textPath, "textAlpha"    , "alpha"    , "Text alpha");
-  addStyleProp(textPath, "textFont"     , "font"     , "Text font");
-  addStyleProp(textPath, "textAngle"    , "angle"    , "Text angle");
-  addStyleProp(textPath, "textContrast" , "contrast" , "Text has contrast");
-  addStyleProp(textPath, "textAlign"    , "align"    , "Text align");
-  addStyleProp(textPath, "textFormatted", "formatted", "Text formatted to fit in box");
-  addStyleProp(textPath, "textScaled"   , "scaled"   , "Text scaled to fit box");
-  addStyleProp(textPath, "textHtml"     , "html"     , "Text is HTML");
+  addStyleProp(textPath, "textData"      , "style"     , "Text style", true);
+  addStyleProp(textPath, "textColor"     , "color"     , "Text color");
+  addStyleProp(textPath, "textAlpha"     , "alpha"     , "Text alpha");
+  addStyleProp(textPath, "textFont"      , "font"      , "Text font");
+  addStyleProp(textPath, "textAngle"     , "angle"     , "Text angle");
+  addStyleProp(textPath, "textContrast"  , "contrast"  , "Text has contrast");
+  addStyleProp(textPath, "textAlign"     , "align"     , "Text align");
+  addStyleProp(textPath, "textFormatted" , "formatted" , "Text formatted to fit in box");
+  addStyleProp(textPath, "textScaled"    , "scaled"    , "Text scaled to fit box");
+  addStyleProp(textPath, "textHtml"      , "html"      , "Text is HTML");
+  addStyleProp(textPath, "textClipLength", "clipLength", "Text clip length");
 
   addProp(path1, "padding", "", "Text rectangle inner padding");
   addProp(path1, "margin" , "", "Text rectangle outer margin");
@@ -2041,16 +2044,16 @@ void
 CQChartsTextAnnotation::
 draw(PaintDevice *device)
 {
-  drawInit(device);
-
-  //---
-
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
 
-  if (! bbox_.isValid())
+  if (! rect_.isValid())
     return;
+
+  //---
+
+  drawInit(device);
 
   //---
 
@@ -2085,11 +2088,11 @@ draw(PaintDevice *device)
   //---
 
   // draw box
-  //CQChartsBoxObj::draw(device, bbox_, penBrush);
+  //CQChartsBoxObj::draw(device, rect_, penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(device, rect_, cornerSize(), borderSides());
 
   //---
 
@@ -2130,6 +2133,7 @@ draw(PaintDevice *device)
   textOptions.formatted     = isTextFormatted();
   textOptions.scaled        = isTextScaled();
   textOptions.html          = isTextHtml();
+  textOptions.clipLength    = textClipLength();
   textOptions.clipped       = false;
 
   adjustTextOptions(textOptions);
@@ -2142,7 +2146,7 @@ draw(PaintDevice *device)
   //---
 
   // set box
-//auto pbbox = windowToPixel(bbox_);
+//auto pbbox = windowToPixel(rect_);
 
   // get inner padding
   double xlp = lengthParentWidth (padding().left  ());
@@ -2156,10 +2160,10 @@ draw(PaintDevice *device)
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          bbox_.getXMin  () +       xlm + xlp;
-  double ty =          bbox_.getYMin  () +       ybm + ybp;
-  double tw = std::max(bbox_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-  double th = std::max(bbox_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+  double tx =          rect_.getXMin  () +       xlm + xlp;
+  double ty =          rect_.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2190,9 +2194,9 @@ initRectangle()
     Rect rect;
 
     if      (plot())
-      rect = Rect(bbox_, CQChartsUnits::PLOT);
+      rect = Rect(rect_, CQChartsUnits::PLOT);
     else if (view())
-      rect = Rect(bbox_, CQChartsUnits::VIEW);
+      rect = Rect(rect_, CQChartsUnits::VIEW);
 
     setRectangle(rect);
   }
@@ -2545,16 +2549,16 @@ void
 CQChartsImageAnnotation::
 draw(PaintDevice *device)
 {
-  drawInit(device);
-
-  //---
-
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
 
-  if (! bbox_.isValid())
+  if (! rect_.isValid())
     return;
+
+  //---
+
+  drawInit(device);
 
   //---
 
@@ -2582,12 +2586,12 @@ draw(PaintDevice *device)
   // draw box
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(device, rect_, cornerSize(), borderSides());
 
   //---
 
   // set box
-//auto pbbox = windowToPixel(bbox_);
+//auto pbbox = windowToPixel(rect_);
 
   // get inner padding
   double xlp = lengthParentWidth (padding().left  ());
@@ -2601,10 +2605,10 @@ draw(PaintDevice *device)
   double ytm = lengthParentHeight(margin().top   ());
   double ybm = lengthParentHeight(margin().bottom());
 
-  double tx =          bbox_.getXMin  () +       xlm + xlp;
-  double ty =          bbox_.getYMin  () +       ybm + ybp;
-  double tw = std::max(bbox_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-  double th = std::max(bbox_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+  double tx =          rect_.getXMin  () +       xlm + xlp;
+  double ty =          rect_.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
   BBox tbbox(tx, ty, tx + tw, ty + th);
 
@@ -2617,7 +2621,7 @@ draw(PaintDevice *device)
     QColor bg = backgroundColor();
 
     if (! disabledImage_.isValid()) {
-      const QImage &image = image_.image();
+      const auto &image = image_.image();
 
       int iw = image.width ();
       int ih = image.height();
@@ -2670,9 +2674,9 @@ initRectangle()
     Rect rect;
 
     if      (plot())
-      rect = Rect(bbox_, CQChartsUnits::PLOT);
+      rect = Rect(rect_, CQChartsUnits::PLOT);
     else if (view())
-      rect = Rect(bbox_, CQChartsUnits::VIEW);
+      rect = Rect(rect_, CQChartsUnits::VIEW);
 
     setRectangle(rect);
   }
@@ -3295,8 +3299,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   auto position = positionToParent(position_);
 
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
+  double dx = bbox.getXMin() - rect_.getXMin();
+  double dy = bbox.getYMin() - rect_.getYMin();
 
   position += Point(dx, dy);
 
@@ -3320,7 +3324,7 @@ draw(PaintDevice *device)
 
   //---
 
-  const CQChartsSymbolData &symbolData = this->symbolData();
+  const auto &symbolData = this->symbolData();
 
   auto position = positionToParent(position_);
 
@@ -3348,8 +3352,8 @@ draw(PaintDevice *device)
 
   //---
 
-  const CQChartsStrokeData &strokeData = symbolData.stroke();
-  const CQChartsFillData   &fillData   = symbolData.fill();
+  const auto &strokeData = symbolData.stroke();
+  const auto &fillData   = symbolData.fill();
 
   // set pen and brush
   CQChartsPenBrush penBrush;
@@ -3376,7 +3380,7 @@ draw(PaintDevice *device)
   //---
 
   // draw symbol
-  Point ps(bbox_.getXMid(), bbox_.getYMid());
+  Point ps(rect_.getXMid(), rect_.getYMid());
 
   CQChartsDrawUtil::drawSymbol(device, symbolData.type(), ps, symbolData.size());
 
@@ -3392,7 +3396,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   // -view/-plot -id -tip
   writeKeys(os, "create_charts_point_annotation", parentVarName, varName);
 
-  const CQChartsSymbolData &symbolData = this->symbolData();
+  const auto &symbolData = this->symbolData();
 
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
@@ -3509,8 +3513,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   auto position = positionToParent(position_);
 
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
+  double dx = bbox.getXMin() - rect_.getXMin();
+  double dy = bbox.getYMin() - rect_.getYMin();
 
   position += Point(dx, dy);
 
@@ -4145,16 +4149,16 @@ draw(PaintDevice *device)
     int maxN = gridCell_.maxN();
 
     for (const auto &px : gridCell_.xyPoints()) {
-      int                              ix      = px.first;
-      const CQChartsGridCell::YPoints &yPoints = px.second;
+      int         ix      = px.first;
+      const auto &yPoints = px.second;
 
       double xmin, xmax;
 
       gridCell_.xIValues(ix, xmin, xmax);
 
       for (const auto &py : yPoints) {
-        int                             iy     = py.first;
-        const CQChartsGridCell::Points &points = py.second;
+        int         iy     = py.first;
+        const auto &points = py.second;
 
         int n = points.size();
         if (n <= 0) continue;
@@ -4301,8 +4305,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   auto ll = positionToParent(bbox1.getMin());
 
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
+  double dx = bbox.getXMin() - rect_.getXMin();
+  double dy = bbox.getYMin() - rect_.getYMin();
 
   ll += Point(dx, dy);
 
@@ -4519,7 +4523,7 @@ draw(PaintDevice *device)
   //---
 
   prect_ = calcPixelRect();
-  bbox_  = pixelToWindow(BBox(prect_));
+  rect_  = pixelToWindow(BBox(prect_));
 
   //---
 
@@ -4585,9 +4589,9 @@ CQChartsButtonAnnotation::
 writeHtml(HtmlPaintDevice *device)
 {
   prect_ = calcPixelRect();
-  bbox_  = pixelToWindow(BBox(prect_));
+  rect_  = pixelToWindow(BBox(prect_));
 
-  device->createButton(bbox_, textStr(), id(), "annotationClick");
+  device->createButton(rect_, textStr(), id(), "annotationClick");
 }
 
 QRect

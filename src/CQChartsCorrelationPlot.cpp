@@ -561,6 +561,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.formatted     = isXLabelTextFormatted();
   textOptions.scaled        = isXLabelTextScaled();
   textOptions.html          = isXLabelTextHtml();
+  textOptions.clipLength    = xLabelTextClipLength();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -658,6 +659,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.formatted     = isYLabelTextFormatted();
   textOptions.scaled        = isYLabelTextScaled();
   textOptions.html          = isYLabelTextHtml();
+  textOptions.clipLength    = yLabelTextClipLength();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -918,10 +920,11 @@ calcTextSize() const
 
   CQChartsTextOptions options;
 
-  options.contrast  = plot_->isCellLabelTextContrast();
-  options.formatted = plot_->isCellLabelTextFormatted();
-  options.html      = plot_->isCellLabelTextHtml();
-  options.angle     = plot_->cellLabelTextAngle();
+  options.angle      = plot_->cellLabelTextAngle();
+  options.contrast   = plot_->isCellLabelTextContrast();
+  options.formatted  = plot_->isCellLabelTextFormatted();
+  options.html       = plot_->isCellLabelTextHtml();
+  options.clipLength = plot_->cellLabelTextClipLength();
 
   return CQChartsDrawUtil::calcTextSize(valueStr, font, options);
 }
@@ -1223,8 +1226,9 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
   textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
   textOptions.formatted     = plot_->isCellLabelTextFormatted();
   textOptions.scaled        = plot_->isCellLabelTextScaled();
-  textOptions.scale         = plot_->labelScale(); // TODO: optional
   textOptions.html          = plot_->isCellLabelTextHtml();
+  textOptions.clipLength    = plot_->cellLabelTextClipLength();
+  textOptions.scale         = plot_->labelScale(); // TODO: optional
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

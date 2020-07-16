@@ -367,7 +367,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
   // TODO: columns (filter to columns)
 
-  const Vars &filenameArgs = argv.getParseArgs();
+  const auto &filenameArgs = argv.getParseArgs();
 
   QString filename = (! filenameArgs.empty() ? filenameArgs[0].toString() : "");
 
@@ -399,7 +399,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
     ModelP model = modelData->currentModel();
 
     for (int i = 0; i < columnTypes.length(); ++i) {
-      const QString &columnType = columnTypes[i];
+      const auto &columnType = columnTypes[i];
 
       if (! CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), columnType))
         return errorMsg(QString("Invalid column type string '%1'").arg(columnType));
@@ -666,13 +666,13 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
       analyzeModel.analyzeType(plotType);
 
-      const CQChartsAnalyzeModelData &analyzeModelData = analyzeModel.analyzeModelData(plotType);
+      const auto &analyzeModelData = analyzeModel.analyzeModelData(plotType);
 
       QVariantList tncvars;
 
       for (const auto &nc : analyzeModelData.parameterNameColumn) {
-        const QString        &name   = nc.first;
-        const CQChartsColumn &column = nc.second;
+        const auto &name   = nc.first;
+        const auto &column = nc.second;
 
         QVariantList ncvars;
 
@@ -695,17 +695,17 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
       for (const auto &tnc : typeAnalyzeModelData) {
         QVariantList cvars;
 
-        const QString &typeName = tnc.first;
+        const auto &typeName = tnc.first;
 
         cvars.push_back(typeName);
 
         QVariantList tncvars;
 
-        const CQChartsAnalyzeModelData &analyzeModelData = tnc.second;
+        const auto &analyzeModelData = tnc.second;
 
         for (const auto &nc : analyzeModelData.parameterNameColumn) {
-          const QString        &name   = nc.first;
-          const CQChartsColumn &column = nc.second;
+          const auto &name   = nc.first;
+          const auto &column = nc.second;
 
           QVariantList ncvars;
 
@@ -771,7 +771,7 @@ defineChartsProcCmd(CQChartsCmdArgs &argv)
   bool svgFlag    = argv.getParseBool("svg");
   bool scriptFlag = argv.getParseBool("script");
 
-  const Vars &pargs = argv.getParseArgs();
+  const auto &pargs = argv.getParseArgs();
 
   if (pargs.size() != 3)
     return errorMsg("Usage: define_charts_proc [-svg|-script] <name> <args> <body>");
@@ -1096,7 +1096,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   QStringList columnsStrs = argv.getParseStrs("columns");
 
   for (int i = 0; i < columnsStrs.length(); ++i) {
-    const QString &columnsStr = columnsStrs[i];
+    const auto &columnsStr = columnsStrs[i];
 
     if (! columnsStr.length())
       continue;
@@ -1109,7 +1109,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
     //QStringList strs = stringToNamedColumns(columnsStr);
 
     for (int j = 0; j < strs.size(); ++j) {
-      const QString &nameValue = strs[j];
+      const auto &nameValue = strs[j];
 
 #if 1
       QStringList strs1;
@@ -1142,7 +1142,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   QStringList parameterStrs = argv.getParseStrs("parameter");
 
   for (int i = 0; i < parameterStrs.length(); ++i) {
-    const QString &parameterStr = parameterStrs[i];
+    const auto &parameterStr = parameterStrs[i];
 
     QString name, value;
 
@@ -2021,8 +2021,8 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       QVariantList vars;
 
       for (const auto &rc : palette->definedValueColors()) {
-        double        r = rc.first;
-        const QColor &c = rc.second;
+        double      r = rc.first;
+        const auto &c = rc.second;
 
         QStringList strs;
 
@@ -2490,7 +2490,7 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
   bool    tabbed    = argv.getParseBool("tabbed");
   bool    composite = argv.getParseBool("composite");
 
-  const Vars &plotNames = argv.getParseArgs();
+  const auto &plotNames = argv.getParseArgs();
 
   //---
 
@@ -2595,7 +2595,7 @@ placeChartsPlotsCmd(CQChartsCmdArgs &argv)
   int     rows       = argv.getParseInt ("rows"   , -1);
   int     columns    = argv.getParseInt ("columns", -1);
 
-  const Vars &plotNames = argv.getParseArgs();
+  const auto &plotNames = argv.getParseArgs();
 
   //---
 
@@ -2752,7 +2752,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
     QStringList columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
-      const QString &columnsStr = columnsStrs[i];
+      const auto &columnsStr = columnsStrs[i];
 
       if (! columnsStr.length())
         continue;
@@ -3116,7 +3116,7 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
       assert(strs.size() == nc_);
 
       for (int i = 0; i < nc_; ++i) {
-        const QString &str = strs[i];
+        const auto &str = strs[i];
 
         columnWidths_[i] = std::max(columnWidths_[i], str.length());
 
@@ -3131,7 +3131,7 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
       assert(strs.size() == nc_);
 
       for (int i = 0; i < nc_; ++i) {
-        const QString &str = strs[i];
+        const auto &str = strs[i];
 
         columnWidths_[i] = std::max(columnWidths_[i], str.length());
 
@@ -3953,7 +3953,7 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
     QStringList columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
-      const QString &columnsStr = columnsStrs[i];
+      const auto &columnsStr = columnsStrs[i];
 
       if (! columnsStr.length())
         continue;
@@ -4078,7 +4078,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
     QStringList columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
-      const QString &columnsStr = columnsStrs[i];
+      const auto &columnsStr = columnsStrs[i];
 
       if (! columnsStr.length())
         continue;
@@ -4204,7 +4204,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
     QStringList columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
-      const QString &columnsStr = columnsStrs[i];
+      const auto &columnsStr = columnsStrs[i];
 
       if (! columnsStr.length())
         continue;
@@ -4318,7 +4318,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   }
 
   for (int r = 0; r < nr1; ++r) {
-    const ColumnData &data = columnDatas[r];
+    const auto &data = columnDatas[r];
 
     CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(0),
                                      data.name    , Qt::DisplayRole);
@@ -4934,7 +4934,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "annotations") {
       QVariantList vars;
 
-      const CQChartsView::Annotations &annotations = view->annotations();
+      const auto &annotations = view->annotations();
 
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
@@ -5069,7 +5069,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (name == "parameters") {
-      const CQChartsPlotType::Parameters &parameters = type->parameters();
+      const auto &parameters = type->parameters();
 
       QStringList names;
 
@@ -5084,7 +5084,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       if (! type->hasParameter(data))
         return errorMsg("No parameter '" + data + "'");
 
-      const CQChartsPlotParameter &parameter = type->getParameter(data);
+      const auto &parameter = type->getParameter(data);
 
       QString name1 = name.mid(10);
 
@@ -5207,7 +5207,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "annotations") {
       QVariantList vars;
 
-      const CQChartsPlot::Annotations &annotations = plot->annotations();
+      const auto &annotations = plot->annotations();
 
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
@@ -5217,7 +5217,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "objects") {
       QVariantList vars;
 
-      const CQChartsPlot::PlotObjs &objs = plot->plotObjects();
+      const auto &objs = plot->plotObjects();
 
       for (const auto &obj : objs)
         vars.push_back(obj->id());
@@ -8298,7 +8298,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
       plot->write(isFile ? fos : std::cout);
     }
     else if (type == "annotations") {
-      const CQChartsPlot::Annotations &annotations = plot->annotations();
+      const auto &annotations = plot->annotations();
 
       for (const auto &annotation : annotations)
         annotation->write(isFile ? fos : std::cout);
@@ -8321,7 +8321,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
         plot->write(isFile ? fos : std::cout);
     }
     else if (type == "annotations") {
-      const CQChartsView::Annotations &annotations = view->annotations();
+      const auto &annotations = view->annotations();
 
       for (const auto &annotation : annotations)
         annotation->write(isFile ? fos : std::cout);
@@ -8610,7 +8610,7 @@ testEditCmd(CQChartsCmdArgs &argv)
   };
 
   for (int i = 0; i < types.length(); ++i) {
-    const QString &type = types[i];
+    const auto &type = types[i];
 
     if      (type == "alpha") {
       auto edit = new CQChartsAlphaEdit; addEdit(edit, type);
@@ -8836,7 +8836,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       if (p == nameValueData.columns.end())
         continue;
 
-      const QString str = (*p).second;
+      const auto &str = (*p).second;
 
       std::vector<CQChartsColumn> columns;
 
@@ -9143,7 +9143,7 @@ getAnnotationByName(const QString &name) const
     view->getPlots(plots);
 
     for (auto &plot : plots) {
-      const CQChartsPlot::Annotations &annotations = plot->annotations();
+      const auto &annotations = plot->annotations();
 
       for (const auto &annotation : annotations) {
         if (annotation->id() == name)
@@ -9156,7 +9156,7 @@ getAnnotationByName(const QString &name) const
 
     //---
 
-    const CQChartsView::Annotations &annotations = view->annotations();
+    const auto &annotations = view->annotations();
 
     for (const auto &annotation : annotations) {
       if (annotation->id() == name)

@@ -114,8 +114,8 @@ decodeString(const QString &str, Type &xtype, double &xpos, Type &ytype, double 
     return true;
 
   if (strs.length() > 1) {
-    const QString &xstr = strs[0];
-    const QString &ystr = strs[1];
+    const auto &xstr = strs[0];
+    const auto &ystr = strs[1];
 
     if      (xstr == "min" || xstr == "xmin") {
       xtype = Type::MIN;
@@ -154,7 +154,7 @@ decodeString(const QString &str, Type &xtype, double &xpos, Type &ytype, double 
     }
   }
   else {
-    const QString &str = strs[0];
+    const auto &str = strs[0];
 
     if      (str == "xmin") {
       xtype = Type::MIN;

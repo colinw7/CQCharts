@@ -1031,8 +1031,8 @@ setProperties(const QString &properties)
   CQChartsNameValues nameValues(properties);
 
   for (const auto &nv : nameValues.nameValues()) {
-    const QString  &name  = nv.first;
-    const QVariant &value = nv.second;
+    const auto &name  = nv.first;
+    const auto &value = nv.second;
 
     if (! setProperty(name, value))
       rc = false;
@@ -5506,7 +5506,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
   os << "\n";
 
   for (const auto &pp : charts()->procs(CQCharts::ProcType::SVG)) {
-    const CQCharts::ProcData &proc = pp.second;
+    const auto &proc = pp.second;
 
     os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
     os << "  " << proc.body.toStdString() << "\n";
@@ -5649,7 +5649,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   // write defined SCRIPT procs
   for (const auto &pp : charts()->procs(CQCharts::ProcType::SCRIPT)) {
-    const CQCharts::ProcData &proc = pp.second;
+    const auto &proc = pp.second;
 
     os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
     os << "  " << proc.body.toStdString() << "\n";
@@ -6413,7 +6413,7 @@ writeAll(std::ostream &os) const
 
   //---
 
-  const CQChartsView::Annotations &viewAnnotations = this->annotations();
+  const auto &viewAnnotations = this->annotations();
 
   int annotationId = 1;
 
@@ -6470,7 +6470,7 @@ writeAll(std::ostream &os) const
 
     //---
 
-    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+    const auto &plotAnnotations = plot->annotations();
 
     for (const auto &annotation : plotAnnotations) {
       os << "\n";
@@ -6947,7 +6947,7 @@ windowToPixel(const QPainterPath &path) const
   int n = path.elementCount();
 
   for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path.elementAt(i);
+    const auto &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
       auto p1 = windowToPixel(Point(e.x, e.y));

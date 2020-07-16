@@ -96,8 +96,8 @@ lengthToWidgets()
   connectSlots(false);
 
   if (length_.isValid()) {
-    double               value = length_.value();
-    const CQChartsUnits &units = length_.units();
+    double      value = length_.value();
+    const auto &units = length_.units();
 
     edit_     ->setValue(value);
     unitsEdit_->setUnits(units);
@@ -114,8 +114,8 @@ void
 CQChartsLengthEdit::
 widgetsToLength()
 {
-  double        value = edit_->value();
-  CQChartsUnits units = unitsEdit_->units();
+  double value = edit_->value();
+  auto   units = unitsEdit_->units();
 
   CQChartsLength length(value, units);
 

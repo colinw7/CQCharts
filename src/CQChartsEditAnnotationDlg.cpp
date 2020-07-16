@@ -668,9 +668,9 @@ void
 CQChartsEditAnnotationDlg::
 addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 {
-  CQChartsBoxData boxData = annotation_->boxData();
+  auto boxData = annotation_->boxData();
 
-  CQChartsFillData &fillData = boxData.shape().fill();
+  auto &fillData = boxData.shape().fill();
 
   //---
 
@@ -687,9 +687,9 @@ void
 CQChartsEditAnnotationDlg::
 addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
 {
-  CQChartsBoxData boxData = annotation_->boxData();
+  auto boxData = annotation_->boxData();
 
-  CQChartsStrokeData &strokeData = boxData.shape().stroke();
+  auto &strokeData = boxData.shape().stroke();
 
   //---
 
@@ -707,7 +707,7 @@ void
 CQChartsEditAnnotationDlg::
 addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 {
-  CQChartsBoxData boxData = annotation_->boxData();
+  auto boxData = annotation_->boxData();
 
   //---
 
@@ -918,7 +918,7 @@ updateRectangleAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -963,7 +963,7 @@ updateEllipseAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -977,8 +977,8 @@ updateEllipseAnnotation()
   if (rx.value() <= 0.0 || ry.value() <= 0.0)
     return setErrorMsg("Invalid ellipse radius");
 
-  CQChartsFillData   fill   = ellipseWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = ellipseWidgets_.strokeDataEdit    ->data();
+  auto fill   = ellipseWidgets_.backgroundDataEdit->data();
+  auto stroke = ellipseWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -1008,7 +1008,7 @@ updatePolygonAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -1047,7 +1047,7 @@ updatePolylineAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -1086,7 +1086,7 @@ updateTextAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -1179,8 +1179,8 @@ updateArrowAnnotation()
 {
   CQChartsShapeData shapeData;
 
-  CQChartsStrokeData &stroke = shapeData.stroke();
-  CQChartsFillData   &fill   = shapeData.fill();
+  auto &stroke = shapeData.stroke();
+  auto &fill   = shapeData.fill();
 
   //---
 

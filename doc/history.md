@@ -1155,3 +1155,7 @@
  + Cleanup duplicate connection plot code
 # 07/14/2020
  + Update interpColor virtual for plots (fix for xy overlay colors)
+# 07/16/2020
+ + More auto in code
+ + fix annotation draw bbox
+ + add text clipLength

@@ -688,7 +688,7 @@ initTableObjs(PlotObjs &objs) const
   double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
-    ChordData &data = datas[row];
+    auto &data = datas[row];
 
     double total1;
 
@@ -715,7 +715,7 @@ initTableObjs(PlotObjs &objs) const
   th->edgeObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
-    const ChordData &data = datas[row];
+    const auto &data = datas[row];
 
     BBox rect(-1, -1, 1, 1);
 
@@ -857,7 +857,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   double total = 0.0;
 
   for (const auto &nameData : nameDataMap) {
-    const ChordData &data = nameData.second;
+    const auto &data = nameData.second;
     if (! data.isVisible()) continue;
 
     double total1;
@@ -930,7 +930,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   double angle1 = this->startAngle().value();
 
   for (int row = 0; row < nv; ++row) {
-    ChordData &data = datas[row];
+    auto &data = datas[row];
 
     double total1;
 
@@ -953,7 +953,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   th->arcObjs_.clear();
 
   for (int row = 0; row < nv; ++row) {
-    const ChordData &data = datas[row];
+    const auto &data = datas[row];
 
     BBox rect(-1, -1, 1, 1);
 

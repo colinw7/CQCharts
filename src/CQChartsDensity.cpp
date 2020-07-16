@@ -402,7 +402,7 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
 
   const auto &dataRange = plot->dataRange();
 
-  const CQChartsDensity::Points &opoints = this->opoints();
+  const auto &opoints = this->opoints();
 
   double xmin = this->xmin();
   double xmax = this->xmax();

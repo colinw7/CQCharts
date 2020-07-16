@@ -79,6 +79,7 @@ addTextProperties(const QString &path, const QString &desc)
   addStyleProp(textPath, "textContrast"     , "contrast"     , desc + " text is contrast");
   addStyleProp(textPath, "textContrastAlpha", "contrastAlpha", desc + " text contrast alpha");
   addStyleProp(textPath, "textHtml"         , "html"         , desc + " text is HTML");
+  addStyleProp(textPath, "textClipLength"   , "clipLength"   , desc + " text clip length");
 }
 
 void
@@ -274,6 +275,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
         options.align         = Qt::AlignLeft;
         options.contrast      = isTextContrast();
         options.contrastAlpha = textContrastAlpha();
+        options.clipLength    = textClipLength();
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options);
       }
@@ -365,6 +367,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
       options.align         = align;
       options.contrast      = isTextContrast();
       options.contrastAlpha = textContrastAlpha();
+      options.clipLength    = textClipLength();
 
 //    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, options,
 //                              /*alignBBox*/ true);

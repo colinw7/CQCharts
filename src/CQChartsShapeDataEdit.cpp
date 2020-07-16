@@ -385,7 +385,7 @@ void
 CQChartsShapeDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsShapeData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }

@@ -723,7 +723,7 @@ addKeyItems(CQChartsPlotKey *key)
 
     int i = group->i();
 
-    const QString &name = group->name();
+    const auto &name = group->name();
 
     auto *color = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
 

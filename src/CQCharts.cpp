@@ -1251,7 +1251,7 @@ getProcNames(ProcType type, QStringList &names) const
   auto pt = typeProcs_.find(type);
   if (pt == typeProcs_.end()) return;
 
-  const Procs &procs = (*pt).second;
+  const auto &procs = (*pt).second;
 
   for (const auto &proc : procs) {
     names.push_back(proc.first);
@@ -1265,7 +1265,7 @@ getProcData(ProcType type, const QString &name, QString &args, QString &body) co
   auto pt = typeProcs_.find(type);
   if (pt == typeProcs_.end()) return false;
 
-  const Procs &procs = (*pt).second;
+  const auto &procs = (*pt).second;
 
   auto pn = procs.find(name);
   if (pn == procs.end()) return false;

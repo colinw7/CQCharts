@@ -1089,7 +1089,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     // get index for first column for row number
     auto &indRowData = indRowDatas[row];
 
-    const QModelIndex &ind = indRowData.ind;
+    const auto &ind = indRowData.ind;
 
     //---
 

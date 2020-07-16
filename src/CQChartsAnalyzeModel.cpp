@@ -80,7 +80,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
     //if (parameter->isMultiple())
     //  continue;
 
-    const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
+    const auto &attributes = parameter->attributes();
 
     if (! attributes.isRequired())
       continue;
@@ -137,7 +137,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
     //if (parameter->isMultiple())
     //  continue;
 
-    const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
+    const auto &attributes = parameter->attributes();
 
     if (parameter->isGroupable()) {
       bool found = false;
@@ -320,15 +320,15 @@ CQChartsAnalyzeModel::
 print() const
 {
   for (const auto &tnc : typeAnalyzeModelData_) {
-    const QString &typeName = tnc.first;
+    const auto &typeName = tnc.first;
 
     std::cerr << typeName.toStdString() << "\n";
 
-    const CQChartsAnalyzeModelData &analyzeModelData = tnc.second;
+    const auto &analyzeModelData = tnc.second;
 
     for (const auto &nc : analyzeModelData.parameterNameColumn) {
-      const QString        &name   = nc.first;
-      const CQChartsColumn &column = nc.second;
+      const auto &name   = nc.first;
+      const auto &column = nc.second;
 
       std::cerr << " " << name.toStdString() << "=" << column.column();
     }

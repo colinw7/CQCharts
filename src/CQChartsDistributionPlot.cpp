@@ -761,7 +761,7 @@ bucketGroupValues() const
   // initialize bucketers to value range
   if (isConsistentBucketer()) {
     // get consistent bucketer
-    CQBucketer &bucketer = th->groupBucketer(0);
+    auto &bucketer = th->groupBucketer(0);
 
     //---
 
@@ -829,7 +829,7 @@ bucketGroupValues() const
       auto *values   = groupValues.second;
 
       // init group bucketer
-      CQBucketer &bucketer = th->groupBucketer(groupInd);
+      auto &bucketer = th->groupBucketer(groupInd);
 
       //---
 
@@ -910,7 +910,7 @@ bucketGroupValues() const
 
           if (! ok) continue;
 
-          CQBucketer &bucketer = th->groupBucketer(groupInd);
+          auto &bucketer = th->groupBucketer(groupInd);
 
           bucket = Bucket(bucketer.stringBucket(str));
           value  = QVariant(str);
@@ -1460,7 +1460,7 @@ checkFilter(int groupInd, const QVariant &value) const
   if (! ok)
     return true;
 
-  const Filters &filters = filterStack_.back();
+  const auto &filters = filterStack_.back();
 
   for (const auto &filter : filters) {
     if (groupInd == filter.groupInd && r >= filter.minValue && r < filter.maxValue)
@@ -1484,7 +1484,7 @@ calcBucket(int groupInd, double value) const
 
   int num = -1;
 
-  const CQBucketer &bucketer = groupBucketer(groupInd);
+  const auto &bucketer = groupBucketer(groupInd);
 
   if (filterStack_.empty()) {
     if (! isBucketed())
@@ -1668,11 +1668,11 @@ createObjs(PlotObjs &objs) const
       }
 
       for (const auto &gcb : groupCountBuckets) {
-        int                 groupInd     = gcb.first;
-        const CountBuckets &countBuckets = gcb.second;
+        int         groupInd     = gcb.first;
+        const auto &countBuckets = gcb.second;
 
         for (const auto &cb : countBuckets) {
-          const Buckets &buckets = cb.second;
+          const auto &buckets = cb.second;
 
           for (auto &bucket : buckets)
             groupSortedBuckets[groupInd].push_back(bucket);
@@ -1691,7 +1691,7 @@ createObjs(PlotObjs &objs) const
     const auto *values = groupValues.second;
 
     for (const auto &bucketValues : values->bucketValues) {
-      const Bucket &bucket = bucketValues.first;
+      const auto &bucket = bucketValues.first;
 
       bucketInd[bucket] = 0;
     }
@@ -1822,8 +1822,8 @@ createObjs(PlotObjs &objs) const
       data.buckets.clear();
 
       for (auto &bucketValues : values->bucketValues) {
-        const Bucket &bucket   = bucketValues.first;
-        const auto   &varsData = bucketValues.second;
+        const auto &bucket   = bucketValues.first;
+        const auto &varsData = bucketValues.second;
 
         int n = varsData.inds.size();
 
@@ -1870,7 +1870,7 @@ createObjs(PlotObjs &objs) const
             // TODO
           }
           else {
-            const Buckets &sortedBuckets = getSortedBuckets(groupInd);
+            const auto &sortedBuckets = getSortedBuckets(groupInd);
 
             sbucket = sortedBuckets[iv];
 
@@ -1955,7 +1955,7 @@ createObjs(PlotObjs &objs) const
             // TODO
           }
           else {
-            const Buckets &sortedBuckets = getSortedBuckets(groupInd);
+            const auto &sortedBuckets = getSortedBuckets(groupInd);
 
             sbucket = sortedBuckets[iv];
 
@@ -2288,7 +2288,7 @@ calcVarIndsData(VariantIndsData &varInds) const
   int n = varInds.inds.size();
 
   for (int i = 0; i < n; ++i) {
-    const VariantInd &var = varInds.inds[i];
+    const auto &var = varInds.inds[i];
 
     double r  = 0.0;
     bool   ok = false;
@@ -2352,7 +2352,7 @@ getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const
   xvals.clear();
 
   for (auto &vind : vinds) {
-    const QVariant &var = vind.var;
+    const auto &var = vind.var;
 
     bool ok;
 
@@ -2373,7 +2373,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
   if (! values) return false;
 
   if      (values->valueSet->type() == ColumnType::INTEGER) {
-    const CQChartsIValues &ivals = values->valueSet->ivals();
+    const auto &ivals = values->valueSet->ivals();
 
     statData = ivals.statData();
 
@@ -2383,7 +2383,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) con
       vals.push_back(*ivals.value(i));
   }
   else if (values->valueSet->type() == ColumnType::REAL) {
-    const CQChartsRValues &rvals = values->valueSet->rvals();
+    const auto &rvals = values->valueSet->rvals();
 
     statData = rvals.statData();
 
@@ -2405,12 +2405,12 @@ getStatData(int groupInd, CQStatData &statData) const
   if (! values) return false;
 
   if      (values->valueSet->type() == ColumnType::INTEGER) {
-    const CQChartsIValues &ivals = values->valueSet->ivals();
+    const auto &ivals = values->valueSet->ivals();
 
     statData = ivals.statData();
   }
   else if (values->valueSet->type() == ColumnType::REAL) {
-    const CQChartsRValues &rvals = values->valueSet->rvals();
+    const auto &rvals = values->valueSet->rvals();
 
     statData = rvals.statData();
   }
@@ -2577,7 +2577,7 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
   if (! isBucketed())
     return "";
 
-  const CQBucketer &bucketer = groupBucketer(groupInd);
+  const auto &bucketer = groupBucketer(groupInd);
 
   bool isNumeric = (values ? values->valueSet->isNumeric() : false);
 
@@ -2631,7 +2631,7 @@ bucketValues(int groupInd, const Bucket &bucket, double &value1, double &value2)
     return;
 
   if      (bucket.hasValue()) {
-    const CQBucketer &bucketer = groupBucketer(groupInd);
+    const auto &bucketer = groupBucketer(groupInd);
 
     bool isAuto = (! filterStack_.empty() || isAutoBucket());
 
@@ -3314,7 +3314,7 @@ getObjSelectIndices(Indices &inds) const
   plot_->getInds(groupInd_, bucket_, vinds);
 
   for (auto &vind : vinds) {
-    const ModelIndex &ind = vind.ind;
+    const auto &ind = vind.ind;
 
     addSelectIndex(inds, plot()->normalizeIndex(ind));
   }
@@ -3393,8 +3393,8 @@ draw(CQChartsPaintDevice *device)
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &p : colorData_.colorSet) {
-        const Color &color = p.first;
-        int          n     = colorData_.colorCount[p.second];
+        const auto &color = p.first;
+        int         n     = colorData_.colorCount[p.second];
 
         pos1 = pos2;
         pos2 = pos1 + dsize*n;
@@ -3424,8 +3424,8 @@ draw(CQChartsPaintDevice *device)
       double pos1 = 0.0, pos2 = 0.0;
 
       for (auto &cs : colorData_.colorSizes) {
-        const Color &color = cs.first;
-        double       dsize = cs.second;
+        const auto &color = cs.first;
+        double      dsize = cs.second;
 
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
@@ -3605,7 +3605,7 @@ getBarColoredRects(ColorData &colorData) const
   double bsize = 1.0/nvi;
 
   for (const auto &vind : vinds) {
-    const ModelIndex &ind = vind.ind;
+    const auto &ind = vind.ind;
 
     //---
 

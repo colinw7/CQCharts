@@ -45,7 +45,7 @@ fromString(const QString &str)
   bool ok = true;
 
   for (int i = 0; i < strs.length(); ++i) {
-    const QString &s = strs[i];
+    const auto &s = strs[i];
 
     if (s == "%")
       units = Units::PERCENT;

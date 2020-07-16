@@ -1044,7 +1044,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
       // get group
       int groupInd = plot_->rowGroupInd(ind);
 
-      SetIndPoly &setPoly = groupSetPoly_[groupInd];
+      auto &setPoly = groupSetPoly_[groupInd];
 
       if (setPoly.empty())
         setPoly.resize(ns_);
@@ -1086,7 +1086,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
     // stack lines
     void stack() {
       for (auto &p : groupSetPoly_) {
-        SetIndPoly &setPoly = p.second;
+        auto &setPoly = p.second;
 
         for (int i = 1; i < ns_; ++i) {
           auto &poly1 = setPoly[i - 1].poly;
@@ -1116,7 +1116,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
     // cumulate
     void cumulate() {
       for (auto &p : groupSetPoly_) {
-        SetIndPoly &setPoly = p.second;
+        auto &setPoly = p.second;
 
         for (int i = 0; i < ns_; ++i) {
           auto &poly = setPoly[i].poly;
@@ -1189,8 +1189,8 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
     bool hidden = (ns <= 1 && isSetHidden(ig));
 
     if (! hidden) {
-      int               groupInd = p.first;
-      const SetIndPoly &setPoly  = p.second;
+      int         groupInd = p.first;
+      const auto &setPoly  = p.second;
 
       if      (isBivariateLines()) {
         if (! addBivariateLines(groupInd, setPoly, colorInd, objs))
@@ -1518,12 +1518,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     //---
 
-    const IndPoly &setPoly1 = setPoly[is];
+    const auto &setPoly1 = setPoly[is];
 
     const auto &poly = setPoly1.poly;
     const auto &inds = setPoly1.inds;
 
-    const IndPoly &setPoly2 = setPoly[is - 1];
+    const auto &setPoly2 = setPoly[is - 1];
 
     const auto &prevPoly = (is > 0 ? setPoly2.poly : poly);
 
@@ -1600,7 +1600,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       bool valid = validPointIndex(ip, np);
 
       if (valid) {
-        const QModelIndex &xind = inds[ip];
+        const auto &xind = inds[ip];
 
         QModelIndex xind1 = normalizeIndex(xind);
 

@@ -375,7 +375,7 @@ void
 CQChartsDendrogramPlot::
 addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const
 {
-  const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
+  const auto &children = hier->getChildren();
 
   for (auto &hierNode : children) {
     addNodeObj(hierNode, objs);
@@ -385,7 +385,7 @@ addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const
 
   //------
 
-  const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
+  const auto &nodes = hier->getNodes();
 
   for (auto &node : nodes)
     addNodeObj(node, objs);
@@ -445,7 +445,7 @@ void
 CQChartsDendrogramPlot::
 drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const
 {
-  const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
+  const auto &children = hier->getChildren();
 
   for (auto &hierNode : children) {
     drawNode(device, hier, hierNode);
@@ -455,7 +455,7 @@ drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int d
 
   //------
 
-  const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
+  const auto &nodes = hier->getNodes();
 
   for (auto &node : nodes)
     drawNode(device, hier, node);
@@ -570,7 +570,7 @@ textRect() const
 
   QFontMetricsF fm(font);
 
-  const QString &name = node_->name();
+  const auto &name = node_->name();
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
@@ -649,7 +649,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  const QString &name = node_->name();
+  const auto &name = node_->name();
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
@@ -671,6 +671,7 @@ draw(CQChartsPaintDevice *device)
   options.align         = Qt::AlignLeft;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.clipLength    = plot_->textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p), name, options);
 }

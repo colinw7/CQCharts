@@ -466,7 +466,7 @@ createObjs(PlotObjs &objs) const
       assert(pg != groupDatas_.end());
     }
 
-    const GroupData &groupData = (*pg).second;
+    const auto &groupData = (*pg).second;
 
     //---
 
@@ -501,7 +501,7 @@ createObjs(PlotObjs &objs) const
     //---
 
     if (groupData.groupObj != groupObj) {
-      GroupData &groupData1 = const_cast<GroupData &>(groupData);
+      auto &groupData1 = const_cast<GroupData &>(groupData);
 
       groupData1.groupObj = groupObj;
     }
@@ -658,7 +658,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   auto pg = groupDatas_.find(groupInd);
   assert(pg != groupDatas_.end());
 
-  const GroupData &groupData = (*pg).second;
+  const auto &groupData = (*pg).second;
 
   auto *groupObj = groupData.groupObj;
 
@@ -816,7 +816,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
     pg = groupDatas_.find(groupInd);
   }
 
-  const GroupData &groupData = (*pg).second;
+  const auto &groupData = (*pg).second;
 
   //---
 
@@ -831,7 +831,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
   // sum values
   if (! hidden) {
-    GroupData &groupData1 = const_cast<GroupData &>(groupData);
+    auto &groupData1 = const_cast<GroupData &>(groupData);
 
     ++groupData1.numValues;
 
@@ -849,7 +849,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
 
     if (getColumnSizeValue(rind, radius, radiusMissing)) {
       if (! hidden) {
-        GroupData &groupData1 = const_cast<GroupData &>(groupData);
+        auto &groupData1 = const_cast<GroupData &>(groupData);
 
         groupData1.radiusScaled = true;
         groupData1.radiusMax    = std::max(groupData.radiusMax, radius);

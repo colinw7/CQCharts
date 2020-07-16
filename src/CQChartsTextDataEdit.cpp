@@ -8,6 +8,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsAngleEdit.h>
+#include <CQChartsLengthEdit.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
@@ -147,7 +148,7 @@ CQChartsTextDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsTextData data = value.value<CQChartsTextData>();
+  auto data = value.value<CQChartsTextData>();
 
   CQChartsTextDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -203,7 +204,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsTextDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsTextData data = var.value<CQChartsTextData>();
+  auto data = var.value<CQChartsTextData>();
 
   edit->setTextData(data);
 }
@@ -240,37 +241,41 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   if (! optional)
     layout->addLayout(groupLayout);
 
-  // font
-  auto *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
-
-  fontEdit_ = new CQChartsFontLineEdit;
-
-  groupLayout->addWidget(fontLabel, 0, 0);
-  groupLayout->addWidget(fontEdit_, 0, 1);
+  int row = 0;
 
   // color
   auto *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  groupLayout->addWidget(colorLabel, 1, 0);
-  groupLayout->addWidget(colorEdit_, 1, 1);
+  groupLayout->addWidget(colorLabel, row, 0);
+  groupLayout->addWidget(colorEdit_, row, 1); ++row;
 
   // alpha
   auto *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
-  groupLayout->addWidget(alphaLabel, 2, 0);
-  groupLayout->addWidget(alphaEdit_, 2, 1);
+  alphaEdit_->setToolTip("Alpha");
+
+  groupLayout->addWidget(alphaLabel, row, 0);
+  groupLayout->addWidget(alphaEdit_, row, 1); ++row;
+
+  // font
+  auto *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
+
+  fontEdit_ = new CQChartsFontLineEdit;
+
+  groupLayout->addWidget(fontLabel, row, 0);
+  groupLayout->addWidget(fontEdit_, row, 1); ++row;
 
   // angle
   auto *angleLabel = CQUtil::makeLabelWidget<QLabel>("Angle", "angleLabel");
 
   angleEdit_ = CQUtil::makeWidget<CQChartsAngleEdit>("angleEdit");
 
-  groupLayout->addWidget(angleLabel, 3, 0);
-  groupLayout->addWidget(angleEdit_, 3, 1);
+  groupLayout->addWidget(angleLabel, row, 0);
+  groupLayout->addWidget(angleEdit_, row, 1); ++row;
 
   // contrast
   auto *contrastLabel = CQUtil::makeLabelWidget<QLabel>("Contrast", "contrastLabel");
@@ -279,8 +284,19 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   contrastEdit_->setToolTip("Draw contrast border around text");
 
-  groupLayout->addWidget(contrastLabel, 4, 0);
-  groupLayout->addWidget(contrastEdit_, 4, 1);
+  groupLayout->addWidget(contrastLabel, row, 0);
+  groupLayout->addWidget(contrastEdit_, row, 1); ++row;
+
+  // contrast alpha
+  auto *contrastAlphaLabel =
+    CQUtil::makeLabelWidget<QLabel>("Contrast Alpha", "contrastAlphaLabel");
+
+  contrastAlphaEdit_ = new CQChartsAlphaEdit;
+
+  contrastAlphaEdit_->setToolTip("Contrast Alpha");
+
+  groupLayout->addWidget(contrastAlphaLabel, row, 0);
+  groupLayout->addWidget(contrastAlphaEdit_, row, 1); ++row;
 
   // align
   auto *alignLabel = CQUtil::makeLabelWidget<QLabel>("Align", "alignLabel");
@@ -289,8 +305,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   alignEdit_->setToolTip("Text alignment");
 
-  groupLayout->addWidget(alignLabel, 5, 0);
-  groupLayout->addWidget(alignEdit_, 5, 1);
+  groupLayout->addWidget(alignLabel, row, 0);
+  groupLayout->addWidget(alignEdit_, row, 1); ++row;
 
   // formatted
   auto *formattedLabel = CQUtil::makeLabelWidget<QLabel>("Formatted", "formattedLabel");
@@ -299,8 +315,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   formattedEdit_->setToolTip("Is text reformatted to fit in rectangle");
 
-  groupLayout->addWidget(formattedLabel, 6, 0);
-  groupLayout->addWidget(formattedEdit_, 6, 1);
+  groupLayout->addWidget(formattedLabel, row, 0);
+  groupLayout->addWidget(formattedEdit_, row, 1); ++row;
 
   // scaled
   auto *scaledLabel = CQUtil::makeLabelWidget<QLabel>("Scaled", "scaledLabel");
@@ -309,8 +325,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   scaledEdit_->setToolTip("Is text scaled to fit in rectangle");
 
-  groupLayout->addWidget(scaledLabel, 7, 0);
-  groupLayout->addWidget(scaledEdit_, 7, 1);
+  groupLayout->addWidget(scaledLabel, row, 0);
+  groupLayout->addWidget(scaledEdit_, row, 1); ++row;
 
   // html
   auto *htmlLabel = CQUtil::makeLabelWidget<QLabel>("Html", "htmlLabel");
@@ -319,18 +335,28 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   htmlEdit_->setToolTip("Does text contain HTML control tags");
 
-  groupLayout->addWidget(htmlLabel, 8, 0);
-  groupLayout->addWidget(htmlEdit_, 8, 1);
+  groupLayout->addWidget(htmlLabel, row, 0);
+  groupLayout->addWidget(htmlEdit_, row, 1); ++row;
+
+  // clip length
+  auto *clipLengthLabel = CQUtil::makeLabelWidget<QLabel>("Clip Length", "clipLength");
+
+  clipLengthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("clipLengthEdit");
+
+  clipLengthEdit_->setToolTip("Text clip length");
+
+  groupLayout->addWidget(clipLengthLabel, row, 0);
+  groupLayout->addWidget(clipLengthEdit_, row, 1); ++row;
 
   //---
 
   preview_ = new CQChartsTextDataEditPreview(this);
 
-  groupLayout->addWidget(preview_, 9, 1);
+  groupLayout->addWidget(preview_, row, 1); ++row;
 
   //---
 
-  groupLayout->setRowStretch(10, 1);
+  groupLayout->setRowStretch(row, 1);
 
   //---
 
@@ -371,19 +397,20 @@ void
 CQChartsTextDataEdit::
 setNoFocus()
 {
-  fontEdit_ ->setNoFocus();
-  colorEdit_->setNoFocus();
-
   if (groupBox_)
     groupBox_->setFocusPolicy(Qt::NoFocus);
 
-  alphaEdit_    ->setFocusPolicy(Qt::NoFocus);
-  angleEdit_    ->setFocusPolicy(Qt::NoFocus);
-  contrastEdit_ ->setFocusPolicy(Qt::NoFocus);
-  alignEdit_    ->setFocusPolicy(Qt::NoFocus);
-  formattedEdit_->setFocusPolicy(Qt::NoFocus);
-  scaledEdit_   ->setFocusPolicy(Qt::NoFocus);
-  htmlEdit_     ->setFocusPolicy(Qt::NoFocus);
+  colorEdit_        ->setNoFocus();
+  alphaEdit_        ->setFocusPolicy(Qt::NoFocus);
+  fontEdit_         ->setNoFocus();
+  angleEdit_        ->setFocusPolicy(Qt::NoFocus);
+  contrastEdit_     ->setFocusPolicy(Qt::NoFocus);
+  contrastAlphaEdit_->setFocusPolicy(Qt::NoFocus);
+  alignEdit_        ->setFocusPolicy(Qt::NoFocus);
+  formattedEdit_    ->setFocusPolicy(Qt::NoFocus);
+  scaledEdit_       ->setFocusPolicy(Qt::NoFocus);
+  htmlEdit_         ->setFocusPolicy(Qt::NoFocus);
+  clipLengthEdit_   ->setFocusPolicy(Qt::NoFocus);
 }
 
 void
@@ -403,15 +430,17 @@ connectSlots(bool b)
   if (groupBox_)
     connectDisconnect(groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
 
-  connectDisconnect(fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
   connectDisconnect(colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
   connectDisconnect(alphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
+  connectDisconnect(fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
   connectDisconnect(angleEdit_, SIGNAL(angleChanged()), SLOT(widgetsToData()));
   connectDisconnect(contrastEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(contrastAlphaEdit_, SIGNAL(alphaChanged()), SLOT(widgetsToData()));
   connectDisconnect(alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), SLOT(widgetsToData()));
   connectDisconnect(formattedEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(scaledEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(htmlEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(clipLengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
 }
 
 void
@@ -423,15 +452,17 @@ dataToWidgets()
   if (groupBox_)
     groupBox_->setChecked(data_.isVisible());
 
-  fontEdit_     ->setFont   (data_.font());
-  colorEdit_    ->setColor  (data_.color());
-  alphaEdit_    ->setAlpha  (data_.alpha());
-  angleEdit_    ->setAngle  (data_.angle());
-  contrastEdit_ ->setChecked(data_.isContrast());
-  alignEdit_    ->setAlign  (data_.align());
-  formattedEdit_->setChecked(data_.isFormatted());
-  scaledEdit_   ->setChecked(data_.isScaled());
-  htmlEdit_     ->setChecked(data_.isHtml());
+  colorEdit_        ->setColor  (data_.color());
+  alphaEdit_        ->setAlpha  (data_.alpha());
+  fontEdit_         ->setFont   (data_.font());
+  angleEdit_        ->setAngle  (data_.angle());
+  contrastEdit_     ->setChecked(data_.isContrast());
+  contrastAlphaEdit_->setAlpha  (data_.contrastAlpha());
+  alignEdit_        ->setAlign  (data_.align());
+  formattedEdit_    ->setChecked(data_.isFormatted());
+  scaledEdit_       ->setChecked(data_.isScaled());
+  htmlEdit_         ->setChecked(data_.isHtml());
+  clipLengthEdit_   ->setLength (data_.clipLength());
 
   preview_->update();
 
@@ -445,15 +476,17 @@ widgetsToData()
   if (groupBox_)
     data_.setVisible(groupBox_->isChecked());
 
-  data_.setFont     (fontEdit_->font());
-  data_.setColor    (colorEdit_->color());
-  data_.setAlpha    (alphaEdit_->alpha());
-  data_.setAngle    (angleEdit_->angle());
-  data_.setContrast (contrastEdit_->isChecked());
-  data_.setAlign    (alignEdit_->align());
-  data_.setFormatted(formattedEdit_->isChecked());
-  data_.setScaled   (scaledEdit_->isChecked());
-  data_.setHtml     (htmlEdit_->isChecked());
+  data_.setColor        (colorEdit_->color());
+  data_.setAlpha        (alphaEdit_->alpha());
+  data_.setFont         (fontEdit_->font());
+  data_.setAngle        (angleEdit_->angle());
+  data_.setContrast     (contrastEdit_->isChecked());
+  data_.setContrastAlpha(contrastAlphaEdit_->alpha());
+  data_.setAlign        (alignEdit_->align());
+  data_.setFormatted    (formattedEdit_->isChecked());
+  data_.setScaled       (scaledEdit_->isChecked());
+  data_.setHtml         (htmlEdit_->isChecked());
+  data_.setClipLength   (clipLengthEdit_->length());
 
   preview_->update();
 
@@ -473,7 +506,7 @@ void
 CQChartsTextDataEditPreview::
 draw(QPainter *painter)
 {
-  const CQChartsTextData &data = edit_->data();
+  const auto &data = edit_->data();
 
   draw(painter, data, rect(), edit_->plot(), edit_->view());
 }
@@ -519,6 +552,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   options.align         = Qt::AlignLeft;
   options.contrast      = data.isContrast();
   options.contrastAlpha = data.contrastAlpha();
+  options.clipLength    = data.clipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, options);
 }

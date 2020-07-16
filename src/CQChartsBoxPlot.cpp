@@ -667,8 +667,8 @@ updateRawRange() const
   int ig = 0;
 
   for (auto &groupIdWhiskers : groupWhiskers_) {
-    int                  groupInd      = groupIdWhiskers.first;
-    const SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
+    int         groupInd      = groupIdWhiskers.first;
+    const auto &setWhiskerMap = groupIdWhiskers.second;
 
     if (! isWhiskersGrouped() || ! isSetHidden(ig)) {
       int is = 0;
@@ -745,7 +745,7 @@ updateRawRange() const
           //---
 
           if (isViolin()) {
-            const CQChartsDensity &density = whisker->density();
+            const auto &density = whisker->density();
 
             updateRange(x, density.xmin1());
             updateRange(x, density.xmax1());
@@ -851,7 +851,7 @@ CQChartsBoxPlot::
 hasSets() const
 {
   for (const auto &groupIdWhiskers : groupWhiskers_) {
-    const SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
+    const auto &setWhiskerMap = groupIdWhiskers.second;
 
     if (setWhiskerMap.size() > 1)
       return true;
@@ -1164,7 +1164,7 @@ updateRawWhiskers() const
   //---
 
   for (auto &groupIdWhiskers : groupWhiskers_) {
-    const SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
+    const auto &setWhiskerMap = groupIdWhiskers.second;
 
     for (auto &setWhiskers : setWhiskerMap)
       setWhiskers.second->init();
@@ -1176,7 +1176,7 @@ CQChartsBoxPlot::
 clearRawWhiskers()
 {
   for (auto &groupWhisker : groupWhiskers_) {
-    const SetWhiskerMap &setWhiskerMap = groupWhisker.second;
+    const auto &setWhiskerMap = groupWhisker.second;
 
     for (auto &setWhisker : setWhiskerMap)
       delete setWhisker.second;
@@ -1250,12 +1250,12 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
       pg = groupWhiskers_.find(groupInd);
     }
 
-    const SetWhiskerMap &setWhiskerMap = (*pg).second;
+    const auto &setWhiskerMap = (*pg).second;
 
     auto ps = setWhiskerMap.find(setId);
 
     if (ps == setWhiskerMap.end()) {
-      SetWhiskerMap &setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
+      auto &setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
 
       auto ps1 = setWhiskerMap1.find(setId);
 
@@ -1359,8 +1359,8 @@ initRawObjs(PlotObjs &objs) const
   int ng = numGroupWhiskers();
 
   for (const auto &groupIdWhiskers : this->groupWhiskers()) {
-    int                  groupInd      = groupIdWhiskers.first;
-    const SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
+    int         groupInd      = groupIdWhiskers.first;
+    const auto &setWhiskerMap = groupIdWhiskers.second;
 
     if (! isConnected()) {
       int is = 0;
@@ -1492,7 +1492,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 {
   double vw2 = lengthPlotSize(violinWidth(), ! isHorizontal())/2.0;
 
-  const CQChartsDensity &density = whisker->density();
+  const auto &density = whisker->density();
 
   double ymin = density.ymin1();
   double ymax = density.ymax1();
@@ -1502,7 +1502,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
   int nv = whisker->numValues();
 
   for (int iv = 0; iv < nv; ++iv) {
-    const CQChartsBoxPlotValue &value = whisker->value(iv);
+    const auto &value = whisker->value(iv);
 
     double d = rand.gen();
 
@@ -1551,7 +1551,7 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
   PosRects posRects;
 
   auto placePosRect = [&](int pos, const BBox &rect) {
-    Rects &rects = posRects[pos];
+    auto &rects = posRects[pos];
 
     for (auto &r : rects) {
       if (r.intersect(rect))
@@ -1603,7 +1603,7 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
   int nv = whisker->numValues();
 
   for (int iv = 0; iv < nv; ++iv) {
-    const CQChartsBoxPlotValue &value = whisker->value(iv);
+    const auto &value = whisker->value(iv);
 
     double x = pos;
     double y = value.value;
@@ -1739,8 +1739,8 @@ addKeyItems(CQChartsPlotKey *key)
     if (hasSets() && isColorBySet()) {
       auto pg = this->groupWhiskers().begin();
 
-      int                  groupInd      = (*pg).first;
-      const SetWhiskerMap &setWhiskerMap = (*pg).second;
+      int         groupInd      = (*pg).first;
+      const auto &setWhiskerMap = (*pg).second;
 
       QString groupName = groupIndName(groupInd);
 
@@ -1789,8 +1789,8 @@ addKeyItems(CQChartsPlotKey *key)
   else if (ng > 0) {
     auto pg = this->groupWhiskers().begin();
 
-    int                  groupInd      = (*pg).first;
-    const SetWhiskerMap &setWhiskerMap = (*pg).second;
+    int         groupInd      = (*pg).first;
+    const auto &setWhiskerMap = (*pg).second;
 
     QString groupName = groupIndName(groupInd);
 
@@ -2202,7 +2202,7 @@ draw(CQChartsPaintDevice *device)
 
   // draw violin
   if (plot_->isViolin()) {
-    const CQChartsDensity &density = whisker_->density();
+    const auto &density = whisker_->density();
 
     double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
 
@@ -2547,7 +2547,7 @@ CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const BBox &rect, int set
  whisker_(whisker), io_(io)
 {
   if (whisker_) {
-    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+    const auto &ovalue = whisker_->value(io_);
 
     setModelInd(ovalue.ind);
   }
@@ -2589,7 +2589,7 @@ calcTipId() const
   //---
 
   if (whisker_) {
-    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+    const auto &ovalue = whisker_->value(io_);
 
     double rvalue = double(ovalue);
 
@@ -2615,7 +2615,7 @@ getObjSelectIndices(Indices &inds) const
   //---
 
   if (whisker_) {
-    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+    const auto &ovalue = whisker_->value(io_);
 
     addSelectIndex(inds, ovalue.ind.row(), CQChartsColumn(ovalue.ind.column()),
                    ovalue.ind.parent());
@@ -2950,7 +2950,7 @@ calcTipId() const
 {
   QString groupName = plot_->groupIndName(groupInd_);
 
-  const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
+  const auto &setWhiskerMap = this->setWhiskerMap();
 
   int ns = setWhiskerMap.size();
 
@@ -2974,7 +2974,7 @@ initPolygon()
 {
   Polygon maxPoly, minPoly;
 
-  const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
+  const auto &setWhiskerMap = this->setWhiskerMap();
 
   for (const auto &setWhiskers : setWhiskerMap) {
     int   setId   = setWhiskers.first;
@@ -3127,6 +3127,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.clipLength    = plot_->textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
 }
@@ -3166,6 +3167,7 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.clipLength    = plot_->textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
 }

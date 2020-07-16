@@ -223,7 +223,7 @@ calcRange() const
       auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
       for (int iv = 0; iv < nv_; ++iv) {
-        const CQChartsColumn &column = plot_->valueColumns().getColumn(iv);
+        const auto &column = plot_->valueColumns().getColumn(iv);
 
         ModelIndex ind(plot, data.row, column, data.parent);
 
@@ -263,7 +263,7 @@ calcRange() const
     auto pd = valueDatas_.find(iv);
     if (pd == valueDatas_.end()) continue;
 
-    const ValueData &valueData = (*pd).second;
+    const auto &valueData = (*pd).second;
 
     th->valueRadius_ = std::max(valueRadius_, valueData.max()/valueData.sum());
   }
@@ -328,7 +328,7 @@ calcAnnotationBBox() const
 
       //---
 
-      const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
+      const auto &valueColumn = valueColumns().getColumn(iv);
 
       bool ok;
 
@@ -470,7 +470,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   double a = (nv > 2 ? angleStart().value() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
-    const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
+    const auto &valueColumn = valueColumns().getColumn(iv);
 
     //---
 
@@ -494,7 +494,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     auto pd = valueDatas_.find(iv);
     assert(pd != valueDatas_.end());
 
-    const ValueData &valueData = (*pd).second;
+    const auto &valueData = (*pd).second;
 
     //---
 
@@ -735,7 +735,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
           //---
 
-          const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
+          const auto &valueColumn = valueColumns().getColumn(iv);
 
           bool ok;
 
@@ -751,6 +751,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
             options.align         = align;
             options.contrast      = isTextContrast();
             options.contrastAlpha = textContrastAlpha();
+            options.clipLength    = textClipLength();
 
             CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
 

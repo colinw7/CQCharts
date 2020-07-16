@@ -144,7 +144,7 @@ addPathParts(const QPainterPath &path)
   int n = path.elementCount();
 
   for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path.elementAt(i);
+    const auto &e = path.elementAt(i);
 
     if      (e.isMoveTo())
       *os_ << "  " << context() << ".moveTo(" << e.x << ", " << e.y << ");\n";

@@ -114,6 +114,7 @@ draw(CQChartsPaintDevice *device, const Point &center, const QString &text,
   options.align         = align;
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
+  options.clipLength    = textClipLength();
 
   CQChartsRotatedText::draw(device, device->pixelToWindow(p1), text,
                             options, /*alignBBox*/true, /*radial*/isRotated);

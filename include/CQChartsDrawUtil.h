@@ -221,6 +221,11 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox,
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
                        const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
 
+QString clipTextToLength(CQChartsPaintDevice *device, const QString &text,
+                         const CQChartsLength &clipLength);
+
+QString clipTextToLength(const QString &text, const QFont &font, double clipLength);
+
 }
 
 //---

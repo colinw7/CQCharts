@@ -336,8 +336,8 @@ addIdConnections() const
 
     int id = idConnections.first;
 
-    const QString &name  = connectionsData.name;
-    int            group = connectionsData.group;
+    const auto &name  = connectionsData.name;
+    int         group = connectionsData.group;
 
     auto *node = forceDirected_->newNodeT<CQChartsSpringyNode>();
 
@@ -1300,8 +1300,8 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     auto spring = forceDirected_->spring(edge, isTemp);
 
-    const Springy::Vector &p1 = spring->point1()->p();
-    const Springy::Vector &p2 = spring->point2()->p();
+    const auto &p1 = spring->point1()->p();
+    const auto &p2 = spring->point2()->p();
 
     if (isEdgeLinesValueWidth()) {
       CQChartsPenBrush edgePenBrush1 = edgePenBrush;
@@ -1348,7 +1348,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     auto point = forceDirected_->point(node);
 
-    const Springy::Vector &p1 = point->p();
+    const auto &p1 = point->p();
 
     //---
 

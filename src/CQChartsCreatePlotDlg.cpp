@@ -564,10 +564,10 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
   plotTypes1.clear();
 
   for (auto &p1 : hierDimPlotsTypeMap) {
-    const DimPlotTypesMap &dimPlotTypesMap = p1.second;
+    const auto &dimPlotTypesMap = p1.second;
 
     for (auto &p2 : dimPlotTypesMap) {
-      const CQCharts::PlotTypes &plotTypes = p2.second;
+      const auto &plotTypes = p2.second;
 
       for (auto &plotType : plotTypes)
         plotTypes1.push_back(plotType);
@@ -974,7 +974,7 @@ addPlotWidgets(CQChartsPlotType *type, int ind)
 
   int basicRow = 0;
 
-  PlotData &basicPlotData = basicTypePlotData_[type->name()];
+  auto &basicPlotData = basicTypePlotData_[type->name()];
 
   addParameterEdits(type, basicPlotData, basicFrameLayout, basicRow, /*basic*/true);
 
@@ -992,7 +992,7 @@ addPlotWidgets(CQChartsPlotType *type, int ind)
 
   int advancedRow = 0;
 
-  PlotData &advancedPlotData = advancedTypePlotData_[type->name()];
+  auto &advancedPlotData = advancedTypePlotData_[type->name()];
 
   addParameterEdits(type, advancedPlotData, advancedFrameLayout, advancedRow, /*basic*/false);
 
@@ -1981,8 +1981,8 @@ setXYMin(const QString &id)
   auto *type = getPlotType();
   if (! type) return;
 
-  PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
-                                       basicTypePlotData_   [type->name()]);
+  auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
+                                   basicTypePlotData_   [type->name()]);
 
   CQChartsColumn column;
 
@@ -2287,14 +2287,14 @@ updateFormatSlot()
   auto *type = getPlotType();
   if (! type) return;
 
-  PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
-                                       basicTypePlotData_   [type->name()]);
+  auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
+                                   basicTypePlotData_   [type->name()]);
 
   QString           parameterName;
   CQChartsLineEdit *formatEdit { nullptr };
 
   for (const auto &fe : plotData.formatEdits) {
-    const FormatEditData &formatEditData = fe.second;
+    const auto &formatEditData = fe.second;
 
     if (formatUpdate == formatEditData.formatUpdate) {
       parameterName = fe.first;
@@ -2381,8 +2381,8 @@ validate(QStringList &msgs)
   }
 
   // set plot property for widgets for plot parameters
-  PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
-                                       basicTypePlotData_   [type->name()]);
+  auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
+                                   basicTypePlotData_   [type->name()]);
 
   bool rc = true;
 
@@ -2683,8 +2683,8 @@ applyPlot(CQChartsPlot *plot, bool preview)
   auto *type = plot->type();
 
   // set plot property for widgets for plot parameters
-  PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
-                                       basicTypePlotData_   [type->name()]);
+  auto &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
+                                   basicTypePlotData_   [type->name()]);
 
   for (const auto &parameter : type->parameters()) {
     if (parameter->isHidden())
@@ -2974,7 +2974,7 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
     auto pf = plotData.formatEdits.find(parameter->name());
     assert(pf != plotData.formatEdits.end());
 
-    const FormatEditData &formatEditData = (*pf).second;
+    const auto &formatEditData = (*pf).second;
 
     QString format = formatEditData.formatEdit->text();
 
@@ -3000,7 +3000,7 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
     auto pm = plotData.mappedEdits.find(parameter->name());
 
     if (pm != plotData.mappedEdits.end()) {
-      const MapEditData &mapEditData = (*pm).second;
+      const auto &mapEditData = (*pm).second;
 
       mapValueData.mapped = mapEditData.mappedCheck->isChecked();
       mapValueData.min    = mapEditData.mapMinSpin ->value();
@@ -3027,7 +3027,7 @@ parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plot
     auto pf = plotData.formatEdits.find(parameter->name());
     if (pf == plotData.formatEdits.end()) return true;
 
-    const FormatEditData &formatEditData = (*pf).second;
+    const auto &formatEditData = (*pf).second;
 
     QString format = formatEditData.formatEdit->text();
 

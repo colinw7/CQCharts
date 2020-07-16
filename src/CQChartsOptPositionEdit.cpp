@@ -45,7 +45,7 @@ QString
 CQChartsOptPositionEdit::
 valueToText()
 {
-  const CQChartsPosition &l = value_.position();
+  const auto &l = value_.position();
 
   return l.toString();
 }

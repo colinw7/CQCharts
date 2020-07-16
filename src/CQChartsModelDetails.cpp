@@ -975,13 +975,13 @@ outlierValues() const
   QVariantList vars;
 
   if      (type() == CQBaseModelType::INTEGER) {
-    const CQChartsIValues::Indices &outliers = valueSet_->ivals().outliers();
+    const auto &outliers = valueSet_->ivals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->ivals().svalue(o));
   }
   else if (type() == CQBaseModelType::REAL) {
-    const CQChartsRValues::Indices &outliers = valueSet_->rvals().outliers();
+    const auto &outliers = valueSet_->rvals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->rvals().svalue(o));
@@ -990,7 +990,7 @@ outlierValues() const
     return vars;
   }
   else if (type() == CQBaseModelType::TIME) {
-    const CQChartsIValues::Indices &outliers = valueSet_->tvals().outliers();
+    const auto &outliers = valueSet_->tvals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->tvals().svalue(o));

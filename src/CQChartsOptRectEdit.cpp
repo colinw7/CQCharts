@@ -45,7 +45,7 @@ QString
 CQChartsOptRectEdit::
 valueToText()
 {
-  const CQChartsRect &l = value_.rect();
+  const auto &l = value_.rect();
 
   return l.toString();
 }

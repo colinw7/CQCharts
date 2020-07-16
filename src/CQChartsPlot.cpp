@@ -439,7 +439,7 @@ getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &selectIndices)
   if (indices.empty()) return;
 
   for (int i = 0; i < indices.size(); ++i) {
-    const QModelIndex &ind = indices[i];
+    const auto &ind = indices[i];
 
     QModelIndex ind1 = normalizeIndex(ind);
 
@@ -2888,17 +2888,14 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
   if (valueTypes & CQChartsTextOptions::ValueType::ANGLE)
     addStyleProp(path, prefix + "Angle", "angle", prefix1 + " angle", hidden);
 
-  if (valueTypes & CQChartsTextOptions::ValueType::ALIGN)
-    addStyleProp(path, prefix + "Align", "align", prefix1 + " align", hidden);
-
   if (valueTypes & CQChartsTextOptions::ValueType::CONTRAST) {
     addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast", hidden);
     addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha",
                  prefix1 + " contrast alpha", hidden);
   }
 
-  if (valueTypes & CQChartsTextOptions::ValueType::HTML)
-    addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML", hidden);
+  if (valueTypes & CQChartsTextOptions::ValueType::ALIGN)
+    addStyleProp(path, prefix + "Align", "align", prefix1 + " align", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::FORMATTED)
     addStyleProp(path, prefix + "Formatted", "formatted",
@@ -2906,6 +2903,12 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
 
   if (valueTypes & CQChartsTextOptions::ValueType::SCALED)
     addStyleProp(path, prefix + "Scaled", "scaled", prefix1 + " scaled to box", hidden);
+
+  if (valueTypes & CQChartsTextOptions::ValueType::HTML)
+    addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML", hidden);
+
+  if (valueTypes & CQChartsTextOptions::ValueType::CLIP_LENGTH)
+    addStyleProp(path, prefix + "Clip Length", "clipLength", prefix1 + " scaled to box", hidden);
 }
 
 void
@@ -2936,8 +2939,8 @@ setProperties(const QString &properties)
   CQChartsNameValues nameValues(properties);
 
   for (const auto &nv : nameValues.nameValues()) {
-    const QString  &name  = nv.first;
-    const QVariant &value = nv.second;
+    const auto &name  = nv.first;
+    const auto &value = nv.second;
 
     if (! setProperty(name, value))
       rc = false;
@@ -12755,13 +12758,13 @@ endSelectIndex()
 
   // build row range per index column
   for (const auto &p : selIndexColumnRows_) {
-    const QModelIndex &parent     = p.first;
-    const ColumnRows  &columnRows = p.second;
+    const auto &parent     = p.first;
+    const auto &columnRows = p.second;
 
     // build row range per column
     for (const auto &p1 : columnRows) {
       int         ic   = p1.first;
-      const Rows &rows = p1.second;
+      const auto &rows = p1.second;
 
       CQChartsColumn column(ic);
 
@@ -13431,7 +13434,7 @@ windowToPixel(const QPainterPath &path) const
   int n = path.elementCount();
 
   for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path.elementAt(i);
+    const auto &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
       auto p1 = windowToPixel(Point(e.x, e.y));

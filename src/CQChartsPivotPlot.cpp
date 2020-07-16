@@ -584,14 +584,14 @@ createObjs(PlotObjs &objs) const
 
   if      (plotType() == PlotType::BAR || plotType() == PlotType::STACKED_BAR) {
     for (int iv = 0; iv < nv; ++iv) {
-      const QString &vkey = vkeys[iv];
+      const auto &vkey = vkeys[iv];
 
       int r = pivotModel()->vkeyRow(vkey);
 
       ColorInd ir(iv, nv);
 
       for (int ih = 0; ih < nh; ++ih) {
-        const QString &hkey = hkeys[ih];
+        const auto &hkey = hkeys[ih];
 
         int c = pivotModel()->hkeyCol(hkey);
 
@@ -1659,6 +1659,7 @@ draw(CQChartsPaintDevice *device)
     textOptions.formatted     = false;
     textOptions.scaled        = plot_->dataLabel()->isTextScaled();
     textOptions.html          = false;
+    textOptions.clipLength    = plot_->dataLabel()->textClipLength();
     textOptions.clipped       = false;
     textOptions.margin        = 0;
 

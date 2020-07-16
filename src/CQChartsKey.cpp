@@ -271,15 +271,16 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addHeaderProp("header", "string", "string");
 
-  addHeaderStyleProp("headerTextColor"    , "color"    , "color");
-  addHeaderStyleProp("headerTextAlpha"    , "alpha"    , "alpha");
-  addHeaderStyleProp("headerTextFont"     , "font"     , "font");
-//addHeaderStyleProp("headerTextAngle"    , "angle"    , "angle");
-  addHeaderStyleProp("headerTextContrast" , "contrast" , "contrast");
-  addHeaderStyleProp("headerTextAlign"    , "align"    , "align");
-  addHeaderStyleProp("headerTextFormatted", "formatted", "formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"   , "scaled"   , "scaled to box");
-  addHeaderStyleProp("headerTextHtml"     , "html"     , "is html");
+  addHeaderStyleProp("headerTextColor"     , "color"     , "header text color");
+  addHeaderStyleProp("headerTextAlpha"     , "alpha"     , "header text alpha");
+  addHeaderStyleProp("headerTextFont"      , "font"      , "header text font");
+//addHeaderStyleProp("headerTextAngle"     , "angle"     , "header text angle");
+  addHeaderStyleProp("headerTextContrast"  , "contrast"  , "header text contrast");
+  addHeaderStyleProp("headerTextAlign"     , "align"     , "header text align");
+  addHeaderStyleProp("headerTextFormatted" , "formatted" , "header text formatted to fit box");
+  addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
+  addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
+  addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
 
   //---
 
@@ -303,15 +304,16 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  addTextStyleProp("textColor"    , "color"    , "color");
-  addTextStyleProp("textAlpha"    , "alpha"    , "alpha");
-  addTextStyleProp("textFont"     , "font"     , "font");
-//addTextStyleProp("textAngle"    , "angle"    , "angle");
-  addTextStyleProp("textContrast" , "contrast" , "contrast");
-  addTextStyleProp("textAlign"    , "align"    , "align");
-  addTextStyleProp("textFormatted", "formatted", "formatted to fit box");
-  addTextStyleProp("textScaled"   , "scaled"   , "scaled to box");
-  addTextStyleProp("textHtml"     , "html"     , "is html");
+  addTextStyleProp("textColor"     , "color"     , "text color");
+  addTextStyleProp("textAlpha"     , "alpha"     , "text alpha");
+  addTextStyleProp("textFont"      , "font"      , "text font");
+//addTextStyleProp("textAngle"     , "angle"     , "text angle");
+  addTextStyleProp("textContrast"  , "contrast"  , "text contrast");
+  addTextStyleProp("textAlign"     , "align"     , "text align");
+  addTextStyleProp("textFormatted" , "formatted" , "text formatted to fit box");
+  addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
+  addTextStyleProp("textHtml"      , "html"      , "text is html");
+  addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
 }
 
 bool
@@ -421,6 +423,7 @@ draw(CQChartsPaintDevice *device) const
     textOptions.formatted     = isTextFormatted();
     textOptions.scaled        = isTextScaled();
     textOptions.html          = isTextHtml();
+    textOptions.clipLength    = textClipLength();
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(rect1), name, textOptions);
 
@@ -913,15 +916,16 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addHeaderProp("header", "string", "string");
 
-  addHeaderStyleProp("headerTextColor"    , "color"    , "color");
-  addHeaderStyleProp("headerTextAlpha"    , "alpha"    , "alpha");
-  addHeaderStyleProp("headerTextFont"     , "font"     , "font");
-//addHeaderStyleProp("headerTextAngle"    , "angle"    , "angle");
-  addHeaderStyleProp("headerTextContrast" , "contrast" , "contrast");
-  addHeaderStyleProp("headerTextAlign"    , "align"    , "align");
-  addHeaderStyleProp("headerTextFormatted", "formatted", "formatted to fit box");
-  addHeaderStyleProp("headerTextScaled"   , "scaled"   , "scaled to box");
-  addHeaderStyleProp("headerTextHtml"     , "html"     , "is html");
+  addHeaderStyleProp("headerTextColor"     , "color"     , "header text color");
+  addHeaderStyleProp("headerTextAlpha"     , "alpha"     , "header text alpha");
+  addHeaderStyleProp("headerTextFont"      , "font"      , "header text font");
+//addHeaderStyleProp("headerTextAngle"     , "angle"     , "header text angle");
+  addHeaderStyleProp("headerTextContrast"  , "contrast"  , "header text contrast");
+  addHeaderStyleProp("headerTextAlign"     , "align"     , "header text align");
+  addHeaderStyleProp("headerTextFormatted" , "formatted" , "header text formatted to fit box");
+  addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
+  addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
+  addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
 
   //---
 
@@ -943,15 +947,16 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return item;
   };
 
-  addTextStyleProp("textColor"    , "color"    , "color");
-  addTextStyleProp("textAlpha"    , "alpha"    , "alpha");
-  addTextStyleProp("textFont"     , "font"     , "font");
-//addTextStyleProp("textAngle"    , "angle"    , "angle");
-  addTextStyleProp("textContrast" , "contrast" , "contrast");
-  addTextStyleProp("textAlign"    , "align"    , "align");
-  addTextStyleProp("textFormatted", "formatted", "formatted to fit box");
-  addTextStyleProp("textScaled"   , "scaled"   , "scaled to box");
-  addTextStyleProp("textHtml"     , "html"     , "is html");
+  addTextStyleProp("textColor"     , "color"     , "text color");
+  addTextStyleProp("textAlpha"     , "alpha"     , "text alpha");
+  addTextStyleProp("textFont"      , "font"      , "text font");
+//addTextStyleProp("textAngle"     , "angle"     , "text angle");
+  addTextStyleProp("textContrast"  , "contrast"  , "text contrast");
+  addTextStyleProp("textAlign"     , "align"     , "text align");
+  addTextStyleProp("textFormatted" , "formatted" , "text formatted to fit box");
+  addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
+  addTextStyleProp("textHtml"      , "html"      , "text is html");
+  addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
 }
 
 void
@@ -1042,7 +1047,7 @@ doLayout()
 
   for (int r = 0; r < numRows; ++r) {
     for (int c = 0; c < numCols_; ++c) {
-      const Items &items = rowColItems[r][c];
+      const auto &items = rowColItems[r][c];
 
       for (const auto &item : items) {
         auto size = item->size();
@@ -1122,7 +1127,7 @@ doLayout()
     for (int c = 0; c < numCols_; ++c) {
       double cw = colWidths_[c] + 2*xs_;
 
-      Cell &cell = rowColCell_[r][c];
+      auto &cell = rowColCell_[r][c];
 
       cell.x      = x;
       cell.y      = y;
@@ -1141,7 +1146,7 @@ doLayout()
   double w = 0, h = 0;
 
   for (int c = 0; c < numCols_; ++c) {
-    Cell &cell = rowColCell_[0][c];
+    auto &cell = rowColCell_[0][c];
 
     w += cell.width;
   }
@@ -1149,7 +1154,7 @@ doLayout()
   w += pmargin_.xl + ppadding_.xl + pmargin_.xr + ppadding_.xr;
 
   for (int r = 0; r < numRows; ++r) {
-    Cell &cell = rowColCell_[r][0];
+    auto &cell = rowColCell_[r][0];
 
     h += cell.height;
   }
@@ -1769,6 +1774,7 @@ draw(CQChartsPaintDevice *device) const
     textOptions.formatted     = isHeaderTextFormatted();
     textOptions.scaled        = isHeaderTextScaled();
     textOptions.html          = isHeaderTextHtml();
+    textOptions.clipLength    = headerTextClipLength();
 
     textOptions = plot()->adjustTextOptions(textOptions);
 
@@ -1838,7 +1844,7 @@ draw(CQChartsPaintDevice *device) const
     if (isFlipped())
       col = numCols_ - 1 - col;
 
-    Cell &cell = rowColCell_[item->row()][col];
+    auto &cell = rowColCell_[item->row()][col];
 
     double x1 = cell.x - xs_;
     double y1 = cell.y + ys_;
@@ -1846,13 +1852,13 @@ draw(CQChartsPaintDevice *device) const
     double h1 = cell.height;
 
     for (int c = 1; c < item->colSpan(); ++c) {
-      Cell &cell1 = rowColCell_[item->row()][col + c];
+      auto &cell1 = rowColCell_[item->row()][col + c];
 
       w1 += cell1.width;
     }
 
     for (int r = 1; r < item->rowSpan(); ++r) {
-      Cell &cell1 = rowColCell_[item->row() + r][col];
+      auto &cell1 = rowColCell_[item->row() + r][col];
 
       h1 += cell1.height;
     }
@@ -2024,7 +2030,11 @@ size() const
 
   QFontMetricsF fm(font);
 
-  double w = fm.width(text_);
+  double clipLength = plot->lengthPixelWidth(key_->textClipLength());
+
+  QString text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength);
+
+  double w = fm.width(text);
   double h = fm.height();
 
   double ww = plot->pixelToWindowWidth (w + 4);
@@ -2060,6 +2070,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
   textOptions.formatted     = key_->isTextFormatted();
   textOptions.scaled        = key_->isTextScaled();
   textOptions.html          = key_->isTextHtml();
+  textOptions.clipLength    = key_->textClipLength();
 
   textOptions = plot->adjustTextOptions(textOptions);
 

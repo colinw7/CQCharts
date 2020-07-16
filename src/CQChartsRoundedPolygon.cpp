@@ -91,9 +91,9 @@ draw(CQChartsPaintDevice *device, const Polygon &poly, double xsize, double ysiz
   int i3 = 1;
 
   while (i2 < poly.size()) {
-    const QPointF &p1 = poly.qpoint(i1);
-    const QPointF &p2 = poly.qpoint(i2);
-    const QPointF &p3 = poly.qpoint(i3);
+    const auto &p1 = poly.qpoint(i1);
+    const auto &p2 = poly.qpoint(i2);
+    const auto &p3 = poly.qpoint(i3);
 
     if (xsize > 0 || ysize > 0) {
       QPointF p12s, p12e, p23s, p23e;

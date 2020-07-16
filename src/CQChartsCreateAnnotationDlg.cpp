@@ -848,7 +848,7 @@ createRectangleAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -898,7 +898,7 @@ createEllipseAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -947,7 +947,7 @@ createPolygonAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -997,7 +997,7 @@ createPolylineAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -1047,7 +1047,7 @@ createTextAnnotation()
 {
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
   //---
 
@@ -1119,8 +1119,8 @@ createArrowAnnotation()
 {
   CQChartsShapeData shapeData;
 
-  CQChartsStrokeData &stroke = shapeData.stroke();
-  CQChartsFillData   &fill   = shapeData.fill();
+  auto &stroke = shapeData.stroke();
+  auto &fill   = shapeData.fill();
 
   //---
 

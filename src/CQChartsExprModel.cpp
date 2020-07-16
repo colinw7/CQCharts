@@ -571,7 +571,7 @@ columnRange(int column, double &minVal, double &maxVal) const
   auto p = columnDatas_.find(column);
 
   if (p != columnDatas_.end()) {
-    const ColumnData &columnData = (*p).second;
+    const auto &columnData = (*p).second;
 
     if (columnData.rmin) {
       minVal = *columnData.rmin;
@@ -594,7 +594,7 @@ calcColumnRange(int column, double &minVal, double &maxVal)
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  ColumnData &columnData = columnDatas_[column];
+  auto &columnData = columnDatas_[column];
 
   nr_ = rowCount();
 
@@ -631,7 +631,7 @@ columnRange(int column, int &minVal, int &maxVal) const
   auto p = columnDatas_.find(column);
 
   if (p != columnDatas_.end()) {
-    const ColumnData &columnData = (*p).second;
+    const auto &columnData = (*p).second;
 
     if (columnData.imin) {
       minVal = *columnData.imin;
@@ -654,7 +654,7 @@ calcColumnRange(int column, int &minVal, int &maxVal)
 {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  ColumnData &columnData = columnDatas_[column];
+  auto &columnData = columnDatas_[column];
 
   nr_ = rowCount();
 
@@ -1739,13 +1739,13 @@ bucketCmd(const Values &values) const
   if (p == columnDatas_.end())
     return QVariant(0);
 
-  const ColumnData &columnData = (*p).second;
+  const auto &columnData = (*p).second;
 
   //---
 
   int bucket = -1;
 
-  const CQBucketer &bucketer = columnData.bucketer;
+  const auto &bucketer = columnData.bucketer;
 
   if      (var.type() == QVariant::Double) {
     bool ok;
