@@ -74,8 +74,7 @@ addParameters()
 
 bool
 CQChartsConnectionPlotType::
-isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                     CQChartsPlotParameter *parameter) const
+isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const
 {
   if      (parameter->name() == "connections") {
     return (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST);
@@ -89,7 +88,7 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
 
 void
 CQChartsConnectionPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   bool hasNode        = (analyzeModelData.parameterNameColumn.find("node") !=
                          analyzeModelData.parameterNameColumn.end());
@@ -218,7 +217,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 //------
 
 CQChartsConnectionPlot::
-CQChartsConnectionPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
+CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model) :
  CQChartsPlot(view, plotType, model)
 {
 }

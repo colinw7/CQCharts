@@ -3,9 +3,10 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + copy command from view properties
  + rect/position edit values from plot
  + drag label
- + key tip includes text (could be clipped)
+ + key tip includes text (could be clipped) - all keys
  + box plot text overlap
  + clip length in all text
  + no recalc updates (skip empty, fit, ...)

@@ -32,7 +32,7 @@ addParameters()
 
 void
 CQChartsHierPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   bool hasValue = (analyzeModelData.parameterNameColumn.find("value") !=
                    analyzeModelData.parameterNameColumn.end());

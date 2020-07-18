@@ -138,7 +138,7 @@ description() const
 
 void
 CQChartsXYPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   auto px   = analyzeModelData.parameterNameColumn.find("x");
   bool hasX = (px != analyzeModelData.parameterNameColumn.end());

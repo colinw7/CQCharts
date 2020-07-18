@@ -48,6 +48,11 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &b) { bbox_ = b; }
+
+  //---
+
   void dataInvalidate() override { boxDataInvalidate(); }
 
   virtual void boxDataInvalidate(); // TODO: signal

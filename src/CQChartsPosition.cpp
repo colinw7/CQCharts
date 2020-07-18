@@ -1,4 +1,5 @@
 #include <CQChartsPosition.h>
+#include <CQChartsUtil.h>
 #include <CQPropertyView.h>
 #include <CQTclUtil.h>
 
@@ -13,6 +14,15 @@ registerMetaType()
   metaTypeId = CQUTIL_REGISTER_META(CQChartsPosition);
 
   CQPropertyViewMgrInst->setUserName("CQChartsPosition", "position");
+}
+
+QString
+CQChartsPosition::
+toString() const
+{
+  QString ustr = CQChartsUtil::unitsString(units_);
+
+  return QString("%1 %2 %3").arg(p_.x).arg(p_.y).arg(ustr);
 }
 
 bool

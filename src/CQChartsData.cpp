@@ -1,4 +1,5 @@
 #include <CQChartsData.h>
+#include <CQChartsNameValues.h>
 #include <CQPropertyView.h>
 #include <CQUtil.h>
 

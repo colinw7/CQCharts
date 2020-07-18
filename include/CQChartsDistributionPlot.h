@@ -833,6 +833,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Range calcBucketRanges() const;
 
   void clearGroupValues() const;
+  void clearGroupBuckets() const;
 
   void addRow(const ModelVisitor::VisitData &data) const;
 
@@ -951,6 +952,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   FilterStack        filterStack_;                         //!< filter stack
   GroupData          groupData_;                           //!< grouped value sets
   double             barWidth_       { 1.0 };              //!< bar width
+  mutable bool       visitModel_     { true };             //!< visit model
   mutable std::mutex mutex_;                               //!< mutex
 };
 

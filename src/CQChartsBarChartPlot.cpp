@@ -1251,7 +1251,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
-    auto *keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
+    auto *keyColor = new CQChartsBarKeyColor(this, name, is, ig, iv);
     auto *keyText  = new CQChartsBarKeyText (this, name, iv);
 
     if (c.isValid())
@@ -2037,9 +2037,9 @@ value() const
 //------
 
 CQChartsBarKeyColor::
-CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
-                    const ColorInd &iv) :
- CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot)
+CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const QString &name, const ColorInd &is,
+                    const ColorInd &ig, const ColorInd &iv) :
+ CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot), name_(name)
 {
 }
 
@@ -2220,6 +2220,8 @@ tipText(const Point &, QString &tip) const
   }
 
   CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Name", name_);
 
   if (count >= 0)
     tableTip.addTableRow("Count", count);

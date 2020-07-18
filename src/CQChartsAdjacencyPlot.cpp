@@ -71,15 +71,14 @@ description() const
 
 bool
 CQChartsAdjacencyPlotType::
-isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                     CQChartsPlotParameter *parameter) const
+isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const
 {
   return CQChartsConnectionPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 void
 CQChartsAdjacencyPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   CQChartsConnectionPlotType::analyzeModel(modelData, analyzeModelData);
 }
@@ -106,14 +105,14 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
   setBackgroundFillColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
 
   setStrokeColor(Color(Color::Type::INTERFACE_VALUE, 1.0));
-  setStrokeAlpha(CQChartsAlpha(0.5));
+  setStrokeAlpha(Alpha(0.5));
 
   setEmptyCellFillColor  (Color(Color::Type::INTERFACE_VALUE, 0.1));
   setEmptyCellStrokeColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
 
   setFillColor(Color(Color::Type::PALETTE));
 
-  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
+  setOuterMargin(PlotMargin(0, 0, 0, 0));
 
   addTitle();
 }
@@ -376,10 +375,10 @@ addPathValue(const QStringList &pathStrs, double value) const
 
   QChar separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  QString path1 = pathStrs[0];
+  auto path1 = pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathStrs[i];
+    auto path2 = path1 + separator + pathStrs[i];
 
     auto *srcNode  = findNode(path1);
     auto *destNode = findNode(path2);
@@ -478,7 +477,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
   // Just node
   if (toStr == "") {
     for (const auto &nv : nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "shape") {
       }
@@ -498,7 +497,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     srcNode->addEdge(destNode, OptReal(value));
 
     for (const auto &nv : nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "shape") {
       }
@@ -567,7 +566,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
-  ModelIndex modelInd = linkConnectionData.nameModelInd;
+  auto modelInd = linkConnectionData.nameModelInd;
 
   if (! modelInd.isValid())
     modelInd = linkConnectionData.linkModelInd;
@@ -650,7 +649,7 @@ initConnectionObjs(PlotObjs &objs) const
     const auto &name  = idConnections.second.name;
     int         group = idConnections.second.group;
 
-    auto *node = new CQChartsAdjacencyNode(id, name, group);
+    auto *node = new AdjacencyNode(id, name, group);
 
     if (ind.isValid())
       node->setInd(0, ind);
@@ -766,7 +765,7 @@ initTableObjs() const
   for (int row = 0; row < nv; ++row) {
     const auto &tableConnectionData = tableConnectionDatas[row];
 
-    QString srcStr = QString("%1").arg(tableConnectionData.from());
+    auto srcStr = QString("%1").arg(tableConnectionData.from());
 
     auto *srcNode = findNode(srcStr);
 
@@ -774,7 +773,7 @@ initTableObjs() const
     srcNode->setGroup(tableConnectionData.group().ig);
 
     for (const auto &value : tableConnectionData.values()) {
-      QString destStr = QString("%1").arg(value.to);
+      auto destStr = QString("%1").arg(value.to);
 
       auto *destNode = findNode(destStr);
 
@@ -832,16 +831,17 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
 
   if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
     bool ok3;
-    QVariant connectionsVar = modelValue(connectionsInd, ok3);
+    auto connectionsVar = modelValue(connectionsInd, ok3);
+    if (! ok3) return false;
 
-    connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+    connectionsData.connections = connectionsVar.value<ConnectionList>().connections();
   }
   else {
     bool ok3;
-    QString connectionsStr = modelString(connectionsInd, ok3);
+    auto connectionsStr = modelString(connectionsInd, ok3);
     if (! ok3) return false;
 
-    CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
+    ConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
   }
 
   //---
@@ -849,7 +849,7 @@ getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connecti
   // get optional name
   ModelIndex nameModelInd;
 
-  QString name = QString("%1").arg(id);
+  auto name = QString("%1").arg(id);
 
   if (nameColumn().isValid()) {
     nameModelInd = ModelIndex(th, data.row, nameColumn(), data.parent);
@@ -886,7 +886,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   nodeData.maxNode  = 0;
 
   for (auto &pnode : nodes) {
-    auto *node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
+    auto *node = const_cast<AdjacencyNode *>(pnode.second);
 
     sortedNodes.push_back(node);
 
@@ -896,14 +896,12 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
   }
 
   if      (sortType() == SortType::NAME) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(),
-      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
         return lhs->name() < rhs->name();
       });
   }
   else if (sortType() == SortType::GROUP) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(),
-      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
         if (lhs->group() != rhs->group())
           return lhs->group() < rhs->group();
 
@@ -911,8 +909,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
       });
   }
   else if (sortType() == SortType::COUNT) {
-    std::sort(sortedNodes.begin(), sortedNodes.end(),
-      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+    std::sort(sortedNodes.begin(), sortedNodes.end(), [](AdjacencyNode *lhs, AdjacencyNode *rhs) {
         if (lhs->value().real() != rhs->value().real())
           return lhs->value().real() < rhs->value().real();
 
@@ -1021,7 +1018,7 @@ findNode(const QString &str) const
 
   int id = nameNodeMap_.size();
 
-  auto *node = new CQChartsAdjacencyNode(id, str, 0);
+  auto *node = new AdjacencyNode(id, str, 0);
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
 
@@ -1032,10 +1029,10 @@ findNode(const QString &str) const
 
 CQChartsAdjacencyCellObj *
 CQChartsAdjacencyPlot::
-createCellObj(CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2, double value,
+createCellObj(AdjacencyNode *node1, AdjacencyNode *node2, double value,
               const BBox &rect, const ColorInd &ig)
 {
-  return new CQChartsAdjacencyCellObj(this, node1, node2, value, rect, ig);
+  return new CellObj(this, node1, node2, value, rect, ig);
 }
 
 //---
@@ -1094,7 +1091,7 @@ hasBackground() const
 
 void
 CQChartsAdjacencyPlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   // calc text size
   auto po = windowToPixel(Point(0.0, 1.0));
@@ -1110,7 +1107,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   // set font
   double ts = std::min(pxs, pys);
 
-  QFont font = this->textFont().calcFont();
+  auto font = this->textFont().calcFont();
 
   font.setPixelSize(ts >= 1.0 ? int(ts) : 1);
 
@@ -1121,7 +1118,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   //---
 
   // draw text
-  QColor tc = interpTextColor(ColorInd());
+  auto tc = interpTextColor(ColorInd());
 
   setPen(device, CQChartsPenData(true, tc, textAlpha()));
 
@@ -1144,7 +1141,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = CQChartsAngle(0);
+    options.angle         = Angle(0);
     options.align         = Qt::AlignLeft;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
@@ -1170,7 +1167,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = CQChartsAngle(90);
+    options.angle         = Angle(90);
     options.align         = Qt::AlignHCenter | Qt::AlignBottom;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
@@ -1191,11 +1188,11 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   //---
 
-  QColor fc = interpBackgroundFillColor(ColorInd());
+  auto fc = interpBackgroundFillColor(ColorInd());
 
   setPenBrush(device,
    CQChartsPenData  (false),
-   CQChartsBrushData(true, fc, backgroundFillAlpha(), backgroundFillPattern()));
+   CQChartsBrushData(true, fc, backgroundFillData()));
 
   BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
@@ -1206,13 +1203,12 @@ execDrawBackground(CQChartsPaintDevice *device) const
   // draw empty cells
   CQChartsPenBrush emptyPenBrush;
 
-  QColor pc = interpEmptyCellStrokeColor(ColorInd());
-  QColor bc = interpEmptyCellFillColor  (ColorInd());
+  auto pc = interpEmptyCellStrokeColor(ColorInd());
+  auto bc = interpEmptyCellFillColor  (ColorInd());
 
   setPenBrush(emptyPenBrush,
-    CQChartsPenData  (true, pc, emptyCellStrokeAlpha(), emptyCellStrokeWidth(),
-                      emptyCellStrokeDash()),
-    CQChartsBrushData(true, bc, emptyCellFillAlpha(), emptyCellFillPattern()));
+    CQChartsPenData  (true, pc, emptyCellShapeData().stroke()),
+    CQChartsBrushData(true, bc, emptyCellShapeData().fill  ()));
 
   auto cornerSize = emptyCellCornerSize();
 
@@ -1272,7 +1268,7 @@ hasForeground() const
 
 void
 CQChartsAdjacencyPlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   if (insideObj())
     insideObj()->draw(device);
@@ -1290,16 +1286,15 @@ interpGroupColor(int group) const
 //------
 
 CQChartsAdjacencyCellObj::
-CQChartsAdjacencyCellObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                         CQChartsAdjacencyNode *node2, double value, const BBox &rect,
-                         const ColorInd &ig) :
- CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
+CQChartsAdjacencyCellObj(const AdjacencyPlot *plot, AdjacencyNode *node1, AdjacencyNode *node2,
+                         double value, const BBox &rect, const ColorInd &ig) :
+ CQChartsPlotObj(const_cast<AdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
   setDetailHint(DetailHint::MAJOR);
 
-  ModelIndex ind1 = node1->ind(node2->id());
-  ModelIndex ind2 = node2->ind(node1->id());
+  auto ind1 = node1->ind(node2->id());
+  auto ind2 = node2->ind(node1->id());
 
   if      (ind1.isValid())
     addModelInd(plot->modelIndex(ind1));
@@ -1311,8 +1306,8 @@ QString
 CQChartsAdjacencyCellObj::
 calcId() const
 {
-  QString groupStr1 = QString("(%1)").arg(node1()->group());
-  QString groupStr2 = QString("(%1)").arg(node2()->group());
+  auto groupStr1 = QString("(%1)").arg(node1()->group());
+  auto groupStr2 = QString("(%1)").arg(node2()->group());
 
   return QString("%1:%2%3:%4%5:%6").arg(typeName()).
            arg(node1()->name()).arg(groupStr1).arg(node2()->name()).arg(groupStr2).arg(value());
@@ -1325,8 +1320,8 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (node1() != node2()) {
-    QString groupStr1 = QString("(%1)").arg(node1()->group());
-    QString groupStr2 = QString("(%1)").arg(node2()->group());
+    auto groupStr1 = QString("(%1)").arg(node1()->group());
+    auto groupStr2 = QString("(%1)").arg(node2()->group());
 
     tableTip.addTableRow("From", node1()->name(), groupStr1);
     tableTip.addTableRow("To"  , node2()->name(), groupStr2);
@@ -1359,12 +1354,12 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsAdjacencyCellObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   // draw inside object
   if (isInside()) {
     if (plot_->insideObj() != this) {
-      auto *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
+      auto *plot = const_cast<AdjacencyPlot *>(plot_);
 
       plot->setInsideObj(const_cast<CQChartsAdjacencyCellObj *>(this));
 
@@ -1400,17 +1395,19 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   //---
 
   // get fill color for node
-  auto nodeFillColor = [&](CQChartsAdjacencyNode *node) {
-    if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO ||
-             plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+  auto nodeFillColor = [&](AdjacencyNode *node) {
+    auto colorType = plot_->colorType();
+
+    if      (colorType == CQChartsPlot::ColorType::AUTO ||
+             colorType == CQChartsPlot::ColorType::GROUP)
       return plot_->interpFillColor(ColorInd(node->group(), plot_->maxGroup() + 1));
-    else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+    else if (colorType == CQChartsPlot::ColorType::INDEX)
       return plot_->interpFillColor(ColorInd(node->id(), plot_->numNodes()));
     else
       return plot_->interpFillColor(colorInd);
   };
 
-  auto nodesFillColor = [&](CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2) {
+  auto nodesFillColor = [&](AdjacencyNode *node1, AdjacencyNode *node2) {
     if  (node1 == node2)
       return nodeFillColor(node1);
     else
@@ -1420,17 +1417,19 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   //---
 
   // get stroke color for node
-  auto nodeStrokeColor = [&](CQChartsAdjacencyNode *node) {
-    if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO ||
-             plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+  auto nodeStrokeColor = [&](AdjacencyNode *node) {
+    auto colorType = plot_->colorType();
+
+    if      (colorType == CQChartsPlot::ColorType::AUTO ||
+             colorType == CQChartsPlot::ColorType::GROUP)
       return plot_->interpStrokeColor(ColorInd(node->group(), plot_->maxGroup() + 1));
-    else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+    else if (colorType == CQChartsPlot::ColorType::INDEX)
       return plot_->interpStrokeColor(ColorInd(node->id(), plot_->numNodes()));
     else
       return plot_->interpStrokeColor(colorInd);
   };
 
-  auto nodesStrokeColor = [&](CQChartsAdjacencyNode *node1, CQChartsAdjacencyNode *node2) {
+  auto nodesStrokeColor = [&](AdjacencyNode *node1, AdjacencyNode *node2) {
     if  (node1 == node2)
       return nodeStrokeColor(node1);
     else
@@ -1440,12 +1439,12 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   //---
 
   // get background color
-  QColor bg = plot_->interpEmptyCellFillColor(ColorInd());
+  auto bg = plot_->interpEmptyCellFillColor(ColorInd());
 
   //--
 
   // calc brush color (scaled to value)
-  QColor bc = nodesFillColor(node1(), node2());
+  auto bc = nodesFillColor(node1(), node2());
 
   if (node1() != node2()) {
     double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
@@ -1454,14 +1453,14 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   }
 
   // calc pen color (not scaled)
-  QColor pc = nodesStrokeColor(node1(), node2());
+  auto pc = nodesStrokeColor(node1(), node2());
 
   //---
 
   // calc pen and brush
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(true, bc, plot_->fillAlpha(), plot_->fillPattern()));
+    CQChartsPenData  (true, pc, plot_->shapeData().stroke()),
+    CQChartsBrushData(true, bc, plot_->shapeData().fill  ()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1469,13 +1468,13 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsAdjacencyCellObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
 
-  std::ostream &os = device->os();
+  auto &os = device->os();
 
   os << "\n";
   os << "  this.value = " << value() << ";\n";

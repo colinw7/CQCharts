@@ -32,7 +32,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
                                    const QPen &lpen, bool isRotated, BBox &tbbox);
 
  private:
-  mutable BBox bbox_;
+//mutable BBox bbox_;
 };
 
 #endif

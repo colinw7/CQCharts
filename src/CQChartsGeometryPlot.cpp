@@ -75,8 +75,7 @@ description() const
 
 bool
 CQChartsGeometryPlotType::
-isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                     CQChartsPlotParameter *parameter) const
+isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const
 {
   if (parameter->name() == "geometry") {
     if (columnDetails->type() == CQChartsPlot::ColumnType::RECT ||
@@ -93,7 +92,7 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
 
 void
 CQChartsGeometryPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   bool hasGeometry = (analyzeModelData.parameterNameColumn.find("geometry") !=
                       analyzeModelData.parameterNameColumn.end());
@@ -140,7 +139,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsGeometryPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsGeometryPlot(view, model);
 }
@@ -148,7 +147,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsGeometryPlot::
-CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
+CQChartsGeometryPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model),
  CQChartsObjShapeData<CQChartsGeometryPlot>(this)
 {

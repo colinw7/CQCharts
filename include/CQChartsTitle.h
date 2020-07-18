@@ -86,8 +86,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const BBox &bbox() const { return bbox_; }
-  void setBBox(const BBox &b) { bbox_ = b; }
+//const BBox &bbox() const { return bbox_; }
+//void setBBox(const BBox &b) { bbox_ = b; }
 
   //---
 
@@ -148,8 +148,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   bool                  expandWidth_       { false };   //!< is width expanded to plot
   Point                 position_          { 0, 0 };    //!< position
   Size                  size_;                          //!< size
-  mutable BBox          bbox_;                          //!< bbox
   FitData               fitData_;                       //!< fit data
+//mutable BBox          bbox_;                          //!< bbox
 };
 
 #endif

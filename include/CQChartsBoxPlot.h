@@ -97,13 +97,49 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
+  struct HText {
+    double       xl     { 0.0 };
+    double       xr     { 0.0 };
+    double       y      { 0.0 };
+    QString      text;
+    bool         onLeft { false };
+    mutable BBox bbox;
+
+    HText(double xl, double xr, double y, const QString &text, bool onLeft) :
+     xl(xl), xr(xr), y(y), text(text), onLeft(onLeft) {
+    }
+  };
+
+  struct VText {
+    double       yb       { 0.0 };
+    double       yt       { 0.0 };
+    double       x        { 0.0 };
+    QString      text;
+    bool         onBottom { false };
+    mutable BBox bbox;
+
+    VText(double yb, double yt, double x, const QString &text, bool onBottom) :
+     yb(yb), yt(yt), x(x), text(text), onBottom(onBottom) {
+    }
+  };
+
+  using HTexts = std::vector<HText>;
+  using VTexts = std::vector<VText>;
+
+ public:
   CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const BBox &rect, const ColorInd &is=ColorInd(),
                      const ColorInd &ig=ColorInd(), const ColorInd &iv=ColorInd());
 
-  void drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
-                 const QString &text, bool onLeft);
-  void drawVText(CQChartsPaintDevice *device, double yt, double yb, double x,
-                 const QString &text, bool onBottom);
+  void clearDrawBBoxes();
+
+  void addDrawBBox(const BBox &bbox);
+
+  bool checkDrawBBox(const BBox &bbox) const;
+
+  bool drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
+                 const QString &text, bool onLeft, BBox &bbox);
+  bool drawVText(CQChartsPaintDevice *device, double yt, double yb, double x,
+                 const QString &text, bool onBottom, BBox &bbox);
 
   void addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text,
                 bool onLeft) const;
@@ -111,7 +147,10 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
                 bool onBottom) const;
 
  protected:
+  using BBoxes = std::vector<BBox>;
+
   const CQChartsBoxPlot* plot_ { nullptr }; //!< parent plot
+  BBoxes                 drawBBoxes_;
 };
 
 //---

@@ -1,7 +1,6 @@
 #ifndef CQChartsOptReal_H
 #define CQChartsOptReal_H
 
-#include <CQChartsUtil.h>
 #include <QString>
 
 #include <boost/optional.hpp>
@@ -57,22 +56,7 @@ class CQChartsOptReal {
     return setValue(s);
   }
 
-  bool setValue(const QString &s) {
-    if (s.simplified().length() == 0)
-      value_ = OptReal();
-    else {
-      bool ok;
-
-      double r = CQChartsUtil::toReal(s, ok);
-
-      if (! ok)
-        return false;
-
-      value_ = r;
-    }
-
-    return true;
-  }
+  bool setValue(const QString &s);
 
   //---
 

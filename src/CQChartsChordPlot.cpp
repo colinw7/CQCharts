@@ -66,22 +66,21 @@ description() const
 
 bool
 CQChartsChordPlotType::
-isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
-                     CQChartsPlotParameter *parameter) const
+isColumnForParameter(ColumnDetails *columnDetails, Parameter *parameter) const
 {
   return CQChartsConnectionPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 void
 CQChartsChordPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   CQChartsConnectionPlotType::analyzeModel(modelData, analyzeModelData);
 }
 
 CQChartsPlot *
 CQChartsChordPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsChordPlot(view, model);
 }

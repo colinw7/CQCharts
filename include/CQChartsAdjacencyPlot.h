@@ -67,7 +67,7 @@ class CQChartsAdjacencyNode {
     }
   };
 
-  using Node      = CQChartsAdjacencyNode;
+  using Node       = CQChartsAdjacencyNode;
   using EdgeMap    = std::map<int,EdgeData>;
   using ModelIndex = CQChartsModelIndex;
 

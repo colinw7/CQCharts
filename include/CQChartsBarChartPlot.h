@@ -257,8 +257,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
-  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
-                      const ColorInd &iv);
+  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const QString &name, const ColorInd &is,
+                      const ColorInd &ig, const ColorInd &iv);
 
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
 
@@ -272,7 +272,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot* plot_  { nullptr }; //!< plot
+  CQChartsBarChartPlot* plot_ { nullptr }; //!< plot
+  QString               name_;             //!< item name
 };
 
 /*!

@@ -1812,7 +1812,8 @@ void
 CQChartsTextAnnotation::
 setPosition(const OptPosition &p)
 {
-  position_ = p;
+  rectangle_ = OptRect();
+  position_  = p;
 
   positionToBBox();
 
@@ -1840,6 +1841,7 @@ setRectangle(const OptRect &r)
   if (r.isSet())
     assert(r.rect().isValid());
 
+  position_  = OptPosition();
   rectangle_ = r;
 
   rectToBBox();
@@ -2373,7 +2375,8 @@ void
 CQChartsImageAnnotation::
 setPosition(const OptPosition &p)
 {
-  position_ = p;
+  rectangle_ = OptRect();
+  position_  = p;
 
   positionToBBox();
 
@@ -2401,6 +2404,7 @@ setRectangle(const OptRect &r)
   if (r.isSet())
     assert(r.rect().isValid());
 
+  position_  = OptPosition();
   rectangle_ = r;
 
   rectToBBox();

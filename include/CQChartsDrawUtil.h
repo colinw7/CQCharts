@@ -8,6 +8,7 @@
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
 #include <CQChartsAlpha.h>
+#include <CQChartsData.h>
 #include <CQChartsGeom.h>
 
 #include <QPen>
@@ -51,6 +52,11 @@ class CQChartsPenData {
    visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
   }
 
+  CQChartsPenData(bool visible, const QColor &color, const CQChartsStrokeData &strokeData) :
+   visible_(visible), color_(color), alpha_(strokeData.alpha()), width_(strokeData.width()),
+   dash_(strokeData.dash()) {
+  }
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
@@ -92,6 +98,10 @@ class CQChartsBrushData {
   explicit CQChartsBrushData(bool visible, const QColor &color=QColor(),
                              const Alpha &alpha=Alpha(), const FillPattern &pattern=FillPattern()) :
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
+  }
+
+  CQChartsBrushData(bool visible, const QColor &color, const CQChartsFillData &fillData) :
+   visible_(visible), color_(color), alpha_(fillData.alpha()), pattern_(fillData.pattern()) {
   }
 
   bool isVisible() const { return visible_; }

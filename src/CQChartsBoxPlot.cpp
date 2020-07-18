@@ -141,7 +141,7 @@ description() const
 
 void
 CQChartsBoxPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   auto *details = modelData->details();
   if (! details) return;
@@ -165,7 +165,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsBoxPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsBoxPlot(view, model);
 }
@@ -2258,9 +2258,8 @@ draw(CQChartsPaintDevice *device)
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
       plot_->setPenBrush(symbolPenBrush,
-        CQChartsPenData  (true, strokeColor, plot_->boxStrokeAlpha(),
-                          plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-        CQChartsBrushData(true, boxColor, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+        CQChartsPenData  (true, strokeColor, plot_->boxShapeData().stroke()),
+        CQChartsBrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
 
       plot_->updateObjPenBrushState(this, symbolPenBrush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2311,6 +2310,19 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  HTexts htexts;
+  VTexts vtexts;
+
+  auto addHText = [&](double xl, double xr, double y, const QString &text, bool onLeft) {
+    htexts.push_back(HText(xl, xr, y, text, onLeft));
+  };
+
+  auto addVText = [&](double yb, double yt, double x, const QString &text, bool onBottom) {
+    vtexts.push_back(VText(yb, yt, x, text, onBottom));
+  };
+
+  //---
+
   if (plot_->isErrorBar()) {
   }
   else {
@@ -2358,30 +2370,42 @@ draw(CQChartsPaintDevice *device)
           QString strh = QString("%1").arg(this->max        ());
 
           if (! plot_->isHorizontal()) {
-            drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/true );
-            drawHText(device, p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
-            drawHText(device, p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
-            drawHText(device, p2.x, p4.x, p4.y, ustr, /*onLeft*/false);
-            drawHText(device, p1.x, p5.x, p5.y, strh, /*onLeft*/true );
+            addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true );
+            addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
+            addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
+            addHText(p2.x, p4.x, p4.y, ustr, /*onLeft*/false);
+            addHText(p1.x, p5.x, p5.y, strh, /*onLeft*/true );
           }
           else {
-            drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
-            drawVText(device, p2.y, p4.y, p2.x, lstr, /*onBottom*/true );
-            drawVText(device, p2.y, p4.y, p3.x, mstr, /*onBottom*/false);
-            drawVText(device, p2.y, p4.y, p4.x, ustr, /*onBottom*/true );
-            drawVText(device, p1.y, p5.y, p5.x, strh, /*onBottom*/false);
+            addVText(p1.y, p5.y, p1.x, strl, /*onBottom*/false);
+            addVText(p2.y, p4.y, p2.x, lstr, /*onBottom*/true );
+            addVText(p2.y, p4.y, p3.x, mstr, /*onBottom*/false);
+            addVText(p2.y, p4.y, p4.x, ustr, /*onBottom*/true );
+            addVText(p1.y, p5.y, p5.x, strh, /*onBottom*/false);
           }
         }
         else {
           QString strl = QString("%1").arg(this->min());
 
           if (! plot_->isHorizontal())
-            drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/true);
+            addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true);
           else
-            drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
+            addVText(p1.y, p5.y, p1.x, strl, /*onBottom*/false);
         }
       }
     }
+  }
+
+  clearDrawBBoxes();
+
+  for (const auto &t : htexts) {
+    if (drawHText(device, t.xl, t.xr, t.y, t.text, t.onLeft, t.bbox))
+      addDrawBBox(t.bbox);
+  }
+
+  for (const auto &t : vtexts) {
+    if (drawVText(device, t.yb, t.yt, t.x, t.text, t.onBottom, t.bbox))
+      addDrawBBox(t.bbox);
   }
 
   //---
@@ -2675,7 +2699,8 @@ CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const BBox &rect,
                        const CQChartsBoxWhiskerData &data, const ColorInd &is) :
  CQChartsBoxPlotObj(plot, rect, is, ColorInd(), ColorInd()), data_(data)
 {
-  setModelInd(data_.ind);
+  if (data_.ind.isValid())
+    setModelInd(data_.ind);
 }
 
 double
@@ -2790,6 +2815,19 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  HTexts htexts;
+  VTexts vtexts;
+
+  auto addHText = [&](double xl, double xr, double y, const QString &text, bool onLeft) {
+    htexts.push_back(HText(xl, xr, y, text, onLeft));
+  };
+
+  auto addVText = [&](double yb, double yt, double x, const QString &text, bool onBottom) {
+    vtexts.push_back(VText(yb, yt, x, text, onBottom));
+  };
+
+  //---
+
   // draw labels
   if (plot_->isTextVisible()) {
     double wd1 = ww/2.0;
@@ -2831,19 +2869,31 @@ draw(CQChartsPaintDevice *device)
     QString strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
-      drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
-      drawHText(device, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
-      drawHText(device, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
-      drawHText(device, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
-      drawHText(device, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
+      addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/false);
+      addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
+      addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
+      addHText(p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
+      addHText(p1.x, p5.x, p5.y, strh, /*onLeft*/false);
     }
     else {
-      drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
-      drawVText(device, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
-      drawVText(device, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
-      drawVText(device, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
-      drawVText(device, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
+      addVText(p1.y, p5.y, p1.x, strl, /*onBottom*/true );
+      addVText(p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
+      addVText(p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
+      addVText(p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
+      addVText(p1.y, p5.y, p5.x, strh, /*onBottom*/true );
     }
+  }
+
+  clearDrawBBoxes();
+
+  for (const auto &t : htexts) {
+    if (drawHText(device, t.xl, t.xr, t.y, t.text, t.onLeft, t.bbox))
+      addDrawBBox(t.bbox);
+  }
+
+  for (const auto &t : vtexts) {
+    if (drawVText(device, t.yb, t.yt, t.x, t.text, t.onBottom, t.bbox))
+      addDrawBBox(t.bbox);
   }
 }
 
@@ -3067,8 +3117,7 @@ draw(CQChartsPaintDevice *device)
   QColor lineColor = plot_->interpBoxStrokeColor(ig_);
 
   plot_->setPen(lPenBrush,
-    CQChartsPenData(true, lineColor, plot_->boxStrokeAlpha(),
-                    plot_->boxStrokeWidth(), plot_->boxStrokeDash()));
+    CQChartsPenData(true, lineColor, plot_->boxShapeData().stroke()));
 
   plot_->updateObjPenBrushState(this, lPenBrush);
 
@@ -3096,8 +3145,34 @@ CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const BBox &rect, const ColorInd
 
 void
 CQChartsBoxPlotObj::
+clearDrawBBoxes()
+{
+  drawBBoxes_.clear();
+}
+
+void
+CQChartsBoxPlotObj::
+addDrawBBox(const BBox &bbox)
+{
+  drawBBoxes_.push_back(bbox);
+}
+
+bool
+CQChartsBoxPlotObj::
+checkDrawBBox(const BBox &bbox) const
+{
+  for (const auto &bbox1 : drawBBoxes_) {
+    if (bbox1.intersect(bbox))
+      return false;
+  }
+
+  return true;
+}
+
+bool
+CQChartsBoxPlotObj::
 drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
-          const QString &text, bool onLeft)
+          const QString &text, bool onLeft, BBox &bbox)
 {
   double margin  = plot_->textMargin();
   bool   invertX = plot_->isInvertX();
@@ -3129,13 +3204,25 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
+  auto tw = device->pixelToWindow(tp);
+
+  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+  auto size  = plot()->pixelToWindowSize(psize);
+
+  bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
+
+  if (! checkDrawBBox(bbox))
+    return false;
+
+  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
+
+  return true;
 }
 
-void
+bool
 CQChartsBoxPlotObj::
 drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
-          const QString &text, bool onBottom)
+          const QString &text, bool onBottom, BBox &bbox)
 {
   double margin  = plot_->textMargin();
   bool   invertY = plot_->isInvertY();
@@ -3169,7 +3256,19 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
+  auto tw = device->pixelToWindow(tp);
+
+  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
+
+  auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
+  auto size  = plot()->pixelToWindowSize(psize);
+
+  if (! checkDrawBBox(bbox))
+    return false;
+
+  bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
+
+  return true;
 }
 
 void

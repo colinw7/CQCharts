@@ -2,7 +2,7 @@
 #define CQChartsPosition_H
 
 #include <CQChartsGeom.h>
-#include <CQChartsUtil.h>
+#include <CQChartsTypes.h>
 #include <QString>
 #include <iostream>
 
@@ -39,7 +39,7 @@ class CQChartsPosition {
 
   CQChartsPosition &operator=(const CQChartsPosition &rhs) {
     units_ = rhs.units_;
-    p_ = rhs.p_;
+    p_     = rhs.p_;
 
     return *this;
   }
@@ -73,11 +73,7 @@ class CQChartsPosition {
 
   //---
 
-  QString toString() const {
-    QString ustr = CQChartsUtil::unitsString(units_);
-
-    return QString("%1 %2 %3").arg(p_.x).arg(p_.y).arg(ustr);
-  }
+  QString toString() const;
 
   bool fromString(const QString &s, const Units &defUnits=Units::PIXEL) {
     return setPoint(s, defUnits);
@@ -87,7 +83,7 @@ class CQChartsPosition {
 
   friend bool operator==(const CQChartsPosition &lhs, const CQChartsPosition &rhs) {
     if (lhs.units_ != rhs.units_) return false;
-    if (lhs.p_ != rhs.p_) return false;
+    if (lhs.p_     != rhs.p_    ) return false;
 
     return true;
   }
@@ -116,7 +112,7 @@ class CQChartsPosition {
 
  private:
   Units units_ { Units::PIXEL };
-  Point p_     { 0, 0 };
+  Point p_;
 };
 
 //---

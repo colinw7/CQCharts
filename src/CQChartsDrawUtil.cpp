@@ -729,6 +729,11 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength)
 
   //---
 
+  if (! isClipped(text))
+    return text;
+
+  //---
+
   using LenClipped = std::map<int,bool>;
 
   LenClipped lenClipped;

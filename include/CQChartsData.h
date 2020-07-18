@@ -13,6 +13,8 @@
 #include <CQChartsAngle.h>
 #include <CQUtilMeta.h>
 
+class CQChartsNameValues;
+
 //------
 
 /*!
@@ -122,20 +124,18 @@ class CQChartsTextData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  using ColorType = CQChartsColor::Type;
-
-  bool          visible_       { true };                             //!< is visible
-  Color         color_         { ColorType::INTERFACE_VALUE, 1.0 };  //!< color
-  Alpha         alpha_;                                              //!< alpha
-  Font          font_;                                               //!< font
-  Angle         angle_;                                              //!< angle
-  bool          contrast_      { false };                            //!< contrast
-  Alpha         contrastAlpha_ { 0.5 };                              //!< contrast alpha
-  Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter }; //!< align
-  bool          formatted_     { false };                            //!< formatted
-  bool          scaled_        { false };                            //!< scaled
-  bool          html_          { false };                            //!< html
-  Length        clipLength_;                                         //!< clip length
+  bool          visible_       { true };                              //!< is visible
+  Color         color_         { Color::Type::INTERFACE_VALUE, 1.0 }; //!< color
+  Alpha         alpha_;                                               //!< alpha
+  Font          font_;                                                //!< font
+  Angle         angle_;                                               //!< angle
+  bool          contrast_      { false };                             //!< contrast
+  Alpha         contrastAlpha_ { 0.5 };                               //!< contrast alpha
+  Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter };  //!< align
+  bool          formatted_     { false };                             //!< formatted
+  bool          scaled_        { false };                             //!< scaled
+  bool          html_          { false };                             //!< html
+  Length        clipLength_;                                          //!< clip length
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)

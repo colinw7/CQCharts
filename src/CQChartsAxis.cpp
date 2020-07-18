@@ -1825,7 +1825,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.align      = align;
         options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -1933,7 +1933,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.align      = align;
         options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -2070,7 +2070,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.align      = align;
         options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;
@@ -2179,7 +2179,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.align      = align;
         options.clipLength = clipLength;
 
-        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text1, device->font(),
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
 
         lbbox_ += rrect;

@@ -357,7 +357,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
-  using Connections = CQChartsConnectionList::Connections;
+  using ConnectionList = CQChartsConnectionList;
+  using Connections    = ConnectionList::Connections;
 
   struct ConnectionsData {
     QModelIndex ind;

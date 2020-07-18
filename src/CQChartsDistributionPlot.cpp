@@ -133,7 +133,7 @@ description() const
 
 CQChartsPlot *
 CQChartsDistributionPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsDistributionPlot(view, model);
 }
@@ -141,7 +141,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsDistributionPlot::
-CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
+CQChartsDistributionPlot(View *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("distribution"), model),
  CQChartsObjStatsLineData<CQChartsDistributionPlot>(this),
  CQChartsObjDotPointData <CQChartsDistributionPlot>(this),
@@ -153,15 +153,15 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   setNumAutoBuckets(20);
 
   setStatsLines(false);
-  setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setStatsLinesDash(LineDash(LineDash::Lengths({2, 2}), 0));
 
-  setDotSymbolType     (CQChartsSymbol::Type::CIRCLE);
-  setDotSymbolSize     (CQChartsLength("7px"));
+  setDotSymbolType     (Symbol::Type::CIRCLE);
+  setDotSymbolSize     (Length("7px"));
   setDotSymbolFilled   (true);
   setDotSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setRugSymbolType       (CQChartsSymbol::Type::NONE);
-  setRugSymbolSize       (CQChartsLength("5px"));
+  setRugSymbolType       (Symbol::Type::NONE);
+  setRugSymbolSize       (Length("5px"));
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
 
@@ -173,6 +173,7 @@ CQChartsDistributionPlot::
 ~CQChartsDistributionPlot()
 {
   clearGroupValues();
+  clearGroupBuckets();
 }
 
 //---
@@ -454,7 +455,7 @@ void
 CQChartsDistributionPlot::
 setSkipEmpty(bool b)
 {
-  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { visitModel_ = false; updateRangeAndObjs(); } );
 }
 
 //---
@@ -615,7 +616,7 @@ setDotLines(bool b)
 
 void
 CQChartsDistributionPlot::
-setDotLineWidth(const CQChartsLength &l)
+setDotLineWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(dotLineData_.width, l, [&]() { drawObjs(); } );
 }
@@ -695,55 +696,63 @@ calcRange() const
 
   //---
 
-  // check columns
-  bool columnsValid = true;
+  if (visitModel_) {
+    // check columns
+    bool columnsValid = true;
 
-  // value columns required
-  // name, data, color columns optional
+    // value columns required
+    // name, data, color columns optional
 
-  if (! checkColumns(valueColumns(), "Values", /*required*/true))
-    columnsValid = false;
+    if (! checkColumns(valueColumns(), "Values", /*required*/true))
+      columnsValid = false;
 
-  if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
-  if (! checkColumn(dataColumn (), "Data" )) columnsValid = false;
-  if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
+    if (! checkColumn(nameColumn (), "Name" )) columnsValid = false;
+    if (! checkColumn(dataColumn (), "Data" )) columnsValid = false;
+    if (! checkColumn(colorColumn(), "Color")) columnsValid = false;
 
-  if (! columnsValid)
-    return Range();
+    if (! columnsValid)
+      return Range();
+
+    //---
+
+    // init grouping
+    initGroupData(valueColumns(), nameColumn());
+
+    //---
+
+    clearGroupValues();
+
+    //---
+
+    // process model data (build grouped sets of values)
+    class DistributionVisitor : public ModelVisitor {
+     public:
+      DistributionVisitor(const CQChartsDistributionPlot *plot) :
+       plot_(plot) {
+      }
+
+      State visit(const QAbstractItemModel *, const VisitData &data) override {
+        plot_->addRow(data);
+
+        return State::OK;
+      }
+
+     private:
+      const CQChartsDistributionPlot *plot_ { nullptr };
+    };
+
+    DistributionVisitor distributionVisitor(this);
+
+    visitModel(distributionVisitor);
+  }
 
   //---
 
-  // init grouping
-  initGroupData(valueColumns(), nameColumn());
+  visitModel_ = true;
 
   //---
 
-  clearGroupValues();
-
-  //---
-
-  // process model data (build grouped sets of values)
-  class DistributionVisitor : public ModelVisitor {
-   public:
-    DistributionVisitor(const CQChartsDistributionPlot *plot) :
-     plot_(plot) {
-    }
-
-    State visit(const QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data);
-
-      return State::OK;
-    }
-
-   private:
-    const CQChartsDistributionPlot *plot_ { nullptr };
-  };
-
-  DistributionVisitor distributionVisitor(this);
-
-  visitModel(distributionVisitor);
-
-  //---
+  clearGroupBuckets();
 
   bucketGroupValues();
 
@@ -771,7 +780,7 @@ bucketGroupValues() const
     for (auto &groupValues : groupData_.groupValues) {
       auto *values = groupValues.second;
 
-      CQChartsValueSet::Type type1 = values->valueSet->type();
+      auto type1 = values->valueSet->type();
 
       if (type == CQChartsValueSet::Type::NONE)
         type = type1;
@@ -834,7 +843,7 @@ bucketGroupValues() const
       //---
 
       // set bucketer range
-      CQChartsValueSet::Type type = values->valueSet->type();
+      auto type = values->valueSet->type();
 
       if      (type == CQChartsValueSet::Type::INTEGER) {
         bucketer.setIntegral(true);
@@ -868,7 +877,7 @@ bucketGroupValues() const
       bool ok;
 
       if (isBucketed()) {
-        CQChartsValueSet::Type type = values->valueSet->type();
+        auto type = values->valueSet->type();
 
         if      (type == CQChartsValueSet::Type::REAL) {
           double r = modelReal(ind, ok);
@@ -1313,8 +1322,21 @@ clearGroupValues() const
     delete groupValues.second;
 
   th->groupData_.groupValues.clear();
+}
+
+void
+CQChartsDistributionPlot::
+clearGroupBuckets() const
+{
+  auto *th = const_cast<CQChartsDistributionPlot *>(this);
 
   th->groupData_.groupBucketer.clear();
+
+  for (auto &groupValues : groupData_.groupValues) {
+    auto *values = groupValues.second;
+
+    values->bucketValues.clear();
+  }
 }
 
 void
@@ -1406,7 +1428,7 @@ calcAnnotationBBox() const
   BBox bbox;
 
   // add data labels
-  CQChartsDataLabel::Position position = dataLabel()->position();
+  auto position = dataLabel()->position();
 
   if (position == CQChartsDataLabel::TOP_OUTSIDE ||
       position == CQChartsDataLabel::BOTTOM_OUTSIDE) {
@@ -3509,8 +3531,8 @@ CQChartsDistributionBarObj::
 drawRug(CQChartsPaintDevice *device) const
 {
   // get symbol and size
-  CQChartsSymbol symbolType = plot_->rugSymbolType();
-  CQChartsLength symbolSize = plot_->rugSymbolSize();
+  auto symbolType = plot_->rugSymbolType();
+  auto symbolSize = plot_->rugSymbolSize();
 
   if (symbolType == CQChartsSymbol::Type::NONE)
     symbolType = (! plot_->isHorizontal() ?
@@ -3757,8 +3779,8 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
     //---
 
     // get dot symbol and size
-    CQChartsSymbol symbolType = plot_->dotSymbolType();
-    CQChartsLength symbolSize = plot_->dotSymbolSize();
+    auto symbolType = plot_->dotSymbolType();
+    auto symbolSize = plot_->dotSymbolSize();
 
     ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
@@ -3793,10 +3815,10 @@ calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
                 bool updateState) const
 {
   // set pen and brush
-  QColor bc = plot_->interpBarStrokeColor(ColorInd());
-  QColor fc = plot_->interpColor(color, ColorInd());
+  auto bc = plot_->interpBarStrokeColor(ColorInd());
+  auto fc = plot_->interpColor(color, ColorInd());
 
-  CQChartsLength bw = plot_->barStrokeWidth();
+  auto bw = plot_->barStrokeWidth();
 
   if (useLine) {
     bw = CQChartsLength("0px");
@@ -3819,7 +3841,7 @@ QColor
 CQChartsDistributionBarObj::
 barColor() const
 {
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   return plot_->interpBarFillColor(colorInd);
 }
@@ -4138,8 +4160,8 @@ CQChartsDistributionDensityObj::
 drawRug(CQChartsPaintDevice *device) const
 {
   // get symbol and size
-  CQChartsSymbol symbolType = plot_->rugSymbolType();
-  CQChartsLength symbolSize = plot_->rugSymbolSize();
+  auto symbolType = plot_->rugSymbolType();
+  auto symbolSize = plot_->rugSymbolSize();
 
   if (symbolType == CQChartsSymbol::Type::NONE)
     symbolType = (! plot_->isHorizontal() ?
@@ -4321,8 +4343,8 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsSymbol symbolType(CQChartsSymbol::Type::CIRCLE);
-  CQChartsLength symbolSize(6, CQChartsUnits::PIXEL);
+  auto symbolType = CQChartsSymbol(CQChartsSymbol::Type::CIRCLE);
+  auto symbolSize = CQChartsLength(6, CQChartsUnits::PIXEL);
 
   auto pc = prect.getCenter();
 

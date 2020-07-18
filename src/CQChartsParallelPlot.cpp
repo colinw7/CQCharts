@@ -68,7 +68,7 @@ description() const
 
 void
 CQChartsParallelPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   auto *details = modelData->details();
   if (! details) return;
@@ -104,7 +104,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsParallelPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsParallelPlot(view, model);
 }
@@ -112,7 +112,7 @@ create(CQChartsView *view, const ModelP &model) const
 //---
 
 CQChartsParallelPlot::
-CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
+CQChartsParallelPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("parallel"), model),
  CQChartsObjLineData <CQChartsParallelPlot>(this),
  CQChartsObjPointData<CQChartsParallelPlot>(this)

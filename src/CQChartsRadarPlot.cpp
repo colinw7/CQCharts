@@ -63,7 +63,7 @@ description() const
 
 void
 CQChartsRadarPlotType::
-analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 {
   auto *details = modelData->details();
   if (! details) return;
@@ -93,7 +93,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
 
 CQChartsPlot *
 CQChartsRadarPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsRadarPlot(view, model);
 }
@@ -101,7 +101,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsRadarPlot::
-CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
+CQChartsRadarPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("radar"), model),
  CQChartsObjShapeData   <CQChartsRadarPlot>(this),
  CQChartsObjTextData    <CQChartsRadarPlot>(this),
