@@ -57,6 +57,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
   Q_PROPERTY(int    numAuto    READ numAuto      WRITE setNumAuto   )
 
  public:
+  using Bucket    = CQChartsColumnBucket;
+  using GroupData = CQChartsGroupData;
+
+ public:
   CQChartsGroupPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
 
  ~CQChartsGroupPlot();
@@ -64,9 +68,9 @@ class CQChartsGroupPlot : public CQChartsPlot {
   //---
 
   // grouping
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  const Column &groupColumn() const { return groupColumn_; }
 
-  virtual void setGroupColumn(const CQChartsColumn &c);
+  virtual void setGroupColumn(const Column &c);
 
   bool isRowGrouping() const { return groupData_.rowGrouping; }
   void setRowGrouping(bool b);
@@ -104,21 +108,22 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   //---
 
-  void initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn,
-                     bool hier=false) const;
+  void initGroupData(const Columns &dataColumns, const Column &nameColumn, bool hier=false) const;
 
-  std::vector<int> rowHierGroupInds(const ModelIndex &ind) const;
+  using GroupInds = std::vector<int>;
+
+  GroupInds rowHierGroupInds(const ModelIndex &ind) const;
 
   int rowGroupInd(const ModelIndex &ind) const;
 
-  void getGroupInds(std::vector<int> &inds) const;
+  bool getGroupInds(GroupInds &inds) const;
 
   QString groupIndName(int ind, bool hier=false) const;
 
   void setModelGroupInd(const ModelIndex &ind, int groupInd);
 
-  const CQChartsColumnBucket *groupBucket() const { return groupBucket_; }
-  void setGroupBucket(CQChartsColumnBucket *bucket);
+  const Bucket *groupBucket() const { return groupBucket_; }
+  void setGroupBucket(Bucket *bucket);
 
   bool isGroupHeaders () const;
   bool isGroupPathType() const;
@@ -128,23 +133,26 @@ class CQChartsGroupPlot : public CQChartsPlot {
   void printGroup() const;
 
  private:
-  CQChartsColumnBucket *initGroupData(const CQChartsColumns &dataColumns,
-                                      const CQChartsColumn &nameColumn, bool hier,
-                                      const CQChartsGroupData &groupData) const;
+  Bucket *initGroupData(const Columns &dataColumns, const Column &nameColumn,
+                        bool hier, const GroupData &groupData) const;
 
-  CQChartsColumnBucket *initGroup(CQChartsGroupData &data) const;
+  Bucket *initGroup(GroupData &data) const;
 
-  bool rowGroupInds(const ModelIndex &ind, std::vector<int> &ids, bool hier) const;
+  bool rowGroupInds(const ModelIndex &ind, GroupInds &ids, bool hier) const;
 
-  std::vector<int> pathInds(const QString &path) const;
+  //---
+
+  using PathInds = std::vector<int>;
+
+  PathInds pathInds(const QString &path) const;
 
   QStringList pathStrs(const QString &path) const;
 
  protected: // TODO: make private
-  CQChartsColumn        groupColumn_;             //!< group column
-  CQChartsGroupData     groupData_;               //!< grouping data
-  CQChartsColumnBucket* groupBucket_ { nullptr }; //!< group column bucket
-  mutable std::mutex    mutex_;                   //!< mutex
+  Column             groupColumn_;             //!< group column
+  GroupData          groupData_;               //!< grouping data
+  Bucket*            groupBucket_ { nullptr }; //!< group column bucket
+  mutable std::mutex mutex_;                   //!< mutex
 };
 
 #endif

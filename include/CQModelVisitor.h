@@ -25,6 +25,8 @@ class CQModelVisitor {
     int         row  { -1 };
     int         vrow { -1 };
 
+    VisitData() = default;
+
     VisitData(const QModelIndex &parent, int row) :
      parent(parent), row(row) {
     }
@@ -51,11 +53,11 @@ class CQModelVisitor {
 
   //---
 
-  void init(const QAbstractItemModel *model);
+  virtual void initVisit() { }
 
   void step() { ++row_; }
 
-  void term() { numProcessedRows_ = row_; }
+  virtual void termVisit() { }
 
   void enter() { ++depth_; maxDepth_ = std::max(maxDepth_, depth_); }
   void leave() { --depth_; }
@@ -81,6 +83,11 @@ class CQModelVisitor {
   virtual State visit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
   //virtual State postVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
+
+ public:
+  // only called by CQModelVisit
+  void init(const QAbstractItemModel *model);
+  void term();
 
  protected:
   const QAbstractItemModel* model_            { nullptr }; //!< model to visit

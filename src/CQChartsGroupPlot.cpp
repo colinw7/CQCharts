@@ -628,16 +628,20 @@ numGroups() const
 
 //---
 
-void
+bool
 CQChartsGroupPlot::
-getGroupInds(std::vector<int> &inds) const
+getGroupInds(GroupInds &inds) const
 {
   if (groupBucket_ && groupBucket_->isValid()) {
     for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
       inds.push_back(groupInd);
+
+    return true;
   }
   else {
     inds.push_back(-1);
+
+    return false;
   }
 }
 

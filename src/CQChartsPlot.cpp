@@ -10379,22 +10379,16 @@ CQChartsArrowAnnotation *
 CQChartsPlot::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  auto *annotation = new CQChartsArrowAnnotation(this, start, end);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsArrowAnnotation>(
+    new CQChartsArrowAnnotation(this, start, end));
 }
 
 CQChartsAxisAnnotation *
 CQChartsPlot::
 addAxisAnnotation(Qt::Orientation direction, double start, double end)
 {
-  auto *annotation = new CQChartsAxisAnnotation(this, direction, start, end);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsAxisAnnotation>(
+    new CQChartsAxisAnnotation(this, direction, start, end));
 }
 
 CQChartsEllipseAnnotation *
@@ -10402,44 +10396,32 @@ CQChartsPlot::
 addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
                      const CQChartsLength &yRadius)
 {
-  auto *annotation = new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsEllipseAnnotation>(
+    new CQChartsEllipseAnnotation(this, center, xRadius, yRadius));
 }
 
 CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
 {
-  auto *annotation = new CQChartsImageAnnotation(this, pos, image);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsImageAnnotation>(
+    new CQChartsImageAnnotation(this, pos, image));
 }
 
 CQChartsImageAnnotation *
 CQChartsPlot::
 addImageAnnotation(const CQChartsRect &rect, const CQChartsImage &image)
 {
-  auto *annotation = new CQChartsImageAnnotation(this, rect, image);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsImageAnnotation>(
+    new CQChartsImageAnnotation(this, rect, image));
 }
 
 CQChartsKeyAnnotation *
 CQChartsPlot::
 addKeyAnnotation()
 {
-  auto *annotation = new CQChartsKeyAnnotation(this);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsKeyAnnotation>(
+    new CQChartsKeyAnnotation(this));
 }
 
 CQChartsPieSliceAnnotation *
@@ -10448,111 +10430,96 @@ addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRa
                       const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
                       const CQChartsAngle &spanAngle)
 {
-  auto *annotation = new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius,
-                                                    startAngle, spanAngle);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsPieSliceAnnotation>(
+    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
 }
 
 CQChartsPointAnnotation *
 CQChartsPlot::
 addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
-  auto *annotation = new CQChartsPointAnnotation(this, pos, type);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsPointAnnotation>(
+    new CQChartsPointAnnotation(this, pos, type));
 }
 
 CQChartsPointSetAnnotation *
 CQChartsPlot::
 addPointSetAnnotation(const CQChartsPoints &values)
 {
-  auto *annotation = new CQChartsPointSetAnnotation(this, values);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsPointSetAnnotation>(
+    new CQChartsPointSetAnnotation(this, values));
 }
 
 CQChartsPolygonAnnotation *
 CQChartsPlot::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  auto *annotation = new CQChartsPolygonAnnotation(this, points);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsPolygonAnnotation>(
+    new CQChartsPolygonAnnotation(this, points));
 }
 
 CQChartsPolylineAnnotation *
 CQChartsPlot::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  auto *annotation = new CQChartsPolylineAnnotation(this, points);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsPolylineAnnotation>(
+    new CQChartsPolylineAnnotation(this, points));
 }
 
 CQChartsRectangleAnnotation *
 CQChartsPlot::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  auto *annotation = new CQChartsRectangleAnnotation(this, rect);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsRectangleAnnotation>(
+    new CQChartsRectangleAnnotation(this, rect));
 }
 
 CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  auto *annotation = new CQChartsTextAnnotation(this, pos, text);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsTextAnnotation>(
+    new CQChartsTextAnnotation(this, pos, text));
 }
 
 CQChartsTextAnnotation *
 CQChartsPlot::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  auto *annotation = new CQChartsTextAnnotation(this, rect, text);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsTextAnnotation>(
+    new CQChartsTextAnnotation(this, rect, text));
 }
 
 CQChartsValueSetAnnotation *
 CQChartsPlot::
 addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values)
 {
-  auto *annotation = new CQChartsValueSetAnnotation(this, rectangle, values);
-
-  addAnnotation(annotation);
-
-  return annotation;
+  return addAnnotationT<CQChartsValueSetAnnotation>(
+    new CQChartsValueSetAnnotation(this, rectangle, values));
 }
 
 CQChartsButtonAnnotation *
 CQChartsPlot::
 addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  auto *annotation = new CQChartsButtonAnnotation(this, pos, text);
+  return addAnnotationT<CQChartsButtonAnnotation>(
+    new CQChartsButtonAnnotation(this, pos, text));
+}
 
-  addAnnotation(annotation);
+CQChartsWidgetAnnotation *
+CQChartsPlot::
+addWidgetAnnotation(const CQChartsPosition &pos, const CQChartsWidget &widget)
+{
+  return addAnnotationT<CQChartsWidgetAnnotation>(
+    new CQChartsWidgetAnnotation(this, pos, widget));
+}
 
-  return annotation;
+CQChartsWidgetAnnotation *
+CQChartsPlot::
+addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
+{
+  return addAnnotationT<CQChartsWidgetAnnotation>(
+    new CQChartsWidgetAnnotation(this, rect, widget));
 }
 
 void
@@ -11875,14 +11842,14 @@ visitModel(ModelVisitor &visitor) const
 
   visitor.setPlot(this);
 
-  visitor.init();
+  //visitor.init();
 
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
 
   (void) CQChartsModelVisit::exec(charts(), model().data(), visitor);
 
-  visitor.term();
+  //visitor.term();
 }
 
 //------
@@ -12314,8 +12281,7 @@ modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 double
 CQChartsPlot::
-modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
-          int role, bool &ok) const
+modelReal(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12324,7 +12290,7 @@ modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 double
 CQChartsPlot::
-modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelReal(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12336,7 +12302,7 @@ CQChartsPlot::
 modelReal(const ModelIndex &ind, int role, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    CQChartsColumn c = ind.column();
+    Column c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -12354,7 +12320,7 @@ CQChartsPlot::
 modelReal(const ModelIndex &ind, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    CQChartsColumn c = ind.column();
+    Column c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -12369,7 +12335,7 @@ modelReal(const ModelIndex &ind, bool &ok) const
 
 double
 CQChartsPlot::
-modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelReal(QAbstractItemModel *model, int row, const Column &column,
           const QModelIndex &parent, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, role, ok);
@@ -12377,7 +12343,7 @@ modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 double
 CQChartsPlot::
-modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelReal(QAbstractItemModel *model, int row, const Column &column,
           const QModelIndex &parent, bool &ok) const
 {
   return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, ok);
@@ -12387,8 +12353,7 @@ modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 long
 CQChartsPlot::
-modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent,
-             int role, bool &ok) const
+modelInteger(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12397,7 +12362,7 @@ modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 long
 CQChartsPlot::
-modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelInteger(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12408,19 +12373,41 @@ long
 CQChartsPlot::
 modelInteger(const ModelIndex &ind, int role, bool &ok) const
 {
-  return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    Column c = ind.column();
+
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
+    else
+      c.setCellCol(ind.cellCol());
+
+    return modelInteger(model().data(), ind.row(), c, ind.parent(), role, ok);
+  }
+  else
+    return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), role, ok);
 }
 
 long
 CQChartsPlot::
 modelInteger(const ModelIndex &ind, bool &ok) const
 {
-  return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), ok);
+  if (ind.column().isColumn() || ind.column().isCell()) {
+    Column c = ind.column();
+
+    if (ind.column().isColumn())
+      c.setColumnCol(ind.cellCol());
+    else
+      c.setCellCol(ind.cellCol());
+
+    return modelInteger(model().data(), ind.row(), c, ind.parent(), ok);
+  }
+  else
+    return modelInteger(model().data(), ind.row(), ind.column(), ind.parent(), ok);
 }
 
 long
 CQChartsPlot::
-modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelInteger(QAbstractItemModel *model, int row, const Column &column,
              const QModelIndex &parent, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, role, ok);

@@ -56,6 +56,7 @@ class CQChartsDistributionBucket {
     if (isUnderflow()) return min;
     if (isOverflow ()) return max;
     assert(false);
+    return false;
   }
 
   bool operator<(const CQChartsDistributionBucket &rhs) const {

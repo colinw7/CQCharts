@@ -153,6 +153,7 @@ class CQChartsCmds : public QObject {
 
   bool createChartsArrowAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsAxisAnnotationCmd     (CQChartsCmdArgs &args);
+  bool createChartsButtonAnnotationCmd   (CQChartsCmdArgs &args);
   bool createChartsEllipseAnnotationCmd  (CQChartsCmdArgs &args);
   bool createChartsImageAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsKeyAnnotationCmd      (CQChartsCmdArgs &args);
@@ -164,7 +165,7 @@ class CQChartsCmds : public QObject {
   bool createChartsRectangleAnnotationCmd(CQChartsCmdArgs &args);
   bool createChartsTextAnnotationCmd     (CQChartsCmdArgs &args);
   bool createChartsValueSetAnnotationCmd (CQChartsCmdArgs &args);
-  bool createChartsButtonAnnotationCmd   (CQChartsCmdArgs &args);
+  bool createChartsWidgetAnnotationCmd   (CQChartsCmdArgs &args);
   bool removeChartsAnnotationCmd         (CQChartsCmdArgs &args);
 
   bool addChartsKeyItemCmd(CQChartsCmdArgs &args);
@@ -195,6 +196,8 @@ class CQChartsCmds : public QObject {
 
   //---
 
+  bool getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot);
+
   CQChartsView *getViewByName(const QString &viewName) const;
 
   bool getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plot) const;
@@ -204,6 +207,10 @@ class CQChartsCmds : public QObject {
   CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name) const;
 
   CQChartsAnnotation *getAnnotationByName(const QString &name) const;
+
+  //---
+
+  bool setAnnotationArgProperties(CQChartsCmdArgs &argv, CQChartsAnnotation *annotation);
 
   //---
 
@@ -290,6 +297,7 @@ CQCHARTS_DEF_CMD(SetChartsPalette   , setChartsPaletteCmd   )
 
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation    , createChartsArrowAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsAxisAnnotation     , createChartsAxisAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsButtonAnnotation   , createChartsButtonAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsEllipseAnnotation  , createChartsEllipseAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsImageAnnotation    , createChartsImageAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsKeyAnnotation      , createChartsKeyAnnotationCmd)
@@ -301,7 +309,7 @@ CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation , createChartsPolylineAnnotation
 CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation, createChartsRectangleAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsTextAnnotation     , createChartsTextAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation , createChartsValueSetAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateChartsButtonAnnotation   , createChartsButtonAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsWidgetAnnotation   , createChartsWidgetAnnotationCmd)
 
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation, removeChartsAnnotationCmd)
 

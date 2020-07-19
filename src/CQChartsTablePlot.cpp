@@ -717,7 +717,7 @@ calcTableSize() const
 
   visitor.setPlot(this);
 
-  visitor.init();
+  //visitor.init();
 
   if (summaryModel_)
     CQChartsModelVisit::exec(charts(), summaryModel_, visitor);
@@ -1641,7 +1641,7 @@ createTableObjData() const
 
   visitor.setPlot(this);
 
-  visitor.init();
+  //visitor.init();
 
   if (summaryModel_)
     CQChartsModelVisit::exec(charts(), summaryModel_, visitor);

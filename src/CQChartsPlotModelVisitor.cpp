@@ -16,7 +16,7 @@ CQChartsPlotModelVisitor::
 
 void
 CQChartsPlotModelVisitor::
-init()
+initVisit()
 {
   assert(plot_);
 
@@ -34,7 +34,7 @@ init()
 
 void
 CQChartsPlotModelVisitor::
-term()
+termVisit()
 {
   plot_->charts()->setCurrentExpr(nullptr);
 

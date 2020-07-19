@@ -2301,38 +2301,38 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const Position &position, const Image &image) :
- CQChartsAnnotation(view, Type::IMAGE)
+ CQChartsAnnotation(view, Type::IMAGE), image_(image)
 {
   setPosition(position);
 
-  init(image);
+  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const Position &position, const Image &image) :
- CQChartsAnnotation(plot, Type::IMAGE)
+ CQChartsAnnotation(plot, Type::IMAGE), image_(image)
 {
   setPosition(position);
 
-  init(image);
+  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(View *view, const Rect &rect, const Image &image) :
- CQChartsAnnotation(view, Type::IMAGE)
+ CQChartsAnnotation(view, Type::IMAGE), image_(image)
 {
   setRectangle(rect);
 
-  init(image);
+  init();
 }
 
 CQChartsImageAnnotation::
 CQChartsImageAnnotation(Plot *plot, const Rect &rect, const Image &image) :
- CQChartsAnnotation(plot, Type::IMAGE)
+ CQChartsAnnotation(plot, Type::IMAGE), image_(image)
 {
   setRectangle(rect);
 
-  init(image);
+  init();
 }
 
 CQChartsImageAnnotation::
@@ -2342,13 +2342,12 @@ CQChartsImageAnnotation::
 
 void
 CQChartsImageAnnotation::
-init(const Image &image)
+init()
 {
   setObjectName(QString("image.%1").arg(ind()));
 
   CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
-  image_         = image;
   disabledImage_ = Image();
 
   image_        .setId(objectName());
@@ -4631,4 +4630,369 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   //---
 
   writeProperties(os, varName);
+}
+
+//---
+
+CQChartsWidgetAnnotation::
+CQChartsWidgetAnnotation(View *view, const Position &position, const Widget &widget) :
+ CQChartsAnnotation(view, Type::WIDGET), widget_(widget)
+{
+  setPosition(position);
+
+  init();
+}
+
+CQChartsWidgetAnnotation::
+CQChartsWidgetAnnotation(Plot *plot, const Position &position, const Widget &widget) :
+ CQChartsAnnotation(plot, Type::WIDGET), widget_(widget)
+{
+  setPosition(position);
+
+  init();
+}
+
+CQChartsWidgetAnnotation::
+CQChartsWidgetAnnotation(View *view, const Rect &rect, const Widget &widget) :
+ CQChartsAnnotation(view, Type::WIDGET), widget_(widget)
+{
+  setRectangle(rect);
+
+  init();
+}
+
+CQChartsWidgetAnnotation::
+CQChartsWidgetAnnotation(Plot *plot, const Rect &rect, const Widget &widget) :
+ CQChartsAnnotation(plot, Type::IMAGE), widget_(widget)
+{
+  setRectangle(rect);
+
+  init();
+}
+
+CQChartsWidgetAnnotation::
+~CQChartsWidgetAnnotation()
+{
+}
+
+void
+CQChartsWidgetAnnotation::
+init()
+{
+  setObjectName(QString("widget.%1").arg(ind()));
+
+  editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  widget_.setParent(view());
+
+  widget_.initSize();
+}
+
+CQChartsPosition
+CQChartsWidgetAnnotation::
+positionValue() const
+{
+  return position_.positionOr(Position());
+}
+
+void
+CQChartsWidgetAnnotation::
+setPosition(const Position &p)
+{
+  setPosition(OptPosition(p));
+}
+
+void
+CQChartsWidgetAnnotation::
+setPosition(const OptPosition &p)
+{
+  rectangle_ = OptRect();
+  position_  = p;
+
+  positionToBBox();
+
+  emit dataChanged();
+}
+
+CQChartsRect
+CQChartsWidgetAnnotation::
+rectangleValue() const
+{
+  return rectangle().rectOr(Rect());
+}
+
+void
+CQChartsWidgetAnnotation::
+setRectangle(const Rect &r)
+{
+  setRectangle(OptRect(r));
+}
+
+void
+CQChartsWidgetAnnotation::
+setRectangle(const OptRect &r)
+{
+  if (r.isSet())
+    assert(r.rect().isValid());
+
+  position_  = OptPosition();
+  rectangle_ = r;
+
+  rectToBBox();
+
+  emit dataChanged();
+}
+
+void
+CQChartsWidgetAnnotation::
+rectToBBox()
+{
+  if (rectangle().isSet()) {
+    Rect rect = this->rectangleValue();
+
+    if (plot())
+      setAnnotationBBox(plot()->rectToPlot(rect));
+    else
+      setAnnotationBBox(view()->rectToView(rect));
+  }
+  else
+    setAnnotationBBox(BBox());
+}
+
+void
+CQChartsWidgetAnnotation::
+setWidget(const Widget &widget)
+{
+  widget_ = widget;
+
+  emit dataChanged();
+}
+
+void
+CQChartsWidgetAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "position" , "position" , "Widget origin");
+  addProp(path1, "rectangle", "rectangle", "Widget bounding box");
+
+  QString imagePath = path1 + "/image";
+
+  addProp(imagePath, "name", "widget", "Widget name");
+}
+
+QString
+CQChartsWidgetAnnotation::
+propertyId() const
+{
+  return QString("widgetAnnotation%1").arg(ind());
+}
+
+void
+CQChartsWidgetAnnotation::
+calcWidgetSize(Size &psize, Size &wsize) const
+{
+  // convert to window size
+  psize = Size(widget_.size());
+
+  if      (plot())
+    wsize = plot()->pixelToWindowSize(psize);
+  else if (view())
+    wsize = view()->pixelToWindowSize(psize);
+  else
+    wsize = psize;
+}
+
+void
+CQChartsWidgetAnnotation::
+positionToLL(double w, double h, double &x, double &y) const
+{
+  auto p = positionToParent(positionValue());
+
+  x = p.x - w/2;
+  y = p.y - h/2;
+}
+
+void
+CQChartsWidgetAnnotation::
+setEditBBox(const BBox &bbox, const ResizeSide &)
+{
+  if (rectangle().isSet()) {
+    Rect rect;
+
+    if      (plot())
+      rect = Rect(bbox, CQChartsUnits::PLOT);
+    else if (view())
+      rect = Rect(bbox, CQChartsUnits::VIEW);
+
+    setRectangle(rect);
+  }
+  else {
+    // get position
+    double x1 = bbox.getXMid();
+    double y1 = bbox.getYMid();
+
+    Point ll(x1, y1);
+
+    //---
+
+    Position position;
+
+    if      (plot())
+      position = Position(ll, CQChartsUnits::PLOT);
+    else if (view())
+      position = Position(ll, CQChartsUnits::VIEW);
+
+    setPosition(position);
+  }
+
+  setAnnotationBBox(bbox);
+}
+
+bool
+CQChartsWidgetAnnotation::
+inside(const Point &p) const
+{
+  return CQChartsAnnotation::inside(p);
+}
+
+void
+CQChartsWidgetAnnotation::
+draw(PaintDevice *)
+{
+  // recalculate position to bbox on draw as can change depending on pixel mapping
+  if (! rectangle().isSet())
+    positionToBBox();
+
+  if (! rect_.isValid())
+    return;
+
+  //---
+
+  //drawInit(device);
+
+  //---
+
+  widget_.setVisible(isVisible());
+
+  //---
+
+  // set box
+//auto pbbox = windowToPixel(rect_);
+
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
+
+  // get outer margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
+
+  double tx =          rect_.getXMin  () +       xlm + xlp;
+  double ty =          rect_.getYMin  () +       ybm + ybp;
+  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+
+  BBox tbbox(tx, ty, tx + tw, ty + th);
+
+  //---
+
+  auto ptbbox = windowToPixel(tbbox);
+
+  widget_.resize(ptbbox.getWidth(), ptbbox.getHeight());
+
+  widget_.move(ptbbox.getXMin(), ptbbox.getYMin());
+
+  //---
+
+  //drawTerm(device);
+}
+
+void
+CQChartsWidgetAnnotation::
+initRectangle()
+{
+  // convert position to rectangle if needed
+  if (! rectangle().isSet()) {
+    positionToBBox();
+
+    //---
+
+    Rect rect;
+
+    if      (plot())
+      rect = Rect(rect_, CQChartsUnits::PLOT);
+    else if (view())
+      rect = Rect(rect_, CQChartsUnits::VIEW);
+
+    setRectangle(rect);
+  }
+}
+
+void
+CQChartsWidgetAnnotation::
+positionToBBox()
+{
+  assert(! rectangle().isSet());
+
+  // get inner padding
+  double xlp = lengthParentWidth (padding().left  ());
+  double xrp = lengthParentWidth (padding().right ());
+  double ytp = lengthParentHeight(padding().top   ());
+  double ybp = lengthParentHeight(padding().bottom());
+
+  // get outer margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
+
+  Size psize, wsize;
+
+  calcWidgetSize(psize, wsize);
+
+  double x, y;
+
+  positionToLL(wsize.width(), wsize.height(), x, y);
+
+  Point ll(x                 - xlp - xlm, y                  - ybp - ybm);
+  Point ur(x + wsize.width() + xrp + xrm, y + wsize.height() + ytp + ytm);
+
+  setAnnotationBBox(BBox(ll, ur));
+}
+
+void
+CQChartsWidgetAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_widget_annotation", parentVarName, varName);
+
+  if (rectangle().isSet()) {
+    if (rectangleValue().isSet())
+      os << " -rectangle {" << rectangleValue().toString().toStdString() << "}";
+  }
+  else {
+    if (positionValue().isSet())
+      os << " -position {" << positionValue().toString().toStdString() << "}";
+  }
+
+  if (widget_.isValid())
+    os << " -widget {" << widget_.path().toStdString() << "}";
+
+  os << "]\n";
 }

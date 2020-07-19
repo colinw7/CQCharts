@@ -188,6 +188,7 @@ CQChartsPaletteName.cpp \
 \
 CQChartsSymbol.cpp \
 CQChartsImage.cpp \
+CQChartsWidget.cpp \
 CQChartsPath.cpp \
 CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
@@ -427,6 +428,7 @@ HEADERS += \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
 ../include/CQChartsImage.h \
+../include/CQChartsWidget.h \
 ../include/CQChartsPath.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsBoxWhisker.h \

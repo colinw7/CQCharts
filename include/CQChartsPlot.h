@@ -14,6 +14,7 @@
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
 #include <CQChartsImage.h>
+#include <CQChartsWidget.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
@@ -52,6 +53,7 @@ class CQChartsPlotObjTree;
 
 class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
+class CQChartsButtonAnnotation;
 class CQChartsAxisAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
@@ -64,7 +66,7 @@ class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
-class CQChartsButtonAnnotation;
+class CQChartsWidgetAnnotation;
 
 class CQChartsPlotParameter;
 class CQChartsDisplayRange;
@@ -340,9 +342,6 @@ class CQChartsPlot : public CQChartsObj,
   using PlotObj  = CQChartsPlotObj;
   using PlotObjs = std::vector<PlotObj *>;
 
-  using Annotation  = CQChartsAnnotation;
-  using Annotations = std::vector<Annotation *>;
-
   using Obj  = CQChartsObj;
   using Objs = std::vector<Obj *>;
 
@@ -382,6 +381,10 @@ class CQChartsPlot : public CQChartsObj,
   using Angle       = CQChartsAngle;
   using FillPattern = CQChartsFillPattern;
   using LineDash    = CQChartsLineDash;
+  using Position    = CQChartsPosition;
+  using Rect        = CQChartsRect;
+  using Image       = CQChartsImage;
+  using Widget      = CQChartsWidget;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -1204,11 +1207,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  Point positionToPlot (const CQChartsPosition &pos) const;
-  Point positionToPixel(const CQChartsPosition &pos) const;
+  Point positionToPlot (const Position &pos) const;
+  Point positionToPixel(const Position &pos) const;
 
-  BBox rectToPlot (const CQChartsRect &rect) const;
-  BBox rectToPixel(const CQChartsRect &rect) const;
+  BBox rectToPlot (const Rect &rect) const;
+  BBox rectToPixel(const Rect &rect) const;
 
   //---
 
@@ -1925,42 +1928,55 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // annotations
+  using Annotation          = CQChartsAnnotation;
+  using Annotations         = std::vector<Annotation *>;
+  using ArrowAnnotation     = CQChartsArrowAnnotation;
+  using AxisAnnotation      = CQChartsAxisAnnotation;
+  using ButtonAnnotation    = CQChartsButtonAnnotation;
+  using EllipseAnnotation   = CQChartsEllipseAnnotation;
+  using ImageAnnotation     = CQChartsImageAnnotation;
+  using KeyAnnotation       = CQChartsKeyAnnotation;
+  using PieSliceAnnotation  = CQChartsPieSliceAnnotation;
+  using PointAnnotation     = CQChartsPointAnnotation;
+  using PointSetAnnotation  = CQChartsPointSetAnnotation;
+  using PolygonAnnotation   = CQChartsPolygonAnnotation;
+  using PolylineAnnotation  = CQChartsPolylineAnnotation;
+  using RectangleAnnotation = CQChartsRectangleAnnotation;
+  using TextAnnotation      = CQChartsTextAnnotation;
+  using ValueSetAnnotation  = CQChartsValueSetAnnotation;
+  using WidgetAnnotation    = CQChartsWidgetAnnotation;
 
   const Annotations &annotations() const { return annotations_; }
 
-  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
-                                                      const CQChartsPosition &end);
-  CQChartsAxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction,
-                                                      double start, double end);
-  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
-                                                      const Length &xRadius,
-                                                      const Length &yRadius);
-  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
-                                                      const CQChartsImage &image);
-  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
-                                                      const CQChartsImage &image);
-  CQChartsKeyAnnotation       *addKeyAnnotation      ();
-  CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
-                                                      const Length &innerRadius,
-                                                      const Length &outerRadius,
-                                                      const Angle &startAngle,
-                                                      const Angle &spanAngle);
-  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
-                                                      const Symbol &type);
-  CQChartsPointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
-  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
-  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
-  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
-  CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsPosition &pos,
-                                                      const QString &text);
-  CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
-                                                      const QString &text);
-  CQChartsValueSetAnnotation  *addValueSetAnnotation (const CQChartsRect &rectangle,
-                                                      const CQChartsReals &values);
-  CQChartsButtonAnnotation    *addButtonAnnotation   (const CQChartsPosition &pos,
-                                                      const QString &text);
+  ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
+  AxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction, double start, double end);
+  ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
+  EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,
+                                              const Length &yRadius);
+  ImageAnnotation     *addImageAnnotation    (const Position &pos, const Image &image);
+  ImageAnnotation     *addImageAnnotation    (const Rect &rect, const Image &image);
+  KeyAnnotation       *addKeyAnnotation      ();
+  PieSliceAnnotation  *addPieSliceAnnotation (const Position &pos, const Length &innerRadius,
+                                              const Length &outerRadius, const Angle &startAngle,
+                                              const Angle &spanAngle);
+  PointAnnotation     *addPointAnnotation    (const Position &pos, const Symbol &type);
+  PointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
+  PolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
+  PolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
+  RectangleAnnotation *addRectangleAnnotation(const Rect &rect);
+  TextAnnotation      *addTextAnnotation     (const Position &pos, const QString &text);
+  TextAnnotation      *addTextAnnotation     (const Rect &rect, const QString &text);
+  ValueSetAnnotation  *addValueSetAnnotation (const Rect &rectangle, const CQChartsReals &values);
+  WidgetAnnotation    *addWidgetAnnotation   (const Position &pos, const Widget &widget);
+  WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
 
   void addAnnotation(Annotation *annotation);
+
+  template<typename TYPE>
+  TYPE *addAnnotationT(TYPE *annotation) {
+    addAnnotation(annotation);
+    return annotation;
+  }
 
   Annotation *getAnnotationById(const QString &id) const;
   Annotation *getAnnotationByPathId(const QString &pathId) const;

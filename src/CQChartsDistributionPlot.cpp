@@ -455,7 +455,11 @@ void
 CQChartsDistributionPlot::
 setSkipEmpty(bool b)
 {
-  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { visitModel_ = false; updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() {
+    //visitModel_ = false;
+
+    updateRangeAndObjs();
+  } );
 }
 
 //---
@@ -526,7 +530,7 @@ setValueSum(bool b)
 
 void
 CQChartsDistributionPlot::
-setMinValue(const CQChartsOptReal &r)
+setMinValue(const OptReal &r)
 {
   CQChartsUtil::testAndSet(minValue_, r, [&]() { updateRangeAndObjs(); } );
 }
@@ -536,7 +540,7 @@ CQChartsDistributionPlot::
 isEmptyValue(double r) const
 {
   if (minValue().isSet())
-    return r < minValue().value();
+    return r < minValue().real();
 
   return (r <= 0.0);
 }
@@ -1056,6 +1060,16 @@ calcBucketRanges() const
 
         //---
 
+        int n = varsData.inds.size();
+
+        if (isSkipEmpty()) {
+          if (isEmptyValue(n))
+            continue;
+        }
+
+        //---
+
+        // get bucket value range
         double value1, value2;
 
         this->bucketValues(groupInd, bucket, value1, value2);
@@ -1081,8 +1095,6 @@ calcBucketRanges() const
         //---
 
         // update max n per value set
-        int n = varsData.inds.size();
-
         nRange.add(n);
 
         //---
@@ -1297,7 +1309,7 @@ calcBucketRanges() const
           updateRange2(-1.0, 0, i2, 1);
         else {
           if (! isEmptyValue(n2))
-            updateRange2(-1.0, 0.2, i2, mapValue(n2));
+            updateRange2(-1.0, 0.0, i2, (n2 > 0 ? mapValue(n2) : 0.0));
           else
             updateRange2(-1.0, 0.0, i2, 0.0);
         }
@@ -1705,6 +1717,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  // assign index to each non-empty bucket
   using BucketInd = std::map<Bucket,int>;
 
   BucketInd bucketInd;
@@ -1712,11 +1725,13 @@ createObjs(PlotObjs &objs) const
   for (auto &groupValues : groupData_.groupValues) {
     const auto *values = groupValues.second;
 
+#if 0
     for (const auto &bucketValues : values->bucketValues) {
       const auto &bucket = bucketValues.first;
 
       bucketInd[bucket] = 0;
     }
+#endif
 
     for (const auto &bucketValues : values->bucketValues) {
       const auto &bucket   = bucketValues.first;

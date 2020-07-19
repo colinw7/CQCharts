@@ -1159,3 +1159,6 @@
  + More auto in code
  + fix annotation draw bbox
  + add text clipLength
+# 07/23/2020
+ + Support grouped bubble plot and min size
+ + Add widget annotation

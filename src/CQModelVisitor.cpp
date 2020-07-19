@@ -12,6 +12,8 @@ init(const QAbstractItemModel *model)
   hierSet_          = false;
   row_              = 0;
   numProcessedRows_ = 0;
+
+  initVisit();
 }
 
 bool
@@ -30,6 +32,15 @@ isHierarchical() const
   }
 
   return hierarchical_;
+}
+
+void
+CQModelVisitor::
+term()
+{
+  numProcessedRows_ = row_;
+
+  termVisit();
 }
 
 //----

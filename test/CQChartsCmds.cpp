@@ -158,6 +158,8 @@ addCommands()
                new CQChartsCreateChartsArrowAnnotationCmd    (this));
     addCommand("create_charts_axis_annotation"     ,
                new CQChartsCreateChartsAxisAnnotationCmd     (this));
+    addCommand("create_charts_button_annotation"   ,
+               new CQChartsCreateChartsButtonAnnotationCmd   (this));
     addCommand("create_charts_ellipse_annotation"  ,
                new CQChartsCreateChartsEllipseAnnotationCmd  (this));
     addCommand("create_charts_image_annotation"    ,
@@ -180,8 +182,8 @@ addCommands()
                new CQChartsCreateChartsTextAnnotationCmd     (this));
     addCommand("create_charts_value_set_annotation",
                new CQChartsCreateChartsValueSetAnnotationCmd (this));
-    addCommand("create_charts_button_annotation"   ,
-               new CQChartsCreateChartsButtonAnnotationCmd   (this));
+    addCommand("create_charts_widget_annotation",
+               new CQChartsCreateChartsWidgetAnnotationCmd   (this));
     addCommand("remove_charts_annotation"          ,
                new CQChartsRemoveChartsAnnotationCmd         (this));
 
@@ -6113,12 +6115,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6211,12 +6209,8 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6355,12 +6349,8 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6407,27 +6397,22 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get parent plot or view
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
   //---
 
+  // get id and tip
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
+  //---
+
+  // get image
   CQChartsImage image;
 
   if      (argv.hasParseArg("image")) {
@@ -6449,18 +6434,11 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // create annotation
   CQChartsImageAnnotation *annotation = nullptr;
 
-  if      (argv.hasParseArg("position")) {
-    CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
-
-    if      (view)
-      annotation = view->addImageAnnotation(pos, image);
-    else if (plot)
-      annotation = plot->addImageAnnotation(pos, image);
-  }
-  else if (argv.hasParseArg("rectangle")) {
-    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
+  if      (argv.hasParseArg("rectangle")) {
+    auto rect = argv.getParseRect(view, plot, "rectangle");
 
     if (! rect.isValid())
       return errorMsg("Invalid rectangle geometry");
@@ -6473,6 +6451,9 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   else {
     CQChartsPosition pos(CQChartsGeom::Point(0, 0));
 
+    if (argv.hasParseArg("position"))
+      pos = argv.getParsePosition(view, plot, "position");
+
     if      (view)
       annotation = view->addImageAnnotation(pos, image);
     else if (plot)
@@ -6480,7 +6461,7 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   }
 
   if (! annotation)
-    return errorMsg("Failed to create annotation");
+    return errorMsg("Failed to create image annotation");
 
   if (id != "")
     annotation->setId(id);
@@ -6490,12 +6471,8 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6576,12 +6553,8 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6682,12 +6655,8 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6824,12 +6793,8 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -6918,12 +6883,8 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7053,12 +7014,8 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7188,12 +7145,8 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7371,12 +7324,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7552,12 +7501,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7647,12 +7592,8 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -7762,12 +7703,8 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
 
   //---
 
@@ -8746,6 +8683,117 @@ testEditCmd(CQChartsCmdArgs &argv)
 
 //------
 
+bool
+CQChartsCmds::
+createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsWidgetAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
+  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
+
+  argv.addCmdArg("-widget", CQChartsCmdArg::Type::String, "widget path");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get id and tip
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  //---
+
+  // get widget
+  CQChartsWidget widget;
+
+  if      (argv.hasParseArg("widget")) {
+    QString widgetName = argv.getParseStr("widget");
+
+    widget = CQChartsWidget(widgetName);
+
+    if (! widget.isValid())
+      return errorMsg(QString("Invalid widget name '%1'").arg(widgetName));
+  }
+
+  //---
+
+  // create annotation
+  CQChartsWidgetAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("rectangle")) {
+    auto rect = argv.getParseRect(view, plot, "rectangle");
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
+
+    if      (view)
+      annotation = view->addWidgetAnnotation(rect, widget);
+    else if (plot)
+      annotation = plot->addWidgetAnnotation(rect, widget);
+  }
+  else {
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
+
+    if (argv.hasParseArg("position"))
+      pos = argv.getParsePosition(view, plot, "position");
+
+    if      (view)
+      annotation = view->addWidgetAnnotation(pos, widget);
+    else if (plot)
+      annotation = plot->addWidgetAnnotation(pos, widget);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create widget annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
 CQChartsPlot *
 CQChartsCmds::
 createPlot(CQChartsView *view, const ModelP &model, CQChartsPlotType *type, bool reuse)
@@ -8974,6 +9022,20 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 bool
 CQChartsCmds::
+setAnnotationArgProperties(CQChartsCmdArgs &argv, CQChartsAnnotation *annotation)
+{
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  return true;
+}
+
+bool
+CQChartsCmds::
 setAnnotationProperties(CQChartsAnnotation *annotation, const QString &properties)
 {
 #if 1
@@ -9009,6 +9071,31 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
 }
 
 //------
+
+bool
+CQChartsCmds::
+getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot)
+{
+  view = nullptr;
+  plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(view, plotName);
+    if (! plot) return false;
+  }
+  else
+    return false;
+
+  return true;
+}
 
 CQChartsView *
 CQChartsCmds::

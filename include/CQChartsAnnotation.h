@@ -4,6 +4,7 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsImage.h>
+#include <CQChartsWidget.h>
 #include <CQChartsData.h>
 #include <CQChartsOptRect.h>
 #include <CQChartsOptPosition.h>
@@ -54,7 +55,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     KEY,
     POINT_SET,
     VALUE_SET,
-    BUTTON
+    BUTTON,
+    WIDGET
   };
 
   using View       = CQChartsView;
@@ -723,7 +725,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   void initRectangle() override;
 
  private:
-  void init(const Image &image);
+  void init();
 
   void calcImageSize(Size &psize, Size &wsize) const;
 
@@ -1270,6 +1272,94 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   Position position_;          //!< button position
   QRect    prect_;             //!< pixel rect
   bool     pressed_ { false }; //!< is pressed
+};
+
+//---
+
+/*!
+ * \brief widget annotation
+ * \ingroup Charts
+ *
+ * Widget at position or in rectangle
+ */
+class CQChartsWidgetAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
+
+ public:
+  using Widget      = CQChartsWidget;
+  using Rect        = CQChartsRect;
+  using OptRect     = CQChartsOptRect;
+  using Position    = CQChartsPosition;
+  using OptPosition = CQChartsOptPosition;
+
+ public:
+  CQChartsWidgetAnnotation(View *view, const Position &p=Position(), const Widget &widget=Widget());
+  CQChartsWidgetAnnotation(Plot *plot, const Position &p=Position(), const Widget &widget=Widget());
+
+  CQChartsWidgetAnnotation(View *view, const Rect &r=Rect(), const Widget &widget=Widget());
+  CQChartsWidgetAnnotation(Plot *plot, const Rect &r=Rect(), const Widget &widget=Widget());
+
+  virtual ~CQChartsWidgetAnnotation();
+
+  const char *typeName() const override { return "widget"; }
+
+  const OptPosition &position() const { return position_; }
+  void setPosition(const OptPosition &p);
+
+  Position positionValue() const;
+  void setPosition(const Position &p);
+
+  const OptRect &rectangle() const { return rectangle_; }
+  void setRectangle(const OptRect &r);
+
+  Rect rectangleValue() const;
+  void setRectangle(const Rect &r);
+
+  const Widget &widget() const { return widget_; }
+  void setWidget(const Widget &widget);
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+  //---
+
+  void initRectangle() override;
+
+ private:
+  void init();
+
+  void calcWidgetSize(Size &psize, Size &wsize) const;
+
+  void positionToLL(double w, double h, double &x, double &y) const;
+
+  void rectToBBox();
+
+  void positionToBBox();
+
+ private:
+  OptPosition position_;  //!< widget position
+  OptRect     rectangle_; //!< widget bounding rectangle
+  Widget      widget_;    //!< widget
 };
 
 #endif

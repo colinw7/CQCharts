@@ -35,6 +35,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsFileType.h>
 #include <CQChartsImage.h>
+#include <CQChartsWidget.h>
 #include <CQChartsModelIndex.h>
 
 #include <CQChartsAlphaEdit.h>
@@ -314,6 +315,7 @@ CQCharts()
   CQChartsTextBoxData           ::registerMetaType();
   CQChartsTextData              ::registerMetaType();
   CQChartsThemeName             ::registerMetaType();
+  CQChartsWidget                ::registerMetaType();
 
   CQChartsOptInt     ::registerMetaType();
   CQChartsOptReal    ::registerMetaType();

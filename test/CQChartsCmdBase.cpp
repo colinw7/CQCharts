@@ -6,6 +6,7 @@
 #include <CQTclUtil.h>
 
 #include <QApplication>
+#include <QPushButton>
 
 namespace {
 
@@ -75,6 +76,8 @@ addCommands()
     addCommand("help", new CQChartsBaseHelpCmd(this));
 
     // qt generic
+    addCommand("qt_create_widget", new CQChartsBaseCreateWidgetCmd(this));
+
     addCommand("qt_get_property", new CQChartsBaseGetPropertyCmd(this));
     addCommand("qt_set_property", new CQChartsBaseSetPropertyCmd(this));
 
@@ -130,6 +133,62 @@ processCmd(const QString &cmd, const Vars &vars)
   //---
 
   return false;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtCreateWidgetCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtCreateWidgetCmd");
+
+  argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
+  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "widget type");
+  argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String, "widget name");
+
+  if (! argv.parse())
+    return false;
+
+  QWidget *parentWidget = nullptr;
+
+  if (argv.hasParseArg("parent")) {
+    QString parentName = argv.getParseStr("parent");
+
+    auto *parent = CQUtil::nameToObject(parentName);
+
+    parentWidget = qobject_cast<QWidget *>(parent);
+
+    if (! parentWidget) {
+      errorMsg(QString("No parent '%1'").arg(parentName));
+      return false;
+    }
+  }
+
+  QString typeName = argv.getParseStr("type");
+  QString name     = argv.getParseStr("name");
+
+  QWidget *w = nullptr;
+
+  if (typeName == "QPushButton") {
+    w = new QPushButton(parentWidget);
+  }
+  else {
+    errorMsg(QString("Invalid type '%1'").arg(typeName));
+    return false;
+  }
+
+  if (! w) {
+    errorMsg(QString("Failed to create '%1'").arg(typeName));
+    return false;
+  }
+
+  if (name != "")
+    w->setObjectName(name);
+
+  setCmdRc(CQUtil::fullName(w));
+
+  return true;
 }
 
 //------

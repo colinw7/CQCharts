@@ -16,8 +16,8 @@ class CQChartsPlotModelVisitor : public CQChartsModelVisitor {
   const CQChartsPlot *plot() const { return plot_; }
   void setPlot(const CQChartsPlot *p) { plot_ = p; }
 
-  void init();
-  void term();
+  void initVisit() override;
+  void termVisit() override;
 
   State preVisit(const QAbstractItemModel *model, const VisitData &data) override;
 
