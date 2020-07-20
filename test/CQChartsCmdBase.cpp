@@ -2,11 +2,11 @@
 #include <CQChartsInput.h>
 #include <CQBaseModel.h>
 #include <CQPerfMonitor.h>
+#include <CQWidgetFactory.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
 
 #include <QApplication>
-#include <QPushButton>
 
 namespace {
 
@@ -80,6 +80,7 @@ addCommands()
 
     addCommand("qt_get_property", new CQChartsBaseGetPropertyCmd(this));
     addCommand("qt_set_property", new CQChartsBaseSetPropertyCmd(this));
+    addCommand("qt_has_property", new CQChartsBaseHasPropertyCmd(this));
 
     addCommand("qt_sync", new CQChartsBaseQtSyncCmd(this));
 
@@ -150,6 +151,14 @@ qtCreateWidgetCmd(CQChartsCmdArgs &argv)
   if (! argv.parse())
     return false;
 
+  QString typeName = argv.getParseStr("type");
+
+  if (typeName == "?") {
+    auto names = CQWidgetFactoryMgrInst->widgetFactoryNames();
+
+    return setCmdRc(names);
+  }
+
   QWidget *parentWidget = nullptr;
 
   if (argv.hasParseArg("parent")) {
@@ -165,18 +174,14 @@ qtCreateWidgetCmd(CQChartsCmdArgs &argv)
     }
   }
 
-  QString typeName = argv.getParseStr("type");
   QString name     = argv.getParseStr("name");
 
-  QWidget *w = nullptr;
-
-  if (typeName == "QPushButton") {
-    w = new QPushButton(parentWidget);
-  }
-  else {
+  if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName)) {
     errorMsg(QString("Invalid type '%1'").arg(typeName));
     return false;
   }
+
+  QWidget *w = CQWidgetFactoryMgrInst->createWidget(typeName, parentWidget);
 
   if (! w) {
     errorMsg(QString("Failed to create '%1'").arg(typeName));
@@ -257,6 +262,43 @@ qtSetPropertyCmd(CQChartsCmdArgs &argv)
     errorMsg(QString("Failed to set property '%1' for '%2'").arg(propName).arg(objectName));
     return false;
   }
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtHasPropertyCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtHasPropertyCmd");
+
+  argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String , "object name");
+  argv.addCmdArg("-property", CQChartsCmdArg::Type::String , "property name");
+  argv.addCmdArg("-writable", CQChartsCmdArg::Type::Boolean, "property is writable");
+
+  if (! argv.parse())
+    return false;
+
+  QString objectName = argv.getParseStr("object");
+  QString propName   = argv.getParseStr("property");
+
+  auto *obj = CQUtil::nameToObject(objectName);
+
+  if (! obj) {
+    errorMsg(QString("No object '%1'").arg(objectName));
+    return false;
+  }
+
+  bool b;
+
+  if (argv.hasParseArg("writable"))
+    b = CQUtil::hasWritableProperty(obj, propName);
+  else
+    b = CQUtil::hasProperty(obj, propName);
+
+  setCmdRc(b);
 
   return true;
 }

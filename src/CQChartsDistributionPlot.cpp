@@ -165,6 +165,9 @@ CQChartsDistributionPlot(View *view, const ModelP &model) :
   setRugSymbolStroked    (true);
   setRugSymbolStrokeColor(Color(Color::Type::PALETTE));
 
+  //---
+
+  // need to update axis labels on placement change
   connect(xAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
   connect(yAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
 }

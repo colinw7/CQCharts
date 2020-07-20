@@ -105,7 +105,7 @@ CQChartsBubblePlot::
   delete nodeData_.root;
 }
 
-//------
+//---
 
 void
 CQChartsBubblePlot::
@@ -121,7 +121,7 @@ setValueColumn(const Column &c)
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
-//------
+//---
 
 void
 CQChartsBubblePlot::
@@ -524,11 +524,15 @@ loadModel() const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsBubblePlot *plot) :
+    using Plot = CQChartsBubblePlot;
+
+   public:
+    RowVisitor(const Plot *plot) :
      plot_(plot) {
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      // get name and associated model index for row
       QString     name;
       QModelIndex nameInd;
 
@@ -548,7 +552,7 @@ loadModel() const
 
       //---
 
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+      auto nameInd1 = plot_->normalizeIndex(nameInd);
 
       auto *node = plot_->addNode(parentHier(data), name, size, nameInd1);
 
@@ -597,7 +601,7 @@ loadModel() const
 
    private:
     HierNode *parentHier(const VisitData &data) const {
-      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex ind(plot, data.row, plot_->valueColumn(), data.parent);
 
@@ -615,7 +619,7 @@ loadModel() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex nameModelInd;
 
@@ -639,7 +643,7 @@ loadModel() const
       if (! plot_->valueColumn().isValid())
         return true;
 
-      auto *plot = const_cast<CQChartsBubblePlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
@@ -672,8 +676,8 @@ loadModel() const
     using ModelInds = std::vector<ModelIndex>;
     using GroupInds = std::map<int,ModelInds>;
 
-    const CQChartsBubblePlot* plot_ { nullptr };
-    mutable GroupInds         groupInds_;
+    const Plot*       plot_ { nullptr };
+    mutable GroupInds groupInds_;
   };
 
   RowVisitor visitor(this);
@@ -1061,11 +1065,14 @@ draw(PaintDevice *device)
   if (isPoint)
     return;
 
-  if (! plot_->isTextVisible())
-    return;
+  if (plot_->isTextVisible())
+    drawText(device, bbox, penBrush.brush.color());
+}
 
-  //---
-
+void
+CQChartsBubbleNodeObj::
+drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
+{
   // get labels (name and optional size)
   QStringList strs;
 
@@ -1080,7 +1087,7 @@ draw(PaintDevice *device)
   //---
 
   // calc text pen
-  plot_->charts()->setContrastColor(penBrush.brush.color());
+  plot_->charts()->setContrastColor(brushColor);
 
   auto colorInd = calcColorInd();
 

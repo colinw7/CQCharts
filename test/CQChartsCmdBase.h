@@ -63,6 +63,7 @@ class CQChartsCmdBase {
   bool qtCreateWidgetCmd(CQChartsCmdArgs &args);
   bool qtGetPropertyCmd (CQChartsCmdArgs &args);
   bool qtSetPropertyCmd (CQChartsCmdArgs &args);
+  bool qtHasPropertyCmd (CQChartsCmdArgs &args);
   bool qtSyncCmd        (CQChartsCmdArgs &args);
 
   bool perfCmd(CQChartsCmdArgs &args);
@@ -137,6 +138,7 @@ class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
 CQCHARTS_BASE_DEF_CMD(CreateWidget, qtCreateWidgetCmd)
 CQCHARTS_BASE_DEF_CMD(GetProperty , qtGetPropertyCmd)
 CQCHARTS_BASE_DEF_CMD(SetProperty , qtSetPropertyCmd)
+CQCHARTS_BASE_DEF_CMD(HasProperty , qtHasPropertyCmd)
 CQCHARTS_BASE_DEF_CMD(QtSync      , qtSyncCmd)
 
 CQCHARTS_BASE_DEF_CMD(Perf, perfCmd)

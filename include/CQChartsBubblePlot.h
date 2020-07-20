@@ -38,7 +38,7 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  CQChartsPlot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -60,6 +60,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
 
  public:
   using Plot     = CQChartsBubblePlot;
+  using Node     = CQChartsBubbleNode;
   using HierNode = CQChartsBubbleHierNode;
   using ColorInd = CQChartsUtil::ColorInd;
 
@@ -135,7 +136,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   virtual bool placed() const { return placed_; }
 
   //! sort by radius
-  friend bool operator<(const CQChartsBubbleNode &n1, const CQChartsBubbleNode &n2) {
+  friend bool operator<(const Node &n1, const Node &n2) {
     return n1.r_ < n2.r_;
   }
 
@@ -286,6 +287,8 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
+  void drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor);
+
   //---
 
   bool isPoint() const;
@@ -318,6 +321,8 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
                         const BBox &rect, const ColorInd &is);
 
   HierNode *hierNode() const { return hier_; }
+
+  //---
 
   QString calcId() const override;
 
