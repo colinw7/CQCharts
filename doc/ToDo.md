@@ -3,7 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + copy command from view properties
+ + hier bubble min value/group column (bucket name column for integer/real (control))
+ + more widget annotation support/more widgets
  + rect/position edit values from plot
  + drag label
  + key tip includes text (could be clipped) - all keys

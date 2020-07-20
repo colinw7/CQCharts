@@ -414,7 +414,11 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsEllipseAnnotation();
 
+  //---
+
   const char *typeName() const override { return "ellipse"; }
+
+  //---
 
   const Position &center() const { return center_; }
   void setCenter(const Position &c) { center_ = c; emit dataChanged(); }
@@ -468,7 +472,11 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
 
   virtual ~CQChartsPolygonAnnotation();
 
+  //---
+
   const char *typeName() const override { return "polygon"; }
+
+  //---
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
@@ -526,6 +534,8 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   CQChartsPolylineAnnotation(Plot *plot, const Polygon &polygon);
 
   virtual ~CQChartsPolylineAnnotation();
+
+  //---
 
   const char *typeName() const override { return "polyline"; }
 
@@ -596,7 +606,11 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsTextAnnotation();
 
+  //---
+
   const char *typeName() const override { return "text"; }
+
+  //---
 
   const OptPosition &position() const { return position_; }
   void setPosition(const OptPosition &p);
@@ -661,8 +675,10 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 class CQChartsImageAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
-  Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsOptPosition position      READ position      WRITE setPosition     )
+  Q_PROPERTY(CQChartsOptRect     rectangle     READ rectangle     WRITE setRectangle    )
+  Q_PROPERTY(CQChartsImage       image         READ image         WRITE setImage        )
+  Q_PROPERTY(CQChartsImage       disabledImage READ disabledImage WRITE setDisabledImage)
 
  public:
   using Image       = CQChartsImage;
@@ -680,7 +696,11 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsImageAnnotation();
 
+  //---
+
   const char *typeName() const override { return "image"; }
+
+  //---
 
   const OptPosition &position() const { return position_; }
   void setPosition(const OptPosition &p);
@@ -864,7 +884,11 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   virtual ~CQChartsPointAnnotation();
 
+  //---
+
   const char *typeName() const override { return "point"; }
+
+  //---
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
@@ -929,7 +953,11 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPieSliceAnnotation();
 
+  //---
+
   const char *typeName() const override { return "pie_slice"; }
+
+  //---
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
@@ -991,7 +1019,11 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsAxisAnnotation();
 
+  //---
+
   const char *typeName() const override { return "axis"; }
+
+  //---
 
   double position() const;
   void setPosition(double r);
@@ -1037,7 +1069,11 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsKeyAnnotation();
 
+  //---
+
   const char *typeName() const override { return "key"; }
+
+  //---
 
   Key *key() const { return key_; }
 
@@ -1104,7 +1140,11 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPointSetAnnotation();
 
+  //---
+
   const char *typeName() const override { return "point_set"; }
+
+  //---
 
   const Points &values() const { return values_; }
   void setValues(const Points &values) { values_ = values; updateValues(); }
@@ -1170,7 +1210,11 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsValueSetAnnotation();
 
+  //---
+
   const char *typeName() const override { return "value_set"; }
+
+  //---
 
   const Rect &rectangle() const { return rectangle_; }
   void setRectangle(const Rect &rectangle) { rectangle_ = rectangle; emit dataChanged(); }
@@ -1230,7 +1274,11 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsButtonAnnotation();
 
+  //---
+
   const char *typeName() const override { return "button"; }
+
+  //---
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p);
@@ -1287,6 +1335,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
   Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsWidget      widget    READ widget    WRITE setWidget   )
 
  public:
   using Widget      = CQChartsWidget;
@@ -1304,7 +1353,11 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsWidgetAnnotation();
 
+  //---
+
   const char *typeName() const override { return "widget"; }
+
+  //---
 
   const OptPosition &position() const { return position_; }
   void setPosition(const OptPosition &p);

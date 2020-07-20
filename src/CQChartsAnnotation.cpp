@@ -1175,6 +1175,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   setAnnotationBBox(bbox);
 }
 
+//---
+
 bool
 CQChartsEllipseAnnotation::
 inside(const Point &p) const
@@ -2035,6 +2037,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   setAnnotationBBox(bbox);
 }
 
+//---
+
 bool
 CQChartsTextAnnotation::
 inside(const Point &p) const
@@ -2460,12 +2464,10 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position" , "position" , "Image origin");
-  addProp(path1, "rectangle", "rectangle", "Image bounding box");
-
-  QString imagePath = path1 + "/image";
-
-  addProp(imagePath, "name", "image", "Image name");
+  addProp(path1, "position"     , "position"     , "Image origin");
+  addProp(path1, "rectangle"    , "rectangle"    , "Image bounding box");
+  addProp(path1, "image"        , "image"        , "Image name");
+  addProp(path1, "disabledImage", "disabledImage", "Disabled image name");
 
   addProp(path1, "padding", "", "Image rectangle inner padding");
   addProp(path1, "margin" , "", "Image rectangle outer margin");
@@ -2540,6 +2542,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   setAnnotationBBox(bbox);
 }
+
+//---
 
 bool
 CQChartsImageAnnotation::
@@ -3312,6 +3316,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   setAnnotationBBox(bbox);
 }
 
+//---
+
 bool
 CQChartsPointAnnotation::
 inside(const Point &p) const
@@ -3526,6 +3532,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   setAnnotationBBox(bbox);
 }
 
+//---
+
 bool
 CQChartsPieSliceAnnotation::
 inside(const Point &p) const
@@ -3694,6 +3702,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   setAnnotationBBox(bbox);
 }
 
+//---
+
 bool
 CQChartsAxisAnnotation::
 inside(const Point &p) const
@@ -3836,6 +3846,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 {
   setAnnotationBBox(bbox);
 }
+
+//---
 
 bool
 CQChartsKeyAnnotation::
@@ -4027,6 +4039,8 @@ setEditBBox(const BBox &, const ResizeSide &)
   // TODO: move all points ?
 #endif
 }
+
+//---
 
 bool
 CQChartsPointSetAnnotation::
@@ -4319,6 +4333,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
     rectangle_.setValue(rectangle_.units(), bbox1);
 }
 
+//---
+
 bool
 CQChartsValueSetAnnotation::
 inside(const Point &p) const
@@ -4504,6 +4520,8 @@ mouseRelease(const Point &)
 
   invalidate();
 }
+
+//---
 
 bool
 CQChartsButtonAnnotation::
@@ -4785,10 +4803,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp(path1, "position" , "position" , "Widget origin");
   addProp(path1, "rectangle", "rectangle", "Widget bounding box");
-
-  QString imagePath = path1 + "/image";
-
-  addProp(imagePath, "name", "widget", "Widget name");
+  addProp(path1, "widget"   , "widget"   , "Widget name");
 }
 
 QString
@@ -4858,6 +4873,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   setAnnotationBBox(bbox);
 }
+
+//---
 
 bool
 CQChartsWidgetAnnotation::

@@ -192,10 +192,9 @@ class CQChartsView : public QFrame,
   using Polygon = CQChartsGeom::Polygon;
 
  public:
-  using Plots       = std::vector<CQChartsPlot*>;
-  using Objs        = std::vector<CQChartsObj*>;
-  using PlotSet     = std::set<CQChartsPlot*>;
-  using Annotations = std::vector<CQChartsAnnotation *>;
+  using Plots   = std::vector<CQChartsPlot*>;
+  using Objs    = std::vector<CQChartsObj*>;
+  using PlotSet = std::set<CQChartsPlot*>;
 
   using Position = CQChartsPosition;
   using Rect     = CQChartsRect;
@@ -475,6 +474,7 @@ class CQChartsView : public QFrame,
 
   // annotations
   using Annotation          = CQChartsAnnotation;
+  using Annotations         = std::vector<Annotation *>;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using ButtonAnnotation    = CQChartsButtonAnnotation;
   using EllipseAnnotation   = CQChartsEllipseAnnotation;

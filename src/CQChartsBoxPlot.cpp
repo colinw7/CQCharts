@@ -173,7 +173,7 @@ create(View *view, const ModelP &model) const
 //---
 
 CQChartsBoxPlot::
-CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
+CQChartsBoxPlot(View *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("box"), model),
  CQChartsObjBoxShapeData    <CQChartsBoxPlot>(this),
  CQChartsObjTextData        <CQChartsBoxPlot>(this),
@@ -3258,15 +3258,15 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
 
   auto tw = device->pixelToWindow(tp);
 
-  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
-
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
   auto size  = plot()->pixelToWindowSize(psize);
+
+  bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
 
   if (! checkDrawBBox(bbox))
     return false;
 
-  bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
+  CQChartsDrawUtil::drawTextAtPoint(device, tw, text, options);
 
   return true;
 }
