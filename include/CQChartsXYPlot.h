@@ -649,6 +649,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsColumn  vectorXColumn READ vectorXColumn WRITE setVectorXColumn)
   Q_PROPERTY(CQChartsColumn  vectorYColumn READ vectorYColumn WRITE setVectorYColumn)
 
+  // x is string
+  Q_PROPERTY(bool mapXColumn READ isMapXColumn WRITE setMapXColumn)
+
   // bivariate
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
 
@@ -692,11 +695,15 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(FillUnder,fillUnder)
 
+ public:
+  using FillUnderPos  = CQChartsFillUnderPos;
+  using FillUnderSide = CQChartsFillUnderSide;
+
  private:
   struct FillUnderData {
-    bool                  selectable { false }; //!< is fill under selectable
-    CQChartsFillUnderPos  pos;                  //!< fill under position
-    CQChartsFillUnderSide side;                 //!< fill under side
+    bool          selectable { false }; //!< is fill under selectable
+    FillUnderPos  pos;                  //!< fill under position
+    FillUnderSide side;                 //!< fill under side
   };
 
  public:
@@ -730,6 +737,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   const Column &vectorYColumn() const { return vectorYColumn_; }
   void setVectorYColumn(const Column &c);
+
+  //---
+
+  //! get/set map x column
+  bool isMapXColumn() const { return mapXColumn_; }
+  void setMapXColumn(bool b);
 
   //---
 
@@ -785,11 +798,11 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool isFillUnderSelectable() const { return fillUnderData_.selectable; }
   void setFillUnderSelectable(bool b);
 
-  const CQChartsFillUnderPos &fillUnderPos() const { return fillUnderData_.pos; }
-  void setFillUnderPos(const CQChartsFillUnderPos &p);
+  const FillUnderPos &fillUnderPos() const { return fillUnderData_.pos; }
+  void setFillUnderPos(const FillUnderPos &p);
 
-  const CQChartsFillUnderSide &fillUnderSide() const { return fillUnderData_.side; }
-  void setFillUnderSide(const CQChartsFillUnderSide &s);
+  const FillUnderSide &fillUnderSide() const { return fillUnderData_.side; }
+  void setFillUnderSide(const FillUnderSide &s);
 
   //---
 
@@ -964,6 +977,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Column  labelColumn_;   //!< label column
   Column  vectorXColumn_; //!< vector x direction column
   Column  vectorYColumn_; //!< vector y direction column
+
+  bool mapXColumn_ { false }; //!< map x column value to unique id
 
   ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
 

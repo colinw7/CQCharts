@@ -61,6 +61,7 @@ INCLUDEPATH += \
 /usr/include/tcl \
 
 PRE_TARGETDEPS = \
+../lib/libCQCharts.a \
 ../../CQPropertyView/lib/libCQPropertyView.a \
 ../../CQModelView/lib/libCQModelView.a \
 ../../CQColors/lib/libCQColors.a \

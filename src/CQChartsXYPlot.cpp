@@ -295,6 +295,15 @@ setVectorYColumn(const Column &c)
 
 void
 CQChartsXYPlot::
+setMapXColumn(bool b)
+{
+  CQChartsUtil::testAndSet(mapXColumn_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
 resetBestFit()
 {
   for (const auto &plotObj : plotObjs_) {
@@ -461,6 +470,8 @@ addProperties()
 
   addProp("columns", "vectorXColumn", "vectorX", "Vector x column");
   addProp("columns", "vectorYColumn", "vectorY", "Vector y column");
+
+  addProp("columns", "mapXColumn", "mapX", "Map x column value to unique id");
 
   // bivariate
   addProp("bivariate", "bivariateLines", "visible", "Bivariate lines visible");
@@ -757,6 +768,15 @@ calcRange() const
 
   //---
 
+  if (isMapXColumn()) {
+    auto *columnDetails = this->columnDetails(xColumn());
+
+    for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
+      xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+  }
+
+  //---
+
   //dataRange = adjustDataRange(dataRange);
 
   //---
@@ -818,6 +838,9 @@ initAxes()
 
   if (xColumnType_ == ColumnType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+
+  if (isMapXColumn())
+    xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
 
   //---
 
@@ -1911,15 +1934,38 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   //---
 
   // get x value (must be valid)
+  bool ok1 { false };
+
   ModelIndex xModelInd(th, data.row, xColumn(), data.parent);
 
-  ind = modelIndex(xModelInd);
+  if (! isMapXColumn()) {
+    ind = modelIndex(xModelInd);
 
-  bool ok1 = modelMappedReal(xModelInd, x, isLogX(), data.row);
+    ok1 = modelMappedReal(xModelInd, x, isLogX(), data.row);
 
-  if (! ok1) {
-    th->addDataError(xModelInd, "Invalid X Value");
-    return false;
+    if (! ok1) {
+      th->addDataError(xModelInd, "Invalid X Value");
+      return false;
+    }
+  }
+  else {
+    QVariant var = modelValue(xModelInd, ok1);
+
+    if (! var.isValid()) {
+      th->addDataError(xModelInd, "Invalid X Value");
+      return false;
+    }
+
+    auto *columnDetails = this->columnDetails(xColumn());
+
+    if (! columnDetails) {
+      th->addDataError(xModelInd, "Invalid X Value");
+      return false;
+    }
+
+    x = columnDetails->uniqueId(var);
+
+    ok1 = true;
   }
 
   //---
@@ -2976,7 +3022,17 @@ calcTipId() const
 
   // add x, y columns
   if (! tableTip.hasColumn(plot()->xColumn())) {
-    QString xstr = plot()->xStr(x());
+    QString xstr;
+
+    if (! plot()->isMapXColumn()) {
+      xstr = plot()->xStr(x());
+    }
+    else {
+      auto *columnDetails = plot()->columnDetails(plot()->xColumn());
+
+      xstr = (columnDetails ? columnDetails->uniqueValue(int(x())).toString() :
+                              plot()->xStr(x()));
+    }
 
     QString xname;
 
