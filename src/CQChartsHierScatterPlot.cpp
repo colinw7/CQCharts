@@ -63,7 +63,7 @@ description() const
 
 CQChartsPlot *
 CQChartsHierScatterPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsHierScatterPlot(view, model);
 }
@@ -71,7 +71,7 @@ create(CQChartsView *view, const ModelP &model) const
 //---
 
 CQChartsHierScatterPlot::
-CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
+CQChartsHierScatterPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierscatter"), model),
  CQChartsObjPointData<CQChartsHierScatterPlot>(this)
 {
@@ -877,8 +877,8 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, strokeColor, plot_->symbolStrokeAlpha()),
-    CQChartsBrushData(true, fillColor  , plot_->symbolFillAlpha()));
+    PenData  (true, strokeColor, plot_->symbolStrokeAlpha()),
+    BrushData(true, fillColor  , plot_->symbolFillAlpha()));
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

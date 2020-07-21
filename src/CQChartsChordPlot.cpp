@@ -1269,7 +1269,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor bg = plot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpenBrush, CQChartsPenData(true, bg, CQChartsAlpha()));
+  plot_->setPen(lpenBrush, PenData(true, bg, CQChartsAlpha()));
 
   //---
 
@@ -1295,9 +1295,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
     fromAlpha = plot_->segmentAlpha();
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, segmentStrokeColor, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(true, fromColor, fromAlpha));
+    PenData  (true, segmentStrokeColor, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(true, fromColor, fromAlpha));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1616,9 +1616,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
     fillAlpha = plot_->arcAlpha();
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, arcStrokeColor, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(true, fillColor, fillAlpha));
+    PenData  (true, arcStrokeColor, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(true, fillColor, fillAlpha));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

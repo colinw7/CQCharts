@@ -744,7 +744,7 @@ postDraw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, color()), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, color()), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -839,8 +839,7 @@ postDraw(CQChartsPaintDevice *device)
   QColor pc = plot_->charts()->interpInterfaceColor(0.0);
 
   if (color_.isValid()) {
-    plot_->setPenBrush(penBrush, CQChartsPenData(true, pc, CQChartsAlpha(0.2)),
-                       CQChartsBrushData(true, color()));
+    plot_->setPenBrush(penBrush, PenData(true, pc, CQChartsAlpha(0.2)), BrushData(true, color()));
   }
   else {
     QColor fc = plot_->charts()->interpPaletteColor(ig());
@@ -853,8 +852,7 @@ postDraw(CQChartsPaintDevice *device)
 
     QColor fc1 = CQChartsUtil::blendColors(fc, bg, s);
 
-    plot_->setPenBrush(penBrush, CQChartsPenData(true, pc, CQChartsAlpha(0.2)),
-                       CQChartsBrushData(true, fc1));
+    plot_->setPenBrush(penBrush, PenData(true, pc, CQChartsAlpha(0.2)), BrushData(true, fc1));
   }
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -871,7 +869,7 @@ postDraw(CQChartsPaintDevice *device)
   //---
 
 #if 0
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, Qt::red), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, Qt::red), BrushData(false));
 
   plot_->drawSymbol(device, trp.point2D(), CQChartsSymbol::Type::CIRCLE,
                     CQChartsLength(4, CQChartsUnits::PIXEL), penBrush);
@@ -910,7 +908,7 @@ postDraw(CQChartsPaintDevice *device)
 
   QColor lc = plot_->charts()->interpPaletteColor(ig());
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, lc), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -960,7 +958,7 @@ postDraw(CQChartsPaintDevice *device)
 
   QColor gc(150, 150, 150);
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, gc), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, gc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -973,7 +971,7 @@ postDraw(CQChartsPaintDevice *device)
 
   QColor lc(0, 0, 0);
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, lc), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -992,7 +990,7 @@ postDraw(CQChartsPaintDevice *device)
 //QColor tlc(100, 200, 100);
   QColor tlc(0, 0, 0);
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, tlc), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, tlc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1035,7 +1033,7 @@ postDraw(CQChartsPaintDevice *device)
 
   QColor llc(100, 100, 200);
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, llc), CQChartsBrushData(false));
+  plot_->setPenBrush(penBrush, PenData(true, llc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

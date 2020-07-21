@@ -510,11 +510,15 @@ class CQChartsKeyItem : public QObject {
   Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
 
  public:
-  using BBox     = CQChartsGeom::BBox;
-  using Size     = CQChartsGeom::Size;
-  using Point    = CQChartsGeom::Point;
-  using ColorInd = CQChartsUtil::ColorInd;
-  using SelMod   = CQChartsSelMod;
+  using SelMod      = CQChartsSelMod;
+  using BrushData   = CQChartsBrushData;
+  using PenData     = CQChartsPenData;
+  using PaintDevice = CQChartsPaintDevice;
+  using ColorInd    = CQChartsUtil::ColorInd;
+
+  using BBox      = CQChartsGeom::BBox;
+  using Size      = CQChartsGeom::Size;
+  using Point     = CQChartsGeom::Point;
 
  public:
   CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic);
@@ -569,7 +573,7 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual void draw(CQChartsPaintDevice *device, const BBox &rect) const = 0;
+  virtual void draw(PaintDevice *device, const BBox &rect) const = 0;
 
  protected:
   CQChartsPlotKey* key_       { nullptr }; //!< parent key
@@ -611,7 +615,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   virtual QColor interpTextColor(const ColorInd &ind) const;
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+  void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
   CQChartsPlot* plot_ { nullptr };
@@ -672,7 +676,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+  void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
   CQChartsPlot*   plot_     { nullptr }; //!< parent plot
@@ -721,7 +725,7 @@ class CQChartsKeyLine : public CQChartsKeyItem {
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+  void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
   CQChartsPlot*      plot_ { nullptr }; //!< parent plot
@@ -745,7 +749,7 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
 
   Size size() const override;
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+  void draw(PaintDevice *device, const BBox &rect) const override;
 
   virtual int maxN() const = 0;
 

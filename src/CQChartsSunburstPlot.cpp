@@ -44,7 +44,7 @@ description() const
 
 CQChartsPlot *
 CQChartsSunburstPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsSunburstPlot(view, model);
 }
@@ -1163,8 +1163,8 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled(), fc, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled(), fc, fillAlpha(), fillPattern()));
 
   if (nodeObj)
     updateObjPenBrushState(nodeObj, penBrush);
@@ -1200,7 +1200,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   QColor tc = interpTextColor(colorInd);
 
-  setPen(tPenBrush, CQChartsPenData(true, tc, textAlpha()));
+  setPen(tPenBrush, PenData(true, tc, textAlpha()));
 
   if (nodeObj)
     updateObjPenBrushState(nodeObj, tPenBrush);

@@ -72,7 +72,7 @@ description() const
 
 CQChartsPlot *
 CQChartsPiePlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsPiePlot(view, model);
 }
@@ -80,7 +80,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsPiePlot::
-CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
+CQChartsPiePlot(View *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
  CQChartsObjShapeData   <CQChartsPiePlot>(this),
  CQChartsObjGridLineData<CQChartsPiePlot>(this)
@@ -1489,9 +1489,9 @@ draw(CQChartsPaintDevice *device)
     QColor gridColor = plot_->interpGridLinesColor(ColorInd());
 
     plot_->setPenBrush(penBrush,
-      CQChartsPenData  (true, gridColor, plot_->gridLinesAlpha(),
-                        plot_->gridLinesWidth(), plot_->gridLinesDash()),
-      CQChartsBrushData(false));
+      PenData  (true, gridColor, plot_->gridLinesAlpha(),
+                plot_->gridLinesWidth(), plot_->gridLinesDash()),
+      BrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1542,7 +1542,7 @@ draw(CQChartsPaintDevice *device)
 
       QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-      plot_->setPen(penBrush, CQChartsPenData(true, fg, CQChartsAlpha()));
+      plot_->setPen(penBrush, PenData(true, fg, CQChartsAlpha()));
 
       //---
 
@@ -1615,7 +1615,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
 
   QColor bg = fillColor();
 
-  plot_->setPen(lenBrush, CQChartsPenData(true, bg, CQChartsAlpha()));
+  plot_->setPen(lenBrush, PenData(true, bg, CQChartsAlpha()));
 
   //---
 
@@ -1667,8 +1667,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState, bool inside) const
   CQChartsAlpha fa = (inside ? CQChartsAlpha(0.7) : plot_->fillAlpha());
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(plot_->isFilled(), fc, fa, plot_->fillPattern()));
+    PenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(plot_->isFilled(), fc, fa, plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1910,7 +1910,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, fg), CQChartsBrushData(true, bg));
+  plot_->setPenBrush(penBrush, PenData(true, fg), BrushData(true, bg));
 
   plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1961,7 +1961,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-  plot_->setPen(penBrush, CQChartsPenData(true, fg, CQChartsAlpha()));
+  plot_->setPen(penBrush, PenData(true, fg, CQChartsAlpha()));
 
   //---
 

@@ -805,7 +805,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
 
   auto bc = interpStrokeColor(ColorInd());
 
-  setPenBrush(penBrush, CQChartsPenData(true, bc), CQChartsBrushData(false));
+  setPenBrush(penBrush, PenData(true, bc), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -923,9 +923,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   auto fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+    PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1095,7 +1095,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
 
   auto tc = plot_->interpTextColor(colorInd);
 
-  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->textAlpha()));
+  plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -1215,19 +1215,18 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (isPoint) {
     if      (plot_->isFilled())
       plot_->setPenBrush(penBrush,
-        CQChartsPenData  (true, fc, plot_->fillAlpha(), 0.0),
-        CQChartsBrushData(true, fc, plot_->fillAlpha(), plot_->fillPattern()));
+        PenData  (true, fc, plot_->fillAlpha(), 0.0),
+        BrushData(true, fc, plot_->fillAlpha(), plot_->fillPattern()));
     else if (plot_->isStroked())
       plot_->setPenBrush(penBrush,
-        CQChartsPenData  (true, bc, plot_->strokeAlpha(),
-                          plot_->strokeWidth(), plot_->strokeDash()),
-        CQChartsBrushData(true, bc, plot_->strokeAlpha()));
+        PenData  (true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
+        BrushData(true, bc, plot_->strokeAlpha()));
   }
   else {
     plot_->setPenBrush(penBrush,
-      CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                        plot_->strokeWidth(), plot_->strokeDash()),
-      CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+      PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
+                plot_->strokeWidth(), plot_->strokeDash()),
+      BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
   }
 
   if (updateState)

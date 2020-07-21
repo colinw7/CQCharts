@@ -51,7 +51,7 @@ description() const
 
 CQChartsPlot *
 CQChartsDendrogramPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsDendrogramPlot(view, model);
 }
@@ -59,7 +59,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsDendrogramPlot::
-CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
+CQChartsDendrogramPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("dendrogram"), model),
  CQChartsObjNodeShapeData<CQChartsDendrogramPlot>(this),
  CQChartsObjEdgeLineData <CQChartsDendrogramPlot>(this),
@@ -491,7 +491,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
 
-    setBrush(lPenBrush, CQChartsBrushData(false));
+    setBrush(lPenBrush, BrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, lPenBrush);
 
@@ -619,9 +619,9 @@ draw(CQChartsPaintDevice *device)
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
-                      plot_->plotStrokeWidth(), plot_->nodeStrokeDash()),
-    CQChartsBrushData(filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern()));
+    PenData  (plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
+              plot_->plotStrokeWidth(), plot_->nodeStrokeDash()),
+    BrushData(filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern()));
 
   plot_->updateObjPenBrushState(this, penBrush);
 
@@ -639,7 +639,7 @@ draw(CQChartsPaintDevice *device)
 
   QColor tc = plot_->interpTextColor(ColorInd());
 
-  plot_->setPen(tpenBrush, CQChartsPenData(/*stroked*/true, tc, plot_->textAlpha()));
+  plot_->setPen(tpenBrush, PenData(/*stroked*/true, tc, plot_->textAlpha()));
 
   device->setPen(tpenBrush.pen);
 

@@ -69,7 +69,7 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   queueUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_PLOT_QUEUE"    , queueUpdate_);
   bufferSymbols_ = CQChartsEnv::getInt ("CQ_CHARTS_BUFFER_SYMBOLS", bufferSymbols_);
 
-  displayRange_ = new CQChartsDisplayRange();
+  displayRange_ = new DisplayRange();
 
   displayRange_->setPixelAdjust(0.0);
 
@@ -82,7 +82,7 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   debugUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE"   , debugUpdate_  );
   debugQuadTree_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
 
-  editHandles_ = new CQChartsEditHandles(view);
+  editHandles_ = new EditHandles(view);
 
   //--
 
@@ -113,24 +113,24 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   //---
 
   // all layers active except BG_PLOT and FG_PLOT
-  initLayer(CQChartsLayer::Type::BACKGROUND , CQChartsBuffer::Type::BACKGROUND, true );
-  initLayer(CQChartsLayer::Type::BG_AXES    , CQChartsBuffer::Type::BACKGROUND, true );
-  initLayer(CQChartsLayer::Type::BG_KEY     , CQChartsBuffer::Type::BACKGROUND, true );
+  initLayer(Layer::Type::BACKGROUND , Buffer::Type::BACKGROUND, true );
+  initLayer(Layer::Type::BG_AXES    , Buffer::Type::BACKGROUND, true );
+  initLayer(Layer::Type::BG_KEY     , Buffer::Type::BACKGROUND, true );
 
-  initLayer(CQChartsLayer::Type::BG_PLOT    , CQChartsBuffer::Type::MIDDLE    , false);
-  initLayer(CQChartsLayer::Type::MID_PLOT   , CQChartsBuffer::Type::MIDDLE    , true );
-  initLayer(CQChartsLayer::Type::FG_PLOT    , CQChartsBuffer::Type::MIDDLE    , false);
+  initLayer(Layer::Type::BG_PLOT    , Buffer::Type::MIDDLE    , false);
+  initLayer(Layer::Type::MID_PLOT   , Buffer::Type::MIDDLE    , true );
+  initLayer(Layer::Type::FG_PLOT    , Buffer::Type::MIDDLE    , false);
 
-  initLayer(CQChartsLayer::Type::FG_AXES    , CQChartsBuffer::Type::FOREGROUND, true );
-  initLayer(CQChartsLayer::Type::FG_KEY     , CQChartsBuffer::Type::FOREGROUND, true );
-  initLayer(CQChartsLayer::Type::TITLE      , CQChartsBuffer::Type::FOREGROUND, true );
-  initLayer(CQChartsLayer::Type::ANNOTATION , CQChartsBuffer::Type::FOREGROUND, true );
-  initLayer(CQChartsLayer::Type::FOREGROUND , CQChartsBuffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::FG_AXES    , Buffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::FG_KEY     , Buffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::TITLE      , Buffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::ANNOTATION , Buffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::FOREGROUND , Buffer::Type::FOREGROUND, true );
 
-  initLayer(CQChartsLayer::Type::EDIT_HANDLE, CQChartsBuffer::Type::OVERLAY   , true );
-  initLayer(CQChartsLayer::Type::BOXES      , CQChartsBuffer::Type::OVERLAY   , true );
-  initLayer(CQChartsLayer::Type::SELECTION  , CQChartsBuffer::Type::OVERLAY   , true );
-  initLayer(CQChartsLayer::Type::MOUSE_OVER , CQChartsBuffer::Type::OVERLAY   , true );
+  initLayer(Layer::Type::EDIT_HANDLE, Buffer::Type::OVERLAY   , true );
+  initLayer(Layer::Type::BOXES      , Buffer::Type::OVERLAY   , true );
+  initLayer(Layer::Type::SELECTION  , Buffer::Type::OVERLAY   , true );
+  initLayer(Layer::Type::MOUSE_OVER , Buffer::Type::OVERLAY   , true );
 
   //---
 
@@ -194,7 +194,7 @@ QString
 CQChartsPlot::
 calcName() const
 {
-  QString name = this->name();
+  auto name = this->name();
 
   if (! name.length())
     name = this->id();
@@ -401,7 +401,7 @@ CQChartsPlot::
 selectionSlot(QItemSelectionModel *sm)
 {
   // get selected (normalized) indices from selection model
-  CQChartsPlotObj::Indices selectIndices;
+  PlotObj::Indices selectIndices;
 
   getSelectIndices(sm, selectIndices);
 
@@ -435,13 +435,13 @@ void
 CQChartsPlot::
 getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &selectIndices)
 {
-  QModelIndexList indices = sm->selectedIndexes();
+  auto indices = sm->selectedIndexes();
   if (indices.empty()) return;
 
   for (int i = 0; i < indices.size(); ++i) {
     const auto &ind = indices[i];
 
-    QModelIndex ind1 = normalizeIndex(ind);
+    auto ind1 = normalizeIndex(ind);
 
     selectIndices.insert(ind1);
   }
@@ -667,7 +667,7 @@ applyVisibleFilter()
     expr->initMatch(visibleFilterStr());
 
     for (auto &plotObj : plotObjects()) {
-      QModelIndex ind = plotObj->modelInd();
+      auto ind = plotObj->modelInd();
 
       bool ok;
 
@@ -706,7 +706,7 @@ drawBackground()
     startThreadTimer();
   }
   else
-    invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    invalidateLayer(Buffer::Type::BACKGROUND);
 }
 
 void
@@ -728,7 +728,7 @@ drawForeground()
     startThreadTimer();
   }
   else {
-    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    invalidateLayer(Buffer::Type::FOREGROUND);
 
     invalidateOverlay();
   }
@@ -763,7 +763,7 @@ drawObjs()
 
 void
 CQChartsPlot::
-writeScript(CQChartsScriptPaintDevice *device) const
+writeScript(ScriptPaintDevice *device) const
 {
   std::string plotId = "plot_" + this->id().toStdString();
 
@@ -790,7 +790,7 @@ writeScript(CQChartsScriptPaintDevice *device) const
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible()) continue;
 
-    if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
+    if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
       std::string objStr = device->encodeObjId(objId).toStdString();
 
@@ -888,7 +888,7 @@ writeScript(CQChartsScriptPaintDevice *device) const
   // middle parts (objects and annotations)
   os << "\n"; os << "  this.drawObjs();\n";
 
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
     os << "\n"; os << "  this.drawAnnotations();\n";
   }
 
@@ -922,7 +922,7 @@ writeScript(CQChartsScriptPaintDevice *device) const
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible()) continue;
 
-    if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
+    if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
       std::string objStr = device->encodeObjId(objId).toStdString();
 
@@ -1024,7 +1024,7 @@ writeScript(CQChartsScriptPaintDevice *device) const
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible()) continue;
 
-    if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
+    if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
       std::string objStr = device->encodeObjId(objId).toStdString();
 
@@ -1044,10 +1044,10 @@ writeScript(CQChartsScriptPaintDevice *device) const
   //---
 
   // draw annotations proc
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
-    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
+    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
     os << "}\n";
   }
 
@@ -1112,7 +1112,7 @@ writeScript(CQChartsScriptPaintDevice *device) const
 
 void
 CQChartsPlot::
-writeScriptRange(CQChartsScriptPaintDevice *device) const
+writeScriptRange(ScriptPaintDevice *device) const
 {
   std::ostream &os = device->os();
 
@@ -1127,11 +1127,11 @@ writeScriptRange(CQChartsScriptPaintDevice *device) const
 
 void
 CQChartsPlot::
-writeSVG(CQChartsSVGPaintDevice *device) const
+writeSVG(SVGPaintDevice *device) const
 {
   QString plotId = "plot_" + this->id();
 
-  CQChartsSVGPaintDevice::GroupData groupData;
+  SVGPaintDevice::GroupData groupData;
 
   groupData.visible = isVisible();
 
@@ -1164,12 +1164,12 @@ writeSVG(CQChartsSVGPaintDevice *device) const
   for (const auto &plotObj : plotObjects()) {
     QString objId = QString("obj_") + plotId + "_" + plotObj->id();
 
-    CQChartsSVGPaintDevice::GroupData objGroupData;
+    SVGPaintDevice::GroupData objGroupData;
 
     objGroupData.visible   = plotObj->isVisible();
     objGroupData.onclick   = true;
     objGroupData.clickProc = "plotObjClick";
-    objGroupData.tipStr    = CQChartsSVGPaintDevice::encodeString(plotObj->tipId());
+    objGroupData.tipStr    = SVGPaintDevice::encodeString(plotObj->tipId());
     objGroupData.hasTip    = plotObj->hasTipId();
 
     device->startGroup(device->encodeObjId(objId), objGroupData);
@@ -1181,8 +1181,8 @@ writeSVG(CQChartsSVGPaintDevice *device) const
     device->endGroup();
   }
 
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
-    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
+  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
+    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
   }
 
   if (hasForeground()) {
@@ -1218,9 +1218,9 @@ writeSVG(CQChartsSVGPaintDevice *device) const
 
 void
 CQChartsPlot::
-writeHtml(CQChartsHtmlPaintDevice *device) const
+writeHtml(HtmlPaintDevice *device) const
 {
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
     if (isOverlay()) {
       if (! isFirstPlot())
         return;
@@ -1257,7 +1257,7 @@ void
 CQChartsPlot::
 execInvalidateOverlay()
 {
-  execInvalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  execInvalidateLayer(Buffer::Type::OVERLAY);
 }
 
 //---
@@ -1271,7 +1271,7 @@ displayRange() const
 
 void
 CQChartsPlot::
-setDisplayRange(const CQChartsDisplayRange &r)
+setDisplayRange(const DisplayRange &r)
 {
   *displayRange_ = r;
 }
@@ -1443,28 +1443,28 @@ updateDataScaleY(double r)
 
 void
 CQChartsPlot::
-setXMin(const CQChartsOptReal &r)
+setXMin(const OptReal &r)
 {
   CQChartsUtil::testAndSet(xmin_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setXMax(const CQChartsOptReal &r)
+setXMax(const OptReal &r)
 {
   CQChartsUtil::testAndSet(xmax_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setYMin(const CQChartsOptReal &r)
+setYMin(const OptReal &r)
 {
   CQChartsUtil::testAndSet(ymin_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setYMax(const CQChartsOptReal &r)
+setYMax(const OptReal &r)
 {
   CQChartsUtil::testAndSet(ymax_, r, [&]() { updateRangeAndObjs(); } );
 }
@@ -1631,7 +1631,7 @@ setPlotsAxisNames(const Plots &plots, CQChartsPlot *axisPlot)
 
 void
 CQChartsPlot::
-setPlotBorderSides(const CQChartsSides &s)
+setPlotBorderSides(const Sides &s)
 {
   CQChartsUtil::testAndSet(plotBorderSides_, s, [&]() { drawBackground(); } );
 }
@@ -1647,7 +1647,7 @@ setPlotClip(bool b)
 
 void
 CQChartsPlot::
-setDataBorderSides(const CQChartsSides &s)
+setDataBorderSides(const Sides &s)
 {
   CQChartsUtil::testAndSet(dataBorderSides_, s, [&]() { drawBackground(); } );
 }
@@ -1663,7 +1663,7 @@ setDataClip(bool b)
 
 void
 CQChartsPlot::
-setFitBorderSides(const CQChartsSides &s)
+setFitBorderSides(const Sides &s)
 {
   CQChartsUtil::testAndSet(fitBorderSides_, s, [&]() { drawBackground(); } );
 }
@@ -1672,7 +1672,7 @@ setFitBorderSides(const CQChartsSides &s)
 
 void
 CQChartsPlot::
-setFont(const CQChartsFont &f)
+setFont(const Font &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { drawObjs(); } );
 }
@@ -1686,7 +1686,7 @@ qfont() const
 
 QFont
 CQChartsPlot::
-qfont(const CQChartsFont &font) const
+qfont(const Font &font) const
 {
   return view()->plotFont(this, font);
 }
@@ -1695,7 +1695,7 @@ qfont(const CQChartsFont &font) const
 
 void
 CQChartsPlot::
-setDefaultPalette(const CQChartsPaletteName &name)
+setDefaultPalette(const PaletteName &name)
 {
   CQChartsUtil::testAndSet(defaultPalette_, name, [&]() { drawObjs(); } );
 }
@@ -1760,35 +1760,35 @@ setAutoFit(bool b)
 // fit margin
 void
 CQChartsPlot::
-setFitMarginLeft(const CQChartsLength &l)
+setFitMarginLeft(const Length &l)
 {
   if (l != fitMargin_.left()) { fitMargin_.setLeft(l); postResize(); }
 }
 
 void
 CQChartsPlot::
-setFitMarginTop(const CQChartsLength &t)
+setFitMarginTop(const Length &t)
 {
   if (t != fitMargin_.top()) { fitMargin_.setTop(t); postResize(); }
 }
 
 void
 CQChartsPlot::
-setFitMarginRight(const CQChartsLength &r)
+setFitMarginRight(const Length &r)
 {
   if (r != fitMargin_.right()) { fitMargin_.setRight(r); postResize(); }
 }
 
 void
 CQChartsPlot::
-setFitMarginBottom(const CQChartsLength &b)
+setFitMarginBottom(const Length &b)
 {
   if (b != fitMargin_.bottom()) { fitMargin_.setBottom(b); postResize(); }
 }
 
 void
 CQChartsPlot::
-setFitMargin(const CQChartsPlotMargin &m)
+setFitMargin(const PlotMargin &m)
 {
   if (m != fitMargin_) { fitMargin_ = m; postResize(); }
 }
@@ -1839,7 +1839,7 @@ updateMargins(bool update)
 
 void
 CQChartsPlot::
-updateMargins(const CQChartsPlotMargin &outerMargin)
+updateMargins(const PlotMargin &outerMargin)
 {
   innerViewBBox_ = outerMargin.adjustViewRange(this, calcViewBBox(), /*inside*/false);
 
@@ -1960,35 +1960,35 @@ aspect() const
 // inner margin
 void
 CQChartsPlot::
-setInnerMarginLeft(const CQChartsLength &l)
+setInnerMarginLeft(const Length &l)
 {
   if (l != innerMargin_.left()) { innerMargin_.setLeft(l); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
-setInnerMarginTop(const CQChartsLength &t)
+setInnerMarginTop(const Length &t)
 {
   if (t != innerMargin_.top()) { innerMargin_.setTop(t); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
-setInnerMarginRight(const CQChartsLength &r)
+setInnerMarginRight(const Length &r)
 {
   if (r != innerMargin_.right()) { innerMargin_.setRight(r); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
-setInnerMarginBottom(const CQChartsLength &b)
+setInnerMarginBottom(const Length &b)
 {
   if (b != innerMargin_.bottom()) { innerMargin_.setBottom(b); applyDataRangeAndDraw(); }
 }
 
 void
 CQChartsPlot::
-setInnerMargin(const CQChartsPlotMargin &m)
+setInnerMargin(const PlotMargin &m)
 {
   if (m != innerMargin_) { innerMargin_ = m; applyDataRangeAndDraw(); }
 }
@@ -1997,35 +1997,35 @@ setInnerMargin(const CQChartsPlotMargin &m)
 
 void
 CQChartsPlot::
-setOuterMarginLeft(const CQChartsLength &l)
+setOuterMarginLeft(const Length &l)
 {
   if (l != outerMargin_.left()) { outerMargin_.setLeft(l); updateMargins(); }
 }
 
 void
 CQChartsPlot::
-setOuterMarginTop(const CQChartsLength &t)
+setOuterMarginTop(const Length &t)
 {
   if (t != outerMargin_.top()) { outerMargin_.setTop(t); updateMargins(); }
 }
 
 void
 CQChartsPlot::
-setOuterMarginRight(const CQChartsLength &r)
+setOuterMarginRight(const Length &r)
 {
   if (r != outerMargin_.right()) { outerMargin_.setRight(r); updateMargins(); }
 }
 
 void
 CQChartsPlot::
-setOuterMarginBottom(const CQChartsLength &b)
+setOuterMarginBottom(const Length &b)
 {
   if (b != outerMargin_.bottom()) { outerMargin_.setBottom(b); updateMargins(); }
 }
 
 void
 CQChartsPlot::
-setOuterMargin(const CQChartsPlotMargin &m)
+setOuterMargin(const PlotMargin &m)
 {
   if (m != outerMargin_) { outerMargin_ = m; updateMargins(); }
 }
@@ -2408,7 +2408,7 @@ tabbedFont() const
 
 void
 CQChartsPlot::
-setTabbedFont(const CQChartsFont &f)
+setTabbedFont(const Font &f)
 {
   if (isTabbed()) {
     Plots plots;
@@ -2762,8 +2762,8 @@ addBaseProperties()
 
 void
 CQChartsPlot::
-addSymbolProperties(const QString &path, const QString &prefix,
-                    const QString &descPrefix, bool hidden)
+addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                    bool hidden)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden) {
@@ -2816,8 +2816,8 @@ addSymbolProperties(const QString &path, const QString &prefix,
 
 void
 CQChartsPlot::
-addLineProperties(const QString &path, const QString &prefix,
-                  const QString &descPrefix, bool hidden)
+addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                  bool hidden)
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden) {
@@ -2840,8 +2840,8 @@ addLineProperties(const QString &path, const QString &prefix,
 
 void
 CQChartsPlot::
-addFillProperties(const QString &path, const QString &prefix,
-                  const QString &descPrefix, bool hidden)
+addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                  bool hidden)
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden) {
@@ -3119,7 +3119,7 @@ propertyItemSelected(QObject *obj, const QString &)
   }
   else {
     for (const auto &annotation : annotations()) {
-      if (! annotation->isSelectable())
+      if (! annotation->isVisible() || ! annotation->isSelectable())
         continue;
 
       if (obj == annotation) {
@@ -3159,7 +3159,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   propertyModel()->objectNames(this, names, hidden);
 
-  auto getObjPropertyNames = [&](std::initializer_list<CQChartsObj *> objs) {
+  auto getObjPropertyNames = [&](std::initializer_list<Obj *> objs) {
     for (const auto &obj : objs) {
       if (obj)
         propertyModel()->objectNames(obj, names, hidden);
@@ -3171,7 +3171,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 
 void
 CQChartsPlot::
-getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const
+getObjectPropertyNames(PlotObj *plotObj, QStringList &names) const
 {
   names = CQUtil::getPropertyList(plotObj, /*inherited*/ false);
 }
@@ -3308,7 +3308,7 @@ addColorKeyItems(CQChartsPlotKey *key)
 
     columnValueColor(value, color);
 
-    QColor c = interpColor(color, ColorInd());
+    auto c = interpColor(color, ColorInd());
 
     auto *keyColor = addKeyRow(name, c);
 
@@ -3490,7 +3490,7 @@ threadTimerSlot()
     if (updateState != UpdateState::DRAW_OBJS) {
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] = 0;
 
-      this->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+      this->invalidateLayer(Buffer::Type::BACKGROUND);
 
       this->invalidateOverlay();
 
@@ -3502,7 +3502,7 @@ threadTimerSlot()
     if (updateState != UpdateState::DRAW_OBJS) {
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] = 0;
 
-      this->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      this->invalidateLayer(Buffer::Type::FOREGROUND);
 
       this->invalidateOverlay();
 
@@ -4144,7 +4144,7 @@ adjustDataRangeBBox(const BBox &bbox) const
   //----
 
   // save original range
-  CQChartsDisplayRange displayRange = this->displayRange();
+  auto displayRange = this->displayRange();
 
   // update to calculated range
   auto dataRange = calcDataRange(/*adjust*/false);
@@ -4610,7 +4610,7 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
 
 void
 CQChartsPlot::
-addPlotObject(CQChartsPlotObj *obj)
+addPlotObject(PlotObj *obj)
 {
   assert(obj);
 
@@ -4774,12 +4774,12 @@ createObjs()
 
 QString
 CQChartsPlot::
-columnsHeaderName(const CQChartsColumns &columns, bool tip) const
+columnsHeaderName(const Columns &columns, bool tip) const
 {
   QString str;
 
   for (const auto &column : columns.columns()) {
-    QString str1 = columnHeaderName(column, tip);
+    auto str1 = columnHeaderName(column, tip);
     if (! str1.length()) continue;
 
     if (str.length())
@@ -4793,7 +4793,7 @@ columnsHeaderName(const CQChartsColumns &columns, bool tip) const
 
 QString
 CQChartsPlot::
-columnHeaderName(const CQChartsColumn &column, bool tip) const
+columnHeaderName(const Column &column, bool tip) const
 {
   auto p = columnNames_.find(column);
   if (p != columnNames_.end()) return (*p).second;
@@ -4818,11 +4818,11 @@ updateColumnNames()
 
 void
 CQChartsPlot::
-setColumnHeaderName(const CQChartsColumn &column, const QString &def)
+setColumnHeaderName(const Column &column, const QString &def)
 {
   bool ok;
 
-  QString str = modelHHeaderString(column, ok);
+  auto str = modelHHeaderString(column, ok);
   if (! str.length()) str = def;
 
   columnNames_[column] = str;
@@ -5088,7 +5088,7 @@ addError(const QString &msg)
 
 bool
 CQChartsPlot::
-addColumnError(const CQChartsColumn &c, const QString &msg)
+addColumnError(const Column &c, const QString &msg)
 {
   if (! isPreview()) {
     ColumnError err { c, msg };
@@ -5352,7 +5352,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
 {
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
-  using ObjsSelected = std::map<CQChartsObj*,bool>;
+  using ObjsSelected = std::map<Obj*, bool>;
 
   ObjsSelected objsSelected;
 
@@ -5378,7 +5378,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   //---
 
   // get object under mouse
-  CQChartsObj *selectObj = nullptr;
+  Obj *selectObj = nullptr;
 
   if (isFollowMouse()) {
     selectObj = insideObject();
@@ -5413,7 +5413,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
     //selectObj->selectPress();
 
-    auto *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(selectObj);
+    auto *selectPlotObj = dynamic_cast<PlotObj *>(selectObj);
 
     if (selectPlotObj) {
       emit objPressed  (selectPlotObj);
@@ -5428,7 +5428,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   // select objects and track if selection changed
   bool changed = false;
 
-  auto setObjSelected = [&](CQChartsObj *obj, bool selected) {
+  auto setObjSelected = [&](Obj *obj, bool selected) {
     if (! changed) { startSelection(); changed = true; }
 
     obj->setSelected(selected);
@@ -5460,7 +5460,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
     beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
-      auto *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+      auto *selectPlotObj = dynamic_cast<PlotObj *>(objSelected.first);
 
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
@@ -5782,7 +5782,7 @@ annotationsEditPress(const Point &w)
 {
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
-    if (! annotation->isEditable())
+    if (! annotation->isVisible() || ! annotation->isEditable())
       continue;
 
     if (! annotation->isSelected())
@@ -5929,7 +5929,7 @@ annotationsEditSelect(const Point &w)
   annotationsAtPoint(w, annotations);
 
   for (const auto &annotation : annotations) {
-    if (! annotation->isEditable())
+    if (! annotation->isVisible() || ! annotation->isEditable())
       continue;
 
     if (! annotation->contains(w))
@@ -5979,7 +5979,7 @@ objectsEditSelect(const Point &w, bool inside)
   objsAtPoint(w, objs, Constraints::EDITABLE);
 
   for (const auto &obj : objs) {
-    auto *plotObj = dynamic_cast<CQChartsPlotObj *>(obj);
+    auto *plotObj = dynamic_cast<PlotObj *>(obj);
     if (! plotObj) continue;
 
     if (! plotObj->isEditable())
@@ -6032,7 +6032,7 @@ objectsEditSelect(const Point &w, bool inside)
 
 void
 CQChartsPlot::
-selectOneObj(CQChartsObj *obj, bool allObjs)
+selectOneObj(Obj *obj, bool allObjs)
 {
   startSelection();
 
@@ -6106,7 +6106,7 @@ deselectAll1(bool &changed)
     if (! changed) { startSelection(); changed = true; }
   };
 
-  auto deselectObjs = [&](std::initializer_list<CQChartsObj *> objs) {
+  auto deselectObjs = [&](std::initializer_list<Obj *> objs) {
     for (const auto &obj : objs) {
       if (obj && obj->isSelected()) {
         obj->setSelected(false);
@@ -6263,9 +6263,9 @@ editMove(const Point &p, const Point &w, bool /*first*/)
         else
           plot->updateMargins();
 
-        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-        plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
-        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+        plot->invalidateLayer(Buffer::Type::BACKGROUND);
+        plot->invalidateLayer(Buffer::Type::MIDDLE);
+        plot->invalidateLayer(Buffer::Type::FOREGROUND);
 
         plot->invalidateOverlay();
       });
@@ -6284,9 +6284,9 @@ editMove(const Point &p, const Point &w, bool /*first*/)
       else
         updateMargins();
 
-      invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
-      invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      invalidateLayer(Buffer::Type::BACKGROUND);
+      invalidateLayer(Buffer::Type::MIDDLE);
+      invalidateLayer(Buffer::Type::FOREGROUND);
 
       invalidateOverlay();
     }
@@ -6413,7 +6413,7 @@ editRelease(const Point &, const Point &w)
       assert(plot);
     }
     else if (mouseData_.dragObjType == DragObjType::OBJECT) {
-      auto *plotObj = dynamic_cast<CQChartsPlotObj *>(mouseData_.dragObj);
+      auto *plotObj = dynamic_cast<PlotObj *>(mouseData_.dragObj);
       assert(plotObj);
 
       plotObj->editRelease(w);
@@ -6521,7 +6521,7 @@ editMoveBy(const Point &d)
 
 void
 CQChartsPlot::
-setDragObj(DragObjType objType, CQChartsObj *obj)
+setDragObj(DragObjType objType, Obj *obj)
 {
   mouseData_.dragObjType = objType;
   mouseData_.dragObj     = obj;
@@ -6581,7 +6581,7 @@ rectSelect(const BBox &r, SelMod selMod)
 {
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
-  using ObjsSelected = std::map<CQChartsObj*,bool>;
+  using ObjsSelected = std::map<Obj*, bool>;
 
   ObjsSelected objsSelected;
 
@@ -6630,7 +6630,7 @@ rectSelect(const BBox &r, SelMod selMod)
   // select objects and track if selection changed
   bool changed = false;
 
-  auto setObjSelected = [&](CQChartsObj *obj, bool selected) {
+  auto setObjSelected = [&](Obj *obj, bool selected) {
     if (! changed) { startSelection(); changed = true; }
 
     obj->setSelected(selected);
@@ -6662,7 +6662,7 @@ rectSelect(const BBox &r, SelMod selMod)
     beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
-      auto *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+      auto *selectPlotObj = dynamic_cast<PlotObj *>(objSelected.first);
 
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
@@ -6760,7 +6760,7 @@ setPlotObjTreeSet(bool b)
 
 void
 CQChartsPlot::
-setXValueColumn(const CQChartsColumn &c)
+setXValueColumn(const Column &c)
 {
   if (mappedXAxis()) {
     // calls drawBackground and drawForeground
@@ -6770,7 +6770,7 @@ setXValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsPlot::
-setYValueColumn(const CQChartsColumn &c)
+setYValueColumn(const Column &c)
 {
   if (mappedYAxis()) {
     // calls drawBackground and drawForeground
@@ -6782,42 +6782,42 @@ setYValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsPlot::
-setIdColumn(const CQChartsColumn &c)
+setIdColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(idColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setTipColumns(const CQChartsColumns &c)
+setTipColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(tipColumns_, c, [&]() { resetObjTips(); } );
 }
 
 void
 CQChartsPlot::
-setNoTipColumns(const CQChartsColumns &c)
+setNoTipColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(noTipColumns_, c, [&]() { resetObjTips(); } );
 }
 
 void
 CQChartsPlot::
-setVisibleColumn(const CQChartsColumn &c)
+setVisibleColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(visibleColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setImageColumn(const CQChartsColumn &c)
+setImageColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(imageColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setControlColumns(const CQChartsColumns &c)
+setControlColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(controlColumns_, c, [&]() {
     updateRangeAndObjs();
@@ -6830,7 +6830,7 @@ setControlColumns(const CQChartsColumns &c)
 
 void
 CQChartsPlot::
-setColorColumn(const CQChartsColumn &c)
+setColorColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() { updateObjs(); } );
 }
@@ -6872,14 +6872,14 @@ setColorMapPalette(const QString &s)
 
 void
 CQChartsPlot::
-setColorXStops(const CQChartsColorStops &s)
+setColorXStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsPlot::
-setColorYStops(const CQChartsColorStops &s)
+setColorYStops(const ColorStops &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() { updateObjs(); } );
 }
@@ -6912,8 +6912,8 @@ initColorColumnData()
   }
   else {
     if (colorColumnData_.mapped) {
-      QVariant minVar = columnDetails->minValue();
-      QVariant maxVar = columnDetails->maxValue();
+      auto minVar = columnDetails->minValue();
+      auto maxVar = columnDetails->maxValue();
 
       bool ok;
 
@@ -6937,8 +6937,7 @@ initColorColumnData()
       assert(colorType);
 
       colorType->getMapData(charts(), model().data(), colorColumn(),
-                            columnTypeData.nameValues,
-                            colorColumnData_.mapped,
+                            columnTypeData.nameValues, colorColumnData_.mapped,
                             colorColumnData_.data_min, colorColumnData_.data_max,
                             colorColumnData_.palette);
     }
@@ -6970,7 +6969,7 @@ modelIndexColor(const ModelIndex &colorInd, Color &color) const
   // get model edit value
   bool ok;
 
-  QVariant var = modelValue(colorInd, ok);
+  auto var = modelValue(colorInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   return columnValueColor(var, color);
@@ -7043,7 +7042,7 @@ columnValueColor(const QVariant &var, Color &color) const
     }
     else {
       bool ok;
-      QString str = CQChartsVariant::toString(var, ok);
+      auto str = CQChartsVariant::toString(var, ok);
 
       color = Color(str);
     }
@@ -7056,14 +7055,14 @@ columnValueColor(const QVariant &var, Color &color) const
 
 void
 CQChartsPlot::
-setFontColumn(const CQChartsColumn &c)
+setFontColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fontColumn_, c, [&]() { updateObjs(); } );
 }
 
 bool
 CQChartsPlot::
-fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const
+fontColumnFont(int row, const QModelIndex &parent, Font &font) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -7074,12 +7073,12 @@ fontColumnFont(int row, const QModelIndex &parent, CQChartsFont &font) const
 
 bool
 CQChartsPlot::
-modelIndexFont(const ModelIndex &fontInd, CQChartsFont &font) const
+modelIndexFont(const ModelIndex &fontInd, Font &font) const
 {
   // get model edit value
   bool ok;
 
-  QVariant var = modelValue(fontInd, ok);
+  auto var = modelValue(fontInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   return columnValueFont(var, font);
@@ -7087,7 +7086,7 @@ modelIndexFont(const ModelIndex &fontInd, CQChartsFont &font) const
 
 bool
 CQChartsPlot::
-columnValueFont(const QVariant &var, CQChartsFont &font) const
+columnValueFont(const QVariant &var, Font &font) const
 {
   if (CQChartsVariant::isNumeric(var)) {
     // get real value
@@ -7106,9 +7105,9 @@ columnValueFont(const QVariant &var, CQChartsFont &font) const
   }
   else {
     bool ok;
-    QString str = CQChartsVariant::toString(var, ok);
+    auto str = CQChartsVariant::toString(var, ok);
 
-    font = CQChartsFont(str);
+    font = Font(str);
   }
 
   return font.isValid();
@@ -7134,8 +7133,8 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
   }
   else {
     if (symbolTypeData.mapped) {
-      QVariant minVar = columnDetails->minValue();
-      QVariant maxVar = columnDetails->maxValue();
+      auto minVar = columnDetails->minValue();
+      auto maxVar = columnDetails->maxValue();
 
       bool ok;
 
@@ -7171,8 +7170,8 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
 
 bool
 CQChartsPlot::
-columnSymbolType(int row, const QModelIndex &parent,
-                 const SymbolTypeData &symbolTypeData, CQChartsSymbol &symbolType) const
+columnSymbolType(int row, const QModelIndex &parent, const SymbolTypeData &symbolTypeData,
+                 Symbol &symbolType) const
 {
   if (! symbolTypeData.valid)
     return false;
@@ -7183,7 +7182,7 @@ columnSymbolType(int row, const QModelIndex &parent,
 
   bool ok;
 
-  QVariant var = modelValue(symbolTypeModelInd, ok);
+  auto var = modelValue(symbolTypeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (CQChartsVariant::isNumeric(var)) {
@@ -7196,11 +7195,11 @@ columnSymbolType(int row, const QModelIndex &parent,
       int i1 = (int) CMathUtil::map(i, symbolTypeData.data_min, symbolTypeData.data_max,
                                     symbolTypeData.map_min, symbolTypeData.map_max);
 
-      symbolType = CQChartsSymbol::outlineFromInt(i1);
+      symbolType = Symbol::outlineFromInt(i1);
     }
     else {
       // use value directly for type
-      symbolType = CQChartsSymbol::outlineFromInt(i);
+      symbolType = Symbol::outlineFromInt(i);
     }
   }
   else if (CQChartsVariant::isSymbol(var)) {
@@ -7222,12 +7221,12 @@ columnSymbolType(int row, const QModelIndex &parent,
 
       double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
 
-      symbolType = CQChartsSymbol::interpOutline(r);
+      symbolType = Symbol::interpOutline(r);
     }
     else {
-      QString str = CQChartsVariant::toString(var, ok);
+      auto str = CQChartsVariant::toString(var, ok);
 
-      symbolType = CQChartsSymbol(str);
+      symbolType = Symbol(str);
     }
   }
 
@@ -7255,9 +7254,9 @@ initSymbolSizeData(SymbolSizeData &symbolSizeData) const
   }
   else {
     if (symbolSizeData.mapped) {
-      QVariant minVar  = columnDetails->minValue();
-      QVariant maxVar  = columnDetails->maxValue();
-      QVariant meanVar = columnDetails->meanValue();
+      auto minVar  = columnDetails->minValue();
+      auto maxVar  = columnDetails->maxValue();
+      auto meanVar = columnDetails->meanValue();
 
       bool ok;
 
@@ -7298,7 +7297,7 @@ initSymbolSizeData(SymbolSizeData &symbolSizeData) const
 bool
 CQChartsPlot::
 columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbolSizeData,
-                 CQChartsLength &symbolSize) const
+                 Length &symbolSize) const
 {
   if (! symbolSizeData.valid)
     return false;
@@ -7313,7 +7312,7 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
 
   bool ok;
 
-  QVariant var = modelValue(symbolSizeModelInd, ok);
+  auto var = modelValue(symbolSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (CQChartsVariant::isNumeric(var)) {
@@ -7326,7 +7325,7 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
       double r1 = CMathUtil::map(r, symbolSizeData.data_min, symbolSizeData.data_max,
                                  symbolSizeData.map_min, symbolSizeData.map_max);
 
-      symbolSize = CQChartsLength(r1, units);
+      symbolSize = Length(r1, units);
     }
     else {
       // use value directly for size
@@ -7353,12 +7352,12 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
       double r = CMathUtil::map(i, 0, n - 1, CQChartsSymbolSize::minValue(),
                                 CQChartsSymbolSize::maxValue());
 
-      symbolSize = CQChartsLength(r, units);
+      symbolSize = Length(r, units);
     }
     else {
-      QString str = CQChartsVariant::toString(var, ok);
+      auto str = CQChartsVariant::toString(var, ok);
 
-      symbolSize = CQChartsLength(str, units);
+      symbolSize = Length(str, units);
     }
   }
 
@@ -7385,8 +7384,8 @@ initFontSizeData(FontSizeData &fontSizeData) const
   }
   else {
     if (fontSizeData.mapped) {
-      QVariant minVar = columnDetails->minValue();
-      QVariant maxVar = columnDetails->maxValue();
+      auto minVar = columnDetails->minValue();
+      auto maxVar = columnDetails->maxValue();
 
       bool ok;
 
@@ -7423,7 +7422,7 @@ initFontSizeData(FontSizeData &fontSizeData) const
 bool
 CQChartsPlot::
 columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeData,
-               CQChartsLength &fontSize) const
+               Length &fontSize) const
 {
   if (! fontSizeData.valid)
     return false;
@@ -7438,7 +7437,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
 
   bool ok;
 
-  QVariant var = modelValue(fontSizeModelInd, ok);
+  auto var = modelValue(fontSizeModelInd, ok);
   if (! ok || ! var.isValid()) return false;
 
   if (CQChartsVariant::isNumeric(var)) {
@@ -7451,7 +7450,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
       double r1 = CMathUtil::map(r, fontSizeData.data_min, fontSizeData.data_max,
                                  fontSizeData.map_min, fontSizeData.map_max);
 
-      fontSize = CQChartsLength(r1, units);
+      fontSize = Length(r1, units);
     }
     else {
       // use value directly for size
@@ -7478,12 +7477,12 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
       double r = CMathUtil::map(i, 0, n - 1, CQChartsFontSize::minValue(),
                                 CQChartsFontSize::maxValue());
 
-      fontSize = CQChartsLength(r, units);
+      fontSize = Length(r, units);
     }
     else {
-      QString str = CQChartsVariant::toString(var, ok);
+      auto str = CQChartsVariant::toString(var, ok);
 
-      fontSize = CQChartsLength(str, units);
+      fontSize = Length(str, units);
     }
   }
 
@@ -7543,7 +7542,7 @@ yStr(double y) const
 
 QString
 CQChartsPlot::
-columnStr(const CQChartsColumn &column, double x) const
+columnStr(const Column &column, double x) const
 {
   if (! column.isValid())
     return CQChartsUtil::formatReal(x);
@@ -7698,7 +7697,7 @@ cycleNextPrev(bool prev)
 
     setInsideObject();
 
-    QString objText = insideObjectText();
+    auto objText = insideObjectText();
 
     view()->setStatusText(objText);
 
@@ -7995,7 +7994,7 @@ tipText(const Point &p, QString &tip) const
   int objNum  = 0;
   int numObjs = 0;
 
-  CQChartsObj *tipObj = nullptr;
+  Obj *tipObj = nullptr;
 
   if (isFollowMouse()) {
     objNum  = insideInd_;
@@ -8042,15 +8041,15 @@ addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
 
     ModelIndex tipModelInd(th, ind.row(), c, ind.parent());
 
-    QModelIndex tipInd  = modelIndex(tipModelInd);
-    QModelIndex tipInd1 = unnormalizeIndex(tipInd);
+    auto tipInd  = modelIndex(tipModelInd);
+    auto tipInd1 = unnormalizeIndex(tipInd);
 
     ModelIndex tipModelInd1(th, tipInd1.row(), c, tipInd1.parent());
 
     bool ok1, ok2;
 
-    QString name  = modelHHeaderString(c, ok1);
-    QString value = modelString(tipModelInd1, ok2);
+    auto name  = modelHHeaderString(c, ok1);
+    auto value = modelString(tipModelInd1, ok2);
 
     if (ok1 && ok2)
       tableTip.addTableRow(name, value);
@@ -8150,6 +8149,9 @@ annotationsAtPoint(const Point &p, Annotations &annotations) const
   annotations.clear();
 
   for (const auto &annotation : this->annotations()) {
+    if (! annotation->isVisible())
+      continue;
+
     if (! annotation->contains(p))
       continue;
 
@@ -8196,7 +8198,7 @@ objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
 
 bool
 CQChartsPlot::
-objNearestPoint(const Point &p, CQChartsPlotObj* &obj) const
+objNearestPoint(const Point &p, PlotObj* &obj) const
 {
   obj = nullptr;
 
@@ -8273,7 +8275,7 @@ updateKeyPosition(bool force)
 
 bool
 CQChartsPlot::
-printLayer(CQChartsLayer::Type type, const QString &filename) const
+printLayer(Layer::Type type, const QString &filename) const
 {
   auto *layer = getLayer(type);
 
@@ -8399,9 +8401,9 @@ updateDraw()
     {
     LockMutex lock(this, "draw::updateDraw");
 
-    getBuffer(CQChartsBuffer::Type::BACKGROUND)->setValid(false);
-    getBuffer(CQChartsBuffer::Type::MIDDLE    )->setValid(false);
-    getBuffer(CQChartsBuffer::Type::FOREGROUND)->setValid(false);
+    getBuffer(Buffer::Type::BACKGROUND)->setValid(false);
+    getBuffer(Buffer::Type::MIDDLE    )->setValid(false);
+    getBuffer(Buffer::Type::FOREGROUND)->setValid(false);
 
     updateData_.drawBusy.ind = -100;
 
@@ -8595,11 +8597,11 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
   if (text.length()) {
     Color color(Color::Type::INTERFACE_VALUE, 1.0);
 
-    QColor tc = charts()->interpColor(color, ColorInd());
+    auto tc = charts()->interpColor(color, ColorInd());
 
     painter->setPen(tc);
 
-    QFont font = view()->viewFont(updateData_.drawBusy.font);
+    auto font = view()->viewFont(updateData_.drawBusy.font);
 
     QFontMetricsF fm(font);
 
@@ -8627,7 +8629,7 @@ drawLayers(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawLayer(QPainter *painter, CQChartsLayer::Type type) const
+drawLayer(QPainter *painter, Layer::Type type) const
 {
   auto *layer = getLayer(type);
 
@@ -8677,7 +8679,7 @@ drawBackgroundParts(QPainter *painter) const
 
   //---
 
-  auto *buffer = getBuffer(CQChartsBuffer::Type::BACKGROUND);
+  auto *buffer = getBuffer(Buffer::Type::BACKGROUND);
   if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
@@ -8707,8 +8709,7 @@ drawBackgroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
-                          bool bgKey) const
+drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes, bool bgKey) const
 {
   // draw background (plot/data fill)
   if (bgLayer)
@@ -8730,15 +8731,15 @@ drawMiddleParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawMiddleParts");
 
-  auto *buffer = getBuffer(CQChartsBuffer::Type::MIDDLE);
+  auto *buffer = getBuffer(Buffer::Type::MIDDLE);
   if (! buffer->isActive()) return;
 
   //---
 
-  bool bg          = hasGroupedObjs(CQChartsLayer::Type::BG_PLOT );
-  bool mid         = hasGroupedObjs(CQChartsLayer::Type::MID_PLOT);
-  bool fg          = hasGroupedObjs(CQChartsLayer::Type::FG_PLOT );
-  bool annotations = hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION);
+  bool bg          = hasGroupedObjs(Layer::Type::BG_PLOT );
+  bool mid         = hasGroupedObjs(Layer::Type::MID_PLOT);
+  bool fg          = hasGroupedObjs(Layer::Type::FG_PLOT );
+  bool annotations = hasGroupedAnnotations(Layer::Type::ANNOTATION);
 
   if (! bg && ! mid && ! fg && ! annotations) {
     buffer->clear();
@@ -8766,17 +8767,16 @@ drawMiddleParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg,
-                      bool annotations) const
+drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg, bool annotations) const
 {
   // draw objects (background, mid, foreground)
-  if (bg ) drawGroupedObjs(device, CQChartsLayer::Type::BG_PLOT );
-  if (mid) drawGroupedObjs(device, CQChartsLayer::Type::MID_PLOT);
-  if (fg ) drawGroupedObjs(device, CQChartsLayer::Type::FG_PLOT );
+  if (bg ) drawGroupedObjs(device, Layer::Type::BG_PLOT );
+  if (mid) drawGroupedObjs(device, Layer::Type::MID_PLOT);
+  if (fg ) drawGroupedObjs(device, Layer::Type::FG_PLOT );
 
   // draw annotations
   if (annotations)
-    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
+    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
 }
 
 void
@@ -8795,7 +8795,7 @@ drawForegroundParts(QPainter *painter) const
 
   //---
 
-  auto *buffer = getBuffer(CQChartsBuffer::Type::FOREGROUND);
+  auto *buffer = getBuffer(Buffer::Type::FOREGROUND);
   if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
@@ -8819,8 +8819,8 @@ drawForegroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
-                          bool title, bool foreground, bool tabbed) const
+drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey, bool title,
+                          bool foreground, bool tabbed) const
 {
   // draw axes/key above plot
   if (fgAxes)
@@ -8849,7 +8849,7 @@ drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
 
 void
 CQChartsPlot::
-drawTabs(CQChartsPaintDevice *device) const
+drawTabs(PaintDevice *device) const
 {
   Plots plots;
 
@@ -8860,7 +8860,7 @@ drawTabs(CQChartsPaintDevice *device) const
 
 void
 CQChartsPlot::
-drawTabs(CQChartsPaintDevice *device, const Plots &plots) const
+drawTabs(PaintDevice *device, const Plots &plots) const
 {
   CQChartsPlot *currentPlot = nullptr;
 
@@ -8876,7 +8876,7 @@ drawTabs(CQChartsPaintDevice *device, const Plots &plots) const
 
 void
 CQChartsPlot::
-drawTabs(CQChartsPaintDevice *device, const Plots &plots, CQChartsPlot *currentPlot) const
+drawTabs(PaintDevice *device, const Plots &plots, CQChartsPlot *currentPlot) const
 {
   device->setFont(tabbedFont().font());
 
@@ -8944,12 +8944,12 @@ drawOverlayParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawOverlayParts");
 
-  bool sel_objs         = hasGroupedObjs(CQChartsLayer::Type::SELECTION);
-  bool sel_annotations  = hasGroupedAnnotations(CQChartsLayer::Type::SELECTION);
+  bool sel_objs         = hasGroupedObjs(Layer::Type::SELECTION);
+  bool sel_annotations  = hasGroupedAnnotations(Layer::Type::SELECTION);
   bool boxes            = hasGroupedBoxes();
   bool edit_handles     = hasGroupedEditHandles();
-  bool over_objs        = hasGroupedObjs(CQChartsLayer::Type::MOUSE_OVER);
-  bool over_annotations = hasGroupedAnnotations(CQChartsLayer::Type::MOUSE_OVER);
+  bool over_objs        = hasGroupedObjs(Layer::Type::MOUSE_OVER);
+  bool over_annotations = hasGroupedAnnotations(Layer::Type::MOUSE_OVER);
 
   if (! sel_objs && ! sel_annotations && ! boxes &&
       ! edit_handles && ! over_objs && ! over_annotations)
@@ -8957,7 +8957,7 @@ drawOverlayParts(QPainter *painter) const
 
   //---
 
-  auto *buffer = getBuffer(CQChartsBuffer::Type::OVERLAY);
+  auto *buffer = getBuffer(Buffer::Type::OVERLAY);
   if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
@@ -8980,15 +8980,15 @@ drawOverlayParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_annotations,
-                       bool boxes, bool edit_handles, bool over_objs, bool over_annotations) const
+drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations, bool boxes,
+                       bool edit_handles, bool over_objs, bool over_annotations) const
 {
   // draw selection
   if (sel_objs)
-    drawGroupedObjs(device, CQChartsLayer::Type::SELECTION);
+    drawGroupedObjs(device, Layer::Type::SELECTION);
 
   if (sel_annotations)
-    drawGroupedAnnotations(device, CQChartsLayer::Type::SELECTION);
+    drawGroupedAnnotations(device, Layer::Type::SELECTION);
 
   //---
 
@@ -9010,10 +9010,10 @@ drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_anno
 
   // draw mouse over
   if (over_objs)
-    drawGroupedObjs(device, CQChartsLayer::Type::MOUSE_OVER);
+    drawGroupedObjs(device, Layer::Type::MOUSE_OVER);
 
   if (over_annotations)
-    drawGroupedAnnotations(device, CQChartsLayer::Type::MOUSE_OVER);
+    drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
 }
 
 bool
@@ -9034,7 +9034,7 @@ hasBackgroundLayer() const
   if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground && ! hasBackground)
     return false;
 
-  if (! isLayerActive(CQChartsLayer::Type::BACKGROUND))
+  if (! isLayerActive(Layer::Type::BACKGROUND))
     return false;
 
   return true;
@@ -9042,7 +9042,7 @@ hasBackgroundLayer() const
 
 void
 CQChartsPlot::
-drawBackgroundLayer(CQChartsPaintDevice *device) const
+drawBackgroundLayer(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
 
@@ -9058,15 +9058,15 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
 
 void
 CQChartsPlot::
-drawBackgroundRects(CQChartsPaintDevice *device) const
+drawBackgroundRects(PaintDevice *device) const
 {
-  auto drawBackgroundRect = [&](const BBox &rect, const CQChartsBrushData &brushData,
-                                const CQChartsPenData &penData, const CQChartsSides &sides) {
+  auto drawBackgroundRect = [&](const BBox &rect, const BrushData &brushData,
+                                const PenData &penData, const Sides &sides) {
     if (brushData.isVisible()) {
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       setBrush(penBrush,
-        CQChartsBrushData(true, brushData.color(), brushData.alpha(), brushData.pattern()));
+        BrushData(true, brushData.color(), brushData.alpha(), brushData.pattern()));
 
       device->setBrush(penBrush.brush);
 
@@ -9074,10 +9074,10 @@ drawBackgroundRects(CQChartsPaintDevice *device) const
     }
 
     if (penData.isVisible()) {
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       setPen(penBrush,
-        CQChartsPenData(true, penData.color(), penData.alpha(), penData.width(), penData.dash()));
+        PenData(true, penData.color(), penData.alpha(), penData.width(), penData.dash()));
 
       device->setPen(penBrush.pen);
 
@@ -9107,14 +9107,13 @@ hasBackground() const
 
 void
 CQChartsPlot::
-execDrawBackground(CQChartsPaintDevice *) const
+execDrawBackground(PaintDevice *) const
 {
 }
 
 void
 CQChartsPlot::
-drawBackgroundSides(CQChartsPaintDevice *device, const BBox &bbox,
-                    const CQChartsSides &sides) const
+drawBackgroundSides(PaintDevice *device, const BBox &bbox, const Sides &sides) const
 {
   if (sides.isAll()) {
     device->setBrush(Qt::NoBrush);
@@ -9151,7 +9150,7 @@ hasGroupedBgAxes() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::BG_AXES))
+  if (! isLayerActive(Layer::Type::BG_AXES))
     return false;
 
   return true;
@@ -9176,7 +9175,7 @@ hasBgAxes() const
 
 void
 CQChartsPlot::
-drawGroupedBgAxes(CQChartsPaintDevice *device) const
+drawGroupedBgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedBgAxes");
 
@@ -9199,7 +9198,7 @@ drawGroupedBgAxes(CQChartsPaintDevice *device) const
 
 void
 CQChartsPlot::
-drawBgAxes(CQChartsPaintDevice *device) const
+drawBgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBgAxes");
 
@@ -9247,7 +9246,7 @@ hasGroupedBgKey() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::BG_KEY))
+  if (! isLayerActive(Layer::Type::BG_KEY))
     return false;
 
   return true;
@@ -9255,7 +9254,7 @@ hasGroupedBgKey() const
 
 void
 CQChartsPlot::
-drawBgKey(CQChartsPaintDevice *device) const
+drawBgKey(PaintDevice *device) const
 {
   if (isPreview())
     return;
@@ -9287,7 +9286,7 @@ drawBgKey(CQChartsPaintDevice *device) const
 
 bool
 CQChartsPlot::
-hasGroupedObjs(const CQChartsLayer::Type &layerType) const
+hasGroupedObjs(const Layer::Type &layerType) const
 {
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
@@ -9316,7 +9315,7 @@ hasGroupedObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-drawGroupedObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
+drawGroupedObjs(PaintDevice *device, const Layer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedObjs");
 
@@ -9340,18 +9339,18 @@ drawGroupedObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
 
 bool
 CQChartsPlot::
-hasObjs(const CQChartsLayer::Type &layerType) const
+hasObjs(const Layer::Type &layerType) const
 {
   auto bbox = displayRangeBBox();
 
   bool anyObjs = false;
 
   for (const auto &plotObj : plotObjects()) {
-    if      (layerType == CQChartsLayer::Type::SELECTION) {
+    if      (layerType == Layer::Type::SELECTION) {
       if (! plotObj->isSelected())
         continue;
     }
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+    else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! plotObj->isInside())
         continue;
     }
@@ -9377,7 +9376,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
+execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::execDrawObjs");
 
@@ -9393,7 +9392,7 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
 
   //---
 
-  if (layerType == CQChartsLayer::Type::MID_PLOT)
+  if (layerType == Layer::Type::MID_PLOT)
     preDrawObjs(device);
 
   //---
@@ -9405,12 +9404,12 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
       continue;
 
     // skip unselected objects on selection layer
-    if      (layerType == CQChartsLayer::Type::SELECTION) {
+    if      (layerType == Layer::Type::SELECTION) {
       if (! plotObj->isSelected())
         continue;
     }
     // skip non-inside objects on mouse over layer
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+    else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! plotObj->isInside())
         continue;
     }
@@ -9424,17 +9423,17 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
     //---
 
     // draw object on layer
-    if      (layerType == CQChartsLayer::Type::BG_PLOT)
+    if      (layerType == Layer::Type::BG_PLOT)
       plotObj->drawBg(device);
-    else if (layerType == CQChartsLayer::Type::FG_PLOT)
+    else if (layerType == Layer::Type::FG_PLOT)
       plotObj->drawFg(device);
-    else if (layerType == CQChartsLayer::Type::MID_PLOT)
+    else if (layerType == Layer::Type::MID_PLOT)
       plotObj->draw  (device);
-    else if (layerType == CQChartsLayer::Type::SELECTION) {
+    else if (layerType == Layer::Type::SELECTION) {
       plotObj->draw  (device);
       plotObj->drawFg(device);
     }
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+    else if (layerType == Layer::Type::MOUSE_OVER) {
       plotObj->draw  (device);
       plotObj->drawFg(device);
     }
@@ -9448,13 +9447,13 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
 
   //---
 
-  if (layerType == CQChartsLayer::Type::MID_PLOT)
+  if (layerType == Layer::Type::MID_PLOT)
     postDrawObjs(device);
 
   //---
 
   // reset draw layer
-  view()->setDrawLayerType(CQChartsLayer::Type::NONE);
+  view()->setDrawLayerType(Layer::Type::NONE);
 
   //---
 
@@ -9463,7 +9462,7 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
 
 bool
 CQChartsPlot::
-objInsideBox(CQChartsPlotObj *plotObj, const BBox &bbox) const
+objInsideBox(PlotObj *plotObj, const BBox &bbox) const
 {
   return plotObj->rectIntersect(bbox, /*inside*/ false);
 }
@@ -9490,7 +9489,7 @@ hasGroupedFgAxes() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::FG_AXES))
+  if (! isLayerActive(Layer::Type::FG_AXES))
     return false;
 
   return true;
@@ -9511,7 +9510,7 @@ hasFgAxes() const
 
 void
 CQChartsPlot::
-drawGroupedFgAxes(CQChartsPaintDevice *device) const
+drawGroupedFgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedFgAxes");
 
@@ -9534,7 +9533,7 @@ drawGroupedFgAxes(CQChartsPaintDevice *device) const
 
 void
 CQChartsPlot::
-drawFgAxes(CQChartsPaintDevice *device) const
+drawFgAxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawFgAxes");
 
@@ -9590,7 +9589,7 @@ hasGroupedFgKey() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::FG_KEY))
+  if (! isLayerActive(Layer::Type::FG_KEY))
     return false;
 
   return true;
@@ -9598,7 +9597,7 @@ hasGroupedFgKey() const
 
 void
 CQChartsPlot::
-drawFgKey(CQChartsPaintDevice *device) const
+drawFgKey(PaintDevice *device) const
 {
   if (isPreview())
     return;
@@ -9641,7 +9640,7 @@ hasTitle() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::TITLE))
+  if (! isLayerActive(Layer::Type::TITLE))
     return false;
 
   return true;
@@ -9649,7 +9648,7 @@ hasTitle() const
 
 void
 CQChartsPlot::
-drawTitle(CQChartsPaintDevice *device) const
+drawTitle(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawTitle");
 
@@ -9658,7 +9657,7 @@ drawTitle(CQChartsPaintDevice *device) const
 
 bool
 CQChartsPlot::
-hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const
+hasGroupedAnnotations(const Layer::Type &layerType) const
 {
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
@@ -9687,7 +9686,7 @@ hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-drawGroupedAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
+drawGroupedAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedAnnotations");
 
@@ -9716,16 +9715,19 @@ drawGroupedAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &l
 
 bool
 CQChartsPlot::
-hasAnnotations(const CQChartsLayer::Type &layerType) const
+hasAnnotations(const Layer::Type &layerType) const
 {
   bool anyObjs = false;
 
   for (const auto &annotation : annotations()) {
-    if      (layerType == CQChartsLayer::Type::SELECTION) {
+    if (! annotation->isVisible())
+      continue;
+
+    if      (layerType == Layer::Type::SELECTION) {
       if (! annotation->isSelected())
         continue;
     }
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+    else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! annotation->isInside())
         continue;
     }
@@ -9751,7 +9753,7 @@ hasAnnotations(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
+drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::drawAnnotations");
 
@@ -9761,11 +9763,14 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
   //---
 
   for (auto &annotation : annotations()) {
-    if      (layerType == CQChartsLayer::Type::SELECTION) {
+    if (! annotation->isVisible())
+      continue;
+
+    if      (layerType == Layer::Type::SELECTION) {
       if (! annotation->isSelected())
         continue;
     }
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+    else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! annotation->isInside())
         continue;
     }
@@ -9779,7 +9784,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
   //---
 
   // reset draw layer
-  view()->setDrawLayerType(CQChartsLayer::Type::NONE);
+  view()->setDrawLayerType(Layer::Type::NONE);
 }
 
 bool
@@ -9791,7 +9796,7 @@ hasForeground() const
 
 void
 CQChartsPlot::
-execDrawForeground(CQChartsPaintDevice *) const
+execDrawForeground(PaintDevice *) const
 {
 }
 
@@ -9818,7 +9823,7 @@ hasGroupedBoxes() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::BOXES))
+  if (! isLayerActive(Layer::Type::BOXES))
     return false;
 
   return true;
@@ -9826,7 +9831,7 @@ hasGroupedBoxes() const
 
 void
 CQChartsPlot::
-drawGroupedBoxes(CQChartsPaintDevice *device) const
+drawGroupedBoxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedBoxes");
 
@@ -9857,7 +9862,7 @@ hasBoxes() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::BOXES))
+  if (! isLayerActive(Layer::Type::BOXES))
     return false;
 
   return true;
@@ -9865,7 +9870,7 @@ hasBoxes() const
 
 void
 CQChartsPlot::
-drawBoxes(CQChartsPaintDevice *device) const
+drawBoxes(PaintDevice *device) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBoxes");
 
@@ -9909,7 +9914,7 @@ hasGroupedEditHandles() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::EDIT_HANDLE))
+  if (! isLayerActive(Layer::Type::EDIT_HANDLE))
     return false;
 
   return true;
@@ -9957,7 +9962,7 @@ hasEditHandles() const
 
   if (! selected) {
     for (const auto &annotation : annotations()) {
-      if (! annotation->isSelected())
+      if (! annotation->isVisible() || ! annotation->isSelected())
         continue;
 
       selected = true;
@@ -9985,7 +9990,7 @@ hasEditHandles() const
 
   //---
 
-  if (! isLayerActive(CQChartsLayer::Type::EDIT_HANDLE))
+  if (! isLayerActive(Layer::Type::EDIT_HANDLE))
     return false;
 
   return true;
@@ -10022,7 +10027,7 @@ drawEditHandles(QPainter *painter) const
   }
 
   for (const auto &annotation : annotations()) {
-    if (annotation->isEditable() && annotation->isSelected())
+    if (annotation->isVisible() && annotation->isEditable() && annotation->isSelected())
       annotation->drawEditHandles(painter);
   }
 
@@ -10231,7 +10236,7 @@ autoFitOne()
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 #else
-  outerMargin_ = CQChartsPlotMargin(0.0, 0.0, 0.0, 0.0);
+  outerMargin_ = PlotMargin(0.0, 0.0, 0.0, 0.0);
 
   updateMargins();
 
@@ -10264,7 +10269,7 @@ setFitBBox(const BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  outerMargin_ = CQChartsPlotMargin(left, top, right, bottom);
+  outerMargin_ = PlotMargin(left, top, right, bottom);
 
   updateMargins();
 }
@@ -10377,7 +10382,7 @@ annotationBBox() const
 
 CQChartsArrowAnnotation *
 CQChartsPlot::
-addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
+addArrowAnnotation(const Position &start, const Position &end)
 {
   return addAnnotationT<CQChartsArrowAnnotation>(
     new CQChartsArrowAnnotation(this, start, end));
@@ -10393,8 +10398,7 @@ addAxisAnnotation(Qt::Orientation direction, double start, double end)
 
 CQChartsEllipseAnnotation *
 CQChartsPlot::
-addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
-                     const CQChartsLength &yRadius)
+addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
 {
   return addAnnotationT<CQChartsEllipseAnnotation>(
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius));
@@ -10402,7 +10406,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsImageAnnotation *
 CQChartsPlot::
-addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
+addImageAnnotation(const Position &pos, const Image &image)
 {
   return addAnnotationT<CQChartsImageAnnotation>(
     new CQChartsImageAnnotation(this, pos, image));
@@ -10410,7 +10414,7 @@ addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
 
 CQChartsImageAnnotation *
 CQChartsPlot::
-addImageAnnotation(const CQChartsRect &rect, const CQChartsImage &image)
+addImageAnnotation(const Rect &rect, const Image &image)
 {
   return addAnnotationT<CQChartsImageAnnotation>(
     new CQChartsImageAnnotation(this, rect, image));
@@ -10426,9 +10430,8 @@ addKeyAnnotation()
 
 CQChartsPieSliceAnnotation *
 CQChartsPlot::
-addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
-                      const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
-                      const CQChartsAngle &spanAngle)
+addPieSliceAnnotation(const Position &pos, const Length &innerRadius, const Length &outerRadius,
+                      const Angle &startAngle, const Angle &spanAngle)
 {
   return addAnnotationT<CQChartsPieSliceAnnotation>(
     new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle));
@@ -10436,7 +10439,7 @@ addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRa
 
 CQChartsPointAnnotation *
 CQChartsPlot::
-addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+addPointAnnotation(const Position &pos, const Symbol &type)
 {
   return addAnnotationT<CQChartsPointAnnotation>(
     new CQChartsPointAnnotation(this, pos, type));
@@ -10468,7 +10471,7 @@ addPolylineAnnotation(const CQChartsPolygon &points)
 
 CQChartsRectangleAnnotation *
 CQChartsPlot::
-addRectangleAnnotation(const CQChartsRect &rect)
+addRectangleAnnotation(const Rect &rect)
 {
   return addAnnotationT<CQChartsRectangleAnnotation>(
     new CQChartsRectangleAnnotation(this, rect));
@@ -10476,7 +10479,7 @@ addRectangleAnnotation(const CQChartsRect &rect)
 
 CQChartsTextAnnotation *
 CQChartsPlot::
-addTextAnnotation(const CQChartsPosition &pos, const QString &text)
+addTextAnnotation(const Position &pos, const QString &text)
 {
   return addAnnotationT<CQChartsTextAnnotation>(
     new CQChartsTextAnnotation(this, pos, text));
@@ -10484,7 +10487,7 @@ addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 
 CQChartsTextAnnotation *
 CQChartsPlot::
-addTextAnnotation(const CQChartsRect &rect, const QString &text)
+addTextAnnotation(const Rect &rect, const QString &text)
 {
   return addAnnotationT<CQChartsTextAnnotation>(
     new CQChartsTextAnnotation(this, rect, text));
@@ -10492,7 +10495,7 @@ addTextAnnotation(const CQChartsRect &rect, const QString &text)
 
 CQChartsValueSetAnnotation *
 CQChartsPlot::
-addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values)
+addValueSetAnnotation(const Rect &rectangle, const CQChartsReals &values)
 {
   return addAnnotationT<CQChartsValueSetAnnotation>(
     new CQChartsValueSetAnnotation(this, rectangle, values));
@@ -10500,7 +10503,7 @@ addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values
 
 CQChartsButtonAnnotation *
 CQChartsPlot::
-addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
+addButtonAnnotation(const Position &pos, const QString &text)
 {
   return addAnnotationT<CQChartsButtonAnnotation>(
     new CQChartsButtonAnnotation(this, pos, text));
@@ -10508,7 +10511,7 @@ addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 
 CQChartsWidgetAnnotation *
 CQChartsPlot::
-addWidgetAnnotation(const CQChartsPosition &pos, const CQChartsWidget &widget)
+addWidgetAnnotation(const Position &pos, const Widget &widget)
 {
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, pos, widget));
@@ -10516,7 +10519,7 @@ addWidgetAnnotation(const CQChartsPosition &pos, const CQChartsWidget &widget)
 
 CQChartsWidgetAnnotation *
 CQChartsPlot::
-addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
+addWidgetAnnotation(const Rect &rect, const Widget &widget)
 {
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, rect, widget));
@@ -10621,7 +10624,7 @@ CQChartsPlot::
 updateAnnotationSlot()
 {
   if (editing_) {
-    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    invalidateLayer(Buffer::Type::FOREGROUND);
 
     invalidateOverlay();
   }
@@ -10652,12 +10655,12 @@ getObject(const QString &objectId) const
   auto *plotObj = getPlotObject(objectId);
   if (plotObj) return plotObj;
 
-  auto checkObjs = [&](std::initializer_list<CQChartsObj *> objs) {
+  auto checkObjs = [&](std::initializer_list<Obj *> objs) {
     for (const auto &obj : objs)
       if (obj && obj->id() == objectId)
         return obj;
 
-    return static_cast<CQChartsObj *>(nullptr);
+    return static_cast<Obj *>(nullptr);
   };
 
   return checkObjs({xAxis(), yAxis(), key(), title()});
@@ -10672,7 +10675,7 @@ getObjectInds(const QString &objectId) const
   auto *plotObj = getPlotObject(objectId);
 
   if (plotObj) {
-    CQChartsPlotObj::Indices inds1;
+    PlotObj::Indices inds1;
 
     plotObj->getSelectIndices(inds1); // normalized
 
@@ -10690,7 +10693,7 @@ std::vector<CQChartsObj *>
 CQChartsPlot::
 getObjectConnected(const QString &objectId) const
 {
-  std::vector<CQChartsObj *> objs;
+  std::vector<Obj *> objs;
 
   auto *plotObj = getPlotObject(objectId);
 
@@ -10708,12 +10711,12 @@ getObjectConnected(const QString &objectId) const
 
 CQChartsLayer *
 CQChartsPlot::
-initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, bool active)
+initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active)
 {
   auto pb = buffers_.find(buffer);
 
   if (pb == buffers_.end()) {
-    auto *layerBuffer = new CQChartsBuffer(buffer);
+    auto *layerBuffer = new Buffer(buffer);
 
     pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
   }
@@ -10725,7 +10728,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
   auto pl = layers_.find(type);
 
   if (pl == layers_.end()) {
-    auto *layer = new CQChartsLayer(type, buffer);
+    auto *layer = new Layer(type, buffer);
 
     pl = layers_.insert(pl, Layers::value_type(type, layer));
   }
@@ -10739,7 +10742,7 @@ initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, b
 
 void
 CQChartsPlot::
-setLayerActive(const CQChartsLayer::Type &type, bool b)
+setLayerActive(const Layer::Type &type, bool b)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
@@ -10752,7 +10755,7 @@ setLayerActive(const CQChartsLayer::Type &type, bool b)
 
 void
 CQChartsPlot::
-setLayerActive1(const CQChartsLayer::Type &type, bool b)
+setLayerActive1(const Layer::Type &type, bool b)
 {
   auto *layer = getLayer(type);
 
@@ -10763,7 +10766,7 @@ setLayerActive1(const CQChartsLayer::Type &type, bool b)
 
 bool
 CQChartsPlot::
-isLayerActive(const CQChartsLayer::Type &type) const
+isLayerActive(const Layer::Type &type) const
 {
   auto *layer = getLayer(type);
 
@@ -10813,7 +10816,7 @@ execInvalidateLayers()
 
 void
 CQChartsPlot::
-invalidateLayer(const CQChartsBuffer::Type &type)
+invalidateLayer(const Buffer::Type &type)
 {
   if (parentPlot())
     return parentPlot()->invalidateLayer(type);
@@ -10825,14 +10828,14 @@ invalidateLayer(const CQChartsBuffer::Type &type)
 
 void
 CQChartsPlot::
-execInvalidateLayer(const CQChartsBuffer::Type &type)
+execInvalidateLayer(const Buffer::Type &type)
 {
   if (! isUpdatesEnabled()) {
     updatesData_.invalidateLayers = true;
     return;
   }
 
-  //assert(type != CQChartsBuffer::Type::MIDDLE);
+  //assert(type != Buffer::Type::MIDDLE);
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
@@ -10846,9 +10849,9 @@ execInvalidateLayer(const CQChartsBuffer::Type &type)
 
 void
 CQChartsPlot::
-invalidateLayer1(const CQChartsBuffer::Type &type)
+invalidateLayer1(const Buffer::Type &type)
 {
-//std::cerr << "invalidateLayer1: " << CQChartsBuffer::typeName(type) << "\n";
+//std::cerr << "invalidateLayer1: " << Buffer::typeName(type) << "\n";
   auto *layer = getBuffer(type);
 
   layer->setValid(false);
@@ -10893,7 +10896,7 @@ setLayersChanged(bool update)
 
 CQChartsBuffer *
 CQChartsPlot::
-getBuffer(const CQChartsBuffer::Type &type) const
+getBuffer(const Buffer::Type &type) const
 {
   auto p = buffers_.find(type);
   assert(p != buffers_.end());
@@ -10903,7 +10906,7 @@ getBuffer(const CQChartsBuffer::Type &type) const
 
 CQChartsLayer *
 CQChartsPlot::
-getLayer(const CQChartsLayer::Type &type) const
+getLayer(const Layer::Type &type) const
 {
   auto p = layers_.find(type);
   assert(p != layers_.end());
@@ -10915,7 +10918,7 @@ getLayer(const CQChartsLayer::Type &type) const
 
 void
 CQChartsPlot::
-setClipRect(CQChartsPaintDevice *device) const
+setClipRect(PaintDevice *device) const
 {
   auto *plot1 = firstPlot();
 
@@ -10941,7 +10944,7 @@ setClipRect(CQChartsPaintDevice *device) const
 
 QPainter *
 CQChartsPlot::
-beginPaint(CQChartsBuffer *buffer, QPainter *painter, const QRectF &rect) const
+beginPaint(Buffer *buffer, QPainter *painter, const QRectF &rect) const
 {
   drawBuffer_ = buffer->type();
 
@@ -10962,7 +10965,7 @@ beginPaint(CQChartsBuffer *buffer, QPainter *painter, const QRectF &rect) const
 
 void
 CQChartsPlot::
-endPaint(CQChartsBuffer *buffer) const
+endPaint(Buffer *buffer) const
 {
   if (! view()->isBufferLayers())
     return;
@@ -10992,8 +10995,8 @@ getFirstPlotKey() const
 
 void
 CQChartsPlot::
-drawSymbol(CQChartsPaintDevice *device, const Point &p, const CQChartsSymbol &symbol,
-           const CQChartsLength &size, const CQChartsPenBrush &penBrush) const
+drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size,
+           const PenBrush &penBrush) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -11002,8 +11005,7 @@ drawSymbol(CQChartsPaintDevice *device, const Point &p, const CQChartsSymbol &sy
 
 void
 CQChartsPlot::
-drawSymbol(CQChartsPaintDevice *device, const Point &p, const CQChartsSymbol &symbol,
-           const CQChartsLength &size) const
+drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size) const
 {
   if (bufferSymbols_) {
     auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
@@ -11026,8 +11028,7 @@ drawSymbol(CQChartsPaintDevice *device, const Point &p, const CQChartsSymbol &sy
 
 void
 CQChartsPlot::
-drawBufferedSymbol(QPainter *painter, const Point &p,
-                   const CQChartsSymbol &symbol, double size) const
+drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, double size) const
 {
   auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
     if (pen1.style () != pen2.style ()) return false;
@@ -11043,12 +11044,12 @@ drawBufferedSymbol(QPainter *painter, const Point &p,
   };
 
   struct ImageBuffer {
-    CQChartsSymbol symbol;
-    double         size { 0.0 };
-    int            isize { 0 };
-    QPen           pen;
-    QBrush         brush;
-    QImage         image;
+    Symbol symbol;
+    double size { 0.0 };
+    int    isize { 0 };
+    QPen   pen;
+    QBrush brush;
+    QImage image;
   };
 
   static ImageBuffer imageBuffer;
@@ -11090,7 +11091,7 @@ CQChartsTextOptions
 CQChartsPlot::
 adjustTextOptions(const CQChartsTextOptions &options) const
 {
-  CQChartsTextOptions options1 = options;
+  auto options1 = options;
 
   options1.minScaleFontSize = minScaleFontSize();
   options1.maxScaleFontSize = maxScaleFontSize();
@@ -11102,7 +11103,7 @@ adjustTextOptions(const CQChartsTextOptions &options) const
 
 void
 CQChartsPlot::
-drawWindowColorBox(CQChartsPaintDevice *device, const BBox &bbox, const QColor &c) const
+drawWindowColorBox(PaintDevice *device, const BBox &bbox, const QColor &c) const
 {
   auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
   if (! painter) return;
@@ -11118,7 +11119,7 @@ drawWindowColorBox(CQChartsPaintDevice *device, const BBox &bbox, const QColor &
 
 void
 CQChartsPlot::
-drawColorBox(CQChartsPaintDevice *device, const BBox &bbox, const QColor &c) const
+drawColorBox(PaintDevice *device, const BBox &bbox, const QColor &c) const
 {
   auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
   if (! painter) return;
@@ -11172,8 +11173,7 @@ update()
 
 void
 CQChartsPlot::
-setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
-            const CQChartsBrushData &brushData) const
+setPenBrush(PenBrush &penBrush, const PenData &penData, const BrushData &brushData) const
 {
   setPen  (penBrush, penData  );
   setBrush(penBrush, brushData);
@@ -11181,7 +11181,7 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 
 void
 CQChartsPlot::
-setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
+setPen(PenBrush &penBrush, const PenData &penData) const
 {
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
@@ -11191,7 +11191,7 @@ setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
 
 void
 CQChartsPlot::
-setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
+setBrush(PenBrush &penBrush, const BrushData &brushData) const
 {
   CQChartsDrawUtil::setBrush(penBrush.brush, brushData);
 
@@ -11207,10 +11207,9 @@ setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
 
 void
 CQChartsPlot::
-setPenBrush(CQChartsPaintDevice *device, const CQChartsPenData &penData,
-            const CQChartsBrushData &brushData) const
+setPenBrush(PaintDevice *device, const PenData &penData, const BrushData &brushData) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   setPenBrush(penBrush, penData, brushData);
 
@@ -11219,9 +11218,9 @@ setPenBrush(CQChartsPaintDevice *device, const CQChartsPenData &penData,
 
 void
 CQChartsPlot::
-setPen(CQChartsPaintDevice *device, const CQChartsPenData &penData) const
+setPen(PaintDevice *device, const PenData &penData) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   setPen(penBrush, penData);
 
@@ -11230,9 +11229,9 @@ setPen(CQChartsPaintDevice *device, const CQChartsPenData &penData) const
 
 void
 CQChartsPlot::
-setBrush(CQChartsPaintDevice *device, const CQChartsBrushData &brushData) const
+setBrush(PaintDevice *device, const BrushData &brushData) const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   setBrush(penBrush, brushData);
 
@@ -11243,32 +11242,30 @@ setBrush(CQChartsPaintDevice *device, const CQChartsBrushData &brushData) const
 
 void
 CQChartsPlot::
-updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
-                       DrawType drawType) const
+updateObjPenBrushState(const Obj *obj, PenBrush &penBrush, DrawType drawType) const
 {
   updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
 }
 
 void
 CQChartsPlot::
-updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                       CQChartsPenBrush &penBrush, DrawType drawType) const
+updateObjPenBrushState(const Obj *obj, const ColorInd &ic, PenBrush &penBrush,
+                       DrawType drawType) const
 {
   view()->updateObjPenBrushState(obj, ic, penBrush, drawType);
 }
 
 void
 CQChartsPlot::
-updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
-                             bool outline, DrawType drawType) const
+updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, bool outline,
+                             DrawType drawType) const
 {
   view()->updateInsideObjPenBrushState(ic, penBrush, outline, drawType);
 }
 
 void
 CQChartsPlot::
-updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
-                               DrawType drawType) const
+updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType drawType) const
 {
   view()->updateSelectedObjPenBrushState(ic, penBrush, drawType);
 }
@@ -11316,8 +11313,8 @@ blendGroupPaletteColor(double r1, double r2, double dr) const
   auto *theme = view()->theme();
 
   // r1 is parent color and r2 is child color
-  QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
-  QColor c2 = theme->palette()->getColor(r1 + dr/2.0);
+  auto c1 = theme->palette()->getColor(r1 - dr/2.0);
+  auto c2 = theme->palette()->getColor(r1 + dr/2.0);
 
   return CQChartsUtil::blendColors(c1, c2, r2);
 }
@@ -11359,12 +11356,12 @@ calcTextColor(const QColor &bg) const
 
 CQChartsPlot::ColorInd
 CQChartsPlot::
-calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
+calcColorInd(const PlotObj *obj, const CQChartsKeyColorBox *keyBox,
              const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
 {
   ColorInd colorInd;
 
-  CQChartsPlot::ColorType colorType = this->colorType();
+  auto colorType = this->colorType();
 
   if (obj && colorType == ColorType::AUTO)
     colorType = (CQChartsPlot::ColorType) obj->colorType();
@@ -11427,7 +11424,7 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
 
 bool
 CQChartsPlot::
-checkColumns(const CQChartsColumns &columns, const QString &name, bool required) const
+checkColumns(const Columns &columns, const QString &name, bool required) const
 {
   if (required) {
     if (! columns.isValid())
@@ -11452,7 +11449,7 @@ checkColumns(const CQChartsColumns &columns, const QString &name, bool required)
 
 bool
 CQChartsPlot::
-checkColumn(const CQChartsColumn &column, const QString &name, bool required) const
+checkColumn(const Column &column, const QString &name, bool required) const
 {
   ColumnType type;
 
@@ -11461,8 +11458,7 @@ checkColumn(const CQChartsColumn &column, const QString &name, bool required) co
 
 bool
 CQChartsPlot::
-checkColumn(const CQChartsColumn &column, const QString &name,
-            ColumnType &type, bool required) const
+checkColumn(const Column &column, const QString &name, ColumnType &type, bool required) const
 {
   type = ColumnType::NONE;
 
@@ -11485,7 +11481,7 @@ checkColumn(const CQChartsColumn &column, const QString &name,
 
 CQChartsPlot::ColumnType
 CQChartsPlot::
-columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
+columnValueType(const Column &column, const ColumnType &defType) const
 {
   CQChartsModelTypeData columnTypeData;
 
@@ -11497,7 +11493,7 @@ columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
 
 bool
 CQChartsPlot::
-columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData,
+columnValueType(const Column &column, CQChartsModelTypeData &columnTypeData,
                 const ColumnType &defType) const
 {
   if (! column.isValid()) {
@@ -11538,7 +11534,7 @@ columnValueType(const CQChartsColumn &column, CQChartsModelTypeData &columnTypeD
 #if 0
 bool
 CQChartsPlot::
-columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
+columnTypeStr(const Column &column, QString &typeStr) const
 {
   auto *model = this->model().data();
   assert(model);
@@ -11548,7 +11544,7 @@ columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
 
 bool
 CQChartsPlot::
-setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
+setColumnTypeStr(const Column &column, const QString &typeStr)
 {
   auto *model = this->model().data();
   assert(model);
@@ -11559,8 +11555,7 @@ setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
 
 bool
 CQChartsPlot::
-columnDetails(const CQChartsColumn &column, QString &typeName,
-              QVariant &minValue, QVariant &maxValue) const
+columnDetails(const Column &column, QString &typeName, QVariant &minValue, QVariant &maxValue) const
 {
   if (! column.isValid())
     return false;
@@ -11577,7 +11572,7 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
 
 CQChartsModelColumnDetails *
 CQChartsPlot::
-columnDetails(const CQChartsColumn &column) const
+columnDetails(const Column &column) const
 {
   auto *modelData = getModelData();
   if (! modelData) return nullptr;
@@ -11599,7 +11594,7 @@ getModelData() const
 
 bool
 CQChartsPlot::
-getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
+getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                    const QString &separator, QStringList &nameStrs, QModelIndices &nameInds) const
 {
   auto *model = this->model().data();
@@ -11617,7 +11612,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
 
     bool ok;
 
-    QString name = modelString(nameModelInd, ok);
+    auto name = modelString(nameModelInd, ok);
 
     if (ok && ! name.simplified().length())
       ok = false;
@@ -11629,7 +11624,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
         nameStrs << name;
     }
 
-    QModelIndex nameInd = modelIndex(nameModelInd);
+    auto nameInd = modelIndex(nameModelInd);
 
     nameInds.push_back(nameInd);
   }
@@ -11639,7 +11634,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
 
       bool ok;
 
-      QString name = modelString(nameModelInd, ok);
+      auto name = modelString(nameModelInd, ok);
 
       if (ok && ! name.simplified().length())
         ok = false;
@@ -11647,7 +11642,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
       if (ok) {
         nameStrs << name;
 
-        QModelIndex nameInd = modelIndex(nameModelInd);
+        auto nameInd = modelIndex(nameModelInd);
 
         nameInds.push_back(nameInd);
       }
@@ -11667,14 +11662,14 @@ normalizeIndex(const ModelIndex &ind) const
 
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  QModelIndex ind1 = normalizeIndex(modelIndex(ind));
+  auto ind1 = normalizeIndex(modelIndex(ind));
 
   ModelIndex nind;
 
   if (ind1.column() == ind.column().column())
     nind = ModelIndex(th, ind1.row(), ind.column(), ind1.parent());
   else
-    nind = ModelIndex(th, ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+    nind = ModelIndex(th, ind1.row(), Column(ind1.column()), ind1.parent());
 
   nind.setNormalized(true);
 
@@ -11689,14 +11684,14 @@ unnormalizeIndex(const ModelIndex &ind) const
 
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  QModelIndex ind1 = unnormalizeIndex(modelIndex(ind));
+  auto ind1 = unnormalizeIndex(modelIndex(ind));
 
   ModelIndex nind;
 
   if (ind1.column() == ind.column().column())
     nind = ModelIndex(th, ind1.row(), ind.column(), ind1.parent());
   else
-    nind = ModelIndex(th, ind1.row(), CQChartsColumn(ind1.column()), ind1.parent());
+    nind = ModelIndex(th, ind1.row(), Column(ind1.column()), ind1.parent());
 
   nind.setNormalized(false);
 
@@ -11716,7 +11711,7 @@ normalizeIndex(const QModelIndex &ind) const
 
   this->proxyModels(proxyModels, sourceModel);
 
-  QModelIndex ind1 = ind;
+  auto ind1 = ind;
 
   int i = 0;
 
@@ -11744,7 +11739,7 @@ unnormalizeIndex(const QModelIndex &ind) const
 
   this->proxyModels(proxyModels, sourceModel);
 
-  QModelIndex ind1 = ind;
+  auto ind1 = ind;
 
   // ind model should match source model of last proxy model
   int i = int(proxyModels.size()) - 1;
@@ -11796,12 +11791,11 @@ isHierarchical() const
 
 void
 CQChartsPlot::
-addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const
+addColumnValues(const Column &column, ValueSet &valueSet) const
 {
   class ValueSetVisitor : public ModelVisitor {
    public:
-    ValueSetVisitor(const CQChartsPlot *plot, const CQChartsColumn &column,
-                    CQChartsValueSet &valueSet) :
+    ValueSetVisitor(const CQChartsPlot *plot, const Column &column, ValueSet &valueSet) :
      plot_(plot), column_(column), valueSet_(valueSet) {
     }
 
@@ -11812,7 +11806,7 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const
 
       bool ok;
 
-      QVariant value = plot_->modelValue(columnInd, ok);
+      auto value = plot_->modelValue(columnInd, ok);
 
       // TODO: skip if not ok ?
 
@@ -11823,8 +11817,8 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const
 
    private:
     const CQChartsPlot* plot_   { nullptr };
-    CQChartsColumn      column_;
-    CQChartsValueSet&   valueSet_;
+    Column              column_;
+    ValueSet&           valueSet_;
   };
 
   ValueSetVisitor valueSetVisitor(this, column, valueSet);
@@ -11856,8 +11850,8 @@ visitModel(ModelVisitor &visitor) const
 
 bool
 CQChartsPlot::
-modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
-                double &r, bool log, double def) const
+modelMappedReal(int row, const Column &column, const QModelIndex &parent, double &r,
+                bool log, double def) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -11911,7 +11905,7 @@ getRowForId(const QString &id) const
     State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok;
 
-      QString id = plot_->idColumnString(data.row, data.parent, ok);
+      auto id = plot_->idColumnString(data.row, data.parent, ok);
 
       if (ok && id == id_)
         row_ = data.row;
@@ -11947,7 +11941,7 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 
   ModelIndex idColumnInd(th, row, idColumn(), parent);
 
-  QVariant var = modelValue(idColumnInd, ok);
+  auto var = modelValue(idColumnInd, ok);
 
   if (! ok)
     return "";
@@ -11980,7 +11974,7 @@ modelIndex(const ModelIndex &ind) const
 
 QModelIndex
 CQChartsPlot::
-modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent,
+modelIndex(int row, const Column &column, const QModelIndex &parent,
            bool normalized /*=false*/) const
 {
   if (! column.hasColumn())
@@ -12007,29 +12001,28 @@ modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent,
 #if 0
 QVariant
 CQChartsPlot::
-modelHHeaderValue(const CQChartsColumn &column, bool &ok) const
+modelHHeaderValue(const Column &column, bool &ok) const
 {
   return modelHHeaderValue(model().data(), column, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const
+modelHHeaderValue(const Column &column, int role, bool &ok) const
 {
   return modelHHeaderValue(model().data(), column, role, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+modelHHeaderValue(QAbstractItemModel *model, const Column &column, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, column, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                  int role, bool &ok) const
+modelHHeaderValue(QAbstractItemModel *model, const Column &column, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, column, role, ok);
 }
@@ -12073,29 +12066,28 @@ modelVHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orient
 
 QString
 CQChartsPlot::
-modelHHeaderString(const CQChartsColumn &column, bool &ok) const
+modelHHeaderString(const Column &column, bool &ok) const
 {
   return modelHHeaderString(model().data(), column, ok);
 }
 
 QString
 CQChartsPlot::
-modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const
+modelHHeaderString(const Column &column, int role, bool &ok) const
 {
   return modelHHeaderString(model().data(), column, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+modelHHeaderString(QAbstractItemModel *model, const Column &column, bool &ok) const
 {
   return CQChartsModelUtil::modelHHeaderString(model, column, ok);
 }
 
 QString
 CQChartsPlot::
-modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                   int role, bool &ok) const
+modelHHeaderString(QAbstractItemModel *model, const Column &column, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHHeaderString(model, column, role, ok);
 }
@@ -12104,9 +12096,9 @@ modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelHHeaderTip(const CQChartsColumn &column, bool &ok) const
+modelHHeaderTip(const Column &column, bool &ok) const
 {
-  QString str = modelHHeaderString(model().data(), column, (int) CQBaseModelRole::Tip, ok);
+  auto str = modelHHeaderString(model().data(), column, (int) CQBaseModelRole::Tip, ok);
 
   if (! ok)
     str = CQChartsModelUtil::modelHHeaderString(model().data(), column, ok);
@@ -12150,8 +12142,7 @@ modelVHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orien
 
 QVariant
 CQChartsPlot::
-modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-           int role, bool &ok) const
+modelValue(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12160,7 +12151,7 @@ modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QVariant
 CQChartsPlot::
-modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelValue(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12172,7 +12163,7 @@ CQChartsPlot::
 modelValue(const ModelIndex &ind, int role, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    CQChartsColumn c = ind.column();
+    Column c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -12190,7 +12181,7 @@ CQChartsPlot::
 modelValue(const ModelIndex &ind, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    CQChartsColumn c = ind.column();
+    Column c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -12205,7 +12196,7 @@ modelValue(const ModelIndex &ind, bool &ok) const
 
 QVariant
 CQChartsPlot::
-modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelValue(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, role, ok);
@@ -12213,7 +12204,7 @@ modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 QVariant
 CQChartsPlot::
-modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelValue(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, bool &ok) const
 {
   return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, ok);
@@ -12223,8 +12214,7 @@ modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelString(int row, const CQChartsColumn &column, const QModelIndex &parent,
-            int role, bool &ok) const
+modelString(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12233,7 +12223,7 @@ modelString(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QString
 CQChartsPlot::
-modelString(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelString(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
@@ -12263,7 +12253,7 @@ modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const
 
 QString
 CQChartsPlot::
-modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelString(QAbstractItemModel *model, int row, const Column &column,
             const QModelIndex &parent, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelString(charts(), model, row, column, parent, role, ok);
@@ -12271,7 +12261,7 @@ modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelString(QAbstractItemModel *model, int row, const Column &column,
             const QModelIndex &parent, bool &ok) const
 {
   return CQChartsModelUtil::modelString(charts(), model, row, column, parent, ok);
@@ -12415,7 +12405,7 @@ modelInteger(QAbstractItemModel *model, int row, const Column &column,
 
 long
 CQChartsPlot::
-modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelInteger(QAbstractItemModel *model, int row, const Column &column,
              const QModelIndex &parent, bool &ok) const
 {
   return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, ok);
@@ -12426,22 +12416,21 @@ modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 #if 0
 CQChartsColor
 CQChartsPlot::
-modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent,
-           int role, bool &ok) const
+modelColor(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   return modelColor(model().data(), row, column, parent, role, ok);
 }
 
 CQChartsColor
 CQChartsPlot::
-modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelColor(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   return modelColor(model().data(), row, column, parent, ok);
 }
 
 CQChartsColor
 CQChartsPlot::
-modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelColor(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
   return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, role, ok);
@@ -12449,7 +12438,7 @@ modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 CQChartsColor
 CQChartsPlot::
-modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+modelColor(QAbstractItemModel *model, int row, const Column &column,
            const QModelIndex &parent, bool &ok) const
 {
   return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, ok);
@@ -12467,11 +12456,11 @@ modelReals(const ModelIndex &ind, bool &ok) const
 
 std::vector<double>
 CQChartsPlot::
-modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelReals(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   std::vector<double> reals;
 
-  QVariant var = modelValue(model().data(), row, column, parent, ok);
+  auto var = modelValue(model().data(), row, column, parent, ok);
 
   if (! ok)
     return reals;
@@ -12490,8 +12479,7 @@ modelRootValue(const ModelIndex &ind, int role, bool &ok) const
 
 QVariant
 CQChartsPlot::
-modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-               int role, bool &ok) const
+modelRootValue(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
   if (column.column() == 0 && parent.isValid())
     return modelRootValue(parent.row(), column, parent.parent(), role, ok);
@@ -12501,7 +12489,7 @@ modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QVariant
 CQChartsPlot::
-modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelRootValue(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
   if (column.column() == 0 && parent.isValid())
     return modelRootValue(parent.row(), column, parent.parent(), ok);
@@ -12520,13 +12508,13 @@ modelHierValue(const ModelIndex &ind, bool &ok) const
 
 QVariant
 CQChartsPlot::
-modelHierValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelHierValue(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
-  QVariant v = modelValue(row, column, parent, ok);
+  auto v = modelValue(row, column, parent, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -12541,14 +12529,13 @@ modelHierValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
 
 QVariant
 CQChartsPlot::
-modelHierValue(int row, const CQChartsColumn &column,
-               const QModelIndex &parent, int role, bool &ok) const
+modelHierValue(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
-  QVariant v = modelValue(row, column, parent, role, ok);
+  auto v = modelValue(row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -12572,10 +12559,9 @@ modelHierString(const ModelIndex &ind, bool &ok) const
 
 QString
 CQChartsPlot::
-modelHierString(int row, const CQChartsColumn &column,
-                const QModelIndex &parent, bool &ok) const
+modelHierString(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, ok);
+  auto var = modelHierValue(row, column, parent, ok);
 
   if (! ok)
     return QString();
@@ -12590,10 +12576,9 @@ modelHierString(int row, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelHierString(int row, const CQChartsColumn &column,
-                const QModelIndex &parent, int role, bool &ok) const
+modelHierString(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, role, ok);
+  auto var = modelHierValue(row, column, parent, role, ok);
 
   if (! ok)
     return QString();
@@ -12611,9 +12596,9 @@ modelHierString(int row, const CQChartsColumn &column,
 #if 0
 double
 CQChartsPlot::
-modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelHierReal(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, ok);
+  auto var = modelHierValue(row, column, parent, ok);
 
   if (! ok)
     return 0.0;
@@ -12623,10 +12608,9 @@ modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, 
 
 double
 CQChartsPlot::
-modelHierReal(int row, const CQChartsColumn &column,
-              const QModelIndex &parent, int role, bool &ok) const
+modelHierReal(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, role, ok);
+  auto var = modelHierValue(row, column, parent, role, ok);
 
   if (! ok)
     return 0.0;
@@ -12640,9 +12624,9 @@ modelHierReal(int row, const CQChartsColumn &column,
 #if 0
 long
 CQChartsPlot::
-modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+modelHierInteger(int row, const Column &column, const QModelIndex &parent, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, ok);
+  auto var = modelHierValue(row, column, parent, ok);
 
   if (! ok)
     return 0;
@@ -12652,10 +12636,9 @@ modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &paren
 
 long
 CQChartsPlot::
-modelHierInteger(int row, const CQChartsColumn &column,
-                 const QModelIndex &parent, int role, bool &ok) const
+modelHierInteger(int row, const Column &column, const QModelIndex &parent, int role, bool &ok) const
 {
-  QVariant var = modelHierValue(row, column, parent, role, ok);
+  auto var = modelHierValue(row, column, parent, role, ok);
 
   if (! ok)
     return 0;
@@ -12668,11 +12651,10 @@ modelHierInteger(int row, const CQChartsColumn &column,
 
 bool
 CQChartsPlot::
-isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &column,
+isSelectIndex(const QModelIndex &ind, int row, const Column &column,
               const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA && column.type() != Column::Type::DATA_INDEX)
     return false;
 
   return (ind == selectIndex(row, column, parent));
@@ -12680,10 +12662,9 @@ isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &column,
 
 QModelIndex
 CQChartsPlot::
-selectIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
+selectIndex(int row, const Column &column, const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA &&
-      column.type() != CQChartsColumn::Type::DATA_INDEX)
+  if (column.type() != Column::Type::DATA && column.type() != Column::Type::DATA_INDEX)
     return QModelIndex();
 
   std::vector<QSortFilterProxyModel *> proxyModels;
@@ -12712,7 +12693,7 @@ void
 CQChartsPlot::
 addSelectIndex(int row, int column, const QModelIndex &parent)
 {
-  addSelectIndex(selectIndex(row, CQChartsColumn(column), parent));
+  addSelectIndex(selectIndex(row, Column(column), parent));
 }
 
 void
@@ -12722,7 +12703,7 @@ addSelectIndex(const QModelIndex &ind)
   if (! ind.isValid())
     return;
 
-  QModelIndex ind1 = unnormalizeIndex(ind);
+  auto ind1 = unnormalizeIndex(ind);
 
   if (! ind1.isValid())
     return;
@@ -12753,7 +12734,7 @@ endSelectIndex()
       int         ic   = p1.first;
       const auto &rows = p1.second;
 
-      CQChartsColumn column(ic);
+      Column column(ic);
 
       int startRow = -1;
       int endRow   = -1;
@@ -12767,8 +12748,8 @@ endSelectIndex()
           endRow = row;
         }
         else {
-          QModelIndex ind1 = modelIndex(startRow, column, parent);
-          QModelIndex ind2 = modelIndex(endRow  , column, parent);
+          auto ind1 = modelIndex(startRow, column, parent);
+          auto ind2 = modelIndex(endRow  , column, parent);
 
           optItemSelection.select(ind1, ind2);
 
@@ -12778,8 +12759,8 @@ endSelectIndex()
       }
 
       if (startRow >= 0) {
-        QModelIndex ind1 = modelIndex(startRow, column, parent);
-        QModelIndex ind2 = modelIndex(endRow  , column, parent);
+        auto ind1 = modelIndex(startRow, column, parent);
+        auto ind2 = modelIndex(endRow  , column, parent);
 
         optItemSelection.select(ind1, ind2);
       }
@@ -12822,7 +12803,7 @@ expValue(double x, int base) const
 
 CQChartsGeom::Point
 CQChartsPlot::
-positionToPlot(const CQChartsPosition &pos) const
+positionToPlot(const Position &pos) const
 {
   auto p  = pos.p();
   auto p1 = p;
@@ -12857,7 +12838,7 @@ positionToPlot(const CQChartsPosition &pos) const
 
 CQChartsGeom::Point
 CQChartsPlot::
-positionToPixel(const CQChartsPosition &pos) const
+positionToPixel(const Position &pos) const
 {
   auto p  = pos.p();
   auto p1 = p;
@@ -12894,7 +12875,7 @@ positionToPixel(const CQChartsPosition &pos) const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-rectToPlot(const CQChartsRect &rect) const
+rectToPlot(const Rect &rect) const
 {
   auto r  = rect.bbox();
   auto r1 = r;
@@ -12935,7 +12916,7 @@ rectToPlot(const CQChartsRect &rect) const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-rectToPixel(const CQChartsRect &rect) const
+rectToPixel(const Rect &rect) const
 {
   auto r  = rect.bbox();
   auto r1 = r;
@@ -12978,14 +12959,14 @@ rectToPixel(const CQChartsRect &rect) const
 
 double
 CQChartsPlot::
-lengthPlotSize(const CQChartsLength &len, bool horizontal) const
+lengthPlotSize(const Length &len, bool horizontal) const
 {
   return (horizontal ? lengthPlotWidth(len) : lengthPlotHeight(len));
 }
 
 double
 CQChartsPlot::
-lengthPlotWidth(const CQChartsLength &len) const
+lengthPlotWidth(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
@@ -13005,7 +12986,7 @@ lengthPlotWidth(const CQChartsLength &len) const
 
 double
 CQChartsPlot::
-lengthPlotHeight(const CQChartsLength &len) const
+lengthPlotHeight(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
@@ -13025,14 +13006,14 @@ lengthPlotHeight(const CQChartsLength &len) const
 
 double
 CQChartsPlot::
-lengthPixelSize(const CQChartsLength &len, bool horizontal) const
+lengthPixelSize(const Length &len, bool horizontal) const
 {
   return (horizontal ? lengthPixelWidth(len) : lengthPixelHeight(len));
 }
 
 double
 CQChartsPlot::
-lengthPixelWidth(const CQChartsLength &len) const
+lengthPixelWidth(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
@@ -13052,7 +13033,7 @@ lengthPixelWidth(const CQChartsLength &len) const
 
 double
 CQChartsPlot::
-lengthPixelHeight(const CQChartsLength &len) const
+lengthPixelHeight(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
@@ -13475,7 +13456,7 @@ windowToPixel(const QPainterPath &path) const
 
 void
 CQChartsPlot::
-plotSymbolSize(const CQChartsLength &s, double &sx, double &sy) const
+plotSymbolSize(const Length &s, double &sx, double &sy) const
 {
   sx = lengthPlotWidth (s);
   sy = lengthPlotHeight(s);
@@ -13483,7 +13464,7 @@ plotSymbolSize(const CQChartsLength &s, double &sx, double &sy) const
 
 void
 CQChartsPlot::
-pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const
+pixelSymbolSize(const Length &s, double &sx, double &sy) const
 {
   sx = limitSymbolSize(lengthPixelWidth (s));
   sy = limitSymbolSize(lengthPixelHeight(s));
@@ -13509,14 +13490,14 @@ limitFontSize(double s) const
 
 bool
 CQChartsPlot::
-setParameter(CQChartsPlotParameter *param, const QVariant &value)
+setParameter(PlotParameter *param, const QVariant &value)
 {
   return CQUtil::setProperty(this, param->propName(), value);
 }
 
 bool
 CQChartsPlot::
-getParameter(CQChartsPlotParameter *param, QVariant &value) const
+getParameter(PlotParameter *param, QVariant &value) const
 {
   return CQUtil::getProperty(this, param->propName(), value);
 }
@@ -13579,13 +13560,13 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     strs1 << param->name() << str;
 
-    if (param->type() == CQChartsPlotParameter::Type::COLUMN ||
-        param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
+    if (param->type() == PlotParameter::Type::COLUMN ||
+        param->type() == PlotParameter::Type::COLUMN_LIST) {
       columnsStrs += strs1;
     }
     else {
       //parametersStrs += "{" + CQTcl::mergeList(strs1) + "}";
-      QString propPath = param->propPath();
+      auto propPath = param->propPath();
 
       if (propPath == "") {
         if (! propertyModel()->nameToPath(this, param->propName(), propPath))

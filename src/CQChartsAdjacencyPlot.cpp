@@ -85,7 +85,7 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
 
 CQChartsPlot *
 CQChartsAdjacencyPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsAdjacencyPlot(view, model);
 }
@@ -93,7 +93,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsAdjacencyPlot::
-CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
+CQChartsAdjacencyPlot(View *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("adjacency"), model),
  CQChartsObjBackgroundFillData<CQChartsAdjacencyPlot>(this),
  CQChartsObjShapeData         <CQChartsAdjacencyPlot>(this),
@@ -1120,7 +1120,7 @@ execDrawBackground(PaintDevice *device) const
   // draw text
   auto tc = interpTextColor(ColorInd());
 
-  setPen(device, CQChartsPenData(true, tc, textAlpha()));
+  setPen(device, PenData(true, tc, textAlpha()));
 
   //---
 
@@ -1191,8 +1191,8 @@ execDrawBackground(PaintDevice *device) const
   auto fc = interpBackgroundFillColor(ColorInd());
 
   setPenBrush(device,
-   CQChartsPenData  (false),
-   CQChartsBrushData(true, fc, backgroundFillData()));
+   PenData  (false),
+   BrushData(true, fc, backgroundFillData()));
 
   BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
@@ -1207,8 +1207,8 @@ execDrawBackground(PaintDevice *device) const
   auto bc = interpEmptyCellFillColor  (ColorInd());
 
   setPenBrush(emptyPenBrush,
-    CQChartsPenData  (true, pc, emptyCellShapeData().stroke()),
-    CQChartsBrushData(true, bc, emptyCellShapeData().fill  ()));
+    PenData  (true, pc, emptyCellShapeData().stroke()),
+    BrushData(true, bc, emptyCellShapeData().fill  ()));
 
   auto cornerSize = emptyCellCornerSize();
 
@@ -1459,8 +1459,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   // calc pen and brush
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (true, pc, plot_->shapeData().stroke()),
-    CQChartsBrushData(true, bc, plot_->shapeData().fill  ()));
+    PenData  (true, pc, plot_->shapeData().stroke()),
+    BrushData(true, bc, plot_->shapeData().fill  ()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

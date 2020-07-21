@@ -1308,8 +1308,7 @@ drawTableBackground(PaintDevice *device) const
     CQChartsPenBrush headerPenBrush;
 
     setPenBrush(headerPenBrush,
-      CQChartsPenData  (false),
-      CQChartsBrushData(true, interpColor(headerColor(), ColorInd())));
+      PenData(false), BrushData(true, interpColor(headerColor(), ColorInd())));
 
     CQChartsDrawUtil::setPenBrush(device, headerPenBrush);
 
@@ -1324,8 +1323,7 @@ drawTableBackground(PaintDevice *device) const
   CQChartsPenBrush cellPenBrush;
 
   setPenBrush(cellPenBrush,
-    CQChartsPenData  (false),
-    CQChartsBrushData(true, interpColor(cellColor(), ColorInd())));
+    PenData(false), BrushData(true, interpColor(cellColor(), ColorInd())));
 
   CQChartsDrawUtil::setPenBrush(device, cellPenBrush);
 
@@ -1341,8 +1339,7 @@ drawTableBackground(PaintDevice *device) const
   CQChartsPenBrush gridPenBrush;
 
   setPenBrush(gridPenBrush,
-    CQChartsPenData  (true, interpColor(gridColor(), ColorInd())),
-    CQChartsBrushData(false));
+    PenData(true, interpColor(gridColor(), ColorInd())), BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, gridPenBrush);
 
@@ -1865,8 +1862,8 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    CQChartsPenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
-                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
+            CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
   device->setPen(textPenBrush.pen);
 
@@ -1949,8 +1946,8 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    CQChartsPenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
-                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
+            CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
   device->setPen(textPenBrush.pen);
 
@@ -2026,7 +2023,7 @@ draw(PaintDevice *device)
 
     QColor c = plot_->interpColor(plot_->insideColor(), ColorInd());
 
-    plot_->setPenBrush(bgPenBrush, CQChartsPenData(false), CQChartsBrushData(true, c));
+    plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, c));
 
     CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
@@ -2057,8 +2054,8 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    CQChartsPenData(true, plot_->interpColor(textColor, ColorInd()),
-                    CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(textColor, ColorInd()),
+            CQChartsAlpha(), 0.0, CQChartsLineDash()));
 
   device->setPen(textPenBrush.pen);
 

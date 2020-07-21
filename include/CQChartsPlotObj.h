@@ -46,6 +46,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
+  using BrushData         = CQChartsBrushData;
+  using PenData           = CQChartsPenData;
 
   using Point    = CQChartsGeom::Point;
   using Size     = CQChartsGeom::Size;

@@ -54,7 +54,7 @@ description() const
 
 CQChartsPlot *
 CQChartsCompositePlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsCompositePlot(view, model);
 }
@@ -62,7 +62,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsCompositePlot::
-CQChartsCompositePlot(CQChartsView *view, const ModelP &model) :
+CQChartsCompositePlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("composite"), model)
 {
   addAxes();

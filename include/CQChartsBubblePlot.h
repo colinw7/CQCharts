@@ -85,7 +85,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   virtual void setSize(double s) { size_ = s; }
 
   //! get/set radius
-  virtual double radius() const override { return r_; }
+  double radius() const override { return r_; }
   virtual void setRadius(double r) { r_ = r; }
 
   //! get/set x

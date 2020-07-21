@@ -115,7 +115,7 @@ description() const
 
 CQChartsPlot *
 CQChartsBarChartPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsBarChartPlot(view, model);
 }
@@ -123,7 +123,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsBarChartPlot::
-CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
+CQChartsBarChartPlot(View *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("barchart"), model),
  CQChartsObjDotPointData<CQChartsBarChartPlot>(this)
 {
@@ -1952,10 +1952,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor barColor = calcBarColor();
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
-                      plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    CQChartsBrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
-                      plot_->barFillPattern()));
+    PenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
+              plot_->barStrokeWidth(), plot_->barStrokeDash()),
+    BrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
+              plot_->barFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2120,8 +2120,8 @@ fillBrush() const
 
   QBrush brush;
 
-  CQChartsBrushData barBrushData(plot_->isBarFilled(), barColor,
-                                 plot_->barFillAlpha(), plot_->barFillPattern());
+  BrushData barBrushData(plot_->isBarFilled(), barColor,
+                         plot_->barFillAlpha(), plot_->barFillPattern());
 
   CQChartsDrawUtil::setBrush(brush, barBrushData);
 

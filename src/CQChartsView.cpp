@@ -2022,9 +2022,21 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
   for (const auto &basePlot : basePlotSet)
     basePlots.push_back(basePlot);
 
+  Plots plots1;
+
+  for (const auto &plot : plots) {
+    auto *plot1 = this->basePlot(plot);
+
+    if (basePlotSet.find(plot1) != basePlotSet.end()) {
+      plots1.push_back(plot1);
+
+      basePlotSet.erase(plot1);
+    }
+  }
+
   //---
 
-  int np = basePlots.size();
+  int np = plots1.size();
 
   if (np <= 0)
     return;
@@ -2074,7 +2086,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
 
   if (overlay) {
     for (int i = 0; i < np; ++i) {
-      auto *plot = basePlots[i];
+      auto *plot = plots1[i];
 
       BBox bbox(0, 0, vr, vr);
 
@@ -2092,10 +2104,10 @@ placePlots(const Plots &plots, bool vertical, bool horizontal,
       double x = 0.0;
 
       for (int c = 0; c < nc; ++c, ++i) {
-        if (i >= int(basePlots.size()))
+        if (i >= int(plots1.size()))
           break;
 
-        auto *plot = basePlots[i];
+        auto *plot = plots1[i];
 
         BBox bbox(x, y - dy, x + dx, y);
 

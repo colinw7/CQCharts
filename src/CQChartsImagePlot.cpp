@@ -57,7 +57,7 @@ description() const
 
 CQChartsPlot *
 CQChartsImagePlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsImagePlot(view, model);
 }
@@ -65,7 +65,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsImagePlot::
-CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
+CQChartsImagePlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("image"), model),
  CQChartsObjCellShapeData    <CQChartsImagePlot>(this),
  CQChartsObjCellLabelTextData<CQChartsImagePlot>(this),
@@ -464,7 +464,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   QColor tc = interpXLabelTextColor(ColorInd());
 
-  setPen(tpenBrush, CQChartsPenData(true, tc, xLabelTextAlpha()));
+  setPen(tpenBrush, PenData(true, tc, xLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 
@@ -556,7 +556,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   QColor tc = interpYLabelTextColor(ColorInd());
 
-  setPen(tpenBrush, CQChartsPenData(true, tc, yLabelTextAlpha()));
+  setPen(tpenBrush, PenData(true, tc, yLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 
@@ -806,7 +806,7 @@ draw(CQChartsPaintDevice *device)
 
       QColor tc = plot_->interpCellLabelTextColor(ic);
 
-      plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->cellLabelTextAlpha()));
+      plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
       plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -876,9 +876,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpCellStrokeColor(ic);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-                      plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
-    CQChartsBrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(), plot_->cellFillPattern()));
+    PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
+              plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
+    BrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(), plot_->cellFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

@@ -38,7 +38,7 @@ description() const
 
 CQChartsPlot *
 CQChartsEmptyPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsEmptyPlot(view, model);
 }
@@ -46,7 +46,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsEmptyPlot::
-CQChartsEmptyPlot(CQChartsView *view, const ModelP &model) :
+CQChartsEmptyPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("empty"), model)
 {
   addAxes();

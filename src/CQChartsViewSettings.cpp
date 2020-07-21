@@ -1742,7 +1742,7 @@ void
 CQChartsViewSettings::
 showErrorsTab()
 {
-  tab_->setCurrentIndex(6);
+  tab_->setCurrentIndex(7);
 }
 
 //------

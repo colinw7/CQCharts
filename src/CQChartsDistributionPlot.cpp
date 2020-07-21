@@ -2926,7 +2926,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
   CQChartsPenBrush penBrush;
 
   setPen(penBrush,
-    CQChartsPenData(true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()));
+    PenData(true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -3846,9 +3846,8 @@ calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
   }
 
   plot_->setPenBrush(barPenBrush,
-    CQChartsPenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-                      bw, plot_->barStrokeDash()),
-    CQChartsBrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
+    PenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash()),
+    BrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
@@ -4144,8 +4143,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
   CQChartsPenBrush penBrush;
 
   plot_->setPen(penBrush,
-    CQChartsPenData(true, bc, plot_->statsLinesAlpha(), plot_->statsLinesWidth(),
-                    plot_->statsLinesDash()));
+    PenData(true, bc, plot_->statsLinesAlpha(), plot_->statsLinesWidth(), plot_->statsLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -4197,8 +4195,8 @@ drawRug(CQChartsPaintDevice *device) const
 
   QColor fillColor = plot_->interpBarFillColor(is_);
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, fillColor),
-                     CQChartsBrushData(true, fillColor, CQChartsAlpha(0.5)));
+  plot_->setPenBrush(penBrush,
+    PenData(true, fillColor), BrushData(true, fillColor, CQChartsAlpha(0.5)));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4239,9 +4237,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpBarFillColor  (is_);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-                      plot_->barStrokeWidth(), plot_->barStrokeDash()),
-    CQChartsBrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
+    PenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+              plot_->barStrokeWidth(), plot_->barStrokeDash()),
+    BrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
 
   //---
 
@@ -4349,7 +4347,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setPenBrush(penBrush, CQChartsPenData(true, Qt::black), CQChartsBrushData(true, c));
+  plot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

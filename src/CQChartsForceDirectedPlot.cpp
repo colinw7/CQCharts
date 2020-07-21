@@ -1292,7 +1292,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   QColor edgeColor = this->interpEdgeLinesColor(ColorInd());
 
   setPen(edgePenBrush,
-    CQChartsPenData(true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash()));
+    PenData(true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash()));
 
   for (auto &edge : forceDirected_->edges()) {
     bool isTemp = false;
@@ -1368,8 +1368,8 @@ drawDeviceParts(CQChartsPaintDevice *device) const
       fc = insideColor(fc);
 
     setPenBrush(penBrush,
-      CQChartsPenData  (true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash()),
-      CQChartsBrushData(true, fc, nodeFillAlpha(), nodeFillPattern()));
+      PenData  (true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash()),
+      BrushData(true, fc, nodeFillAlpha(), nodeFillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

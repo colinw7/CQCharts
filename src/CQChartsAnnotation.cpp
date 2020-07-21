@@ -299,6 +299,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->setObjectRoot(path, this);
 
   addProp(path, "id"        , "id"        , "Annotation id");
+  addProp(path, "visible"   , "visible"   , "Is visible"   , true);
   addProp(path, "enabled"   , "enabled"   , "Is enabled"   , true);
   addProp(path, "checkable" , "checkable" , "Is checkable" , true);
   addProp(path, "checked"   , "checked"   , "Is checked"   , true);
@@ -308,8 +309,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   QString coloringPath = path + "/coloring";
 
-  addProp(coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" );
-  addProp(coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked");
+  addProp(coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" , true);
+  addProp(coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked", true);
 }
 
 void

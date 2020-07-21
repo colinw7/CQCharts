@@ -66,7 +66,7 @@ description() const
 
 CQChartsPlot *
 CQChartsDelaunayPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsDelaunayPlot(view, model);
 }
@@ -74,7 +74,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsDelaunayPlot::
-CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
+CQChartsDelaunayPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model),
  CQChartsObjDelaunayLineData<CQChartsDelaunayPlot>(this),
  CQChartsObjVoronoiLineData <CQChartsDelaunayPlot>(this),
@@ -578,8 +578,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
     QColor fc = interpVoronoiFillColor  (ColorInd());
 
     setPenBrush(penBrush,
-      CQChartsPenData  (true, pc, voronoiStrokeAlpha(), voronoiStrokeWidth(), voronoiStrokeDash()),
-      CQChartsBrushData(true, fc, voronoiFillAlpha(), voronoiFillPattern()));
+      PenData  (true, pc, voronoiStrokeAlpha(), voronoiStrokeWidth(), voronoiStrokeDash()),
+      BrushData(true, fc, voronoiFillAlpha(), voronoiFillPattern()));
 
     for (auto pv = delaunayData_->verticesBegin(); pv != delaunayData_->verticesEnd(); ++pv) {
       const auto *v1 = *pv;
@@ -647,8 +647,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
     QColor lc = interpVoronoiLinesColor(ColorInd());
 
     setPenBrush(penBrush,
-      CQChartsPenData(true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash()),
-      CQChartsBrushData(false));
+      PenData(true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash()),
+      BrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

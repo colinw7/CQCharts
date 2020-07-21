@@ -107,7 +107,7 @@ description() const
 
 CQChartsPlot *
 CQChartsScatterPlot3DType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsScatterPlot3D(view, model);
 }
@@ -115,7 +115,7 @@ create(CQChartsView *view, const ModelP &model) const
 //---
 
 CQChartsScatterPlot3D::
-CQChartsScatterPlot3D(CQChartsView *view, const ModelP &model) :
+CQChartsScatterPlot3D(View *view, const ModelP &model) :
  CQChartsPlot3D(view, view->charts()->plotType("scatter3d"), model),
  CQChartsObjPointData<CQChartsScatterPlot3D>(this)
 {
@@ -800,7 +800,7 @@ addPointObjects() const
           QColor tc = dataLabel()->interpTextColor(ColorInd());
 
           setPenBrush(penBrush,
-            CQChartsPenData(true, tc, dataLabel()->textAlpha()), CQChartsBrushData(false));
+            PenData(true, tc, dataLabel()->textAlpha()), BrushData(false));
 
           CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
 

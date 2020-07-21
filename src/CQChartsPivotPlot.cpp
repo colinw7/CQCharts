@@ -69,7 +69,7 @@ description() const
 
 CQChartsPlot *
 CQChartsPivotPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsPivotPlot(view, model);
 }
@@ -77,7 +77,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsPivotPlot::
-CQChartsPivotPlot(CQChartsView *view, const ModelP &model) :
+CQChartsPivotPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("pivot"), model),
  CQChartsObjBarShapeData<CQChartsPivotPlot>(this)
 {
@@ -1377,7 +1377,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor lc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, CQChartsPenData(true, lc), CQChartsBrushData(false));
+    plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1422,8 +1422,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, CQChartsPenData(false),
-                       CQChartsBrushData(true, fc, CQChartsAlpha(0.5)));
+    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, CQChartsAlpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1717,8 +1716,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsPenBrush hbgPenBrush;
 
-    plot_->setPenBrush(hbgPenBrush,
-     CQChartsPenData(false), CQChartsBrushData(true, hbg));
+    plot_->setPenBrush(hbgPenBrush, PenData(false), BrushData(true, hbg));
 
     CQChartsDrawUtil::setPenBrush(device, hbgPenBrush);
 
@@ -1744,8 +1742,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsPenBrush vbgPenBrush;
 
-    plot_->setPenBrush(vbgPenBrush,
-     CQChartsPenData(false), CQChartsBrushData(true, vbg));
+    plot_->setPenBrush(vbgPenBrush, PenData(false), BrushData(true, vbg));
 
     CQChartsDrawUtil::setPenBrush(device, vbgPenBrush);
 
@@ -1860,7 +1857,7 @@ fillBrush() const
   CQChartsPenBrush penBrush;
 
   plot->setBrush(penBrush,
-    CQChartsBrushData(plot->isBarFilled(), fc, plot->barFillAlpha(), plot->barFillPattern()));
+    BrushData(plot->isBarFilled(), fc, plot->barFillAlpha(), plot->barFillPattern()));
 
   return penBrush.brush;
 }

@@ -390,6 +390,8 @@ class CQChartsPlot : public CQChartsObj,
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
   using SVGPaintDevice    = CQChartsSVGPaintDevice;
   using HtmlPaintDevice   = CQChartsHtmlPaintDevice;
+  using BrushData         = CQChartsBrushData;
+  using PenData           = CQChartsPenData;
 
   using DisplayRange = CQChartsDisplayRange;
   using ValueSet     = CQChartsValueSet;

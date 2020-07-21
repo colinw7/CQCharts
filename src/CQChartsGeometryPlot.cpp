@@ -816,8 +816,8 @@ drawFg(CQChartsPaintDevice *device) const
     CQChartsPenBrush penBrush;
 
     plot_->setPenBrush(penBrush,
-      CQChartsPenData  (/*stroke*/true, pc),
-      CQChartsBrushData(/*filled*/true, bc, CQChartsAlpha(0.5)));
+      PenData  (/*stroke*/true, pc),
+      BrushData(/*filled*/true, bc, CQChartsAlpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -857,9 +857,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
+    PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (style().isValid()) {
     penBrush.pen   = style().pen  ();

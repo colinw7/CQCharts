@@ -2169,7 +2169,7 @@ draw(CQChartsPaintDevice *device)
 
   plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, colorInd);
 
-  plot_->setBrush(whiskerPenBrush, CQChartsBrushData(false));
+  plot_->setBrush(whiskerPenBrush, BrushData(false));
 
   plot_->updateObjPenBrushState(this, whiskerPenBrush);
 
@@ -2258,8 +2258,8 @@ draw(CQChartsPaintDevice *device)
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
       plot_->setPenBrush(symbolPenBrush,
-        CQChartsPenData  (true, strokeColor, plot_->boxShapeData().stroke()),
-        CQChartsBrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
+        PenData  (true, strokeColor, plot_->boxShapeData().stroke()),
+        BrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
 
       plot_->updateObjPenBrushState(this, symbolPenBrush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2354,7 +2354,7 @@ draw(CQChartsPaintDevice *device)
 
         QColor tc = plot_->interpTextColor(colorInd);
 
-        plot_->setPen(penBrush, CQChartsPenData(true, tc, plot_->textAlpha()));
+        plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
 
         device->setPen(penBrush.pen);
 
@@ -2430,9 +2430,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpBoxFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-                      plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-    CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+    PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+              plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+    BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2761,7 +2761,7 @@ draw(CQChartsPaintDevice *device)
 
   plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, ColorInd());
 
-  plot_->setBrush(whiskerPenBrush, CQChartsBrushData(false));
+  plot_->setBrush(whiskerPenBrush, BrushData(false));
 
   plot_->updateObjPenBrushState(this, whiskerPenBrush);
 
@@ -2774,9 +2774,9 @@ draw(CQChartsPaintDevice *device)
   QColor fc = plot_->interpBoxFillColor(ColorInd());
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-                      plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-    CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+    PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+              plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+    BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
   plot_->updateObjPenBrushState(this, penBrush);
 
@@ -2856,7 +2856,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor tc = plot_->interpTextColor(ColorInd());
 
-    plot_->setPen(penBrush, CQChartsPenData(true, tc, plot_->textAlpha()));
+    plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
 
     device->setPen(penBrush.pen);
 
@@ -3093,9 +3093,9 @@ draw(CQChartsPaintDevice *device)
     QColor fc = plot_->interpBoxFillColor  (ig_);
 
     plot_->setPenBrush(pPenBrush,
-      CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-                        plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
-      CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
+      PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+                plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+      BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
     plot_->updateObjPenBrushState(this, pPenBrush);
 
@@ -3117,7 +3117,7 @@ draw(CQChartsPaintDevice *device)
   QColor lineColor = plot_->interpBoxStrokeColor(ig_);
 
   plot_->setPen(lPenBrush,
-    CQChartsPenData(true, lineColor, plot_->boxShapeData().stroke()));
+    PenData(true, lineColor, plot_->boxShapeData().stroke()));
 
   plot_->updateObjPenBrushState(this, lPenBrush);
 

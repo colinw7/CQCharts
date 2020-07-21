@@ -702,7 +702,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     QColor tc = interpTextColor(ColorInd());
 
-    setPen(tpenBrush, CQChartsPenData(true, tc, textAlpha()));
+    setPen(tpenBrush, PenData(true, tc, textAlpha()));
 
     //---
 
@@ -995,9 +995,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fillColor   = plot_->interpFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
-                      plot_->strokeWidth(), plot_->strokeDash()),
-    CQChartsBrushData(plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern()));
+    PenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
+              plot_->strokeWidth(), plot_->strokeDash()),
+    BrushData(plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

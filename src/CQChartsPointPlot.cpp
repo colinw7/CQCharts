@@ -559,10 +559,10 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
     QColor fillColor   = interpBestFitFillColor  (ic);
 
     setPenBrush(penBrush,
-      CQChartsPenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
-                        bestFitStrokeWidth(), bestFitStrokeDash()),
-      CQChartsBrushData(isBestFitFilled(), fillColor, bestFitFillAlpha(),
-                        bestFitFillPattern()));
+      PenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
+                bestFitStrokeWidth(), bestFitStrokeDash()),
+      BrushData(isBestFitFilled(), fillColor, bestFitFillAlpha(),
+                bestFitFillPattern()));
 
     updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 

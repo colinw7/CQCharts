@@ -4,12 +4,11 @@ Abstract Painter/Javascript
 
 TODO:
  + hier bubble min value/group column (bucket name column for integer/real (control))
- + more widget annotation support/more widgets
  + rect/position edit values from plot
+ + image edit/widget edit
+ + widget annotation edit
  + drag label
  + key tip includes text (could be clipped) - all keys
- + box plot text overlap
- + clip length in all text
  + no recalc updates (skip empty, fit, ...)
  + xy overlay key position outside plot
  + consistent model indices in tcl (-model and object indices)

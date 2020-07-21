@@ -915,7 +915,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     QColor tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
 
-    setPen(tpenBrush, CQChartsPenData(true, tc, masterAxis_->axesLabelTextAlpha()));
+    setPen(tpenBrush, PenData(true, tc, masterAxis_->axesLabelTextAlpha()));
 
     device->setPen(tpenBrush.pen);
 
@@ -1223,7 +1223,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   plot_->setLineDataPen(penBrush.pen, colorInd);
 
-  plot_->setBrush(penBrush, CQChartsBrushData(false));
+  plot_->setBrush(penBrush, BrushData(false));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

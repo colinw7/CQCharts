@@ -50,7 +50,7 @@ description() const
 
 CQChartsPlot *
 CQChartsCorrelationPlotType::
-create(CQChartsView *view, const ModelP &model) const
+create(View *view, const ModelP &model) const
 {
   return new CQChartsCorrelationPlot(view, model);
 }
@@ -58,7 +58,7 @@ create(CQChartsView *view, const ModelP &model) const
 //------
 
 CQChartsCorrelationPlot::
-CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model) :
+CQChartsCorrelationPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("correlation"), model),
  CQChartsObjCellShapeData    <CQChartsCorrelationPlot>(this),
  CQChartsObjCellLabelTextData<CQChartsCorrelationPlot>(this),
@@ -546,7 +546,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   QColor tc = interpXLabelTextColor(ColorInd());
 
-  setPen(tpenBrush, CQChartsPenData(true, tc, xLabelTextAlpha()));
+  setPen(tpenBrush, PenData(true, tc, xLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 
@@ -644,7 +644,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   QColor tc = interpYLabelTextColor(ColorInd());
 
-  setPen(tpenBrush, CQChartsPenData(true, tc, yLabelTextAlpha()));
+  setPen(tpenBrush, PenData(true, tc, yLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 
@@ -1044,7 +1044,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsPenBrush penBrush1 = penBrush;
 
-      plot_->setBrush(penBrush1, CQChartsBrushData(false));
+      plot_->setBrush(penBrush1, BrushData(false));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
@@ -1071,8 +1071,8 @@ draw(CQChartsPaintDevice *device)
       fillPattern.setScale(4.0);
 
       plot_->setPenBrush(penBrush,
-        CQChartsPenData  (true, lc, CQChartsAlpha(1.0)),
-        CQChartsBrushData(true, lc, CQChartsAlpha(1.0), fillPattern));
+        PenData  (true, lc, CQChartsAlpha(1.0)),
+        BrushData(true, lc, CQChartsAlpha(1.0), fillPattern));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1210,7 +1210,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
 
   QColor tc = plot_->interpCellLabelTextColor(ic);
 
-  plot_->setPen(tPenBrush, CQChartsPenData(true, tc, plot_->cellLabelTextAlpha()));
+  plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
   plot_->updateObjPenBrushState(this, tPenBrush);
 
@@ -1251,10 +1251,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpCellStrokeColor(ic);
 
   plot_->setPenBrush(penBrush,
-    CQChartsPenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-                      plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
-    CQChartsBrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
-                      plot_->cellFillPattern()));
+    PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
+              plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
+    BrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
+              plot_->cellFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
