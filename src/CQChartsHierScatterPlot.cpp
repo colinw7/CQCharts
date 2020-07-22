@@ -83,8 +83,8 @@ CQChartsHierScatterPlot(View *view, const ModelP &model) :
 
   //---
 
-  setSymbolSize(CQChartsLength("4px"));
-  setSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setSymbolSize(Length("4px"));
+  setSymbolType(Symbol::Type::CIRCLE);
   setSymbolStroked(true);
   setSymbolFilled (true);
   setSymbolFillColor(Color(Color::Type::PALETTE));
@@ -887,8 +887,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbolType = plot_->symbolType();
-  CQChartsLength symbolSize = plot_->symbolSize();
+  Symbol symbolType = plot_->symbolType();
+  Length symbolSize = plot_->symbolSize();
 
   // draw symbol
   plot_->drawSymbol(device, p_, symbolType, symbolSize, penBrush);

@@ -706,7 +706,7 @@ addPointObjects() const
         //---
 
         // get symbol size (needed for bounding box)
-        CQChartsLength symbolSize(CQChartsUnits::NONE, 0.0);
+        Length symbolSize(CQChartsUnits::NONE, 0.0);
 
         double sx, sy;
 
@@ -748,7 +748,7 @@ addPointObjects() const
         //---
 
         // set optional font size
-        CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
+        Length fontSize(CQChartsUnits::NONE, 0.0);
 
         if (fontSize.isValid())
           pointObj->setFontSize(fontSize);
@@ -802,11 +802,11 @@ addPointObjects() const
           setPenBrush(penBrush,
             PenData(true, tc, dataLabel()->textAlpha()), BrushData(false));
 
-          CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
+          Length fontSize(CQChartsUnits::NONE, 0.0);
 
           if (fontSizeColumn().isValid()) {
             if (! columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSizeData_, fontSize))
-              fontSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
+              fontSize = Length(CQChartsUnits::NONE, 0.0);
           }
 
           auto font = this->font();
@@ -1654,8 +1654,8 @@ postDraw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbolType = this->symbolType();
-  CQChartsLength symbolSize = this->symbolSize();
+  Symbol symbolType = this->symbolType();
+  Length symbolSize = this->symbolSize();
 
 //double sx, sy;
 //plot_->pixelSymbolSize(symbolSize, sx, sy);

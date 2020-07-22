@@ -127,7 +127,10 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   using VTexts = std::vector<VText>;
 
  public:
-  CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const BBox &rect, const ColorInd &is=ColorInd(),
+  using Plot = CQChartsBoxPlot;
+
+ public:
+  CQChartsBoxPlotObj(const Plot *plot, const BBox &rect, const ColorInd &is=ColorInd(),
                      const ColorInd &ig=ColorInd(), const ColorInd &iv=ColorInd());
 
   void clearDrawBBoxes();
@@ -136,9 +139,9 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   bool checkDrawBBox(const BBox &bbox) const;
 
-  bool drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
+  bool drawHText(PaintDevice *device, double xl, double xr, double y,
                  const QString &text, bool onLeft, BBox &bbox);
-  bool drawVText(CQChartsPaintDevice *device, double yt, double yb, double x,
+  bool drawVText(PaintDevice *device, double yt, double yb, double x,
                  const QString &text, bool onBottom, BBox &bbox);
 
   void addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text,
@@ -149,8 +152,8 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
  protected:
   using BBoxes = std::vector<BBox>;
 
-  const CQChartsBoxPlot* plot_ { nullptr }; //!< parent plot
-  BBoxes                 drawBBoxes_;
+  const Plot* plot_ { nullptr }; //!< parent plot
+  BBoxes      drawBBoxes_;
 };
 
 //---
@@ -172,9 +175,13 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double notch       READ notch      )
 
  public:
-  CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
-                            int groupInd, const CQChartsBoxPlotWhisker *whisker,
-                            const ColorInd &is, const ColorInd &ig);
+  using Plot    = CQChartsBoxPlot;
+  using Symbol  = CQChartsSymbol;
+  using Whisker = CQChartsBoxPlotWhisker;
+
+ public:
+  CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+                            const Whisker *whisker, const ColorInd &is, const ColorInd &ig);
 
   QString typeName() const override { return "whisker"; }
 
@@ -205,13 +212,13 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   //---
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -221,10 +228,10 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   double remapPos(double pos) const;
 
  private:
-  int                           setId_    { 0 };       //!< set id
-  int                           groupInd_ { 0 };       //!< group ind
-  const CQChartsBoxPlotWhisker* whisker_  { nullptr }; //!< whisker data
-  Polygon                       poly_;                 //!< draw polygon
+  int            setId_    { 0 };       //!< set id
+  int            groupInd_ { 0 };       //!< group ind
+  const Whisker* whisker_  { nullptr }; //!< whisker data
+  Polygon        poly_;                 //!< draw polygon
 };
 
 //---
@@ -237,9 +244,12 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
-                            int groupInd, const CQChartsBoxPlotWhisker *whisker,
-                            const ColorInd &is, const ColorInd &ig, int io);
+  using Plot    = CQChartsBoxPlot;
+  using Whisker = CQChartsBoxPlotWhisker;
+
+ public:
+  CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
+                            const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io);
 
   QString typeName() const override { return "outlier"; }
 
@@ -248,16 +258,16 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  private:
   double remapPos(double pos) const;
 
  private:
-  int                           setId_    { 0 };       //!< set id
-  int                           groupInd_ { 0 };       //!< group ind
-  const CQChartsBoxPlotWhisker* whisker_  { nullptr }; //!< whisker data
-  int                           io_       { 0 };       //!< outlier index
+  int            setId_    { 0 };       //!< set id
+  int            groupInd_ { 0 };       //!< group ind
+  const Whisker* whisker_  { nullptr }; //!< whisker data
+  int            io_       { 0 };       //!< outlier index
 };
 
 //---
@@ -272,8 +282,12 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double pos READ pos)
 
  public:
-  CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const BBox &rect,
-                         const CQChartsBoxWhiskerData &data, const ColorInd &is);
+  using Plot        = CQChartsBoxPlot;
+  using WhiskerData = CQChartsBoxWhiskerData;
+
+ public:
+  CQChartsBoxPlotDataObj(const Plot *plot, const BBox &rect, const WhiskerData &data,
+                         const ColorInd &is);
 
   QString typeName() const override { return "data"; }
 
@@ -284,7 +298,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   BBox annotationBBox() const;
 
@@ -292,7 +306,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   double remapPos(double pos) const;
 
  private:
-  CQChartsBoxWhiskerData data_; //!< whisker data
+  WhiskerData data_; //!< whisker data
 };
 
 //---
@@ -305,7 +319,10 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const BBox &rect, int groupInd,
+  using Plot = CQChartsBoxPlot;
+
+ public:
+  CQChartsBoxPlotConnectedObj(const Plot *plot, const BBox &rect, int groupInd,
                               const ColorInd &ig);
 
   QString typeName() const override { return "connected"; }
@@ -315,20 +332,21 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  private:
-  using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker *>;
+  using Whisker       = CQChartsBoxPlotWhisker;
+  using SetWhiskerMap = std::map<int,Whisker *>;
 
   const SetWhiskerMap &setWhiskerMap() const;
 
   void initPolygon();
 
  private:
-  const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
-  int                    groupInd_ { -1 };      //!< group ind
-  Polygon                line_;                 //!< connected line
-  Polygon                poly_;                 //!< connected polygon
+  const Plot* plot_     { nullptr }; //!< parent plot
+  int         groupInd_ { -1 };      //!< group ind
+  Polygon     line_;                 //!< connected line
+  Polygon     poly_;                 //!< connected polygon
 };
 
 //---
@@ -341,7 +359,12 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const BBox &rect, int setId,
+  using Plot   = CQChartsBoxPlot;
+  using Symbol = CQChartsSymbol;
+  using Length = CQChartsLength;
+
+ public:
+  CQChartsBoxPlotPointObj(const Plot *plot, const BBox &rect, int setId,
                           int groupInd, const Point &p, const QModelIndex &ind,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
@@ -354,13 +377,13 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  private:
-  const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
-  int                    setId_    { -1 };      //!< set id
-  int                    groupInd_ { -1 };      //!< group id
-  Point                  p_;                    //!< point
+  const Plot* plot_     { nullptr }; //!< parent plot
+  int         setId_    { -1 };      //!< set id
+  int         groupInd_ { -1 };      //!< group id
+  Point       p_;                    //!< point
 };
 
 //---
@@ -375,9 +398,12 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig);
+  using Plot = CQChartsBoxPlot;
 
-  bool selectPress(const Point &p, CQChartsSelMod selMod) override;
+ public:
+  CQChartsBoxKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig);
+
+  bool selectPress(const Point &p, SelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -385,7 +411,9 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
   double yColorValue(bool relative) const override;
 
  private:
-  CQChartsBoxPlotWhiskerObj *boxObj() const;
+  using WhiskerObj = CQChartsBoxPlotWhiskerObj;
+
+  WhiskerObj *boxObj() const;
 };
 
 /*!
@@ -396,8 +424,10 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
-                     const ColorInd &is, const ColorInd &ig);
+  using Plot = CQChartsBoxPlot;
+
+ public:
+  CQChartsBoxKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 };
@@ -517,52 +547,53 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
     POINT_RANGE
   };
 
-  using SetWhiskerMap      = std::map<int,CQChartsBoxPlotWhisker *>;
+  using Whisker            = CQChartsBoxPlotWhisker;
+  using WhiskerData        = CQChartsBoxWhiskerData;
+  using SetWhiskerMap      = std::map<int,Whisker *>;
   using GroupSetWhiskerMap = std::map<int,SetWhiskerMap>;
-  using WhiskerDataList    = std::vector<CQChartsBoxWhiskerData>;
-
-  using RMinMax = CQChartsGeom::RMinMax;
+  using WhiskerDataList    = std::vector<WhiskerData>;
+  using Symbol             = CQChartsSymbol;
 
  public:
-  CQChartsBoxPlot(CQChartsView *view, const ModelP &model);
+  CQChartsBoxPlot(View *view, const ModelP &model);
 
  ~CQChartsBoxPlot();
 
   //---
 
-  const CQChartsColumns &valueColumns() const { return valueColumns_; }
-  void setValueColumns(const CQChartsColumns &c);
+  const Columns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const Columns &c);
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumn &setColumn() const { return setColumn_; }
-  void setSetColumn(const CQChartsColumn &c);
+  const Column &setColumn() const { return setColumn_; }
+  void setSetColumn(const Column &c);
 
   //---
 
-  const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c);
+  const Column &xColumn() const { return xColumn_; }
+  void setXColumn(const Column &c);
 
-  const CQChartsColumn &minColumn() const { return minColumn_; }
-  void setMinColumn(const CQChartsColumn &c);
+  const Column &minColumn() const { return minColumn_; }
+  void setMinColumn(const Column &c);
 
-  const CQChartsColumn &lowerMedianColumn() const { return lowerMedianColumn_; }
-  void setLowerMedianColumn(const CQChartsColumn &c);
+  const Column &lowerMedianColumn() const { return lowerMedianColumn_; }
+  void setLowerMedianColumn(const Column &c);
 
-  const CQChartsColumn &medianColumn() const { return medianColumn_; }
-  void setMedianColumn(const CQChartsColumn &c);
+  const Column &medianColumn() const { return medianColumn_; }
+  void setMedianColumn(const Column &c);
 
-  const CQChartsColumn &upperMedianColumn() const { return upperMedianColumn_; }
-  void setUpperMedianColumn(const CQChartsColumn &c);
+  const Column &upperMedianColumn() const { return upperMedianColumn_; }
+  void setUpperMedianColumn(const Column &c);
 
-  const CQChartsColumn &maxColumn() const { return maxColumn_; }
-  void setMaxColumn(const CQChartsColumn &c);
+  const Column &maxColumn() const { return maxColumn_; }
+  void setMaxColumn(const Column &c);
 
-  const CQChartsColumn &outliersColumn() const { return outliersColumn_; }
-  void setOutliersColumn(const CQChartsColumn &c);
+  const Column &outliersColumn() const { return outliersColumn_; }
+  void setOutliersColumn(const Column &c);
 
   //---
 
@@ -578,8 +609,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   bool isConnected() const { return connected_; }
   void setConnected(bool b);
 
-  const CQChartsLength &boxWidth() const { return boxWidth_; }
-  void setBoxWidth(const CQChartsLength &l);
+  const Length &boxWidth() const { return boxWidth_; }
+  void setBoxWidth(const Length &l);
 
   //---
 
@@ -607,8 +638,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // violin (density)
   bool isViolin() const { return violin_; }
 
-  const CQChartsLength &violinWidth() const { return violinWidth_; }
-  void setViolinWidth(const CQChartsLength &l);
+  const Length &violinWidth() const { return violinWidth_; }
+  void setViolinWidth(const Length &l);
 
   bool isViolinBox() const { return violinBox_; }
   void setViolinBox(bool b);
@@ -676,8 +707,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsAxis *mappedXAxis() const override;
-  CQChartsAxis *mappedYAxis() const override;
+  Axis *mappedXAxis() const override;
+  Axis *mappedYAxis() const override;
 
   //---
 
@@ -685,7 +716,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   //---
 
@@ -728,12 +759,19 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void setErrorBar(bool b);
 
  protected:
+  using WhiskerObj   = CQChartsBoxPlotWhiskerObj;
+  using OutlierObj   = CQChartsBoxPlotOutlierObj;
+  using DataObj      = CQChartsBoxPlotDataObj;
+  using ConnectedObj = CQChartsBoxPlotConnectedObj;
+  using PointObj     = CQChartsBoxPlotPointObj;
+
+ protected:
   bool initRawObjs (PlotObjs &objs) const;
   bool initCalcObjs(PlotObjs &objs) const;
 
-  void addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
+  void addJitterPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                        const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const;
-  void addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
+  void addStackedPoints(int groupInd, int setId, double pos, const Whisker *whisker,
                         const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const;
 
   void clearRawWhiskers();
@@ -745,40 +783,36 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  virtual CQChartsBoxPlotWhiskerObj *createWhiskerObj(const BBox &rect, int setId, int groupInd,
-                                                      const CQChartsBoxPlotWhisker *whisker,
-                                                      const ColorInd &is,
-                                                      const ColorInd &ig) const;
+  virtual WhiskerObj *createWhiskerObj(const BBox &rect, int setId, int groupInd,
+                                       const Whisker *whisker, const ColorInd &is,
+                                       const ColorInd &ig) const;
 
-  virtual CQChartsBoxPlotOutlierObj *createOutlierObj(const BBox &rect, int setId, int groupInd,
-                                                      const CQChartsBoxPlotWhisker *whisker,
-                                                      const ColorInd &is, const ColorInd &ig,
-                                                      int io) const;
+  virtual OutlierObj *createOutlierObj(const BBox &rect, int setId, int groupInd,
+                                       const Whisker *whisker, const ColorInd &is,
+                                       const ColorInd &ig, int io) const;
 
-  virtual CQChartsBoxPlotDataObj *createDataObj(const BBox &rect,
-                                                const CQChartsBoxWhiskerData &data,
-                                                const ColorInd &is) const;
+  virtual DataObj *createDataObj(const BBox &rect, const WhiskerData &data,
+                                 const ColorInd &is) const;
 
-  virtual CQChartsBoxPlotConnectedObj *createConnectedObj(const BBox &rect, int groupInd,
-                                                          const ColorInd &ig) const;
+  virtual ConnectedObj *createConnectedObj(const BBox &rect, int groupInd,
+                                           const ColorInd &ig) const;
 
-  virtual CQChartsBoxPlotPointObj *createPointObj(const BBox &rect, int setId, int groupInd,
-                                                  const Point &p, const QModelIndex &ind,
-                                                  const ColorInd &is, const ColorInd &ig,
-                                                  const ColorInd &iv) const;
+  virtual PointObj *createPointObj(const BBox &rect, int setId, int groupInd, const Point &p,
+                                   const QModelIndex &ind, const ColorInd &is,
+                                   const ColorInd &ig, const ColorInd &iv) const;
 
  private:
-  CQChartsColumns    valueColumns_;                                  //!< value columns
-  CQChartsColumn     nameColumn_;                                    //!< name column
-  CQChartsColumn     setColumn_;                                     //!< set column
+  Columns valueColumns_;      //!< value columns
+  Column  nameColumn_;        //!< name column
+  Column  setColumn_;         //!< set column
 
-  CQChartsColumn     xColumn_;                                       //!< x column
-  CQChartsColumn     minColumn_;                                     //!< min column
-  CQChartsColumn     lowerMedianColumn_;                             //!< lower median column
-  CQChartsColumn     medianColumn_;                                  //!< median column
-  CQChartsColumn     upperMedianColumn_;                             //!< upper median column
-  CQChartsColumn     maxColumn_;                                     //!< max column
-  CQChartsColumn     outliersColumn_;                                //!< outliers column
+  Column  xColumn_;           //!< x column
+  Column  minColumn_;         //!< min column
+  Column  lowerMedianColumn_; //!< lower median column
+  Column  medianColumn_;      //!< median column
+  Column  upperMedianColumn_; //!< upper median column
+  Column  maxColumn_;         //!< max column
+  Column  outliersColumn_;    //!< outliers column
 
   bool               showOutliers_      { true };                    //!< show outliers
   bool               connected_         { false };                   //!< connect boxes
@@ -787,12 +821,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   PointsType         pointsType_        { PointsType::NONE };        //!< show points type
   bool               notched_           { false };                   //!< show notch
   bool               violin_            { false };                   //!< show violin
-  CQChartsLength     violinWidth_       { 0.6 };                     //!< violin width
+  Length             violinWidth_       { 0.6 };                     //!< violin width
   bool               violinBox_         { false };                   //!< show box width violin
   bool               errorBar_          { false };                   //!< show error bar
   ErrorBarType       errorBarType_      { ErrorBarType::CROSS_BAR }; //!< error bar type
   bool               colorBySet_        { false };                   //!< color by set
-  CQChartsLength     boxWidth_          { 0.2 };                     //!< box width
+  Length             boxWidth_          { 0.2 };                     //!< box width
   double             whiskerRange_      { 1.5 };                     //!< whisker range
   double             whiskerExtent_     { 0.2 };                     //!< whisker extent
   double             textMargin_        { 2 };                       //!< text margin

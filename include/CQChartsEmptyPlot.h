@@ -27,7 +27,7 @@ class CQChartsEmptyPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -44,7 +44,7 @@ class CQChartsEmptyPlot : public CQChartsPlot {
   Q_OBJECT
 
  public:
-  CQChartsEmptyPlot(CQChartsView *view, const ModelP &model);
+  CQChartsEmptyPlot(View *view, const ModelP &model);
 
  ~CQChartsEmptyPlot();
 

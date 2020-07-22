@@ -624,7 +624,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
     // get symbol type and size
     CQChartsSymbol symbolType = this->voronoiSymbolType();
-    CQChartsLength symbolSize = this->voronoiSymbolSize();
+    Length         symbolSize = this->voronoiSymbolSize();
 
     for (auto pf = delaunayData_->facesBegin(); pf != delaunayData_->facesEnd(); ++pf) {
       const auto *f = *pf;
@@ -820,8 +820,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbolType = plot_->symbolType();
-  CQChartsLength symbolSize = plot_->symbolSize();
+  Symbol symbolType = plot_->symbolType();
+  Length symbolSize = plot_->symbolSize();
 
   //---
 

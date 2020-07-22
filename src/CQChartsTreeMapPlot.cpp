@@ -120,14 +120,14 @@ setTitleAutoHide(bool b)
 
 void
 CQChartsTreeMapPlot::
-setTitleMaxExtent(const CQChartsOptReal &r)
+setTitleMaxExtent(const OptReal &r)
 {
   CQChartsUtil::testAndSet(titleData_.maxExtent, r, [&]() { updateCurrentRoot(); } );
 }
 
 void
 CQChartsTreeMapPlot::
-setTitleHeight(const CQChartsOptLength &l)
+setTitleHeight(const OptLength &l)
 {
   CQChartsUtil::testAndSet(titleData_.height, l, [&]() { updateCurrentRoot(); } );
 }
@@ -232,7 +232,7 @@ CQChartsTreeMapPlot::
 setHeaderTextFontSize(double s)
 {
   if (s != headerTextData_.font().pointSizeF()) {
-    CQChartsFont f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
+    Font f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
 
     drawObjs();
   }
@@ -245,7 +245,7 @@ CQChartsTreeMapPlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    Font f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     drawObjs();
   }
@@ -1335,7 +1335,7 @@ draw(PaintDevice *device)
   //---
 
   // calc header stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1367,7 +1367,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
   //---
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush, /*updateState*/false);
 
@@ -1376,7 +1376,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   //---
 
   // calc text pen
-  CQChartsPenBrush tPenBrush = penBrush;
+  PenBrush tPenBrush = penBrush;
 
   QColor tc = plot_->interpHeaderTextColor(ColorInd());
 
@@ -1449,7 +1449,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
 void
 CQChartsTreeMapHierObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 
@@ -1617,7 +1617,7 @@ draw(PaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1687,7 +1687,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
   //---
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush, /*isPoint*/false, /*updateState*/false);
 
@@ -1698,7 +1698,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   // calc text pen
   ColorInd colorInd = calcColorInd();
 
-  CQChartsPenBrush tPenBrush;
+  PenBrush tPenBrush;
 
   QColor tc = plot_->interpTextColor(colorInd);
 
@@ -1788,7 +1788,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
 void
 CQChartsTreeMapNodeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 
@@ -2126,7 +2126,7 @@ removeNode(Node *node)
 
 QColor
 CQChartsTreeMapHierNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
@@ -2204,7 +2204,7 @@ rootNode(HierNode *root) const
 
 QColor
 CQChartsTreeMapNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());

@@ -27,7 +27,7 @@ class CQChartsCompositePlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -59,7 +59,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
   };
 
  public:
-  CQChartsCompositePlot(CQChartsView *view, const ModelP &model);
+  CQChartsCompositePlot(View *view, const ModelP &model);
 
  ~CQChartsCompositePlot();
 

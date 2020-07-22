@@ -416,7 +416,7 @@ initSymbolSizeData() const
 
 bool
 CQChartsPointPlot::
-columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const
+columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize) const
 {
   return CQChartsPlot::columnSymbolSize(row, parent, symbolSizeData_, symbolSize);
 }
@@ -434,7 +434,7 @@ initFontSizeData() const
 
 bool
 CQChartsPointPlot::
-columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const
+columnFontSize(int row, const QModelIndex &parent, Length &fontSize) const
 {
   return CQChartsPlot::columnFontSize(row, parent, fontSizeData_, fontSize);
 }

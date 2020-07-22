@@ -3,6 +3,10 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + disabled image annotation after resize
+ + update of visible for widget annotation (create and set property)
+ + all model indices for grouped bubble plot
+   + assert right model index (normalized)
  + hier bubble min value/group column (bucket name column for integer/real (control))
  + rect/position edit values from plot
  + image edit/widget edit

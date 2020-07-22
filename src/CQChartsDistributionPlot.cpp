@@ -3839,7 +3839,7 @@ calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
   auto bw = plot_->barStrokeWidth();
 
   if (useLine) {
-    bw = CQChartsLength("0px");
+    bw = Length("0px");
 
     if (plot_->isBarFilled())
       bc = fc;
@@ -4359,8 +4359,8 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  auto symbolType = CQChartsSymbol(CQChartsSymbol::Type::CIRCLE);
-  auto symbolSize = CQChartsLength(6, CQChartsUnits::PIXEL);
+  auto symbolType = Symbol(Symbol::Type::CIRCLE);
+  auto symbolSize = Length(6, CQChartsUnits::PIXEL);
 
   auto pc = prect.getCenter();
 

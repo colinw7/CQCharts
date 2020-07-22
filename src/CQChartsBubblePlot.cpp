@@ -406,7 +406,7 @@ initNodes() const
 
   th->nodeData_.hierInd = 0;
 
-  th->nodeData_.root = new HierNode(this, 0, "<root>");
+  th->nodeData_.root = new HierNode(this, nullptr, "<root>");
 
   th->nodeData_.root->setDepth(0);
   th->nodeData_.root->setHierInd(th->nodeData_.hierInd++);
@@ -595,12 +595,31 @@ loadModel() const
 
         QString groupName = plot_->groupIndName(groupInd, /*hier*/false);
 
-        (void) plot_->addNode(parentHier(data), groupName, size, nameInd1);
+        auto *node = plot_->addNode(parentHier(data), groupName, size, nameInd1);
+
+        for (const auto &ind : modelInds) {
+          ModelIndex nameModelInd;
+
+          auto *plot = const_cast<Plot *>(plot_);
+
+          if (plot->nameColumn().isValid())
+            nameModelInd = ModelIndex(plot, ind.row(), plot_->nameColumn(), ind.parent());
+          else
+            nameModelInd = ModelIndex(plot, ind.row(), plot_->idColumn(), ind.parent());
+
+          auto nameInd  = plot_->modelIndex(nameModelInd);
+          auto nameInd1 = plot_->normalizeIndex(nameInd);
+
+          node->addInd(nameInd1);
+        }
       }
     }
 
    private:
     HierNode *parentHier(const VisitData &data) const {
+      if (plot_->valueColumn().isGroup())
+        return plot_->currentRoot();
+
       auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex ind(plot, data.row, plot_->valueColumn(), data.parent);
@@ -787,6 +806,9 @@ void
 CQChartsBubblePlot::
 drawBounds(PaintDevice *device, HierNode *hier) const
 {
+  if (! hier)
+    return;
+
   double xc = hier->x();
   double yc = hier->y();
   double r  = hier->radius();
@@ -877,13 +899,6 @@ void
 CQChartsBubbleHierObj::
 draw(PaintDevice *device)
 {
-  auto *root = hier_->parent();
-
-  if (! root)
-    root = hier_;
-
-  //---
-
   double r = this->radius();
 
   Point p1(hier_->x() - r, hier_->y() - r);
@@ -948,8 +963,10 @@ CQChartsBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
 {
   setDetailHint(DetailHint::MAJOR);
 
-  if (node_->ind().isValid())
-    setModelInd(node_->ind());
+  for (const auto &ind : node_->inds()) {
+    if (ind.isValid())
+      addModelInd(ind);
+  }
 }
 
 QString
@@ -1382,7 +1399,7 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleHierNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
@@ -1405,8 +1422,10 @@ interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, 
 CQChartsBubbleNode::
 CQChartsBubbleNode(const Plot *plot, HierNode *parent, const QString &name,
                    double size, const QModelIndex &ind) :
- plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
+ plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size)
 {
+  inds_.push_back(ind);
+
   r_ = CQChartsUtil::areaToRadius(size_);
 }
 
@@ -1443,7 +1462,7 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());

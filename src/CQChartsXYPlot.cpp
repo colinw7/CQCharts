@@ -1934,38 +1934,35 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   //---
 
   // get x value (must be valid)
-  bool ok1 { false };
+  bool ok1 = true;
 
   ModelIndex xModelInd(th, data.row, xColumn(), data.parent);
 
+  ind = modelIndex(xModelInd);
+
   if (! isMapXColumn()) {
-    ind = modelIndex(xModelInd);
+    bool ok = modelMappedReal(xModelInd, x, isLogX(), data.row);
 
-    ok1 = modelMappedReal(xModelInd, x, isLogX(), data.row);
-
-    if (! ok1) {
+    if (! ok) {
       th->addDataError(xModelInd, "Invalid X Value");
-      return false;
+      ok1 = false;
     }
   }
   else {
-    QVariant var = modelValue(xModelInd, ok1);
+    bool ok;
 
-    if (! var.isValid()) {
-      th->addDataError(xModelInd, "Invalid X Value");
-      return false;
+    QVariant var = modelValue(xModelInd, ok);
+
+    if (var.isValid()) {
+      auto *columnDetails = this->columnDetails(xColumn());
+
+      if (columnDetails)
+        x = columnDetails->uniqueId(var);
     }
-
-    auto *columnDetails = this->columnDetails(xColumn());
-
-    if (! columnDetails) {
+    else {
       th->addDataError(xModelInd, "Invalid X Value");
-      return false;
+      ok1 = false;
     }
-
-    x = columnDetails->uniqueId(var);
-
-    ok1 = true;
   }
 
   //---
@@ -1983,9 +1980,9 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 
     double y1;
 
-    bool ok3 = modelMappedReal(yModelInd, y1, isLogY(), data.row);
+    bool ok = modelMappedReal(yModelInd, y1, isLogY(), data.row);
 
-    if (! ok3) {
+    if (! ok) {
       y1 = CMathUtil::getNaN();
 
       if (! skipBad)
@@ -2850,7 +2847,7 @@ CQChartsLength
 CQChartsXYPointObj::
 symbolSize() const
 {
-  CQChartsLength symbolSize(CQChartsUnits::NONE, 0.0);
+  Length symbolSize(CQChartsUnits::NONE, 0.0);
 
   if (extraData())
     symbolSize = extraData()->symbolSize;
@@ -2865,7 +2862,7 @@ CQChartsLength
 CQChartsXYPointObj::
 fontSize() const
 {
-  CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
+  Length fontSize(CQChartsUnits::NONE, 0.0);
 
   if (extraData())
     fontSize = extraData()->fontSize;
@@ -2873,7 +2870,7 @@ fontSize() const
   if (! fontSize.isValid()) {
     double dataLabelFontSize = plot()->dataLabel()->textFont().pointSizeF();
 
-    fontSize = CQChartsLength(dataLabelFontSize, CQChartsUnits::PIXEL);
+    fontSize = Length(dataLabelFontSize, CQChartsUnits::PIXEL);
   }
 
   return fontSize;

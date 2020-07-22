@@ -132,14 +132,14 @@ setHorizontal(bool b)
 
 void
 CQChartsBarPlot::
-setMargin(const CQChartsLength &l)
+setMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(margin_, l, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsBarPlot::
-setGroupMargin(const CQChartsLength &l)
+setGroupMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(groupMargin_, l, [&]() { drawObjs(); } );
 }

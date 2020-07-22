@@ -38,7 +38,7 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(View *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -62,6 +62,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   using Plot     = CQChartsHierBubblePlot;
   using Node     = CQChartsHierBubbleNode;
   using HierNode = CQChartsHierBubbleHierNode;
+  using Color    = CQChartsColor;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:

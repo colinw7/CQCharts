@@ -392,7 +392,7 @@ initNodes() const
 
   th->nodeData_.hierInd = 0;
 
-  th->nodeData_.root = new HierNode(this, 0, "<root>");
+  th->nodeData_.root = new HierNode(this, nullptr, "<root>");
 
   th->nodeData_.root->setDepth(0);
   th->nodeData_.root->setHierInd(th->nodeData_.hierInd++);
@@ -1765,7 +1765,7 @@ setPosition(double x, double y)
 
 QColor
 CQChartsHierBubbleHierNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
@@ -1827,7 +1827,7 @@ setPosition(double x, double y)
 
 QColor
 CQChartsHierBubbleNode::
-interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd, int n) const
+interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());

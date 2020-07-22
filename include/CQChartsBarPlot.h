@@ -34,8 +34,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   //---
 
   // value columns
-  const CQChartsColumns &valueColumns() const { return valueColumns_; }
-  void setValueColumns(const CQChartsColumns &c);
+  const Columns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const Columns &c);
 
   //---
 
@@ -87,10 +87,10 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  CQChartsColumns    valueColumns_;             //!< value columns
+  Columns            valueColumns_;             //!< value columns
   bool               horizontal_   { false };   //!< horizontal bars
-  CQChartsLength     margin_       { "2px" };   //!< bar margin
-  CQChartsLength     groupMargin_  { "4px" };   //!< bar group margin
+  Length             margin_       { "2px" };   //!< bar margin
+  Length             groupMargin_  { "4px" };   //!< bar group margin
   CQChartsDataLabel* dataLabel_    { nullptr }; //!< data label data
 };
 

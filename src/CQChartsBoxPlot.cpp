@@ -188,13 +188,13 @@ CQChartsBoxPlot(View *view, const ModelP &model) :
   setBoxStroked(true);
   setBoxFilled (true);
 
-  setOutlierSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setOutlierSymbolSize(CQChartsLength("4px"));
+  setOutlierSymbolType(Symbol::Type::CIRCLE);
+  setOutlierSymbolSize(Length("4px"));
   setOutlierSymbolFilled(true);
   setOutlierSymbolFillColor(Color(Color::Type::PALETTE));
 
-  setJitterSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setJitterSymbolSize(CQChartsLength("4px"));
+  setJitterSymbolType(Symbol::Type::CIRCLE);
+  setJitterSymbolSize(Length("4px"));
   setJitterSymbolFilled(true);
   setJitterSymbolFillColor(Color(Color::Type::PALETTE));
 
@@ -303,7 +303,7 @@ setConnected(bool b)
 
 void
 CQChartsBoxPlot::
-setBoxWidth(const CQChartsLength &l)
+setBoxWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(boxWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
@@ -515,7 +515,7 @@ setViolin(bool b)
 
 void
 CQChartsBoxPlot::
-setViolinWidth(const CQChartsLength &l)
+setViolinWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(violinWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
@@ -2245,7 +2245,7 @@ draw(CQChartsPaintDevice *device)
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
 
-      symbol.setType(CQChartsSymbol::Type::CIRCLE);
+      symbol.setType(Symbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawErrorBar(plot_, device, rect, mean, orientation, symbol);
@@ -2269,7 +2269,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsSymbolData symbol;
 
-      symbol.setType(CQChartsSymbol::Type::CIRCLE);
+      symbol.setType(Symbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol);
@@ -3398,8 +3398,8 @@ void
 CQChartsBoxPlotPointObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsSymbol symbolType = plot_->jitterSymbolType();
-  CQChartsLength symbolSize = plot_->jitterSymbolSize();
+  Symbol symbolType = plot_->jitterSymbolType();
+  Length symbolSize = plot_->jitterSymbolSize();
 
   //---
 

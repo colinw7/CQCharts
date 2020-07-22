@@ -33,7 +33,7 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---

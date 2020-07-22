@@ -27,7 +27,7 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -45,11 +45,15 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const BBox &rect,
-                           double x, double y, double value, const QModelIndex &ind,
-                           const ColorInd &iv);
+  using Plot   = CQChartsDelaunayPlot;
+  using Length = CQChartsLength;
+  using Symbol = CQChartsSymbol;
 
-  const CQChartsDelaunayPlot *plot() const { return plot_; }
+ public:
+  CQChartsDelaunayPointObj(const Plot *plot, const BBox &rect, double x, double y, double value,
+                           const QModelIndex &ind, const ColorInd &iv);
+
+  const Plot *plot() const { return plot_; }
 
   double x() const { return x_; }
   double y() const { return y_; }
@@ -71,10 +75,10 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  const CQChartsDelaunayPlot* plot_  { nullptr };
-  double                      x_     { 0.0 };
-  double                      y_     { 0.0 };
-  double                      value_ { 0.0 };
+  const Plot* plot_  { nullptr };
+  double      x_     { 0.0 };
+  double      y_     { 0.0 };
+  double      value_ { 0.0 };
 };
 
 //---
@@ -120,24 +124,24 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model);
+  CQChartsDelaunayPlot(View *view, const ModelP &model);
 
  ~CQChartsDelaunayPlot();
 
   //---
 
   // columns
-  const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c);
+  const Column &xColumn() const { return xColumn_; }
+  void setXColumn(const Column &c);
 
-  const CQChartsColumn &yColumn() const { return yColumn_; }
-  void setYColumn(const CQChartsColumn &c);
+  const Column &yColumn() const { return yColumn_; }
+  void setYColumn(const Column &c);
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
   //---
 
@@ -194,10 +198,10 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
                                                    const ColorInd &iv) const;
 
  private:
-  CQChartsColumn    xColumn_;                    //!< x column
-  CQChartsColumn    yColumn_;                    //!< y column
-  CQChartsColumn    nameColumn_;                 //!< name column
-  CQChartsColumn    valueColumn_;                //!< value column
+  Column            xColumn_;                    //!< x column
+  Column            yColumn_;                    //!< y column
+  Column            nameColumn_;                 //!< name column
+  Column            valueColumn_;                //!< value column
   bool              delaunay_       { false };   //!< is delaunay
   bool              voronoi_        { true };    //!< is voronoi
   bool              voronoiCircles_ { false };   //!< voronoi circle

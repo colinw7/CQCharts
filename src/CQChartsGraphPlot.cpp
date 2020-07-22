@@ -2972,7 +2972,7 @@ getConnected() const
 
 void
 CQChartsGraphEdgeObj::
-draw(CQChartsPaintDevice *device)
+draw(PaintDevice *device)
 {
   // calc pen and brush
   CQChartsPenBrush penBrush;
@@ -3047,7 +3047,7 @@ draw(CQChartsPaintDevice *device)
       CQChartsArrow arrow(plot(), Point(x1, y1), Point(x2, y2));
 
       arrow.setRectilinear (true);
-      arrow.setLineWidth   (CQChartsLength(8, CQChartsUnits::PIXEL));
+      arrow.setLineWidth   (Length(8, CQChartsUnits::PIXEL));
       arrow.setFrontVisible(false);
       arrow.setFilled      (true);
       arrow.setFillColor   (penBrush.brush.color());
@@ -3063,7 +3063,7 @@ draw(CQChartsPaintDevice *device)
 
       arrowData.setFHead(true);
       arrowData.setTHead(true);
-      arrowData.setLineWidth(CQChartsLength(8, CQChartsUnits::PIXEL));
+      arrowData.setLineWidth(Length(8, CQChartsUnits::PIXEL));
 
       double xr = srcRect.getWidth ()/2.0;
       double yr = srcRect.getHeight()/2.0;

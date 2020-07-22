@@ -38,7 +38,7 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(View *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -59,10 +59,12 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   }
 
  public:
-  using Plot     = CQChartsBubblePlot;
-  using Node     = CQChartsBubbleNode;
-  using HierNode = CQChartsBubbleHierNode;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Plot          = CQChartsBubblePlot;
+  using Node          = CQChartsBubbleNode;
+  using HierNode      = CQChartsBubbleHierNode;
+  using Color         = CQChartsColor;
+  using ColorInd      = CQChartsUtil::ColorInd;
+  using QModelIndices = std::vector<QModelIndex>;
 
  public:
   CQChartsBubbleNode(const Plot *plot, HierNode *parent, const QString &name,
@@ -105,8 +107,13 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   void setColor(const CQChartsColor &v) { color_ = v; }
 
   //! get/set model index
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
+  const QModelIndices &inds() const { return inds_; }
+
+  QModelIndex ind() const { return (! inds_.empty() ? inds_[0] : QModelIndex()); }
+  void setInd(const QModelIndex &ind) { clearInds(); addInd(ind); }
+
+  void clearInds() { inds_.clear(); }
+  void addInd(const QModelIndex &ind) { inds_.push_back(ind); }
 
   //! get/set depth
   virtual int depth() const { return depth_; }
@@ -152,7 +159,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   double        size_    { 0.0 };     //!< node size
   int           colorId_ { -1 };      //!< node color index
   CQChartsColor color_;               //!< node explicit color
-  QModelIndex   ind_;                 //!< data model index
+  QModelIndices inds_;                //!< data model indices
   int           depth_   { 0 };       //!< node depth
   bool          filler_  { false };   //!< is filler
   bool          placed_  { false };   //!< is placed

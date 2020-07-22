@@ -32,7 +32,7 @@ class CQChartsCorrelationPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -150,7 +150,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   };
 
  public:
-  CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model);
+  CQChartsCorrelationPlot(View *view, const ModelP &model);
 
  ~CQChartsCorrelationPlot();
 

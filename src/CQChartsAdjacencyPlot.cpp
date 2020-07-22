@@ -155,7 +155,7 @@ setForceDiagonal(bool b)
 
 void
 CQChartsAdjacencyPlot::
-setBgMargin(const CQChartsLength &l)
+setBgMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(bgMargin_, l, [&]() { updateObjs(); } );
 }

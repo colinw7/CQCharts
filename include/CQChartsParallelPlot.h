@@ -53,8 +53,11 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const BBox &rect,
-                          const Polygon &poly, const QModelIndex &ind, const ColorInd &is);
+  using Plot = CQChartsParallelPlot;
+
+ public:
+  CQChartsParallelLineObj(const Plot *plot, const BBox &rect, const Polygon &poly,
+                          const QModelIndex &ind, const ColorInd &is);
 
   //---
 
@@ -97,9 +100,9 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void getPolyLine(Polygon &poly) const;
 
  private:
-  const CQChartsParallelPlot* plot_ { nullptr }; //!< plot
-  Polygon                     poly_;             //!< polygon
-  Polygon                     polyLine_;         //!< polyline
+  const Plot* plot_ { nullptr }; //!< plot
+  Polygon     poly_;             //!< polygon
+  Polygon     polyLine_;         //!< polyline
 };
 
 //---
@@ -112,9 +115,13 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const BBox &rect,
-                           double yval, double x, double y, const QModelIndex &ind,
-                           const ColorInd &is, const ColorInd &iv);
+  using Plot   = CQChartsParallelPlot;
+  using Length = CQChartsLength;
+  using Symbol = CQChartsSymbol;
+
+ public:
+  CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval, double x, double y,
+                           const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -131,10 +138,10 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  const CQChartsParallelPlot* plot_  { nullptr };
-  double                      yval_  { 0.0 };
-  double                      x_     { 0.0 };
-  double                      y_     { 0.0 };
+  const Plot* plot_  { nullptr };
+  double      yval_  { 0.0 };
+  double      x_     { 0.0 };
+  double      y_     { 0.0 };
 };
 
 //---
@@ -164,18 +171,18 @@ class CQChartsParallelPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
-  CQChartsParallelPlot(CQChartsView *view, const ModelP &model);
+  CQChartsParallelPlot(View *view, const ModelP &model);
 
  ~CQChartsParallelPlot();
 
   //---
 
   // columns
-  const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c);
+  const Column &xColumn() const { return xColumn_; }
+  void setXColumn(const Column &c);
 
-  const CQChartsColumns &yColumns() const { return yColumns_; }
-  void setYColumns(const CQChartsColumns &c);
+  const Columns &yColumns() const { return yColumns_; }
+  void setYColumns(const Columns &c);
 
   //---
 
@@ -192,7 +199,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   const Range &setRange(int i) const { return setRanges_[i]; }
 
-  CQChartsAxis *axis(int i) { return axes_[i]; }
+  Axis *axis(int i) { return axes_[i]; }
 
   //---
 
@@ -204,7 +211,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  bool rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
+  bool rowColValue(int row, const Column &column, const QModelIndex &parent,
                    double &value, double defVal) const;
 
   //---
@@ -250,13 +257,13 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using Ranges = std::vector<Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
-  CQChartsColumn     xColumn_;                             //!< x value column
-  CQChartsColumns    yColumns_;                            //!< y value columns
+  Column             xColumn_;                             //!< x value column
+  Columns            yColumns_;                            //!< y value columns
   bool               horizontal_      { false };           //!< horizontal bars
   bool               linesSelectable_ { false };           //!< are lines selectable
   Ranges             setRanges_;                           //!< value set ranges
   Qt::Orientation    adir_            { Qt::Horizontal };  //!< axis direction
-  CQChartsAxis*      masterAxis_      { nullptr };         //!< master axis
+  Axis*              masterAxis_      { nullptr };         //!< master axis
   YAxes              axes_;                                //!< value axes
   mutable std::mutex axesMutex_;                           //!< value axes
   Range              normalizedDataRange_;                 //!< normalized data range

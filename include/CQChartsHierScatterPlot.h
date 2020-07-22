@@ -30,7 +30,7 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -174,8 +174,13 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const BBox &rect,
-                              const Point &p, const ColorInd &iv);
+  using Plot   = CQChartsHierScatterPlot;
+  using Length = CQChartsLength;
+  using Symbol = CQChartsSymbol;
+
+ public:
+  CQChartsHierScatterPointObj(const Plot *plot, const BBox &rect, const Point &p,
+                              const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -196,7 +201,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  const CQChartsHierScatterPlot* plot_ { nullptr };
+  const Plot*                    plot_ { nullptr };
   Point                          p_;
   QString                        name_;
   CQChartsHierScatterPointGroup* group_ { nullptr };
@@ -214,7 +219,10 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
+  using Plot = CQChartsHierScatterPlot;
+
+ public:
+  CQChartsHierScatterKeyColor(Plot *plot, CQChartsHierScatterPointGroup *group,
                               const ColorInd &ic);
 
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
@@ -248,26 +256,26 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
  public:
-  using GroupValueSets = std::map<CQChartsColumn,CQChartsValueSet *>;
+  using GroupValueSets = std::map<Column,CQChartsValueSet *>;
 
  public:
-  CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model);
+  CQChartsHierScatterPlot(View *view, const ModelP &model);
  ~CQChartsHierScatterPlot();
 
   //---
 
   // columns
-  const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c);
+  const Column &xColumn() const { return xColumn_; }
+  void setXColumn(const Column &c);
 
-  const CQChartsColumn &yColumn() const { return yColumn_; }
-  void setYColumn(const CQChartsColumn &c);
+  const Column &yColumn() const { return yColumn_; }
+  void setYColumn(const Column &c);
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const Column &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const Column &c);
 
-  const CQChartsColumns &groupColumns() const { return groupColumns_; }
-  void setGroupColumns(const CQChartsColumns &c);
+  const Columns &groupColumns() const { return groupColumns_; }
+  void setGroupColumns(const Columns &c);
 
   //---
 
@@ -352,13 +360,13 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
  private:
   using PointGroup = CQChartsHierScatterPointGroup;
 
-  CQChartsColumn     xColumn_;                     //!< x column
-  CQChartsColumn     yColumn_;                     //!< y column
-  CQChartsColumn     nameColumn_;                  //!< name column
-  CQChartsColumns    groupColumns_;                //!< group columns
+  Column             xColumn_;                     //!< x column
+  Column             yColumn_;                     //!< y column
+  Column             nameColumn_;                  //!< name column
+  Columns            groupColumns_;                //!< group columns
   CQChartsDataLabel* dataLabel_       { nullptr }; //!< data label style
   QStringList        filterNames_;                 //!< filter names
-  CQChartsColumns    groupValues_;                 //!< group values
+  Columns            groupValues_;                 //!< group values
   PointGroup*        rootGroup_       { nullptr }; //!< root group
   PointGroup*        currentGroup_    { nullptr }; //!< current group
   QString            xname_;                       //!< x name

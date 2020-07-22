@@ -29,7 +29,7 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 
   QString description() const override;
 
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+  Plot *create(View *view, const ModelP &model) const override;
 };
 
 //---
@@ -131,7 +131,7 @@ class CQChartsImagePlot : public CQChartsPlot,
   };
 
  public:
-  CQChartsImagePlot(CQChartsView *view, const ModelP &model);
+  CQChartsImagePlot(View *view, const ModelP &model);
 
  ~CQChartsImagePlot();
 

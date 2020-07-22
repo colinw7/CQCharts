@@ -124,8 +124,7 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
   void drawBackgroundRects(CQChartsPaintDevice *device) const override;
 
-  void addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
-               const CQChartsColumn &zColumn) const;
+  void addAxis(const Column &xColumn, const Column &yColumn, const Column &zColumn) const;
 
   //---
 

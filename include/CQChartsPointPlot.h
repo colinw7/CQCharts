@@ -87,8 +87,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // symbol type column and map
-  const CQChartsColumn &symbolTypeColumn() const;
-  void setSymbolTypeColumn(const CQChartsColumn &c);
+  const Column &symbolTypeColumn() const;
+  void setSymbolTypeColumn(const Column &c);
 
   bool isSymbolTypeMapped() const;
   void setSymbolTypeMapped(bool b);
@@ -102,8 +102,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // symbol size column and map
-  const CQChartsColumn &symbolSizeColumn() const;
-  void setSymbolSizeColumn(const CQChartsColumn &c);
+  const Column &symbolSizeColumn() const;
+  void setSymbolSizeColumn(const Column &c);
 
   bool isSymbolSizeMapped() const;
   void setSymbolSizeMapped(bool b);
@@ -120,8 +120,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // label font size column and map
-  const CQChartsColumn &fontSizeColumn() const;
-  void setFontSizeColumn(const CQChartsColumn &c);
+  const Column &fontSizeColumn() const;
+  void setFontSizeColumn(const Column &c);
 
   bool isFontSizeMapped() const;
   void setFontSizeMapped(bool b);

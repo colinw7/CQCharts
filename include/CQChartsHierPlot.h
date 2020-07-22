@@ -24,19 +24,19 @@ class CQChartsHierPlot : public CQChartsPlot {
   Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
 
  public:
-  CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
+  CQChartsHierPlot(View *view, CQChartsPlotType *type, const ModelP &model);
 
  ~CQChartsHierPlot();
 
   //---
 
   //! get/set name columns
-  const CQChartsColumns &nameColumns() const { return nameColumns_; }
-  void setNameColumns(const CQChartsColumns &c);
+  const Columns &nameColumns() const { return nameColumns_; }
+  void setNameColumns(const Columns &c);
 
   //! get/set value column
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c);
 
   //---
 
@@ -66,8 +66,8 @@ class CQChartsHierPlot : public CQChartsPlot {
 
  protected:
   // columns
-  CQChartsColumns nameColumns_; //!< multiple name columns
-  CQChartsColumn  valueColumn_; //!< value column
+  Columns nameColumns_; //!< multiple name columns
+  Column  valueColumn_; //!< value column
 
   ColumnType valueColumnType_ { ColumnType::NONE }; //!< value column type
 

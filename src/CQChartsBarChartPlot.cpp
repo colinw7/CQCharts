@@ -132,7 +132,7 @@ CQChartsBarChartPlot(View *view, const ModelP &model) :
   //---
 
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setDotSymbolSize(CQChartsLength("7px"));
+  setDotSymbolSize(Length("7px"));
 }
 
 CQChartsBarChartPlot::
@@ -313,7 +313,7 @@ setDotLines(bool b)
 
 void
 CQChartsBarChartPlot::
-setDotLineWidth(const CQChartsLength &l)
+setDotLineWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(dotLineData_.width, l, [&]() { drawObjs(); } );
 }

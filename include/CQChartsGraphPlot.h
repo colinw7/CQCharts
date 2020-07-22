@@ -616,9 +616,10 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
     ARROW
   };
 
-  using Plot = CQChartsGraphPlot;
-  using Edge = CQChartsGraphPlotEdge;
-  using Node = CQChartsGraphPlotNode;
+  using Plot   = CQChartsGraphPlot;
+  using Edge   = CQChartsGraphPlotEdge;
+  using Node   = CQChartsGraphPlotNode;
+  using Length = CQChartsLength;
 
  public:
   CQChartsGraphEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);

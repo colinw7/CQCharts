@@ -1383,8 +1383,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbolType = plot_->symbolType();
-  CQChartsLength symbolSize = plot_->symbolSize();
+  Symbol symbolType = plot_->symbolType();
+  Length symbolSize = plot_->symbolSize();
 
   double sx, sy;
 
@@ -1395,7 +1395,7 @@ draw(CQChartsPaintDevice *device)
     sy *= 2;
   }
 
-  CQChartsLength symbolSize1 = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PIXEL);
+  Length symbolSize1 = Length(CMathUtil::avg(sx, sy), CQChartsUnits::PIXEL);
 
   //---
 
