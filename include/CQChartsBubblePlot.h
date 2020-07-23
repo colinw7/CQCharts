@@ -103,16 +103,19 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   virtual void setColorId(int id) { colorId_ = id; }
 
   //! get/set color
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &v) { color_ = v; }
 
-  //! get/set model index
-  const QModelIndices &inds() const { return inds_; }
-
+  //! get/set single model index
   QModelIndex ind() const { return (! inds_.empty() ? inds_[0] : QModelIndex()); }
   void setInd(const QModelIndex &ind) { clearInds(); addInd(ind); }
 
+  //! get all model indices
+  const QModelIndices &inds() const { return inds_; }
+
+  //! clear model indices
   void clearInds() { inds_.clear(); }
+  //! add model index
   void addInd(const QModelIndex &ind) { inds_.push_back(ind); }
 
   //! get/set depth
@@ -143,13 +146,12 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   virtual bool placed() const { return placed_; }
 
   //! sort by radius
-  friend bool operator<(const Node &n1, const Node &n2) {
-    return n1.r_ < n2.r_;
-  }
+  friend bool operator<(const Node &n1, const Node &n2) { return n1.r_ < n2.r_; }
+  friend bool operator>(const Node &n1, const Node &n2) { return n1.r_ > n2.r_; }
 
   //! interp color
-  virtual QColor interpColor(const Plot *plot, const CQChartsColor &c,
-                             const ColorInd &colorInd, int n) const;
+  virtual QColor interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd,
+                             int n) const;
 
  protected:
   const Plot*   plot_    { nullptr }; //!< parent plot
@@ -158,7 +160,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   QString       name_;                //!< node name
   double        size_    { 0.0 };     //!< node size
   int           colorId_ { -1 };      //!< node color index
-  CQChartsColor color_;               //!< node explicit color
+  Color         color_;               //!< node explicit color
   QModelIndices inds_;                //!< data model indices
   int           depth_   { 0 };       //!< node depth
   bool          filler_  { false };   //!< is filler
@@ -174,9 +176,18 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
 struct CQChartsBubbleNodeCmp {
   using Node = CQChartsBubbleNode;
 
-  bool operator()(const Node *n1, const Node *n2) {
-    return (*n1) < (*n2);
+  CQChartsBubbleNodeCmp(bool reverse=false) :
+   reverse(reverse) {
   }
+
+  bool operator()(const Node *n1, const Node *n2) {
+    if (! reverse)
+      return (*n1) < (*n2);
+    else
+      return (*n1) > (*n2);
+  }
+
+  bool reverse { false };
 };
 
 //---
@@ -200,42 +211,54 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
 
  ~CQChartsBubbleHierNode();
 
+  //! get/set hierarchical index
   int hierInd() const { return hierInd_; }
   void setHierInd(int i) { hierInd_ = i; }
 
   //---
 
+  //! get hierarchical size
   double hierSize() const override;
 
   //---
 
+  //! get has child nodes
   bool hasNodes() const { return ! nodes_.empty(); }
 
+  //! get/set child nodes
   const Nodes &getNodes() const { return nodes_; }
   Nodes &getNodes() { return nodes_; }
 
   //---
 
+  //! get pack data
   const Pack &pack() const { return pack_; }
   Pack &pack() { return pack_; }
 
   //---
 
+  //! has child hier nodes
   bool hasChildren() const { return ! children_.empty(); }
 
+  //! get child hier nodes
   const Children &getChildren() const { return children_; }
 
   //---
 
+  //! pack child nodes
   void packNodes();
 
+  //! add child node
   void addNode(Node *node);
 
+  //! remove child node
   void removeNode(Node *node);
 
+  //! set node position
   void setPosition(double x, double y) override;
 
-  QColor interpColor(const Plot *plot, const CQChartsColor &c, const ColorInd &colorInd,
+  //! interp color
+  QColor interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd,
                      int n) const override;
 
  protected:
@@ -271,6 +294,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   HierObj *parent() const { return hierObj_; }
 
+  //! get/set index
   int ind() const { return ind_; }
   void setInd(int ind) { ind_ = ind; }
 
@@ -387,9 +411,10 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
   // options
-  Q_PROPERTY(bool            valueLabel READ isValueLabel WRITE setValueLabel)
-  Q_PROPERTY(bool            sorted     READ isSorted     WRITE setSorted    )
-  Q_PROPERTY(CQChartsOptReal minSize    READ minSize      WRITE setMinSize   )
+  Q_PROPERTY(bool            valueLabel  READ isValueLabel  WRITE setValueLabel )
+  Q_PROPERTY(bool            sorted      READ isSorted      WRITE setSorted     )
+  Q_PROPERTY(bool            sortReverse READ isSortReverse WRITE setSortReverse)
+  Q_PROPERTY(CQChartsOptReal minSize     READ minSize       WRITE setMinSize    )
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -435,8 +460,12 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   //---
 
   //! get/set is sorted
-  bool isSorted() const { return sorted_; }
-  void setSorted(bool b) { sorted_ = b; }
+  bool isSorted() const { return sortData_.enabled; }
+  void setSorted(bool b);
+
+  //! get/set is sort reverese
+  bool isSortReverse() const { return sortData_.reverse; }
+  void setSortReverse(bool b);
 
   //---
 
@@ -577,6 +606,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   };
 
  private:
+  struct SortData {
+    bool enabled { false };
+    bool reverse { false };
+  };
+
   using GroupHierNodes = std::map<int,HierNode *>;
 
   // columns
@@ -587,7 +621,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   // options
   bool           valueLabel_  { false }; //!< draw value with name
-  bool           sorted_      { false }; //!< sort nodes by value
+  SortData       sortData_;              //!< sort data
   OptReal        minSize_;               //!< min size
   NodeData       nodeData_;              //!< node data
   PlaceData      placeData_;             //!< place data

@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + better bubble plot margin with title ?
  + disabled image annotation after resize
  + update of visible for widget annotation (create and set property)
  + all model indices for grouped bubble plot

@@ -163,7 +163,8 @@ addProperties()
   addProp("text", "textVisible", "visible", "Text visible");
 
   addTextProperties("text", "text", "",
-    CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED);
+    CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED |
+    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 }
 
 //---

@@ -123,7 +123,7 @@ updateLocation()
   // calc title size
   auto ts = calcSize();
 
-  CQChartsTitleLocation location = this->location();
+  auto location = this->location();
 
   //auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
   auto marginSize = plot_->pixelToWindowSize(Size(0, 0));

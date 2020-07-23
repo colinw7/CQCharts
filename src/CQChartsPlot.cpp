@@ -2908,7 +2908,7 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
     addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML", hidden);
 
   if (valueTypes & CQChartsTextOptions::ValueType::CLIP_LENGTH)
-    addStyleProp(path, prefix + "Clip Length", "clipLength", prefix1 + " scaled to box", hidden);
+    addStyleProp(path, prefix + "ClipLength", "clipLength", prefix1 + " scaled to box", hidden);
 }
 
 void

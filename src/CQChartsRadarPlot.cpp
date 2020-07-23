@@ -200,7 +200,8 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 }
 
 CQChartsGeom::Range

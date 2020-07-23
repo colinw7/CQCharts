@@ -839,8 +839,11 @@ initAxes()
   if (xColumnType_ == ColumnType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 
-  if (isMapXColumn())
+  if (isMapXColumn()) {
     xAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+
+    xAxis()->setMajorIncrement(1);
+  }
 
   //---
 

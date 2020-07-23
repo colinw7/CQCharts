@@ -198,7 +198,8 @@ addProperties()
   addProp("emptyCell/stroke", "cornerSize", "cornerSize", "Empty cell box corner size");
 
   // text
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 }
 
 CQChartsGeom::Range

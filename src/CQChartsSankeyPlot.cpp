@@ -272,7 +272,8 @@ addProperties()
   addProp("text", "textVisible", "visible", "Text label visible");
   addProp("text", "align"      , "align"  , "Text label align");
 
-  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 }
 
 //---

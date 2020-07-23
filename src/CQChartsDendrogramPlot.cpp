@@ -107,7 +107,8 @@ addProperties()
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
   // label
-  addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
+  addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 
   addProp("label", "textMargin", "margin", "Text margin in pixels")->setMinValue(1.0);
 }

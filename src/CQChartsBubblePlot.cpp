@@ -130,6 +130,20 @@ setValueLabel(bool b)
   CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsBubblePlot::
+setSorted(bool b)
+{
+  CQChartsUtil::testAndSet(sortData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBubblePlot::
+setSortReverse(bool b)
+{
+  CQChartsUtil::testAndSet(sortData_.reverse, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -183,8 +197,9 @@ addProperties()
   addGroupingProperties();
 
   // options
-  addProp("options", "valueLabel", "", "Show value label");
-  addProp("options", "sorted"    , "", "Sort values by size");
+  addProp("options", "valueLabel" , "", "Show value label");
+  addProp("options", "sorted"     , "", "Sort values by size (default small to large)");
+  addProp("options", "sortReverse", "", "Sort values large to small");
 
   addProp("filter", "minSize", "minSize", "Min size");
 
@@ -205,7 +220,8 @@ addProperties()
   addProp("text", "textVisible", "visible", "Text visible");
 
   addTextProperties("text", "text", "",
-    CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED);
+    CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED |
+    CQChartsTextOptions::ValueType::CLIP_LENGTH);
 
   // color map
   addColorMapProperties();
@@ -1123,18 +1139,27 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   //---
 
   // set font
+  auto clipLength = plot_->textClipLength();
+
   plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+
+  QStringList strs1;
 
   if (plot_->isTextScaled()) {
     // calc text size
     QFontMetricsF fm(device->font());
 
-    double tw = 0;
+    double tw = 0.0;
 
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength);
 
-    double th = strs.size()*fm.height();
+      tw = std::max(tw, fm.width(str1));
+
+      strs1.push_back(str1);
+    }
+
+    double th = strs1.size()*fm.height();
 
     //---
 
@@ -1151,6 +1176,13 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
     // scale font
     device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
   }
+  else {
+    for (int i = 0; i < strs.size(); ++i) {
+      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength);
+
+      strs1.push_back(str1);
+    }
+  }
 
   //---
 
@@ -1166,12 +1198,12 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   device->setClipRect(bbox.adjusted(xm, ym, -xm, -ym));
 
   // angle and align not supported (always 0 and centered)
-  // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)
+  // text is pre-scaled if needed (formatted and html not supported as changes scale calc)
   CQChartsTextOptions textOptions;
 
   textOptions.contrast      = plot_->isTextContrast();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
-  textOptions.clipLength    = plot_->textClipLength();
+//textOptions.clipLength    = clipLength;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1179,10 +1211,10 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
 
   auto tp = pc;
 
-  if      (strs.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), name, textOptions);
+  if      (strs1.size() == 1) {
+    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), strs1[0], textOptions);
   }
-  else if (strs.size() == 2) {
+  else if (strs1.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
@@ -1190,8 +1222,8 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
     auto tp1 = device->pixelToWindow(Point(tp.x, tp.y - th/2));
     auto tp2 = device->pixelToWindow(Point(tp.x, tp.y + th/2));
 
-    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
   }
   else {
     assert(false);
@@ -1329,7 +1361,8 @@ packNodes()
 
   // sort nodes
   if (plot_->isSorted())
-    std::sort(packNodes.begin(), packNodes.end(), CQChartsBubbleNodeCmp());
+    std::sort(packNodes.begin(), packNodes.end(),
+              CQChartsBubbleNodeCmp(plot_->isSortReverse()));
 
   // pack nodes
   for (auto &packNode : packNodes)
