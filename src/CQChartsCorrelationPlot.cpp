@@ -568,7 +568,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,BBox>;
+  using ColRects = std::map<int, BBox>;
 
   ColRects colRects;
 
@@ -628,7 +628,7 @@ drawXLabels(CQChartsPaintDevice *device) const
     else
       tbbox1 = BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -666,7 +666,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,BBox>;
+  using RowRects = std::map<int, BBox>;
 
   RowRects colRects;
 
@@ -726,7 +726,7 @@ drawYLabels(CQChartsPaintDevice *device) const
     else
       tbbox1 = BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -1071,8 +1071,8 @@ draw(CQChartsPaintDevice *device)
       fillPattern.setScale(4.0);
 
       plot_->setPenBrush(penBrush,
-        PenData  (true, lc, CQChartsAlpha(1.0)),
-        BrushData(true, lc, CQChartsAlpha(1.0), fillPattern));
+        PenData  (true, lc, Alpha(1.0)),
+        BrushData(true, lc, Alpha(1.0), fillPattern));
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1143,6 +1143,8 @@ draw(CQChartsPaintDevice *device)
 
       double s = rect().getMinSize()/2.0 - std::min(sx, sy);
 
+      CQChartsLength ss(3, CQChartsUnits::PIXEL);
+
       //---
 
       // draw row/col points
@@ -1152,7 +1154,7 @@ draw(CQChartsPaintDevice *device)
 
         Point ps(x1, y1);
 
-        plot_->drawSymbol(device, ps, CQChartsSymbol::Type::CIRCLE, sx, penBrush);
+        plot_->drawSymbol(device, ps, CQChartsSymbol::Type::CIRCLE, ss, penBrush);
       }
 
       skipLabel = true;

@@ -2685,7 +2685,7 @@ drawFg(CQChartsPaintDevice *device) const
     prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = device->pixelToWindow(Point(tx, ty));
+  auto pt = plot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;
@@ -2914,7 +2914,7 @@ drawFg(CQChartsPaintDevice *device) const
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = device->pixelToWindow(Point(tx, ty));
+  auto pt = plot_->pixelToWindow(Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;

@@ -336,7 +336,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
  private:
   using Whisker       = CQChartsBoxPlotWhisker;
-  using SetWhiskerMap = std::map<int,Whisker *>;
+  using SetWhiskerMap = std::map<int, Whisker *>;
 
   const SetWhiskerMap &setWhiskerMap() const;
 
@@ -434,10 +434,10 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Box,box)
-CQCHARTS_NAMED_LINE_DATA(Whisker,whisker)
-CQCHARTS_NAMED_POINT_DATA(Outlier,outlier)
-CQCHARTS_NAMED_POINT_DATA(Jitter,jitter)
+CQCHARTS_NAMED_SHAPE_DATA(Box, box)
+CQCHARTS_NAMED_LINE_DATA(Whisker, whisker)
+CQCHARTS_NAMED_POINT_DATA(Outlier, outlier)
+CQCHARTS_NAMED_POINT_DATA(Jitter, jitter)
 
 /*!
  * \brief Box Plot
@@ -496,7 +496,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // jitter/stacked points
   Q_PROPERTY(PointsType pointsType  READ pointsType WRITE setPointsType)
 
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Jitter,jitter)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Jitter, jitter)
 
   // violin (density)
   Q_PROPERTY(bool           violin      READ isViolin    WRITE setViolin     )
@@ -508,7 +508,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(ErrorBarType errorBarType READ errorBarType WRITE setErrorBarType)
 
   // box
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Box,box)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Box, box)
 
   Q_PROPERTY(CQChartsLength boxWidth READ boxWidth WRITE setBoxWidth)
 
@@ -516,7 +516,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   // whisker line
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Whisker,whisker)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Whisker, whisker)
 
   Q_PROPERTY(double whiskerRange  READ whiskerRange  WRITE setWhiskerRange )
   Q_PROPERTY(double whiskerExtent READ whiskerExtent WRITE setWhiskerExtent)
@@ -528,7 +528,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double ymargin READ ymargin WRITE setYMargin)
 
   // outliers
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Outlier,outlier)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Outlier, outlier)
 
   Q_ENUMS(PointsType)
   Q_ENUMS(ErrorBarType)
@@ -549,8 +549,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   using Whisker            = CQChartsBoxPlotWhisker;
   using WhiskerData        = CQChartsBoxWhiskerData;
-  using SetWhiskerMap      = std::map<int,Whisker *>;
-  using GroupSetWhiskerMap = std::map<int,SetWhiskerMap>;
+  using SetWhiskerMap      = std::map<int, Whisker *>;
+  using GroupSetWhiskerMap = std::map<int, SetWhiskerMap>;
   using WhiskerDataList    = std::vector<WhiskerData>;
   using Symbol             = CQChartsSymbol;
 
@@ -821,12 +821,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   PointsType         pointsType_        { PointsType::NONE };        //!< show points type
   bool               notched_           { false };                   //!< show notch
   bool               violin_            { false };                   //!< show violin
-  Length             violinWidth_       { 0.6 };                     //!< violin width
+  Length             violinWidth_       { 0.6, Units::PLOT };        //!< violin width
   bool               violinBox_         { false };                   //!< show box width violin
   bool               errorBar_          { false };                   //!< show error bar
   ErrorBarType       errorBarType_      { ErrorBarType::CROSS_BAR }; //!< error bar type
   bool               colorBySet_        { false };                   //!< color by set
-  Length             boxWidth_          { 0.2 };                     //!< box width
+  Length             boxWidth_          { 0.2, Units::PLOT };        //!< box width
   double             whiskerRange_      { 1.5 };                     //!< whisker range
   double             whiskerExtent_     { 0.2 };                     //!< whisker extent
   double             textMargin_        { 2 };                       //!< text margin

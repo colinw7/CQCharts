@@ -25,7 +25,7 @@ class CQChartsPosition {
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const Point &p=Point(0,0), const Units &units=Units::PLOT) :
+  CQChartsPosition(const Point &p=Point(0, 0), const Units &units=Units::PLOT) :
    units_(units), p_(p) {
   }
 

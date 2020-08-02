@@ -4,6 +4,7 @@
 #include <CQChartsPosition.h>
 #include <QFrame>
 
+class CQChartsPlot;
 class CQChartsGeomPointEdit;
 class CQChartsUnitsEdit;
 
@@ -19,24 +20,34 @@ class CQChartsPositionEdit : public QFrame {
  public:
   CQChartsPositionEdit(QWidget *parent=nullptr);
 
-  const CQChartsPosition &position() const;
+  const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &pos);
+
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot);
+
+  void setRegion(const CQChartsGeom::Point &p);
 
  signals:
   void positionChanged();
+
+  void regionChanged();
 
  private slots:
   void editChanged();
   void unitsChanged();
 
+  void editRegionSlot();
+
  private:
-  void widgetsToPosition();
   void positionToWidgets();
+//void widgetsToPosition();
 
   void connectSlots(bool b);
 
  private:
   CQChartsPosition       position_;              //!< position data
+  CQChartsPlot*          plot_      { nullptr }; //!< associated plot
   CQChartsGeomPointEdit* edit_      { nullptr }; //!< position edit
   CQChartsUnitsEdit*     unitsEdit_ { nullptr }; //!< units edit
   bool                   connected_ { false };   //!< is connected
@@ -65,6 +76,9 @@ class CQChartsPositionPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 
   QString userName() const override { return "position"; }
+
+ private:
+  QString valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const;
 };
 
 //---

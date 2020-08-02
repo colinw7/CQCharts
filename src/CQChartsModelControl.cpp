@@ -11,11 +11,11 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
 
-#include <CQHierSepModel.h>
-#include <CQCsvModel.h>
-#include <CQTsvModel.h>
-#include <CQGnuDataModel.h>
-#include <CQJsonModel.h>
+//#include <CQHierSepModel.h>
+//#include <CQCsvModel.h>
+//#include <CQTsvModel.h>
+//#include <CQGnuDataModel.h>
+//#include <CQJsonModel.h>
 #include <CQDataModel.h>
 
 #include <CQIntegerSpin.h>

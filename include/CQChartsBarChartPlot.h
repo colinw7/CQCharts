@@ -48,7 +48,7 @@ class CQChartsBarChartPlot;
  */
 class CQChartsBarChartValue {
  public:
-  using NameValues = std::map<QString,QString>;
+  using NameValues = std::map<QString, QString>;
 
  public:
   struct ValueInd {
@@ -328,7 +328,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot,dot)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot, dot)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(ValueType)
@@ -465,7 +465,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  protected:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;
   using ValueNames    = std::vector<QString>;
-  using ValueGroupInd = std::map<int,int>;
+  using ValueGroupInd = std::map<int, int>;
 
   struct ValueData {
     ValueSets     valueSets;     //!< value sets

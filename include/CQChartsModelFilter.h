@@ -21,7 +21,7 @@ class QItemSelectionModel;
  */
 class CQChartsModelFilterData {
  public:
-  using ColumnFilterMap = std::map<int,CQChartsRegExp>;
+  using ColumnFilterMap = std::map<int, CQChartsRegExp>;
   using Type            = CQChartsFilterModelType;
 
  public:
@@ -211,7 +211,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   QString replaceNamedColumns(QAbstractItemModel *model, const QString &expr) const;
 
  protected:
-  using IndexMatches = std::map<QModelIndex,bool>;
+  using IndexMatches = std::map<QModelIndex, bool>;
   using ExpandInds   = std::set<QModelIndex>;
 
   using FilterDatas = std::vector<CQChartsModelFilterData>;

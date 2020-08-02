@@ -143,7 +143,7 @@ class CQChartsEnclosingCircle {
     double r = (d + circle1.r() + circle2.r())/2.0;
 
     // The center of the enclosing circle must lie along the line connecting the two centers.
-    //   center = (1-theta)*[x1,y1] + theta*[x2,y2]
+    //   center = (1-theta)*[x1, y1] + theta*[x2, y2]
     //
     // where theta is given by
     //

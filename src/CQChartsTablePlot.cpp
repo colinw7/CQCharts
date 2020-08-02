@@ -130,7 +130,7 @@ CQChartsTablePlot(View *view, const ModelP &model) :
 
   //---
 
-  setOuterMargin(PlotMargin(0, 0, 0, 0));
+  setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
 
   addTitle();
 
@@ -543,7 +543,7 @@ calcRange() const
 
   //---
 
-  // always return range (0,0) -> (1,1)
+  // always return range (0, 0) -> (1, 1)
   Range dataRange;
 
   dataRange.updateRange(0.0, 0.0);
@@ -1862,8 +1862,7 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
-            CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
 
   device->setPen(textPenBrush.pen);
 
@@ -1946,8 +1945,7 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()),
-            CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
 
   device->setPen(textPenBrush.pen);
 
@@ -2054,8 +2052,7 @@ draw(PaintDevice *device)
   CQChartsPenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(textColor, ColorInd()),
-            CQChartsAlpha(), 0.0, CQChartsLineDash()));
+    PenData(true, plot_->interpColor(textColor, ColorInd()), Alpha()));
 
   device->setPen(textPenBrush.pen);
 

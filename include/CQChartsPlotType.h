@@ -43,7 +43,7 @@ class CQChartsPlotTypeMgr {
   void getTypes(Types &types) const;
 
  private:
-  using NameTypes = std::map<QString,CQChartsPlotType*>;
+  using NameTypes = std::map<QString, CQChartsPlotType*>;
 
   NameTypes nameTypes_;
 };
@@ -90,7 +90,7 @@ class CQChartsPlotType : public QObject {
   using ParameterGroup      = CQChartsPlotParameterGroup;
   using Parameters          = std::vector<Parameter *>;
   using ParameterGroups     = std::vector<ParameterGroup *>;
-  using ParameterGroupMap   = std::map<int,ParameterGroup *>;
+  using ParameterGroupMap   = std::map<int, ParameterGroup *>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
   using EnumParameter       = CQChartsEnumParameter;
   using ColumnDetails       = CQChartsModelColumnDetails;
@@ -255,7 +255,7 @@ class CQChartsPlotType : public QObject {
     }
   };
 
-  using Properties        = std::map<QString,PropertyData>;
+  using Properties        = std::map<QString, PropertyData>;
   using ParameterGroupIds = std::vector<int>;
 
   Parameters        parameters_;        //!< parameters

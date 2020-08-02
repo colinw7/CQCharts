@@ -817,7 +817,7 @@ drawFg(CQChartsPaintDevice *device) const
 
     plot_->setPenBrush(penBrush,
       PenData  (/*stroke*/true, pc),
-      BrushData(/*filled*/true, bc, CQChartsAlpha(0.5)));
+      BrushData(/*filled*/true, bc, Alpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -826,7 +826,7 @@ drawFg(CQChartsPaintDevice *device) const
     BBox ebbox(prect.getXMid() - s/2, prect.getYMid() - s/2,
                prect.getXMid() + s/2, prect.getYMid() + s/2);
 
-    device->drawEllipse(device->pixelToWindow(ebbox));
+    device->drawEllipse(plot_->pixelToWindow(ebbox));
   }
 }
 

@@ -104,6 +104,10 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   viewBBox_      = BBox(0, 0, vr, vr);
   innerViewBBox_ = viewBBox_;
 
+  innerMargin_ = PlotMargin(Length("0P" ), Length("0P" ), Length("0P" ), Length("0P" ));
+  outerMargin_ = PlotMargin(Length("10%"), Length("10%"), Length("10%"), Length("10%"));
+  fitMargin_   = PlotMargin(Length("1%" ), Length("1%" ), Length("1%" ), Length("1%" ));
+
   displayRange_->setPixelAdjust(0.0);
 
   setPixelRange(BBox(0.0, 0.0,  vr,  vr));
@@ -328,13 +332,13 @@ connectDisconnectModel(bool isConnect)
     connectDisconnect(isConnect, model_.data(), SIGNAL(modelReset()),
                       SLOT(modelChangedSlot()));
 
-    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsInserted(QModelIndex, int, int)),
                       SLOT(modelChangedSlot()));
-    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsRemoved(QModelIndex, int, int)),
                       SLOT(modelChangedSlot()));
-    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsInserted(QModelIndex, int, int)),
                       SLOT(modelChangedSlot()));
-    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsRemoved(QModelIndex, int, int)),
                       SLOT(modelChangedSlot()));
   }
 }
@@ -2028,6 +2032,15 @@ CQChartsPlot::
 setOuterMargin(const PlotMargin &m)
 {
   if (m != outerMargin_) { outerMargin_ = m; updateMargins(); }
+}
+
+//---
+
+void
+CQChartsPlot::
+emitTitleChanged()
+{
+  emit titleChanged();
 }
 
 //---
@@ -7899,10 +7912,11 @@ void
 CQChartsPlot::
 zoomTo(const BBox &bbox)
 {
-  auto bbox1 = bbox;
+  if (! dataRange_.isSet())
+    return;
 
-  double w = bbox1.getWidth ();
-  double h = bbox1.getHeight();
+  double w = bbox.getWidth ();
+  double h = bbox.getHeight();
 
   if (w < 1E-50 || h < 1E-50) {
     double dataScale = 2*std::min(dataScaleX(), dataScaleY());
@@ -7910,9 +7924,6 @@ zoomTo(const BBox &bbox)
     w = dataRange_.xsize()/dataScale;
     h = dataRange_.ysize()/dataScale;
   }
-
-  if (! dataRange_.isSet())
-    return;
 
   auto c = bbox.getCenter();
 
@@ -7930,6 +7941,46 @@ zoomTo(const BBox &bbox)
 
   if (allowZoomY())
     setDataScaleY(yscale);
+
+  auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
+
+  double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+  double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
+
+  setDataOffsetX(cx);
+  setDataOffsetY(cy);
+
+  applyDataRangeAndDraw();
+
+  emit zoomPanChanged();
+}
+
+void
+CQChartsPlot::
+unzoomTo(const BBox &bbox)
+{
+  if (! dataRange_.isSet())
+    return;
+
+  double w = bbox.getWidth ();
+  double h = bbox.getHeight();
+
+  auto c = bbox.getCenter();
+
+  double w1 = dataRange_.xsize();
+  double h1 = dataRange_.ysize();
+
+  if (w1 < 1E-50 || h1 < 1E-50)
+    return;
+
+  double xscale = w*dataScaleX()/w1;
+  double yscale = h*dataScaleY()/h1;
+
+  if (allowZoomX())
+    setDataScaleX(xscale*dataScaleX());
+
+  if (allowZoomY())
+    setDataScaleY(yscale*dataScaleY());
 
   auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
 
@@ -9210,11 +9261,8 @@ drawBgAxes(PaintDevice *device) const
 
   //---
 
-  if (showXGrid)
-    xAxis()->drawGrid(this, device);
-
-  if (showYGrid)
-    yAxis()->drawGrid(this, device);
+  if (showXGrid) drawXGrid(device);
+  if (showYGrid) drawYGrid(device);
 }
 
 bool
@@ -9545,19 +9593,39 @@ drawFgAxes(PaintDevice *device) const
 
   //---
 
-  if (showXGrid)
-    xAxis()->drawGrid(this, device);
+  if (showXGrid) drawXGrid(device);
+  if (showYGrid) drawYGrid(device);
 
-  if (showYGrid)
-    yAxis()->drawGrid(this, device);
+  if (showXAxis) drawXAxis(device);
+  if (showYAxis) drawYAxis(device);
+}
 
-  //---
+void
+CQChartsPlot::
+drawXGrid(PaintDevice *device) const
+{
+  xAxis()->drawGrid(this, device);
+}
 
-  if (showXAxis)
-    xAxis()->draw(this, device);
+void
+CQChartsPlot::
+drawYGrid(PaintDevice *device) const
+{
+  yAxis()->drawGrid(this, device);
+}
 
-  if (showYAxis)
-    yAxis()->draw(this, device);
+void
+CQChartsPlot::
+drawXAxis(PaintDevice *device) const
+{
+  xAxis()->draw(this, device);
+}
+
+void
+CQChartsPlot::
+drawYAxis(PaintDevice *device) const
+{
+  yAxis()->draw(this, device);
 }
 
 bool
@@ -10236,7 +10304,7 @@ autoFitOne()
     qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 #else
-  outerMargin_ = PlotMargin(0.0, 0.0, 0.0, 0.0);
+  outerMargin_ = PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P"));
 
   updateMargins();
 
@@ -10269,7 +10337,8 @@ setFitBBox(const BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  outerMargin_ = PlotMargin(left, top, right, bottom);
+  outerMargin_ = PlotMargin(Length(left , Units::PLOT), Length(top   , Units::PLOT),
+                            Length(right, Units::PLOT), Length(bottom, Units::PLOT));
 
   updateMargins();
 }
@@ -11065,7 +11134,7 @@ drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, doub
     imageBuffer.brush  = painter->brush();
     imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
 
-    imageBuffer.image.fill(QColor(0,0,0,0));
+    imageBuffer.image.fill(QColor(0, 0, 0, 0));
 
     QPainter ipainter(&imageBuffer.image);
 

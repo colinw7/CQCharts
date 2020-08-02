@@ -262,7 +262,7 @@ imap(int i, double mapMin, double mapMax) const
     return cvals_.map(cval, mapMin, mapMax);
   }
   else if (type() == Type::TIME) {
-    // get nth ti,e
+    // get nth tile
     OptReal tval = tvals_.value(i);
 
     if (! tval)
@@ -1014,7 +1014,7 @@ initPatterns(int numIdeal) const
   if (! spatternsSet_) {
     auto *th = const_cast<CQChartsSValues *>(this);
 
-    using DepthCountMap = std::map<int,CQTriePatterns>;
+    using DepthCountMap = std::map<int, CQTriePatterns>;
 
     DepthCountMap depthCountMap;
 

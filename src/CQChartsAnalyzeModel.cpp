@@ -55,8 +55,8 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   //---
 
-  using ColumnUsed  = std::pair<CQChartsModelColumnDetails*,bool>;
-  using IColumnUsed = std::map<int,ColumnUsed>;
+  using ColumnUsed  = std::pair<CQChartsModelColumnDetails*, bool>;
+  using IColumnUsed = std::map<int, ColumnUsed>;
 
   IColumnUsed columnUsed;
 

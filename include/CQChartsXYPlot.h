@@ -620,9 +620,9 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
-CQCHARTS_NAMED_LINE_DATA(Impulse,impulse)
-CQCHARTS_NAMED_LINE_DATA(Bivariate,bivariate)
-CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
+CQCHARTS_NAMED_LINE_DATA(Impulse, impulse)
+CQCHARTS_NAMED_LINE_DATA(Bivariate, bivariate)
+CQCHARTS_NAMED_FILL_DATA(FillUnder, fillUnder)
 
 /*!
  * \brief XY Plot
@@ -651,6 +651,9 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   // x is string
   Q_PROPERTY(bool mapXColumn READ isMapXColumn WRITE setMapXColumn)
+
+  // show all overlay x axes
+  Q_PROPERTY(bool showAllXOverlayAxes READ isShowAllXOverlayAxes WRITE setShowAllXOverlayAxes)
 
   // bivariate
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
@@ -693,7 +696,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsFillUnderSide fillUnderSide
              READ fillUnderSide         WRITE setFillUnderSide      )
 
-  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(FillUnder,fillUnder)
+  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(FillUnder, fillUnder)
 
  public:
   using FillUnderPos  = CQChartsFillUnderPos;
@@ -743,6 +746,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //! get/set map x column
   bool isMapXColumn() const { return mapXColumn_; }
   void setMapXColumn(bool b);
+
+  //! get/set show all overlay x axes
+  bool isShowAllXOverlayAxes() const { return showAllXOverlayAxes_; }
+  void setShowAllXOverlayAxes(bool b);
 
   //---
 
@@ -842,6 +849,10 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   void addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
                   const ColorInd &ig, const QString &name, PlotObjs &objs, bool under) const;
+
+  //---
+
+  void drawXAxis(PaintDevice *device) const override;
 
   //---
 
@@ -951,7 +962,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   };
 
   using SetIndPoly      = std::vector<IndPoly>;
-  using GroupSetIndPoly = std::map<int,SetIndPoly>;
+  using GroupSetIndPoly = std::map<int, SetIndPoly>;
 
  private:
   void initAxes();
@@ -979,6 +990,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Column  vectorYColumn_; //!< vector y direction column
 
   bool mapXColumn_ { false }; //!< map x column value to unique id
+
+  bool showAllXOverlayAxes_ { false };
 
   ColumnType xColumnType_ { ColumnType::NONE }; //!< x column type
 

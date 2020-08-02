@@ -88,7 +88,7 @@ class CQChartsFillPatternEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  using WidgetLabels = std::map<QWidget*,QWidget*>;
+  using WidgetLabels = std::map<QWidget*, QWidget*>;
 
   CQChartsFillPattern    fillPattern_;              //!< fillPattern
   QComboBox*             typeCombo_    { nullptr }; //!< type combo

@@ -246,7 +246,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
                 px + tw + pxrm, py + fm.descent() + pytm);
 
-    CQChartsBoxObj::draw(device, device->pixelToWindow(tpbbox));
+    CQChartsBoxObj::draw(device, plot()->pixelToWindow(tpbbox));
 
     // draw text
     if (ystr.length()) {
@@ -267,7 +267,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
       if (! textClipped) {
         device->setPen(penBrush.pen);
 
-        auto p1 = device->pixelToWindow(Point(px, py));
+        auto p1 = plot()->pixelToWindow(Point(px, py));
 
         CQChartsTextOptions options;
 
@@ -351,7 +351,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     Polygon poly;
 
     for (std::size_t i = 0; i < ppoints.size(); ++i)
-      poly.addPoint(device->pixelToWindow(ppoints[i]));
+      poly.addPoint(plot()->pixelToWindow(ppoints[i]));
 
     CQChartsBoxObj::draw(device, poly);
 
@@ -359,7 +359,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
 
     // draw text
     if (ystr.length()) {
-      auto p1 = device->pixelToWindow(Point(px, py));
+      auto p1 = plot()->pixelToWindow(Point(px, py));
 
       CQChartsTextOptions options;
 
@@ -369,7 +369,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
       options.contrastAlpha = textContrastAlpha();
       options.clipLength    = textClipLength();
 
-//    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, options,
+//    CQChartsRotatedText::draw(device, plot()->pixelToWindow(p1), ystr, options,
 //                              /*alignBBox*/ true);
 
       CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options, /*centered*/true);

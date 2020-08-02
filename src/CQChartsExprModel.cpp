@@ -1256,7 +1256,7 @@ processCmd(const QString &name, const Values &values)
 //------
 
 // get column value for current row:
-//   column(), column(col), column(col,defVal) : get column value
+//   column(), column(col), column(col, defVal) : get column value
 QVariant
 CQChartsExprModel::
 columnCmd(const Values &values) const
@@ -1342,7 +1342,7 @@ rowCmd(const Values &values) const
 //---
 
 // get cell (row/column) value:
-//   cell(), cell(row,column), cell(row,column,defVal) : get cell value
+//   cell(), cell(row, column), cell(row, column, defVal) : get cell value
 QVariant
 CQChartsExprModel::
 cellCmd(const Values &values) const
@@ -1390,7 +1390,7 @@ cellCmd(const Values &values) const
 //---
 
 // set column value (for current row):
-//   setColumn(value), setColumn(col,value) : set column value
+//   setColumn(value), setColumn(col, value) : set column value
 QVariant
 CQChartsExprModel::
 setColumnCmd(const Values &values)
@@ -1423,7 +1423,7 @@ setColumnCmd(const Values &values)
 //---
 
 // set row value (for current column):
-//   setRow(value), setRow(row,value), setRow(row,col,value) : set row value
+//   setRow(value), setRow(row, value), setRow(row, col, value) : set row value
 QVariant
 CQChartsExprModel::
 setRowCmd(const Values &values)
@@ -1456,7 +1456,7 @@ setRowCmd(const Values &values)
 //---
 
 // set cell value (for row/column):
-//   setCell(value), setCell(row,col,value) : set row value
+//   setCell(value), setCell(row, col, value) : set row value
 QVariant
 CQChartsExprModel::
 setCellCmd(const Values &values)
@@ -1510,7 +1510,7 @@ headerCmd(const Values &values) const
 //---
 
 // set header value (for column):
-//   setHeader(s), setHeader(col,s)
+//   setHeader(s), setHeader(col, s)
 QVariant
 CQChartsExprModel::
 setHeaderCmd(const Values &values)
@@ -1572,7 +1572,7 @@ typeCmd(const Values &values) const
 //---
 
 // set type (for column):
-//   setType(s), setType(col,s)
+//   setType(s), setType(col, s)
 QVariant
 CQChartsExprModel::
 setTypeCmd(const Values &values)
@@ -1609,7 +1609,7 @@ setTypeCmd(const Values &values)
 //---
 
 // map row value to min/max
-//   map(), map(max), map(min,max)
+//   map(), map(max), map(min, max)
 QVariant
 CQChartsExprModel::
 mapCmd(const Values &values) const
@@ -1649,10 +1649,10 @@ mapCmd(const Values &values) const
 //---
 
 // remap column value range to min/max
-//   remap()            - current column, 0.0, 1.0
-//   remap(col)         - specified column, 0.0, 1.0
-//   remap(col,max)     - specified column, 0.0, max
-//   remap(col,min,max) - specified column, min, max
+//   remap()              - current column, 0.0, 1.0
+//   remap(col)           - specified column, 0.0, 1.0
+//   remap(col, max)      - specified column, 0.0, max
+//   remap(col, min, max) - specified column, min, max
 QVariant
 CQChartsExprModel::
 remapCmd(const Values &values)
@@ -1704,7 +1704,7 @@ remapCmd(const Values &values)
 //---
 
 // bucket value (for row/column)
-//   bucket(col,delta), bucket(col,start,delta)
+//   bucket(col, delta), bucket(col, start, delta)
 QVariant
 CQChartsExprModel::
 bucketCmd(const Values &values) const
@@ -1796,7 +1796,7 @@ bucketCmd(const Values &values) const
 //---
 
 // normalized column value
-//   norm(col), norm(col,scale)
+//   norm(col), norm(col, scale)
 QVariant
 CQChartsExprModel::
 normCmd(const Values &values) const
@@ -1889,7 +1889,7 @@ normCmd(const Values &values) const
 //---
 
 // scaled column value
-//   scale(col,center=true,scale=true)
+//   scale(col, center=true, scale=true)
 QVariant
 CQChartsExprModel::
 scaleCmd(const Values &values) const
@@ -1962,7 +1962,7 @@ scaleCmd(const Values &values) const
 //---
 
 // random value
-//   rand(min=0,max=1)
+//   rand(min=0, max=1)
 QVariant
 CQChartsExprModel::
 randCmd(const Values &values) const
@@ -1985,7 +1985,7 @@ randCmd(const Values &values) const
 //---
 
 // random normalized value
-//   rnorm(mean=0,stddev=1)
+//   rnorm(mean=0, stddev=1)
 QVariant
 CQChartsExprModel::
 rnormCmd(const Values &values) const
@@ -2009,7 +2009,7 @@ rnormCmd(const Values &values) const
 
 #if 0
 // key from values:
-//   key(str1,str2,...)
+//   key(str1, str2, ...)
 QVariant
 CQChartsExprModel::
 keyCmd(const Values &values) const
@@ -2034,7 +2034,7 @@ keyCmd(const Values &values) const
 //---
 
 // concat values
-//   concat(str1,str2,...)
+//   concat(str1, str2, ...)
 QVariant
 CQChartsExprModel::
 concatCmd(const Values &values) const
@@ -2084,8 +2084,8 @@ colorCmd(const Values &values) const
 //---
 
 // time value from column value
-//   timeval(fmt)     - timeval fmt for current column
-//   timeval(col,fmt) - timeval fmt for specified column
+//   timeval(fmt)      - timeval fmt for current column
+//   timeval(col, fmt) - timeval fmt for specified column
 QVariant
 CQChartsExprModel::
 timevalCmd(const Values &values) const

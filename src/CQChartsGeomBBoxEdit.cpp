@@ -1,10 +1,16 @@
 #include <CQChartsGeomBBoxEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsPlot.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
+#include <QToolButton>
 #include <QHBoxLayout>
+
+#include <svg/region_light_svg.h>
+#include <svg/region_dark_svg.h>
 
 CQChartsGeomBBoxEdit::
 CQChartsGeomBBoxEdit(QWidget *parent, const BBox &value) :
@@ -43,6 +49,17 @@ init(const BBox &value)
 
   //---
 
+  regionButton_ = CQUtil::makeWidget<QToolButton>("region");
+
+  regionButton_->setCheckable(true);
+  regionButton_->setIcon(CQPixmapCacheInst->getIcon("REGION_LIGHT", "REGION_DARK"));
+
+  connect(regionButton_, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+
+  layout->addWidget(regionButton_);
+
+  //---
+
   setFocusProxy(edit_);
 
   setValue(value);
@@ -57,11 +74,13 @@ setValue(const BBox &bbox)
   bboxToWidget();
 }
 
-const CQChartsGeomBBoxEdit::BBox &
+void
 CQChartsGeomBBoxEdit::
-getValue() const
+setPlot(CQChartsPlot *plot)
 {
-  return bbox_;
+  plot_ = plot;
+
+  regionButton_->setVisible(plot_);
 }
 
 void
@@ -76,11 +95,44 @@ editingFinishedI()
 
 void
 CQChartsGeomBBoxEdit::
+regionSlot(bool b)
+{
+  if (! plot())
+    return;
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plot_->view(), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
+    this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
+}
+
+void
+CQChartsGeomBBoxEdit::
+regionReleaseSlot(const CQChartsGeom::BBox &bbox)
+{
+  if (! plot_)
+    return;
+
+  auto pbbox = plot_->viewToWindow(bbox);
+
+  setRegion(pbbox);
+}
+
+void
+CQChartsGeomBBoxEdit::
+setRegion(const CQChartsGeom::BBox &bbox)
+{
+  setValue(bbox);
+
+  emit regionChanged();
+}
+
+void
+CQChartsGeomBBoxEdit::
 bboxToWidget()
 {
   disableSignals_ = true;
 
-  QString str = bbox_.toString();
+  auto str = bbox_.toString();
 
   edit_->setText(str);
 
@@ -137,9 +189,8 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
-
-  QFont font = option.font;
+  auto str  = valueString(item, value, ok);
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);

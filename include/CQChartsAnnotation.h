@@ -405,12 +405,15 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
  public:
   using Position = CQChartsPosition;
   using Length   = CQChartsLength;
+  using Units    = CQChartsUnits;
 
  public:
   CQChartsEllipseAnnotation(View *view, const Position &center=Position(),
-                            const Length &xRadius=1.0, const Length &yRadius=1.0);
+                            const Length &xRadius=Length(1.0, Units::PLOT),
+                            const Length &yRadius=Length(1.0, Units::PLOT));
   CQChartsEllipseAnnotation(Plot *plot, const Position &center=Position(),
-                            const Length &xRadius=1.0, const Length &yRadius=1.0);
+                            const Length &xRadius=Length(1.0, Units::PLOT),
+                            const Length &yRadius=Length(1.0, Units::PLOT));
 
   virtual ~CQChartsEllipseAnnotation();
 
@@ -447,9 +450,9 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  Position center_;          //!< ellipse center
-  Length   xRadius_ { 1.0 }; //!< ellipse x radius
-  Length   yRadius_ { 1.0 }; //!< ellipse y radius
+  Position center_;                       //!< ellipse center
+  Length   xRadius_ { 1.0, Units::PLOT }; //!< ellipse x radius
+  Length   yRadius_ { 1.0, Units::PLOT }; //!< ellipse y radius
 };
 
 //---
@@ -745,9 +748,18 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   void initRectangle() override;
 
  private:
+  enum class DisabledImageType {
+    NONE,
+    DISABLED,
+    UNCHECKED,
+    FIXED
+  };
+
   void init();
 
   void calcImageSize(Size &psize, Size &wsize) const;
+
+  void updateDisabledImage(const DisabledImageType &type);
 
   void positionToLL(double w, double h, double &x, double &y) const;
 
@@ -756,10 +768,11 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   void positionToBBox();
 
  private:
-  OptPosition position_;      //!< image position
-  OptRect     rectangle_;     //!< image bounding rectangle
-  Image       image_;         //!< image
-  Image       disabledImage_; //!< disabled image
+  OptPosition       position_;                                      //!< image position
+  OptRect           rectangle_;                                     //!< image bounding rectangle
+  Image             image_;                                         //!< image
+  Image             disabledImage_;                                 //!< disabled image
+  DisabledImageType disabledImageType_ { DisabledImageType::NONE }; //!< disabled image type
 };
 
 //---

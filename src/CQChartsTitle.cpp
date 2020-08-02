@@ -48,7 +48,7 @@ void
 CQChartsTitle::
 setSelected(bool b)
 {
-  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->drawObjs(); } );
+  CQChartsUtil::testAndSet(selected_, b, [&]() { redraw(); } );
 }
 
 void
@@ -90,6 +90,8 @@ void
 CQChartsTitle::
 redraw(bool wait)
 {
+  plot_->emitTitleChanged();
+
   if (wait)
     plot_->drawForeground();
   else

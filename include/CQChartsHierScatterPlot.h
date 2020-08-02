@@ -39,7 +39,7 @@ class CQChartsHierScatterPlot;
 
 class CQChartsHierScatterPointGroup;
 
-using CQChartsHierScatterPointGroupMap = std::map<int,CQChartsHierScatterPointGroup *>;
+using CQChartsHierScatterPointGroupMap = std::map<int, CQChartsHierScatterPointGroup *>;
 
 struct CQChartsHierScatterPoint {
   using Point = CQChartsGeom::Point;
@@ -256,7 +256,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
  public:
-  using GroupValueSets = std::map<Column,CQChartsValueSet *>;
+  using GroupValueSets = std::map<Column, CQChartsValueSet *>;
 
  public:
   CQChartsHierScatterPlot(View *view, const ModelP &model);

@@ -35,7 +35,7 @@
  *
 */
 template<class STATE, class T, class DIST=ptrdiff_t>
-class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
+class CInputIterator : public std::iterator<std::input_iterator_tag, T, DIST> {
  public:
   enum { IS_PTR = std::is_pointer<T>::value };
 
@@ -43,7 +43,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
   using NonPtrT = typename std::remove_pointer<NonRefT>::type;
   using BareT   = typename std::remove_cv<NonPtrT>::type;
 
-  using ContentsT = typename std::conditional<IS_PTR,const BareT *,const BareT &>::type;
+  using ContentsT = typename std::conditional<IS_PTR, const BareT *, const BareT &>::type;
 
   CInputIterator() :
    state_() {

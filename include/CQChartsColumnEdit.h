@@ -94,7 +94,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   void updateColumnsFromModel();
 
  private:
-  using WidgetLabels = std::map<QWidget*,QWidget*>;
+  using WidgetLabels = std::map<QWidget*, QWidget*>;
 
   QAbstractItemModel*  model_          { nullptr }; //!< model
   CQChartsColumn       column_;                     //!< column

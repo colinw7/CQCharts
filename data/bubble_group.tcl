@@ -6,5 +6,4 @@ set plot [create_charts_plot -type bubble -columns {{group 0} {value 1}} -title 
 
 #set model [load_charts_model -csv data/flare.csv -comment_header]
 
-
-show_charts_create_plot_dlg -model $model
+#show_charts_create_plot_dlg -model $model

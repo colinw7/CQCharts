@@ -83,7 +83,7 @@ class CQChartsModelDetails : public QObject {
   CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
 
  private:
-  using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
+  using ColumnDetails = std::map<CQChartsColumn, CQChartsModelColumnDetails *>;
 
   CQChartsModelData* data_ { nullptr }; //!< model data
 
@@ -230,7 +230,7 @@ class CQChartsModelColumnDetails {
   CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
 
  private:
-  using VariantInds = std::map<QVariant,int>;
+  using VariantInds = std::map<QVariant, int>;
 
   CQChartsModelDetails* details_         { nullptr };
   CQChartsColumn        column_;

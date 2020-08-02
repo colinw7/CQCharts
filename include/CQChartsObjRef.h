@@ -79,7 +79,6 @@ class CQChartsObjRef {
   static QString  locationToName(const Location &location);
   static Location nameToLocation(const QString &name);
 
-
  private:
   QString  name_;
   Location location_ { Location::CENTER };

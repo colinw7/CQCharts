@@ -79,7 +79,7 @@ class CQChartsTableDelegate : public QItemDelegate {
   CQChartsModelDetails *getDetails() const;
 
  private:
-  using ColumnDataMap = std::map<int,ColumnData>;
+  using ColumnDataMap = std::map<int, ColumnData>;
 
   CQChartsTable*      table_ { nullptr };
   CQChartsTree*       tree_  { nullptr };

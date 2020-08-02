@@ -1173,12 +1173,12 @@ printVertices()
 
   if (vertices_) {
     do {
-      fprintf(stderr,"  addr %6p\t", (void *) vertices_);
-      fprintf(stderr,"  num %4d", vertices_->num());
-      fprintf(stderr,"   (%6g,%6g,%6g)",vertices_->x(), vertices_->y(), vertices_->z());
-      fprintf(stderr,"   active:%3d", vertices_->onHull());
-      fprintf(stderr,"   dup:%5p", (void *) vertices_->duplicateEdge());
-      fprintf(stderr,"   mark:%2d\n", vertices_->isProcessed());
+      fprintf(stderr, "  addr %6p\t", (void *) vertices_);
+      fprintf(stderr, "  num %4d", vertices_->num());
+      fprintf(stderr, "   (%6g,%6g,%6g)", vertices_->x(), vertices_->y(), vertices_->z());
+      fprintf(stderr, "   active:%3d", vertices_->onHull());
+      fprintf(stderr, "   dup:%5p", (void *) vertices_->duplicateEdge());
+      fprintf(stderr, "   mark:%2d\n", vertices_->isProcessed());
 
       vertices_ = vertices_->next;
     } while (vertices_ != temp);
@@ -1254,7 +1254,7 @@ printFaces()
 
 #if 0
 /*-------------------------------------------------------------------
-  Checks that, for each face, for each i={0,1,2}, the [i]th vertex of
+  Checks that, for each face, for each i={0, 1, 2}, the [i]th vertex of
   that face is either the [0]th or [1]st endpoint of the [ith] edge of
   the face.
 -------------------------------------------------------------------*/
@@ -1275,11 +1275,11 @@ checkEndpts()
         if (v != e->start() && v != e->end()) {
           error = true;
 
-          fprintf(stderr,"CheckEndpts: Error!\n");
-          fprintf(stderr,"  addr: %8p;", (void *) faces_);
-          fprintf(stderr,"  edges:");
-          fprintf(stderr,"(%3d,%3d)", e->start()->num(), e->end()->num());
-          fprintf(stderr,"\n");
+          fprintf(stderr, "CheckEndpts: Error!\n");
+          fprintf(stderr, "  addr: %8p;", (void *) faces_);
+          fprintf(stderr, "  edges:");
+          fprintf(stderr, "(%3d,%3d)", e->start()->num(), e->end()->num());
+          fprintf(stderr, "\n");
         }
       }
 
@@ -1287,9 +1287,9 @@ checkEndpts()
     } while (faces_ != fstart);
 
     if (error)
-      fprintf(stderr,"Checks: ERROR found and reported above.\n");
+      fprintf(stderr, "Checks: ERROR found and reported above.\n");
     else
-      fprintf(stderr,"Checks: All endpts of all edges of all faces check.\n");
+      fprintf(stderr, "Checks: All endpts of all edges of all faces check.\n");
   }
 }
 #endif

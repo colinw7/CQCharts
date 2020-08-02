@@ -4,7 +4,6 @@
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
-#include <QButtonGroup>
 #include <QKeyEvent>
 
 #include <svg/filter_light_svg.h>

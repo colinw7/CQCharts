@@ -273,14 +273,14 @@ CQCharts()
   CQChartsAngle                 ::registerMetaType();
   CQChartsArrowData             ::registerMetaType();
   CQChartsAxisSide              ::registerMetaType();
-  CQChartsAxisValueType         ::registerMetaType();
   CQChartsAxisTickLabelPlacement::registerMetaType();
+  CQChartsAxisValueType         ::registerMetaType();
   CQChartsBoxData               ::registerMetaType();
   CQChartsColor                 ::registerMetaType();
   CQChartsColorStops            ::registerMetaType();
+  CQChartsColumnNum             ::registerMetaType();
   CQChartsColumn                ::registerMetaType();
   CQChartsColumns               ::registerMetaType();
-  CQChartsColumnNum             ::registerMetaType();
   CQChartsConnectionList        ::registerMetaType();
   CQChartsFillData              ::registerMetaType();
   CQChartsFillPattern           ::registerMetaType();
@@ -290,7 +290,6 @@ CQCharts()
   CQChartsImage                 ::registerMetaType();
   CQChartsKeyLocation           ::registerMetaType();
   CQChartsKeyPressBehavior      ::registerMetaType();
-  CQChartsTitleLocation         ::registerMetaType();
   CQChartsLength                ::registerMetaType();
   CQChartsLineDash              ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
@@ -315,14 +314,15 @@ CQCharts()
   CQChartsTextBoxData           ::registerMetaType();
   CQChartsTextData              ::registerMetaType();
   CQChartsThemeName             ::registerMetaType();
+  CQChartsTitleLocation         ::registerMetaType();
   CQChartsWidget                ::registerMetaType();
 
   CQChartsOptInt     ::registerMetaType();
-  CQChartsOptReal    ::registerMetaType();
-  CQChartsOptString  ::registerMetaType();
   CQChartsOptLength  ::registerMetaType();
   CQChartsOptPosition::registerMetaType();
+  CQChartsOptReal    ::registerMetaType();
   CQChartsOptRect    ::registerMetaType();
+  CQChartsOptString  ::registerMetaType();
 
   //---
 

@@ -68,7 +68,7 @@ class CQChartsAdjacencyNode {
   };
 
   using Node       = CQChartsAdjacencyNode;
-  using EdgeMap    = std::map<int,EdgeData>;
+  using EdgeMap    = std::map<int, EdgeData>;
   using ModelIndex = CQChartsModelIndex;
 
  public:
@@ -246,7 +246,7 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
+CQCHARTS_NAMED_SHAPE_DATA(EmptyCell, emptyCell)
 
 /*!
  * \brief Connectivity Plot
@@ -281,13 +281,13 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(CQChartsLength bgMargin      READ bgMargin        WRITE setBgMargin     )
 
   // background
-  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
+  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background, background)
 
   // cell style
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // empty cell style
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(EmptyCell,emptyCell)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(EmptyCell, emptyCell)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
@@ -392,7 +392,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
     Connections connections;  //!< connections list
   };
 
-  using IdConnectionsData = std::map<int,ConnectionsData>;
+  using IdConnectionsData = std::map<int, ConnectionsData>;
 
  private:
   bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const;
@@ -445,7 +445,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void createNameNodeObjs(PlotObjs &objs) const;
 
  private:
-  using NodeMap   = std::map<int,AdjacencyNode*>;
+  using NodeMap   = std::map<int, AdjacencyNode*>;
   using NodeArray = std::vector<AdjacencyNode*>;
 
   struct NodeData {
@@ -461,7 +461,7 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
   void sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) const;
 
  private:
-  using NameNodeMap = std::map<QString,AdjacencyNode *>;
+  using NameNodeMap = std::map<QString, AdjacencyNode *>;
 
   // options
   SortType    sortType_      { SortType::GROUP }; //!< sort type

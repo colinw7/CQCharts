@@ -98,10 +98,10 @@ class CQChartsValueInd {
   }
 
  private:
-  using ValueSet = std::map<double,int,CQChartsUtil::RealCmp>;
-  using SetValue = std::map<int,double>;
-  using NameSet  = std::map<QString,int>;
-  using SetName  = std::map<int,QString>;
+  using ValueSet = std::map<double, int, CQChartsUtil::RealCmp>;
+  using SetValue = std::map<int, double>;
+  using NameSet  = std::map<QString, int>;
+  using SetName  = std::map<int, QString>;
 
   Type     type_     { Type::NONE }; //!< value type
   ValueSet valueSet_;                //!< value set map

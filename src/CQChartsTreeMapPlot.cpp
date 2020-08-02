@@ -78,7 +78,7 @@ CQChartsTreeMapPlot(View *view, const ModelP &model) :
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
   setHeaderStroked(true);
-  setHeaderStrokeAlpha(CQChartsAlpha(0.5));
+  setHeaderStrokeAlpha(Alpha(0.5));
 
   setHeaderFilled(true);
 
@@ -1396,7 +1396,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   //---
 
   // check if text visible (font dependent)
-  auto pbbox = device->windowToPixel(bbox);
+  auto pbbox = plot_->windowToPixel(bbox);
 
   //bool visible = plot_->isTextVisible();
   bool visible = true;
@@ -1437,7 +1437,7 @@ drawText(PaintDevice *device, const BBox &bbox)
     BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
                 pbbox.getXMax() - m, pbbox.getYMin() + hh);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pbbox1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, plot_->pixelToWindow(pbbox1), name, textOptions);
   }
 
   //---
@@ -1631,9 +1631,9 @@ draw(PaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isPoint)
-    device->drawPoint(device->pixelToWindow(point));
+    device->drawPoint(plot_->pixelToWindow(point));
   else
-    device->drawRect(device->pixelToWindow(bbox));
+    device->drawRect(plot_->pixelToWindow(bbox));
 
   device->resetColorNames();
 
@@ -1748,7 +1748,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
     auto ibbox = bbox.adjusted(3, 3, -3, -3);
 
-    auto bbox1 = device->pixelToWindow(ibbox);
+    auto bbox1 = plot_->pixelToWindow(ibbox);
 
     if (! plot_->isValueLabel()) {
       CQChartsDrawUtil::drawTextInBox(device, bbox1, name, textOptions);
@@ -1773,8 +1773,8 @@ drawText(PaintDevice *device, const BBox &bbox)
       Point tp1(pc.x, pc.y - th/2);
       Point tp2(pc.x, pc.y + th/2);
 
-      CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
-      CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp1), strs[0], textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp2), strs[1], textOptions);
 #endif
     }
   }

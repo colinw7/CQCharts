@@ -4,8 +4,9 @@
 #include <CQChartsRect.h>
 #include <QFrame>
 
-class CQChartsUnitsEdit;
+class CQChartsPlot;
 class CQChartsGeomBBoxEdit;
+class CQChartsUnitsEdit;
 
 /*!
  * \brief rectangle edit
@@ -19,15 +20,24 @@ class CQChartsRectEdit : public QFrame {
  public:
   CQChartsRectEdit(QWidget *parent=nullptr);
 
-  const CQChartsRect &rect() const;
+  const CQChartsRect &rect() const { return rect_; }
   void setRect(const CQChartsRect &pos);
+
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *plot);
+
+  void setRegion(const CQChartsGeom::BBox &bbox);
 
  signals:
   void rectChanged();
 
+  void regionChanged();
+
  private slots:
   void editChanged();
   void unitsChanged();
+
+  void editRegionSlot();
 
  private:
   void rectToWidgets();
@@ -37,6 +47,7 @@ class CQChartsRectEdit : public QFrame {
 
  private:
   CQChartsRect          rect_;                  //!< rect data
+  CQChartsPlot*         plot_      { nullptr }; //!< associated plot
   CQChartsGeomBBoxEdit* edit_      { nullptr }; //!< rect edit
   CQChartsUnitsEdit*    unitsEdit_ { nullptr }; //!< units edit
   bool                  connected_ { false };   //!< is connected

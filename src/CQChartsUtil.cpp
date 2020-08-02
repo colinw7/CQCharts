@@ -249,7 +249,7 @@ namespace CQChartsUtil {
 QColor bwColor(const QColor &c) {
   int g = qGray(c.red(), c.green(), c.blue());
 
-  return (g > 128 ? QColor(0,0,0) : QColor(255, 255, 255));
+  return (g > 128 ? QColor(0, 0, 0) : QColor(255, 255, 255));
 }
 
 QColor invColor(const QColor &c) {
@@ -266,8 +266,9 @@ QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   double r = c1.redF  ()*f + c2.redF  ()*f1;
   double g = c1.greenF()*f + c2.greenF()*f1;
   double b = c1.blueF ()*f + c2.blueF ()*f1;
+  double a = c1.alphaF()*f + c2.alphaF()*f1;
 
-  return rgbToColor(r, g, b);
+  return rgbaToColor(r, g, b, a);
 }
 
 QColor blendColors(const std::vector<QColor> &colors) {
@@ -293,6 +294,13 @@ QColor rgbToColor(double r, double g, double b) {
   return QColor(CMathUtil::clamp(int(255*r), 0, 255),
                 CMathUtil::clamp(int(255*g), 0, 255),
                 CMathUtil::clamp(int(255*b), 0, 255));
+}
+
+QColor rgbaToColor(double r, double g, double b, double a) {
+  return QColor(CMathUtil::clamp(int(255*r), 0, 255),
+                CMathUtil::clamp(int(255*g), 0, 255),
+                CMathUtil::clamp(int(255*b), 0, 255),
+                CMathUtil::clamp(int(255*a), 0, 255));
 }
 
 }

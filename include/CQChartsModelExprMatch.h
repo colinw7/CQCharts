@@ -107,8 +107,8 @@ class CQChartsModelExprMatch {
   QVariant getCmdData(const QModelIndex &ind) const;
 
  private:
-  using ColumnNames = std::map<int,QString>;
-  using NameColumns = std::map<QString,int>;
+  using ColumnNames = std::map<int, QString>;
+  using NameColumns = std::map<QString, int>;
 
   CQChartsModelData*  modelData_  { nullptr };
   QAbstractItemModel* model_      { nullptr };

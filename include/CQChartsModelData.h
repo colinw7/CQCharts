@@ -187,8 +187,8 @@ class CQChartsModelData : public QObject {
     }
   };
 
-  using ModelNames   = std::map<QObject*,NameAliasArray>;
-  using IdModelNames = std::map<QString,ModelNames>;
+  using ModelNames   = std::map<QObject*, NameAliasArray>;
+  using IdModelNames = std::map<QString, ModelNames>;
 
   void getPropertyNameData(IdModelNames &names) const;
 

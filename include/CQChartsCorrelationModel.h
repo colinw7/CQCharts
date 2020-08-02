@@ -90,14 +90,14 @@ class CQChartsCorrelationModel : public CQDataModel {
     }
   };
 
-  using JPoints   = std::map<int,Points>;
-  using IJPoints  = std::map<int,JPoints>;
-  using IMinMax   = std::map<int,CQChartsGeom::RMinMax>;
-  using JDevData  = std::map<int,DevData>;
-  using IJDevData = std::map<int,JDevData>;
-  using JBestFit  = std::map<int,CQChartsFitData>;
-  using IJBestFit = std::map<int,JBestFit>;
-  using IDensity  = std::map<int,CQChartsDensity *>;
+  using JPoints   = std::map<int, Points>;
+  using IJPoints  = std::map<int, JPoints>;
+  using IMinMax   = std::map<int, CQChartsGeom::RMinMax>;
+  using JDevData  = std::map<int, DevData>;
+  using IJDevData = std::map<int, JDevData>;
+  using JBestFit  = std::map<int, CQChartsFitData>;
+  using IJBestFit = std::map<int, JBestFit>;
+  using IDensity  = std::map<int, CQChartsDensity *>;
 
   IJPoints  ijPoints_;
   IMinMax   iMinMax_;

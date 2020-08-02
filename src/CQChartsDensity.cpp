@@ -345,12 +345,14 @@ CQChartsDensity::
 drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
             const Qt::Orientation &orientation) const
 {
+  CQChartsLength ws;
+
   if (orientation == Qt::Horizontal)
-    CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, rect, rect.getHeight(),
-                                        orientation);
+    ws = CQChartsLength(rect.getHeight(), CQChartsUnits::PLOT);
   else
-    CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, rect, rect.getWidth(),
-                                        orientation);
+    ws = CQChartsLength(rect.getWidth (), CQChartsUnits::PLOT);
+
+  CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, rect, ws, orientation);
 }
 
 void

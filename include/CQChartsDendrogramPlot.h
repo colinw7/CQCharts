@@ -89,10 +89,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin )
 
   // node stroke/fill
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
 
   // edge line
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge,edge)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
 
   // labels
   CQCHARTS_TEXT_DATA_PROPERTIES

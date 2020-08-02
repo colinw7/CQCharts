@@ -6,9 +6,9 @@
 #include <map>
 
 struct CQChartsAnalyzeModelData {
-  using ParameterNameColumn  = std::map<QString,CQChartsColumn>;
-  using ParameterNameColumns = std::map<QString,CQChartsColumns>;
-  using ParameterNameBool    = std::map<QString,bool>;
+  using ParameterNameColumn  = std::map<QString, CQChartsColumn>;
+  using ParameterNameColumns = std::map<QString, CQChartsColumns>;
+  using ParameterNameBool    = std::map<QString, bool>;
 
   ParameterNameColumn  parameterNameColumn;
   ParameterNameColumns parameterNameColumns;

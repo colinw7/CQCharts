@@ -70,7 +70,7 @@ class CQChartsSankeyPlotNode {
   using ModelIndex = CQChartsModelIndex;
   using BBox       = CQChartsGeom::BBox;
   using Point      = CQChartsGeom::Point;
-  using EdgeRect   = std::map<Edge *,BBox>;
+  using EdgeRect   = std::map<Edge *, BBox>;
 
  public:
   CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
@@ -356,9 +356,9 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
     double size { 0.0 }; // total size
   };
 
-  using DepthNodesMap = std::map<int,DepthData>;
-  using IndNodeMap    = std::map<int,Node *>;
-  using PosNodesMap   = std::map<int,Nodes>;
+  using DepthNodesMap = std::map<int, DepthData>;
+  using IndNodeMap    = std::map<int, Node *>;
+  using PosNodesMap   = std::map<int, Nodes>;
   using Graph         = CQChartsSankeyPlotGraph;
   using Graphs        = std::vector<Graph *>;
   using Obj           = CQChartsSankeyGraphObj;
@@ -746,9 +746,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool adjustNodes READ isAdjustNodes WRITE setAdjustNodes)
 
   // node/edge shape data
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge,edge)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph,graph)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph, graph)
 
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -764,8 +764,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   using Node        = CQChartsSankeyPlotNode;
   using Nodes       = std::vector<Node *>;
-  using NameNodeMap = std::map<QString,Node *>;
-  using IndNodeMap  = std::map<int,Node *>;
+  using NameNodeMap = std::map<QString, Node *>;
+  using IndNodeMap  = std::map<int, Node *>;
   using NodeSet     = std::set<Node *>;
   using Edge        = CQChartsSankeyPlotEdge;
   using Edges       = std::vector<Edge *>;

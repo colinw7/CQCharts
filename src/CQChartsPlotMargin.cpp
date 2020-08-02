@@ -2,11 +2,67 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 
+CQChartsPlotMargin::
+CQChartsPlotMargin(const QString &str)
+{
+  setValue(str);
+}
+
+CQChartsPlotMargin::
+CQChartsPlotMargin(const Length &l, const Length &t, const Length &r, const Length &b) :
+  CQChartsMargin(l, t, r, b)
+{
+}
+
+#if 0
+CQChartsPlotMargin::
+CQChartsPlotMargin(double l, double t, double r, double b) :
+ CQChartsMargin(l, t, r, b)
+{
+}
+#endif
+
+CQChartsPlotMargin::
+CQChartsPlotMargin(const Length &l) :
+ CQChartsMargin(l, l, l, l)
+{
+}
+
+#if 0
+CQChartsPlotMargin::
+CQChartsPlotMargin(double l) :
+ CQChartsMargin(l)
+{
+}
+#endif
+
+void
+CQChartsPlotMargin::
+set(const Length &l, const Length &t, const Length &r, const Length &b)
+{
+  CQChartsMargin::set(l, t, r, b);
+}
+
+void
+CQChartsPlotMargin::
+set(const Length &l)
+{
+  CQChartsMargin::set(l);
+}
+
+bool
+CQChartsPlotMargin::
+setValue(const QString &str)
+{
+  return CQChartsMargin::setValue(str);
+}
+
+// adjust plot bbox using margin (inside or outside)
 CQChartsGeom::BBox
 CQChartsPlotMargin::
 adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
 {
-  auto plotViewWidth = [&](const CQChartsLength &len) -> double {
+  auto plotViewWidth = [&](const Length &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)
       return plot->pixelToWindowWidth(len.value());
     else if (len.units() == CQChartsUnits::PLOT)
@@ -23,7 +79,7 @@ adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
       return len.value();
   };
 
-  auto plotViewHeight = [&](const CQChartsLength &len) -> double {
+  auto plotViewHeight = [&](const Length &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)
       return plot->pixelToWindowHeight(len.value());
     else if (len.units() == CQChartsUnits::PLOT)
@@ -63,11 +119,12 @@ adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
   return bbox1;
 }
 
+// adjust view bbox using margin (inside or outside)
 CQChartsGeom::BBox
 CQChartsPlotMargin::
 adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
 {
-  auto lengthViewWidth = [&](const CQChartsLength &len) -> double {
+  auto lengthViewWidth = [&](const Length &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)
       return plot->view()->pixelToWindowWidth(len.value());
     else if (len.units() == CQChartsUnits::PLOT)
@@ -84,7 +141,7 @@ adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside) const
       return len.value();
   };
 
-  auto lengthViewHeight = [&](const CQChartsLength &len) -> double {
+  auto lengthViewHeight = [&](const Length &len) -> double {
     if      (len.units() == CQChartsUnits::PIXEL)
       return plot->view()->pixelToWindowHeight(len.value());
     else if (len.units() == CQChartsUnits::PLOT)

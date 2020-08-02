@@ -53,6 +53,8 @@ class CQChartsViewToolBar : public QFrame {
   void flipHSlot();
   void flipVSlot();
 
+  void regionButtonClicked(int);
+
   void autoFitSlot();
 
   void leftSlot();
@@ -71,6 +73,8 @@ class CQChartsViewToolBar : public QFrame {
   QToolButton*    manageModelsDlgButton_ { nullptr }; //!< load model dlg button
   QToolButton*    createPlotDlgButton_   { nullptr }; //!< create plot dlg button
   QToolButton*    autoFitButton_         { nullptr }; //!< auto fit button
+  QRadioButton*   regionPointButton_     { nullptr }; //!< region point radio
+  QRadioButton*   regionRectButton_      { nullptr }; //!< region rect radio
   QToolButton*    leftButton_            { nullptr }; //!< scroll plots left button
   QToolButton*    rightButton_           { nullptr }; //!< scroll plots right button
   QStackedWidget* controlsStack_         { nullptr }; //!< mode controls stack

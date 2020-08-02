@@ -907,7 +907,7 @@ draw(CQChartsPaintDevice *device)
 
     BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-    dataLabel->draw(device, device->pixelToWindow(ebbox), name_);
+    dataLabel->draw(device, plot_->pixelToWindow(ebbox), name_);
   }
 }
 

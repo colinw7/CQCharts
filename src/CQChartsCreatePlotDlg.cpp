@@ -543,8 +543,8 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
 
   // create ordered list of types (1D, 2D, other, hierarchical)
 
-  using DimPlotTypesMap     = std::map<int,CQCharts::PlotTypes>;
-  using HierDimPlotsTypeMap = std::map<bool,DimPlotTypesMap>;
+  using DimPlotTypesMap     = std::map<int, CQCharts::PlotTypes>;
+  using HierDimPlotsTypeMap = std::map<bool, DimPlotTypesMap>;
 
   HierDimPlotsTypeMap hierDimPlotsTypeMap;
 
@@ -1008,7 +1008,7 @@ CQChartsCreatePlotDlg::
 addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
                   QGridLayout *layout, int &row, bool isBasic)
 {
-  using GroupTab    = std::map<int,QTabWidget*>;
+  using GroupTab    = std::map<int, QTabWidget*>;
   using ChildGroups = std::vector<CQChartsPlotParameterGroup *>;
 
   GroupTab    groupTab;

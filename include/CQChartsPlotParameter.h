@@ -333,7 +333,7 @@ class CQChartsPlotParameter : public QObject {
     }
   };
 
-  using Properties = std::map<QString,PropertyData>;
+  using Properties = std::map<QString, PropertyData>;
 
   QString    name_;                    //!< name
   QString    desc_;                    //!< description
@@ -482,8 +482,8 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
   }
 
  private:
-  using NameValues = std::map<QString,int>;
-  using ValueNames = std::map<int,QString>;
+  using NameValues = std::map<QString, int>;
+  using ValueNames = std::map<int, QString>;
 
   NameValues nameValues_; //!< name values
   ValueNames valueNames_; //!< value names

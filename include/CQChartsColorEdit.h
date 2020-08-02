@@ -94,7 +94,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  using WidgetLabels = std::map<QWidget*,QWidget*>;
+  using WidgetLabels = std::map<QWidget*, QWidget*>;
 
   CQChartsColor      color_;                     //!< color
   QComboBox*         typeCombo_     { nullptr }; //!< palette index/type combo

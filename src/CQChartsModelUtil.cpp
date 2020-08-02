@@ -392,7 +392,7 @@ columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
 // column_type : <column>#<type> | <type>
 // type        : <base_type>:<name_values> | <base_type>
 // base_type   : integer|real|string|...
-// name_values : <name_value>,<name_value>,...
+// name_values : <name_value>, <name_value>, ...
 // name_value  : <name>=<value> | <name>
 bool
 setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
@@ -2260,10 +2260,10 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
     }
 
    private:
-    using ValueGroup     = std::map<QVariant,int>;
-    using GroupValue     = std::map<int,QVariant>;
-    using ColValueSet    = std::map<int,CQChartsValueSet>;
-    using RowColValueSet = std::map<QVariant,ColValueSet>;
+    using ValueGroup     = std::map<QVariant, int>;
+    using GroupValue     = std::map<int, QVariant>;
+    using ColValueSet    = std::map<int, CQChartsValueSet>;
+    using RowColValueSet = std::map<QVariant, ColValueSet>;
 
     CQCharts*      charts_ { nullptr };
     CQChartsColumn groupColumn_;        // grouping column

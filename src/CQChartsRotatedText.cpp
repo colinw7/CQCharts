@@ -192,7 +192,7 @@ draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
   drawDelta(device, p, text, options, tx, ty, ax, ay);
 }
 
-// p is in window coords, tx,ty,ax,ay are pixel coords
+// p is in window coords, tx, ty, ax, ay are pixel coords
 void
 drawDelta(CQChartsPaintDevice *device, const Point &p, const QString &text,
           const CQChartsTextOptions &options, double tx, double ty, double ax, double ay)

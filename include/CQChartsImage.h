@@ -20,13 +20,19 @@ class CQChartsImage {
   enum class Type {
     NONE,
     IMAGE,
-    ICON
+    ICON,
+    SVG
   };
 
  public:
   CQChartsImage() = default;
+  CQChartsImage(const CQChartsImage &image);
   CQChartsImage(const QImage &image);
   CQChartsImage(const QString &s, Type type=Type::IMAGE);
+
+ ~CQChartsImage();
+
+  CQChartsImage &operator=(const CQChartsImage &image);
 
   //---
 
@@ -71,10 +77,11 @@ class CQChartsImage {
   }
 
  private:
-  QImage  image_;
-  QIcon   icon_;
-  Type    type_ { Type::NONE };
-  QString fileName_;
+  QImage           image_;
+  QIcon            icon_;
+  Type             type_    { Type::NONE };
+  QString          fileName_;
+  mutable QPixmap* pixmap_  { nullptr };
 };
 
 //---

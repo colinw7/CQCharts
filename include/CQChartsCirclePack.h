@@ -273,7 +273,7 @@ class CQChartsCirclePack {
 
     if (d == 0.0 && r1 == r2) return false; // coincident
 
-    // (x3,y3) is the point where the line through the circle intersection points
+    // (x3, y3) is the point where the line through the circle intersection points
     // crosses the line between the circle centers.
 
     // calc distance from point 1 to point 3.

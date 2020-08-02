@@ -998,7 +998,7 @@ calcBucketRanges() const
 
   int maxValues = 0;
 
-  using BucketTotals = std::map<Bucket,double>;
+  using BucketTotals = std::map<Bucket, double>;
 
   BucketTotals valueSetRunningTotal;
 
@@ -1658,8 +1658,8 @@ createObjs(PlotObjs &objs) const
 
   double doffset = 0.0;
 
-  using GroupTotals  = std::map<int,double>;
-  using BucketTotals = std::map<Bucket,double>;
+  using GroupTotals  = std::map<int, double>;
+  using BucketTotals = std::map<Bucket, double>;
 
   GroupTotals  groupMax;
   BucketTotals valueSetRunningTotal, valueSetTotals;
@@ -1676,9 +1676,9 @@ createObjs(PlotObjs &objs) const
 
   // get sorted buckets if needed
   using Buckets           = std::vector<Bucket>;
-  using CountBuckets      = std::map<int,Buckets>;
-  using GroupCountBuckets = std::map<int,CountBuckets>;
-  using GroupBuckets      = std::map<int,Buckets>;
+  using CountBuckets      = std::map<int, Buckets>;
+  using GroupCountBuckets = std::map<int, CountBuckets>;
+  using GroupBuckets      = std::map<int, Buckets>;
 
   GroupCountBuckets groupCountBuckets;
   GroupBuckets      groupSortedBuckets;
@@ -1721,7 +1721,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   // assign index to each non-empty bucket
-  using BucketInd = std::map<Bucket,int>;
+  using BucketInd = std::map<Bucket, int>;
 
   BucketInd bucketInd;
 
@@ -2498,7 +2498,7 @@ addKeyItems(CQChartsPlotKey *key)
       key->addItem(keyText , 0, col++);
     }
 
-    return std::pair<CQChartsDistKeyColorBox *,CQChartsDistKeyText*>(keyColor, keyText);
+    return std::pair<CQChartsDistKeyColorBox *, CQChartsDistKeyText*>(keyColor, keyText);
   };
 
   //---
@@ -3450,7 +3450,7 @@ draw(CQChartsPaintDevice *device)
 
         //---
 
-        auto bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = plot_->pixelToWindow(pbbox1);
 
         drawRect(device, bbox1, color, useLine);
 
@@ -3481,7 +3481,7 @@ draw(CQChartsPaintDevice *device)
 
         //---
 
-        auto bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = plot_->pixelToWindow(pbbox1);
 
         drawRect(device, bbox1, color, useLine);
 
@@ -3528,7 +3528,7 @@ drawFg(CQChartsPaintDevice *device) const
 
     //---
 
-    auto pbbox = device->windowToPixel(bbox);
+    auto pbbox = plot_->windowToPixel(bbox);
 
     if (! plot_->dataLabel()->isAdjustedPositionOutside(pbbox, ystr) && barColor_.isValid())
       plot_->charts()->setContrastColor(barColor_);
@@ -3597,7 +3597,7 @@ drawRug(CQChartsPaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    plot_->drawSymbol(device, plot_->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 }
 
@@ -3756,7 +3756,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
     }
   }
   else {
-    auto pbbox = device->pixelToWindow(bbox);
+    auto pbbox = plot_->pixelToWindow(bbox);
 
     // draw line
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
@@ -3772,7 +3772,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
 
         BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
 
-        auto bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = plot_->pixelToWindow(pbbox1);
 
         CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
       }
@@ -3788,7 +3788,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
 
         BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
 
-        auto bbox1 = device->pixelToWindow(pbbox1);
+        auto bbox1 = plot_->pixelToWindow(pbbox1);
 
         CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
       }
@@ -4196,7 +4196,7 @@ drawRug(CQChartsPaintDevice *device) const
   QColor fillColor = plot_->interpBarFillColor(is_);
 
   plot_->setPenBrush(penBrush,
-    PenData(true, fillColor), BrushData(true, fillColor, CQChartsAlpha(0.5)));
+    PenData(true, fillColor), BrushData(true, fillColor, Alpha(0.5)));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4224,7 +4224,7 @@ drawRug(CQChartsPaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    plot_->drawSymbol(device, plot_->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 }
 
@@ -4371,7 +4371,7 @@ draw(CQChartsPaintDevice *device)
 
       Point p(pc.x - px/2, pc.y - py/2);
 
-      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
+      plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
   }
   else {
@@ -4381,7 +4381,7 @@ draw(CQChartsPaintDevice *device)
 
       Point p(pc.x - px/2, pc.y - py/2);
 
-      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
+      plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
   }
 }

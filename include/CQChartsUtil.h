@@ -113,6 +113,7 @@ QColor blendColors(const QColor &c1, const QColor &c2, double f);
 QColor blendColors(const std::vector<QColor> &colors);
 
 QColor rgbToColor(double r, double g, double b);
+QColor rgbaToColor(double r, double g, double b, double a);
 
 }
 

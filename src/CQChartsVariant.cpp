@@ -534,7 +534,6 @@ Polygon toPolygon(const QVariant &var, bool &ok) {
     return poly;
   }
 
-
   return poly;
 }
 

@@ -103,7 +103,7 @@ class CQChartsColumnBucket {
   QString typeName() const;
 
  private:
-  using IndName = std::map<int,QString>;
+  using IndName = std::map<int, QString>;
 
   CQChartsColumn    column_;
   ColumnType        columnType_  { ColumnType::NONE };

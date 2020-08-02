@@ -324,7 +324,7 @@ createVarsModel(const CQChartsInputData &inputData)
       }
     }
     else {
-      using IndColumnValues = std::map<int,ColumnValues>;
+      using IndColumnValues = std::map<int, ColumnValues>;
 
       IndColumnValues indColumnValues;
 
@@ -672,14 +672,14 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
   //---
 
   // calc off diagonal values
-  using ColumnReal          = std::map<int,double>;
-  using ColumnColumnReal    = std::map<int,ColumnReal>;
-  using ColumnPoints        = std::map<int,CQChartsCorrelationModel::Points>;
-  using ColumnColumnPoints  = std::map<int,ColumnPoints>;
-  using DevData             = std::pair<double,double>;
-  using ColumnDevData       = std::map<int,DevData>;
-  using ColumnColumnDevData = std::map<int,ColumnDevData>;
-  using ColumnDensity       = std::map<int,CQChartsDensity *>;
+  using ColumnReal          = std::map<int, double>;
+  using ColumnColumnReal    = std::map<int, ColumnReal>;
+  using ColumnPoints        = std::map<int, CQChartsCorrelationModel::Points>;
+  using ColumnColumnPoints  = std::map<int, ColumnPoints>;
+  using DevData             = std::pair<double, double>;
+  using ColumnDevData       = std::map<int, DevData>;
+  using ColumnColumnDevData = std::map<int, ColumnDevData>;
+  using ColumnDensity       = std::map<int, CQChartsDensity *>;
   using Point               = CQChartsGeom::Point;
 
   ColumnReal          columnSumSq;
@@ -749,7 +749,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
   // sort by sum of squares
   using ColumnNums = std::vector<int>;
-  using SumColumns = std::map<double,ColumnNums>;
+  using SumColumns = std::map<double, ColumnNums>;
 
   SumColumns sumColumns;
 
@@ -829,7 +829,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
       }
       else {
         CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0);
-        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0);
+        CQChartsModelUtil::setModelValue(correlationModel, ic1, c1, 1.0); // Dup OK
 
         correlationModel->setDensity(ic1, columnDensity[ic1s]);
 

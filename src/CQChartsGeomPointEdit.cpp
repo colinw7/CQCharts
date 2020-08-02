@@ -1,10 +1,16 @@
 #include <CQChartsGeomPointEdit.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsVariant.h>
+#include <CQChartsPlot.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
+#include <QToolButton>
 #include <QHBoxLayout>
+
+#include <svg/region_light_svg.h>
+#include <svg/region_dark_svg.h>
 
 CQChartsGeomPointEdit::
 CQChartsGeomPointEdit(QWidget *parent, const Point &value) :
@@ -15,7 +21,7 @@ CQChartsGeomPointEdit(QWidget *parent, const Point &value) :
 
 CQChartsGeomPointEdit::
 CQChartsGeomPointEdit(const Point &value) :
- QFrame(0)
+ QFrame(nullptr)
 {
   init(value);
 }
@@ -34,11 +40,23 @@ init(const Point &value)
 
   edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
-  edit_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  edit_->setToolTip("Point (x y)");
+  edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   connect(edit_, SIGNAL(editingFinished()), this, SLOT(editingFinishedI()));
 
   layout->addWidget(edit_);
+
+  //---
+
+  regionButton_ = CQUtil::makeWidget<QToolButton>("region");
+
+  regionButton_->setCheckable(true);
+  regionButton_->setIcon(CQPixmapCacheInst->getIcon("REGION_LIGHT", "REGION_DARK"));
+
+  connect(regionButton_, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+
+  layout->addWidget(regionButton_);
 
   //---
 
@@ -56,11 +74,13 @@ setValue(const Point &point)
   pointToWidget();
 }
 
-const CQChartsGeomPointEdit::Point &
+void
 CQChartsGeomPointEdit::
-getValue() const
+setPlot(CQChartsPlot *plot)
 {
-  return point_;
+  plot_ = plot;
+
+  regionButton_->setVisible(plot_);
 }
 
 void
@@ -75,11 +95,44 @@ editingFinishedI()
 
 void
 CQChartsGeomPointEdit::
+regionSlot(bool b)
+{
+  if (! plot())
+    return;
+
+  CQChartsWidgetUtil::connectDisconnect(b,
+    plot_->view(), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
+    this, SLOT(regionReleaseSlot(const CQChartsGeom::Point &)));
+}
+
+void
+CQChartsGeomPointEdit::
+regionReleaseSlot(const CQChartsGeom::Point &p)
+{
+  if (! plot_)
+    return;
+
+  auto pp = plot_->viewToWindow(p);
+
+  setRegion(pp);
+}
+
+void
+CQChartsGeomPointEdit::
+setRegion(const CQChartsGeom::Point &p)
+{
+  setValue(p);
+
+  emit regionChanged();
+}
+
+void
+CQChartsGeomPointEdit::
 pointToWidget()
 {
   disableSignals_ = true;
 
-  QString str = point_.toString();
+  auto str = point_.toString();
 
   edit_->setText(str);
 
@@ -136,9 +189,8 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
-
-  QFont font = option.font;
+  auto str  = valueString(item, value, ok);
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);

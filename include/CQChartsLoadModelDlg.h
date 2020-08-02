@@ -93,9 +93,9 @@ class CQChartsLoadModelDlg : public QDialog {
                                const CQChartsInputData &inputData, bool &hierarchical);
 
  private:
-  using ColumnTypes = std::map<QString,QString>;
-  using NameValue   = std::map<QString,QString>;
-  using ColumnData  = std::map<QString,NameValue>;
+  using ColumnTypes = std::map<QString, QString>;
+  using NameValue   = std::map<QString, QString>;
+  using ColumnData  = std::map<QString, NameValue>;
 
   enum class LineType {
     DATA,

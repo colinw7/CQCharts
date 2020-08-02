@@ -119,6 +119,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
   positionEdit_ = CQUtil::makeWidget<CQChartsPositionEdit>("positionEdit");
 
   positionEdit_->setPosition(data_.position);
+  positionEdit_->setPlot(title_->plot());
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Position", positionEdit_, row);
 
@@ -128,6 +129,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
   rectEdit_ = CQUtil::makeWidget<CQChartsRectEdit>("rectEdit");
 
   rectEdit_->setRect(data_.rect);
+  rectEdit_->setPlot(title_->plot());
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Rect", rectEdit_, row);
 

@@ -500,10 +500,10 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     QPainterPath path;
 
-    auto p1 = device->pixelToWindow(Point(x1, y1));
-    auto p2 = device->pixelToWindow(Point(x2, y2));
-    auto p3 = device->pixelToWindow(Point(x3, y3));
-    auto p4 = device->pixelToWindow(Point(x4, y4));
+    auto p1 = pixelToWindow(Point(x1, y1));
+    auto p2 = pixelToWindow(Point(x2, y2));
+    auto p3 = pixelToWindow(Point(x3, y3));
+    auto p4 = pixelToWindow(Point(x4, y4));
 
     path.moveTo (p1.qpoint());
     path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
@@ -631,7 +631,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  device->drawEllipse(device->pixelToWindow(bbox));
+  device->drawEllipse(plot_->pixelToWindow(bbox));
 
   //---
 
@@ -674,5 +674,5 @@ draw(CQChartsPaintDevice *device)
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p), name, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, options);
 }

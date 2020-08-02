@@ -41,7 +41,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
  public:
   using SelMod = CQChartsSelMod;
@@ -461,10 +461,10 @@ class CQChartsPlotKey : public CQChartsKey {
   };
 
   using Items      = std::vector<CQChartsKeyItem*>;
-  using ColCell    = std::map<int,Cell>;
-  using RowColCell = std::map<int,ColCell>;
-  using RowHeights = std::map<int,double>;
-  using ColWidths  = std::map<int,double>;
+  using ColCell    = std::map<int, Cell>;
+  using RowColCell = std::map<int, ColCell>;
+  using RowHeights = std::map<int, double>;
+  using ColWidths  = std::map<int, double>;
 
   struct Margin {
     double xl { 0.0 }; //!< x left margin (pixels)

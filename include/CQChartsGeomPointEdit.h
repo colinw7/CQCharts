@@ -3,7 +3,9 @@
 
 #include <CQChartsGeom.h>
 
+class CQChartsPlot;
 class CQChartsLineEdit;
+class QToolButton;
 
 /*!
  * \brief geometry point edit
@@ -18,13 +20,18 @@ class CQChartsGeomPointEdit : public QFrame {
   using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsGeomPointEdit(QWidget *parent, const Point &value=Point(0,0));
+  CQChartsGeomPointEdit(QWidget *parent, const Point &value=Point(0, 0));
   CQChartsGeomPointEdit(const Point &value=Point(0, 0));
 
  ~CQChartsGeomPointEdit() { }
 
-  const Point &getValue() const;
+  const Point &getValue() const { return point_; }
   void setValue(const Point &point);
+
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *p);
+
+  void setRegion(const CQChartsGeom::Point &p);
 
  private:
   void init(const Point &value);
@@ -32,8 +39,13 @@ class CQChartsGeomPointEdit : public QFrame {
  private slots:
   void editingFinishedI();
 
+  void regionSlot(bool b);
+  void regionReleaseSlot(const CQChartsGeom::Point &p);
+
  signals:
   void valueChanged();
+
+  void regionChanged();
 
  private:
   void updateRange();
@@ -43,7 +55,9 @@ class CQChartsGeomPointEdit : public QFrame {
 
  private:
   Point             point_          { 0, 0 };
-  CQChartsLineEdit *edit_           { nullptr };
+  CQChartsPlot*     plot_           { nullptr };
+  CQChartsLineEdit* edit_           { nullptr };
+  QToolButton*      regionButton_   { nullptr };
   mutable bool      disableSignals_ { false };
 };
 
@@ -57,14 +71,19 @@ class CQChartsGeomPointEdit : public QFrame {
  */
 class CQChartsGeomPointPropertyViewType : public CQPropertyViewType {
  public:
+  using PropertyItem = CQPropertyViewItem;
+  using Delegate     = CQPropertyViewDelegate;
+  using StyleOption  = QStyleOptionViewItem;
+
+ public:
   CQChartsGeomPointPropertyViewType();
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+  bool setEditorData(PropertyItem *item, const QVariant &value) override;
 
-  void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
-            const QStyleOptionViewItem &option, const QModelIndex &index,
+  void draw(PropertyItem *item, const Delegate *delegate, QPainter *painter,
+            const StyleOption &option, const QModelIndex &index,
             const QVariant &value, bool inside) override;
 
   QString tip(const QVariant &value) const override;
@@ -72,7 +91,7 @@ class CQChartsGeomPointPropertyViewType : public CQPropertyViewType {
   QString userName() const override { return "geom_point"; }
 
  private:
-  QString valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const;
+  QString valueString(PropertyItem *item, const QVariant &value, bool &ok) const;
 };
 
 //---

@@ -109,18 +109,18 @@ class CQChartsImagePlot : public CQChartsPlot,
 
 //Q_PROPERTY(bool scaleCellLabels READ isScaleCellLabels WRITE setScaleCellLabels)
 
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Cell,cell)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Cell, cell)
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(CellLabel,cellLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(CellLabel, cellLabel)
 
   // x/y labels
   Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(XLabel,xLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(XLabel, xLabel)
 
   Q_PROPERTY(bool yLabels READ isYLabels WRITE setYLabels)
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel,yLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel, yLabel)
 
   Q_ENUMS(CellStyle)
 

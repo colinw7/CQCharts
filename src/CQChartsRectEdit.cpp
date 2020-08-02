@@ -1,6 +1,6 @@
 #include <CQChartsRectEdit.h>
-#include <CQChartsUnitsEdit.h>
 #include <CQChartsGeomBBoxEdit.h>
+#include <CQChartsUnitsEdit.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
@@ -24,22 +24,19 @@ CQChartsRectEdit(QWidget *parent) :
 
   layout->addWidget(edit_);
 
+  connect(edit_, SIGNAL(regionChanged()), this, SLOT(editRegionSlot()));
+
   //---
 
-  unitsEdit_ = new CQChartsUnitsEdit;
+  unitsEdit_ = CQUtil::makeWidget<CQChartsUnitsEdit>("units");
 
   layout->addWidget(unitsEdit_);
 
   //---
 
-  connectSlots(true);
-}
+  setFocusProxy(edit_);
 
-const CQChartsRect &
-CQChartsRectEdit::
-rect() const
-{
-  return rect_;
+  connectSlots(true);
 }
 
 void
@@ -49,6 +46,31 @@ setRect(const CQChartsRect &rect)
   rect_ = rect;
 
   rectToWidgets();
+}
+
+void
+CQChartsRectEdit::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = plot;
+
+  edit_->setPlot(plot);
+}
+
+void
+CQChartsRectEdit::
+editRegionSlot()
+{
+  setRegion(edit_->getValue());
+}
+
+void
+CQChartsRectEdit::
+setRegion(const CQChartsGeom::BBox &bbox)
+{
+  setRect(CQChartsRect(bbox, CQChartsUnits::PLOT));
+
+  emit regionChanged();
 }
 
 void

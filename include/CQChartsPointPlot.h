@@ -24,7 +24,7 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
+CQCHARTS_NAMED_SHAPE_DATA(Hull, hull)
 
 class CQChartsPointPlot : public CQChartsGroupPlot,
  public CQChartsObjBestFitShapeData<CQChartsPointPlot>,
@@ -63,12 +63,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
   Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
 
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit,bestFit)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit, bestFit)
 
   // convex hull
   Q_PROPERTY(bool hull READ isHull WRITE setHull)
 
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull,hull)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull, hull)
 
   // stats
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)

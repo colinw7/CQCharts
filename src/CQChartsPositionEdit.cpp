@@ -22,13 +22,15 @@ CQChartsPositionEdit(QWidget *parent) :
 
   edit_ = CQUtil::makeWidget<CQChartsGeomPointEdit>("point");
 
-  edit_->setToolTip("Position");
+  edit_->setToolTip("Position Point (X Y)");
 
   layout->addWidget(edit_);
 
+  connect(edit_, SIGNAL(regionChanged()), this, SLOT(editRegionSlot()));
+
   //---
 
-  unitsEdit_ = new CQChartsUnitsEdit;
+  unitsEdit_ = CQUtil::makeWidget<CQChartsUnitsEdit>("units");
 
   layout->addWidget(unitsEdit_);
 
@@ -39,13 +41,6 @@ CQChartsPositionEdit(QWidget *parent) :
   connectSlots(true);
 }
 
-const CQChartsPosition &
-CQChartsPositionEdit::
-position() const
-{
-  return position_;
-}
-
 void
 CQChartsPositionEdit::
 setPosition(const CQChartsPosition &position)
@@ -53,6 +48,31 @@ setPosition(const CQChartsPosition &position)
   position_ = position;
 
   positionToWidgets();
+}
+
+void
+CQChartsPositionEdit::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = plot;
+
+  edit_->setPlot(plot);
+}
+
+void
+CQChartsPositionEdit::
+editRegionSlot()
+{
+  setRegion(edit_->getValue());
+}
+
+void
+CQChartsPositionEdit::
+setRegion(const CQChartsGeom::Point &p)
+{
+  setPosition(CQChartsPosition(p, CQChartsUnits::PLOT));
+
+  emit regionChanged();
 }
 
 void
@@ -76,8 +96,8 @@ void
 CQChartsPositionEdit::
 unitsChanged()
 {
-  auto value = position_.p();
-  auto units = unitsEdit_->units();
+  const auto &value = position_.p();
+  auto        units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 
@@ -95,7 +115,7 @@ positionToWidgets()
 {
   connectSlots(false);
 
-  auto        point = position_.p();
+  const auto &point = position_.p();
   const auto &units = position_.units();
 
   edit_->setValue(point);
@@ -105,20 +125,22 @@ positionToWidgets()
   connectSlots(true);
 }
 
+#if 0
 void
 CQChartsPositionEdit::
 widgetsToPosition()
 {
-  auto value = edit_->getValue();
+  auto point = edit_->getValue();
   auto units = unitsEdit_->units();
 
-  CQChartsPosition position(value, units);
+  CQChartsPosition position(point, units);
 
   if (! position.isValid())
     return;
 
   position_ = position;
 }
+#endif
 
 void
 CQChartsPositionEdit::
@@ -164,25 +186,34 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsPositionPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsPosition position = value.value<CQChartsPosition>();
+  //---
 
-  QString str = position.toString();
+  bool ok;
+
+  QString str = valueString(item, value, ok);
+
+  QFont font = option.font;
+
+  if (! ok)
+    font.setItalic(true);
+
+  //---
 
   QFontMetrics fm(option.font);
 
   int w = fm.width(str);
 
-  //---
-
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
+
+  option1.font = font;
 
   delegate->drawString(painter, option1, str, ind, inside);
 }
@@ -191,7 +222,29 @@ QString
 CQChartsPositionPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsPosition>().toString();
+  bool ok;
+
+  QString str = valueString(nullptr, value, ok);
+
+  return str;
+}
+
+QString
+CQChartsPositionPropertyViewType::
+valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
+{
+  CQChartsPosition position = value.value<CQChartsPosition>();
+
+  QString str;
+
+  if (position.isValid()) {
+    str = position.toString();
+    ok  = true;
+  }
+  else {
+    str = "Undefined";
+    ok  = false;
+  }
 
   return str;
 }

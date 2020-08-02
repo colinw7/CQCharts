@@ -8,8 +8,8 @@ class CQChartsGridCell {
  public:
   using Point    = CQChartsGeom::Point;
   using Points   = std::vector<Point>;
-  using YPoints  = std::map<int,Points>;
-  using XYPoints = std::map<int,YPoints>;
+  using YPoints  = std::map<int, Points>;
+  using XYPoints = std::map<int, YPoints>;
 
  public:
   CQChartsGridCell() { }

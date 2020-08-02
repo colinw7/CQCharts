@@ -315,7 +315,7 @@ pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state)
 {
   QPixmap pixmap(size);
 
-  pixmap.fill(QColor(0,0,0,0));
+  pixmap.fill(QColor(0, 0, 0, 0));
 
   QPainter painter(&pixmap);
 

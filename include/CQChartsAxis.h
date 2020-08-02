@@ -28,12 +28,12 @@ class CQCharts;
 class CQPropertyViewModel;
 class CQChartsPaintDevice;
 
-CQCHARTS_NAMED_LINE_DATA(Axes,axes)
-CQCHARTS_NAMED_TEXT_DATA(AxesTickLabel,axesTickLabel)
-CQCHARTS_NAMED_TEXT_DATA(AxesLabel,axesLabel)
-CQCHARTS_NAMED_LINE_DATA(AxesMajorGrid,axesMajorGrid)
-CQCHARTS_NAMED_LINE_DATA(AxesMinorGrid,axesMinorGrid)
-CQCHARTS_NAMED_FILL_DATA(AxesGrid,axesGrid)
+CQCHARTS_NAMED_LINE_DATA(Axes, axes)
+CQCHARTS_NAMED_TEXT_DATA(AxesTickLabel, axesTickLabel)
+CQCHARTS_NAMED_TEXT_DATA(AxesLabel, axesLabel)
+CQCHARTS_NAMED_LINE_DATA(AxesMajorGrid, axesMajorGrid)
+CQCHARTS_NAMED_LINE_DATA(AxesMinorGrid, axesMinorGrid)
+CQCHARTS_NAMED_FILL_DATA(AxesGrid, axesGrid)
 
 /*!
  * \brief Axis Data
@@ -67,7 +67,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(bool             includeZero      READ isIncludeZero      WRITE setIncludeZero     )
 
   // line
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes,axes)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes, axes)
 
   // ticks
   Q_PROPERTY(TicksDisplayed ticksDisplayed READ ticksDisplayed WRITE setTicksDisplayed)
@@ -82,7 +82,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(CQChartsAxisTickLabelPlacement tickLabelPlacement
              READ tickLabelPlacement  WRITE setTickLabelPlacement)
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesTickLabel,axesTickLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesTickLabel, axesTickLabel)
 
   Q_PROPERTY(QString tickLabels READ tickLabelsStr WRITE setTickLabelsStr);
 
@@ -94,7 +94,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(QString           defLabel  READ defLabel  WRITE setDefLabel )
   Q_PROPERTY(QString           userLabel READ userLabel WRITE setUserLabel)
 
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel,axesLabel)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel, axesLabel)
 
   // grid line/fill
   Q_PROPERTY(GridLinesDisplayed gridLinesDisplayed
@@ -105,9 +105,9 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(bool gridMid   READ isGridMid   WRITE setGridMid  )
   Q_PROPERTY(bool gridAbove READ isGridAbove WRITE setGridAbove)
 
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMajorGrid,axesMajorGrid)
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid,axesMinorGrid)
-  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid,axesGrid)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMajorGrid, axesMajorGrid)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid, axesMinorGrid)
+  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid, axesGrid)
 
   Q_ENUMS(TicksDisplayed)
   Q_ENUMS(GridLinesDisplayed)
@@ -516,8 +516,8 @@ class CQChartsAxis : public CQChartsObj,
 
  private:
   using TickSpaces         = std::vector<double>;
-  using ITickLabels        = std::map<int,QString>;
-  using RTickLabels        = std::map<double,QString>;
+  using ITickLabels        = std::map<int, QString>;
+  using RTickLabels        = std::map<double, QString>;
   using TickLabelPlacement = CQChartsAxisTickLabelPlacement;
 
   using CQChartsEditHandlesP = std::unique_ptr<CQChartsEditHandles>;

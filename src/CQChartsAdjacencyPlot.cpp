@@ -112,7 +112,7 @@ CQChartsAdjacencyPlot(View *view, const ModelP &model) :
 
   setFillColor(Color(Color::Type::PALETTE));
 
-  setOuterMargin(PlotMargin(0, 0, 0, 0));
+  setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
 
   addTitle();
 }
@@ -206,7 +206,7 @@ CQChartsGeom::Range
 CQChartsAdjacencyPlot::
 calcRange() const
 {
-  // base range always (0,0) - (1,1)
+  // base range always (0, 0) - (1, 1)
   Range dataRange;
 
   dataRange.updateRange(0.0, 0.0);
@@ -1148,7 +1148,7 @@ execDrawBackground(PaintDevice *device) const
     options.contrastAlpha = textContrastAlpha();
     options.clipLength    = textClipLength();
 
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(pt), str,
+    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str,
                                       options, /*centered*/false);
 
     py += pys;
@@ -1174,7 +1174,7 @@ execDrawBackground(PaintDevice *device) const
     options.contrastAlpha = textContrastAlpha();
     options.clipLength    = textClipLength();
 
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p1), node->name(),
+    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), node->name(),
                                       options, /*centered*/ true);
 
     px += pxs;
@@ -1197,7 +1197,7 @@ execDrawBackground(PaintDevice *device) const
 
   BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
-  device->fillRect(device->pixelToWindow(cellBBox));
+  device->fillRect(pixelToWindow(cellBBox));
 
   //---
 
@@ -1232,7 +1232,7 @@ execDrawBackground(PaintDevice *device) const
         connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
-        BBox cellBBox = device->pixelToWindow(BBox(px, py, px + pxs, py + pys));
+        BBox cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 

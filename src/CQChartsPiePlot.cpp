@@ -1542,7 +1542,7 @@ draw(CQChartsPaintDevice *device)
 
       QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-      plot_->setPen(penBrush, PenData(true, fg, CQChartsAlpha()));
+      plot_->setPen(penBrush, PenData(true, fg, Alpha()));
 
       //---
 
@@ -1615,7 +1615,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
 
   QColor bg = fillColor();
 
-  plot_->setPen(lenBrush, PenData(true, bg, CQChartsAlpha()));
+  plot_->setPen(lenBrush, PenData(true, bg, Alpha()));
 
   //---
 
@@ -1661,10 +1661,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState, bool inside) const
   // calc stroke and brush
   ColorInd colorInd = this->calcColorInd();
 
-  QColor        pc = plot_->interpStrokeColor(colorInd);
-  CQChartsAlpha pa = (inside ? CQChartsAlpha(0.0) : plot_->strokeAlpha());
-  QColor        fc = fillColor();
-  CQChartsAlpha fa = (inside ? CQChartsAlpha(0.7) : plot_->fillAlpha());
+  QColor pc = plot_->interpStrokeColor(colorInd);
+  Alpha  pa = (inside ? Alpha(0.0) : plot_->strokeAlpha());
+  QColor fc = fillColor();
+  Alpha  fa = (inside ? Alpha(0.7) : plot_->fillAlpha());
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
@@ -1961,7 +1961,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-  plot_->setPen(penBrush, PenData(true, fg, CQChartsAlpha()));
+  plot_->setPen(penBrush, PenData(true, fg, Alpha()));
 
   //---
 

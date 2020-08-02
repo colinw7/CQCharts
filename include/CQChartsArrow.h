@@ -85,8 +85,8 @@ class CQChartsArrow : public QObject,
   using PaintDevice = CQChartsPaintDevice;
 
  public:
-  CQChartsArrow(View *view, const Point &from=Point(0,0), const Point &to=Point(1,1));
-  CQChartsArrow(CQChartsPlot *plot, const Point &from=Point(0,0), const Point &to=Point(1,1));
+  CQChartsArrow(View *view, const Point &from=Point(0, 0), const Point &to=Point(1, 1));
+  CQChartsArrow(CQChartsPlot *plot, const Point &from=Point(0, 0), const Point &to=Point(1, 1));
 
   CQCharts *charts() const;
 

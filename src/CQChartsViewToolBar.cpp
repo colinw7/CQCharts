@@ -14,24 +14,40 @@
 
 #include <svg/select_light_svg.h>
 #include <svg/select_dark_svg.h>
-#include <svg/zoom_light_svg.h>
-#include <svg/zoom_dark_svg.h>
+
+#include <svg/zoom_in_light_svg.h>
+#include <svg/zoom_in_dark_svg.h>
+
+#include <svg/zoom_out_light_svg.h>
+#include <svg/zoom_out_dark_svg.h>
+
 #include <svg/pan_light_svg.h>
 #include <svg/pan_dark_svg.h>
+
 #include <svg/probe_light_svg.h>
 #include <svg/probe_dark_svg.h>
+
 #include <svg/edit_light_svg.h>
 #include <svg/edit_dark_svg.h>
+
 #include <svg/zoom_fit_light_svg.h>
 #include <svg/zoom_fit_dark_svg.h>
+
+#include <svg/region_light_svg.h>
+#include <svg/region_dark_svg.h>
+
 #include <svg/left_light_svg.h>
 #include <svg/left_dark_svg.h>
+
 #include <svg/right_light_svg.h>
 #include <svg/right_dark_svg.h>
+
 #include <svg/models_light_svg.h>
 #include <svg/models_dark_svg.h>
+
 #include <svg/charts_light_svg.h>
 #include <svg/charts_dark_svg.h>
+
 #include <svg/options_svg.h>
 #include <svg/table_svg.h>
 #include <svg/info_svg.h>
@@ -41,7 +57,6 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QCheckBox>
-#include <QButtonGroup>
 #include <QHBoxLayout>
 
 CQChartsViewToolBar::
@@ -94,11 +109,13 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   modeCombo_ = CQUtil::makeWidget<CQIconCombo>("modeCombo");
 
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT", "SELECT_DARK"), "Select");
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"   , "PAN_DARK"   ), "Pan"   );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT" , "PROBE_DARK" ), "Probe" );
-  modeCombo_->addItem(CQPixmapCacheInst->getIcon("EDIT_LIGHT"  , "EDIT_DARK"  ), "Edit"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT"  , "SELECT_DARK"  ), "Select"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_IN_LIGHT" , "ZOOM_IN_DARK" ), "Zoom In" );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_OUT_LIGHT", "ZOOM_OUT_DARK"), "Zoom Out");
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"     , "PAN_DARK"     ), "Pan"     );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT"   , "PROBE_DARK"   ), "Probe"   );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("EDIT_LIGHT"    , "EDIT_DARK"    ), "Edit"    );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("REGION_LIGHT"  , "REGION_DARK"  ), "Region"  );
 
   modeCombo_->setFocusPolicy(Qt::NoFocus);
 
@@ -114,17 +131,21 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   layout->addWidget(controlsStack_);
 
-  auto *selectControls = CQUtil::makeWidget<QFrame>("select");
-  auto *zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
-  auto *panControls    = CQUtil::makeWidget<QFrame>("pan");
-  auto *probeControls  = CQUtil::makeWidget<QFrame>("probe");
-  auto *editControls   = CQUtil::makeWidget<QFrame>("edit");
+  auto *selectControls  = CQUtil::makeWidget<QFrame>("select");
+  auto *zoomInControls  = CQUtil::makeWidget<QFrame>("zoom_in");
+  auto *zoomOutControls = CQUtil::makeWidget<QFrame>("zoom_out");
+  auto *panControls     = CQUtil::makeWidget<QFrame>("pan");
+  auto *probeControls   = CQUtil::makeWidget<QFrame>("probe");
+  auto *editControls    = CQUtil::makeWidget<QFrame>("edit");
+  auto *regionControls  = CQUtil::makeWidget<QFrame>("region");
 
   controlsStack_->addWidget(selectControls);
-  controlsStack_->addWidget(zoomControls);
+  controlsStack_->addWidget(zoomInControls);
+  controlsStack_->addWidget(zoomOutControls);
   controlsStack_->addWidget(panControls);
   controlsStack_->addWidget(probeControls);
   controlsStack_->addWidget(editControls);
+  controlsStack_->addWidget(regionControls);
 
   layout->addStretch(1);
 
@@ -169,8 +190,6 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
-  auto *selectButtonGroup = new QButtonGroup(this);
-
   selectPointButton_ = makeRadioButton("Point", "point", "Select objects at point");
   selectRectButton_  = makeRadioButton("Rect" , "rect" ,
                          "Select objects inside/touching rectangle");
@@ -180,8 +199,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   else
     selectRectButton_ ->setChecked(true);
 
-  selectButtonGroup->addButton(selectPointButton_, 0);
-  selectButtonGroup->addButton(selectRectButton_ , 1);
+  auto *selectButtonGroup =
+    CQUtil::makeButtonGroup(this, {selectPointButton_, selectRectButton_});
 
   selectControlsLayout->addWidget(selectPointButton_);
   selectControlsLayout->addWidget(selectRectButton_ );
@@ -202,11 +221,11 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  auto *zoomControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomControls, 0, 2);
+  auto *zoomInControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomInControls, 0, 2);
 
-  auto *zoomButton = makePushButton("Reset", "reset", "Reset Zoom", SLOT(zoomFullSlot()));
+  auto *zoomResetButton = makePushButton("Reset", "reset", "Reset Zoom", SLOT(zoomFullSlot()));
 
-  zoomControlsLayout->addWidget(zoomButton);
+  zoomInControlsLayout->addWidget(zoomResetButton);
 
   //-----
 
@@ -225,6 +244,26 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   editControlsLayout->addWidget(flipHButton);
   editControlsLayout->addWidget(flipVButton);
+
+  //-----
+
+  auto *regionControlsLayout = CQUtil::makeLayout<QHBoxLayout>(regionControls, 0, 2);
+
+  regionPointButton_ = makeRadioButton("Point", "point", "Define region at point");
+  regionRectButton_  = makeRadioButton("Rect" , "rect" , "Define region rectangle");
+
+  if (view()->regionMode() == CQChartsView::RegionMode::POINT)
+    regionPointButton_->setChecked(true);
+  else
+    regionRectButton_ ->setChecked(true);
+
+  auto *regionButtonGroup =
+    CQUtil::makeButtonGroup(this, {regionPointButton_, regionRectButton_});
+
+  regionControlsLayout->addWidget(regionPointButton_);
+  regionControlsLayout->addWidget(regionRectButton_ );
+
+  connect(regionButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(regionButtonClicked(int)));
 
   //-----
 
@@ -254,7 +293,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   layout->addWidget(manageModelsDlgButton_);
   layout->addWidget(createPlotDlgButton_);
 
-  autoFitButton_ = createIconButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()));
+  autoFitButton_ = createIconButton("fit", "ZOOM_FIT", "Zoom Fit", SLOT(autoFitSlot()));
 
   layout->addWidget(autoFitButton_);
 
@@ -311,16 +350,13 @@ void
 CQChartsViewToolBar::
 modeSlot(int ind)
 {
-  if      (ind == 0)
-    view()->setMode(CQChartsView::Mode::SELECT);
-  else if (ind == 1)
-    view()->setMode(CQChartsView::Mode::ZOOM);
-  else if (ind == 2)
-    view()->setMode(CQChartsView::Mode::PAN);
-  else if (ind == 3)
-    view()->setMode(CQChartsView::Mode::PROBE);
-  else if (ind == 4)
-    view()->setMode(CQChartsView::Mode::EDIT);
+  if      (ind == 0) view()->setMode(CQChartsView::Mode::SELECT);
+  else if (ind == 1) view()->setMode(CQChartsView::Mode::ZOOM_IN);
+  else if (ind == 2) view()->setMode(CQChartsView::Mode::ZOOM_OUT);
+  else if (ind == 3) view()->setMode(CQChartsView::Mode::PAN);
+  else if (ind == 4) view()->setMode(CQChartsView::Mode::PROBE);
+  else if (ind == 5) view()->setMode(CQChartsView::Mode::EDIT);
+  else if (ind == 6) view()->setMode(CQChartsView::Mode::REGION);
 
   updateMode();
 }
@@ -380,6 +416,16 @@ flipVSlot()
 
 void
 CQChartsViewToolBar::
+regionButtonClicked(int ind)
+{
+  if (ind == 0)
+    view()->setRegionMode(CQChartsView::RegionMode::POINT);
+  else
+    view()->setRegionMode(CQChartsView::RegionMode::RECT);
+}
+
+void
+CQChartsViewToolBar::
 updateMode()
 {
   if      (view()->mode() == CQChartsView::Mode::SELECT) {
@@ -391,21 +437,29 @@ updateMode()
     else
       selectRectButton_->setChecked(true);
   }
-  else if (view()->mode() == CQChartsView::Mode::ZOOM) {
+  else if (view()->mode() == CQChartsView::Mode::ZOOM_IN) {
     modeCombo_    ->setCurrentIndex(1);
     controlsStack_->setCurrentIndex(1);
   }
-  else if (view()->mode() == CQChartsView::Mode::PAN) {
+  else if (view()->mode() == CQChartsView::Mode::ZOOM_OUT) {
     modeCombo_    ->setCurrentIndex(2);
     controlsStack_->setCurrentIndex(2);
   }
-  else if (view()->mode() == CQChartsView::Mode::PROBE) {
+  else if (view()->mode() == CQChartsView::Mode::PAN) {
     modeCombo_    ->setCurrentIndex(3);
     controlsStack_->setCurrentIndex(3);
   }
-  else if (view()->mode() == CQChartsView::Mode::EDIT) {
+  else if (view()->mode() == CQChartsView::Mode::PROBE) {
     modeCombo_    ->setCurrentIndex(4);
     controlsStack_->setCurrentIndex(4);
+  }
+  else if (view()->mode() == CQChartsView::Mode::EDIT) {
+    modeCombo_    ->setCurrentIndex(5);
+    controlsStack_->setCurrentIndex(5);
+  }
+  else if (view()->mode() == CQChartsView::Mode::REGION) {
+    modeCombo_    ->setCurrentIndex(6);
+    controlsStack_->setCurrentIndex(6);
   }
 }
 

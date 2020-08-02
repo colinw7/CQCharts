@@ -3,7 +3,9 @@
 
 #include <CQChartsGeom.h>
 
+class CQChartsPlot;
 class CQChartsLineEdit;
+class QToolButton;
 
 /*!
  * \brief geometry bbox edit
@@ -18,13 +20,18 @@ class CQChartsGeomBBoxEdit : public QFrame {
   using BBox = CQChartsGeom::BBox;
 
  public:
-  CQChartsGeomBBoxEdit(QWidget *parent, const BBox &value=BBox(0,0,1,1));
-  CQChartsGeomBBoxEdit(const BBox &value=BBox(0,0,1,1));
+  CQChartsGeomBBoxEdit(QWidget *parent, const BBox &value=BBox(0, 0, 1, 1));
+  CQChartsGeomBBoxEdit(const BBox &value=BBox(0, 0, 1, 1));
 
  ~CQChartsGeomBBoxEdit() { }
 
+  const BBox &getValue() const { return bbox_; }
   void setValue(const BBox &bbox);
-  const BBox &getValue() const;
+
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *p);
+
+  void setRegion(const CQChartsGeom::BBox &bbox);
 
  private:
   void init(const BBox &value);
@@ -32,8 +39,13 @@ class CQChartsGeomBBoxEdit : public QFrame {
  private slots:
   void editingFinishedI();
 
+  void regionSlot(bool b);
+  void regionReleaseSlot(const CQChartsGeom::BBox &bbox);
+
  signals:
   void valueChanged();
+
+  void regionChanged();
 
  private:
   void updateRange();
@@ -43,7 +55,9 @@ class CQChartsGeomBBoxEdit : public QFrame {
 
  private:
   BBox              bbox_           { 0, 0, 1, 1 };
+  CQChartsPlot*     plot_           { nullptr };
   CQChartsLineEdit* edit_           { nullptr };
+  QToolButton*      regionButton_   { nullptr };
   mutable bool      disableSignals_ { false };
 };
 
@@ -57,14 +71,19 @@ class CQChartsGeomBBoxEdit : public QFrame {
  */
 class CQChartsGeomBBoxPropertyViewType : public CQPropertyViewType {
  public:
+  using PropertyItem = CQPropertyViewItem;
+  using Delegate     = CQPropertyViewDelegate;
+  using StyleOption  = QStyleOptionViewItem;
+
+ public:
   CQChartsGeomBBoxPropertyViewType();
 
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+  bool setEditorData(PropertyItem *item, const QVariant &value) override;
 
-  void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
-            const QStyleOptionViewItem &option, const QModelIndex &index,
+  void draw(PropertyItem *item, const Delegate *delegate, QPainter *painter,
+            const StyleOption &option, const QModelIndex &index,
             const QVariant &value, bool inside) override;
 
   QString tip(const QVariant &value) const override;
@@ -72,7 +91,7 @@ class CQChartsGeomBBoxPropertyViewType : public CQPropertyViewType {
   QString userName() const override { return "geom_bbox"; }
 
  private:
-  QString valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const;
+  QString valueString(PropertyItem *item, const QVariant &value, bool &ok) const;
 };
 
 //---

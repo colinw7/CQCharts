@@ -220,16 +220,16 @@ connectModel(bool b)
     model().data(), SIGNAL(modelReset()), this, SLOT(modelResetSlot()));
 
   CQChartsWidgetUtil::connectDisconnect(b,
-    model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+    model().data(), SIGNAL(rowsInserted(QModelIndex, int, int)),
     this, SLOT(modelRowsInsertedSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
-    model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+    model().data(), SIGNAL(rowsRemoved(QModelIndex, int, int)),
     this, SLOT(modelRowsRemovedSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
-    model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+    model().data(), SIGNAL(columnsInserted(QModelIndex, int, int)),
     this, SLOT(modelColumnsInsertedSlot()));
   CQChartsWidgetUtil::connectDisconnect(b,
-    model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+    model().data(), SIGNAL(columnsRemoved(QModelIndex, int, int)),
     this, SLOT(modelColumnsRemovedSlot()));
 }
 
@@ -1490,7 +1490,7 @@ copy(const CopyData &copyData)
   //---
 
   // get visible rows
-  using RowVisible = std::map<int,bool>;
+  using RowVisible = std::map<int, bool>;
 
   RowVisible rowVisible;
 
@@ -1726,7 +1726,7 @@ join(CQChartsModelData *joinModelData, const Columns &joinColumns)
   //---
 
   // build map of join columns variant/name to row
-  using VariantRowMap = std::map<QVariant,int>;
+  using VariantRowMap = std::map<QVariant, int>;
 
   VariantRowMap variantRowMap;
 

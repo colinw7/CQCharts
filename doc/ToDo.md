@@ -3,13 +3,19 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + region tool
+   + signal, point+size, rect. widget tracks
+ + powerpoint like text in box for annotation (with edit support)
+   + mouse tool ?
+ + hier bubble plot labels
+ + size hint for init size
+ + multiple axes for overlay plots
  + better bubble plot margin with title ?
- + disabled image annotation after resize
+   + signal on first calc/redraw
  + update of visible for widget annotation (create and set property)
- + all model indices for grouped bubble plot
-   + assert right model index (normalized)
+ + assert right model index (normalized)
  + hier bubble min value/group column (bucket name column for integer/real (control))
- + rect/position edit values from plot
+ + rect/position edit values from plot (region edit)
  + image edit/widget edit
  + widget annotation edit
  + drag label

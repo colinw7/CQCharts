@@ -241,7 +241,7 @@ setSymbolMapKey(bool b)
 
 void
 CQChartsScatterPlot::
-setSymbolMapKeyAlpha(const CQChartsAlpha &a)
+setSymbolMapKeyAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -383,7 +383,7 @@ setDensityWidth(const Length &l)
 
 void
 CQChartsScatterPlot::
-setDensityAlpha(const CQChartsAlpha &a)
+setDensityAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(axisDensityData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -457,7 +457,7 @@ setWhiskerMargin(const Length &l)
 
 void
 CQChartsScatterPlot::
-setWhiskerAlpha(const CQChartsAlpha &a)
+setWhiskerAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(axisWhiskerData_.alpha, a, [&]() { drawObjs(); } );
 }
@@ -2903,7 +2903,7 @@ drawSymbolMapKey(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    device->drawEllipse(device->pixelToWindow(pbbox));
+    device->drawEllipse(pixelToWindow(pbbox));
   };
 
   drawEllipse(fillColor1, pbbox1);
@@ -2919,7 +2919,7 @@ drawSymbolMapKey(PaintDevice *device) const
 
     Point p1(p.x - fm.width(text)/2, p.y);
 
-    auto p2 = device->pixelToWindow(p1);
+    auto p2 = pixelToWindow(p1);
 
     CQChartsTextOptions options;
 
@@ -3559,7 +3559,7 @@ drawRugSymbol(PaintDevice *device, const Dir &dir, bool flip) const
     }
 
     // draw symbol
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    plot_->drawSymbol(device, plot_->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 }
 

@@ -312,9 +312,9 @@ class CQChartsGraphPlotGraph : public CQChartsGraphPlotNode {
     double size { 0.0 }; // total size
   };
 
-  using DepthNodesMap = std::map<int,DepthData>;
-  using IndNodeMap    = std::map<int,Node *>;
-  using PosNodesMap   = std::map<int,Nodes>;
+  using DepthNodesMap = std::map<int, DepthData>;
+  using IndNodeMap    = std::map<int, Node *>;
+  using PosNodesMap   = std::map<int, Nodes>;
   using Graph         = CQChartsGraphPlotGraph;
   using Graphs        = std::vector<Graph *>;
   using Obj           = CQChartsGraphGraphObj;
@@ -580,7 +580,7 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  using EdgeRect = std::map<Edge *,BBox>;
+  using EdgeRect = std::map<Edge *, BBox>;
 
   const Plot* plot_        { nullptr };         //!< parent plot
   Node*       node_        { nullptr };         //!< node
@@ -778,9 +778,9 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool autoCreateGraphs READ isAutoCreateGraphs WRITE setAutoCreateGraphs)
 
   // node/edge shape data
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge,edge)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph,graph)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph, graph)
 
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -813,8 +813,8 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
   using Node        = CQChartsGraphPlotNode;
   using Nodes       = std::vector<Node *>;
-  using NameNodeMap = std::map<QString,Node *>;
-  using IndNodeMap  = std::map<int,Node *>;
+  using NameNodeMap = std::map<QString, Node *>;
+  using IndNodeMap  = std::map<int, Node *>;
   using NodeSet     = std::set<Node *>;
   using Edge        = CQChartsGraphPlotEdge;
   using Edges       = std::vector<Edge *>;

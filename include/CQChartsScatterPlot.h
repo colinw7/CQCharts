@@ -368,7 +368,7 @@ class CQChartsScatterHexKeyItem : public CQChartsGradientKeyItem {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(GridCell,gridCell)
+CQCHARTS_NAMED_SHAPE_DATA(GridCell, gridCell)
 
 /*!
  * \brief Scatter Plot
@@ -395,7 +395,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool  yRug     READ isYRug   WRITE setYRug    )
   Q_PROPERTY(XSide yRugSide READ yRugSide WRITE setYRugSide)
 
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug,rug)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug, rug)
 
   // axis density
   Q_PROPERTY(bool           xDensity     READ isXDensity   WRITE setXDensity    )
@@ -426,7 +426,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(int gridNumX READ gridNumX WRITE setGridNumX)
   Q_PROPERTY(int gridNumY READ gridNumY WRITE setGridNumY)
 
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell,gridCell)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell, gridCell)
 
   // symbol map key
   Q_PROPERTY(bool          symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
@@ -467,21 +467,21 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     RMinMax yrange;
   };
 
-  using NameValues      = std::map<QString,ValuesData>;
-  using GroupNameValues = std::map<int,NameValues>;
+  using NameValues      = std::map<QString, ValuesData>;
+  using GroupNameValues = std::map<int, NameValues>;
 
   //--
 
   using GridCell          = CQChartsGridCell;
-  using NameGridData      = std::map<QString,GridCell>;
-  using GroupNameGridData = std::map<int,NameGridData>;
+  using NameGridData      = std::map<QString, GridCell>;
+  using GroupNameGridData = std::map<int, NameGridData>;
 
   //--
 
   using HexMap = CHexMap<void>;
 
-  using NameHexData      = std::map<QString,HexMap>;
-  using GroupNameHexData = std::map<int,NameHexData>;
+  using NameHexData      = std::map<QString, HexMap>;
+  using GroupNameHexData = std::map<int, NameHexData>;
 
   //---
 
@@ -803,11 +803,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
-  using GroupPoints   = std::map<int,Points>;
-  using GroupFitData  = std::map<int,CQChartsFitData>;
-  using GroupStatData = std::map<int,StatData>;
-  using GroupHull     = std::map<int,CQChartsGrahamHull *>;
-  using GroupWhiskers = std::map<int,BoxWhisker *>;
+  using GroupPoints   = std::map<int, Points>;
+  using GroupFitData  = std::map<int, CQChartsFitData>;
+  using GroupStatData = std::map<int, StatData>;
+  using GroupHull     = std::map<int, CQChartsGrahamHull *>;
+  using GroupWhiskers = std::map<int, BoxWhisker *>;
 
   struct AxisRugData {
     bool  xVisible { false };         //!< x rug

@@ -113,9 +113,9 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 //----
 
-CQCHARTS_NAMED_SHAPE_DATA(Plot,plot)
-CQCHARTS_NAMED_SHAPE_DATA(Data,data)
-CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
+CQCHARTS_NAMED_SHAPE_DATA(Plot, plot)
+CQCHARTS_NAMED_SHAPE_DATA(Data, data)
+CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)
 
 /*!
  * \brief Base class for Plot
@@ -208,19 +208,19 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(QString yLabel   READ yLabel   WRITE setYLabel  )
 
   // plot area
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Plot,plot)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Plot, plot)
 
   Q_PROPERTY(CQChartsSides plotBorderSides READ plotBorderSides WRITE setPlotBorderSides)
   Q_PROPERTY(bool          plotClip        READ isPlotClip      WRITE setPlotClip       )
 
   // data area
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Data,data)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Data, data)
 
   Q_PROPERTY(CQChartsSides dataBorderSides READ dataBorderSides WRITE setDataBorderSides)
   Q_PROPERTY(bool          dataClip        READ isDataClip      WRITE setDataClip       )
 
   // fit area
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit,fit)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit, fit)
 
   Q_PROPERTY(CQChartsSides fitBorderSides READ fitBorderSides WRITE setFitBorderSides)
 
@@ -358,10 +358,10 @@ class CQChartsPlot : public CQChartsObj,
   using PlotType = CQChartsPlotType;
 
   using Buffer  = CQChartsBuffer;
-  using Buffers = std::map<Buffer::Type,Buffer *>;
+  using Buffers = std::map<Buffer::Type, Buffer *>;
 
   using Layer  = CQChartsLayer;
-  using Layers = std::map<Layer::Type,Layer *>;
+  using Layers = std::map<Layer::Type, Layer *>;
 
   using ColorInd = CQChartsUtil::ColorInd;
 
@@ -378,6 +378,7 @@ class CQChartsPlot : public CQChartsObj,
   using Color       = CQChartsColor;
   using Alpha       = CQChartsAlpha;
   using Length      = CQChartsLength;
+  using Units       = CQChartsUnits;
   using Angle       = CQChartsAngle;
   using FillPattern = CQChartsFillPattern;
   using LineDash    = CQChartsLineDash;
@@ -774,6 +775,8 @@ class CQChartsPlot : public CQChartsObj,
   PlotKey *key() const { return keyObj_; }
 
   Title *title() const { return titleObj_; }
+
+  virtual void emitTitleChanged();
 
   //---
 
@@ -1867,6 +1870,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual void adjustPan() { }
 
   virtual void zoomTo(const BBox &bbox);
+  virtual void unzoomTo(const BBox &bbox);
 
   //---
 
@@ -2153,6 +2157,12 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawGroupedFgAxes(PaintDevice *device) const;
 
   virtual void drawFgAxes(PaintDevice *device) const;
+
+  virtual void drawXGrid(PaintDevice *device) const;
+  virtual void drawYGrid(PaintDevice *device) const;
+
+  virtual void drawXAxis(PaintDevice *device) const;
+  virtual void drawYAxis(PaintDevice *device) const;
 
   // draw key on foreground
   virtual bool hasGroupedFgKey() const;
@@ -2456,6 +2466,9 @@ class CQChartsPlot : public CQChartsObj,
   void keyPressed(CQChartsPlotKey *);
   void keyIdPressed(const QString &);
 
+  // title signals (title changed)
+  void titleChanged();
+
   // title signals (title pressed)
   void titlePressed(CQChartsTitle *);
   void titleIdPressed(const QString &);
@@ -2503,7 +2516,7 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   using ObjSet     = std::set<Obj *>;
-  using SizeObjSet = std::map<double,ObjSet>;
+  using SizeObjSet = std::map<double, ObjSet>;
 
  protected:
   void connectModel();
@@ -2676,10 +2689,10 @@ class CQChartsPlot : public CQChartsObj,
   bool isInterrupt() const { return updateData_.interrupt.load() > 0; }
 
  protected:
-  using IdHidden        = std::map<int,bool>;
+  using IdHidden        = std::map<int, bool>;
   using Rows            = std::set<int>;
-  using ColumnRows      = std::map<int,Rows>;
-  using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
+  using ColumnRows      = std::map<int, Rows>;
+  using IndexColumnRows = std::map<QModelIndex, ColumnRows>;
 
   //! color column data
   struct ColorColumnData {
@@ -2723,7 +2736,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //! update state data
   struct UpdatesData {
-    using StateFlag = std::map<UpdateState,int>;
+    using StateFlag = std::map<UpdateState, int>;
 
     int       enabled            { 0 };     //!< updates enabled
     bool      updateRangeAndObjs { false }; //!< call execUpdateRangeAndObjs (on enable)
@@ -2742,7 +2755,7 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
-  using ColumnNames = std::map<Column,QString>;
+  using ColumnNames = std::map<Column, QString>;
 
   //---
 
@@ -2757,15 +2770,15 @@ class CQChartsPlot : public CQChartsObj,
   QString name_; //!< custom name
 
   // ranges
-  BBox          viewBBox_        { 0, 0, 1, 1 };     //!< view box
-  BBox          innerViewBBox_   { 0, 0, 1, 1 };     //!< inner view box
-  PlotMargin    innerMargin_     { 0, 0, 0, 0 };     //!< inner margin
-  PlotMargin    outerMargin_     { 10, 10, 10, 10 }; //!< outer margin
-  DisplayRange* displayRange_    { nullptr };        //!< value range mapping
-  Range         calcDataRange_;                      //!< calc data range
-  Range         dataRange_;                          //!< data range
-  Range         outerDataRange_;                     //!< outer data range
-  ZoomData      zoomData_;                           //!< zoom data
+  BBox          viewBBox_        { 0, 0, 1, 1 }; //!< view box
+  BBox          innerViewBBox_   { 0, 0, 1, 1 }; //!< inner view box
+  PlotMargin    innerMargin_;                    //!< inner margin
+  PlotMargin    outerMargin_;                    //!< outer margin
+  DisplayRange* displayRange_    { nullptr };    //!< value range mapping
+  Range         calcDataRange_;                  //!< calc data range
+  Range         dataRange_;                      //!< data range
+  Range         outerDataRange_;                 //!< outer data range
+  ZoomData      zoomData_;                       //!< zoom data
 
   // override range
   OptReal xmin_; //!< xmin override
@@ -2835,9 +2848,9 @@ class CQChartsPlot : public CQChartsObj,
   bool followMouse_ { true }; //!< track object under mouse
 
   // fit
-  bool       autoFit_      { false };      //!< auto fit on data change
-  PlotMargin fitMargin_    { 1, 1, 1, 1 }; //!< fit margin
-  bool       needsAutoFit_ { false };      //!< needs auto fit on next draw
+  bool       autoFit_      { false }; //!< auto fit on data change
+  PlotMargin fitMargin_;              //!< fit margin
+  bool       needsAutoFit_ { false }; //!< needs auto fit on next draw
 
   // preview
   bool preview_        { false }; //!< is preview plot
@@ -2956,10 +2969,10 @@ class CQChartsPlot : public CQChartsObj,
 
 //------
 
-CQCHARTS_NAMED_LINE_DATA(Grid,grid)
-CQCHARTS_NAMED_SHAPE_DATA(Node,node)
-CQCHARTS_NAMED_LINE_DATA(Edge,edge)
-CQCHARTS_NAMED_POINT_DATA(Dot,dot)
-CQCHARTS_NAMED_POINT_DATA(Rug,rug)
+CQCHARTS_NAMED_LINE_DATA(Grid, grid)
+CQCHARTS_NAMED_SHAPE_DATA(Node, node)
+CQCHARTS_NAMED_LINE_DATA(Edge, edge)
+CQCHARTS_NAMED_POINT_DATA(Dot, dot)
+CQCHARTS_NAMED_POINT_DATA(Rug, rug)
 
 #endif

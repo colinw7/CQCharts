@@ -73,7 +73,7 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  using UniqueColumns = std::map<int,CQChartsColumn>;
+  using UniqueColumns = std::map<int, CQChartsColumn>;
 
   UniqueColumns   xColumns;
   CQChartsColumns yColumns;
@@ -123,10 +123,10 @@ CQChartsParallelPlot(View *view, const ModelP &model) :
 
   setPoints(true);
 
-  setSymbolStrokeAlpha(CQChartsAlpha(0.25));
+  setSymbolStrokeAlpha(Alpha(0.25));
   setSymbolFilled     (true);
   setSymbolFillColor  (Color(Color::Type::PALETTE));
-  setSymbolFillAlpha  (CQChartsAlpha(0.5));
+  setSymbolFillAlpha  (Alpha(0.5));
 
   masterAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
 
@@ -934,7 +934,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
     options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
     options.clipLength    = masterAxis_->axesLabelTextClipLength();
 
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), label,
+    CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,
                                       options, /*centered*/false);
 
     //---

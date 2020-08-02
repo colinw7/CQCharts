@@ -548,8 +548,8 @@ createObjs(PlotObjs &objs) const
   // row for vertical keys, (totals if included)
   // column for vertical header, horizontal key, totals (if include)
 
-  using ColHeights    = std::map<int,double>;
-  using RowColHeights = std::map<int,ColHeights>;
+  using ColHeights    = std::map<int, double>;
+  using RowColHeights = std::map<int, ColHeights>;
 
   RowColHeights rowColHeights; // cumulative heights
 
@@ -1409,7 +1409,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
-    double ss = 5.0;
+    CQChartsLength ss("5px");
 
     for (int i = 0; i < np; ++i)
       plot()->drawSymbol(device, polygon_.point(i), symbol, ss, penBrush);
@@ -1422,7 +1422,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, CQChartsAlpha(0.5)));
+    plot_->setPenBrush(penBrush, PenData(false), BrushData(true, fc, Alpha(0.5)));
 
     plot_->updateObjPenBrushState(this, penBrush);
 
@@ -1522,7 +1522,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
-  double ss = 5.0;
+  CQChartsLength ss("5px");
 
   plot()->drawSymbol(device, p_, symbol, ss, penBrush);
 }
@@ -1636,7 +1636,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
-  device->drawRect(device->pixelToWindow(prect));
+  device->drawRect(plot_->pixelToWindow(prect));
 
   device->resetColorNames();
 
@@ -1678,10 +1678,10 @@ draw(CQChartsPaintDevice *device)
       BBox tbbox1(prect.getXMin() + m     , prect.getYMin() + m,
                   prect.getXMin() + m + tw, prect.getYMin() + m + th);
 
-      tbbox = device->pixelToWindow(tbbox1);
+      tbbox = plot_->pixelToWindow(tbbox1);
     }
     else
-      tbbox = device->pixelToWindow(prect);
+      tbbox = plot_->pixelToWindow(prect);
 
     CQChartsDrawUtil::drawTextInBox(device, tbbox, valueStr, textOptions);
   }
@@ -1708,7 +1708,7 @@ draw(CQChartsPaintDevice *device)
     BBox bboxh2(prect.getXMin() + m     , prect.getYMax() - bs - m,
                 prect.getXMin() + m + bw, prect.getYMax()      - m);
 
-    device->drawRect(device->pixelToWindow(bboxh2));
+    device->drawRect(plot_->pixelToWindow(bboxh2));
 
     device->resetColorNames();
 
@@ -1723,7 +1723,7 @@ draw(CQChartsPaintDevice *device)
     BBox bboxh1(prect.getXMin() + m            , prect.getYMax() - bs - m,
                 prect.getXMin() + m + bw*hnorm_, prect.getYMax()      - m);
 
-    device->drawRect(device->pixelToWindow(bboxh1));
+    device->drawRect(plot_->pixelToWindow(bboxh1));
 
     //---
 
@@ -1734,7 +1734,7 @@ draw(CQChartsPaintDevice *device)
     BBox bboxv2(prect.getXMax() - m - bs, prect.getYMin() + m,
                 prect.getXMax() - m     , prect.getYMin() + m + bh);
 
-    device->drawRect(device->pixelToWindow(bboxv2));
+    device->drawRect(plot_->pixelToWindow(bboxv2));
 
     device->resetColorNames();
 
@@ -1749,7 +1749,7 @@ draw(CQChartsPaintDevice *device)
     BBox bboxv1(prect.getXMax() - m - bs, prect.getYMin() + m,
                 prect.getXMax() - m     , prect.getYMin() + m + bh*vnorm_);
 
-    device->drawRect(device->pixelToWindow(bboxv1));
+    device->drawRect(plot_->pixelToWindow(bboxv1));
   }
 }
 

@@ -572,7 +572,7 @@ class CQChartsQuadTree {
 
  public:
   using Trees    = std::vector<const CQChartsQuadTree *>;
-  using FitTrees = std::map<int,Trees>;
+  using FitTrees = std::map<int, Trees>;
 
   RECT fitRect(double w, double h) const {
     FitTrees fitTrees;

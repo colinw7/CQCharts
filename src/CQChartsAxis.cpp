@@ -1504,8 +1504,6 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 
   if (isHorizontal()) {
     bool isWindowBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
-    //bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
-    //                     (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertY());
 
     double ymin = dataRange.getYMin();
     double ymax = dataRange.getYMax();
@@ -1515,8 +1513,6 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
   }
   else {
     bool isWindowLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT);
-    //bool isPixelLeft = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertX()) ||
-    //                   (side() == CQChartsAxisSide::Type::TOP_RIGHT   &&   plot->isInvertX());
 
     double xmin = dataRange.getXMin();
     double xmax = dataRange.getXMax();

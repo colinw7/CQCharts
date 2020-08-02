@@ -611,7 +611,7 @@ drawPointObjs(CQChartsPaintDevice *device) const
 
   //---
 
-  using ZObjs = std::map<double,Objs>;
+  using ZObjs = std::map<double, Objs>;
 
   //---
 
@@ -839,7 +839,7 @@ postDraw(CQChartsPaintDevice *device)
   QColor pc = plot_->charts()->interpInterfaceColor(0.0);
 
   if (color_.isValid()) {
-    plot_->setPenBrush(penBrush, PenData(true, pc, CQChartsAlpha(0.2)), BrushData(true, color()));
+    plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.2)), BrushData(true, color()));
   }
   else {
     QColor fc = plot_->charts()->interpPaletteColor(ig());
@@ -852,7 +852,7 @@ postDraw(CQChartsPaintDevice *device)
 
     QColor fc1 = CQChartsUtil::blendColors(fc, bg, s);
 
-    plot_->setPenBrush(penBrush, PenData(true, pc, CQChartsAlpha(0.2)), BrushData(true, fc1));
+    plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.2)), BrushData(true, fc1));
   }
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);

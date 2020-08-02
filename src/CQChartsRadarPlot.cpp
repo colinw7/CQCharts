@@ -112,7 +112,7 @@ CQChartsRadarPlot(View *view, const ModelP &model) :
   setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
 
   setFillColor(Color(Color::Type::PALETTE));
-  setFillAlpha(CQChartsAlpha(0.5));
+  setFillAlpha(Alpha(0.5));
 
   setFilled (true);
   setStroked(true);
@@ -685,7 +685,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
         auto p2 = windowToPixel(Point(x, y));
 
-        device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
+        device->drawLine(pixelToWindow(p1), pixelToWindow(p2));
 
         a -= da;
       }
@@ -964,7 +964,7 @@ draw(CQChartsPaintDevice *device)
 
     BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
 
-    device->drawEllipse(device->pixelToWindow(pbbox));
+    device->drawEllipse(plot_->pixelToWindow(pbbox));
   }
   // draw line
   else if (poly_.size() == 2) {
@@ -976,7 +976,7 @@ draw(CQChartsPaintDevice *device)
 
     BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
 
-    device->drawEllipse(device->pixelToWindow(pbbox));
+    device->drawEllipse(plot_->pixelToWindow(pbbox));
   }
   // draw polygon
   else if (poly_.size() >= 3) {

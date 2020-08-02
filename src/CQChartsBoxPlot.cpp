@@ -1547,7 +1547,7 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
                  const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
   using Rects    = std::vector<BBox>;
-  using PosRects = std::map<int,Rects>;
+  using PosRects = std::map<int, Rects>;
 
   PosRects posRects;
 
@@ -3205,7 +3205,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
 
-  auto tw = device->pixelToWindow(tp);
+  auto tw = plot_->pixelToWindow(tp);
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
   auto size  = plot()->pixelToWindowSize(psize);
@@ -3257,7 +3257,7 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
 
-  auto tw = device->pixelToWindow(tp);
+  auto tw = plot_->pixelToWindow(tp);
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
   auto size  = plot()->pixelToWindowSize(psize);
@@ -3422,7 +3422,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  auto pos = device->pixelToWindow(p_);
+  auto pos = plot_->pixelToWindow(p_);
 
   plot_->drawSymbol(device, pos, symbolType, symbolSize, penBrush);
 }

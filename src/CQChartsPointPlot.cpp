@@ -76,7 +76,7 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
   setBestFit(false);
   setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setBestFitFillColor(Color(Color::Type::PALETTE));
-  setBestFitFillAlpha(CQChartsAlpha(0.5));
+  setBestFitFillAlpha(Alpha(0.5));
 
   // hull
   setHullFillColor(Color(Color::Type::PALETTE));

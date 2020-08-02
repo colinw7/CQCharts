@@ -105,8 +105,8 @@ class CQCharts : public QObject {
   using ModelP     = QSharedPointer<QAbstractItemModel>;
   using ModelDatas = std::vector<CQChartsModelData *>;
   using Views      = std::vector<CQChartsView *>;
-  using Procs      = std::map<QString,ProcData>;
-  using TypeProcs  = std::map<ProcType,Procs>;
+  using Procs      = std::map<QString, ProcData>;
+  using TypeProcs  = std::map<ProcType, Procs>;
 
   using ColorInd = CQChartsUtil::ColorInd;
 
@@ -356,7 +356,7 @@ class CQCharts : public QObject {
   bool setModelInd(QAbstractItemModel *model, int ind);
 
  private:
-  using NameViews = std::map<QString,CQChartsView*>;
+  using NameViews = std::map<QString, CQChartsView*>;
 
   bool                     viewKey_         { true };    //!< has view key
   CQChartsPlotTypeMgr*     plotTypeMgr_     { nullptr }; //!< plot type manager

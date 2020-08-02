@@ -463,7 +463,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   bool isSorted() const { return sortData_.enabled; }
   void setSorted(bool b);
 
-  //! get/set is sort reverese
+  //! get/set is sort reverse
   bool isSortReverse() const { return sortData_.reverse; }
   void setSortReverse(bool b);
 
@@ -611,7 +611,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
     bool reverse { false };
   };
 
-  using GroupHierNodes = std::map<int,HierNode *>;
+  using GroupHierNodes = std::map<int, HierNode *>;
 
   // columns
   Column nameColumn_;  //!< name column
@@ -628,6 +628,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   ColorData      colorData_;             //!< color data
   bool           colorById_   { true };  //!< color by id
   GroupHierNodes groupHierNodes_;        //!< hier group nodes
+
+  mutable bool marginSet_ { false }; //!< is margin set
 };
 
 #endif

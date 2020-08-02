@@ -137,7 +137,7 @@ void
 CQChartsColumnTypeMgr::
 typeNames(QStringList &names) const
 {
-  using IndString = std::map<int,QString>;
+  using IndString = std::map<int, QString>;
 
   IndString indString;
 

@@ -570,6 +570,9 @@ selectPress(const Point &, SelMod)
   if (! isEnabled())
     return false;
 
+  if (isCheckable())
+    setChecked(! isChecked());
+
   emit pressed(id());
 
   return id().length();
@@ -1170,8 +1173,8 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   assert(w > 0.0 && h > 0.0);
 
-  xRadius_ = w/2;
-  yRadius_ = h/2;
+  xRadius_ = Length(w/2, Units::PLOT);
+  yRadius_ = Length(h/2, Units::PLOT);
 
   setAnnotationBBox(bbox);
 }
@@ -2413,6 +2416,9 @@ setRectangle(const OptRect &r)
 
   rectToBBox();
 
+  if (disabledImageType_ != DisabledImageType::FIXED)
+    disabledImageType_ = DisabledImageType::NONE; // invalidate disabled image
+
   emit dataChanged();
 }
 
@@ -2438,6 +2444,9 @@ setImage(const Image &image)
 {
   image_ = image;
 
+  if (disabledImageType_ != DisabledImageType::FIXED)
+    disabledImageType_ = DisabledImageType::NONE; // invalidate disabled image
+
   emit dataChanged();
 }
 
@@ -2446,6 +2455,11 @@ CQChartsImageAnnotation::
 setDisabledImage(const Image &image)
 {
   disabledImage_ = image;
+
+  if (disabledImage_.isValid())
+    disabledImageType_ = DisabledImageType::FIXED;
+  else
+    disabledImageType_ = DisabledImageType::NONE;
 
   emit dataChanged();
 }
@@ -2623,50 +2637,79 @@ draw(PaintDevice *device)
   //---
 
   // draw image
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    QColor bg = backgroundColor();
-
-    if (! disabledImage_.isValid()) {
-      const auto &image = image_.image();
-
-      int iw = image.width ();
-      int ih = image.height();
-
-      QImage disabledImage = CQChartsUtil::initImage(QSize(iw, ih));
-
-      for (int y = 0; y < ih; ++y) {
-        for (int x = 0; x < iw; ++x) {
-          QRgb rgba = image.pixel(x, y);
-
-          int r = qRed  (rgba);
-          int g = qGreen(rgba);
-          int b = qBlue (rgba);
-          int a = qAlpha(rgba);
-
-          QColor c(r, g, b ,a);
-
-          QColor c1 = CQChartsUtil::blendColors(bg, c, f);
-
-          c1.setAlpha(a);
-
-          disabledImage.setPixel(x, y, c1.rgba());
-        }
-      }
-
-      disabledImage_ = Image(disabledImage);
-    }
+  if (! isEnabled()) {
+    updateDisabledImage(DisabledImageType::DISABLED);
 
     device->drawImageInRect(tbbox, disabledImage_);
   }
   else {
-    device->drawImageInRect(tbbox, image_);
+    if (isCheckable() && ! isChecked()) {
+      updateDisabledImage(DisabledImageType::UNCHECKED);
+
+      device->drawImageInRect(tbbox, disabledImage_);
+    }
+    else {
+      device->drawImageInRect(tbbox, image_);
+    }
   }
 
   //---
 
   drawTerm(device);
+}
+
+void
+CQChartsImageAnnotation::
+updateDisabledImage(const DisabledImageType &type)
+{
+  // fixed
+  if (disabledImageType_ == DisabledImageType::FIXED)
+    return;
+
+  //---
+
+  // auto calc
+  if (! disabledImage_.isValid() || disabledImageType_ != type) {
+    double f = 1.0;
+
+    if (type == DisabledImageType::UNCHECKED)
+      f = uncheckedLighter();
+    else
+      f = disabledLighter();
+
+    auto bg = backgroundColor();
+
+    auto prect = windowToPixel(rect_);
+
+    const auto &image = image_.sizedImage(prect.getWidth(), prect.getHeight());
+
+    int iw = image.width ();
+    int ih = image.height();
+
+    QImage disabledImage = CQChartsUtil::initImage(QSize(iw, ih));
+
+    for (int y = 0; y < ih; ++y) {
+      for (int x = 0; x < iw; ++x) {
+        QRgb rgba = image.pixel(x, y);
+
+        int r = qRed  (rgba);
+        int g = qGreen(rgba);
+        int b = qBlue (rgba);
+        int a = qAlpha(rgba);
+
+        QColor c(r, g, b, a);
+
+        QColor c1 = CQChartsUtil::blendColors(bg, c, f);
+
+      //c1.setAlpha(a);
+
+        disabledImage.setPixel(x, y, c1.rgba());
+      }
+    }
+
+    disabledImage_     = Image(disabledImage);
+    disabledImageType_ = type;
+  }
 }
 
 void

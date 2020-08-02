@@ -276,15 +276,17 @@ CQChartsView::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                    const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                    const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc);
+    auto *item = addProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
-    if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 
@@ -361,6 +363,9 @@ addProperties()
                "Highlight stroke width");
   addStyleProp("select/highlight/stroke", "selectedStrokeDash" , "dash"   ,
                "Highlight stroke dash");
+
+  // region mode
+  addProp("region", "regionMode", "mode", "Region mode", true);
 
   // inside highlight
   addStyleProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
@@ -840,7 +845,7 @@ void
 CQChartsView::
 zoomModeSlot()
 {
-  setMode(Mode::ZOOM);
+  setMode(Mode::ZOOM_IN);
 }
 
 void
@@ -873,6 +878,13 @@ editModeSlot()
 
 void
 CQChartsView::
+regionModeSlot()
+{
+  setMode(Mode::REGION);
+}
+
+void
+CQChartsView::
 setMode(const Mode &mode)
 {
   CQChartsUtil::testAndSet(mode_, mode, [&]() {
@@ -891,7 +903,7 @@ void
 CQChartsView::
 setSelectMode(const SelectMode &selectMode)
 {
-  CQChartsUtil::testAndSet(selectMode_, selectMode, [&]() { emit selectModeChanged(); } );
+  CQChartsUtil::testAndSet(selectData_.mode, selectMode, [&]() { emit selectModeChanged(); } );
 }
 
 void
@@ -951,20 +963,29 @@ void
 CQChartsView::
 startSelection()
 {
-  ++selecting_;
+  ++selectData_.selectDepth;
 }
 
 void
 CQChartsView::
 endSelection()
 {
-  --selecting_;
+  --selectData_.selectDepth;
 
-  if (selecting_ == 0) {
+  if (selectData_.selectDepth == 0) {
     emit selectionChanged();
 
     updateSelText();
   }
+}
+
+//---
+
+void
+CQChartsView::
+setRegionMode(const RegionMode &regionMode)
+{
+  CQChartsUtil::testAndSet(regionData_.mode, regionMode, [&]() { emit regionModeChanged(); } );
 }
 
 //---
@@ -2202,21 +2223,20 @@ mousePressEvent(QMouseEvent *me)
   //---
 
   if (mouseButton() == Qt::LeftButton) {
-    if      (mode() == Mode::SELECT) {
+    if      (mode() == Mode::SELECT)
       selectMousePress();
-    }
-    else if (mode() == Mode::ZOOM) {
+    else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT)
       zoomMousePress();
-    }
     else if (mode() == Mode::PAN) {
     }
     else if (mode() == Mode::PROBE) {
     }
     else if (mode() == Mode::QUERY) {
     }
-    else if (mode() == Mode::EDIT) {
+    else if (mode() == Mode::EDIT)
       (void) editMousePress();
-    }
+    else if (mode() == Mode::REGION)
+      regionMousePress();
   }
   else if (mouseButton() == Qt::MiddleButton) {
   }
@@ -2243,14 +2263,20 @@ mouseMoveEvent(QMouseEvent *me)
   mouseData_.movePoint    = adjustMousePos(mp);
 
   // select mode and move (not pressed) - update plot positions
-  if (mode() == Mode::SELECT && ! mousePressed()) {
-    selectMouseMotion();
-    return;
+  if (! mousePressed()) {
+    if      (mode() == Mode::SELECT) {
+      selectMouseMotion();
+      return;
+    }
+    else if (mode() == Mode::REGION) {
+      regionMouseMotion();
+      return;
+    }
   }
 
   //---
 
-  if (mode() == Mode::ZOOM) {
+  if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
     updatePosText(mouseMovePoint());
   }
 
@@ -2298,15 +2324,14 @@ mouseMoveEvent(QMouseEvent *me)
       searchPos_ = mouseMovePoint();
     }
     // draw zoom rectangle
-    else if (mode() == Mode::ZOOM) {
+    else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT)
       zoomMouseMove();
-    }
-    else if (mode() == Mode::PAN) {
+    else if (mode() == Mode::PAN)
       panMouseMove();
-    }
-    else if (mode() == Mode::EDIT) {
+    else if (mode() == Mode::EDIT)
       (void) editMouseMove();
-    }
+    else if (mode() == Mode::REGION)
+      selectMouseMove();
   }
   else if (mouseButton() == Qt::MiddleButton) {
     if (! mousePressed())
@@ -2336,16 +2361,12 @@ mouseReleaseEvent(QMouseEvent *me)
 
   if      (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
-      if (! mousePressed())
-        return;
-
-      selectMouseRelease();
+      if (mousePressed())
+        selectMouseRelease();
     }
-    else if (mode() == Mode::ZOOM) {
-      if (! mousePressed())
-        return;
-
-      zoomMouseRelease();
+    else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
+      if (mousePressed())
+        zoomMouseRelease();
     }
     else if (mode() == Mode::PAN) {
     }
@@ -2354,10 +2375,12 @@ mouseReleaseEvent(QMouseEvent *me)
     else if (mode() == Mode::QUERY) {
     }
     else if (mode() == Mode::EDIT) {
-      if (! mousePressed())
-        return;
-
-      editMouseRelease();
+      if (mousePressed())
+        editMouseRelease();
+    }
+    else if (mode() == Mode::REGION) {
+      if (mousePressed())
+        regionMouseRelease();
     }
   }
   else if (mouseButton() == Qt::MiddleButton) {
@@ -2388,7 +2411,7 @@ keyPressEvent(QKeyEvent *ke)
     if (mousePressed())
       endRegionBand();
 
-    if      (mode() == Mode::ZOOM) {
+    if      (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
       if (! mousePressed())
         selectModeSlot();
     }
@@ -2796,12 +2819,12 @@ void
 CQChartsView::
 selectMousePress()
 {
-  if      (isPointSelectMode()) {
+  if      (isPointSelectMode())
     selectPointPress();
-  }
-  else if (isRectSelectMode()) {
+  else if (isRectSelectMode())
     startRegionBand(mousePressPoint());
-  }
+  else if (regionMode() == RegionMode::RECT)
+    startRegionBand(mousePressPoint());
 }
 
 void
@@ -2955,6 +2978,9 @@ selectMouseRelease()
       }, mouseSelMod());
     }
   }
+  else if (regionMode() == RegionMode::RECT) {
+    endRegionBand();
+  }
 
   //---
 
@@ -2970,7 +2996,7 @@ bool
 CQChartsView::
 isRectSelectMode() const
 {
-  if (selectMode_ != SelectMode::RECT)
+  if (selectMode() != SelectMode::RECT)
     return false;
 
   auto *currentPlot = this->currentPlot(/*remap*/false);
@@ -2985,10 +3011,10 @@ bool
 CQChartsView::
 isPointSelectMode() const
 {
-  if (selectMode_ == SelectMode::POINT)
+  if (selectMode() == SelectMode::POINT)
     return true;
 
-  if (selectMode_ == SelectMode::RECT) {
+  if (selectMode() == SelectMode::RECT) {
     auto *currentPlot = this->currentPlot(/*remap*/false);
 
     if (currentPlot && ! currentPlot->type()->canRectSelect())
@@ -2996,6 +3022,64 @@ isPointSelectMode() const
   }
 
   return false;
+}
+
+//------
+
+void
+CQChartsView::
+regionMousePress()
+{
+  if      (regionMode() == RegionMode::POINT) {
+  }
+  else if (regionMode() == RegionMode::RECT)
+    startRegionBand(mousePressPoint());
+}
+
+void
+CQChartsView::
+regionMouseMove()
+{
+  if      (regionMode() == RegionMode::POINT) {
+  }
+  else if (regionMode() == RegionMode::RECT) {
+    if (mouseData_.escape)
+      endRegionBand();
+    else
+      updateRegionBand(mousePressPoint(), mouseMovePoint());
+  }
+}
+
+void
+CQChartsView::
+regionMouseMotion()
+{
+  updatePosText(mouseMovePoint());
+}
+
+void
+CQChartsView::
+regionMouseRelease()
+{
+  if      (regionMode() == RegionMode::POINT) {
+    auto p = pixelToWindow(mousePressPoint());
+
+    double w = regionData_.size.width ();
+    double h = regionData_.size.height();
+
+    BBox r(p.x - w/2.0, p.y - h/2.0, p.x + w/2.0, p.y + h/2.0);
+
+    emit regionPointRelease(p);
+    emit regionRectRelease (r);
+  }
+  else if (regionMode() == RegionMode::RECT) {
+    endRegionBand();
+
+    auto r = pixelToWindow(regionBand_.bbox());
+
+    emit regionPointRelease(r.getCenter());
+    emit regionRectRelease (r);
+  }
 }
 
 //------
@@ -3133,7 +3217,10 @@ zoomMouseRelease()
 
     BBox bbox(w1, w2);
 
-    mouseData_.plot->zoomTo(bbox);
+    if      (mode() == Mode::ZOOM_IN)
+      mouseData_.plot->zoomTo(bbox);
+    else if (mode() == Mode::ZOOM_OUT)
+      mouseData_.plot->unzoomTo(bbox);
   }
 }
 
@@ -3160,11 +3247,10 @@ void
 CQChartsView::
 startRegionBand(const Point &pos)
 {
-  if (! regionBand_)
-    regionBand_ = new QRubberBand(QRubberBand::Rectangle, this);
+  regionBand_.init(this);
 
-  regionBand_->setGeometry(QRect(pos.qpointi(), QSize()));
-  regionBand_->show();
+  regionBand_.setGeometry(BBox(pos, pos));
+  regionBand_.show();
 }
 
 void
@@ -3174,10 +3260,10 @@ updateRegionBand(CQChartsPlot *plot, const Point &pressPoint, const Point &moveP
   updateRegionBand(pressPoint, movePoint);
 
   if (! plot->allowZoomX() || ! plot->allowZoomY()) {
-    int x = regionBand_->x     ();
-    int y = regionBand_->y     ();
-    int w = regionBand_->width ();
-    int h = regionBand_->height();
+    double x = regionBand_.x     ();
+    double y = regionBand_.y     ();
+    double w = regionBand_.width ();
+    double h = regionBand_.height();
 
     auto pixelRect = plot->calcPlotPixelRect();
 
@@ -3191,8 +3277,8 @@ updateRegionBand(CQChartsPlot *plot, const Point &pressPoint, const Point &moveP
       h = int(pixelRect.getHeight());
     }
 
-    regionBand_->setGeometry(QRect(x, y, w, h));
-    regionBand_->show();
+    regionBand_.setGeometry(BBox(x, y, x + w, y + h));
+    regionBand_.show();
   }
 }
 
@@ -3205,15 +3291,14 @@ updateRegionBand(const Point &pressPoint, const Point &movePoint)
   double w = std::abs(movePoint.x - pressPoint.x);
   double h = std::abs(movePoint.y - pressPoint.y);
 
-  regionBand_->setGeometry(QRect(int(x), int(y), int(w), int(h)));
+  regionBand_.setGeometry(BBox(x, y, x + w, y + h));
 }
 
 void
 CQChartsView::
 endRegionBand()
 {
-  if (regionBand_)
-    regionBand_->hide();
+  regionBand_.hide();
 }
 
 //------
@@ -3327,7 +3412,7 @@ resizeEvent(QResizeEvent *)
 
   image_ = CQChartsUtil::newImage(QSize(iw, ih));
 
-  image_->fill(QColor(0,0,0,0));
+  image_->fill(QColor(0, 0, 0, 0));
 
   ipainter_ = new QPainter(image_);
 
@@ -4274,15 +4359,16 @@ showMenu(const Point &p)
 
     auto *modeActionGroup = createActionGroup(modeMenu);
 
-    addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
-    addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
-    addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN   , SLOT(panModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT , SLOT(selectModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM_IN, SLOT(zoomModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN    , SLOT(panModeSlot()));
 
     if (plotType && plotType->canProbe())
       addGroupCheckAction(modeActionGroup, "Probe", mode() == Mode::PROBE, SLOT(probeModeSlot()));
 
-    addGroupCheckAction(modeActionGroup, "Query", mode() == Mode::QUERY, SLOT(queryModeSlot()));
-    addGroupCheckAction(modeActionGroup, "Edit" , mode() == Mode::EDIT , SLOT(editModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Query" , mode() == Mode::QUERY , SLOT(queryModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Edit"  , mode() == Mode::EDIT  , SLOT(editModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Region", mode() == Mode::REGION, SLOT(regionModeSlot()));
 
     modeActionGroup->setExclusive(true);
 
@@ -6413,8 +6499,8 @@ writeAll(std::ostream &os) const
 
   this->getPlots(plots);
 
-  using ModelVars = std::map<QString,QString>;
-  using PlotVars  = std::map<CQChartsPlot*,QString>;
+  using ModelVars = std::map<QString, QString>;
+  using PlotVars  = std::map<CQChartsPlot*, QString>;
 
   ModelVars modelVars;
   PlotVars  plotVars;

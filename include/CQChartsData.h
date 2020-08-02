@@ -594,6 +594,7 @@ class CQChartsArrowData {
 
   using Length = CQChartsLength;
   using Angle  = CQChartsAngle;
+  using Units  = CQChartsUnits;
 
  public:
   CQChartsArrowData() {
@@ -704,10 +705,10 @@ class CQChartsArrowData {
     bool     lineEnds  { false };          //!< lines at end
   };
 
-//bool     relative_   { false }; //!< to point relative to from
-  Length   lineWidth_  { -1 };    //!< connecting line width
-  HeadData fheadData_;            //!< front head data
-  HeadData theadData_;            //!< tail head data
+//bool     relative_   { false };           //!< to point relative to from
+  Length   lineWidth_  { -1, Units::PLOT }; //!< connecting line width
+  HeadData fheadData_;                      //!< front head data
+  HeadData theadData_;                      //!< tail head data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)

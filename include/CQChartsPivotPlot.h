@@ -298,7 +298,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
   Q_PROPERTY(bool      gridBars   READ isGridBars   WRITE setGridBars  )
 
   // bar fill, stroke
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar, bar)
 
   Q_ENUMS(ValueType)
   Q_ENUMS(PlotType)

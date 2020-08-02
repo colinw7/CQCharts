@@ -127,7 +127,7 @@ setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
   clipPath_ = path;
   clipRect_ = BBox();
 
-  QPainterPath ppath = windowToPixel(path);
+  auto ppath = windowToPixel(path);
 
   painter_->setClipPath(ppath, operation);
 }
@@ -219,7 +219,7 @@ void
 CQChartsViewPlotPaintDevice::
 fillPath(const QPainterPath &path, const QBrush &brush)
 {
-  QPainterPath ppath = windowToPixel(path);
+  auto ppath = windowToPixel(path);
 
   if (handDrawn_)
     hdPainter_->fillPath(ppath, brush);
@@ -231,7 +231,7 @@ void
 CQChartsViewPlotPaintDevice::
 strokePath(const QPainterPath &path, const QPen &pen)
 {
-  QPainterPath ppath = windowToPixel(path);
+  auto ppath = windowToPixel(path);
 
   if (handDrawn_)
     hdPainter_->strokePath(ppath, pen);
@@ -243,7 +243,7 @@ void
 CQChartsViewPlotPaintDevice::
 drawPath(const QPainterPath &path)
 {
-  QPainterPath ppath = windowToPixel(path);
+  auto ppath = windowToPixel(path);
 
   if (handDrawn_)
     hdPainter_->drawPath(ppath);

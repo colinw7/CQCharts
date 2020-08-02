@@ -83,10 +83,10 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_LINE_DATA (Delaunay,delaunay)
-CQCHARTS_NAMED_LINE_DATA (Voronoi,voronoi)
-CQCHARTS_NAMED_POINT_DATA(Voronoi,voronoi)
-CQCHARTS_NAMED_SHAPE_DATA(Voronoi,voronoi)
+CQCHARTS_NAMED_LINE_DATA (Delaunay, delaunay)
+CQCHARTS_NAMED_LINE_DATA (Voronoi, voronoi)
+CQCHARTS_NAMED_POINT_DATA(Voronoi, voronoi)
+CQCHARTS_NAMED_SHAPE_DATA(Voronoi, voronoi)
 
 /*!
  * \brief Delaunay Plot

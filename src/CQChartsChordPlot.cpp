@@ -98,7 +98,7 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
-  setStrokeAlpha(CQChartsAlpha(0.3));
+  setStrokeAlpha(Alpha(0.3));
 
   addTitle();
 }
@@ -136,14 +136,14 @@ setRotatedText(bool b)
 
 void
 CQChartsChordPlot::
-setSegmentAlpha(const CQChartsAlpha &a)
+setSegmentAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(segmentAlpha_, a, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
-setArcAlpha(const CQChartsAlpha &a)
+setArcAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(arcAlpha_, a, [&]() { drawObjs(); } );
 }
@@ -1269,7 +1269,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   QColor bg = plot_->interpPaletteColor(colorInd);
 
-  plot_->setPen(lpenBrush, PenData(true, bg, CQChartsAlpha()));
+  plot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
 
   //---
 
@@ -1288,8 +1288,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   // TODO: separate segment stroke/fill control
   QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  QColor        fromColor = calcFromColor();
-  CQChartsAlpha fromAlpha;
+  QColor fromColor = calcFromColor();
+  Alpha  fromAlpha;
 
   if (! isInside() && ! isSelected())
     fromAlpha = plot_->segmentAlpha();
@@ -1610,7 +1610,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
-  CQChartsAlpha fillAlpha;
+  Alpha fillAlpha;
 
   if (! isInside() && ! isSelected())
     fillAlpha = plot_->arcAlpha();

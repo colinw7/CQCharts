@@ -395,9 +395,9 @@ class CQChartsTablePlot : public CQChartsPlot {
     bool fitVertical   { false };
   };
 
-  using HeaderObjMap = std::map<int,HeaderObjData>;
-  using RowObjMap    = std::map<int,RowObjData>;
-  using CellObjMap   = std::map<QModelIndex,CellObjData>;
+  using HeaderObjMap = std::map<int, HeaderObjData>;
+  using RowObjMap    = std::map<int, RowObjData>;
+  using CellObjMap   = std::map<QModelIndex, CellObjData>;
 
  private:
   HeaderObjData& getHeaderObjData(const Column &c) const;

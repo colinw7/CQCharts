@@ -486,7 +486,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,BBox>;
+  using ColRects = std::map<int, BBox>;
 
   ColRects colRects;
 
@@ -540,7 +540,7 @@ drawXLabels(CQChartsPaintDevice *device) const
     else
       tbbox1 = BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -578,7 +578,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,BBox>;
+  using RowRects = std::map<int, BBox>;
 
   RowRects rowRects;
 
@@ -630,7 +630,7 @@ drawYLabels(CQChartsPaintDevice *device) const
     else
       tbbox1 = BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -846,7 +846,7 @@ draw(CQChartsPaintDevice *device)
     BBox ebbox(prect.getXMid() - s1/2, prect.getYMid() - s1/2,
                prect.getXMid() + s1/2, prect.getYMid() + s1/2);
 
-    device->drawEllipse(device->pixelToWindow(ebbox));
+    device->drawEllipse(plot_->pixelToWindow(ebbox));
   }
 
   //---

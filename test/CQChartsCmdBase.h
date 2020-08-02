@@ -78,7 +78,7 @@ class CQChartsCmdBase {
 
  private:
   using CommandNames = std::vector<QString>;
-  using CommandProcs = std::map<QString,CQChartsCmdProc *>;
+  using CommandProcs = std::map<QString, CQChartsCmdProc *>;
 
   bool         continueFlag_ { false };
   CQTcl*       qtcl_         { nullptr };

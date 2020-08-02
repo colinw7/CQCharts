@@ -114,12 +114,12 @@ clear()
   if (usePixmap_) {
     if (! pixmap_) return;
 
-    pixmap_->fill(QColor(0,0,0,0));
+    pixmap_->fill(QColor(0, 0, 0, 0));
   }
   else {
     if (! image_) return;
 
-    image_->fill(QColor(0,0,0,0));
+    image_->fill(QColor(0, 0, 0, 0));
   }
 }
 

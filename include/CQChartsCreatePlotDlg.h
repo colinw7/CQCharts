@@ -82,14 +82,14 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   struct PlotData {
     using Names        = std::set<QString>;
-    using ColumnEdits  = std::map<QString,ColumnEditData>;
-    using ColumnsEdits = std::map<QString,CQChartsColumnsLineEdit*>;
-    using LineEdits    = std::map<QString,CQChartsLineEdit*>;
-    using WidgetEdits  = std::map<QString,QWidget*>;
-    using FormatEdits  = std::map<QString,FormatEditData>;
-    using Combos       = std::map<QString,QComboBox*>;
-    using CheckBoxes   = std::map<QString,QCheckBox*>;
-    using MapEdits     = std::map<QString,MapEditData>;
+    using ColumnEdits  = std::map<QString, ColumnEditData>;
+    using ColumnsEdits = std::map<QString, CQChartsColumnsLineEdit*>;
+    using LineEdits    = std::map<QString, CQChartsLineEdit*>;
+    using WidgetEdits  = std::map<QString, QWidget*>;
+    using FormatEdits  = std::map<QString, FormatEditData>;
+    using Combos       = std::map<QString, QComboBox*>;
+    using CheckBoxes   = std::map<QString, QCheckBox*>;
+    using MapEdits     = std::map<QString, MapEditData>;
 
     Names        names;
     ColumnEdits  columnEdits;
@@ -240,9 +240,9 @@ class CQChartsCreatePlotDlg : public QDialog {
   void connectSlots(bool b);
 
  private:
-  using TypePlotData    = std::map<QString,PlotData>;
-  using TabType         = std::map<int,CQChartsPlotType *>;
-  using TypeInitialized = std::map<QString,bool>;
+  using TypePlotData    = std::map<QString, PlotData>;
+  using TabType         = std::map<int, CQChartsPlotType *>;
+  using TypeInitialized = std::map<QString, bool>;
 
   struct RangeEditData {
     CQChartsLineEdit* xminEdit   { nullptr }; //!< xmin edit

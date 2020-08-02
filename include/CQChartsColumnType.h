@@ -762,7 +762,7 @@ class CQChartsColumnTypeMgr : public QObject {
   void endCache  (const QAbstractItemModel *model);
 
  private:
-  using TypeData = std::map<Type,CQChartsColumnType*>;
+  using TypeData = std::map<Type, CQChartsColumnType*>;
 
   struct TypeCacheData {
     CQChartsModelTypeData     typeData;
@@ -772,7 +772,7 @@ class CQChartsColumnTypeMgr : public QObject {
     bool                      headerValid      { false };
   };
 
-  using ColumnTypeCache = std::map<CQChartsColumn,TypeCacheData>;
+  using ColumnTypeCache = std::map<CQChartsColumn, TypeCacheData>;
 
   struct CacheData {
     ColumnTypeCache columnTypeCache;
@@ -780,7 +780,7 @@ class CQChartsColumnTypeMgr : public QObject {
     TypeCacheData   typeCacheData;
   };
 
-  using ModelCacheData = std::map<int,CacheData>;
+  using ModelCacheData = std::map<int, CacheData>;
 
  private:
   bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,

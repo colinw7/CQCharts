@@ -13,44 +13,28 @@ class CQChartsPlot;
  */
 class CQChartsPlotMargin : public CQChartsMargin {
  public:
-  using BBox = CQChartsGeom::BBox;
+  using Length = CQChartsLength;
+  using BBox   = CQChartsGeom::BBox;
+  using Size   = CQChartsGeom::Size;
 
  public:
-  CQChartsPlotMargin(const QString &str) {
-    setValue(str);
-  }
+  CQChartsPlotMargin() = default;
 
-  CQChartsPlotMargin(const CQChartsLength &l=CQChartsLength(),
-                     const CQChartsLength &t=CQChartsLength(),
-                     const CQChartsLength &r=CQChartsLength(),
-                     const CQChartsLength &b=CQChartsLength()) :
-   CQChartsMargin(l, t, r, b) {
-  }
+  explicit CQChartsPlotMargin(const QString &str);
 
-  CQChartsPlotMargin(double l, double t, double r, double b) :
-   CQChartsMargin(l, t, r, b) {
-  }
+  CQChartsPlotMargin(const Length &l, const Length &t, const Length &r, const Length &b);
 
-  CQChartsPlotMargin(const CQChartsLength &l) :
-   CQChartsMargin(l, l, l, l) {
-  }
+//CQChartsPlotMargin(double l, double t, double r, double b);
 
-  CQChartsPlotMargin(double l) :
-   CQChartsMargin(l) {
-  }
+  explicit CQChartsPlotMargin(const Length &l);
 
-  void set(const CQChartsLength &l, const CQChartsLength &t,
-           const CQChartsLength &r, const CQChartsLength &b) {
-    CQChartsMargin::set(l, t, r, b);
-  }
+//CQChartsPlotMargin(double l);
 
-  void set(const CQChartsLength &l) {
-    CQChartsMargin::set(l);
-  }
+  void set(const Length &l, const Length &t, const Length &r, const Length &b);
 
-  bool setValue(const QString &str) {
-    return CQChartsMargin::setValue(str);
-  }
+  void set(const Length &l);
+
+  bool setValue(const QString &str);
 
   BBox adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside=false) const;
   BBox adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside=false) const;

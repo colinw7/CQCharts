@@ -15,7 +15,7 @@ class CQChartsModelData;
  */
 class CQChartsAnalyzeModel {
  public:
-  using TypeAnalyzeModelData = std::map<QString,CQChartsAnalyzeModelData>;
+  using TypeAnalyzeModelData = std::map<QString, CQChartsAnalyzeModelData>;
 
  public:
   CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData);

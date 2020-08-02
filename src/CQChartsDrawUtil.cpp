@@ -104,8 +104,8 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
 
   auto bbox = poly.boundingBox();
 
-  double pw = device->lengthPixelWidth (bbox.getWidth ());
-  double ph = device->lengthPixelHeight(bbox.getHeight());
+  double pw = device->lengthPixelWidth (CQChartsLength(bbox.getWidth (), CQChartsUnits::PLOT));
+  double ph = device->lengthPixelHeight(CQChartsLength(bbox.getHeight(), CQChartsUnits::PLOT));
 
   if (pw > minSize && ph > minSize) {
     double xsize = device->lengthPixelWidth (xlen);
@@ -734,7 +734,7 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength)
 
   //---
 
-  using LenClipped = std::map<int,bool>;
+  using LenClipped = std::map<int, bool>;
 
   LenClipped lenClipped;
 

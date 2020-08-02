@@ -135,10 +135,10 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_PROPERTY(double  maxValue  READ maxValue )
 
  public:
-  using ColorCount = std::map<int,int>;
-  using ColorSet   = std::map<CQChartsColor,int>;
+  using ColorCount = std::map<int, int>;
+  using ColorSet   = std::map<CQChartsColor, int>;
   using ColorRows  = std::set<int>;
-  using ColorSize  = std::pair<CQChartsColor,double>;
+  using ColorSize  = std::pair<CQChartsColor, double>;
   using ColorSizes = std::vector<ColorSize>;
 
   struct ColorData {
@@ -498,7 +498,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
   // stats data
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats,stats)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
 
   Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
 
@@ -516,12 +516,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot,dot)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot, dot)
 
   // rug symbols
   Q_PROPERTY(bool rug READ isRug WRITE setRug)
 
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug,rug)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug, rug)
 
   Q_ENUMS(PlotType)
   Q_ENUMS(ValueType)
@@ -814,7 +814,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
  private:
   using Inds         = std::vector<ModelIndex>;
-  using BucketValues = std::map<Bucket,VariantIndsData>;
+  using BucketValues = std::map<Bucket, VariantIndsData>;
 
   struct Values {
     Inds              inds;                      //!< value indices
@@ -832,13 +832,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     Values &operator=(const Values &) = delete;
   };
 
-  using GroupValues   = std::map<int,Values *>;
-  using GroupBucketer = std::map<int,CQBucketer>;
+  using GroupValues   = std::map<int, Values *>;
+  using GroupBucketer = std::map<int, CQBucketer>;
 
   using Filters     = std::vector<Filter>;
   using FilterStack = std::vector<Filters>;
 
-  using GroupBucketRange = std::map<int,IMinMax>;
+  using GroupBucketRange = std::map<int, IMinMax>;
 
  private:
   void bucketGroupValues() const;

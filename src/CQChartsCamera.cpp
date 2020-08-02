@@ -119,7 +119,7 @@ transform(const Point3D &p) const
 
   //---
 
-  // map to unit radius cube centered at 0,0
+  // map to unit radius cube centered at 0, 0
   const auto &range3D = plot_->range3D();
 
   if (! range3D.isSet())
@@ -170,7 +170,7 @@ untransform(const Point3D &p) const
 {
   if (! enabled_) return p;
 
-  // map to unit radius cube centered at 0,0
+  // map to unit radius cube centered at 0, 0
   const auto &range3D = plot_->range3D();
 
   if (! range3D.isSet())

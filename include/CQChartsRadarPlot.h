@@ -63,7 +63,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
  public:
   using RadarPlot  = CQChartsRadarPlot;
-  using NameValues = std::map<QString,double>;
+  using NameValues = std::map<QString, double>;
 
  public:
   CQChartsRadarObj(const RadarPlot *plot, const BBox &rect, const QString &name,
@@ -131,7 +131,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsAngle angleExtent READ angleExtent WRITE setAngleExtent)
 
   // grid
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid, grid)
 
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
@@ -230,7 +230,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
     double sum_ { 0.0 };
   };
 
-  using ValueDatas = std::map<int,ValueData>;
+  using ValueDatas = std::map<int, ValueData>;
 
   Column     nameColumn_;             //!< name column
   Columns    valueColumns_;           //!< value columns

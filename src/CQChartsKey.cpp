@@ -425,7 +425,7 @@ draw(CQChartsPaintDevice *device) const
     textOptions.html          = isTextHtml();
     textOptions.clipLength    = textClipLength();
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(rect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, view()->pixelToWindow(rect1), name, textOptions);
 
     //---
 
@@ -462,7 +462,7 @@ drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool check
 {
   QImage cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
-  cimage.fill(QColor(0,0,0,0));
+  cimage.fill(QColor(0, 0, 0, 0));
 
   BBox bbox(0, 0, bs, bs);
 
@@ -1013,8 +1013,8 @@ doLayout()
   //---
 
   // get items in each cell and dimension of grid
-  using ColItems    = std::map<int,Items>;
-  using RowColItems = std::map<int,ColItems>;
+  using ColItems    = std::map<int, Items>;
+  using RowColItems = std::map<int, ColItems>;
 
   RowColItems rowColItems;
 
@@ -1751,12 +1751,12 @@ draw(CQChartsPaintDevice *device) const
   //---
 
   // draw box (background)
-  CQChartsBoxObj::draw(device, device->pixelToWindow(pixelRect));
+  CQChartsBoxObj::draw(device, plot()->pixelToWindow(pixelRect));
 
   //---
 
   if (clipped) {
-    auto cr = device->pixelToWindow(clipRect);
+    auto cr = plot()->pixelToWindow(clipRect);
 
     device->setClipRect(cr);
   }
@@ -1832,7 +1832,7 @@ draw(CQChartsPaintDevice *device) const
     // draw text
     device->setPen(tPenBrush.pen);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), headerStr(), textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, plot()->pixelToWindow(trect), headerStr(), textOptions);
   }
 
   //---
@@ -2165,7 +2165,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(prect1), cornerRadius());
+  CQChartsDrawUtil::drawRoundedPolygon(device, plot->pixelToWindow(prect1), cornerRadius());
 }
 
 QBrush
@@ -2309,11 +2309,11 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawLine(device->pixelToWindow(Point(x1, y)), device->pixelToWindow(Point(x2, y)));
+  device->drawLine(plot->pixelToWindow(Point(x1, y)), plot->pixelToWindow(Point(x2, y)));
 
   Point ps(CMathUtil::avg(x1, x2), y);
 
-  plot->drawSymbol(device, device->pixelToWindow(ps), symbolData_.type(),
+  plot->drawSymbol(device, plot->pixelToWindow(ps), symbolData_.type(),
                    symbolData_.size(), penBrush);
 }
 
@@ -2392,7 +2392,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
   device->setBrush(brush);
 
-  device->fillRect(device->pixelToWindow(fbbox));
+  device->fillRect(plot_->pixelToWindow(fbbox));
 
   //---
 
@@ -2429,7 +2429,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
   // draw key labels
   auto drawTextLabel = [&](const Point &p, int n) {
-    auto p1 = device->pixelToWindow(p);
+    auto p1 = plot_->pixelToWindow(p);
 
     QString text = QString("%1").arg(n);
 

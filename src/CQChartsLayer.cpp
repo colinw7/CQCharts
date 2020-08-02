@@ -2,8 +2,8 @@
 
 namespace {
 
-using LayerTypeName = std::map<CQChartsLayer::Type,QString>;
-using NameLayerType = std::map<QString,CQChartsLayer::Type>;
+using LayerTypeName = std::map<CQChartsLayer::Type, QString>;
+using NameLayerType = std::map<QString, CQChartsLayer::Type>;
 
 static LayerTypeName s_LayerTypeName;
 static NameLayerType s_NameLayerType;

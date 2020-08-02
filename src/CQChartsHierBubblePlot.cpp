@@ -763,7 +763,7 @@ loadFlat() const
 
    private:
     using ModelInds = std::vector<ModelIndex>;
-    using GroupInds = std::map<int,ModelInds>;
+    using GroupInds = std::map<int, ModelInds>;
 
     const Plot*       plot_ { nullptr };
     mutable GroupInds groupInds_;
@@ -1495,7 +1495,7 @@ drawText(PaintDevice *device, const BBox &bbox)
     //---
 
     // calc scale factor
-    auto pbbox = device->windowToPixel(bbox);
+    auto pbbox = plot_->windowToPixel(bbox);
 
     double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
     double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
@@ -1533,15 +1533,15 @@ drawText(PaintDevice *device, const BBox &bbox)
   auto tp = pc;
 
   if      (strs.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), name, textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp), name, textOptions);
   }
   else if (strs.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
 
-    auto tp1 = device->pixelToWindow(Point(pc.x, pc.y - th/2));
-    auto tp2 = device->pixelToWindow(Point(pc.x, pc.y + th/2));
+    auto tp1 = plot_->pixelToWindow(Point(pc.x, pc.y - th/2));
+    auto tp2 = plot_->pixelToWindow(Point(pc.x, pc.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);

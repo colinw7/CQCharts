@@ -1,6 +1,7 @@
 #include <CQChartsBubblePlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTitle.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
@@ -95,6 +96,8 @@ CQChartsBubblePlot(View *view, const ModelP &model) :
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
   setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
+
+  marginSet_ = false;
 
   addTitle();
 }
@@ -290,6 +293,14 @@ createObjs(PlotObjs &objs) const
   th->clearErrors();
 
   //---
+
+  if (! marginSet_) {
+    if (title()->textStr().length() > 0) {
+      th->setOuterMargin(PlotMargin(Length("4px"), Length("5%"), Length("4px"), Length("4px")));
+
+      marginSet_ = true;
+    }
+  }
 
   // init value sets
 //initValueSets();
@@ -552,7 +563,7 @@ loadModel() const
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(data, name, nameInd);
+      bool hasName = getName(data, name, nameInd);
 
       //---
 
@@ -570,7 +581,18 @@ loadModel() const
 
       auto nameInd1 = plot_->normalizeIndex(nameInd);
 
-      auto *node = plot_->addNode(parentHier(data), name, size, nameInd1);
+      auto *pnode = parentHier(data);
+
+      if (! hasName) {
+        name = pnode->hierName();
+
+        QStringList names = name.split("/", QString::KeepEmptyParts);
+
+        if (names.size() > 0)
+          name = names.back();
+      }
+
+      auto *node = plot_->addNode(pnode, name, size, nameInd1);
 
       if (node) {
         Color color;
@@ -611,7 +633,8 @@ loadModel() const
 
         QString groupName = plot_->groupIndName(groupInd, /*hier*/false);
 
-        auto *node = plot_->addNode(parentHier(data), groupName, size, nameInd1);
+        auto *pnode = parentHier(data);
+        auto *node  = plot_->addNode(pnode, groupName, size, nameInd1);
 
         for (const auto &ind : modelInds) {
           ModelIndex nameModelInd;
@@ -654,6 +677,9 @@ loadModel() const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      if (! plot_->nameColumn().isValid() && ! plot_->idColumn().isValid())
+        return false;
+
       auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex nameModelInd;
@@ -666,7 +692,6 @@ loadModel() const
       nameInd = plot_->modelIndex(nameModelInd);
 
       bool ok;
-
       name = plot_->modelString(nameModelInd, ok);
 
       return ok;
@@ -709,7 +734,7 @@ loadModel() const
 
    private:
     using ModelInds = std::vector<ModelIndex>;
-    using GroupInds = std::map<int,ModelInds>;
+    using GroupInds = std::map<int, ModelInds>;
 
     const Plot*       plot_ { nullptr };
     mutable GroupInds groupInds_;
@@ -736,9 +761,16 @@ groupHierNode(HierNode *parent, int groupInd) const
 
   QString name = groupIndName(groupInd, /*hier*/true);
 
+  QString name1 = name;
+
+  QStringList names = name.split("/", QString::KeepEmptyParts);
+
+  if (names.size() > 0)
+    name1 = names.back();
+
   QModelIndex ind;
 
-  auto *hierNode = th->addHierNode(parent, name, ind);
+  auto *hierNode = th->addHierNode(parent, name1, ind);
 
   auto p1 = th->groupHierNodes_.insert(th->groupHierNodes_.end(),
               GroupHierNodes::value_type(groupInd, hierNode));
@@ -1164,7 +1196,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
     //---
 
     // calc scale factor
-    auto pbbox = device->windowToPixel(bbox);
+    auto pbbox = plot_->windowToPixel(bbox);
 
     double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
     double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
@@ -1212,15 +1244,15 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   auto tp = pc;
 
   if      (strs1.size() == 1) {
-    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), strs1[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp), strs1[0], textOptions);
   }
   else if (strs1.size() == 2) {
     QFontMetricsF fm(device->font());
 
     double th = fm.height();
 
-    auto tp1 = device->pixelToWindow(Point(tp.x, tp.y - th/2));
-    auto tp2 = device->pixelToWindow(Point(tp.x, tp.y + th/2));
+    auto tp1 = plot_->pixelToWindow(Point(tp.x, tp.y - th/2));
+    auto tp2 = plot_->pixelToWindow(Point(tp.x, tp.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs1[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs1[1], textOptions);
@@ -1264,7 +1296,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   if (isPoint) {
     if      (plot_->isFilled())
       plot_->setPenBrush(penBrush,
-        PenData  (true, fc, plot_->fillAlpha(), 0.0),
+        PenData  (true, fc, plot_->fillAlpha()),
         BrushData(true, fc, plot_->fillAlpha(), plot_->fillPattern()));
     else if (plot_->isStroked())
       plot_->setPenBrush(penBrush,

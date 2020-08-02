@@ -95,7 +95,7 @@ class CQChartsObjLineData {
 
 //------
 
-#define CQCHARTS_NAMED_LINE_DATA_PROPERTIES(UNAME,LNAME) \
+#define CQCHARTS_NAMED_LINE_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsLineData LNAME##LineData READ LNAME##LineData WRITE set##UNAME##LineData) \
 \
 Q_PROPERTY(bool             LNAME##Lines      READ is##UNAME##Lines  WRITE set##UNAME##Lines     ) \
@@ -108,7 +108,7 @@ Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##
  * \brief Object named line data
  * \ingroup Charts
  */
-#define CQCHARTS_NAMED_LINE_DATA(UNAME,LNAME) \
+#define CQCHARTS_NAMED_LINE_DATA(UNAME, LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##LineData { \
  public: \
@@ -339,7 +339,7 @@ class CQChartsObjPointData {
 
 //------
 
-#define CQCHARTS_NAMED_POINT_DATA_PROPERTIES(UNAME,LNAME) \
+#define CQCHARTS_NAMED_POINT_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsSymbolData LNAME##SymbolData \
            READ LNAME##SymbolData WRITE set##UNAME##SymbolData) \
 \
@@ -372,7 +372,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
  * \brief Object named point data
  * \ingroup Charts
  */
-#define CQCHARTS_NAMED_POINT_DATA(UNAME,LNAME) \
+#define CQCHARTS_NAMED_POINT_DATA(UNAME, LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##PointData { \
  public: \
@@ -521,7 +521,7 @@ class CQChartsObj##UNAME##PointData { \
 
 //------
 
-#define CQCHARTS_NAMED_FILL_DATA_PROPERTIES(UNAME,LNAME) \
+#define CQCHARTS_NAMED_FILL_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsFillData LNAME##FillData READ LNAME##FillData WRITE set##UNAME##FillData) \
 \
 Q_PROPERTY(bool                LNAME##Filled \
@@ -537,7 +537,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
  * \brief Object named fill data
  * \ingroup Charts
  */
-#define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
+#define CQCHARTS_NAMED_FILL_DATA(UNAME, LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##FillData { \
  public: \
@@ -726,7 +726,7 @@ class CQChartsObjTextData {
 
 //------
 
-#define CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(UNAME,LNAME) \
+#define CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsTextData LNAME##TextData READ LNAME##TextData WRITE set##UNAME##TextData) \
 \
 Q_PROPERTY(bool           LNAME##TextVisible \
@@ -758,7 +758,7 @@ Q_PROPERTY(CQChartsLength LNAME##TextClipLength \
  * \brief Object named text data
  * \ingroup Charts
  */
-#define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
+#define CQCHARTS_NAMED_TEXT_DATA(UNAME, LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##TextData { \
  public: \
@@ -1083,7 +1083,7 @@ class CQChartsObjShapeData {
 
 //------
 
-#define CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(UNAME,LNAME) \
+#define CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(UNAME, LNAME) \
 Q_PROPERTY(CQChartsShapeData LNAME##ShapeData \
            READ LNAME##ShapeData WRITE set##UNAME##ShapeData) \
 \
@@ -1113,7 +1113,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
  * \brief Object named shape data
  * \ingroup Charts
  */
-#define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
+#define CQCHARTS_NAMED_SHAPE_DATA(UNAME, LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##ShapeData { \
  public: \
@@ -1371,15 +1371,15 @@ class CQChartsObjBoxData {
 
 //------
 
-CQCHARTS_NAMED_FILL_DATA (Background,background)
-CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
-CQCHARTS_NAMED_TEXT_DATA (Header,header)
-CQCHARTS_NAMED_SHAPE_DATA(BestFit,bestFit)
-CQCHARTS_NAMED_LINE_DATA (Stats,stats)
+CQCHARTS_NAMED_FILL_DATA (Background, background)
+CQCHARTS_NAMED_SHAPE_DATA(Bar, bar)
+CQCHARTS_NAMED_TEXT_DATA (Header, header)
+CQCHARTS_NAMED_SHAPE_DATA(BestFit, bestFit)
+CQCHARTS_NAMED_LINE_DATA (Stats, stats)
 
-CQCHARTS_NAMED_SHAPE_DATA(Cell,cell)
-CQCHARTS_NAMED_TEXT_DATA(CellLabel,cellLabel)
-CQCHARTS_NAMED_TEXT_DATA(XLabel,xLabel)
-CQCHARTS_NAMED_TEXT_DATA(YLabel,yLabel)
+CQCHARTS_NAMED_SHAPE_DATA(Cell, cell)
+CQCHARTS_NAMED_TEXT_DATA(CellLabel, cellLabel)
+CQCHARTS_NAMED_TEXT_DATA(XLabel, xLabel)
+CQCHARTS_NAMED_TEXT_DATA(YLabel, yLabel)
 
 #endif

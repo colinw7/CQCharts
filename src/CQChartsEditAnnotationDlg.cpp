@@ -767,6 +767,8 @@ createPositionEdit(const QString &name, const CQChartsPosition &pos, const QStri
 {
   auto *edit = CQUtil::makeWidget<CQChartsPositionEdit>(name);
 
+  edit->setPlot(annotation_->plot());
+
   edit->setPosition(pos);
 
   if (tip != "")
@@ -794,6 +796,8 @@ CQChartsEditAnnotationDlg::
 createRectEdit(const QString &name, const CQChartsRect &rect, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsRectEdit>(name);
+
+  edit->setPlot(annotation_->plot());
 
   edit->setRect(rect);
 

@@ -2635,7 +2635,7 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-model"    , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column"   , CQChartsCmdArg::Type::Column , "column to fold");
   argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "hier separator char");
-  argv.addCmdArg("-keep"     , CQChartsCmdArg::Type::Boolean, "key fold column");
+  argv.addCmdArg("-keep"     , CQChartsCmdArg::Type::Boolean, "keep fold column");
 
   bool rc;
 
@@ -3207,7 +3207,7 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
     }
 
    private:
-    using ColumnWidths = std::map<int,int>;
+    using ColumnWidths = std::map<int, int>;
 
     struct Row {
       int         depth { 0 };
@@ -3254,7 +3254,7 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
     output.setHeader(strs);
   };
 
-  std::function<void(const QModelIndex &,int)> outputHier;
+  std::function<void(const QModelIndex &, int)> outputHier;
 
   outputHier = [&](const QModelIndex &parent, int depth) -> void {
     int nr = model.data()->rowCount(parent);
@@ -4159,7 +4159,6 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
 
   return cmdBase_->setCmdRc(pivotModelData->ind());
 }
-
 
 //------
 
@@ -6386,6 +6385,7 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image file");
   argv.addCmdArg("-icon" , CQChartsCmdArg::Type::String, "icon file");
+  argv.addCmdArg("-svg"  , CQChartsCmdArg::Type::String, "svg file");
   argv.endCmdGroup();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
@@ -6414,23 +6414,29 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   // get image
   CQChartsImage image;
+  QString       imageName;
 
   if      (argv.hasParseArg("image")) {
-    QString imageName = argv.getParseStr("image");
+    imageName = argv.getParseStr("image");
 
     image = CQChartsImage(imageName, CQChartsImage::Type::IMAGE);
+  }
+  else if (argv.hasParseArg("icon")) {
+    imageName = argv.getParseStr("icon");
 
-    if (! image.isValid())
-      return errorMsg(QString("Invalid image filename '%1'").arg(imageName));
+    image = CQChartsImage(imageName, CQChartsImage::Type::ICON);
+  }
+  else if (argv.hasParseArg("svg")) {
+    imageName = argv.getParseStr("svg");
+
+    image = CQChartsImage(imageName, CQChartsImage::Type::SVG);
   }
   else {
-    QString iconName = argv.getParseStr("icon");
-
-    image = CQChartsImage(iconName, CQChartsImage::Type::ICON);
-
-    if (! image.isValid())
-      return errorMsg(QString("Invalid image filename '%1'").arg(iconName));
+    return errorMsg("Invalid image type");
   }
+
+  if (! image.isValid())
+    return errorMsg(QString("Invalid image filename '%1'").arg(imageName));
 
   //---
 

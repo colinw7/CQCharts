@@ -368,7 +368,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Header,header)
+CQCHARTS_NAMED_SHAPE_DATA(Header, header)
 
 /*!
  * \brief Tree Map Plot
@@ -395,10 +395,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
   // header shape (stroke, fill)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header,header)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header, header)
 
   // header font, color
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)

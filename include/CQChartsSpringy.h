@@ -137,7 +137,7 @@ namespace Springy {
     double k_      { 1.0 };     //!< spring constant (See Hooke's law) .. how stiff the spring is
   };
 
-  using NodePoint = std::pair<Node*,Point*>;
+  using NodePoint = std::pair<Node*, Point*>;
 
   //-----------
 
@@ -404,9 +404,9 @@ namespace Springy {
     }
 
    public:
-    using NodeSet       = std::map<int,Node*>;
-    using NodeEdges     = std::map<int,Edges>;
-    using NodeNodeEdges = std::map<int,NodeEdges>;
+    using NodeSet       = std::map<int, Node*>;
+    using NodeEdges     = std::map<int, Edges>;
+    using NodeNodeEdges = std::map<int, NodeEdges>;
 
    private:
     NodeSet       nodeSet_;
@@ -573,7 +573,7 @@ namespace Springy {
         // Is this, along with updatePosition below, the only places that your
         // integration code exist?
         point->setV(point->v().add(point->a().multiply(timestep)).multiply(damping_));
-        point->setA(Vector(0,0));
+        point->setA(Vector(0, 0));
       }
     }
 
@@ -646,8 +646,8 @@ namespace Springy {
     }
 
    private:
-    using NodePoints  = std::map<int,Point*>;
-    using EdgeSprings = std::map<int,Spring*>;
+    using NodePoints  = std::map<int, Point*>;
+    using EdgeSprings = std::map<int, Spring*>;
 
     Graph*      graph_              { nullptr }; //!< parent graph
     double      stiffness_          { 400.0 };   //!< spring stiffness constant

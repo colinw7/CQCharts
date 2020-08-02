@@ -164,8 +164,8 @@ class CQChartsExprTcl : public CQTcl {
   }
 
  private:
-  using NameColumns = std::map<QString,int>;
-  using ColumnRoles = std::map<int,int>;
+  using NameColumns = std::map<QString, int>;
+  using ColumnRoles = std::map<int, int>;
 
   QAbstractItemModel *model_  { nullptr };
   int                 row_    { -1 };

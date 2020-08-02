@@ -687,6 +687,8 @@ createPositionEdit(const QString &name, double x, double y, const QString &tip) 
 {
   auto *edit = CQUtil::makeWidget<CQChartsPositionEdit>(name);
 
+  edit->setPlot(plot());
+
   auto pos = CQChartsViewPlotObj::makePosition(view(), plot(), x, y);
 
   edit->setPosition(pos);
@@ -718,6 +720,8 @@ CQChartsCreateAnnotationDlg::
 createRectEdit(const QString &name, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsRectEdit>(name);
+
+  edit->setPlot(plot());
 
   auto rect = CQChartsViewPlotObj::makeRect(view(), plot(), 0, 0, 1, 1);
 

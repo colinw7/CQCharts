@@ -264,7 +264,7 @@ processCmd(const QString &name, const Values &values)
 
 //------
 
-// column(), column(col), column(col,defVal) : get column value
+// column(), column(col), column(col, defVal) : get column value
 QVariant
 CQChartsModelExprMatch::
 columnCmd(const Values &values) const
@@ -332,7 +332,7 @@ rowCmd(const Values &values) const
 
 //---
 
-// cell(), cell(row,column), cell(row,column,defVal) : get cell value
+// cell(), cell(row, column), cell(row, column, defVal) : get cell value
 QVariant
 CQChartsModelExprMatch::
 cellCmd(const Values &values) const

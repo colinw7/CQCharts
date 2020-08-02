@@ -33,7 +33,7 @@ class CQChartsCmdArg {
     Reals
   };
 
-  using NameValue  = std::pair<QString,int>;
+  using NameValue  = std::pair<QString, int>;
   using NameValues = std::vector<NameValue>;
 
  public:

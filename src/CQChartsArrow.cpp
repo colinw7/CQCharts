@@ -112,15 +112,15 @@ drawContents(const PenBrush &penBrush) const
 //};
 
   auto lengthLocalWidth = [&](const CQChartsLength &l) {
-    if      (plot()) return plot()->lengthPlotWidth(l);
-    else if (view()) return view()->lengthViewWidth(l);
-    else             return l.value();
+    if      (plot()) return CQChartsLength(plot()->lengthPlotWidth(l), CQChartsUnits::PLOT);
+    else if (view()) return CQChartsLength(view()->lengthViewWidth(l), CQChartsUnits::VIEW);
+    else             return l;
   };
 
 //auto lengthLocalHeight = [&](const CQChartsLength &l) {
-//  if      (plot()) return plot()->lengthPlotHeight(l);
-//  else if (view()) return view()->lengthViewHeight(l);
-//  else             return l.value();
+//  if      (plot()) return CQChartsLength(plot()->lengthPlotHeight(l), CQChartsUnits::PLOT);
+//  else if (view()) return CQChartsLength(view()->lengthViewHeight(l), CQChartsUnits::VIEW);
+//  else             return l;
 //};
 
   //---

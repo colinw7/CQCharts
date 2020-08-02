@@ -92,12 +92,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double maxLineWidth READ maxLineWidth WRITE setMaxLineWidth)
 
   // node stroke/fill
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
 
   // edge line
   Q_PROPERTY(bool edgeLinesValueWidth READ isEdgeLinesValueWidth WRITE setEdgeLinesValueWidth)
 
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge,edge)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge, edge)
 
   // info
   Q_PROPERTY(int numNodes READ numNodes)
@@ -252,7 +252,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
     Connections connections;           //!< connections
   };
 
-  using IdConnectionsData = std::map<int,ConnectionsData>;
+  using IdConnectionsData = std::map<int, ConnectionsData>;
 
  private:
   bool getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, int &destId,
@@ -274,9 +274,9 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
  private:
   using NodeMap         = std::map<int, CQChartsSpringyNode *>;
-  using ConnectionNodes = std::map<int,int>;
+  using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
-  using StringIndMap    = std::map<QString,int>;
+  using StringIndMap    = std::map<QString, int>;
 
   // options
   bool   running_             { true }; //!< is running

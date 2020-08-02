@@ -300,6 +300,13 @@ setMapXColumn(bool b)
   CQChartsUtil::testAndSet(mapXColumn_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsXYPlot::
+setShowAllXOverlayAxes(bool b)
+{
+  CQChartsUtil::testAndSet(showAllXOverlayAxes_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -506,6 +513,10 @@ addProperties()
   //---
 
   addProp("key", "keyLine", "drawLine", "Draw lines on key");
+
+  //---
+
+  addProp("xaxis", "showAllXOverlayAxes", "showOverlayAxes", "Show all overlay x axes");
 
   //---
 
@@ -2092,6 +2103,53 @@ addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
 
 //---
 
+void
+CQChartsXYPlot::
+drawXAxis(PaintDevice *device) const
+{
+  if (! isShowAllXOverlayAxes() || ! isOverlay() || ! isFirstPlot()) {
+    CQChartsPlot::drawXAxis(device);
+    return;
+  }
+
+  if (xAxis()->position().isSet()) {
+    CQChartsPlot::drawXAxis(device);
+    return;
+  }
+
+  //---
+
+  double apos1, apos2;
+
+  xAxis()->calcPos(this, apos1, apos2);
+
+  Plots plots;
+
+  overlayPlots(plots);
+
+  for (auto &plot : plots) {
+    if (plot == this)
+      continue;
+
+    if (! plot->xAxis())
+      continue;
+
+    plot->xAxis()->setPosition(CQChartsOptReal(apos1));
+
+    plot->CQChartsPlot::drawXAxis(device);
+
+    apos1 -= plot->xAxis()->bbox().getHeight();
+  }
+
+  xAxis()->setPosition(CQChartsOptReal(apos1));
+
+  CQChartsPlot::drawXAxis(device);
+
+  xAxis()->setPosition(CQChartsOptReal());
+}
+
+//---
+
 CQChartsXYPointObj *
 CQChartsXYPlot::
 createPointObj(int groupInd, const BBox &rect, const Point &p, const ColorInd &is,
@@ -2620,7 +2678,7 @@ drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
   //--
 
   // draw line
-  device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
+  device->drawLine(plot_->pixelToWindow(p1), plot_->pixelToWindow(p2));
 }
 
 void
@@ -2648,8 +2706,10 @@ drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
   //---
 
   // draw symbols
-  plot()->drawSymbol(device, p1, symbol, CMathUtil::avg(sx, sy), penBrush);
-  plot()->drawSymbol(device, p2, symbol, CMathUtil::avg(sx, sy), penBrush);
+  auto ss = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PLOT);
+
+  plot()->drawSymbol(device, p1, symbol, ss, penBrush);
+  plot()->drawSymbol(device, p2, symbol, ss, penBrush);
 }
 
 //------
@@ -2792,12 +2852,12 @@ draw(CQChartsPaintDevice *device)
   auto p2 = plot()->windowToPixel(Point(x(), y2()));
 
   if (lw <= 1) {
-    device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
+    device->drawLine(plot_->pixelToWindow(p1), plot_->pixelToWindow(p2));
   }
   else {
     BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(bbox));
+    CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(bbox));
   }
 }
 
@@ -4097,7 +4157,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
 
     device->setPen(linePenBrush.pen);
 
-    device->drawLine(device->pixelToWindow(Point(x1, y)), device->pixelToWindow(Point(x2, y)));
+    device->drawLine(plot()->pixelToWindow(Point(x1, y)), plot()->pixelToWindow(Point(x2, y)));
   }
 
   if (plot()->isPoints()) {
@@ -4142,7 +4202,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
 
     Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
-    plot()->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    plot()->drawSymbol(device, plot()->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 
   device->restore();
@@ -4360,7 +4420,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
     device->setPen(linePenBrush.pen);
 
-    device->drawLine(device->pixelToWindow(Point(x1, y)), device->pixelToWindow(Point(x2, y)));
+    device->drawLine(plot()->pixelToWindow(Point(x1, y)), plot()->pixelToWindow(Point(x2, y)));
   }
 
   if (plot()->isPoints()) {
@@ -4405,7 +4465,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
     Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
-    plot()->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    plot()->drawSymbol(device, plot()->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 
   device->restore();

@@ -417,7 +417,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
  protected:
   using ChordData   = CQChartsChordData;
-  using NameDataMap = std::map<QString,ChordData>;
+  using NameDataMap = std::map<QString, ChordData>;
 
   //---
 

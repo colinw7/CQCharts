@@ -417,7 +417,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // grid
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid, grid)
 
   Q_ENUMS(ExplodeStyle)
 
@@ -590,8 +590,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
     PieGroupObj* groupObj     { nullptr }; //!< associated group obj
   };
 
-  using GroupInd   = std::map<QString,int>;
-  using GroupDatas = std::map<int,GroupData>;
+  using GroupInd   = std::map<QString, int>;
+  using GroupDatas = std::map<int, GroupData>;
   using GroupObjs  = std::vector<PieGroupObj *>;
 
   struct ExplodeData {

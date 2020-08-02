@@ -68,8 +68,7 @@ CQChartsSunburstPlot(View *view, const ModelP &model) :
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
 
-  setOuterMargin(CQChartsPlotMargin(Length("4px"), Length("4px"),
-                                    Length("4px"), Length("4px")));
+  setOuterMargin(PlotMargin(Length("4px"), Length("4px"), Length("4px"), Length("4px")));
 
   // addKey() // TODO
 
@@ -484,7 +483,10 @@ loadHier(HierNode *root) const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsSunburstPlot *plot, HierNode *root) :
+    using Plot = CQChartsSunburstPlot;
+
+   public:
+    RowVisitor(const Plot *plot, HierNode *root) :
      plot_(plot) {
       hierStack_.push_back(root);
     }
@@ -522,7 +524,7 @@ loadHier(HierNode *root) const
 
       //---
 
-      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       double size = 1.0;
 
@@ -555,7 +557,7 @@ loadHier(HierNode *root) const
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       ModelIndex nameModelInd(plot, data.row, plot_->nameColumns().column(), data.parent);
 
@@ -571,8 +573,8 @@ loadHier(HierNode *root) const
    private:
     using HierStack = std::vector<HierNode *>;
 
-    const CQChartsSunburstPlot* plot_ { nullptr };
-    HierStack                   hierStack_;
+    const Plot* plot_ { nullptr };
+    HierStack   hierStack_;
   };
 
   RowVisitor visitor(this, root);
@@ -624,7 +626,10 @@ loadFlat(HierNode *root) const
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsSunburstPlot *plot, HierNode *root) :
+    using Plot = CQChartsSunburstPlot;
+
+   public:
+    RowVisitor(const Plot *plot, HierNode *root) :
      plot_(plot), root_(root) {
     }
 
@@ -641,7 +646,7 @@ loadFlat(HierNode *root) const
 
       //---
 
-      auto *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       double size = 1.0;
 
@@ -676,8 +681,8 @@ loadFlat(HierNode *root) const
     }
 
    private:
-    const CQChartsSunburstPlot* plot_ { nullptr };
-    HierNode*                   root_ { nullptr };
+    const Plot* plot_ { nullptr };
+    HierNode*   root_ { nullptr };
   };
 
   RowVisitor visitor(this, root);

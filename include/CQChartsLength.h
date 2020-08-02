@@ -20,29 +20,18 @@ class CQChartsLength {
   using Units = CQChartsUnits;
 
  public:
+  CQChartsLength() = default;
+
   CQChartsLength(const Units &units, double value) :
    units_(units), value_(value) {
   }
 
-  CQChartsLength(double value=0.0, const Units &units=Units::PLOT) :
+  CQChartsLength(double value, const Units &units) :
    units_(units), value_(value) {
   }
 
   explicit CQChartsLength(const QString &s, const Units &units=Units::PLOT) {
     setValue(s, units);
-  }
-
-  CQChartsLength(const CQChartsLength &rhs) :
-    units_(rhs.units_), value_(rhs.value_) {
-  }
-
-  //---
-
-  CQChartsLength &operator=(const CQChartsLength &rhs) {
-    units_ = rhs.units_;
-    value_ = rhs.value_;
-
-    return *this;
   }
 
   //---

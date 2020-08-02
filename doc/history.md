@@ -1162,3 +1162,5 @@
 # 07/23/2020
  + Support grouped bubble plot and min size
  + Add widget annotation
+# 08/02/2020
+ + Add region tool support and link to rect/position widgets

@@ -1827,7 +1827,7 @@ draw(CQChartsPaintDevice *device)
 
         BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
+        CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(pbbox1));
       }
     }
     else {
@@ -1841,7 +1841,7 @@ draw(CQChartsPaintDevice *device)
 
         BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
+        CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(pbbox1));
       }
     }
 

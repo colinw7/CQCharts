@@ -315,7 +315,7 @@ class CQChartsCmdBaseArgs {
     //---
 
     using Names      = std::set<QString>;
-    using GroupNames = std::map<int,Names>;
+    using GroupNames = std::map<int, Names>;
 
     GroupNames groupNames;
 
@@ -1152,11 +1152,11 @@ class CQChartsCmdBaseArgs {
  private:
   using CmdArgs     = std::vector<CQChartsCmdArg>;
   using CmdGroups   = std::vector<CQChartsCmdGroup>;
-  using NameInt     = std::map<QString,int>;
-  using NameReal    = std::map<QString,double>;
-  using NameString  = std::map<QString,QString>;
-  using NameStrings = std::map<QString,QStringList>;
-  using NameBool    = std::map<QString,bool>;
+  using NameInt     = std::map<QString, int>;
+  using NameReal    = std::map<QString, double>;
+  using NameString  = std::map<QString, QString>;
+  using NameStrings = std::map<QString, QStringList>;
+  using NameBool    = std::map<QString, bool>;
 
  private:
   // get option names for group

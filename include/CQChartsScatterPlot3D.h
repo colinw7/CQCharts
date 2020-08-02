@@ -54,6 +54,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
  public:
   using Plot    = CQChartsScatterPlot3D;
   using Length  = CQChartsLength;
+  using Units   = CQChartsUnits;
   using Symbol  = CQChartsSymbol;
   using Point3D = CQChartsGeom::Point3D;
 
@@ -121,10 +122,10 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
  private:
   struct ExtraData {
-    CQChartsSymbol symbolType { CQChartsSymbol::Type::NONE }; //!< symbol type
-    CQChartsLength symbolSize { CQChartsUnits::NONE, 0.0 };   //!< symbol size
-    CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
-    CQChartsColor  color;                                     //!< symbol fill color
+    Symbol symbolType { Symbol::Type::NONE }; //!< symbol type
+    Length symbolSize { Units::NONE, 0.0 };   //!< symbol size
+    Length fontSize   { Units::NONE, 0.0 };   //!< font size
+    Color  color;                             //!< symbol fill color
   };
 
  private:
@@ -226,8 +227,8 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
     RMinMax zrange;
   };
 
-  using NameValues      = std::map<QString,ValuesData>;
-  using GroupNameValues = std::map<int,NameValues>;
+  using NameValues      = std::map<QString, ValuesData>;
+  using GroupNameValues = std::map<int, NameValues>;
 
   //--
 
@@ -397,7 +398,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
  private:
   using Points      = std::vector<Point3D>;
-  using GroupPoints = std::map<int,Points>;
+  using GroupPoints = std::map<int, Points>;
 
  protected:
   struct SymbolTypeData {
@@ -453,7 +454,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   GroupPoints     groupPoints_;     //!< group fit points
 
   // draw data
-  using GroupObj = std::map<int,GroupData>;
+  using GroupObj = std::map<int, GroupData>;
 
   mutable GroupObj groupObj_;
 };

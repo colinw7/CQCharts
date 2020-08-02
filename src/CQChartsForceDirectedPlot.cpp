@@ -95,9 +95,9 @@ CQChartsForceDirectedPlot(View *view, const ModelP &model) :
 
   forceDirected_ = new CQChartsForceDirected;
 
-  setOuterMargin(CQChartsPlotMargin(0, 0, 0, 0));
+  setOuterMargin(PlotMargin(Length("0P"), Length("0P"), Length("0P"), Length("0P")));
 
-  setNodeStrokeAlpha(CQChartsAlpha(0.5));
+  setNodeStrokeAlpha(Alpha(0.5));
 }
 
 CQChartsForceDirectedPlot::

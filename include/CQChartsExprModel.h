@@ -86,7 +86,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   using Values     = std::vector<QVariant>;
   using Rows       = std::vector<int>;
-  using NameValues = std::map<QString,QVariant>;
+  using NameValues = std::map<QString, QVariant>;
 
  public:
   CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model);
@@ -193,7 +193,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
  private:
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
-  using VariantMap = std::map<int,QVariant>;
+  using VariantMap = std::map<int, QVariant>;
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
@@ -311,9 +311,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  protected:
   using ExtraColumns = std::vector<ExtraColumn *>;
-  using ColumnDatas  = std::map<int,ColumnData>;
-  using ColumnNames  = std::map<int,QString>;
-  using NameColumns  = std::map<QString,int>;
+  using ColumnDatas  = std::map<int, ColumnData>;
+  using ColumnNames  = std::map<int, QString>;
+  using NameColumns  = std::map<QString, int>;
 
   CQCharts*            charts_     { nullptr }; //!< charts
   CQChartsModelFilter* filter_     { nullptr }; //!< parent filter model

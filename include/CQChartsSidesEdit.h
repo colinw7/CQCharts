@@ -73,7 +73,7 @@ class CQChartsSidesEditMenuWidget : public QFrame {
     }
   };
 
-  using SideRect = std::map<CQChartsSides::Side,Rect>;
+  using SideRect = std::map<CQChartsSides::Side, Rect>;
 
   CQChartsSidesEdit* edit_ { nullptr };
   SideRect           sideRect_;
