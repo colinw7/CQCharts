@@ -90,7 +90,7 @@ QString
 CQChartsAnnotation::
 pathId() const
 {
-  QString id = propertyId();
+  auto id = propertyId();
 
   if      (plot())
     return plot()->pathId() + ":" + id;

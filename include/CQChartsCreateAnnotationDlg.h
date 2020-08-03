@@ -17,6 +17,7 @@ class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
 class CQChartsColorLineEdit;
+class CQChartsAngleEdit;
 class CQChartsLineEdit;
 
 class CQRealSpin;
@@ -60,9 +61,12 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   };
 
   struct EllipseWidgets : public Widgets {
+    QRadioButton*         centerRadio { nullptr };
+    QRadioButton*         rectRadio   { nullptr };
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
+    CQChartsRectEdit*     rectEdit    { nullptr };
     CQChartsLineEdit*     paddingEdit { nullptr };
   };
 
@@ -105,6 +109,31 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   struct PointWidgets : public Widgets {
     CQChartsPositionEdit*   positionEdit { nullptr };
     CQChartsSymbolDataEdit* dataEdit     { nullptr };
+  };
+
+  struct PieSliceWidgets : public Widgets {
+    CQChartsPositionEdit* centerEdit      { nullptr };
+    CQChartsLengthEdit*   innerRadiusEdit { nullptr };
+    CQChartsLengthEdit*   outerRadiusEdit { nullptr };
+    CQChartsAngleEdit*    startAngleEdit  { nullptr };
+    CQChartsAngleEdit*    spanAngleEdit   { nullptr };
+  };
+
+  struct AxisWidgets : public Widgets {
+  };
+
+  struct KeyWidgets : public Widgets {
+  };
+
+  struct PointSetWidgets : public Widgets {
+  };
+
+  struct ValueSetWidgets : public Widgets {
+  };
+
+  struct ButtonWidgets : public Widgets {
+    CQChartsPositionEdit* positionEdit { nullptr };
+    CQChartsLineEdit*     textEdit     { nullptr };
   };
 
  private:
@@ -152,6 +181,9 @@ class CQChartsCreateAnnotationDlg : public QDialog {
 
   CQChartsColorLineEdit *createColorEdit(const QString &name, const QString &tip="") const;
 
+  CQChartsAngleEdit *createAngleEdit(const QString &name, double a,
+                                     const QString &tip="") const;
+
   //---
 
   bool createRectangleAnnotation();
@@ -162,6 +194,12 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool createImageAnnotation    ();
   bool createArrowAnnotation    ();
   bool createPointAnnotation    ();
+  bool createPieSliceAnnotation ();
+  bool createAxisAnnotation     ();
+  bool createKeyAnnotation      ();
+  bool createPointSetAnnotation ();
+  bool createValueSetAnnotation ();
+  bool createButtonAnnotation   ();
 
   bool setErrorMsg(const QString &msg);
   void clearErrorMsg();
@@ -169,6 +207,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
  private slots:
   void typeSlot(int ind);
 
+  void ellipseCenterSlot(bool);
   void textPositionSlot (bool);
   void imagePositionSlot(bool);
 
@@ -191,6 +230,12 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   ImageWidgets      imageWidgets_;                 //!< image edit widgets
   ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
   PointWidgets      pointWidgets_;                 //!< point edit widgets
+  PieSliceWidgets   pieSliceWidgets_;              //!< pie slice widgets
+  AxisWidgets       axisWidgets_;                  //!< axis widgets
+  KeyWidgets        keyWidgets_;                   //!< key widgets
+  PointSetWidgets   pointSetWidgets_;              //!< point set widgets
+  ValueSetWidgets   valueSetWidgets_;              //!< value set widgets
+  ButtonWidgets     buttonWidgets_;                //!< button widgets
   QLabel*           msgLabel_         { nullptr }; //!< error message label
 };
 

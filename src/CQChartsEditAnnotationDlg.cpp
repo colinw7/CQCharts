@@ -813,6 +813,8 @@ createPolygonEdit(const QString &name, const CQChartsPolygon &poly, const QStrin
 {
   auto *edit = CQUtil::makeWidget<CQChartsPolygonEdit>(name);
 
+  edit->setPlot(annotation_->plot());
+
   edit->setPolygon(poly);
 
   if      (annotation_->view()) edit->setUnits(CQChartsUnits::VIEW);

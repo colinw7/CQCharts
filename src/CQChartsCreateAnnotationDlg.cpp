@@ -15,8 +15,9 @@
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsArrowDataEdit.h>
 #include <CQChartsColorEdit.h>
-#include <CQChartsWidgetUtil.h>
+#include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQRealSpin.h>
 #include <CQCheckBox.h>
@@ -114,12 +115,12 @@ initWidgets()
   typeStack_->addWidget(imageWidgets_   .frame);
   typeStack_->addWidget(arrowWidgets_   .frame);
   typeStack_->addWidget(pointWidgets_   .frame);
-//typeStack_->addWidget(pieSliceWidges_ .frame);
-//typeStack_->addWidget(axisWidges_     .frame);
-//typeStack_->addWidget(keyWidges_      .frame);
-//typeStack_->addWidget(pointSetWidges_ .frame);
-//typeStack_->addWidget(valueSetWidges_ .frame);
-//typeStack_->addWidget(buttonWidges_   .frame);
+  typeStack_->addWidget(pieSliceWidgets_ .frame);
+  typeStack_->addWidget(axisWidgets_     .frame);
+  typeStack_->addWidget(keyWidgets_      .frame);
+  typeStack_->addWidget(pointSetWidgets_ .frame);
+  typeStack_->addWidget(valueSetWidgets_ .frame);
+  typeStack_->addWidget(buttonWidgets_   .frame);
 
   //---
 
@@ -213,11 +214,34 @@ createEllipseFrame()
 
   //---
 
+  auto *centerRectFrame  = CQUtil::makeWidget<QFrame>("centerRectFrame");
+  auto *centerRectLayout = CQUtil::makeLayout<QHBoxLayout>(centerRectFrame, 2, 2);
+
+  ellipseWidgets_.centerRadio = CQUtil::makeLabelWidget<QRadioButton>("Center", "centerRadio");
+  ellipseWidgets_.centerRadio->setToolTip("Create ellipse from center and radii");
+
+  ellipseWidgets_.rectRadio = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
+  ellipseWidgets_.rectRadio->setToolTip("Create ellipse in rectangle");
+
+  centerRectLayout->addWidget(ellipseWidgets_.centerRadio);
+  centerRectLayout->addWidget(ellipseWidgets_.rectRadio);
+  centerRectLayout->addStretch(1);
+
+  connect(ellipseWidgets_.centerRadio, SIGNAL(toggled(bool)), this, SLOT(ellipseCenterSlot(bool)));
+
   ellipseWidgets_.centerEdit =
     createPositionEdit("centerEdit", 0.0, 0.0, "Ellipse Center Position");
 
   ellipseWidgets_.rxEdit = createLengthEdit("rxEdit", 1.0, "Ellipse X Radius Length");
   ellipseWidgets_.ryEdit = createLengthEdit("ryEdit", 1.0, "Ellipse Y Radius Length");
+
+  ellipseWidgets_.rectEdit = createRectEdit("rectEdit", "Text Rectangle");
+
+  ellipseWidgets_.centerRadio->setChecked(true);
+
+  frameLayout->addWidget(centerRectFrame);
+
+  ellipseCenterSlot(true);
 
   //---
 
@@ -232,6 +256,7 @@ createEllipseFrame()
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center"  , ellipseWidgets_.centerEdit, row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius X", ellipseWidgets_.rxEdit    , row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius Y", ellipseWidgets_.ryEdit    , row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Rect"    , ellipseWidgets_.rectEdit  , row);
 
   //---
 
@@ -307,10 +332,10 @@ createTextFrame()
   auto *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
   textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
-  textWidgets_.positionRadio->setToolTip("Position text at point");
+  textWidgets_.positionRadio->setToolTip("Create text at position");
 
-  textWidgets_.rectRadio = CQUtil::makeLabelWidget<QRadioButton>("Rect"    , "rectRadio");
-  textWidgets_.rectRadio->setToolTip("Place text in rectangle");
+  textWidgets_.rectRadio = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
+  textWidgets_.rectRadio->setToolTip("Create text in rectangle");
 
   positionRectLayout->addWidget(textWidgets_.positionRadio);
   positionRectLayout->addWidget(textWidgets_.rectRadio);
@@ -393,10 +418,10 @@ createImageFrame()
   auto *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
   imageWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
-  imageWidgets_.positionRadio->setToolTip("Position image at point");
+  imageWidgets_.positionRadio->setToolTip("Create image at position");
 
   imageWidgets_.rectRadio = CQUtil::makeLabelWidget<QRadioButton>("Rect"    , "rectRadio");
-  imageWidgets_.rectRadio->setToolTip("Place image in rectangle");
+  imageWidgets_.rectRadio->setToolTip("Create image in rectangle");
 
   positionRectLayout->addWidget(imageWidgets_.positionRadio);
   positionRectLayout->addWidget(imageWidgets_.rectRadio);
@@ -564,36 +589,109 @@ void
 CQChartsCreateAnnotationDlg::
 createPieSliceFrame()
 {
+  pieSliceWidgets_.frame = CQUtil::makeWidget<QFrame>("pieSliceFrame");
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(pieSliceWidgets_.frame, 2, 2);
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //--
+
+  // center
+  pieSliceWidgets_.centerEdit = createPositionEdit("center", 0.0, 0.0, "Center Point");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center", pieSliceWidgets_.centerEdit, row);
+
+  //--
+
+  // radii
+  pieSliceWidgets_.innerRadiusEdit = createLengthEdit("innerRadius", 0.0, "Inner Radius");
+  pieSliceWidgets_.outerRadiusEdit = createLengthEdit("outerRadius", 1.0, "Outer Radius");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Inner Radius",
+    pieSliceWidgets_.innerRadiusEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Outer Radius",
+    pieSliceWidgets_.outerRadiusEdit, row);
+
+  //---
+
+  // angles
+  pieSliceWidgets_.startAngleEdit = createAngleEdit("startAngle",   0.0, "Start Angle");
+  pieSliceWidgets_.spanAngleEdit  = createAngleEdit("spanAngle" , 360.0, "Span Angle");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start Angle",
+    pieSliceWidgets_.startAngleEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Span Angle",
+    pieSliceWidgets_.spanAngleEdit, row);
+
+  //---
+
+  frameLayout->addStretch(1);
 }
 
 void
 CQChartsCreateAnnotationDlg::
 createAxisFrame()
 {
+  axisWidgets_.frame = CQUtil::makeWidget<QFrame>("axisFrame");
 }
 
 void
 CQChartsCreateAnnotationDlg::
 createKeyFrame()
 {
+  keyWidgets_.frame = CQUtil::makeWidget<QFrame>("keyFrame");
 }
 
 void
 CQChartsCreateAnnotationDlg::
 createPointSetFrame()
 {
+  pointSetWidgets_.frame = CQUtil::makeWidget<QFrame>("pointSetFrame");
 }
 
 void
 CQChartsCreateAnnotationDlg::
 createValueSetFrame()
 {
+  valueSetWidgets_.frame = CQUtil::makeWidget<QFrame>("valueSetFrame");
 }
 
 void
 CQChartsCreateAnnotationDlg::
 createButtonFrame()
 {
+  buttonWidgets_.frame = CQUtil::makeWidget<QFrame>("buttonFrame");
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(buttonWidgets_.frame, 2, 2);
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //--
+
+  buttonWidgets_.positionEdit = createPositionEdit("positionEdit", 0.0, 0.0, "Button Position");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", buttonWidgets_.positionEdit, row);
+
+  buttonWidgets_.textEdit = createLineEdit("edit", "Text String");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Text", buttonWidgets_.textEdit, row);
+
+  //---
+
+  frameLayout->addStretch(1);
 }
 
 //------
@@ -739,6 +837,8 @@ createPolygonEdit(const QString &name, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsPolygonEdit>(name);
 
+  edit->setPlot(plot());
+
   if      (view()) edit->setUnits(CQChartsUnits::VIEW);
   else if (plot()) edit->setUnits(CQChartsUnits::PLOT);
 
@@ -772,6 +872,20 @@ createColorEdit(const QString &name, const QString &tip) const
   return edit;
 }
 
+CQChartsAngleEdit *
+CQChartsCreateAnnotationDlg::
+createAngleEdit(const QString &name, double a, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsAngleEdit>(name);
+
+  edit->setAngle(CQChartsAngle(a));
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
 //---
 
 void
@@ -788,6 +902,24 @@ typeSlot(int ind)
   typeStack_->setCurrentIndex(ind);
 
   clearErrorMsg();
+}
+
+void
+CQChartsCreateAnnotationDlg::
+ellipseCenterSlot(bool)
+{
+  if (ellipseWidgets_.centerRadio->isChecked()) {
+    ellipseWidgets_.centerEdit->setEnabled(true);
+    ellipseWidgets_.rxEdit    ->setEnabled(true);
+    ellipseWidgets_.ryEdit    ->setEnabled(true);
+    ellipseWidgets_.rectEdit  ->setEnabled(false);
+  }
+  else {
+    ellipseWidgets_.centerEdit->setEnabled(false);
+    ellipseWidgets_.rxEdit    ->setEnabled(false);
+    ellipseWidgets_.ryEdit    ->setEnabled(false);
+    ellipseWidgets_.rectEdit  ->setEnabled(true);
+  }
 }
 
 void
@@ -834,14 +966,20 @@ applySlot()
 
   bool rc = false;
 
-  if      (ind == 0) rc = createRectangleAnnotation();
-  else if (ind == 1) rc = createEllipseAnnotation();
-  else if (ind == 2) rc = createPolygonAnnotation();
-  else if (ind == 3) rc = createPolylineAnnotation();
-  else if (ind == 4) rc = createTextAnnotation();
-  else if (ind == 5) rc = createArrowAnnotation();
-  else if (ind == 6) rc = createImageAnnotation();
-  else if (ind == 7) rc = createPointAnnotation();
+  if      (ind == 0 ) rc = createRectangleAnnotation();
+  else if (ind == 1 ) rc = createEllipseAnnotation  ();
+  else if (ind == 2 ) rc = createPolygonAnnotation  ();
+  else if (ind == 3 ) rc = createPolylineAnnotation ();
+  else if (ind == 4 ) rc = createTextAnnotation     ();
+  else if (ind == 5 ) rc = createArrowAnnotation    ();
+  else if (ind == 6 ) rc = createImageAnnotation    ();
+  else if (ind == 7 ) rc = createPointAnnotation    ();
+  else if (ind == 8 ) rc = createPieSliceAnnotation ();
+  else if (ind == 9 ) rc = createAxisAnnotation     ();
+  else if (ind == 10) rc = createKeyAnnotation      ();
+  else if (ind == 11) rc = createPointSetAnnotation ();
+  else if (ind == 12) rc = createValueSetAnnotation ();
+  else if (ind == 13) rc = createButtonAnnotation   ();
 
   return rc;
 }
@@ -909,9 +1047,21 @@ createEllipseAnnotation()
   auto id    = idEdit_ ->text();
   auto tipId = tipEdit_->text();
 
-  auto center = ellipseWidgets_.centerEdit->position();
-  auto rx     = ellipseWidgets_.rxEdit->length();
-  auto ry     = ellipseWidgets_.ryEdit->length();
+  CQChartsPosition center;
+  CQChartsLength   rx, ry;
+
+  if (ellipseWidgets_.centerRadio->isChecked()) {
+    center = ellipseWidgets_.centerEdit->position();
+    rx     = ellipseWidgets_.rxEdit->length();
+    ry     = ellipseWidgets_.ryEdit->length();
+  }
+  else {
+    auto rect = ellipseWidgets_.rectEdit->rect();
+
+    center = rect.center();
+    rx     = rect.xRadius();
+    ry     = rect.yRadius();
+  }
 
   if (rx.value() <= 0.0 || ry.value() <= 0.0)
     return setErrorMsg("Invalid ellipse radius");
@@ -1197,6 +1347,119 @@ createPointAnnotation()
   annotation->setSymbolData(symbolData);
 
   return true;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createPieSliceAnnotation()
+{
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto center      = pieSliceWidgets_.centerEdit->position();
+  auto innerRadius = pieSliceWidgets_.innerRadiusEdit->length();
+  auto outerRadius = pieSliceWidgets_.outerRadiusEdit->length();
+  auto startAngle  = pieSliceWidgets_.startAngleEdit->angle();
+  auto spanAngle   = pieSliceWidgets_.spanAngleEdit->angle();
+
+  //---
+
+  CQChartsPieSliceAnnotation *annotation = nullptr;
+
+  if      (view())
+    annotation = view()->addPieSliceAnnotation(center, innerRadius, outerRadius,
+                                               startAngle, spanAngle);
+  else if (plot())
+    annotation = plot()->addPieSliceAnnotation(center, innerRadius, outerRadius,
+                                               startAngle, spanAngle);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
+
+  return true;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createAxisAnnotation()
+{
+  return false;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createKeyAnnotation()
+{
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  //---
+
+  CQChartsKeyAnnotation *annotation = nullptr;
+
+  if      (view())
+    annotation = view()->addKeyAnnotation();
+  else if (plot())
+    annotation = plot()->addKeyAnnotation();
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
+
+  return true;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createPointSetAnnotation()
+{
+  return false;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createValueSetAnnotation()
+{
+  return false;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createButtonAnnotation()
+{
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto pos  = buttonWidgets_.positionEdit->position();
+  auto text = buttonWidgets_.textEdit->text();
+
+  if (text.simplified().length() == 0)
+    return setErrorMsg("Button text is empty");
+
+  //---
+
+  CQChartsButtonAnnotation *annotation = nullptr;
+
+  if      (view())
+    annotation = view()->addButtonAnnotation(pos, text);
+  else if (plot())
+    annotation = plot()->addButtonAnnotation(pos, text);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
+
+  return false;
 }
 
 void

@@ -1,6 +1,8 @@
 #ifndef CQChartsRect_H
 #define CQChartsRect_H
 
+#include <CQChartsPosition.h>
+#include <CQChartsLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
 #include <QString>
@@ -14,8 +16,10 @@ class CQChartsRect {
   static int metaTypeId;
 
  public:
-  using BBox  = CQChartsGeom::BBox;
-  using Units = CQChartsUnits;
+  using BBox     = CQChartsGeom::BBox;
+  using Units    = CQChartsUnits;
+  using Position = CQChartsPosition;
+  using Length   = CQChartsLength;
 
  public:
   CQChartsRect(const Units &units, const BBox &bbox) :
@@ -44,6 +48,10 @@ class CQChartsRect {
   //---
 
   const BBox &bbox() const { return bbox_; }
+
+  Position center () const;
+  Length   xRadius() const;
+  Length   yRadius() const;
 
   //---
 

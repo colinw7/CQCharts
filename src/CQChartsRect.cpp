@@ -32,6 +32,27 @@ setValue(const QString &str, const CQChartsUnits &defUnits)
   return true;
 }
 
+CQChartsPosition
+CQChartsRect::
+center() const
+{
+  return Position(bbox_.getCenter(), units_);
+}
+
+CQChartsLength
+CQChartsRect::
+xRadius() const
+{
+  return Length(bbox_.getWidth()/2.0, units_);
+}
+
+CQChartsLength
+CQChartsRect::
+yRadius() const
+{
+  return Length(bbox_.getHeight()/2.0, units_);
+}
+
 QString
 CQChartsRect::
 toString() const

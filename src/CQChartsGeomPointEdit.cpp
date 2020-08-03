@@ -123,6 +123,7 @@ setRegion(const CQChartsGeom::Point &p)
 {
   setValue(p);
 
+  emit valueChanged();
   emit regionChanged();
 }
 

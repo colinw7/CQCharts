@@ -49,6 +49,22 @@ setPolygon(const CQChartsPolygon &polygon)
   updatePolygon(polygon, /*updateText*/ true);
 }
 
+const CQChartsPlot *
+CQChartsPolygonLineEdit::
+plot() const
+{
+  return dataEdit_->plot();
+}
+
+void
+CQChartsPolygonLineEdit::
+setPlot(CQChartsPlot *plot)
+{
+  dataEdit_->setPlot(plot);
+
+  CQChartsLineEditBase::setPlot(plot);
+}
+
 void
 CQChartsPolygonLineEdit::
 updatePolygon(const CQChartsPolygon &polygon, bool updateText)
@@ -364,6 +380,20 @@ setUnits(const CQChartsUnits &units)
 
 void
 CQChartsPolygonEdit::
+setPlot(CQChartsPlot *plot)
+{
+  plot_ = plot;
+
+  for (auto &pointEdit : pointEdits_) {
+    if (pointEdit)
+      pointEdit->setPlot(plot);
+  }
+
+  CQChartsEditBase::setPlot(plot);
+}
+
+void
+CQChartsPolygonEdit::
 connectSlots(bool b)
 {
   assert(b != connected_);
@@ -487,6 +517,8 @@ updatePointEdits()
 
   while (ne < n) {
     auto *edit = CQUtil::makeWidget<CQChartsGeomPointEdit>("edit");
+
+    edit->setPlot(plot_);
 
     connect(edit, SIGNAL(valueChanged()), this, SLOT(pointSlot()));
 
