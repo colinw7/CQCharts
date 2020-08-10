@@ -15,8 +15,9 @@
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsArrowDataEdit.h>
 #include <CQChartsColorEdit.h>
-#include <CQChartsWidgetUtil.h>
+#include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQRealSpin.h>
 #include <CQCheckBox.h>
@@ -32,9 +33,6 @@ CQChartsEditAnnotationDlg::
 CQChartsEditAnnotationDlg(QWidget *parent, CQChartsAnnotation *annotation) :
  QDialog(parent), annotation_(annotation)
 {
-  setWindowTitle(QString("Edit %1 Annotation (%2)").
-    arg(annotation->typeName()).arg(annotation_->id()));
-
   initWidgets();
 }
 
@@ -44,7 +42,9 @@ initWidgets()
 {
   setObjectName("createAnnotationDlg");
 
-  setWindowTitle("Edit Annotation");
+//setWindowTitle("Edit Annotation");
+  setWindowTitle(QString("Edit %1 Annotation (%2)").
+    arg(annotation_->typeName()).arg(annotation_->id()));
 
   //---
 
@@ -114,7 +114,7 @@ initWidgets()
   //---
 
   // OK, Apply, Cancel Buttons
-  auto *buttons = new CQChartsDialogButtons;
+  auto *buttons = CQUtil::makeWidget<CQChartsDialogButtons>("buttons");
 
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
@@ -198,6 +198,21 @@ createEllipseFrame()
 
   //---
 
+  auto *centerRectFrame  = CQUtil::makeWidget<QFrame>("centerRectFrame");
+  auto *centerRectLayout = CQUtil::makeLayout<QHBoxLayout>(centerRectFrame, 2, 2);
+
+  ellipseWidgets_.centerRadio = CQUtil::makeLabelWidget<QRadioButton>("Center", "centerRadio");
+  ellipseWidgets_.centerRadio->setToolTip("Create ellipse from center and radii");
+
+  ellipseWidgets_.rectRadio = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
+  ellipseWidgets_.rectRadio->setToolTip("Create ellipse in rectangle");
+
+  centerRectLayout->addWidget(ellipseWidgets_.centerRadio);
+  centerRectLayout->addWidget(ellipseWidgets_.rectRadio);
+  centerRectLayout->addStretch(1);
+
+  connect(ellipseWidgets_.centerRadio, SIGNAL(toggled(bool)), this, SLOT(ellipseCenterSlot(bool)));
+
   ellipseWidgets_.centerEdit =
     createPositionEdit("centerEdit", annotation->center(), "Ellipse Center Position");
 
@@ -205,6 +220,14 @@ createEllipseFrame()
     createLengthEdit("rxEdit", annotation->xRadius(), "Ellipse X Radius Length");
   ellipseWidgets_.ryEdit =
     createLengthEdit("ryEdit", annotation->yRadius(), "Ellipse Y Radius Length");
+
+  ellipseWidgets_.rectEdit = createRectEdit("rectEdit", CQChartsRect(), "Ellipse Rectangle");
+
+  ellipseWidgets_.centerRadio->setChecked(true);
+
+  frameLayout->addWidget(centerRectFrame);
+
+  ellipseCenterSlot(true);
 
   //---
 
@@ -219,6 +242,7 @@ createEllipseFrame()
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center"  , ellipseWidgets_.centerEdit, row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius X", ellipseWidgets_.rxEdit    , row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Radius Y", ellipseWidgets_.ryEdit    , row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Rect"    , ellipseWidgets_.rectEdit  , row);
 
   //---
 
@@ -844,6 +868,59 @@ createMarginEdit(const QString &name, const CQChartsMargin &margin, const QStrin
 
 void
 CQChartsEditAnnotationDlg::
+ellipseCenterSlot(bool)
+{
+  auto *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  assert(annotation);
+
+  auto center = annotation->center();
+  auto xr     = annotation->xRadius();
+  auto yr     = annotation->yRadius();
+
+  if (ellipseWidgets_.centerRadio->isChecked()) {
+    ellipseWidgets_.centerEdit->setEnabled(true);
+    ellipseWidgets_.rxEdit    ->setEnabled(true);
+    ellipseWidgets_.ryEdit    ->setEnabled(true);
+    ellipseWidgets_.rectEdit  ->setEnabled(false);
+
+    ellipseWidgets_.centerEdit->setPosition(center);
+    ellipseWidgets_.rxEdit    ->setLength(xr);
+    ellipseWidgets_.ryEdit    ->setLength(yr);
+  }
+  else {
+    ellipseWidgets_.centerEdit->setEnabled(false);
+    ellipseWidgets_.rxEdit    ->setEnabled(false);
+    ellipseWidgets_.ryEdit    ->setEnabled(false);
+    ellipseWidgets_.rectEdit  ->setEnabled(true);
+
+    CQChartsGeom::Point center1;
+    double              xr1 = 0.0;
+    double              yr1 = 0.0;
+    CQChartsUnits       units1 { CQChartsUnits::PIXEL };
+
+    if      (annotation_->view()) {
+      center1 = annotation_->view()->positionToView(center);
+      xr1     = annotation_->view()->lengthViewWidth(xr);
+      yr1     = annotation_->view()->lengthViewHeight(yr);
+      units1  = CQChartsUnits::VIEW;
+    }
+    else if (annotation_->plot()) {
+      center1 = annotation_->plot()->positionToPlot(center);
+      xr1     = annotation_->plot()->lengthPlotWidth(xr);
+      yr1     = annotation_->plot()->lengthPlotHeight(yr);
+      units1  = CQChartsUnits::PLOT;
+    }
+
+    auto rp = CQChartsGeom::Point(xr1, yr1);
+
+    CQChartsRect rect(CQChartsGeom::BBox(center1 - rp, center1 + rp), center.units());
+
+    ellipseWidgets_.rectEdit->setRect(rect);
+  }
+}
+
+void
+CQChartsEditAnnotationDlg::
 textPositionSlot(bool)
 {
   if (textWidgets_.positionRadio->isChecked()) {
@@ -976,9 +1053,21 @@ updateEllipseAnnotation()
   auto id    = idEdit_ ->text();
   auto tipId = tipEdit_->text();
 
-  auto center = ellipseWidgets_.centerEdit->position();
-  auto rx     = ellipseWidgets_.rxEdit->length();
-  auto ry     = ellipseWidgets_.ryEdit->length();
+  CQChartsPosition center;
+  CQChartsLength   rx, ry;
+
+  if (ellipseWidgets_.centerRadio->isChecked()) {
+    center = ellipseWidgets_.centerEdit->position();
+    rx     = ellipseWidgets_.rxEdit->length();
+    ry     = ellipseWidgets_.ryEdit->length();
+  }
+  else {
+    auto rect = ellipseWidgets_.rectEdit->rect();
+
+    center = rect.center();
+    rx     = rect.xRadius();
+    ry     = rect.yRadius();
+  }
 
   if (rx.value() <= 0.0 || ry.value() <= 0.0)
     return setErrorMsg("Invalid ellipse radius");

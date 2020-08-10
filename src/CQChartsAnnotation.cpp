@@ -1965,9 +1965,9 @@ positionToLL(double w, double h, double &x, double &y) const
   else
     x = p.x - w/2;
 
-  if      (textAlign() & Qt::AlignBottom)
+  if      (textAlign() & Qt::AlignTop)
     y = p.y;
-  else if (textAlign() & Qt::AlignTop)
+  else if (textAlign() & Qt::AlignBottom)
     y = p.y - h;
   else
     y = p.y - h/2;
@@ -4832,6 +4832,15 @@ setWidget(const Widget &widget)
 
 void
 CQChartsWidgetAnnotation::
+setAlign(const Qt::Alignment &a)
+{
+  align_ = a;
+
+  emit dataChanged();
+}
+
+void
+CQChartsWidgetAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -4845,9 +4854,10 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position" , "position" , "Widget origin");
+  addProp(path1, "position" , "position" , "Widget position");
   addProp(path1, "rectangle", "rectangle", "Widget bounding box");
   addProp(path1, "widget"   , "widget"   , "Widget name");
+  addProp(path1, "align"    , "align"    , "Widget position alignment");
 }
 
 QString
@@ -4878,8 +4888,19 @@ positionToLL(double w, double h, double &x, double &y) const
 {
   auto p = positionToParent(positionValue());
 
-  x = p.x - w/2;
-  y = p.y - h/2;
+  if      (align() & Qt::AlignLeft)
+    x = p.x;
+  else if (align() & Qt::AlignHCenter)
+    x = p.x - w/2;
+  else
+    x = p.x - w;
+
+  if      (align() & Qt::AlignBottom)
+    y = p.y - h;
+  else if (align() & Qt::AlignVCenter)
+    y = p.y - h/2;
+  else if (align() & Qt::AlignTop)
+    y = p.y;
 }
 
 void

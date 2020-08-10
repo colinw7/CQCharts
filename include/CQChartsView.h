@@ -180,7 +180,8 @@ class CQChartsView : public QFrame,
   //! highlight mode
   enum class HighlightDataMode {
     OUTLINE,
-    FILL
+    FILL,
+    DIM_OTHER
   };
 
   //! region mode
@@ -1181,8 +1182,8 @@ class CQChartsView : public QFrame,
 
   //! structure containing the highlight mode
   struct HighlightData {
-    bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
-    bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
+//  bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
+//  bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
 
     HighlightDataMode mode { HighlightDataMode::OUTLINE }; //!< highlight mode
   };

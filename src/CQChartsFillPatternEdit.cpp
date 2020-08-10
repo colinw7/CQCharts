@@ -162,9 +162,9 @@ void
 CQChartsFillPatternPropertyViewType::
 draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+     const QVariant &value, const ItemState &itemState)
 {
-  delegate->drawBackground(painter, option, ind, inside);
+  delegate->drawBackground(painter, option, ind, itemState);
 
   CQChartsFillPattern fillPattern = value.value<CQChartsFillPattern>();
 
@@ -199,9 +199,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QStyleOptionViewItem option1 = option;
 
-  option1.rect = QRect(x, option1.rect.top(), w + 8, option1.rect.height());
+  option1.rect = QRect(x, option1.rect.top(), w + 2*margin(), option1.rect.height());
 
-  delegate->drawString(painter, option1, str, ind, inside);
+  delegate->drawString(painter, option1, str, ind, itemState);
 }
 
 QString

@@ -3,8 +3,24 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + surface plot
+ + opengl renderer
+ + othello game
+ + view scrolled (view x/y pages)
+ + processing like event loop (callback) for tcl code
+ + widgets for property change (associated property and type widget + optional label)
+ + tcl widget signal handling
+ + control plot (controls in plot with associated plot/current plot ?)
+ + animation
+ + auto update (use start/end update signals to optimize)
+ + draw non-selected dimmed
+ + double click support (key)
+ + only show selected indices/data in table ? (filter selected)
+ + Inline dialog with max/pop out like gmail
  + region tool
    + signal, point+size, rect. widget tracks
+   + status bar
+   + sync widget state on/off
  + powerpoint like text in box for annotation (with edit support)
    + mouse tool ?
  + hier bubble plot labels

@@ -1,4 +1,4 @@
-set modelId [load_charts_model -csv data/chord-cities.csv]
+set modelId [load_charts_model -csv data/chord-cities.csv -comment_header]
 puts $modelId
 
 define_charts_proc fromProc { arg } {

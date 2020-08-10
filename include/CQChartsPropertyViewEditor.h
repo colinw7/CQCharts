@@ -31,7 +31,7 @@ class CQChartsPropertyViewType : public CQPropertyViewType {
 
   void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
             const QStyleOptionViewItem &option, const QModelIndex &ind,
-            const QVariant &value, bool inside) override;
+            const QVariant &value, const ItemState &itemState) override;
 
   virtual void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
                            CQChartsPlot *plot, CQChartsView *view) = 0;

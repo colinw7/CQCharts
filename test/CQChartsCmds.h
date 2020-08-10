@@ -126,6 +126,7 @@ class CQChartsCmds : public QObject {
   bool createChartsCollapseModelCmd   (CQChartsCmdArgs &args);
   bool createChartsPivotModelCmd      (CQChartsCmdArgs &args);
   bool createChartsStatsModelCmd      (CQChartsCmdArgs &args);
+  bool createChartsDataModelCmd       (CQChartsCmdArgs &args);
 
   bool exportChartsModelCmd(CQChartsCmdArgs &args);
 
@@ -264,6 +265,7 @@ CQCHARTS_DEF_CMD(CreateChartsSummaryModel    , createChartsSummaryModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsCollapseModel   , createChartsCollapseModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsPivotModel      , createChartsPivotModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsStatsModel      , createChartsStatsModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsDataModel       , createChartsDataModelCmd)
 
 //---
 

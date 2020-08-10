@@ -116,9 +116,9 @@ void
 CQChartsMarginPropertyViewType::
 draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+     const QVariant &value, const ItemState &itemState)
 {
-  delegate->drawBackground(painter, option, ind, inside);
+  delegate->drawBackground(painter, option, ind, itemState);
 
   CQChartsMargin margin = value.value<CQChartsMargin>();
 
@@ -132,9 +132,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QStyleOptionViewItem option1 = option;
 
-  option1.rect.setRight(option1.rect.left() + w + 8);
+  option1.rect.setRight(option1.rect.left() + w + 2*CQPropertyViewType::margin());
 
-  delegate->drawString(painter, option1, str, ind, inside);
+  delegate->drawString(painter, option1, str, ind, itemState);
 }
 
 QString

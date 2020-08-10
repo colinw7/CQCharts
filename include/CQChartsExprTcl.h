@@ -48,8 +48,14 @@ class CQChartsExprTcl : public CQTcl {
       if (i == 0) {
         if (c.isLetter() || c == '_')
           name1 += c;
-        else
-          name1 += '_';
+        else {
+          name1 += "C";
+
+          if (c.isLetter() || c.isNumber() || c == '_')
+            name1 += c;
+          else
+            name1 += '_';
+        }
       }
       else {
         if (c.isLetter() || c.isNumber() || c == '_')

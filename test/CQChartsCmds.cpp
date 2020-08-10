@@ -33,10 +33,12 @@
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
+#include <CQChartsPlotControlWidgets.h>
 
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
+#include <CQWidgetFactory.h>
 
 #include <CQBucketModel.h>
 #include <CQCollapseModel.h>
@@ -128,6 +130,8 @@ addCommands()
                new CQChartsCreateChartsPivotModelCmd      (this));
     addCommand("create_charts_stats_model"      ,
                new CQChartsCreateChartsStatsModelCmd      (this));
+    addCommand("create_charts_data_model"       ,
+               new CQChartsCreateChartsDataModelCmd       (this));
 
     // measure/encode text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
@@ -216,6 +220,15 @@ addCommands()
     //---
 
     cmdBase_->addCommands();
+
+    //---
+
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotRealControl",
+      new CQWidgetFactoryT<CQChartsPlotRealControl>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotIntControl",
+      new CQWidgetFactoryT<CQChartsPlotIntControl>());
+
+    //---
 
     cmdsAdded = true;
   }
@@ -4362,6 +4375,51 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
+createChartsDataModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::createChartsDataModelCmd");
+
+  argv.addCmdArg("-rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
+  argv.addCmdArg("-columns", CQChartsCmdArg::Type::Integer, "number of columns");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get model
+  int nr = argv.getParseInt("rows"   , 0);
+  int nc = argv.getParseInt("columns", 0);
+
+  //---
+
+  auto model = new CQDataModel(nc, nr);
+
+  //------
+
+  auto proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("proxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  proxyModel->setSourceModel(model);
+
+  ModelP modelP(proxyModel);
+
+  auto *modelData = charts_->initModelData(modelP);
+
+  //---
+
+  return cmdBase_->setCmdRc(modelData->ind());
+}
+
+//------
+
+bool
+CQChartsCmds::
 exportChartsModelCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
@@ -4911,7 +4969,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid model name '" + name + "' specified");
+      return errorMsg("Invalid model value name '" + name + "' specified");
   }
   // view data
   else if (argv.hasParseArg("view")) {
@@ -5144,6 +5202,12 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       auto *view = plot->view();
 
       return cmdBase_->setCmdRc(view->id());
+    }
+    // get view path
+    else if (name == "view_path") {
+      auto *view = plot->view();
+
+      return cmdBase_->setCmdRc(CQUtil::fullName(view));
     }
     // get column header or row, column value
     else if (name == "value") {
@@ -5735,7 +5799,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg("Invalid model name '" + name + "' specified");
+      return errorMsg("Invalid model value name '" + name + "' specified");
   }
   // view data
   else if (argv.hasParseArg("view")) {

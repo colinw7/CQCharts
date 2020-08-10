@@ -71,7 +71,7 @@ class CQChartsRectPropertyViewType : public CQPropertyViewType {
 
   void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
             const QStyleOptionViewItem &option, const QModelIndex &index,
-            const QVariant &value, bool inside) override;
+            const QVariant &value, const ItemState &itemState) override;
 
   QString tip(const QVariant &value) const override;
 

@@ -26,6 +26,7 @@
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
+#include <CQChartsPlotControlWidgets.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -94,7 +95,7 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   setDataClip(true);
 
   setPlotFillColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.12));
+  setDataFillColor(Color(Color::Type::INTERFACE_VALUE, 0.12)); // #e5ecf6 (BLEND_INTERFACE)
   setFitFillColor (Color(Color::Type::INTERFACE_VALUE, 0.08));
 
   //--
@@ -2729,7 +2730,8 @@ addBaseProperties()
   addProp("every", "everyStep"   , "step"   , "Step of every row filter" , true);
 
   // filter
-  addProp("filter", "filterStr", "expression", "Filter expression", true);
+  addProp("filter", "filterStr"       , "expression", "Filter expression", true);
+  addProp("filter", "visibleFilterStr", "visible"   , "Filter visible expression", true);
 
   addProp("filter", "skipBad", "skipBad", "Skip bad values");
 
@@ -9393,9 +9395,11 @@ hasObjs(const Layer::Type &layerType) const
 
   bool anyObjs = false;
 
+  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
+
   for (const auto &plotObj : plotObjects()) {
     if      (layerType == Layer::Type::SELECTION) {
-      if (! plotObj->isSelected())
+      if (filterSelected && ! plotObj->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
@@ -9445,6 +9449,8 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
+  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
+
   auto bbox = displayRangeBBox();
 
   for (const auto &plotObj : plotObjects()) {
@@ -9453,7 +9459,7 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
     // skip unselected objects on selection layer
     if      (layerType == Layer::Type::SELECTION) {
-      if (! plotObj->isSelected())
+      if (filterSelected && ! plotObj->isSelected())
         continue;
     }
     // skip non-inside objects on mouse over layer
@@ -9785,6 +9791,8 @@ bool
 CQChartsPlot::
 hasAnnotations(const Layer::Type &layerType) const
 {
+  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
+
   bool anyObjs = false;
 
   for (const auto &annotation : annotations()) {
@@ -9792,7 +9800,7 @@ hasAnnotations(const Layer::Type &layerType) const
       continue;
 
     if      (layerType == Layer::Type::SELECTION) {
-      if (! annotation->isSelected())
+      if (filterSelected && ! annotation->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
@@ -9830,12 +9838,14 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
+  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
+
   for (auto &annotation : annotations()) {
     if (! annotation->isVisible())
       continue;
 
     if      (layerType == Layer::Type::SELECTION) {
-      if (! annotation->isSelected())
+      if (filterSelected && ! annotation->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
@@ -10582,6 +10592,16 @@ CQChartsWidgetAnnotation *
 CQChartsPlot::
 addWidgetAnnotation(const Position &pos, const Widget &widget)
 {
+  auto *control = dynamic_cast<CQChartsPlotControlIFace *>(widget.widget());
+
+  if (control) {
+    control->setPlot(this);
+
+    control->connectValueChanged(this, SLOT(plotControlUpdateSlot()));
+
+    controls_.push_back(control);
+  }
+
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, pos, widget));
 }
@@ -10592,6 +10612,28 @@ addWidgetAnnotation(const Rect &rect, const Widget &widget)
 {
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, rect, widget));
+}
+
+void
+CQChartsPlot::
+plotControlUpdateSlot()
+{
+  QString cmpStr = "==";
+
+  QStringList filters;
+
+  for (const auto &control : controls_) {
+    QString filter = control->filterStr(cmpStr);
+
+    if (filter.length())
+      filters.push_back(filter);
+  }
+
+  QString combStr = "&&";
+
+  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
+
+  setVisibleFilterStr(filterStr);
 }
 
 void

@@ -3943,8 +3943,10 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
   if (! isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, penBrush, drawType);
-      updateInsideObjPenBrushState  (ic, penBrush, /*outline*/false, drawType);
+      if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+
+      updateInsideObjPenBrushState(ic, penBrush, /*outline*/false, drawType);
     }
     // inside
     else if (obj->isInside()) {
@@ -3952,7 +3954,12 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
     }
     // selected
     else if (obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+    }
+    else {
+      if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER)
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
     }
   }
   else {
@@ -3963,8 +3970,14 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
     }
     // selected
     else if (drawLayerType() == CQChartsLayer::Type::SELECTION) {
-      if (obj->isSelected())
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      if (obj->isSelected()) {
+        if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
+          updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      }
+      else {
+        if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER)
+          updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      }
     }
   }
 }
@@ -3977,7 +3990,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
   // fill and stroke
   if (drawType != DrawType::LINE) {
     // outline box, symbol
-    if (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+    if      (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor        opc;
       CQChartsAlpha alpha;
 
@@ -4007,7 +4020,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         setBrush(penBrush, CQChartsBrushData(false));
     }
     // fill box, symbol
-    else {
+    else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
       QColor bc = penBrush.brush.color();
 
       QColor ibc;
@@ -4056,7 +4069,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
   // fill and stroke
   if      (drawType != DrawType::LINE) {
     // outline box, symbol
-    if (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+    if       (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor        opc;
       CQChartsAlpha alpha;
 
@@ -4085,7 +4098,27 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       setBrush(penBrush, CQChartsBrushData(false));
     }
     // fill box, symbol
-    else {
+    else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
+      QColor bc = penBrush.brush.color();
+
+      QColor ibc;
+
+      if (isSelectedFilled())
+        ibc = interpSelectedFillColor(ic);
+      else
+        ibc = selectedColor(bc);
+
+      CQChartsAlpha alpha;
+
+      if (isBufferLayers())
+        alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
+      else
+        alpha = CQChartsAlpha(bc.alphaF());
+
+      setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, selectedFillPattern()));
+    }
+    // dim others
+    else if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER) {
       QColor bc = penBrush.brush.color();
 
       QColor ibc;
@@ -4377,24 +4410,22 @@ showMenu(const Point &p)
 
   //---
 
-  if (hasPlots) {
+  CQChartsPlot::Objs objs;
+
+  allSelectedObjs(objs);
+
+  if (objs.size() == 1) {
     popupMenu->addSeparator();
 
     //---
 
-    CQChartsPlot::Objs objs;
+    auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+    auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+    auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
+    auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
 
-    allSelectedObjs(objs);
-
-    if (objs.size() == 1) {
-      auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-      auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-      auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-      auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
-
-      if (annotation || axis || key || title)
-        addAction(popupMenu, "Edit", SLOT(editObjectSlot()));
-    }
+    if (annotation || axis || key || title)
+      addAction(popupMenu, "Edit", SLOT(editObjectSlot()));
   }
 
   //---

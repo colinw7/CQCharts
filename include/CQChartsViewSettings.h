@@ -29,6 +29,7 @@ class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 class CQChartsViewError;
+class CQChartsPlotControlIFace;
 
 class CQColorsEditCanvas;
 class CQColorsEditControl;
@@ -38,7 +39,6 @@ class CQPropertyViewModel;
 class CQTabWidget;
 class CQIntegerSpin;
 class CQGroupBox;
-class CQRangeSlider;
 class CQTabSplit;
 
 class QComboBox;
@@ -287,18 +287,14 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ControlWidgets {
-    using Combos  = std::vector<QComboBox *>;
-    using Sliders = std::vector<CQRangeSlider *>;
-    using Radios  = std::vector<QRadioButton *>;
+    using IFaces = std::vector<CQChartsPlotControlIFace *>;
 
     QFrame*       frame            { nullptr }; //!< frame
     QCheckBox*    equalCheck       { nullptr }; //!< equal check
     QCheckBox*    andCheck         { nullptr }; //!< and check
     QFrame*       area             { nullptr }; //!< control area
     QGridLayout*  layout           { nullptr }; //!< control layout
-    Combos        combos;                       //!< option combos
-    Sliders       sliders;                      //!< option sliders
-    Radios        radios;                       //!< option group radios
+    IFaces        ifaces;                       //!< option interfaces
     QButtonGroup* groupButtonGroup { nullptr }; //!< group radio button group
   };
 

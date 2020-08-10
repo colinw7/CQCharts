@@ -99,9 +99,9 @@ void
 CQChartsAlphaPropertyViewType::
 draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+     const QVariant &value, const ItemState &itemState)
 {
-  delegate->drawBackground(painter, option, ind, inside);
+  delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
   CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
@@ -119,7 +119,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   option1.rect.setRight(option1.rect.left() + w + 8);
 
-  delegate->drawString(painter, option1, str, ind, inside);
+  delegate->drawString(painter, option1, str, ind, itemState);
 }
 
 QString

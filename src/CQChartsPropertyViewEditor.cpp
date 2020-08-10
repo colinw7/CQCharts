@@ -34,9 +34,9 @@ void
 CQChartsPropertyViewType::
 draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+     const QVariant &value, const ItemState &itemState)
 {
-  delegate->drawBackground(painter, option, ind, inside);
+  delegate->drawBackground(painter, option, ind, itemState);
 
   //---
 

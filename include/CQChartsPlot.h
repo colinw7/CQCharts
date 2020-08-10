@@ -77,6 +77,7 @@ class CQChartsEditHandles;
 class CQChartsTableTip;
 class CQChartsPoints;
 class CQChartsReals;
+class CQChartsPlotControlIFace;
 
 class CQChartsScriptPaintDevice;
 class CQChartsHtmlPaintDevice;
@@ -2436,6 +2437,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void updateAnnotationSlot();
 
+  void plotControlUpdateSlot();
+
  signals:
   // model data changed
   void modelChanged();
@@ -2923,6 +2926,12 @@ class CQChartsPlot : public CQChartsObj,
   Annotations  annotations_;      //!< extra annotations
   Annotations  pressAnnotations_; //!< press annotations
   mutable BBox annotationBBox_;   //!< cached annotation bbox
+
+  //---
+
+  using ControlWidgets = std::vector<CQChartsPlotControlIFace *>;
+
+  ControlWidgets controls_;
 
   //---
 

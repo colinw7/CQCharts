@@ -84,7 +84,7 @@ class CQChartsGeomPointPropertyViewType : public CQPropertyViewType {
 
   void draw(PropertyItem *item, const Delegate *delegate, QPainter *painter,
             const StyleOption &option, const QModelIndex &index,
-            const QVariant &value, bool inside) override;
+            const QVariant &value, const ItemState &itemState) override;
 
   QString tip(const QVariant &value) const override;
 

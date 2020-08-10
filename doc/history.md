@@ -1164,3 +1164,11 @@
  + Add widget annotation
 # 08/02/2020
  + Add region tool support and link to rect/position widgets
+# 08/09/2020
+ + Add image model data support in image plot
+ + Add optional auto apply in property view
+ + Add align to widget annotation
+ + Add contour plot
+ + Add rect support for ellipse in edit annotation dialog
+ + Add qt_connect_Widget tcl command
+ + Use new base class for control widgets

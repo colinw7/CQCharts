@@ -8,6 +8,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
+#include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -44,7 +45,7 @@ description() const
      p("The vertical and horizontal headers are used for the row and column labels respetively.").
     h3("Options").
      p("To scale the colors and circle sizes for the cell the user can supply a maximum and/or "
-       "minimum value for the values in the value column. If not specifed the compured minimum "
+       "minimum value for the values in the value column. If not specifed the computed minimum "
        "and maximum will be used").
      p("X and/or Y labels can be added to the outside of the grid.").
      p("Labels can be added to each grid cell and the labels can be scaled "
@@ -222,22 +223,40 @@ calcRange() const
   // calc min/max value
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsImagePlot *plot) :
+    using Plot = CQChartsImagePlot;
+
+   public:
+    RowVisitor(const Plot *plot) :
      plot_(plot) {
     }
 
+    void initVisit() override {
+      ModelVisitor::initVisit();
+
+      for (int col = 0; col < numCols(); ++col) {
+        ColumnType columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
+
+        columnTypes_.push_back(columnType);
+      }
+    }
+
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsImagePlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       for (int col = 0; col < numCols(); ++col) {
         ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
 
-        bool ok;
+        if (columnTypes_[col] == CQBaseModelType::IMAGE) {
+          valueRange_.add(0.0);
+        }
+        else {
+          bool ok;
 
-        double value = plot_->modelReal(columnModelInd, ok);
+          double value = plot_->modelReal(columnModelInd, ok);
 
-        if (ok && ! CMathUtil::isNaN(value))
-          valueRange_.add(value);
+          if (ok && ! CMathUtil::isNaN(value))
+            valueRange_.add(value);
+        }
       }
 
       return State::OK;
@@ -247,8 +266,11 @@ calcRange() const
     double maxValue() const { return valueRange_.max(1.0); }
 
    private:
-    const CQChartsImagePlot* plot_     { nullptr };
-    RMinMax                  valueRange_;
+    using ColumnTypes = std::vector<ColumnType>;
+
+    const Plot* plot_     { nullptr };
+    RMinMax     valueRange_;
+    ColumnTypes columnTypes_;
   };
 
   RowVisitor visitor(this);
@@ -298,12 +320,25 @@ createObjs(PlotObjs &objs) const
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(const CQChartsImagePlot *plot, PlotObjs &objs) :
+    using Plot = CQChartsImagePlot;
+
+   public:
+    RowVisitor(const Plot *plot, PlotObjs &objs) :
      plot_(plot), objs_(objs) {
     }
 
+    void initVisit() override {
+      ModelVisitor::initVisit();
+
+      for (int col = 0; col < numCols(); ++col) {
+        ColumnType columnType = plot_->columnValueType(Column(0), ColumnType::REAL);
+
+        columnTypes_.push_back(columnType);
+      }
+    }
+
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      auto *plot = const_cast<CQChartsImagePlot *>(plot_);
+      auto *plot = const_cast<Plot *>(plot_);
 
       x_ = 0.0;
 
@@ -312,13 +347,27 @@ createObjs(PlotObjs &objs) const
 
         QModelIndex ind = plot_->modelIndex(columnModelInd);
 
-        bool ok;
+        if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
+          CQChartsImage image;
 
-        double value = plot_->modelReal(columnModelInd, ok);
+          bool ok;
 
-        //---
+          QVariant imageVar = plot_->modelValue(columnModelInd, ok);
 
-        plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, value, ind, objs_);
+          if (ok)
+            image = CQChartsVariant::toImage(imageVar, ok);
+
+          plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, image, ind, objs_);
+        }
+        else {
+          bool ok;
+
+          double value = plot_->modelReal(columnModelInd, ok);
+
+          //---
+
+          plot_->addImageObj(data.row, ic, x_, y_, dx_, dy_, value, ind, objs_);
+        }
 
         //---
 
@@ -331,12 +380,15 @@ createObjs(PlotObjs &objs) const
     }
 
    private:
-    const CQChartsImagePlot* plot_ { nullptr };
-    PlotObjs&                objs_;
-    double                   x_    { 0.0 };
-    double                   y_    { 0.0 };
-    double                   dx_   { 1.0 };
-    double                   dy_   { 1.0 };
+    using ColumnTypes = std::vector<ColumnType>;
+
+    const Plot* plot_ { nullptr };
+    PlotObjs&   objs_;
+    double      x_    { 0.0 };
+    double      y_    { 0.0 };
+    double      dx_   { 1.0 };
+    double      dy_   { 1.0 };
+    ColumnTypes columnTypes_;
   };
 
   RowVisitor visitor(this, objs);
@@ -362,6 +414,21 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
   ColorInd colorInd(rv);
 
   auto *imageObj = createImageObj(bbox, row, col, value, ind1, colorInd);
+
+  objs.push_back(imageObj);
+}
+
+
+void
+CQChartsImagePlot::
+addImageObj(int row, int col, double x, double y, double dx, double dy, const CQChartsImage &image,
+            const QModelIndex &ind, PlotObjs &objs) const
+{
+  QModelIndex ind1 = normalizeIndex(ind);
+
+  BBox bbox(x, y, x + dx, y + dy);
+
+  auto *imageObj = createImageObj(bbox, row, col, image, ind1);
 
   objs.push_back(imageObj);
 }
@@ -703,13 +770,32 @@ createImageObj(const BBox &rect, int row, int col, double value, const QModelInd
   return new CQChartsImageObj(this, rect, row, col, value, ind, iv);
 }
 
+CQChartsImageObj *
+CQChartsImagePlot::
+createImageObj(const BBox &rect, int row, int col, const Image &image,
+               const QModelIndex &ind) const
+{
+  return new CQChartsImageObj(this, rect, row, col, image, ind);
+}
+
 //------
 
 CQChartsImageObj::
-CQChartsImageObj(const CQChartsImagePlot *plot, const BBox &rect, int row, int col, double value,
+CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col, double value,
                  const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), row_(row), col_(col), value_(value)
+{
+  setDetailHint(DetailHint::MAJOR);
+
+  setModelInd(ind);
+}
+
+CQChartsImageObj::
+CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col,
+                 const Image &image, const QModelIndex &ind) :
+ CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
+ plot_(plot), row_(row), col_(col), image_(image), columnType_(CQBaseModelType::IMAGE)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -774,6 +860,17 @@ draw(CQChartsPaintDevice *device)
   device->setColorNames();
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  if (columnType_ == CQBaseModelType::IMAGE) {
+    device->drawRect(rect());
+
+    if (image_.isValid())
+      device->drawImageInRect(rect(), image_);
+
+    return;
+  }
 
   //---
 

@@ -1,12 +1,13 @@
 #include <CQChartsCmdBase.h>
 #include <CQChartsInput.h>
 #include <CQBaseModel.h>
-#include <CQPerfMonitor.h>
 #include <CQWidgetFactory.h>
+#include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
 
 #include <QApplication>
+#include <QVBoxLayout>
 
 namespace {
 
@@ -76,7 +77,10 @@ addCommands()
     addCommand("help", new CQChartsBaseHelpCmd(this));
 
     // qt generic
-    addCommand("qt_create_widget", new CQChartsBaseCreateWidgetCmd(this));
+    addCommand("qt_create_widget"   , new CQChartsBaseCreateWidgetCmd  (this));
+    addCommand("qt_create_layout"   , new CQChartsBaseCreateLayoutCmd  (this));
+    addCommand("qt_add_child_widget", new CQChartsBaseAddChildWidgetCmd(this));
+    addCommand("qt_connect_widget"  , new CQChartsBaseConnectWidgetCmd (this));
 
     addCommand("qt_get_property", new CQChartsBaseGetPropertyCmd(this));
     addCommand("qt_set_property", new CQChartsBaseSetPropertyCmd(this));
@@ -174,14 +178,14 @@ qtCreateWidgetCmd(CQChartsCmdArgs &argv)
     }
   }
 
-  QString name     = argv.getParseStr("name");
+  auto name = argv.getParseStr("name");
 
   if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName)) {
     errorMsg(QString("Invalid type '%1'").arg(typeName));
     return false;
   }
 
-  QWidget *w = CQWidgetFactoryMgrInst->createWidget(typeName, parentWidget);
+  auto *w = CQWidgetFactoryMgrInst->createWidget(typeName, parentWidget);
 
   if (! w) {
     errorMsg(QString("Failed to create '%1'").arg(typeName));
@@ -192,6 +196,138 @@ qtCreateWidgetCmd(CQChartsCmdArgs &argv)
     w->setObjectName(name);
 
   setCmdRc(CQUtil::fullName(w));
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtAddChildWidgetCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtAddChildWidgetCmd");
+
+  argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
+  argv.addCmdArg("-child" , CQChartsCmdArg::Type::String, "child name");
+
+  if (! argv.parse())
+    return false;
+
+  auto  parentName   = argv.getParseStr("parent");
+  auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
+
+  if (! parentWidget) {
+    errorMsg(QString("No parent '%1'").arg(parentName));
+    return false;
+  }
+
+  auto  childName   = argv.getParseStr("child");
+  auto *childWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(childName));
+
+  if (! childWidget) {
+    errorMsg(QString("No widget '%1'").arg(childName));
+    return false;
+  }
+
+  auto *layout = parentWidget->layout();
+
+  if (! layout)
+    layout = new QVBoxLayout(parentWidget);
+
+  layout->addWidget(childWidget);
+
+  setCmdRc(CQUtil::fullName(childWidget));
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtCreateLayoutCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtCreateLayoutCmd");
+
+  argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
+  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "layout type");
+
+  if (! argv.parse())
+    return false;
+
+  auto typeName = argv.getParseStr("type");
+
+  if (typeName == "?") {
+    auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+    return setCmdRc(names);
+  }
+
+  QWidget *parentWidget = nullptr;
+
+  if (argv.hasParseArg("parent")) {
+    QString parentName = argv.getParseStr("parent");
+
+    parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
+
+    if (! parentWidget) {
+      errorMsg(QString("No parent '%1'").arg(parentName));
+      return false;
+    }
+  }
+  else {
+    errorMsg("No parent");
+    return false;
+  }
+
+  if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName)) {
+    errorMsg(QString("Invalid type '%1'").arg(typeName));
+    return false;
+  }
+
+  auto *l = CQWidgetFactoryMgrInst->createLayout(typeName, parentWidget);
+
+  if (! l) {
+    errorMsg(QString("Failed to create '%1'").arg(typeName));
+    return false;
+  }
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtConnectWidgetCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtConnectWidgetCmd");
+
+  argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String, "widget name");
+  argv.addCmdArg("-signal", CQChartsCmdArg::Type::String, "signal name");
+  argv.addCmdArg("-proc"  , CQChartsCmdArg::Type::String, "tcl proc name");
+
+  if (! argv.parse())
+    return false;
+
+  auto  name   = argv.getParseStr("name");
+  auto *widget = qobject_cast<QWidget *>(CQUtil::nameToObject(name));
+
+  if (! widget) {
+    errorMsg(QString("No parent '%1'").arg(name));
+    return false;
+  }
+
+  auto signalName = argv.getParseStr("signal");
+  auto procName   = argv.getParseStr("proc");
+
+  auto *slot = new CQChartsCmdBaseSlot(this, procName);
+
+  auto signalName2 = (QString("2") + signalName).toStdString();
+  auto slotName1   = (QString("1") + signalName).toStdString();
+
+  QObject::connect(widget, signalName2.c_str(), slot, slotName1.c_str());
 
   return true;
 }
@@ -620,4 +756,32 @@ parseLine(const QString &line, bool log)
 
   if (rc != TCL_OK)
     errorMsg("Invalid line: '" + line + "'");
+}
+
+//----
+
+CQChartsCmdBaseSlot::
+CQChartsCmdBaseSlot(CQChartsCmdBase *base, const QString &procName) :
+ base_(base), procName_(procName) {
+}
+
+void
+CQChartsCmdBaseSlot::
+clicked()
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
+clicked(bool)
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
+execProc()
+{
+  base_->qtcl()->eval(procName_, /*showError*/true, /*showResult*/false);
 }

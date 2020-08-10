@@ -21,6 +21,7 @@ class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
 class CQChartsColorLineEdit;
+class CQChartsAngleEdit;
 class CQChartsLineEdit;
 
 class CQRealSpin;
@@ -59,9 +60,12 @@ class CQChartsEditAnnotationDlg : public QDialog {
   };
 
   struct EllipseWidgets : public Widgets {
+    QRadioButton*         centerRadio { nullptr };
+    QRadioButton*         rectRadio   { nullptr };
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
+    CQChartsRectEdit*     rectEdit    { nullptr };
     CQChartsLineEdit*     paddingEdit { nullptr };
   };
 
@@ -104,6 +108,31 @@ class CQChartsEditAnnotationDlg : public QDialog {
   struct PointWidgets : public Widgets {
     CQChartsPositionEdit*   positionEdit { nullptr };
     CQChartsSymbolDataEdit* dataEdit     { nullptr };
+  };
+
+  struct PieSliceWidgets : public Widgets {
+    CQChartsPositionEdit* centerEdit      { nullptr };
+    CQChartsLengthEdit*   innerRadiusEdit { nullptr };
+    CQChartsLengthEdit*   outerRadiusEdit { nullptr };
+    CQChartsAngleEdit*    startAngleEdit  { nullptr };
+    CQChartsAngleEdit*    spanAngleEdit   { nullptr };
+  };
+
+  struct AxisWidgets : public Widgets {
+  };
+
+  struct KeyWidgets : public Widgets {
+  };
+
+  struct PointSetWidgets : public Widgets {
+  };
+
+  struct ValueSetWidgets : public Widgets {
+  };
+
+  struct ButtonWidgets : public Widgets {
+    CQChartsPositionEdit* positionEdit { nullptr };
+    CQChartsLineEdit*     textEdit     { nullptr };
   };
 
  private:
@@ -171,6 +200,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   void clearErrorMsg();
 
  private slots:
+  void ellipseCenterSlot(bool);
   void textPositionSlot (bool);
   void imagePositionSlot(bool);
 
@@ -191,6 +221,12 @@ class CQChartsEditAnnotationDlg : public QDialog {
   ImageWidgets        imageWidgets_;                 //!< image edit widgets
   ArrowWidgets        arrowWidgets_;                 //!< arrow edit widgets
   PointWidgets        pointWidgets_;                 //!< point edit widgets
+  PieSliceWidgets     pieSliceWidgets_;              //!< pie slice widgets
+  AxisWidgets         axisWidgets_;                  //!< axis widgets
+  KeyWidgets          keyWidgets_;                   //!< key widgets
+  PointSetWidgets     pointSetWidgets_;              //!< point set widgets
+  ValueSetWidgets     valueSetWidgets_;              //!< value set widgets
+  ButtonWidgets       buttonWidgets_;                //!< button widgets
   QLabel*             msgLabel_         { nullptr }; //!< error message label
 };
 

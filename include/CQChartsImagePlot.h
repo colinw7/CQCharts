@@ -44,8 +44,14 @@ class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsImageObj(const CQChartsImagePlot *plot, const BBox &rect, int row, int col,
+  using Plot  = CQChartsImagePlot;
+  using Image = CQChartsImage;
+
+ public:
+  CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col,
                    double value, const QModelIndex &ind, const ColorInd &iv);
+  CQChartsImageObj(const Plot *plot, const BBox &rect, int row, int col,
+                   const Image &image, const QModelIndex &ind);
 
   //---
 
@@ -65,13 +71,13 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
   //---
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -79,10 +85,12 @@ class CQChartsImageObj : public CQChartsPlotObj {
   double yColorValue(bool relative) const override;
 
  private:
-  const CQChartsImagePlot* plot_  { nullptr }; //!< parent plot
-  int                      row_   { -1 };      //!< row
-  int                      col_   { -1 };      //!< column
-  double                   value_ { 0.0 };     //!< value
+  const Plot*     plot_       { nullptr };               //!< parent plot
+  int             row_        { -1 };                    //!< row
+  int             col_        { -1 };                    //!< column
+  double          value_      { 0.0 };                   //!< value
+  Image           image_;                                //!< image
+  CQBaseModelType columnType_ { CQBaseModelType::REAL }; //!< data type
 };
 
 //---
@@ -129,6 +137,9 @@ class CQChartsImagePlot : public CQChartsPlot,
     RECT,
     BALLOON
   };
+
+  using Image    = CQChartsImage;
+  using ImageObj = CQChartsImageObj;
 
  public:
   CQChartsImagePlot(View *view, const ModelP &model);
@@ -197,7 +208,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *device) const override;
+  void execDrawForeground(PaintDevice *device) const override;
 
   //---
 
@@ -219,12 +230,16 @@ class CQChartsImagePlot : public CQChartsPlot,
  protected:
   void addImageObj(int row, int col, double x, double y, double dx, double dy,
                    double value, const QModelIndex &ind, PlotObjs &objs) const;
+  void addImageObj(int row, int col, double x, double y, double dx, double dy,
+                   const Image &image, const QModelIndex &ind, PlotObjs &objs) const;
 
-  void drawXLabels(CQChartsPaintDevice *device) const;
-  void drawYLabels(CQChartsPaintDevice *device) const;
+  void drawXLabels(PaintDevice *device) const;
+  void drawYLabels(PaintDevice *device) const;
 
-  virtual CQChartsImageObj *createImageObj(const BBox &rect, int row, int col, double value,
-                                           const QModelIndex &ind, const ColorInd &iv) const;
+  virtual ImageObj *createImageObj(const BBox &rect, int row, int col, double value,
+                                   const QModelIndex &ind, const ColorInd &iv) const;
+  virtual ImageObj *createImageObj(const BBox &rect, int row, int col,
+                                   const Image &image, const QModelIndex &ind) const;
 
  private:
   CellStyle cellStyle_       { CellStyle::RECT }; //!< cell style

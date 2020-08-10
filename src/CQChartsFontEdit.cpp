@@ -172,9 +172,9 @@ void
 CQChartsFontPropertyViewType::
 draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+     const QVariant &value, const ItemState &itemState)
 {
-  delegate->drawBackground(painter, option, ind, inside);
+  delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
   CQChartsFont font = CQChartsVariant::toFont(value, ok);
@@ -190,9 +190,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   QStyleOptionViewItem option1 = option;
 
-  option1.rect.setRight(option1.rect.left() + w + 8);
+  option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
-  delegate->drawString(painter, option1, str, ind, inside);
+  delegate->drawString(painter, option1, str, ind, itemState);
 
   //---
 

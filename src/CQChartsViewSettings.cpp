@@ -25,6 +25,8 @@
 #include <CQChartsUtil.h>
 #include <CQChartsExprTcl.h>
 
+#include <CQChartsPlotControlWidgets.h>
+
 #include <CQColorsEditCanvas.h>
 #include <CQColorsEditControl.h>
 #include <CQColorsEditList.h>
@@ -2467,9 +2469,7 @@ updatePlotControls()
 {
   CQUtil::removeGridItems(controlWidgets_.layout, /*deleteWidgets*/true);
 
-  controlWidgets_.combos .clear();
-  controlWidgets_.sliders.clear();
-  controlWidgets_.radios .clear();
+  controlWidgets_.ifaces.clear();
 
   delete controlWidgets_.groupButtonGroup;
 
@@ -2539,148 +2539,38 @@ addPlotControls(CQChartsPlot *plot)
 
   for (int ic = 0; ic < columns.count(); ++ic) {
     const auto &column = columns.getColumn(ic);
+    if (! column.isValid()) continue;
 
     auto *details = plot->columnDetails(column);
     if (! details) continue;
 
-    bool ok;
-    QString header = plot->modelHHeaderString(columns.getColumn(ic), ok);
-    if (! ok) continue;
+    //---
 
-    auto *label = CQUtil::makeLabelWidget<QLabel>(header, "label");
+    // create widget
+    CQChartsPlotControlIFace* iface = nullptr;
 
-    QComboBox*     combo  = nullptr;
-    CQRangeSlider* slider = nullptr;
+    if      (details->type() == CQBaseModelType::REAL)
+      iface = new CQChartsPlotRealControl(plot, column);
+    else if (details->type() == CQBaseModelType::INTEGER)
+      iface = new CQChartsPlotIntControl(plot, column);
+    else if (details->type() == CQBaseModelType::TIME)
+      iface = new CQChartsPlotTimeControl(plot, column);
+    else
+      iface = new CQChartsPlotValueControl(plot, column);
 
-    if      (details->type() == CQBaseModelType::REAL) {
-      slider = CQUtil::makeWidget<CQDoubleRangeSlider>("slider");
-
-      slider->setProperty("header", header);
-    }
-    else if (details->type() == CQBaseModelType::INTEGER) {
-      slider = CQUtil::makeWidget<CQIntRangeSlider>("slider");
-
-      slider->setProperty("header", header);
-    }
-    else if (details->type() == CQBaseModelType::TIME) {
-      slider = CQUtil::makeWidget<CQTimeRangeSlider>("slider");
-
-      slider->setProperty("header", header);
-    }
-    else {
-      combo = CQUtil::makeWidget<QComboBox>("combo");
-
-      combo->setFixedWidth(QFontMetrics(combo->font()).width("XXXXXXXX"));
-    //combo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-
-      combo->setProperty("header", header);
-    }
-
-    auto *radio = CQUtil::makeLabelWidget<QRadioButton>("Group", "radio");
-
-    radio->setProperty("column", column.column());
+    auto *radio = iface->radio();
 
     controlWidgets_.groupButtonGroup->addButton(radio);
 
     //---
 
-    if      (combo) {
-      combo->addItem("<any>");
+    iface->connectValueChanged(this, SLOT(plotControlUpdateSlot()));
 
-      QVariantList uniqueValues = details->uniqueValues();
-
-      for (const auto &value : uniqueValues) {
-        QString str = value.toString();
-        if (! str.length()) continue;
-
-        combo->addItem(str);
-      }
-    }
-    else if (slider) {
-      bool ok;
-
-      auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
-      auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
-      auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
-
-      if      (rslider) {
-        rslider->setRangeMin(details->minValue().toDouble(&ok));
-        rslider->setRangeMax(details->maxValue().toDouble(&ok));
-
-        rslider->setSliderMin(rslider->rangeMin());
-        rslider->setSliderMax(rslider->rangeMax());
-      }
-      else if (islider) {
-        islider->setRangeMin(details->minValue().toInt(&ok));
-        islider->setRangeMax(details->maxValue().toInt(&ok));
-
-        islider->setSliderMin(islider->rangeMin());
-        islider->setSliderMax(islider->rangeMax());
-      }
-      else if (tslider) {
-        tslider->setRangeMin(details->minValue().toDouble(&ok));
-        tslider->setRangeMax(details->maxValue().toDouble(&ok));
-
-        tslider->setSliderMin(tslider->rangeMin());
-        tslider->setSliderMax(tslider->rangeMax());
-      }
-    }
-
-    //---
-
-    if      (combo) {
-      combo->setProperty("plot", plot->id());
-
-      connect(combo, SIGNAL(currentIndexChanged(int)),
-              this, SLOT(plotControlUpdateSlot()));
-    }
-    else if (slider) {
-      auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
-      auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
-      auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
-
-      if      (rslider) {
-        rslider->setProperty("plot", plot->id());
-
-        connect(rslider, SIGNAL(sliderRangeChanged(double, double)),
-                this, SLOT(plotControlUpdateSlot()));
-      }
-      else if (islider) {
-        islider->setProperty("plot", plot->id());
-
-        connect(islider, SIGNAL(sliderRangeChanged(int, int)),
-                this, SLOT(plotControlUpdateSlot()));
-      }
-      else if (tslider) {
-        tslider->setProperty("plot", plot->id());
-
-        connect(tslider, SIGNAL(sliderRangeChanged(double, double)),
-                this, SLOT(plotControlUpdateSlot()));
-      }
-    }
-
-    if (radio) {
-      radio->setProperty("plot", plot->id());
-
-      connect(radio, SIGNAL(toggled(bool)), this, SLOT(plotControlUpdateSlot()));
-    }
-
-    controlWidgets_.combos .push_back(combo);
-    controlWidgets_.sliders.push_back(slider);
-    controlWidgets_.radios .push_back(radio);
+    controlWidgets_.ifaces.push_back(iface);
 
     int col = 0;
 
-    controlWidgets_.layout->addWidget(label, ic, col++);
-
-    if (combo)
-      controlWidgets_.layout->addWidget(combo, ic, col++);
-
-    if (slider)
-      controlWidgets_.layout->addWidget(slider, ic, col++);
-
-    if (radio)
-      controlWidgets_.layout->addWidget(radio, ic, col++);
+    controlWidgets_.layout->addWidget(iface, ic, col++);
 
     ++n;
   }
@@ -2709,90 +2599,25 @@ plotControlUpdateSlot()
 
   QString cmpStr = (controlWidgets_.equalCheck->isChecked() ? "==" : "!=");
 
-  int n = controlWidgets_.combos.size();
+  int n = controlWidgets_.ifaces.size(); // all same size
 
   for (int i = 0; i < n; ++i) {
-    auto *combo  = controlWidgets_.combos [i];
-    auto *slider = controlWidgets_.sliders[i];
-    auto *radio  = controlWidgets_.radios [i];
+    auto *iface = controlWidgets_.ifaces[i];
+    assert(iface);
+
+    auto *radio = iface->radio();
 
     if (radio->isChecked()) {
-      bool ok;
-      int icolumn = radio->property("column").toInt(&ok);
-      if (! ok) continue;
+      const auto &column = iface->column();
 
       if (groupPlot)
-        groupPlot->setGroupColumn(CQChartsColumn(icolumn));
+        groupPlot->setGroupColumn(CQChartsColumn(column));
     }
     else {
-      if      (combo) {
-        int ind = combo->currentIndex();
-        if (ind == 0) continue;
+      QString filter = iface->filterStr(cmpStr);
 
-        QString header = combo->property("header").toString();
-        if (! header.length()) continue;
-
-        QString header1 = CQChartsExprTcl::encodeColumnName(header);
-
-        QString filter = QString("$%1 %2 {%3}").arg(header1).arg(cmpStr).arg(combo->itemText(ind));
-
+      if (filter.length())
         filters.push_back(filter);
-      }
-      else if (slider) {
-        QString header = slider->property("header").toString();
-        if (! header.length()) continue;
-
-        QString header1 = CQChartsExprTcl::encodeColumnName(header);
-
-        auto *rslider = qobject_cast<CQDoubleRangeSlider *>(slider);
-        auto *islider = qobject_cast<CQIntRangeSlider    *>(slider);
-        auto *tslider = qobject_cast<CQTimeRangeSlider   *>(slider);
-
-        QString filter;
-
-        if      (rslider) {
-          if (rslider->sliderMin() != rslider->rangeMin() &&
-              rslider->sliderMax() != rslider->rangeMax()) {
-            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
-              arg(rslider->sliderMin()).arg(rslider->sliderMax());
-          }
-          else if (rslider->sliderMin() != rslider->rangeMin()) {
-            filter = QString("$%1 >= %2").arg(header1).arg(rslider->sliderMin());
-          }
-          else if (rslider->sliderMax() != rslider->rangeMax()) {
-            filter = QString("$%1 <= %2").arg(header1).arg(rslider->sliderMax());
-          }
-        }
-        else if (islider) {
-          if (islider->sliderMin() != islider->rangeMin() &&
-              islider->sliderMax() != islider->rangeMax()) {
-            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
-              arg(islider->sliderMin()).arg(islider->sliderMax());
-          }
-          else if (islider->sliderMin() != islider->rangeMin()) {
-            filter = QString("$%1 >= %2").arg(header1).arg(islider->sliderMin());
-          }
-          else if (islider->sliderMax() != islider->rangeMax()) {
-            filter = QString("$%1 <= %2").arg(header1).arg(islider->sliderMax());
-          }
-        }
-        else if (tslider) {
-          if (tslider->sliderMin() != tslider->rangeMin() &&
-              tslider->sliderMax() != tslider->rangeMax()) {
-            filter = QString("($%1 >= %2 && $%1 <= %3)").arg(header1).
-              arg(tslider->sliderMin()).arg(tslider->sliderMax());
-          }
-          else if (tslider->sliderMin() != tslider->rangeMin()) {
-            filter = QString("$%1 >= %2").arg(header1).arg(tslider->sliderMin());
-          }
-          else if (tslider->sliderMax() != tslider->rangeMax()) {
-            filter = QString("$%1 <= %2").arg(header1).arg(tslider->sliderMax());
-          }
-        }
-
-        if (filter.length())
-          filters.push_back(filter);
-      }
     }
   }
 

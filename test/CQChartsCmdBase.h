@@ -60,11 +60,14 @@ class CQChartsCmdBase {
   //---
 
  public:
-  bool qtCreateWidgetCmd(CQChartsCmdArgs &args);
-  bool qtGetPropertyCmd (CQChartsCmdArgs &args);
-  bool qtSetPropertyCmd (CQChartsCmdArgs &args);
-  bool qtHasPropertyCmd (CQChartsCmdArgs &args);
-  bool qtSyncCmd        (CQChartsCmdArgs &args);
+  bool qtCreateWidgetCmd  (CQChartsCmdArgs &args);
+  bool qtCreateLayoutCmd  (CQChartsCmdArgs &args);
+  bool qtAddChildWidgetCmd(CQChartsCmdArgs &args);
+  bool qtConnectWidgetCmd (CQChartsCmdArgs &args);
+  bool qtGetPropertyCmd   (CQChartsCmdArgs &args);
+  bool qtSetPropertyCmd   (CQChartsCmdArgs &args);
+  bool qtHasPropertyCmd   (CQChartsCmdArgs &args);
+  bool qtSyncCmd          (CQChartsCmdArgs &args);
 
   bool perfCmd(CQChartsCmdArgs &args);
 
@@ -121,6 +124,30 @@ class CQChartsCmdProc {
 
 //---
 
+class CQChartsCmdBaseSlot : public QObject {
+  Q_OBJECT
+
+ public:
+  CQChartsCmdBaseSlot(CQChartsCmdBase *base, const QString &procName);
+
+  CQChartsCmdBase *base() const { return base_; }
+
+  const QString &proc() const { return procName_; }
+
+ public slots:
+  void clicked();
+  void clicked(bool);
+
+ private:
+  void execProc();
+
+ private:
+  CQChartsCmdBase *base_     { nullptr };
+  QString          procName_;
+};
+
+//---
+
 /*!
  * \brief Charts Named Basic Command
  * \ingroup Charts
@@ -135,11 +162,14 @@ class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
 
 //---
 
-CQCHARTS_BASE_DEF_CMD(CreateWidget, qtCreateWidgetCmd)
-CQCHARTS_BASE_DEF_CMD(GetProperty , qtGetPropertyCmd)
-CQCHARTS_BASE_DEF_CMD(SetProperty , qtSetPropertyCmd)
-CQCHARTS_BASE_DEF_CMD(HasProperty , qtHasPropertyCmd)
-CQCHARTS_BASE_DEF_CMD(QtSync      , qtSyncCmd)
+CQCHARTS_BASE_DEF_CMD(CreateWidget  , qtCreateWidgetCmd  )
+CQCHARTS_BASE_DEF_CMD(CreateLayout  , qtCreateLayoutCmd  )
+CQCHARTS_BASE_DEF_CMD(AddChildWidget, qtAddChildWidgetCmd)
+CQCHARTS_BASE_DEF_CMD(ConnectWidget , qtConnectWidgetCmd )
+CQCHARTS_BASE_DEF_CMD(GetProperty   , qtGetPropertyCmd   )
+CQCHARTS_BASE_DEF_CMD(SetProperty   , qtSetPropertyCmd   )
+CQCHARTS_BASE_DEF_CMD(HasProperty   , qtHasPropertyCmd   )
+CQCHARTS_BASE_DEF_CMD(QtSync        , qtSyncCmd          )
 
 CQCHARTS_BASE_DEF_CMD(Perf, perfCmd)
 

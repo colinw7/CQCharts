@@ -235,7 +235,7 @@ createEllipseFrame()
   ellipseWidgets_.rxEdit = createLengthEdit("rxEdit", 1.0, "Ellipse X Radius Length");
   ellipseWidgets_.ryEdit = createLengthEdit("ryEdit", 1.0, "Ellipse Y Radius Length");
 
-  ellipseWidgets_.rectEdit = createRectEdit("rectEdit", "Text Rectangle");
+  ellipseWidgets_.rectEdit = createRectEdit("rectEdit", "Ellipse Rectangle");
 
   ellipseWidgets_.centerRadio->setChecked(true);
 
@@ -509,7 +509,7 @@ createArrowFrame()
   arrowWidgets_.dataEdit->setPlot(plot());
   arrowWidgets_.dataEdit->setView(view());
 
-  CQChartsLength len = CQChartsViewPlotObj::makeLength(view(), plot(), 1);
+  auto len = CQChartsViewPlotObj::makeLength(view(), plot(), 1);
 
   arrowWidgets_.dataEdit->lengthEdit()->setLength(len);
 

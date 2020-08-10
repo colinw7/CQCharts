@@ -8,6 +8,7 @@
 #include <CQChartsBubblePlot.h>
 #include <CQChartsChordPlot.h>
 #include <CQChartsCompositePlot.h>
+#include <CQChartsContourPlot.h>
 #include <CQChartsCorrelationPlot.h>
 #include <CQChartsDelaunayPlot.h>
 #include <CQChartsDendrogramPlot.h>
@@ -380,6 +381,7 @@ init()
   plotTypeMgr_->addType("bubble"       , new CQChartsBubblePlotType       );
   plotTypeMgr_->addType("chord"        , new CQChartsChordPlotType        );
   plotTypeMgr_->addType("composite"    , new CQChartsCompositePlotType    );
+  plotTypeMgr_->addType("contour"      , new CQChartsContourPlotType      );
   plotTypeMgr_->addType("correlation"  , new CQChartsCorrelationPlotType  );
   plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
   plotTypeMgr_->addType("dendrogram"   , new CQChartsDendrogramPlotType   );

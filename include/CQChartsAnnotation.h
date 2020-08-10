@@ -1349,6 +1349,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
   Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
   Q_PROPERTY(CQChartsWidget      widget    READ widget    WRITE setWidget   )
+  Q_PROPERTY(Qt::Alignment       align     READ align     WRITE setAlign    )
 
  public:
   using Widget      = CQChartsWidget;
@@ -1387,6 +1388,9 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   const Widget &widget() const { return widget_; }
   void setWidget(const Widget &widget);
 
+  const Qt::Alignment &align() const { return align_; }
+  void setAlign(const Qt::Alignment &a);
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
@@ -1423,9 +1427,10 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   void positionToBBox();
 
  private:
-  OptPosition position_;  //!< widget position
-  OptRect     rectangle_; //!< widget bounding rectangle
-  Widget      widget_;    //!< widget
+  OptPosition   position_;                               //!< widget position
+  OptRect       rectangle_;                              //!< widget bounding rectangle
+  Widget        widget_;                                 //!< widget
+  Qt::Alignment align_ { Qt::AlignLeft | Qt::AlignTop }; //! position alignment
 };
 
 #endif

@@ -68,6 +68,7 @@ CQChartsBubblePlot.cpp \
 CQChartsChordPlot.cpp \
 CQChartsCompositePlot.cpp \
 CQChartsConnectionPlot.cpp \
+CQChartsContourPlot.cpp \
 CQChartsCorrelationPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
@@ -110,6 +111,7 @@ CQChartsAnnotation.cpp \
 CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
+CQChartsPlotControlWidgets.cpp \
 \
 CQChartsInterfaceTheme.cpp \
 CQChartsThemeName.cpp \
@@ -228,6 +230,7 @@ CQChartsAnalyzeModel.cpp \
 CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
+CQChartsContour.cpp \
 \
 CQChartsTitleEdit.cpp \
 CQChartsKeyEdit.cpp \
@@ -377,6 +380,7 @@ HEADERS += \
 ../include/CQChartsChordPlot.h \
 ../include/CQChartsCompositePlot.h \
 ../include/CQChartsConnectionPlot.h \
+../include/CQChartsContourPlot.h \
 ../include/CQChartsCorrelationPlot.h \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \
@@ -419,6 +423,7 @@ HEADERS += \
 ../include/CQChartsArrow.h \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
+../include/CQChartsPlotControlWidgets.h \
 \
 ../include/CQChartsInterfaceTheme.h \
 ../include/CQChartsThemeName.h \
@@ -541,6 +546,7 @@ HEADERS += \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \
 ../include/CQChartsHull3D.h \
+../include/CQChartsContour.h \
 \
 ../include/CQChartsTitleEdit.h \
 ../include/CQChartsKeyEdit.h \
