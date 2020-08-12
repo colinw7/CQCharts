@@ -51,6 +51,8 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
   // create a data label (shared state for all data labels)
   dataLabel_ = new CQChartsDataLabel(this);
 
+  dataLabel_->setClip(false);
+  dataLabel_->setMoveClipped(false);
   dataLabel_->setSendSignal(true);
 
   connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));

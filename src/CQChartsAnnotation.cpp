@@ -20,6 +20,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQUtil.h>
+#include <CMathRound.h>
 
 #include <QStylePainter>
 
@@ -4841,6 +4842,15 @@ setAlign(const Qt::Alignment &a)
 
 void
 CQChartsWidgetAnnotation::
+setSizePolicy(const QSizePolicy &p)
+{
+  sizePolicy_ = p;
+
+  emit dataChanged();
+}
+
+void
+CQChartsWidgetAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -4854,10 +4864,11 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position" , "position" , "Widget position");
-  addProp(path1, "rectangle", "rectangle", "Widget bounding box");
-  addProp(path1, "widget"   , "widget"   , "Widget name");
-  addProp(path1, "align"    , "align"    , "Widget position alignment");
+  addProp(path1, "position"  , "position"  , "Widget position");
+  addProp(path1, "rectangle" , "rectangle" , "Widget bounding box");
+  addProp(path1, "widget"    , "widget"    , "Widget name");
+  addProp(path1, "align"     , "align"     , "Widget position alignment");
+  addProp(path1, "sizePolicy", "sizePolicy", "Widget size policy");
 }
 
 QString
@@ -4884,7 +4895,7 @@ calcWidgetSize(Size &psize, Size &wsize) const
 
 void
 CQChartsWidgetAnnotation::
-positionToLL(double w, double h, double &x, double &y) const
+positionToTopLeft(double w, double h, double &x, double &y) const
 {
   auto p = positionToParent(positionValue());
 
@@ -4995,7 +5006,8 @@ draw(PaintDevice *)
 
   auto ptbbox = windowToPixel(tbbox);
 
-  widget_.resize(ptbbox.getWidth(), ptbbox.getHeight());
+  widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
+                 CMathRound::RoundNearest(ptbbox.getHeight()));
 
   widget_.move(ptbbox.getXMin(), ptbbox.getYMin());
 
@@ -5047,12 +5059,35 @@ positionToBBox()
 
   calcWidgetSize(psize, wsize);
 
+  double w = wsize.width ();
+  double h = wsize.height();
+
   double x, y;
 
-  positionToLL(wsize.width(), wsize.height(), x, y);
+  positionToTopLeft(w, h, x, y);
 
-  Point ll(x                 - xlp - xlm, y                  - ybp - ybm);
-  Point ur(x + wsize.width() + xrp + xrm, y + wsize.height() + ytp + ytm);
+  double vr = view()->viewportRange();
+
+  if (sizePolicy().horizontalPolicy() == QSizePolicy::Expanding) {
+    if (plot())
+      w = plot()->viewToWindowWidth(vr);
+    else
+      w = vr;
+
+    w -= xlp + xlm + xrp + xrm;
+  }
+
+  if (sizePolicy().verticalPolicy() == QSizePolicy::Expanding) {
+    if (plot())
+      h = plot()->viewToWindowHeight(vr);
+    else
+      h = vr;
+
+    h -= xlp + xlm + xrp + xrm;
+  }
+
+  Point ll(x     - xlp - xlm, y     - ybp - ybm);
+  Point ur(x + w + xrp + xrm, y + h + ytp + ytm);
 
   setAnnotationBBox(BBox(ll, ur));
 }

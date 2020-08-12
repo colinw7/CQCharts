@@ -31,6 +31,7 @@ addPathProperties(const QString &path, const QString &desc)
 
   addProp(path, "position"   , "", desc + " position");
   addProp(path, "clip"       , "", desc + " is clipped");
+  addProp(path, "drawClipped", "", desc + " draw clipped");
   addProp(path, "moveClipped", "", desc + " move clipped");
 
   addTextProperties(path, desc);
@@ -252,6 +253,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     if (ystr.length()) {
       bool clipped = false;
 
+      // clip to rectangle
       if (isClip()) {
         if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
             position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
@@ -262,9 +264,10 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
         }
       }
 
+      // if no clip rect set and clipped in h/v direction then text is clipped
       bool textClipped = (! clipped && (hclipped || vclipped));
 
-      if (! textClipped) {
+      if (! textClipped || drawClipped()) {
         device->setPen(penBrush.pen);
 
         auto p1 = plot()->pixelToWindow(Point(px, py));

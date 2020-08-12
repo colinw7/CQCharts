@@ -63,6 +63,7 @@ class CQChartsCmdBase {
   bool qtCreateWidgetCmd  (CQChartsCmdArgs &args);
   bool qtCreateLayoutCmd  (CQChartsCmdArgs &args);
   bool qtAddChildWidgetCmd(CQChartsCmdArgs &args);
+  bool qtAddStretchCmd    (CQChartsCmdArgs &args);
   bool qtConnectWidgetCmd (CQChartsCmdArgs &args);
   bool qtGetPropertyCmd   (CQChartsCmdArgs &args);
   bool qtSetPropertyCmd   (CQChartsCmdArgs &args);
@@ -165,6 +166,7 @@ class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
 CQCHARTS_BASE_DEF_CMD(CreateWidget  , qtCreateWidgetCmd  )
 CQCHARTS_BASE_DEF_CMD(CreateLayout  , qtCreateLayoutCmd  )
 CQCHARTS_BASE_DEF_CMD(AddChildWidget, qtAddChildWidgetCmd)
+CQCHARTS_BASE_DEF_CMD(AddStretch    , qtAddStretchCmd    )
 CQCHARTS_BASE_DEF_CMD(ConnectWidget , qtConnectWidgetCmd )
 CQCHARTS_BASE_DEF_CMD(GetProperty   , qtGetPropertyCmd   )
 CQCHARTS_BASE_DEF_CMD(SetProperty   , qtSetPropertyCmd   )

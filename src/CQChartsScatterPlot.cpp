@@ -2291,6 +2291,8 @@ void
 CQChartsScatterPlot::
 drawXRug(PaintDevice *device) const
 {
+  bool flip = (xRugSide() == YSide::TOP);
+
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
       return;
@@ -2299,10 +2301,10 @@ drawXRug(PaintDevice *device) const
     auto *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
-      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::X, xRugSide() == YSide::TOP);
+      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::X, flip);
 
     if (cellObj)
-      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::X, xRugSide() == YSide::TOP);
+      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::X, flip);
   }
 }
 
@@ -2310,6 +2312,8 @@ void
 CQChartsScatterPlot::
 drawYRug(PaintDevice *device) const
 {
+  bool flip = (yRugSide() == XSide::RIGHT);
+
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
       return;
@@ -2318,10 +2322,10 @@ drawYRug(PaintDevice *device) const
     auto *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
-      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::Y, yRugSide() == XSide::RIGHT);
+      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::Y, flip);
 
     if (cellObj)
-      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::Y, yRugSide() == XSide::RIGHT);
+      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::Y, flip);
   }
 }
 
@@ -3190,6 +3194,7 @@ draw(PaintDevice *device)
   drawDir(device, Dir::XY);
 }
 
+// draw point (Dir::XY) or x/y rug (Dir::X, Dir::Y)
 void
 CQChartsScatterPointObj::
 drawDir(PaintDevice *device, const Dir &dir, bool flip) const
@@ -3254,10 +3259,10 @@ drawDir(PaintDevice *device, const Dir &dir, bool flip) const
 
   //---
 
-  // draw symbol or image
+  // draw symbol or image (image only for point)
   auto image = this->image();
 
-  if (! image.isValid()) {
+  if (dir != Dir::XY || ! image.isValid()) {
     auto ps1 = plot_->pixelToWindow(ps);
 
     plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
@@ -3283,8 +3288,9 @@ drawDir(PaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // draw text labels
-  if (plot_->dataLabel()->isVisible())
+  if (plot_->dataLabel()->isVisible()) {
     drawDataLabel(device);
+  }
 }
 
 void

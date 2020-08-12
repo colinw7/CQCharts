@@ -16,6 +16,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_PROPERTY(Position        position    READ position     WRITE setPosition   )
   Q_PROPERTY(Qt::Orientation direction   READ direction    WRITE setDirection  )
   Q_PROPERTY(bool            clip        READ isClip       WRITE setClip       )
+  Q_PROPERTY(bool            drawClipped READ drawClipped  WRITE setDrawClipped)
   Q_PROPERTY(bool            moveClipped READ moveClipped  WRITE setMoveClipped)
   Q_PROPERTY(bool            sendSignal  READ isSendSignal WRITE setSendSignal )
 
@@ -53,13 +54,17 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //! direction
   const Qt::Orientation &direction() const { return direction_; }
-  void setDirection(const Qt::Orientation &v) { direction_ = v; }
+  void setDirection(const Qt::Orientation &v) { direction_ = v; textBoxDataInvalidate(); }
 
-  //! clip
+  //! clip by rectangle
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; textBoxDataInvalidate(); }
 
-  //! move clipped
+  //! draw clipped text
+  bool drawClipped() const { return drawClipped_; }
+  void setDrawClipped(bool b) { drawClipped_ = b; textBoxDataInvalidate(); }
+
+  //! move clipped text
   bool moveClipped() const { return moveClipped_; }
   void setMoveClipped(bool b) { moveClipped_ = b; textBoxDataInvalidate(); }
 
@@ -142,7 +147,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
  private:
   Position        position_    { Position::TOP_INSIDE }; //!< position relative to parent
   Qt::Orientation direction_   { Qt::Vertical };         //!< parent object direction
-  bool            clip_        { true };                 //!< clip to parent
+  bool            clip_        { true };                 //!< clip to parent rect
+  bool            drawClipped_ { true };                 //!< draw clipped text
   bool            moveClipped_ { true };                 //!< move clipped
   bool            sendSignal_  { false };                //!< send signal on data change
 //mutable BBox    bbox_;                                 //!< last drawn bbox

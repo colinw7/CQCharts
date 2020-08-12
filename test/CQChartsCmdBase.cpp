@@ -80,6 +80,7 @@ addCommands()
     addCommand("qt_create_widget"   , new CQChartsBaseCreateWidgetCmd  (this));
     addCommand("qt_create_layout"   , new CQChartsBaseCreateLayoutCmd  (this));
     addCommand("qt_add_child_widget", new CQChartsBaseAddChildWidgetCmd(this));
+    addCommand("qt_add_stretch"     , new CQChartsBaseAddStretchCmd    (this));
     addCommand("qt_connect_widget"  , new CQChartsBaseConnectWidgetCmd (this));
 
     addCommand("qt_get_property", new CQChartsBaseGetPropertyCmd(this));
@@ -238,6 +239,40 @@ qtAddChildWidgetCmd(CQChartsCmdArgs &argv)
   layout->addWidget(childWidget);
 
   setCmdRc(CQUtil::fullName(childWidget));
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtAddStretchCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtAddStretchCmd");
+
+  argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
+
+  if (! argv.parse())
+    return false;
+
+  auto  parentName   = argv.getParseStr("parent");
+  auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
+
+  if (! parentWidget) {
+    errorMsg(QString("No parent '%1'").arg(parentName));
+    return false;
+  }
+
+  auto *layout = parentWidget->layout();
+
+  if (! layout)
+    layout = new QVBoxLayout(parentWidget);
+
+  auto *boxLayout = qobject_cast<QBoxLayout *>(layout);
+
+  if (boxLayout)
+    boxLayout->addStretch(1);
 
   return true;
 }

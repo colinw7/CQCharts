@@ -21,6 +21,8 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
 
   dataLabel_ = new CQChartsDataLabel(this);
 
+  dataLabel_->setDrawClipped(false);
+
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   //---
