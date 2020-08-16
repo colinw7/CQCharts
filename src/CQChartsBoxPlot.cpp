@@ -1756,13 +1756,18 @@ addKeyItems(CQChartsPlotKey *key)
 
         ColorInd sc(is, ns), gc;
 
-        auto *color = new CQChartsBoxKeyColor(this, sc, gc);
-        auto *text  = new CQChartsBoxKeyText (this, setName, sc, gc);
+        auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
+        auto *textItem  = new CQChartsBoxKeyText (this, setName, sc, gc);
 
-        key->addItem(color, is, 0);
-        key->addItem(text , is, 1);
+        auto *groupItem = new CQChartsKeyItemGroup(this);
 
-        ++is;
+        groupItem->addItem(colorItem);
+        groupItem->addItem(textItem );
+
+        //key->addItem(colorItem, is, 0);
+        //key->addItem(textItem , is, 1); ++is;
+
+        key->addItem(groupItem, is++, 0);
       }
     }
     // if not color by set add key item per group
@@ -1776,13 +1781,18 @@ addKeyItems(CQChartsPlotKey *key)
 
         ColorInd sc, gc(ig, ng);
 
-        auto *color = new CQChartsBoxKeyColor(this, sc, gc);
-        auto *text  = new CQChartsBoxKeyText (this, groupName, sc, gc);
+        auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
+        auto *textItem  = new CQChartsBoxKeyText (this, groupName, sc, gc);
 
-        key->addItem(color, ig, 0);
-        key->addItem(text , ig, 1);
+        auto *groupItem = new CQChartsKeyItemGroup(this);
 
-        ++ig;
+        groupItem->addItem(colorItem);
+        groupItem->addItem(textItem );
+
+        //key->addItem(colorItem, ig, 0);
+        //key->addItem(textItem , ig, 1); ++ig;
+
+        key->addItem(groupItem, ig++, 0);
       }
     }
   }
@@ -1806,13 +1816,18 @@ addKeyItems(CQChartsPlotKey *key)
 
       ColorInd sc(is, ns), gc;
 
-      auto *color = new CQChartsBoxKeyColor(this, sc, gc);
-      auto *text  = new CQChartsBoxKeyText (this, name, sc, gc);
+      auto *colorItem = new CQChartsBoxKeyColor(this, sc, gc);
+      auto *textItem  = new CQChartsBoxKeyText (this, name, sc, gc);
 
-      key->addItem(color, is, 0);
-      key->addItem(text , is, 1);
+      auto *groupItem = new CQChartsKeyItemGroup(this);
 
-      ++is;
+      groupItem->addItem(colorItem);
+      groupItem->addItem(textItem );
+
+      //key->addItem(colorItem, is, 0);
+      //key->addItem(textItem , is, 1); ++is;
+
+      key->addItem(groupItem , is++, 0);
     }
   }
 

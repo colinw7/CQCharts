@@ -1,6 +1,7 @@
 #include <CQChartsXYPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsAxisRug.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsAnalyzeModelData.h>
@@ -528,6 +529,11 @@ addProperties()
 
   // stats
   addStatsProperties();
+
+  //---
+
+  // rug axis
+  addRugProperties();
 
   //---
 
@@ -2238,22 +2244,48 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
+  // start at next row (verical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
-    auto *color = new CQChartsXYKeyColor(this, is, ig);
-    auto *text  = new CQChartsXYKeyText (this, name, is, ig);
+    auto *colorItem = new CQChartsXYKeyColor(this, is, ig);
+    auto *textItem  = new CQChartsXYKeyText (this, name, is, ig);
+
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
 
     if (! key->isHorizontal()) {
-      key->addItem(color, row, col    );
-      key->addItem(text , row, col + 1);
+      //key->addItem(colorItem, row, col    );
+      //key->addItem(textItem , row, col + 1);
 
-      ++row;
+      key->addItem(groupItem, row, col);
+
+      // across columns and then next row
+      ++col;
+
+      if (col >= key->columns()) {
+        col = 0;
+
+        ++row;
+      }
     }
     else {
-      key->addItem(color, 0, col++);
-      key->addItem(text , 0, col++);
+      //key->addItem(colorItem, row, col++);
+      //key->addItem(textItem , row, col++);
+
+      key->addItem(groupItem, row, col);
+
+      // across rows and then next column
+      ++row;
+
+      if (row >= key->columns()) {
+        row = 0;
+
+        ++col;
+      }
     }
   };
 
@@ -2510,7 +2542,67 @@ addMenuItems(QMenu *menu)
 
   //---
 
+  auto *xMenu = new QMenu("X Axis Annotation", menu);
+  auto *yMenu = new QMenu("Y Axis Annotation", menu);
+
+  (void) addMenuCheckedAction(xMenu, "Rug", isXRug(), SLOT(setXRug(bool)));
+  (void) addMenuCheckedAction(yMenu, "Rug", isYRug(), SLOT(setYRug(bool)));
+
+  menu->addMenu(xMenu);
+  menu->addMenu(yMenu);
+
   return true;
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsXYPlot::
+calcAnnotationBBox() const
+{
+  CQPerfTrace trace("CQChartsXYPlot::calcAnnotationBBox");
+
+  BBox bbox;
+
+  if (isXRug() || isYRug()) {
+    // x rug axis
+    if (isXRug()) {
+      auto bbox1 = xRug_->calcBBox();
+
+      bbox += bbox1;
+    }
+
+    // y rug axis
+    if (isYRug()) {
+      auto bbox1 = yRug_->calcBBox();
+
+      bbox += bbox1;
+    }
+  }
+
+  return bbox;
+}
+
+//------
+
+bool
+CQChartsXYPlot::
+hasBackground() const
+{
+  if (isXRug()) return true;
+  if (isYRug()) return true;
+
+  return false;
+}
+
+void
+CQChartsXYPlot::
+execDrawBackground(PaintDevice *device) const
+{
+  CQChartsPlot::execDrawBackground(device);
+
+  if (isXRug()) drawXRug(device);
+  if (isYRug()) drawYRug(device);
 }
 
 //------
@@ -2526,6 +2618,58 @@ drawArrow(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
   arrowObj_->setTo  (p2);
 
   arrowObj_->draw(device);
+}
+
+//------
+
+void
+CQChartsXYPlot::
+drawXRug(PaintDevice *device) const
+{
+  drawXYRug(device, xRug_);
+}
+
+void
+CQChartsXYPlot::
+drawYRug(PaintDevice *device) const
+{
+  drawXYRug(device, yRug_);
+}
+
+void
+CQChartsXYPlot::
+drawXYRug(PaintDevice *device, const RugP &rug) const
+{
+  rug->clearPoints();
+
+  for (const auto &plotObj : plotObjects()) {
+    if (isInterrupt())
+      return;
+
+    //---
+
+    auto *pointObj = dynamic_cast<CQChartsXYPointObj *>(plotObj);
+
+    if (pointObj) {
+      CQChartsPenBrush penBrush;
+
+      pointObj->calcPenBrush(penBrush, /*updateState*/false);
+
+      if (rug->direction() == Qt::Horizontal)
+        rug->addPoint(CQChartsAxisRug::RugPoint(pointObj->point().x, penBrush.pen.color()));
+      else
+        rug->addPoint(CQChartsAxisRug::RugPoint(pointObj->point().y, penBrush.pen.color()));
+    }
+  }
+
+  rug->draw(device);
+
+#if 0
+  if (rug->direction() == Qt::Horizontal)
+    xAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
+  else
+    yAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
+#endif
 }
 
 //---
@@ -3082,16 +3226,17 @@ calcTipId() const
 
   // add x, y columns
   if (! tableTip.hasColumn(plot()->xColumn())) {
+    double x = point().x;
+
     QString xstr;
 
     if (! plot()->isMapXColumn()) {
-      xstr = plot()->xStr(x());
+      xstr = plot()->xStr(x);
     }
     else {
       auto *columnDetails = plot()->columnDetails(plot()->xColumn());
 
-      xstr = (columnDetails ? columnDetails->uniqueValue(int(x())).toString() :
-                              plot()->xStr(x()));
+      xstr = (columnDetails ? columnDetails->uniqueValue(int(x)).toString() : plot()->xStr(x));
     }
 
     QString xname;
@@ -3104,7 +3249,9 @@ calcTipId() const
   }
 
   if (! tableTip.hasColumn(plot()->yColumns().getColumn(0))) {
-    QString ystr = plot()->yStr(y());
+    double y = point().y;
+
+    QString ystr = plot()->yStr(y);
 
     QString yname;
 
@@ -3171,7 +3318,7 @@ inside(const Point &p) const
 
   plot()->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  auto p1 = plot()->windowToPixel(Point(x(), y()));
+  auto p1 = plot()->windowToPixel(point());
 
   BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 

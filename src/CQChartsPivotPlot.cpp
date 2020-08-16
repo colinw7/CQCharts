@@ -907,11 +907,18 @@ addKeyItems(CQChartsPlotKey *key)
     int row = 0;
 
     auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
-      auto *keyColor = new CQChartsPivotKeyColor(this, ic);
-      auto *keyText  = new CQChartsPivotKeyText (this, name);
+      auto *colorItem = new CQChartsPivotKeyColor(this, ic);
+      auto *textItem  = new CQChartsPivotKeyText (this, name);
 
-      key->addItem(keyColor, row, 0);
-      key->addItem(keyText , row, 1);
+      auto *groupItem = new CQChartsKeyItemGroup(this);
+
+      groupItem->addItem(colorItem);
+      groupItem->addItem(textItem );
+
+      //key->addItem(colorItem, row, 0);
+      //key->addItem(textItem , row, 1);
+
+      key->addItem(groupItem, row, 0);
 
       ++row;
     };

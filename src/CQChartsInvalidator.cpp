@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsAxisRug.h>
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsArrow.h>
@@ -69,6 +70,15 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
     if (view) return;
 
     charts = arrow->charts();
+
+    return;
+  }
+
+  auto *axisRug = qobject_cast<CQChartsAxisRug *>(obj);
+
+  if (axisRug) {
+    plot = axisRug->plot();
+    if (plot) return;
 
     return;
   }

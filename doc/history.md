@@ -1172,3 +1172,7 @@
  + Add rect support for ellipse in edit annotation dialog
  + Add qt_connect_Widget tcl command
  + Use new base class for control widgets
+# 08/16/2020
+ + Add annotation group
+ + Add key item group
+ + Improve scatter/xy axis annotation placement

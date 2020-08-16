@@ -1196,6 +1196,13 @@ propertyItem(const QString &name, bool hidden) const
 
 //------
 
+CQChartsAnnotationGroup *
+CQChartsView::
+addAnnotationGroup()
+{
+  return addAnnotationT<CQChartsAnnotationGroup>(new CQChartsAnnotationGroup(this));
+}
+
 CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)

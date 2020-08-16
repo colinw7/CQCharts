@@ -2,6 +2,7 @@
 #define CQChartsPointPlot_H
 
 #include <CQChartsGroupPlot.h>
+#include <CQChartsAxisRug.h>
 
 class CQChartsDataLabel;
 class CQChartsFitData;
@@ -72,6 +73,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // stats
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
+
+  // axis rug
+  Q_PROPERTY(bool                  xRug     READ isXRug   WRITE setXRug    )
+  Q_PROPERTY(CQChartsAxisRug::Side xRugSide READ xRugSide WRITE setXRugSide)
+  Q_PROPERTY(bool                  yRug     READ isYRug   WRITE setYRug    )
+  Q_PROPERTY(CQChartsAxisRug::Side yRugSide READ yRugSide WRITE setYRugSide)
 
  public:
   CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
@@ -156,11 +163,41 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  // axis x rug
+  bool isXRug() const;
+
+  const CQChartsAxisRug::Side &xRugSide() const;
+  void setXRugSide(const CQChartsAxisRug::Side &s);
+
+  const CQChartsSymbol &xRugSymbolType() const;
+  void setXRugSymbolType(const CQChartsSymbol &s);
+
+  const CQChartsLength &xRugSymbolSize() const;
+  void setXRugSymbolSize(const CQChartsLength &l);
+
+  //--
+
+  // axis y rug
+  bool isYRug() const;
+
+  const CQChartsAxisRug::Side &yRugSide() const;
+  void setYRugSide(const CQChartsAxisRug::Side &s);
+
+  const CQChartsSymbol &yRugSymbolType() const;
+  void setYRugSymbolType(const CQChartsSymbol &s);
+
+  const CQChartsLength &yRugSymbolSize() const;
+  void setYRugSymbolSize(const CQChartsLength &l);
+
+
+  //---
+
   void addPointProperties();
 
   void addBestFitProperties();
   void addHullProperties();
   void addStatsProperties();
+  void addRugProperties();
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
@@ -203,6 +240,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void setHull          (bool b);
   void setStatsLinesSlot(bool b);
 
+  // rug
+  void setXRug(bool b);
+  void setYRug(bool b);
+
  protected slots:
   void dataLabelChanged();
 
@@ -219,6 +260,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
+  using RugP = std::unique_ptr<CQChartsAxisRug>;
+
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // custom column data
@@ -229,6 +272,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // plot overlay data
   BestFitData    bestFitData_; //!< best fit data
   HullData       hullData_;    //!< hull data
+
+  RugP xRug_;
+  RugP yRug_;
 };
 
 #endif

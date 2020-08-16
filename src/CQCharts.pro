@@ -105,6 +105,7 @@ CQChartsObj.cpp \
 CQChartsDataLabel.cpp \
 \
 CQChartsAxis.cpp \
+CQChartsAxisRug.cpp \
 CQChartsKey.cpp \
 CQChartsTitle.cpp \
 CQChartsAnnotation.cpp \
@@ -417,6 +418,7 @@ HEADERS += \
 ../include/CQChartsDataLabel.h \
 \
 ../include/CQChartsAxis.h \
+../include/CQChartsAxisRug.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
 ../include/CQChartsAnnotation.h \

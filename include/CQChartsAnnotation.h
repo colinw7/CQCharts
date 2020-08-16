@@ -17,6 +17,7 @@
 #include <CQChartsAngle.h>
 #include <CQChartsObjRef.h>
 
+class CQChartsAnnotationGroup;
 class CQChartsSmooth;
 class CQChartsDensity;
 class CQChartsKey;
@@ -42,6 +43,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  public:
   enum class Type {
     NONE,
+    GROUP,
     RECT,
     ELLIPSE,
     POLYGON,
@@ -61,6 +63,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   using View       = CQChartsView;
   using Plot       = CQChartsPlot;
+  using Group      = CQChartsAnnotationGroup;
   using ResizeSide = CQChartsResizeSide;
   using SelMod     = CQChartsSelMod;
   using ColorInd   = CQChartsUtil::ColorInd;
@@ -94,10 +97,19 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  const Group *group() const { return group_; }
+  void setGroup(Group *g) { group_ = g; }
+
+  //---
+
   //! get type and type name
   const Type &type() const { return type_; }
 
   virtual const char *typeName() const = 0;
+
+  virtual const char *propertyName() const = 0;
+
+  virtual const char *cmdName() const = 0;
 
   //---
 
@@ -126,12 +138,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //! get bounding box
   const BBox &annotationBBox() const { return annotationBBox_; }
-  void  setAnnotationBBox(const BBox &bbox);
+  void setAnnotationBBox(const BBox &bbox);
+
+  //---
+
+  void getMarginValues (double &xlm, double &xrm, double &ytm, double &ybm) const;
+  void getPaddingValues(double &xlp, double &xrp, double &ytp, double &ybp) const;
 
   //---
 
   //! get property path
-  virtual QString propertyId() const = 0;
+  virtual QString propertyId() const;
 
   //! add properties
   void addProperties(CQPropertyViewModel *model, const QString &path,
@@ -207,10 +224,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  bool isDisableSignals() const { return disableSignals_; }
+  void setDisableSignals(bool b) { disableSignals_ = b; }
+
+  //---
+
   //! handle box obj data changed
-  void boxDataInvalidate() override { emit dataChanged(); }
+  void boxDataInvalidate() override { emitDataChanged(); }
 
   void invalidate();
+
+  void emitDataChanged();
 
   //---
 
@@ -225,19 +249,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! write custom SVG html
   virtual void writeHtml(HtmlPaintDevice *) { }
 
+  //! write tcl script
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const;
+
   //! write details (command to recreate)
-  virtual void write(std::ostream &os, const QString &parentVarName="",
-                     const QString &varName="") const = 0;
+  virtual void writeDetails(std::ostream &os, const QString &parentVarName="",
+                            const QString &varName="") const = 0;
 
   //! write key values
   void writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName="",
                  const QString &varName="") const;
-
-#if 0
-  //! write fill, stroke values
-  void writeFill  (std::ostream &os) const;
-  void writeStroke(std::ostream &os) const;
-#endif
 
   //! write polygon points
   void writePoints(std::ostream &os, const Polygon &polygon) const;
@@ -264,14 +286,90 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void init(int &lastInd);
 
  protected:
-  Type   type_               { Type::NONE }; //!< type
-  int    ind_                { 0 };          //!< unique ind
-  bool   enabled_            { true };       //!< is enabled
-  bool   checkable_          { false };      //!< is checkable
-  bool   checked_            { false };      //!< is checked
-  double disabledLighter_    { 0.8 };        //!< disabled lighter
-  double uncheckedLighter_   { 0.5 };        //!< unchecked lighter
-  BBox   annotationBBox_;                    //!< bbox (plot coords) (remove ?)
+  Type         type_               { Type::NONE }; //!< type
+  int          ind_                { 0 };          //!< unique ind
+  Group*       group_              { nullptr };    //!< parent group
+  bool         enabled_            { true };       //!< is enabled
+  bool         checkable_          { false };      //!< is checkable
+  bool         checked_            { false };      //!< is checked
+  double       disabledLighter_    { 0.8 };        //!< disabled lighter
+  double       uncheckedLighter_   { 0.5 };        //!< unchecked lighter
+  BBox         annotationBBox_;                    //!< bbox (plot coords) (remove ?)
+  mutable bool disableSignals_     { false };      //!< disable signals
+};
+
+//---
+
+class CQChartsAnnotationGroup : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
+  Q_PROPERTY(Qt::Alignment   alignment     READ alignment     WRITE setAlignment    )
+  Q_PROPERTY(int             layoutMargin  READ layoutMargin  WRITE setLayoutMargin )
+  Q_PROPERTY(int             layoutSpacing READ layoutSpacing WRITE setLayoutSpacing)
+
+ public:
+  CQChartsAnnotationGroup(View *view);
+  CQChartsAnnotationGroup(Plot *plot);
+
+ ~CQChartsAnnotationGroup();
+
+  const char *typeName() const override { return "group"; }
+
+  const char *propertyName() const override { return "annotationGroup"; }
+
+  const char *cmdName() const override { return "create_charts_annotation_group"; }
+
+  //---
+
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o) { orientation_ = o; invalidateLayout(); }
+
+  const Qt::Alignment &alignment() const { return align_; }
+  void setAlignment(const Qt::Alignment &a) { align_ = a; invalidateLayout(); }
+
+  int layoutMargin() const { return layoutMargin_; }
+  void setLayoutMargin(int i) { layoutMargin_ = i; invalidateLayout(); }
+
+  int layoutSpacing() const { return layoutSpacing_; }
+  void setLayoutSpacing(int i) { layoutSpacing_ = i; invalidateLayout(); }
+
+  //---
+
+  void addAnnotation(CQChartsAnnotation *annotation);
+  void removeAnnotation(CQChartsAnnotation *annotation);
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  void layout();
+  void invalidateLayout() { needsLayout_ = true; invalidate(); }
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private:
+  using Annotations = std::vector<CQChartsAnnotation *>;
+
+  Annotations     annotations_;
+  Qt::Orientation orientation_   { Qt::Horizontal };
+  Qt::Alignment   align_         { Qt::AlignHCenter | Qt::AlignVCenter };
+  int             layoutMargin_  { 2 }; //!< layout margin in pixel
+  int             layoutSpacing_ { 2 }; //!< layout spacing in pixel
+  mutable bool    needsLayout_   { true };
 };
 
 //---
@@ -337,6 +435,10 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "rectangle"; }
 
+  const char *propertyName() const override { return "rectangleAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_rectangle_annotation"; }
+
   //---
 
   //! get/set rectangle
@@ -369,14 +471,14 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -421,6 +523,10 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "ellipse"; }
 
+  const char *propertyName() const override { return "ellipseAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_ellipse_annotation"; }
+
   //---
 
   const Position &center() const { return center_; }
@@ -432,10 +538,12 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   const Length &yRadius() const { return yRadius_; }
   void setYRadius(const Length &r) { yRadius_ = r; }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -443,8 +551,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -479,6 +587,10 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
 
   const char *typeName() const override { return "polygon"; }
 
+  const char *propertyName() const override { return "polygonAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_polygon_annotation"; }
+
   //---
 
   bool isRoundedLines() const { return roundedLines_; }
@@ -488,8 +600,6 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
-
-  QString propertyId() const override;
 
   //---
 
@@ -501,8 +611,8 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -542,6 +652,10 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
   const char *typeName() const override { return "polyline"; }
 
+  const char *propertyName() const override { return "polylineAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_polyline_annotation"; }
+
   //---
 
   bool isRoundedLines() const { return roundedLines_; }
@@ -551,8 +665,6 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
-
-  QString propertyId() const override;
 
   //---
 
@@ -564,8 +676,8 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -613,6 +725,10 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "text"; }
 
+  const char *propertyName() const override { return "textAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_text_annotation"; }
+
   //---
 
   const OptPosition &position() const { return position_; }
@@ -632,8 +748,6 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
-
   //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
@@ -644,8 +758,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
   //---
 
@@ -703,6 +817,10 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "image"; }
 
+  const char *propertyName() const override { return "imageAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_image_annotation"; }
+
   //---
 
   const OptPosition &position() const { return position_; }
@@ -728,8 +846,6 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
-
   //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
@@ -740,8 +856,8 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
   //---
 
@@ -809,19 +925,23 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "arrow"; }
 
+  const char *propertyName() const override { return "arrowAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_arrow_annotation"; }
+
   //---
 
   const Position &start() const { return start_; }
   void setStart(const Position &p) { start_ = p; emit dataChanged(); }
 
   const ObjRef &startObjRef() const { return startObjRef_; }
-  void setStartObjRef(const ObjRef &v) { startObjRef_ = v; }
+  void setStartObjRef(const ObjRef &o) { startObjRef_ = o; }
 
   const Position &end() const { return end_; }
   void setEnd(const Position &p) { end_ = p; emit dataChanged(); }
 
   const ObjRef &endObjRef() const { return endObjRef_; }
-  void setEndObjRef(const ObjRef &v) { endObjRef_ = v; }
+  void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
 
   //---
 
@@ -837,8 +957,6 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
-  QString propertyId() const override;
-
   //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
@@ -853,8 +971,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -901,15 +1019,21 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   const char *typeName() const override { return "point"; }
 
+  const char *propertyName() const override { return "pointAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_point_annotation"; }
+
   //---
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -919,8 +1043,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -970,16 +1094,20 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "pie_slice"; }
 
+  const char *propertyName() const override { return "pieSliceAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_pie_slice_annotation"; }
+
   //---
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
 
   const Length &innerRadius() const { return innerRadius_; }
-  void setInnerRadius(const Length &v) { innerRadius_ = v; }
+  void setInnerRadius(const Length &r) { innerRadius_ = r; }
 
   const Length &outerRadius() const { return outerRadius_; }
-  void setOuterRadius(const Length &v) { outerRadius_ = v; }
+  void setOuterRadius(const Length &r) { outerRadius_ = r; }
 
   const Angle &startAngle() const { return startAngle_; }
   void setStartAngle(const Angle &a) { startAngle_ = a; }
@@ -987,10 +1115,12 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   const Angle &spanAngle() const { return spanAngle_; }
   void setSpanAngle(const Angle &a) { spanAngle_ = a; }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -1000,8 +1130,8 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -1036,15 +1166,21 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "axis"; }
 
+  const char *propertyName() const override { return "axisAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_axis_annotation"; }
+
   //---
 
   double position() const;
   void setPosition(double r);
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -1054,8 +1190,8 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -1086,14 +1222,20 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "key"; }
 
+  const char *propertyName() const override { return "keyAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_key_annotation"; }
+
   //---
 
   Key *key() const { return key_; }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -1107,8 +1249,8 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void init();
@@ -1157,6 +1299,10 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "point_set"; }
 
+  const char *propertyName() const override { return "pointSetAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_point_set_annotation"; }
+
   //---
 
   const Points &values() const { return values_; }
@@ -1165,10 +1311,12 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -1178,8 +1326,8 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void updateValues();
@@ -1227,6 +1375,10 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "value_set"; }
 
+  const char *propertyName() const override { return "valueSetAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_value_set_annotation"; }
+
   //---
 
   const Rect &rectangle() const { return rectangle_; }
@@ -1235,10 +1387,12 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   const Reals &values() const { return values_; }
   void setValues(const Reals &values) { values_ = values; updateValues(); }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
+  //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
@@ -1248,8 +1402,8 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
  private:
   void updateValues();
@@ -1291,6 +1445,10 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "button"; }
 
+  const char *propertyName() const override { return "buttonAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_button_annotation"; }
+
   //---
 
   const Position &position() const { return position_; }
@@ -1300,8 +1458,6 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
-
-  QString propertyId() const override;
 
   //---
 
@@ -1319,8 +1475,8 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
   void writeHtml(HtmlPaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
   //---
 
@@ -1372,6 +1528,10 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "widget"; }
 
+  const char *propertyName() const override { return "widgetAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_widget_annotation"; }
+
   //---
 
   const OptPosition &position() const { return position_; }
@@ -1400,8 +1560,6 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  QString propertyId() const override;
-
   //---
 
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
@@ -1412,8 +1570,8 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void draw(PaintDevice *device) override;
 
-  void write(std::ostream &os, const QString &parentVarName="",
-             const QString &varName="") const override;
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
 
   //---
 

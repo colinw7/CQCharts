@@ -27,6 +27,7 @@ class CQChartsObj;
 class CQChartsViewKey;
 
 class CQChartsAnnotation;
+class CQChartsAnnotationGroup;
 class CQChartsArrowAnnotation;
 class CQChartsButtonAnnotation;
 class CQChartsEllipseAnnotation;
@@ -492,6 +493,7 @@ class CQChartsView : public QFrame,
 
   // annotations
   using Annotation          = CQChartsAnnotation;
+  using AnnotationGroup     = CQChartsAnnotationGroup;
   using Annotations         = std::vector<Annotation *>;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using ButtonAnnotation    = CQChartsButtonAnnotation;
@@ -511,6 +513,7 @@ class CQChartsView : public QFrame,
 
   const Annotations &annotations() const { return annotations_; }
 
+  AnnotationGroup     *addAnnotationGroup    ();
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
   ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
   EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,

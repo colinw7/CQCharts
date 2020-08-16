@@ -2479,26 +2479,52 @@ void
 CQChartsDistributionPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
+  // start at next row (verical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const RangeValue &xv,
                        const RangeValue &yv, const QString &name) {
-    auto *keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
-    auto *keyText  = new CQChartsDistKeyText    (this, name, iv);
+    auto *colorItem = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
+    auto *textItem  = new CQChartsDistKeyText    (this, name, iv);
+
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
 
     if (! key->isHorizontal()) {
-      key->addItem(keyColor, row, 0);
-      key->addItem(keyText , row, 1);
+      //key->addItem(colorItem, row, col    );
+      //key->addItem(textItem , row, col + 1);
 
-      ++row;
+      key->addItem(groupItem, row, col);
+
+      // across columns and then next row
+      ++col;
+
+      if (col >= key->columns()) {
+        col = 0;
+
+        ++row;
+      }
     }
     else {
-      key->addItem(keyColor, 0, col++);
-      key->addItem(keyText , 0, col++);
+      //key->addItem(colorItem, row, col++);
+      //key->addItem(textItem , row, col++);
+
+      key->addItem(groupItem, row, col);
+
+      // across rows and then next column
+      ++row;
+
+      if (row >= key->columns()) {
+        row = 0;
+
+        ++col;
+      }
     }
 
-    return std::pair<CQChartsDistKeyColorBox *, CQChartsDistKeyText*>(keyColor, keyText);
+    return std::pair<CQChartsDistKeyColorBox *, CQChartsDistKeyText*>(colorItem, textItem);
   };
 
   //---
@@ -2575,12 +2601,14 @@ addKeyItems(CQChartsPlotKey *key)
 
         QString bucketName = bucketValuesStr(groupInd, bucket, values);
 
-        RangeValue xv(CMathUtil::avg(value1, value2),
-                      values->xValueRange.min(), values->xValueRange.max());
-        RangeValue yv(barValue.n2,
-                      values->yValueRange.min(), values->yValueRange.max());
+        if (values->xValueRange.isSet() &&  values->yValueRange.isSet()) {
+          RangeValue xv(CMathUtil::avg(value1, value2),
+                        values->xValueRange.min(), values->xValueRange.max());
+          RangeValue yv(barValue.n2,
+                        values->yValueRange.min(), values->yValueRange.max());
 
-        addKeyRow(ColorInd(), ColorInd(iv, nv), xv, yv, bucketName);
+          addKeyRow(ColorInd(), ColorInd(iv, nv), xv, yv, bucketName);
+        }
 
         ++iv;
       }

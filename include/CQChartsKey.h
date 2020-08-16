@@ -35,6 +35,7 @@ class CQChartsKey : public CQChartsBoxObj,
   Q_PROPERTY(CQChartsKeyLocation      location      READ location      WRITE setLocation     )
   Q_PROPERTY(QString                  header        READ headerStr     WRITE setHeaderStr    )
   Q_PROPERTY(CQChartsAlpha            hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
+  Q_PROPERTY(int                      columns       READ columns       WRITE setColumns      )
   Q_PROPERTY(int                      maxRows       READ maxRows       WRITE setMaxRows      )
   Q_PROPERTY(bool                     interactive   READ isInteractive WRITE setInteractive  )
   Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior WRITE setPressBehavior)
@@ -44,11 +45,14 @@ class CQChartsKey : public CQChartsBoxObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header, header)
 
  public:
-  using SelMod = CQChartsSelMod;
+  using SelMod      = CQChartsSelMod;
+  using Location    = CQChartsKeyLocation;
+  using KeyBehavior = CQChartsKeyPressBehavior;
+  using OptLength   = CQChartsOptLength;
 
  public:
-  CQChartsKey(CQChartsView *view);
-  CQChartsKey(CQChartsPlot *plot);
+  CQChartsKey(View *view);
+  CQChartsKey(Plot *plot);
 
   virtual ~CQChartsKey();
 
@@ -64,63 +68,67 @@ class CQChartsKey : public CQChartsBoxObj,
 
   // horizontal
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
+  void setHorizontal(bool b);
 
   //---
 
   // auto hide
   bool isAutoHide() const { return autoHide_; }
-  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
+  void setAutoHide(bool b);
 
   //---
 
   // clip
   bool isClipped() const { return clipped_; }
-  void setClipped(bool b) { clipped_ = b; redraw(); }
+  void setClipped(bool b);
 
   //---
 
   // above plot
   bool isAbove() const { return above_; }
-  void setAbove(bool b) { above_ = b; redraw(); }
+  void setAbove(bool b);
 
   //---
 
   // location
-  const CQChartsKeyLocation &location() const { return location_; }
-  void setLocation(const CQChartsKeyLocation &l);
+  const Location &location() const { return location_; }
+  void setLocation(const Location &l);
 
   //---
 
   // header
   const QString &headerStr() const { return header_; }
-  void setHeaderStr(const QString &s) { header_ = s; updateLayout(); }
+  void setHeaderStr(const QString &s);
 
   // TODO header text properties
 
   //---
 
   // alpha when associated object hidden
-  const CQChartsAlpha &hiddenAlpha() const { return hiddenAlpha_; }
-  void setHiddenAlpha(const CQChartsAlpha &a) { hiddenAlpha_ = a; }
+  const Alpha &hiddenAlpha() const { return hiddenAlpha_; }
+  void setHiddenAlpha(const Alpha &a);
 
   //---
 
   // max rows
+  int columns() const { return columns_; }
+  void setColumns(int i);
+
+  // max rows
   int maxRows() const { return maxRows_; }
-  void setMaxRows(int i) { maxRows_ = i; }
+  void setMaxRows(int i);
 
   //---
 
   // interactive
   bool isInteractive() const { return interactive_; }
-  void setInteractive(bool b) { interactive_ = b; }
+  void setInteractive(bool b);
 
   //---
 
   // press behavior
-  const CQChartsKeyPressBehavior &pressBehavior() const { return pressBehavior_; }
-  void setPressBehavior(const CQChartsKeyPressBehavior &v) { pressBehavior_ = v; }
+  const KeyBehavior &pressBehavior() const { return pressBehavior_; }
+  void setPressBehavior(const KeyBehavior &v);
 
   //---
 
@@ -134,34 +142,35 @@ class CQChartsKey : public CQChartsBoxObj,
 
   virtual void redraw(bool /*queued*/=true) = 0;
 
-  virtual void draw(CQChartsPaintDevice *device) const = 0;
+  virtual void draw(PaintDevice *device) const = 0;
 
  protected:
   void init();
 
  protected:
   struct ScrollData {
-    bool              scrolled     { false };   //!< scrolled
-    int               hpos         { 0 };       //!< horizontal scroll position
-    int               vpos         { 0 };       //!< vertical scroll position
-    double            pixelBarSize { 13 };      //!< scroll bar pixel size
-    CQChartsOptLength width;                    //!< fixed width
-    CQChartsOptLength height;                   //!< fixed height
-    QScrollBar*       hbar         { nullptr }; //!< horizontal scroll bar
-    QScrollBar*       vbar         { nullptr }; //!< vertical scroll bar
+    bool        scrolled     { false };   //!< scrolled
+    int         hpos         { 0 };       //!< horizontal scroll position
+    int         vpos         { 0 };       //!< vertical scroll position
+    double      pixelBarSize { 13 };      //!< scroll bar pixel size
+    OptLength   width;                    //!< fixed width
+    OptLength   height;                   //!< fixed height
+    QScrollBar* hbar         { nullptr }; //!< horizontal scroll bar
+    QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
   };
 
-  bool                     horizontal_     { false };   //!< is laid out horizontally
-  bool                     above_          { true };    //!< draw above view/plot
-  CQChartsKeyLocation      location_;                   //!< key location
-  QString                  header_;                     //!< header
-  bool                     autoHide_       { true };    //!< auto hide if too big
-  bool                     clipped_        { true };    //!< clipped to parent
-  bool                     interactive_    { true };    //!< is interactive
-  CQChartsAlpha            hiddenAlpha_    { 0.3 };     //!< alpha for hidden item
-  int                      maxRows_        { 100 };     //!< max rows
-  CQChartsKeyPressBehavior pressBehavior_;              //!< press behavior
-  mutable ScrollData       scrollData_;                 //!< scrollbar data
+  bool               horizontal_     { false }; //!< is laid out horizontally
+  bool               above_          { true };  //!< draw above view/plot
+  Location           location_;                 //!< key location
+  QString            header_;                   //!< header
+  bool               autoHide_       { true };  //!< auto hide if too big
+  bool               clipped_        { true };  //!< clipped to parent
+  bool               interactive_    { true };  //!< is interactive
+  Alpha              hiddenAlpha_    { 0.3 };   //!< alpha for hidden item
+  int                columns_        { 1 };     //!< columns
+  int                maxRows_        { 100 };   //!< max rows
+  KeyBehavior        pressBehavior_;            //!< press behavior
+  mutable ScrollData scrollData_;               //!< scrollbar data
 };
 
 //------
@@ -174,7 +183,7 @@ class CQChartsViewKey : public CQChartsKey {
   Q_OBJECT
 
  public:
-  CQChartsViewKey(CQChartsView *view);
+  CQChartsViewKey(View *view);
 
  ~CQChartsViewKey();
 
@@ -215,11 +224,11 @@ class CQChartsViewKey : public CQChartsKey {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) const override;
+  void draw(PaintDevice *device) const override;
 
   void drawEditHandles(QPainter *painter) const override;
 
-  void drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool checked) const;
+  void drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) const;
 
   //---
 
@@ -263,10 +272,13 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
  public:
-  CQChartsPlotKey(CQChartsPlot *plot);
+  using KeyItem = CQChartsKeyItem;
+
+ public:
+  CQChartsPlotKey(Plot *plot);
  ~CQChartsPlotKey();
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
   //---
 
@@ -315,12 +327,12 @@ class CQChartsPlotKey : public CQChartsKey {
   //---
 
   // scroll width
-  const CQChartsOptLength &scrollWidth() const { return scrollData_.width; }
-  void setScrollWidth(const CQChartsOptLength &l) { scrollData_.width = l; }
+  const OptLength &scrollWidth() const { return scrollData_.width; }
+  void setScrollWidth(const OptLength &l) { scrollData_.width = l; }
 
   // scroll height
-  const CQChartsOptLength &scrollHeight() const { return scrollData_.height; }
-  void setScrollHeight(const CQChartsOptLength &l) { scrollData_.height = l; }
+  const OptLength &scrollHeight() const { return scrollData_.height; }
+  void setScrollHeight(const OptLength &l) { scrollData_.height = l; }
 
   //---
 
@@ -334,7 +346,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void clearItems();
 
-  void addItem(CQChartsKeyItem *item, int row, int col, int nrows=1, int ncols=1);
+  void addItem(KeyItem *item, int row, int col, int nrows=1, int ncols=1);
 
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
@@ -349,7 +361,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void invalidateLayout();
+  void invalidateLayout(bool reset=false);
 
   //---
 
@@ -384,7 +396,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void updateLayout() override;
 
-  CQChartsKeyItem *getItemAt(const Point &p) const;
+  KeyItem *getItemAt(const Point &p) const;
 
   //---
 
@@ -405,11 +417,11 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  bool setInsideItem(CQChartsKeyItem *item);
+  bool setInsideItem(KeyItem *item);
 
   //---
 
-  void draw(CQChartsPaintDevice *device) const override;
+  void draw(PaintDevice *device) const override;
 
   void drawEditHandles(QPainter *painter) const override;
 
@@ -460,7 +472,7 @@ class CQChartsPlotKey : public CQChartsKey {
     bool   pixelHeightExceeded { false }; //!< pixel max height exceeded
   };
 
-  using Items      = std::vector<CQChartsKeyItem*>;
+  using Items      = std::vector<KeyItem*>;
   using ColCell    = std::map<int, Cell>;
   using RowColCell = std::map<int, ColCell>;
   using RowHeights = std::map<int, double>;
@@ -498,6 +510,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
 //------
 
+class CQChartsKeyItemGroup;
+
 /*!
  * \brief Key Item base class
  * \ingroup Charts
@@ -510,44 +524,58 @@ class CQChartsKeyItem : public QObject {
   Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
 
  public:
+  using Plot        = CQChartsPlot;
+  using PlotKey     = CQChartsPlotKey;
+  using ItemGroup   = CQChartsKeyItemGroup;
   using SelMod      = CQChartsSelMod;
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
   using PaintDevice = CQChartsPaintDevice;
   using ColorInd    = CQChartsUtil::ColorInd;
 
-  using BBox      = CQChartsGeom::BBox;
-  using Size      = CQChartsGeom::Size;
-  using Point     = CQChartsGeom::Point;
+  using BBox  = CQChartsGeom::BBox;
+  using Size  = CQChartsGeom::Size;
+  using Point = CQChartsGeom::Point;
 
  public:
-  CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic);
+  CQChartsKeyItem(PlotKey *key, const ColorInd &ic);
 
   virtual ~CQChartsKeyItem() { }
 
   virtual Size size() const = 0;
 
+  //! get/set item id
   virtual QString id() const { return id_; }
   virtual void setId(const QString &id) { id_ = id; }
 
-  const CQChartsPlotKey *key() const { return key_; }
-  void setKey(CQChartsPlotKey *p) { key_ = p; }
+  //! get/set parent plot key
+  const PlotKey *key() const { return key_; }
+  void setKey(PlotKey *p) { key_ = p; }
 
+  const ItemGroup *group() const { return group_; }
+  void setGroup(ItemGroup *g) { group_ = g; }
+
+  //! get/set associated color index
   const ColorInd &colorIndex() const { return ic_; }
   void setColorIndex(const ColorInd &v) { ic_ = v; }
 
+  //! get/set row
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
+  //! get/set column
   int col() const { return col_; }
   void setCol(int i) { col_ = i; }
 
+  //! get/set row span
   int rowSpan() const { return rowSpan_; }
   void setRowSpan(int i) { rowSpan_ = i; }
 
+  //! get/set column span
   int colSpan() const { return colSpan_; }
   void setColSpan(int i) { colSpan_ = i; }
 
+  //! get/set bounding box
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &b) { bbox_ = b; }
 
@@ -576,21 +604,73 @@ class CQChartsKeyItem : public QObject {
   virtual void draw(PaintDevice *device, const BBox &rect) const = 0;
 
  protected:
-  CQChartsPlotKey* key_       { nullptr }; //!< parent key
-  QString          id_;                    //!< id
-  ColorInd         ic_;                    //!< color index
-  int              row_       { 0 };       //!< row
-  int              col_       { 0 };       //!< col
-  int              rowSpan_   { 1 };       //!< row span
-  int              colSpan_   { 1 };       //!< col span
-  bool             inside_    { false };   //!< is inside
-  mutable BBox     bbox_;                  //!< bounding box
-  bool             clickable_ { false };   //!< clickable
+  PlotKey*     key_       { nullptr }; //!< parent key
+  QString      id_;                    //!< id
+  ItemGroup*   group_     { nullptr }; //!< associated group
+  ColorInd     ic_;                    //!< color index
+  int          row_       { 0 };       //!< row
+  int          col_       { 0 };       //!< col
+  int          rowSpan_   { 1 };       //!< row span
+  int          colSpan_   { 1 };       //!< col span
+  bool         inside_    { false };   //!< is inside
+  mutable BBox bbox_;                  //!< bounding box
+  bool         clickable_ { false };   //!< clickable
 };
 
 //---
 
 class CQChartsPlot;
+
+//---
+
+/*!
+ * \brief Key Item Group class
+ * \ingroup Charts
+ */
+class CQChartsKeyItemGroup : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  using Item = CQChartsKeyItem;
+
+ public:
+  CQChartsKeyItemGroup(Plot *plot);
+
+  Plot *plot() const { return plot_; }
+
+  //---
+
+  void addItem(Item *item);
+  void removeItem(Item *item);
+
+  //---
+
+  Size size() const override;
+
+  //---
+
+  bool tipText(const Point &p, QString &tip) const override;
+
+  //---
+
+  bool selectPress(const Point &, SelMod) override;
+  bool selectMove (const Point &) override;
+
+  //---
+
+  void doShow  (SelMod selMod) override;
+  void doSelect(SelMod selMod) override;
+
+  //---
+
+  void draw(PaintDevice *device, const BBox &rect) const override;
+
+ protected:
+  using Items = std::vector<Item *>;
+
+  Plot* plot_ { nullptr };
+  Items items_;
+};
 
 //---
 
@@ -604,9 +684,9 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
-  CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic);
+  CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic);
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
@@ -618,8 +698,8 @@ class CQChartsKeyText : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  CQChartsPlot* plot_ { nullptr };
-  QString       text_;
+  Plot*   plot_ { nullptr };
+  QString text_;
 };
 
 //---
@@ -635,19 +715,20 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_PROPERTY(CQChartsColor  strokeColor  READ strokeColor  WRITE setStrokeColor )
 
  public:
-  using RangeValue = CQChartsGeom::RangeValue;
+  using Length     = CQChartsLength;
   using Color      = CQChartsColor;
   using Alpha      = CQChartsAlpha;
+  using RangeValue = CQChartsGeom::RangeValue;
 
  public:
-  CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,
+  CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig,
                       const ColorInd &iv, const RangeValue &xv=RangeValue(),
                       const RangeValue &yv=RangeValue());
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
-  const CQChartsLength &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
-  void setCornerRadius(const CQChartsLength &r) { boxData_.shape().stroke().setCornerSize(r); }
+  const Length &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
+  void setCornerRadius(const Length &r) { boxData_.shape().stroke().setCornerSize(r); }
 
   Size size() const override;
 
@@ -679,15 +760,17 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  CQChartsPlot*   plot_     { nullptr }; //!< parent plot
-  CQChartsBoxData boxData_;              //!< box data
-  ColorInd        is_;                   //!< group index
-  ColorInd        ig_;                   //!< group index
-  ColorInd        iv_;                   //!< number of groups
-  RangeValue      xv_;                   //!< x value
-  RangeValue      yv_;                   //!< y value
-  Color           color_;                //!< custom color
-  QVariant        value_;                //!< associated value
+  using BoxData = CQChartsBoxData;
+
+  Plot*      plot_     { nullptr }; //!< parent plot
+  BoxData    boxData_;              //!< box data
+  ColorInd   is_;                   //!< group index
+  ColorInd   ig_;                   //!< group index
+  ColorInd   iv_;                   //!< number of groups
+  RangeValue xv_;                   //!< x value
+  RangeValue yv_;                   //!< y value
+  Color      color_;                //!< custom color
+  QVariant   value_;                //!< associated value
 };
 
 //---
@@ -700,19 +783,20 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
+  using SymbolData = CQChartsSymbolData;
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
-  CQChartsKeyLine(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig);
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
   Size size() const override;
 
   //---
 
-  const CQChartsSymbolData &symbolData() const { return symbolData_; }
-  void setSymbolData(const CQChartsSymbolData &symbolData) { symbolData_ = symbolData; }
+  const SymbolData &symbolData() const { return symbolData_; }
+  void setSymbolData(const SymbolData &symbolData) { symbolData_ = symbolData; }
 
   //---
 
@@ -728,11 +812,11 @@ class CQChartsKeyLine : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  CQChartsPlot*      plot_ { nullptr }; //!< parent plot
-  ColorInd           is_   { 0 };       //!< set color index
-  ColorInd           ig_   { 0 };       //!< group color index
-  QVariant           value_;            //!< associated value
-  CQChartsSymbolData symbolData_;       //!< symbol data
+  Plot*      plot_ { nullptr }; //!< parent plot
+  ColorInd   is_   { 0 };       //!< set color index
+  ColorInd   ig_   { 0 };       //!< group color index
+  QVariant   value_;            //!< associated value
+  SymbolData symbolData_;       //!< symbol data
 };
 
 //---
@@ -745,7 +829,7 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  CQChartsGradientKeyItem(CQChartsPlot *plot);
+  CQChartsGradientKeyItem(Plot *plot);
 
   Size size() const override;
 
@@ -754,7 +838,7 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   virtual int maxN() const = 0;
 
  private:
-  CQChartsPlot* plot_ { nullptr };
+  Plot* plot_ { nullptr };
 };
 
 #endif

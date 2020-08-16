@@ -56,13 +56,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsFont   font       READ font       WRITE setFont      )
 
  public:
-  enum Dir {
-    X  = (1<<0),
-    Y  = (1<<1),
-    XY = (X | Y)
-  };
-
- public:
   using Plot   = CQChartsScatterPlot;
   using Column = CQChartsColumn;
   using Image  = CQChartsImage;
@@ -141,7 +134,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
-  void drawDir(PaintDevice *device, const Dir &dir, bool flip=false) const;
+  void drawPoint(PaintDevice *device) const;
 
   void drawDataLabel(PaintDevice *device) const;
 
@@ -187,12 +180,6 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  enum Dir {
-    X  = (1<<0),
-    Y  = (1<<1),
-    XY = (X | Y)
-  };
-
   using Plot   = CQChartsScatterPlot;
   using Points = std::vector<Point>;
 
@@ -221,9 +208,9 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
-  void drawRugSymbol(PaintDevice *device, const Dir &dir, bool flip) const;
-
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  void calcRugPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
   //---
 
@@ -248,12 +235,6 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  enum Dir {
-    X  = (1<<0),
-    Y  = (1<<1),
-    XY = (X | Y)
-  };
-
   using Plot   = CQChartsScatterPlot;
   using Points = std::vector<Point>;
 
@@ -376,7 +357,6 @@ CQCHARTS_NAMED_SHAPE_DATA(GridCell, gridCell)
  */
 class CQChartsScatterPlot : public CQChartsPointPlot,
  public CQChartsObjPointData        <CQChartsScatterPlot>,
- public CQChartsObjRugPointData     <CQChartsScatterPlot>,
  public CQChartsObjGridCellShapeData<CQChartsScatterPlot> {
   Q_OBJECT
 
@@ -387,37 +367,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
 
   // options
-  Q_PROPERTY(PlotType plotType READ plotType  WRITE setPlotType)
-
-  // axis rug
-  Q_PROPERTY(bool  xRug     READ isXRug   WRITE setXRug    )
-  Q_PROPERTY(YSide xRugSide READ xRugSide WRITE setXRugSide)
-  Q_PROPERTY(bool  yRug     READ isYRug   WRITE setYRug    )
-  Q_PROPERTY(XSide yRugSide READ yRugSide WRITE setYRugSide)
-
-  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug, rug)
-
-  // axis density
-  Q_PROPERTY(bool           xDensity     READ isXDensity   WRITE setXDensity    )
-  Q_PROPERTY(YSide          xDensitySide READ xDensitySide WRITE setXDensitySide)
-  Q_PROPERTY(bool           yDensity     READ isYDensity   WRITE setYDensity    )
-  Q_PROPERTY(XSide          yDensitySide READ yDensitySide WRITE setYDensitySide)
-  Q_PROPERTY(CQChartsLength densityWidth READ densityWidth WRITE setDensityWidth)
-  Q_PROPERTY(CQChartsAlpha  densityAlpha READ densityAlpha WRITE setDensityAlpha)
+  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
 
   // density map
   Q_PROPERTY(bool   densityMap         READ isDensityMap       WRITE setDensityMap        )
   Q_PROPERTY(int    densityMapGridSize READ densityMapGridSize WRITE setDensityMapGridSize)
   Q_PROPERTY(double densityMapDelta    READ densityMapDelta    WRITE setDensityMapDelta   )
-
-  // axis whisker
-  Q_PROPERTY(bool           xWhisker      READ isXWhisker    WRITE setXWhisker     )
-  Q_PROPERTY(YSide          xWhiskerSide  READ xWhiskerSide  WRITE setXWhiskerSide )
-  Q_PROPERTY(bool           yWhisker      READ isYWhisker    WRITE setYWhisker     )
-  Q_PROPERTY(XSide          yWhiskerSide  READ yWhiskerSide  WRITE setYWhiskerSide )
-  Q_PROPERTY(CQChartsLength whiskerWidth  READ whiskerWidth  WRITE setWhiskerWidth )
-  Q_PROPERTY(CQChartsLength whiskerMargin READ whiskerMargin WRITE setWhiskerMargin)
-  Q_PROPERTY(CQChartsAlpha  whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
 
   // symbol data
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -486,14 +441,21 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   enum XSide {
-    LEFT,
-    RIGHT
+    LEFT  = (int) CQChartsAxisBoxWhisker::Side::BOTTOM_LEFT,
+    RIGHT = (int) CQChartsAxisBoxWhisker::Side::TOP_RIGHT
   };
 
   enum YSide {
-    BOTTOM,
-    TOP
+    BOTTOM = (int) CQChartsAxisBoxWhisker::Side::BOTTOM_LEFT,
+    TOP    = (int) CQChartsAxisBoxWhisker::Side::TOP_RIGHT
   };
+
+  enum XYSide {
+    BOTTOM_LEFT,
+    TOP_RIGHT
+  };
+
+//using WhiskerSide = CQChartsAxisBoxWhisker::Side;
 
  public:
   CQChartsScatterPlot(View *view, const ModelP &model);
@@ -539,33 +501,15 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  // axis rug
-  bool isXRug() const { return axisRugData_.xVisible; }
-  bool isYRug() const { return axisRugData_.yVisible; }
-
-  const YSide &xRugSide() const { return axisRugData_.xSide; }
-  void setXRugSide(const YSide &s);
-
-  const XSide &yRugSide() const { return axisRugData_.ySide; }
-  void setYRugSide(const XSide &s);
+  // x/y axis density
+  bool isXDensity() const;
+  bool isYDensity() const;
 
   //---
 
-  // axis density
-  bool isXDensity() const { return axisDensityData_.xVisible; }
-  bool isYDensity() const { return axisDensityData_.yVisible; }
-
-  const YSide &xDensitySide() const { return axisDensityData_.xSide; }
-  void setXDensitySide(const YSide &s);
-
-  const XSide &yDensitySide() const { return axisDensityData_.ySide; }
-  void setYDensitySide(const XSide &s);
-
-  const Length &densityWidth() const { return axisDensityData_.width; }
-  void setDensityWidth(const Length &w);
-
-  const Alpha &densityAlpha() const { return axisDensityData_.alpha; }
-  void setDensityAlpha(const Alpha &a);
+  // x/y axis whisker
+  bool isXWhisker() const;
+  bool isYWhisker() const;
 
   //---
 
@@ -577,27 +521,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   double densityMapDelta() const { return densityMapData_.delta; }
   void setDensityMapDelta(double d);
-
-  //---
-
-  // axis whisker
-  bool isXWhisker() const { return axisWhiskerData_.xVisible; }
-  bool isYWhisker() const { return axisWhiskerData_.yVisible; }
-
-  const YSide &xWhiskerSide() const { return axisWhiskerData_.xSide; }
-  void setXWhiskerSide(const YSide &s);
-
-  const XSide &yWhiskerSide() const { return axisWhiskerData_.ySide; }
-  void setYWhiskerSide(const XSide &s);
-
-  const Length &whiskerWidth() const { return axisWhiskerData_.width; }
-  void setWhiskerWidth(const Length &w);
-
-  const Length &whiskerMargin() const { return axisWhiskerData_.margin; }
-  void setWhiskerMargin(const Length &w);
-
-  const Alpha &whiskerAlpha() const { return axisWhiskerData_.alpha; }
-  void setWhiskerAlpha(const Alpha &a);
 
   //---
 
@@ -701,7 +624,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
  private:
-  using BoxWhisker = CQChartsXYBoxWhisker;
+  using AxisBoxWhisker = CQChartsAxisBoxWhisker;
+  using AxisDensity    = CQChartsAxisDensity;
 
  private:
   void initGridData(const Range &dataRange);
@@ -739,23 +663,21 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void drawXRug(PaintDevice *device) const;
   void drawYRug(PaintDevice *device) const;
 
+  void drawXYRug(PaintDevice *device, const RugP &rug) const;
+
   //---
 
   void drawXDensity(PaintDevice *device) const;
   void drawYDensity(PaintDevice *device) const;
 
-  void drawXDensityWhisker(PaintDevice *device, const BoxWhisker &whiskerData,
-                           const ColorInd &ig) const;
-  void drawYDensityWhisker(PaintDevice *device, const BoxWhisker &whiskerData,
-                           const ColorInd &ig) const;
+  void drawXYDensityWhisker(PaintDevice *device, const AxisBoxWhisker *whiskerData,
+                            const ColorInd &ig, double delta=0.0) const;
 
   void drawXWhisker(PaintDevice *device) const;
   void drawYWhisker(PaintDevice *device) const;
 
-  void drawXWhiskerWhisker(PaintDevice *device, const BoxWhisker &whiskerData,
-                           const ColorInd &ig) const;
-  void drawYWhiskerWhisker(PaintDevice *device, const BoxWhisker &whiskerData,
-                           const ColorInd &ig) const;
+  void drawXYWhiskerWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
+                            const ColorInd &ig, double delta=0.0) const;
 
   void initWhiskerData() const;
 
@@ -782,12 +704,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setDensityMap(bool b);
 
   // x axis annotations
-  void setXRug    (bool b);
   void setXDensity(bool b);
   void setXWhisker(bool b);
 
   // y axis annotations
-  void setYRug    (bool b);
   void setYDensity(bool b);
   void setYWhisker(bool b);
 
@@ -803,37 +723,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
+  using GroupInds     = std::set<int>;
   using GroupPoints   = std::map<int, Points>;
   using GroupFitData  = std::map<int, CQChartsFitData>;
   using GroupStatData = std::map<int, StatData>;
   using GroupHull     = std::map<int, CQChartsGrahamHull *>;
-  using GroupWhiskers = std::map<int, BoxWhisker *>;
-
-  struct AxisRugData {
-    bool  xVisible { false };         //!< x rug
-    YSide xSide    { YSide::BOTTOM }; //!< x rug side
-    bool  yVisible { false };         //!< y rug
-    XSide ySide    { XSide::LEFT };   //!< y rug side
-  };
-
-  struct AxisDensityData {
-    bool   xVisible { false };        //!< x visible
-    YSide  xSide    { YSide::TOP };   //!< x side
-    bool   yVisible { false };        //!< y visible
-    XSide  ySide    { XSide::RIGHT }; //!< y side
-    Length width    { "48px" };       //!< width
-    Alpha  alpha    { 0.5 };          //!< alpha
-  };
-
-  struct AxisWhiskerData {
-    bool   xVisible { false };        //!< x visible
-    YSide  xSide    { YSide::TOP };   //!< x side
-    bool   yVisible { false };        //!< y visible
-    XSide  ySide    { XSide::RIGHT }; //!< y side
-    Length width    { "24px" };       //!< width
-    Length margin   { "8px" };        //!< margin
-    Alpha  alpha    { 0.5 };          //!< alpha
-  };
+  using GroupWhiskers = std::map<int, AxisBoxWhisker *>;
 
   struct DensityMapData {
     bool   visible  { false }; //!< visible
@@ -857,29 +752,40 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // options
   PlotType plotType_ { PlotType::SYMBOLS }; //!< plot type
 
-  // axis annotation data
-  AxisRugData     axisRugData_;     //!< axis rug data
-  AxisDensityData axisDensityData_; //!< axis density data
-  AxisWhiskerData axisWhiskerData_; //!< axis whisker data
+  // axis density data
+  AxisDensity*    xAxisDensity_ { nullptr }; //!< x axis whisker density object
+  AxisDensity*    yAxisDensity_ { nullptr }; //!< x axis whisker density object
+
+  // axis whisker data
+  GroupWhiskers   groupXWhiskers_;           //!< group x whiskers
+  GroupWhiskers   groupYWhiskers_;           //!< group y whiskers
+  AxisBoxWhisker* xAxisWhisker_ { nullptr }; //!< x axis whisker master object
+  AxisBoxWhisker* yAxisWhisker_ { nullptr }; //!< y axis whisker master object
 
   // plot overlay data
-  DensityMapData densityMapData_; //!< density map data
-  GridCell       gridData_;       //!< grid data
-  HexMap         hexMap_;         //!< hex map
-  int            hexMapMaxN_ { 0 };
+  DensityMapData densityMapData_;   //!< density map data
+  GridCell       gridData_;         //!< grid data
+  HexMap         hexMap_;           //!< hex map
+  int            hexMapMaxN_ { 0 }; //!< hex map max N
 
   // group data
-  GroupNameValues   groupNameValues_;   //!< group name values
+  GroupInds         groupInds_;
+  GroupNameValues   groupNameValues_;   //!< group name values (individual points)
   GroupNameGridData groupNameGridData_; //!< grid cell values
   GroupNameHexData  groupNameHexData_;  //!< hex celll values
   GroupPoints       groupPoints_;       //!< group fit points
   GroupFitData      groupFitData_;      //!< group fit data
   GroupStatData     groupStatData_;     //!< group stat data
   GroupHull         groupHull_;         //!< group hull
-  GroupWhiskers     groupWhiskers_;     //!< group whiskers
 
   // symbol map
   SymbolMapKeyData symbolMapKeyData_; //!< symbol map key data
+
+  // axis side data
+  using AxisSideBBox = std::map<XYSide,BBox>;
+
+  mutable AxisSideBBox xAxisSideBBox_; // top or bottom
+  mutable AxisSideBBox yAxisSideBBox_; // left or right
 };
 
 #endif

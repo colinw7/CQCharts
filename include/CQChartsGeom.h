@@ -1009,6 +1009,11 @@ class Range {
    set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
   }
 
+  Range(const BBox &bbox) :
+   set_(bbox.isSet()), x1_(bbox.getXMin()), y1_(bbox.getYMin()),
+                       x2_(bbox.getXMax()), y2_(bbox.getYMax()) {
+  }
+
   //---
 
   bool isSet() const { return set_; }

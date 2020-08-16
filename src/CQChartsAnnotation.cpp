@@ -30,7 +30,8 @@ typeNames()
 {
   static QStringList names = QStringList() <<
     "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "arrow" <<
-    "point" << "pie_slice" << "axis" << "key" << "point_set" << "value_set" << "button";
+    "point" << "pie_slice" << "axis" << "key" << "point_set" << "value_set" << "button" <<
+    "group";
 
   return names;
 }
@@ -105,6 +106,16 @@ pathId() const
 
 void
 CQChartsAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, cmdName(), parentVarName, varName);
+
+  writeDetails(os, parentVarName, varName);
+}
+
+void
+CQChartsAnnotation::
 writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
           const QString &varName) const
 {
@@ -139,46 +150,6 @@ writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
   if (tipId() != "")
     os << " -tip \"" << tipId().toStdString() << "\"";
 }
-
-#if 0
-void
-CQChartsAnnotation::
-writeFill(std::ostream &os) const
-{
-  if (isFilled()) {
-    os << " -filled 1";
-
-    if (fillColor().isValid())
-      os << " -fill_color " << fillColor().toString().toStdString();
-
-    if (fillAlpha() != CQChartsAlpha())
-      os << " -fill_alpha " << fillAlpha();
-  }
-}
-#endif
-
-#if 0
-void
-CQChartsAnnotation::
-writeStroke(std::ostream &os) const
-{
-  if (isStroked()) {
-    os << " -stroked 1";
-
-    if (strokeColor().isValid())
-      os << " -stroke_color " << strokeColor().toString().toStdString();
-
-    if (strokeAlpha() != CQChartsAlpha())
-      os << " -stroke_alpha " << strokeAlpha();
-
-    if (strokeWidth().isSet())
-      os << " -stroke_width " << strokeWidth().toString().toStdString();
-
-    if (! strokeDash().isSolid())
-      os << " -stroke_dash " << strokeDash().toString().toStdString();
-  }
-}
-#endif
 
 void
 CQChartsAnnotation::
@@ -270,6 +241,15 @@ setAnnotationBBox(const BBox &bbox)
 
 //---
 
+QString
+CQChartsAnnotation::
+propertyId() const
+{
+  return QString("%1%2").arg(propertyName()).arg(ind());
+}
+
+//---
+
 void
 CQChartsAnnotation::
 invalidate()
@@ -285,6 +265,38 @@ invalidate()
     view()->update();
   }
 }
+
+void
+CQChartsAnnotation::
+emitDataChanged()
+{
+  if (! isDisableSignals())
+    emit dataChanged();
+}
+
+//---
+
+void
+CQChartsAnnotation::
+getMarginValues(double &xlm, double &xrm, double &ytm, double &ybm) const
+{
+  xlm = lengthParentWidth (margin().left  ());
+  xrm = lengthParentWidth (margin().right ());
+  ytm = lengthParentHeight(margin().top   ());
+  ybm = lengthParentHeight(margin().bottom());
+}
+
+void
+CQChartsAnnotation::
+getPaddingValues(double &xlp, double &xrp, double &ytp, double &ybp) const
+{
+  xlp = lengthParentWidth (padding().left  ());
+  xrp = lengthParentWidth (padding().right ());
+  ytp = lengthParentHeight(padding().top   ());
+  ybp = lengthParentHeight(padding().bottom());
+}
+
+//---
 
 void
 CQChartsAnnotation::
@@ -685,6 +697,255 @@ drawTerm(PaintDevice *device)
 
 //---
 
+CQChartsAnnotationGroup::
+CQChartsAnnotationGroup(View *view) :
+ CQChartsAnnotation(view, Type::GROUP)
+{
+  init();
+}
+
+CQChartsAnnotationGroup::
+CQChartsAnnotationGroup(Plot *plot) :
+ CQChartsAnnotation(plot, Type::GROUP)
+{
+  init();
+}
+
+CQChartsAnnotationGroup::
+~CQChartsAnnotationGroup()
+{
+  for (auto &annotation : annotations_)
+    annotation->setGroup(nullptr);
+}
+
+void
+CQChartsAnnotationGroup::
+init()
+{
+  setObjectName(QString("group.%1").arg(ind()));
+
+  editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
+}
+
+void
+CQChartsAnnotationGroup::
+addAnnotation(CQChartsAnnotation *annotation)
+{
+  if (annotation->group())
+    const_cast<CQChartsAnnotationGroup *>(annotation->group())->removeAnnotation(annotation);
+
+  annotation->setGroup(this);
+
+  annotations_.push_back(annotation);
+
+  needsLayout_ = true;
+}
+
+void
+CQChartsAnnotationGroup::
+removeAnnotation(CQChartsAnnotation *annotation)
+{
+  assert(annotation->group() == this);
+
+  Annotations annotations;
+
+  for (auto &annotation1 : annotations_) {
+    if (annotation != annotation1)
+      annotations.push_back(annotation1);
+  }
+
+  std::swap(annotations, annotations_);
+
+  annotation->setGroup(nullptr);
+
+  needsLayout_ = true;
+}
+
+//------
+
+void
+CQChartsAnnotationGroup::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "orientation"  , "", "Layout direction");
+  addProp(path1, "alignment"    , "", "Layout alignment");
+  addProp(path1, "layoutSpacing", "", "Layout spacing");
+  addProp(path1, "layoutMargin" , "", "Layout margin");
+}
+
+//------
+
+bool
+CQChartsAnnotationGroup::
+inside(const Point &p) const
+{
+  for (auto &annotation : annotations_)
+    if (annotation->inside(p))
+      return true;
+
+  return false;
+}
+
+void
+CQChartsAnnotationGroup::
+setEditBBox(const BBox &bbox, const ResizeSide &)
+{
+  setAnnotationBBox(bbox);
+
+  layout();
+}
+
+void
+CQChartsAnnotationGroup::
+draw(PaintDevice *device)
+{
+  if (needsLayout_) {
+    layout();
+
+    needsLayout_ = false;
+  }
+
+  for (auto &annotation : annotations_)
+    annotation->draw(device);
+}
+
+void
+CQChartsAnnotationGroup::
+layout()
+{
+  double x    { 0.0 }, y    { 0.0 };
+  double maxW { 0.0 }, maxH { 0.0 };
+  double sumW { 0.0 }, sumH { 0.0 };
+
+  int n = 0;
+
+  for (auto &annotation : annotations_) {
+    const auto &bbox1 = annotation->annotationBBox();
+    if (! bbox1.isSet()) continue;
+
+    if (n == 0) {
+      x = bbox1.getXMin();
+      y = bbox1.getYMax();
+    }
+
+    double w1 = bbox1.getWidth ();
+    double h1 = bbox1.getHeight();
+
+    maxW = std::max(maxW, w1);
+    maxH = std::max(maxH, h1);
+
+    sumW += w1;
+    sumH += h1;
+
+    ++n;
+  }
+
+  if (annotationBBox_.isSet()) {
+    x = annotationBBox_.getXMin();
+    y = annotationBBox_.getYMax();
+  }
+
+  // left to right
+  if (orientation() == Qt::Horizontal) {
+    double spacing = pixelToWindowWidth(layoutSpacing());
+    double margin  = pixelToWindowWidth(layoutMargin());
+
+    //---
+
+    double aw = sumW + 2*margin + (n - 1)*spacing;
+    double ah = maxH + 2*margin;
+
+    y -= ah;
+
+    setAnnotationBBox(BBox(x, y, x + aw, y + ah));
+
+    x += margin;
+
+    for (auto &annotation : annotations_) {
+      const auto &bbox1 = annotation->annotationBBox();
+      if (! bbox1.isSet()) continue;
+
+      double w1 = bbox1.getWidth ();
+      double h1 = bbox1.getHeight();
+
+      double y1 = y;
+
+      if      (alignment() & Qt::AlignBottom)
+        y1 = y;
+      else if (alignment() & Qt::AlignVCenter)
+        y1 = y + (ah - h1)/2;
+      else if (alignment() & Qt::AlignTop)
+        y1 = y + ah - h1;
+
+      annotation->setDisableSignals(true);
+
+      annotation->setEditBBox(BBox(x, y1, x + w1, y1 + h1), CQChartsResizeSide::NONE);
+
+      annotation->setDisableSignals(false);
+
+      x += w1 + spacing;
+    }
+  }
+  // top to bottom
+  else {
+    double spacing = pixelToWindowHeight(layoutSpacing());
+    double margin  = pixelToWindowHeight(layoutMargin());
+
+    //---
+
+    double aw = maxW + 2*margin;
+    double ah = sumH + 2*margin + (n - 1)*spacing;
+
+    setAnnotationBBox(BBox(x, y - ah, x + aw, y));
+
+    y -= margin;
+
+    for (auto &annotation : annotations_) {
+      const auto &bbox1 = annotation->annotationBBox();
+      if (! bbox1.isSet()) continue;
+
+      double w1 = bbox1.getWidth ();
+      double h1 = bbox1.getHeight();
+
+      double x1 = x;
+
+      if      (alignment() & Qt::AlignLeft)
+        x1 = x;
+      else if (alignment() & Qt::AlignHCenter)
+        x1 = x + (aw - w1)/2;
+      else if (alignment() & Qt::AlignRight)
+        x1 = x + aw - w1;
+
+      annotation->setDisableSignals(true);
+
+      annotation->setEditBBox(BBox(x1, y - h1, x1 + w1, y), CQChartsResizeSide::NONE);
+
+      annotation->setDisableSignals(false);
+
+      y -= h1 + spacing;
+    }
+  }
+}
+
+void
+CQChartsAnnotationGroup::
+writeDetails(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  for (auto &annotation : annotations_)
+    annotation->write(os, parentVarName, varName);
+}
+
+//---
+
 CQChartsPolyShapeAnnotation::
 CQChartsPolyShapeAnnotation(View *view, Type type, const Polygon &polygon) :
  CQChartsAnnotation(view, type), polygon_(polygon)
@@ -744,7 +1005,7 @@ setRectangle(const Rect &rectangle)
 
   rectangle_ = rectangle;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -782,7 +1043,7 @@ setStart(const Position &p)
 
   assert(rectangle_.isValid());
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 CQChartsPosition
@@ -811,7 +1072,7 @@ setEnd(const Position &p)
 
   assert(rectangle_.isValid());
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -820,7 +1081,7 @@ setShapeType(const ShapeType &s)
 {
   shapeType_ = s;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -829,7 +1090,7 @@ setNumSides(int n)
 {
   numSides_ = n;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 //------
@@ -931,13 +1192,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStrokeFillProperties(model, path1);
 }
 
-QString
-CQChartsRectangleAnnotation::
-propertyId() const
-{
-  return QString("rectangleAnnotation%1").arg(ind());
-}
-
 void
 CQChartsRectangleAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
@@ -949,10 +1203,9 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
   // external margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   x1 -= xlm; y1 -= ybm;
   x2 += xrm; y2 += ytm;
@@ -983,10 +1236,9 @@ draw(PaintDevice *device)
   auto end   = positionToParent(this->end  ());
 
   // external margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double x1 = std::min(start.x, end.x);
   double y1 = std::min(start.y, end.y);
@@ -1058,11 +1310,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsRectangleAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_rectangle_annotation", parentVarName, varName);
-
 #if 0
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -1077,12 +1326,6 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 #if 0
   if (margin().isValid())
     os << " -margin " << margin().toString();
-#endif
-
-#if 0
-  writeFill(os);
-
-  writeStroke(os);
 #endif
 
 #if 0
@@ -1154,13 +1397,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "yRadius", "", "Ellipse y radius");
 
   addStrokeFillProperties(model, path1);
-}
-
-QString
-CQChartsEllipseAnnotation::
-propertyId() const
-{
-  return QString("ellipseAnnotation%1").arg(ind());
 }
 
 void
@@ -1261,11 +1497,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsEllipseAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_ellipse_annotation", parentVarName, varName);
-
   if (center().isSet())
     os << " -center {" << center().toString().toStdString() << "}";
 
@@ -1274,12 +1507,6 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
   if (yRadius().isSet())
     os << " -ry {" << yRadius().toString().toStdString() << "}";
-
-#if 0
-  writeFill(os);
-
-  writeStroke(os);
-#endif
 
 #if 0
   if (cornerSize().isSet())
@@ -1356,13 +1583,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeFillProperties(model, path1);
-}
-
-QString
-CQChartsPolygonAnnotation::
-propertyId() const
-{
-  return QString("polygonAnnotation%1").arg(ind());
 }
 
 void
@@ -1496,18 +1716,9 @@ initSmooth() const
 
 void
 CQChartsPolygonAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_polygon_annotation", parentVarName, varName);
-
   writePoints(os, polygon_.polygon());
-
-#if 0
-  writeFill(os);
-
-  writeStroke(os);
-#endif
 
   os << "]\n";
 
@@ -1575,13 +1786,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeProperties(model, path1 + "/stroke");
-}
-
-QString
-CQChartsPolylineAnnotation::
-propertyId() const
-{
-  return QString("polylineAnnotation%1").arg(ind());
 }
 
 void
@@ -1721,18 +1925,9 @@ initSmooth() const
 
 void
 CQChartsPolylineAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_polyline_annotation", parentVarName, varName);
-
   writePoints(os, polygon_.polygon());
-
-#if 0
-  writeFill(os);
-
-  writeStroke(os);
-#endif
 
   os << "]\n";
 
@@ -1824,7 +2019,7 @@ setPosition(const OptPosition &p)
 
   positionToBBox();
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 CQChartsRect
@@ -1853,7 +2048,7 @@ setRectangle(const OptRect &r)
 
   rectToBBox();
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -1920,13 +2115,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStrokeFillProperties(model, path1);
 }
 
-QString
-CQChartsTextAnnotation::
-propertyId() const
-{
-  return QString("textAnnotation%1").arg(ind());
-}
-
 void
 CQChartsTextAnnotation::
 calcTextSize(Size &psize, Size &wsize) const
@@ -1942,12 +2130,9 @@ calcTextSize(Size &psize, Size &wsize) const
   psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
 
   // convert to window size
-  if      (plot())
-    wsize = plot()->pixelToWindowSize(psize);
-  else if (view())
-    wsize = view()->pixelToWindowSize(psize);
-  else
-    wsize = psize;
+  if      (plot()) wsize = plot()->pixelToWindowSize(psize);
+  else if (view()) wsize = view()->pixelToWindowSize(psize);
+  else             wsize = psize;
 }
 
 void
@@ -1990,16 +2175,14 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   }
   else {
     // get inner padding
-    double xlp = lengthParentWidth (padding().left  ());
-    double xrp = lengthParentWidth (padding().right ());
-    double ytp = lengthParentHeight(padding().top   ());
-    double ybp = lengthParentHeight(padding().bottom());
+    double xlp, xrp, ytp, ybp;
+
+    getPaddingValues(xlp, xrp, ytp, ybp);
 
     // get outer margin
-    double xlm = lengthParentWidth (margin().left  ());
-    double xrm = lengthParentWidth (margin().right ());
-    double ytm = lengthParentHeight(margin().top   ());
-    double ybm = lengthParentHeight(margin().bottom());
+    double xlm, xrm, ytm, ybm;
+
+    getMarginValues(xlm, xrm, ytm, ybm);
 
     //---
 
@@ -2160,16 +2343,14 @@ draw(PaintDevice *device)
 //auto pbbox = windowToPixel(rect_);
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double tx =          rect_.getXMin  () +       xlm + xlp;
   double ty =          rect_.getYMin  () +       ybm + ybp;
@@ -2220,16 +2401,14 @@ positionToBBox()
   assert(! rectangle().isSet());
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   Size psize, wsize;
 
@@ -2247,11 +2426,8 @@ positionToBBox()
 
 void
 CQChartsTextAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_text_annotation", parentVarName, varName);
-
   if (rectangle().isSet()) {
     if (rectangleValue().isSet())
       os << " -rectangle {" << rectangleValue().toString().toStdString() << "}";
@@ -2284,12 +2460,6 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
   if (isTextHtml())
     os << " -html";
-
-#if 0
-  writeFill(os);
-
-  writeStroke(os);
-#endif
 
 #if 0
   if (cornerSize().isSet())
@@ -2388,7 +2558,7 @@ setPosition(const OptPosition &p)
 
   positionToBBox();
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 CQChartsRect
@@ -2420,7 +2590,7 @@ setRectangle(const OptRect &r)
   if (disabledImageType_ != DisabledImageType::FIXED)
     disabledImageType_ = DisabledImageType::NONE; // invalidate disabled image
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -2448,7 +2618,7 @@ setImage(const Image &image)
   if (disabledImageType_ != DisabledImageType::FIXED)
     disabledImageType_ = DisabledImageType::NONE; // invalidate disabled image
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -2462,7 +2632,7 @@ setDisabledImage(const Image &image)
   else
     disabledImageType_ = DisabledImageType::NONE;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -2491,13 +2661,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStrokeFillProperties(model, path1);
 }
 
-QString
-CQChartsImageAnnotation::
-propertyId() const
-{
-  return QString("imageAnnotation%1").arg(ind());
-}
-
 void
 CQChartsImageAnnotation::
 calcImageSize(Size &psize, Size &wsize) const
@@ -2505,12 +2668,9 @@ calcImageSize(Size &psize, Size &wsize) const
   // convert to window size
   psize = Size(image_.size());
 
-  if      (plot())
-    wsize = plot()->pixelToWindowSize(psize);
-  else if (view())
-    wsize = view()->pixelToWindowSize(psize);
-  else
-    wsize = psize;
+  if      (plot()) wsize = plot()->pixelToWindowSize(psize);
+  else if (view()) wsize = view()->pixelToWindowSize(psize);
+  else             wsize = psize;
 }
 
 void
@@ -2617,16 +2777,14 @@ draw(PaintDevice *device)
 //auto pbbox = windowToPixel(rect_);
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double tx =          rect_.getXMin  () +       xlm + xlp;
   double ty =          rect_.getYMin  () +       ybm + ybp;
@@ -2741,16 +2899,14 @@ positionToBBox()
   assert(! rectangle().isSet());
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   Size psize, wsize;
 
@@ -2768,11 +2924,8 @@ positionToBBox()
 
 void
 CQChartsImageAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_image_annotation", parentVarName, varName);
-
   if (rectangle().isSet()) {
     if (rectangleValue().isSet())
       os << " -rectangle {" << rectangleValue().toString().toStdString() << "}";
@@ -2842,7 +2995,7 @@ setArrowData(const CQChartsArrowData &data)
 {
   arrow()->setData(data);
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -2957,13 +3110,6 @@ getPropertyNames(QStringList &names, bool hidden) const
 #endif
 }
 
-QString
-CQChartsArrowAnnotation::
-propertyId() const
-{
-  return QString("arrowAnnotation%1").arg(ind());
-}
-
 //---
 
 void
@@ -2977,16 +3123,14 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   x1 += xlp + xlm; y1 += ybp + ybm;
   x2 -= xrp + xrm; y2 -= ytp + ytm;
@@ -3023,7 +3167,7 @@ flip(Qt::Orientation orient)
   start_ = Position(Point(x1, y1), start().units());
   end_   = Position(Point(x2, y2), start().units());
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 //---
@@ -3059,16 +3203,14 @@ draw(PaintDevice *device)
   }
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double x1 = std::min(start.x, end.x);
   double y1 = std::min(start.y, end.y);
@@ -3123,11 +3265,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsArrowAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_arrow_annotation", parentVarName, varName);
-
   // start/end points
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -3338,13 +3477,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(strokePath, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
 }
 
-QString
-CQChartsPointAnnotation::
-propertyId() const
-{
-  return QString("pointAnnotation%1").arg(ind());
-}
-
 void
 CQChartsPointAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
@@ -3383,16 +3515,14 @@ draw(PaintDevice *device)
   auto position = positionToParent(position_);
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double sw = lengthParentWidth (symbolData.size());
   double sh = lengthParentHeight(symbolData.size());
@@ -3445,11 +3575,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsPointAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_point_annotation", parentVarName, varName);
-
   const auto &symbolData = this->symbolData();
 
   if (position().isSet())
@@ -3554,13 +3681,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStrokeFillProperties(model, path1);
 }
 
-QString
-CQChartsPieSliceAnnotation::
-propertyId() const
-{
-  return QString("pieSliceAnnotation%1").arg(ind());
-}
-
 void
 CQChartsPieSliceAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
@@ -3655,11 +3775,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsPieSliceAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_pie_slice_annotation", parentVarName, varName);
-
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
 
@@ -3733,13 +3850,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   axis_->addProperties(model, path1);
 }
 
-QString
-CQChartsAxisAnnotation::
-propertyId() const
-{
-  return QString("axisAnnotation%1").arg(ind());
-}
-
 void
 CQChartsAxisAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
@@ -3802,11 +3912,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsAxisAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_axis_annotation", parentVarName, varName);
-
   os << "]\n";
 
   //---
@@ -3876,13 +3983,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   QString keyPath = path + "/" + propertyId() + "/key";
 
   key_->addProperties(model, keyPath, "");
-}
-
-QString
-CQChartsKeyAnnotation::
-propertyId() const
-{
-  return QString("keyAnnotation%1").arg(ind());
 }
 
 void
@@ -3974,11 +4074,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsKeyAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_key_annotation", parentVarName, varName);
-
   os << "]\n";
 
   //---
@@ -4056,13 +4153,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "drawType", "", "Draw type");
 
   addStrokeFillProperties(model, path1);
-}
-
-QString
-CQChartsPointSetAnnotation::
-propertyId() const
-{
-  return QString("pointSetAnnotation%1").arg(ind());
 }
 
 void
@@ -4257,11 +4347,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsPointSetAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_point_set_annotation", parentVarName, varName);
-
   os << " -values {" << values().toString().toStdString() << "}";
 
   os << "]\n";
@@ -4352,13 +4439,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStrokeFillProperties(model, path1);
 }
 
-QString
-CQChartsValueSetAnnotation::
-propertyId() const
-{
-  return QString("valueSetAnnotation%1").arg(ind());
-}
-
 void
 CQChartsValueSetAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
@@ -4435,11 +4515,8 @@ draw(PaintDevice *device)
 
 void
 CQChartsValueSetAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_value_set_annotation", parentVarName, varName);
-
   if (rectangle().isSet())
     os << " -rectangle {" << rectangle().toString().toStdString() << "}";
 
@@ -4495,7 +4572,7 @@ setPosition(const Position &p)
 {
   position_ = p;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -4533,13 +4610,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(textPath, "textAlign", "align", "Text align");
 
   addStrokeFillProperties(model, path1);
-}
-
-QString
-CQChartsButtonAnnotation::
-propertyId() const
-{
-  return QString("buttonAnnotation%1").arg(ind());
 }
 
 void
@@ -4678,11 +4748,8 @@ calcPixelRect() const
 
 void
 CQChartsButtonAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_button_annotation", parentVarName, varName);
-
   os << " -position {" << position().toString().toStdString() << "}";
 
   if (textStr().length())
@@ -4774,7 +4841,7 @@ setPosition(const OptPosition &p)
 
   positionToBBox();
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 CQChartsRect
@@ -4803,7 +4870,7 @@ setRectangle(const OptRect &r)
 
   rectToBBox();
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -4828,7 +4895,7 @@ setWidget(const Widget &widget)
 {
   widget_ = widget;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -4837,7 +4904,7 @@ setAlign(const Qt::Alignment &a)
 {
   align_ = a;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -4846,7 +4913,7 @@ setSizePolicy(const QSizePolicy &p)
 {
   sizePolicy_ = p;
 
-  emit dataChanged();
+  emitDataChanged();
 }
 
 void
@@ -4871,13 +4938,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "sizePolicy", "sizePolicy", "Widget size policy");
 }
 
-QString
-CQChartsWidgetAnnotation::
-propertyId() const
-{
-  return QString("widgetAnnotation%1").arg(ind());
-}
-
 void
 CQChartsWidgetAnnotation::
 calcWidgetSize(Size &psize, Size &wsize) const
@@ -4885,12 +4945,9 @@ calcWidgetSize(Size &psize, Size &wsize) const
   // convert to window size
   psize = Size(widget_.size());
 
-  if      (plot())
-    wsize = plot()->pixelToWindowSize(psize);
-  else if (view())
-    wsize = view()->pixelToWindowSize(psize);
-  else
-    wsize = psize;
+  if      (plot()) wsize = plot()->pixelToWindowSize(psize);
+  else if (view()) wsize = view()->pixelToWindowSize(psize);
+  else             wsize = psize;
 }
 
 void
@@ -4984,16 +5041,14 @@ draw(PaintDevice *)
 //auto pbbox = windowToPixel(rect_);
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   double tx =          rect_.getXMin  () +       xlm + xlp;
   double ty =          rect_.getYMin  () +       ybm + ybp;
@@ -5044,16 +5099,14 @@ positionToBBox()
   assert(! rectangle().isSet());
 
   // get inner padding
-  double xlp = lengthParentWidth (padding().left  ());
-  double xrp = lengthParentWidth (padding().right ());
-  double ytp = lengthParentHeight(padding().top   ());
-  double ybp = lengthParentHeight(padding().bottom());
+  double xlp, xrp, ytp, ybp;
+
+  getPaddingValues(xlp, xrp, ytp, ybp);
 
   // get outer margin
-  double xlm = lengthParentWidth (margin().left  ());
-  double xrm = lengthParentWidth (margin().right ());
-  double ytm = lengthParentHeight(margin().top   ());
-  double ybm = lengthParentHeight(margin().bottom());
+  double xlm, xrm, ytm, ybm;
+
+  getMarginValues(xlm, xrm, ytm, ybm);
 
   Size psize, wsize;
 
@@ -5094,11 +5147,8 @@ positionToBBox()
 
 void
 CQChartsWidgetAnnotation::
-write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
 {
-  // -view/-plot -id -tip
-  writeKeys(os, "create_charts_widget_annotation", parentVarName, varName);
-
   if (rectangle().isSet()) {
     if (rectangleValue().isSet())
       os << " -rectangle {" << rectangleValue().toString().toStdString() << "}";
@@ -5112,4 +5162,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
     os << " -widget {" << widget_.path().toStdString() << "}";
 
   os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }

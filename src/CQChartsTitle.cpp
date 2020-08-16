@@ -118,6 +118,9 @@ void
 CQChartsTitle::
 updateLocation()
 {
+  bbox_ = BBox();
+
+  // all overlay plots and annotation boxes
   auto bbox = plot_->calcGroupedDataRange();
 
   //---
@@ -269,7 +272,7 @@ calcSize()
   }
 
   if (isExpandWidth()) {
-    auto bbox = plot_->calcGroupedDataRange();
+    auto bbox = plot_->calcGroupedDataRange(/*includeAnnotation*/false);
 
     size_.setWidth(bbox.getWidth());
   }

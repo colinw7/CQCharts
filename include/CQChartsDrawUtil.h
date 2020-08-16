@@ -158,6 +158,14 @@ void setPenBrush(QPainter *device, const CQChartsPenBrush &penBrush);
 
 void setBrush(QBrush &brush, const CQChartsBrushData &data);
 
+inline void setBrushAlpha(QBrush &brush, double a) {
+  auto c = brush.color();
+
+  c.setAlphaF(a);
+
+  brush.setColor(c);
+}
+
 }
 
 //---

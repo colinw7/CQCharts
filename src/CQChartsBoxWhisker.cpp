@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
+#include <CQPropertyViewItem.h>
 
 namespace CQChartsBoxWhiskerUtil {
 
@@ -161,4 +162,371 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
   }
 }
 
+}
+
+//------
+
+CQChartsAxisBoxWhisker::
+CQChartsAxisBoxWhisker(CQChartsPlot *plot, const Qt::Orientation &direction) :
+ CQChartsObj(plot->charts()), plot_(plot), direction_(direction)
+{
+}
+
+void
+CQChartsAxisBoxWhisker::
+setSide(const Side &s)
+{
+  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisBoxWhisker::
+setDirection(const Qt::Orientation &o)
+{
+  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisBoxWhisker::
+setWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisBoxWhisker::
+setMargin(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(margin_, l, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisBoxWhisker::
+setAlpha(const CQChartsAlpha &a)
+{
+  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
+}
+
+CQChartsGeom::BBox
+CQChartsAxisBoxWhisker::
+calcNBBox(int n) const
+{
+  auto bbox = calcBBox();
+
+  if (direction() == Qt::Horizontal)
+    bbox.setHeight(bbox.getHeight()*n);
+  else
+    bbox.setWidth (bbox.getWidth ()*n);
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsAxisBoxWhisker::
+calcNDeltaBBox(int n, double delta) const
+{
+  auto bbox = calcDeltaBBox(delta);
+
+  if (direction() == Qt::Horizontal)
+    bbox.setHeight(bbox.getHeight()*n);
+  else
+    bbox.setWidth (bbox.getWidth ()*n);
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsAxisBoxWhisker::
+calcBBox() const
+{
+  return calcDeltaBBox(0.0);
+}
+
+CQChartsGeom::BBox
+CQChartsAxisBoxWhisker::
+calcDeltaBBox(double delta) const
+{
+  BBox bbox;
+
+  if (! isVisible())
+    return bbox;
+
+  auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
+
+  //---
+
+  CQChartsGeom::Point p1, p2;
+
+  if (direction() == Qt::Horizontal) {
+    double wm = plot()->lengthPlotHeight(margin());
+    double ww = plot()->lengthPlotHeight(width ());
+
+    double s = ww + 2*wm;
+
+    if (side() == Side::BOTTOM_LEFT) {
+      p1 = Point(dataRange.xmin(), dataRange.ymin() - delta - s);
+      p2 = Point(dataRange.xmax(), dataRange.ymin() - delta);
+    }
+    else {
+      p1 = Point(dataRange.xmin(), dataRange.ymax() + delta);
+      p2 = Point(dataRange.xmax(), dataRange.ymax() + delta + s);
+    }
+  }
+  else {
+    double wm = plot()->lengthPlotWidth(margin());
+    double ww = plot()->lengthPlotWidth(width ());
+
+    double s = ww + 2*wm;
+
+    if (side() == Side::BOTTOM_LEFT) {
+      p1 = Point(dataRange.xmin() - delta - s, dataRange.ymin());
+      p2 = Point(dataRange.xmin() - delta    , dataRange.ymax());
+    }
+    else {
+      p1 = Point(dataRange.xmax() + delta    , dataRange.ymin());
+      p2 = Point(dataRange.xmax() + delta + s, dataRange.ymax());
+    }
+  }
+
+  bbox += p1;
+  bbox += p2;
+
+  return bbox;
+}
+
+bool
+CQChartsAxisBoxWhisker::
+contains(const Point &p) const
+{
+  return calcBBox().inside(p);
+}
+
+void
+CQChartsAxisBoxWhisker::
+dataInvalidate()
+{
+  plot()->resetAnnotationBBox();
+
+  plot()->drawObjs();
+}
+
+void
+CQChartsAxisBoxWhisker::
+addProperties(const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  addProp(path          , "visible", "", desc + " visible");
+  addProp(path          , "side"   , "", desc + " side");
+  addProp(path          , "width"  , "", desc + " width");
+  addProp(path          , "margin" , "", desc + " margin");
+  addProp(path + "/fill", "alpha"  , "", desc + " alpha");
+}
+
+void
+CQChartsAxisBoxWhisker::
+draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, double delta)
+{
+  CQChartsPenBrush penBrush1 = penBrush;
+
+  CQChartsDrawUtil::setBrushAlpha(penBrush1.brush, alpha().value());
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+  //---
+
+  auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
+
+  CQChartsGeom::BBox rect;
+
+  if (direction() == Qt::Horizontal) {
+    double ww = plot()->lengthPlotHeight(width ());
+    double wm = plot()->lengthPlotHeight(margin());
+
+    double pos = (side() == Side::BOTTOM_LEFT ?
+      dataRange.ymin() - delta - (ind + 1)*ww - wm :
+      dataRange.ymax() + delta +  ind     *ww + wm);
+
+    rect = CQChartsGeom::BBox(whisker_.min(), pos, whisker_.max(), pos + ww);
+  }
+  else {
+    double ww = plot()->lengthPlotWidth(width ());
+    double wm = plot()->lengthPlotWidth(margin());
+
+    double pos = (side() == Side::BOTTOM_LEFT ?
+      dataRange.xmin() - delta - (ind + 1)*ww - wm :
+      dataRange.xmax() + delta +  ind     *ww + wm);
+
+    rect = CQChartsGeom::BBox(pos, whisker_.min(), pos + ww, whisker_.max());
+  }
+
+  CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_, rect, width(), direction());
+
+  if (plot()->showBoxes())
+    plot()->drawWindowColorBox(device, rect, Qt::red);
+}
+
+//------
+
+CQChartsAxisDensity::
+CQChartsAxisDensity(CQChartsPlot *plot, const Qt::Orientation &direction) :
+ CQChartsObj(plot->charts()), plot_(plot), direction_(direction)
+{
+}
+
+void
+CQChartsAxisDensity::
+setSide(const Side &s)
+{
+  CQChartsUtil::testAndSet(side_, s, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisDensity::
+setDirection(const Qt::Orientation &o)
+{
+  CQChartsUtil::testAndSet(direction_, o, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisDensity::
+setWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisDensity::
+setAlpha(const CQChartsAlpha &a)
+{
+  CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
+}
+
+CQChartsGeom::BBox
+CQChartsAxisDensity::
+calcBBox() const
+{
+  return calcDeltaBBox(0.0);
+}
+
+CQChartsGeom::BBox
+CQChartsAxisDensity::
+calcDeltaBBox(double delta) const
+{
+  BBox bbox;
+
+  if (! isVisible())
+    return bbox;
+
+  auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
+
+  //---
+
+  CQChartsGeom::Point p1, p2;
+
+  if (direction() == Qt::Horizontal) {
+    double dh = plot()->lengthPlotHeight(width());
+
+    if (side() == Side::BOTTOM_LEFT ) {
+      p1 = Point(dataRange.xmin(), dataRange.ymin() - delta - dh);
+      p2 = Point(dataRange.xmax(), dataRange.ymin() - delta);
+    }
+    else {
+      p1 = Point(dataRange.xmin(), dataRange.ymax() + delta);
+      p2 = Point(dataRange.xmax(), dataRange.ymax() + delta  + dh);
+    }
+  }
+  else {
+    double dw = plot()->lengthPlotWidth(width());
+
+    if (side() == Side::BOTTOM_LEFT ) {
+      p1 = Point(dataRange.xmin() - delta - dw, dataRange.ymin());
+      p2 = Point(dataRange.xmin() - delta     , dataRange.ymax());
+    }
+    else {
+      p1 = Point(dataRange.xmax() + delta     , dataRange.ymin());
+      p2 = Point(dataRange.xmax() + delta + dw, dataRange.ymax());
+    }
+  }
+
+  bbox += p1;
+  bbox += p2;
+
+  return bbox;
+}
+
+bool
+CQChartsAxisDensity::
+contains(const Point &p) const
+{
+  return calcBBox().inside(p);
+}
+
+void
+CQChartsAxisDensity::
+dataInvalidate()
+{
+  plot()->resetAnnotationBBox();
+
+  plot()->drawObjs();
+}
+
+void
+CQChartsAxisDensity::
+addProperties(const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  addProp(path          , "visible", "", desc + " visible");
+  addProp(path          , "side"   , "", desc + " side");
+  addProp(path          , "width"  , "", desc + " width");
+  addProp(path + "/fill", "alpha"  , "", desc + " alpha");
+}
+
+void
+CQChartsAxisDensity::
+draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta)
+{
+  CQChartsPenBrush penBrush1 = penBrush;
+
+  CQChartsDrawUtil::setBrushAlpha(penBrush1.brush, alpha().value());
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush1);
+
+  //---
+
+  auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
+
+  double xmin = density().xmin1();
+  double xmax = density().xmax1();
+
+  CQChartsGeom::BBox rect;
+
+  if (direction() == Qt::Horizontal) {
+    double dh = plot()->lengthPlotHeight(width());
+
+    double pos = (side() == Side::BOTTOM_LEFT ? dataRange.ymin() - delta - dh :
+                                                dataRange.ymax() + delta);
+
+    rect = CQChartsGeom::BBox(xmin, pos, xmax, pos + dh);
+  }
+  else {
+    double dw = plot()->lengthPlotWidth(width());
+
+    double pos = (side() == Side::BOTTOM_LEFT ? dataRange.xmin() - delta - dw :
+                                                dataRange.xmax() + delta);
+
+    rect = CQChartsGeom::BBox(pos, xmin, pos + dw, xmax);
+  }
+
+  density().drawDistribution(plot(), device, rect, direction());
+
+  if (plot()->showBoxes())
+    plot()->drawWindowColorBox(device, rect, Qt::red);
 }

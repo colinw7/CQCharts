@@ -598,13 +598,20 @@ addKeyItems(CQChartsPlotKey *key)
 
       ColorInd ic(data.row, numRows());
 
-      auto *color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
-      auto *text  = new CQChartsKeyText(plot, name, ic);
+      auto *colorItem = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
+      auto *textItem  = new CQChartsKeyText(plot, name, ic);
 
-      color->setClickable(true);
+      auto *groupItem = new CQChartsKeyItemGroup(plot);
 
-      key_->addItem(color, data.row, 0);
-      key_->addItem(text , data.row, 1);
+      groupItem->addItem(colorItem);
+      groupItem->addItem(textItem );
+
+      colorItem->setClickable(true);
+
+      //key_->addItem(colorItem, data.row, 0);
+      //key_->addItem(textItem , data.row, 1);
+
+      key_->addItem(groupItem, data.row, 0);
 
       return State::OK;
     }

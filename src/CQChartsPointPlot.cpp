@@ -1,5 +1,6 @@
 #include <CQChartsPointPlot.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsAxisRug.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
@@ -56,6 +57,14 @@ CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
   dataLabel_->setSendSignal(true);
 
   connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+
+  //---
+
+  xRug_ = std::make_unique<CQChartsAxisRug>(this, Qt::Horizontal);
+  yRug_ = std::make_unique<CQChartsAxisRug>(this, Qt::Vertical);
+
+  xRug_->setVisible(false);
+  yRug_->setVisible(false);
 
   //---
 
@@ -174,6 +183,14 @@ addStatsProperties()
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
   addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
+}
+
+void
+CQChartsPointPlot::
+addRugProperties()
+{
+  xRug_->addProperties("rug/x", "X Rug");
+  yRug_->addProperties("rug/y", "Y Rug");
 }
 
 void
@@ -626,6 +643,122 @@ setStatsLinesSlot(bool b)
 
     drawObjs();
   }
+}
+
+//---
+
+bool
+CQChartsPointPlot::
+isXRug() const
+{
+  return xRug_->isVisible();
+}
+
+void
+CQChartsPointPlot::
+setXRug(bool b)
+{
+  if (b != isXRug()) { xRug_->setVisible(b); drawObjs(); }
+}
+
+const CQChartsAxisRug::Side &
+CQChartsPointPlot::
+xRugSide() const
+{
+  return xRug_->side();
+}
+
+void
+CQChartsPointPlot::
+setXRugSide(const CQChartsAxisRug::Side &s)
+{
+  if (s != xRugSide()) { xRug_->setSide(s); drawObjs(); }
+}
+
+const CQChartsSymbol &
+CQChartsPointPlot::
+xRugSymbolType() const
+{
+  return xRug_->symbolType();
+}
+
+void
+CQChartsPointPlot::
+setXRugSymbolType(const CQChartsSymbol &s)
+{
+  if (s != xRugSymbolType()) { xRug_->setSymbolType(s); drawObjs(); }
+}
+
+const CQChartsLength &
+CQChartsPointPlot::
+xRugSymbolSize() const
+{
+  return xRug_->symbolSize();
+}
+
+void
+CQChartsPointPlot::
+setXRugSymbolSize(const CQChartsLength &l)
+{
+  if (l != xRugSymbolSize()) { xRug_->setSymbolSize(l); drawObjs(); }
+}
+
+//---
+
+bool
+CQChartsPointPlot::
+isYRug() const
+{
+  return yRug_->isVisible();
+}
+
+void
+CQChartsPointPlot::
+setYRug(bool b)
+{
+  if (b != isYRug()) { yRug_->setVisible(b); drawObjs(); }
+}
+
+const CQChartsAxisRug::Side &
+CQChartsPointPlot::
+yRugSide() const
+{
+  return yRug_->side();
+}
+
+void
+CQChartsPointPlot::
+setYRugSide(const CQChartsAxisRug::Side &s)
+{
+  if (s != yRugSide()) { yRug_->setSide(s); drawObjs(); }
+}
+
+const CQChartsSymbol &
+CQChartsPointPlot::
+yRugSymbolType() const
+{
+  return yRug_->symbolType();
+}
+
+void
+CQChartsPointPlot::
+setYRugSymbolType(const CQChartsSymbol &s)
+{
+  if (s != yRugSymbolType()) { yRug_->setSymbolType(s); drawObjs(); }
+}
+
+const CQChartsLength &
+CQChartsPointPlot::
+yRugSymbolSize() const
+{
+  return yRug_->symbolSize();
+}
+
+void
+CQChartsPointPlot::
+setYRugSymbolSize(const CQChartsLength &l)
+{
+  if (l != yRugSymbolSize()) { yRug_->setSymbolSize(l); drawObjs(); }
 }
 
 //---

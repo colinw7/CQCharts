@@ -9,7 +9,7 @@
  */
 class CQChartsKeyLocation : public CQChartsEnum<CQChartsKeyLocation> {
  public:
-  enum Type {
+  enum class Type {
     NONE,
     AUTO,
     TOP_LEFT,

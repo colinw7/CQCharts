@@ -52,6 +52,7 @@ class CQChartsPlotObj;
 class CQChartsPlotObjTree;
 
 class CQChartsAnnotation;
+class CQChartsAnnotationGroup;
 class CQChartsArrowAnnotation;
 class CQChartsButtonAnnotation;
 class CQChartsAxisAnnotation;
@@ -1557,6 +1558,8 @@ class CQChartsPlot : public CQChartsObj,
   BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
   BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
 
+  void resetAnnotationBBox() const;
+
   //---
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
@@ -1936,6 +1939,7 @@ class CQChartsPlot : public CQChartsObj,
 
   // annotations
   using Annotation          = CQChartsAnnotation;
+  using AnnotationGroup     = CQChartsAnnotationGroup;
   using Annotations         = std::vector<Annotation *>;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using AxisAnnotation      = CQChartsAxisAnnotation;
@@ -1955,6 +1959,7 @@ class CQChartsPlot : public CQChartsObj,
 
   const Annotations &annotations() const { return annotations_; }
 
+  AnnotationGroup     *addAnnotationGroup    ();
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
   AxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction, double start, double end);
   ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);

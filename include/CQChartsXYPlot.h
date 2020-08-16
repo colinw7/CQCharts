@@ -178,8 +178,9 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(double x READ x WRITE setX)
-  Q_PROPERTY(double y READ y WRITE setY)
+  Q_PROPERTY(CQChartsGeom::Point point READ point WRITE setPoint)
+//Q_PROPERTY(double              x     READ x     WRITE setX)
+//Q_PROPERTY(double              y     READ y     WRITE setY)
 
   Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
@@ -213,11 +214,14 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   //---
 
   // position
-  double x() const { return pos_.x; }
-  void setX(double r) { pos_.setX(r); }
+  const Point &point() const { return pos_; }
+  void setPoint(const Point &p) { pos_ = p; }
 
-  double y() const { return pos_.y; }
-  void setY(double r) { pos_.setY(r); }
+//double x() const { return pos_.x; }
+//void setX(double x) { pos_.setX(x); }
+
+//double y() const { return pos_.y; }
+//void setY(double y) { pos_.setY(y); }
 
   //---
 
@@ -905,9 +909,24 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
+  BBox calcAnnotationBBox() const override;
+
+  //---
+
+  bool hasBackground() const override;
+
+  void execDrawBackground(PaintDevice *device) const override;
+
   //---
 
   void drawArrow(PaintDevice *device, const Point &p1, const Point &p2) const;
+
+  //---
+
+  void drawXRug(PaintDevice *device) const;
+  void drawYRug(PaintDevice *device) const;
+
+  void drawXYRug(PaintDevice *device, const RugP &rug) const;
 
   //---
 

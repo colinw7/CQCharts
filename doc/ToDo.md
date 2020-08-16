@@ -3,9 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + multi-axis (common code for overlay axis, rug, density, ...)
  + surface plot
  + opengl renderer
  + othello game
+   + improve controls
  + view scrolled (view x/y pages)
  + processing like event loop (callback) for tcl code
  + widgets for property change (associated property and type widget + optional label)
@@ -14,9 +16,14 @@ TODO:
  + animation
  + auto update (use start/end update signals to optimize)
  + draw non-selected dimmed
+   + can't use select layer ?
+   + requires all object draw faded
+   + select draw non-faded
  + double click support (key)
+   + show group
  + only show selected indices/data in table ? (filter selected)
  + Inline dialog with max/pop out like gmail
+   + use for control widgets ?
  + region tool
    + signal, point+size, rect. widget tracks
    + status bar
@@ -26,6 +33,7 @@ TODO:
  + hier bubble plot labels
  + size hint for init size
  + multiple axes for overlay plots
+   + stacked axes
  + better bubble plot margin with title ?
    + signal on first calc/redraw
  + update of visible for widget annotation (create and set property)

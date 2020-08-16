@@ -1099,11 +1099,18 @@ addKeyItems(CQChartsPlotKey *key)
   int row = 0;
 
   auto addKeyRow = [&](CQChartsPlotObj *obj) {
-    auto *keyColor = new CQChartsPieKeyColor(this, obj);
-    auto *keyText  = new CQChartsPieKeyText (this, obj);
+    auto *colorItem = new CQChartsPieKeyColor(this, obj);
+    auto *textItem  = new CQChartsPieKeyText (this, obj);
 
-    key->addItem(keyColor, row, 0);
-    key->addItem(keyText , row, 1);
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
+
+    //key->addItem(colorItem, row, 0);
+    //key->addItem(textItem , row, 1);
+
+    key->addItem(groupItem, row, 0);
 
     ++row;
   };

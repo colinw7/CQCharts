@@ -3286,23 +3286,33 @@ addColorKeyItems(CQChartsPlotKey *key)
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](const QString &name, const QColor &c) {
-    auto *keyColor = new CQChartsKeyColorBox(this, ColorInd(), ColorInd(), ColorInd());
-    auto *keyText  = new CQChartsKeyText    (this, name, ColorInd());
+    auto *colorItem = new CQChartsKeyColorBox(this, ColorInd(), ColorInd(), ColorInd());
+    auto *textItem  = new CQChartsKeyText    (this, name, ColorInd());
 
-    keyColor->setColor(c);
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
+
+    if (c.isValid())
+      colorItem->setColor(c);
 
     if (! key->isHorizontal()) {
-      key->addItem(keyColor, row, 0);
-      key->addItem(keyText , row, 1);
+      //key->addItem(colorItem, row, 0);
+      //key->addItem(textItem , row, 1);
+
+      key->addItem(groupItem, row, 0);
 
       ++row;
     }
     else {
-      key->addItem(keyColor, 0, col++);
-      key->addItem(keyText , 0, col++);
+      //key->addItem(colorItem, 0, col++);
+      //key->addItem(textItem , 0, col++);
+
+      key->addItem(groupItem, 0, col++);
     }
 
-    return keyColor;
+    return colorItem;
   };
 
   if (! colorColumn().isValid())
@@ -3325,9 +3335,9 @@ addColorKeyItems(CQChartsPlotKey *key)
 
     auto c = interpColor(color, ColorInd());
 
-    auto *keyColor = addKeyRow(name, c);
+    auto *colorItem = addKeyRow(name, c);
 
-    keyColor->setValue(value);
+    colorItem->setValue(value);
   }
 
   return true;
@@ -3894,7 +3904,8 @@ updateRangeThread()
   if (isOverlay())
     crearOverlayErrors();
 
-  annotationBBox_ = BBox();
+  resetAnnotationBBox();
+
   calcDataRange_  = calcRange();
   dataRange_      = adjustDataRange(getCalcDataRange());
   outerDataRange_ = dataRange_;
@@ -4548,8 +4559,10 @@ calcGroupedDataRange(bool includeAnnotation) const
   else {
     bbox = calcDataRange();
 
-    if (bbox.isSet() && includeAnnotation)
-      bbox += annotationBBox();
+    if (bbox.isSet()) {
+      if (includeAnnotation)
+        bbox += annotationBBox();
+    }
     else
       bbox = BBox(0, 0, 1, 1);
   }
@@ -4619,6 +4632,13 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     ybbox = BBox(0, 0, 0, 0);
 
   return ybbox;
+}
+
+void
+CQChartsPlot::
+resetAnnotationBBox() const
+{
+  annotationBBox_ = BBox();
 }
 
 //------
@@ -4768,7 +4788,7 @@ bool
 CQChartsPlot::
 createObjs()
 {
-  annotationBBox_ = BBox();
+  resetAnnotationBBox();
 
   //---
 
@@ -10347,8 +10367,8 @@ setFitBBox(const BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  outerMargin_ = PlotMargin(Length(left , Units::PLOT), Length(top   , Units::PLOT),
-                            Length(right, Units::PLOT), Length(bottom, Units::PLOT));
+  outerMargin_ = PlotMargin(Length(left , Units::PERCENT), Length(top   , Units::PERCENT),
+                            Length(right, Units::PERCENT), Length(bottom, Units::PERCENT));
 
   updateMargins();
 }
@@ -10458,6 +10478,13 @@ annotationBBox() const
 }
 
 //------
+
+CQChartsAnnotationGroup *
+CQChartsPlot::
+addAnnotationGroup()
+{
+  return addAnnotationT<CQChartsAnnotationGroup>(new CQChartsAnnotationGroup(this));
+}
 
 CQChartsArrowAnnotation *
 CQChartsPlot::

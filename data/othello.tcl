@@ -14,6 +14,10 @@ proc createWidgets { } {
   qt_set_property -object $colorLabel -property text -value "White to Move"
   #label .right.color -text "White to Move" -textvariable moveColorText
 
+  # TODO
+  #  + White/Black Players
+  #  + Level Control
+
   set scoreLabel [qt_create_widget -type QLabel -name score]
   qt_set_property -object $scoreLabel -property text -value "White 2 Black 2"
   #label .right.score -text "White 2 Black 2" -textvariable scoreText
@@ -25,14 +29,18 @@ proc createWidgets { } {
 
   #button .right.new_game -text "New Game" -command newGame
 
-  set colorLabel    [qt_add_child_widget -parent $rightFrame -child $colorLabel]
-  set scoreLabel    [qt_add_child_widget -parent $rightFrame -child $scoreLabel]
+  set colorLabel [qt_add_child_widget -parent $rightFrame -child $colorLabel]
+  set scoreLabel [qt_add_child_widget -parent $rightFrame -child $scoreLabel]
+
+  qt_add_stretch -parent $rightFrame
+
   set newGameButton [qt_add_child_widget -parent $rightFrame -child $newGameButton]
 
   set ann [create_charts_widget_annotation -plot $::plot -id rightFrame \
     -position [list 8 8] -widget $rightFrame]
 
   set_charts_property -annotation $ann -name align -value "AlignLeft|AlignBottom"
+  set_charts_property -annotation $ann -name sizePolicy -value "Fixed Expanding"
 
   set view [get_charts_data -plot $::plot -name view_path]
 

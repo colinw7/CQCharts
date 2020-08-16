@@ -1040,8 +1040,15 @@ addPointKeyItems(CQChartsPlotKey *key)
     auto *colorItem = new CQChartsScatterKeyColor3D(this, ind , ic);
     auto *textItem  = new CQChartsKeyText          (this, name, ic);
 
-    key->addItem(colorItem, i, 0);
-    key->addItem(textItem , i, 1);
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
+
+    //key->addItem(colorItem, i, 0);
+    //key->addItem(textItem , i, 1);
+
+    key->addItem(groupItem, i, 0);
 
     return colorItem;
   };

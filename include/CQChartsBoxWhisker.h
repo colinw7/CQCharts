@@ -207,11 +207,151 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 
 //------
 
-struct CQChartsXYBoxWhisker {
-  CQChartsXYBoxWhisker() { }
+#include <CQChartsObj.h>
 
-  CQChartsBoxWhisker xWhisker;
-  CQChartsBoxWhisker yWhisker;
+class CQChartsAxisBoxWhisker : public CQChartsObj {
+  Q_OBJECT
+
+  Q_PROPERTY(Side            side      READ side      WRITE setSide     )
+  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
+  Q_PROPERTY(CQChartsLength  width     READ width     WRITE setWidth    )
+  Q_PROPERTY(CQChartsLength  margin    READ margin    WRITE setMargin   )
+  Q_PROPERTY(CQChartsAlpha   alpha     READ alpha     WRITE setAlpha    )
+
+  Q_ENUMS(Side)
+
+ public:
+  enum class Side {
+    BOTTOM_LEFT,
+    TOP_RIGHT
+  };
+
+  using Density = CQChartsDensity;
+
+ public:
+  CQChartsAxisBoxWhisker(CQChartsPlot *plot, const Qt::Orientation &direction=Qt::Horizontal);
+
+  CQChartsPlot *plot() const { return plot_; }
+
+  const Side &side() const { return side_; }
+  void setSide(const Side &s);
+
+  const Qt::Orientation &direction() const { return direction_; }
+  void setDirection(const Qt::Orientation &o);
+
+  const CQChartsLength &width() const { return width_; }
+  void setWidth(const CQChartsLength &l);
+
+  const CQChartsLength &margin() const { return margin_; }
+  void setMargin(const CQChartsLength &l);
+
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a);
+
+  const CQChartsBoxWhisker &whisker() const { return whisker_; }
+  void setWhisker(const CQChartsBoxWhisker &w) { whisker_.setValues(w.values()); }
+
+  void addValue(double v) { whisker_.addValue(v); }
+
+  int numValues() const { return whisker_.numValues(); }
+
+  const Density &density() const { return whisker_.density(); }
+
+  double min() const { return whisker_.min(); }
+  double max() const { return whisker_.max(); }
+
+  CQChartsGeom::BBox calcNBBox(int n) const;
+  CQChartsGeom::BBox calcNDeltaBBox(int n, double delta) const;
+
+  CQChartsGeom::BBox calcBBox() const;
+  CQChartsGeom::BBox calcDeltaBBox(double delta) const;
+
+  bool contains(const Point &p) const override;
+
+  void dataInvalidate() override;
+
+  void addProperties(const QString &path, const QString &desc);
+
+  void draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
+            int ind=1, double delta=0.0);
+
+ private:
+  CQChartsPlot*      plot_      { nullptr };           //!< plot
+  Side               side_      { Side::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation    direction_ { Qt::Horizontal };    //!< rug direction
+  CQChartsLength     width_     { "24px" };            //!< width
+  CQChartsLength     margin_    { "8px" };             //!< margin
+  CQChartsAlpha      alpha_     { 0.5 };               //!< alpha
+  CQChartsBoxWhisker whisker_;                         //!< whisker data
+};
+
+//---
+
+class CQChartsAxisDensity : public CQChartsObj {
+  Q_OBJECT
+
+  Q_PROPERTY(Side            side      READ side      WRITE setSide     )
+  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
+  Q_PROPERTY(CQChartsLength  width     READ width     WRITE setWidth    )
+  Q_PROPERTY(CQChartsAlpha   alpha     READ alpha     WRITE setAlpha    )
+
+  Q_ENUMS(Side)
+
+ public:
+  enum class Side {
+    BOTTOM_LEFT,
+    TOP_RIGHT
+  };
+
+  using Density = CQChartsDensity;
+
+ public:
+  CQChartsAxisDensity(CQChartsPlot *plot, const Qt::Orientation &direction=Qt::Horizontal);
+
+  CQChartsPlot *plot() const { return plot_; }
+
+  const Side &side() const { return side_; }
+  void setSide(const Side &s);
+
+  const Qt::Orientation &direction() const { return direction_; }
+  void setDirection(const Qt::Orientation &o);
+
+  const CQChartsLength &width() const { return width_; }
+  void setWidth(const CQChartsLength &l);
+
+  const CQChartsAlpha &alpha() const { return alpha_; }
+  void setAlpha(const CQChartsAlpha &a);
+
+  const CQChartsBoxWhisker &whisker() const { return whisker_; }
+  void setWhisker(const CQChartsBoxWhisker &w) { whisker_.setValues(w.values()); }
+
+  void addValue(double v) { whisker_.addValue(v); }
+
+  int numValues() const { return whisker_.numValues(); }
+
+  const Density &density() const { return whisker_.density(); }
+
+  double min() const { return whisker_.min(); }
+  double max() const { return whisker_.max(); }
+
+  CQChartsGeom::BBox calcBBox() const;
+  CQChartsGeom::BBox calcDeltaBBox(double delta) const;
+
+  bool contains(const Point &p) const override;
+
+  void dataInvalidate() override;
+
+  void addProperties(const QString &path, const QString &desc);
+
+  void draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta=0.0);
+
+ private:
+  CQChartsPlot*      plot_      { nullptr };           //!< plot
+  Side               side_      { Side::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation    direction_ { Qt::Horizontal };    //!< rug direction
+  CQChartsLength     width_     { "48px" };            //!< width
+  CQChartsAlpha      alpha_     { 0.5 };               //!< alpha
+  CQChartsBoxWhisker whisker_;                         //!< whisker data
 };
 
 //------

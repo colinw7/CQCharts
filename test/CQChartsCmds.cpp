@@ -158,6 +158,8 @@ addCommands()
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
+    addCommand("create_charts_annotation_group"    ,
+               new CQChartsCreateChartsAnnotationGroupCmd    (this));
     addCommand("create_charts_arrow_annotation"    ,
                new CQChartsCreateChartsArrowAnnotationCmd    (this));
     addCommand("create_charts_axis_annotation"     ,
@@ -843,18 +845,8 @@ measureChartsTextCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(view, plotName);
-    if (! plot) return false;
-  }
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
   //---
 
@@ -1011,6 +1003,7 @@ removeChartsViewCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get view
   auto *view = getViewByName(viewName);
   if (! view) return false;
 
@@ -1086,7 +1079,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   auto *view = getViewByName(viewName);
   if (! view) return false;
 
-  //------
+  //---
 
   // get model
   auto *modelData = getModelDataOrCurrent(modelInd);
@@ -1366,8 +1359,11 @@ removeChartsPlotCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get view
   auto *view = getViewByName(viewName);
   if (! view) return false;
+
+  //---
 
   if (all) {
     view->removeAllPlots();
@@ -2509,6 +2505,7 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get view
   auto *view = getViewByName(viewName);
   if (! view) return false;
 
@@ -2614,6 +2611,7 @@ placeChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get view
   auto *view = getViewByName(viewName);
   if (! view) return false;
 
@@ -5929,6 +5927,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -5973,17 +5973,14 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6178,6 +6175,11 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6202,6 +6204,8 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
   CQPerfTrace trace("CQChartsCmds::createChartsAxisAnnotationCmd");
 
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -6229,6 +6233,13 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
+  }
+
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6272,6 +6283,11 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6299,6 +6315,8 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -6343,17 +6361,14 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6412,6 +6427,97 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsAnnotationGroupCmd(CQChartsCmdArgs &argv)
+{
+#if 0
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+#endif
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsAnnotationGroupCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
+
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  //---
+
+  CQChartsAnnotationGroup *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addAnnotationGroup();
+  else if (plot)
+    annotation = plot->addAnnotationGroup();
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6440,6 +6546,8 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -6467,6 +6575,13 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (! getViewPlotArg(argv, view, plot))
     return false;
+
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
 
   //---
 
@@ -6541,6 +6656,11 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6571,6 +6691,8 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -6586,17 +6708,14 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6620,6 +6739,11 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (tipId != "")
     annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
 
   //---
 
@@ -6651,6 +6775,8 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -6674,17 +6800,14 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6725,6 +6848,11 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6752,6 +6880,8 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -6789,17 +6919,14 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6863,6 +6990,11 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6891,6 +7023,8 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -6908,17 +7042,14 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -6953,6 +7084,11 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -6980,6 +7116,8 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -7018,17 +7156,14 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7084,6 +7219,11 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -7111,6 +7251,8 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -7149,17 +7291,14 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7215,6 +7354,11 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -7242,6 +7386,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -7289,17 +7435,14 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7394,6 +7537,11 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -7421,6 +7569,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -7473,17 +7623,14 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7571,6 +7718,11 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -7599,6 +7751,8 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -7618,17 +7772,14 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7662,6 +7813,11 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
   // set properties
   setAnnotationArgProperties(argv, annotation);
 
@@ -7690,6 +7846,8 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -7713,17 +7871,14 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+  CQChartsAnnotationGroup *group = nullptr;
 
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
   }
 
   //---
@@ -7770,6 +7925,11 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
     annotation->setTipId(tipId);
 
   annotation->setTextData(textData);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
 
   //---
 
@@ -7833,18 +7993,8 @@ removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
     CQChartsView *view = nullptr;
     CQChartsPlot *plot = nullptr;
 
-    if      (argv.hasParseArg("view")) {
-      QString viewName = argv.getParseStr("view");
-
-      view = getViewByName(viewName);
-      if (! view) return false;
-    }
-    else if (argv.hasParseArg("plot")) {
-      QString plotName = argv.getParseStr("plot");
-
-      plot = getPlotByName(nullptr, plotName);
-      if (! plot) return false;
-    }
+    if (! getViewPlotArg(argv, view, plot))
+      return false;
 
     if      (view)
       view->removeAllAnnotations();
@@ -8562,21 +8712,11 @@ testEditCmd(CQChartsCmdArgs &argv)
   CQChartsView *view = nullptr;
   CQChartsPlot *plot = nullptr;
 
-  if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+  if (! getViewPlotArg(argv, view, plot))
+    return false;
 
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-
-  if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-
+  if (plot)
     view = plot->view();
-  }
 
   // get types
   QStringList types = argv.getParseStrs("type");
@@ -8771,6 +8911,8 @@ createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
@@ -8794,6 +8936,13 @@ createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (! getViewPlotArg(argv, view, plot))
     return false;
+
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
 
   //---
 
@@ -8851,6 +9000,11 @@ createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (tipId != "")
     annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
 
   //---
 

@@ -725,12 +725,18 @@ addKeyItems(CQChartsPlotKey *key)
 
     const auto &name = group->name();
 
-    auto *color = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
+    auto *colorItem = new CQChartsHierScatterKeyColor(this, group, ColorInd(i, n));
+    auto *textItem  = new CQChartsKeyText(this, name, ColorInd(i, n));
 
-    auto *text = new CQChartsKeyText(this, name, ColorInd(i, n));
+    auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    key->addItem(color, i, 0);
-    key->addItem(text , i, 1);
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
+
+    //key->addItem(colorItem, i, 0);
+    //key->addItem(textItem , i, 1);
+
+    key->addItem(groupItem, i, 0);
   }
 
   key->plot()->updateKeyPosition(/*force*/true);

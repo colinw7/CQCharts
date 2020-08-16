@@ -18,7 +18,7 @@
 #include <QStyleOptionSlider>
 
 CQChartsKey::
-CQChartsKey(CQChartsView *view) :
+CQChartsKey(View *view) :
  CQChartsBoxObj(view),
  CQChartsObjTextData      <CQChartsKey>(this),
  CQChartsObjHeaderTextData<CQChartsKey>(this)
@@ -29,7 +29,7 @@ CQChartsKey(CQChartsView *view) :
 }
 
 CQChartsKey::
-CQChartsKey(CQChartsPlot *plot) :
+CQChartsKey(Plot *plot) :
  CQChartsBoxObj(plot),
  CQChartsObjTextData      <CQChartsKey>(this),
  CQChartsObjHeaderTextData<CQChartsKey>(this)
@@ -37,7 +37,7 @@ CQChartsKey(CQChartsPlot *plot) :
   init();
 
   setFilled(true);
-  setFillAlpha(CQChartsAlpha(0.5));
+  setFillAlpha(Alpha(0.5));
 }
 
 void
@@ -50,7 +50,7 @@ init()
 
   //---
 
-  CQChartsFont font;
+  Font font;
 
   font.decFontSize(4);
 
@@ -91,11 +91,83 @@ setSelected(bool b)
   } );
 }
 
+//---
+
+void
+CQChartsKey::
+setHorizontal(bool b)
+{
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateLayout(); } );
+}
+
+void
+CQChartsKey::
+setAutoHide(bool b)
+{
+  CQChartsUtil::testAndSet(autoHide_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsKey::
+setClipped(bool b)
+{
+  CQChartsUtil::testAndSet(clipped_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsKey::
+setAbove(bool b)
+{
+  CQChartsUtil::testAndSet(above_, b, [&]() { updateLayout(); } );
+}
+
 void
 CQChartsKey::
 setLocation(const CQChartsKeyLocation &l)
 {
   CQChartsUtil::testAndSet(location_, l, [&]() { updatePosition(); } );
+}
+
+void
+CQChartsKey::
+setHeaderStr(const QString &s)
+{
+  CQChartsUtil::testAndSet(header_, s, [&]() { updateLayout(); } );
+}
+
+void
+CQChartsKey::
+setHiddenAlpha(const Alpha &a)
+{
+  CQChartsUtil::testAndSet(hiddenAlpha_, a, [&]() { redraw(); } );
+}
+
+void
+CQChartsKey::
+setColumns(int i)
+{
+  CQChartsUtil::testAndSet(columns_, i, [&]() { updateLayout(); } );
+}
+
+void
+CQChartsKey::
+setMaxRows(int i)
+{
+  CQChartsUtil::testAndSet(maxRows_, i, [&]() { updateLayout(); } );
+}
+
+void
+CQChartsKey::
+setInteractive(bool b)
+{
+  CQChartsUtil::testAndSet(interactive_, b, [&]() { } );
+}
+
+void
+CQChartsKey::
+setPressBehavior(const KeyBehavior &v)
+{
+  CQChartsUtil::testAndSet(pressBehavior_, v, [&]() { } );
 }
 
 //---
@@ -109,7 +181,7 @@ draw(CQChartsPaintDevice *) const
 //------
 
 CQChartsViewKey::
-CQChartsViewKey(CQChartsView *view) :
+CQChartsViewKey(View *view) :
  CQChartsKey(view)
 {
 }
@@ -137,7 +209,7 @@ void
 CQChartsViewKey::
 doLayout()
 {
-  if (location() == CQChartsKeyLocation::Type::ABSOLUTE_POSITION)
+  if (location() == Location::Type::ABSOLUTE_POSITION)
     return;
 
   //----
@@ -250,6 +322,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp("hiddenAlpha", "Alpha for hidden items");
 
+  addProp("columns", "Number of item columns");
+
   //---
 
   // header text
@@ -325,7 +399,7 @@ contains(const Point &p) const
 
 void
 CQChartsViewKey::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -458,7 +532,7 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsViewKey::
-drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool checked) const
+drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) const
 {
   QImage cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
@@ -487,7 +561,7 @@ drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool check
 
 bool
 CQChartsViewKey::
-selectPress(const Point &w, CQChartsSelMod selMod)
+selectPress(const Point &w, SelMod selMod)
 {
   int n = std::min(view()->numPlots(), int(prects_.size()));
 
@@ -495,9 +569,9 @@ selectPress(const Point &w, CQChartsSelMod selMod)
     if (! prects_[i].inside(w))
       continue;
 
-    if      (pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW)
+    if      (pressBehavior() == KeyBehavior::Type::SHOW)
       doShow(i, selMod);
-    else if (pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT)
+    else if (pressBehavior() == KeyBehavior::Type::SELECT)
       doSelect(i, selMod);
 
     break;
@@ -528,7 +602,7 @@ editMove(const Point &w)
   double dx = w.x - dragPos.x;
   double dy = w.y - dragPos.y;
 
-  location_ = CQChartsKeyLocation::Type::ABSOLUTE_POSITION;
+  location_ = Location::Type::ABSOLUTE_POSITION;
 
   wposition_ = wposition_ + Point(dx, dy);
   pposition_ = view()->windowToPixel(wposition_);
@@ -551,29 +625,29 @@ editMotion(const Point &w)
 
 void
 CQChartsViewKey::
-doShow(int i, CQChartsSelMod selMod)
+doShow(int i, SelMod selMod)
 {
   auto *plot = view()->plot(i);
 
-  if      (selMod == CQChartsSelMod::REPLACE) {
-    CQChartsView::Plots plots;
+  if      (selMod == SelMod::REPLACE) {
+    View::Plots plots;
 
     view()->getPlots(plots);
 
     for (auto &plot1 : plots)
       plot1->setVisible(plot1 == plot);
   }
-  else if (selMod == CQChartsSelMod::ADD)
+  else if (selMod == SelMod::ADD)
     plot->setVisible(true);
-  else if (selMod == CQChartsSelMod::REMOVE)
+  else if (selMod == SelMod::REMOVE)
     plot->setVisible(false);
-  else if (selMod == CQChartsSelMod::TOGGLE)
+  else if (selMod == SelMod::TOGGLE)
     plot->setVisible(! plot->isVisible());
 }
 
 void
 CQChartsViewKey::
-doSelect(int, CQChartsSelMod)
+doSelect(int, SelMod)
 {
 }
 
@@ -590,7 +664,7 @@ redraw(bool /*queued*/)
 //------
 
 CQChartsPlotKey::
-CQChartsPlotKey(CQChartsPlot *plot) :
+CQChartsPlotKey(Plot *plot) :
  CQChartsKey(plot)
 {
   autoHide_ = false;
@@ -702,7 +776,7 @@ void
 CQChartsPlotKey::
 updateLayout()
 {
-  invalidateLayout();
+  invalidateLayout(/*reset*/true);
 
   redraw();
 }
@@ -881,6 +955,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addStyleProp("hiddenAlpha", "Alpha for hidden items");
 
+  addProp("columns", "Number of item columns");
   addProp("maxRows", "Max rows for key");
   addProp("spacing", "Spacing between rows in pixels");
 
@@ -961,9 +1036,12 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
 void
 CQChartsPlotKey::
-invalidateLayout()
+invalidateLayout(bool reset)
 {
   needsLayout_ = true;
+
+  if (reset)
+    plot()->resetKeyItems();
 }
 
 void
@@ -983,7 +1061,7 @@ clearItems()
 
 void
 CQChartsPlotKey::
-addItem(CQChartsKeyItem *item, int row, int col, int nrows, int ncols)
+addItem(KeyItem *item, int row, int col, int nrows, int ncols)
 {
   item->setKey(this);
 
@@ -1513,9 +1591,7 @@ setFlipped(bool b)
 
   flipped_ = b;
 
-  needsLayout_ = true;
-
-  redraw();
+  updateLayout();
 }
 
 //------
@@ -1951,14 +2027,14 @@ interpBgColor() const
 //------
 
 CQChartsKeyItem::
-CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic) :
+CQChartsKeyItem(PlotKey *key, const ColorInd &ic) :
  key_(key), ic_(ic)
 {
 }
 
 bool
 CQChartsKeyItem::
-selectPress(const Point &, CQChartsSelMod selMod)
+selectPress(const Point &, SelMod selMod)
 {
   if (isClickable()) {
     if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW)
@@ -1979,21 +2055,21 @@ selectMove(const Point &)
 
 void
 CQChartsKeyItem::
-doShow(CQChartsSelMod selMod)
+doShow(SelMod selMod)
 {
   auto *plot = key_->plot();
 
   const auto &ic = colorIndex();
 
-  if      (selMod == CQChartsSelMod::REPLACE) {
+  if      (selMod == SelMod::REPLACE) {
     for (int i = 0; i < ic.n; ++i)
       plot->setSetHidden(i, i != ic.i);
   }
-  else if (selMod == CQChartsSelMod::ADD)
+  else if (selMod == SelMod::ADD)
     plot->setSetHidden(ic.i, false);
-  else if (selMod == CQChartsSelMod::REMOVE)
+  else if (selMod == SelMod::REMOVE)
     plot->setSetHidden(ic.i, true);
-  else if (selMod == CQChartsSelMod::TOGGLE)
+  else if (selMod == SelMod::TOGGLE)
     plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
 
   plot->updateObjs();
@@ -2001,7 +2077,7 @@ doShow(CQChartsSelMod selMod)
 
 void
 CQChartsKeyItem::
-doSelect(CQChartsSelMod)
+doSelect(SelMod)
 {
 }
 
@@ -2014,8 +2090,138 @@ tipText(const Point &, QString &) const
 
 //------
 
+CQChartsKeyItemGroup::
+CQChartsKeyItemGroup(Plot *plot) :
+ CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+{
+}
+
+void
+CQChartsKeyItemGroup::
+addItem(Item *item)
+{
+  if (item->group())
+    const_cast<CQChartsKeyItemGroup *>(item->group())->removeItem(item);
+
+  items_.push_back(item);
+
+  item->setGroup(this);
+}
+
+void
+CQChartsKeyItemGroup::
+removeItem(Item *item)
+{
+  assert(item->group() == this);
+
+  Items items;
+
+  for (auto &item1 : items_)
+    if (item1 != item)
+      items_.push_back(item);
+
+  std::swap(items_, items);
+}
+
+CQChartsGeom::Size
+CQChartsKeyItemGroup::
+size() const
+{
+  double w = 0.0;
+  double h = 0.0;
+
+  for (auto &item : items_) {
+    auto s = item->size();
+
+    w += s.width();
+
+    h = std::max(h, s.height());
+  }
+
+  return Size(w, h);
+}
+
+bool
+CQChartsKeyItemGroup::
+tipText(const Point &p, QString &tip) const
+{
+  for (auto &item : items_) {
+    if (item->tipText(p, tip))
+      return true;
+  }
+
+  return false;
+}
+
+bool
+CQChartsKeyItemGroup::
+selectPress(const Point &p, SelMod selMod)
+{
+  for (auto &item : items_) {
+    if (item->selectPress(p, selMod))
+      return true;
+  }
+
+  return false;
+}
+
+bool
+CQChartsKeyItemGroup::
+selectMove(const Point &p)
+{
+  for (auto &item : items_) {
+    if (item->selectMove(p))
+      return true;
+  }
+
+  return false;
+}
+
+//---
+
+void
+CQChartsKeyItemGroup::
+doShow(SelMod selMod)
+{
+  for (auto &item : items_)
+    item->doShow(selMod);
+}
+
+void
+CQChartsKeyItemGroup::
+doSelect(SelMod selMod)
+{
+  for (auto &item : items_)
+    item->doSelect(selMod);
+}
+
+//---
+
+void
+CQChartsKeyItemGroup::
+draw(PaintDevice *device, const BBox &rect) const
+{
+  double x = rect.getXMin();
+  double y = rect.getYMin();
+  double h = rect.getHeight();
+
+  for (auto &item : items_) {
+    auto s = item->size();
+
+    double dy = (h - s.height())/2;
+
+    BBox rect1(x, y + dy, x + s.width(), y + s.height() + dy);
+
+    item->draw(device, rect1);
+
+    x += s.width();
+  }
+}
+
+//------
+
 CQChartsKeyText::
-CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic) :
+CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
  CQChartsKeyItem(plot->key(), ic), plot_(plot), text_(text)
 {
 }
@@ -2052,7 +2258,7 @@ interpTextColor(const ColorInd &ind) const
 
 void
 CQChartsKeyText::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
+draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot = key_->plot();
 
@@ -2080,7 +2286,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 //------
 
 CQChartsKeyColorBox::
-CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                     const RangeValue &xv, const RangeValue &yv) :
  CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
@@ -2118,7 +2324,7 @@ size() const
 
 bool
 CQChartsKeyColorBox::
-selectPress(const Point &w, CQChartsSelMod selMod)
+selectPress(const Point &w, SelMod selMod)
 {
   if (! value_.isValid())
     return CQChartsKeyItem::selectPress(w, selMod);
@@ -2143,7 +2349,7 @@ selectPress(const Point &w, CQChartsSelMod selMod)
 
 void
 CQChartsKeyColorBox::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
+draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot = key_->plot();
 
@@ -2229,7 +2435,7 @@ yColorValue(bool relative) const
 //------
 
 CQChartsKeyLine::
-CQChartsKeyLine(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig) :
+CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig) :
  CQChartsKeyItem(plot->key(), is.n > 1 ? is : ig), is_(is), ig_(ig)
 {
   setClickable(true);
@@ -2256,7 +2462,7 @@ size() const
 
 bool
 CQChartsKeyLine::
-selectPress(const Point &w, CQChartsSelMod selMod)
+selectPress(const Point &w, SelMod selMod)
 {
   if (! value_.isValid())
     return CQChartsKeyItem::selectPress(w, selMod);
@@ -2281,7 +2487,7 @@ selectPress(const Point &w, CQChartsSelMod selMod)
 
 void
 CQChartsKeyLine::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
+draw(PaintDevice *device, const BBox &rect) const
 {
   auto *plot = key_->plot();
 
@@ -2320,7 +2526,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 //------
 
 CQChartsGradientKeyItem::
-CQChartsGradientKeyItem(CQChartsPlot *plot) :
+CQChartsGradientKeyItem(Plot *plot) :
  CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
 {
 }
@@ -2348,7 +2554,7 @@ size() const
 
 void
 CQChartsGradientKeyItem::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
+draw(PaintDevice *device, const BBox &rect) const
 {
   // calc text width
   plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
