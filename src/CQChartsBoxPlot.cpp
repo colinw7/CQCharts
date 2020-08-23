@@ -1732,6 +1732,10 @@ void
 CQChartsBoxPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
+  // start at next row (vertical) or next column (horizontal) from previous key
+  int row = (! key->isHorizontal() ? key->maxRow() : 0);
+  int col = (! key->isHorizontal() ? 0 : key->maxCol());
+
   int ng = numGroupWhiskers();
 
   // if has groups
@@ -1764,10 +1768,11 @@ addKeyItems(CQChartsPlotKey *key)
         groupItem->addItem(colorItem);
         groupItem->addItem(textItem );
 
-        //key->addItem(colorItem, is, 0);
-        //key->addItem(textItem , is, 1); ++is;
+        key->addItem(groupItem, row, col);
 
-        key->addItem(groupItem, is++, 0);
+        key->nextRowCol(row, col);
+
+        ++is;
       }
     }
     // if not color by set add key item per group
@@ -1789,10 +1794,11 @@ addKeyItems(CQChartsPlotKey *key)
         groupItem->addItem(colorItem);
         groupItem->addItem(textItem );
 
-        //key->addItem(colorItem, ig, 0);
-        //key->addItem(textItem , ig, 1); ++ig;
+        key->addItem(groupItem, row, col);
 
-        key->addItem(groupItem, ig++, 0);
+        key->nextRowCol(row, col);
+
+        ++ig;
       }
     }
   }
@@ -1824,10 +1830,11 @@ addKeyItems(CQChartsPlotKey *key)
       groupItem->addItem(colorItem);
       groupItem->addItem(textItem );
 
-      //key->addItem(colorItem, is, 0);
-      //key->addItem(textItem , is, 1); ++is;
+      key->addItem(groupItem, row, col);
 
-      key->addItem(groupItem , is++, 0);
+      key->nextRowCol(row, col);
+
+      ++is;
     }
   }
 

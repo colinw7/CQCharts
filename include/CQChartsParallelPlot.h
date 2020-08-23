@@ -236,12 +236,15 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void setNormalizedRange(CQChartsPaintDevice *device);
 
  protected:
-  virtual CQChartsParallelLineObj *createLineObj(const BBox &rect, const Polygon &poly,
-                                                 const QModelIndex &ind, const ColorInd &is) const;
+  using LineObj  = CQChartsParallelLineObj;
+  using PointObj = CQChartsParallelPointObj;
 
-  virtual CQChartsParallelPointObj *createPointObj(const BBox &rect, double yval,
-                                                   double x, double y, const QModelIndex &ind,
-                                                   const ColorInd &is, const ColorInd &iv) const;
+  virtual LineObj *createLineObj(const BBox &rect, const Polygon &poly, const QModelIndex &ind,
+                                 const ColorInd &is) const;
+
+  virtual PointObj *createPointObj(const BBox &rect, double yval, double x, double y,
+                                   const QModelIndex &ind, const ColorInd &is,
+                                   const ColorInd &iv) const;
 
  public slots:
   // set horizontal

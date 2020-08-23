@@ -2479,7 +2479,7 @@ void
 CQChartsDistributionPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  // start at next row (verical) or next column (horizontal) from previous key
+  // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
@@ -2493,36 +2493,9 @@ addKeyItems(CQChartsPlotKey *key)
     groupItem->addItem(colorItem);
     groupItem->addItem(textItem );
 
-    if (! key->isHorizontal()) {
-      //key->addItem(colorItem, row, col    );
-      //key->addItem(textItem , row, col + 1);
+    key->addItem(groupItem, row, col);
 
-      key->addItem(groupItem, row, col);
-
-      // across columns and then next row
-      ++col;
-
-      if (col >= key->columns()) {
-        col = 0;
-
-        ++row;
-      }
-    }
-    else {
-      //key->addItem(colorItem, row, col++);
-      //key->addItem(textItem , row, col++);
-
-      key->addItem(groupItem, row, col);
-
-      // across rows and then next column
-      ++row;
-
-      if (row >= key->columns()) {
-        row = 0;
-
-        ++col;
-      }
-    }
+    key->nextRowCol(row, col);
 
     return std::pair<CQChartsDistKeyColorBox *, CQChartsDistKeyText*>(colorItem, textItem);
   };

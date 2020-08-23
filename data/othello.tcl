@@ -73,8 +73,7 @@ proc getCurrentPlayer { } {
     return $whitePlayer
   } elseif {$moveColor == "Black"} {
     return $blackPlayer
-  }
-  else {
+  } else {
     return "None"
   }
 }
@@ -207,7 +206,7 @@ proc modelDoMove { model x y color } {
     modelDoMoveDirection $model $x $y  1 -1 $color $color1
   }
 
-  setPieceColor $x $y $color
+  setModelPieceColor $model $x $y $color
 }
 
 proc doMoveDirection { x y dx dy color otherColor } {
@@ -226,7 +225,7 @@ proc modelDoMoveDirection { model x y dx dy color otherColor } {
     return
   }
 
-  setPieceColor $x1 $y1 $color
+  setModelPieceColor $model $x1 $y1 $color
 
   set x1 [expr {$x1 + $dx}]
   set y1 [expr {$y1 + $dy}]
@@ -234,7 +233,7 @@ proc modelDoMoveDirection { model x y dx dy color otherColor } {
   set value [getModelPieceColor $model $x1 $y1]
 
   while {$value == $otherColor} {
-    setPieceColor $x1 $y1 $color
+    setModelPieceColor $model $x1 $y1 $color
 
     set x1 [expr {$x1 + $dx}]
     set y1 [expr {$y1 + $dy}]
@@ -340,7 +339,7 @@ proc getDepthBoard { model depth } {
 
   set numDepthModels [llength $depthModels]
 
-  set depth1 [expr $depth + 1]
+  set depth1 [expr {$depth + 1}]
 
   while {$depth1 > $numDepthModels } {
     set model1 [createTempModel]
@@ -471,11 +470,15 @@ proc setModelPiece { model x y value } {
 }
 
 proc setPieceColor { x y color } {
-  #echo "setPieceColor $x $y $color"
+  setModelPieceColor $::valueModel $x $y $color
+}
+
+proc setModelPieceColor { model x y color } {
+  #echo "setModelPieceColor $model $x $y $color"
 
   set value [colorValue $color]
 
-  setPiece $x $y $value
+  setModelPiece $model $x $y $value
 }
 
 proc getNumWhite { } {

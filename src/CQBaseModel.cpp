@@ -95,7 +95,7 @@ genColumnType(const ColumnData &columnData) const
     std::unique_lock<std::mutex> lock(typeMutex_);
 
     if (columnData.type == CQBaseModelType::NONE) {
-      CQBaseModel *th = const_cast<CQBaseModel *>(this);
+      auto *th = const_cast<CQBaseModel *>(this);
 
       th->genColumnTypeI(const_cast<ColumnData &>(columnData));
     }
@@ -556,7 +556,7 @@ getColumnData(int column)
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CQBaseModel *th = const_cast<CQBaseModel *>(this);
+  auto *th = const_cast<CQBaseModel *>(this);
 
   auto p1 = th->columnDatas_.find(column);
 
@@ -642,7 +642,7 @@ getRowData(int row)
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  CQBaseModel *th = const_cast<CQBaseModel *>(this);
+  auto *th = const_cast<CQBaseModel *>(this);
 
   auto p1 = th->rowDatas_.find(row);
 

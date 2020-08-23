@@ -186,9 +186,11 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   //---
 
-  virtual CQChartsRadarObj *createObj(const BBox &rect, const QString &name, const Polygon &poly,
-                                      const CQChartsRadarObj::NameValues &nameValues,
-                                      const QModelIndex &ind, const ColorInd &iv);
+  using RadarObj = CQChartsRadarObj;
+
+  virtual RadarObj *createObj(const BBox &rect, const QString &name, const Polygon &poly,
+                              const RadarObj::NameValues &nameValues, const QModelIndex &ind,
+                              const ColorInd &iv);
 
  private:
   bool addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;

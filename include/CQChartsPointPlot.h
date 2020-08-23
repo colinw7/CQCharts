@@ -38,6 +38,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
+  // show all overlay x axes
+  Q_PROPERTY(bool showAllXOverlayAxes READ isShowAllXOverlayAxes WRITE setShowAllXOverlayAxes)
+
   // symbol type map
   Q_PROPERTY(bool symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
   Q_PROPERTY(int  symbolTypeMapMin READ symbolTypeMapMin   WRITE setSymbolTypeMapMin)
@@ -90,6 +93,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // data label
   const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
   CQChartsDataLabel *dataLabel() { return dataLabel_; }
+
+  //---
+
+  //! get/set show all overlay x axes
+  bool isShowAllXOverlayAxes() const { return showAllXOverlayAxes_; }
+  void setShowAllXOverlayAxes(bool b);
 
   //---
 
@@ -230,6 +239,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  void drawXAxis(PaintDevice *device) const override;
+
  public:
   void drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData,
                    const ColorInd &ic) const;
@@ -263,6 +274,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using RugP = std::unique_ptr<CQChartsAxisRug>;
 
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
+
+  bool showAllXOverlayAxes_ { false }; //!< show all x overlay axes
 
   // custom column data
   SymbolTypeData symbolTypeData_; //!< symbol type column data

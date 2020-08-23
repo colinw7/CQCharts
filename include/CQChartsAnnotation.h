@@ -1493,6 +1493,8 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
 //---
 
+class CQWinWidget;
+
 /*!
  * \brief widget annotation
  * \ingroup Charts
@@ -1502,11 +1504,12 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position   READ position   WRITE setPosition  )
-  Q_PROPERTY(CQChartsOptRect     rectangle  READ rectangle  WRITE setRectangle )
-  Q_PROPERTY(CQChartsWidget      widget     READ widget     WRITE setWidget    )
-  Q_PROPERTY(Qt::Alignment       align      READ align      WRITE setAlign     )
-  Q_PROPERTY(QSizePolicy         sizePolicy READ sizePolicy WRITE setSizePolicy)
+  Q_PROPERTY(CQChartsOptPosition position    READ position      WRITE setPosition   )
+  Q_PROPERTY(CQChartsOptRect     rectangle   READ rectangle     WRITE setRectangle  )
+  Q_PROPERTY(CQChartsWidget      widget      READ widget        WRITE setWidget     )
+  Q_PROPERTY(Qt::Alignment       align       READ align         WRITE setAlign      )
+  Q_PROPERTY(QSizePolicy         sizePolicy  READ sizePolicy    WRITE setSizePolicy )
+  Q_PROPERTY(bool                interactive READ isInteractive WRITE setInteractive)
 
  public:
   using Widget      = CQChartsWidget;
@@ -1555,6 +1558,9 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   const QSizePolicy &sizePolicy() const { return sizePolicy_; }
   void setSizePolicy(const QSizePolicy &p);
 
+  bool isInteractive() const { return interactive_; }
+  void setInteractive(bool b);
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
@@ -1594,6 +1600,8 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   Widget        widget_;                                 //!< widget
   Qt::Alignment align_ { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
   QSizePolicy   sizePolicy_;                             //!< size policy
+  bool          interactive_ { false };                  //!< is interactive
+  CQWinWidget*  winWidget_ { nullptr };
 };
 
 #endif

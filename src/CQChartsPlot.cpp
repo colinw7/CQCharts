@@ -27,6 +27,7 @@
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 #include <CQChartsPlotControlWidgets.h>
+#include <CQChartsModelViewHolder.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -1815,6 +1816,8 @@ setViewBBox(const BBox &bbox)
   innerViewBBox_ = viewBBox_;
 
   updateMargins();
+
+  emit viewBoxChanged();
 }
 
 void
@@ -10629,6 +10632,18 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
     controls_.push_back(control);
   }
 
+  auto *controlFrame = dynamic_cast<CQChartsPlotControlFrame *>(widget.widget());
+
+  if (controlFrame)
+    controlFrame->setPlot(this);
+
+  auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget.widget());
+
+  if (modelHolder) {
+    modelHolder->setCharts(charts());
+    modelHolder->setModel(model(), isHierarchical());
+  }
+
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, pos, widget));
 }
@@ -10854,7 +10869,7 @@ initLayer(const Layer::Type &type, const Buffer::Type &buffer, bool active)
   auto pb = buffers_.find(buffer);
 
   if (pb == buffers_.end()) {
-    auto *layerBuffer = new Buffer(buffer);
+    auto *layerBuffer = new Buffer(view(), buffer);
 
     pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
   }

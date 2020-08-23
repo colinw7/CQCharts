@@ -44,6 +44,9 @@ while ($#argv > 0)
     setenv CQ_PERF_MONITOR_DEBUG_PATTERN "*"
     setenv CQ_CHARTS_DEBUG_UPDATE 1
     shift
+  else if ("$1" == "-opengl") then
+    setenv CQ_CHARTS_LAYER_OPEN_GL 1
+    shift
   else if ("$1" == "-perf") then
     setenv CQ_PERF_MONITOR_ENABLED 1
     shift

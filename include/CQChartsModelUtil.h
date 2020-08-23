@@ -26,7 +26,7 @@ int hierRowCount(CQCharts *charts, const QAbstractItemModel *model);
 
 QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent);
 
-CQBaseModelType calcColumnType(const QAbstractItemModel *model, int icolumn);
+CQBaseModelType calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows=-1);
 
 //------
 

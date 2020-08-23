@@ -789,10 +789,13 @@ class CQChartsColumnTypeMgr : public QObject {
   const CacheData &getModelCacheData(const QAbstractItemModel *model, bool &ok) const;
 
  private:
-  CQCharts*          charts_     { nullptr }; //!< charts
-  TypeData           typeData_;               //!< type data
-  ModelCacheData     modelCacheData_;         //!< column type cache (per model)
-  mutable std::mutex mutex_;
+  using CacheDataStack = std::vector<CacheData>;
+
+  CQCharts*          charts_         { nullptr }; //!< charts
+  TypeData           typeData_;                   //!< type data
+  ModelCacheData     modelCacheData_;              //!< column type cache (per model)
+  CacheDataStack     cacheDataStack_;             //!< cache data stack
+  mutable std::mutex mutex_;                      //!< mutex
 };
 
 #endif

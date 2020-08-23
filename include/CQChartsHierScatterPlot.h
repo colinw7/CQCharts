@@ -349,8 +349,9 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
-  virtual CQChartsHierScatterPointObj *createPointObj(const BBox &rect, const Point &p,
-                                                      const ColorInd &iv) const;
+  using PointObj = CQChartsHierScatterPointObj;
+
+  virtual PointObj *createPointObj(const BBox &rect, const Point &p, const ColorInd &iv) const;
 
  public slots:
   void popCurrentGroup();

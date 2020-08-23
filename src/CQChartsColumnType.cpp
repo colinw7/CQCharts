@@ -697,6 +697,8 @@ startCache(const QAbstractItemModel *model)
   auto &cacheData1 = const_cast<CacheData &>(cacheData);
 
   ++cacheData1.depth;
+
+  cacheDataStack_.push_back(cacheData1);
 }
 
 void
@@ -716,8 +718,18 @@ endCache(const QAbstractItemModel *model)
 
   --cacheData1.depth;
 
+  assert(! cacheDataStack_.empty());
+
+  auto cacheData2 = cacheDataStack_.back();
+
+  cacheDataStack_.pop_back();
+
+  cacheData1 = cacheData2;
+
+#if 0
   if (cacheData1.depth == 0)
     cacheData1.columnTypeCache.clear();
+#endif
 }
 
 const CQChartsColumnTypeMgr::CacheData &

@@ -5,14 +5,75 @@
 
 #include <QFrame>
 
+class CQChartsPlotControlIFace;
 class CQChartsPlot;
-class QRadioButton;
+class CQChartsView;
+
 class CQDoubleRangeSlider;
 class CQIntRangeSlider;
 class CQTimeRangeSlider;
 
-class QLabel;
+class QRadioButton;
 class QComboBox;
+class QCheckBox;
+class QLabel;
+class QButtonGroup;
+class QGridLayout;
+
+class CQChartsPlotControlFrame : public QFrame {
+  Q_OBJECT
+
+  Q_PROPERTY(bool opEqual READ isEqual WRITE setEqual)
+  Q_PROPERTY(bool opAnd   READ isAnd   WRITE setAnd  )
+
+ public:
+  CQChartsPlotControlFrame(QWidget *parent=nullptr);
+
+  CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *p) { plot_ = p; }
+
+  bool isEqual() const;
+  void setEqual(bool b);
+
+  bool isAnd() const;
+  void setAnd(bool b);
+
+  QFrame *controlArea() const { return controlArea_; }
+
+  //---
+
+  void clearControls();
+
+  void addIFace(CQChartsPlotControlIFace *iface);
+
+  void addIFaceTerm();
+
+  int numIFaces() const;
+
+  CQChartsPlotControlIFace *iface(int i) const;
+
+ public slots:
+  void setPlotControls();
+
+ private slots:
+  void controlsChanged();
+
+ private:
+  void addPlotControls(CQChartsPlot *plot);
+
+ private:
+  using IFaces = std::vector<CQChartsPlotControlIFace *>;
+
+  CQChartsPlot* plot_             { nullptr }; //!< plot
+  QCheckBox*    equalCheck_       { nullptr }; //!< equal check
+  QCheckBox*    andCheck_         { nullptr }; //!< and check
+  QFrame*       controlArea_      { nullptr }; //!< controls area
+  QGridLayout*  controlLayout_    { nullptr }; //!< controls layout
+  IFaces        ifaces_;                       //!< option interfaces
+  QButtonGroup* groupButtonGroup_ { nullptr }; //!< group radio button group
+};
+
+//---
 
 class CQChartsPlotControlIFace : public QFrame {
   Q_OBJECT

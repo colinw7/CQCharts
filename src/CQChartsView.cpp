@@ -119,8 +119,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
 
-  objectsBuffer_ = new CQChartsBuffer;
-  overlayBuffer_ = new CQChartsBuffer;
+  objectsBuffer_ = new CQChartsBuffer(this);
+  overlayBuffer_ = new CQChartsBuffer(this);
 
   //---
 
@@ -322,6 +322,9 @@ addProperties()
   addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->
     setMinValue(0.001);
   addStyleProp("text", "font"      , "font"  , "Global text font");
+
+  // plot separators
+  addStyleProp("options", "plotSeparators", "", "Show plot separators");
 
   // handdrawn
   addStyleProp("handdrawn", "handDrawn"    , "enabled"  , "Enable handdraw painter");
@@ -591,6 +594,17 @@ fontEx() const
 
 void
 CQChartsView::
+setPlotSeparators(bool b)
+{
+  CQChartsUtil::testAndSet(plotSeparators_, b, [&]() {
+    separatorsInvalid_ = true; resizeEvent(nullptr);
+  } );
+}
+
+//---
+
+void
+CQChartsView::
 setHandDrawn(bool b)
 {
   CQChartsUtil::testAndSet(handDrawn_, b, [&]() {
@@ -699,6 +713,7 @@ viewFont(const CQChartsFont &font) const
     return font1;
 }
 
+#if 0
 QFont
 CQChartsView::
 viewFont(const QFont &font) const
@@ -708,6 +723,7 @@ viewFont(const QFont &font) const
   else
     return font;
 }
+#endif
 
 QFont
 CQChartsView::
@@ -723,6 +739,7 @@ plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled) const
     return font2;
 }
 
+#if 0
 QFont
 CQChartsView::
 plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled) const
@@ -732,6 +749,7 @@ plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled) const
   else
     return font;
 }
+#endif
 
 double
 CQChartsView::
@@ -1459,6 +1477,8 @@ addPlot(CQChartsPlot *plot, const BBox &bbox)
 
   connect(plot, SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
 
+  connect(plot, SIGNAL(viewBoxChanged()), this, SLOT(plotViewBoxChanged()));
+
   connect(plot, SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
 
   connect(plot, SIGNAL(errorsCleared()), this, SIGNAL(updateErrors()));
@@ -1476,6 +1496,8 @@ addPlot(CQChartsPlot *plot, const BBox &bbox)
 
   if (currentPlot->parentPlot() && ! plot->parentPlot())
     setCurrentPlot(plot);
+
+  separatorsInvalid_ = true;
 
   //---
 
@@ -1588,6 +1610,8 @@ removePlot(CQChartsPlot *plot)
       setCurrentPlot(plots_[0]);
   }
 
+  separatorsInvalid_ = true;
+
   //---
 
   invalidateObjects();
@@ -1652,6 +1676,15 @@ plotConnectDataChangedSlot()
     emit plotConnectDataChanged(plot->id());
 
   emit connectDataChanged();
+}
+
+//---
+
+void
+CQChartsView::
+plotViewBoxChanged()
+{
+  separatorsInvalid_ = true;
 }
 
 //---
@@ -2025,8 +2058,7 @@ autoPlacePlots()
 
 void
 CQChartsView::
-placePlots(const Plots &plots, bool vertical, bool horizontal,
-           int rows, int columns, bool reset)
+placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns, bool reset)
 {
   if (reset) {
     if (isScrolled())
@@ -3408,6 +3440,10 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
+  updateSeparators();
+
+  //---
+
   int w = width ();
   int h = height();
 
@@ -3546,6 +3582,171 @@ vbarScrollSlot(int pos)
   sizeData_.ypos = pos;
 
   update();
+}
+
+void
+CQChartsView::
+updateSeparators()
+{
+  auto clearSeparators = [&]() {
+    for (auto &separator : separators_)
+      delete separator;
+
+    separators_.clear();
+  };
+
+  if (! isPlotSeparators()) {
+    clearSeparators();
+  }
+  else {
+    Plots plots;
+
+    this->getPlots(plots);
+
+    int np = plots.size();
+
+    if (np < 2) {
+      clearSeparators();
+      return;
+    }
+
+    using PosPlots = std::map<int,CQChartsPlot *>;
+
+    PosPlots xPlots, yPlots;
+
+    for (const auto &plot : plots) {
+      const auto &bbox = plot->viewBBox();
+
+      xPlots[(int) bbox.getXMin()] = plot;
+      yPlots[(int) bbox.getYMin()] = plot;
+    }
+
+    double vr = CQChartsView::viewportRange();
+
+    if (separatorsInvalid_) {
+      plotsHorizontal_ = true;
+
+      double x = 0.0;
+
+      for (const auto &pp : xPlots) {
+        const auto &bbox = pp.second->viewBBox();
+
+        if (plotsHorizontal_) {
+          if (! CMathUtil::realEq(bbox.getXMin(), x) ||
+              ! CMathUtil::realEq(bbox.getYMin(), 0.0) ||
+              ! CMathUtil::realEq(bbox.getHeight(), vr)) {
+            plotsHorizontal_ = false;
+          }
+        }
+
+        x += bbox.getWidth();
+      }
+
+      plotsVertical_ = true;
+
+      double y = 0.0;
+
+      for (const auto &pp : yPlots) {
+        const auto &bbox = pp.second->viewBBox();
+
+        if (plotsVertical_) {
+          if (! CMathUtil::realEq(bbox.getXMin(), 0.0) ||
+              ! CMathUtil::realEq(bbox.getYMin(), y) ||
+              ! CMathUtil::realEq(bbox.getWidth(), vr)) {
+            plotsVertical_ = false;
+          }
+        }
+
+        y += bbox.getHeight();
+      }
+
+      if (! plotsHorizontal_ && ! plotsVertical_) {
+        for (auto &separator : separators_)
+          delete separator;
+
+        separators_.clear();
+
+        return;
+      }
+
+      while (int(separators_.size()) < np - 1) {
+        auto *sep = new CQChartsSplitter(this, Qt::Vertical);
+
+        sep->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+        sep->setObjectName(QString("splitter.%1").arg(separators_.size() + 1));
+
+        separators_.push_back(sep);
+      }
+
+      while (int(separators_.size()) > np - 1) {
+        delete separators_.back();
+
+        separators_.pop_back();
+      }
+
+      separatorsInvalid_ = false;
+    }
+
+    if      (plotsHorizontal_) {
+      double x = 0.0;
+      int    i = 0;
+
+      CQChartsPlot *lastPlot = nullptr;
+
+      for (const auto &pp : xPlots) {
+        const auto &bbox = pp.second->viewBBox();
+
+        if (i > 0) {
+          auto *sep = separators_[i - 1];
+
+          sep->setOrientation(Qt::Vertical);
+
+          double px1 = this->width()*x/vr;
+
+          sep->move(px1 - 4, 0);
+          sep->resize(8, height());
+
+          sep->setVisible(true);
+          sep->raise();
+
+          sep->setPlot1(lastPlot);
+          sep->setPlot2(pp.second);
+        }
+
+        lastPlot = pp.second; x += bbox.getWidth(); ++i;
+      }
+    }
+    else if (plotsVertical_) {
+      double y = 0.0;
+      int    i = 0;
+
+      CQChartsPlot *lastPlot = nullptr;
+
+      for (const auto &pp : yPlots) {
+        const auto &bbox = pp.second->viewBBox();
+
+        if (i > 0) {
+          auto *sep = separators_[i - 1];
+
+          sep->setOrientation(Qt::Horizontal);
+
+          double py1 = this->height()*y/vr;
+
+          sep->move(0, py1 - 4);
+          sep->resize(width(), 8);
+
+          sep->setVisible(true);
+          sep->raise();
+
+          sep->setPlot1(lastPlot);
+          sep->setPlot2(pp.second);
+        }
+
+        lastPlot = pp.second; y += bbox.getHeight(); ++i;
+      }
+    }
+  }
 }
 
 //------
@@ -7103,11 +7304,166 @@ windowToPixel(const QPainterPath &path) const
   return ppath;
 }
 
-//------
+//---
 
 QSize
 CQChartsView::
 sizeHint() const
 {
   return viewSizeHint();
+}
+
+//------
+
+CQChartsSplitter::
+CQChartsSplitter(CQChartsView *view, Qt::Orientation orientation) :
+ QFrame(view), view_(view), orientation_(orientation)
+{
+}
+
+void
+CQChartsSplitter::
+setOrientation(const Qt::Orientation &o)
+{
+  orientation_ = o;
+
+  setCursor(orientation_ != Qt::Horizontal ? Qt::SplitHCursor : Qt::SplitVCursor);
+}
+
+void
+CQChartsSplitter::
+paintEvent(QPaintEvent *)
+{
+  QPainter painter(this);
+
+  QStyleOption opt(0);
+
+  opt.rect    = rect();
+  opt.palette = palette();
+
+  if (orientation() == Qt::Horizontal)
+    opt.state = QStyle::State_Horizontal;
+  else
+    opt.state = QStyle::State_None;
+
+  if (hover_)
+    opt.state |= QStyle::State_MouseOver;
+  if (pressed_)
+    opt.state |= QStyle::State_Sunken;
+  if (isEnabled())
+    opt.state |= QStyle::State_Enabled;
+
+  style()->drawControl(QStyle::CE_Splitter, &opt, &painter, this);
+
+  painter.setPen(opt.palette.color(QPalette::Dark));
+
+  painter.drawRect(rect());
+}
+
+void
+CQChartsSplitter::
+mousePressEvent(QMouseEvent *event)
+{
+  pressed_ = true;
+
+  initPos_  = pos();
+  pressPos_ = event->globalPos();
+}
+
+void
+CQChartsSplitter::
+mouseMoveEvent(QMouseEvent *event)
+{
+  if (! pressed_) return;
+
+  movePos_ = event->globalPos();
+
+  if (orientation() == Qt::Horizontal) {
+    int dy = movePos_.y() - pressPos_.y();
+
+    int y1 = initPos_.y() + dy;
+
+    y1 = std::min(std::max(y1, 0), view_->height() -1);
+
+    move(x(), y1);
+  }
+  else {
+    int dx = movePos_.x() - pressPos_.x();
+
+    int x1 = initPos_.x() + dx;
+
+    x1 = std::min(std::max(x1, 0), view_->width() -1);
+
+    move(x1, y());
+  }
+}
+
+void
+CQChartsSplitter::
+mouseReleaseEvent(QMouseEvent *event)
+{
+  using BBox = CQChartsGeom::BBox;
+
+  pressed_ = false;
+
+  movePos_ = event->globalPos();
+
+  auto bbox1 = plot1_->viewBBox();
+  auto bbox2 = plot2_->viewBBox();
+
+  double vr = view_->viewportRange();
+
+  if (orientation() == Qt::Horizontal) {
+    int dy = movePos_.y() - pressPos_.y();
+
+    double ph1 = view_->height()*bbox1.getHeight()/vr;
+    double ph2 = view_->height()*bbox2.getHeight()/vr;
+
+    ph1 = ph1 - dy; // bottom
+    ph2 = ph2 + dy; // top
+
+    double h1 = ph1*vr/view_->height();
+    double h2 = ph2*vr/view_->height();
+
+    bbox1 = BBox(bbox1.getXMin(), bbox1.getYMin(), bbox1.getXMax(), bbox1.getYMin() + h1);
+    bbox2 = BBox(bbox2.getXMin(), bbox1.getYMax(), bbox2.getXMax(), bbox1.getYMax() + h2);
+  }
+  else {
+    int dx = movePos_.x() - pressPos_.x();
+
+    double pw1 = view_->width()*bbox1.getWidth()/vr;
+    double pw2 = view_->width()*bbox2.getWidth()/vr;
+
+    pw1 = pw1 + dx; // left
+    pw2 = pw2 - dx; // right
+
+    double w1 = pw1*vr/view_->width();
+    double w2 = pw2*vr/view_->width();
+
+    bbox1 = BBox(bbox1.getXMin(), bbox1.getYMin(), bbox1.getXMin() + w1, bbox1.getYMax());
+    bbox2 = BBox(bbox1.getXMax(), bbox2.getYMax(), bbox1.getXMax() + w2, bbox2.getYMax());
+  }
+
+  plot1_->setViewBBox(bbox1);
+  plot2_->setViewBBox(bbox2);
+}
+
+bool
+CQChartsSplitter::
+event(QEvent *event)
+{
+  switch (event->type()) {
+    case QEvent::HoverEnter:
+      hover_ = true;
+      update();
+      break;
+    case QEvent::HoverLeave:
+      hover_ = false;
+      update();
+      break;
+    default:
+      break;
+  }
+
+  return QWidget::event(event);
 }

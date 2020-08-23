@@ -18,7 +18,7 @@ class QStackedWidget;
 class QItemSelectionModel;
 
 /*!
- * \brief Model View Widget
+ * \brief Model View Holder Widget (Tree or Table)
  * \ingroup Charts
  */
 class CQChartsModelViewHolder : public QFrame {
@@ -28,8 +28,11 @@ class CQChartsModelViewHolder : public QFrame {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
-  CQChartsModelViewHolder(CQCharts *charts, QWidget *parent=nullptr);
+  CQChartsModelViewHolder(CQCharts *charts=nullptr, QWidget *parent=nullptr);
  ~CQChartsModelViewHolder();
+
+  CQCharts *charts() const { return charts_; }
+  void setCharts(CQCharts *charts) { charts_ = charts; init(); }
 
 #ifdef CQCHARTS_MODEL_VIEW
   CQChartsModelView *view() const { return view_; }
@@ -54,6 +57,9 @@ class CQChartsModelViewHolder : public QFrame {
 
  signals:
   void filterChanged();
+
+ private:
+  void init();
 
  private:
   CQCharts*          charts_       { nullptr };

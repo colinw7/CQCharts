@@ -1,5 +1,5 @@
 #include <CQChartsPlotControlWidgets.h>
-#include <CQChartsPlot.h>
+#include <CQChartsGroupPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsExprTcl.h>
@@ -11,8 +11,236 @@
 
 #include <QRadioButton>
 #include <QComboBox>
+#include <QCheckBox>
+#include <QButtonGroup>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QGridLayout>
+
+CQChartsPlotControlFrame::
+CQChartsPlotControlFrame(QWidget *parent) :
+ QFrame(parent)
+{
+  setObjectName("controlFrame");
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //---
+
+  auto *optionsFrame  = CQUtil::makeWidget<QFrame>("optionsFrame");
+  auto *optionsLayout = CQUtil::makeLayout<QHBoxLayout>(optionsFrame, 2, 2);
+
+  equalCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Equal", "equalCheck");
+  andCheck_   = CQUtil::makeLabelWidget<QCheckBox>("And"  , "andCheck");
+
+  equalCheck_->setChecked(true);
+  andCheck_  ->setChecked(true);
+
+  connect(equalCheck_, SIGNAL(stateChanged(int)), this, SLOT(controlsChanged()));
+  connect(andCheck_, SIGNAL(stateChanged(int)), this, SLOT(controlsChanged()));
+
+  optionsLayout->addWidget (equalCheck_);
+  optionsLayout->addWidget (andCheck_);
+  optionsLayout->addStretch(1);
+
+  layout->addWidget(optionsFrame);
+
+  //---
+
+  controlArea_ = CQUtil::makeWidget<QFrame>("controlArea");
+
+  layout->addWidget(controlArea_);
+
+  controlLayout_ = new QGridLayout(controlArea_);
+
+  //---
+
+  layout->addStretch(1);
+}
+
+bool
+CQChartsPlotControlFrame::
+isEqual() const
+{
+  return equalCheck_->isChecked();
+}
+
+void
+CQChartsPlotControlFrame::
+setEqual(bool b)
+{
+  equalCheck_->setChecked(b);
+}
+
+bool
+CQChartsPlotControlFrame::
+isAnd() const
+{
+  return andCheck_->isChecked();
+}
+
+void
+CQChartsPlotControlFrame::
+setAnd(bool b)
+{
+  andCheck_->setChecked(b);
+}
+
+void
+CQChartsPlotControlFrame::
+setPlotControls()
+{
+  clearControls();
+
+  if (plot_) {
+    addPlotControls(plot_);
+
+    int n = plot_->numChildPlots();
+
+    for (int i = 0; i < n; ++i)
+      addPlotControls(plot_->childPlot(i));
+  }
+
+  addIFaceTerm();
+}
+
+void
+CQChartsPlotControlFrame::
+addPlotControls(CQChartsPlot *plot)
+{
+  CQChartsColumns columns = plot->controlColumns();
+
+  for (int ic = 0; ic < columns.count(); ++ic) {
+    const auto &column = columns.getColumn(ic);
+    if (! column.isValid()) continue;
+
+    auto *details = plot->columnDetails(column);
+    if (! details) continue;
+
+    //---
+
+    // create widget
+    CQChartsPlotControlIFace* iface = nullptr;
+
+    if      (details->type() == CQBaseModelType::REAL)
+      iface = new CQChartsPlotRealControl(plot, column);
+    else if (details->type() == CQBaseModelType::INTEGER)
+      iface = new CQChartsPlotIntControl(plot, column);
+    else if (details->type() == CQBaseModelType::TIME)
+      iface = new CQChartsPlotTimeControl(plot, column);
+    else
+      iface = new CQChartsPlotValueControl(plot, column);
+
+    addIFace(iface);
+  }
+}
+
+void
+CQChartsPlotControlFrame::
+clearControls()
+{
+  CQUtil::removeGridItems(controlLayout_, /*deleteWidgets*/true);
+
+  ifaces_.clear();
+
+  delete groupButtonGroup_;
+
+  groupButtonGroup_ = new QButtonGroup(this);
+
+  groupButtonGroup_->setExclusive(false);
+}
+
+void
+CQChartsPlotControlFrame::
+addIFace(CQChartsPlotControlIFace *iface)
+{
+  auto *radio = iface->radio();
+
+  if (radio)
+    groupButtonGroup_->addButton(radio);
+
+  controlLayout_->addWidget(iface, numIFaces(), 0);
+
+  ifaces_.push_back(iface);
+
+  iface->connectValueChanged(this, SLOT(controlsChanged()));
+}
+
+void
+CQChartsPlotControlFrame::
+addIFaceTerm()
+{
+  controlLayout_->setRowStretch(ifaces_.size(), 1);
+  controlLayout_->setColumnStretch(2, 1);
+}
+
+int
+CQChartsPlotControlFrame::
+numIFaces() const
+{
+  return ifaces_.size();
+}
+
+CQChartsPlotControlIFace *
+CQChartsPlotControlFrame::
+iface(int i) const
+{
+  return ifaces_[i];
+}
+
+void
+CQChartsPlotControlFrame::
+controlsChanged()
+{
+  auto *obj = sender();
+  if (! obj) return;
+
+  QString id = obj->property("plot").toString();
+
+  auto *view = plot_->view();
+  if (! view) return;
+
+  auto *plot = view->getPlotForId(id);
+  if (! plot) return;
+
+  auto *groupPlot = dynamic_cast<CQChartsGroupPlot *>(plot);
+
+  QStringList filters;
+
+  QString cmpStr = (this->isEqual() ? "==" : "!=");
+
+  int n = numIFaces(); // all same size
+
+  for (int i = 0; i < n; ++i) {
+    auto *iface = this->iface(i);
+    assert(iface);
+
+    auto *radio = iface->radio();
+
+    if (radio->isChecked()) {
+      const auto &column = iface->column();
+
+      if (groupPlot)
+        groupPlot->setGroupColumn(CQChartsColumn(column));
+    }
+    else {
+      QString filter = iface->filterStr(cmpStr);
+
+      if (filter.length())
+        filters.push_back(filter);
+    }
+  }
+
+  QString combStr = (this->isAnd() ? "&&" : "||");
+
+  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
+
+  //std::cerr << filterStr.toStdString() << "\n";
+
+  plot->setVisibleFilterStr(filterStr);
+}
+
+//---
 
 CQChartsPlotRealControl::
 CQChartsPlotRealControl(QWidget *parent) :

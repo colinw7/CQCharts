@@ -1,6 +1,7 @@
 #include <CQChartsPointPlot.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsAxisRug.h>
+#include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
@@ -119,6 +120,13 @@ addPointProperties()
   addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
   addProp("columns", "fontSizeColumn"  , "fontSize"  , "Font size column");
 
+  //---
+
+  // axes
+  addProp("xaxis", "showAllXOverlayAxes", "showOverlayAxes", "Show all overlay x axes");
+
+  //---
+
   // mapping for columns
   addProp("mapping/symbolType", "symbolTypeMapped", "enabled", "Symbol type values mapped");
   addProp("mapping/symbolType", "symbolTypeMapMin", "min"    , "Symbol type map min value");
@@ -200,6 +208,15 @@ getPropertyNames(QStringList &names, bool hidden) const
   CQChartsPlot::getPropertyNames(names, hidden);
 
   propertyModel()->objectNames(dataLabel(), names, hidden);
+}
+
+//---
+
+void
+CQChartsPointPlot::
+setShowAllXOverlayAxes(bool b)
+{
+  CQChartsUtil::testAndSet(showAllXOverlayAxes_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -528,6 +545,55 @@ CQChartsPointPlot::
 setBestFitOrder(int o)
 {
   CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPointPlot::
+drawXAxis(PaintDevice *device) const
+{
+  // use normal draw if show all not set or not overlay or not first plot
+  if (! isShowAllXOverlayAxes() || ! isOverlay() || ! isFirstPlot()) {
+    CQChartsPlot::drawXAxis(device);
+    return;
+  }
+
+  // if manually position the normal draw
+  if (xAxis()->position().isSet()) {
+    CQChartsPlot::drawXAxis(device);
+    return;
+  }
+
+  //---
+
+  double apos1, apos2;
+
+  xAxis()->calcPos(this, apos1, apos2);
+
+  Plots plots;
+
+  overlayPlots(plots);
+
+  for (auto &plot : plots) {
+    if (plot == this)
+      continue;
+
+    if (! plot->xAxis())
+      continue;
+
+    plot->xAxis()->setPosition(CQChartsOptReal(apos1));
+
+    plot->CQChartsPlot::drawXAxis(device);
+
+    apos1 -= plot->xAxis()->bbox().getHeight();
+  }
+
+  xAxis()->setPosition(CQChartsOptReal(apos1));
+
+  CQChartsPlot::drawXAxis(device);
+
+  xAxis()->setPosition(CQChartsOptReal());
 }
 
 //---

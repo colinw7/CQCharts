@@ -1176,3 +1176,9 @@
  + Add annotation group
  + Add key item group
  + Improve scatter/xy axis annotation placement
+# 08/23/2020
+ + Add win widget for widget annotation (interactive)
+ + Add openGl renderer
+ + Add more plot control widgets
+ + Support model view widget annotation
+ + Add optional plot resize separator

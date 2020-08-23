@@ -193,9 +193,10 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
-  virtual CQChartsDelaunayPointObj *createPointObj(const BBox &rect, double x, double y,
-                                                   double value, const QModelIndex &ind,
-                                                   const ColorInd &iv) const;
+  using PointObj = CQChartsDelaunayPointObj;
+
+  virtual PointObj *createPointObj(const BBox &rect, double x, double y, double value,
+                                   const QModelIndex &ind, const ColorInd &iv) const;
 
  private:
   Column            xColumn_;                    //!< x column

@@ -987,41 +987,9 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //---
 
-  controlWidgets_.frame = CQUtil::makeWidget<QFrame>("controlFrame");
+  controlFrame_ = CQUtil::makeWidget<CQChartsPlotControlFrame>("controlFrame");
 
-  auto *controlFrameLayout = CQUtil::makeLayout<QVBoxLayout>(controlWidgets_.frame, 2, 2);
-
-  propertiesWidgets_.propertiesSplit->addWidget(controlWidgets_.frame, "Quick Control");
-
-  //--
-
-  auto *controlOptionsFrame  = CQUtil::makeWidget<QFrame>("controlOptionsFrame");
-  auto *controlOptionsLayout = CQUtil::makeLayout<QHBoxLayout>(controlOptionsFrame, 2, 2);
-
-  controlFrameLayout->addWidget(controlOptionsFrame);
-
-  controlWidgets_.equalCheck = CQUtil::makeLabelWidget<QCheckBox>("Equal", "equalCheck");
-  controlWidgets_.andCheck   = CQUtil::makeLabelWidget<QCheckBox>("And"  , "andCheck");
-
-  controlWidgets_.equalCheck->setChecked(true);
-  controlWidgets_.andCheck  ->setChecked(true);
-
-  connect(controlWidgets_.equalCheck, SIGNAL(stateChanged(int)),
-          this, SLOT(plotControlUpdateSlot()));
-  connect(controlWidgets_.andCheck, SIGNAL(stateChanged(int)),
-          this, SLOT(plotControlUpdateSlot()));
-
-  controlOptionsLayout->addWidget (controlWidgets_.equalCheck);
-  controlOptionsLayout->addWidget (controlWidgets_.andCheck);
-  controlOptionsLayout->addStretch(1);
-
-  controlWidgets_.area = CQUtil::makeWidget<QFrame>("controlArea");
-
-  controlFrameLayout->addWidget(controlWidgets_.area);
-
-  controlWidgets_.layout = new QGridLayout(controlWidgets_.area);
-
-  controlOptionsLayout->addStretch(1);
+  propertiesWidgets_.propertiesSplit->addWidget(controlFrame_, "Quick Controls");
 
   //---
 
@@ -2467,46 +2435,25 @@ void
 CQChartsViewSettings::
 updatePlotControls()
 {
-  CQUtil::removeGridItems(controlWidgets_.layout, /*deleteWidgets*/true);
-
-  controlWidgets_.ifaces.clear();
-
-  delete controlWidgets_.groupButtonGroup;
-
-  controlWidgets_.groupButtonGroup = new QButtonGroup(this);
-
-  controlWidgets_.groupButtonGroup->setExclusive(false);
-
-  //---
-
   auto *view = window_->view();
   assert(view);
 
+  //---
+
+  // add controls for plot and child plots
   auto *plot = view->currentPlot();
 
-  int numControls = 0;
+  controlFrame_->setPlot(plot);
 
-  if (plot) {
-    numControls += addPlotControls(plot);
-
-    int n = plot->numChildPlots();
-
-    for (int i = 0; i < n; ++i)
-      numControls += addPlotControls(plot->childPlot(i));
-  }
+  controlFrame_->setPlotControls();
 
   //---
 
-  controlWidgets_.layout->setRowStretch(numControls, 1);
-  controlWidgets_.layout->setColumnStretch(3, 1);
+  if (controlFrame_->numIFaces() > 0) {
+    if (! propertiesWidgets_.propertiesSplit->hasWidget(controlFrame_)) {
+      propertiesWidgets_.propertiesSplit->addWidget(controlFrame_, "Quick Controls");
 
-  //---
-
-  if (numControls > 0) {
-    if (! propertiesWidgets_.propertiesSplit->hasWidget(controlWidgets_.frame)) {
-      propertiesWidgets_.propertiesSplit->addWidget(controlWidgets_.frame, "Quick Control");
-
-      controlWidgets_.frame->setVisible(true);
+      controlFrame_->setVisible(true);
 
       int i1 = INT_MAX*0.4;
       int i3 = INT_MAX*0.1;
@@ -2516,10 +2463,10 @@ updatePlotControls()
     }
   }
   else {
-    if (propertiesWidgets_.propertiesSplit->hasWidget(controlWidgets_.frame)) {
-      propertiesWidgets_.propertiesSplit->removeWidget(controlWidgets_.frame, /*delete*/false);
+    if (propertiesWidgets_.propertiesSplit->hasWidget(controlFrame_)) {
+      propertiesWidgets_.propertiesSplit->removeWidget(controlFrame_, /*delete*/false);
 
-      controlWidgets_.frame->setVisible(false);
+      controlFrame_->setVisible(false);
 
       int i1 = INT_MAX*0.4;
       int i2 = INT_MAX - i1;
@@ -2527,107 +2474,6 @@ updatePlotControls()
       propertiesWidgets_.propertiesSplit->setSizes(QList<int>({i1, i2}));
     }
   }
-}
-
-int
-CQChartsViewSettings::
-addPlotControls(CQChartsPlot *plot)
-{
-  int n = 0;
-
-  CQChartsColumns columns = plot->controlColumns();
-
-  for (int ic = 0; ic < columns.count(); ++ic) {
-    const auto &column = columns.getColumn(ic);
-    if (! column.isValid()) continue;
-
-    auto *details = plot->columnDetails(column);
-    if (! details) continue;
-
-    //---
-
-    // create widget
-    CQChartsPlotControlIFace* iface = nullptr;
-
-    if      (details->type() == CQBaseModelType::REAL)
-      iface = new CQChartsPlotRealControl(plot, column);
-    else if (details->type() == CQBaseModelType::INTEGER)
-      iface = new CQChartsPlotIntControl(plot, column);
-    else if (details->type() == CQBaseModelType::TIME)
-      iface = new CQChartsPlotTimeControl(plot, column);
-    else
-      iface = new CQChartsPlotValueControl(plot, column);
-
-    auto *radio = iface->radio();
-
-    controlWidgets_.groupButtonGroup->addButton(radio);
-
-    //---
-
-    iface->connectValueChanged(this, SLOT(plotControlUpdateSlot()));
-
-    controlWidgets_.ifaces.push_back(iface);
-
-    int col = 0;
-
-    controlWidgets_.layout->addWidget(iface, ic, col++);
-
-    ++n;
-  }
-
-  return n;
-}
-
-void
-CQChartsViewSettings::
-plotControlUpdateSlot()
-{
-  auto *obj = sender();
-  if (! obj) return;
-
-  QString id = obj->property("plot").toString();
-
-  auto *view = window_->view();
-  assert(view);
-
-  auto *plot = view->getPlotForId(id);
-  if (! plot) return;
-
-  auto *groupPlot = dynamic_cast<CQChartsGroupPlot *>(plot);
-
-  QStringList filters;
-
-  QString cmpStr = (controlWidgets_.equalCheck->isChecked() ? "==" : "!=");
-
-  int n = controlWidgets_.ifaces.size(); // all same size
-
-  for (int i = 0; i < n; ++i) {
-    auto *iface = controlWidgets_.ifaces[i];
-    assert(iface);
-
-    auto *radio = iface->radio();
-
-    if (radio->isChecked()) {
-      const auto &column = iface->column();
-
-      if (groupPlot)
-        groupPlot->setGroupColumn(CQChartsColumn(column));
-    }
-    else {
-      QString filter = iface->filterStr(cmpStr);
-
-      if (filter.length())
-        filters.push_back(filter);
-    }
-  }
-
-  QString combStr = (controlWidgets_.andCheck->isChecked() ? "&&" : "||");
-
-  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
-
-  //std::cerr << filterStr.toStdString() << "\n";
-
-  plot->setVisibleFilterStr(filterStr);
 }
 
 //------

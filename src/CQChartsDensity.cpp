@@ -352,7 +352,9 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &r
   else
     ws = CQChartsLength(rect.getWidth (), CQChartsUnits::PLOT);
 
-  CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, rect, ws, orientation);
+  std::vector<double> outliers;
+
+  CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, outliers, rect, ws, orientation);
 }
 
 void
@@ -548,6 +550,78 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
     }
 
     ++ip;
+  }
+}
+
+//----
+
+void
+CQChartsDensity::
+drawBuckets(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
+            const Qt::Orientation &orientation) const
+{
+  CQBucketer bucketer;
+
+  bucketer.setType(CQBucketer::Type::REAL_AUTO);
+  bucketer.setNumAuto(20);
+  bucketer.setRMin(xmin());
+  bucketer.setRMax(xmax());
+
+  using BucketCount = std::map<int,int>;
+
+  BucketCount bucketCount;
+
+  for (const auto &x : xvals()) {
+    int bucket = bucketer.bucket(x);
+
+    bucketCount[bucket]++;
+  }
+
+  int maxCount = 0;
+
+  for (const auto &p : bucketCount)
+    maxCount = std::max(maxCount, p.second);
+
+  if (bucketCount.empty() || maxCount <= 0)
+    return;
+
+  if (orientation == Qt::Horizontal) {
+    double dx = rect.getWidth ()/bucketCount.size();
+    double dy = rect.getHeight()/maxCount;
+
+    double x = rect.getXMin();
+    double y = rect.getYMin();
+
+    for (const auto &p : bucketCount) {
+      int count = p.second;
+
+      if (count > 0) {
+        BBox bbox(x, y, x + dx, y + count*dy);
+
+        device->drawRect(bbox);
+      }
+
+      x += dx;
+    }
+  }
+  else {
+    double dx = rect.getWidth ()/maxCount;
+    double dy = rect.getHeight()/bucketCount.size();
+
+    double x = rect.getXMin();
+    double y = rect.getYMin();
+
+    for (const auto &p : bucketCount) {
+      int count = p.second;
+
+      if (count > 0) {
+        BBox bbox(x, y, x + count*dx, y + dy);
+
+        device->drawRect(bbox);
+      }
+
+      y += dy;
+    }
   }
 }
 

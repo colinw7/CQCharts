@@ -20,6 +20,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQUtil.h>
+#include <CQWinWidget.h>
 #include <CMathRound.h>
 
 #include <QStylePainter>
@@ -4803,6 +4804,7 @@ CQChartsWidgetAnnotation(Plot *plot, const Rect &rect, const Widget &widget) :
 CQChartsWidgetAnnotation::
 ~CQChartsWidgetAnnotation()
 {
+  delete winWidget_;
 }
 
 void
@@ -4918,6 +4920,33 @@ setSizePolicy(const QSizePolicy &p)
 
 void
 CQChartsWidgetAnnotation::
+setInteractive(bool b)
+{
+  if (b != interactive_) {
+    interactive_ = b;
+
+    if (interactive_) {
+      if (! winWidget_)
+        winWidget_ = new CQWinWidget;
+
+      winWidget_->setChild(widget_.widget());
+
+      winWidget_->setParent(view());
+      winWidget_->setVisible(true);
+      winWidget_->setClosable(false);
+    }
+    else {
+      widget_.setParent(view());
+
+      delete winWidget_;
+
+      winWidget_ = nullptr;
+    }
+  }
+}
+
+void
+CQChartsWidgetAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -4931,11 +4960,12 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position"  , "position"  , "Widget position");
-  addProp(path1, "rectangle" , "rectangle" , "Widget bounding box");
-  addProp(path1, "widget"    , "widget"    , "Widget name");
-  addProp(path1, "align"     , "align"     , "Widget position alignment");
-  addProp(path1, "sizePolicy", "sizePolicy", "Widget size policy");
+  addProp(path1, "position"   , "position"   , "Widget position");
+  addProp(path1, "rectangle"  , "rectangle"  , "Widget bounding box");
+  addProp(path1, "widget"     , "widget"     , "Widget name");
+  addProp(path1, "align"      , "align"      , "Widget position alignment");
+  addProp(path1, "sizePolicy" , "sizePolicy" , "Widget size policy");
+  addProp(path1, "interactive", "interactive", "Widget is interactive");
 }
 
 void
@@ -5020,55 +5050,58 @@ void
 CQChartsWidgetAnnotation::
 draw(PaintDevice *)
 {
-  // recalculate position to bbox on draw as can change depending on pixel mapping
-  if (! rectangle().isSet())
-    positionToBBox();
-
-  if (! rect_.isValid())
-    return;
+  if (! winWidget_)
+    widget_.setVisible(isVisible());
+  else
+    winWidget_->setVisible(isVisible());
 
   //---
 
-  //drawInit(device);
+  if (! winWidget_) {
+    // recalculate position to bbox on draw as can change depending on pixel mapping
+    if (! rectangle().isSet())
+      positionToBBox();
 
-  //---
+    if (! rect_.isValid())
+      return;
 
-  widget_.setVisible(isVisible());
+    //---
 
-  //---
+    //drawInit(device);
 
-  // set box
-//auto pbbox = windowToPixel(rect_);
+    // set box
+    //auto pbbox = windowToPixel(rect_);
 
-  // get inner padding
-  double xlp, xrp, ytp, ybp;
+    // get inner padding
+    double xlp, xrp, ytp, ybp;
 
-  getPaddingValues(xlp, xrp, ytp, ybp);
+    getPaddingValues(xlp, xrp, ytp, ybp);
 
-  // get outer margin
-  double xlm, xrm, ytm, ybm;
+    // get outer margin
+    double xlm, xrm, ytm, ybm;
 
-  getMarginValues(xlm, xrm, ytm, ybm);
+    getMarginValues(xlm, xrm, ytm, ybm);
 
-  double tx =          rect_.getXMin  () +       xlm + xlp;
-  double ty =          rect_.getYMin  () +       ybm + ybp;
-  double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
-  double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
+    double tx =          rect_.getXMin  () +       xlm + xlp;
+    double ty =          rect_.getYMin  () +       ybm + ybp;
+    double tw = std::max(rect_.getWidth () - xlm - xrm - xlp - xrp, 0.0);
+    double th = std::max(rect_.getHeight() - ybm - ytm - ybp - ytp, 0.0);
 
-  BBox tbbox(tx, ty, tx + tw, ty + th);
+    BBox tbbox(tx, ty, tx + tw, ty + th);
 
-  //---
+    //---
 
-  auto ptbbox = windowToPixel(tbbox);
+    auto ptbbox = windowToPixel(tbbox);
 
-  widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
-                 CMathRound::RoundNearest(ptbbox.getHeight()));
+    widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
+                   CMathRound::RoundNearest(ptbbox.getHeight()));
 
-  widget_.move(ptbbox.getXMin(), ptbbox.getYMin());
+    widget_.move(ptbbox.getXMin(), ptbbox.getYMin());
 
-  //---
+    //---
 
-  //drawTerm(device);
+    //drawTerm(device);
+  }
 }
 
 void

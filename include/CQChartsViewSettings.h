@@ -29,7 +29,7 @@ class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 class CQChartsViewError;
-class CQChartsPlotControlIFace;
+class CQChartsPlotControlFrame;
 
 class CQColorsEditCanvas;
 class CQColorsEditControl;
@@ -91,7 +91,6 @@ class CQChartsViewSettings : public QFrame {
   void updateCurrentPlot();
 
   void updatePlotControls();
-  int addPlotControls(CQChartsPlot *plot);
 
   void updateAnnotations();
 
@@ -157,10 +156,6 @@ class CQChartsViewSettings : public QFrame {
   void removePlotsSlot();
 
   void writePlotSlot();
-
-  //---
-
-  void plotControlUpdateSlot();
 
   //---
 
@@ -286,31 +281,19 @@ class CQChartsViewSettings : public QFrame {
     PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
   };
 
-  struct ControlWidgets {
-    using IFaces = std::vector<CQChartsPlotControlIFace *>;
-
-    QFrame*       frame            { nullptr }; //!< frame
-    QCheckBox*    equalCheck       { nullptr }; //!< equal check
-    QCheckBox*    andCheck         { nullptr }; //!< and check
-    QFrame*       area             { nullptr }; //!< control area
-    QGridLayout*  layout           { nullptr }; //!< control layout
-    IFaces        ifaces;                       //!< option interfaces
-    QButtonGroup* groupButtonGroup { nullptr }; //!< group radio button group
-  };
-
   CQChartsWindow* window_ { nullptr }; //!< parent window
 
   // widgets
-  CQTabWidget*       tab_                 { nullptr }; //!< settings/palette tab
-  PropertiesWidgets  propertiesWidgets_;               //!< properties widgets
-  ControlWidgets     controlWidgets_;                  //!< control widgets
-  ModelsWidgets      modelsWidgets_;                   //!< models widgets
-  PlotsWidgets       plotsWidgets_;                    //!< plots widgets
-  AnnotationsWidgets annotationsWidgets_;              //!< annotations widgets
-  ObjectsWidgets     objectsWidgets_;
-  ThemeWidgets       themeWidgets_;                    //!< theme widgets
-  LayersWidgets      layersWidgets_;                   //!< layers widgets
-  CQChartsViewError* error_               { nullptr }; //!< error widget
+  CQTabWidget*              tab_                { nullptr }; //!< settings/palette tab
+  PropertiesWidgets         propertiesWidgets_;              //!< properties widgets
+  CQChartsPlotControlFrame* controlFrame_       { nullptr }; //!< control widgets
+  ModelsWidgets             modelsWidgets_;                  //!< models widgets
+  PlotsWidgets              plotsWidgets_;                   //!< plots widgets
+  AnnotationsWidgets        annotationsWidgets_;             //!< annotations widgets
+  ObjectsWidgets            objectsWidgets_;                 //!< objects widgets
+  ThemeWidgets              themeWidgets_;                   //!< theme widgets
+  LayersWidgets             layersWidgets_;                  //!< layers widgets
+  CQChartsViewError*        error_              { nullptr }; //!< error widget
 
   // dialogs
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
@@ -322,7 +305,7 @@ class CQChartsViewSettings : public QFrame {
 
   QString plotId_; //!< current plot id
 
-  QTimer *updateErrorsTimer_ { nullptr }; // update error delay timer
+  QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
 };
 
 //---

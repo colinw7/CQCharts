@@ -474,7 +474,7 @@ addProperties()
   addHullProperties();
 
   // stats
-  void addStatsProperties();
+  addStatsProperties();
 
   //---
 
@@ -678,14 +678,21 @@ calcRange() const
     int                        numUniqueY_ { 0 };
   };
 
-  RowVisitor visitor(this);
+  Range dataRange;
 
-  visitModel(visitor);
+  if (xmin().isSet() && ymin().isSet() && xmax().isSet() && ymax().isSet()) {
+     dataRange = Range(xmin().real(), ymin().real(), xmax().real(), ymax().real());
+  }
+  else {
+    RowVisitor visitor(this);
 
-  auto dataRange = visitor.range();
+    visitModel(visitor);
 
-  th->uniqueX_ = visitor.isUniqueX();
-  th->uniqueY_ = visitor.isUniqueY();
+    dataRange = visitor.range();
+
+    th->uniqueX_ = visitor.isUniqueX();
+    th->uniqueY_ = visitor.isUniqueY();
+  }
 
   if (isInterrupt())
     return dataRange;
@@ -778,17 +785,34 @@ initAxes()
 
   //---
 
+  // set x axis name
   QString xname;
 
   (void) xAxisName(xname, "X");
 
-  xAxis()->setDefLabel(xname);
+  if (isOverlay()) {
+    if (isFirstPlot() || isX1X2())
+       xAxis()->setDefLabel(xname, /*notify*/false);
+  }
+  else {
+    xAxis()->setDefLabel(xname, /*notify*/false);
+  }
 
+  //---
+
+  // set y axis name
   QString yname;
 
   (void) yAxisName(yname, "Y");
 
-  yAxis()->setDefLabel(yname);
+  if (isOverlay()) {
+    if (isY1Y2()) {
+      yAxis()->setDefLabel(yname, /*notify*/false);
+    }
+  }
+  else {
+    yAxis()->setDefLabel(yname, /*notify*/false);
+  }
 
   //---
 
@@ -1652,7 +1676,7 @@ void
 CQChartsScatterPlot::
 addPointKeyItems(CQChartsPlotKey *key)
 {
-  // start at next row (verical) or next column (horizontal) from previous key
+  // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
@@ -1673,36 +1697,9 @@ addPointKeyItems(CQChartsPlotKey *key)
       groupItem->addItem(colorItem);
     }
 
-    if (! key->isHorizontal()) {
-      //key->addItem(colorItem, row, col    );
-      //key->addItem(textItem , row, col + 1);
+    key->addItem(groupItem, row, col);
 
-      key->addItem(groupItem, row, col);
-
-      // across columns and then next row
-      ++col;
-
-      if (col >= key->columns()) {
-        col = 0;
-
-        ++row;
-      }
-    }
-    else {
-      //key->addItem(colorItem, row, col++);
-      //key->addItem(textItem , row, col++);
-
-      key->addItem(groupItem, row, col);
-
-      // across rows and then next column
-      ++row;
-
-      if (row >= key->columns()) {
-        row = 0;
-
-        ++col;
-      }
-    }
+    key->nextRowCol(row, col);
 
     return colorItem;
   };
@@ -1930,18 +1927,22 @@ calcAnnotationBBox() const
     if (isXDensity()) {
       auto bbox1 = xAxisWhisker_->calcDeltaBBox(dx);
 
-      dx += bbox1.getWidth();
+      if (bbox1.isSet()) {
+        dx += bbox1.getWidth();
 
-      bbox += bbox1;
+        bbox += bbox1;
+      }
     }
 
     // y density axis
     if (isYDensity()) {
       auto bbox1 = yAxisWhisker_->calcDeltaBBox(dy);
 
-      dy += bbox1.getHeight();
+      if (bbox1.isSet()) {
+        dy += bbox1.getHeight();
 
-      bbox += bbox1;
+        bbox += bbox1;
+      }
     }
 
     //---
@@ -1982,11 +1983,11 @@ hasBackground() const
   if (isXRug()) return true;
   if (isYRug()) return true;
 
-  if (isXDensity()) return true;
   if (isXWhisker()) return true;
-
-  if (isYDensity()) return true;
   if (isYWhisker()) return true;
+
+  if (isXDensity()) return true;
+  if (isYDensity()) return true;
 
   return false;
 }

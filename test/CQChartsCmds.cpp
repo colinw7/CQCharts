@@ -33,12 +33,10 @@
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsTextDlg.h>
 #include <CQChartsHelpDlg.h>
-#include <CQChartsPlotControlWidgets.h>
 
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
-#include <CQWidgetFactory.h>
 
 #include <CQBucketModel.h>
 #include <CQCollapseModel.h>
@@ -222,13 +220,6 @@ addCommands()
     //---
 
     cmdBase_->addCommands();
-
-    //---
-
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotRealControl",
-      new CQWidgetFactoryT<CQChartsPlotRealControl>());
-    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotIntControl",
-      new CQWidgetFactoryT<CQChartsPlotIntControl>());
 
     //---
 
@@ -1709,7 +1700,8 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       if (! annotation->getTclProperty(name, value))
         return errorMsg("Failed to get annotation property '" + name + "'");
 
-      return cmdBase_->setCmdRc(value);
+      return cmdBase_->setCmdRc(CQChartsVariant::toString(value, rc));
+      //return cmdBase_->setCmdRc(value);
     }
   }
   else if (argv.hasParseArg("model")) {

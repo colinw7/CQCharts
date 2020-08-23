@@ -174,6 +174,34 @@ setPressBehavior(const KeyBehavior &v)
 
 void
 CQChartsKey::
+nextRowCol(int &row, int &col) const
+{
+  if (! isHorizontal()) {
+    // across columns and then next row
+    ++col;
+
+    if (col >= columns()) {
+      col = 0;
+
+      ++row;
+    }
+  }
+  else {
+    // across rows and then next column
+    ++row;
+
+    if (row >= columns()) {
+      row = 0;
+
+      ++col;
+    }
+  }
+}
+
+//---
+
+void
+CQChartsKey::
 draw(CQChartsPaintDevice *) const
 {
 }

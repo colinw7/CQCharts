@@ -3,9 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + multi-axis (common code for overlay axis, rug, density, ...)
- + surface plot
+ + support model table as annotation widget
+ + context menu for key/axis/... under mouse
  + opengl renderer
+ + multi-axis (common code for overlay axis, rug, density, ...)
+   + x/y point plot
+ + axis annotations for all 2d plots
+ + surface plot
  + othello game
    + improve controls
  + view scrolled (view x/y pages)

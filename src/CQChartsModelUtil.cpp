@@ -93,7 +93,7 @@ QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent) {
 //------
 
 CQBaseModelType
-calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn)
+calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, int maxRows)
 {
   CQPerfTrace trace("CQChartsUtil::calcColumnType");
 
@@ -163,6 +163,9 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn)
   // determine column value type by looking at model values
   ColumnTypeVisitor columnTypeVisitor(icolumn);
 
+  if (maxRows > 0)
+    columnTypeVisitor.setNumRows(maxRows);
+
   CQChartsModelVisit::exec(charts, model, columnTypeVisitor);
 
   return columnTypeVisitor.columnType();
@@ -212,10 +215,18 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     // determine column type from values
     // TODO: cache (in plot ?), max visited values
 
-    if (column.type() != CQChartsColumn::Type::HHEADER)
-      return setRetType(calcColumnType(charts, model, icolumn));
-    else
+    if (column.type() == CQChartsColumn::Type::HHEADER)
       return setRetType(CQBaseModelType::STRING);
+
+    auto *baseModel =
+      qobject_cast<CQBaseModel *>(getBaseModel(const_cast<QAbstractItemModel *>(model)));
+
+    int maxRows = (baseModel ? baseModel->maxTypeRows() : -1);
+
+    if (maxRows < 0)
+      maxRows = 1000; // sane limit ?
+
+    return setRetType(calcColumnType(charts, model, icolumn, maxRows));
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
     return setRetType(CQBaseModelType::INTEGER);

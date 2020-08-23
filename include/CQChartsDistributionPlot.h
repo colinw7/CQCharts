@@ -795,22 +795,20 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool hasGroups() const;
 
  protected:
+  using DensityObj     = CQChartsDistributionDensityObj;
   using DensityObjData = CQChartsDistributionDensityObj::Data;
+  using ScatterObj     = CQChartsDistributionScatterObj;
+  using BarObj         = CQChartsDistributionBarObj;
 
-  virtual CQChartsDistributionDensityObj *createDensityObj(const BBox &rect, int groupInd,
-                                                           const DensityObjData &data,
-                                                           double doffset,
-                                                           const ColorInd &is) const;
+  virtual DensityObj *createDensityObj(const BBox &rect, int groupInd, const DensityObjData &data,
+                                       double doffset, const ColorInd &is) const;
 
-  virtual CQChartsDistributionScatterObj *createScatterObj(const BBox &rect, int groupInd,
-                                                           const Bucket &bucket, int n,
-                                                           const ColorInd &is,
-                                                           const ColorInd &iv) const;
+  virtual ScatterObj *createScatterObj(const BBox &rect, int groupInd, const Bucket &bucket, int n,
+                                       const ColorInd &is, const ColorInd &iv) const;
 
-  virtual CQChartsDistributionBarObj *createBarObj(const BBox &rect, int groupInd,
-                                                   const Bucket &bucket, const BarValue &barValue,
-                                                   bool isLine, const ColorInd &ig,
-                                                   const ColorInd &iv) const;
+  virtual BarObj *createBarObj(const BBox &rect, int groupInd, const Bucket &bucket,
+                               const BarValue &barValue, bool isLine, const ColorInd &ig,
+                               const ColorInd &iv) const;
 
  private:
   using Inds         = std::vector<ModelIndex>;

@@ -463,7 +463,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void initObjAxesI();
 
  protected:
-  using ValueSets     = std::vector<CQChartsBarChartValueSet>;
+  using ValueSet      = CQChartsBarChartValueSet;
+  using ValueSets     = std::vector<ValueSet>;
   using ValueNames    = std::vector<QString>;
   using ValueGroupInd = std::map<int, int>;
 
@@ -480,7 +481,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  public:
   int numValueSets() const { return valueData_.valueSets.size(); }
 
-  const CQChartsBarChartValueSet &valueSet(int i) const {
+  const ValueSet &valueSet(int i) const {
     assert(i >= 0 && i < int(valueData_.valueSets.size()));
     return valueData_.valueSets[i];
   }
@@ -492,13 +493,14 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  protected:
   void initGroupValueSet() const;
 
-  const CQChartsBarChartValueSet *groupValueSet(int groupId) const;
+  const ValueSet *groupValueSet(int groupId) const;
 
-  CQChartsBarChartValueSet *groupValueSetI(int groupId);
+  ValueSet *groupValueSetI(int groupId);
 
-  virtual CQChartsBarChartObj *createBarObj(const BBox &rect, const ColorInd &is,
-                                            const ColorInd &ig, const ColorInd &iv,
-                                            const QModelIndex &ind) const;
+  using BarObj = CQChartsBarChartObj;
+
+  virtual BarObj *createBarObj(const BBox &rect, const ColorInd &is, const ColorInd &ig,
+                               const ColorInd &iv, const QModelIndex &ind) const;
 
  protected:
   struct DotLineData {

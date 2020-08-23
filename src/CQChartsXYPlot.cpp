@@ -301,13 +301,6 @@ setMapXColumn(bool b)
   CQChartsUtil::testAndSet(mapXColumn_, b, [&]() { updateRangeAndObjs(); } );
 }
 
-void
-CQChartsXYPlot::
-setShowAllXOverlayAxes(bool b)
-{
-  CQChartsUtil::testAndSet(showAllXOverlayAxes_, b, [&]() { updateRangeAndObjs(); } );
-}
-
 //---
 
 void
@@ -514,10 +507,6 @@ addProperties()
   //---
 
   addProp("key", "keyLine", "drawLine", "Draw lines on key");
-
-  //---
-
-  addProp("xaxis", "showAllXOverlayAxes", "showOverlayAxes", "Show all overlay x axes");
 
   //---
 
@@ -2109,53 +2098,6 @@ addPolygon(const Polygon &poly, int groupInd, const ColorInd &is,
 
 //---
 
-void
-CQChartsXYPlot::
-drawXAxis(PaintDevice *device) const
-{
-  if (! isShowAllXOverlayAxes() || ! isOverlay() || ! isFirstPlot()) {
-    CQChartsPlot::drawXAxis(device);
-    return;
-  }
-
-  if (xAxis()->position().isSet()) {
-    CQChartsPlot::drawXAxis(device);
-    return;
-  }
-
-  //---
-
-  double apos1, apos2;
-
-  xAxis()->calcPos(this, apos1, apos2);
-
-  Plots plots;
-
-  overlayPlots(plots);
-
-  for (auto &plot : plots) {
-    if (plot == this)
-      continue;
-
-    if (! plot->xAxis())
-      continue;
-
-    plot->xAxis()->setPosition(CQChartsOptReal(apos1));
-
-    plot->CQChartsPlot::drawXAxis(device);
-
-    apos1 -= plot->xAxis()->bbox().getHeight();
-  }
-
-  xAxis()->setPosition(CQChartsOptReal(apos1));
-
-  CQChartsPlot::drawXAxis(device);
-
-  xAxis()->setPosition(CQChartsOptReal());
-}
-
-//---
-
 CQChartsXYPointObj *
 CQChartsXYPlot::
 createPointObj(int groupInd, const BBox &rect, const Point &p, const ColorInd &is,
@@ -2244,7 +2186,7 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  // start at next row (verical) or next column (horizontal) from previous key
+  // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
@@ -2254,39 +2196,18 @@ addKeyItems(CQChartsPlotKey *key)
 
     auto *groupItem = new CQChartsKeyItemGroup(this);
 
-    groupItem->addItem(colorItem);
-    groupItem->addItem(textItem );
-
-    if (! key->isHorizontal()) {
-      //key->addItem(colorItem, row, col    );
-      //key->addItem(textItem , row, col + 1);
-
-      key->addItem(groupItem, row, col);
-
-      // across columns and then next row
-      ++col;
-
-      if (col >= key->columns()) {
-        col = 0;
-
-        ++row;
-      }
+    if (! key->isFlipped()) {
+      groupItem->addItem(colorItem);
+      groupItem->addItem(textItem );
     }
     else {
-      //key->addItem(colorItem, row, col++);
-      //key->addItem(textItem , row, col++);
-
-      key->addItem(groupItem, row, col);
-
-      // across rows and then next column
-      ++row;
-
-      if (row >= key->columns()) {
-        row = 0;
-
-        ++col;
-      }
+      groupItem->addItem(textItem );
+      groupItem->addItem(colorItem);
     }
+
+    key->addItem(groupItem, row, col);
+
+    key->nextRowCol(row, col);
   };
 
   //---

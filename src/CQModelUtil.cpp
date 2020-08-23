@@ -242,9 +242,9 @@ calcColumnType(const QAbstractItemModel *model, int icolumn, int maxRows)
 QAbstractItemModel *
 getBaseModel(QAbstractItemModel *model)
 {
-  QAbstractItemModel *sourceModel = model;
+  auto *sourceModel = model;
 
-  QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+  auto *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
 
   while (proxyModel) {
     sourceModel = proxyModel->sourceModel();

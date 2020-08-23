@@ -53,6 +53,7 @@ class CQChartsPaintDevice;
 class CQChartsPoints;
 class CQChartsReals;
 class CQChartsDocument;
+class CQChartsSplitter;
 
 struct CQChartsTextOptions;
 
@@ -143,11 +144,15 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
+  // separators
+  Q_PROPERTY(bool plotSeparators READ isPlotSeparators WRITE setPlotSeparators)
+
   // hand drawn
   Q_PROPERTY(bool   handDrawn     READ isHandDrawn   WRITE setHandDrawn    )
   Q_PROPERTY(double handRoughness READ handRoughness WRITE setHandRoughness)
   Q_PROPERTY(double handFillDelta READ handFillDelta WRITE setHandFillDelta)
 
+  //! search timeout
   Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
 
   Q_ENUMS(Mode)
@@ -206,19 +211,23 @@ class CQChartsView : public QFrame,
   using Polygon = CQChartsGeom::Polygon;
 
  public:
-  using Plots   = std::vector<CQChartsPlot*>;
-  using Objs    = std::vector<CQChartsObj*>;
-  using PlotSet = std::set<CQChartsPlot*>;
+  using Plot    = CQChartsPlot;
+  using Plots   = std::vector<Plot *>;
+  using Objs    = std::vector<CQChartsObj *>;
+  using PlotSet = std::set<Plot *>;
 
-  using Position = CQChartsPosition;
-  using Rect     = CQChartsRect;
-  using Length   = CQChartsLength;
-  using Angle    = CQChartsAngle;
-  using Symbol   = CQChartsSymbol;
-  using Image    = CQChartsImage;
-  using Widget   = CQChartsWidget;
-  using Color    = CQChartsColor;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using Window      = CQChartsWindow;
+  using Position    = CQChartsPosition;
+  using Rect        = CQChartsRect;
+  using Length      = CQChartsLength;
+  using Angle       = CQChartsAngle;
+  using Symbol      = CQChartsSymbol;
+  using Image       = CQChartsImage;
+  using Widget      = CQChartsWidget;
+  using Font        = CQChartsFont;
+  using Color       = CQChartsColor;
+  using PaintDevice = CQChartsPaintDevice;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -237,8 +246,8 @@ class CQChartsView : public QFrame,
 
   //---
 
-  CQChartsWindow *window() const { return window_; }
-  void setWindow(CQChartsWindow *window);
+  Window *window() const { return window_; }
+  void setWindow(Window *window);
 
   //---
 
@@ -277,7 +286,7 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void setCurrentPlot(CQChartsPlot *plot);
+  void setCurrentPlot(Plot *plot);
 
   //---
 
@@ -289,7 +298,11 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void maximizePlot(CQChartsPlot *plot);
+  void maximizePlot(Plot *plot);
+
+  //---
+
+  void updateSeparators();
 
   //---
 
@@ -336,11 +349,16 @@ class CQChartsView : public QFrame,
   double fontFactor() const { return fontFactor_; }
   void setFontFactor(double r);
 
-  const CQChartsFont &font() const { return font_; }
-  void setFont(const CQChartsFont &f);
+  const Font &font() const { return font_; }
+  void setFont(const Font &f);
 
   double fontEm() const;
   double fontEx() const;
+
+  //---
+
+  bool isPlotSeparators() const { return plotSeparators_; }
+  void setPlotSeparators(bool b);
 
   //---
 
@@ -360,14 +378,13 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const;
+  void setPainterFont(PaintDevice *device, const Font &font) const;
 
-  void setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                          const CQChartsFont &font) const;
+  void setPlotPainterFont(const Plot *plot, PaintDevice *device, const Font &font) const;
 
-  QFont viewFont(const CQChartsFont &font) const;
+  QFont viewFont(const Font &font) const;
 
-  QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled=true) const;
+  QFont plotFont(const Plot *plot, const Font &font, bool scaled=true) const;
 
   double calcFontScale(const Size &size) const;
 
@@ -381,9 +398,9 @@ class CQChartsView : public QFrame,
   void expandedModelIndices(QModelIndexList &inds);
 
  private:
-  QFont viewFont(const QFont &font) const;
+//QFont viewFont(const QFont &font) const;
 
-  QFont plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled=true) const;
+//QFont plotFont(const Plot *plot, const QFont &font, bool scaled=true) const;
 
   QFont scaledFont(const QFont &font, const Size &size) const;
   QFont scaledFont(const QFont &font, double s) const;
@@ -460,22 +477,22 @@ class CQChartsView : public QFrame,
   //---
 
   // add/get/modify plots
-  void addPlot(CQChartsPlot *plot, const BBox &bbox=BBox());
+  void addPlot(Plot *plot, const BBox &bbox=BBox());
 
   int numPlots() const { return plots_.size(); }
 
   const Plots &plots() const { return plots_; }
-  CQChartsPlot *plot(int i) { assert(i >= 0 && i < int(plots_.size())); return plots_[i]; }
+  Plot *plot(int i) { assert(i >= 0 && i < int(plots_.size())); return plots_[i]; }
 
-  CQChartsPlot *getPlotForId(const QString &id) const;
+  Plot *getPlotForId(const QString &id) const;
 
   void getDrawPlots(Plots &plots) const;
   void getPlots(Plots &plots) const;
 
-  void raisePlot(CQChartsPlot *plot);
-  void lowerPlot(CQChartsPlot *plot);
+  void raisePlot(Plot *plot);
+  void lowerPlot(Plot *plot);
 
-  void removePlot(CQChartsPlot *plot);
+  void removePlot(Plot *plot);
 
   void removeAllPlots();
 
@@ -560,8 +577,8 @@ class CQChartsView : public QFrame,
 
   void initOverlay(const Plots &plots, bool reset=false);
 
-  void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
-  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
+  void initX1X2(Plot *plot1, Plot *plot2, bool overlay, bool reset=false);
+  void initY1Y2(Plot *plot1, Plot *plot2, bool overlay, bool reset=false);
 
   void initTabbed(const Plots &plots, bool reset=false);
 
@@ -616,20 +633,20 @@ class CQChartsView : public QFrame,
   // handle paint
   void paintEvent(QPaintEvent *) override;
 
-  void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
+  void paint(QPainter *painter, Plot *plot=nullptr);
 
-  void drawBackground(CQChartsPaintDevice *device) const;
+  void drawBackground(PaintDevice *device) const;
 
   void drawPlots(QPainter *painter);
 
   void showNoData(bool show);
 
-  void drawNoData(CQChartsPaintDevice *device);
+  void drawNoData(PaintDevice *device);
 
   bool hasAnnotations() const;
-  void drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
+  void drawAnnotations(PaintDevice *device, const CQChartsLayer::Type &layerType);
 
-  void drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
+  void drawKey(PaintDevice *device, const CQChartsLayer::Type &layerType);
 
   void lockPainter(bool lock);
 
@@ -646,12 +663,12 @@ class CQChartsView : public QFrame,
   //---
 
   // print to PNG/SVG
-  bool printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
-  bool printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
-  bool writeSVG(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool printPNG(const QString &filename, Plot *plot=nullptr);
+  bool printSVG(const QString &filename, Plot *plot=nullptr);
+  bool writeSVG(const QString &filename, Plot *plot=nullptr);
 
   // write javascript
-  bool writeScript(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool writeScript(const QString &filename, Plot *plot=nullptr);
 
   const QString &scriptSelectProc() const { return scriptSelectProc_; }
   void setScriptSelectProc(const QString &s) { scriptSelectProc_ = s; }
@@ -703,7 +720,7 @@ class CQChartsView : public QFrame,
 
   // handle region rubberband
   void startRegionBand(const Point &pos);
-  void updateRegionBand(CQChartsPlot *plot, const Point &pressPoint, const Point &movePoint);
+  void updateRegionBand(Plot *plot, const Point &pressPoint, const Point &movePoint);
   void updateRegionBand(const Point &pressPoint, const Point &movePoint);
   void endRegionBand();
 
@@ -738,7 +755,7 @@ class CQChartsView : public QFrame,
 
   // mouse data
   const Plots &mousePlots() const { return mouseData_.plots; }
-  const CQChartsPlot *mousePlot() const { return mouseData_.plot; }
+  const Plot *mousePlot() const { return mouseData_.plot; }
 
   Point mousePressPoint() const { return mouseData_.pressPoint; }
   Point mouseMovePoint () const { return mouseData_.movePoint; }
@@ -755,15 +772,15 @@ class CQChartsView : public QFrame,
   bool addPlots(Plots &plots, bool clear=true) const;
 
   // get base plot for plot
-  CQChartsPlot *basePlot(CQChartsPlot *plot) const;
+  Plot *basePlot(Plot *plot) const;
 
   // get all base plots
   bool addBasePlots(PlotSet &plots, bool clear=true) const;
 
   // get plots at point
-  CQChartsPlot *plotAt(const Point &p) const;
+  Plot *plotAt(const Point &p) const;
 
-  bool plotsAt(const Point &p, Plots &plots, CQChartsPlot* &plot,
+  bool plotsAt(const Point &p, Plots &plots, Plot* &plot,
                bool clear=true, bool first=false) const;
 
   bool plotsAt(const Point &p, Plots &plots, bool clear=true) const;
@@ -771,7 +788,7 @@ class CQChartsView : public QFrame,
   bool basePlotsAt(const Point &p, PlotSet &plots, bool clear=true) const;
 
   // get plot bbox
-  BBox plotBBox(CQChartsPlot *plot) const;
+  BBox plotBBox(Plot *plot) const;
 
   //---
 
@@ -780,11 +797,11 @@ class CQChartsView : public QFrame,
   //---
 
   // convert plot to/from index
-  CQChartsPlot *getPlotForInd(int ind) const;
-  int getIndForPlot(const CQChartsPlot *plot) const;
+  Plot *getPlotForInd(int ind) const;
+  int getIndForPlot(const Plot *plot) const;
 
   // get current plot
-  CQChartsPlot *currentPlot(bool remap=true) const;
+  Plot *currentPlot(bool remap=true) const;
 
   int calcCurrentPlotInd(bool remap=true) const;
 
@@ -975,6 +992,8 @@ class CQChartsView : public QFrame,
   void plotModelChanged();
   void plotConnectDataChangedSlot();
 
+  void plotViewBoxChanged();
+
   void updateAll();
   void updatePlots();
 
@@ -1039,7 +1058,7 @@ class CQChartsView : public QFrame,
 
   //---
 
-  bool printFile(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool printFile(const QString &filename, Plot *plot=nullptr);
 
   void printPNGSlot();
   void printPNGSlot(const QString &filename);
@@ -1110,9 +1129,9 @@ class CQChartsView : public QFrame,
   void resetConnections(bool notify);
   void resetConnections(const Plots &plots, bool notify);
 
-  void initOverlayPlot(CQChartsPlot *firstPlot);
+  void initOverlayPlot(Plot *firstPlot);
 
-  int plotPos(CQChartsPlot *plot) const;
+  int plotPos(Plot *plot) const;
 
   void annotationsAtPoint(const Point &w, Annotations &annotations) const;
 
@@ -1150,7 +1169,7 @@ class CQChartsView : public QFrame,
   //! structure for mouse interaction data
   struct MouseData {
     Plots              plots;                                   //!< plots at mouse point
-    CQChartsPlot*      plot       { nullptr };                  //!< plot at mouse point
+    Plot*              plot       { nullptr };                  //!< plot at mouse point
     Point              pressPoint { 0, 0 };                     //!< press point
     Point              oldMovePoint;                            //!< previous move point
     Point              movePoint  { 0, 0 };                     //!< move point
@@ -1274,10 +1293,12 @@ class CQChartsView : public QFrame,
 
   using LayerType = CQChartsLayer::Type;
 
+  using Separators = std::vector<CQChartsSplitter *>;
+
   static QSize defSizeHint_;
 
   CQCharts*          charts_            { nullptr };           //!< parent charts
-  CQChartsWindow*    window_            { nullptr };           //!< parent window
+  Window*            window_            { nullptr };           //!< parent window
   QImage*            image_             { nullptr };           //!< image buffer
   QPainter*          ipainter_          { nullptr };           //!< image painter
   DisplayRange*      displayRange_      { nullptr };           //!< display range
@@ -1301,11 +1322,12 @@ class CQChartsView : public QFrame,
   bool               preview_           { false };             //!< preview
   bool               scaleFont_         { true };              //!< auto scale font
   double             fontFactor_        { 1.0 };               //!< font scale factor
-  CQChartsFont       font_;                                    //!< font
-  CQChartsFont       saveFont_;                                //!< font
-  bool               handDrawn_         { false };
-  double             handRoughness_     { 1.0 };
-  double             handFillDelta_     { 16 };
+  Font               font_;                                    //!< font
+  Font               saveFont_;                                //!< saved font
+  bool               plotSeparators_    { false };             //!< show plot separators
+  bool               handDrawn_         { false };             //!< is handdrawn
+  double             handRoughness_     { 1.0 };               //!< handdrawn roughness
+  double             handFillDelta_     { 16 };                //!< handdrawn fill delta
   SizeData           sizeData_;                                //!< size control
   PosTextType        posTextType_       { PosTextType::PLOT }; //!< position text type
   BBox               prect_             { 0, 0, 100, 100 };    //!< plot rect
@@ -1328,8 +1350,50 @@ class CQChartsView : public QFrame,
   EditTitleDlg*      editTitleDlg_      { nullptr };           //!< edit title dialog
   QString            scriptSelectProc_;                        //!< script select proc
   Annotations        pressAnnotations_;                        //!< press annotations
-  CQChartsDocument*  noDataText_        { nullptr };
-  bool               updateNoData_      { true };
+  CQChartsDocument*  noDataText_        { nullptr };           //!< no data text
+  bool               updateNoData_      { true };              //!< no data needs update
+  Separators         separators_;
+  bool               separatorsInvalid_ { true };
+  bool               plotsHorizontal_   { false };
+  bool               plotsVertical_     { false };
+};
+
+//------
+
+class CQChartsSplitter : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsSplitter(CQChartsView *view, Qt::Orientation orientation);
+
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o);
+
+  void setPlot1(CQChartsPlot *plot) { plot1_ = plot; }
+  void setPlot2(CQChartsPlot *plot) { plot2_ = plot; }
+
+  void paintEvent(QPaintEvent *) override;
+
+  void mousePressEvent  (QMouseEvent *event) override;
+  void mouseMoveEvent   (QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+
+  bool event(QEvent *event) override;
+
+  QSize sizeHint() const override {
+    return QSize(8, 8);
+  }
+
+ private:
+  CQChartsView*   view_        { nullptr };
+  Qt::Orientation orientation_ { Qt::Vertical };
+  CQChartsPlot*   plot1_       { nullptr };
+  CQChartsPlot*   plot2_       { nullptr };
+  bool            pressed_     { false };
+  QPoint          pressPos_;
+  QPoint          movePos_;
+  QPoint          initPos_;
+  bool            hover_       { false };
 };
 
 #endif

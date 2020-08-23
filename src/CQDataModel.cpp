@@ -113,7 +113,7 @@ acceptsRow(const Cells &cells) const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! isFilterInited()) {
-      CQDataModel *th = const_cast<CQDataModel *>(this);
+      auto *th = const_cast<CQDataModel *>(this);
 
       th->initFilter();
     }
@@ -190,12 +190,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return QVariant(str);
     }
     else if (role == static_cast<int>(CQBaseModelRole::DataMin)) {
-      CQModelDetails *details = getDetails();
+      auto *details = getDetails();
 
       return details->columnDetails(section)->minValue();
     }
     else if (role == static_cast<int>(CQBaseModelRole::DataMax)) {
-      CQModelDetails *details = getDetails();
+      auto *details = getDetails();
 
       return details->columnDetails(section)->maxValue();
     }
@@ -326,7 +326,7 @@ data(const QModelIndex &index, int role) const
   auto setRowRoleValue = [&](int row, int role, const QVariant &value) {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    ColumnData &columnData1 = const_cast<ColumnData &>(columnData);
+    auto &columnData1 = const_cast<ColumnData &>(columnData);
 
     columnData1.roleRowValues[role][row] = value;
   };
@@ -535,7 +535,7 @@ getDetails() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! details_) {
-      CQDataModel *th = const_cast<CQDataModel *>(this);
+      auto *th = const_cast<CQDataModel *>(this);
 
       th->details_ = new CQModelDetails(th);
     }

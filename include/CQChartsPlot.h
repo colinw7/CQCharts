@@ -2451,6 +2451,9 @@ class CQChartsPlot : public CQChartsObj,
   // data range changed
   void rangeChanged();
 
+  // view box changed
+  void viewBoxChanged();
+
   // plot objects added
   void plotObjsAdded();
 

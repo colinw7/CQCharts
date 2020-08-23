@@ -49,19 +49,25 @@ class CQChartsDensity : public QObject {
  public:
   CQChartsDensity();
 
+  //! get/set draw type
   const DrawType &drawType() const { return drawType_; }
   void setDrawType(const DrawType &v) { drawType_ = v; emit dataChanged(); }
 
+  //! get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &v) { orientation_ = v; emit dataChanged(); }
 
+  //! get/set x values
+  const XVals &xvals() const { return xvals_; }
   void setXVals(const XVals &xvals) { xvals_ = xvals; invalidate(); }
 
   const Points &opoints() const { return opoints_; }
 
+  //! get/set num samples
   int numSamples() const { return numSamples_; }
   void setNumSamples(int i) { numSamples_ = i; invalidate(); }
 
+  //! get/set smooth parameter
   double smoothParameter() const { return smoothParameter_; }
   void setSmoothParameter(double r) { smoothParameter_ = r; invalidate(); }
 
@@ -105,6 +111,9 @@ class CQChartsDensity : public QObject {
   void calcDistributionPoly(Polygon &ppoly, const CQChartsPlot *plot, const BBox &rect,
                             const Qt::Orientation &orientation,
                             const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
+
+  void drawBuckets(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+                   const Qt::Orientation &orientation) const;
 
   //---
 

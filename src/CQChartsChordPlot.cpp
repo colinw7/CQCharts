@@ -680,7 +680,7 @@ initTableObjs(PlotObjs &objs) const
   // divide remaining degrees by total to get value->degrees factor
   auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  th->valueToDegrees_ = drange/total;
+  th->valueToDegrees_ = (total > 0 ? drange/total : 1);
 
   //---
 
@@ -922,7 +922,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
   // divide remaining degrees by total to get value->degrees factor
   auto *th = const_cast<CQChartsChordPlot *>(this);
 
-  th->valueToDegrees_ = drange/total;
+  th->valueToDegrees_ = (total > 0 ? drange/total : 1);
 
   //---
 

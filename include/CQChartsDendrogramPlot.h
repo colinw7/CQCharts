@@ -157,7 +157,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  virtual CQChartsDendrogramNodeObj *createNodeObj(Node *node, const BBox &rect) const;
+  using NodeObj = CQChartsDendrogramNodeObj;
+
+  virtual NodeObj *createNodeObj(Node *node, const BBox &rect) const;
 
  private:
   using Dendrogram = CQChartsDendrogram;

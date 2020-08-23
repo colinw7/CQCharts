@@ -50,7 +50,7 @@ const CQModelColumnDetails *
 CQModelDetails::
 columnDetails(int c) const
 {
-  CQModelDetails *th = const_cast<CQModelDetails *>(this);
+  auto *th = const_cast<CQModelDetails *>(this);
 
   return th->columnDetails(c);
 }
@@ -64,12 +64,12 @@ columnDetails(int c)
   auto p = columnDetails_.find(c);
 
   if (p == columnDetails_.end()) {
-    CQModelColumnDetails *details = new CQModelColumnDetails(this, c);
+    auto *details = new CQModelColumnDetails(this, c);
 
     p = columnDetails_.insert(p, ColumnDetails::value_type(c, details));
   }
 
-  CQModelColumnDetails *details = (*p).second;
+  auto *details = (*p).second;
 
   return details;
 }
@@ -82,7 +82,7 @@ initSimpleData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ == Initialized::NONE) {
-      CQModelDetails *th = const_cast<CQModelDetails *>(this);
+      auto *th = const_cast<CQModelDetails *>(this);
 
       th->updateSimple();
     }
@@ -97,7 +97,7 @@ initFullData() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (initialized_ != Initialized::FULL) {
-      CQModelDetails *th = const_cast<CQModelDetails *>(this);
+      auto *th = const_cast<CQModelDetails *>(this);
 
       th->updateFull();
     }
@@ -162,7 +162,7 @@ updateFull()
     updateSimple();
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQModelColumnDetails *columnDetails = this->columnDetails(c);
+    auto *columnDetails = this->columnDetails(c);
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
@@ -179,7 +179,7 @@ numericColumns() const
   CQModelDetails::Columns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQModelColumnDetails *columnDetails = this->columnDetails(c);
+    const auto *columnDetails = this->columnDetails(c);
 
     if (columnDetails->isNumeric())
       columns.push_back(columnDetails->column());
@@ -197,7 +197,7 @@ monotonicColumns() const
   CQModelDetails::Columns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQModelColumnDetails *columnDetails = this->columnDetails(c);
+    const auto *columnDetails = this->columnDetails(c);
 
     if (columnDetails->isMonotonic())
       columns.push_back(columnDetails->column());
@@ -826,7 +826,7 @@ initCache() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! initialized_) {
-      CQModelColumnDetails *th = const_cast<CQModelColumnDetails *>(this);
+      auto *th = const_cast<CQModelColumnDetails *>(this);
 
       (void) th->initData();
     }
@@ -1122,7 +1122,7 @@ initType() const
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (! typeInitialized_) {
-      CQModelColumnDetails *th = const_cast<CQModelColumnDetails *>(this);
+      auto *th = const_cast<CQModelColumnDetails *>(this);
 
       (void) th->calcType();
     }
@@ -1156,7 +1156,7 @@ calcType()
   //---
 
   if (type_ == CQBaseModelType::NONE) {
-    CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(CQModelUtil::getBaseModel(model()));
+    auto *baseModel = qobject_cast<CQBaseModel *>(CQModelUtil::getBaseModel(model()));
 
     int maxRows = (baseModel ? baseModel->maxTypeRows() : -1);
 

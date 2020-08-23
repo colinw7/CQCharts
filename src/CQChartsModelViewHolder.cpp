@@ -18,26 +18,7 @@ CQChartsModelViewHolder(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("modelViewHolder");
 
-  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
-
-#ifdef CQCHARTS_MODEL_VIEW
-  view_ = new CQChartsModelView(charts_, this);
-
-  layout->addWidget(view_);
-#else
-  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
-
-  table_ = new CQChartsTable(charts_, this);
-
-  connect(table_, SIGNAL(filterChanged()), this, SIGNAL(filterChanged()));
-
-  tree_ = new CQChartsTree(charts_, this);
-
-  stack_->addWidget(table_);
-  stack_->addWidget(tree_ );
-
-  layout->addWidget(stack_);
-#endif
+  init();
 }
 
 CQChartsModelViewHolder::
@@ -48,6 +29,35 @@ CQChartsModelViewHolder::
 #else
   delete table_;
   delete tree_;
+#endif
+}
+
+void
+CQChartsModelViewHolder::
+init()
+{
+  if (! charts() || view_)
+    return;
+
+  auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+#ifdef CQCHARTS_MODEL_VIEW
+  view_ = new CQChartsModelView(charts(), this);
+
+  layout->addWidget(view_);
+#else
+  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
+
+  table_ = new CQChartsTable(charts(), this);
+
+  connect(table_, SIGNAL(filterChanged()), this, SIGNAL(filterChanged()));
+
+  tree_ = new CQChartsTree(charts(), this);
+
+  stack_->addWidget(table_);
+  stack_->addWidget(tree_ );
+
+  layout->addWidget(stack_);
 #endif
 }
 

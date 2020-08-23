@@ -220,8 +220,10 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsCorrelationCellObj *createCellObj(const BBox &rect, int row, int col,
-                                            double value, const QModelIndex &ind) const;
+  using CellObj = CQChartsCorrelationCellObj;
+
+  CellObj *createCellObj(const BBox &rect, int row, int col, double value,
+                         const QModelIndex &ind) const;
 
  public slots:
   void setCellLabels(bool b);

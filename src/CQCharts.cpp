@@ -111,12 +111,18 @@
 #include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 
+#include <CQChartsPlotControlWidgets.h>
+#include <CQChartsModelViewHolder.h>
+
 #include <CQColorsPalette.h>
 
 #include <CQPropertyView.h>
 #include <CQPropertyViewItem.h>
 #include <CQColors.h>
 #include <CQColorsTheme.h>
+
+#include <CQWidgetFactory.h>
+
 #include <iostream>
 
 QString
@@ -487,6 +493,32 @@ init()
     viewMgr->addType("CQChartsOptLength"  , new CQChartsOptLengthPropertyViewType  );
     viewMgr->addType("CQChartsOptPosition", new CQChartsOptPositionPropertyViewType);
     viewMgr->addType("CQChartsOptRect"    , new CQChartsOptRectPropertyViewType    );
+
+    //---
+
+    // add widget factories
+
+    // controls
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotControlFrame",
+      new CQWidgetFactoryT<CQChartsPlotControlFrame>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotRealControl",
+      new CQWidgetFactoryT<CQChartsPlotRealControl>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotIntControl",
+      new CQWidgetFactoryT<CQChartsPlotIntControl>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotTimeControl",
+      new CQWidgetFactoryT<CQChartsPlotTimeControl>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotValueControl",
+      new CQWidgetFactoryT<CQChartsPlotValueControl>());
+
+    // model view
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelViewHolder",
+      new CQWidgetFactoryNoArgsT<CQChartsModelViewHolder>());
+
+    // other edits (all ?)
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAlphaEdit",
+      new CQWidgetFactoryT<CQChartsAlphaEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAngleEdit",
+      new CQWidgetFactoryT<CQChartsAngleEdit>());
   }
 }
 

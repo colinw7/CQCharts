@@ -589,17 +589,21 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  virtual CQChartsScatterPointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
-                                                  const ColorInd &is, const ColorInd &ig,
-                                                  const ColorInd &iv) const;
+  using PointObj = CQChartsScatterPointObj;
+  using CellObj  = CQChartsScatterCellObj;
+  using HexObj   = CQChartsScatterHexObj;
 
-  virtual CQChartsScatterCellObj *createCellObj(int groupInd, const BBox &rect, const ColorInd &is,
-                                                const ColorInd &ig, int ix, int iy,
-                                                const Points &points, int maxN) const;
+  virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
+                                   const ColorInd &is, const ColorInd &ig,
+                                   const ColorInd &iv) const;
 
-  virtual CQChartsScatterHexObj *createHexObj(int groupInd, const BBox &rect, const ColorInd &is,
-                                              const ColorInd &ig, int ix, int iy,
-                                              const Polygon &poly, int n, int maxN) const;
+  virtual CellObj *createCellObj(int groupInd, const BBox &rect, const ColorInd &is,
+                                 const ColorInd &ig, int ix, int iy, const Points &points,
+                                 int maxN) const;
+
+  virtual HexObj *createHexObj(int groupInd, const BBox &rect, const ColorInd &is,
+                               const ColorInd &ig, int ix, int iy, const Polygon &poly, int n,
+                               int maxN) const;
 
   //---
 

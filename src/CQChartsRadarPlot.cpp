@@ -579,6 +579,8 @@ addKeyItems(CQChartsPlotKey *key)
    public:
     RowVisitor(const CQChartsRadarPlot *plot, CQChartsPlotKey *key) :
      plot_(plot), key_(key) {
+      row_ = (! key_->isHorizontal() ? key_->maxRow() : 0);
+      col_ = (! key_->isHorizontal() ? 0 : key_->maxCol());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -598,6 +600,14 @@ addKeyItems(CQChartsPlotKey *key)
 
       ColorInd ic(data.row, numRows());
 
+      addKeyItem(name, ic);
+
+      return State::OK;
+    }
+
+    void addKeyItem(const QString &name, const ColorInd &ic) {
+      auto *plot = const_cast<CQChartsRadarPlot *>(plot_);
+
       auto *colorItem = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
       auto *textItem  = new CQChartsKeyText(plot, name, ic);
 
@@ -608,17 +618,16 @@ addKeyItems(CQChartsPlotKey *key)
 
       colorItem->setClickable(true);
 
-      //key_->addItem(colorItem, data.row, 0);
-      //key_->addItem(textItem , data.row, 1);
+      key_->addItem(groupItem, row_, col_);
 
-      key_->addItem(groupItem, data.row, 0);
-
-      return State::OK;
+      key_->nextRowCol(row_, col_);
     }
 
    private:
     const CQChartsRadarPlot* plot_ { nullptr };
     CQChartsPlotKey*         key_  { nullptr };
+    int                      row_  { 0 };
+    int                      col_  { 0 };
   };
 
   RowVisitor visitor(this, key);

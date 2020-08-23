@@ -82,6 +82,7 @@ addCommands()
     addCommand("qt_add_child_widget", new CQChartsBaseAddChildWidgetCmd(this));
     addCommand("qt_add_stretch"     , new CQChartsBaseAddStretchCmd    (this));
     addCommand("qt_connect_widget"  , new CQChartsBaseConnectWidgetCmd (this));
+    addCommand("qt_activate_slot"   , new CQChartsBaseActivateSlotCmd  (this));
 
     addCommand("qt_get_property", new CQChartsBaseGetPropertyCmd(this));
     addCommand("qt_set_property", new CQChartsBaseSetPropertyCmd(this));
@@ -350,7 +351,7 @@ qtConnectWidgetCmd(CQChartsCmdArgs &argv)
   auto *widget = qobject_cast<QWidget *>(CQUtil::nameToObject(name));
 
   if (! widget) {
-    errorMsg(QString("No parent '%1'").arg(name));
+    errorMsg(QString("No widget '%1'").arg(name));
     return false;
   }
 
@@ -363,6 +364,37 @@ qtConnectWidgetCmd(CQChartsCmdArgs &argv)
   auto slotName1   = (QString("1") + signalName).toStdString();
 
   QObject::connect(widget, signalName2.c_str(), slot, slotName1.c_str());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+qtActivateSlotCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::qtActivateSlotCmd");
+
+  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "widget name");
+  argv.addCmdArg("-slot", CQChartsCmdArg::Type::String, "slot name");
+  argv.addCmdArg("-args", CQChartsCmdArg::Type::String, "slot args");
+
+  if (! argv.parse())
+    return false;
+
+  auto  name   = argv.getParseStr("name");
+  auto *object = CQUtil::nameToObject(name);
+
+  if (! object) {
+    errorMsg(QString("No object '%1'").arg(name));
+    return false;
+  }
+
+  auto slotName = argv.getParseStr("slot").toStdString();
+  auto argsStr  = argv.getParseStr("arg" ).toStdString();
+
+  CQUtil::activateSlot(object, slotName.c_str(), argsStr.c_str());
 
   return true;
 }

@@ -1096,7 +1096,9 @@ void
 CQChartsPiePlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int row = 0;
+  // start at next row (vertical) or next column (horizontal) from previous key
+  int row = (! key->isHorizontal() ? key->maxRow() : 0);
+  int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](CQChartsPlotObj *obj) {
     auto *colorItem = new CQChartsPieKeyColor(this, obj);
@@ -1107,12 +1109,9 @@ addKeyItems(CQChartsPlotKey *key)
     groupItem->addItem(colorItem);
     groupItem->addItem(textItem );
 
-    //key->addItem(colorItem, row, 0);
-    //key->addItem(textItem , row, 1);
+    key->addItem(groupItem, row, col);
 
-    key->addItem(groupItem, row, 0);
-
-    ++row;
+    key->nextRowCol(row, col);
   };
 
   //---

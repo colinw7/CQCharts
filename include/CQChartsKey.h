@@ -110,9 +110,11 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  // max rows
+  // columns
   int columns() const { return columns_; }
   void setColumns(int i);
+
+  //---
 
   // max rows
   int maxRows() const { return maxRows_; }
@@ -137,6 +139,10 @@ class CQChartsKey : public CQChartsBoxObj,
   virtual void updateLayout() { }
 
   virtual void updateKeyItems() { }
+
+  //---
+
+  void nextRowCol(int &row, int &col) const;
 
   //---
 

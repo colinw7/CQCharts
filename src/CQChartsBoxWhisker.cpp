@@ -11,13 +11,15 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
             const CQChartsBoxWhisker &whisker, const BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
 {
-  drawWhisker(plot, device, whisker.statData(), bbox, width, orientation, cornerSize);
+  std::vector<double> outliers;
+
+  drawWhisker(plot, device, whisker.statData(), outliers, bbox, width, orientation, cornerSize);
 }
 
 void
 drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatData &statData,
-            const BBox &bbox, const CQChartsLength &width, const Qt::Orientation &orientation,
-            const CQChartsLength &cornerSize)
+            const std::vector<double> &outliers, const BBox &bbox, const CQChartsLength &width,
+            const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
 {
   // calc widths and position
   double ww, bw;
@@ -42,8 +44,6 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatD
 
   bool notched = false;
   bool median  = false;
-
-  std::vector<double> outliers;
 
   drawWhiskerBar(plot, device, statData, pos, orientation, ww, bw, cornerSize,
                  notched, median, outliers);
@@ -207,6 +207,13 @@ setAlpha(const CQChartsAlpha &a)
   CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
 }
 
+void
+CQChartsAxisBoxWhisker::
+setDrawType(const DrawType &t)
+{
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(); } );
+}
+
 CQChartsGeom::BBox
 CQChartsAxisBoxWhisker::
 calcNBBox(int n) const
@@ -319,11 +326,13 @@ addProperties(const QString &path, const QString &desc)
     return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  addProp(path          , "visible", "", desc + " visible");
-  addProp(path          , "side"   , "", desc + " side");
-  addProp(path          , "width"  , "", desc + " width");
-  addProp(path          , "margin" , "", desc + " margin");
-  addProp(path + "/fill", "alpha"  , "", desc + " alpha");
+  addProp(path, "visible" , "", desc + " visible");
+  addProp(path, "side"    , "", desc + " side");
+  addProp(path, "width"   , "", desc + " width");
+  addProp(path, "margin"  , "", desc + " margin");
+  addProp(path, "drawType", "", desc + " draw type");
+
+  addProp(path + "/fill", "alpha", "", desc + " alpha");
 }
 
 void
@@ -363,7 +372,25 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
     rect = CQChartsGeom::BBox(pos, whisker_.min(), pos + ww, whisker_.max());
   }
 
-  CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_, rect, width(), direction());
+  switch (drawType()) {
+    case DrawType::WHISKER:
+      CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_, rect, width(), direction());
+      break;
+    case DrawType::WHISKER_BAR: {
+      std::vector<double> outliers;
+
+      for (const auto &x : whisker_.values()) {
+        if (whisker_.statData().isOutlier(x))
+          outliers.push_back(x);
+      }
+
+      CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_.statData(), outliers, rect,
+                                          width(), direction());
+      break;
+    }
+    default:
+      break;
+  }
 
   if (plot()->showBoxes())
     plot()->drawWindowColorBox(device, rect, Qt::red);
@@ -403,6 +430,13 @@ CQChartsAxisDensity::
 setAlpha(const CQChartsAlpha &a)
 {
   CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
+}
+
+void
+CQChartsAxisDensity::
+setDrawType(const DrawType &t)
+{
+  CQChartsUtil::testAndSet(drawType_, t, [&]() { dataInvalidate(); } );
 }
 
 CQChartsGeom::BBox
@@ -483,10 +517,12 @@ addProperties(const QString &path, const QString &desc)
     return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  addProp(path          , "visible", "", desc + " visible");
-  addProp(path          , "side"   , "", desc + " side");
-  addProp(path          , "width"  , "", desc + " width");
-  addProp(path + "/fill", "alpha"  , "", desc + " alpha");
+  addProp(path, "visible" , "", desc + " visible");
+  addProp(path, "side"    , "", desc + " side");
+  addProp(path, "width"   , "", desc + " width");
+  addProp(path, "drawType", "", desc + " draw type");
+
+  addProp(path + "/fill", "alpha", "", desc + " alpha");
 }
 
 void
@@ -525,7 +561,18 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta
     rect = CQChartsGeom::BBox(pos, xmin, pos + dw, xmax);
   }
 
-  density().drawDistribution(plot(), device, rect, direction());
+  //---
+
+  switch (drawType()) {
+    case DrawType::DISTRIBUTION:
+      density().drawDistribution(plot(), device, rect, direction());
+      break;
+    case DrawType::BUCKETS:
+      density().drawBuckets(plot(), device, rect, direction());
+      break;
+    default:
+      break;
+  }
 
   if (plot()->showBoxes())
     plot()->drawWindowColorBox(device, rect, Qt::red);

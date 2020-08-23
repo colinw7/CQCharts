@@ -401,7 +401,7 @@ init() const
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (! initialized_) {
-    CQValueSet *th = const_cast<CQValueSet *>(this);
+    auto *th = const_cast<CQValueSet *>(this);
 
     th->init();
   }
@@ -820,7 +820,7 @@ initPatterns(int numIdeal) const
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (! spatternsSet_) {
-    CQSValues *th = const_cast<CQSValues *>(this);
+    auto *th = const_cast<CQSValues *>(this);
 
     using DepthCountMap = std::map<int,CQTriePatterns>;
 
