@@ -2124,6 +2124,13 @@ CQChartsKeyItemGroup(Plot *plot) :
 {
 }
 
+CQChartsKeyItemGroup::
+~CQChartsKeyItemGroup()
+{
+  for (auto &item : items_)
+    delete item;
+}
+
 void
 CQChartsKeyItemGroup::
 addItem(Item *item)
@@ -2149,6 +2156,8 @@ removeItem(Item *item)
       items_.push_back(item);
 
   std::swap(items_, items);
+
+  delete item;
 }
 
 CQChartsGeom::Size

@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + sankey_node.tcl bad placement (single x)
  + support model table as annotation widget
  + context menu for key/axis/... under mouse
  + opengl renderer

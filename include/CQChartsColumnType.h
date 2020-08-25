@@ -65,6 +65,9 @@ class CQChartsColumnTypeParam {
     values_ << values; return *this; }
   QStringList values() const { return values_; }
 
+  bool isHidden() const { return hidden_; }
+  CQChartsColumnTypeParam &setHidden(bool hidden) { hidden_ = hidden; return *this; }
+
  private:
   QString     name_;                  //!< name
   Type        type_ { Type::STRING }; //!< type
@@ -73,6 +76,7 @@ class CQChartsColumnTypeParam {
   QString     desc_;                  //!< description string
   QVariant    def_;                   //!< default value
   QStringList values_;                //!< enum values
+  bool        hidden_ { false };      //!< is hidden param
 };
 
 //---
@@ -117,6 +121,9 @@ class CQChartsColumnType {
   virtual bool isIntegral() const { return false; }
   virtual bool isBoolean () const { return false; }
   virtual bool isTime    () const { return false; }
+
+  bool isHidden() const { return hidden_; }
+  void setHidden(bool hidden) { hidden_ = hidden; }
 
   virtual QString formatName() const { return "format"; }
 
@@ -165,9 +172,10 @@ class CQChartsColumnType {
                        const QString &name, QString &value) const;
 
  protected:
-  Type   type_;       //!< base type
-  int    ind_ { -1 }; //!< insertion index
-  Params params_;     //!< parameters
+  Type   type_;             //!< base type
+  int    ind_    { -1 };    //!< insertion index
+  Params params_;           //!< parameters
+  bool   hidden_ { false }; //!< is type hidden
 };
 
 //---
@@ -725,7 +733,7 @@ class CQChartsColumnTypeMgr : public QObject {
   CQChartsColumnTypeMgr(CQCharts *charts);
  ~CQChartsColumnTypeMgr();
 
-  void typeNames(QStringList &names) const;
+  void typeNames(QStringList &names, bool hidden=false) const;
 
   void addType(Type type, CQChartsColumnType *data);
 
@@ -781,6 +789,7 @@ class CQChartsColumnTypeMgr : public QObject {
   };
 
   using ModelCacheData = std::map<int, CacheData>;
+  using CacheDataStack = std::vector<CacheData>;
 
  private:
   bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -789,8 +798,6 @@ class CQChartsColumnTypeMgr : public QObject {
   const CacheData &getModelCacheData(const QAbstractItemModel *model, bool &ok) const;
 
  private:
-  using CacheDataStack = std::vector<CacheData>;
-
   CQCharts*          charts_         { nullptr }; //!< charts
   TypeData           typeData_;                   //!< type data
   ModelCacheData     modelCacheData_;              //!< column type cache (per model)

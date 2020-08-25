@@ -641,6 +641,7 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
  public:
   CQChartsKeyItemGroup(Plot *plot);
+ ~CQChartsKeyItemGroup();
 
   Plot *plot() const { return plot_; }
 

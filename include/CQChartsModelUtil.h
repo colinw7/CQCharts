@@ -31,7 +31,8 @@ CQBaseModelType calcColumnType(const QAbstractItemModel *model, int icolumn, int
 //------
 
 bool columnValueType(CQCharts *charts, const QAbstractItemModel *model,
-                     const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData);
+                     const CQChartsColumn &column, CQChartsModelTypeData &columnTypeData,
+                     bool init=false);
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                            const CQChartsColumn &column, const QString &typeStr,

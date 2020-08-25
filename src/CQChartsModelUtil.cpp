@@ -175,7 +175,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
 //  . column can be model column, header or custom expression
 bool
 columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-                CQChartsModelTypeData &columnTypeData) {
+                CQChartsModelTypeData &columnTypeData, bool init) {
   assert(model);
 
   auto setRetType = [&](const CQBaseModelType &type) {
@@ -226,7 +226,14 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     if (maxRows < 0)
       maxRows = 1000; // sane limit ?
 
-    return setRetType(calcColumnType(charts, model, icolumn, maxRows));
+    auto columnType = calcColumnType(charts, model, icolumn, maxRows);
+
+    if (init) {
+      (void) columnTypeMgr->setModelColumnType(const_cast<QAbstractItemModel *>(model),
+               column, columnType, columnTypeData.nameValues);
+    }
+
+    return setRetType(columnType);
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
     return setRetType(CQBaseModelType::INTEGER);

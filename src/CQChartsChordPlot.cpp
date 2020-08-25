@@ -598,10 +598,6 @@ initConnectionObjs() const
 {
   CQPerfTrace trace("CQChartsChordPlot::initConnectionObjs");
 
-  auto *th = const_cast<CQChartsChordPlot *>(this);
-
-  th->connectionNameDataMap_.clear();
-
   return CQChartsConnectionPlot::initConnectionObjs();
 }
 
@@ -609,12 +605,10 @@ void
 CQChartsChordPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
-  auto *th = const_cast<CQChartsChordPlot *>(this);
-
   QString srcStr = QString("%1").arg(id);
 
   // find src (create if doesn't exist)
-  auto &srcData = findNameData(th->connectionNameDataMap_, srcStr, connectionsData.ind);
+  auto &srcData = findNameData(srcStr, connectionsData.ind);
 
   srcData.setName (connectionsData.name);
   srcData.setGroup(connectionsData.groupData);
@@ -622,7 +616,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   for (const auto &connection : connectionsData.connections) {
     QString destStr = QString("%1").arg(connection.node);
 
-    auto &destData = findNameData(th->connectionNameDataMap_, destStr, connectionsData.ind);
+    auto &destData = findNameData(destStr, connectionsData.ind);
 
     // create link from src to dest for value
     addEdge(srcData, destData, connection.value, /*symmetric*/false);

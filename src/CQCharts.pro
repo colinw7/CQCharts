@@ -113,6 +113,7 @@ CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
 CQChartsPlotControlWidgets.cpp \
+CQChartsPlotPropertyEdit.cpp \
 \
 CQChartsInterfaceTheme.cpp \
 CQChartsThemeName.cpp \
@@ -426,6 +427,7 @@ HEADERS += \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
 ../include/CQChartsPlotControlWidgets.h \
+../include/CQChartsPlotPropertyEdit.h \
 \
 ../include/CQChartsInterfaceTheme.h \
 ../include/CQChartsThemeName.h \

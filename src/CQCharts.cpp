@@ -113,6 +113,7 @@
 
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
+#include <CQChartsPlotPropertyEdit.h>
 
 #include <CQColorsPalette.h>
 
@@ -519,6 +520,19 @@ init()
       new CQWidgetFactoryT<CQChartsAlphaEdit>());
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAngleEdit",
       new CQWidgetFactoryT<CQChartsAngleEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsColorEdit",
+      new CQWidgetFactoryT<CQChartsColorEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsFontEdit",
+      new CQWidgetFactoryT<CQChartsFontEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsLengthEdit",
+      new CQWidgetFactoryT<CQChartsLengthEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPositionEdit",
+      new CQWidgetFactoryT<CQChartsPositionEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsSymbolEdit",
+      new CQWidgetFactoryT<CQChartsSymbolEdit>());
+
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEdit",
+      new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEdit>());
   }
 }
 

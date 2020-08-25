@@ -398,6 +398,9 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   //! get depth nodes
   const DepthNodesMap &depthNodesMap() const { return depthNodesMap_; }
 
+  //! clear depth nodes
+  void clearDepthNodesMap() { depthNodesMap_.clear(); }
+
   //! add node at depth
   void addDepthNode(int depth, Node *node) { depthNodesMap_[depth].nodes.push_back(node); }
 
@@ -759,7 +762,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   enum class Align {
     SRC,
     DEST,
-    JUSTIFY
+    JUSTIFY,
+    RAND
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -896,6 +900,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void placeGraph(Graph *graph) const;
   void placeGraphNodes(Graph *graph, const Nodes &nodes) const;
 
+  void calcGraphNodesXPos(Graph *graph, const Nodes &nodes) const;
+
   //---
 
   void addObjects(PlotObjs &objs) const;
@@ -976,6 +982,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // options
   Align  align_       { Align::JUSTIFY }; //!< align
+  int    alignRand_   { 10 };             //!< number of random values for align
   bool   adjustNodes_ { true };           //!< adjust nodes
   double nodeXMargin_ { 0.01 };           //!< node x margin
   double nodeYMargin_ { 0.2 };            //!< node y margin

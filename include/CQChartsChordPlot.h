@@ -502,7 +502,6 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   RotatedTextBoxObj* textBox_        { nullptr }; //!< text box
   double             valueToDegrees_ { 1.0 };     //!< value to degrees scale
   NameDataMap        nameDataMap_;                //!< name data map
-  NameDataMap        connectionNameDataMap_;      //!< name data map for connections
   IndName            indName_;                    //!< ind name
   ArcObjs            arcObjs_;                    //!< arc objects
   EdgeObjs           edgeObjs_;                   //!< edge objects

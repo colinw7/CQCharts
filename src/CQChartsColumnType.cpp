@@ -120,6 +120,8 @@ description()
       "the original data can still be accessed.");
 }
 
+//------
+
 CQChartsColumnTypeMgr::
 CQChartsColumnTypeMgr(CQCharts *charts) :
  charts_(charts)
@@ -135,13 +137,16 @@ CQChartsColumnTypeMgr::
 
 void
 CQChartsColumnTypeMgr::
-typeNames(QStringList &names) const
+typeNames(QStringList &names, bool hidden) const
 {
   using IndString = std::map<int, QString>;
 
   IndString indString;
 
   for (auto &typeData : typeData_) {
+    if (! hidden && typeData.second->isHidden())
+       continue;
+
     QString name = CQBaseModel::typeName(typeData.first);
 
     indString[typeData.second->ind()] = name;
@@ -1564,7 +1569,7 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   converted = true;
 
   if (var.type() == QVariant::Polygon) {
-    QPolygonF poly = var.value<QPolygon>();
+    auto poly = var.value<QPolygon>();
 
     return QVariant::fromValue<QPolygonF>(poly);
   }

@@ -28,6 +28,7 @@
 #include <CQCharts.h>
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
+#include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -6970,8 +6971,8 @@ initColorColumnData()
     if (columnTypeData.type == ColumnType::COLOR) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const CQChartsColumnColorType *colorType =
-        dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnTypeData.type));
+      const auto *colorType = dynamic_cast<const CQChartsColumnColorType *>(
+        columnTypeMgr->getType(columnTypeData.type));
       assert(colorType);
 
       colorType->getMapData(charts(), model().data(), colorColumn(),
@@ -7191,9 +7192,8 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
     if (columnTypeData.type == ColumnType::SYMBOL) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const auto *symbolTypeType =
-        dynamic_cast<const CQChartsColumnSymbolTypeType *>(
-          columnTypeMgr->getType(columnTypeData.type));
+      const auto *symbolTypeType = dynamic_cast<const CQChartsColumnSymbolTypeType *>(
+        columnTypeMgr->getType(columnTypeData.type));
       assert(symbolTypeType);
 
       symbolTypeType->getMapData(charts(), model().data(), symbolTypeData.column,
@@ -7317,9 +7317,8 @@ initSymbolSizeData(SymbolSizeData &symbolSizeData) const
     if (columnTypeData.type == ColumnType::SYMBOL_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const auto *symbolSizeType =
-        dynamic_cast<const CQChartsColumnSymbolSizeType *>(
-          columnTypeMgr->getType(columnTypeData.type));
+      const auto *symbolSizeType = dynamic_cast<const CQChartsColumnSymbolSizeType *>(
+        columnTypeMgr->getType(columnTypeData.type));
       assert(symbolSizeType);
 
       symbolSizeType->getMapData(charts(), model().data(), symbolSizeData.column,
@@ -7442,9 +7441,8 @@ initFontSizeData(FontSizeData &fontSizeData) const
     if (columnTypeData.type == ColumnType::FONT_SIZE) {
       auto *columnTypeMgr = charts()->columnTypeMgr();
 
-      const auto *fontSizeType =
-        dynamic_cast<const CQChartsColumnFontSizeType *>(
-          columnTypeMgr->getType(columnTypeData.type));
+      const auto *fontSizeType = dynamic_cast<const CQChartsColumnFontSizeType *>(
+        columnTypeMgr->getType(columnTypeData.type));
       assert(fontSizeType);
 
       fontSizeType->getMapData(charts(), model().data(), fontSizeData.column,
@@ -10636,6 +10634,11 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
 
   if (controlFrame)
     controlFrame->setPlot(this);
+
+  auto *propertyEdit = dynamic_cast<CQChartsPlotPropertyEdit *>(widget.widget());
+
+  if (propertyEdit)
+    propertyEdit->setPlot(this);
 
   auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget.widget());
 

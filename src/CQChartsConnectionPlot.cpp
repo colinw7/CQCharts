@@ -141,8 +141,8 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
       if (! linkColumn.isValid()) {
         bool ok;
 
-        QString str = CQChartsModelUtil::modelString(charts, model, row, columnDetails->column(),
-                                                     parent, ok);
+        auto str = CQChartsModelUtil::modelString(charts, model, row, columnDetails->column(),
+                                                  parent, ok);
         if (! ok) continue;
 
         CQChartsNamePair::Names names;
@@ -483,7 +483,7 @@ initLinkObjs() const
       }
       else {
         bool ok;
-        QString linkStr = plot_->modelString(linkConnectionData.linkModelInd, ok);
+        auto linkStr = plot_->modelString(linkConnectionData.linkModelInd, ok);
         if (! ok) return addDataError(linkConnectionData.linkModelInd, "Invalid Link");
 
         namePair = CQChartsNamePair(linkStr, separator_);
@@ -596,7 +596,7 @@ initConnectionObjs() const
       }
       else {
         bool ok3;
-        QString connectionsStr = plot_->modelString(connectionsModelInd, ok3);
+        auto connectionsStr = plot_->modelString(connectionsModelInd, ok3);
         if (! ok3) return addDataError(connectionsModelInd, "Invalid connection string");
 
         CQChartsConnectionList::stringToConnections(connectionsStr, connectionsData.connections);
@@ -702,7 +702,7 @@ initHierObjs() const
       hierData_.parentLinkInd = ModelIndex(plot, data.row, plot_->linkColumn(), data.parent);
 
       bool ok;
-      QString linkStr = plot_->modelString(hierData_.parentLinkInd, ok);
+      auto linkStr = plot_->modelString(hierData_.parentLinkInd, ok);
 
       hierData_.linkStrs.push_back(linkStr);
 
@@ -756,8 +756,8 @@ initHierObjs() const
 
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(linkModelInd , ok1);
-      double  value   = plot_->modelReal  (valueModelInd, ok2);
+      auto linkStr = plot_->modelString(linkModelInd , ok1);
+      auto value   = plot_->modelReal  (valueModelInd, ok2);
 
       if (! ok1) return addDataError(linkModelInd , "Invalid Link");
       if (! ok2) return addDataError(valueModelInd, "Invalid Value");
@@ -825,7 +825,7 @@ initPathObjs() const
 
       // get hier names from path column
       bool ok;
-      QString pathStrs = plot_->modelString(pathModelInd, ok);
+      auto pathStrs = plot_->modelString(pathModelInd, ok);
       if (! ok) return State::SKIP;
 
       QStringList pathStringList = pathStrs.split(separator_, QString::SkipEmptyParts);
@@ -883,11 +883,11 @@ initFromToObjs() const
 
       // get from/to node names
       bool ok1;
-      QString fromName = plot_->modelString(fromModelInd, ok1);
+      auto fromName = plot_->modelString(fromModelInd, ok1);
       if (! ok1) return State::SKIP;
 
       bool ok2;
-      QString toName = plot_->modelString(toModelInd, ok2);
+      auto toName = plot_->modelString(toModelInd, ok2);
       if (! ok2) return State::SKIP;
 
       //---
@@ -912,7 +912,7 @@ initFromToObjs() const
         ModelIndex attributesModelInd(plot, data.row, plot_->attributesColumn(), data.parent);
 
         bool ok4;
-        QString attributesStr = plot_->modelString(attributesModelInd, ok4);
+        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
         nameValues = CQChartsNameValues(attributesStr);

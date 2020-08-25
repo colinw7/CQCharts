@@ -19,10 +19,12 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
+#include <CQChartsRand.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CMathRound.h>
 
 #include <deque>
 
@@ -226,6 +228,7 @@ addProperties()
 
   // options
   addProp("options", "adjustNodes", "adjustNodes", "Adjust node placement");
+  addProp("options", "align"      , "align"  , "Node alignment");
 
   // node
   addProp("node", "nodeXMargin", "marginX", "Node X margin");
@@ -270,7 +273,6 @@ addProperties()
 
   // text
   addProp("text", "textVisible", "visible", "Text label visible");
-  addProp("text", "align"      , "align"  , "Text label align");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH);
@@ -834,6 +836,8 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
 
     srcNode ->addDestEdge(edge);
     destNode->addSrcEdge (edge);
+
+    destNode->setValue(OptReal(connection.value));
   }
 }
 
@@ -949,8 +953,30 @@ void
 CQChartsSankeyPlot::
 addObjects(PlotObjs &objs) const
 {
-  if (! graph_ || graph_->nodes().empty() || ! graph_->rect().isValid())
+  if (! graph_ || graph_->nodes().empty() || ! graph_->rect().isSet())
     return;
+
+  if (! graph_->rect().isValid()) {
+    auto rect = graph_->rect();
+
+    auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+    if (rect.getWidth() <= 0) {
+      double cx = rect.getXMid();
+
+      rect.setXMin(cx - 1.0);
+      rect.setXMax(cx + 1.0);
+    }
+
+    if (rect.getHeight() <= 0) {
+      double cy = rect.getYMid();
+
+      rect.setYMin(cy - 1.0);
+      rect.setYMax(cy + 1.0);
+    }
+
+    th->graph_->setRect(rect);
+  }
 
   //---
 
@@ -1022,13 +1048,8 @@ placeGraphNodes(Graph *graph, const Nodes &nodes) const
 
   //---
 
-  // place graph nodes at x position
-  for (const auto &node : nodes) {
-    int xpos = calcXPos(graph, node);
-
-    graph->addDepthSize(xpos, node->edgeSum());
-    graph->addDepthNode(xpos, node);
-  }
+  // set x pos of nodes
+  calcGraphNodesXPos(graph, nodes);
 
   //---
 
@@ -1064,6 +1085,34 @@ placeGraphNodes(Graph *graph, const Nodes &nodes) const
   //---
 
   graph->setPlaced(true);
+}
+
+void
+CQChartsSankeyPlot::
+calcGraphNodesXPos(Graph *graph, const Nodes &nodes) const
+{
+  // place graph nodes at x position
+  graph->clearDepthNodesMap();
+
+  for (const auto &node : nodes) {
+    int xpos = calcXPos(graph, node);
+
+    graph->addDepthSize(xpos, node->edgeSum());
+    graph->addDepthNode(xpos, node);
+  }
+
+  // check if all nodes at single x
+  if (graph->depthNodesMap().size() == 1 && align() != Align::RAND) {
+    auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+    th->align_     = Align::RAND;
+    th->alignRand_ = std::max(CMathRound::RoundNearest(sqrt(nodes.size())), 2);
+
+    for (const auto &node : nodes)
+      node->setDepth(-1);
+
+    calcGraphNodesXPos(graph, nodes);
+  }
 }
 
 void
@@ -1305,6 +1354,13 @@ calcXPos(Graph *graph, Node *node) const
         double f = 1.0*srcDepth/(srcDepth + destDepth);
 
         xpos = int(f*graph->maxNodeDepth());
+      }
+      else if (align() == Align::RAND) {
+        CQChartsRand::RealInRange rand(0, alignRand_);
+
+        xpos = CMathRound::RoundNearest(rand.gen());
+
+        const_cast<Node *>(node)->setDepth(xpos);
       }
     }
   }
@@ -3207,8 +3263,8 @@ setRect(const BBox &rect)
   // rect is always from nodes so adjust nodes to give rect
   updateRect();
 
-  double fx = rect.getWidth ()/rect_.getWidth ();
-  double fy = rect.getHeight()/rect_.getHeight();
+  double fx = (rect_.getWidth () > 0.0 ? rect.getWidth ()/rect_.getWidth () : 1.0);
+  double fy = (rect_.getHeight() > 0.0 ? rect.getHeight()/rect_.getHeight() : 1.0);
 
   scale(fx, fy);
 
