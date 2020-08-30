@@ -285,7 +285,7 @@ class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsGroupObj(CQChartsPlot *plot, const BBox &bbox=BBox(), const ColorInd &ig=ColorInd());
+  CQChartsGroupObj(Plot *plot, const BBox &bbox=BBox(), const ColorInd &ig=ColorInd());
 };
 
 #endif

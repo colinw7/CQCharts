@@ -301,7 +301,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   else if (argv.getParseBool("data")) fileType = CQChartsFileType::DATA;
   else if (argv.getParseBool("expr")) fileType = CQChartsFileType::EXPR;
   else if (argv.hasParseArg ("var") ) {
-    QStringList strs = argv.getParseStrs("var");
+    auto strs = argv.getParseStrs("var");
 
     for (int i = 0; i < strs.length(); ++i)
       inputData.vars.push_back(strs[i]);
@@ -309,7 +309,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
     fileType = CQChartsFileType::VARS;
   }
   else if (argv.hasParseArg("tcl") ) {
-    QStringList strs = argv.getParseStrs("tcl");
+    auto strs = argv.getParseStrs("tcl");
 
     // { { <column_values> } { <column_values> } ... }
     for (int i = 0; i < strs.length(); ++i) {
@@ -339,7 +339,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
   inputData.separator = argv.getParseStr("separator");
 
-  QString columnsStr = argv.getParseStr("columns");
+  auto columnsStr = argv.getParseStr("columns");
 
   if (! CQTcl::splitList(columnsStr, inputData.columns))
     return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
@@ -355,7 +355,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
   inputData.filter = argv.getParseStr("filter");
 
   if (argv.hasParseArg("filter_type")) {
-    QString filterTypeStr = argv.getParseStr("filter_type").toLower();
+    auto filterTypeStr = argv.getParseStr("filter_type").toLower();
 
     if      (filterTypeStr == "expression")
       inputData.filterType = CQChartsFilterModelType::EXPRESSION;
@@ -369,9 +369,9 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
       return errorMsg("Invalid filter type '" + filterTypeStr + "'");
   }
 
-  QStringList columnTypes = argv.getParseStrs("column_type");
+  auto columnTypes = argv.getParseStrs("column_type");
 
-  QString name = argv.getParseStr("name");
+  auto name = argv.getParseStr("name");
 
   // TODO: columns (filter to columns)
 
@@ -452,6 +452,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "type data for add/modify");
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
   argv.addCmdArg("-vars"  , CQChartsCmdArg::Type::String, "variables for expression");
+  argv.addCmdArg("-tcl"   , CQChartsCmdArg::Type::String, "tcl data for add/modify");
 
   argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
   argv.addCmdArg("-debug", CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
@@ -488,9 +489,9 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
   int modelInd = argv.getParseInt("model", -1);
 
-  QString header = argv.getParseStr("header");
-  QString type   = argv.getParseStr("type");
-  QString expr   = argv.getParseStr("expr");
+  auto header = argv.getParseStr("header");
+  auto type   = argv.getParseStr("type");
+  auto expr   = argv.getParseStr("expr");
 
   //---
 
@@ -517,7 +518,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! exprModel)
       return errorMsg("Vars not supported for model");
 
-    QString vars = argv.getParseStr("vars");
+    auto vars = argv.getParseStr("vars");
 
     QStringList varsStrs;
 
@@ -544,13 +545,25 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! exprModel)
       return errorMsg("Expression not supported for model");
 
-    if (! argv.hasParseArg("expr"))
-      return errorMsg("Missing expression");
-
     int column;
 
-    if (! exprModel->addExtraColumn(header, expr, column))
-      return errorMsg("Failed to add column");
+    if      (argv.hasParseArg("expr")) {
+      if (! exprModel->addExtraColumnExpr(header, expr, column))
+        return errorMsg("Failed to add column");
+    }
+    else if (argv.hasParseArg("tcl")) {
+      auto str = argv.getParseStr("tcl");
+
+      QStringList strs;
+
+      (void) CQTcl::splitList(str, strs);
+
+      if (! exprModel->addExtraColumnStrs(header, strs, column))
+        return errorMsg("Failed to add column");
+    }
+    else {
+      return errorMsg("Missing -expr or -tcl value");
+    }
 
     //---
 
@@ -567,7 +580,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! exprModel)
       return errorMsg("Expression not supported for model");
 
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     if (! exprModel->removeExtraColumn(column.column()))
       return errorMsg("Failed to delete column");
@@ -582,7 +595,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("expr"))
       return errorMsg("Missing expression");
 
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     if (exprModel->isOrigColumn(column.column())) {
       if (argv.getParseBool("force")) {
@@ -626,7 +639,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("expr"))
       return errorMsg("Missing expression");
 
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     CQChartsExprModel::Values values;
 
@@ -647,7 +660,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     if (! argv.hasParseArg("expr"))
       return errorMsg("Missing expression");
 
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     CQChartsExprModel::Rows rows;
 
@@ -841,9 +854,9 @@ measureChartsTextCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString name = argv.getParseStr ("name");
-  QString text = argv.getParseStr ("text");
-  bool    html = argv.getParseBool("html");
+  auto name = argv.getParseStr ("name");
+  auto text = argv.getParseStr ("text");
+  bool html = argv.getParseBool("html");
 
   //---
 
@@ -937,9 +950,9 @@ encodeChartsTextCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  bool    csv  = argv.getParseBool("csv" );
-  bool    tsv  = argv.getParseBool("tsv" );
-  QString text = argv.getParseStr ("text");
+  bool csv  = argv.getParseBool("csv" );
+  bool tsv  = argv.getParseBool("tsv" );
+  auto text = argv.getParseStr ("text");
 
   QString text1 = text;
 
@@ -990,7 +1003,7 @@ removeChartsViewCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString viewName = argv.getParseStr("view");
+  auto viewName = argv.getParseStr("view");
 
   //---
 
@@ -1051,18 +1064,18 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString     viewName    = argv.getParseStr    ("view");
-  int         modelInd    = argv.getParseInt    ("model", -1);
-  QString     typeName    = argv.getParseStr    ("type");
-  QString     id          = argv.getParseStr    ("id");
-  QString     filterStr   = argv.getParseStr    ("where");
-  QString     title       = argv.getParseStr    ("title");
-  QStringList properties  = argv.getParseStrs   ("properties");
-  QString     positionStr = argv.getParseStr    ("position");
-  OptReal     xmin        = argv.getParseOptReal("xmin");
-  OptReal     ymin        = argv.getParseOptReal("ymin");
-  OptReal     xmax        = argv.getParseOptReal("xmax");
-  OptReal     ymax        = argv.getParseOptReal("ymax");
+  auto viewName    = argv.getParseStr    ("view");
+  int  modelInd    = argv.getParseInt    ("model", -1);
+  auto typeName    = argv.getParseStr    ("type");
+  auto id          = argv.getParseStr    ("id");
+  auto filterStr   = argv.getParseStr    ("where");
+  auto title       = argv.getParseStr    ("title");
+  auto properties  = argv.getParseStrs   ("properties");
+  auto positionStr = argv.getParseStr    ("position");
+  auto xmin        = argv.getParseOptReal("xmin");
+  auto ymin        = argv.getParseOptReal("ymin");
+  auto xmax        = argv.getParseOptReal("xmax");
+  auto ymax        = argv.getParseOptReal("ymax");
 
   //---
 
@@ -1092,7 +1105,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   //--
 
   // plot columns
-  QStringList columnsStrs = argv.getParseStrs("columns");
+  auto columnsStrs = argv.getParseStrs("columns");
 
   for (int i = 0; i < columnsStrs.length(); ++i) {
     const auto &columnsStr = columnsStrs[i];
@@ -1138,7 +1151,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   //--
 
   // plot parameter
-  QStringList parameterStrs = argv.getParseStrs("parameter");
+  auto parameterStrs = argv.getParseStrs("parameter");
 
   for (int i = 0; i < parameterStrs.length(); ++i) {
     const auto &parameterStr = parameterStrs[i];
@@ -1344,9 +1357,9 @@ removeChartsPlotCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString viewName = argv.getParseStr ("view");
-  QString plotName = argv.getParseStr ("plot");
-  bool    all      = argv.getParseBool("all");
+  auto viewName = argv.getParseStr ("view");
+  auto plotName = argv.getParseStr ("plot");
+  bool all      = argv.getParseBool("all");
 
   //---
 
@@ -1425,12 +1438,12 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString objectId = argv.getParseStr ("object"); // plot object
-  QString name     = argv.getParseStr ("name");
-  bool    hidden   = argv.getParseBool("hidden");
+  auto objectId = argv.getParseStr ("object"); // plot object
+  auto name     = argv.getParseStr ("name");
+  bool hidden   = argv.getParseBool("hidden");
 
   if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     auto *view = getViewByName(viewName);
     if (! view) return errorMsg("Invalid view '" + viewName + "'");
@@ -1443,7 +1456,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (argv.hasParseArg("data")) {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       if      (data == "desc") {
         QString desc;
@@ -1512,7 +1525,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     }
   }
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     auto *plot = getPlotByName(nullptr, plotName);
     if (! plot) return errorMsg("Invalid plot '" + plotName + "'");
@@ -1552,7 +1565,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         return cmdBase_->setCmdRc(names);
       }
       else if (argv.hasParseArg("data")) {
-        QString data = argv.getParseStr("data");
+        auto data = argv.getParseStr("data");
 
         if      (data == "desc") {
           QString desc;
@@ -1622,7 +1635,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     }
   }
   else if (argv.hasParseArg("annotation")) {
-    QString annotationName = argv.getParseStr("annotation");
+    auto annotationName = argv.getParseStr("annotation");
 
     auto *annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
@@ -1635,7 +1648,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (argv.hasParseArg("data")) {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       if      (data == "desc") {
         QString desc;
@@ -1764,13 +1777,13 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
 
   //---
 
-//QString objectId = argv.getParseStr ("object"); // plot object
-  QString name     = argv.getParseStr ("name");
-  QString value    = argv.getParseStr ("value");
-//bool    hidden   = argv.getParseBool("hidden");
+//auto objectId = argv.getParseStr ("object"); // plot object
+  auto name     = argv.getParseStr ("name");
+  auto value    = argv.getParseStr ("value");
+//bool hidden   = argv.getParseBool("hidden");
 
   if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     auto *view = getViewByName(viewName);
     if (! view) return errorMsg("Invalid view '" + viewName + "'");
@@ -1779,7 +1792,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
       return errorMsg("Failed to set view property '" + name + "' '" + value + "'");
   }
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     auto *plot = getPlotByName(nullptr, plotName);
     if (! plot) return errorMsg("Invalid plot '" + plotName + "'");
@@ -1788,7 +1801,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
       return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
   }
   else if (argv.hasParseArg("annotation")) {
-    QString annotationName = argv.getParseStr("annotation");
+    auto annotationName = argv.getParseStr("annotation");
 
     auto *annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
@@ -1836,10 +1849,10 @@ createChartsPaletteCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  bool    themeFlag   = argv.hasParseArg("theme"  );
-  QString themeStr    = argv.getParseStr("theme"  );
-  bool    paletteFlag = argv.hasParseArg("palette");
-  QString paletteStr  = argv.getParseStr("palette");
+  bool themeFlag   = argv.hasParseArg("theme"  );
+  auto themeStr    = argv.getParseStr("theme"  );
+  bool paletteFlag = argv.hasParseArg("palette");
+  auto paletteStr  = argv.getParseStr("palette");
 
   if      (themeFlag) {
     if (CQColorsMgrInst->getNamedTheme(themeStr))
@@ -1892,16 +1905,16 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  bool    themeFlag     = argv.hasParseArg ("theme"    );
-  QString themeStr      = argv.getParseStr ("theme"    );
-  bool    paletteFlag   = argv.hasParseArg ("palette"  );
-  QString paletteStr    = argv.getParseStr ("palette"  );
-  bool    interfaceFlag = argv.getParseBool("interface");
+  bool themeFlag     = argv.hasParseArg ("theme"    );
+  auto themeStr      = argv.getParseStr ("theme"    );
+  bool paletteFlag   = argv.hasParseArg ("palette"  );
+  auto paletteStr    = argv.getParseStr ("palette"  );
+  bool interfaceFlag = argv.getParseBool("interface");
 
-  QString nameStr = argv.getParseStr("name");
+  auto nameStr = argv.getParseStr("name");
 
-  bool    dataFlag = argv.hasParseArg("data");
-  QString dataStr  = argv.getParseStr("data");
+  bool dataFlag = argv.hasParseArg("data");
+  auto dataStr  = argv.getParseStr("data");
 
   //---
 
@@ -2161,17 +2174,17 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  bool    themeFlag     = argv.hasParseArg ("theme"    );
-  QString themeStr      = argv.getParseStr ("theme"    );
-  bool    paletteFlag   = argv.hasParseArg ("palette"  );
-  QString paletteStr    = argv.getParseStr ("palette"  );
-  bool    interfaceFlag = argv.getParseBool("interface");
+  bool themeFlag     = argv.hasParseArg ("theme"    );
+  auto themeStr      = argv.getParseStr ("theme"    );
+  bool paletteFlag   = argv.hasParseArg ("palette"  );
+  auto paletteStr    = argv.getParseStr ("palette"  );
+  bool interfaceFlag = argv.getParseBool("interface");
 
-  QString nameStr  = argv.getParseStr("name" );
-  QString valueStr = argv.getParseStr("value");
+  auto nameStr  = argv.getParseStr("name" );
+  auto valueStr = argv.getParseStr("value");
 
-//bool    dataFlag = argv.hasParseArg("data");
-//QString dataStr  = argv.getParseStr("data");
+//bool dataFlag = argv.hasParseArg("data");
+//auto dataStr  = argv.getParseStr("data");
 
   //---
 
@@ -2486,12 +2499,12 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString viewName  = argv.getParseStr ("view");
-  bool    x1x2      = argv.getParseBool("x1x2");
-  bool    y1y2      = argv.getParseBool("y1y2");
-  bool    overlay   = argv.getParseBool("overlay");
-  bool    tabbed    = argv.getParseBool("tabbed");
-  bool    composite = argv.getParseBool("composite");
+  auto viewName  = argv.getParseStr ("view");
+  bool x1x2      = argv.getParseBool("x1x2");
+  bool y1y2      = argv.getParseBool("y1y2");
+  bool overlay   = argv.getParseBool("overlay");
+  bool tabbed    = argv.getParseBool("tabbed");
+  bool composite = argv.getParseBool("composite");
 
   const auto &plotNames = argv.getParseArgs();
 
@@ -2593,11 +2606,11 @@ placeChartsPlotsCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString viewName   = argv.getParseStr ("view");
-  bool    vertical   = argv.getParseBool("vertical");
-  bool    horizontal = argv.getParseBool("horizontal");
-  int     rows       = argv.getParseInt ("rows"   , -1);
-  int     columns    = argv.getParseInt ("columns", -1);
+  auto viewName   = argv.getParseStr ("view");
+  bool vertical   = argv.getParseBool("vertical");
+  bool horizontal = argv.getParseBool("horizontal");
+  int  rows       = argv.getParseInt ("rows"   , -1);
+  int  columns    = argv.getParseInt ("columns", -1);
 
   const auto &plotNames = argv.getParseArgs();
 
@@ -2661,7 +2674,7 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
   int icolumn = 0;
 
   if (argv.hasParseArg("column")) {
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     icolumn = column.column();
   }
@@ -2754,7 +2767,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
   auto argStringToColumns = [&](const QString &name) {
     std::vector<CQChartsColumn> columns;
 
-    QStringList columnsStrs = argv.getParseStrs(name);
+    auto columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
       const auto &columnsStr = columnsStrs[i];
@@ -2782,7 +2795,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsColumn groupColumn = argv.getParseColumn("group", model.data());
+  auto groupColumn = argv.getParseColumn("group", model.data());
 
   //---
 
@@ -2888,7 +2901,7 @@ joinChartsModelCmd(CQChartsCmdArgs &argv)
   //---
 
   // split into strings per model
-  QString modelsStr = argv.getParseStr("models");
+  auto modelsStr = argv.getParseStr("models");
 
   using ModelDatas = std::vector<CQChartsModelData *>;
 
@@ -2919,7 +2932,7 @@ joinChartsModelCmd(CQChartsCmdArgs &argv)
   //---
 
   // split into strings per column
-  QString columnsStr = argv.getParseStr("columns");
+  auto columnsStr = argv.getParseStr("columns");
 
   using Columns = std::vector<CQChartsColumn>;
 
@@ -2994,7 +3007,7 @@ groupChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString columnsStr = argv.getParseStr("columns");
+  auto columnsStr = argv.getParseStr("columns");
 
   QStringList columnStrs;
 
@@ -3345,7 +3358,7 @@ sortChartsModelCmd(CQChartsCmdArgs &argv)
 
   ModelP model = modelData->currentModel();
 
-  CQChartsColumn column = argv.getParseColumn("column", model.data());
+  auto column = argv.getParseColumn("column", model.data());
 
   //---
 
@@ -3383,9 +3396,9 @@ filterChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  int     modelInd = argv.getParseInt("model", -1);
-  QString expr     = argv.getParseStr("expr");
-  QString type     = argv.getParseStr("type");
+  int  modelInd = argv.getParseInt("model", -1);
+  auto expr     = argv.getParseStr("expr");
+  auto type     = argv.getParseStr("type");
 
   if (! argv.hasParseArg("type"))
     type = "expression";
@@ -3409,7 +3422,7 @@ filterChartsModelCmd(CQChartsCmdArgs &argv)
   int icolumn = -1;
 
   if (argv.hasParseArg("column")) {
-    CQChartsColumn column = argv.getParseColumn("column", model.data());
+    auto column = argv.getParseColumn("column", model.data());
 
     icolumn = column.column();
   }
@@ -3535,7 +3548,7 @@ createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
   //---
 
   // get column
-  CQChartsColumn column = argv.getParseColumn("column", model.data());
+  auto column = argv.getParseColumn("column", model.data());
 
   //------
 
@@ -3640,7 +3653,7 @@ createChartsBucketModelCmd(CQChartsCmdArgs &argv)
   //---
 
   // get column
-  CQChartsColumn column = argv.getParseColumn("column", model.data());
+  auto column = argv.getParseColumn("column", model.data());
 
   //------
 
@@ -3740,8 +3753,8 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
 
   //------
 
-  CQChartsColumn left  = argv.getParseColumn("left" , model);
-  CQChartsColumn right = argv.getParseColumn("right", model);
+  auto left  = argv.getParseColumn("left" , model);
+  auto right = argv.getParseColumn("right", model);
 
   int top    = argv.getParseInt("top"   , -1);
   int bottom = argv.getParseInt("bottom", -1);
@@ -3877,7 +3890,7 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
     summaryModel->setSortColumn(argv.getParseInt("sort_column", summaryModel->sortColumn()));
 
   if (argv.hasParseArg("sort_role")) {
-    QString roleName = argv.getParseStr("sort_role");
+    auto roleName = argv.getParseStr("sort_role");
 
     if (roleName == "?")
       return cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
@@ -3955,7 +3968,7 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
   auto argStringToColumns = [&](const QString &name) {
     std::vector<CQChartsColumn> columns;
 
-    QStringList columnsStrs = argv.getParseStrs(name);
+    auto columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
       const auto &columnsStr = columnsStrs[i];
@@ -4080,7 +4093,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
   auto argStringToColumns = [&](const QString &name) {
     CQPivotModel::Columns columns;
 
-    QStringList columnsStrs = argv.getParseStrs(name);
+    auto columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
       const auto &columnsStr = columnsStrs[i];
@@ -4108,7 +4121,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
   CQChartsColumn dcolumn;
 
   if (argv.hasParseArg("dcolumn")) {
-    QString dcolumnStr = argv.getParseStr("dcolumn");
+    auto dcolumnStr = argv.getParseStr("dcolumn");
 
     if (! CQChartsModelUtil::stringToColumn(model.data(), dcolumnStr, dcolumn))
       return errorMsg("Bad column name '" + dcolumnStr + "'");
@@ -4125,7 +4138,7 @@ createChartsPivotModelCmd(CQChartsCmdArgs &argv)
     pivotModel->setValueColumn(dcolumn.column());
 
   if (argv.hasParseArg("value_type")) {
-    QString valueTypeStr = argv.getParseStr("value_type").toLower();
+    auto valueTypeStr = argv.getParseStr("value_type").toLower();
 
     if      (valueTypeStr == "count")
       pivotModel->setValueType(CQPivotModel::ValueType::COUNT);
@@ -4205,7 +4218,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   auto argStringToColumns = [&](const QString &name) {
     std::vector<CQChartsColumn> columns;
 
-    QStringList columnsStrs = argv.getParseStrs(name);
+    auto columnsStrs = argv.getParseStrs(name);
 
     for (int i = 0; i < columnsStrs.length(); ++i) {
       const auto &columnsStr = columnsStrs[i];
@@ -4434,11 +4447,11 @@ exportChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  int     modelInd = argv.getParseInt ("model", -1);
-  QString toName   = argv.getParseStr ("to", "csv");
-  QString filename = argv.getParseStr ("file", "");
-  bool    hheader  = argv.getParseBool("hheader", true);
-  bool    vheader  = argv.getParseBool("vheader", false);
+  int  modelInd = argv.getParseInt ("model", -1);
+  auto toName   = argv.getParseStr ("to", "csv");
+  auto filename = argv.getParseStr ("file", "");
+  bool hheader  = argv.getParseBool("hheader", true);
+  bool vheader  = argv.getParseBool("vheader", false);
 
   //------
 
@@ -4808,7 +4821,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         if (! argv.hasParseArg("data"))
           return errorMsg("No data specified");
 
-        QString data = argv.getParseStr("data");
+        auto data = argv.getParseStr("data");
 
         CQChartsColumn column1;
 
@@ -4897,7 +4910,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     // get index for column name
     else if (name == "column_index") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsColumn column;
 
@@ -4963,7 +4976,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // view data
   else if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     auto *view = getViewByName(viewName);
     if (! view) return false;
@@ -5012,7 +5025,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(key ? key->id() : QString());
     }
     else if (name == "view_width") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
@@ -5021,7 +5034,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "view_height") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
@@ -5030,7 +5043,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
@@ -5098,7 +5111,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // type data
   else if (argv.hasParseArg("type")) {
-    QString typeName = argv.getParseStr("type");
+    auto typeName = argv.getParseStr("type");
 
     if (! charts_->isPlotType(typeName))
       return errorMsg("No type '" + typeName + "'");
@@ -5128,7 +5141,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(names);
     }
     else if (name.left(10) == "parameter.") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       if (! type->hasParameter(data))
         return errorMsg("No parameter '" + data + "'");
@@ -5164,7 +5177,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // plot data
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     CQChartsView *view = nullptr;
 
@@ -5201,7 +5214,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     // get column header or row, column value
     else if (name == "value") {
-      CQChartsColumn column = argv.getParseColumn("column", plot->model().data());
+      auto column = argv.getParseColumn("column", plot->model().data());
 
       //---
 
@@ -5238,7 +5251,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       auto *modelData = charts_->getModelData(plot->model().data());
       if (! modelData) return errorMsg("No model data");
 
-      CQChartsColumn column = argv.getParseColumn("column", plot->model().data());
+      auto column = argv.getParseColumn("column", plot->model().data());
 
       //---
 
@@ -5351,7 +5364,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(vars);
     }
     else if (name == "plot_width") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
@@ -5360,7 +5373,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "plot_height") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
@@ -5369,7 +5382,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
@@ -5378,7 +5391,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
@@ -5387,7 +5400,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_position") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsPosition pos(data, CQChartsUnits::PLOT);
 
@@ -5430,7 +5443,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // annotation data
   else if (argv.hasParseArg("annotation")) {
-    QString annotationName = argv.getParseStr("annotation");
+    auto annotationName = argv.getParseStr("annotation");
 
     auto *annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
@@ -5540,7 +5553,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
        if (! argv.hasParseArg("model"))
          return errorMsg("Missing data for '" + name + "'");
 
-      QString dataStr = argv.getParseStr("data");
+      auto dataStr = argv.getParseStr("data");
 
       auto *columnTypeMgr = charts_->columnTypeMgr();
 
@@ -5581,7 +5594,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
        if (! argv.hasParseArg("model"))
          return errorMsg("Missing data for '" + name + "'");
 
-      QString dataStr = argv.getParseStr("data");
+      auto dataStr = argv.getParseStr("data");
 
       QString args, body;
 
@@ -5654,17 +5667,15 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString objectId = argv.getParseStr("object");
-
-  bool    header = argv.getParseBool("header");
-  QString name   = argv.getParseStr ("name");
-//bool    hidden = argv.getParseBool("hidden");
-
-  QString value = argv.getParseStr("value");
+  auto objectId = argv.getParseStr("object");
+  bool header   = argv.getParseBool("header");
+  auto name     = argv.getParseStr ("name");
+//bool hidden   = argv.getParseBool("hidden");
+  auto value    = argv.getParseStr("value");
 
   //---
 
-  QString roleName = argv.getParseStr("role");
+  auto roleName = argv.getParseStr("role");
 
   int role = Qt::EditRole;
 
@@ -5751,7 +5762,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     }
     // set meta data
     else if (name == "meta") {
-      QString data = argv.getParseStr("data");
+      auto data = argv.getParseStr("data");
 
       CQChartsModelUtil::setModelMetaValue(model.data(), data, value);
     }
@@ -5793,7 +5804,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // view data
   else if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     auto *view = getViewByName(viewName);
     if (! view) return false;
@@ -5822,7 +5833,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   }
   // plot data
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     CQChartsView *view = nullptr;
 
@@ -5979,8 +5990,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsArrowData arrowData;
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsPosition start = argv.getParsePosition(view, plot, "start");
   CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
@@ -6221,7 +6232,7 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsPlot *plot = nullptr;
 
   if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
@@ -6236,15 +6247,15 @@ createChartsAxisAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   double start = argv.getParseReal("start");
   double end   = argv.getParseReal("end"  );
 
   double position = argv.getParseReal("position", 0.0);
 
-  QString directionStr = argv.getParseStr("direction", "horizontal").toLower();
+  auto directionStr = argv.getParseStr("direction", "horizontal").toLower();
 
   Qt::Orientation direction = Qt::Horizontal;
 
@@ -6372,8 +6383,8 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsPosition center = argv.getParsePosition(view, plot, "center");
 
@@ -6483,8 +6494,8 @@ createChartsAnnotationGroupCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   //---
 
@@ -6578,8 +6589,8 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   //---
 
   // get id and tip
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   //---
 
@@ -6712,8 +6723,8 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   //---
 
@@ -6804,8 +6815,8 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
 
@@ -6928,12 +6939,12 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsFillData   &fill   = symbolData.fill();
   CQChartsStrokeData &stroke = symbolData.stroke();
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
 
-  QString typeStr = argv.getParseStr("type");
+  auto typeStr = argv.getParseStr("type");
 
   if (typeStr.length()) {
     if (typeStr == "?") {
@@ -7046,8 +7057,8 @@ createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsPoints values = argv.getParsePoints(view, plot, "values");
 
@@ -7169,8 +7180,8 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsGeom::Polygon points = argv.getParsePoly("points");
 
@@ -7304,8 +7315,8 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsGeom::Polygon points = argv.getParsePoly("points");
 
@@ -7449,8 +7460,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   stroke.setVisible(true);
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   boxData.setMargin (argv.getParseMargin(view, plot, "margin" , boxData.margin ()));
   boxData.setPadding(argv.getParseMargin(view, plot, "padding", boxData.padding()));
@@ -7636,10 +7647,10 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   fill  .setVisible(false);
   stroke.setVisible(false);
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
-  QString text = argv.getParseStr("text", "Annotation");
+  auto text = argv.getParseStr("text", "Annotation");
 
   textData.setFont    (argv.getParseFont ("font"    , textData.font      ()));
   textData.setColor   (argv.getParseColor("color"   , textData.color     ()));
@@ -7776,8 +7787,8 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
 
@@ -7877,10 +7888,10 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsTextData textData;
 
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
-  QString text = argv.getParseStr("text", "Annotation");
+  auto text = argv.getParseStr("text", "Annotation");
 
   textData.setFont (argv.getParseFont ("font" , textData.font      ()));
   textData.setColor(argv.getParseColor("color", textData.color     ()));
@@ -7968,7 +7979,7 @@ removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
 
   // only id needed for specific
   if (argv.hasParseArg("id")) {
-    QString id = argv.getParseStr("id");
+    auto id = argv.getParseStr("id");
 
     auto *annotation = getAnnotationByName(id);
     if (! annotation) return false;
@@ -8041,13 +8052,13 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
   CQChartsKeyAnnotation* keyAnnotation = nullptr;
 
   if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
@@ -8055,7 +8066,7 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
     view = plot->view();
   }
   else if (argv.hasParseArg("annotation")) {
-    QString annotationName = argv.getParseStr("annotation");
+    auto annotationName = argv.getParseStr("annotation");
 
     auto *annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
@@ -8089,7 +8100,7 @@ addChartsKeyItemCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString text  = argv.getParseStr("text");
+  auto text = argv.getParseStr("text");
 
   CQChartsUtil::ColorInd colorInd;
 
@@ -8190,13 +8201,13 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   CQChartsAnnotation* annotation = nullptr;
 
   if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
@@ -8204,7 +8215,7 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
     view = plot->view();
   }
   else if (argv.hasParseArg("annotation")) {
-    QString annotationName = argv.getParseStr("annotation");
+    auto annotationName = argv.getParseStr("annotation");
 
     annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
@@ -8212,8 +8223,8 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString fromName = argv.getParseStr("from");
-  QString toName   = argv.getParseStr("to"  );
+  auto fromName = argv.getParseStr("from");
+  auto toName   = argv.getParseStr("to"  );
 
   auto createCmdsSlot = [&]() {
     return new CQChartsCmdsSlot(this, view, plot, annotation, toName);
@@ -8339,13 +8350,13 @@ printChartsImageCmd(CQChartsCmdArgs &argv)
   CQChartsPlot *plot = nullptr;
 
   if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
   else {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
@@ -8355,10 +8366,10 @@ printChartsImageCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString filename = argv.getParseStr("file");
+  auto filename = argv.getParseStr("file");
 
   if (plot) {
-    QString layerName = argv.getParseStr("layer");
+    auto layerName = argv.getParseStr("layer");
 
     if (layerName.length()) {
       CQChartsLayer::Type type = CQChartsLayer::nameType(layerName);
@@ -8409,13 +8420,13 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
   CQChartsPlot *plot = nullptr;
 
   if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
   else {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(nullptr, plotName);
     if (! plot) return false;
@@ -8425,7 +8436,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString filename = argv.getParseStr("file");
+  auto filename = argv.getParseStr("file");
 
   std::ofstream fos; bool isFile = false;
 
@@ -8440,7 +8451,7 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  QString type = argv.getParseStr("type");
+  auto type = argv.getParseStr("type");
 
   if      (plot) {
     if      (type == "") {
@@ -8574,8 +8585,8 @@ showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  int     modelInd = argv.getParseInt("model", -1);
-  QString viewName = argv.getParseStr("view");
+  int  modelInd = argv.getParseInt("model", -1);
+  auto viewName = argv.getParseStr("view");
 
   //---
 
@@ -8711,7 +8722,7 @@ testEditCmd(CQChartsCmdArgs &argv)
     view = plot->view();
 
   // get types
-  QStringList types = argv.getParseStrs("type");
+  auto types = argv.getParseStrs("type");
 
   bool editable = argv.getParseBool("editable", true);
 
@@ -8939,8 +8950,8 @@ createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
   //---
 
   // get id and tip
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
 
   //---
 
@@ -8948,7 +8959,7 @@ createChartsWidgetAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsWidget widget;
 
   if      (argv.hasParseArg("widget")) {
-    QString widgetName = argv.getParseStr("widget");
+    auto widgetName = argv.getParseStr("widget");
 
     widget = CQChartsWidget(widgetName);
 
@@ -9240,7 +9251,7 @@ bool
 CQChartsCmds::
 setAnnotationArgProperties(CQChartsCmdArgs &argv, CQChartsAnnotation *annotation)
 {
-  QStringList properties = argv.getParseStrs("properties");
+  auto properties = argv.getParseStrs("properties");
 
   for (int i = 0; i < properties.length(); ++i) {
     if (properties[i].length())
@@ -9296,13 +9307,13 @@ getViewPlotArg(CQChartsCmdArgs &argv, CQChartsView* &view, CQChartsPlot* &plot)
   plot = nullptr;
 
   if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
+    auto viewName = argv.getParseStr("view");
 
     view = getViewByName(viewName);
     if (! view) return false;
   }
   else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
+    auto plotName = argv.getParseStr("plot");
 
     plot = getPlotByName(view, plotName);
     if (! plot) return false;

@@ -195,6 +195,13 @@ setEdgeLine(bool b)
 
 void
 CQChartsSankeyPlot::
+setSrcColoring(bool b)
+{
+  CQChartsUtil::testAndSet(srcColoring_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setAlign(const Align &a)
 {
   CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
@@ -234,6 +241,10 @@ addProperties()
   addProp("node", "nodeXMargin", "marginX", "Node X margin");
   addProp("node", "nodeYMargin", "marginY", "Node Y margin");
   addProp("node", "nodeWidth"  , "width"  , "Node width (in pixels)");
+
+  // coloring
+  addProp("coloring", "srcColoring"  , "srcColoring"  , "Color by Source Nodes");
+  addProp("coloring", "mouseColoring", "mouseColoring", "Mouse Over Connection Coloring");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -730,9 +741,18 @@ initFromToObjs() const
 void
 CQChartsSankeyPlot::
 addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const CQChartsNameValues &nameValues, const GroupData &) const
+               const CQChartsNameValues &nameValues, const GroupData &groupData) const
 {
   auto *srcNode = findNode(fromStr);
+
+  //---
+
+  if (groupData.ng > 1)
+    srcNode->setGroup(groupData.ig, groupData.ng);
+  else
+    srcNode->setGroup(-1);
+
+  //---
 
   // Just node
   if (toStr == "") {
@@ -796,7 +816,10 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   destNode->setValue(OptReal(linkConnectionData.value));
 
-  srcNode->setGroup(linkConnectionData.groupData.id);
+  if (linkConnectionData.groupData.isValid())
+    srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
+  else
+    srcNode->setGroup(-1);
 
   if (linkConnectionData.nameModelInd.isValid()) {
     auto nameModelInd1 = normalizeIndex(linkConnectionData.nameModelInd);
@@ -824,8 +847,12 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
 
   auto *srcNode = findNode(srcStr);
 
-  srcNode->setName (connectionsData.name);
-  srcNode->setGroup(connectionsData.groupData.id);
+  srcNode->setName(connectionsData.name);
+
+  if (connectionsData.groupData.isValid())
+    srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
+  else
+    srcNode->setGroup(-1);
 
   for (const auto &connection : connectionsData.connections) {
     QString destStr = QString("%1").arg(connection.node);
@@ -872,7 +899,7 @@ initTableObjs() const
     auto *srcNode = findNode(srcStr);
 
     srcNode->setName (tableConnectionData.name());
-    srcNode->setGroup(tableConnectionData.group().ig);
+    srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
 
     for (const auto &value : tableConnectionData.values()) {
       QString destStr = QString("%1").arg(value.to);
@@ -1308,9 +1335,14 @@ createObjFromNode(Graph *, Node *node) const
 //int numNodes = graph->nodes().size(); // node id needs to be per graph
   int numNodes = indNodeMap_.size();
 
+  ColorInd ig;
+
+  if (node->ngroup() > 0 && node->group() >= 0 && node->group() < node->ngroup())
+    ig = ColorInd(node->group(), node->ngroup());
+
   ColorInd iv(node->id(), numNodes);
 
-  auto *nodeObj = createNodeObj(node->rect(), node, iv);
+  auto *nodeObj = createNodeObj(node->rect(), node, ig, iv);
 
   nodeObj->setHierName(node->str ());
   nodeObj->setName    (node->name());
@@ -1468,7 +1500,7 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
       //std::cerr << "Pass " << pass << "\n";
 
       if (! adjustNodeCenters(graph)) {
-        std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
+        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
         break;
       }
     }
@@ -1595,6 +1627,7 @@ adjustEdgeOverlaps(Graph *graph) const
       }
     }
 
+#if 0
     // check edges for overlaps
     int numEdges = edges.size();
 
@@ -1618,6 +1651,7 @@ adjustEdgeOverlaps(Graph *graph) const
         }
       }
     }
+#endif
 
     xpos1 = xpos2++;
   }
@@ -1997,9 +2031,9 @@ printStats()
 
 CQChartsSankeyNodeObj *
 CQChartsSankeyPlot::
-createNodeObj(const BBox &rect, Node *node, const ColorInd &ind) const
+createNodeObj(const BBox &rect, Node *node, const ColorInd &ig, const ColorInd &iv) const
 {
-  return new NodeObj(this, rect, node, ind);
+  return new NodeObj(this, rect, node, ig, iv);
 }
 
 CQChartsSankeyEdgeObj *
@@ -2351,6 +2385,59 @@ placeEdges(bool reset)
   }
 }
 
+//---
+
+void
+CQChartsSankeyPlotNode::
+allSrcNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const
+{
+  for (const auto &edge : this->srcEdges()) {
+    edgeSet.insert(edge);
+  }
+
+  for (const auto &edge : this->srcEdges()) {
+    auto *node = edge->srcNode();
+
+    if (nodeSet.find(node) == nodeSet.end())
+      node->allSrcNodesAndEdges(nodeSet, edgeSet);
+  }
+}
+
+void
+CQChartsSankeyPlotNode::
+allDestNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const
+{
+  for (const auto &edge : this->destEdges()) {
+    edgeSet.insert(edge);
+  }
+
+  for (const auto &edge : this->destEdges()) {
+    auto *node = edge->destNode();
+
+    if (nodeSet.find(node) == nodeSet.end())
+      node->allDestNodesAndEdges(nodeSet, edgeSet);
+  }
+}
+
+//---
+
+QColor
+CQChartsSankeyPlotNode::
+calcColor() const
+{
+  if (color_.isValid())
+    return color_;
+
+  CQChartsUtil::ColorInd ic;
+
+  if (ngroup() > 0 && group() >= 0 && group() < ngroup())
+    ic = CQChartsUtil::ColorInd(group(), ngroup());
+  else
+    ic = CQChartsUtil::ColorInd(id(), plot_->numNodes());
+
+  return plot_->interpNodeFillColor(ic);
+}
+
 //------
 
 CQChartsSankeyPlotEdge::
@@ -2476,8 +2563,9 @@ edgePath(QPainterPath &path, bool isLine) const
 //------
 
 CQChartsSankeyNodeObj::
-CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), iv),
+CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
+                      const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), node_(node)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -2532,6 +2620,10 @@ calcTipId() const
   int nd = node()->destEdges().size();
 
   tableTip.addTableRow("Edges", QString("%1|%2").arg(ns).arg(nd));
+
+  if (plot_->groupColumn().isValid()) {
+    tableTip.addTableRow("Group", node()->group());
+  }
 
   //---
 
@@ -2692,6 +2784,78 @@ draw(CQChartsPaintDevice *device)
   //---
 
   device->resetColorNames();
+
+  //---
+
+  // show source and destination nodes on inside
+  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
+      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+
+      drawConnectionMouseOver(device, (int) plot_->mouseColoring());
+
+      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    }
+  }
+}
+
+void
+CQChartsSankeyNodeObj::
+drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
+{
+  auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
+
+  if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC ||
+           mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
+    for (const auto &edge : node()->srcEdges()) {
+      auto *edgeObj = edge->obj();
+      edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
+    }
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC ||
+           mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
+    CQChartsSankeyPlotNode::NodeSet nodeSet;
+    CQChartsSankeyPlotNode::EdgeSet edgeSet;
+
+    node()->allSrcNodesAndEdges(nodeSet, edgeSet);
+
+    for (const auto &edge : edgeSet) {
+      auto *edgeObj = edge->obj();
+      edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
+    }
+
+    for (const auto &node : nodeSet) {
+      auto *nodeObj = node->obj();
+      nodeObj->setInside(true); nodeObj->draw(device); nodeObj->setInside(false);
+    }
+  }
+
+  if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::DEST ||
+           mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
+    for (const auto &edge : node()->destEdges()) {
+      auto *edgeObj = edge->obj();
+      edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
+    }
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST ||
+           mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
+    CQChartsSankeyPlotNode::NodeSet nodeSet;
+    CQChartsSankeyPlotNode::EdgeSet edgeSet;
+
+    node()->allDestNodesAndEdges(nodeSet, edgeSet);
+
+    for (const auto &edge : edgeSet) {
+      auto *edgeObj = edge->obj();
+      edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
+    }
+
+    for (const auto &node : nodeSet) {
+      auto *nodeObj = node->obj();
+      nodeObj->setInside(true); nodeObj->draw(device); nodeObj->setInside(false);
+    }
+  }
+
+  plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
 }
 
 void
@@ -2732,13 +2896,28 @@ drawFg(CQChartsPaintDevice *device) const
   if (! str.length())
     str = node()->name();
 
+  //---
+
   double ptw = fm.width(str);
-  double tw  = plot_->pixelToWindowWidth(ptw);
+
+  double clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
+
+  if (clipLength > 0.0)
+    ptw = std::min(ptw, clipLength);
+
+  double tw = plot_->pixelToWindowWidth(ptw);
+
+  //---
 
   double xm = plot_->getCalcDataRange().xmid();
 
-  double tx = (rect().getXMid() < xm - tw ?
-    prect.getXMax() + textMargin : prect.getXMin() - textMargin - ptw);
+  double tx;
+
+  if (rect().getXMid() < xm - tw)
+    tx = prect.getXMax() + textMargin;
+  else
+    tx = prect.getXMin() - textMargin - ptw;
+
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
   auto pt = plot_->pixelToWindow(Point(tx, ty));
@@ -2763,10 +2942,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   ColorInd ic = calcColorInd();
 
   QColor bc = plot_->interpNodeStrokeColor(ic);
-  QColor fc = plot_->interpNodeFillColor  (ic);
-
-  if (color_.isValid())
-    fc = color_;
+  QColor fc = calcFillColor();
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
@@ -2776,6 +2952,42 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
+}
+
+QColor
+CQChartsSankeyNodeObj::
+calcFillColor() const
+{
+  QColor fc;
+
+  if (plot_->isSrcColoring()) {
+    using Colors = std::vector<QColor>;
+
+    Colors colors;
+
+    for (const auto &edge : node()->srcEdges()) {
+      auto *srcNode = edge->srcNode();
+
+      auto c = srcNode->calcColor();
+
+      colors.push_back(c);
+    }
+
+    if (! colors.empty())
+      fc = CQChartsUtil::blendColors(colors);
+    else
+      fc = node()->calcColor();
+  }
+  else {
+    ColorInd ic = calcColorInd();
+
+    fc = plot_->interpNodeFillColor(ic);
+
+    if (color_.isValid())
+      fc = color_;
+  }
+
+  return fc;
 }
 
 void
@@ -2880,27 +3092,79 @@ CQChartsSankeyEdgeObj::
 draw(CQChartsPaintDevice *device)
 {
   // get edge path
-  if (edgePath(path_, edge()->isLine())) {
-    // calc pen and brush
-    CQChartsPenBrush penBrush;
+  if (! edgePath(path_, edge()->isLine()))
+    return;
 
-    bool updateState = device->isInteractive();
+  //---
 
-    calcPenBrush(penBrush, updateState);
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  bool updateState = device->isInteractive();
 
-    //---
+  calcPenBrush(penBrush, updateState);
 
-    // draw path
-    device->setColorNames();
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    if (! edge()->isLine())
-      device->drawPath(path_);
-    else
-      device->strokePath(path_, penBrush.pen);
+  //---
 
-    device->resetColorNames();
+  // draw path
+  device->setColorNames();
+
+  if (! edge()->isLine())
+    device->drawPath(path_);
+  else
+    device->strokePath(path_, penBrush.pen);
+
+  device->resetColorNames();
+
+  //---
+
+  //---
+
+  // show source and destination nodes on inside
+  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
+      auto *srcNode  = edge()->srcNode ();
+      auto *destNode = edge()->destNode();
+
+      auto *srcNodeObj  = srcNode ->obj();
+      auto *destNodeObj = destNode->obj();
+
+      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+
+      if      (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC) {
+        srcNodeObj ->setInside(true); srcNodeObj ->draw(device); srcNodeObj ->setInside(false);
+      }
+      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::DEST) {
+        destNodeObj->setInside(true); destNodeObj->draw(device); destNodeObj->setInside(false);
+      }
+      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
+        srcNodeObj ->setInside(true); srcNodeObj ->draw(device); srcNodeObj ->setInside(false);
+        destNodeObj->setInside(true); destNodeObj->draw(device); destNodeObj->setInside(false);
+      }
+      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
+        srcNodeObj ->setInside(true); srcNodeObj ->draw(device); srcNodeObj ->setInside(false);
+        srcNodeObj ->drawConnectionMouseOver(device,
+          (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC);
+      }
+      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
+        destNodeObj->setInside(true); destNodeObj->draw(device); destNodeObj->setInside(false);
+        destNodeObj->drawConnectionMouseOver(device,
+          (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST);
+      }
+      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
+        srcNodeObj ->setInside(true); srcNodeObj ->draw(device); srcNodeObj ->setInside(false);
+        srcNodeObj ->drawConnectionMouseOver(device,
+          (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC);
+
+        destNodeObj->setInside(true); destNodeObj->draw(device); destNodeObj->setInside(false);
+        destNodeObj->drawConnectionMouseOver(device,
+          (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST);
+      }
+
+      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+    }
   }
 }
 
@@ -2978,6 +3242,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.angle         = CQChartsAngle(0);
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.align         = Qt::AlignLeft;
   options.clipLength    = plot_->textClipLength();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
@@ -2991,15 +3256,15 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   auto *srcNode  = edge()->srcNode ();
   auto *destNode = edge()->destNode();
 
+  QColor fc1 = srcNode ->obj()->calcFillColor();
+  QColor fc2 = destNode->obj()->calcFillColor();
+
+  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+
   int numNodes = plot_->numNodes();
 
   ColorInd ic1(srcNode ->id(), numNodes);
   ColorInd ic2(destNode->id(), numNodes);
-
-  QColor fc1 = plot_->interpEdgeFillColor(ic1);
-  QColor fc2 = plot_->interpEdgeFillColor(ic2);
-
-  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
 
   QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
   QColor sc2 = plot_->interpEdgeStrokeColor(ic2);

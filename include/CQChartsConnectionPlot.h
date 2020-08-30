@@ -177,24 +177,19 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   using HierConnectionDataList = std::vector<HierConnectionData>;
 
   struct GroupData {
-    int     id { -1 };
-    QString name;
-    int     ig { 0 };
-    int     ng { 0 };
+    QVariant value;
+    int      ig { -1 };
+    int      ng { 0 };
 
     GroupData() = default;
 
-    GroupData(int id, const QString &name) :
-     id(id), name(name) {
+    GroupData(const QVariant &value, int ig, int ng) :
+     value(value), ig(ig), ng(ng) {
     }
 
-    GroupData(const QString &name, int ig, int ng) :
-     name(name), ig(ig), ng(ng) {
-    }
+    bool isValid() const { return (ng > 0 && ig >= 0 && ig < ng); }
 
-    bool isValid() const { return ng > 0; }
-
-    double value() const { return (isValid() ? double(ig)/ng : 0.0); }
+    double ivalue() const { return (isValid() ? double(ig)/ng : 0.0); }
   };
 
   class TableConnectionData {

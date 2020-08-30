@@ -111,15 +111,20 @@ class CQChartsView : public QFrame,
   // default palette
   Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
 
-  // selection appearance
-  Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
+  //---
+
+  // selected/inside appearance
+  Q_PROPERTY(HighlightDataMode selectedMode  READ selectedMode    WRITE setSelectedMode )
+  Q_PROPERTY(bool              selectedBlend READ isSelectedBlend WRITE setSelectedBlend)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Selected, selected)
 
-  // inside appearance
-  Q_PROPERTY(HighlightDataMode insideMode READ insideMode WRITE setInsideMode)
+  Q_PROPERTY(HighlightDataMode insideMode  READ insideMode    WRITE setInsideMode )
+  Q_PROPERTY(bool              insideBlend READ isInsideBlend WRITE setInsideBlend)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Inside, inside)
+
+  //---
 
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
@@ -290,11 +295,18 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // selected/inside appearance
   const HighlightDataMode &selectedMode() const { return selectedHighlight_.mode; }
   void setSelectedMode(const HighlightDataMode &mode) { selectedHighlight_.mode = mode; }
 
+  bool isSelectedBlend() const { return selectedHighlight_.blend; }
+  void setSelectedBlend(bool b) { selectedHighlight_.blend = b; }
+
   const HighlightDataMode &insideMode() const { return insideHighlight_.mode; }
   void setInsideMode(const HighlightDataMode &mode) { insideHighlight_.mode = mode; }
+
+  bool isInsideBlend() const { return insideHighlight_.blend; }
+  void setInsideBlend(bool b) { insideHighlight_.blend = b; }
 
   //---
 
@@ -1204,10 +1216,8 @@ class CQChartsView : public QFrame,
 
   //! structure containing the highlight mode
   struct HighlightData {
-//  bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
-//  bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
-
-    HighlightDataMode mode { HighlightDataMode::OUTLINE }; //!< highlight mode
+    HighlightDataMode mode  { HighlightDataMode::OUTLINE }; //!< highlight mode
+    bool              blend { false };                      //!< blend
   };
 
   //! structure containing the region mode

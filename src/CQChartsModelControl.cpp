@@ -1,183 +1,20 @@
 #include <CQChartsModelControl.h>
+#include <CQChartsModelExprControl.h>
+#ifdef CQCHARTS_FOLDED_MODEL
+#include <CQChartsModelFoldControl.h>
+#endif
+#include <CQChartsModelColumnDataControl.h>
+
 #include <CQChartsModelData.h>
-#include <CQChartsColumnType.h>
-#include <CQChartsExprModel.h>
-#include <CQChartsModelFilter.h>
-#include <CQChartsModelUtil.h>
-#include <CQChartsColorEdit.h>
-#include <CQChartsLineEdit.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
-
-//#include <CQHierSepModel.h>
-//#include <CQCsvModel.h>
-//#include <CQTsvModel.h>
-//#include <CQGnuDataModel.h>
-//#include <CQJsonModel.h>
-#include <CQDataModel.h>
-
-#include <CQIntegerSpin.h>
-#include <CQCheckBox.h>
 #include <CQUtil.h>
 
-#include <QSortFilterProxyModel>
-#include <QVBoxLayout>
 #include <QTabWidget>
 #include <QStackedWidget>
-#include <QRadioButton>
-#include <QComboBox>
-#include <QLabel>
-#include <QPushButton>
-
-class CQChartsParamEdit : public QFrame {
- public:
-  CQChartsParamEdit(QWidget *parent=nullptr) :
-   QFrame(parent) {
-    layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
-  }
-
-  CQBaseModelType type() const { return type_; }
-
-  void setString(const QString &str="") {
-    if (! edit_) {
-      reset();
-
-      edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
-
-      layout_->addWidget(edit_);
-    }
-
-    edit_->setText(str);
-
-    type_ = CQBaseModelType::STRING;
-  }
-
-  void setBool(bool b=false) {
-    if (! check_) {
-      reset();
-
-      check_ = CQUtil::makeWidget<CQCheckBox>("edit");
-
-      layout_->addWidget(check_);
-    }
-
-    check_->setChecked(b);
-
-    type_ = CQBaseModelType::BOOLEAN;
-  }
-
-  void setInteger(int i=0) {
-    if (! ispin_) {
-      reset();
-
-      ispin_ = CQUtil::makeWidget<CQIntegerSpin>("edit");
-
-      layout_->addWidget(ispin_);
-    }
-
-    ispin_->setValue(i);
-
-    type_ = CQBaseModelType::INTEGER;
-  }
-
-  void setEnum(const QString &str, const QStringList &values) {
-    if (! combo_) {
-      reset();
-
-      combo_ = CQUtil::makeWidget<QComboBox>("edit");
-
-      layout_->addWidget(combo_);
-    }
-
-    // make optional
-    QStringList values1;
-    values1 << "";
-    values1 << values;
-
-    combo_->clear();
-    combo_->addItems(values1);
-
-    int pos = combo_->findText(str);
-    if (pos < 0) pos = 0;
-
-    combo_->setCurrentIndex(pos);
-
-    type_ = CQBaseModelType::ENUM;
-  }
-
-  void setColor(const QString &str="") {
-    if (! color_) {
-      reset();
-
-      color_ = CQUtil::makeWidget<CQChartsColorLineEdit>("edit");
-
-      layout_->addWidget(color_);
-    }
-
-    CQChartsColor c(str);
-
-    color_->setColor(c);
-
-    type_ = CQBaseModelType::COLOR;
-  }
-
-  QString getString() const {
-    assert(edit_);
-
-    return edit_->text().simplified();
-  }
-
-  bool getBool() const {
-    assert(check_);
-
-    return check_->isChecked();
-  }
-
-  int getInteger() const {
-    assert(ispin_);
-
-    return ispin_->value();
-  }
-
-  QString getEnum() const {
-    assert(combo_);
-
-    return combo_->currentText();
-  }
-
-  QString getColor() const {
-    assert(color_);
-
-    return color_->color().toString();
-  }
-
-  void reset() {
-    delete edit_;
-    delete ispin_;
-    delete check_;
-    delete combo_;
-    delete color_;
-
-    edit_  = nullptr;
-    ispin_ = nullptr;
-    check_ = nullptr;
-    combo_ = nullptr;
-    color_ = nullptr;
-  }
-
- private:
-  CQBaseModelType        type_   { CQBaseModelType::NONE };
-  QHBoxLayout*           layout_ { nullptr };
-  CQChartsLineEdit*      edit_   { nullptr };
-  CQIntegerSpin*         ispin_  { nullptr };
-  CQCheckBox*            check_  { nullptr };
-  QComboBox*             combo_  { nullptr };
-  CQChartsColorLineEdit* color_  { nullptr };
-};
-
-//---
+#include <QVBoxLayout>
 
 CQChartsModelControl::
 CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
@@ -197,19 +34,25 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  auto *exprFrame = addExprFrame();
+  exprFrame_ = addExprFrame();
 
-  controlTab->addTab(exprFrame, "Expression");
+  controlTab->addTab(exprFrame_, "Expression");
+
+  //---
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  auto *foldFrame = addFoldFrame();
+  foldFrame_ = addFoldFrame();
 
-  controlTab->addTab(foldFrame, "Fold");
+  controlTab->addTab(foldFrame_, "Fold");
 #endif
 
-  auto *columnDataFrame = addColumnDataFrame();
+  //---
 
-  controlTab->addTab(columnDataFrame, "Column Data");
+  columnDataFrame_ = addColumnDataFrame();
+
+  controlTab->addTab(columnDataFrame_, "Column Data");
+
+  //---
 
   auto *propertiesFrame = addPropertiesFrame();
 
@@ -218,8 +61,6 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
   setModelData(modelData);
-
-  expressionModeSlot();
 }
 
 CQChartsModelControl::
@@ -230,297 +71,37 @@ CQChartsModelControl::
   delete propertyModel_;
 }
 
-QFrame *
+CQChartsModelExprControl *
 CQChartsModelControl::
 addExprFrame()
 {
-  auto *exprFrame       = CQUtil::makeWidget<QFrame>("exprFrame");
-  auto *exprFrameLayout = CQUtil::makeLayout<QVBoxLayout>(exprFrame, 0, 2);
+  auto *exprFrame = new CQChartsModelExprControl(this);
 
-  //--
-
-  auto *exprModeFrame  = CQUtil::makeWidget<QFrame>("exprMode");
-  auto *exprModeLayout = CQUtil::makeLayout<QHBoxLayout>(exprModeFrame, 0, 2);
-
-  exprFrameLayout->addWidget(exprModeFrame);
-
-  exprWidgets_.addRadio    = CQUtil::makeWidget<QRadioButton>("add"   );
-  exprWidgets_.removeRadio = CQUtil::makeWidget<QRadioButton>("remove");
-  exprWidgets_.modifyRadio = CQUtil::makeWidget<QRadioButton>("modify");
-
-  exprWidgets_.addRadio   ->setText("Add");
-  exprWidgets_.removeRadio->setText("Remove");
-  exprWidgets_.modifyRadio->setText("Modify");
-
-  exprWidgets_.addRadio   ->setToolTip("Add Column Expression");
-  exprWidgets_.removeRadio->setToolTip("Remove Expression");
-  exprWidgets_.modifyRadio->setToolTip("Modify Column Expression");
-
-  exprWidgets_.addRadio->setChecked(true);
-
-  exprModeLayout->addWidget(exprWidgets_.addRadio   );
-  exprModeLayout->addWidget(exprWidgets_.removeRadio);
-  exprModeLayout->addWidget(exprWidgets_.modifyRadio);
-  exprModeLayout->addStretch(1);
-
-  connect(exprWidgets_.addRadio   , SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
-  connect(exprWidgets_.removeRadio, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
-  connect(exprWidgets_.modifyRadio, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
-
-  //--
-
-  auto *exprGridLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
-
-  exprFrameLayout->addLayout(exprGridLayout);
-
-  int row = 0;
-
-  //---
-
-  auto *exprValueLabel = CQUtil::makeLabelWidget<QLabel>("Expression", "valueLabel");
-
-  exprWidgets_.valueEdit = CQUtil::makeWidget<CQChartsLineEdit>("valueEdit");
-
-  exprWidgets_.valueEdit->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
-    "Use: @<number> as shorthand for column(<number>)\n"
-    "Functions: column, row, cell, setColumn, setRow, setCell\n"
-    " header, setHeader, type, setType, map, bucket, norm, key, rand");
-
-  exprGridLayout->addWidget(exprValueLabel        , row, 0);
-  exprGridLayout->addWidget(exprWidgets_.valueEdit, row, 1);
-
-  ++row;
-
-  //----
-
-  exprWidgets_.columnLabel = CQUtil::makeLabelWidget<QLabel>("Column", "columnLabel");
-
-  exprWidgets_.columnEdit = CQUtil::makeWidget<CQChartsLineEdit>("columnEdit");
-
-  exprWidgets_.columnEdit->setToolTip("Column to Modify");
-
-  exprGridLayout->addWidget(exprWidgets_.columnLabel, row, 0);
-  exprGridLayout->addWidget(exprWidgets_.columnEdit , row, 1);
-
-  ++row;
-
-  //----
-
-  auto *exprNameLabel = CQUtil::makeLabelWidget<QLabel>("Name", "nameLabel");
-
-  exprWidgets_.nameEdit = CQUtil::makeWidget<CQChartsLineEdit>("nameEdit");
-
-  exprWidgets_.nameEdit->setToolTip("Column Name");
-
-  exprGridLayout->addWidget(exprNameLabel        , row, 0);
-  exprGridLayout->addWidget(exprWidgets_.nameEdit, row, 1);
-
-  ++row;
-
-  //--
-
-  exprWidgets_.typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
-
-  exprWidgets_.typeEdit = CQUtil::makeWidget<CQChartsLineEdit>("typeEdit");
-
-  exprWidgets_.typeEdit->setToolTip("Column Type");
-
-  exprGridLayout->addWidget(exprWidgets_.typeLabel, row, 0);
-  exprGridLayout->addWidget(exprWidgets_.typeEdit , row, 1);
-
-  ++row;
-
-  //--
-
-  exprFrameLayout->addStretch(1);
-
-  //--
-
-  auto *exprButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
-
-  exprFrameLayout->addLayout(exprButtonLayout);
-
-  auto *exprApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "exprApply");
-
-  connect(exprApplyButton, SIGNAL(clicked()), this, SLOT(exprApplySlot()));
-
-  exprButtonLayout->addStretch(1);
-  exprButtonLayout->addWidget(exprApplyButton);
-
-  //---
+  exprFrame->setModelData(modelData_);
 
   return exprFrame;
 }
 
 #ifdef CQCHARTS_FOLDED_MODEL
-QFrame *
+CQChartsModelFoldControl *
 CQChartsModelControl::
 addFoldFrame()
 {
-  auto *foldFrame       = CQUtil::makeWidget<QFrame>("foldFrame");
-  auto *foldFrameLayout = CQUtil::makeLayout<QVBoxLayout>(foldFrame, 0, 2);
+  auto *foldFrame = new CQChartsModelFoldControl(this);
 
-  //---
-
-  auto *foldWidgetsLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
-
-  foldFrameLayout->addLayout(foldWidgetsLayout);
-
-  int foldRow = 0;
-
-  //---
-
-  // fold column
-  foldWidgets_.columnEdit = addLineEdit(foldWidgetsLayout, foldRow, "Column", "column");
-
-  foldWidgets_.columnEdit->setToolTip("Fold Column");
-
-  //---
-
-  // fold type
-  auto *foldTypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "type");
-
-  foldWidgets_.typeCombo = CQUtil::makeWidget<QComboBox>("foldType");
-
-  foldWidgets_.typeCombo->addItems(QStringList() << "Bucketed" << "Hier Separator");
-
-  foldWidgetsLayout->addWidget(foldTypeLabel         , foldRow, 0);
-  foldWidgetsLayout->addWidget(foldWidgets_.typeCombo, foldRow, 1); ++foldRow;
-
-  foldWidgets_.typeCombo->setToolTip("Fold using bucketed values or hierarchical separator");
-
-  //---
-
-  // fold auto check
-  auto *foldAutoLabel = CQUtil::makeLabelWidget<QLabel>("Auto", "auto");
-
-  foldWidgets_.autoCheck = CQUtil::makeWidget<CQCheckBox>("foldAuto");
-
-  foldWidgets_.autoCheck->setText("Auto");
-  foldWidgets_.autoCheck->setChecked(true);
-
-  foldWidgetsLayout->addWidget(foldAutoLabel         , foldRow, 0);
-  foldWidgetsLayout->addWidget(foldWidgets_.autoCheck, foldRow, 1); ++foldRow;
-
-  foldWidgets_.autoCheck->setToolTip("Automatically determine fold buckets");
-
-  //---
-
-  // fold delta
-  foldWidgets_.deltaEdit = addLineEdit(foldWidgetsLayout, foldRow, "Delta", "delta");
-
-  foldWidgets_.deltaEdit->setText("1.0");
-  foldWidgets_.deltaEdit->setToolTip("Explicit fold delta");
-
-  //---
-
-  // fold count
-  foldWidgets_.countEdit = addLineEdit(foldWidgetsLayout, foldRow, "Count", "count");
-
-  foldWidgets_.countEdit->setText("20");
-  foldWidgets_.countEdit->setToolTip("Explicit fold count");
-
-  //---
-
-  // fold separator
-  foldWidgets_.separatorEdit = addLineEdit(foldWidgetsLayout, foldRow, "Separator", "separator");
-
-  foldWidgets_.separatorEdit->setText("/");
-  foldWidgets_.separatorEdit->setToolTip("Hierarchical separator");
-
-  //---
-
-  foldWidgetsLayout->setRowStretch(foldRow, 1); ++foldRow;
-
-  //--
-
-  auto *foldButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
-
-  foldFrameLayout->addLayout(foldButtonLayout);
-
-  auto *foldApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "foldApply");
-
-  connect(foldApplyButton, SIGNAL(clicked()), this, SLOT(foldApplySlot()));
-
-  auto *foldClearButton = CQUtil::makeLabelWidget<QPushButton>("Clear", "foldClear");
-
-  connect(foldClearButton, SIGNAL(clicked()), this, SLOT(foldClearSlot()));
-
-  foldButtonLayout->addStretch(1);
-  foldButtonLayout->addWidget(foldApplyButton);
-  foldButtonLayout->addWidget(foldClearButton);
-
-  //--
+  foldFrame->setModelData(modelData_);
 
   return foldFrame;
 }
 #endif
 
-QFrame *
+CQChartsModelColumnDataControl *
 CQChartsModelControl::
 addColumnDataFrame()
 {
-  auto *columnDataFrame  = CQUtil::makeWidget<QFrame>("columnDataFrame");
-  auto *columnDataLayout = CQUtil::makeLayout<QVBoxLayout>(columnDataFrame, 2, 2);
+  auto *columnDataFrame = new CQChartsModelColumnDataControl(this);
 
-  //---
-
-  columnEditData_.editFrame = CQUtil::makeWidget<QFrame>("columnEditFrame");
-
-  columnEditData_.editLayout = CQUtil::makeLayout<QGridLayout>(columnEditData_.editFrame, 0, 2);
-
-  columnDataLayout->addWidget(columnEditData_.editFrame);
-
-  columnEditData_.row = 0;
-
-  columnEditData_.numEdit  =
-    addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Number", "number");
-  columnEditData_.nameEdit =
-    addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Name"  , "name"  );
-  columnEditData_.typeCombo =
-    addComboBox(columnEditData_.editLayout, columnEditData_.row, "Type"  , "type"  );
-  columnEditData_.headerTypeCombo =
-    addComboBox(columnEditData_.editLayout, columnEditData_.row, "Header Type", "headerType");
-
-  QStringList typeNames;
-
-  auto *columnTypeMgr = charts_->columnTypeMgr();
-
-  columnTypeMgr->typeNames(typeNames);
-
-  columnEditData_.typeCombo      ->addItems(typeNames);
-  columnEditData_.headerTypeCombo->addItems(typeNames);
-
-  columnEditData_.numEdit        ->setToolTip("Column Number");
-  columnEditData_.nameEdit       ->setToolTip("Column Name");
-  columnEditData_.typeCombo      ->setToolTip("Column Type");
-  columnEditData_.headerTypeCombo->setToolTip("Header Column Type");
-
-  columnEditData_.editLayout->setRowStretch(columnEditData_.row, 1);
-
-  connect(columnEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(typeChangedSlot()));
-  connect(columnEditData_.headerTypeCombo, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(headerTypeChangedSlot()));
-
-  //---
-
-  columnDataLayout->addStretch(1);
-
-  //---
-
-  auto *columnButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
-
-  columnDataLayout->addLayout(columnButtonLayout);
-
-  auto *typeApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "typeApply");
-
-  connect(typeApplyButton, SIGNAL(clicked()), this, SLOT(typeApplySlot()));
-
-  columnButtonLayout->addStretch(1);
-  columnButtonLayout->addWidget(typeApplyButton);
-
-  //---
+  columnDataFrame->setModelData(modelData_);
 
   return columnDataFrame;
 }
@@ -545,172 +126,6 @@ addPropertiesFrame()
   return propertiesFrame;
 }
 
-CQChartsLineEdit *
-CQChartsModelControl::
-addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
-{
-  auto *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-  auto *edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit" );
-
-  label->setText(name);
-
-  grid->addWidget(label, row, 0);
-  grid->addWidget(edit , row, 1);
-
-  ++row;
-
-  return edit;
-}
-
-QComboBox *
-CQChartsModelControl::
-addComboBox(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
-{
-  auto *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-  auto *combo = CQUtil::makeWidget<QComboBox>(objName + "Combo");
-
-  label->setText(name);
-
-  grid->addWidget(label, row, 0);
-  grid->addWidget(combo, row, 1);
-
-  ++row;
-
-  return combo;
-}
-
-void
-CQChartsModelControl::
-expressionModeSlot()
-{
-  exprMode_ = Mode::ADD;
-
-  if      (exprWidgets_.addRadio   ->isChecked()) exprMode_ = Mode::ADD;
-  else if (exprWidgets_.removeRadio->isChecked()) exprMode_ = Mode::REMOVE;
-  else if (exprWidgets_.modifyRadio->isChecked()) exprMode_ = Mode::MODIFY;
-
-  exprWidgets_.columnLabel->setEnabled(exprMode_ == Mode::MODIFY);
-  exprWidgets_.columnEdit ->setEnabled(exprMode_ == Mode::MODIFY);
-
-  exprWidgets_.typeLabel->setEnabled(exprMode_ != Mode::REMOVE);
-  exprWidgets_.nameEdit ->setEnabled(exprMode_ != Mode::REMOVE);
-  exprWidgets_.typeEdit ->setEnabled(exprMode_ != Mode::REMOVE);
-}
-
-void
-CQChartsModelControl::
-exprApplySlot()
-{
-  QString expr = exprWidgets_.valueEdit->text().simplified();
-
-  if (! expr.length())
-    return;
-
-  //---
-
-  if (! modelData_) {
-    charts_->errorMsg("No model data");
-    return;
-  }
-
-  CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
-
-  switch (exprMode_) {
-    case Mode::ADD   : function = CQChartsExprModel::Function::ADD   ; break;
-    case Mode::REMOVE: function = CQChartsExprModel::Function::DELETE; break;
-    case Mode::MODIFY: function = CQChartsExprModel::Function::ASSIGN; break;
-    default:                                                           break;
-  }
-
-  ModelP model = modelData_->currentModel();
-
-  QString columnStr = exprWidgets_.columnEdit->text();
-
-  CQChartsColumn column;
-
-  if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
-    bool ok;
-
-    long icolumn = CQChartsUtil::toInt(columnStr, ok);
-
-    if (ok)
-      column = CQChartsColumn(int(icolumn));
-  }
-
-  int column1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
-
-  if (function == CQChartsExprModel::Function::ADD ||
-      function == CQChartsExprModel::Function::ASSIGN) {
-    QString nameStr = exprWidgets_.nameEdit->text();
-    QString typeStr = exprWidgets_.typeEdit->text();
-
-    if (column1 < 0) {
-      charts_->errorMsg("Invalid column");
-      return;
-    }
-
-    if (nameStr.length())
-      model->setHeaderData(column1, Qt::Horizontal, nameStr, Qt::DisplayRole);
-
-    if (typeStr.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(),
-                                                CQChartsColumn(column1), typeStr)) {
-        charts_->errorMsg("Invalid type '" + typeStr + "'");
-        return;
-      }
-    }
-  }
-}
-
-#ifdef CQCHARTS_FOLDED_MODEL
-void
-CQChartsModelControl::
-foldApplySlot()
-{
-  if (! modelData_)
-    return;
-
-  bool ok;
-
-  CQChartsModelData::FoldData foldData;
-
-  foldData.columnsStr = foldWidgets_.columnEdit->text();
-
-  if      (foldWidgets_.typeCombo->currentIndex() == 0) {
-    foldData.foldType = CQChartsModelData::FoldData::FoldType::BUCKET;
-    foldData.isAuto   = foldWidgets_.autoCheck->isChecked();
-    foldData.delta    = CQChartsUtil::toReal(foldWidgets_.deltaEdit->text(), ok);
-    foldData.count    = CQChartsUtil::toInt (foldWidgets_.countEdit->text(), ok);
-  }
-  else if (foldWidgets_.typeCombo->currentIndex() == 1) {
-    foldData.foldType  = CQChartsModelData::FoldData::FoldType::SEPARATOR;
-    foldData.separator = foldWidgets_.separatorEdit->text();
-  }
-
-  modelData_->foldModel(foldData);
-
-  updateModel();
-
-  updateModelDetails();
-}
-#endif
-
-#ifdef CQCHARTS_FOLDED_MODEL
-void
-CQChartsModelControl::
-foldClearSlot()
-{
-  if (! modelData_)
-    return;
-
-  modelData_->foldClear();
-
-  updateModel();
-
-  updateModelDetails();
-}
-#endif
-
 void
 CQChartsModelControl::
 updateCurrentModel()
@@ -725,16 +140,15 @@ CQChartsModelControl::
 setModelData(CQChartsModelData *modelData)
 {
   if (modelData != modelData_) {
-    if (modelData_)
-      disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
-
     modelData_ = modelData;
 
-    if (modelData_)
-      setColumnData(modelData_->currentColumn());
+    exprFrame_->setModelData(modelData_);
 
-    if (modelData_)
-      connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
+#ifdef CQCHARTS_FOLDED_MODEL
+    foldFrame_->setModelData(modelData_);
+#endif
+
+    columnDataFrame_->setModelData(modelData_);
 
     //---
 
@@ -746,270 +160,5 @@ setModelData(CQChartsModelData *modelData)
     else {
       propertyTree_->setPropertyModel(propertyModel_);
     }
-  }
-}
-
-void
-CQChartsModelControl::
-updateModel()
-{
-}
-
-void
-CQChartsModelControl::
-updateModelDetails()
-{
-}
-
-void
-CQChartsModelControl::
-typeChangedSlot()
-{
-}
-
-void
-CQChartsModelControl::
-headerTypeChangedSlot()
-{
-}
-
-void
-CQChartsModelControl::
-typeApplySlot()
-{
-  if (! modelData_)
-    return;
-
-  ModelP model = modelData_->currentModel();
-
-  //---
-
-  QString numStr = columnEditData_.numEdit->text();
-
-  bool ok;
-
-  int icolumn = (int) CQChartsUtil::toInt(numStr, ok);
-
-  if (! ok) {
-    charts_->errorMsg("Invalid column number '" + numStr + "'");
-    return;
-  }
-
-  CQChartsColumn column(icolumn);
-
-  if (! column.isValid()) {
-    charts_->errorMsg("Invalid column");
-    return;
-  }
-
-  //--
-
-  QString nameStr = columnEditData_.nameEdit->text();
-
-  if (nameStr.length()) {
-    if (! model->setHeaderData(icolumn, Qt::Horizontal, nameStr, Qt::DisplayRole)) {
-      charts_->errorMsg("Failed to set name");
-      return;
-    }
-  }
-
-  //---
-
-  auto *columnTypeMgr = charts_->columnTypeMgr();
-
-  //--
-
-  QString typeStr = columnEditData_.typeCombo->currentText();
-
-#if 0
-  if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), icolumn, typeStr)) {
-    charts_->errorMsg("Invalid type '" + typeStr + "'");
-    return;
-  }
-#endif
-
-  CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
-
-  const auto *typeData = columnTypeMgr->getType(columnType);
-
-  if (! typeData) {
-    charts_->errorMsg("Invalid column type '" + typeStr + "'");
-    return;
-  }
-
-  CQChartsNameValues nameValues;
-
-  for (const auto &paramEdit : columnEditData_.paramEdits) {
-    QString name = paramEdit.label->text();
-
-    const auto *param = typeData->getParam(name);
-
-    if (! param) {
-      charts_->errorMsg("Invalid parameter '" + name + "'");
-      return;
-    }
-
-    QString value;
-
-    if      (param->type() == CQBaseModelType::BOOLEAN) {
-      if (paramEdit.edit->type() == CQBaseModelType::BOOLEAN)
-        value = (paramEdit.edit->getBool() ? "1" : "0");
-    }
-    else if (param->type() == CQBaseModelType::INTEGER) {
-      if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
-        value = QString("%1").arg(paramEdit.edit->getInteger());
-    }
-    else if (param->type() == CQBaseModelType::ENUM) {
-      if (paramEdit.edit->type() == CQBaseModelType::ENUM)
-        value = paramEdit.edit->getEnum();
-    }
-    else if (param->type() == CQBaseModelType::COLOR) {
-      if (paramEdit.edit->type() == CQBaseModelType::COLOR)
-        value = paramEdit.edit->getColor();
-     }
-    else {
-      if (paramEdit.edit->type() == CQBaseModelType::STRING)
-        value = paramEdit.edit->getString();
-    }
-
-    if (value != "")
-      nameValues.setNameValue(name, value);
-  }
-
-  if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues)) {
-    charts_->errorMsg("Failed to set column data");
-    return;
-  }
-
-  //--
-
-  QString headerTypeStr = columnEditData_.headerTypeCombo->currentText();
-
-  CQBaseModelType headerColumnType = CQBaseModel::nameType(headerTypeStr);
-
-  const auto *headerTypeData = columnTypeMgr->getType(headerColumnType);
-
-  if (headerTypeData) {
-    if (! columnTypeMgr->setModelHeaderType(model.data(), column, columnType)) {
-      charts_->errorMsg("Failed to set header type");
-      return;
-    }
-  }
-
-  setColumnData(icolumn);
-}
-
-void
-CQChartsModelControl::
-setColumnData(int column)
-{
-  columnEditData_.numEdit->setText(QString("%1").arg(column));
-
-  //---
-
-  if (! modelData_)
-    return;
-
-  ModelP model = modelData_->currentModel();
-
-  //---
-
-  QString headerStr = model->headerData(column, Qt::Horizontal).toString();
-
-  columnEditData_.nameEdit->setText(headerStr);
-
-  //---
-
-  CQChartsModelTypeData columnTypeData;
-
-  if (CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(column),
-                                         columnTypeData)) {
-    auto *columnTypeMgr = charts_->columnTypeMgr();
-
-    //--
-
-    const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
-
-  //QString typeStr =
-  //  columnTypeMgr->encodeTypeData(columnTypeData.type, columnTypeData.nameValues);
-
-    int typeInd = columnEditData_.typeCombo->findText(typeData->name());
-
-    if (typeInd >= 0)
-      columnEditData_.typeCombo->setCurrentIndex(typeInd);
-
-    //--
-
-    const auto *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
-
-    int headerTypeInd = columnEditData_.typeCombo->findText(headerTypeData->name());
-
-    if (headerTypeInd >= 0)
-      columnEditData_.headerTypeCombo->setCurrentIndex(headerTypeInd);
-
-    //---
-
-    int paramInd = 0;
-
-    columnEditData_.editLayout->setRowStretch(columnEditData_.row, 0);
-
-    for (const auto &param : typeData->params()) {
-      while (paramInd >= int(columnEditData_.paramEdits.size())) {
-        ParamEdit paramEdit;
-
-        paramEdit.row   = columnEditData_.row + paramInd;
-        paramEdit.label = CQUtil::makeLabelWidget<QLabel>("", "label");
-        paramEdit.edit  = new CQChartsParamEdit;
-
-        columnEditData_.editLayout->addWidget(paramEdit.label, paramEdit.row, 0);
-        columnEditData_.editLayout->addWidget(paramEdit.edit , paramEdit.row, 1);
-
-        columnEditData_.paramEdits.push_back(paramEdit);
-      }
-
-      auto &paramEdit = columnEditData_.paramEdits[paramInd];
-
-      paramEdit.label->setText(param->name());
-
-      QVariant var;
-
-      columnTypeData.nameValues.nameValue(param->name(), var);
-
-      if      (param->type() == CQBaseModelType::BOOLEAN)
-        paramEdit.edit->setBool(var.toBool());
-      else if (param->type() == CQBaseModelType::INTEGER)
-        paramEdit.edit->setInteger(var.toInt());
-      else if (param->type() == CQBaseModelType::ENUM)
-        paramEdit.edit->setEnum(var.toString(), param->values());
-      else if (param->type() == CQBaseModelType::COLOR)
-        paramEdit.edit->setColor(var.toString());
-      else
-        paramEdit.edit->setString(var.toString());
-
-      paramEdit.label->setObjectName(param->name() + "_label");
-      paramEdit.edit ->setObjectName(param->name() + "_edit" );
-      paramEdit.edit ->setToolTip(param->tip());
-
-      ++paramInd;
-    }
-
-    while (paramInd < int(columnEditData_.paramEdits.size())) {
-      auto &paramEdit1 = columnEditData_.paramEdits.back();
-
-      CQUtil::removeGridRow(columnEditData_.editLayout, paramEdit1.row, /*delete*/false);
-
-      delete paramEdit1.label;
-      delete paramEdit1.edit;
-
-      columnEditData_.paramEdits.pop_back();
-    }
-
-    columnEditData_.editLayout->setRowStretch(columnEditData_.row + paramInd, 1);
-
-    columnEditData_.editLayout->invalidate();
-  }
-  else {
-    columnEditData_.typeCombo      ->setCurrentIndex(-1);
-    columnEditData_.headerTypeCombo->setCurrentIndex(-1);
   }
 }

@@ -221,15 +221,38 @@ void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const
                 const CQChartsLength &size);
 void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const BBox &bbox);
 
+//---
+
 void drawPieSlice(CQChartsPaintDevice *device, const Point &c, double ri, double ro,
                   const CQChartsAngle &a1, const CQChartsAngle &a2,
                   bool isInvertX=false, bool isInvertY=false);
 
+void pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const CQChartsAngle &a1,
+                  const CQChartsAngle &a2, bool isInvertX, bool isInvertY);
+
+//---
+
+void drawEllipse(CQChartsPaintDevice *device, const BBox &bbox);
+
+void ellipsePath(QPainterPath &path, const BBox &bbox);
+
+//---
+
 void drawArc(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsAngle &angle,
              const CQChartsAngle &dangle);
 
+void arcPath(QPainterPath &path, const BBox &bbox, const CQChartsAngle &angle,
+             const CQChartsAngle &dangle);
+
+//---
+
 void drawArcSegment(CQChartsPaintDevice *device, const BBox &ibbox, const BBox &obbox,
                     const CQChartsAngle &angle, const CQChartsAngle &dangle);
+
+void arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+                    const CQChartsAngle &angle, const CQChartsAngle &dangle);
+
+//---
 
 void drawArcsConnector(CQChartsPaintDevice *device, const BBox &ibbox,
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
@@ -238,6 +261,8 @@ void drawArcsConnector(CQChartsPaintDevice *device, const BBox &ibbox,
 void arcsConnectorPath(QPainterPath &path, const BBox &ibbox,
                        const CQChartsAngle &a1, const CQChartsAngle &da1,
                        const CQChartsAngle &a2, const CQChartsAngle &da2, bool isSelf);
+
+//---
 
 QString clipTextToLength(CQChartsPaintDevice *device, const QString &text,
                          const CQChartsLength &clipLength);

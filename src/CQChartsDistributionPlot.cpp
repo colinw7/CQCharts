@@ -458,11 +458,7 @@ void
 CQChartsDistributionPlot::
 setSkipEmpty(bool b)
 {
-  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() {
-    //visitModel_ = false;
-
-    updateRangeAndObjs();
-  } );
+  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

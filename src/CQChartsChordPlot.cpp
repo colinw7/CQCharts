@@ -96,6 +96,8 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
+  textBox_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   setStrokeAlpha(Alpha(0.3));
@@ -203,7 +205,7 @@ addProperties()
   addStyleProp("arc/fill", "arcAlpha", "alpha", "Alpha for arc fill");
 
   // labels
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
 
   addProp("labels", "labelRadius", "radius", "Radius for segment label (>= 1.0)")->
     setMinValue(1.0);
@@ -876,8 +878,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     // sort by value/total
     std::sort(datas.begin(), datas.end(),
       [&](const ChordData &lhs, const ChordData &rhs) {
-        if (lhs.group().value() != rhs.group().value())
-          return lhs.group().value() < rhs.group().value();
+        if (lhs.group().ivalue() != rhs.group().ivalue())
+          return lhs.group().ivalue() < rhs.group().ivalue();
 
         return lhs.total(/*primaryOnly*/ !isSymmetric()) <
                rhs.total(/*primaryOnly*/ !isSymmetric());
@@ -890,8 +892,8 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
     // sort by value/from
     std::sort(datas.begin(), datas.end(),
       [&](const ChordData &lhs, const ChordData &rhs) {
-        if (lhs.group().value() != rhs.group().value())
-          return lhs.group().value() < rhs.group().value();
+        if (lhs.group().ivalue() != rhs.group().ivalue())
+          return lhs.group().ivalue() < rhs.group().ivalue();
 
         return lhs.from() < rhs.from();
       });
@@ -1065,9 +1067,11 @@ QString
 CQChartsChordArcObj::
 calcId() const
 {
-  if (data_.group().name != "")
+  QString name = data_.group().value.toString();
+
+  if (name != "")
     return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).
-             arg(data_.group().name).arg(iv_.i);
+             arg(name).arg(iv_.i);
   else
     return QString("%1:%2:%3").arg(typeName()).arg(dataName()).arg(iv_.i);
 }
@@ -1080,8 +1084,10 @@ calcTipId() const
 
   tableTip.addTableRow("Name", dataName());
 
-  if (data_.group().name != "")
-    tableTip.addTableRow("Group", data_.group().name);
+  QString name = data_.group().value.toString();
+
+  if (name != "")
+    tableTip.addTableRow("Group", name);
 
   tableTip.addTableRow("Total", data_.total(/*primaryOnly*/! plot_->isSymmetric()));
 
@@ -1199,7 +1205,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::NONE);
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     for (const auto &value : data_.values()) {
       if (! value.primary)
@@ -1304,10 +1310,8 @@ calcFromColor() const
   ColorInd colorInd = calcColorInd();
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    double gval = data_.group().value();
-
-    if (gval >= 0.0)
-      return plot_->blendGroupPaletteColor(gval, iv_.value(), 0.1);
+    if (data_.group().isValid())
+      return plot_->blendGroupPaletteColor(data_.group().ivalue(), iv_.value(), 0.1);
     else
       return plot_->interpPaletteColor(colorInd);
   }
@@ -1575,7 +1579,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    plot_->view()->setDrawLayerType(CQChartsLayer::Type::NONE);
+    plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     if (fromObj) { fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false); }
     if (toObj  ) { toObj  ->setInside(true); toObj  ->draw(device); toObj  ->setInside(false); }

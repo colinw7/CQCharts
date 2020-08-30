@@ -348,6 +348,8 @@ addProperties()
   // select highlight
   addStyleProp("select/highlight"       , "selectedMode"       , "mode"   ,
                "Highlight draw mode");
+  addStyleProp("select/highlight"       , "selectedBlend"      , "blend"  ,
+               "Blend existing color with select color");
   addStyleProp("select/highlight"       , "selectedShapeData"  , "style"  ,
                "Highlight shape data");
   addStyleProp("select/highlight/fill"  , "selectedFilled"     , "visible",
@@ -372,6 +374,8 @@ addProperties()
 
   // inside highlight
   addStyleProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
+  addStyleProp("inside/highlight"       , "insideBlend"      , "blend"  ,
+               "Blend existing color with inside color");
   addStyleProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
   addStyleProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
   addStyleProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
@@ -4172,12 +4176,14 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
   }
   else {
     // inside
-    if      (drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if      (drawLayerType() == CQChartsLayer::Type::MOUSE_OVER ||
+             drawLayerType() == CQChartsLayer::Type::MOUSE_OVER_EXTRA) {
       if (obj->isInside())
         updateInsideObjPenBrushState(ic, penBrush, /*outline*/true, drawType);
     }
     // selected
-    else if (drawLayerType() == CQChartsLayer::Type::SELECTION) {
+    else if (drawLayerType() == CQChartsLayer::Type::SELECTION ||
+             drawLayerType() == CQChartsLayer::Type::SELECTION_EXTRA) {
       if (obj->isSelected()) {
         if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
           updateSelectedObjPenBrushState(ic, penBrush, drawType);
@@ -4243,10 +4249,18 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
 
       CQChartsAlpha alpha;
 
-      if (isBufferLayers())
-        alpha = CQChartsAlpha(insideFillAlpha().value()*bc.alphaF());
-      else
-        alpha = CQChartsAlpha(bc.alphaF());
+      if (isBufferLayers()) {
+        if (isInsideBlend())
+          alpha = CQChartsAlpha(insideFillAlpha().value()*bc.alphaF());
+        else
+          alpha = CQChartsAlpha(insideFillAlpha().value());
+      }
+      else {
+        if (isInsideBlend())
+          alpha = CQChartsAlpha(bc.alphaF());
+        else
+          alpha = CQChartsAlpha(1.0);
+      }
 
       setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, insideFillPattern()));
     }
@@ -4318,10 +4332,18 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
 
       CQChartsAlpha alpha;
 
-      if (isBufferLayers())
-        alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
-      else
-        alpha = CQChartsAlpha(bc.alphaF());
+      if (isBufferLayers()) {
+        if (isInsideBlend())
+          alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
+        else
+          alpha = CQChartsAlpha(selectedFillAlpha().value());
+      }
+      else {
+        if (isInsideBlend())
+          alpha = CQChartsAlpha(bc.alphaF());
+        else
+          alpha = CQChartsAlpha(1.0);
+      }
 
       setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, selectedFillPattern()));
     }

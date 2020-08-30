@@ -1851,9 +1851,8 @@ invalidateModelDetails(bool changed)
   auto *charts = window_->view()->charts();
 
   auto *modelData = charts->currentModelData();
-  auto *details   = (modelData ? modelData->details() : nullptr);
 
-  modelsWidgets_.detailsWidget->setDetails(details, /*invalidate*/changed);
+  modelsWidgets_.detailsWidget->setModelData(modelData, /*invalidate*/changed);
 }
 
 void

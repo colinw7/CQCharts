@@ -59,12 +59,13 @@ class CQChartsSankeyGraphObj;
  */
 class CQChartsSankeyPlotNode {
  public:
-  using Edges      = std::vector<CQChartsSankeyPlotEdge *>;
-  using NodeSet    = std::set<const CQChartsSankeyPlotNode *>;
+  using Node       = CQChartsSankeyPlotNode;
+  using NodeSet    = std::set<const Node *>;
+  using Edge       = CQChartsSankeyPlotEdge;
+  using Edges      = std::vector<Edge *>;
+  using EdgeSet    = std::set<const Edge *>;
   using Plot       = CQChartsSankeyPlot;
   using Graph      = CQChartsSankeyPlotGraph;
-  using Edge       = CQChartsSankeyPlotEdge;
-  using Node       = CQChartsSankeyPlotNode;
   using Obj        = CQChartsSankeyNodeObj;
   using OptReal    = CQChartsOptReal;
   using ModelIndex = CQChartsModelIndex;
@@ -105,7 +106,8 @@ class CQChartsSankeyPlotNode {
 
   //! get/set group
   int group() const { return group_; }
-  void setGroup(int i) { group_ = i; }
+  void setGroup(int ig, int ng=0) { group_ = ig; ngroup_ = ng; }
+  int ngroup() const { return ngroup_; }
 
   //! get/set depth
   int depth() const { return depth_; }
@@ -163,7 +165,7 @@ class CQChartsSankeyPlotNode {
   double edgeSum() const;
 
   //! get source edge (max) sum
-  double srcEdgeSum () const;
+  double srcEdgeSum() const;
 
   //! get destination edge (max) sum
   double destEdgeSum() const;
@@ -244,6 +246,15 @@ class CQChartsSankeyPlotNode {
     }
   }
 
+  //---
+
+  void allSrcNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const;
+  void allDestNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const;
+
+  //---
+
+  QColor calcColor() const;
+
  protected:
   //! calc src/destination depth
   int calcSrcDepth (NodeSet &visited) const;
@@ -259,7 +270,8 @@ class CQChartsSankeyPlotNode {
   QString     name_;                      //!< name
   QString     label_;                     //!< label
   OptReal     value_;                     //!< value
-  int         group_         { -1 };      //!< group
+  int         group_         { -1 };      //!< group index
+  int         ngroup_        { 0 };       //!< number of groups
   int         depth_         { -1 };      //!< depth
   QColor      color_;                     //!< fill color
   Edges       srcEdges_;                  //!< source edges
@@ -503,7 +515,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   using Edge = CQChartsSankeyPlotEdge;
 
  public:
-  CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
+  CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
+                        const ColorInd &ig, const ColorInd &iv);
 
   virtual ~CQChartsSankeyNodeObj();
 
@@ -568,11 +581,17 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
+  void drawConnectionMouseOver(CQChartsPaintDevice *device, int mouseColoring) const;
+
   void drawFg(PaintDevice *device) const override;
 
   //---
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
+
+  QColor calcFillColor() const;
+
+  //---
 
   void writeScriptData(ScriptPaintDevice *device) const override;
 
@@ -742,6 +761,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double nodeWidth   READ nodeWidth   WRITE setNodeWidth  )
   Q_PROPERTY(bool   edgeLine    READ isEdgeLine  WRITE setEdgeLine   )
 
+  // coloring
+  Q_PROPERTY(bool           srcColoring   READ isSrcColoring WRITE setSrcColoring  )
+  Q_PROPERTY(ConnectionType mouseColoring READ mouseColoring WRITE setMouseColoring)
+
   // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
 
@@ -756,9 +779,20 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  Q_ENUMS(ConnectionType)
   Q_ENUMS(Align)
 
  public:
+  enum class ConnectionType {
+    NONE,
+    SRC,
+    DEST,
+    ALL_SRC,
+    ALL_DEST,
+    SRC_DEST,
+    ALL_SRC_DEST
+  };
+
   enum class Align {
     SRC,
     DEST,
@@ -806,6 +840,15 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set edge line
   bool isEdgeLine() const { return edgeLine_; }
   void setEdgeLine(bool b);
+
+  //---
+
+  //! get/set color by source nodes
+  bool isSrcColoring() const { return srcColoring_; }
+  void setSrcColoring(bool b);
+
+  const ConnectionType &mouseColoring() const { return mouseColoring_; }
+  void setMouseColoring(const ConnectionType &v) { mouseColoring_ = v; }
 
   //---
 
@@ -966,7 +1009,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual NodeObj  *createNodeObj (const BBox &rect, Node *node, const ColorInd &ind) const;
+  virtual NodeObj  *createNodeObj (const BBox &rect, Node *node,
+                                   const ColorInd &ig, const ColorInd &iv) const;
   virtual EdgeObj  *createEdgeObj (const BBox &rect, Edge *edge) const;
   virtual GraphObj *createGraphObj(const BBox &rect, Graph *graph) const;
 
@@ -990,10 +1034,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool   edgeLine_    { false };          //!< draw line for edge
   BBox   targetBBox_  { -1, -1, 1, 1 };   //!< target range bbox
 
+  // coloring
+  bool           srcColoring_   { false };                    //!< color by source nodes
+  ConnectionType mouseColoring_ { ConnectionType::ALL_DEST }; //!< mouse over connections
+
   // data
   NameNodeMap      nameNodeMap_;               //!< name node map
   IndNodeMap       indNodeMap_;                //!< ind node map
-  Graph*           graph_         { nullptr }; //!< graphs
+  Graph*           graph_         { nullptr }; //!< graph
   Edges            edges_;                     //!< edges
   BBox             bbox_;                      //!< bbox
   CQChartsValueInd groupValueInd_;             //!< group value ind

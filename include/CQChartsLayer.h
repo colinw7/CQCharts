@@ -25,7 +25,11 @@ class CQChartsLayer {
     EDIT_HANDLE,
     BOXES,
     SELECTION,
-    MOUSE_OVER
+    MOUSE_OVER,
+
+    // internal usage
+    SELECTION_EXTRA,
+    MOUSE_OVER_EXTRA
   };
 
  public:

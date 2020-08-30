@@ -123,6 +123,22 @@ setMultiRoot(bool b)
   CQChartsUtil::testAndSet(multiRoot_, b, [&]() { resetRoots(); updateObjs(); } );
 }
 
+void
+CQChartsSunburstPlot::
+setSortType(const SortType &t)
+{
+  CQChartsUtil::testAndSet(sortType_, t, [&]() { resetRoots(); updateObjs(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setClipText(bool b)
+{
+  CQChartsUtil::testAndSet(clipText_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
 bool
 CQChartsSunburstPlot::
 isRoot(const HierNode *node) const
@@ -179,10 +195,6 @@ addProperties()
 
   addHierProperties();
 
-  // columns
-  addProp("columns", "nameColumns", "names", "Name columns");
-  addProp("columns", "valueColumn", "value", "Value columns");
-
   // options
   addProp("options", "innerRadius"     , "", "Inner radius")->
     setMinValue(0.0).setMaxValue(1.0);
@@ -191,6 +203,7 @@ addProperties()
   addProp("options", "startAngle"      , "", "Angle for first segment");
   addProp("options", "multiRoot"       , "", "Support multiple roots");
   addProp("options", "followViewExpand", "", "Follow view expand");
+  addProp("options", "sortType"        , "", "Sort type");
 
   // coloring
   addProp("coloring", "colorById", "colorById", "Color by id");
@@ -206,6 +219,9 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
+  addProp("text", "textVisible", "visible", "Text label visible");
+  addProp("text", "clipText"   , "clip"   , "Text is clipped");
+
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH);
 
@@ -435,7 +451,8 @@ replaceRoots() const
 
     currentRoot()->setPosition(0.0, a, ri, da);
 
-    currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da, RootNode::Order::SIZE, true);
+    currentRoot()->packNodes(currentRoot(), ri, ro, 0.0, a, da,
+                             (CQChartsSunburstNode::SortType) sortType());
   }
   else {
     Angle da(! roots_.empty() ? 360.0/roots_.size() : 0.0);
@@ -443,7 +460,7 @@ replaceRoots() const
     for (auto &root : roots_) {
       root->setPosition(0.0, a, ri, da);
 
-      root->packNodes(ri, ro, 0.0, a, da);
+      root->packNodes(ri, ro, 0.0, a, da, (CQChartsSunburstNode::SortType) sortType());
 
       a += da;
     }
@@ -780,6 +797,10 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
       node->setInd(nameInd);
 
     parent->addNode(node);
+  }
+  else {
+    // update size
+    node->setSize(node->size() + size);
   }
 
   return node;
@@ -1179,6 +1200,8 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   //---
 
+  QPainterPath path;
+
   bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
 
   if (isCircle) {
@@ -1191,118 +1214,125 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
   else {
     // if has non-zero inner radius draw arc segment
     if      (ibbox.getWidth() > 0.0) {
-      CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, Angle(a1), Angle(da));
+      CQChartsDrawUtil::arcSegmentPath(path, ibbox, obbox, Angle(a1), Angle(da));
+
+      device->drawPath(path);
     }
     // draw pie slice
     else if (obbox.getWidth() > 0.0) {
-      CQChartsDrawUtil::drawArc(device, obbox, Angle(a1), Angle(da));
+      CQChartsDrawUtil::arcPath(path, obbox, Angle(a1), Angle(da));
+
+      device->drawPath(path);
     }
   }
 
-  //---
-
-  // calc text pen
-  CQChartsPenBrush tPenBrush;
-
-  QColor tc = interpTextColor(colorInd);
-
-  setPen(tPenBrush, PenData(true, tc, textAlpha()));
-
-  if (nodeObj)
-    updateObjPenBrushState(nodeObj, tPenBrush);
+  charts()->setContrastColor(fc);
 
   //---
 
-  // set font
-  view()->setPlotPainterFont(this, device, textFont());
+  if (isTextVisible()) {
+    // calc text pen
+    CQChartsPenBrush tPenBrush;
 
-  //---
+    QColor tc = interpTextColor(colorInd);
 
-  // check if text visible (see treemap)
-  if (! isCircle) {
-    double c1 = cos(CMathUtil::Deg2Rad(a1));
-    double s1 = sin(CMathUtil::Deg2Rad(a1));
-    double c2 = cos(CMathUtil::Deg2Rad(a2));
-    double s2 = sin(CMathUtil::Deg2Rad(a2));
+    setPen(tPenBrush, PenData(true, tc, textAlpha()));
 
-    Point pw1(r2*c1, r2*s1);
-    Point pw2(r2*c2, r2*s2);
+    if (nodeObj)
+      updateObjPenBrushState(nodeObj, tPenBrush);
 
-    auto pp1 = windowToPixel(pw1);
-    auto pp2 = windowToPixel(pw2);
+    //---
 
-    double d = std::hypot(pp2.x - pp1.x, pp2.y - pp1.y);
+    // set font
+    view()->setPlotPainterFont(this, device, textFont());
 
-    if (d < 1.5)
-      return;
+    //---
+
+    // check if text visible (see treemap)
+    if (! isCircle) {
+      double c1 = cos(CMathUtil::Deg2Rad(a1));
+      double s1 = sin(CMathUtil::Deg2Rad(a1));
+      double c2 = cos(CMathUtil::Deg2Rad(a2));
+      double s2 = sin(CMathUtil::Deg2Rad(a2));
+
+      Point pw1(r2*c1, r2*s1);
+      Point pw2(r2*c2, r2*s2);
+
+      auto pp1 = windowToPixel(pw1);
+      auto pp2 = windowToPixel(pw2);
+
+      double d = std::hypot(pp2.x - pp1.x, pp2.y - pp1.y);
+
+      if (d < 1.5) // length less than 1.5 pixels
+        return;
+    }
+
+    //---
+
+    if (! isCircle) {
+      device->save();
+
+      if (isClipText())
+        device->setClipPath(path);
+    }
+
+    //---
+
+    // draw node label
+    double ta, c, s;
+
+    if (isCircle) {
+      ta = 0.0;
+      c  = 1.0;
+      s  = 0.0;
+    }
+    else {
+      ta = a1 + da/2.0;
+      c  = cos(CMathUtil::Deg2Rad(ta));
+      s  = sin(CMathUtil::Deg2Rad(ta));
+    }
+
+    double tx, ty;
+
+    if (isCircle && CMathUtil::isZero(r1)) {
+      tx = 0.0;
+      ty = 0.0;
+    }
+    else {
+      double r3 = CMathUtil::avg(r1, r2);
+
+      tx = r3*c;
+      ty = r3*s;
+    }
+
+    device->setPen(tPenBrush.pen);
+
+    Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+    Point pt(tx, ty);
+
+    QString name = (! node->isFiller() ? node->name() : node->parent()->name());
+
+    double ta1 = (c >= 0 ? ta : ta - 180);
+
+    // only contrast support (custom align and angle)
+    CQChartsTextOptions options;
+
+    options.angle         = Angle(ta1);
+    options.align         = align;
+    options.contrast      = isTextContrast();
+    options.contrastAlpha = textContrastAlpha();
+    options.clipLength    = textClipLength();
+
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
+
+  //CQChartsRotatedText::draw(device, pt, name, options);
+
+    //---
+
+    if (! isCircle)
+      device->restore();
   }
-
-  //---
-
-  if (! isCircle) {
-    device->save();
-
-    //QPainterPath path;
-
-    //device->setClipPath(path);
-  }
-
-  //---
-
-  // draw node label
-  double ta, c, s;
-
-  if (isCircle) {
-    ta = 0.0;
-    c  = 1.0;
-    s  = 0.0;
-  }
-  else {
-    ta = a1 + da/2.0;
-    c  = cos(CMathUtil::Deg2Rad(ta));
-    s  = sin(CMathUtil::Deg2Rad(ta));
-  }
-
-  double tx, ty;
-
-  if (isCircle && CMathUtil::isZero(r1)) {
-    tx = 0.0;
-    ty = 0.0;
-  }
-  else {
-    double r3 = CMathUtil::avg(r1, r2);
-
-    tx = r3*c;
-    ty = r3*s;
-  }
-
-  device->setPen(tPenBrush.pen);
-
-  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-  Point pt(tx, ty);
-
-  QString name = (! node->isFiller() ? node->name() : node->parent()->name());
-
-  double ta1 = (c >= 0 ? ta : ta - 180);
-
-  // only contrast support (custom align and angle)
-  CQChartsTextOptions options;
-
-  options.angle         = Angle(ta1);
-  options.align         = align;
-  options.contrast      = isTextContrast();
-  options.contrastAlpha = textContrastAlpha();
-  options.clipLength    = textClipLength();
-
-  CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
-
-//CQChartsRotatedText::draw(device, pt, name, options);
-
-  //---
-
-  if (! isCircle)
-    device->restore();
 }
 
 //---
@@ -1320,7 +1350,8 @@ CQChartsSunburstNodeObj::
 CQChartsSunburstNodeObj(const Plot *plot, const BBox &rect, Node *node) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), node_(node)
 {
-  setModelInd(node_->ind());
+  if (node_->ind().isValid())
+    setModelInd(node_->ind());
 }
 
 QString
@@ -1523,24 +1554,24 @@ unplaceNodes()
 void
 CQChartsSunburstHierNode::
 packNodes(HierNode *root, double ri, double ro, double dr,
-          const Angle &a, const Angle &da, const Order &order, bool sort)
+          const Angle &a, const Angle &da, const SortType &sortType)
 {
   int d = depth();
 
   if (dr <= 0.0)
     dr = (ro - ri)/d;
 
-  double s = (order == Order::SIZE ? hierSize() : numNodes());
+  double s = (sortType == SortType::SIZE ? hierSize() : numNodes());
 
   double da1 = da.value()/s;
 
-  packSubNodes(root, ri, dr, a, Angle(da1), order, sort);
+  packSubNodes(root, ri, dr, a, Angle(da1), sortType);
 }
 
 void
 CQChartsSunburstHierNode::
 packSubNodes(HierNode *root, double ri, double dr,
-             const Angle &a, const Angle &da, const Order &order, bool sort)
+             const Angle &a, const Angle &da, const SortType &sortType)
 {
   if (! isExpanded())
     return;
@@ -1554,16 +1585,12 @@ packSubNodes(HierNode *root, double ri, double dr,
   for (auto &node : nodes_)
     nodes.push_back(node);
 
-  if (sort) {
-#if 0
-    if (root->order() == Order::SIZE)
-      std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeSizeCmp());
-    else
-      std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeCountCmp());
-#else
+  if      (root->plot()->sortType() == CQChartsSunburstPlot::SortType::SIZE)
+    std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeSizeCmp());
+  else if (root->plot()->sortType() == CQChartsSunburstPlot::SortType::COUNT)
+    std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeCountCmp());
+  else if (root->plot()->sortType() == CQChartsSunburstPlot::SortType::NAME)
     std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeNameCmp());
-  }
-#endif
 
   //---
 
@@ -1573,14 +1600,14 @@ packSubNodes(HierNode *root, double ri, double dr,
   double a1 = a.value();
 
   for (auto &node : nodes) {
-    double s = (order == Order::SIZE ? node->hierSize() : node->numNodes());
+    double s = (sortType == SortType::SIZE ? node->hierSize() : node->numNodes());
 
     node->setPosition(ri, Angle(a1), dr, Angle(s*da.value()));
 
     auto *hierNode = dynamic_cast<HierNode *>(node);
 
     if (hierNode)
-      hierNode->packSubNodes(root, ri + dr, dr, Angle(a1), da, order, sort);
+      hierNode->packSubNodes(root, ri + dr, dr, Angle(a1), da, sortType);
 
     a1 += s*da.value();
   }
@@ -1719,7 +1746,7 @@ interpColor(const Plot *plot, const Color &c, const ColorInd &colorInd, int n) c
 // sort reverse alphabetic no case
 bool
 CQChartsSunburstNodeNameCmp::
-operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2)
+operator()(const Node *n1, const Node *n2)
 {
   const auto &name1 = n1->name();
   const auto &name2 = n2->name();
@@ -1736,4 +1763,20 @@ operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2)
   }
 
   return false;
+}
+
+// sort size
+bool
+CQChartsSunburstNodeSizeCmp::
+operator()(const Node *n1, const Node *n2)
+{
+  return n1->size() < n2->size();
+}
+
+// sort node count
+bool
+CQChartsSunburstNodeCountCmp::
+operator()(const Node *n1, const Node *n2)
+{
+  return n1->numNodes() < n2->numNodes();
 }

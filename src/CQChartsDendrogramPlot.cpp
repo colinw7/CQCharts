@@ -107,6 +107,8 @@ addProperties()
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
   // label
+//addProp("label/text", "textVisible", "visible", "Labels visible");
+
   addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH);
 

@@ -78,6 +78,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  public:
   enum class Function {
+    NONE,
     EVAL,
     ADD,
     DELETE,
@@ -121,8 +122,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool decodeExpressionFn(const QString &exprStr, Function &function,
                           int &column, QString &expr) const;
 
-  bool addExtraColumn(const QString &expr, int &column);
-  bool addExtraColumn(const QString &header, const QString &expr, int &column);
+  bool addExtraColumnExpr(const QString &expr, int &column);
+  bool addExtraColumnExpr(const QString &header, const QString &expr, int &column);
+  bool addExtraColumnStrs(const QString &header, const QStringList &strs, int &column);
 
   bool removeExtraColumn(int column);
 

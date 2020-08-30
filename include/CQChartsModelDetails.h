@@ -203,9 +203,9 @@ class CQChartsModelColumnDetails {
 
   virtual bool checkRow(const QVariant &) { return true; }
 
-  void initCache() const;
+  void resetTypeInitialized();
 
-  void resetTypeInitialized() { typeInitialized_ = false; }
+  void initCache() const;
 
   const CQChartsColumnType *columnType() const;
 
@@ -215,11 +215,11 @@ class CQChartsModelColumnDetails {
   void initType() const;
   bool calcType();
 
-  void addInt   (int i);
-  void addReal  (double r);
+  void addInt   (long i, bool ok);
+  void addReal  (double r, bool ok);
   void addString(const QString &s);
-  void addTime  (double t);
-  void addColor (const CQChartsColor &c);
+  void addTime  (double t, bool ok);
+  void addColor (const CQChartsColor &c, bool ok);
 
   void addValue(const QVariant &value);
 

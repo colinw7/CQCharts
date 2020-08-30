@@ -46,6 +46,8 @@ init()
 {
   setObjectName("key");
 
+  setEditable(true);
+
   setHeaderTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
   //---
@@ -196,14 +198,6 @@ nextRowCol(int &row, int &col) const
       ++col;
     }
   }
-}
-
-//---
-
-void
-CQChartsKey::
-draw(CQChartsPaintDevice *) const
-{
 }
 
 //------
@@ -1950,8 +1944,8 @@ draw(CQChartsPaintDevice *device) const
 
     auto &cell = rowColCell_[item->row()][col];
 
-    double x1 = cell.x - xs_;
-    double y1 = cell.y + ys_;
+    double x1 = cell.x - sx_;
+    double y1 = cell.y + sy_;
     double w1 = cell.width;
     double h1 = cell.height;
 
@@ -2136,7 +2130,7 @@ CQChartsKeyItemGroup::
 addItem(Item *item)
 {
   if (item->group())
-    const_cast<CQChartsKeyItemGroup *>(item->group())->removeItem(item);
+    const_cast<CQChartsKeyItemGroup *>(item->group())->removeItem(item, /*keep*/true);
 
   items_.push_back(item);
 
@@ -2145,7 +2139,7 @@ addItem(Item *item)
 
 void
 CQChartsKeyItemGroup::
-removeItem(Item *item)
+removeItem(Item *item, bool keep)
 {
   assert(item->group() == this);
 
@@ -2157,7 +2151,8 @@ removeItem(Item *item)
 
   std::swap(items_, items);
 
-  delete item;
+  if (! keep)
+    delete item;
 }
 
 CQChartsGeom::Size

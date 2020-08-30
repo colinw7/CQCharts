@@ -1594,14 +1594,17 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   void positionToBBox();
 
+ private slots:
+  void updateWinGeometry();
+
  private:
-  OptPosition   position_;                               //!< widget position
-  OptRect       rectangle_;                              //!< widget bounding rectangle
-  Widget        widget_;                                 //!< widget
-  Qt::Alignment align_ { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
-  QSizePolicy   sizePolicy_;                             //!< size policy
-  bool          interactive_ { false };                  //!< is interactive
-  CQWinWidget*  winWidget_ { nullptr };
+  OptPosition   position_;                                     //!< widget position
+  OptRect       rectangle_;                                    //!< widget bounding rectangle
+  Widget        widget_;                                       //!< widget
+  Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
+  QSizePolicy   sizePolicy_;                                   //!< size policy
+  bool          interactive_ { false };                        //!< is interactive
+  CQWinWidget*  winWidget_   { nullptr };                      //!< window frame
 };
 
 #endif

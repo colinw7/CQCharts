@@ -1068,6 +1068,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 //bool             nodeYSet_      { false }; //!< node y is set
 //double           nodeYMin_      { 0.0 };   //!< node y min
 //double           nodeYMax_      { 0.0 };   //!< node y max
+  int              numGroups_     { 1 };     //!< node number of groups
 };
 
 #endif

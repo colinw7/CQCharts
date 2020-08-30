@@ -1,4 +1,5 @@
 #include <CQChartsPlotPropertyEdit.h>
+#include <CQChartsLineEditBase.h>
 #include <CQChartsPlot.h>
 
 #include <CQPropertyView.h>
@@ -7,14 +8,113 @@
 
 #include <QLineEdit>
 #include <QComboBox>
+#include <QLabel>
 #include <QCheckBox>
 #include <QHBoxLayout>
+
+CQChartsPlotPropertyEditGroup::
+CQChartsPlotPropertyEditGroup(CQChartsPlot *plot) :
+ plot_(plot)
+{
+  setObjectName("editGroup");
+
+  setAutoFillBackground(true);
+
+  setFrameShape(QFrame::StyledPanel);
+
+  layout_ = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  auto *widgetFrame = CQUtil::makeWidget<QFrame>("frame");
+
+  widgetLayout_ = CQUtil::makeLayout<QVBoxLayout>(widgetFrame, 0, 0);
+
+  widgetFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  layout_->addWidget(widgetFrame);
+
+  auto *spacer = CQUtil::makeWidget<QFrame>("spacer");
+
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  layout_->addWidget(spacer);
+}
+
+void
+CQChartsPlotPropertyEditGroup::
+setPlot(CQChartsPlot *p)
+{
+  plot_ = p;
+
+  for (auto &edit : edits_)
+    edit->setPlot(p);
+}
+
+void
+CQChartsPlotPropertyEditGroup::
+addSlot(const QString &s)
+{
+  auto strs = s.split(" ", QString::SkipEmptyParts);
+
+  if (strs.size() == 0)
+    return;
+
+  QString label;
+
+  if (strs.size() > 1)
+    label = strs[1];
+
+  QString propertyName = strs[0];
+
+  auto *edit = new CQChartsPlotPropertyEdit;
+
+  edit->setObjectName(QString("edit%1").arg(edits_.size() + 1));
+
+  if (label == "")
+    label = propertyName;
+
+  edit->setLabel(label);
+
+  edit->setPropertyName(propertyName);
+
+  addEdit(edit);
+}
+
+void
+CQChartsPlotPropertyEditGroup::
+addEdit(CQChartsPlotPropertyEdit *edit)
+{
+  edit->setPlot(plot_);
+
+  widgetLayout_->addWidget(edit);
+
+  edits_.push_back(edit);
+}
+
+QSize
+CQChartsPlotPropertyEditGroup::
+sizeHint() const
+{
+  int w = 0, h = 0;
+
+  for (auto &edit : edits_) {
+    auto s = edit->sizeHint();
+
+    w  = std::max(w, s.width());
+    h += s.height() + 2;
+  }
+
+  return QSize(w + 4, h + 2);
+}
+
+//------
 
 CQChartsPlotPropertyEdit::
 CQChartsPlotPropertyEdit(CQChartsPlot *plot, const QString &propertyName) :
  plot_(plot), propertyName_(propertyName)
 {
-  layout_ = new QHBoxLayout(this);
+  setObjectName("edit");
+
+  layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 2, 2);
 
   init();
 }
@@ -23,37 +123,70 @@ void
 CQChartsPlotPropertyEdit::
 setPlot(CQChartsPlot *p)
 {
-  plot_ = p;
+  if (p != plot_) {
+    plot_ = p;
 
-  init();
+    init(/*rebuild*/true);
+  }
 }
 
 void
 CQChartsPlotPropertyEdit::
 setPropertyName(const QString &s)
 {
-  propertyName_ = s;
+  if (s != propertyName_) {
+    propertyName_ = s;
 
-  init();
+    init(/*rebuild*/true);
+  }
 }
 
 void
 CQChartsPlotPropertyEdit::
-init()
+setLabel(const QString &s)
 {
-  if (widget_) {
-    delete widget_;
+  if (s != label_) {
+    label_ = s;
 
-    widget_ = nullptr;
+    init();
+  }
+}
+
+void
+CQChartsPlotPropertyEdit::
+init(bool rebuild)
+{
+  if (rebuild) {
+    if (widget_) {
+      delete widget_;
+
+      widget_ = nullptr;
+    }
   }
 
   if (! plot_ || propertyName_ == "")
     return;
 
-  widget_ = createEditor();
+  if (! labelWidget_) {
+    labelWidget_ = CQUtil::makeWidget<QLabel>("label");
 
-  if (widget_)
-    layout_->addWidget(widget_);
+    layout_->addWidget(labelWidget_);
+
+    widgetLayout_ = CQUtil::makeLayout<QHBoxLayout>(0, 0);
+
+    layout_->addLayout(widgetLayout_);
+
+    layout_->addStretch(1);
+  }
+
+  labelWidget_->setText(label_);
+
+  if (rebuild) {
+    widget_ = createEditor();
+
+    if (widget_)
+      widgetLayout_->addWidget(widget_);
+  }
 }
 
 QWidget *
@@ -90,6 +223,8 @@ createEditor()
   if (factory) {
     widget = factory->createEdit(this);
 
+    setWidgetPlot(widget);
+
     factory->setValue(widget, var);
 
     factory->connect(widget, this, SLOT(updateValue()));
@@ -99,9 +234,7 @@ createEditor()
 
     const QStringList &names = propInfo.enumNames();
 
-    auto *combo = new QComboBox(this);
-
-    combo->setObjectName("combo");
+    auto *combo = CQUtil::makeWidget<QComboBox>(this, "combo");
 
     combo->addItems(names);
     combo->setCurrentIndex(combo->findText(valueStr));
@@ -113,16 +246,14 @@ createEditor()
   // bool - create toggle
   // TODO: use button press (no need to edit) see CQCheckTree.cpp
   else if (typeName == "bool") {
-    auto *check = new QCheckBox(this);
-
-    check->setObjectName("check");
+    auto *check = CQUtil::makeWidget<QCheckBox>(this, "check");
 
     check->setChecked(var.toBool());
 
     check->setText(check->isChecked() ? "true" : "false");
 
     check->setAutoFillBackground(true);
-    //check->setLayoutDirection(Qt::RightToLeft);
+  //check->setLayoutDirection(Qt::RightToLeft);
 
     connect(check, SIGNAL(stateChanged(int)), this, SLOT(updateValue()));
 
@@ -135,7 +266,7 @@ createEditor()
       //std::cerr << "Failed to convert to string" << std::endl;
     }
 
-    auto edit = new QLineEdit(this);
+    auto edit = CQUtil::makeWidget<QLineEdit>(this, "edit");
 
     edit->setText(valueStr);
 
@@ -148,7 +279,7 @@ createEditor()
       //std::cerr << "Failed to convert to string" << std::endl;
     }
 
-    auto edit = new QLineEdit(this);
+    auto edit = CQUtil::makeWidget<QLineEdit>(this, "edit");
 
     edit->setText(valueStr);
 
@@ -156,6 +287,16 @@ createEditor()
   }
 
   return widget;
+}
+
+void
+CQChartsPlotPropertyEdit::
+setWidgetPlot(QWidget *widget)
+{
+  auto *lineEdit = qobject_cast<CQChartsLineEditBase *>(widget);
+
+  if (lineEdit)
+    lineEdit->setPlot(plot_);
 }
 
 void
@@ -211,4 +352,14 @@ updateValue()
   }
 
   CQUtil::setProperty(plot_, propertyName_, var);
+}
+
+QSize
+CQChartsPlotPropertyEdit::
+sizeHint() const
+{
+  QSize ls = (labelWidget_ ? labelWidget_->sizeHint() : QSize());
+  QSize ws = (widget_      ? widget_     ->sizeHint() : QSize());
+
+  return QSize(ls.width() + ws.width() + 6, std::max(ls.height(), ws.height()) + 4);
 }

@@ -34,9 +34,25 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
  plot_(plot), direction_(direction),
  start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
 {
+  init();
+}
+
+CQChartsAxis::
+~CQChartsAxis()
+{
+}
+
+void
+CQChartsAxis::
+init()
+{
   setObjectName("axis");
 
-  editHandles_ = std::make_unique<CQChartsEditHandles>(plot, CQChartsEditHandles::Mode::MOVE);
+  setEditable(true);
+
+  //--
+
+  editHandles_ = std::make_unique<CQChartsEditHandles>(plot_, CQChartsEditHandles::Mode::MOVE);
 
   CQChartsColor themeFg   (CQChartsColor::Type::INTERFACE_VALUE, 1);
   CQChartsColor themeGray1(CQChartsColor::Type::INTERFACE_VALUE, 0.7);
@@ -63,11 +79,6 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
   //---
 
   setAxesTickLabelTextFont(CQChartsFont().decFontSize(4));
-}
-
-CQChartsAxis::
-~CQChartsAxis()
-{
 }
 
 //---

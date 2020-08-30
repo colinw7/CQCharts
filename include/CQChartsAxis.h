@@ -475,6 +475,9 @@ class CQChartsAxis : public CQChartsObj,
   void selectionChanged();
 
  private:
+  void init();
+
+ private:
   struct AxisGapData {
     double start       { 0.0 };
     double end         { 0.0 };

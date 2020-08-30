@@ -228,6 +228,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   void updateFormatSlot();
 
   void previewEnabledSlot();
+  void previewFitSlot();
+
   void summaryEnabledSlot();
   void updateSummaryTypeSlot();
   void updatePreviewSlot();

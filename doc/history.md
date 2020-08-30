@@ -1182,3 +1182,11 @@
  + Add more plot control widgets
  + Support model view widget annotation
  + Add optional plot resize separator
+# 08/30/2020
+ + allow chord plot text to be hidden
+ + improve handling of bar chart mean/min/max handling when multiple values in group for single col
+ + support coloring of src/dest edges/nodes for sankey plot
+ + split model control dialog widgets to separate classes
+ + allow clip of text in chord plot
+ + fix value count for chord plot when multiple values in same group
+ + improve skip bad values in bar chart

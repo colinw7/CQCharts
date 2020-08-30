@@ -648,7 +648,7 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   //---
 
   void addItem(Item *item);
-  void removeItem(Item *item);
+  void removeItem(Item *item, bool keep=false);
 
   //---
 

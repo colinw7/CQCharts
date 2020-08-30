@@ -28,6 +28,7 @@
 #include <CQCharts.h>
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
+#include <CQChartsModelDetailsTable.h>
 #include <CQChartsPlotPropertyEdit.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -10635,10 +10636,19 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
   if (controlFrame)
     controlFrame->setPlot(this);
 
+  //---
+
+  auto *propertyEditGroup = dynamic_cast<CQChartsPlotPropertyEditGroup *>(widget.widget());
+
+  if (propertyEditGroup)
+    propertyEditGroup->setPlot(this);
+
   auto *propertyEdit = dynamic_cast<CQChartsPlotPropertyEdit *>(widget.widget());
 
   if (propertyEdit)
     propertyEdit->setPlot(this);
+
+  //---
 
   auto *modelHolder = dynamic_cast<CQChartsModelViewHolder *>(widget.widget());
 
@@ -10646,6 +10656,16 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
     modelHolder->setCharts(charts());
     modelHolder->setModel(model(), isHierarchical());
   }
+
+  auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget.widget());
+
+  if (detailsTable) {
+    auto *modelData = getModelData();
+
+    detailsTable->setModelData(modelData);
+  }
+
+  //---
 
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, pos, widget));

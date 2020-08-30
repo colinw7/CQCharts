@@ -1419,7 +1419,7 @@ CQChartsColumnTimeType::
 indexVar(const QVariant &var, const QString &ind) const
 {
   if (! var.isValid())
-    return var;
+    return QVariant();
 
   // get time value (double)
   bool ok;
@@ -1427,7 +1427,7 @@ indexVar(const QVariant &var, const QString &ind) const
   double t = CQChartsVariant::toReal(var, ok);
 
   if (! ok)
-    return var;
+    return QVariant();
 
   //---
 

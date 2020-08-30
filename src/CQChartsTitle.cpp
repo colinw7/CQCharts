@@ -28,6 +28,8 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   //---
 
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+
   setFilled (false);
   setStroked(false);
 }

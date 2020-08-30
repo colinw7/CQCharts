@@ -17,7 +17,7 @@ connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
 set plot2 [create_charts_plot -model $model -type box \
   -columns {{value sepalLength} {group species}} \
-  -properties {{yaxis.userLabel {{Sepal Length}}}]
+  -properties {{yaxis.userLabel {Sepal Length}}}]
 
 connect_charts_signal -plot $plot2 -from objIdPressed -to objPressed
 

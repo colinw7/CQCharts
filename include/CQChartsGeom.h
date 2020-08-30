@@ -334,12 +334,10 @@ class BBox {
 
   explicit BBox(const Range &range);
 
-#if 0
   BBox(const Point &o, const Size &s) :
-   pmin_(o), pmax_(o + s), set_(true) {
+   pmin_(o), pmax_(o + Point(s.width(), s.height())), set_(true) {
     (void) update();
   }
-#endif
 
   //---
 

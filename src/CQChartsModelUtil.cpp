@@ -809,7 +809,7 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 
   int column;
 
-  exprModel->addExtraColumn(exprStr, column);
+  exprModel->addExtraColumnExpr(exprStr, column);
 }
 
 int
@@ -851,7 +851,7 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
   if      (function == CQChartsExprModel::Function::ADD) {
     int column1;
 
-    if (! exprModel->addExtraColumn(expr, column1))
+    if (! exprModel->addExtraColumnExpr(expr, column1))
       return -1;
 
     return column1;
@@ -1246,21 +1246,28 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return modelValue(model, ind, role, ok);
   }
   else if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
-    QModelIndex ind = model->index(row, column.column(), parent);
+    int icolumn = column.column();
+
+    QModelIndex ind = model->index(row, icolumn, parent);
 
     QVariant var = modelValue(model, ind, role, ok);
     if (! ok) return QVariant();
 
     CQChartsModelTypeData columnTypeData;
 
-    if (! columnValueType(charts, model, column, columnTypeData))
-      return var;
+    // use just column number so don't get type of index value
+    if (! columnValueType(charts, model, CQChartsColumn(icolumn), columnTypeData)) {
+      ok = false; return QVariant();
+    }
 
     auto *columnTypeMgr = charts->columnTypeMgr();
 
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-    return typeData->indexVar(var, column.index());
+    QVariant ivar = typeData->indexVar(var, column.index());
+    ok = ivar.isValid();
+
+    return ivar;
   }
   else if (column.type() == CQChartsColumn::Type::ROW) {
     ok = true;

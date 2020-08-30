@@ -88,21 +88,29 @@ class CQChartsBarChartValue {
     return (*p).second;
   }
 
-  void calcRange(ValueInd &minInd, ValueInd &maxInd) const {
+  void calcRange(ValueInd &minInd, ValueInd &maxInd, double &mean, double &sum) const {
     assert(! valueInds_.empty());
+
+    int n = valueInds_.size();
 
     minInd = valueInds_[0];
     maxInd = valueInds_[0];
 
-    for (std::size_t i = 1; i < valueInds_.size(); ++i) {
+    sum = valueInds_[0].value;
+
+    for (int i = 1; i < n; ++i) {
       double value = valueInds_[i].value;
 
       if (value < minInd.value)
         minInd = valueInds_[i];
 
-      if (value > minInd.value)
+      if (value > maxInd.value)
         maxInd = valueInds_[i];
+
+      sum += value;
     }
+
+    mean = sum/n;
   }
 
  private:
@@ -150,7 +158,9 @@ class CQChartsBarChartValueSet {
     return values_[i];
   }
 
-  void calcSums(double &posSum, double &negSum) const {
+  bool calcSums(double &posSum, double &negSum) const {
+    if (values_.empty()) return false;
+
     posSum = 0.0;
     negSum = 0.0;
 
@@ -162,6 +172,42 @@ class CQChartsBarChartValueSet {
         else            negSum += value;
       }
     }
+
+    return true;
+  }
+
+  bool calcStats(double &min, double &max, double &mean, double &sum) const {
+    if (values_.empty()) return false;
+
+    min  = 0.0;
+    max  = 0.0;
+    mean = 0.0;
+    sum  = 0.0;
+
+    int n = 0;
+
+    for (auto &v : values_) {
+      for (auto &vi : v.valueInds()) {
+        double value = vi.value;
+
+        if (n == 0) {
+          min = value;
+          max = value;
+        }
+        else {
+          min = std::min(min, value);
+          max = std::max(max, value);
+        }
+
+        sum += value;
+
+        ++n;
+      }
+    }
+
+    mean = (n > 0 ? sum/n : 0.0);
+
+    return true;
   }
 
  private:
@@ -205,6 +251,11 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
+  bool isValueSet() const { return valueSet_; }
+  void setValueSet(bool b) { valueSet_ = b; }
+
+  //---
+
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }
 
@@ -238,9 +289,12 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   const CQChartsBarChartValue *value() const;
 
+  const CQChartsBarChartValueSet *valueSet() const;
+
  private:
-  const CQChartsBarChartPlot* plot_  { nullptr }; //!< parent plot
-  CQChartsColor               color_;             //!< custom color
+  const CQChartsBarChartPlot* plot_     { nullptr }; //!< parent plot
+  CQChartsColor               color_;                //!< custom color
+  bool                        valueSet_ { false };   //!< is value set
 };
 
 //---
@@ -322,6 +376,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
 
   Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
+  Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
   Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
 
   // dot line
@@ -344,7 +399,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     RANGE,
     MIN,
     MAX,
-    MEAN
+    MEAN,
+    SUM
   };
 
  public:
@@ -373,8 +429,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool isValueMin  () const { return (valueType_ == ValueType::MIN  ); }
   bool isValueMax  () const { return (valueType_ == ValueType::MAX  ); }
   bool isValueMean () const { return (valueType_ == ValueType::MEAN ); }
+  bool isValueSum  () const { return (valueType_ == ValueType::SUM  ); }
 
-  bool isPercent() const { return percent_; }
+  bool isPercent  () const { return percent_  ; }
+  bool isSkipEmpty() const { return skipEmpty_; }
 
   //---
 
@@ -443,9 +501,13 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setValueMin  (bool b);
   void setValueMax  (bool b);
   void setValueMean (bool b);
+  void setValueSum  (bool b);
 
   // set percent
   void setPercent(bool b);
+
+  // set skip empty
+  void setSkipEmpty(bool b);
 
   // set dot lines
   void setDotLines(bool b);
@@ -517,6 +579,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   PlotType  plotType_   { PlotType::NORMAL }; //!< plot type
   ValueType valueType_  { ValueType::VALUE }; //!< bar value type
   bool      percent_    { false };            //!< percent values
+  bool      skipEmpty_  { false };            //!< skip empty groups
   bool      colorBySet_ { false };            //!< color bars by set or value
 
   DotLineData    dotLineData_;          //!< dot line data

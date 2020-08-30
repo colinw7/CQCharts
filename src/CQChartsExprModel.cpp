@@ -160,21 +160,21 @@ setReadOnly(bool b)
 
 bool
 CQChartsExprModel::
-addExtraColumn(const QString &exprStr, int &column)
+addExtraColumnExpr(const QString &exprStr, int &column)
 {
   QString header, expr;
 
   if (! decodeExpression(exprStr, header, expr))
     return false;
 
-  return addExtraColumn(header, expr, column);
+  return addExtraColumnExpr(header, expr, column);
 }
 
 bool
 CQChartsExprModel::
-addExtraColumn(const QString &header, const QString &expr, int &column)
+addExtraColumnExpr(const QString &header, const QString &expr, int &column)
 {
-  CQPerfTrace trace("CQChartsExprModel::addExtraColumn");
+  CQPerfTrace trace("CQChartsExprModel::addExtraColumnExpr");
 
   initCalc();
 
@@ -212,6 +212,52 @@ addExtraColumn(const QString &header, const QString &expr, int &column)
 
   // remove extra calculated values
   extraColumn->values.clear();
+
+  //---
+
+  endInsertColumns();
+
+  column = columnCount(QModelIndex()) - 1;
+
+  return true;
+}
+
+bool
+CQChartsExprModel::
+addExtraColumnStrs(const QString &header, const QStringList &strs, int &column)
+{
+  CQPerfTrace trace("CQChartsExprModel::addExtraColumnStrs");
+
+  initCalc();
+
+  //---
+
+  nc_ = columnCount(QModelIndex());
+
+  beginInsertColumns(QModelIndex(), nc_, nc_);
+
+  //---
+
+  // add new column
+  extraColumns_.push_back(new ExtraColumn("", header));
+
+  int ecolumn = numExtraColumns() - 1;
+
+  //---
+
+  // init calculated values in separate array
+  auto *extraColumn = extraColumns_[ecolumn];
+
+  nr_ = rowCount();
+
+  extraColumn->values.resize(nr_);
+
+  int ns = strs.size();
+
+  for (int r = 0; r < std::min(ns, nr_); ++r)
+    extraColumn->values[r] = strs[r];
+
+  extraColumn->function = Function::NONE;
 
   //---
 
@@ -865,6 +911,12 @@ CQChartsExprModel::
 getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
 {
   const auto &extraColumn = this->extraColumn(ecolumn);
+
+  //---
+
+  if (extraColumn.function == Function::NONE) {
+    return extraColumn.values[row];
+  }
 
   //---
 

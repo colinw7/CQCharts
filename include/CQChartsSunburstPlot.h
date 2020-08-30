@@ -91,6 +91,13 @@ class CQChartsSunburstNode {
   }
 
  public:
+  enum SortType {
+    NONE,
+    SIZE,
+    COUNT,
+    NAME
+  };
+
   using Plot     = CQChartsSunburstPlot;
   using HierNode = CQChartsSunburstHierNode;
   using NodeObj  = CQChartsSunburstNodeObj;
@@ -186,18 +193,14 @@ struct CQChartsSunburstNodeNameCmp {
 struct CQChartsSunburstNodeSizeCmp {
   using Node = CQChartsSunburstNode;
 
-  bool operator()(const Node *n1, const Node *n2) {
-    return n1->size() < n2->size();
-  }
+  bool operator()(const Node *n1, const Node *n2);
 };
 
 // sort node count
 struct CQChartsSunburstNodeCountCmp {
   using Node = CQChartsSunburstNode;
 
-  bool operator()(const Node *n1, const Node *n2) {
-    return n1->numNodes() < n2->numNodes();
-  }
+  bool operator()(const Node *n1, const Node *n2);
 };
 
 //---
@@ -207,12 +210,6 @@ struct CQChartsSunburstNodeCountCmp {
  * \ingroup Charts
  */
 class CQChartsSunburstHierNode : public CQChartsSunburstNode {
- public:
-  enum class Order {
-    SIZE,
-    COUNT
-  };
-
  public:
   using Plot     = CQChartsSunburstPlot;
   using Node     = CQChartsSunburstNode;
@@ -257,10 +254,10 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
   void unplaceNodes();
 
   void packNodes(HierNode *root, double ri, double ro, double dr, const Angle &a,
-                 const Angle &da, const Order &order, bool sort);
+                 const Angle &da, const SortType &sortType);
 
   void packSubNodes(HierNode *root, double ri, double dr, const Angle &a,
-                    const Angle &da, const Order &order, bool sort);
+                    const Angle &da, const SortType &sortType);
 
   void addNode(Node *node);
 
@@ -284,23 +281,14 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
  public:
   CQChartsSunburstRootNode(const Plot *plot, const QString &name="") :
-   CQChartsSunburstHierNode(plot, 0, name), sort_(true), order_(Order::SIZE) {
+   CQChartsSunburstHierNode(plot, 0, name) {
   }
-
-  bool sort() const { return sort_; }
-  void setSort(bool sort) { sort_ = sort; }
-
-  Order order() const { return order_; }
-  void setOrder(Order order) { order_ = order; }
 
   void packNodes(double ri=0.5, double ro=1.0, double dr=0.0,
-                 const Angle &a=Angle(0.0), const Angle &da=Angle(360.0)) {
-    CQChartsSunburstHierNode::packNodes(this, ri, ro, dr, a, da, order(), sort());
+                 const Angle &a=Angle(0.0), const Angle &da=Angle(360.0),
+                 const SortType &sortType=SortType::NAME) {
+    CQChartsSunburstHierNode::packNodes(this, ri, ro, dr, a, da, sortType);
   }
-
- private:
-  bool  sort_  { true };        //!< is sorted
-  Order order_ { Order::SIZE }; //!< sort order
 };
 
 //---
@@ -319,6 +307,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   Q_PROPERTY(double        outerRadius READ outerRadius WRITE setOuterRadius)
   Q_PROPERTY(CQChartsAngle startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(bool          multiRoot   READ isMultiRoot WRITE setMultiRoot  )
+  Q_PROPERTY(SortType      sortType    READ sortType    WRITE setSortType   )
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -327,9 +316,20 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // text
+  Q_PROPERTY(bool clipText READ isClipText WRITE setClipText)
+
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  Q_ENUMS(SortType)
+
  public:
+  enum SortType {
+    NONE,
+    SIZE,
+    COUNT,
+    NAME
+  };
+
   using RootNode  = CQChartsSunburstRootNode;
   using RootNodes = std::vector<RootNode*>;
   using HierNode  = CQChartsSunburstHierNode;
@@ -354,10 +354,22 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  const RootNodes &roots() const { return roots_; }
-
   bool isMultiRoot() const { return multiRoot_; }
   void setMultiRoot(bool b);
+
+  //---
+
+  const SortType &sortType() const { return sortType_; }
+  void setSortType(const SortType &t);
+
+  //---
+
+  bool isClipText() const { return clipText_; }
+  void setClipText(bool b);
+
+  //---
+
+  const RootNodes &roots() const { return roots_; }
 
   bool isRoot(const HierNode *node) const;
 
@@ -488,15 +500,17 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popTopSlot();
 
  private:
-  double    innerRadius_      { 0.5 };   //!< inner radius
-  double    outerRadius_      { 1.0 };   //!< outer radius
-  Angle     startAngle_       { -90 };   //!< start angle
-  bool      multiRoot_        { false }; //!< has multiple roots
-  RootNodes roots_;                      //!< root nodes
-  QString   currentRootName_;            //!< current root name
-  int       colorId_          { -1 };    //!< current color id
-  int       numColorIds_      { 0 };     //!< num used color ids
-  bool      colorById_        { true };  //!< color by id
+  double    innerRadius_      { 0.5 };            //!< inner radius
+  double    outerRadius_      { 1.0 };            //!< outer radius
+  Angle     startAngle_       { -90 };            //!< start angle
+  bool      multiRoot_        { false };          //!< has multiple roots
+  SortType  sortType_         { SortType::NAME }; //!< sort type
+  bool      clipText_         { true };           //!< clip text
+  RootNodes roots_;                               //!< root nodes
+  QString   currentRootName_;                     //!< current root name
+  int       colorId_          { -1 };             //!< current color id
+  int       numColorIds_      { 0 };              //!< num used color ids
+  bool      colorById_        { true };           //!< color by id
 };
 
 #endif

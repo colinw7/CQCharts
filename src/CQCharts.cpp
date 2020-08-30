@@ -113,6 +113,7 @@
 
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
+#include <CQChartsModelDetailsTable.h>
 #include <CQChartsPlotPropertyEdit.h>
 
 #include <CQColorsPalette.h>
@@ -514,6 +515,8 @@ init()
     // model view
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelViewHolder",
       new CQWidgetFactoryNoArgsT<CQChartsModelViewHolder>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelDetailsTable",
+      new CQWidgetFactoryNoArgsT<CQChartsModelDetailsTable>());
 
     // other edits (all ?)
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAlphaEdit",
@@ -531,6 +534,8 @@ init()
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsSymbolEdit",
       new CQWidgetFactoryT<CQChartsSymbolEdit>());
 
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEditGroup",
+      new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEditGroup>());
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEdit",
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEdit>());
   }
@@ -664,6 +669,8 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
   }
   else if (c.type() == CQChartsColor::Type::CONTRAST ||
            c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
+    value = 1.0; // no interp ?
+
     QColor cc = contrastColor();
 
     if (! cc.isValid()) {

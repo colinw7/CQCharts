@@ -8,6 +8,12 @@
 #include <QGridLayout>
 #include <QPainter>
 
+CQChartsEditBase::
+CQChartsEditBase(QWidget *parent) :
+ QFrame(parent)
+{
+}
+
 void
 CQChartsEditBase::
 drawCenteredText(QPainter *painter, const QString &text)

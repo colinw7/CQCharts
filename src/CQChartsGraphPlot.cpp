@@ -788,7 +788,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
 
     //---
 
-    QStringList groupNames = groupData.name.split("/");
+    QStringList groupNames = groupData.value.toString().split("/");
 
     int graphId = -1, parentGraphId = -1;
 
@@ -855,7 +855,15 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   destNode->setValue(OptReal(linkConnectionData.value));
 
-  srcNode->setGroup(linkConnectionData.groupData.id);
+  if (linkConnectionData.groupData.isValid()) {
+    auto *th = const_cast<CQChartsGraphPlot *>(this);
+
+    srcNode->setGroup(linkConnectionData.groupData.ig);
+
+    th->numGroups_ = std::max(numGroups_, linkConnectionData.groupData.ng);
+  }
+  else
+    srcNode->setGroup(-1);
 
   if (linkConnectionData.nameModelInd.isValid()) {
     auto nameModelInd1 = normalizeIndex(linkConnectionData.nameModelInd);
@@ -883,8 +891,17 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
 
   auto *srcNode = findNode(srcStr);
 
-  srcNode->setName (connectionsData.name);
-  srcNode->setGroup(connectionsData.groupData.id);
+  srcNode->setName(connectionsData.name);
+
+  if (connectionsData.groupData.isValid()) {
+    auto *th = const_cast<CQChartsGraphPlot *>(this);
+
+    srcNode->setGroup(connectionsData.groupData.ig);
+
+    th->numGroups_ = std::max(numGroups_, connectionsData.groupData.ng);
+  }
+  else
+    srcNode->setGroup(-1);
 
   for (const auto &connection : connectionsData.connections) {
     QString destStr = QString("%1").arg(connection.node);

@@ -135,8 +135,13 @@ CQChartsHelpDlg.cpp \
 CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
+CQChartsModelColumnDataControl.cpp \
+CQChartsModelFoldControl.cpp \
+CQChartsModelExprControl.cpp \
 CQChartsModelDetailsWidget.cpp \
+CQChartsModelDetailsTable.cpp \
 CQChartsModelChooser.cpp \
+CQChartsParamEdit.cpp \
 \
 CQChartsLoader.cpp \
 \
@@ -488,8 +493,13 @@ HEADERS += \
 ../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
+../include/CQChartsModelColumnDataControl.h \
+../include/CQChartsModelFoldControl.h \
+../include/CQChartsModelExprControl.h \
 ../include/CQChartsModelDetailsWidget.h \
+../include/CQChartsModelDetailsTable.h \
 ../include/CQChartsModelChooser.h \
+../include/CQChartsParamEdit.h \
 \
 ../include/CQChartsLoader.h \
 \

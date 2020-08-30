@@ -541,11 +541,20 @@ void
 drawPieSlice(CQChartsPaintDevice *device, const Point &c, double ri, double ro,
              const CQChartsAngle &a1, const CQChartsAngle &a2, bool isInvertX, bool isInvertY)
 {
+  QPainterPath path;
+
+  pieSlicePath(path, c, ri, ro, a1, a2, isInvertX, isInvertY);
+
+  device->drawPath(path);
+}
+
+void
+pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const CQChartsAngle &a1,
+             const CQChartsAngle &a2, bool isInvertX, bool isInvertY)
+{
   BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
 
   //---
-
-  QPainterPath path;
 
   if (! CMathUtil::isZero(ri)) {
     BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
@@ -586,34 +595,92 @@ drawPieSlice(CQChartsPaintDevice *device, const Point &c, double ri, double ro,
   }
 
   path.closeSubpath();
+}
+
+//---
+
+void
+drawEllipse(CQChartsPaintDevice *device, const BBox &bbox)
+{
+  QPainterPath path;
+
+  ellipsePath(path, bbox);
 
   device->drawPath(path);
 }
 
 void
+ellipsePath(QPainterPath &path, const BBox &bbox)
+{
+  double xc = bbox.getXMid();
+  double yc = bbox.getYMid();
+
+  double w = bbox.getWidth ();
+  double h = bbox.getHeight();
+
+  double xr = w/2.0;
+  double yr = h/2.0;
+
+  double f = 4.0*(std::sqrt(2.0) - 1.0)/3.0;
+
+  double dx = xr*f;
+  double dy = yr*f;
+
+  path.moveTo (                                    xc + xr, yc     );
+  path.cubicTo(xc + xr, yc + dy, xc + dx, yc + yr, xc     , yc + yr);
+  path.cubicTo(xc - dx, yc + yr, xc - xr, yc + dy, xc - xr, yc     );
+  path.cubicTo(xc - xr, yc - dy, xc - dx, yc - yr, xc     , yc - yr);
+  path.cubicTo(xc + dx, yc - yr, xc + xr, yc - dy, xc + xr, yc     );
+
+  path.closeSubpath();
+}
+
+//---
+
+void
 drawArc(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsAngle &angle,
+        const CQChartsAngle &dangle)
+{
+  QPainterPath path;
+
+  arcPath(path, bbox, angle, dangle);
+
+  device->drawPath(path);
+}
+
+void
+arcPath(QPainterPath &path, const BBox &bbox, const CQChartsAngle &angle,
         const CQChartsAngle &dangle)
 {
   auto c = bbox.getCenter();
 
   QRectF rect = bbox.qrect();
 
-  QPainterPath path;
-
   path.arcMoveTo(rect, -angle.value());
   path.arcTo    (rect, -angle.value(), -dangle.value());
   path.lineTo   (c.x, c.y);
 
   path.closeSubpath();
-
-  device->drawPath(path);
 }
+
+//---
 
 void
 drawArcSegment(CQChartsPaintDevice *device, const BBox &ibbox, const BBox &obbox,
                const CQChartsAngle &angle, const CQChartsAngle &dangle)
 {
-  // draw arc segment for start angle and delta angle for circles in inner and outer boxes
+  QPainterPath path;
+
+  arcSegmentPath(path, ibbox, obbox, angle, dangle);
+
+  device->drawPath(path);
+}
+
+void
+arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+               const CQChartsAngle &angle, const CQChartsAngle &dangle)
+{
+  // arc segment for start angle and delta angle for circles in inner and outer boxes
   CQChartsAngle angle2 = angle + dangle;
 
   QRectF irect = ibbox.qrect();
@@ -621,16 +688,14 @@ drawArcSegment(CQChartsPaintDevice *device, const BBox &ibbox, const BBox &obbox
 
   //---
 
-  QPainterPath path;
-
   path.arcMoveTo(orect, -angle.value());
   path.arcTo    (orect, -angle.value() , -dangle.value());
   path.arcTo    (irect, -angle2.value(),  dangle.value());
 
   path.closeSubpath();
-
-  device->drawPath(path);
 }
+
+//---
 
 void
 drawArcsConnector(CQChartsPaintDevice *device, const BBox &ibbox, const CQChartsAngle &a1,
@@ -685,6 +750,8 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const CQChartsAngle &a1
     path.closeSubpath();
   }
 }
+
+//---
 
 QString
 clipTextToLength(CQChartsPaintDevice *device, const QString &text,

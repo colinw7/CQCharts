@@ -454,8 +454,6 @@ initLinkObjs() const
       LinkConnectionData linkConnectionData;
 
       // Get group value
-      linkConnectionData.groupData = GroupData(data.row, "");
-
       if (plot_->groupColumn().isValid()) {
         linkConnectionData.groupModelInd =
           ModelIndex(plot, data.row, plot_->groupColumn(), data.parent);
@@ -464,6 +462,9 @@ initLinkObjs() const
                                      linkConnectionData.groupData)) {
           return addDataError(linkConnectionData.groupModelInd, "Invalid group value");
         }
+      }
+      else {
+        linkConnectionData.groupData = GroupData("", data.row, numRows());
       }
 
       //---
@@ -557,13 +558,16 @@ initConnectionObjs() const
       auto *plot = const_cast<CQChartsConnectionPlot *>(plot_);
 
       // get group value
-      GroupData groupData(data.row, "");
+      GroupData groupData;
 
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot, data.row, plot_->groupColumn(), data.parent);
 
         if (! plot_->groupColumnData(groupModelInd, groupData))
           return addDataError(groupModelInd, "Invalid group value");
+      }
+      else {
+        groupData = GroupData("", data.row, numRows());
       }
 
       //---
@@ -921,13 +925,16 @@ initFromToObjs() const
       //---
 
       // Get group value
-      GroupData groupData(data.row, "");
+      GroupData groupData;
 
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot, data.row, plot_->groupColumn(), data.parent);
 
         if (! plot_->groupColumnData(groupModelInd, groupData))
           return addDataError(groupModelInd, "Invalid group value");
+      }
+      else {
+        groupData = GroupData("", data.row, numRows());
       }
 
       //---
@@ -1128,12 +1135,10 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
       QString groupStr;
 
-      CQChartsVariant::toString(groupVar, groupStr);
-
       int ig = groupValues.iset(groupVar);
       int ng = groupValues.numUnique();
 
-      tableConnectionData.setGroup   (GroupData(groupStr, ig, ng));
+      tableConnectionData.setGroup   (GroupData(groupVar, ig, ng));
       tableConnectionData.setGroupInd(groupInd1);
     }
 
@@ -1207,21 +1212,14 @@ groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
 
   //---
 
+  // get unique id and count (ig is -1 if not set)
   groupData.ig = groupDetails->uniqueId(groupVar);
   groupData.ng = groupDetails->numUnique();
 
   //---
 
-  bool ok2;
-  groupData.id = (int) modelInteger(groupModelInd, ok2);
-  if (! ok2) groupData.id = groupData.ig;
-
-  //---
-
-  groupData.name = groupVar.toString();
-
-  if (! groupData.name.length())
-    groupData.name = QString("%1").arg(groupData.id);
+  // save variant value
+  groupData.value = groupVar;
 
   return true;
 }

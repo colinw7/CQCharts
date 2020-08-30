@@ -392,9 +392,12 @@ qtActivateSlotCmd(CQChartsCmdArgs &argv)
   }
 
   auto slotName = argv.getParseStr("slot").toStdString();
-  auto argsStr  = argv.getParseStr("arg" ).toStdString();
+  auto argsStr  = argv.getParseStr("args").toStdString();
 
-  CQUtil::activateSlot(object, slotName.c_str(), argsStr.c_str());
+  if (! CQUtil::activateSlot(object, slotName.c_str(), argsStr.c_str())) {
+    errorMsg(QString("Invalid slot '%1'").arg(slotName.c_str()));
+    return false;
+  }
 
   return true;
 }

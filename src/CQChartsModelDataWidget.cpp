@@ -118,6 +118,7 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
     connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
 
   reloadModel();
+
   setDetails();
 }
 
@@ -139,6 +140,7 @@ setModelData(CQChartsModelData *modelData)
     connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
 
   reloadModel();
+
   setDetails();
 }
 
@@ -275,7 +277,5 @@ setDetails()
 
   //---
 
-  const auto *details = (modelData1 ? modelData1->details() : nullptr);
-
-  detailsWidget_->setDetails(details);
+  detailsWidget_->setModelData(const_cast<CQChartsModelData *>(modelData1));
 }

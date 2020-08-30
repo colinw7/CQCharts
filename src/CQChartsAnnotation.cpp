@@ -32,7 +32,7 @@ typeNames()
   static QStringList names = QStringList() <<
     "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "arrow" <<
     "point" << "pie_slice" << "axis" << "key" << "point_set" << "value_set" << "button" <<
-    "group";
+    "widget" << "group";
 
   return names;
 }
@@ -4843,6 +4843,21 @@ setPosition(const OptPosition &p)
 
   positionToBBox();
 
+  if (winWidget_) {
+    disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
+
+    Point p;
+
+    if      (plot())
+      p = plot()->positionToPixel(positionValue());
+    else if (view())
+      p = view()->positionToPixel(positionValue());
+
+    winWidget_->setPos(p.x, p.y);
+
+    connect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
+  }
+
   emitDataChanged();
 }
 
@@ -4869,6 +4884,52 @@ setRectangle(const OptRect &r)
 
   position_  = OptPosition();
   rectangle_ = r;
+
+  rectToBBox();
+
+  if (winWidget_) {
+    disconnect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
+
+    BBox bbox;
+
+    if      (plot())
+      bbox = plot()->rectToPixel(rectangle_.rect());
+    else if (view())
+      bbox = view()->rectToPixel(rectangle_.rect());
+
+    winWidget_->setPos (bbox.getXMin(), bbox.getYMin());
+    winWidget_->setSize(bbox.getWidth(), bbox.getHeight());
+
+    connect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
+  }
+
+  emitDataChanged();
+}
+
+void
+CQChartsWidgetAnnotation::
+updateWinGeometry()
+{
+  if (! winWidget_)
+    return;
+
+  Point pos;
+  Size  size;
+
+  int x = winWidget_->getXPos();
+  int y = winWidget_->getYPos();
+
+  if      (plot()) {
+    pos  = plot()->pixelToWindow(Point(x, y));
+    size = plot()->pixelToWindowSize(Size(winWidget_->getWidth(), winWidget_->getHeight()));
+ }
+  else if (view()) {
+    pos  = view()->pixelToWindow(Point(x, y));
+    size = view()->pixelToWindowSize(Size(winWidget_->getWidth(), winWidget_->getHeight()));
+  }
+
+  position_  = OptPosition();
+  rectangle_ = OptRect(Rect(BBox(pos, size)));
 
   rectToBBox();
 
@@ -4926,8 +4987,13 @@ setInteractive(bool b)
     interactive_ = b;
 
     if (interactive_) {
-      if (! winWidget_)
+      if (! winWidget_) {
         winWidget_ = new CQWinWidget;
+
+        winWidget_->setObjectName("window");
+
+        connect(winWidget_, SIGNAL(geometryChanged()), this, SLOT(updateWinGeometry()));
+      }
 
       winWidget_->setChild(widget_.widget());
 

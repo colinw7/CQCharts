@@ -473,7 +473,7 @@ columnToWidgets()
         roleEdit_->setText(QString("%1").arg(column_.role()));
 
       if (column_.type() == CQChartsColumn::Type::DATA_INDEX)
-        indexEdit_->setText(column_.expr());
+        indexEdit_->setText(column_.index());
     }
     else if (column_.type() == CQChartsColumn::Type::EXPR) {
       typeCombo_->setCurrentIndex(1);

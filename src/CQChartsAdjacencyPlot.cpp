@@ -198,6 +198,8 @@ addProperties()
   addProp("emptyCell/stroke", "cornerSize", "cornerSize", "Empty cell box corner size");
 
   // text
+//addProp("text", "textVisible", "visible", "Text is visible");
+
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH);
 }

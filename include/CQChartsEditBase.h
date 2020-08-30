@@ -17,9 +17,7 @@ class CQChartsEditBase : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsEditBase(QWidget *parent=nullptr) :
-   QFrame(parent) {
-  }
+  CQChartsEditBase(QWidget *parent=nullptr);
 
   virtual ~CQChartsEditBase() { }
 

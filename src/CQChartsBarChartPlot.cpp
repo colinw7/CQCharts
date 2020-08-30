@@ -52,10 +52,12 @@ addParameters()
    addNameValue("MIN"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
    addNameValue("MAX"  , int(CQChartsBarChartPlot::ValueType::MAX  )).
    addNameValue("MEAN" , int(CQChartsBarChartPlot::ValueType::MEAN )).
+   addNameValue("SUM"  , int(CQChartsBarChartPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
-  addBoolParameter("percent" , "Percent"  , "percent" ).setTip("Show value is percentage");
-  addBoolParameter("dotLines", "Dot Lines", "dotLines").setTip("Draw bars as lines with dot");
+  addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
+  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("Skip empty groups");
+  addBoolParameter("dotLines" , "Dot Lines" , "dotLines" ).setTip("Draw bars as lines with dot");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").
     setTip("Color by value set");
@@ -180,7 +182,9 @@ addProperties()
   // options
   addProp("options", "plotType" , "plotType" , "Plot type");
   addProp("options", "valueType", "valueType", "Value type");
-  addProp("options", "percent"  , ""         , "Use percentage value");
+
+  addProp("options", "percent"  , "", "Use percentage value");
+  addProp("options", "skipEmpty", "", "Skip empty groups");
 
   // dot lines
   addProp("dotLines",        "dotLines"    , "visible", "Draw bars as lines with dot");
@@ -234,6 +238,13 @@ setPercent(bool b)
   CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsBarChartPlot::
+setSkipEmpty(bool b)
+{
+  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -247,50 +258,42 @@ void
 CQChartsBarChartPlot::
 setValueValue(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::VALUE : ValueType::VALUE);
 }
 
 void
 CQChartsBarChartPlot::
 setValueRange(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::RANGE : ValueType::VALUE);
 }
 
 void
 CQChartsBarChartPlot::
 setValueMin(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MIN : ValueType::VALUE);
 }
 
 void
 CQChartsBarChartPlot::
 setValueMax(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MAX : ValueType::VALUE);
 }
 
 void
 CQChartsBarChartPlot::
 setValueMean(bool b)
 {
-  if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
-  else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  setValueType(b ? ValueType::MEAN : ValueType::VALUE);
+}
+
+void
+CQChartsBarChartPlot::
+setValueSum(bool b)
+{
+  setValueType(b ? ValueType::SUM : ValueType::VALUE);
 }
 
 //---
@@ -376,7 +379,7 @@ calcRange() const
 
   // init grouping
   //   non-range use group columns for grouping
-  if (isValueValue())
+  if (! isValueRange())
     initGroupData(valueColumns(), nameColumn());
   else
     initGroupData(CQChartsColumns(), nameColumn());
@@ -407,7 +410,7 @@ calcRange() const
 
   //---
 
-  int ns = (isValueValue() ? valueColumns().count() : 1);
+  int ns = (! isValueRange() ? valueColumns().count() : 1);
   int nv = numValueSets();
 
   int ng = numGroups();
@@ -440,6 +443,42 @@ calcRange() const
   //---
 
   if (ng > 0) {
+    // if single value column (ns == 1) and summary value (min, max, mean) for values
+    // per group then single bar
+    if (ns == 1 && (isValueRange() || isValueMin() || isValueMax() ||
+                    isValueMean() || isValueSum())) {
+      dataRange = Range();
+
+      updateRange(-0.5, 0);
+
+      numVisible = 0;
+
+      for (const auto &pg : valueData_.valueGroupInd) {
+        const auto &valueSet = valueData_.valueSets[pg.second];
+
+        double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
+
+        if (valueSet.calcStats(min, max, mean, sum)) {
+          if      (isValueMin())
+            updateRange(0.0, min);
+          else if (isValueMax() || isValueRange())
+            updateRange(0.0, max);
+          else if (isValueMean())
+            updateRange(0.0, mean);
+          else if (isValueSum())
+            updateRange(0.0, sum);
+
+          ++numVisible;
+        }
+        else {
+          if (! isSkipEmpty())
+            ++numVisible;
+        }
+      }
+    }
+
+    //---
+
     double ymin = (! isHorizontal() ? dataRange.ymin() : dataRange.xmin());
 
     updateRange(numVisible - 0.5, ymin);
@@ -478,7 +517,7 @@ void
 CQChartsBarChartPlot::
 initRangeAxesI()
 {
-  int ns = (isValueValue() ? valueColumns().count() : 1);
+  int ns = (! isValueRange() ? valueColumns().count() : 1);
 //int nv = numValueSets();
 
   int ng = numGroups();
@@ -543,7 +582,7 @@ CQChartsBarChartPlot::
 addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
 {
   // add value for each column (non-range)
-  if (isValueValue()) {
+  if (! isValueRange()) {
     for (const auto &column : valueColumns()) {
       CQChartsColumns columns { column };
 
@@ -589,7 +628,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   ModelIndex ind;
 
-  if (isValueValue()) {
+  if (! isValueRange()) {
     assert(valueColumns.count() > 0);
 
     const auto &valueColumn = valueColumns.column();
@@ -699,10 +738,10 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     bool ok2 = modelMappedReal(valueModelInd, r, isLogY(), data.row);
 
     if (! ok2) {
-      th->addDataError(valueModelInd, "Invalid value");
-
       if (isSkipBad())
         continue;
+
+      th->addDataError(valueModelInd, "Invalid value");
 
       r = data.row;
     }
@@ -739,7 +778,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   //---
 
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
 
   if (ns > 1) {
     // set value data group name and value name
@@ -810,10 +849,12 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   //---
 
-  // update range for scale and sums
+  // update range for scale and sums (TODO: only after all rows processed ?)
   if (isStacked()) {
-    updateRange(0, scale*posSum);
-    updateRange(0, scale*negSum);
+    if (isValueValue()) {
+      updateRange(0, scale*posSum);
+      updateRange(0, scale*negSum);
+    }
   }
   else {
     for (const auto &valueInd : valueInds)
@@ -918,7 +959,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   //---
@@ -959,7 +1000,7 @@ createObjs(PlotObjs &objs) const
     double scale = 1.0;
 
     if (isPercent()) {
-      double posSum, negSum;
+      double posSum = 0.0, negSum = 0.0;
 
       valueSet.calcSums(posSum, negSum);
 
@@ -972,145 +1013,210 @@ createObjs(PlotObjs &objs) const
 
     double bx1 = bx;
 
+    // calc bar width (side by side)
     double bw1 = 1.0;
 
     if (! isStacked())
       bw1 = 1.0/numVisible1;
 
-    double lastPosValue = 0.0, lastNegValue = 0.0;
+    //---
 
-    for (int ivs = 0; ivs < nvs; ++ivs) {
-      if (isValueHidden(ivs))
-        continue;
+    // if single value column (ns == 1) and summary value (min, max, mean) for values
+    // per group then single bar
+    if (ns == 1 && (isValueRange() || isValueMin() || isValueMax() ||
+                    isValueMean() || isValueSum())) {
+      double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
 
-      //---
+      if (valueSet.calcStats(min, max, mean, sum)) {
+        double value1 = (isValueRange() ? min : 0.0);
+        double value2 = value1;
 
-      const auto &ivalue = valueSet.value(ivs);
+        if      (isValueMin())
+          value2 = min;
+        else if (isValueMax() || isValueRange())
+          value2 = max;
+        else if (isValueMean())
+          value2 = mean;
+        else if (isValueSum())
+          value2 = sum;
 
-      CQChartsBarChartValue::ValueInd minInd, maxInd;
+        auto brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
 
-      ivalue.calcRange(minInd, maxInd);
+        //---
 
-      QModelIndex parent; // TODO
+        const auto &ivalue    = valueSet.value(0);
+        const auto &valueInds = ivalue.valueInds();
 
-      Color color;
+        CQChartsBarChartValue::ValueInd ind;
 
-      (void) colorColumnColor(minInd.vrow, parent, color);
+        if (! valueInds.empty())
+          ind = valueInds[0];
 
-      //---
+        //---
 
-      // create bar rect
-      BBox brect;
+        auto *barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv), ColorInd(), ind.ind);
 
-      double value1 { 0.0 }, value2 { 0.0 };
+        barObj->setValueSet(true);
 
-      if      (isValueValue()) {
-        if (isStacked()) {
-          if (minInd.value >= 0) {
+        objs.push_back(barObj);
+      }
+      else {
+        if (isSkipEmpty())
+          continue; // no inc bx
+      }
+    }
+    else {
+      // NOTE: summary values (min, max, mean, range, sum are across the multiple value columns)
+      double lastPosValue = 0.0, lastNegValue = 0.0;
+
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        if (isValueHidden(ivs))
+          continue;
+
+        //---
+
+        const auto &ivalue = valueSet.value(ivs);
+
+        CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
+
+        ivalue.calcRange(minInd, maxInd, mean, sum);
+
+        QModelIndex parent; // TODO
+
+        Color color;
+
+        (void) colorColumnColor(minInd.vrow, parent, color);
+
+        //---
+
+        // create bar rect
+        BBox brect;
+
+        double value1 { 0.0 }, value2 { 0.0 };
+
+        if      (isValueValue()) {
+          if (isStacked()) {
+            if (minInd.value >= 0) {
+              value1 = lastPosValue;
+              value2 = value1 + scale*minInd.value;
+            }
+            else {
+              value2 = lastNegValue;
+              value1 = value2 + scale*minInd.value;
+            }
+          }
+          else {
+            if (minInd.value >= 0) {
+              value1 = 0.0;
+              value2 = scale*minInd.value;
+            }
+            else {
+              value2 = 0.0;
+              value1 = scale*minInd.value;
+            }
+          }
+        }
+        else if (isValueRange()) {
+          if (isStacked()) {
+            value1 = lastPosValue;
+            value2 = value1 + scale*(maxInd.value - minInd.value);
+          }
+          else {
+            value1 = scale*minInd.value;
+            value2 = scale*maxInd.value;
+          }
+        }
+        else if (isValueMin()) {
+          if (isStacked()) {
             value1 = lastPosValue;
             value2 = value1 + scale*minInd.value;
           }
           else {
-            value2 = lastNegValue;
-            value1 = value2 + scale*minInd.value;
-          }
-        }
-        else {
-          if (minInd.value >= 0) {
             value1 = 0.0;
             value2 = scale*minInd.value;
           }
+        }
+        else if (isValueMax()) {
+          if (isStacked()) {
+            value1 = lastPosValue;
+            value2 = value1 + scale*maxInd.value;
+          }
           else {
-            value2 = 0.0;
-            value1 = scale*minInd.value;
+            value1 = 0.0;
+            value2 = scale*maxInd.value;
           }
         }
-      }
-      else if (isValueRange()) {
-        if (isStacked()) {
-          value1 = lastPosValue;
-          value2 = value1 + scale*(maxInd.value - minInd.value);
+        else if (isValueMean()) {
+          if (isStacked()) {
+            value1 = lastPosValue;
+            value2 = value1 + scale*mean;
+          }
+          else {
+            value1 = 0.0;
+            value2 = scale*mean;
+          }
+        }
+
+        if (value1 == value2)
+          continue;
+
+        if (isStacked())
+          brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
+        else
+          brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
+
+        if (! isHorizontal())
+          barWidth_ = std::min(barWidth_, brect.getWidth());
+        else
+          barWidth_ = std::min(barWidth_, brect.getHeight());
+
+        CQChartsBarChartObj *barObj = nullptr;
+
+        if (ns > 1) {
+          // multiple sets:
+          //  . set per value column
+          //  . group per group column unique value
+          barObj = createBarObj(brect, ColorInd(ivs, nvs), ColorInd(iv, nv),
+                                ColorInd(), minInd.ind);
         }
         else {
-          value1 = scale*minInd.value;
-          value2 = scale*maxInd.value;
+          // single set:
+          //  . group per group column unique value
+          //  . value per grouped values
+          barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv),
+                                ColorInd(ivs, nvs), minInd.ind);
         }
-      }
-      else if (isValueMin()) {
-        if (isStacked()) {
-          value1 = lastPosValue;
-          value2 = value1 + scale*minInd.value;
+
+        if (color.isValid())
+          barObj->setColor(color);
+
+        objs.push_back(barObj);
+
+        //---
+
+        if      (isValueValue()) {
+          if (minInd.value >= 0) {
+            lastPosValue = lastPosValue + scale*minInd.value;
+          }
+          else {
+            lastNegValue = lastNegValue + scale*minInd.value;
+          }
         }
-        else {
-          value1 = 0.0;
-          value2 = scale*minInd.value;
+        else if (isValueRange()) {
+          lastPosValue = scale*(maxInd.value - minInd.value);
         }
-      }
-      else if (isValueMax()) {
-        if (isStacked()) {
-          value1 = lastPosValue;
-          value2 = value1 + scale*maxInd.value;
+        else if (isValueMin()) {
+          lastPosValue = scale*minInd.value;
         }
-        else {
-          value1 = 0.0;
-          value2 = scale*maxInd.value;
+        else if (isValueMax()) {
+          lastPosValue = scale*maxInd.value;
         }
-      }
-
-      if (value1 == value2)
-        continue;
-
-      if (isStacked())
-        brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
-      else
-        brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
-
-      if (! isHorizontal())
-        barWidth_ = std::min(barWidth_, brect.getWidth());
-      else
-        barWidth_ = std::min(barWidth_, brect.getHeight());
-
-      CQChartsBarChartObj *barObj = nullptr;
-
-      if (ns > 1) {
-        // multiple sets:
-        //  . set per value column
-        //  . group per group column unique value
-        barObj = createBarObj(brect, ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(), minInd.ind);
-      }
-      else {
-        // single set:
-        //  . group per group column unique value
-        //  . value per grouped values
-        barObj = createBarObj(brect, ColorInd(), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
-      }
-
-      if (color.isValid())
-        barObj->setColor(color);
-
-      objs.push_back(barObj);
-
-      //---
-
-      if      (isValueValue()) {
-        if (minInd.value >= 0) {
-          lastPosValue = lastPosValue + scale*minInd.value;
+        else if (isValueMean()) {
+          lastPosValue = scale*mean;
         }
-        else {
-          lastNegValue = lastNegValue + scale*minInd.value;
-        }
-      }
-      else if (isValueRange()) {
-        lastPosValue = scale*(maxInd.value - minInd.value);
-      }
-      else if (isValueMin()) {
-        lastPosValue = scale*minInd.value;
-      }
-      else if (isValueMax()) {
-        lastPosValue = scale*maxInd.value;
-      }
 
-      bx1 += bw1;
+        bx1 += bw1;
+      }
     }
 
     bx += 1.0;
@@ -1154,7 +1260,7 @@ initObjAxesI()
 
   //---
 
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   //---
@@ -1183,6 +1289,12 @@ initObjAxesI()
           continue;
 
         const auto &valueSet = this->valueSet(iv);
+
+        // skip empty value sets (TODO: all value types ?)
+        if (valueSet.numValues() == 0 && isSkipEmpty()) {
+          if (isValueRange() || isValueMin() || isValueMax() || isValueMean() || isValueSum())
+            continue;
+        }
 
         xAxis->setTickLabel(numVisible, valueSet.name());
 
@@ -1270,7 +1382,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   //---
 
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if (ns > 1) {
@@ -1309,6 +1421,12 @@ addKeyItems(CQChartsPlotKey *key)
       else {
         for (int iv = 0; iv < nv; ++iv) {
           const auto &valueSet = this->valueSet(iv);
+
+          // skip empty value sets (TODO: all value types ?)
+          if (valueSet.numValues() == 0 && isSkipEmpty()) {
+            if (isValueRange() || isValueMin() || isValueMax() || isValueMean() || isValueSum())
+              continue;
+          }
 
           QColor c;
 
@@ -1412,7 +1530,7 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1447,7 +1565,7 @@ bool
 CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
-  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int ns = (! isValueRange() ? this->valueColumns().count() : 1);
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1507,6 +1625,8 @@ addMenuItems(QMenu *menu)
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
   (void) addMenuCheckedAction(valueMenu, "Min"  , isValueMin  (), SLOT(setValueMin  (bool)));
   (void) addMenuCheckedAction(valueMenu, "Max"  , isValueMax  (), SLOT(setValueMax  (bool)));
+  (void) addMenuCheckedAction(valueMenu, "Mean" , isValueMean (), SLOT(setValueMean (bool)));
+  (void) addMenuCheckedAction(valueMenu, "Sum"  , isValueSum  (), SLOT(setValueSum  (bool)));
 
   menu->addMenu(valueMenu);
 
@@ -1585,10 +1705,13 @@ calcTipId() const
   }
 
   if (valueStr.length()) {
-    QString headerStr("Value");
+    QString headerStr;
 
     if (plot_->valueColumns().isValid())
       headerStr = plot_->columnsHeaderName(plot_->valueColumns(), /*tip*/true);
+
+    if (headerStr == "")
+      headerStr = "Value";
 
     tableTip.addTableRow(headerStr, valueStr);
   }
@@ -1636,26 +1759,53 @@ valueStr() const
 {
   QString valueStr;
 
-  const auto &value = this->value();
+  if (isValueSet()) {
+    const auto *valueSet = this->valueSet();
 
-  CQChartsBarChartValue::ValueInd minInd, maxInd;
+    double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
 
-  value->calcRange(minInd, maxInd);
+    if (! valueSet->calcStats(min, max, mean, sum))
+      return "";
 
-  if      (plot_->isValueValue()) {
-    valueStr = plot_->valueStr(minInd.value);
+    if      (plot_->isValueRange()) {
+      QString minValueStr = plot_->valueStr(min);
+      QString maxValueStr = plot_->valueStr(max);
+
+      valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
+    }
+    else if (plot_->isValueMin())
+      valueStr = plot_->valueStr(min);
+    else if (plot_->isValueMax())
+      valueStr = plot_->valueStr(max);
+    else if (plot_->isValueMean())
+      valueStr = plot_->valueStr(mean);
+    else if (plot_->isValueSum())
+      valueStr = plot_->valueStr(sum);
   }
-  else if (plot_->isValueRange()) {
-    QString minValueStr = plot_->valueStr(minInd.value);
-    QString maxValueStr = plot_->valueStr(maxInd.value);
+  else {
+    const auto *value = this->value();
 
-    valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
-  }
-  else if (plot_->isValueMin()) {
-    valueStr = plot_->valueStr(minInd.value);
-  }
-  else if (plot_->isValueMax()) {
-    valueStr = plot_->valueStr(maxInd.value);
+    CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
+
+    value->calcRange(minInd, maxInd, mean, sum);
+
+    if      (plot_->isValueValue()) {
+      valueStr = plot_->valueStr(minInd.value);
+    }
+    else if (plot_->isValueRange()) {
+      QString minValueStr = plot_->valueStr(minInd.value);
+      QString maxValueStr = plot_->valueStr(maxInd.value);
+
+      valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
+    }
+    else if (plot_->isValueMin())
+      valueStr = plot_->valueStr(minInd.value);
+    else if (plot_->isValueMax())
+      valueStr = plot_->valueStr(maxInd.value);
+    else if (plot_->isValueMean())
+      valueStr = plot_->valueStr(mean);
+    else if (plot_->isValueSum())
+      valueStr = plot_->valueStr(sum);
   }
 
   return valueStr;
@@ -1884,10 +2034,10 @@ drawFg(CQChartsPaintDevice *device) const
   QString minLabel = value->getNameValue("Label");
   QString maxLabel = minLabel;
 
-  CQChartsBarChartValue::ValueInd minInd, maxInd;
+  CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
 
   if (! plot_->labelColumn().isValid()) {
-    value->calcRange(minInd, maxInd);
+    value->calcRange(minInd, maxInd, mean, sum);
 
     minLabel = plot_->valueStr(minInd.value);
     maxLabel = plot_->valueStr(maxInd.value);
@@ -1970,7 +2120,7 @@ calcBarColor() const
   QColor barColor;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+    int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
 
     if (ns > 1) {
       if (plot_->isColorBySet())
@@ -2019,17 +2169,33 @@ const CQChartsBarChartValue *
 CQChartsBarChartObj::
 value() const
 {
+  const auto *valueSet = this->valueSet();
+
   if (is_.n > 1) {
-    const auto &valueSet = plot_->valueSet(ig_.i);
-    const auto &ivalue   = valueSet.value(is_.i);
+    const auto &ivalue = valueSet->value(is_.i);
 
     return &ivalue;
   }
   else {
-    const auto &valueSet = plot_->valueSet(ig_.i);
-    const auto &ivalue   = valueSet.value(iv_.i);
+    const auto &ivalue = valueSet->value(iv_.i);
 
     return &ivalue;
+  }
+}
+
+const CQChartsBarChartValueSet *
+CQChartsBarChartObj::
+valueSet() const
+{
+  if (is_.n > 1) {
+    const auto &valueSet = plot_->valueSet(ig_.i);
+
+    return &valueSet;
+  }
+  else {
+    const auto &valueSet = plot_->valueSet(ig_.i);
+
+    return &valueSet;
   }
 }
 
@@ -2070,7 +2236,7 @@ fillBrush() const
   QColor barColor;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+    int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
 
     if (ns > 1) {
       if (plot_->isColorBySet()) {
@@ -2151,10 +2317,11 @@ tipText(const Point &, QString &tip) const
 {
   int    count  = -1;
   bool   hasSum = true;
-  double posSum = 0.0, negSum = 0.0;
   double value  = 0.0;
 
-  int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+  double posSum = 0.0, negSum = 0.0;
+
+  int ns = (! plot_->isValueRange() ? plot_->valueColumns().count() : 1);
   int nv = plot_->numValueSets();
 
   if (ns > 1) {

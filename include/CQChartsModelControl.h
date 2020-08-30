@@ -5,19 +5,15 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
+class CQChartsModelExprControl;
+class CQChartsModelFoldControl;
+class CQChartsModelColumnDataControl;
+
 class CQCharts;
 class CQChartsModelData;
-class CQChartsParamEdit;
-class CQChartsLineEdit;
 
 class CQPropertyViewModel;
 class CQPropertyViewTree;
-
-class QGridLayout;
-class QRadioButton;
-class QCheckBox;
-class QComboBox;
-class QLabel;
 
 /*!
  * \brief Model Control Widget
@@ -29,12 +25,6 @@ class CQChartsModelControl : public QFrame {
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
-  enum class Mode {
-    ADD,
-    REMOVE,
-    MODIFY
-  };
-
  public:
   CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData=nullptr);
  ~CQChartsModelControl();
@@ -42,98 +32,30 @@ class CQChartsModelControl : public QFrame {
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData);
 
-  void updateModel();
-
-  void updateModelDetails();
-
  public slots:
   void updateCurrentModel();
 
- private slots:
-  void setColumnData(int column);
-
-  void expressionModeSlot();
-
-  void exprApplySlot();
-
-#ifdef CQCHARTS_FOLDED_MODEL
-  void foldApplySlot();
-  void foldClearSlot();
-#endif
-
-  void typeChangedSlot();
-  void headerTypeChangedSlot();
-  void typeApplySlot();
-
  private:
-  QFrame *addExprFrame();
+  CQChartsModelExprControl *addExprFrame();
+
 #ifdef CQCHARTS_FOLDED_MODEL
-  QFrame *addFoldFrame();
+  CQChartsModelFoldControl *addFoldFrame();
 #endif
-  QFrame *addColumnDataFrame();
+
+  CQChartsModelColumnDataControl *addColumnDataFrame();
+
   QFrame *addPropertiesFrame();
 
-  //---
-
-  CQChartsLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
-                                const QString &objName) const;
-
-  QComboBox *addComboBox(QGridLayout *grid, int &row, const QString &name,
-                         const QString &objName) const;
-
  private:
-  struct ParamEdit {
-    int                row   { 0 };
-    QLabel*            label { nullptr };
-    CQChartsParamEdit* edit  { nullptr };
-  };
-
-  using ParamEdits = std::vector<ParamEdit>;
-
-  struct ColumnEditData {
-    QFrame*           editFrame       { nullptr };
-    QGridLayout*      editLayout      { nullptr };
-    CQChartsLineEdit* numEdit         { nullptr };
-    CQChartsLineEdit* nameEdit        { nullptr };
-    QComboBox*        typeCombo       { nullptr };
-    QComboBox*        headerTypeCombo { nullptr };
-    int               row             { 0 };
-    ParamEdits        paramEdits;
-  };
-
-  struct ExprWidgets {
-    QRadioButton*     addRadio    { nullptr };
-    QRadioButton*     removeRadio { nullptr };
-    QRadioButton*     modifyRadio { nullptr };
-    CQChartsLineEdit* valueEdit   { nullptr };
-    QLabel*           columnLabel { nullptr };
-    CQChartsLineEdit* columnEdit  { nullptr };
-    CQChartsLineEdit* nameEdit    { nullptr };
-    QLabel*           typeLabel   { nullptr };
-    CQChartsLineEdit* typeEdit    { nullptr };
-  };
-
+  CQCharts*                       charts_          { nullptr };
+  CQChartsModelData*              modelData_       { nullptr };
+  CQChartsModelExprControl*       exprFrame_       { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
-  struct FoldWidgets {
-    CQChartsLineEdit* columnEdit    { nullptr };
-    QComboBox*        typeCombo     { nullptr };
-    QCheckBox*        autoCheck     { nullptr };
-    CQChartsLineEdit* deltaEdit     { nullptr };
-    CQChartsLineEdit* countEdit     { nullptr };
-    CQChartsLineEdit* separatorEdit { nullptr };
-  };
+  CQChartsModelFoldControl*       foldFrame_       { nullptr };
 #endif
-
-  CQCharts*            charts_          { nullptr };
-  CQChartsModelData*   modelData_       { nullptr };
-  Mode                 exprMode_        { Mode::ADD };
-  ExprWidgets          exprWidgets_;
-#ifdef CQCHARTS_FOLDED_MODEL
-  FoldWidgets          foldWidgets_;
-#endif
-  CQPropertyViewModel* propertyModel_   { nullptr };
-  CQPropertyViewTree*  propertyTree_    { nullptr };
-  ColumnEditData       columnEditData_;
+  CQChartsModelColumnDataControl* columnDataFrame_ { nullptr };
+  CQPropertyViewModel*            propertyModel_   { nullptr };
+  CQPropertyViewTree*             propertyTree_    { nullptr };
 };
 
 #endif

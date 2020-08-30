@@ -1093,7 +1093,8 @@ addPointObjects(PlotObjs &objs) const
 
         auto *pointObj = createPointObj(groupInd, bbox, p, is1, ig1, iv1);
 
-        pointObj->setModelInd(valuePoint.ind);
+        if (valuePoint.ind.isValid())
+          pointObj->setModelInd(valuePoint.ind);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);

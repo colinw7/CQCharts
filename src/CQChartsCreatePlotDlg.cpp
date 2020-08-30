@@ -495,9 +495,7 @@ updateModelData()
   //---
 
   // update model details
-  auto *details = modelData_->details();
-
-  detailsWidget_->setDetails(details);
+  detailsWidget_->setModelData(modelData_);
 
   //---
 
@@ -937,6 +935,10 @@ createPreviewFrame()
 
   previewControlLayout->addWidget(previewEnabledCheck_);
 
+  auto *previewFitButton = CQUtil::makeLabelWidget<QPushButton>("Fit", "previewFit");
+
+  connect(previewFitButton, SIGNAL(clicked()), this, SLOT(previewFitSlot()));
+
   previewControlLayout->addStretch(1);
 
   previewLayout->addWidget(previewControl);
@@ -1162,7 +1164,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
 
   CQChartsPlotType::Parameters parameters = type->nonGroupParameters();
 
-  if (parameters.empty())
+  if (! parameters.empty())
     addParameterEdits(parameters, plotData, layout, row, isBasic);
 
   //---
@@ -2503,6 +2505,14 @@ CQChartsCreatePlotDlg::
 previewEnabledSlot()
 {
   validateSlot();
+}
+
+void
+CQChartsCreatePlotDlg::
+previewFitSlot()
+{
+  if (previewPlot_)
+    previewPlot_->autoFit();
 }
 
 void
