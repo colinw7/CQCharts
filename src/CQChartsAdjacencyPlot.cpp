@@ -472,21 +472,20 @@ initFromToObjs() const
 
 void
 CQChartsAdjacencyPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
+addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
                const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto *srcNode = findNode(fromStr);
+
+  if (depth > 0)
+    srcNode->setDepth(depth);
 
   // Just node
   if (toStr == "") {
     for (const auto &nv : nameValues.nameValues()) {
       auto value = nv.second.toString();
 
-      if      (nv.first == "shape") {
-      }
-      else if (nv.first == "num_sides") {
-      }
-      else if (nv.first == "label") {
+      if      (nv.first == "label") {
         srcNode->setLabel(value);
       }
       else if (nv.first == "color") {
@@ -495,16 +494,22 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     }
   }
   else {
+    if (fromStr == toStr)
+      return;
+
     auto *destNode = findNode(toStr);
+
+    if (depth > 0)
+      destNode->setDepth(depth + 1);
 
     srcNode->addEdge(destNode, OptReal(value));
 
     for (const auto &nv : nameValues.nameValues()) {
       auto value = nv.second.toString();
 
-      if      (nv.first == "shape") {
+      if      (nv.first == "label") {
       }
-      else if (nv.first == "label") {
+      else if (nv.first == "color") {
       }
     }
   }
@@ -579,7 +584,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
-  auto *srcNode  = findNode(linkConnectionData.srcStr);
+  auto *srcNode  = findNode(linkConnectionData.srcStr );
   auto *destNode = findNode(linkConnectionData.destStr);
 //assert(srcNode != destNode);
 
@@ -599,6 +604,13 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
     srcNode ->setInd(destNode->id(), modelInd1);
     destNode->setInd(srcNode ->id(), modelInd1);
+  }
+
+  //---
+
+  if (linkConnectionData.depth > 0) {
+    srcNode ->setDepth(linkConnectionData.depth);
+    destNode->setDepth(linkConnectionData.depth + 1);
   }
 }
 

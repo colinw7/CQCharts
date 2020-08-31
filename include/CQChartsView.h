@@ -191,8 +191,7 @@ class CQChartsView : public QFrame,
   //! highlight mode
   enum class HighlightDataMode {
     OUTLINE,
-    FILL,
-    DIM_OTHER
+    FILL
   };
 
   //! region mode

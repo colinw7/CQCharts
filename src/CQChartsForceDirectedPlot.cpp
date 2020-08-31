@@ -657,23 +657,22 @@ initFromToObjs() const
 
 void
 CQChartsForceDirectedPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
+addFromToValue(const QString &fromStr, const QString &toStr, double value, int /*depth*/,
                const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   auto &srcConnectionsData = th->getConnections(fromStr);
 
+//if (depth > 0)
+//  srcConnectionsData.setDepth(depth);
+
   // Just node
   if (toStr == "") {
     for (const auto &nv : nameValues.nameValues()) {
       QString value = nv.second.toString();
 
-      if      (nv.first == "shape") {
-      }
-      else if (nv.first == "num_sides") {
-      }
-      else if (nv.first == "label") {
+      if      (nv.first == "label") {
         srcConnectionsData.label = value;
       }
       else if (nv.first == "color") {
@@ -687,14 +686,17 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
 
     auto &destConnectionsData = th->getConnections(toStr);
 
+//  if (depth > 0)
+//    destConnectionsData.setDepth(depth + 1);
+
     addEdge(srcConnectionsData, destConnectionsData, value);
 
     for (const auto &nv : nameValues.nameValues()) {
       QString value = nv.second.toString();
 
-      if      (nv.first == "shape") {
+      if      (nv.first == "label") {
       }
-      else if (nv.first == "label") {
+      else if (nv.first == "color") {
       }
     }
   }

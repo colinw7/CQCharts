@@ -504,21 +504,20 @@ initFromToObjs() const
 
 void
 CQChartsChordPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
+addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
                const CQChartsNameValues &nameValues, const GroupData &) const
 {
   auto &srcData = findNameData(fromStr, QModelIndex());
+
+  if (depth > 0)
+    srcData.setDepth(depth);
 
   // Just node
   if (toStr == "") {
     for (const auto &nv : nameValues.nameValues()) {
       QString value = nv.second.toString();
 
-      if      (nv.first == "shape") {
-      }
-      else if (nv.first == "num_sides") {
-      }
-      else if (nv.first == "label") {
+      if      (nv.first == "label") {
         srcData.setLabel(value);
       }
       else if (nv.first == "color") {
@@ -527,16 +526,22 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     }
   }
   else {
+    if (fromStr == toStr)
+      return;
+
     auto &destData = findNameData(toStr, QModelIndex());
+
+    if (depth > 0)
+      destData.setDepth(depth + 1);
 
     addEdge(srcData, destData, value, /*symmetric*/true);
 
     for (const auto &nv : nameValues.nameValues()) {
       QString value = nv.second.toString();
 
-      if      (nv.first == "shape") {
+      if      (nv.first == "label") {
       }
-      else if (nv.first == "label") {
+      else if (nv.first == "color") {
       }
     }
   }
@@ -590,6 +595,13 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   // set group if specified
   if (groupData.isValid())
     srcData.setGroup(groupData);
+
+  //---
+
+  if (linkConnectionData.depth > 0) {
+    srcData .setDepth(linkConnectionData.depth);
+    destData.setDepth(linkConnectionData.depth + 1);
+  }
 }
 
 //------

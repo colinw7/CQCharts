@@ -128,6 +128,9 @@ CQChartsGraphPlot(View *view, const ModelP &model) :
 CQChartsGraphPlot::
 ~CQChartsGraphPlot()
 {
+  // delete objects first to ensure link from edge/node to object reset
+  clearPlotObjects();
+
   clearNodesAndEdges();
 }
 
@@ -732,12 +735,15 @@ initFromToObjs() const
 
 void
 CQChartsGraphPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
+addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
                const CQChartsNameValues &nameValues, const GroupData &groupData) const
 {
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
   auto *srcNode = findNode(fromStr);
+
+  if (depth > 0)
+    srcNode->setDepth(depth);
 
   // Just node
   if (toStr == "") {
@@ -808,7 +814,13 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
       srcNode->setParentGraphId(parentGraphId);
   }
   else {
+    if (fromStr == toStr)
+      return;
+
     auto *destNode = findNode(toStr);
+
+    if (depth > 0)
+      destNode->setDepth(depth + 1);
 
     auto *edge = createEdge(OptReal(value), srcNode, destNode);
 
@@ -869,6 +881,13 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
     auto nameModelInd1 = normalizeIndex(linkConnectionData.nameModelInd);
 
     srcNode->setInd(nameModelInd1);
+  }
+
+  //---
+
+  if (linkConnectionData.depth > 0) {
+    srcNode ->setDepth(linkConnectionData.depth);
+    destNode->setDepth(linkConnectionData.depth + 1);
   }
 }
 
@@ -1633,9 +1652,11 @@ updateGraphMaxDepth(Graph *graph, const Nodes &nodes) const
   graph->setMaxNodeDepth(0);
 
   auto updateNodeDepth = [&](int depth) {
-    if (set) {
+    if (! set) {
       graph->setMinNodeDepth(depth);
       graph->setMaxNodeDepth(depth);
+
+      set = true;
     }
     else {
       graph->setMinNodeDepth(std::min(graph->minNodeDepth(), depth));
@@ -2189,8 +2210,7 @@ CQChartsGraphPlotNode(const Plot *plot, const QString &str) :
 CQChartsGraphPlotNode::
 ~CQChartsGraphPlotNode()
 {
-  if (obj_)
-    obj_->setNode(nullptr);
+  assert(! obj_);
 }
 
 void
@@ -2443,8 +2463,7 @@ CQChartsGraphPlotEdge(const Plot *plot, const OptReal &value, Node *srcNode, Nod
 CQChartsGraphPlotEdge::
 ~CQChartsGraphPlotEdge()
 {
-  if (obj_)
-    obj_->setEdge(nullptr);
+  assert(! obj_);
 }
 
 //---

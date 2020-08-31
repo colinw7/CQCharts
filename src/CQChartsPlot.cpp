@@ -9420,11 +9420,9 @@ hasObjs(const Layer::Type &layerType) const
 
   bool anyObjs = false;
 
-  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
-
   for (const auto &plotObj : plotObjects()) {
     if      (layerType == Layer::Type::SELECTION) {
-      if (filterSelected && ! plotObj->isSelected())
+      if (! plotObj->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
@@ -9474,8 +9472,6 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
-  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
-
   auto bbox = displayRangeBBox();
 
   for (const auto &plotObj : plotObjects()) {
@@ -9484,7 +9480,7 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
     // skip unselected objects on selection layer
     if      (layerType == Layer::Type::SELECTION) {
-      if (filterSelected && ! plotObj->isSelected())
+      if (! plotObj->isSelected())
         continue;
     }
     // skip non-inside objects on mouse over layer
@@ -9816,8 +9812,6 @@ bool
 CQChartsPlot::
 hasAnnotations(const Layer::Type &layerType) const
 {
-  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
-
   bool anyObjs = false;
 
   for (const auto &annotation : annotations()) {
@@ -9825,7 +9819,7 @@ hasAnnotations(const Layer::Type &layerType) const
       continue;
 
     if      (layerType == Layer::Type::SELECTION) {
-      if (filterSelected && ! annotation->isSelected())
+      if (! annotation->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
@@ -9863,14 +9857,12 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
-  bool filterSelected = (view()->selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER);
-
   for (auto &annotation : annotations()) {
     if (! annotation->isVisible())
       continue;
 
     if      (layerType == Layer::Type::SELECTION) {
-      if (filterSelected && ! annotation->isSelected())
+      if (! annotation->isSelected())
         continue;
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {

@@ -4359,27 +4359,24 @@ draw(CQChartsPaintDevice *device)
   auto symbolType = Symbol(Symbol::Type::CIRCLE);
   auto symbolSize = Length(6, CQChartsUnits::PIXEL);
 
-  auto pc = prect.getCenter();
+  auto pll = prect.getLL();
 
-  if (! plot_->isHorizontal()) {
-    for (const auto &point : points_) {
-      double px = plot_->windowToPixelWidth (point.x);
-      double py = plot_->windowToPixelHeight(point.y);
+  // points in range (m, 1 - m) where 'm' is margin (< 1)
+  for (const auto &point : points_) {
+    double px, py;
 
-      Point p(pc.x - px/2, pc.y - py/2);
-
-      plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
+    if (! plot_->isHorizontal()) {
+      px = plot_->windowToPixelWidth (point.x);
+      py = plot_->windowToPixelHeight(point.y);
     }
-  }
-  else {
-    for (const auto &point : points_) {
-      double px = plot_->windowToPixelWidth (point.y);
-      double py = plot_->windowToPixelHeight(point.x);
-
-      Point p(pc.x - px/2, pc.y - py/2);
-
-      plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
+    else {
+      px = plot_->windowToPixelWidth (point.y);
+      py = plot_->windowToPixelHeight(point.x);
     }
+
+    Point p(pll.x + px, pll.y + py);
+
+    plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
   }
 }
 

@@ -4155,10 +4155,8 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
   if (! isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
-
-      updateInsideObjPenBrushState(ic, penBrush, /*outline*/false, drawType);
+      updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateInsideObjPenBrushState  (ic, penBrush, /*outline*/false, drawType);
     }
     // inside
     else if (obj->isInside()) {
@@ -4166,12 +4164,10 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
     }
     // selected
     else if (obj->isSelected()) {
-      if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateSelectedObjPenBrushState(ic, penBrush, drawType);
     }
     else {
-      if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER)
-        updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateSelectedObjPenBrushState(ic, penBrush, drawType);
     }
   }
   else {
@@ -4185,12 +4181,10 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
     else if (drawLayerType() == CQChartsLayer::Type::SELECTION ||
              drawLayerType() == CQChartsLayer::Type::SELECTION_EXTRA) {
       if (obj->isSelected()) {
-        if (selectedMode() != CQChartsView::HighlightDataMode::DIM_OTHER)
-          updateSelectedObjPenBrushState(ic, penBrush, drawType);
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
       }
       else {
-        if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER)
-          updateSelectedObjPenBrushState(ic, penBrush, drawType);
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
       }
     }
   }
@@ -4344,26 +4338,6 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         else
           alpha = CQChartsAlpha(1.0);
       }
-
-      setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, selectedFillPattern()));
-    }
-    // dim others
-    else if (selectedMode() == CQChartsView::HighlightDataMode::DIM_OTHER) {
-      QColor bc = penBrush.brush.color();
-
-      QColor ibc;
-
-      if (isSelectedFilled())
-        ibc = interpSelectedFillColor(ic);
-      else
-        ibc = selectedColor(bc);
-
-      CQChartsAlpha alpha;
-
-      if (isBufferLayers())
-        alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
-      else
-        alpha = CQChartsAlpha(bc.alphaF());
 
       setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, selectedFillPattern()));
     }

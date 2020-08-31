@@ -141,9 +141,9 @@ class CQChartsSankeyPlotNode {
   void setObj(Obj *obj);
 
   //! get source depth (from connections)
-  virtual int srcDepth() const;
+  int srcDepth() const;
   //! get destination depth (from connections)
-  virtual int destDepth() const;
+  int destDepth() const;
 
   //! get/set color
   const QColor &color() const { return color_; }
@@ -155,7 +155,7 @@ class CQChartsSankeyPlotNode {
 
   // get/set rect
   const BBox &rect() const;
-  virtual void setRect(const BBox &r);
+  void setRect(const BBox &r);
 
   //---
 
@@ -168,17 +168,11 @@ class CQChartsSankeyPlotNode {
   //! get destination edge (max) sum
   double destEdgeSum() const;
 
-  //! is placed
-  virtual bool isPlaced() const { return true; }
-
-  //! place
-  virtual void place() const { assert(false); }
-
   //! move node by delta
-  virtual void moveBy(const Point &delta);
+  void moveBy(const Point &delta);
 
   //! scale node by factor
-  virtual void scale(double fx, double fy);
+  void scale(double fx, double fy);
 
   //---
 
@@ -316,9 +310,11 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
+#if 0
   //! get/set label
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
+#endif
 
   // get source node
   Node *srcNode() const { return srcNode_; }
@@ -347,7 +343,7 @@ class CQChartsSankeyPlotEdge {
   const Plot* plot_     { nullptr }; //!< plot
   int         id_       { -1 };      //!< unique id
   OptReal     value_;                //!< value
-  QString     label_;                //!< label
+//QString     label_;                //!< label
   Node*       srcNode_  { nullptr }; //!< source node
   Node*       destNode_ { nullptr }; //!< destination node
   Obj*        obj_      { nullptr }; //!< associated edge object
@@ -356,10 +352,13 @@ class CQChartsSankeyPlotEdge {
 
 //---
 
-class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
+class CQChartsSankeyPlotGraph {
  public:
+  using Plot  = CQChartsSankeyPlot;
   using Node  = CQChartsSankeyPlotNode;
   using Nodes = std::vector<Node *>;
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
 
   struct DepthData {
     Nodes  nodes;        // nodes at depth
@@ -371,24 +370,20 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   using PosNodesMap   = std::map<int, Nodes>;
 
  public:
-  CQChartsSankeyPlotGraph(const Plot *plot, const QString &str);
+  CQChartsSankeyPlotGraph(const Plot *plot);
 
   virtual ~CQChartsSankeyPlotGraph() { }
 
+  //! get plot
+  const Plot *plot() const { return plot_; }
+
+  //---
+
+  //! get/add nodes
   const Nodes &nodes() const { return nodes_; }
   void addNode(Node *node);
 
   //--
-
-  //! get/set object
-  Obj *obj() const { return obj_; }
-  void setObj(Obj *obj);
-
-  //---
-
-  //! get/set min node depth
-  int minNodeDepth() const { return minNodeDepth_; }
-  void setMinNodeDepth(int i) { minNodeDepth_ = i; }
 
   //! get/set max node depth
   int maxNodeDepth() const { return maxNodeDepth_; }
@@ -402,6 +397,8 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   double totalSize() const { return totalSize_; }
   void setTotalSize(double r) { totalSize_ = r; }
 
+  //---
+
   //! get depth nodes
   const DepthNodesMap &depthNodesMap() const { return depthNodesMap_; }
 
@@ -409,10 +406,12 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   void clearDepthNodesMap() { depthNodesMap_.clear(); }
 
   //! add node at depth
-  void addDepthNode(int depth, Node *node) { depthNodesMap_[depth].nodes.push_back(node); }
+  void addDepthNode(int depth, Node *node);
 
   //! add to depth size
-  void addDepthSize(int depth, double size) { depthNodesMap_[depth].size += size; }
+  void addDepthSize(int depth, double size);
+
+  //---
 
   //! get pos nodes
   const PosNodesMap &posNodesMap() const { return posNodesMap_; }
@@ -421,34 +420,27 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   void resetPosNodes() { posNodesMap_.clear(); }
 
   //! add pos node
-  void addPosNode(Node *node) { posNodesMap_[node->xpos()].push_back(node); }
+  void addPosNode(Node *node);
 
   //! has nodes at pos
-  bool hasPosNodes(int pos) const { return (posNodesMap_.find(pos) != posNodesMap_.end()); }
+  bool hasPosNodes(int pos) const;
 
   //! get nodes at pos
-  const Nodes &posNodes(int pos) const {
-    auto p = posNodesMap_.find(pos); assert(p != posNodesMap_.end()); return (*p).second; }
+  const Nodes &posNodes(int pos) const;
 
   //---
+
+  //! get/set rect
+  const BBox &rect() const { return rect_; }
+  void setRect(const BBox &r);
 
   //! update rectangle from nodes
   void updateRect();
 
   //---
 
-  //! get nodes to place
-  Nodes placeNodes() const;
-
-  //---
-
-  //! get source depth (from external node edges)
-  int srcDepth() const override { return 0; }
-  //! get destination depth (from external node edges)
-  int destDepth() const override { return 0; }
-
-  //! set rect
-  void setRect(const BBox &r) override;
+  //! get placeable nodes
+  Nodes placeableNode() const;
 
   //---
 
@@ -462,26 +454,21 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
 
   //---
 
-  //! is placed
-  bool isPlaced() const override { return placed_; }
-  void setPlaced(bool b) { placed_ = b; }
-
   //! move node by delta
-  void moveBy(const Point &delta) override;
+  void moveBy(const Point &delta);
 
   //! scale node by factor
-  void scale(double fx, double fy) override;
+  void scale(double fx, double fy);
 
  protected:
+  const Plot*   plot_         { nullptr }; //!< associated plot
   Nodes         nodes_;                    //!< nodes in graph
-  bool          placed_       { false };   //!< is placed
-  int           minNodeDepth_ { 0 };       //!< min depth of nodes
+  BBox          rect_;                     //!< placed rectangle
   int           maxNodeDepth_ { 0 };       //!< max depth of nodes
   int           maxHeight_    { 0 };       //!< max height of all depth nodes
   double        totalSize_    { 0.0 };     //!< total size of all depth nodes
   DepthNodesMap depthNodesMap_;            //!< nodes data at depth
   PosNodesMap   posNodesMap_;              //!< pos node map
-  Obj*          obj_          { nullptr }; //!< graph object
   double        valueMargin_  { 0.0 };     //!< y value margin
   double        valueScale_   { 1.0 };     //!< y value scale
 };
@@ -514,15 +501,21 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   Node *node() const { return node_; }
 
+  //---
+
+  //! get/set hier name
   const QString &hierName() const { return hierName_; }
   void setHierName(const QString &s) { hierName_ = s; }
 
+  //! get/set name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
+  //! get/set value
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
+  //! get/set depth
   int depth() const { return depth_; }
   void setDepth(int i) { depth_ = i; }
 
@@ -615,7 +608,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
  public:
   CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);
 
-  virtual ~CQChartsSankeyEdgeObj() { }
+  virtual ~CQChartsSankeyEdgeObj();
 
   //! typename
   QString typeName() const override { return "edge"; }
@@ -649,7 +642,9 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
+#if 0
   void drawFg(PaintDevice *device) const override;
+#endif
 
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
@@ -680,10 +675,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(double nodeXMargin READ nodeXMargin WRITE setNodeXMargin)
-  Q_PROPERTY(double nodeYMargin READ nodeYMargin WRITE setNodeYMargin)
-  Q_PROPERTY(double nodeWidth   READ nodeWidth   WRITE setNodeWidth  )
-  Q_PROPERTY(bool   edgeLine    READ isEdgeLine  WRITE setEdgeLine   )
+  Q_PROPERTY(double nodeMargin READ nodeMargin WRITE setNodeMargin)
+  Q_PROPERTY(double nodeWidth  READ nodeWidth  WRITE setNodeWidth )
+  Q_PROPERTY(bool   edgeLine   READ isEdgeLine WRITE setEdgeLine  )
 
   // coloring
   Q_PROPERTY(bool           srcColoring   READ isSrcColoring WRITE setSrcColoring  )
@@ -698,6 +692,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
+
+  // text visible on inside/selected (when text invisible)
+  Q_PROPERTY(bool insideTextVisible   READ isInsideTextVisible   WRITE setInsideTextVisible  )
+  Q_PROPERTY(bool selectedTextVisible READ isSelectedTextVisible WRITE setSelectedTextVisible)
 
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -743,13 +741,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set node x margin
-  double nodeXMargin() const { return nodeXMargin_; }
-  void setNodeXMargin(double r);
-
   //! get/set node y margin
-  double nodeYMargin() const { return nodeYMargin_; }
-  void setNodeYMargin(double r);
+  double nodeMargin() const { return nodeMargin_; }
+  void setNodeMargin(double r);
 
   //---
 
@@ -780,8 +774,19 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
+  //! get/set adjust nodes
   bool isAdjustNodes() const { return adjustNodes_; }
   void setAdjustNodes(bool b);
+
+  //---
+
+  // text visible on inside (when text invisible)
+  bool isInsideTextVisible() const { return insideTextVisible_; }
+  void setInsideTextVisible(bool b) { insideTextVisible_ = b; }
+
+  // text visible on selected (when text invisible)
+  bool isSelectedTextVisible() const { return selectedTextVisible_; }
+  void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
 
   //---
 
@@ -826,8 +831,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool initFromToObjs() const;
 
-  void addFromToValue(const QString &, const QString &, double,
-                      const CQChartsNameValues &, const GroupData &) const override;
+  void addFromToValue(const QString &fromStr, const QString &toStr, double value,
+                      int depth, const CQChartsNameValues &nameValues,
+                      const GroupData &groupData) const override;
 
   //---
 
@@ -889,8 +895,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void calcValueMarginScale();
 
-  double calcNodeXMargin() const;
-  double calcNodeYMargin() const;
+  double calcNodeMargin() const;
 
   NodeObj *createObjFromNode(Node *node) const;
 
@@ -946,11 +951,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Align  align_       { Align::JUSTIFY }; //!< align
   int    alignRand_   { 10 };             //!< number of random values for align
   bool   adjustNodes_ { true };           //!< adjust nodes
-  double nodeXMargin_ { 0.01 };           //!< node x margin
-  double nodeYMargin_ { 0.2 };            //!< node y margin
+  double nodeMargin_  { 0.2 };            //!< node margin (y)
   double nodeWidth_   { 16 };             //!< node x width in pixels
   bool   edgeLine_    { false };          //!< draw line for edge
   BBox   targetBBox_  { -1, -1, 1, 1 };   //!< target range bbox
+
+  // text visible
+  bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
+  bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
 
   // coloring
   bool           srcColoring_   { false };                    //!< color by source nodes
@@ -968,9 +976,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   double           boxMargin_     { 0.01 };    //!< bounding box margin
   double           edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool             pressed_       { false };   //!< mouse pressed
-//bool             nodeYSet_      { false };   //!< node y is set
-//double           nodeYMin_      { 0.0 };     //!< node y min
-//double           nodeYMax_      { 0.0 };     //!< node y max
 };
 
 #endif

@@ -55,6 +55,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn toColumn   READ toColumn   WRITE setToColumn  )
 
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn depthColumn READ depthColumn WRITE setDepthColumn)
 
   Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
 
@@ -104,6 +105,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
+
+  //! get/set depth column
+  const Column &depthColumn() const { return depthColumn_; }
+  void setDepthColumn(const Column &c);
 
   //! get/set attributes column
   const Column &attributesColumn() const { return attributesColumn_; }
@@ -328,6 +333,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     QString    srcStr;
     QString    destStr;
     double     value { 0.0 };
+    int        depth { -1 };
     GroupData  groupData;
     ModelIndex groupModelInd;
     ModelIndex linkModelInd;
@@ -382,7 +388,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   bool initFromToObjs() const;
 
-  virtual void addFromToValue(const QString &, const QString &, double,
+  virtual void addFromToValue(const QString &, const QString &, double, int,
                               const CQChartsNameValues &, const GroupData &) const { }
 
   //---
@@ -416,6 +422,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Column     fromColumn_;                                 //!< from column
   Column     toColumn_;                                   //!< to column
   Column     valueColumn_;                                //!< value column
+  Column     depthColumn_;                                //!< depth column
   Column     attributesColumn_;                           //!< attributes column
   Column     groupColumn_;                                //!< group column
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type

@@ -419,12 +419,13 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   void propagatePathValues();
 
-  //--
+  //---
 
   bool initFromToObjs() const;
 
-  void addFromToValue(const QString &, const QString &, double,
-                      const CQChartsNameValues &, const GroupData &) const override;
+  void addFromToValue(const QString &fromStr, const QString &toStr, double value,
+                      int depth, const CQChartsNameValues &nameValues,
+                      const GroupData &groupData) const override;
 
   //---
 

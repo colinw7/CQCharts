@@ -10,6 +10,7 @@ QMAKE_CXXFLAGS += \
 -std=c++14 \
 -DCQCHARTS_FOLDED_MODEL \
 -DCQCHARTS_MODEL_VIEW \
+-Wno-maybe-uninitialized \
 
 MOC_DIR = .moc
 

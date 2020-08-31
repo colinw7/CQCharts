@@ -280,6 +280,13 @@ setValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
+setDepthColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(depthColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -371,6 +378,7 @@ addProperties()
   addProp("columns", "fromColumn" , "from" , "From column");
   addProp("columns", "toColumn"   , "to"   , "To column");
   addProp("columns", "valueColumn", "value", "Value column");
+  addProp("columns", "depthColumn", "depth", "Depth column");
 
   addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
@@ -423,6 +431,9 @@ checkColumns() const
 
   // value optional
   if (! checkColumn(valueColumn(), "Value")) columnsValid = false;
+
+  // depth optional
+  if (! checkColumn(depthColumn(), "Depth")) columnsValid = false;
 
   // group, name optional
   if (! checkColumn(groupColumn(), "Group")) columnsValid = false;
@@ -509,6 +520,17 @@ initLinkObjs() const
       if (plot_->nameColumn().isValid())
         linkConnectionData.nameModelInd =
           ModelIndex(plot, data.row, plot_->nameColumn(), data.parent);
+
+      //---
+
+      // Get depth value
+      if (plot_->depthColumn().isValid()) {
+        ModelIndex depthModelInd(plot, data.row, plot_->depthColumn(), data.parent);
+
+        bool ok2;
+        linkConnectionData.depth = (int) plot_->modelInteger(depthModelInd, ok2);
+        if (! ok2) return addDataError(depthModelInd, "Non-integer depth value");
+      }
 
       //---
 
@@ -939,7 +961,20 @@ initFromToObjs() const
 
       //---
 
-      plot_->addFromToValue(fromName, toName, value, nameValues, groupData);
+      // Get depth value
+      int depth = -1;
+
+      if (plot_->depthColumn().isValid()) {
+        ModelIndex depthModelInd(plot, data.row, plot_->depthColumn(), data.parent);
+
+        bool ok2;
+        depth = (int) plot_->modelInteger(depthModelInd, ok2);
+        if (! ok2) return addDataError(depthModelInd, "Non-integer depth value");
+      }
+
+      //---
+
+      plot_->addFromToValue(fromName, toName, value, depth, nameValues, groupData);
 
       return State::OK;
     }
