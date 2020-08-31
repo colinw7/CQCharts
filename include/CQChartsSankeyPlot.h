@@ -51,7 +51,6 @@ class CQChartsSankeyPlotEdge;
 class CQChartsSankeyPlotGraph;
 class CQChartsSankeyNodeObj;
 class CQChartsSankeyEdgeObj;
-class CQChartsSankeyGraphObj;
 
 /*!
  * \brief Sankey plot node
@@ -65,7 +64,6 @@ class CQChartsSankeyPlotNode {
   using Edges      = std::vector<Edge *>;
   using EdgeSet    = std::set<const Edge *>;
   using Plot       = CQChartsSankeyPlot;
-  using Graph      = CQChartsSankeyPlotGraph;
   using Obj        = CQChartsSankeyNodeObj;
   using OptReal    = CQChartsOptReal;
   using ModelIndex = CQChartsModelIndex;
@@ -371,9 +369,6 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   using DepthNodesMap = std::map<int, DepthData>;
   using IndNodeMap    = std::map<int, Node *>;
   using PosNodesMap   = std::map<int, Nodes>;
-  using Graph         = CQChartsSankeyPlotGraph;
-  using Graphs        = std::vector<Graph *>;
-  using Obj           = CQChartsSankeyGraphObj;
 
  public:
   CQChartsSankeyPlotGraph(const Plot *plot, const QString &str);
@@ -470,9 +465,6 @@ class CQChartsSankeyPlotGraph : public CQChartsSankeyPlotNode {
   //! is placed
   bool isPlaced() const override { return placed_; }
   void setPlaced(bool b) { placed_ = b; }
-
-  //! place
-  void place() const override;
 
   //! move node by delta
   void moveBy(const Point &delta) override;
@@ -678,81 +670,13 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 //---
 
 /*!
- * \brief Sankey Plot Graph object
- * \ingroup Charts
- */
-class CQChartsSankeyGraphObj : public CQChartsPlotObj {
-  Q_OBJECT
-
- public:
-  using Plot  = CQChartsSankeyPlot;
-  using Graph = CQChartsSankeyPlotGraph;
-
- public:
-  CQChartsSankeyGraphObj(const Plot *plot, const BBox &rect, Graph *graph);
-
-  virtual ~CQChartsSankeyGraphObj();
-
-  Graph *graph() const { return graph_; }
-
-  //---
-
-  QString typeName() const override { return "graph"; }
-
-  QString calcId() const override;
-
-  QString calcTipId() const override;
-
-  //---
-
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
-
-  //---
-
-  //! move node by delta
-  void moveBy(const Point &delta);
-
-  //! scale node by factor
-  void scale(double fx, double fy);
-
-  //---
-
-  bool editPress  (const Point &p) override;
-  bool editMove   (const Point &p) override;
-  bool editMotion (const Point &p) override;
-  bool editRelease(const Point &p) override;
-
-  void setEditBBox(const BBox &bbox, const ResizeSide &) override;
-
-  bool isEditResize() const override { return true; }
-
-  //---
-
-  void draw(PaintDevice *device) override;
-
-  //---
-
-  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
-
-  void writeScriptData(ScriptPaintDevice *device) const override;
-
- protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Graph*      graph_       { nullptr }; //!< node
-  bool        editChanged_ { false };
-};
-
-//---
-
-/*!
  * \brief Sankey Plot
  * \ingroup Charts
  */
 class CQChartsSankeyPlot : public CQChartsConnectionPlot,
  public CQChartsObjTextData<CQChartsSankeyPlot>,
- public CQChartsObjNodeShapeData <CQChartsSankeyPlot>,
- public CQChartsObjEdgeShapeData <CQChartsSankeyPlot>,
- public CQChartsObjGraphShapeData<CQChartsSankeyPlot> {
+ public CQChartsObjNodeShapeData<CQChartsSankeyPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsSankeyPlot> {
   Q_OBJECT
 
   // options
@@ -774,7 +698,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge, edge)
-  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Graph, graph)
 
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -810,7 +733,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using NodeObj     = CQChartsSankeyNodeObj;
   using EdgeObj     = CQChartsSankeyEdgeObj;
   using Graph       = CQChartsSankeyPlotGraph;
-  using GraphObj    = CQChartsSankeyGraphObj;
   using PosNodeMap  = std::map<double, Node *>;
   using PosEdgeMap  = std::map<double, Edge *>;
 
@@ -937,13 +859,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  Graph *getGraph() const;
+  Graph *graph() const { return graph_; }
 
-  void placeGraphs() const;
-  void placeGraph(Graph *graph) const;
-  void placeGraphNodes(Graph *graph, const Nodes &nodes) const;
+  void placeGraph() const;
+  void placeGraphNodes(const Nodes &nodes) const;
 
-  void calcGraphNodesXPos(Graph *graph, const Nodes &nodes) const;
+  void calcGraphNodesXPos(const Nodes &nodes) const;
 
   //---
 
@@ -959,44 +880,44 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void createObjsGraph(PlotObjs &objs) const;
 
-  void createGraphs() const;
+  void createGraph() const;
 
-  void clearGraphs();
+  void clearGraph();
 
-  void placeDepthNodes(Graph *graph) const;
-  void placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const;
+  void placeDepthNodes() const;
+  void placeDepthSubNodes(int xpos, const Nodes &nodes) const;
 
-  void calcValueMarginScale(Graph *graph);
+  void calcValueMarginScale();
 
   double calcNodeXMargin() const;
   double calcNodeYMargin() const;
 
-  NodeObj *createObjFromNode(Graph *graph, Node *node) const;
+  NodeObj *createObjFromNode(Node *node) const;
 
-  int calcXPos(Graph *graph, Node *node) const;
+  int calcXPos(Node *node) const;
 
   EdgeObj *addEdgeObj(Edge *edge) const;
 
   //---
 
-  void updateGraphMaxDepth(Graph *graph, const Nodes &nodes) const;
+  void updateGraphMaxDepth(const Nodes &nodes) const;
 
   bool adjustNodes() const;
-  bool adjustGraphNodes(Graph *graph, const Nodes &nodes) const;
+  bool adjustGraphNodes(const Nodes &nodes) const;
 
-  void initPosNodesMap(Graph *graph, const Nodes &nodes) const;
+  void initPosNodesMap(const Nodes &nodes) const;
 
-  bool adjustNodeCenters(Graph *graph) const;
+  bool adjustNodeCenters() const;
 
-  bool adjustEdgeOverlaps(Graph *graph) const;
+  bool adjustEdgeOverlaps() const;
 
-  bool removeOverlaps(Graph *graph) const;
+  bool removeOverlaps() const;
 
-  bool removePosOverlaps(Graph *graph, const Nodes &nodes) const;
+  bool removePosOverlaps(const Nodes &nodes) const;
 
-  void spreadPosNodes(Graph *graph, const Nodes &nodes) const;
+  void spreadPosNodes(const Nodes &nodes) const;
 
-  bool reorderNodeEdges(Graph *graph, const Nodes &nodes) const;
+  bool reorderNodeEdges(const Nodes &nodes) const;
 
   void createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const;
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
@@ -1009,10 +930,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  virtual NodeObj  *createNodeObj (const BBox &rect, Node *node,
-                                   const ColorInd &ig, const ColorInd &iv) const;
-  virtual EdgeObj  *createEdgeObj (const BBox &rect, Edge *edge) const;
-  virtual GraphObj *createGraphObj(const BBox &rect, Graph *graph) const;
+  virtual NodeObj *createNodeObj(const BBox &rect, Node *node,
+                                 const ColorInd &ig, const ColorInd &iv) const;
+  virtual EdgeObj *createEdgeObj(const BBox &rect, Edge *edge) const;
 
   //---
 
@@ -1022,8 +942,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   friend class CQChartsSankeyPlotNode;
 
  protected:
-  using Graphs = std::map<int, Graph *>;
-
   // options
   Align  align_       { Align::JUSTIFY }; //!< align
   int    alignRand_   { 10 };             //!< number of random values for align

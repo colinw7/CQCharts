@@ -42,6 +42,13 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 
   connect(charts_, SIGNAL(currentModelChanged(int)),
           modelControl_, SLOT(updateCurrentModel()));
+
+  //---
+
+  int i1 = INT_MAX*0.6;
+  int i2 = INT_MAX - i1;
+
+  split->setSizes(QList<int>({i1, i2}));
 }
 
 void

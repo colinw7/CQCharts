@@ -17,14 +17,14 @@ CQChartsColumnCombo(QWidget *parent) :
 
 void
 CQChartsColumnCombo::
-setColumn(const CQChartsColumn &column)
+setAllowNone(bool b)
 {
-  int ind = findData(column.column());
+  if (b == allowNone_)
+    return;
 
-  if (ind > 0)
-    setCurrentIndex(ind);
-  else
-    setCurrentIndex(0);
+  allowNone_ = b;
+
+  updateItems();
 }
 
 CQChartsColumn
@@ -45,19 +45,44 @@ getColumn() const
 
 void
 CQChartsColumnCombo::
+setColumn(const CQChartsColumn &column)
+{
+  int ind = findData(column.column());
+
+  if (ind > 0)
+    setCurrentIndex(ind);
+  else
+    setCurrentIndex(0);
+}
+
+void
+CQChartsColumnCombo::
 setModel(QAbstractItemModel *model)
+{
+  if (model_ == model)
+    return;
+
+  model_ = model;
+
+  updateItems();
+}
+
+void
+CQChartsColumnCombo::
+updateItems()
 {
   clear();
 
-  addItem("<none>", -1);
+  if (isAllowNone())
+    addItem("<none>", -1);
 
-  if (! model)
+  if (! model_)
     return;
 
-  int nc = model->columnCount();
+  int nc = model_->columnCount();
 
   for (int c = 0; c < nc; ++c) {
-    QString name = model->headerData(c, Qt::Horizontal).toString();
+    QString name = model_->headerData(c, Qt::Horizontal).toString();
 
     QString label;
 

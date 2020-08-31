@@ -115,6 +115,8 @@
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelDetailsTable.h>
 #include <CQChartsPlotPropertyEdit.h>
+#include <CQChartsModelColumnDataControl.h>
+#include <CQChartsModelExprControl.h>
 
 #include <CQColorsPalette.h>
 
@@ -517,6 +519,15 @@ init()
       new CQWidgetFactoryNoArgsT<CQChartsModelViewHolder>());
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelDetailsTable",
       new CQWidgetFactoryNoArgsT<CQChartsModelDetailsTable>());
+
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelColumnDataControl",
+      new CQWidgetFactoryNoArgsT<CQChartsModelColumnDataControl>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelExprControl",
+      new CQWidgetFactoryNoArgsT<CQChartsModelExprControl>());
+#if 0
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsModelFoldControl",
+      new CQWidgetFactoryNoArgsT<CQChartsModelFoldControl>());
+#endif
 
     // other edits (all ?)
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsAlphaEdit",

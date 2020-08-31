@@ -6,6 +6,7 @@
 
 class CQChartsModelData;
 class CQChartsParamEdit;
+class CQChartsColumnCombo;
 class CQChartsLineEdit;
 
 class QAbstractItemModel;
@@ -31,6 +32,8 @@ class CQChartsModelColumnDataControl : public QFrame {
   void setColumnData(int column);
 
  private slots:
+  void columnNumChanged();
+
   void typeChangedSlot();
   void headerTypeChangedSlot();
 
@@ -45,15 +48,18 @@ class CQChartsModelColumnDataControl : public QFrame {
 
   using ParamEdits = std::vector<ParamEdit>;
 
-  CQChartsModelData* modelData_       { nullptr };
-  QFrame*            editFrame_       { nullptr };
-  QGridLayout*       editLayout_      { nullptr };
-  CQChartsLineEdit*  numEdit_         { nullptr };
-  CQChartsLineEdit*  nameEdit_        { nullptr };
-  QComboBox*         typeCombo_       { nullptr };
-  QComboBox*         headerTypeCombo_ { nullptr };
-  int                row_             { 0 };
-  ParamEdits         paramEdits_;
+  CQChartsModelData*   modelData_       { nullptr };
+  QFrame*              editFrame_       { nullptr };
+  QGridLayout*         editLayout_      { nullptr };
+  QFrame*              paramFrame_      { nullptr };
+  QGridLayout*         paramLayout_     { nullptr };
+  CQChartsColumnCombo* columnNumEdit_   { nullptr };
+  CQChartsLineEdit*    nameEdit_        { nullptr };
+  QComboBox*           typeCombo_       { nullptr };
+  QComboBox*           headerTypeCombo_ { nullptr };
+  int                  editRow_         { 0 };
+  int                  paramRow_        { 0 };
+  ParamEdits           paramEdits_;
 };
 
 #endif

@@ -26,11 +26,14 @@
 #include <CQChartsHtml.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
+
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelDetailsTable.h>
 #include <CQChartsPlotPropertyEdit.h>
-#include <CQChartsWidgetUtil.h>
+#include <CQChartsModelColumnDataControl.h>
+#include <CQChartsModelExprControl.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -10659,11 +10662,20 @@ addWidgetAnnotation(const Position &pos, const Widget &widget)
 
   auto *detailsTable = dynamic_cast<CQChartsModelDetailsTable *>(widget.widget());
 
-  if (detailsTable) {
-    auto *modelData = getModelData();
+  if (detailsTable)
+    detailsTable->setModelData(getModelData());
 
-    detailsTable->setModelData(modelData);
-  }
+  //---
+
+  auto *modelControlData = dynamic_cast<CQChartsModelColumnDataControl *>(widget.widget());
+
+  if (modelControlData)
+    modelControlData->setModelData(getModelData());
+
+  auto *modelExpr = dynamic_cast<CQChartsModelExprControl *>(widget.widget());
+
+  if (modelExpr)
+    modelExpr->setModelData(getModelData());
 
   //---
 

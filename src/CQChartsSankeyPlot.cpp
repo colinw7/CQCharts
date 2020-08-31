@@ -84,8 +84,7 @@ CQChartsSankeyPlot(View *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("sankey"), model),
  CQChartsObjTextData      <CQChartsSankeyPlot>(this),
  CQChartsObjNodeShapeData <CQChartsSankeyPlot>(this),
- CQChartsObjEdgeShapeData <CQChartsSankeyPlot>(this),
- CQChartsObjGraphShapeData<CQChartsSankeyPlot>(this)
+ CQChartsObjEdgeShapeData <CQChartsSankeyPlot>(this)
 {
   NoUpdate noUpdate(this);
 
@@ -113,11 +112,6 @@ CQChartsSankeyPlot(View *view, const ModelP &model) :
 
   //---
 
-  setGraphFilled (false);
-  setGraphStroked(false);
-
-  //---
-
   addTitle();
 
   //---
@@ -132,7 +126,7 @@ CQChartsSankeyPlot::
 {
   clearNodesAndEdges();
 
-  clearGraphs();
+  clearGraph();
 }
 
 void
@@ -152,7 +146,7 @@ clearNodesAndEdges()
   indNodeMap_ .clear();
   edges_      .clear();
 
-  clearGraphs();
+  clearGraph();
 
   groupValueInd_.clear();
 
@@ -237,14 +231,14 @@ addProperties()
   addProp("options", "adjustNodes", "adjustNodes", "Adjust node placement");
   addProp("options", "align"      , "align"  , "Node alignment");
 
+  // coloring
+  addProp("coloring", "srcColoring"  , "srcColoring"  , "Color by Source Nodes");
+  addProp("coloring", "mouseColoring", "mouseColoring", "Mouse Over Connection Coloring");
+
   // node
   addProp("node", "nodeXMargin", "marginX", "Node X margin");
   addProp("node", "nodeYMargin", "marginY", "Node Y margin");
   addProp("node", "nodeWidth"  , "width"  , "Node width (in pixels)");
-
-  // coloring
-  addProp("coloring", "srcColoring"  , "srcColoring"  , "Color by Source Nodes");
-  addProp("coloring", "mouseColoring", "mouseColoring", "Mouse Over Connection Coloring");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -268,17 +262,6 @@ addProperties()
   addProp("edge/fill", "edgeFilled", "visible", "Edit fill visible");
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
-
-  //---
-
-  // graph style
-  addProp("graph/stroke", "graphStroked", "visible", "Graph stroke visible");
-
-  addLineProperties("graph/stroke", "graphStroke", "Graph");
-
-  addProp("graph/fill", "graphFilled", "visible", "Graph fill visible");
-
-  addFillProperties("graph/fill", "graphFill", "Graph");
 
   //---
 
@@ -952,12 +935,13 @@ void
 CQChartsSankeyPlot::
 createObjsGraph(PlotObjs &objs) const
 {
-  // create graphs
-  createGraphs();
+  // create graph
+  createGraph();
 
   //---
 
-  placeGraphs();
+  // place graph
+  placeGraph();
 
   //---
 
@@ -1009,19 +993,10 @@ addObjects(PlotObjs &objs) const
 
   // add node objects
   for (auto *node : graph_->nodes()) {
-    auto *nodeObj = createObjFromNode(graph_, node);
+    auto *nodeObj = createObjFromNode(node);
 
     objs.push_back(nodeObj);
   }
-
-  //---
-
-  // add graph object
-  auto *graphObj = createGraphObj(graph_->rect(), graph_);
-
-  graph_->setObj(graphObj);
-
-  objs.push_back(graphObj);
 
   //---
 
@@ -1036,100 +1011,92 @@ addObjects(PlotObjs &objs) const
   }
 }
 
-void
-CQChartsSankeyPlot::
-placeGraphs() const
-{
-  if (graph_)
-    placeGraph(graph_);
-}
-
 // place nodes in graph
 void
 CQChartsSankeyPlot::
-placeGraph(Graph *graph) const
+placeGraph() const
 {
-  if (graph->isPlaced())
+  if (graph_->isPlaced())
     return;
 
   //---
 
   // get placable nodes (nodes and sub graphs)
-  Nodes nodes = graph->placeNodes();
+  Nodes nodes = graph_->placeNodes();
 
   //---
 
-  placeGraphNodes(graph, nodes);
+  placeGraphNodes(nodes);
 }
 
 void
 CQChartsSankeyPlot::
-placeGraphNodes(Graph *graph, const Nodes &nodes) const
+placeGraphNodes(const Nodes &nodes) const
 {
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   //---
 
   // set max depth of all graph nodes
-  updateGraphMaxDepth(graph, nodes);
+  updateGraphMaxDepth(nodes);
 
   //---
 
   // set x pos of nodes
-  calcGraphNodesXPos(graph, nodes);
+  calcGraphNodesXPos(nodes);
 
   //---
 
   // calc max height (fron node count) and max size (from value) for each x
-  graph->setMaxHeight(0);
-  graph->setTotalSize(0.0);
+  graph_->setMaxHeight(0);
+  graph_->setTotalSize(0.0);
 
-  for (const auto &depthNodes : graph->depthNodesMap()) {
+  for (const auto &depthNodes : graph_->depthNodesMap()) {
     const auto &nodes = depthNodes.second.nodes;
     double      size  = depthNodes.second.size;
 
-    graph->setMaxHeight(std::max(graph->maxHeight(), int(nodes.size())));
-    graph->setTotalSize(std::max(graph->totalSize(), size));
+    graph_->setMaxHeight(std::max(graph_->maxHeight(), int(nodes.size())));
+    graph_->setTotalSize(std::max(graph_->totalSize(), size));
   }
 
   //---
 
   // calc y value scale and margins to fit in bbox
-  th->calcValueMarginScale(graph);
+  th->calcValueMarginScale();
 
   // place node objects at each depth (xpos)
-  placeDepthNodes(graph);
+  placeDepthNodes();
 
   //---
 
   // adjust nodes in graph
-  adjustGraphNodes(graph, nodes);
+  adjustGraphNodes(nodes);
 
   //---
 
-  graph->updateRect();
+  graph_->updateRect();
 
   //---
 
-  graph->setPlaced(true);
+  graph_->setPlaced(true);
 }
 
 void
 CQChartsSankeyPlot::
-calcGraphNodesXPos(Graph *graph, const Nodes &nodes) const
+calcGraphNodesXPos(const Nodes &nodes) const
 {
   // place graph nodes at x position
-  graph->clearDepthNodesMap();
+  graph_->clearDepthNodesMap();
 
   for (const auto &node : nodes) {
-    int xpos = calcXPos(graph, node);
+    int xpos = calcXPos(node);
 
-    graph->addDepthSize(xpos, node->edgeSum());
-    graph->addDepthNode(xpos, node);
+    graph_->addDepthSize(xpos, node->edgeSum());
+    graph_->addDepthNode(xpos, node);
   }
 
   // check if all nodes at single x
-  if (graph->depthNodesMap().size() == 1 && align() != Align::RAND) {
+  if (graph_->depthNodesMap().size() == 1 && align() != Align::RAND) {
     auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
     th->align_     = Align::RAND;
@@ -1138,30 +1105,13 @@ calcGraphNodesXPos(Graph *graph, const Nodes &nodes) const
     for (const auto &node : nodes)
       node->setDepth(-1);
 
-    calcGraphNodesXPos(graph, nodes);
+    calcGraphNodesXPos(nodes);
   }
 }
 
 void
 CQChartsSankeyPlot::
-createGraphs() const
-{
-  auto *th = const_cast<CQChartsSankeyPlot *>(this);
-
-  auto *graph = th->getGraph();
-
-  // Add nodes to graph for group
-  for (const auto &idNode : indNodeMap_) {
-    auto *node = idNode.second;
-    if (! node->isVisible()) continue;
-
-    graph->addNode(node);
-  }
-}
-
-CQChartsSankeyPlotGraph *
-CQChartsSankeyPlot::
-getGraph() const
+createGraph() const
 {
   if (! graph_) {
     auto *th = const_cast<CQChartsSankeyPlot *>(this);
@@ -1169,12 +1119,18 @@ getGraph() const
     th->graph_ = new Graph(this, "root");
   }
 
-  return graph_;
+  // Add nodes to graph for group
+  for (const auto &idNode : indNodeMap_) {
+    auto *node = idNode.second;
+    if (! node->isVisible()) continue;
+
+    graph_->addNode(node);
+  }
 }
 
 void
 CQChartsSankeyPlot::
-clearGraphs()
+clearGraph()
 {
   delete graph_;
 
@@ -1183,7 +1139,7 @@ clearGraphs()
 
 void
 CQChartsSankeyPlot::
-calcValueMarginScale(Graph *graph)
+calcValueMarginScale()
 {
   // get node margins
   double nodeYMargin = calcNodeYMargin();
@@ -1203,8 +1159,8 @@ calcValueMarginScale(Graph *graph)
   //---
 
   // calc value margin/scale
-  graph->setValueMargin(graph->maxHeight() > 1.0 ? ys1/(graph->maxHeight() - 1) : 0.0);
-  graph->setValueScale (graph->totalSize() > 0.0 ? ys2/ graph->totalSize()      : 1.0);
+  graph_->setValueMargin(graph_->maxHeight() > 1.0 ? ys1/(graph_->maxHeight() - 1) : 0.0);
+  graph_->setValueScale (graph_->totalSize() > 0.0 ? ys2/ graph_->totalSize()      : 1.0);
 }
 
 double
@@ -1235,20 +1191,20 @@ calcNodeYMargin() const
 
 void
 CQChartsSankeyPlot::
-placeDepthNodes(Graph *graph) const
+placeDepthNodes() const
 {
   // place node objects at each depth (xpos)
-  for (const auto &depthNodes : graph->depthNodesMap()) {
+  for (const auto &depthNodes : graph_->depthNodesMap()) {
     int         xpos  = depthNodes.first;
     const auto &nodes = depthNodes.second.nodes;
 
-    placeDepthSubNodes(graph, xpos, nodes);
+    placeDepthSubNodes(xpos, nodes);
   }
 }
 
 void
 CQChartsSankeyPlot::
-placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
+placeDepthSubNodes(int xpos, const Nodes &nodes) const
 {
   // place nodes to fit in bbox
   double xs = bbox_.getWidth ();
@@ -1256,19 +1212,19 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
 
   double dx = 1.0;
 
-  if (graph->maxNodeDepth() > 0)
-    dx = xs/graph->maxNodeDepth();
+  if (graph_->maxNodeDepth() > 0)
+    dx = xs/graph_->maxNodeDepth();
 
   double xm = pixelToWindowWidth(nodeWidth());
 
   //---
 
   // get sum of margins nodes at depth
-  double height = graph->valueMargin()*(int(nodes.size()) - 1);
+  double height = graph_->valueMargin()*(int(nodes.size()) - 1);
 
   // get sum of scaled values for nodes at depth
   for (const auto &node : nodes)
-    height += graph->valueScale()*node->edgeSum();
+    height += graph_->valueScale()*node->edgeSum();
 
   //---
 
@@ -1279,7 +1235,7 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
 
   for (const auto &node : nodes) {
     // calc height
-    double h = graph->valueScale()*node->edgeSum();
+    double h = graph_->valueScale()*node->edgeSum();
 
     if (h <= 0.0)
       h = 0.1;
@@ -1290,7 +1246,7 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
     int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
 
-    int xpos1 = calcXPos(graph, node);
+    int xpos1 = calcXPos(node);
     assert(xpos == xpos1);
 
     double x11 = bbox_.getXMin() + xpos*dx; // left
@@ -1324,15 +1280,15 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
 
     //---
 
-    y1 -= h + graph->valueMargin();
+    y1 -= h + graph_->valueMargin();
   }
 }
 
 CQChartsSankeyPlot::NodeObj *
 CQChartsSankeyPlot::
-createObjFromNode(Graph *, Node *node) const
+createObjFromNode(Node *node) const
 {
-//int numNodes = graph->nodes().size(); // node id needs to be per graph
+//int numNodes = graph_->nodes().size(); // node id needs to be per graph
   int numNodes = indNodeMap_.size();
 
   ColorInd ig;
@@ -1362,7 +1318,7 @@ createObjFromNode(Graph *, Node *node) const
 
 int
 CQChartsSankeyPlot::
-calcXPos(Graph *graph, Node *node) const
+calcXPos(Node *node) const
 {
   int xpos = 0;
 
@@ -1376,16 +1332,16 @@ calcXPos(Graph *graph, Node *node) const
     if      (srcDepth == 0)
       xpos = 0;
     else if (destDepth == 0)
-      xpos = graph->maxNodeDepth();
+      xpos = graph_->maxNodeDepth();
     else {
       if      (align() == Align::SRC)
         xpos = srcDepth;
       else if (align() == Align::DEST)
-        xpos = graph->maxNodeDepth() - destDepth;
+        xpos = graph_->maxNodeDepth() - destDepth;
       else if (align() == Align::JUSTIFY) {
         double f = 1.0*srcDepth/(srcDepth + destDepth);
 
-        xpos = int(f*graph->maxNodeDepth());
+        xpos = int(f*graph_->maxNodeDepth());
       }
       else if (align() == Align::RAND) {
         CQChartsRand::RealInRange rand(0, alignRand_);
@@ -1424,22 +1380,22 @@ addEdgeObj(Edge *edge) const
 
 void
 CQChartsSankeyPlot::
-updateGraphMaxDepth(Graph *graph, const Nodes &nodes) const
+updateGraphMaxDepth(const Nodes &nodes) const
 {
   // calc max depth (source or dest) depending on align for xpos calc
   bool set = false;
 
-  graph->setMinNodeDepth(0);
-  graph->setMaxNodeDepth(0);
+  graph_->setMinNodeDepth(0);
+  graph_->setMaxNodeDepth(0);
 
   auto updateNodeDepth = [&](int depth) {
     if (set) {
-      graph->setMinNodeDepth(depth);
-      graph->setMaxNodeDepth(depth);
+      graph_->setMinNodeDepth(depth);
+      graph_->setMaxNodeDepth(depth);
     }
     else {
-      graph->setMinNodeDepth(std::min(graph->minNodeDepth(), depth));
-      graph->setMaxNodeDepth(std::max(graph->maxNodeDepth(), depth));
+      graph_->setMinNodeDepth(std::min(graph_->minNodeDepth(), depth));
+      graph_->setMaxNodeDepth(std::max(graph_->maxNodeDepth(), depth));
     }
   };
 
@@ -1467,7 +1423,7 @@ adjustNodes() const
   if (graph_) {
     Nodes nodes = graph_->placeNodes();
 
-    if (adjustGraphNodes(graph_, nodes))
+    if (adjustGraphNodes(nodes))
       changed = true;
   }
 
@@ -1476,7 +1432,7 @@ adjustNodes() const
 
 bool
 CQChartsSankeyPlot::
-adjustGraphNodes(Graph *graph, const Nodes &nodes) const
+adjustGraphNodes(const Nodes &nodes) const
 {
 //auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
@@ -1489,7 +1445,7 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
 
   //---
 
-  initPosNodesMap(graph, nodes);
+  initPosNodesMap(nodes);
 
   //---
 
@@ -1499,7 +1455,7 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
     for (int pass = 0; pass < numPasses; ++pass) {
       //std::cerr << "Pass " << pass << "\n";
 
-      if (! adjustNodeCenters(graph)) {
+      if (! adjustNodeCenters()) {
         //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
         break;
       }
@@ -1507,14 +1463,14 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
 
     //---
 
-    reorderNodeEdges(graph, nodes);
+    reorderNodeEdges(nodes);
 
-    adjustEdgeOverlaps(graph);
+    adjustEdgeOverlaps();
   }
 
   //---
 
-//placeDepthNodes(graph);
+//placeDepthNodes();
 
   //---
 
@@ -1527,29 +1483,29 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
 
 void
 CQChartsSankeyPlot::
-initPosNodesMap(Graph *graph, const Nodes &nodes) const
+initPosNodesMap(const Nodes &nodes) const
 {
   // get nodes by x pos
-  graph->resetPosNodes();
+  graph_->resetPosNodes();
 
   for (const auto &node : nodes)
-    graph->addPosNode(node);
+    graph_->addPosNode(node);
 }
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCenters(Graph *graph) const
+adjustNodeCenters() const
 {
   // adjust nodes so centered on src nodes
   bool changed = false;
 
   // second to last
-  int posNodesDepth = graph->posNodesMap().size();
+  int posNodesDepth = graph_->posNodesMap().size();
 
   for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
-    if (! graph->hasPosNodes(xpos)) continue;
+    if (! graph_->hasPosNodes(xpos)) continue;
 
-    const auto &nodes = graph->posNodes(xpos);
+    const auto &nodes = graph_->posNodes(xpos);
 
     for (const auto &node : nodes) {
       if (adjustNode(node))
@@ -1557,15 +1513,15 @@ adjustNodeCenters(Graph *graph) const
     }
   }
 
-  removeOverlaps(graph);
+  removeOverlaps();
 
   //---
 
   // second to last to first
   for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
-    if (! graph->hasPosNodes(xpos)) continue;
+    if (! graph_->hasPosNodes(xpos)) continue;
 
-    const auto &nodes = graph->posNodes(xpos);
+    const auto &nodes = graph_->posNodes(xpos);
 
     for (const auto &node : nodes) {
       if (adjustNode(node))
@@ -1573,14 +1529,14 @@ adjustNodeCenters(Graph *graph) const
     }
   }
 
-  removeOverlaps(graph);
+  removeOverlaps();
 
   return changed;
 }
 
 bool
 CQChartsSankeyPlot::
-adjustEdgeOverlaps(Graph *graph) const
+adjustEdgeOverlaps() const
 {
   auto hasNode = [&](Node *node, const Nodes &nodes) {
     for (auto &node1 : nodes)
@@ -1590,12 +1546,12 @@ adjustEdgeOverlaps(Graph *graph) const
     return false;
   };
 
-  int posNodesDepth = graph->posNodesMap().size();
+  int posNodesDepth = graph_->posNodesMap().size();
 
   // find first x pos with nodes
   int xpos1 = 0;
 
-  while (xpos1 <= posNodesDepth && ! graph->hasPosNodes(xpos1))
+  while (xpos1 <= posNodesDepth && ! graph_->hasPosNodes(xpos1))
     ++xpos1;
 
   if (xpos1 > posNodesDepth)
@@ -1605,15 +1561,15 @@ adjustEdgeOverlaps(Graph *graph) const
 
   while (xpos2 <= posNodesDepth) {
     // find next x pos with nodes
-    while (xpos2 <= posNodesDepth && ! graph->hasPosNodes(xpos2))
+    while (xpos2 <= posNodesDepth && ! graph_->hasPosNodes(xpos2))
       ++xpos2;
 
     if (xpos2 > posNodesDepth)
       break;
 
     // get nodes at each pos
-    const auto &nodes1 = graph->posNodes(xpos1);
-    const auto &nodes2 = graph->posNodes(xpos2);
+    const auto &nodes1 = graph_->posNodes(xpos1);
+    const auto &nodes2 = graph_->posNodes(xpos2);
 
     // get edges between nodes
     Edges edges;
@@ -1661,12 +1617,12 @@ adjustEdgeOverlaps(Graph *graph) const
 
 bool
 CQChartsSankeyPlot::
-removeOverlaps(Graph *graph) const
+removeOverlaps() const
 {
   bool changed = false;
 
-  for (const auto &posNodes : graph->posNodesMap()) {
-    if (removePosOverlaps(graph, posNodes.second))
+  for (const auto &posNodes : graph_->posNodesMap()) {
+    if (removePosOverlaps(posNodes.second))
       changed = true;
   }
 
@@ -1675,7 +1631,7 @@ removeOverlaps(Graph *graph) const
 
 bool
 CQChartsSankeyPlot::
-removePosOverlaps(Graph *graph, const Nodes &nodes) const
+removePosOverlaps(const Nodes &nodes) const
 {
   double ym = pixelToWindowHeight(minNodeMargin());
 
@@ -1716,7 +1672,7 @@ removePosOverlaps(Graph *graph, const Nodes &nodes) const
     const auto &rect1 = node1->rect();
 
     if (rect1.getYMin() < bbox_.getYMin())
-      spreadPosNodes(graph, nodes);
+      spreadPosNodes(nodes);
   }
 
   return changed;
@@ -1724,7 +1680,7 @@ removePosOverlaps(Graph *graph, const Nodes &nodes) const
 
 void
 CQChartsSankeyPlot::
-spreadPosNodes(Graph *, const Nodes &nodes) const
+spreadPosNodes(const Nodes &nodes) const
 {
   PosNodeMap posNodeMap;
 
@@ -1767,7 +1723,7 @@ spreadPosNodes(Graph *, const Nodes &nodes) const
 
 bool
 CQChartsSankeyPlot::
-reorderNodeEdges(Graph *, const Nodes &nodes) const
+reorderNodeEdges(const Nodes &nodes) const
 {
   bool changed = false;
 
@@ -1990,8 +1946,7 @@ keyPress(int key, int modifier)
     printStats();
   }
   else if (key == Qt::Key_V) {
-    if (graph_)
-      adjustEdgeOverlaps(graph_);
+    adjustEdgeOverlaps();
   }
   else
     CQChartsPlot::keyPress(key, modifier);
@@ -2041,13 +1996,6 @@ CQChartsSankeyPlot::
 createEdgeObj(const BBox &rect, Edge *edge) const
 {
   return new EdgeObj(this, rect, edge);
-}
-
-CQChartsSankeyGraphObj *
-CQChartsSankeyPlot::
-createGraphObj(const BBox &rect, Graph *graph) const
-{
-  return new GraphObj(this, rect, graph);
 }
 
 //------
@@ -2700,7 +2648,7 @@ editMove(const Point &p)
 
   editHandles()->setDragPos(p);
 
-  auto *graph = plot_->getGraph();
+  auto *graph = plot_->graph();
 
   if (graph)
     graph->updateRect();
@@ -3120,8 +3068,6 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  //---
-
   // show source and destination nodes on inside
   if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
@@ -3299,201 +3245,6 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
 //------
 
-CQChartsSankeyGraphObj::
-CQChartsSankeyGraphObj(const Plot *plot, const BBox &rect, Graph *graph) :
- CQChartsPlotObj(const_cast<Plot *>(plot), rect, ColorInd(), ColorInd(), ColorInd()),
- plot_(plot), graph_(graph)
-{
-  setDetailHint(DetailHint::MAJOR);
-
-  setEditable  (false);
-  setSelectable(false);
-}
-
-CQChartsSankeyGraphObj::
-~CQChartsSankeyGraphObj()
-{
-}
-
-QString
-CQChartsSankeyGraphObj::
-calcId() const
-{
-  return QString("%1:%2").arg(typeName()).arg(graph_->id());
-}
-
-QString
-CQChartsSankeyGraphObj::
-calcTipId() const
-{
-  CQChartsTableTip tableTip;
-
-  tableTip.addTableRow("Id", graph_->id());
-
-  //---
-
-  plot()->addTipColumns(tableTip, modelInd());
-
-  //---
-
-  return tableTip.str();
-}
-
-//---
-
-void
-CQChartsSankeyGraphObj::
-addProperties(CQPropertyViewModel *model, const QString &path)
-{
-  QString path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
-
-  model->setObjectRoot(path1, this);
-
-  CQChartsPlotObj::addProperties(model, path1);
-}
-
-//---
-
-void
-CQChartsSankeyGraphObj::
-moveBy(const Point &delta)
-{
-  //std::cerr << "  Move " << node()->str().toStdString() << " by " << delta.y << "\n";
-
-  rect_.moveBy(delta);
-}
-
-void
-CQChartsSankeyGraphObj::
-scale(double fx, double fy)
-{
-  rect_.scale(fx, fy);
-}
-
-//---
-
-bool
-CQChartsSankeyGraphObj::
-editPress(const Point &p)
-{
-  editChanged_ = false;
-
-  editHandles()->setDragPos(p);
-
-  return true;
-}
-
-bool
-CQChartsSankeyGraphObj::
-editMove(const Point &p)
-{
-  const auto &dragPos  = editHandles()->dragPos();
-  const auto &dragSide = editHandles()->dragSide();
-
-  double dx = p.x - dragPos.x;
-  double dy = p.y - dragPos.y;
-
-  editHandles()->updateBBox(dx, dy);
-
-  setEditBBox(editHandles()->bbox(), dragSide);
-
-  editHandles()->setDragPos(p);
-
-  if (graph())
-    graph()->updateRect();
-
-  editChanged_ = true;
-
-  plot()->drawObjs();
-
-  return true;
-}
-
-bool
-CQChartsSankeyGraphObj::
-editMotion(const Point &p)
-{
-  return editHandles()->selectInside(p);
-}
-
-bool
-CQChartsSankeyGraphObj::
-editRelease(const Point &)
-{
-  if (editChanged_)
-    plot()->invalidateObjTree();
-
-  return true;
-}
-
-void
-CQChartsSankeyGraphObj::
-setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
-{
-  graph_->setRect(bbox);
-}
-
-//---
-
-void
-CQChartsSankeyGraphObj::
-draw(CQChartsPaintDevice *device)
-{
-  // calc pen and brush
-  CQChartsPenBrush penBrush;
-
-  bool updateState = device->isInteractive();
-
-  calcPenBrush(penBrush, updateState);
-
-  //---
-
-  device->setColorNames();
-
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  //---
-
-  // draw rect
-  if (rect().isSet())
-    device->drawRect(rect());
-
-  //---
-
-  device->resetColorNames();
-}
-
-void
-CQChartsSankeyGraphObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
-{
-  // set fill and stroke
-  ColorInd ic = calcColorInd();
-
-  QColor bc = plot_->interpGraphStrokeColor(ic);
-  QColor fc = plot_->interpGraphFillColor  (ic);
-
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isGraphStroked(), bc, plot_->graphStrokeAlpha(),
-              plot_->graphStrokeWidth(), plot_->graphStrokeDash()),
-    BrushData(plot_->isGraphFilled(), fc, plot_->graphFillAlpha(),
-              plot_->graphFillPattern()));
-
-  if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
-}
-
-void
-CQChartsSankeyGraphObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
-{
-  calcPenBrush(penBrush_, /*updateState*/ false);
-
-  CQChartsPlotObj::writeScriptData(device);
-}
-
-//------
-
 CQChartsSankeyPlotGraph::
 CQChartsSankeyPlotGraph(const Plot *plot, const QString &str) :
  CQChartsSankeyPlotNode(plot, str)
@@ -3570,18 +3321,6 @@ placeNodes() const
     nodes.push_back(node);
 
   return nodes;
-}
-
-void
-CQChartsSankeyPlotGraph::
-place() const
-{
-  if (isPlaced())
-    return;
-
-  auto *th = const_cast<CQChartsSankeyPlotGraph *>(this);
-
-  plot_->placeGraph(th);
 }
 
 void

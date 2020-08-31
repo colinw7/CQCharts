@@ -11,16 +11,29 @@
 class CQChartsColumnCombo : public QComboBox {
   Q_OBJECT
 
+  Q_PROPERTY(bool           allowNone READ isAllowNone WRITE setAllowNone)
+  Q_PROPERTY(CQChartsColumn column    READ getColumn   WRITE setColumn   )
+
  public:
   CQChartsColumnCombo(QWidget *parent=nullptr);
 
-  void setColumn(const CQChartsColumn &column);
+  bool isAllowNone() const { return allowNone_; }
+  void setAllowNone(bool b);
+
   CQChartsColumn getColumn() const;
+  void setColumn(const CQChartsColumn &column);
 
   void setModel(QAbstractItemModel *model);
 
  signals:
   void columnChanged();
+
+ private:
+  void updateItems();
+
+ private:
+  QAbstractItemModel *model_     { nullptr };
+  bool                allowNone_ { true };
 };
 
 #endif
