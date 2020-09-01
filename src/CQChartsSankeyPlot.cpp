@@ -709,7 +709,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
         srcNode->setLabel(value);
       }
       else if (nv.first == "color") {
-        srcNode->setColor(QColor(value));
+        srcNode->setColor(CQChartsColor(value));
       }
     }
   }
@@ -734,7 +734,13 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
       //edge->setLabel(value);
       }
       else if (nv.first == "color") {
-      //edge->setColor(QColor(value));
+      //edge->setColor(CQChartsColor(value));
+      }
+      else if (nv.first == "src_color") {
+        srcNode->setColor(CQChartsColor(value));
+      }
+      else if (nv.first == "dest_color") {
+        destNode->setColor(CQChartsColor(value));
       }
     }
   }
@@ -991,7 +997,7 @@ CQChartsSankeyPlot::
 placeGraph() const
 {
   // get placable nodes (nodes and sub graphs)
-  Nodes nodes = graph_->placeableNode();
+  Nodes nodes = graph_->placeableNodes();
 
   placeGraphNodes(nodes);
 }
@@ -1369,7 +1375,7 @@ adjustNodes() const
   bool changed = false;
 
   if (graph_) {
-    Nodes nodes = graph_->placeableNode();
+    Nodes nodes = graph_->placeableNodes();
 
     if (adjustGraphNodes(nodes))
       changed = true;
@@ -2296,8 +2302,7 @@ allSrcNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const
   for (const auto &edge : this->srcEdges()) {
     auto *node = edge->srcNode();
 
-    if (nodeSet.find(node) == nodeSet.end())
-      node->allSrcNodesAndEdges(nodeSet, edgeSet);
+    node->allSrcNodesAndEdges(nodeSet, edgeSet);
   }
 }
 
@@ -2327,9 +2332,6 @@ QColor
 CQChartsSankeyPlotNode::
 calcColor() const
 {
-  if (color_.isValid())
-    return color_;
-
   CQChartsUtil::ColorInd ic;
 
   if (ngroup() > 0 && group() >= 0 && group() < ngroup())
@@ -2337,7 +2339,10 @@ calcColor() const
   else
     ic = CQChartsUtil::ColorInd(id(), plot_->numNodes());
 
-  return plot_->interpNodeFillColor(ic);
+  if (color_.isValid())
+    return plot_->interpColor(color_.color(), ic);
+  else
+    return plot_->interpNodeFillColor(ic);
 }
 
 //------
@@ -2708,6 +2713,8 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
 {
   auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
 
+  //---
+
   auto drawEdgeInside = [&](const Edge *edge) {
     auto *edgeObj = edge->obj(); if (! edgeObj) return;
     edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
@@ -2719,6 +2726,8 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
     nodeObj->draw(device); nodeObj->drawFg(device);
     nodeObj->setInside(false);
   };
+
+  //---
 
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
@@ -2892,10 +2901,10 @@ calcFillColor() const
   else {
     ColorInd ic = calcColorInd();
 
-    fc = plot_->interpNodeFillColor(ic);
-
-    if (color_.isValid())
-      fc = color_;
+    if (color().isValid())
+      fc = plot_->interpColor(color(), ic);
+    else
+      fc = plot_->interpNodeFillColor(ic);
   }
 
   return fc;
@@ -3327,7 +3336,7 @@ updateRect()
 
 CQChartsSankeyPlotGraph::Nodes
 CQChartsSankeyPlotGraph::
-placeableNode() const
+placeableNodes() const
 {
   Nodes nodes;
 

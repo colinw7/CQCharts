@@ -6,6 +6,7 @@
 #include <QFrame>
 
 class CQChartsColumnCombo;
+class CQChartsModelData;
 
 /*!
  * \brief Column line edit
@@ -20,6 +21,8 @@ class CQChartsColumnNumLineEdit : public QFrame {
   CQChartsColumnNumLineEdit(QWidget *parent=nullptr);
 
   void setPlot(CQChartsPlot *plot);
+
+  void setModelData(CQChartsModelData *modelData);
 
   const CQChartsColumnNum &columnNum() const;
   void setColumnNum(const CQChartsColumnNum &c);
@@ -38,7 +41,7 @@ class CQChartsColumnNumLineEdit : public QFrame {
 
  private:
   CQChartsColumnNum    columnNum_;             //!< column number
-  CQChartsPlot*        plot_      { nullptr }; //!< parent plot
+  CQChartsModelData*   modelData_ { nullptr }; //!< model data
   CQChartsColumnCombo* combo_     { nullptr }; //!< column combo
   bool                 connected_ { false };   //!< is connected
 };

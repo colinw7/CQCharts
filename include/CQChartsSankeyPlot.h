@@ -146,8 +146,8 @@ class CQChartsSankeyPlotNode {
   int destDepth() const;
 
   //! get/set color
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
 
   // get/set x pos
   int xpos() const { return xpos_; }
@@ -253,29 +253,29 @@ class CQChartsSankeyPlotNode {
   int calcDestDepth(NodeSet &visited) const;
 
  protected:
-  const Plot* plot_          { nullptr }; //!< associated plot
-  Node*       parent_        { nullptr }; //!< parent node
-  QString     str_;                       //!< string
-  int         id_            { -1 };      //!< id
-  bool        visible_       { true };    //!< is visible
-  ModelIndex  ind_;                       //!< model index
-  QString     name_;                      //!< name
-  QString     label_;                     //!< label
-  OptReal     value_;                     //!< value
-  int         group_         { -1 };      //!< group index
-  int         ngroup_        { 0 };       //!< number of groups
-  int         depth_         { -1 };      //!< depth
-  QColor      color_;                     //!< fill color
-  Edges       srcEdges_;                  //!< source edges
-  Edges       destEdges_;                 //!< destination edges
-  Edges       nonPrimaryEdges_;           //!< non-primary edges
-  int         srcDepth_      { -1 };      //!< source depth (calculated)
-  int         destDepth_     { -1 };      //!< destination depth (calculated)
-  int         xpos_          { -1 };      //!< x position
-  BBox        rect_;                      //!< placed rectangle
-  EdgeRect    srcEdgeRect_;               //!< edge to src
-  EdgeRect    destEdgeRect_;              //!< edge to dest
-  Obj*        obj_           { nullptr }; //!< plot object
+  const Plot*   plot_          { nullptr }; //!< associated plot
+  Node*         parent_        { nullptr }; //!< parent node
+  QString       str_;                       //!< string
+  int           id_            { -1 };      //!< id
+  bool          visible_       { true };    //!< is visible
+  ModelIndex    ind_;                       //!< model index
+  QString       name_;                      //!< name
+  QString       label_;                     //!< label
+  OptReal       value_;                     //!< value
+  int           group_         { -1 };      //!< group index
+  int           ngroup_        { 0 };       //!< number of groups
+  int           depth_         { -1 };      //!< depth
+  CQChartsColor color_;                     //!< fill color
+  Edges         srcEdges_;                  //!< source edges
+  Edges         destEdges_;                 //!< destination edges
+  Edges         nonPrimaryEdges_;           //!< non-primary edges
+  int           srcDepth_      { -1 };      //!< source depth (calculated)
+  int           destDepth_     { -1 };      //!< destination depth (calculated)
+  int           xpos_          { -1 };      //!< x position
+  BBox          rect_;                      //!< placed rectangle
+  EdgeRect      srcEdgeRect_;               //!< edge to src
+  EdgeRect      destEdgeRect_;              //!< edge to dest
+  Obj*          obj_           { nullptr }; //!< plot object
 };
 
 //---
@@ -440,7 +440,7 @@ class CQChartsSankeyPlotGraph {
   //---
 
   //! get placeable nodes
-  Nodes placeableNode() const;
+  Nodes placeableNodes() const;
 
   //---
 
@@ -482,11 +482,11 @@ class CQChartsSankeyPlotGraph {
 class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString hierName READ hierName WRITE setHierName)
-  Q_PROPERTY(QString name     READ name     WRITE setName    )
-  Q_PROPERTY(double  value    READ value    WRITE setValue   )
-  Q_PROPERTY(int     depth    READ depth    WRITE setDepth   )
-  Q_PROPERTY(QColor  color    READ color    WRITE setColor   )
+  Q_PROPERTY(QString       hierName READ hierName WRITE setHierName)
+  Q_PROPERTY(QString       name     READ name     WRITE setName    )
+  Q_PROPERTY(double        value    READ value    WRITE setValue   )
+  Q_PROPERTY(int           depth    READ depth    WRITE setDepth   )
+  Q_PROPERTY(CQChartsColor color    READ color    WRITE setColor   )
 
  public:
   using Plot = CQChartsSankeyPlot;
@@ -522,8 +522,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   //---
 
   //! get/set color
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
 
   //---
 
@@ -581,14 +581,14 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  const Plot* plot_        { nullptr }; //!< parent plot
-  Node*       node_        { nullptr }; //!< node
-  QString     hierName_;                //!< node hier name
-  QString     name_;                    //!< node name
-  double      value_       { 0.0 };     //!< node value
-  int         depth_       { -1 };      //!< node depth
-  QColor      color_;                   //!< custom color
-  bool        editChanged_ { false };   //!< edit is changed
+  const Plot*   plot_        { nullptr }; //!< parent plot
+  Node*         node_        { nullptr }; //!< node
+  QString       hierName_;                //!< node hier name
+  QString       name_;                    //!< node name
+  double        value_       { 0.0 };     //!< node value
+  int           depth_       { -1 };      //!< node depth
+  CQChartsColor color_;                   //!< custom color
+  bool          editChanged_ { false };   //!< edit is changed
 };
 
 //---
@@ -764,7 +764,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void setSrcColoring(bool b);
 
   const ConnectionType &mouseColoring() const { return mouseColoring_; }
-  void setMouseColoring(const ConnectionType &v) { mouseColoring_ = v; }
+  void setMouseColoring(const ConnectionType &t) { mouseColoring_ = t; }
 
   //---
 

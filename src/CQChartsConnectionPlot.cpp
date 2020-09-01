@@ -52,6 +52,8 @@ addParameters()
 
   startParameterGroup("General");
 
+  addColumnParameter("depth", "Depth", "depthColumn").setBasic().
+    setNumeric().setTip("Connection depth");
   addColumnParameter("attributes", "Attributes", "attributesColumn").setBasic().
     setString().setTip("Node/Edge attributes");
 

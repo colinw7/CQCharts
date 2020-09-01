@@ -1,4 +1,5 @@
 #include <CQChartsColumnCombo.h>
+#include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
 
 CQChartsColumnCombo::
@@ -12,7 +13,7 @@ CQChartsColumnCombo(QWidget *parent) :
   connect(this, SIGNAL(currentIndexChanged(int)),
           this, SIGNAL(columnChanged()));
 
-  setModel(nullptr);
+  setModelData(nullptr);
 }
 
 void
@@ -57,12 +58,24 @@ setColumn(const CQChartsColumn &column)
 
 void
 CQChartsColumnCombo::
-setModel(QAbstractItemModel *model)
+setModelData(CQChartsModelData *modelData)
 {
-  if (model_ == model)
+  if (modelData == modelData_)
     return;
 
-  model_ = model;
+  if (modelData_) {
+    disconnect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateItems()));
+    disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(updateItems()));
+    disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
+  }
+
+  modelData_ = modelData;
+
+  if (modelData_) {
+    connect(modelData_, SIGNAL(dataChanged()), this, SLOT(updateItems()));
+    connect(modelData_, SIGNAL(modelChanged()), this, SLOT(updateItems()));
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(updateItems()));
+  }
 
   updateItems();
 }
@@ -76,13 +89,17 @@ updateItems()
   if (isAllowNone())
     addItem("<none>", -1);
 
-  if (! model_)
+  if (! modelData_)
     return;
 
-  int nc = model_->columnCount();
+  int icolumn = modelData_->currentColumn();
+
+  auto *model = modelData_->currentModel().data();
+
+  int nc = model->columnCount();
 
   for (int c = 0; c < nc; ++c) {
-    QString name = model_->headerData(c, Qt::Horizontal).toString();
+    QString name = model->headerData(c, Qt::Horizontal).toString();
 
     QString label;
 
@@ -93,4 +110,9 @@ updateItems()
 
     addItem(label, c);
   }
+
+  int ind = findData(icolumn);
+
+  if (ind >= 0)
+    setCurrentIndex(ind);
 }

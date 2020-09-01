@@ -4,6 +4,8 @@
 #include <CQChartsColumn.h>
 #include <QComboBox>
 
+class CQChartsModelData;
+
 /*!
  * \brief combo box for CQChartsColumn
  * \ingroup Charts
@@ -23,17 +25,17 @@ class CQChartsColumnCombo : public QComboBox {
   CQChartsColumn getColumn() const;
   void setColumn(const CQChartsColumn &column);
 
-  void setModel(QAbstractItemModel *model);
+  void setModelData(CQChartsModelData *model);
 
  signals:
   void columnChanged();
 
- private:
+ private slots:
   void updateItems();
 
  private:
-  QAbstractItemModel *model_     { nullptr };
-  bool                allowNone_ { true };
+  CQChartsModelData *modelData_ { nullptr };
+  bool               allowNone_ { true };
 };
 
 #endif

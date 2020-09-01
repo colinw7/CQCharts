@@ -1,6 +1,7 @@
 #include <CQChartsColumnNumEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPlot.h>
+#include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -32,9 +33,22 @@ void
 CQChartsColumnNumLineEdit::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = plot;
+  if (plot)
+    setModelData(plot->getModelData());
+  else
+    setModelData(nullptr);
+}
 
-  combo_->setModel(plot->model().data());
+void
+CQChartsColumnNumLineEdit::
+setModelData(CQChartsModelData *modelData)
+{
+  if (modelData != modelData_) {
+    modelData_ = modelData;
+
+    if (modelData_)
+      combo_->setModel(modelData->model().data());
+  }
 }
 
 const CQChartsColumnNum &

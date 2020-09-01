@@ -5,6 +5,8 @@
 #include <QSharedPointer>
 
 class CQChartsModelData;
+class CQChartsColumnCombo;
+class CQChartsColumnTypeCombo;
 class CQChartsLineEdit;
 
 class QAbstractItemModel;
@@ -37,17 +39,19 @@ class CQChartsModelExprControl : public QFrame {
   void applySlot();
 
  private:
-  CQChartsModelData* modelData_   { nullptr };
-  Mode               exprMode_    { Mode::ADD };
-  QRadioButton*      addRadio_    { nullptr };
-  QRadioButton*      removeRadio_ { nullptr };
-  QRadioButton*      modifyRadio_ { nullptr };
-  CQChartsLineEdit*  valueEdit_   { nullptr };
-  QLabel*            columnLabel_ { nullptr };
-  CQChartsLineEdit*  columnEdit_  { nullptr };
-  CQChartsLineEdit*  nameEdit_    { nullptr };
-  QLabel*            typeLabel_   { nullptr };
-  CQChartsLineEdit*  typeEdit_    { nullptr };
+  CQChartsModelData*       modelData_     { nullptr };
+  Mode                     exprMode_      { Mode::ADD };
+  QRadioButton*            addRadio_      { nullptr };
+  QRadioButton*            removeRadio_   { nullptr };
+  QRadioButton*            modifyRadio_   { nullptr };
+  CQChartsLineEdit*        valueEdit_     { nullptr };
+  QLabel*                  columnLabel_   { nullptr };
+  CQChartsColumnCombo*     columnNumEdit_ { nullptr };
+//CQChartsLineEdit*        columnEdit_    { nullptr };
+  CQChartsLineEdit*        nameEdit_      { nullptr };
+  QLabel*                  typeLabel_     { nullptr };
+//CQChartsLineEdit*        typeEdit_      { nullptr };
+  CQChartsColumnTypeCombo* typeCombo_     { nullptr };
 };
 
 #endif

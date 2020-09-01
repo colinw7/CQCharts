@@ -2,6 +2,7 @@
 
 #include <CQChartsParamEdit.h>
 #include <CQChartsColumnCombo.h>
+#include <CQChartsColumnTypeCombo.h>
 #include <CQChartsExprModel.h>
 #include <CQChartsModelData.h>
 #include <CQChartsLineEdit.h>
@@ -121,11 +122,14 @@ init()
     return edit;
   };
 
-  auto addComboBox = [&](const QString &name, const QString &objName, const QString &tipText) {
+  auto addColumnTypeCombo = [&](const QString &name, const QString &objName,
+                                const QString &tipText) {
     auto *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-    auto *combo = CQUtil::makeWidget<QComboBox>(objName + "Combo");
+    auto *combo = CQUtil::makeWidget<CQChartsColumnTypeCombo>(objName + "Combo");
 
     label->setText(name);
+
+    combo->setCharts(charts);
 
     editLayout_->addWidget(label, editRow_, 0);
     editLayout_->addWidget(combo, editRow_, 1); ++editRow_;
@@ -143,28 +147,15 @@ init()
   //---
 
   // data and header type
-  auto *columnTypeMgr = charts->columnTypeMgr();
+  typeCombo_ = addColumnTypeCombo("Type", "type", "Column Type");
 
-  QStringList typeNames;
-
-  columnTypeMgr->typeNames(typeNames);
+  connect(typeCombo_, SIGNAL(typeChanged()), this, SLOT(typeChangedSlot()));
 
   //---
 
-  typeCombo_ = addComboBox("Type", "type", "Column Type");
+  headerTypeCombo_ = addColumnTypeCombo("Header Type", "headerType", "Header Column Type");
 
-  typeCombo_->addItems(typeNames);
-
-  connect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(typeChangedSlot()));
-
-  //---
-
-  headerTypeCombo_ = addComboBox("Header Type", "headerType", "Header Column Type");
-
-  headerTypeCombo_->addItems(typeNames);
-
-  connect(headerTypeCombo_, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(headerTypeChangedSlot()));
+  connect(headerTypeCombo_, SIGNAL(typeChanged()), this, SLOT(headerTypeChangedSlot()));
 
   //---
 
@@ -251,28 +242,20 @@ applySlot()
   //--
 
   // set data type
-  QString typeStr = typeCombo_->currentText();
-
-  CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
-
-  const auto *typeData = columnTypeMgr->getType(columnType);
+  const auto *typeData = typeCombo_->columnType();
 
   if (! typeData) {
-    charts->errorMsg("Invalid column type '" + typeStr + "'");
+    charts->errorMsg("Invalid column type");
     return;
   }
 
   //---
 
   // set header type
-  QString headerTypeStr = headerTypeCombo_->currentText();
-
-  CQBaseModelType headerColumnType = CQBaseModel::nameType(headerTypeStr);
-
-  const auto *headerTypeData = columnTypeMgr->getType(headerColumnType);
+  const auto *headerTypeData = headerTypeCombo_->columnType();
 
   if (headerTypeData) {
-    if (! columnTypeMgr->setModelHeaderType(model.data(), column, headerColumnType)) {
+    if (! columnTypeMgr->setModelHeaderType(model.data(), column, headerTypeData->type())) {
       charts->errorMsg("Failed to set header type");
       return;
     }
@@ -323,8 +306,8 @@ applySlot()
   //---
 
   // update column type
-  if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues)) {
-    charts->errorMsg("Failed to set column data");
+  if (! columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues)) {
+    charts->errorMsg("Failed to set column type");
     return;
   }
 
@@ -371,20 +354,14 @@ setColumnData(int column)
     // update data type
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-    int typeInd = typeCombo_->findText(typeData->name());
-
-    if (typeInd >= 0)
-      typeCombo_->setCurrentIndex(typeInd);
+    typeCombo_->setColumnType(typeData);
 
     //--
 
     // update header type
     const auto *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
 
-    int headerTypeInd = typeCombo_->findText(headerTypeData->name());
-
-    if (headerTypeInd >= 0)
-      headerTypeCombo_->setCurrentIndex(headerTypeInd);
+    headerTypeCombo_->setColumnType(headerTypeData);
 
     //---
 
@@ -458,7 +435,7 @@ setColumnData(int column)
     paramLayout_->invalidate();
   }
   else {
-    typeCombo_      ->setCurrentIndex(-1);
-    headerTypeCombo_->setCurrentIndex(-1);
+    typeCombo_      ->setColumnType(nullptr);
+    headerTypeCombo_->setColumnType(nullptr);
   }
 }

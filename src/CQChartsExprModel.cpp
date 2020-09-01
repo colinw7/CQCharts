@@ -136,7 +136,7 @@ isExtraColumn(int column, int &ecolumn) const
 
   ecolumn = column - numNonExtra;
 
-  return (ecolumn >= numExtraColumns());
+  return (ecolumn >= 0 && ecolumn < numExtraColumns());
 }
 
 bool

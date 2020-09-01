@@ -2,6 +2,8 @@
 
 #include <CQChartsExprModel.h>
 #include <CQChartsModelData.h>
+#include <CQChartsColumnCombo.h>
+#include <CQChartsColumnTypeCombo.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
@@ -26,6 +28,9 @@ CQChartsModelExprControl::
 setModelData(CQChartsModelData *modelData)
 {
   modelData_ = modelData;
+
+  columnNumEdit_->setModelData(modelData_);
+  typeCombo_    ->setCharts   (modelData_->charts());
 }
 
 void
@@ -36,6 +41,7 @@ init()
 
   //--
 
+  // model radio buttons
   auto *exprModeFrame  = CQUtil::makeWidget<QFrame>("exprMode");
   auto *exprModeLayout = CQUtil::makeLayout<QHBoxLayout>(exprModeFrame, 0, 2);
 
@@ -91,22 +97,30 @@ init()
 
   //----
 
+  // column edit
   columnLabel_ = CQUtil::makeLabelWidget<QLabel>("Column", "columnLabel");
-  columnEdit_  = CQUtil::makeWidget<CQChartsLineEdit>("columnEdit");
 
-  columnEdit_->setToolTip("Column to Modify");
+//columnEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("columnEdit");
+//columnEdit_->setToolTip("Column to Modify");
 
-  exprGridLayout->addWidget(columnLabel_, row, 0);
-  exprGridLayout->addWidget(columnEdit_ , row, 1);
+  columnNumEdit_ = CQUtil::makeWidget<CQChartsColumnCombo>("columnCombo");
+
+  columnNumEdit_->setAllowNone(false);
+  columnNumEdit_->setToolTip("Column to Remove/Modify");
+//columnNumEdit_->setExtraOnly(true); // TODO
+
+  exprGridLayout->addWidget(columnLabel_  , row, 0);
+//exprGridLayout->addWidget(columnEdit_   , row, 1);
+  exprGridLayout->addWidget(columnNumEdit_, row, 1);
 
   ++row;
 
   //----
 
+  // name edit
   auto *exprNameLabel = CQUtil::makeLabelWidget<QLabel>("Name", "nameLabel");
 
   nameEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("nameEdit");
-
   nameEdit_->setToolTip("Column Name");
 
   exprGridLayout->addWidget(exprNameLabel, row, 0);
@@ -116,13 +130,18 @@ init()
 
   //--
 
+  // type edit
   typeLabel_ = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
-  typeEdit_  = CQUtil::makeWidget<CQChartsLineEdit>("typeEdit");
 
-  typeEdit_->setToolTip("Column Type");
+//typeEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("typeEdit");
+//typeEdit_->setToolTip("Column Type");
+
+  typeCombo_ = CQUtil::makeWidget<CQChartsColumnTypeCombo>("typeComno");
+  typeCombo_->setToolTip("Column Type");
 
   exprGridLayout->addWidget(typeLabel_, row, 0);
-  exprGridLayout->addWidget(typeEdit_ , row, 1);
+//exprGridLayout->addWidget(typeEdit_ , row, 1);
+  exprGridLayout->addWidget(typeCombo_, row, 1);
 
   ++row;
 
@@ -158,25 +177,21 @@ modeSlot()
   else if (removeRadio_->isChecked()) exprMode_ = Mode::REMOVE;
   else if (modifyRadio_->isChecked()) exprMode_ = Mode::MODIFY;
 
-  columnLabel_->setEnabled(exprMode_ == Mode::MODIFY);
-  columnEdit_ ->setEnabled(exprMode_ == Mode::MODIFY);
+  columnLabel_  ->setEnabled(exprMode_ == Mode::MODIFY);
+//columnEdit_   ->setEnabled(exprMode_ != Mode::ADD);
+  columnNumEdit_->setEnabled(exprMode_ != Mode::ADD);
+
+  nameEdit_->setEnabled(exprMode_ != Mode::REMOVE);
 
   typeLabel_->setEnabled(exprMode_ != Mode::REMOVE);
-  nameEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
-  typeEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
+//typeEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
+  typeCombo_->setEnabled(exprMode_ != Mode::REMOVE);
 }
 
 void
 CQChartsModelExprControl::
 applySlot()
 {
-  QString expr = valueEdit_->text().simplified();
-
-  if (! expr.length())
-    return;
-
-  //---
-
   auto *charts = modelData_->charts();
 
   if (! modelData_) {
@@ -195,40 +210,90 @@ applySlot()
 
   ModelP model = modelData_->currentModel();
 
-  QString columnStr = columnEdit_->text();
+  //---
 
+  // get column
   CQChartsColumn column;
+
+#if 0
+  QString columnStr = columnEdit_->text();
 
   if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
     bool ok;
 
-    long icolumn = CQChartsUtil::toInt(columnStr, ok);
+    int icolumn = (int) CQChartsUtil::toInt(columnStr, ok);
 
     if (ok)
-      column = CQChartsColumn(int(icolumn));
+      column = CQChartsColumn(icolumn);
+#else
+  column = columnNumEdit_->getColumn();
+#endif
+
+  //---
+
+  // set current column (for change notify)
+  if (function == CQChartsExprModel::Function::ASSIGN)
+    modelData_->setCurrentColumn(column.column());
+
+  //---
+
+  // apply function
+  int icolumn1 = column.column();
+
+  QString expr = valueEdit_->text().simplified();
+
+  if (expr.length()) {
+    icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+
+    if (function == CQChartsExprModel::Function::ADD && icolumn1 >= 0)
+      modelData_->setCurrentColumn(icolumn1);
   }
 
-  int column1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
+  //---
 
   if (function == CQChartsExprModel::Function::ADD ||
       function == CQChartsExprModel::Function::ASSIGN) {
-    QString nameStr = nameEdit_->text();
-    QString typeStr = typeEdit_->text();
-
-    if (column1 < 0) {
+    if (icolumn1 < 0) {
       charts->errorMsg("Invalid column");
       return;
     }
 
+    // set name
+    QString nameStr = nameEdit_->text();
+
     if (nameStr.length())
-      model->setHeaderData(column1, Qt::Horizontal, nameStr, Qt::DisplayRole);
+      model->setHeaderData(icolumn1, Qt::Horizontal, nameStr, Qt::DisplayRole);
+
+    //---
+
+    // set type
+    CQChartsColumn column1(icolumn1);
+
+#if 0
+    QString typeStr = typeEdit_->text();
 
     if (typeStr.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts, model.data(),
-                                                CQChartsColumn(column1), typeStr)) {
+      if (! CQChartsModelUtil::setColumnTypeStr(charts, model.data(), column1, typeStr)) {
         charts->errorMsg("Invalid type '" + typeStr + "'");
         return;
       }
+    }
+#endif
+
+    const auto *typeData = typeCombo_->columnType();
+
+    if (! typeData) {
+      charts->errorMsg("Invalid column type");
+      return;
+    }
+
+    auto *columnTypeMgr = charts->columnTypeMgr();
+
+    CQChartsNameValues nameValues;
+
+    if (! columnTypeMgr->setModelColumnType(model.data(), column1, typeData->type(), nameValues)) {
+      charts->errorMsg("Failed to set column type");
+      return;
     }
   }
 }
