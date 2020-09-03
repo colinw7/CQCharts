@@ -26,6 +26,9 @@ class CQChartsModelDetails : public QObject {
   Q_PROPERTY(int hierarchical READ isHierarchical)
 
  public:
+  using ColumnDetails = CQChartsModelColumnDetails;
+
+ public:
   CQChartsModelDetails(CQChartsModelData *data);
 
  ~CQChartsModelDetails();
@@ -37,8 +40,8 @@ class CQChartsModelDetails : public QObject {
 
   bool isHierarchical() const;
 
-  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
-  const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
+  ColumnDetails *columnDetails(const CQChartsColumn &column);
+  const ColumnDetails *columnDetails(const CQChartsColumn &column) const;
 
   CQChartsColumns numericColumns() const;
 
@@ -83,16 +86,16 @@ class CQChartsModelDetails : public QObject {
   CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
 
  private:
-  using ColumnDetails = std::map<CQChartsColumn, CQChartsModelColumnDetails *>;
+  using ColumnDetailsMap = std::map<CQChartsColumn, ColumnDetails *>;
 
   CQChartsModelData* data_ { nullptr }; //!< model data
 
   // cached data
-  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
-  int           numColumns_   { 0 };                 //!< model number of columns
-  int           numRows_      { 0 };                 //!< model number of rows
-  bool          hierarchical_ { false };             //!< model is hierarchical
-  ColumnDetails columnDetails_;                      //!< model column details
+  Initialized      initialized_  { Initialized::NONE }; //!< is initialized
+  int              numColumns_   { 0 };                 //!< model number of columns
+  int              numRows_      { 0 };                 //!< model number of rows
+  bool             hierarchical_ { false };             //!< model is hierarchical
+  ColumnDetailsMap columnDetails_;                      //!< model column details
 
   // mutex
   mutable std::mutex mutex_; //!< mutex
@@ -106,15 +109,16 @@ class CQChartsModelDetails : public QObject {
  */
 class CQChartsModelColumnDetails {
  public:
+  using Details       = CQChartsModelDetails;
   using ColumnType    = CQBaseModelType;
   using TableDrawType = CQChartsColumnType::DrawType;
 
  public:
-  CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column);
+  CQChartsModelColumnDetails(Details *details, const CQChartsColumn &column);
 
   virtual ~CQChartsModelColumnDetails();
 
-  CQChartsModelDetails *details() const { return details_; }
+  Details *details() const { return details_; }
 
   const CQChartsColumn &column() const { return column_; }
 
@@ -232,8 +236,8 @@ class CQChartsModelColumnDetails {
  private:
   using VariantInds = std::map<QVariant, int>;
 
-  CQChartsModelDetails* details_         { nullptr };
-  CQChartsColumn        column_;
+  Details*       details_ { nullptr };
+  CQChartsColumn column_;
 
   // cached type data
   bool                  typeInitialized_ { false }; //!< is type data set

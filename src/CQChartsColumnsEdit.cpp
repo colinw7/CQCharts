@@ -2,6 +2,7 @@
 #include <CQChartsColumnEdit.h>
 #include <CQChartsColumnCombo.h>
 #include <CQChartsPlot.h>
+#include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -12,7 +13,6 @@
 
 #include <QToolButton>
 #include <QHBoxLayout>
-#include <QAbstractItemModel>
 #include <QLabel>
 #include <QPainter>
 
@@ -45,21 +45,21 @@ setPlot(CQChartsPlot *plot)
   CQChartsLineEditBase::setPlot(plot);
 
   if (plot)
-    setModel(plot->model().data());
+    setModelData(plot->getModelData());
 }
 
-QAbstractItemModel *
+CQChartsModelData *
 CQChartsColumnsLineEdit::
-model() const
+modelData() const
 {
-  return dataEdit_->model();
+  return dataEdit_->modelData();
 }
 
 void
 CQChartsColumnsLineEdit::
-setModel(QAbstractItemModel *model)
+setModelData(CQChartsModelData *modelData)
 {
-  dataEdit_->setModel(model);
+  dataEdit_->setModelData(modelData);
 }
 
 const CQChartsColumns &
@@ -175,8 +175,10 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
       else {
         CQChartsColumn col;
 
-        if (model()) {
-          if (! CQChartsModelUtil::stringToColumn(model(), str, col))
+        if (modelData()) {
+          auto *model = modelData()->currentModel().data();
+
+          if (! CQChartsModelUtil::stringToColumn(model, str, col))
             col = CQChartsColumn();
         }
         else
@@ -191,8 +193,10 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
     else {
       CQChartsColumn col;
 
-      if (model()) {
-        if (! CQChartsModelUtil::stringToColumn(model(), str, col))
+      if (modelData()) {
+        auto *model = modelData()->currentModel().data();
+
+        if (! CQChartsModelUtil::stringToColumn(model, str, col))
           col = CQChartsColumn();
       }
       else
@@ -366,14 +370,14 @@ createEdit(QWidget *parent)
 
   auto *obj = (item ? item->object() : nullptr);
 
-  auto *edit = new CQChartsColumnsLineEdit(parent);
+  auto *plot = qobject_cast<CQChartsPlot *>(obj);
 
   //---
 
-  auto *plot = qobject_cast<CQChartsPlot *>(obj);
+  auto *edit = new CQChartsColumnsLineEdit(parent);
 
   if (plot)
-    edit->setModel(plot->model().data());
+    edit->setModelData(plot->getModelData());
 
   return edit;
 }
@@ -468,23 +472,23 @@ CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
 
 void
 CQChartsColumnsEdit::
-setModel(QAbstractItemModel *model)
+setModelData(CQChartsModelData *modelData)
 {
   connectSlots(false);
 
-  model_ = model;
+  modelData_ = modelData;
 
   if (isBasic_) {
     int ne = columnCombos_.size();
 
     for (int i = 0; i < ne; ++i)
-      columnCombos_[i]->setModel(model_);
+      columnCombos_[i]->setModelData(modelData_);
   }
   else {
     int ne = columnEdits_.size();
 
     for (int i = 0; i < ne; ++i)
-      columnEdits_[i]->setModel(model_);
+      columnEdits_[i]->setModelData(modelData_);
   }
 
   connectSlots(true);
@@ -600,7 +604,7 @@ updateEdits()
     while (ne < n) {
       auto *combo = new CQChartsColumnCombo;
 
-      combo->setModel(model());
+      combo->setModelData(modelData());
 
       qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(combo);
 
@@ -625,7 +629,7 @@ updateEdits()
     while (ne < n) {
       auto *edit = new CQChartsColumnLineEdit;
 
-      edit->setModel(model());
+      edit->setModelData(modelData());
 
       qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
 

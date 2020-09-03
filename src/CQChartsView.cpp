@@ -3481,6 +3481,7 @@ resizeEvent(QResizeEvent *)
     if (showHBar) {
       if (! sizeData_.hbar) {
         sizeData_.hbar = new QScrollBar(Qt::Horizontal, this);
+        sizeData_.hbar->setObjectName("viewHBar");
 
         connect(sizeData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hbarScrollSlot(int)));
       }
@@ -3489,6 +3490,7 @@ resizeEvent(QResizeEvent *)
     if (showVBar) {
       if (! sizeData_.vbar) {
         sizeData_.vbar = new QScrollBar(Qt::Vertical, this);
+        sizeData_.vbar->setObjectName("viewVBar");
 
         connect(sizeData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vbarScrollSlot(int)));
       }

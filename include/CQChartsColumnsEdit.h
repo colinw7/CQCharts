@@ -6,8 +6,7 @@
 
 class CQChartsColumnsEdit;
 class CQChartsColumnCombo;
-
-class QAbstractItemModel;
+class CQChartsModelData;
 
 /*!
  * \brief Columns line edit
@@ -23,8 +22,8 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   void setPlot(CQChartsPlot *plot) override;
 
-  QAbstractItemModel *model() const;
-  void setModel(QAbstractItemModel *model);
+  CQChartsModelData *modelData() const;
+  void setModelData(CQChartsModelData *modelData);
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
@@ -74,8 +73,8 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
  public:
   CQChartsColumnsEdit(QWidget *parent=nullptr, bool isBasic=false);
 
-  QAbstractItemModel *model() const { return model_; }
-  void setModel(QAbstractItemModel *model);
+  CQChartsModelData *modelData() const { return modelData_; }
+  void setModelData(CQChartsModelData *modelData);
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
@@ -102,14 +101,14 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   using ColumnCombos = std::vector<CQChartsColumnCombo *>;
   using ColumnEdits  = std::vector<CQChartsColumnLineEdit *>;
 
-  bool                isBasic_      { false };
-  CQChartsColumns     columns_;
-  QAbstractItemModel* model_        { nullptr };
-  QFrame*             controlFrame_ { nullptr };
-  QFrame*             columnsFrame_ { nullptr };
-  QLabel*             countLabel_   { nullptr };
-  ColumnCombos        columnCombos_;
-  ColumnEdits         columnEdits_;
+  bool               isBasic_      { false };
+  CQChartsColumns    columns_;
+  CQChartsModelData* modelData_    { nullptr };
+  QFrame*            controlFrame_ { nullptr };
+  QFrame*            columnsFrame_ { nullptr };
+  QLabel*            countLabel_   { nullptr };
+  ColumnCombos       columnCombos_;
+  ColumnEdits        columnEdits_;
 };
 
 //------

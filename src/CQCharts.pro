@@ -226,6 +226,7 @@ CQChartsSVGPaintDevice.cpp \
 CQChartsViewPlotPaintDevice.cpp \
 \
 CQChartsDrawUtil.cpp \
+CQChartsObjUtil.cpp \
 CQChartsUtil.cpp \
 CQChartsWidgetUtil.cpp \
 \
@@ -473,6 +474,7 @@ HEADERS += \
 ../include/CQChartsViewPlotPaintDevice.h \
 \
 ../include/CQChartsDrawUtil.h \
+../include/CQChartsObjUtil.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsWidgetUtil.h \
 \

@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsVariant.h>
 #include <CQColorsPalette.h>
 #include <CQChartsUtil.h>
@@ -701,7 +702,10 @@ CQChartsPlotKey(Plot *plot) :
 
   // create scroll bar
   scrollData_.hbar = new QScrollBar(Qt::Horizontal, plot->view());
+  scrollData_.hbar->setObjectName("keyHBar");
+
   scrollData_.vbar = new QScrollBar(Qt::Vertical  , plot->view());
+  scrollData_.vbar->setObjectName("keyVBar");
 
   scrollData_.hbar->hide();
   scrollData_.vbar->hide();
@@ -821,6 +825,18 @@ updatePositionAndLayout(bool queued)
   plot()->updateKeyPosition();
 
   redraw(queued);
+}
+
+void
+CQChartsPlotKey::
+updatePlotLocation()
+{
+  auto bbox = plot()->calcDataRange();
+
+  if (! bbox.isSet())
+    return;
+
+  updateLocation(bbox);
 }
 
 void
@@ -2048,10 +2064,103 @@ interpBgColor() const
 
 //------
 
+CQChartsColumnKey::
+CQChartsColumnKey(CQChartsPlot *plot) :
+ CQChartsPlotKey(plot)
+{
+}
+
+void
+CQChartsColumnKey::
+setColumn(const CQChartsColumn &c)
+{
+  if (c != column_) {
+    column_ = c;
+
+    updateItems();
+
+    redraw();
+  }
+}
+
+void
+CQChartsColumnKey::
+updatePosition(bool queued)
+{
+  updatePlotLocation();
+
+  redraw(queued);
+}
+
+void
+CQChartsColumnKey::
+updateLayout()
+{
+  updateItems();
+
+  redraw();
+}
+
+void
+CQChartsColumnKey::
+updateItems()
+{
+  // start at next row (vertical) or next column (horizontal) from previous key
+  int row = 0;
+  int col = 0;
+
+  auto addKeyRow = [&](const QString &name, const ColorInd &ic) {
+    auto *colorItem = new CQChartsKeyColorBox(this, ColorInd(), ColorInd(), ic);
+    auto *textItem  = new CQChartsKeyText    (this, name, ic);
+
+    auto *groupItem = new CQChartsKeyItemGroup(this);
+
+    groupItem->addItem(colorItem);
+    groupItem->addItem(textItem );
+
+    addItem(groupItem, row, col);
+
+    nextRowCol(row, col);
+
+    return std::pair<CQChartsKeyColorBox *, CQChartsKeyText*>(colorItem, textItem);
+  };
+
+  clearItems();
+
+  auto *details = plot_->columnDetails(column_);
+  if (! details) return;
+
+  int ng = details->numUnique();
+
+  for (const auto &value : details->uniqueValues()) {
+    int ig = details->uniqueId(value); // always 0 -> n - 1 ?
+
+    addKeyRow(value.toString(), ColorInd(ig, ng));
+  }
+}
+
+void
+CQChartsColumnKey::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+{
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    model->addProperty(path, this, name)->setDesc(desc).setHidden(hidden);
+  };
+
+  //---
+
+  addProp("column", "Column");
+
+  CQChartsPlotKey::addProperties(model, path, desc);
+}
+
+//------
+
 CQChartsKeyItem::
 CQChartsKeyItem(PlotKey *key, const ColorInd &ic) :
  key_(key), ic_(ic)
 {
+  assert(key_);
 }
 
 bool
@@ -2115,6 +2224,12 @@ tipText(const Point &, QString &) const
 CQChartsKeyItemGroup::
 CQChartsKeyItemGroup(Plot *plot) :
  CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
+{
+}
+
+CQChartsKeyItemGroup::
+CQChartsKeyItemGroup(PlotKey *key) :
+ CQChartsKeyItem(key, ColorInd()), plot_(key->plot())
 {
 }
 
@@ -2258,6 +2373,12 @@ CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
 {
 }
 
+CQChartsKeyText::
+CQChartsKeyText(PlotKey *key, const QString &text, const ColorInd &ic) :
+ CQChartsKeyItem(key, ic), plot_(key->plot()), text_(text)
+{
+}
+
 CQChartsGeom::Size
 CQChartsKeyText::
 size() const
@@ -2321,6 +2442,18 @@ CQChartsKeyColorBox::
 CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                     const RangeValue &xv, const RangeValue &yv) :
  CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
+{
+  assert(is_.isValid());
+  assert(ig_.isValid());
+  assert(iv_.isValid());
+
+  setClickable(true);
+}
+
+CQChartsKeyColorBox::
+CQChartsKeyColorBox(PlotKey *key, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+                    const RangeValue &xv, const RangeValue &yv) :
+ CQChartsKeyItem(key, iv), plot_(key->plot()), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.isValid());
   assert(ig_.isValid());

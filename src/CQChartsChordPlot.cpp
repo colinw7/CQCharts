@@ -504,17 +504,17 @@ initFromToObjs() const
 
 void
 CQChartsChordPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
-               const CQChartsNameValues &nameValues, const GroupData &) const
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const FromToData &fromToData) const
 {
   auto &srcData = findNameData(fromStr, QModelIndex());
 
-  if (depth > 0)
-    srcData.setDepth(depth);
+  if (fromToData.depth > 0)
+    srcData.setDepth(fromToData.depth);
 
   // Just node
   if (toStr == "") {
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {
@@ -531,12 +531,12 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
 
     auto &destData = findNameData(toStr, QModelIndex());
 
-    if (depth > 0)
-      destData.setDepth(depth + 1);
+    if (fromToData.depth > 0)
+      destData.setDepth(fromToData.depth + 1);
 
     addEdge(srcData, destData, value, /*symmetric*/true);
 
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {

@@ -361,6 +361,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void updatePosition(bool queued=true) override;
 
+  void updatePlotLocation();
   void updateLocation(const BBox &bbox);
 
   void updatePositionAndLayout(bool queued=true);
@@ -516,6 +517,32 @@ class CQChartsPlotKey : public CQChartsKey {
 
 //------
 
+class CQChartsColumnKey : public CQChartsPlotKey {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
+
+ public:
+  CQChartsColumnKey(CQChartsPlot *plot);
+
+  const CQChartsColumn &column() const { return column_; }
+  void setColumn(const CQChartsColumn &c);
+
+  void updatePosition(bool /*queued*/=true) override;
+
+  void updateLayout() override;
+
+  void updateItems();
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+ private:
+  CQChartsColumn column_;
+};
+
+//------
+
 class CQChartsKeyItemGroup;
 
 /*!
@@ -641,7 +668,9 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
  public:
   CQChartsKeyItemGroup(Plot *plot);
- ~CQChartsKeyItemGroup();
+  CQChartsKeyItemGroup(PlotKey *key);
+
+  virtual ~CQChartsKeyItemGroup();
 
   Plot *plot() const { return plot_; }
 
@@ -692,6 +721,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
  public:
   CQChartsKeyText(Plot *plot, const QString &text, const ColorInd &ic);
+  CQChartsKeyText(PlotKey *key, const QString &text, const ColorInd &ic);
 
   Plot *plot() const { return plot_; }
 
@@ -729,6 +759,9 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
  public:
   CQChartsKeyColorBox(Plot *plot, const ColorInd &is, const ColorInd &ig,
+                      const ColorInd &iv, const RangeValue &xv=RangeValue(),
+                      const RangeValue &yv=RangeValue());
+  CQChartsKeyColorBox(PlotKey *key, const ColorInd &is, const ColorInd &ig,
                       const ColorInd &iv, const RangeValue &xv=RangeValue(),
                       const RangeValue &yv=RangeValue());
 

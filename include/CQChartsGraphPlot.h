@@ -922,8 +922,7 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   bool initFromToObjs() const;
 
   void addFromToValue(const QString &fromStr, const QString &toStr, double value,
-                      int depth, const CQChartsNameValues &nameValues,
-                      const GroupData &groupData) const override;
+                      const FromToData &fromToData) const override;
 
   //---
 

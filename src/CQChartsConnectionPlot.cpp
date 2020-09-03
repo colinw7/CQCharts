@@ -57,10 +57,10 @@ addParameters()
   addColumnParameter("attributes", "Attributes", "attributesColumn").setBasic().
     setString().setTip("Node/Edge attributes");
 
-  addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Optional node name");
   addColumnParameter("group", "Group", "groupColumn").
     setNumeric().setTip("Group column");
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Optional node name");
 
   endParameterGroup();
 
@@ -904,6 +904,10 @@ initFromToObjs() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      FromToData fromToData;
+
+      //---
+
       auto *plot = const_cast<CQChartsConnectionPlot *>(plot_);
 
       ModelIndex fromModelInd(plot, data.row, plot_->fromColumn(), data.parent);
@@ -934,8 +938,6 @@ initFromToObjs() const
       //---
 
       // get attributes from optional column
-      CQChartsNameValues nameValues;
-
       if (plot_->attributesColumn().isValid()) {
         ModelIndex attributesModelInd(plot, data.row, plot_->attributesColumn(), data.parent);
 
@@ -943,40 +945,36 @@ initFromToObjs() const
         auto attributesStr = plot_->modelString(attributesModelInd, ok4);
         if (! ok4) return State::SKIP;
 
-        nameValues = CQChartsNameValues(attributesStr);
+        fromToData.nameValues = CQChartsNameValues(attributesStr);
       }
 
       //---
 
       // Get group value
-      GroupData groupData;
-
       if (plot_->groupColumn().isValid()) {
         ModelIndex groupModelInd(plot, data.row, plot_->groupColumn(), data.parent);
 
-        if (! plot_->groupColumnData(groupModelInd, groupData))
+        if (! plot_->groupColumnData(groupModelInd, fromToData.groupData))
           return addDataError(groupModelInd, "Invalid group value");
       }
       else {
-        groupData = GroupData("", data.row, numRows());
+        fromToData.groupData = GroupData("", data.row, numRows());
       }
 
       //---
 
       // Get depth value
-      int depth = -1;
-
       if (plot_->depthColumn().isValid()) {
         ModelIndex depthModelInd(plot, data.row, plot_->depthColumn(), data.parent);
 
         bool ok2;
-        depth = (int) plot_->modelInteger(depthModelInd, ok2);
+        fromToData.depth = (int) plot_->modelInteger(depthModelInd, ok2);
         if (! ok2) return addDataError(depthModelInd, "Non-integer depth value");
       }
 
       //---
 
-      plot_->addFromToValue(fromName, toName, value, depth, nameValues, groupData);
+      plot_->addFromToValue(fromName, toName, value, fromToData);
 
       return State::OK;
     }

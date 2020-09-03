@@ -386,10 +386,16 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  struct FromToData {
+    int                depth      { -1 }; //! source node depth
+    CQChartsNameValues nameValues;        //! node/edge attributes
+    GroupData          groupData;         //! grouping data
+  };
+
   bool initFromToObjs() const;
 
-  virtual void addFromToValue(const QString &, const QString &, double, int,
-                              const CQChartsNameValues &, const GroupData &) const { }
+  virtual void addFromToValue(const QString &, const QString &, double,
+                              const FromToData &) const { }
 
   //---
 

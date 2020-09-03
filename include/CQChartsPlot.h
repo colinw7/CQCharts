@@ -1967,7 +1967,7 @@ class CQChartsPlot : public CQChartsObj,
                                               const Length &yRadius);
   ImageAnnotation     *addImageAnnotation    (const Position &pos, const Image &image);
   ImageAnnotation     *addImageAnnotation    (const Rect &rect, const Image &image);
-  KeyAnnotation       *addKeyAnnotation      ();
+  KeyAnnotation       *addKeyAnnotation      (const CQChartsColumn &column=CQChartsColumn());
   PieSliceAnnotation  *addPieSliceAnnotation (const Position &pos, const Length &innerRadius,
                                               const Length &outerRadius, const Angle &startAngle,
                                               const Angle &spanAngle);
@@ -2894,7 +2894,6 @@ class CQChartsPlot : public CQChartsObj,
   int        insideInd_     { 0 }; //!< current inside object ind
   ObjSet     insideObjs_;          //!< inside plot objects
   SizeObjSet sizeInsideObjs_;      //!< inside plot objects
-                                                                 //!< (size sorted)
 
   //---
 

@@ -1340,8 +1340,8 @@ addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
-  columnCombo->setModel (model_.data());
-  columnCombo->setColumn(column);
+  columnCombo->setModelData(modelData_);
+  columnCombo->setColumn   (column);
 
   plotData.columnEdits[parameter->name()].basicEdit = columnCombo;
 
@@ -1374,8 +1374,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
-  columnEdit->setModel (model_.data());
-  columnEdit->setColumn(column);
+  columnEdit->setModelData(modelData_);
+  columnEdit->setColumn   (column);
 
   plotData.columnEdits[parameter->name()].advancedEdit = columnEdit;
 
@@ -1498,8 +1498,8 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
-  columnsEdit->setModel  (model_.data());
-  columnsEdit->setColumns(columns);
+  columnsEdit->setModelData(modelData_);
+  columnsEdit->setColumns  (columns);
 
   plotData.columnsEdits[parameter->name()] = columnsEdit;
 

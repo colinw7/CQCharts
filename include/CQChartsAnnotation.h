@@ -1214,7 +1214,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
  public:
   CQChartsKeyAnnotation(View *plot);
-  CQChartsKeyAnnotation(Plot *plot);
+  CQChartsKeyAnnotation(Plot *plot, const CQChartsColumn &column=CQChartsColumn());
 
   virtual ~CQChartsKeyAnnotation();
 
@@ -1254,6 +1254,9 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
  private:
   void init();
+
+ private slots:
+  void updateLocationSlot();
 
  private:
   Key *key_ { nullptr };

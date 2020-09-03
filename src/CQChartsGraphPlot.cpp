@@ -735,19 +735,19 @@ initFromToObjs() const
 
 void
 CQChartsGraphPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
-               const CQChartsNameValues &nameValues, const GroupData &groupData) const
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const FromToData &fromToData) const
 {
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
   auto *srcNode = findNode(fromStr);
 
-  if (depth > 0)
-    srcNode->setDepth(depth);
+  if (fromToData.depth > 0)
+    srcNode->setDepth(fromToData.depth);
 
   // Just node
   if (toStr == "") {
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "shape") {
@@ -794,7 +794,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
 
     //---
 
-    QStringList groupNames = groupData.value.toString().split("/");
+    QStringList groupNames = fromToData.groupData.value.toString().split("/");
 
     int graphId = -1, parentGraphId = -1;
 
@@ -819,15 +819,15 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
 
     auto *destNode = findNode(toStr);
 
-    if (depth > 0)
-      destNode->setDepth(depth + 1);
+    if (fromToData.depth > 0)
+      destNode->setDepth(fromToData.depth + 1);
 
     auto *edge = createEdge(OptReal(value), srcNode, destNode);
 
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);
 
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "shape") {

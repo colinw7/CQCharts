@@ -2,10 +2,8 @@
 #define CQChartsSankeyPlot_H
 
 #include <CQChartsConnectionPlot.h>
-#include <CQChartsValueInd.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsBoxObj.h>
 #include <CQChartsData.h>
 
 //---
@@ -310,11 +308,17 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
-#if 0
   //! get/set label
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
-#endif
+
+  //! get/set color
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
+
+  //! get/set path id
+  int pathId() const { return pathId_; }
+  void setPathId(int i) { pathId_ = i; }
 
   // get source node
   Node *srcNode() const { return srcNode_; }
@@ -340,14 +344,16 @@ class CQChartsSankeyPlotEdge {
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
  protected:
-  const Plot* plot_     { nullptr }; //!< plot
-  int         id_       { -1 };      //!< unique id
-  OptReal     value_;                //!< value
-//QString     label_;                //!< label
-  Node*       srcNode_  { nullptr }; //!< source node
-  Node*       destNode_ { nullptr }; //!< destination node
-  Obj*        obj_      { nullptr }; //!< associated edge object
-  bool        isLine_   { false };   //!< is edge a line
+  const Plot*   plot_     { nullptr }; //!< plot
+  int           id_       { -1 };      //!< unique id
+  OptReal       value_;                //!< value
+  QString       label_;                //!< label
+  CQChartsColor color_;                //!< color
+  int           pathId_   { -1 };      //!< path id
+  Node*         srcNode_  { nullptr }; //!< source node
+  Node*         destNode_ { nullptr }; //!< destination node
+  Obj*          obj_      { nullptr }; //!< associated edge object
+  bool          isLine_   { false };   //!< is edge a line
 };
 
 //---
@@ -566,7 +572,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
-  void drawConnectionMouseOver(CQChartsPaintDevice *device, int mouseColoring) const;
+  void drawConnectionMouseOver(CQChartsPaintDevice *device, int mouseColoring,
+                               int pathId=-1) const;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -832,8 +839,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool initFromToObjs() const;
 
   void addFromToValue(const QString &fromStr, const QString &toStr, double value,
-                      int depth, const CQChartsNameValues &nameValues,
-                      const GroupData &groupData) const override;
+                      const FromToData &fromToData) const override;
 
   //---
 
@@ -944,9 +950,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void printStats();
 
  protected:
-  friend class CQChartsSankeyPlotNode;
-
- protected:
   // options
   Align  align_       { Align::JUSTIFY }; //!< align
   int    alignRand_   { 10 };             //!< number of random values for align
@@ -965,17 +968,16 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   ConnectionType mouseColoring_ { ConnectionType::ALL_DEST }; //!< mouse over connections
 
   // data
-  NameNodeMap      nameNodeMap_;               //!< name node map
-  IndNodeMap       indNodeMap_;                //!< ind node map
-  Graph*           graph_         { nullptr }; //!< graph
-  Edges            edges_;                     //!< edges
-  BBox             bbox_;                      //!< bbox
-  CQChartsValueInd groupValueInd_;             //!< group value ind
-  int              maxNodeDepth_  { 0 };       //!< max node depth (all graphs)
-  double           minNodeMargin_ { 4 };       //!< minimum node margin (in pixels)
-  double           boxMargin_     { 0.01 };    //!< bounding box margin
-  double           edgeMargin_    { 0.01 };    //!< edge bounding box margin
-  bool             pressed_       { false };   //!< mouse pressed
+  NameNodeMap nameNodeMap_;               //!< name node map
+  IndNodeMap  indNodeMap_;                //!< ind node map
+  Graph*      graph_         { nullptr }; //!< graph
+  Edges       edges_;                     //!< edges
+  BBox        bbox_;                      //!< bbox
+  int         maxNodeDepth_  { 0 };       //!< max node depth (all graphs)
+  double      minNodeMargin_ { 4 };       //!< minimum node margin (in pixels)
+  double      boxMargin_     { 0.01 };    //!< bounding box margin
+  double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
+  bool        pressed_       { false };   //!< mouse pressed
 };
 
 #endif

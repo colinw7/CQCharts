@@ -3846,7 +3846,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addStrokeProperties(model, path1);
+  addStrokeProperties(model, path1 + "/stroke");
 
   axis_->addProperties(model, path1);
 }
@@ -3938,6 +3938,22 @@ class CQChartsKeyAnnotationPlotKey : public CQChartsPlotKey {
   CQChartsKeyAnnotation *annotation_ { nullptr };
 };
 
+class CQChartsKeyAnnotationColumnKey : public CQChartsColumnKey {
+ public:
+  CQChartsKeyAnnotationColumnKey(Plot *plot, CQChartsKeyAnnotation *annotation,
+                                 const CQChartsColumn &column) :
+   CQChartsColumnKey(plot), annotation_(annotation) {
+    setColumn(column);
+  }
+
+  void redraw(bool) override {
+    annotation_->invalidate();
+  }
+
+ private:
+  CQChartsKeyAnnotation *annotation_ { nullptr };
+};
+
 CQChartsKeyAnnotation::
 CQChartsKeyAnnotation(View *view) :
  CQChartsAnnotation(view, Type::KEY)
@@ -3948,12 +3964,17 @@ CQChartsKeyAnnotation(View *view) :
 }
 
 CQChartsKeyAnnotation::
-CQChartsKeyAnnotation(Plot *plot) :
+CQChartsKeyAnnotation(Plot *plot, const CQChartsColumn &column) :
  CQChartsAnnotation(plot, Type::KEY)
 {
   init();
 
-  key_ = new CQChartsKeyAnnotationPlotKey(plot, this);
+  if (column.isValid())
+    key_ = new CQChartsKeyAnnotationColumnKey(plot, this, column);
+  else
+    key_ = new CQChartsKeyAnnotationPlotKey(plot, this);
+
+  connect(plot_, SIGNAL(rangeChanged()), this, SLOT(updateLocationSlot()));
 }
 
 CQChartsKeyAnnotation::
@@ -3979,11 +4000,25 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addStrokeProperties(model, path1);
+  addStrokeProperties(model, path1 + "/stroke");
 
-  QString keyPath = path + "/" + propertyId() + "/key";
+  QString keyPath = path1 + "/key";
 
   key_->addProperties(model, keyPath, "");
+
+  key_->addProperties(model, keyPath, "");
+}
+
+void
+CQChartsKeyAnnotation::
+updateLocationSlot()
+{
+  if (plot_) {
+    auto *plotKey = qobject_cast<CQChartsPlotKey *>(key_);
+
+    if (plotKey)
+      plotKey->updatePlotLocation();
+  }
 }
 
 void

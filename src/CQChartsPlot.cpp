@@ -8341,12 +8341,7 @@ updateKeyPosition(bool force)
   if (! dataRange_.isSet())
     return;
 
-  auto bbox = calcDataRange();
-
-  if (! bbox.isSet())
-    return;
-
-  key()->updateLocation(bbox);
+  key()->updatePlotLocation();
 }
 
 //------
@@ -10525,10 +10520,10 @@ addImageAnnotation(const Rect &rect, const Image &image)
 
 CQChartsKeyAnnotation *
 CQChartsPlot::
-addKeyAnnotation()
+addKeyAnnotation(const CQChartsColumn &column)
 {
   return addAnnotationT<CQChartsKeyAnnotation>(
-    new CQChartsKeyAnnotation(this));
+    new CQChartsKeyAnnotation(this, column));
 }
 
 CQChartsPieSliceAnnotation *

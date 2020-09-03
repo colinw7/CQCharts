@@ -83,7 +83,7 @@ columnDetails(const CQChartsColumn &c)
   if (p == columnDetails_.end()) {
     auto *details = new CQChartsModelColumnDetails(this, c);
 
-    p = columnDetails_.insert(p, ColumnDetails::value_type(c, details));
+    p = columnDetails_.insert(p, ColumnDetailsMap::value_type(c, details));
   }
 
   auto *details = (*p).second;

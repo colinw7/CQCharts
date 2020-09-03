@@ -657,8 +657,8 @@ initFromToObjs() const
 
 void
 CQChartsForceDirectedPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value, int /*depth*/,
-               const CQChartsNameValues &nameValues, const GroupData &) const
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const FromToData &fromToData) const
 {
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
@@ -669,7 +669,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int /
 
   // Just node
   if (toStr == "") {
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {
@@ -691,7 +691,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int /
 
     addEdge(srcConnectionsData, destConnectionsData, value);
 
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {

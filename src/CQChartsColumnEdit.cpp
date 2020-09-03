@@ -2,8 +2,10 @@
 #include <CQChartsColumnCombo.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsPlot.h>
+#include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsObjUtil.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
@@ -12,7 +14,6 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QGridLayout>
-#include <QAbstractItemModel>
 #include <QPainter>
 
 CQChartsColumnLineEdit::
@@ -41,21 +42,21 @@ setPlot(CQChartsPlot *plot)
   CQChartsLineEditBase::setPlot(plot);
 
   if (plot)
-    setModel(plot->model().data());
+    setModelData(plot->getModelData());
 }
 
-QAbstractItemModel *
+CQChartsModelData *
 CQChartsColumnLineEdit::
-model() const
+modelData() const
 {
-  return dataEdit_->model();
+  return dataEdit_->modelData();
 }
 
 void
 CQChartsColumnLineEdit::
-setModel(QAbstractItemModel *model)
+setModelData(CQChartsModelData *modelData)
 {
-  dataEdit_->setModel(model);
+  dataEdit_->setModelData(modelData);
 }
 
 const CQChartsColumn &
@@ -100,8 +101,10 @@ textChanged()
     column = CQChartsColumn();
   }
   else {
-    if (model()) {
-      if (! CQChartsModelUtil::stringToColumn(model(), text, column))
+    if (modelData()) {
+      auto *model = modelData()->currentModel().data();
+
+      if (! CQChartsModelUtil::stringToColumn(model, text, column))
         return;
     }
     else {
@@ -267,17 +270,22 @@ CQChartsColumnPropertyViewEditor::
 createEdit(QWidget *parent)
 {
   auto *item = CQPropertyViewMgrInst->editItem();
+  auto *obj  = (item ? item->object() : nullptr);
 
-  auto *obj = (item ? item->object() : nullptr);
+  //---
 
-  auto *plot = qobject_cast<CQChartsPlot *>(obj);
+  CQChartsPlot *plot   = nullptr;
+  CQChartsView *view   = nullptr;
+  CQCharts     *charts = nullptr;
+
+  CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
 
   //---
 
   auto *edit = new CQChartsColumnLineEdit(parent);
 
   if (plot)
-    edit->setModel(plot->model().data());
+    edit->setModelData(plot->getModelData());
 
   return edit;
 }
@@ -417,9 +425,9 @@ CQChartsColumnEdit(QWidget *parent) :
 
 void
 CQChartsColumnEdit::
-setModel(QAbstractItemModel *model)
+setModelData(CQChartsModelData *modelData)
 {
-  model_ = model;
+  modelData_ = modelData;
 
   updateColumnsFromModel();
 
@@ -604,7 +612,7 @@ void
 CQChartsColumnEdit::
 updateColumnsFromModel()
 {
-  columnCombo_->setModel(model());
+  columnCombo_->setModelData(modelData());
 }
 
 void

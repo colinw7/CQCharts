@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + key annotation (custom key)
+   + key column ?
  + text placement class (quad tree, target position, align)
  + unset column from editor is -1 ?
  + null value per column

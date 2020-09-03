@@ -326,6 +326,15 @@ drawDebugRect(CQChartsPaintDevice *device)
 
 //---
 
+bool
+CQChartsPlotObj::
+contains(const Point &p) const
+{
+  return inside(p);
+}
+
+//---
+
 void
 CQChartsPlotObj::
 writeScriptData(CQChartsScriptPaintDevice *device) const
@@ -426,13 +435,6 @@ writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &penBrus
     os << CQChartsUtil::encodeScriptColor(penBrush.brush.color()).toStdString();
 
   os << "\";\n";
-}
-
-bool
-CQChartsPlotObj::
-contains(const Point &p) const
-{
-  return inside(p);
 }
 
 void

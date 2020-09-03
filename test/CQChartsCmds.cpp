@@ -6678,12 +6678,10 @@ bool
 CQChartsCmds::
 createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
 {
-#if 0
   auto errorMsg = [&](const QString &msg) {
     charts_->errorMsg(msg);
     return false;
   };
-#endif
 
   //---
 
@@ -6695,6 +6693,8 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
   argv.endCmdGroup();
 
   argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column, "column for unique item values");
 
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
@@ -6728,12 +6728,24 @@ createChartsKeyAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  CQChartsColumn column;
+
+  if (argv.hasParseArg("column")) {
+    if (! plot)
+      return errorMsg("Plot needed for key column");
+
+    column = argv.getParseColumn("column", plot->model().data());
+
+    if (! column.isValid())
+      return errorMsg("Invalid column");
+  }
+
   CQChartsKeyAnnotation *annotation = nullptr;
 
   if      (view)
     annotation = view->addKeyAnnotation();
   else if (plot)
-    annotation = plot->addKeyAnnotation();
+    annotation = plot->addKeyAnnotation(column);
   else
     return false;
 

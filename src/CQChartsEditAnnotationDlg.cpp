@@ -913,7 +913,7 @@ ellipseCenterSlot(bool)
 
     auto rp = CQChartsGeom::Point(xr1, yr1);
 
-    CQChartsRect rect(CQChartsGeom::BBox(center1 - rp, center1 + rp), center.units());
+    CQChartsRect rect(CQChartsGeom::BBox(center1 - rp, center1 + rp), units1);
 
     ellipseWidgets_.rectEdit->setRect(rect);
   }

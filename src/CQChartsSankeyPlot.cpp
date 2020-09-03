@@ -43,14 +43,39 @@ QString
 CQChartsSankeyPlotType::
 description() const
 {
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
   auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Sankey Plot").
     h3("Summary").
      p("Draw connected objects as a connected flow graph.").
+    h3("Columns").
+     p("Connections between two nodes (edge) are described using " + B("Node/Connections") +
+       " columns, a " + B("Link") + " column, a " + B("Path") + " column or " + B("From/To") +
+       " columns").
+     p("The connection size can be specified using the " + B("Value") + " column.").
+     p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
+     p("Extra attributes (color, label) for the source node, destination node or edge "
+       "can be specified using the " + B("Attributes") + " column.").
+     p("The depth (x postion) can be specified using the " + B("Depth") + " column.").
+     p("The source node group can be specified using the " + B("Group") + " column.").
+     p("The source node name can be specified using the " + B("Name") + " column.").
+    h3("Options").
+     p("The separator character for hierarchical names (Link or Path columns) can be "
+       "specified using the " + B("separator") + " option.").
+     p("The " + B("symmetric") + " option can be used to specify that the connection is "
+       "symmetric (value of connection for from/to is the same as to/from)").
+     p("The " + B("sorted") + " option can be used to sort the connections by value").
+     p("The " + B("maxDepth") + " option can be used to filter out connections greater than "
+       "the specified depth.").
+     p("The " + B("minValue") + " option can be used filter out connections less than the "
+       "specified value.").
     h3("Limitations").
-     p("None.").
+     p("As each model row is an edge it is hard to specify data on just a node.").
+     p("The From/To columns do allow the To column to be empty to define attributes "
+       "on just the from node but this is not ideal as it makes the raw data hard to "
+       "manipulate").
     h3("Example").
      p(IMG("images/sankey.png"));
 }
@@ -149,8 +174,6 @@ clearNodesAndEdges()
   edges_      .clear();
 
   clearGraph();
-
-  groupValueInd_.clear();
 
   maxNodeDepth_ = 0;
 }
@@ -683,18 +706,18 @@ initFromToObjs() const
 
 void
 CQChartsSankeyPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value, int depth,
-               const CQChartsNameValues &nameValues, const GroupData &groupData) const
+addFromToValue(const QString &fromStr, const QString &toStr, double value,
+               const FromToData &fromToData) const
 {
   auto *srcNode = findNode(fromStr);
 
-  if (depth > 0)
-    srcNode->setDepth(depth);
+  if (fromToData.depth > 0)
+    srcNode->setDepth(fromToData.depth);
 
   //---
 
-  if (groupData.ng > 1)
-    srcNode->setGroup(groupData.ig, groupData.ng);
+  if (fromToData.groupData.ng > 1)
+    srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
   else
     srcNode->setGroup(-1);
 
@@ -702,7 +725,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
 
   // Just node
   if (toStr == "") {
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {
@@ -719,22 +742,25 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value, int d
 
     auto *destNode = findNode(toStr);
 
-    if (depth > 0)
-      destNode->setDepth(depth + 1);
+    if (fromToData.depth > 0)
+      destNode->setDepth(fromToData.depth + 1);
 
     auto *edge = createEdge(OptReal(value), srcNode, destNode);
 
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);
 
-    for (const auto &nv : nameValues.nameValues()) {
+    for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
       if      (nv.first == "label") {
-      //edge->setLabel(value);
+        edge->setLabel(value);
       }
       else if (nv.first == "color") {
-      //edge->setColor(CQChartsColor(value));
+        edge->setColor(CQChartsColor(value));
+      }
+      else if (nv.first == "path_id") {
+        edge->setPathId(value.toInt());
       }
       else if (nv.first == "src_color") {
         srcNode->setColor(CQChartsColor(value));
@@ -2340,7 +2366,7 @@ calcColor() const
     ic = CQChartsUtil::ColorInd(id(), plot_->numNodes());
 
   if (color_.isValid())
-    return plot_->interpColor(color_.color(), ic);
+    return plot_->interpColor(color_, ic);
   else
     return plot_->interpNodeFillColor(ic);
 }
@@ -2503,7 +2529,7 @@ QString
 CQChartsSankeyNodeObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(iv_.i);
+  return QString("%1:%2").arg(typeName()).arg(node()->id());
 }
 
 QString
@@ -2700,7 +2726,7 @@ draw(CQChartsPaintDevice *device)
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, (int) plot_->mouseColoring());
+      drawConnectionMouseOver(device, (int) plot_->mouseColoring(), -1);
 
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
@@ -2709,7 +2735,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsSankeyNodeObj::
-drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
+drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pathId) const
 {
   auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
 
@@ -2731,8 +2757,10 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
 
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
-    for (const auto &edge : node()->srcEdges())
-      drawEdgeInside(edge);
+    for (const auto &edge : node()->srcEdges()) {
+      if (pathId < 0 || edge->pathId() == pathId)
+        drawEdgeInside(edge);
+    }
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
@@ -2741,8 +2769,10 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
 
     node()->allSrcNodesAndEdges(nodeSet, edgeSet);
 
-    for (const auto &edge : edgeSet)
-      drawEdgeInside(edge);
+    for (const auto &edge : edgeSet) {
+      if (pathId < 0 || edge->pathId() == pathId)
+        drawEdgeInside(edge);
+    }
 
     for (const auto &node : nodeSet)
       drawNodeInside(node);
@@ -2750,8 +2780,10 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
 
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::DEST ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
-    for (const auto &edge : node()->destEdges())
-      drawEdgeInside(edge);
+    for (const auto &edge : node()->destEdges()) {
+      if (pathId < 0 || edge->pathId() == pathId)
+        drawEdgeInside(edge);
+    }
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
@@ -2760,8 +2792,10 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring) const
 
     node()->allDestNodesAndEdges(nodeSet, edgeSet);
 
-    for (const auto &edge : edgeSet)
-      drawEdgeInside(edge);
+    for (const auto &edge : edgeSet) {
+      if (pathId < 0 || edge->pathId() == pathId)
+        drawEdgeInside(edge);
+    }
 
     for (const auto &node : nodeSet)
       drawNodeInside(node);
@@ -2942,7 +2976,8 @@ calcId() const
   auto *srcObj  = edge()->srcNode ()->obj();
   auto *destObj = edge()->destNode()->obj();
 
-  return QString("%1:%2:%3").arg(typeName()).arg(srcObj->calcId()).arg(destObj->calcId());
+  return QString("%1:%2:%3:%4").arg(typeName()).
+           arg(srcObj->calcId()).arg(destObj->calcId()).arg(edge()->id());
 }
 
 QString
@@ -3081,28 +3116,28 @@ draw(CQChartsPaintDevice *device)
         drawNodeInside(srcNode );
 
         if (srcNodeObj)
-          srcNodeObj ->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC);
+          srcNodeObj->drawConnectionMouseOver(device,
+            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
         drawNodeInside(destNode);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST);
+            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
         drawNodeInside(srcNode );
 
         if (srcNodeObj)
-          srcNodeObj ->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC);
+          srcNodeObj->drawConnectionMouseOver(device,
+            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
 
         drawNodeInside(destNode);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST);
+            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
       }
 
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
@@ -3123,6 +3158,11 @@ CQChartsSankeyEdgeObj::
 drawFg(CQChartsPaintDevice *device) const
 {
   if (! plot_->isTextVisible())
+    return;
+
+  QString str = edge()->label();
+
+  if (! str.length())
     return;
 
   //---
@@ -3167,11 +3207,6 @@ drawFg(CQChartsPaintDevice *device) const
 
   double textMargin = 4; // pixels
 
-  QString str = edge()->label();
-
-  if (! str.length())
-    return;
-
   double ptw = fm.width(str);
 
   double tx = prect.getXMid() - textMargin - ptw/2.0;
@@ -3200,10 +3235,17 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   auto *srcNode  = edge()->srcNode ();
   auto *destNode = edge()->destNode();
 
-  QColor fc1 = srcNode ->obj()->calcFillColor();
-  QColor fc2 = destNode->obj()->calcFillColor();
+  QColor fc;
 
-  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+  if (! edge()->color().isValid()) {
+    QColor fc1 = srcNode ->obj()->calcFillColor();
+    QColor fc2 = destNode->obj()->calcFillColor();
+
+    fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+  }
+  else {
+    fc = plot_->interpColor(edge()->color(), ColorInd());
+  }
 
   int numNodes = plot_->numNodes();
 
@@ -3327,7 +3369,7 @@ updateRect()
   BBox bbox;
 
   for (const auto &node : nodes())
-    bbox += node->rect().getCenter();
+    bbox += node->rect();
 
   rect_ = bbox;
 }

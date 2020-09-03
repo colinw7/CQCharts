@@ -6,7 +6,7 @@
 
 class CQChartsColumnEdit;
 class CQChartsColumnCombo;
-class QAbstractItemModel;
+class CQChartsModelData;
 
 /*!
  * \brief Column line edit
@@ -22,8 +22,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
   void setPlot(CQChartsPlot *plot) override;
 
-  QAbstractItemModel *model() const;
-  void setModel(QAbstractItemModel *model);
+  CQChartsModelData *modelData() const;
+  void setModelData(CQChartsModelData *model);
 
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
@@ -68,8 +68,8 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
-  QAbstractItemModel *model() const { return model_; }
-  void setModel(QAbstractItemModel *model);
+  CQChartsModelData *modelData() const { return modelData_; }
+  void setModelData(CQChartsModelData *model);
 
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
@@ -96,7 +96,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  QAbstractItemModel*  model_          { nullptr }; //!< model
+  CQChartsModelData*   modelData_      { nullptr }; //!< model data
   CQChartsColumn       column_;                     //!< column
   CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
   QComboBox*           typeCombo_      { nullptr }; //!< type combo
