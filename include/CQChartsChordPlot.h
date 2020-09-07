@@ -53,6 +53,10 @@ class CQChartsChordPlot;
 
 //---
 
+/*!
+ * \brief Chord Data class
+ * \ingroup Charts
+ */
 class CQChartsChordData {
  public:
   using TableConnectionData = CQChartsConnectionPlot::TableConnectionData;

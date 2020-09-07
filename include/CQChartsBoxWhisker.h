@@ -209,6 +209,10 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 
 #include <CQChartsObj.h>
 
+/*!
+ * \brief Axis Box Whisker Object
+ * \ingroup Charts
+ */
 class CQChartsAxisBoxWhisker : public CQChartsObj {
   Q_OBJECT
 
@@ -316,6 +320,10 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
 
 //---
 
+/*!
+ * \brief Axis Density Object
+ * \ingroup Charts
+ */
 class CQChartsAxisDensity : public CQChartsObj {
   Q_OBJECT
 

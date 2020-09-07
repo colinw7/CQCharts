@@ -22,10 +22,12 @@ class CQTriePatterns;
  */
 class CQChartsRValues {
  public:
-  using OptReal = boost::optional<double>;
-  using Values  = std::vector<double>;
-  using Counts  = std::vector<int>;
-  using Indices = std::vector<int>;
+  using OptReal     = boost::optional<double>;
+  using Values      = std::vector<double>;
+  using Counts      = std::vector<int>;
+  using ValueCount  = std::pair<double, int>;
+  using ValueCounts = std::vector<ValueCount>;
+  using Indices     = std::vector<int>;
 
  public:
   CQChartsRValues() { }
@@ -108,14 +110,19 @@ class CQChartsRValues {
     return QVariant(valset_.begin()->first);
   }
 
-  void uniqueValues(Values &values) {
+  void uniqueValueCounts(ValueCounts &valueCounts) {
     for (const auto &vi : valset_)
-      values.push_back(vi.first);
+      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
   }
 
   void uniqueCounts(Counts &counts) {
     for (const auto &vi : valset_)
       counts.push_back(vi.second.second);
+  }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
   }
 
   // calculated stats
@@ -178,10 +185,12 @@ class CQChartsRValues {
  */
 class CQChartsIValues {
  public:
-  using OptInt  = boost::optional<int>;
-  using Values  = std::vector<double>;
-  using Counts  = std::vector<int>;
-  using Indices = std::vector<int>;
+  using OptInt      = boost::optional<int>;
+  using Values      = std::vector<int>;
+  using Counts      = std::vector<int>;
+  using ValueCount  = std::pair<int, int>;
+  using ValueCounts = std::vector<ValueCount>;
+  using Indices     = std::vector<int>;
 
  public:
   CQChartsIValues() { }
@@ -260,6 +269,11 @@ class CQChartsIValues {
     return QVariant(valset_.begin()->first);
   }
 
+  void uniqueValueCounts(ValueCounts &valueCounts) {
+    for (const auto &vi : valset_)
+      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+  }
+
   void uniqueValues(Values &values) {
     for (const auto &vi : valset_)
       values.push_back(vi.first);
@@ -330,9 +344,11 @@ class CQChartsIValues {
  */
 class CQChartsSValues {
  public:
-  using OptString = boost::optional<QString>;
-  using Values    = std::vector<QString>;
-  using Counts    = std::vector<int>;
+  using OptString   = boost::optional<QString>;
+  using Values      = std::vector<QString>;
+  using Counts      = std::vector<int>;
+  using ValueCount  = std::pair<QString, int>;
+  using ValueCounts = std::vector<ValueCount>;
 
  public:
   CQChartsSValues();
@@ -396,6 +412,11 @@ class CQChartsSValues {
     return QVariant(valset_.begin()->first);
   }
 
+  void uniqueValueCounts(ValueCounts &valueCounts) {
+    for (const auto &vi : valset_)
+      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
+  }
+
   void uniqueValues(Values &values) {
     for (const auto &sv : setvals_)
       values.push_back(sv.second);
@@ -456,8 +477,10 @@ class CQChartsSValues {
  */
 class CQChartsCValues {
  public:
-  using Values = std::vector<CQChartsColor>;
-  using Counts = std::vector<int>;
+  using Values      = std::vector<CQChartsColor>;
+  using Counts      = std::vector<int>;
+  using ValueCount  = std::pair<CQChartsColor, int>;
+  using ValueCounts = std::vector<ValueCount>;
 
  public:
   CQChartsCValues() { }
@@ -524,6 +547,11 @@ class CQChartsCValues {
     if (valset_.size() != 1) return QVariant();
 
     return QVariant::fromValue<CQChartsColor>(valset_.begin()->first);
+  }
+
+  void uniqueValueCounts(ValueCounts &valueCounts) {
+    for (const auto &vi : valset_)
+      valueCounts.push_back(ValueCount(vi.first, vi.second.second));
   }
 
   void uniqueValues(Values &values) {

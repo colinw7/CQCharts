@@ -3,6 +3,10 @@
 
 #include <QTextBrowser>
 
+/*!
+ * \brief Document Class for Help
+ * \ingroup Charts
+ */
 class CQChartsDocument : public QTextBrowser {
   Q_OBJECT
 

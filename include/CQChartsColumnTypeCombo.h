@@ -6,6 +6,10 @@
 class CQCharts;
 class CQChartsColumnType;
 
+/*!
+ * \brief Column Type Combo Chooser
+ * \ingroup Charts
+ */
 class CQChartsColumnTypeCombo : public QComboBox {
   Q_OBJECT
 

@@ -7,6 +7,10 @@
 class CQChartsPlot;
 class CQChartsPaintDevice;
 
+/*!
+ * \brief Bivariate (2D) density class
+ * \ingroup Charts
+ */
 class CQChartsBivariateDensity {
  public:
   using Point   = CQChartsGeom::Point;

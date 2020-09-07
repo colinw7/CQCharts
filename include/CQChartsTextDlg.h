@@ -13,6 +13,10 @@ class CQChartsTextCanvas;
 class CQPropertyViewModel;
 class CQPropertyViewTree;
 
+/*!
+ * \brief Widget to test Rendering of Text with associated properties
+ * \ingroup Charts
+ */
 class CQChartsTextDlg : public QDialog {
   Q_OBJECT
 
@@ -27,6 +31,10 @@ class CQChartsTextDlg : public QDialog {
   CQPropertyViewTree*  propertyTree_  { nullptr };
 };
 
+/*!
+ * \brief Widget to draw Text Data with specified properties
+ * \ingroup Charts
+ */
 class CQChartsTextCanvas : public QWidget {
   Q_OBJECT
 

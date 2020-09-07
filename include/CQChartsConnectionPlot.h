@@ -197,6 +197,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     double ivalue() const { return (isValid() ? double(ig)/ng : 0.0); }
   };
 
+  /*!
+   * \brief Table Connection Data
+   * \ingroup Charts
+   */
   class TableConnectionData {
    public:
     enum class PrimaryType {
@@ -387,9 +391,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   struct FromToData {
-    int                depth      { -1 }; //! source node depth
-    CQChartsNameValues nameValues;        //! node/edge attributes
-    GroupData          groupData;         //! grouping data
+    int                depth      { -1 }; //!< source node depth
+    CQChartsNameValues nameValues;        //!< node/edge attributes
+    GroupData          groupData;         //!< grouping data
   };
 
   bool initFromToObjs() const;

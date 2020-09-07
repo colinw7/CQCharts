@@ -18,6 +18,10 @@
 
 class CQChartsPaintDevice;
 
+/*!
+ * \brief Pen/Brush Data
+ * \ingroup Charts
+ */
 struct CQChartsPenBrush {
   QPen   pen;
   QBrush brush;
@@ -197,6 +201,10 @@ void drawStringsInBox(CQChartsPaintDevice *device, const BBox &rect, const QStri
 
 void drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
                           const QPen &pen, const CQChartsTextOptions &options);
+
+BBox calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
+                         const CQChartsTextOptions &options=CQChartsTextOptions(),
+                     bool centered=false, double dx=0.0, double dy=0.0);
 
 void drawTextAtPoint(CQChartsPaintDevice *device, const Point &p, const QString &text,
                      const CQChartsTextOptions &options=CQChartsTextOptions(),

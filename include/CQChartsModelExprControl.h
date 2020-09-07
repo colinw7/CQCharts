@@ -13,6 +13,10 @@ class QAbstractItemModel;
 class QRadioButton;
 class QLabel;
 
+/*!
+ * \brief Widget to allow User to Add/Remove/Modify Extra Columns in Model
+ * \ingroup Charts
+ */
 class CQChartsModelExprControl : public QFrame {
   Q_OBJECT
 

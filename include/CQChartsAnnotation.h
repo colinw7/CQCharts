@@ -300,6 +300,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
 //---
 
+/*!
+ * \brief Annotation Group class
+ * \ingroup Charts
+ */
 class CQChartsAnnotationGroup : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -374,6 +378,10 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
 //---
 
+/*!
+ * \brief Annotation Polygon Shape class
+ * \ingroup Charts
+ */
 class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 

@@ -132,6 +132,10 @@ class CQChartsViewStatusSel : public QLabel {
 
 //---
 
+/*!
+ * \brief Error Indicator on Status Bar
+ * \ingroup Charts
+ */
 class CQChartsViewStatusError : public QToolButton {
   Q_OBJECT
 

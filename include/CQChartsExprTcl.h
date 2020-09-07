@@ -6,6 +6,10 @@
 
 #include <QAbstractItemModel>
 
+/*!
+ * \brief Tcl evaluation wrapper class for model data
+ * \ingroup Charts
+ */
 class CQChartsExprTcl : public CQTcl {
  public:
   CQChartsExprTcl(QAbstractItemModel *model=nullptr) :

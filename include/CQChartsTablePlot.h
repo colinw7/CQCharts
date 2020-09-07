@@ -358,22 +358,22 @@ class CQChartsTablePlot : public CQChartsPlot {
   struct TableData {
     QFont           font;
     QModelIndexList expandInds;
-    int             nc       { 0 };   // number of columns
-    int             nr       { 0 };   // number of rows
-    int             nvr      { 0 };   // number of visible rows
-    int             maxDepth { 0 };   // max model item depth
-    double          prh      { 0.0 }; // pixel row height
-    double          rh       { 0.0 }; // row height
-    double          pcw      { 0.0 }; // pixel columns width
-    double          sx       { 0.0 }; // scroll x
-    double          sy       { 0.0 }; // scroll y
-    double          dx       { 0.0 }; // overflow width
-    double          dy       { 0.0 }; // overflow height
-    double          xo       { 0.0 }; // x offset
-    double          yo       { 0.0 }; // y offset
-    int             pmargin  { 2 };   // pixel margin
-    ColumnData      rowColumnData;
-    ColumnDataMap   columnDataMap;
+    int             nc       { 0 };   //!< number of columns
+    int             nr       { 0 };   //!< number of rows
+    int             nvr      { 0 };   //!< number of visible rows
+    int             maxDepth { 0 };   //!< max model item depth
+    double          prh      { 0.0 }; //!< pixel row height
+    double          rh       { 0.0 }; //!< row height
+    double          pcw      { 0.0 }; //!< pixel columns width
+    double          sx       { 0.0 }; //!< scroll x
+    double          sy       { 0.0 }; //!< scroll y
+    double          dx       { 0.0 }; //!< overflow width
+    double          dy       { 0.0 }; //!< overflow height
+    double          xo       { 0.0 }; //!< x offset
+    double          yo       { 0.0 }; //!< y offset
+    int             pmargin  { 2 };   //!< pixel margin
+    ColumnData      rowColumnData;    //!< row column data
+    ColumnDataMap   columnDataMap;    //!< column data map
   };
 
   struct ScrollData {

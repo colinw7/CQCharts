@@ -817,6 +817,62 @@ uniqueCounts() const
   return vars;
 }
 
+CQChartsModelColumnDetails::ValueCounts
+CQChartsModelColumnDetails::
+uniqueValueCounts() const
+{
+  initCache();
+
+  ValueCounts valueCounts;
+
+  if (column_.type() == CQChartsColumn::Type::ROW) {
+    return valueCounts; // TODO
+  }
+
+  if      (type() == CQBaseModelType::INTEGER) {
+    CQChartsIValues::ValueCounts ivalueCounts;
+
+    valueSet_->ivals().uniqueValueCounts(ivalueCounts);
+
+    for (const auto &v : ivalueCounts)
+      valueCounts.push_back(ValueCount(v.first, v.second));
+  }
+  else if (type() == CQBaseModelType::REAL) {
+    CQChartsRValues::ValueCounts rvalueCounts;
+
+    valueSet_->rvals().uniqueValueCounts(rvalueCounts);
+
+    for (const auto &v : rvalueCounts)
+      valueCounts.push_back(ValueCount(v.first, v.second));
+  }
+  else if (type() == CQBaseModelType::STRING) {
+    CQChartsSValues::ValueCounts svalueCounts;
+
+    valueSet_->svals().uniqueValueCounts(svalueCounts);
+
+    for (const auto &v : svalueCounts)
+      valueCounts.push_back(ValueCount(v.first, v.second));
+  }
+  else if (type() == CQBaseModelType::TIME) {
+    CQChartsRValues::ValueCounts tvalueCounts;
+
+    valueSet_->tvals().uniqueValueCounts(tvalueCounts);
+
+    for (const auto &v : tvalueCounts)
+      valueCounts.push_back(ValueCount(v.first, v.second));
+  }
+  else if (type() == CQBaseModelType::COLOR) {
+    CQChartsCValues::ValueCounts cvalueCounts;
+
+    valueSet_->cvals().uniqueValueCounts(cvalueCounts);
+
+    for (const auto &v : cvalueCounts)
+      valueCounts.push_back(ValueCount(CQChartsVariant::fromColor(v.first), v.second));
+  }
+
+  return valueCounts;
+}
+
 int
 CQChartsModelColumnDetails::
 uniqueId(const QVariant &var) const

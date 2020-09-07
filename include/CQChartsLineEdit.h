@@ -3,6 +3,10 @@
 
 #include <QLineEdit>
 
+/*!
+ * \brief Wrapper around QLineEdit Widget
+ * \ingroup Charts
+ */
 class CQChartsLineEdit : public QLineEdit {
   Q_OBJECT
 

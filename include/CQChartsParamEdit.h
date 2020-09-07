@@ -13,6 +13,10 @@ class CQCheckBox;
 class QComboBox;
 class QHBoxLayout;
 
+/*!
+ * \brief Widget to edit Plot Parameter
+ * \ingroup Charts
+ */
 class CQChartsParamEdit : public QFrame {
  public:
   CQChartsParamEdit(QWidget *parent=nullptr);

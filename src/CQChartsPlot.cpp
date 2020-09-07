@@ -9462,7 +9462,11 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
-  if (layerType == Layer::Type::MID_PLOT)
+  if      (layerType == Layer::Type::BG_PLOT)
+    preDrawBgObjs(device);
+  else if (layerType == Layer::Type::FG_PLOT)
+    preDrawFgObjs(device);
+  else if (layerType == Layer::Type::MID_PLOT)
     preDrawObjs(device);
 
   //---
@@ -9517,7 +9521,11 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
-  if (layerType == Layer::Type::MID_PLOT)
+  if      (layerType == Layer::Type::BG_PLOT)
+    postDrawBgObjs(device);
+  else if (layerType == Layer::Type::FG_PLOT)
+    postDrawFgObjs(device);
+  else if (layerType == Layer::Type::MID_PLOT)
     postDrawObjs(device);
 
   //---

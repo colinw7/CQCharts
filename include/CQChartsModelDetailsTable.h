@@ -7,6 +7,10 @@ class CQCharts;
 class CQChartsModelData;
 class CQTableWidget;
 
+/*!
+ * \brief Table showing Details/Summary of Model Data
+ * \ingroup Charts
+ */
 class CQChartsModelDetailsTable : public QFrame {
   Q_OBJECT
 

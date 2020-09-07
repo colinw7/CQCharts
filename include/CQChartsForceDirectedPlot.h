@@ -46,6 +46,10 @@ class CQChartsForceDirectedPlotType : public CQChartsConnectionPlotType {
 
 //---
 
+/*!
+ * \brief Spring Node Customization
+ * \ingroup Charts
+ */
 class CQChartsSpringyNode : public Springy::Node {
  public:
   using OptReal = CQChartsOptReal;
@@ -66,6 +70,10 @@ class CQChartsSpringyNode : public Springy::Node {
   OptReal nodeValue_;
 };
 
+/*!
+ * \brief Spring Edge Customization
+ * \ingroup Charts
+ */
 class CQChartsSpringyEdge : public Springy::Edge {
  public:
   CQChartsSpringyEdge(int id, Springy::Node *node1, Springy::Node *node2) :
@@ -220,7 +228,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void drawParts(QPainter *painter) const override;
 
-  void drawDeviceParts(CQChartsPaintDevice *device) const override;
+  void drawDeviceParts(PaintDevice *device) const override;
 
  private:
   // connection between nodes (edge)

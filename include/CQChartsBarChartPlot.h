@@ -271,9 +271,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
   //---
 

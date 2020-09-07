@@ -82,16 +82,18 @@ class CQChartsPlot;
  */
 class CQChartsPlotSymbolRenderer {
  public:
-  using Point = CQChartsGeom::Point;
-  using BBox  = CQChartsGeom::BBox;
+  using PaintDevice = CQChartsPaintDevice;
+  using Length      = CQChartsLength;
+  using Symbol      = CQChartsSymbol;
+  using Point       = CQChartsGeom::Point;
+  using BBox        = CQChartsGeom::BBox;
 
  public:
-  CQChartsPlotSymbolRenderer(CQChartsPaintDevice *painter, const Point &p,
-                             const CQChartsLength &size);
+  CQChartsPlotSymbolRenderer(PaintDevice *painter, const Point &p, const Length &size);
 
-  void drawSymbol  (CQChartsSymbol type);
-  void strokeSymbol(CQChartsSymbol type);
-  void fillSymbol  (CQChartsSymbol type);
+  void drawSymbol  (Symbol type);
+  void strokeSymbol(Symbol type);
+  void fillSymbol  (Symbol type);
 
   //---
 
@@ -122,14 +124,14 @@ class CQChartsPlotSymbolRenderer {
   void restore() const;
 
  private:
-  CQChartsPaintDevice* device_  { nullptr };  //!< device
-  Point                p_       { 0.0, 0.0 }; //!< symbol center
-  CQChartsLength       size_;                 //!< size as length
-  double               w_       { 0.0 };      //!< line width
-  QPainterPath         path_;                 //!< path
-  QPen                 strokePen_;            //!< stroke pen
-  QBrush               fillBrush_;            //!< fill brush
-  mutable bool         saved_   { false };    //!< saved
+  PaintDevice*   device_  { nullptr };  //!< device
+  Point          p_       { 0.0, 0.0 }; //!< symbol center
+  Length         size_;                 //!< size as length
+  double         w_       { 0.0 };      //!< line width
+  QPainterPath   path_;                 //!< path
+  QPen           strokePen_;            //!< stroke pen
+  QBrush         fillBrush_;            //!< fill brush
+  mutable bool   saved_   { false };    //!< saved
 };
 
 #endif

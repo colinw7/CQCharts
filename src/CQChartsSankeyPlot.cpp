@@ -228,6 +228,23 @@ setAdjustNodes(bool b)
   CQChartsUtil::testAndSet(adjustNodes_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsSankeyPlot::
+setAdjustText(bool b)
+{
+  CQChartsUtil::testAndSet(adjustText_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+
+//---
+
+void
+CQChartsSankeyPlot::
+setUseMaxTotals(bool b)
+{
+  CQChartsUtil::testAndSet(useMaxTotals_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -246,8 +263,10 @@ addProperties()
   //---
 
   // options
-  addProp("options", "adjustNodes", "adjustNodes", "Adjust node placement");
-  addProp("options", "align"      , "align"  , "Node alignment");
+  addProp("options", "adjustNodes" , "adjustNodes" , "Adjust node placement");
+  addProp("options", "adjustText"  , "adjustText"  , "Adjust text placement");
+  addProp("options", "align"       , "align"       , "Node alignment");
+  addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
 
   // coloring
   addProp("coloring", "srcColoring"  , "srcColoring"  , "Color by Source Nodes");
@@ -475,6 +494,55 @@ fitToBBox(const BBox &bbox)
 
   if (graph_)
     graph_->updateRect();
+}
+
+//------
+
+void
+CQChartsSankeyPlot::
+preDrawFgObjs(CQChartsPaintDevice *) const
+{
+  if (! isAdjustText())
+    return;
+
+  for (const auto &drawText : drawTexts_)
+    delete drawText;
+
+  drawTexts_.clear();
+}
+
+void
+CQChartsSankeyPlot::
+postDrawFgObjs(CQChartsPaintDevice *device) const
+{
+  if (! isAdjustText())
+    return;
+
+  CQChartsRectPlacer placer;
+
+  for (const auto &drawText : drawTexts_)
+    placer.addRect(drawText);
+
+  placer.place();
+
+  for (const auto &drawText : drawTexts_) {
+    CQChartsPenBrush penBrush;
+
+    setPen(penBrush, PenData(true, drawText->color, drawText->alpha));
+
+    device->setPen(penBrush.pen);
+
+    CQChartsDrawUtil::drawTextAtPoint(device, drawText->point, drawText->str, drawText->options);
+
+    if (drawText->point != drawText->origPoint) {
+      auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
+                                                        drawText->options);
+
+      auto p = CQChartsUtil::nearestRectPoint(bbox, drawText->targetPoint);
+
+      device->drawLine(p, drawText->targetPoint);
+    }
+  }
 }
 
 //------
@@ -761,6 +829,12 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
       }
       else if (nv.first == "path_id") {
         edge->setPathId(value.toInt());
+      }
+      else if (nv.first == "src_label") {
+        srcNode->setLabel(value);
+      }
+      else if (nv.first == "dest_label") {
+        destNode->setLabel(value);
       }
       else if (nv.first == "src_color") {
         srcNode->setColor(CQChartsColor(value));
@@ -2243,20 +2317,73 @@ placeEdges(bool reset)
   clearSrcEdgeRects ();
   clearDestEdgeRects();
 
-  if (this->srcEdges().size() == 1) {
-    auto *edge = *this->srcEdges().begin();
+  double srcTotal  = srcEdgeSum();
+  double destTotal = destEdgeSum();
 
-    setSrcEdgeRect(edge, BBox(x1, y1, x2, y2));
-  }
-  else {
-    double total = 0.0;
+  if (! plot_->useMaxTotals()) {
+    if (this->srcEdges().size() == 1) {
+      auto *edge = *this->srcEdges().begin();
 
-    for (const auto &edge : this->srcEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
+      setSrcEdgeRect(edge, BBox(x1, y1, x2, y2));
+    }
+    else {
+      double ys = (srcTotal > 0.0 ? (y2 - y1)/srcTotal : 0.0);
+
+      double y3 = y2; // top
+
+      for (const auto &edge : this->srcEdges()) {
+        if (! edge->hasValue()) {
+          setSrcEdgeRect(edge, BBox());
+          continue;
+        }
+
+        double h1 = ys*edge->value().real();
+        double y4 = y3 - h1;
+
+        if (! hasSrcEdgeRect(edge))
+          setSrcEdgeRect(edge, BBox(x1, y4, x2, y3));
+
+        y3 = y4;
+      }
     }
 
-    double y3 = y2;
+    //---
+
+    if (this->destEdges().size() == 1) {
+      auto *edge = *this->destEdges().begin();
+
+      setDestEdgeRect(edge, BBox(x1, y1, x2, y2));
+    }
+    else {
+      double ys = (destTotal > 0.0 ? (y2 - y1)/destTotal : 0.0);
+
+      double y3 = y2; // top
+
+      for (const auto &edge : this->destEdges()) {
+        if (! edge->hasValue()) {
+          setDestEdgeRect(edge, BBox());
+          continue;
+        }
+
+        double h1 = ys*edge->value().real();
+        double y4 = y3 - h1;
+
+        if (! hasDestEdgeRect(edge))
+          setDestEdgeRect(edge, BBox(x1, y4, x2, y3));
+
+        y3 = y4;
+      }
+    }
+  }
+  else {
+    double maxTotal = std::max(srcTotal, destTotal);
+
+    double ys = (maxTotal > 0.0 ? (y2 - y1)/maxTotal : 0.0);
+
+    double dy1 = ((y2 - y1) - ys*srcTotal )/2.0;
+    double dy2 = ((y2 - y1) - ys*destTotal)/2.0;
+
+    double y3 = y2 - dy1; // top
 
     for (const auto &edge : this->srcEdges()) {
       if (! edge->hasValue()) {
@@ -2264,8 +2391,7 @@ placeEdges(bool reset)
         continue;
       }
 
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-
+      double h1 = ys*edge->value().real();
       double y4 = y3 - h1;
 
       if (! hasSrcEdgeRect(edge))
@@ -2273,24 +2399,10 @@ placeEdges(bool reset)
 
       y3 = y4;
     }
-  }
 
-  //---
+    //---
 
-  if (this->destEdges().size() == 1) {
-    auto *edge = *this->destEdges().begin();
-
-    setDestEdgeRect(edge, BBox(x1, y1, x2, y2));
-  }
-  else {
-    double total = 0.0;
-
-    for (const auto &edge : this->destEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
-    }
-
-    double y3 = y2;
+    y3 = y2 - dy2; // top
 
     for (const auto &edge : this->destEdges()) {
       if (! edge->hasValue()) {
@@ -2298,8 +2410,7 @@ placeEdges(bool reset)
         continue;
       }
 
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-
+      double h1 = ys*edge->value().real();
       double y4 = y3 - h1;
 
       if (! hasDestEdgeRect(edge))
@@ -2835,7 +2946,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   CQChartsPenBrush penBrush;
 
-  QColor c = plot_->interpTextColor(ic);
+  auto c = plot_->interpTextColor(ic);
 
   plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
 
@@ -2885,7 +2996,20 @@ drawFg(CQChartsPaintDevice *device) const
   options.align         = Qt::AlignLeft;
   options.clipLength    = plot_->textClipLength();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  if (plot_->isAdjustText()) {
+    auto *drawText =
+      new CQChartsSankeyPlot::DrawText(str, pt, options, c, plot_->textAlpha(), rect().getCenter());
+
+    auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
+                                                      drawText->options);
+
+    drawText->setBBox(bbox);
+
+    plot_->addDrawText(drawText);
+  }
+  else {
+    CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+  }
 }
 
 void

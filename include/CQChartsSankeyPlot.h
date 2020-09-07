@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+#include <CQChartsRectPlacer.h>
 
 //---
 
@@ -358,6 +359,10 @@ class CQChartsSankeyPlotEdge {
 
 //---
 
+/*!
+ * \brief Graph Data (Nodes, Edges) for Sankey Plot Placement Data
+ * \ingroup Charts
+ */
 class CQChartsSankeyPlotGraph {
  public:
   using Plot  = CQChartsSankeyPlot;
@@ -367,8 +372,8 @@ class CQChartsSankeyPlotGraph {
   using Point = CQChartsGeom::Point;
 
   struct DepthData {
-    Nodes  nodes;        // nodes at depth
-    double size { 0.0 }; // total size
+    Nodes  nodes;        //!< nodes at depth
+    double size { 0.0 }; //!< total size
   };
 
   using DepthNodesMap = std::map<int, DepthData>;
@@ -572,8 +577,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
-  void drawConnectionMouseOver(CQChartsPaintDevice *device, int mouseColoring,
-                               int pathId=-1) const;
+  void drawConnectionMouseOver(PaintDevice *device, int mouseColoring, int pathId=-1) const;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -695,6 +699,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // placement
   Q_PROPERTY(bool adjustNodes READ isAdjustNodes WRITE setAdjustNodes)
+  Q_PROPERTY(bool adjustText  READ isAdjustText  WRITE setAdjustText )
+
+  // edge scaling
+  Q_PROPERTY(bool useMaxTotals READ useMaxTotals WRITE setUseMaxTotals)
 
   // node/edge shape data
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node, node)
@@ -787,13 +795,25 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  // text visible on inside (when text invisible)
+  //! get/set adjust text
+  bool isAdjustText() const { return adjustText_; }
+  void setAdjustText(bool b);
+
+  //---
+
+  //! text visible on inside (when text invisible)
   bool isInsideTextVisible() const { return insideTextVisible_; }
   void setInsideTextVisible(bool b) { insideTextVisible_ = b; }
 
-  // text visible on selected (when text invisible)
+  //! text visible on selected (when text invisible)
   bool isSelectedTextVisible() const { return selectedTextVisible_; }
   void setSelectedTextVisible(bool b) { selectedTextVisible_ = b; }
+
+  //---
+
+  //! get/set use of of source/destination nodes for edge scaling
+  bool useMaxTotals() const { return useMaxTotals_; }
+  void setUseMaxTotals(bool b);
 
   //---
 
@@ -815,6 +835,13 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool createObjs(PlotObjs &objs) const override;
 
   void fitToBBox(const BBox &bbox);
+
+  //---
+
+  void preDrawFgObjs (CQChartsPaintDevice *device) const override;
+  void postDrawFgObjs(CQChartsPaintDevice *device) const override;
+
+  //---
 
   bool initHierObjs() const;
 
@@ -954,6 +981,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Align  align_       { Align::JUSTIFY }; //!< align
   int    alignRand_   { 10 };             //!< number of random values for align
   bool   adjustNodes_ { true };           //!< adjust nodes
+  bool   adjustText_  { false };          //!< adjust text position
   double nodeMargin_  { 0.2 };            //!< node margin (y)
   double nodeWidth_   { 16 };             //!< node x width in pixels
   bool   edgeLine_    { false };          //!< draw line for edge
@@ -977,7 +1005,57 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   double      minNodeMargin_ { 4 };       //!< minimum node margin (in pixels)
   double      boxMargin_     { 0.01 };    //!< bounding box margin
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
+  bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling
   bool        pressed_       { false };   //!< mouse pressed
+
+ public:
+  struct DrawText : public CQChartsRectPlacer::RectData {
+    using Rect = CQChartsRectPlacer::Rect;
+
+    DrawText(const QString &str, const Point &point, const CQChartsTextOptions &options,
+             const QColor &color, const Alpha &alpha, const Point &targetPoint) :
+     str(str), point(point), options(options), color(color), alpha(alpha),
+     targetPoint(targetPoint) {
+      origPoint = point;
+    }
+
+    void setBBox(const BBox &bbox) {
+      textRect = Rect(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+      origRect = textRect;
+    }
+
+    const Rect &rect() const override {
+      return textRect;
+    }
+
+    void setRect(const Rect &r) override {
+      textRect = r;
+
+      double dx = textRect.xmin() - origRect.xmin();
+      double dy = textRect.ymin() - origRect.ymin();
+
+      point = Point(origPoint.x + dx, origPoint.y + dy);
+    }
+
+    QString             str;
+    Point               point;
+    Point               origPoint;
+    CQChartsTextOptions options;
+    QColor              color;
+    Alpha               alpha;
+    Rect                textRect;
+    Rect                origRect;
+    Point               targetPoint;
+  };
+
+  void addDrawText(DrawText *drawText) const {
+    drawTexts_.push_back(drawText);
+  }
+
+ private:
+  using DrawTexts = std::vector<DrawText *>;
+
+  mutable DrawTexts drawTexts_;
 };
 
 #endif

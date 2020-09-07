@@ -4,6 +4,10 @@
 #include <CInterval.h>
 #include <map>
 
+/*!
+ * \brief Grid for Values in Cells by Buckets/Intervals
+ * \ingroup Charts
+ */
 class CQChartsGridCell {
  public:
   using Point    = CQChartsGeom::Point;

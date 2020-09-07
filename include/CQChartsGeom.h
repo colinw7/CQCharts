@@ -1229,6 +1229,10 @@ class Range {
 
 namespace CQChartsGeom {
 
+/*!
+ * \brief Polygon class
+ * \ingroup Charts
+ */
 class Polygon {
  public:
   using Point = CQChartsGeom::Point;
@@ -2320,6 +2324,10 @@ class Point3D {
   double z { 0 };
 };
 
+/*!
+ * \brief Range 3D class
+ * \ingroup Charts
+ */
 class Range3D {
  public:
   Range3D() = default;
@@ -2370,6 +2378,10 @@ class Range3D {
   double x1_ { 0 }, y1_ { 0 }, z1_ { 0 }, x2_ { 0 }, y2_ { 0 }, z2_ { 0 };
 };
 
+/*!
+ * \brief Polygon 3D class
+ * \ingroup Charts
+ */
 class Polygon3D {
  public:
   using Points = std::vector<Point3D>;

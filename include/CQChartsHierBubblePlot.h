@@ -491,7 +491,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *) const override;
+  void execDrawForeground(PaintDevice *) const override;
 
   //---
 
@@ -538,7 +538,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   void transformNodes(HierNode *hier) const;
 
-  void drawBounds(CQChartsPaintDevice *device, HierNode *hier) const;
+  void drawBounds(PaintDevice *device, HierNode *hier) const;
 
   //---
 

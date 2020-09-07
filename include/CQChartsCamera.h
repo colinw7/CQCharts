@@ -11,6 +11,10 @@ class CQChartsPlot3D;
 
 //---
 
+/*!
+ * \brief XY Plane for 3D
+ * \ingroup Charts
+ */
 class CQChartsXYPlane {
  public:
   CQChartsXYPlane(double z=0.5, bool relative=true) :
@@ -32,6 +36,10 @@ class CQChartsXYPlane {
 
 //---
 
+/*!
+ * \brief 3D Camera class
+ * \ingroup Charts
+ */
 class CQChartsCamera {
  public:
   using Point3D = CQChartsGeom::Point3D;

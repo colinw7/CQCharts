@@ -90,6 +90,7 @@ CQChartsScatterPlot.cpp \
 CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
+CQChartsWordCloudPlot.cpp \
 CQChartsXYPlot.cpp \
 \
 CQChartsLayer.cpp \
@@ -104,6 +105,9 @@ CQChartsRotatedTextBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
 CQChartsObj.cpp \
 CQChartsDataLabel.cpp \
+\
+CQChartsWordCloud.cpp \
+CQChartsRectPlacer.cpp \
 \
 CQChartsAxis.cpp \
 CQChartsAxisRug.cpp \
@@ -411,6 +415,7 @@ HEADERS += \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \
 ../include/CQChartsTreeMapPlot.h \
+../include/CQChartsWordCloudPlot.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CQChartsLayer.h \
@@ -425,6 +430,9 @@ HEADERS += \
 ../include/CQChartsTextBoxObj.h \
 ../include/CQChartsObj.h \
 ../include/CQChartsDataLabel.h \
+\
+../include/CQChartsWordCloud.h \
+../include/CQChartsRectPlacer.h \
 \
 ../include/CQChartsAxis.h \
 ../include/CQChartsAxisRug.h \

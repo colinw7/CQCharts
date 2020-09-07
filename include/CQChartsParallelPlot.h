@@ -88,7 +88,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
@@ -135,7 +135,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
  private:
   const Plot* plot_  { nullptr };
@@ -228,12 +228,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool hasFgAxes() const override;
 
-  void drawFgAxes(CQChartsPaintDevice *device) const override;
+  void drawFgAxes(PaintDevice *device) const override;
 
   void postDraw() override;
 
-  void setObjRange       (CQChartsPaintDevice *device);
-  void setNormalizedRange(CQChartsPaintDevice *device);
+  void setObjRange       (PaintDevice *device);
+  void setNormalizedRange(PaintDevice *device);
 
  protected:
   using LineObj  = CQChartsParallelLineObj;

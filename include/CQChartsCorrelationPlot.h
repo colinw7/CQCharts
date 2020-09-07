@@ -70,10 +70,10 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
   Size calcTextSize() const;
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawCellLabel(CQChartsPaintDevice *device, const QString &str);
-  void drawCellLabel(CQChartsPaintDevice *device, const QString &str,
+  void drawCellLabel(PaintDevice *device, const QString &str);
+  void drawCellLabel(PaintDevice *device, const QString &str,
                      const BBox &rect, double fontInc=0.0);
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
@@ -196,7 +196,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   Range calcRange() const override;
 
-  void preDrawObjs(CQChartsPaintDevice *device) const override;
+  void preDrawObjs(PaintDevice *device) const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -212,7 +212,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *device) const override;
+  void execDrawForeground(PaintDevice *device) const override;
 
   //---
 
@@ -240,8 +240,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void addCellObj(int row, int col, double x, double y, double dx, double dy, double value,
                   const QModelIndex &ind, PlotObjs &objs) const;
 
-  void drawXLabels(CQChartsPaintDevice *device) const;
-  void drawYLabels(CQChartsPaintDevice *device) const;
+  void drawXLabels(PaintDevice *device) const;
+  void drawYLabels(PaintDevice *device) const;
 
  private:
   CQChartsFilterModel*      correlationModel_  { nullptr }; //!< correlation model

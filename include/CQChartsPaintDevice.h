@@ -10,6 +10,10 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsImage;
 
+/*!
+ * \brief Abstract Base Class for Painter
+ * \ingroup Charts
+ */
 class CQChartsPaintDevice {
  public:
   enum class Type {

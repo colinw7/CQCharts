@@ -8,6 +8,10 @@
 class CQChartsPlot;
 class CQChartsPaintDevice;
 
+/*!
+ * \brief Contour Data Object
+ * \ingroup Charts
+ */
 class CQChartsContour : public QObject {
   Q_OBJECT
 

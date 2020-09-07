@@ -9,6 +9,10 @@ class CQChartsPlot;
 class CQTabSplit;
 class QTextBrowser;
 
+/*!
+ * \brief Widget to show View/Plot errors
+ * \ingroup Charts
+ */
 class CQChartsViewError : public QFrame {
   Q_OBJECT
 

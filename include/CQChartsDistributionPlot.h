@@ -10,6 +10,10 @@ class CQChartsDensity;
 
 //---
 
+/*!
+ * \brief Distribution Bae Value Data
+ * \ingroup Charts
+ */
 struct CQChartsDistributionBarValue {
   using RangeValue = CQChartsGeom::RangeValue;
 
@@ -141,6 +145,10 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   using ColorSize  = std::pair<CQChartsColor, double>;
   using ColorSizes = std::vector<ColorSize>;
 
+  /*!
+   * \brief Bar Color Data (for multiple stacked bars)
+   * \ingroup Charts
+   */
   struct ColorData {
     ColorCount colorCount;
     ColorSet   colorSet;
@@ -204,11 +212,11 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
-  void drawRug(CQChartsPaintDevice *device) const;
+  void drawRug(PaintDevice *device) const;
 
   //---
 
@@ -223,7 +231,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void drawRect(CQChartsPaintDevice *device, const BBox &pbbox, const CQChartsColor &color,
+  void drawRect(PaintDevice *device, const BBox &pbbox, const CQChartsColor &color,
                 bool useLine) const;
 
   void calcBarPenBrush(const CQChartsColor &color, bool useLine, CQChartsPenBrush &barPenBrush,
@@ -272,6 +280,10 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   using Points = std::vector<Point>;
 
+  /*!
+   * \brief Bucket count data
+   * \ingroup Charts
+   */
   struct BucketCount {
     Bucket bucket;
     int    n;
@@ -283,6 +295,10 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   using BucketCounts = std::vector<BucketCount>;
 
+  /*!
+   * \brief Density Point Daya
+   * \ingroup Charts
+   */
   struct Data {
     Points       points;
     double       xmin { 0.0 };
@@ -324,13 +340,13 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
-  void drawFg(CQChartsPaintDevice *device) const override;
+  void drawFg(PaintDevice *device) const override;
 
-  void drawStatsLines(CQChartsPaintDevice *device) const;
+  void drawStatsLines(PaintDevice *device) const;
 
-  void drawRug(CQChartsPaintDevice *device) const;
+  void drawRug(PaintDevice *device) const;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
@@ -386,7 +402,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device) override;
+  void draw(PaintDevice *device) override;
 
   //---
 
@@ -545,6 +561,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     SUM
   };
 
+  /*!
+   * \brief Filter Data (for Push/Pop)
+   * \ingroup Charts
+   */
   struct Filter {
     Filter(int groupInd, double min, double max) :
      groupInd(groupInd), minValue(min), maxValue(max) {
@@ -732,9 +752,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *) const override;
+  void execDrawForeground(PaintDevice *) const override;
 
-  void drawStatsLines(CQChartsPaintDevice *) const;
+  void drawStatsLines(PaintDevice *) const;
 
   //---
 
@@ -757,6 +777,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   //---
 
  public:
+  /*!
+   * \brief Model Index Variant Data
+   * \ingroup Charts
+   */
   struct VariantInd {
     QVariant   var;
     ModelIndex ind;
@@ -769,6 +793,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   using VariantInds = std::vector<VariantInd>;
 
+  /*!
+   * \brief Model Index Variant Set Data
+   * \ingroup Charts
+   */
   struct VariantIndsData {
     VariantInds inds;         //!< model indices
     double      min  { 0.0 }; //!< min value
@@ -814,6 +842,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using Inds         = std::vector<ModelIndex>;
   using BucketValues = std::map<Bucket, VariantIndsData>;
 
+  /*!
+   * \brief Bucketed Value Set Data
+   * \ingroup Charts
+   */
   struct Values {
     Inds              inds;                      //!< value indices
     CQChartsValueSet* valueSet      { nullptr }; //!< value set
@@ -918,6 +950,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void popTopSlot();
 
  private:
+  /*!
+   * \brief Density Data
+   * \ingroup Charts
+   */
   struct DensityData {
     double offset     { 0.0 };   //!< offset
     int    numSamples { 100 };   //!< num samples
@@ -925,15 +961,27 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     bool   bars       { false }; //!< show bars
   };
 
+  /*!
+   * \brief Scatter Point Data
+   * \ingroup Charts
+   */
   struct ScatterData {
     double factor { 1.0 }; //!< factor
   };
 
+  /*!
+   * \brief Dot Line Data
+   * \ingroup Charts
+   */
   struct DotLineData {
     bool           enabled { false }; //!< shown
     CQChartsLength width   { "3px" }; //!< width
   };
 
+  /*!
+   * \brief Group Data (Values. Bucketer and Range)
+   * \ingroup Charts
+   */
   struct GroupData {
     GroupValues      groupValues;      //!< grouped value sets
     GroupBucketer    groupBucketer;    //!< group bucketer

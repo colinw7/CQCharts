@@ -14,6 +14,10 @@ class QAbstractItemModel;
 class QGridLayout;
 class QLabel;
 
+/*!
+ * \brief Widget to allow User to change data of Columns of Model
+ * \ingroup Charts
+ */
 class CQChartsModelColumnDataControl : public QFrame {
   Q_OBJECT
 

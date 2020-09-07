@@ -276,6 +276,91 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect,
 
 //------
 
+CQChartsGeom::BBox
+calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
+                    const CQChartsTextOptions &options, bool centered, double dx, double dy)
+{
+  auto text1 = clipTextToLength(device, text, options.clipLength);
+
+  //---
+
+  // handle html separately
+  if (options.html) {
+    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
+
+    auto sw = device->pixelToWindowWidth (psize.width () + 4);
+    auto sh = device->pixelToWindowHeight(psize.height() + 4);
+
+    BBox rect(point.x - sw/2.0, point.y - sh/2.0,
+              point.x + sw/2.0, point.y + sh/2.0);
+
+    return rect;
+  }
+
+  QFontMetricsF fm(device->font());
+
+  double ta = fm.ascent();
+  double td = fm.descent();
+
+  double tw = fm.width(text1);
+
+  //---
+
+  if (CMathUtil::isZero(options.angle.value())) {
+    // calc dx : point is left or hcenter of text (
+    // drawContrastText and drawSimpleText wants left aligned
+    double dx1 = 0.0, dy1 = 0.0; // pixel
+
+    if (! centered) { // point is left
+      if      (options.align & Qt::AlignHCenter) dx1 = -tw/2.0;
+      else if (options.align & Qt::AlignRight  ) dx1 = -tw - dx;
+    }
+    else {            // point is center
+      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + dx;
+      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - dx;
+    }
+
+    if      (options.align & Qt::AlignTop    ) dy1 =  ta + dy;
+    else if (options.align & Qt::AlignBottom ) dy1 = -td - dy;
+    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
+
+    auto tp = point;
+
+    if (dx1 != 0.0 || dy1 != 0.0) {
+      // apply delta (pixels)
+      auto pp = device->windowToPixel(tp);
+
+      tp = device->pixelToWindow(Point(pp.x + dx1, pp.y + dy1));
+    }
+
+    auto pp = device->windowToPixel(tp);
+
+    BBox prect(pp.x, pp.y - ta, pp.x + tw, pp.y + td);
+
+    return device->pixelToWindow(prect);
+  }
+  else {
+    // calc dx : point is left or hcenter of text
+    // CQChartsRotatedText::draw wants center aligned
+    auto tp = point;
+
+    if (! centered) {
+      double dx1 = -tw/2.0;
+
+      auto pp = device->windowToPixel(tp);
+
+      tp = device->pixelToWindow(Point(pp.x + dx1, pp.y));
+    }
+
+    auto pp = device->windowToPixel(tp);
+
+    BBox prect(pp.x, pp.y - ta, pp.x + tw, point.y + td);
+
+    return CQChartsRotatedText::calcBBox(tp.x, tp.y, text1, device->font(),
+                                         options, 0, /*alignBox*/true);
+  }
+}
+
 void
 drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
                 const CQChartsTextOptions &options, bool centered, double dx, double dy)

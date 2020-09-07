@@ -27,6 +27,10 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
 
 CQCHARTS_NAMED_SHAPE_DATA(Hull, hull)
 
+/*!
+ * \brief Point Plot Base Class for Scatter/XY Plots
+ * \ingroup Charts
+ */
 class CQChartsPointPlot : public CQChartsGroupPlot,
  public CQChartsObjBestFitShapeData<CQChartsPointPlot>,
  public CQChartsObjHullShapeData   <CQChartsPointPlot>,
@@ -242,7 +246,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   void drawXAxis(PaintDevice *device) const override;
 
  public:
-  void drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData,
+  void drawBestFit(PaintDevice *device, const CQChartsFitData &fitData,
                    const ColorInd &ic) const;
 
  public slots:

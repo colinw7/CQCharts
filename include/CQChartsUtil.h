@@ -468,4 +468,12 @@ QFont scaleFontSize(const QFont &font, double s, double minSize=4.0, double maxS
 
 //------
 
+namespace CQChartsUtil {
+
+Point nearestRectPoint(const BBox &bbox, const Point &p);
+
+}
+
+//------
+
 #endif

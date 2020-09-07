@@ -14,6 +14,10 @@ using CQChartsSelectionModelBase = CQModelViewSelectionModel;
 using CQChartsSelectionModelBase = QItemSelectionModel;
 #endif
 
+/*!
+ * \brief Selection Model wrapper for Model
+ * \ingroup Charts
+ */
 class CQChartsSelectionModel : public CQChartsSelectionModelBase {
  public:
   CQChartsSelectionModel(QAbstractItemView *view, CQChartsModelData *modelData);

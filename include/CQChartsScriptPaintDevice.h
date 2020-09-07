@@ -3,6 +3,10 @@
 
 #include <CQChartsHtmlPaintDevice.h>
 
+/*!
+ * \brief Paint Device to output graphics as JavaScript program
+ * \ingroup Charts
+ */
 class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
  public:
   CQChartsScriptPaintDevice(CQChartsView *view, std::ostream &os);

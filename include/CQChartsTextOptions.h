@@ -6,6 +6,10 @@
 #include <CQChartsLength.h>
 #include <QString>
 
+/*!
+ * \brief Text Options Data
+ * \ingroup Charts
+ */
 struct CQChartsTextOptions {
   enum ValueType {
     ANGLE       = (1<<0),

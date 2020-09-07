@@ -3,6 +3,10 @@
 
 #include <CMathUtil.h>
 
+/*!
+ * \brief Arc Data class
+ * \ingroup Charts
+ */
 class CQChartsArcData {
  public:
   using Point = CQChartsGeom::Point;

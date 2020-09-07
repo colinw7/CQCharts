@@ -112,7 +112,7 @@ class CQChartsScatterPoint3DObj : public CQChartsPlot3DObj {
 
   //---
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
   //---
 
@@ -344,14 +344,14 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(CQChartsPaintDevice *device) const override;
+  void execDrawBackground(PaintDevice *device) const override;
 
-  void preDrawObjs (CQChartsPaintDevice *) const override;
-  void postDrawObjs(CQChartsPaintDevice *) const override;
+  void preDrawObjs (PaintDevice *) const override;
+  void postDrawObjs(PaintDevice *) const override;
 
   bool hasForeground() const override;
 
-  void execDrawForeground(CQChartsPaintDevice *device) const override;
+  void execDrawForeground(PaintDevice *device) const override;
 
  private:
   void addObjs() const;
@@ -370,13 +370,13 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   void initGroupBestFit(int groupInd) const;
 
-  void drawBestFit(CQChartsPaintDevice *device) const;
+  void drawBestFit(PaintDevice *device) const;
 
   //---
 
   void initGroupStats(int groupInd) const;
 
-  void drawStatsLines(CQChartsPaintDevice *device) const;
+  void drawStatsLines(PaintDevice *device) const;
 
   //----
 
@@ -442,12 +442,12 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   FontSizeData   fontSizeData_;   //!< font size column data
 
   // options
-  bool drawSymbols_ { true  }; //! draw symbols
-  bool drawLines_   { false }; //! draw lines
-  bool drawBars_    { false }; //! draw bars
-  bool fillUnder_   { false }; //! fill under
+  bool drawSymbols_ { true  }; //!< draw symbols
+  bool drawLines_   { false }; //!< draw lines
+  bool drawBars_    { false }; //!< draw bars
+  bool fillUnder_   { false }; //!< fill under
 
-  double barSize_ { 0.01 }; //! bar size
+  double barSize_ { 0.01 }; //!< bar size
 
   // group data
   GroupNameValues groupNameValues_; //!< group name values

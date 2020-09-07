@@ -7,6 +7,10 @@
 
 class CQChartsPlot;
 
+/*!
+ * \brief Class for Model Index (wrapper aroung QModelIndex using CQChartsColumn)
+ * \ingroup Charts
+ */
 class CQChartsModelIndex {
  public:
   static void registerMetaType();

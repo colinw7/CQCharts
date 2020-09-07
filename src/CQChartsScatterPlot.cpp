@@ -1191,7 +1191,7 @@ addPointObjects(PlotObjs &objs) const
 
           bool ok;
 
-          QVariant imageVar = modelValue(imageModelInd, ok);
+          auto imageVar = modelValue(imageModelInd, ok);
 
           if (ok)
             image = CQChartsVariant::toImage(imageVar, ok);

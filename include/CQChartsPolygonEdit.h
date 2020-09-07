@@ -121,6 +121,10 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
 
 //------
 
+/*!
+ * \brief Polygon Edit container Widget
+ * \ingroup Charts
+ */
 class CQChartsPolygonEditPointsFrame : public QFrame {
   Q_OBJECT
 

@@ -517,6 +517,10 @@ class CQChartsPlotKey : public CQChartsKey {
 
 //------
 
+/*!
+ * \brief Plot Key which shows unique values in column
+ * \ingroup Charts
+ */
 class CQChartsColumnKey : public CQChartsPlotKey {
   Q_OBJECT
 

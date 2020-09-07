@@ -10,6 +10,10 @@
 
 class CQChartsPlot3DObj;
 
+/*!
+ * \brief 3D Plot Type Base class
+ * \ingroup Charts
+ */
 class CQChartsPlot3DType : public CQChartsGroupPlotType {
  public:
   CQChartsPlot3DType();
@@ -22,6 +26,10 @@ class CQChartsText3DObj;
 class CQChartsPolyline3DObj;
 class CQChartsPolygon3DObj;
 
+/*!
+ * \brief 3D Plot Base class
+ * \ingroup Charts
+ */
 class CQChartsPlot3D : public CQChartsGroupPlot {
   Q_OBJECT
 
@@ -122,7 +130,7 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
   //---
 
-  void drawBackgroundRects(CQChartsPaintDevice *device) const override;
+  void drawBackgroundRects(PaintDevice *device) const override;
 
   void addAxis(const Column &xColumn, const Column &yColumn, const Column &zColumn) const;
 
@@ -141,7 +149,7 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
   void addPointObj  (const Point3D &p, CQChartsPlot3DObj *obj);
   void addFgPointObj(const Point3D &p, CQChartsPlot3DObj *obj);
 
-  void drawPointObjs(CQChartsPaintDevice *device) const;
+  void drawPointObjs(PaintDevice *device) const;
 
   //---
 
@@ -179,15 +187,15 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
     CInterval interval;               //!< interval data
   };
 
-  Range3D         range3D_; //! 3D range
+  Range3D         range3D_; //!< 3D range
   CQChartsOptReal zmin_;    //!< zmin override
   CQChartsOptReal zmax_;    //!< zmax override
 
-  Camera* camera_    { nullptr };      //! camera
-  bool    gridLines_ { true };         //! show axis grid lines
-  Axis    xAxis_     { Axis::Dir::X }; //! x axis
-  Axis    yAxis_     { Axis::Dir::Y }; //! y axis
-  Axis    zAxis_     { Axis::Dir::Z }; //! z axis
+  Camera* camera_    { nullptr };      //!< camera
+  bool    gridLines_ { true };         //!< show axis grid lines
+  Axis    xAxis_     { Axis::Dir::X }; //!< x axis
+  Axis    yAxis_     { Axis::Dir::Y }; //!< y axis
+  Axis    zAxis_     { Axis::Dir::Z }; //!< z axis
 
   double boxZMin_ { 0.0 };
   double boxZMax_ { 0.0 };
@@ -202,6 +210,10 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
 //---
 
+/*!
+ * \brief 3D Plot Object Base class
+ * \ingroup Charts
+ */
 class CQChartsPlot3DObj : public CQChartsPlotObj {
  public:
   using Point3D   = CQChartsGeom::Point3D;
@@ -222,14 +234,18 @@ class CQChartsPlot3DObj : public CQChartsPlotObj {
   void setDrawBBox(const BBox &b) { drawBBox_ = b; }
 
  private:
-  const CQChartsPlot3D* plot3D_ { nullptr }; //! parent plot
-  Point3D               refPoint_;           //! reference point
-  CQChartsPenBrush      penBrush_;           //! pen/brush
-  mutable BBox          drawBBox_;           //! draw bounding box
+  const CQChartsPlot3D* plot3D_ { nullptr }; //!< parent plot
+  Point3D               refPoint_;           //!< reference point
+  CQChartsPenBrush      penBrush_;           //!< pen/brush
+  mutable BBox          drawBBox_;           //!< draw bounding box
 };
 
 //---
 
+/*!
+ * \brief 3D Plot Line Object class
+ * \ingroup Charts
+ */
 class CQChartsLine3DObj : public CQChartsPlot3DObj {
  public:
   CQChartsLine3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &p2,
@@ -249,7 +265,7 @@ class CQChartsLine3DObj : public CQChartsPlot3DObj {
 
   QString typeName() const override { return "line"; }
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
  private:
   Point3D p1_;                //!< start point
@@ -260,6 +276,10 @@ class CQChartsLine3DObj : public CQChartsPlot3DObj {
 
 //---
 
+/*!
+ * \brief 3D Plot Text Object class
+ * \ingroup Charts
+ */
 class CQChartsText3DObj : public CQChartsPlot3DObj {
  public:
   CQChartsText3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &p2,
@@ -291,7 +311,7 @@ class CQChartsText3DObj : public CQChartsPlot3DObj {
 
   QString typeName() const override { return "line"; }
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
  private:
   Point3D             p1_;                  //!< point
@@ -306,6 +326,10 @@ class CQChartsText3DObj : public CQChartsPlot3DObj {
 
 //---
 
+/*!
+ * \brief 3D Plot Polyline Object class
+ * \ingroup Charts
+ */
 class CQChartsPolyline3DObj : public CQChartsPlot3DObj {
  public:
   CQChartsPolyline3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly=Polygon3D());
@@ -316,7 +340,7 @@ class CQChartsPolyline3DObj : public CQChartsPlot3DObj {
 
   void addPoint(const Point3D &p) { poly_.addPoint(p); }
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
  private:
   Polygon3D poly_; //!< polygon
@@ -324,6 +348,10 @@ class CQChartsPolyline3DObj : public CQChartsPlot3DObj {
 
 //---
 
+/*!
+ * \brief 3D Plot Polygon Object class
+ * \ingroup Charts
+ */
 class CQChartsPolygon3DObj : public CQChartsPlot3DObj {
  public:
   CQChartsPolygon3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly=Polygon3D());
@@ -340,7 +368,7 @@ class CQChartsPolygon3DObj : public CQChartsPlot3DObj {
   const QColor &color() const { return color_; }
   void setColor(const QColor &v) { color_ = v; }
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
   bool checkVisible() const;
 
@@ -352,6 +380,10 @@ class CQChartsPolygon3DObj : public CQChartsPlot3DObj {
 
 //---
 
+/*!
+ * \brief 3D Plot Axis Object class
+ * \ingroup Charts
+ */
 class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
  public:
   struct SidePolygon {
@@ -416,7 +448,7 @@ class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
     labelTexts_.push_back(Text(p, text, poly));
   }
 
-  void postDraw(CQChartsPaintDevice *device) override;
+  void postDraw(PaintDevice *device) override;
 
  private:
   SidePolygons sidePolygons_;

@@ -83,11 +83,11 @@ class CQChartsContourPlot : public CQChartsPlot,
   bool hasBackground() const override;
   bool hasForeground() const override;
 
-  void execDrawBackground(CQChartsPaintDevice *device) const override;
-  void execDrawForeground(CQChartsPaintDevice *device) const override;
+  void execDrawBackground(PaintDevice *device) const override;
+  void execDrawForeground(PaintDevice *device) const override;
 
  private:
-  void drawContour(CQChartsPaintDevice *) const;
+  void drawContour(PaintDevice *) const;
 
  private:
   CQChartsContour *contour_          { nullptr };

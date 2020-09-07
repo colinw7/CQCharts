@@ -17,6 +17,12 @@ QFont getMonospaceFont();
 
 void setTextColor(QWidget *w, const QColor &c);
 
+}
+
+//---
+
+namespace CQChartsWidgetUtil {
+
 inline void connectDisconnect(bool b, QObject *from, const char *fromName,
                               QObject *to, const char *toName) {
   if (b)
@@ -25,6 +31,10 @@ inline void connectDisconnect(bool b, QObject *from, const char *fromName,
     QObject::disconnect(from, fromName, to, toName);
 }
 
+/*!
+ * \brief RAII Class to Auto Connect/Disconnect to signal/slot
+ * \ingroup Charts
+ */
 class AutoDisconnect {
  public:
   AutoDisconnect(QObject *from, const char *fromName, QObject *to, const char *toName) :
@@ -78,6 +88,10 @@ class CQChartsDialogButtons : public QFrame {
 
 //---
 
+/*!
+ * \brief Widget Action wrapped for Menus
+ * \ingroup Charts
+ */
 class CQChartsWidgetAction : public QWidgetAction {
  public:
   CQChartsWidgetAction(QWidget *w) :

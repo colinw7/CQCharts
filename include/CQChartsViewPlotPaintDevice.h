@@ -6,6 +6,10 @@
 
 class CQHandDrawnPainter;
 
+/*!
+ * \brief Paint Device for drawing on Plot or View
+ * \ingroup Charts
+ */
 class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
  public:
   CQChartsViewPlotPaintDevice(CQChartsView *view, QPainter *painter);
@@ -90,6 +94,10 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
 //---
 
+/*!
+ * \brief Paint Device for drawing on Widget (pixel only)
+ * \ingroup Charts
+ */
 class CQChartsPixelPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
   CQChartsPixelPaintDevice(QPainter *painter);
@@ -101,6 +109,10 @@ class CQChartsPixelPaintDevice : public CQChartsViewPlotPaintDevice {
 
 //---
 
+/*!
+ * \brief Paint Device for drawing on View
+ * \ingroup Charts
+ */
 class CQChartsViewPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
   CQChartsViewPaintDevice(CQChartsView *view, QPainter *painter);
@@ -110,6 +122,10 @@ class CQChartsViewPaintDevice : public CQChartsViewPlotPaintDevice {
 
 //---
 
+/*!
+ * \brief Paint Device for drawing on Plot
+ * \ingroup Charts
+ */
 class CQChartsPlotPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
   CQChartsPlotPaintDevice(CQChartsPlot *plot, QPainter *painter);

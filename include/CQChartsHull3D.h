@@ -384,10 +384,10 @@ class CQChartsHull3D {
 #endif
 
    private:
-    PVertex endpts_[2];
-    PFace   adjface_[2];
-    PFace   newface_; /* pointer to incident cone face. */
-    bool    removed_; /* true iff edge should be removed. */
+    PVertex endpts_[2];  //!< end points
+    PFace   adjface_[2]; //!< adjacent faces
+    PFace   newface_;    //!< pointer to incident cone face.
+    bool    removed_;    //!< true iff edge should be removed.
   };
 
   //-------

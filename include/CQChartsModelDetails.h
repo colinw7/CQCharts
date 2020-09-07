@@ -112,6 +112,8 @@ class CQChartsModelColumnDetails {
   using Details       = CQChartsModelDetails;
   using ColumnType    = CQBaseModelType;
   using TableDrawType = CQChartsColumnType::DrawType;
+  using ValueCount    = std::pair<QVariant, int>;
+  using ValueCounts   = std::vector<ValueCount>;
 
  public:
   CQChartsModelColumnDetails(Details *details, const CQChartsColumn &column);
@@ -164,6 +166,8 @@ class CQChartsModelColumnDetails {
 
   QVariantList uniqueValues() const;
   QVariantList uniqueCounts() const;
+
+  ValueCounts uniqueValueCounts() const;
 
   int uniqueId(const QVariant &v) const;
 

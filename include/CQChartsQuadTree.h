@@ -31,7 +31,7 @@
 template<typename DATA, typename RECT, typename T=double>
 class CQChartsQuadTree {
  public:
-  using DataList = std::list<DATA*>;
+  using DataList = std::list<DATA *>;
 
  public:
   explicit CQChartsQuadTree(const RECT &rect=RECT()) :
@@ -52,13 +52,27 @@ class CQChartsQuadTree {
 
  public:
   // reset quad tree
-  void reset() {
+  void reset(bool destroy=false) {
+    if (destroy) {
+      for (const auto &data : dataList_)
+        delete data;
+    }
+
     dataList_.clear();
 
-    delete bl_tree_; bl_tree_ = 0;
-    delete br_tree_; br_tree_ = 0;
-    delete tl_tree_; tl_tree_ = 0;
-    delete tr_tree_; tr_tree_ = 0;
+    //---
+
+    if (destroy && bl_tree_) {
+      bl_tree_->reset(true);
+      br_tree_->reset(true);
+      tl_tree_->reset(true);
+      tr_tree_->reset(true);
+    }
+
+    delete bl_tree_; bl_tree_ = nullptr;
+    delete br_tree_; br_tree_ = nullptr;
+    delete tl_tree_; tl_tree_ = nullptr;
+    delete tr_tree_; tr_tree_ = nullptr;
   }
 
   bool isEmpty() const {
@@ -101,7 +115,7 @@ class CQChartsQuadTree {
   CQChartsQuadTree *trTree() const { return tr_tree_; }
 
   // has child trees
-  bool hasChildren() const { return bl_tree_ != 0; }
+  bool hasChildren() const { return bl_tree_ != nullptr; }
 
   //----------
 
@@ -370,6 +384,41 @@ class CQChartsQuadTree {
     }
   }
 
+  //---
+
+  // check if data items touching the specified bounding box
+  bool isDataTouchingRect(const RECT &rect) const {
+    if (! overlaps(rect))
+      return false;
+
+    // if tree completely inside then something must touch
+    if (inside(rect_, rect))
+      return true;
+
+    for (auto data : dataList_) {
+      const RECT &rect1 = data->rect();
+
+      if (overlaps(rect1, rect))
+        return true;
+    }
+
+    if (bl_tree_) {
+      if (bl_tree_->isDataTouchingRect(rect))
+        return true;
+
+      if (br_tree_->isDataTouchingRect(rect))
+        return true;
+
+      if (tl_tree_->isDataTouchingRect(rect))
+        return true;
+
+      if (tr_tree_->isDataTouchingRect(rect))
+        return true;
+    }
+
+    return false;
+  }
+
   //-------
 
  public:
@@ -416,11 +465,43 @@ class CQChartsQuadTree {
   //-------
 
  public:
+  // get data items which have the specified point inside them
+  bool contains(const RECT &rect) const {
+    if (! overlaps(rect))
+      return false;
+
+    for (auto data : dataList_) {
+      const RECT &rect1 = data->rect();
+
+      if (equals(rect1, rect))
+        return true;
+    }
+
+    if (bl_tree_) {
+      if (bl_tree_->contains(rect))
+        return true;
+
+      if (br_tree_->contains(rect))
+        return true;
+
+      if (tl_tree_->contains(rect))
+        return true;
+
+      if (tr_tree_->contains(rect))
+        return true;
+    }
+
+    return false;
+  }
+
+  //-------
+
+ public:
   // get tree which has the specified point inside it
   const CQChartsQuadTree *treeAtPoint(T x, T y) const {
     if (x < rect_.getXMin() || x > rect_.getXMax() ||
         y < rect_.getYMin() || y > rect_.getYMax())
-      return 0;
+      return nullptr;
 
     for (auto data : dataList_) {
       const RECT &rect = data->rect();
@@ -431,12 +512,12 @@ class CQChartsQuadTree {
     }
 
     if (bl_tree_) {
-      const CQChartsQuadTree *tree = 0;
+      const CQChartsQuadTree *tree = nullptr;
 
-      if ((tree = bl_tree_->treeAtPoint(x, y)) != 0) return tree;
-      if ((tree = br_tree_->treeAtPoint(x, y)) != 0) return tree;
-      if ((tree = tl_tree_->treeAtPoint(x, y)) != 0) return tree;
-      if ((tree = tr_tree_->treeAtPoint(x, y)) != 0) return tree;
+      if ((tree = bl_tree_->treeAtPoint(x, y)) != nullptr) return tree;
+      if ((tree = br_tree_->treeAtPoint(x, y)) != nullptr) return tree;
+      if ((tree = tl_tree_->treeAtPoint(x, y)) != nullptr) return tree;
+      if ((tree = tr_tree_->treeAtPoint(x, y)) != nullptr) return tree;
     }
 
     return this;
@@ -484,6 +565,16 @@ class CQChartsQuadTree {
   static bool overlaps(const RECT &rect1, const RECT &rect2) {
     return ((rect1.getXMax() >= rect2.getXMin() && rect1.getXMin() <= rect2.getXMax()) &&
             (rect1.getYMax() >= rect2.getYMin() && rect1.getYMin() <= rect2.getYMax()));
+  }
+
+  // is rect1 equal to rect2
+  static bool equals(const RECT &rect1, const RECT &rect2) {
+    auto realEq = [&](double r1, double r2) { return std::abs(r2 - r1) < 1E-6; };
+
+    return (realEq(rect1.getXMin(), rect2.getXMin()) &&
+            realEq(rect1.getYMin(), rect2.getYMin()) &&
+            realEq(rect1.getXMax(), rect2.getXMax()) &&
+            realEq(rect1.getYMin(), rect2.getYMin()));
   }
 
   //-------
@@ -659,7 +750,7 @@ class CQChartsQuadTree {
   }
 
  private:
-  CQChartsQuadTree* parent_  { nullptr }; //!< parent tree (0 if root)
+  CQChartsQuadTree* parent_  { nullptr }; //!< parent tree (nullptr if root)
   RECT              rect_;                //!< bounding rect of tree
   DataList          dataList_;            //!< data list
   CQChartsQuadTree* bl_tree_ { nullptr }; //!< bottom left sub tree

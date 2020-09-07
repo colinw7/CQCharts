@@ -788,8 +788,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // axis side data
   using AxisSideBBox = std::map<XYSide,BBox>;
 
-  mutable AxisSideBBox xAxisSideBBox_; // top or bottom
-  mutable AxisSideBBox yAxisSideBBox_; // left or right
+  mutable AxisSideBBox xAxisSideBBox_; //!< top or bottom
+  mutable AxisSideBBox yAxisSideBBox_; //!< left or right
 };
 
 #endif

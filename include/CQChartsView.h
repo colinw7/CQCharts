@@ -1369,6 +1369,10 @@ class CQChartsView : public QFrame,
 
 //------
 
+/*!
+ * \brief View Plot Splitter to allow interactive resize
+ * \ingroup Charts
+ */
 class CQChartsSplitter : public QFrame {
   Q_OBJECT
 

@@ -3,6 +3,10 @@
 
 #include <CQChartsPaintDevice.h>
 
+/*!
+ * \brief Paint Device to output Html Web Page
+ * \ingroup Charts
+ */
 class CQChartsHtmlPaintDevice : public CQChartsPaintDevice {
  public:
   CQChartsHtmlPaintDevice(CQChartsView *view, std::ostream &os);

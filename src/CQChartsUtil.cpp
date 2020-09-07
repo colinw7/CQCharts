@@ -1366,3 +1366,47 @@ QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize)
 }
 
 }
+
+//------
+
+namespace CQChartsUtil {
+
+Point nearestRectPoint(const BBox &rect, const Point &pos) {
+  using PointList = std::vector<Point>;
+
+  PointList pointList;
+
+  pointList.resize(8);
+
+  int np = 0;
+
+  pointList[np] = Point(rect.getXMin(), rect.getYMin()); ++np;
+  pointList[np] = Point(rect.getXMin(), rect.getYMid()); ++np;
+  pointList[np] = Point(rect.getXMin(), rect.getYMax()); ++np;
+  pointList[np] = Point(rect.getXMid(), rect.getYMin()); ++np;
+//pointList[np] = Point(rect.getXMid(), rect.getYMid()); ++np;
+  pointList[np] = Point(rect.getXMid(), rect.getYMax()); ++np;
+  pointList[np] = Point(rect.getXMax(), rect.getYMin()); ++np;
+  pointList[np] = Point(rect.getXMax(), rect.getYMid()); ++np;
+  pointList[np] = Point(rect.getXMax(), rect.getYMax()); ++np;
+
+  auto pointPointDist = [](const Point &p1, const Point &p2) {
+    return std::hypot(p1.x - p2.x, p1.y - p2.y);
+  };
+
+  Point  rp = pointList[0];
+  double d  = pointPointDist(rp, pos);
+
+  for (int ip = 1; ip < np; ++ip) {
+    double d1 = pointPointDist(pointList[ip], pos);
+
+    if (d1 < d) {
+      rp = pointList[ip];
+      d  = d1;
+    }
+  }
+
+  return rp;
+}
+
+}

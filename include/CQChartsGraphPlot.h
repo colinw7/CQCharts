@@ -302,14 +302,18 @@ class CQChartsGraphPlotEdge {
 
 //---
 
+/*!
+ * \brief Graph Plot Graph (Edge/Node/Sub Graph container)
+ * \ingroup Charts
+ */
 class CQChartsGraphPlotGraph : public CQChartsGraphPlotNode {
  public:
   using Node  = CQChartsGraphPlotNode;
   using Nodes = std::vector<Node *>;
 
   struct DepthData {
-    Nodes  nodes;        // nodes at depth
-    double size { 0.0 }; // total size
+    Nodes  nodes;        //!< nodes at depth
+    double size { 0.0 }; //!< total size
   };
 
   using DepthNodesMap = std::map<int, DepthData>;

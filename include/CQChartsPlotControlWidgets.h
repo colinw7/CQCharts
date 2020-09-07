@@ -20,6 +20,10 @@ class QLabel;
 class QButtonGroup;
 class QGridLayout;
 
+/*!
+ * \brief Plot Property Control Container class
+ * \ingroup Charts
+ */
 class CQChartsPlotControlFrame : public QFrame {
   Q_OBJECT
 
@@ -75,6 +79,10 @@ class CQChartsPlotControlFrame : public QFrame {
 
 //---
 
+/*!
+ * \brief Plot Property Control Interface class
+ * \ingroup Charts
+ */
 class CQChartsPlotControlIFace : public QFrame {
   Q_OBJECT
 
@@ -105,6 +113,10 @@ class CQChartsPlotControlIFace : public QFrame {
 
 //---
 
+/*!
+ * \brief Plot Property Real Control class
+ * \ingroup Charts
+ */
 class CQChartsPlotRealControl : public CQChartsPlotControlIFace {
   Q_OBJECT
 
@@ -133,6 +145,10 @@ class CQChartsPlotRealControl : public CQChartsPlotControlIFace {
 
 //---
 
+/*!
+ * \brief Plot Property Integer Control class
+ * \ingroup Charts
+ */
 class CQChartsPlotIntControl : public CQChartsPlotControlIFace {
   Q_OBJECT
 
@@ -161,6 +177,10 @@ class CQChartsPlotIntControl : public CQChartsPlotControlIFace {
 
 //---
 
+/*!
+ * \brief Plot Property Time Control class
+ * \ingroup Charts
+ */
 class CQChartsPlotTimeControl : public CQChartsPlotControlIFace {
   Q_OBJECT
 
@@ -189,6 +209,10 @@ class CQChartsPlotTimeControl : public CQChartsPlotControlIFace {
 
 //---
 
+/*!
+ * \brief Plot Property Value Control class
+ * \ingroup Charts
+ */
 class CQChartsPlotValueControl : public CQChartsPlotControlIFace {
   Q_OBJECT
 

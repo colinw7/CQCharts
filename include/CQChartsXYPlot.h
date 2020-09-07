@@ -586,14 +586,14 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 
   void doSelect(SelMod selMod) override;
 
-  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
+  void draw(PaintDevice *device, const BBox &rect) const override;
 
   QBrush fillBrush() const override;
 
   Obj *plotObj() const;
 
  protected:
-  void drawLine(CQChartsPaintDevice *device, const BBox &rect) const;
+  void drawLine(PaintDevice *device, const BBox &rect) const;
 
  protected:
   Plot* plot_ { nullptr }; //!< parent plot

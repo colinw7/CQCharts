@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + sankey path id in/out consistency
+ + doxygen comments
  + key annotation (custom key)
    + key column ?
  + text placement class (quad tree, target position, align)

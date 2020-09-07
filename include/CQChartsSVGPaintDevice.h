@@ -3,6 +3,10 @@
 
 #include <CQChartsHtmlPaintDevice.h>
 
+/*!
+ * \brief Paint Device to output graphics as SVG
+ * \ingroup Charts
+ */
 class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
  public:
   CQChartsSVGPaintDevice(CQChartsView *view, std::ostream &os);

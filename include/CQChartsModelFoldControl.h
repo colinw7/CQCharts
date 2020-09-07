@@ -13,6 +13,10 @@ class QAbstractItemModel;
 class QComboBox;
 class QCheckBox;
 
+/*!
+ * \brief Widget to allow User to Fold Model Data by Column
+ * \ingroup Charts
+ */
 class CQChartsModelFoldControl : public QFrame {
   Q_OBJECT
 

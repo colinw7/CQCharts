@@ -292,7 +292,7 @@ class CQChartsPlot : public CQChartsObj,
 
   using SelMod = CQChartsSelMod;
 
-  // associated plot for overlay/y1y2
+  //! \brief associated plot for overlay/y1y2
   struct ConnectData {
     CQChartsPlot* parent  { nullptr }; //!< parent plot
     bool          x1x2    { false };   //!< is double x axis plot
@@ -317,6 +317,7 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
+  //! \brief probe value data
   struct ProbeValue {
     double  value;
     QString label;
@@ -328,6 +329,7 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
+  //! \brief probe data
   struct ProbeData {
     using Values = std::vector<ProbeValue>;
 
@@ -502,6 +504,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  //! \brief zoom data
   struct ZoomData {
     Point dataScale  { 1.0, 1.0 }; //!< data scale (zoom in x/y direction)
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
@@ -1432,6 +1435,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  //! \brief symbol type (column) data
   struct SymbolTypeData {
     Column column;             //!< symbol type column
     bool   valid    { false }; //!< symbol type valid
@@ -1449,6 +1453,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  //! \brief symbol size (column) data
   struct SymbolSizeData {
     Column  column;              //!< symbol size column
     bool    valid     { false }; //!< symbol size valid
@@ -1468,6 +1473,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  //! \brief font size (column) data
   struct FontSizeData {
     Column  column;             //!< font size column
     bool    valid    { false }; //!< font size valid
@@ -1584,18 +1590,18 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // general error
+  //! \brief general error
   struct Error {
     QString msg;
   };
 
-  // error for bad column
+  //! \brief error for bad column
   struct ColumnError {
     Column  column;
     QString msg;
   };
 
-  // error accessing data in model
+  //! \brief error accessing data in model
   struct DataError {
     ModelIndex ind;
     QString    msg;
@@ -2145,11 +2151,15 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasObjs(const Layer::Type &layerType) const;
 
-  virtual void preDrawObjs(PaintDevice *) const { }
+  virtual void preDrawFgObjs(PaintDevice *) const { }
+  virtual void preDrawBgObjs(PaintDevice *) const { }
+  virtual void preDrawObjs  (PaintDevice *) const { }
 
   virtual void execDrawObjs(PaintDevice *device, const Layer::Type &type) const;
 
-  virtual void postDrawObjs(PaintDevice *) const { }
+  virtual void postDrawFgObjs(PaintDevice *) const { }
+  virtual void postDrawBgObjs(PaintDevice *) const { }
+  virtual void postDrawObjs  (PaintDevice *) const { }
 
   virtual bool objInsideBox(PlotObj *plotObj, const BBox &bbox) const;
 
@@ -2509,6 +2519,7 @@ class CQChartsPlot : public CQChartsObj,
   void errorAdded();
 
  protected:
+  //! \brief RAII class to enable/disable no update state
   struct NoUpdate {
     NoUpdate(const Plot *plot, bool update=false) :
      plot_(const_cast<Plot *>(plot)), update_(update) {
@@ -2560,7 +2571,7 @@ class CQChartsPlot : public CQChartsObj,
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  protected:
-  //*! update state
+  //*! \brief update state enum
   enum class UpdateState {
     INVALID,                //!< invalid state
     CALC_RANGE,             //!< calculating range
@@ -2576,6 +2587,7 @@ class CQChartsPlot : public CQChartsObj,
     DRAWN                   //!< drawn
   };
 
+  //! \brief Thread data
   struct ThreadData {
     CHRTime           startTime;
     std::future<void> future;
@@ -2612,11 +2624,13 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
+  //*! \brief lock data
   struct LockData {
     mutable std::mutex lock;
     const char*        id { nullptr };
   };
 
+  //*! \brief draw of busy indication data
   struct DrawBusyData {
     QColor      bgColor  { 255, 255, 255 };
     QColor      fgColor  { 100, 200, 100 };
@@ -2626,6 +2640,7 @@ class CQChartsPlot : public CQChartsObj,
     mutable int ind      { 0 };
   };
 
+  //*! \brief update (threading) data
   struct UpdateData {
     std::atomic<int> state       { 0 };
     std::atomic<int> interrupt   { 0 };
@@ -2678,6 +2693,7 @@ class CQChartsPlot : public CQChartsObj,
     resetLockId();
    }
 
+  //*! \brief RAII class to lock/unlock plot mutex
   struct LockMutex {
     LockMutex(Plot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
    ~LockMutex() { plot->updateUnLock(); }
@@ -2685,6 +2701,7 @@ class CQChartsPlot : public CQChartsObj,
     Plot* plot { nullptr };
   };
 
+  //*! \brief RAII class to try to lock/unlock plot mutex
   struct TryLockMutex {
     TryLockMutex(Plot *plot, const char *id) : plot(plot) {
       locked = plot->updateTryLock(id); }
@@ -2705,7 +2722,7 @@ class CQChartsPlot : public CQChartsObj,
   using ColumnRows      = std::map<int, Rows>;
   using IndexColumnRows = std::map<QModelIndex, ColumnRows>;
 
-  //! color column data
+  //! \brief color column data
   struct ColorColumnData {
     Column     column;
     ColorType  colorType { ColorType::AUTO };
@@ -2721,7 +2738,7 @@ class CQChartsPlot : public CQChartsObj,
     ColorStops yStops;
   };
 
-  //! every row selection data
+  //! \brief every row selection data
   struct EveryData {
     bool enabled { false };
     int  start   { 0 };
@@ -2729,6 +2746,7 @@ class CQChartsPlot : public CQChartsObj,
     int  step    { 1 };
   };
 
+  //! \brief mouse state (event) data
   struct MouseData {
     Point              pressPoint  { 0, 0 };
     Point              movePoint   { 0, 0 };
@@ -2739,13 +2757,13 @@ class CQChartsPlot : public CQChartsObj,
     bool               dragged     { false };
   };
 
-  //! animation data
+  //! \brief animation data
   struct AnimateData {
     QTimer* timer   { nullptr };
     int     tickLen { 30 };
   };
 
-  //! update state data
+  //! \brief update state data
   struct UpdatesData {
     using StateFlag = std::map<UpdateState, int>;
 
@@ -2897,9 +2915,9 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // object tree data
   using PlotObjTree = CQChartsPlotObjTree;
 
+  //! \brief object tree data
   struct ObjTreeData {
     bool         init   { false };   //!< needs init obj tree
     PlotObjTree* tree   { nullptr }; //!< plot object quad tree
@@ -2947,7 +2965,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // tab data
+  //! \brief tab data
   struct TabData {
     double pxm { 0.0 };
     double pym { 0.0 };
@@ -2959,7 +2977,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // error data
+  //! \brief error data
   struct ErrorData {
     Errors       globalErrors; //!< global errors
     ColumnErrors columnErrors; //!< column errors

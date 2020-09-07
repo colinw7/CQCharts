@@ -30,6 +30,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
+#include <CQChartsWordCloudPlot.h>
 #include <CQChartsXYPlot.h>
 
 #include <CQChartsModelData.h>
@@ -413,6 +414,7 @@ init()
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("table"        , new CQChartsTablePlotType        );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
+  plotTypeMgr_->addType("wordCloud"    , new CQChartsWordCloudPlotType    );
   plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
 
   //---

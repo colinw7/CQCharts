@@ -1190,3 +1190,6 @@
  + allow clip of text in chord plot
  + fix value count for chord plot when multiple values in same group
  + improve skip bad values in bar chart
+# 09/07/2020
+ + Add prototype text overlap remover in sankey plot
+ + Add simple work cloud plot

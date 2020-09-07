@@ -10,6 +10,10 @@ class QLabel;
 class QHBoxLayout;
 class QVBoxLayout;
 
+/*!
+ * \brief Widget to hold a Group of Plot Property Editors
+ * \ingroup Charts
+ */
 class CQChartsPlotPropertyEditGroup : public QFrame {
   Q_OBJECT
 
@@ -37,6 +41,10 @@ class CQChartsPlotPropertyEditGroup : public QFrame {
 
 //------
 
+/*!
+ * \brief Plot Property Editor with optional Label
+ * \ingroup Charts
+ */
 class CQChartsPlotPropertyEdit : public QFrame {
   Q_OBJECT
 

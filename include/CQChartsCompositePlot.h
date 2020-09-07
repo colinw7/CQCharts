@@ -118,23 +118,23 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  void drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+  void drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
                                  bool bgKey) const override;
 
-  void drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid,
+  void drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid,
                              bool fg, bool annotations) const override;
 
-  void drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+  void drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
                                  bool title, bool foreground, bool tabbed) const override;
 
-  void drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs,
+  void drawOverlayDeviceParts(PaintDevice *device, bool sel_objs,
                               bool sel_annotations, bool boxes, bool edit_handles,
                               bool over_objs, bool over_annotations) const override;
 
-  void drawBgAxes(CQChartsPaintDevice *device) const override;
-  void drawFgAxes(CQChartsPaintDevice *device) const override;
+  void drawBgAxes(PaintDevice *device) const override;
+  void drawFgAxes(PaintDevice *device) const override;
 
-  void drawTitle(CQChartsPaintDevice *device) const override;
+  void drawTitle(PaintDevice *device) const override;
 
   //---
 
