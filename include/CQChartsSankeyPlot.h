@@ -69,6 +69,7 @@ class CQChartsSankeyPlotNode {
   using BBox       = CQChartsGeom::BBox;
   using Point      = CQChartsGeom::Point;
   using EdgeRect   = std::map<Edge *, BBox>;
+  using PathIdRect = std::map<int, BBox>;
 
  public:
   CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
@@ -179,9 +180,7 @@ class CQChartsSankeyPlotNode {
 
   void clearSrcEdgeRects() { srcEdgeRect_.clear(); }
 
-  void setSrcEdgeRect(Edge *edge, const BBox &bbox) {
-    srcEdgeRect_[edge] = bbox;
-  }
+  void setSrcEdgeRect(Edge *edge, const BBox &bbox);
 
   bool hasSrcEdgeRect(Edge *edge) const {
     auto p = srcEdgeRect_.find(edge);
@@ -210,9 +209,7 @@ class CQChartsSankeyPlotNode {
 
   void clearDestEdgeRects() { destEdgeRect_.clear(); }
 
-  void setDestEdgeRect(Edge *edge, const BBox &bbox) {
-    destEdgeRect_[edge] = bbox;
-  }
+  void setDestEdgeRect(Edge *edge, const BBox &bbox);
 
   bool hasDestEdgeRect(Edge *edge) const {
     auto p = destEdgeRect_.find(edge);
@@ -236,6 +233,10 @@ class CQChartsSankeyPlotNode {
       edgeRect.second.moveBy(delta);
     }
   }
+
+  //---
+
+  void adjustSrcDestRects();
 
   //---
 
@@ -274,6 +275,8 @@ class CQChartsSankeyPlotNode {
   BBox          rect_;                      //!< placed rectangle
   EdgeRect      srcEdgeRect_;               //!< edge to src
   EdgeRect      destEdgeRect_;              //!< edge to dest
+  PathIdRect    srcPathIdRect_;             //!< src path id rect
+  PathIdRect    destPathIdRect_;            //!< dest path id rect
   Obj*          obj_           { nullptr }; //!< plot object
 };
 

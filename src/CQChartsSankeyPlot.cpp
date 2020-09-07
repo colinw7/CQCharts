@@ -1089,6 +1089,13 @@ addObjects(PlotObjs &objs) const
 
     objs.push_back(edgeObj);
   }
+
+  //---
+
+  // adjust node rects
+  for (auto *node : graph_->nodes()) {
+    node->adjustSrcDestRects();
+  }
 }
 
 // place nodes in graph
@@ -2317,7 +2324,7 @@ placeEdges(bool reset)
   clearSrcEdgeRects ();
   clearDestEdgeRects();
 
-  double srcTotal  = srcEdgeSum();
+  double srcTotal  = srcEdgeSum ();
   double destTotal = destEdgeSum();
 
   if (! plot_->useMaxTotals()) {
@@ -2417,6 +2424,67 @@ placeEdges(bool reset)
         setDestEdgeRect(edge, BBox(x1, y4, x2, y3));
 
       y3 = y4;
+    }
+  }
+}
+
+void
+CQChartsSankeyPlotNode::
+setSrcEdgeRect(Edge *edge, const BBox &bbox)
+{
+  srcEdgeRect_[edge] = bbox;
+
+  if (edge->pathId() >= 0)
+    srcPathIdRect_[edge->pathId()] = bbox;
+}
+
+void
+CQChartsSankeyPlotNode::
+setDestEdgeRect(Edge *edge, const BBox &bbox)
+{
+  destEdgeRect_[edge] = bbox;
+
+  if (edge->pathId() >= 0)
+    destPathIdRect_[edge->pathId()] = bbox;
+}
+
+void
+CQChartsSankeyPlotNode::
+adjustSrcDestRects()
+{
+  if (! plot_->useMaxTotals())
+    return;
+
+  for (const auto &pathIdRect : srcPathIdRect_) {
+    int pathId = pathIdRect.first;
+
+    auto p = destPathIdRect_.find(pathId);
+    if (p == destPathIdRect_.end()) continue;
+
+    BBox srcRect  = pathIdRect.second;
+    BBox destRect = (*p).second;
+
+    double y1 = srcRect .getYMid();
+    double y2 = destRect.getYMid();
+
+    double dy = y1 - y2;
+    if (CMathUtil::realEq(dy, 0.0)) continue;
+
+    if (srcEdgeSum() > destEdgeSum()) {
+      destRect.moveBy(Point(0, dy));
+
+      for (auto &edge : this->destEdges()) {
+        if (edge->pathId() == pathId)
+          setDestEdgeRect(edge, destRect);
+      }
+    }
+    else {
+      srcRect.moveBy(Point(0, -dy));
+
+      for (auto &edge : this->srcEdges()) {
+        if (edge->pathId() == pathId)
+          setSrcEdgeRect(edge, srcRect);
+      }
     }
   }
 }
@@ -3124,6 +3192,9 @@ calcTipId() const
 
   if (edge()->hasValue())
     tableTip.addTableRow("Value", edge()->value().real());
+
+  if (edge()->pathId() >= 0)
+    tableTip.addTableRow("Path Id", edge()->pathId());
 
   //---
 

@@ -45,7 +45,7 @@ init()
 
   addItems(typeNames);
 
-  connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChangedSlot(ind)));
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChangedSlot(int)));
 }
 
 void

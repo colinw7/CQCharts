@@ -62,7 +62,7 @@ place(const Plot *plot)
   for (auto &cw : countWordDatas) {
     for (auto &wordData : cw.second) {
       wordData->fontSize =
-        mapCount(wordData->count, minCount_, maxCount_, minFontSize(), maxFontSize());
+        mapCount(wordData->count, 1, maxCount_, minFontSize(), maxFontSize());
 
       wordData->x = rand.gen();
       wordData->y = rand.gen();

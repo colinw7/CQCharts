@@ -29,8 +29,10 @@ setModelData(CQChartsModelData *modelData)
 {
   modelData_ = modelData;
 
-  columnNumEdit_->setModelData(modelData_);
-  typeCombo_    ->setCharts   (modelData_->charts());
+  if (modelData_) {
+    columnNumEdit_->setModelData(modelData_);
+    typeCombo_    ->setCharts   (modelData_->charts());
+  }
 }
 
 void
