@@ -584,6 +584,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void drawFg(PaintDevice *device) const override;
 
+  void drawFgRect(PaintDevice *device, const BBox &rect) const;
+
   //---
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;

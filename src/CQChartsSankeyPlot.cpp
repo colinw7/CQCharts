@@ -25,8 +25,6 @@
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
-#include <deque>
-
 CQChartsSankeyPlotType::
 CQChartsSankeyPlotType()
 {
@@ -2925,10 +2923,44 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
     edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
   };
 
-  auto drawNodeInside = [&](const Node *node) {
+  auto drawNodeInside = [&](const Node *node, bool isSrc) {
     auto *nodeObj = node->obj(); if (! nodeObj) return;
+
     nodeObj->setInside(true);
-    nodeObj->draw(device); nodeObj->drawFg(device);
+
+    nodeObj->draw(device);
+
+    if (pathId >= 0) {
+      Edge *edge = nullptr;
+
+      if (isSrc) {
+        for (const auto &edge1 : node->destEdges()) {
+          if (edge1->pathId() == pathId) {
+            edge = edge1;
+            break;
+          }
+        }
+      }
+      else {
+        for (const auto &edge1 : node->srcEdges()) {
+          if (edge1->pathId() == pathId) {
+            edge = edge1;
+            break;
+          }
+        }
+      }
+
+      if (edge) {
+        auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
+
+        nodeObj->drawFgRect(device, rect);
+      }
+      else
+        nodeObj->drawFg(device);
+    }
+    else
+      nodeObj->drawFg(device);
+
     nodeObj->setInside(false);
   };
 
@@ -2954,7 +2986,7 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
     }
 
     for (const auto &node : nodeSet)
-      drawNodeInside(node);
+      drawNodeInside(node, /*isSrc*/true);
   }
 
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::DEST ||
@@ -2977,13 +3009,20 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
     }
 
     for (const auto &node : nodeSet)
-      drawNodeInside(node);
+      drawNodeInside(node, /*isSrc*/false);
   }
 }
 
 void
 CQChartsSankeyNodeObj::
 drawFg(CQChartsPaintDevice *device) const
+{
+  drawFgRect(device, rect());
+}
+
+void
+CQChartsSankeyNodeObj::
+drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
 {
   if (! plot_->isTextVisible()) {
     bool visible = false;
@@ -2998,7 +3037,7 @@ drawFg(CQChartsPaintDevice *device) const
       return;
   }
 
-  auto prect = plot_->windowToPixel(rect());
+  auto prect = plot_->windowToPixel(rect);
 
   //---
 
@@ -3046,7 +3085,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   double tx;
 
-  if (rect().getXMid() < xm - tw)
+  if (rect.getXMid() < xm - tw)
     tx = prect.getXMax() + textMargin;
   else
     tx = prect.getXMin() - textMargin - ptw;
@@ -3066,7 +3105,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   if (plot_->isAdjustText()) {
     auto *drawText =
-      new CQChartsSankeyPlot::DrawText(str, pt, options, c, plot_->textAlpha(), rect().getCenter());
+      new CQChartsSankeyPlot::DrawText(str, pt, options, c, plot_->textAlpha(), rect.getCenter());
 
     auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
                                                       drawText->options);
