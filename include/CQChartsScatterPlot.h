@@ -776,7 +776,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   int            hexMapMaxN_ { 0 }; //!< hex map max N
 
   // group data
-  GroupInds         groupInds_;
+  GroupInds         groupInds_;         //!< group indices
   GroupNameValues   groupNameValues_;   //!< group name values (individual points)
   GroupNameGridData groupNameGridData_; //!< grid cell values
   GroupNameHexData  groupNameHexData_;  //!< hex cell values

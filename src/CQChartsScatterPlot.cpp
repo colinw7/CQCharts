@@ -1908,7 +1908,7 @@ calcAnnotationBBox() const
     if (isXRug()) {
       auto bbox1 = xRug_->calcBBox();
 
-      dx += bbox1.getWidth();
+      dy += bbox1.getHeight();
 
       bbox += bbox1;
     }
@@ -1917,7 +1917,7 @@ calcAnnotationBBox() const
     if (isYRug()) {
       auto bbox1 = yRug_->calcBBox();
 
-      dy += bbox1.getHeight();
+      dx += bbox1.getWidth();
 
       bbox += bbox1;
     }
@@ -1929,7 +1929,7 @@ calcAnnotationBBox() const
       auto bbox1 = xAxisWhisker_->calcDeltaBBox(dx);
 
       if (bbox1.isSet()) {
-        dx += bbox1.getWidth();
+        dy += bbox1.getHeight();
 
         bbox += bbox1;
       }
@@ -1940,7 +1940,7 @@ calcAnnotationBBox() const
       auto bbox1 = yAxisWhisker_->calcDeltaBBox(dy);
 
       if (bbox1.isSet()) {
-        dy += bbox1.getHeight();
+        dx += bbox1.getWidth();
 
         bbox += bbox1;
       }
@@ -1950,18 +1950,18 @@ calcAnnotationBBox() const
 
     // x whisker axis (one per group)
     if (isXWhisker()) {
-      auto bbox1 = xAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dx);
+      auto bbox1 = xAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dy);
 
-      dx += bbox1.getWidth();
+      dy += bbox1.getHeight();
 
       bbox += bbox1;
     }
 
     // y whisker axis (one per group)
     if (isYWhisker()) {
-      auto bbox1 = yAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dy);
+      auto bbox1 = yAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dx);
 
-      dy += bbox1.getHeight();
+      dx += bbox1.getWidth();
 
       bbox += bbox1;
     }

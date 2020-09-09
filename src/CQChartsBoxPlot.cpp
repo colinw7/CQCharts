@@ -2236,11 +2236,9 @@ draw(CQChartsPaintDevice *device)
 
     opts.violin = true;
 
-    auto poly1 = poly_;
+    density.calcDistributionPoly(poly_, plot_, rect, orientation, opts);
 
-    density.calcDistributionPoly(poly1, plot_, rect, orientation, opts);
-
-    device->drawPolygon(poly1);
+    device->drawPolygon(poly_);
 
     drawBox       = plot_->isViolinBox();
     drawBoxFilled = false;
