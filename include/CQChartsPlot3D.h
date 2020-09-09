@@ -59,7 +59,7 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
   using Camera    = CQChartsCamera;
 
  public:
-  CQChartsPlot3D(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
+  CQChartsPlot3D(View *view, PlotType *plotType, const ModelP &model);
 
   //---
 
@@ -200,7 +200,8 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
   double boxZMin_ { 0.0 };
   double boxZMax_ { 0.0 };
 
-  using Objs      = std::vector<CQChartsPlot3DObj *>;
+  using Obj       = CQChartsPlot3DObj;
+  using Objs      = std::vector<Obj *>;
   using PointObjs = std::map<Point3D, Objs>;
 
   mutable PointObjs bgPointObjs_;
@@ -386,6 +387,7 @@ class CQChartsPolygon3DObj : public CQChartsPlot3DObj {
  */
 class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
  public:
+  //! 3d side polygon
   struct SidePolygon {
     const CQChartsAxisPolygon3DObj *poly { nullptr };
     Point3D                         p1;
@@ -400,6 +402,7 @@ class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
 
   using SidePolygons = std::vector<SidePolygon>;
 
+  //! 3d line
   struct Line {
     Point3D p1;
     Point3D p2;
@@ -413,6 +416,7 @@ class CQChartsAxisPolygon3DObj : public CQChartsPolygon3DObj {
 
   using Lines = std::vector<Line>;
 
+  //! 3d text
   struct Text {
     Point3D                         p;
     QString                         text;

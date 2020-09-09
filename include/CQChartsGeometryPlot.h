@@ -11,6 +11,7 @@ class CQChartsDataLabel;
 
 //---
 
+//! geometry shape data
 struct CQChartsGeometryShape {
   enum class Type {
     NONE,

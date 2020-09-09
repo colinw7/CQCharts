@@ -9,9 +9,13 @@
  */
 class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
-  CQChartsRotatedTextBoxObj(CQChartsPlot *plot);
+  using Plot        = CQChartsPlot;
+  using PaintDevice = CQChartsPaintDevice;
 
-  void draw(CQChartsPaintDevice *device, const Point &c, const QString &text,
+ public:
+  CQChartsRotatedTextBoxObj(Plot *plot);
+
+  void draw(PaintDevice *device, const Point &c, const QString &text,
             double angle=0.0, Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
             bool isRotated=false) const;
 
@@ -19,7 +23,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
             Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
             bool isRotated=false) const;
 
-  void drawConnectedRadialText(CQChartsPaintDevice *device, const Point &center,
+  void drawConnectedRadialText(PaintDevice *device, const Point &center,
                                double ro, double lr, double ta, const QString &text,
                                const QPen &lpen, bool isRotated);
 
@@ -27,7 +31,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
                                    const QString &text, bool isRotated, BBox &tbbox);
 
  private:
-  void drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center,
+  void drawCalcConnectedRadialText(PaintDevice *device, const Point &center,
                                    double ro, double lr, double ta, const QString &text,
                                    const QPen &lpen, bool isRotated, BBox &tbbox);
 

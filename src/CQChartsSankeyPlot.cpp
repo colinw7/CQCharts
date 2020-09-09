@@ -516,7 +516,12 @@ postDrawFgObjs(CQChartsPaintDevice *device) const
   if (! isAdjustText())
     return;
 
+  BBox rect = this->calcDataRect();
+
   CQChartsRectPlacer placer;
+
+  placer.setClipRect(CQChartsRectPlacer::Rect(rect.getXMin(), rect.getYMin(),
+                                              rect.getXMax(), rect.getYMax()));
 
   for (const auto &drawText : drawTexts_)
     placer.addRect(drawText);
@@ -3319,10 +3324,11 @@ draw(CQChartsPaintDevice *device)
   // show source and destination nodes on inside
   if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
-      auto drawNodeInside = [&](const Node *node) {
+      auto drawNodeInside = [&](const Node *node, bool isSrc) {
         auto *nodeObj = node->obj(); if (! nodeObj) return;
+        auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
         nodeObj->setInside(true);
-        nodeObj->draw(device); nodeObj->drawFg(device);
+        nodeObj->draw(device); nodeObj->drawFgRect(device, rect);
         nodeObj->setInside(false);
       };
 
@@ -3337,37 +3343,37 @@ draw(CQChartsPaintDevice *device)
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
       if      (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC) {
-        drawNodeInside(srcNode );
+        drawNodeInside(srcNode , /*isSrc*/true );
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::DEST) {
-        drawNodeInside(destNode);
+        drawNodeInside(destNode, /*isSrc*/false);
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
-        drawNodeInside(srcNode );
-        drawNodeInside(destNode);
+        drawNodeInside(srcNode , /*isSrc*/true );
+        drawNodeInside(destNode, /*isSrc*/false);
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
-        drawNodeInside(srcNode );
+        drawNodeInside(srcNode , /*isSrc*/true );
 
         if (srcNodeObj)
           srcNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
-        drawNodeInside(destNode);
+        drawNodeInside(destNode, /*isSrc*/false);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
       }
       else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
-        drawNodeInside(srcNode );
+        drawNodeInside(srcNode , /*isSrc*/true );
 
         if (srcNodeObj)
           srcNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
 
-        drawNodeInside(destNode);
+        drawNodeInside(destNode, /*isSrc*/false);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,

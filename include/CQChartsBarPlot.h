@@ -27,7 +27,10 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar, bar)
 
  public:
-  CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
+  using DataLabel = CQChartsDataLabel;
+
+ public:
+  CQChartsBarPlot(View *view, PlotType *plotType, const ModelP &model);
 
   virtual ~CQChartsBarPlot();
 
@@ -44,12 +47,12 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   //---
 
   // bar margin
-  const CQChartsLength &margin() const { return margin_; }
-  void setMargin(const CQChartsLength &l);
+  const Length &margin() const { return margin_; }
+  void setMargin(const Length &l);
 
   // group margin
-  const CQChartsLength &groupMargin() const { return groupMargin_; }
-  void setGroupMargin(const CQChartsLength &l);
+  const Length &groupMargin() const { return groupMargin_; }
+  void setGroupMargin(const Length &l);
 
   //---
 
@@ -62,8 +65,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   //---
 
   // data label
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_; }
+  DataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -87,11 +90,11 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  Columns            valueColumns_;             //!< value columns
-  bool               horizontal_   { false };   //!< horizontal bars
-  Length             margin_       { "2px" };   //!< bar margin
-  Length             groupMargin_  { "4px" };   //!< bar group margin
-  CQChartsDataLabel* dataLabel_    { nullptr }; //!< data label data
+  Columns    valueColumns_;             //!< value columns
+  bool       horizontal_   { false };   //!< horizontal bars
+  Length     margin_       { "2px" };   //!< bar margin
+  Length     groupMargin_  { "4px" };   //!< bar group margin
+  DataLabel* dataLabel_    { nullptr }; //!< data label data
 };
 
 #endif

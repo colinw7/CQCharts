@@ -49,6 +49,7 @@ class CQChartsWordCloud : public QObject {
     double ymax_ { 1.0 };
   };
 
+  //! Word data
   struct WordData {
     QString word;
     int     count    { 0 };

@@ -150,6 +150,7 @@ class CQChartsTreeMapNode {
 
 //---
 
+//! tree map node compare
 struct CQChartsTreeMapNodeCmp {
   using Node = CQChartsTreeMapNode;
 

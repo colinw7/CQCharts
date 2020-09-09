@@ -4,10 +4,10 @@ Abstract Painter/Javascript
 
 TODO:
  + sankey path id in/out consistency
- + doxygen comments
  + key annotation (custom key)
    + key column ?
  + text placement class (quad tree, target position, align)
+   + text placement limit to rect (shape)
  + unset column from editor is -1 ?
  + null value per column
  + simplify column expressions (no back references, all calc on demand)

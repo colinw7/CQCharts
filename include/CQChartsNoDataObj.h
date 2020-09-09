@@ -14,19 +14,22 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsFont font READ font WRITE setFont)
 
  public:
-  CQChartsNoDataObj(CQChartsPlot *plot);
+  using Font = CQChartsFont;
+
+ public:
+  CQChartsNoDataObj(Plot *plot);
 
   QString typeName() const override { return "no_data"; }
 
   QString calcId() const override { return typeName(); }
 
-  const CQChartsFont &font() const { return font_; }
-  void setFont(const CQChartsFont &f) { font_ = f; }
+  const Font &font() const { return font_; }
+  void setFont(const Font &f) { font_ = f; }
 
-  void draw(CQChartsPaintDevice *) override;
+  void draw(PaintDevice *) override;
 
  private:
-  CQChartsFont font_; //!< label font
+  Font font_; //!< label font
 };
 
 #endif

@@ -35,10 +35,13 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     RIGHT_OUTSIDE
   };
 
-  using BBox = CQChartsGeom::BBox;
+  using Plot        = CQChartsPlot;
+  using PaintDevice = CQChartsPaintDevice;
+  using PenBrush    = CQChartsPenBrush;
+  using BBox        = CQChartsGeom::BBox;
 
  public:
-  CQChartsDataLabel(CQChartsPlot *plot);
+  CQChartsDataLabel(Plot *plot);
 
   virtual ~CQChartsDataLabel() { }
 
@@ -107,11 +110,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str) const;
-  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str,
+  void draw(PaintDevice *device, const BBox &qrect, const QString &str) const;
+  void draw(PaintDevice *device, const BBox &qrect, const QString &str,
             const Position &position) const;
-  void draw(CQChartsPaintDevice *device, const BBox &qrect, const QString &str,
-            const Position &position, const CQChartsPenBrush &tpen) const;
+  void draw(PaintDevice *device, const BBox &qrect, const QString &str,
+            const Position &position, const PenBrush &tpen) const;
 
   //---
 

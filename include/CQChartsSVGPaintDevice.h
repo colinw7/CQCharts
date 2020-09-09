@@ -9,8 +9,14 @@
  */
 class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
  public:
-  CQChartsSVGPaintDevice(CQChartsView *view, std::ostream &os);
-  CQChartsSVGPaintDevice(CQChartsPlot *plot, std::ostream &os);
+  using View  = CQChartsView;
+  using Plot  = CQChartsPlot;
+  using Angle = CQChartsAngle;
+  using Image = CQChartsImage;
+
+ public:
+  CQChartsSVGPaintDevice(View *view, std::ostream &os);
+  CQChartsSVGPaintDevice(Plot *plot, std::ostream &os);
 
   Type type() const override { return Type::SVG; }
 
@@ -31,9 +37,9 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void fillRect(const BBox &bbox) override;
   void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const Angle &a=Angle()) override;
 
-//void drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const Angle &a1, const Angle &a2) override;
 
   void drawPolygon (const Polygon &poly) override;
   void drawPolyline(const Polygon &poly) override;
@@ -46,7 +52,7 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
   void drawTransformedText(const Point &p, const QString &text) override;
 
   void drawImage(const Point &, const QImage &) override;
-  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
+  void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 
@@ -54,6 +60,7 @@ class CQChartsSVGPaintDevice : public CQChartsHtmlPaintDevice {
 
   //---
 
+  //! group data
   struct GroupData {
     bool    visible   { true };
     bool    onclick   { false };

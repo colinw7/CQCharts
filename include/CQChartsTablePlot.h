@@ -102,6 +102,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   using RowNums = CQSummaryModel::RowNums;
 
+  //! header object data
   struct HeaderObjData {
     Column        c;
     BBox          rect;
@@ -115,6 +116,7 @@ class CQChartsTablePlot : public CQChartsPlot {
     }
   };
 
+  //! row object data
   struct RowObjData {
     int           r { 0 };
     BBox          rect;
@@ -128,6 +130,7 @@ class CQChartsTablePlot : public CQChartsPlot {
     }
   };
 
+  //! cell object data
   struct CellObjData {
     ModelIndex    ind;
     BBox          rect;
@@ -343,6 +346,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   void pageNumSlot();
 
  private:
+  //! column data
   struct ColumnData {
     double pwidth    { 0.0 };
     double width     { 0.0 };
@@ -355,6 +359,7 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   using CQIntegerSpinP = QPointer<CQIntegerSpin>;
 
+  //! table data
   struct TableData {
     QFont           font;
     QModelIndexList expandInds;
@@ -376,6 +381,7 @@ class CQChartsTablePlot : public CQChartsPlot {
     ColumnDataMap   columnDataMap;    //!< column data map
   };
 
+  //! scroll data
   struct ScrollData {
     bool        scrolled     { false };   //!< scrolled
     int         hpos         { 0 };       //!< horizontal scroll position
@@ -385,11 +391,13 @@ class CQChartsTablePlot : public CQChartsPlot {
     QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
   };
 
+  //! header data
   struct HeaderData {
     bool  visible { true }; //!< header visible
     Color color;            //!< header color
   };
 
+  //! fit data
   struct FitData {
     bool fitHorizontal { true };
     bool fitVertical   { false };

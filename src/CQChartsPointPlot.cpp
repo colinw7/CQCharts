@@ -523,28 +523,28 @@ void
 CQChartsPointPlot::
 setBestFit(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { resetBestFit(); drawObjs(); } );
 }
 
 void
 CQChartsPointPlot::
 setBestFitOutliers(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() { resetBestFit(); drawObjs(); } );
 }
 
 void
 CQChartsPointPlot::
 setBestFitDeviation(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { resetBestFit(); drawObjs(); } );
 }
 
 void
 CQChartsPointPlot::
 setBestFitOrder(int o)
 {
-  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { resetBestFit(); drawObjs(); } );
 }
 
 //---

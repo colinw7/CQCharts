@@ -32,6 +32,7 @@ class CQChartsDisplayRange {
   using Matrix = CQChartsGeom::Matrix;
 
  public:
+  //! value range template
   template<typename T>
   struct RangeT {
    T xmin, ymin, xmax, ymax;

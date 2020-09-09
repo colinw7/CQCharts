@@ -26,6 +26,7 @@ struct CQChartsPlotSymbol {
     FILL
   };
 
+  //! point data
   struct Point {
     Point(double x=0.0, double y=0.0) :
      x(x), y(y) {
@@ -35,6 +36,7 @@ struct CQChartsPlotSymbol {
     double y { 0.0 };
   };
 
+  //! line data
   struct Line {
     double  x1      { 0.0 }, y1 { 0.0 };
     double  x2      { 0.0 }, y2 { 0.0 };

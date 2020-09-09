@@ -97,6 +97,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
+  //! horizontal text data
   struct HText {
     double       xl     { 0.0 };
     double       xr     { 0.0 };
@@ -110,6 +111,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
     }
   };
 
+  //! vertical text data
   struct VText {
     double       yb       { 0.0 };
     double       yt       { 0.0 };

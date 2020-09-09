@@ -12,8 +12,14 @@ class CQHandDrawnPainter;
  */
 class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
  public:
-  CQChartsViewPlotPaintDevice(CQChartsView *view, QPainter *painter);
-  CQChartsViewPlotPaintDevice(CQChartsPlot *plot, QPainter *painter);
+  using View  = CQChartsView;
+  using Plot  = CQChartsPlot;
+  using Angle = CQChartsAngle;
+  using Image = CQChartsImage;
+
+ public:
+  CQChartsViewPlotPaintDevice(View *view, QPainter *painter);
+  CQChartsViewPlotPaintDevice(Plot *plot, QPainter *painter);
   CQChartsViewPlotPaintDevice(QPainter *painter);
 
  ~CQChartsViewPlotPaintDevice();
@@ -55,9 +61,9 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void fillRect(const BBox &bbox) override;
   void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const Angle &a=Angle()) override;
 
-//void drawArc(const BBox &rect, const CQChartsAngle &a1, CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const Angle &a1, Angle &a2) override;
 
   void drawPolygon (const Polygon &poly) override;
   void drawPolyline(const Polygon &poly) override;
@@ -70,7 +76,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void drawTransformedText(const Point &p, const QString &text) override;
 
   void drawImage(const Point &, const QImage &) override;
-  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
+  void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true) override;
 
   const QFont &font() const override;
   void setFont(const QFont &f) override;
@@ -115,7 +121,7 @@ class CQChartsPixelPaintDevice : public CQChartsViewPlotPaintDevice {
  */
 class CQChartsViewPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
-  CQChartsViewPaintDevice(CQChartsView *view, QPainter *painter);
+  CQChartsViewPaintDevice(View *view, QPainter *painter);
 
   Type type() const override { return Type::VIEW; }
 };
@@ -128,7 +134,7 @@ class CQChartsViewPaintDevice : public CQChartsViewPlotPaintDevice {
  */
 class CQChartsPlotPaintDevice : public CQChartsViewPlotPaintDevice {
  public:
-  CQChartsPlotPaintDevice(CQChartsPlot *plot, QPainter *painter);
+  CQChartsPlotPaintDevice(Plot *plot, QPainter *painter);
 
   Type type() const override { return Type::PLOT; }
 };

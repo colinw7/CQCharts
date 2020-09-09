@@ -4,6 +4,7 @@
 #include <CQBaseModelTypes.h>
 #include <CQChartsNameValues.h>
 
+//! model type data
 struct CQChartsModelTypeData {
   CQBaseModelType    type             { CQBaseModelType::NONE };
   CQBaseModelType    baseType         { CQBaseModelType::NONE };

@@ -4,8 +4,11 @@
 #include <CQChartsColumn.h>
 #include <CQBucketer.h>
 
-// if no columns, path, row then no group (all in same group)
-
+/*!
+ * \brief group data
+ *
+ * Note: if no columns, path, row then no group (all in same group)
+ */
 struct CQChartsGroupData {
   CQChartsColumns      columns;               //!< columns for header grouping
   CQChartsColumn       column;                //!< use group column value for id

@@ -56,6 +56,7 @@ class CQChartsAdjacencyNode {
  public:
   using OptReal = CQChartsOptReal;
 
+  //! edge data
   struct EdgeData {
     int     to { -1 };
     OptReal value;

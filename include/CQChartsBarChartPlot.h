@@ -51,6 +51,7 @@ class CQChartsBarChartValue {
   using NameValues = std::map<QString, QString>;
 
  public:
+  //! value index
   struct ValueInd {
     double      value { 0.0 };
     QModelIndex ind;

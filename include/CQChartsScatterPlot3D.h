@@ -206,20 +206,22 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
  public:
   using Point3D = CQChartsGeom::Point3D;
 
+  //! value data
   struct ValueData {
-    Point3D       p;
-    int           row { -1 };
-    QModelIndex   ind;
-    CQChartsColor color;
+    Point3D     p;
+    int         row { -1 };
+    QModelIndex ind;
+    Color       color;
 
     ValueData(const Point3D &p=Point3D(), int row=-1, const QModelIndex &ind=QModelIndex(),
-              const CQChartsColor &color=CQChartsColor()) :
+              const Color &color=Color()) :
      p(p), row(row), ind(ind), color(color) {
     }
   };
 
   using Values = std::vector<ValueData>;
 
+  //! values data
   struct ValuesData {
     Values  values;
     RMinMax xrange;
@@ -232,15 +234,17 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //--
 
+  using DataLabel = CQChartsDataLabel;
+
  public:
-  CQChartsScatterPlot3D(CQChartsView *view, const ModelP &model);
+  CQChartsScatterPlot3D(View *view, const ModelP &model);
  ~CQChartsScatterPlot3D();
 
   //---
 
   // data label
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_; }
+  DataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -298,7 +302,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   //---
 
   void addNameValue(int groupInd, const QString &name, const Point3D &p, int row,
-                    const QModelIndex &xind, const CQChartsColor &color=CQChartsColor());
+                    const QModelIndex &xind, const Color &color=Color());
 
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
@@ -332,7 +336,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   int numRows() const;
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   //---
 
@@ -360,7 +364,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
-  void addPointKeyItems(CQChartsPlotKey *key);
+  void addPointKeyItems(PlotKey *key);
 
   //---
 
@@ -389,9 +393,11 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
-  virtual CQChartsScatterPoint3DObj *createPointObj(int groupInd, const BBox &rect,
-                                                    const Point3D &pos, const ColorInd &is,
-                                                    const ColorInd &ig, const ColorInd &iv) const;
+  using PointObj = CQChartsScatterPoint3DObj;
+
+  virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point3D &pos,
+                                   const ColorInd &is, const ColorInd &ig,
+                                   const ColorInd &iv) const;
 
  protected slots:
   void dataLabelChanged();
@@ -423,7 +429,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
     QString units     { "px" };  //!< mapped size units
   };
 
-  CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
+  DataLabel* dataLabel_ { nullptr }; //!< data label style
 
   // columns
   Column xColumn_;     //!< x column

@@ -9,8 +9,14 @@
  */
 class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
  public:
-  CQChartsScriptPaintDevice(CQChartsView *view, std::ostream &os);
-  CQChartsScriptPaintDevice(CQChartsPlot *plot, std::ostream &os);
+  using View  = CQChartsView;
+  using Plot  = CQChartsPlot;
+  using Angle = CQChartsAngle;
+  using Image = CQChartsImage;
+
+ public:
+  CQChartsScriptPaintDevice(View *view, std::ostream &os);
+  CQChartsScriptPaintDevice(Plot *plot, std::ostream &os);
 
   Type type() const override { return Type::SCRIPT; }
 
@@ -30,9 +36,9 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
   void fillRect(const BBox &bbox) override;
   void drawRect(const BBox &bbox) override;
 
-  void drawEllipse(const BBox &bbox, const CQChartsAngle &a=CQChartsAngle()) override;
+  void drawEllipse(const BBox &bbox, const Angle &a=Angle()) override;
 
-//void drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2) override;
+//void drawArc(const BBox &rect, const Angle &a1, const Angle &a2) override;
 
   void drawPolygon (const Polygon &poly) override;
   void drawPolyline(const Polygon &poly) override;
@@ -45,7 +51,7 @@ class CQChartsScriptPaintDevice : public CQChartsHtmlPaintDevice {
   void drawTransformedText(const Point &p, const QString &text) override;
 
   void drawImage(const Point &, const QImage &) override;
-  void drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch=true) override;
+  void drawImageInRect(const BBox &bbox, const Image &image, bool stretch=true) override;
 
   void setFont(const QFont &f) override;
 

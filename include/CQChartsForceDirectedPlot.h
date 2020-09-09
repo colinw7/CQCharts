@@ -112,7 +112,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int numEdges READ numEdges)
 
  public:
-  CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
+  CQChartsForceDirectedPlot(View *view, const ModelP &model);
 
  ~CQChartsForceDirectedPlot();
 
@@ -281,7 +281,8 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   int getStringId(const QString &str) const;
 
  private:
-  using NodeMap         = std::map<int, CQChartsSpringyNode *>;
+  using Node            = CQChartsSpringyNode;
+  using NodeMap         = std::map<int, Node *>;
   using ConnectionNodes = std::map<int, int>;
   using ForceDirected   = CQChartsForceDirected;
   using StringIndMap    = std::map<QString, int>;

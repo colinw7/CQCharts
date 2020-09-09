@@ -4,6 +4,7 @@
 #include <CQChartsData.h>
 #include <CQChartsLineEditBase.h>
 
+//! stroke data edit config data
 struct CQChartsStrokeDataEditConfig {
   bool cornerSize { true };
 

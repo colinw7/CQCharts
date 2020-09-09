@@ -13,6 +13,7 @@ class CQChartsNamePair {
 
   static int metaTypeId;
 
+  //! name pair
   struct Names {
     bool    valid { false };
     QString name1;

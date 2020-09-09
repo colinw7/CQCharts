@@ -88,7 +88,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAxisRug::Side yRugSide READ yRugSide WRITE setYRugSide)
 
  public:
-  CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
+  CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);
 
  ~CQChartsPointPlot();
 
@@ -169,7 +169,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
   void setBestFitDeviation(bool b);
 
- //---
+  //---
 
   // convex hull
   bool isHull() const { return hullData_.visible; }
@@ -202,7 +202,6 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsLength &yRugSymbolSize() const;
   void setYRugSymbolSize(const CQChartsLength &l);
 
-
   //---
 
   void addPointProperties();
@@ -228,6 +227,10 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
              const QString &viewVarName) const override;
 
  protected:
+  virtual void resetBestFit() { }
+
+  //---
+
   void initSymbolTypeData() const;
   bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
 

@@ -182,21 +182,21 @@ class CQChartsSunburstNode {
 
 //---
 
-// sort reverse alphabetic no case
+//! sort reverse alphabetic no case
 struct CQChartsSunburstNodeNameCmp {
   using Node = CQChartsSunburstNode;
 
   bool operator()(const Node *n1, const Node *n2);
 };
 
-// sort size
+//! sort size
 struct CQChartsSunburstNodeSizeCmp {
   using Node = CQChartsSunburstNode;
 
   bool operator()(const Node *n1, const Node *n2);
 };
 
-// sort node count
+//! sort node count
 struct CQChartsSunburstNodeCountCmp {
   using Node = CQChartsSunburstNode;
 

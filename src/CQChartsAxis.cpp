@@ -621,6 +621,15 @@ setFormat(const QString &formatStr)
 
 void
 CQChartsAxis::
+setMaxFitExtent(double r)
+{
+  CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
 setLabel(const CQChartsOptString &str)
 {
   CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
@@ -674,9 +683,64 @@ setGridFillDisplayed(const GridFillDisplayed &d)
 
 void
 CQChartsAxis::
+setGridMid(bool b)
+{
+  CQChartsUtil::testAndSet(gridMid_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setGridAbove(bool b)
+{
+  CQChartsUtil::testAndSet(gridAbove_, b, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
 setTicksDisplayed(const TicksDisplayed &d)
 {
   CQChartsUtil::testAndSet(ticksDisplayed_, d, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setMajorTickLen(int i)
+{
+  CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setMinorTickLen(int i)
+{
+  CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setTickInside(bool b)
+{
+  CQChartsUtil::testAndSet(tickInside_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setMirrorTicks(bool b)
+{
+  CQChartsUtil::testAndSet(mirrorTicks_, b, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setTickLabelAutoHide(bool b)
+{
+  CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { redraw(); } );
 }
 
 //---
@@ -2547,6 +2611,15 @@ windowToPixel(const CQChartsPlot *plot, double x, double y) const
     return plot->windowToPixel(Point(x, y));
   else
     return plot->windowToPixel(Point(y, x));
+}
+
+//---
+
+void
+CQChartsAxis::
+setBBox(const BBox &b)
+{
+  CQChartsUtil::testAndSet(bbox_, b, [&]() { redraw(); } );
 }
 
 CQChartsGeom::BBox

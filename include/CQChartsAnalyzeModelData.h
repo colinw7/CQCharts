@@ -5,6 +5,7 @@
 #include <QString>
 #include <map>
 
+//! analyze model data
 struct CQChartsAnalyzeModelData {
   using ParameterNameColumn  = std::map<QString, CQChartsColumn>;
   using ParameterNameColumns = std::map<QString, CQChartsColumns>;

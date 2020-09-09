@@ -222,7 +222,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   int         ix_       { -1 };      //!< x index
   int         iy_       { -1 };      //!< y index
   Points      points_;               //!< cell points
-  int         maxn_     { 0 };       //!< max number of points
+  int         maxN_     { 0 };       //!< max number of points
 };
 
 //---
@@ -402,6 +402,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   using Points = std::vector<Point>;
 
+  //! point value data
   struct ValueData {
     Point       p;
     int         row { -1 };
@@ -416,6 +417,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   using Values = std::vector<ValueData>;
 
+  //! real values data
   struct ValuesData {
     Values  values;
     RMinMax xrange;
@@ -716,6 +718,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void setYWhisker(bool b);
 
  private:
+  //! symbol map key daya
   struct SymbolMapKeyData {
     bool   displayed { false }; //!< is symbol map key displayed
     Alpha  alpha     { 0.2 };   //!< symbol map key background alpha
@@ -776,7 +779,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   GroupInds         groupInds_;
   GroupNameValues   groupNameValues_;   //!< group name values (individual points)
   GroupNameGridData groupNameGridData_; //!< grid cell values
-  GroupNameHexData  groupNameHexData_;  //!< hex celll values
+  GroupNameHexData  groupNameHexData_;  //!< hex cell values
   GroupPoints       groupPoints_;       //!< group fit points
   GroupFitData      groupFitData_;      //!< group fit data
   GroupStatData     groupStatData_;     //!< group stat data

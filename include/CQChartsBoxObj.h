@@ -35,8 +35,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   };
 
  public:
-  CQChartsBoxObj(CQChartsView *view);
-  CQChartsBoxObj(CQChartsPlot *plot);
+  CQChartsBoxObj(View *view);
+  CQChartsBoxObj(Plot *plot);
 
   virtual ~CQChartsBoxObj() { }
 
@@ -65,11 +65,10 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const BBox &bbox) const;
-  void draw(CQChartsPaintDevice *device, const Polygon &poly) const;
+  void draw(PaintDevice *device, const BBox &bbox) const;
+  void draw(PaintDevice *device, const Polygon &poly) const;
 
-  void draw(CQChartsPaintDevice *device, const BBox &bbox,
-            const CQChartsPenBrush &penBrush) const;
+  void draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const;
 
   //---
 

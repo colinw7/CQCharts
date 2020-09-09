@@ -131,18 +131,31 @@ class CQChartsAxis : public CQChartsObj,
     MAJOR
   };
 
-  using ColorInd   = CQChartsUtil::ColorInd;
-  using ModelIndex = CQChartsModelIndex;
+  using Plot                   = CQChartsPlot;
+  using View                   = CQChartsView;
+  using Axis                   = CQChartsAxis;
+  using AxisValueType          = CQChartsAxisValueType;
+  using AxisSide               = CQChartsAxisSide;
+  using AxisTickLabelPlacement = CQChartsAxisTickLabelPlacement;
+  using ColorInd               = CQChartsUtil::ColorInd;
+  using ModelIndex             = CQChartsModelIndex;
+  using EditHandles            = CQChartsEditHandles;
+  using OptReal                = CQChartsOptReal;
+  using OptInt                 = CQChartsOptInt;
+  using OptString              = CQChartsOptString;
+  using PaintDevice            = CQChartsPaintDevice;
+  using Column                 = CQChartsColumn;
+  using Angle                  = CQChartsAngle;
 
  public:
-  CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
+  CQChartsAxis(const Plot *plot, Qt::Orientation direction=Qt::Horizontal,
                double start=0.0, double end=1.0);
 
   virtual ~CQChartsAxis();
 
   //---
 
-  static void swap(CQChartsAxis *lhs, CQChartsAxis *rhs);
+  static void swap(Axis *lhs, Axis *rhs);
 
   //---
 
@@ -152,12 +165,12 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  CQChartsPlot *plot() { return const_cast<CQChartsPlot *>(plot_); }
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(const CQChartsPlot *plot) { plot_ = plot; }
+  Plot *plot() { return const_cast<Plot *>(plot_); }
+  const Plot *plot() const { return plot_; }
+  void setPlot(const Plot *plot) { plot_ = plot; }
 
-  CQChartsView *view();
-  const CQChartsView *view() const;
+  View *view();
+  const View *view() const;
 
   //---
 
@@ -188,13 +201,13 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  CQChartsAxisSide side() const { return side_; }
-  void setSide(CQChartsAxisSide side) { side_ = side; updatePlotPosition(); }
+  AxisSide side() const { return side_; }
+  void setSide(AxisSide side) { side_ = side; updatePlotPosition(); }
 
   //---
 
-  const CQChartsOptReal &position() const { return position_; }
-  void setPosition(const CQChartsOptReal &r);
+  const OptReal &position() const { return position_; }
+  void setPosition(const OptReal &r);
 
   //---
 
@@ -215,17 +228,17 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  const CQChartsAxisValueType &valueType() const { return valueType_; }
-  void setValueType(const CQChartsAxisValueType &v, bool notify=true);
+  const AxisValueType &valueType() const { return valueType_; }
+  void setValueType(const AxisValueType &v, bool notify=true);
 
-  bool isIntegral() const { return (valueType_.type() == CQChartsAxisValueType::Type::INTEGER); }
-  bool isDate    () const { return (valueType_.type() == CQChartsAxisValueType::Type::DATE); }
-  bool isLog     () const { return (valueType_.type() == CQChartsAxisValueType::Type::LOG); }
+  bool isIntegral() const { return (valueType_.type() == AxisValueType::Type::INTEGER); }
+  bool isDate    () const { return (valueType_.type() == AxisValueType::Type::DATE); }
+  bool isLog     () const { return (valueType_.type() == AxisValueType::Type::LOG); }
 
   //---
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c);
+  const Column &column() const { return column_; }
+  void setColumn(const Column &c);
 
   bool isDataLabels() const { return dataLabels_; }
   void setDataLabels(bool b);
@@ -234,14 +247,13 @@ class CQChartsAxis : public CQChartsObj,
   bool setFormat(const QString &s);
 
   double maxFitExtent() const { return maxFitExtent_; }
-  void setMaxFitExtent(double r) {
-    CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { redraw(); } ); }
+  void setMaxFitExtent(double r);
 
   //---
 
   // get/set label
-  const CQChartsOptString &label() const { return label_; }
-  void setLabel(const CQChartsOptString &str);
+  const OptString &label() const { return label_; }
+  void setLabel(const OptString &str);
 
   QString labelStr() const { return label_.stringOr(); }
   void setLabelStr(const QString &s);
@@ -276,10 +288,10 @@ class CQChartsAxis : public CQChartsObj,
 
   // grid
   bool isGridMid() const { return gridMid_; }
-  void setGridMid(bool b) { CQChartsUtil::testAndSet(gridMid_, b, [&]() { redraw(); } ); }
+  void setGridMid(bool b);
 
   bool isGridAbove() const { return gridAbove_; }
-  void setGridAbove(bool b) { CQChartsUtil::testAndSet(gridAbove_, b, [&]() { redraw(); } ); }
+  void setGridAbove(bool b);
 
   //---
 
@@ -297,26 +309,25 @@ class CQChartsAxis : public CQChartsObj,
 
   // major/minor ticks
   int majorTickLen() const { return majorTickLen_; }
-  void setMajorTickLen(int i) { CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { redraw(); } ); }
+  void setMajorTickLen(int i);
 
   int minorTickLen() const { return minorTickLen_; }
-  void setMinorTickLen(int i) { CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { redraw(); } ); }
+  void setMinorTickLen(int i);
 
   bool isTickInside() const { return tickInside_; }
-  void setTickInside(bool b) { CQChartsUtil::testAndSet(tickInside_, b, [&]() { redraw(); } ); }
+  void setTickInside(bool b);
 
   bool isMirrorTicks() const { return mirrorTicks_; }
-  void setMirrorTicks(bool b) { CQChartsUtil::testAndSet(mirrorTicks_, b, [&]() { redraw(); } ); }
+  void setMirrorTicks(bool b);
 
   //---
 
   // ticks label
   bool isTickLabelAutoHide() const { return tickLabelAutoHide_; }
-  void setTickLabelAutoHide(bool b) {
-    CQChartsUtil::testAndSet(tickLabelAutoHide_, b, [&]() { redraw(); } ); }
+  void setTickLabelAutoHide(bool b);
 
-  const CQChartsAxisTickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
-  void setTickLabelPlacement(const CQChartsAxisTickLabelPlacement &p);
+  const AxisTickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
+  void setTickLabelPlacement(const AxisTickLabelPlacement &p);
 
   //---
 
@@ -327,18 +338,18 @@ class CQChartsAxis : public CQChartsObj,
   //---
 
   // user specified tick increment
-  const CQChartsOptInt &tickIncrement() const { return tickIncrement_; }
-  void setTickIncrement(const CQChartsOptInt &tickIncrement);
+  const OptInt &tickIncrement() const { return tickIncrement_; }
+  void setTickIncrement(const OptInt &tickIncrement);
 
-  void setTickIncrement(int i) { setTickIncrement(CQChartsOptInt(i)); }
+  void setTickIncrement(int i) { setTickIncrement(OptInt(i)); }
 
   //---
 
   // user specified major increment
-  const CQChartsOptInt &majorIncrement() const { return majorIncrement_; }
-  void setMajorIncrement(const CQChartsOptInt &i);
+  const OptInt &majorIncrement() const { return majorIncrement_; }
+  void setMajorIncrement(const OptInt &i);
 
-  void setMajorIncrement(int i) { setMajorIncrement(CQChartsOptInt(i)); }
+  void setMajorIncrement(int i) { setMajorIncrement(OptInt(i)); }
 
   //---
 
@@ -389,12 +400,12 @@ class CQChartsAxis : public CQChartsObj,
 
   QString valueStr(double pos) const;
 
-  QString valueStr(const CQChartsPlot *plot, double pos) const;
+  QString valueStr(const Plot *plot, double pos) const;
 
   //--
 
   const BBox &bbox() const { return bbox_; }
-  void setBBox(const BBox &b) { CQChartsUtil::testAndSet(bbox_, b, [&]() { redraw(); } ); }
+  void setBBox(const BBox &b);
 
   BBox fitBBox() const;
 
@@ -413,7 +424,7 @@ class CQChartsAxis : public CQChartsObj,
   void updatePlotRange();
   void updatePlotRangeAndObjs();
 
-  CQChartsEditHandles *editHandles() const;
+  EditHandles *editHandles() const;
 
   //---
 
@@ -432,39 +443,38 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isDrawGrid() const;
 
-  void drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device);
+  void drawGrid(const Plot *plot, PaintDevice *device);
 
   //---
 
-  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device);
+  void draw(const Plot *plot, PaintDevice *device);
 
   void drawEditHandles(QPainter *painter) const;
 
-  void calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const;
+  void calcPos(const Plot *plot, double &apos1, double &apos2) const;
 
-  void drawLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                double apos, double amin, double amax);
+  void drawLine(const Plot *plot, PaintDevice *device, double apos, double amin, double amax);
 
-  void drawMajorGridLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                         double apos, double amin, double amax);
-  void drawMinorGridLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                         double apos, double amin, double amax);
+  void drawMajorGridLine(const Plot *plot, PaintDevice *device, double apos,
+                         double amin, double amax);
+  void drawMinorGridLine(const Plot *plot, PaintDevice *device, double apos,
+                         double amin, double amax);
 
-  void drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                         double apos, double tpos, bool inside);
-  void drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                         double apos, double tpos, bool inside);
+  void drawMajorTickLine(const Plot *plot, PaintDevice *device, double apos,
+                         double tpos, bool inside);
+  void drawMinorTickLine(const Plot *plot, PaintDevice *device, double apos,
+                         double tpos, bool inside);
 
-  void drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                    double apos, double tpos, bool inside, bool major);
+  void drawTickLine(const Plot *plot, PaintDevice *device, double apos,
+                    double tpos, bool inside, bool major);
 
-  void drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                     double apos, double tpos, bool inside);
+  void drawTickLabel(const Plot *plot, PaintDevice *device, double apos,
+                     double tpos, bool inside);
 
-  void drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device);
+  void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device);
 
-  void drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                     double apos, double amin, double amax, const QString &text);
+  void drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
+                     double amin, double amax, const QString &text);
 
   void getTickLabelsPositions(std::set<int> &positions) const;
 
@@ -492,14 +502,14 @@ class CQChartsAxis : public CQChartsObj,
     }
 
     AxisTickLabelDrawData(const Point &p, const BBox &bbox, const QString &text,
-                          const CQChartsAngle &angle, Qt::Alignment align) :
+                          const Angle &angle, Qt::Alignment align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
     }
 
     Point         p;
     BBox          bbox;
     QString       text;
-    CQChartsAngle angle;
+    Angle         angle;
     Qt::Alignment align   { Qt::AlignHCenter };
     bool          visible { true };
   };
@@ -515,79 +525,78 @@ class CQChartsAxis : public CQChartsObj,
 
   void emitSelectionChanged();
 
-  Point windowToPixel(const CQChartsPlot *plot, double x, double y) const;
+  Point windowToPixel(const Plot *plot, double x, double y) const;
 
  private:
-  using TickSpaces         = std::vector<double>;
-  using ITickLabels        = std::map<int, QString>;
-  using RTickLabels        = std::map<double, QString>;
-  using TickLabelPlacement = CQChartsAxisTickLabelPlacement;
+  using TickSpaces  = std::vector<double>;
+  using ITickLabels = std::map<int, QString>;
+  using RTickLabels = std::map<double, QString>;
 
-  using CQChartsEditHandlesP = std::unique_ptr<CQChartsEditHandles>;
+  using EditHandlesP = std::unique_ptr<EditHandles>;
 
   // basic state
-  const CQChartsPlot*   plot_                { nullptr };        //!< parent plot
-  Qt::Orientation       direction_           { Qt::Horizontal }; //!< direction
+  const Plot*     plot_      { nullptr };        //!< parent plot
+  Qt::Orientation direction_ { Qt::Horizontal }; //!< direction
 
   // general
-  bool                  updatesEnabled_      { true };  //!< axis updates enabled
-  bool                  drawAll_             { false }; //!< axis updates enabled
-  CQChartsAxisSide      side_;                          //!< axis plot placement side
-  CQChartsOptReal       position_;                      //!< axis custom position
-  CQChartsAxisValueType valueType_;                     //!< value type
-  bool                  dataLabels_          { false }; //!< use data for labels
-  CQChartsColumn        column_;                        //!< associated column
-  QString               formatStr_;                     //!< value format string
-  double                maxFitExtent_        { 10 };    //!< max extent percent for fit
+  bool          updatesEnabled_ { true };  //!< axis updates enabled
+  bool          drawAll_        { false }; //!< axis updates enabled
+  AxisSide      side_;                     //!< axis plot placement side
+  OptReal       position_;                 //!< axis custom position
+  AxisValueType valueType_;                //!< value type
+  bool          dataLabels_     { false }; //!< use data for labels
+  Column        column_;                   //!< associated column
+  QString       formatStr_;                //!< value format string
+  double        maxFitExtent_   { 10 };    //!< max extent percent for fit
 
   // label
-  bool                  labelDisplayed_      { true };  //!< show label
-  CQChartsOptString     label_;                         //!< label
-  QString               userLabel_;                     //!< user label
+  bool      labelDisplayed_ { true }; //!< show label
+  OptString label_;                   //!< label
+  QString   userLabel_;               //!< user label
 
   // grid (lines and gap fill)
   GridLinesDisplayed gridLinesDisplayed_ { GridLinesDisplayed::NONE }; //!< grid lines displayed
   GridFillDisplayed  gridFillDisplayed_  { GridFillDisplayed::NONE  }; //!< grid fill displayed
 
-  bool                  gridMid_             { false }; //!< show grid at mid point
-  bool                  gridAbove_           { false }; //!< is grid above plot
+  bool gridMid_   { false }; //!< show grid at mid point
+  bool gridAbove_ { false }; //!< is grid above plot
 
   // ticks
   TicksDisplayed ticksDisplayed_ { TicksDisplayed::MAJOR_AND_MINOR }; //!< ticks displayed
 
-  int                   majorTickLen_        { 8 };     //!< major tick length
-  int                   minorTickLen_        { 4 };     //!< minor tick length
-  bool                  tickInside_          { false }; //!< tick inside plot
-  bool                  mirrorTicks_         { false }; //!< mirror ticks
+  int  majorTickLen_ { 8 };     //!< major tick length
+  int  minorTickLen_ { 4 };     //!< minor tick length
+  bool tickInside_   { false }; //!< tick inside plot
+  bool mirrorTicks_  { false }; //!< mirror ticks
 
-  bool                  tickLabelAutoHide_   { true };  //!< tick auto hide
-  TickLabelPlacement    tickLabelPlacement_;            //!< tick placement
+  bool                   tickLabelAutoHide_   { true }; //!< tick auto hide
+  AxisTickLabelPlacement tickLabelPlacement_;           //!< tick placement
 
   // placement state
-  double                start_               { 0.0 };   //!< axis start
-  double                end_                 { 1.0 };   //!< axis end
-  bool                  includeZero_         { false }; //!< include zero in range
-  uint                  maxMajorTicks_       { 1000 };  //!< max major ticks
-  CQChartsOptInt        tickIncrement_;                 //!< user specified tick increment
-  CQChartsOptInt        majorIncrement_;                //!< user specified major increment
-  bool                  needsCalc_           { true };  //!< needs tick calc
+  double start_           { 0.0 };   //!< axis start
+  double end_             { 1.0 };   //!< axis end
+  bool   includeZero_     { false }; //!< include zero in range
+  uint   maxMajorTicks_   { 1000 };  //!< max major ticks
+  OptInt tickIncrement_;             //!< user specified tick increment
+  OptInt majorIncrement_;            //!< user specified major increment
+  bool   needsCalc_       { true };  //!< needs tick calc
 
   // internal calculation data
-  CInterval             interval_;                      //!< interval data
-  uint                  numMajorTicks_       { 1 };     //!< num major ticks
-  uint                  numMinorTicks_       { 0 };     //!< num minor ticks
-  double                calcIncrement_       { 0 };     //!< calculated axis increment
-  double                calcStart_           { 0 };     //!< calculated axis start
-  double                calcEnd_             { 1 };     //!< calculated axis end
+  CInterval interval_;            //!< interval data
+  uint      numMajorTicks_ { 1 }; //!< num major ticks
+  uint      numMinorTicks_ { 0 }; //!< num minor ticks
+  double    calcIncrement_ { 0 }; //!< calculated axis increment
+  double    calcStart_     { 0 }; //!< calculated axis start
+  double    calcEnd_       { 1 }; //!< calculated axis end
 
   // tick customization
-  TickSpaces            tickSpaces_;                    //!< tick spaces (?)
-  ITickLabels           tickLabels_;                    //!< tick labels
-  bool                  requireTickLabel_    { false }; //!< use tick label values even if empty
-  RTickLabels           customTickLabels_;              //!< custom tick labels
+  TickSpaces  tickSpaces_;                 //!< tick spaces (?)
+  ITickLabels tickLabels_;                 //!< tick labels
+  bool        requireTickLabel_ { false }; //!< use tick label values even if empty
+  RTickLabels customTickLabels_;           //!< custom tick labels
 
   // edit state
-  CQChartsEditHandlesP  editHandles_; //!< edit handles
+  EditHandlesP editHandles_; //!< edit handles
 
   // bbox draw state
   BBox                   bbox_;                   //!< axis box

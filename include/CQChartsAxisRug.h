@@ -21,6 +21,7 @@ class CQChartsAxisRug : public CQChartsObj,
     TOP_RIGHT
   };
 
+  //! rug point data
   struct RugPoint {
     double pos { 0.0 };
     QColor c;
@@ -33,9 +34,14 @@ class CQChartsAxisRug : public CQChartsObj,
   };
 
  public:
-  CQChartsAxisRug(CQChartsPlot *plot, const Qt::Orientation &direction=Qt::Horizontal);
+  using Plot        = CQChartsPlot;
+  using PaintDevice = CQChartsPaintDevice;
+  using BBox        = CQChartsGeom::BBox;
 
-  CQChartsPlot *plot() const { return plot_; }
+ public:
+  CQChartsAxisRug(Plot *plot, const Qt::Orientation &direction=Qt::Horizontal);
+
+  Plot *plot() const { return plot_; }
 
   const Side &side() const { return side_; }
   void setSide(const Side &s);
@@ -50,16 +56,16 @@ class CQChartsAxisRug : public CQChartsObj,
 
   void addProperties(const QString &path, const QString &desc);
 
-  CQChartsGeom::BBox calcBBox() const;
+  BBox calcBBox() const;
 
   void dataInvalidate() override;
 
-  void draw(CQChartsPaintDevice *device);
+  void draw(PaintDevice *device);
 
  private:
   using Points = std::vector<RugPoint>;
 
-  CQChartsPlot*   plot_      { nullptr };           //!< plot
+  Plot*           plot_      { nullptr };           //!< plot
   Side            side_      { Side::BOTTOM_LEFT }; //!< rug side
   Qt::Orientation direction_ { Qt::Horizontal };    //!< rug direction
   Points          points_;                          //!< rug points

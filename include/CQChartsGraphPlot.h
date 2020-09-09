@@ -311,6 +311,7 @@ class CQChartsGraphPlotGraph : public CQChartsGraphPlotNode {
   using Node  = CQChartsGraphPlotNode;
   using Nodes = std::vector<Node *>;
 
+  //! data for nodes at depth
   struct DepthData {
     Nodes  nodes;        //!< nodes at depth
     double size { 0.0 }; //!< total size

@@ -25,21 +25,26 @@ class CQChartsPaintDevice {
   };
 
  public:
+  using View    = CQChartsView;
+  using Plot    = CQChartsPlot;
+  using Angle   = CQChartsAngle;
+  using Image   = CQChartsImage;
+  using Length  = CQChartsLength;
   using Point   = CQChartsGeom::Point;
   using BBox    = CQChartsGeom::BBox;
   using Size    = CQChartsGeom::Size;
   using Polygon = CQChartsGeom::Polygon;
 
  public:
-  CQChartsPaintDevice(CQChartsView *view) : view_(view) { }
-  CQChartsPaintDevice(CQChartsPlot *plot) : plot_(plot) { }
+  CQChartsPaintDevice(View *view) : view_(view) { }
+  CQChartsPaintDevice(Plot *plot) : plot_(plot) { }
   CQChartsPaintDevice() { }
 
-  const CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *p) { view_ = p; }
+  const View *view() const { return view_; }
+  void setView(View *p) { view_ = p; }
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p) { plot_ = p; }
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p) { plot_ = p; }
 
   virtual Type type() const = 0;
 
@@ -70,9 +75,9 @@ class CQChartsPaintDevice {
   virtual void fillRect(const BBox &) { }
   virtual void drawRect(const BBox &) { }
 
-  virtual void drawEllipse(const BBox &, const CQChartsAngle& =CQChartsAngle()) { }
+  virtual void drawEllipse(const BBox &, const Angle& =Angle()) { }
 
-//virtual void drawArc(const BBox &, const CQChartsAngle &, const CQChartsAngle &) { }
+//virtual void drawArc(const BBox &, const Angle &, const Angle &) { }
 
   //---
 
@@ -99,7 +104,7 @@ class CQChartsPaintDevice {
   virtual void drawTransformedText(const Point &, const QString &) { }
 
   virtual void drawImage(const Point &, const QImage &) { }
-  virtual void drawImageInRect(const BBox &, const CQChartsImage &, bool = true) { }
+  virtual void drawImageInRect(const BBox &, const Image &, bool = true) { }
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f) = 0;
@@ -130,11 +135,11 @@ class CQChartsPaintDevice {
 
   Size pixelToWindowSize(const Size &s) const;
 
-  double lengthPixelWidth (const CQChartsLength &w) const;
-  double lengthPixelHeight(const CQChartsLength &h) const;
+  double lengthPixelWidth (const Length &w) const;
+  double lengthPixelHeight(const Length &h) const;
 
-  double lengthWindowWidth (const CQChartsLength &w) const;
-  double lengthWindowHeight(const CQChartsLength &h) const;
+  double lengthWindowWidth (const Length &w) const;
+  double lengthWindowHeight(const Length &h) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
@@ -145,8 +150,8 @@ class CQChartsPaintDevice {
   virtual bool invertY() const { return false; }
 
  protected:
-  CQChartsView* view_ { nullptr };
-  CQChartsPlot* plot_ { nullptr };
+  View* view_ { nullptr };
+  Plot* plot_ { nullptr };
 };
 
 #endif

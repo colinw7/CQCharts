@@ -32,7 +32,12 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   Q_PROPERTY(bool fitVertical   READ isFitVertical   WRITE setFitVertical  )
 
  public:
-  CQChartsTitle(CQChartsPlot *plot);
+  using TitleLocation = CQChartsTitleLocation;
+  using Position      = CQChartsPosition;
+  using Rect          = CQChartsRect;
+
+ public:
+  CQChartsTitle(Plot *plot);
  ~CQChartsTitle();
 
   QString calcId() const override;
@@ -45,14 +50,14 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const CQChartsTitleLocation &location() const { return location_; }
-  void setLocation(const CQChartsTitleLocation &l);
+  const TitleLocation &location() const { return location_; }
+  void setLocation(const TitleLocation &l);
 
-  const CQChartsPosition &absolutePosition() const { return absolutePosition_; }
-  void setAbsolutePosition(const CQChartsPosition &p);
+  const Position &absolutePosition() const { return absolutePosition_; }
+  void setAbsolutePosition(const Position &p);
 
-  const CQChartsRect &absoluteRectangle() const { return absoluteRectangle_; }
-  void setAbsoluteRectangle(const CQChartsRect &r);
+  const Rect &absoluteRectangle() const { return absoluteRectangle_; }
+  void setAbsoluteRectangle(const Rect &r);
 
   bool isInsidePlot() const { return insidePlot_; }
   void setInsidePlot(bool b);
@@ -126,7 +131,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   bool isDrawn() const;
 
-  void draw(CQChartsPaintDevice *device);
+  void draw(PaintDevice *device);
 
   void drawEditHandles(QPainter *painter) const override;
 
@@ -141,15 +146,15 @@ class CQChartsTitle : public CQChartsTextBoxObj {
     bool vertical   { true };
   };
 
-  CQChartsTitleLocation location_;                      //!< location type
-  CQChartsPosition      absolutePosition_;              //!< position (relative to plot box)
-  CQChartsRect          absoluteRectangle_;             //!< rect (relative to plot box)
-  bool                  insidePlot_        { false };   //!< is placed inside plot
-  bool                  expandWidth_       { false };   //!< is width expanded to plot
-  Point                 position_          { 0, 0 };    //!< position
-  Size                  size_;                          //!< size
-  FitData               fitData_;                       //!< fit data
-//mutable BBox          bbox_;                          //!< bbox
+  TitleLocation location_;                      //!< location type
+  Position      absolutePosition_;              //!< position (relative to plot box)
+  Rect          absoluteRectangle_;             //!< rect (relative to plot box)
+  bool          insidePlot_        { false };   //!< is placed inside plot
+  bool          expandWidth_       { false };   //!< is width expanded to plot
+  Point         position_          { 0, 0 };    //!< position
+  Size          size_;                          //!< size
+  FitData       fitData_;                       //!< fit data
+//mutable BBox  bbox_;                          //!< bbox
 };
 
 #endif

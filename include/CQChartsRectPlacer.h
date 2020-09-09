@@ -16,7 +16,7 @@ class CQChartsRectPlacer {
     Rect() = default;
 
     Rect(double xmin, double ymin, double xmax, double ymax) :
-     xmin_(xmin), ymin_(ymin), xmax_(xmax), ymax_(ymax) {
+     set_(true), xmin_(xmin), ymin_(ymin), xmax_(xmax), ymax_(ymax) {
     }
 
     double xmin() const { return xmin_; }
@@ -32,7 +32,7 @@ class CQChartsRectPlacer {
 
     //---
 
-    bool isSet() { return true; }
+    bool isSet() { return set_; }
 
     double getXMin() const { return xmin_; }
     double getYMin() const { return ymin_; }
@@ -40,6 +40,15 @@ class CQChartsRectPlacer {
     double getYMax() const { return ymax_; }
 
     const Rect &rect() const { return *this; }
+
+    //---
+
+    bool inside(const Rect &rect) const {
+      if (! set_ || ! rect.set_) return false;
+
+      return ((rect.xmin() >= xmin() && rect.xmax() <= xmax()) &&
+              (rect.ymin() >= ymin() && rect.ymax() <= ymax()));
+    }
 
     //---
 
@@ -52,6 +61,7 @@ class CQChartsRectPlacer {
     }
 
    private:
+    bool   set_  { false };
     double xmin_ { 0.0 };
     double ymin_ { 0.0 };
     double xmax_ { 0.0 };
@@ -241,6 +251,9 @@ class CQChartsRectPlacer {
 
   const Grid &grid() const { return grid_; }
 
+  const Rect &clipRect() const { return clipRect_; }
+  void setClipRect(const Rect &v) { clipRect_ = v; }
+
   void clear(bool del=false) {
     if (del) {
       for (auto &rectData : rectDatas_)
@@ -293,6 +306,7 @@ class CQChartsRectPlacer {
   bool      debug_  { false };
   Grid      grid_;
   RectDatas rectDatas_;
+  Rect      clipRect_;
 };
 
 #endif

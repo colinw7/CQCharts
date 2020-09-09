@@ -3292,9 +3292,9 @@ yColorValue(bool relative) const
 
 CQChartsScatterCellObj::
 CQChartsScatterCellObj(const Plot *plot, int groupInd, const BBox &rect, const ColorInd &is,
-                       const ColorInd &ig, int ix, int iy, const Points &points, int maxn) :
+                       const ColorInd &ig, int ix, int iy, const Points &points, int maxN) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
- groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
+ groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxN_(maxN)
 {
   setDetailHint(DetailHint::MAJOR);
 }
@@ -3369,7 +3369,7 @@ CQChartsScatterCellObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
-  ColorInd ic(points_.size(), maxn_);
+  ColorInd ic(points_.size(), maxN_);
 
   QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
   QColor fc = plot_->interpPaletteColor(ic);

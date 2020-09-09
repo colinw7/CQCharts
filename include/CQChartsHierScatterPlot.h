@@ -41,6 +41,7 @@ class CQChartsHierScatterPointGroup;
 
 using CQChartsHierScatterPointGroupMap = std::map<int, CQChartsHierScatterPointGroup *>;
 
+//! hier scatter plot point
 struct CQChartsHierScatterPoint {
   using Point = CQChartsGeom::Point;
 

@@ -11,7 +11,7 @@ class CQChartsDensity;
 //---
 
 /*!
- * \brief Distribution Bae Value Data
+ * \brief Distribution Bar Value Data
  * \ingroup Charts
  */
 struct CQChartsDistributionBarValue {

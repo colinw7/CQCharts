@@ -9,6 +9,7 @@
  */
 class CQChartsConnectionList {
  public:
+  //! connecton node and value
   struct Connection {
     int    node  { -1 };
     double value { -1 };

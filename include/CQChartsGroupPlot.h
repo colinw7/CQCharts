@@ -61,7 +61,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
   using GroupData = CQChartsGroupData;
 
  public:
-  CQChartsGroupPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
+  CQChartsGroupPlot(View *view, PlotType *plotType, const ModelP &model);
 
  ~CQChartsGroupPlot();
 

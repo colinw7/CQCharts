@@ -23,6 +23,7 @@ class QPainter;
  */
 class CQChartsTableDelegate : public QItemDelegate {
  public:
+  //! column details data
   struct ColumnData {
     CQChartsModelColumnDetails* details { nullptr };
   };

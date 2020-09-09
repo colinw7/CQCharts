@@ -171,6 +171,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  //! hierarchical connection data
   struct HierConnectionData {
     ModelIndex  parentLinkInd;
     QStringList linkStrs;
@@ -181,6 +182,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   using HierConnectionDataList = std::vector<HierConnectionData>;
 
+  //! group data
   struct GroupData {
     QVariant value;
     int      ig { -1 };
@@ -209,6 +211,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
       NON_PRIMARY
     };
 
+    //! table value data
     struct Value {
       int     to      { -1 };
       OptReal value;
@@ -327,12 +330,14 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   using TableConnectionDatas = std::vector<TableConnectionData>;
 
+  //! table connection info
   struct TableConnectionInfo {
     int    numNonZero { 0 };
     double total      { 0.0 };
   };
 
  protected:
+  //! link connection data
   struct LinkConnectionData {
     QString    srcStr;
     QString    destStr;
@@ -365,6 +370,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   using ConnectionList = CQChartsConnectionList;
   using Connections    = ConnectionList::Connections;
 
+  //! connections data
   struct ConnectionsData {
     QModelIndex ind;
     int         node    { -1 };
@@ -390,6 +396,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  //! from/to connection data
   struct FromToData {
     int                depth      { -1 }; //!< source node depth
     CQChartsNameValues nameValues;        //!< node/edge attributes
@@ -411,6 +418,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   bool groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const;
 
  protected:
+  //! value propagation data
   struct PropagateData {
     enum class Type {
       SUM,

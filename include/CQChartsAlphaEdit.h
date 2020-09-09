@@ -14,10 +14,13 @@ class CQChartsAlphaEdit : public CQRealSpin {
   Q_PROPERTY(CQChartsAlpha alpha READ alpha WRITE setAlpha)
 
  public:
+  using Alpha = CQChartsAlpha;
+
+ public:
   CQChartsAlphaEdit(QWidget *parent=nullptr);
 
-  const CQChartsAlpha &alpha() const { return alpha_; }
-  void setAlpha(const CQChartsAlpha &alpha);
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &alpha);
 
  signals:
   void alphaChanged();
@@ -32,8 +35,8 @@ class CQChartsAlphaEdit : public CQRealSpin {
   void connectSlots(bool b);
 
  private:
-  CQChartsAlpha alpha_;               //!< alpha value
-  bool          connected_ { false }; //!< is connected
+  Alpha alpha_;               //!< alpha value
+  bool  connected_ { false }; //!< is connected
 };
 
 //------

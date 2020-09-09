@@ -129,7 +129,7 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
 
 namespace CQChartsUtil {
 
-// compare reals with tolerance
+//! compare reals with tolerance
 struct RealCmp {
   bool operator()(const double &lhs, const double &rhs) const {
     if (CMathUtil::realEq(lhs, rhs))
@@ -139,7 +139,7 @@ struct RealCmp {
   }
 };
 
-// compare colors
+//! compare colors
 struct ColorCmp {
   bool operator()(const CQChartsColor &lhs, const CQChartsColor &rhs) const {
     return (CQChartsColor::cmp(lhs, rhs) < 0);
@@ -233,6 +233,7 @@ namespace CQChartsUtil {
 
 using BBox = CQChartsGeom::BBox;
 
+//! format string data
 struct FormatData {
   QString seps;
 
@@ -363,6 +364,7 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
 
 namespace CQChartsUtil {
 
+//! color index data
 struct ColorInd {
   ColorInd() = default;
 

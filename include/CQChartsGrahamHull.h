@@ -15,9 +15,11 @@ class CQChartsPaintDevice;
  */
 class CQChartsGrahamHull {
  public:
-  using Point   = CQChartsGeom::Point;
-  using BBox    = CQChartsGeom::BBox;
-  using Polygon = CQChartsGeom::Polygon;
+  using Plot        = CQChartsPlot;
+  using PaintDevice = CQChartsPaintDevice;
+  using Point       = CQChartsGeom::Point;
+  using BBox        = CQChartsGeom::BBox;
+  using Polygon     = CQChartsGeom::Polygon;
 
  public:
   CQChartsGrahamHull();
@@ -30,7 +32,7 @@ class CQChartsGrahamHull {
 
   void getHull(Polygon &points) const;
 
-  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device) const;
+  void draw(const Plot *plot, PaintDevice *device) const;
 
   BBox bbox() const;
 

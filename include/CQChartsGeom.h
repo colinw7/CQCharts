@@ -2213,6 +2213,7 @@ class Matrix {
 
 namespace CQChartsGeom {
 
+//! value in range
 struct RangeValue {
   RangeValue(double v=0.0, double min=0.0, double max=1.0) :
    v(v), min(min), max(max) {

@@ -101,7 +101,7 @@ stepPlace()
 
       //---
 
-      // checl rects for empty (miss) and hit rects
+      // check rects for empty (miss) and hit rects
       Rects     emptyRects;
       RectDatas hitRects1;
 
@@ -232,7 +232,12 @@ CQChartsRectPlacer::
 addDirRects(const Rect &dirRect, Rects &dirRects, const HitRect &hitRect)
 {
   auto addRect = [&](const Rect &dirRect) {
+    if (clipRect_.isSet() && ! clipRect_.inside(dirRect))
+       return false;
+
     dirRects.push_back(dirRect);
+
+    return true;
   };
 
   double hitXMin = hitRect.xmin;
@@ -390,6 +395,9 @@ moveOut(RectData *rectData)
   Rects dirRects;
 
   auto addRect = [&](const Rect &rect) {
+    if (clipRect_.isSet() && ! clipRect_.inside(rect))
+      return false;
+
     dirRects.push_back(rect);
 
     return true;

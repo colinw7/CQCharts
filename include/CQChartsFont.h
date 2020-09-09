@@ -30,6 +30,7 @@ class CQChartsFont {
     DECREMENT
   };
 
+  //! font inheritance data
   struct InheritData {
     bool     normal   { false };          //!< make normal
     bool     bold     { false };          //!< make bold

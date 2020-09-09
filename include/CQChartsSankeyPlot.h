@@ -374,6 +374,7 @@ class CQChartsSankeyPlotGraph {
   using BBox  = CQChartsGeom::BBox;
   using Point = CQChartsGeom::Point;
 
+  //! data for nodes at depth
   struct DepthData {
     Nodes  nodes;        //!< nodes at depth
     double size { 0.0 }; //!< total size
@@ -816,7 +817,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set use of of source/destination nodes for edge scaling
+  //! get/set use max of source/destination nodes for edge scaling
   bool useMaxTotals() const { return useMaxTotals_; }
   void setUseMaxTotals(bool b);
 
@@ -1014,6 +1015,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool        pressed_       { false };   //!< mouse pressed
 
  public:
+  //! draw text data
   struct DrawText : public CQChartsRectPlacer::RectData {
     using Rect = CQChartsRectPlacer::Rect;
 

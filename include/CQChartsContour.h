@@ -21,10 +21,12 @@ class CQChartsContour : public QObject {
   Q_PROPERTY(QColor gridPointColor   READ gridPointColor   WRITE setGridPointColor)
 
  public:
+  using Plot          = CQChartsPlot;
+  using PaintDevice   = CQChartsPaintDevice;
   using ContourLevels = std::vector<double>;
 
  public:
-  CQChartsContour(CQChartsPlot *plot=nullptr);
+  CQChartsContour(Plot *plot=nullptr);
 
   //---
 
@@ -49,46 +51,46 @@ class CQChartsContour : public QObject {
 
   void setContourColors(const std::vector<QColor> &colors);
 
-  void drawContour(CQChartsPaintDevice *device);
+  void drawContour(PaintDevice *device);
 
  private:
-  void drawContourLines(CQChartsPaintDevice *device);
-  void drawContourSolid(CQChartsPaintDevice *device);
+  void drawContourLines(PaintDevice *device);
+  void drawContourSolid(PaintDevice *device);
 
   QColor getLevelColor(int l) const;
 
   void initLevels(ContourLevels &levels) const;
 
-  void fillContourBox(CQChartsPaintDevice *, double, double, double, double,
+  void fillContourBox(PaintDevice *, double, double, double, double,
                       double, double, double, double, const ContourLevels &);
 
-  void drawPoint(CQChartsPaintDevice *, double, double);
-  void drawLine(CQChartsPaintDevice *, double, double, double, double);
+  void drawPoint(PaintDevice *, double, double);
+  void drawLine(PaintDevice *, double, double, double, double);
 
-  void fillPolygon(CQChartsPaintDevice *, const double *, const double *, int);
+  void fillPolygon(PaintDevice *, const double *, const double *, int);
 
  private:
   using RealArray  = std::vector<double>;
   using ColorArray = std::vector<QColor>;
 
-  CQChartsPlot* plot_            { nullptr };
-  bool          solid_           { false };
-  RealArray     x_;
-  RealArray     y_;
-  RealArray     z_;
-  RealArray     levels_;
-  int           numLevels_       { 10 };
-  ColorArray    colors_;
-  QColor        backgroundColor_ { 255, 255, 255 };
-  QColor        gridPointColor_  { 128, 128, 128 };
-  double        xmin_            { 0.0 };
-  double        ymin_            { 0.0 };
-  double        zmin_            { 0.0 };
-  double        xmax_            { 1.0 };
-  double        ymax_            { 1.0 };
-  double        zmax_            { 1.0 };
-  double        minX_            { 0.0 };
-  double        minY_            { 0.0 };
+  Plot*      plot_            { nullptr };
+  bool       solid_           { false };
+  RealArray  x_;
+  RealArray  y_;
+  RealArray  z_;
+  RealArray  levels_;
+  int        numLevels_       { 10 };
+  ColorArray colors_;
+  QColor     backgroundColor_ { 255, 255, 255 };
+  QColor     gridPointColor_  { 128, 128, 128 };
+  double     xmin_            { 0.0 };
+  double     ymin_            { 0.0 };
+  double     zmin_            { 0.0 };
+  double     xmax_            { 1.0 };
+  double     ymax_            { 1.0 };
+  double     zmax_            { 1.0 };
+  double     minX_            { 0.0 };
+  double     minY_            { 0.0 };
 };
 
 #endif

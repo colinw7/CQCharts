@@ -9,8 +9,12 @@
  */
 class CQChartsHtmlPaintDevice : public CQChartsPaintDevice {
  public:
-  CQChartsHtmlPaintDevice(CQChartsView *view, std::ostream &os);
-  CQChartsHtmlPaintDevice(CQChartsPlot *plot, std::ostream &os);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsHtmlPaintDevice(View *view, std::ostream &os);
+  CQChartsHtmlPaintDevice(Plot *plot, std::ostream &os);
 
   std::ostream &os() const { return *os_; }
 

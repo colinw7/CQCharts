@@ -793,7 +793,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void setKeyLine(bool b);
 
  private:
-  void resetBestFit();
+  void resetBestFit() override;
 
   //---
 

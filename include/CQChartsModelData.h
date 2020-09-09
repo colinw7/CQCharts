@@ -45,6 +45,7 @@ class CQChartsModelData : public QObject {
 #endif
 
  public:
+  //! fold data
   struct FoldData {
     enum class FoldType {
       BUCKET,
@@ -166,6 +167,7 @@ class CQChartsModelData : public QObject {
   bool getPropertyData(const QString &name, QVariant &value) const;
   bool setPropertyData(const QString &name, const QVariant &value);
 
+  //! name alias
   struct NameAlias {
     QString name;
     QString alias;
@@ -175,6 +177,7 @@ class CQChartsModelData : public QObject {
     }
   };
 
+  //! name alias array
   struct NameAliasArray {
     std::vector<NameAlias> data;
 
@@ -208,6 +211,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  //! copy model data
   struct CopyData {
     QString filter;
     bool    debug { false };
