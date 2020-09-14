@@ -879,7 +879,12 @@ initPlot(const CQChartsInitData &initData)
 
       auto *prevPlot = view->plot(0);
 
-      view->initX1X2(prevPlot, plot, initData.overlay);
+      CQChartsView::Plots plots;
+
+      plots.push_back(prevPlot);
+      plots.push_back(plot);
+
+      view->initX1X2(plots, initData.overlay);
     }
   }
   else if (initData.y1y2) {
@@ -891,7 +896,12 @@ initPlot(const CQChartsInitData &initData)
 
       auto *prevPlot = view->plot(0);
 
-      view->initY1Y2(prevPlot, plot, initData.overlay);
+      CQChartsView::Plots plots;
+
+      plots.push_back(prevPlot);
+      plots.push_back(plot);
+
+      view->initY1Y2(plots, initData.overlay);
     }
   }
   else if (initData.overlay) {

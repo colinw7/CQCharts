@@ -60,6 +60,12 @@ class CQChartsPlot3D : public CQChartsGroupPlot {
 
  public:
   CQChartsPlot3D(View *view, PlotType *plotType, const ModelP &model);
+ ~CQChartsPlot3D();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

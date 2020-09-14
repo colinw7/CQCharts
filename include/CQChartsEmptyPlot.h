@@ -45,8 +45,12 @@ class CQChartsEmptyPlot : public CQChartsPlot {
 
  public:
   CQChartsEmptyPlot(View *view, const ModelP &model);
-
  ~CQChartsEmptyPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

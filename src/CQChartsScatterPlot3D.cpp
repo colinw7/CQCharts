@@ -119,6 +119,24 @@ CQChartsScatterPlot3D(View *view, const ModelP &model) :
  CQChartsPlot3D(view, view->charts()->plotType("scatter3d"), model),
  CQChartsObjPointData<CQChartsScatterPlot3D>(this)
 {
+}
+
+CQChartsScatterPlot3D::
+~CQChartsScatterPlot3D()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsScatterPlot3D::
+init()
+{
+  CQChartsPlot3D::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -146,8 +164,9 @@ CQChartsScatterPlot3D(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsScatterPlot3D::
-~CQChartsScatterPlot3D()
+term()
 {
   delete dataLabel_;
 }

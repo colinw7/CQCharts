@@ -55,6 +55,24 @@ CQChartsContourPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model),
  CQChartsObjContourShapeData<CQChartsContourPlot>(this)
 {
+}
+
+CQChartsContourPlot::
+~CQChartsContourPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsContourPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setContourFillColor(Color(Color::Type::PALETTE));
@@ -64,8 +82,9 @@ CQChartsContourPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsContourPlot::
-~CQChartsContourPlot()
+term()
 {
   delete contour_;
 }

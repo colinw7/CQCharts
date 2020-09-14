@@ -558,8 +558,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
  public:
   CQChartsBoxPlot(View *view, const ModelP &model);
-
  ~CQChartsBoxPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

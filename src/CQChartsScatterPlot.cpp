@@ -126,6 +126,24 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
+}
+
+CQChartsScatterPlot::
+~CQChartsScatterPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+init()
+{
+  CQChartsPointPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -155,7 +173,7 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
     auto *density = new AxisDensity(this, orient);
 
     density->setVisible(false);
-    density->setSide(AxisDensity::Side::TOP_RIGHT);
+    density->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
 
     return density;
   };
@@ -169,7 +187,7 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
     auto *whisker = new AxisBoxWhisker(this, orient);
 
     whisker->setVisible(false);
-    whisker->setSide(AxisBoxWhisker::Side::TOP_RIGHT);
+    whisker->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
 
     return whisker;
   };
@@ -178,8 +196,9 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
   yAxisWhisker_ = createAxisWhisker(Qt::Vertical);
 }
 
+void
 CQChartsScatterPlot::
-~CQChartsScatterPlot()
+term()
 {
   for (const auto &ghull : groupHull_)
     delete ghull.second;
@@ -197,7 +216,7 @@ CQChartsScatterPlot::
   delete yAxisWhisker_;
 }
 
-//------
+//---
 
 void
 CQChartsScatterPlot::
@@ -535,6 +554,44 @@ addProperties()
 
   // color map
   addColorMapProperties();
+}
+
+//---
+
+QColor
+CQChartsScatterPlot::
+interpColor(const Color &c, const ColorInd &ind) const
+{
+  if (c.type() != Color::Type::PALETTE)
+    return CQChartsPlot::interpColor(c, ind);
+
+  if (isOverlay()) {
+    int i = ind.i;
+    int n = ind.n;
+
+    if (prevPlot() || nextPlot()) {
+      auto *plot1 = prevPlot();
+      auto *plot2 = nextPlot();
+
+      while (plot1) { ++n; plot1 = plot1->prevPlot(); }
+      while (plot2) { ++n; plot2 = plot2->nextPlot(); }
+    }
+
+    //---
+
+    auto *plot1 = prevPlot();
+
+    while (plot1) {
+      ++i;
+
+      plot1 = plot1->prevPlot();
+    }
+
+    return view()->interpPaletteColor(ColorInd(i, n), c.isScale());
+  }
+  else {
+    return view()->interpPaletteColor(ind, c.isScale());
+  }
 }
 
 //---
@@ -1660,8 +1717,8 @@ void
 CQChartsScatterPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  if (isOverlay() && ! isFirstPlot())
-    return;
+//if (isOverlay() && ! isFirstPlot())
+//  return;
 
   if      (isGridCells())
     addGridKeyItems(key);
@@ -1704,6 +1761,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
     return colorItem;
   };
+
+  //---
 
   int ng = groupInds_.size();
 
@@ -1781,7 +1840,55 @@ addPointKeyItems(CQChartsPlotKey *key)
 
           (void) addKeyItem(-1, name, ig, ng);
         }
+        else {
+          QString name = groupIndName(0);
+
+          if (name == "") {
+            if (isX1X2())
+              (void) xAxisName(name);
+            else
+              (void) yAxisName(name);
+          }
+
+          if (name == "")
+            name = titleStr();
+
+          int i = 0;
+          int n = 1;
+
+          if (parentPlot()) {
+            i = parentPlot()->childPlotIndex(this);
+            n = parentPlot()->numChildPlots();
+          }
+
+          addKeyItem(-1, name, i, n);
+        }
       }
+    }
+  }
+  else {
+    if (isSymbols()) {
+      QString name = groupIndName(0);
+
+      if (name == "") {
+        if (isX1X2())
+          (void) xAxisName(name);
+        else
+          (void) yAxisName(name);
+      }
+
+      if (name == "")
+        name = titleStr();
+
+      int i = 0;
+      int n = 1;
+
+      if (parentPlot()) {
+        i = parentPlot()->childPlotIndex(this);
+        n = parentPlot()->numChildPlots();
+      }
+
+      addKeyItem(-1, name, i, n);
     }
   }
 }
@@ -1904,70 +2011,102 @@ calcAnnotationBBox() const
   if (isXRug() || isYRug() || isXDensity() || isYDensity() || isXWhisker() || isYWhisker()) {
     double dx = 0.0, dy = 0.0;
 
-    // x rug axis
-    if (isXRug()) {
-      auto bbox1 = xRug_->calcBBox();
-
-      dy += bbox1.getHeight();
-
-      bbox += bbox1;
-    }
-
-    // y rug axis
-    if (isYRug()) {
-      auto bbox1 = yRug_->calcBBox();
-
-      dx += bbox1.getWidth();
-
-      bbox += bbox1;
-    }
-
-    //---
-
-    // x density axis
-    if (isXDensity()) {
-      auto bbox1 = xAxisWhisker_->calcDeltaBBox(dx);
-
+    auto addBBoxX = [&](const BBox &bbox1) {
       if (bbox1.isSet()) {
         dy += bbox1.getHeight();
 
         bbox += bbox1;
       }
-    }
+    };
 
-    // y density axis
-    if (isYDensity()) {
-      auto bbox1 = yAxisWhisker_->calcDeltaBBox(dy);
-
+    auto addBBoxY = [&](const BBox &bbox1) {
       if (bbox1.isSet()) {
         dx += bbox1.getWidth();
 
         bbox += bbox1;
       }
-    }
+    };
 
-    //---
+    // x/y rug axis
+    if (isXRug()) addBBoxX(xRug_->calcBBox());
+    if (isYRug()) addBBoxY(yRug_->calcBBox());
 
-    // x whisker axis (one per group)
-    if (isXWhisker()) {
-      auto bbox1 = xAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dy);
+    // x/y density axis
+    if (isXDensity()) addBBoxX(xAxisDensity_->calcDeltaBBox(dy));
+    if (isYDensity()) addBBoxY(yAxisDensity_->calcDeltaBBox(dx));
 
-      dy += bbox1.getHeight();
+    // x/y whisker axis (one per group)
+    int ng = groupInds_.size();
 
-      bbox += bbox1;
-    }
-
-    // y whisker axis (one per group)
-    if (isYWhisker()) {
-      auto bbox1 = yAxisWhisker_->calcNDeltaBBox(groupInds_.size(), dx);
-
-      dx += bbox1.getWidth();
-
-      bbox += bbox1;
-    }
+    if (isXWhisker()) addBBoxX(xAxisWhisker_->calcNDeltaBBox(ng, dy));
+    if (isYWhisker()) addBBoxY(yAxisWhisker_->calcNDeltaBBox(ng, dx));
   }
 
   return bbox;
+}
+
+double
+CQChartsScatterPlot::
+xAxisHeight(const CQChartsAxisSide::Type &side) const
+{
+  double h = CQChartsPlot::xAxisHeight(side);
+
+  if (isXRug() || isXDensity() || isXWhisker()) {
+    auto addHeight = [&](const BBox &bbox) {
+      if (bbox.isSet())
+        h += bbox.getHeight();
+    };
+
+    //---
+
+    // x rug axis
+    if (isXRug() && xRug_->side().type() == side)
+      addHeight(xRug_->calcBBox());
+
+    // x density axis
+    if (isXDensity() && xAxisDensity_->side().type() == side)
+      addHeight(xAxisDensity_->calcDeltaBBox(0.0));
+
+    // x whisker axis (one per group)
+    int ng = groupInds_.size();
+
+    if (isXWhisker() && xAxisWhisker_->side().type() == side)
+      addHeight(xAxisWhisker_->calcNDeltaBBox(ng, 0.0));
+  }
+
+  return h;
+}
+
+double
+CQChartsScatterPlot::
+yAxisWidth(const CQChartsAxisSide::Type &side) const
+{
+  double w = CQChartsPlot::yAxisWidth(side);
+
+  if (isYRug() || isYDensity() || isYWhisker()) {
+    auto addWidth = [&](const BBox &bbox) {
+      if (bbox.isSet())
+        w += bbox.getWidth();
+    };
+
+    //---
+
+    // y rug axis
+    if (isYRug() && yRug_->side().type() == side)
+      addWidth(yRug_->calcBBox());
+
+    // y density axis
+    if (isYDensity() && yAxisDensity_->side().type() == side)
+      addWidth(yAxisDensity_->calcDeltaBBox(0.0));
+
+    // y whisker axis (one per group)
+    int ng = groupInds_.size();
+
+    if (isYWhisker() && yAxisWhisker_->side().type() == side)
+      addWidth(yAxisWhisker_->calcNDeltaBBox(ng, 0.0));
+  }
+
+  return w;
 }
 
 //------
@@ -1999,14 +2138,26 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
+  // draw hull, best fit, stats lines and denisty on background
   if (isHull      ()) drawHull      (device);
   if (isBestFit   ()) drawBestFit   (device);
   if (isStatsLines()) drawStatsLines(device);
   if (isDensityMap()) drawDensityMap(device);
 
+  //---
+
   // drawn axis annotatons in inside->outside order
-  xAxisSideBBox_.clear();
-  yAxisSideBBox_.clear();
+  xAxisSideHeight_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  xAxisSideHeight_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  yAxisSideWidth_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  yAxisSideWidth_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  //---
 
   if (isXRug()) drawXRug(device);
   if (isYRug()) drawYRug(device);
@@ -2040,77 +2191,121 @@ execDrawForeground(PaintDevice *device) const
 
 void
 CQChartsScatterPlot::
-initGroupBestFit(int groupInd) const
+drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  auto addHeight = [&](const BBox &bbox) {
+    if (! bbox.isSet()) return;
+
+    if (xAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+      pos += bbox.getHeight();
+    else
+      pos -= bbox.getHeight();
+  };
+
+  if (isXRug() && xRug_->side().type() == xAxis()->side().type())
+    addHeight(xRug_->calcBBox());
+
+  if (isXDensity() && xAxisDensity_->side().type() == xAxis()->side().type())
+    addHeight(xAxisDensity_->calcDeltaBBox(0.0));
+
+  if (isXWhisker() && xAxisWhisker_->side().type() == xAxis()->side().type())
+    addHeight(xAxisWhisker_->calcNDeltaBBox(groupInds_.size(), 0.0));
+
+  CQChartsPlot::drawXAxisAt(device, plot, pos);
+}
+
+void
+CQChartsScatterPlot::
+drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  auto addWidth = [&](const BBox &bbox) {
+    if (! bbox.isSet()) return;
+
+    if (yAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+      pos += bbox.getWidth();
+    else
+      pos -= bbox.getWidth();
+  };
+
+  if (isYRug() && yRug_->side().type() == yAxis()->side().type())
+    addWidth(yRug_->calcBBox());
+
+  if (isYDensity() && yAxisDensity_->side().type() == yAxis()->side().type())
+    addWidth(yAxisDensity_->calcDeltaBBox(0.0));
+
+  if (isYWhisker() && yAxisWhisker_->side().type() == yAxis()->side().type())
+    addWidth(yAxisWhisker_->calcNDeltaBBox(groupInds_.size(), 0.0));
+
+  CQChartsPlot::drawYAxisAt(device, plot, pos);
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+initGroupBestFit(int ind, const QVariant &var, bool isGroup) const
 {
   // init best fit data
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
-  auto &fitData = th->groupFitData_[groupInd];
+  auto &fitData = th->groupFitData_[ind];
 
   if (! fitData.isFitted()) {
-    auto p = groupPoints_.find(groupInd);
+    auto points = indPoints(var, isGroup);
 
-    if (p != groupPoints_.end()) {
-      const auto &points = (*p).second;
+    if (! isBestFitOutliers()) {
+      initGroupStats(ind, var, isGroup);
 
-      if (! isBestFitOutliers()) {
-        initGroupStats(groupInd);
+      //---
 
-        //---
+      auto ps = groupStatData_.find(ind);
+      assert(ps != groupStatData_.end());
 
-        auto ps = groupStatData_.find(groupInd);
-        assert(ps != groupStatData_.end());
+      const auto &statData = (*ps).second;
 
-        const auto &statData = (*ps).second;
+      //---
 
-        //---
+      Polygon poly;
 
-        Polygon poly;
-
-        for (const auto &p : points) {
-          if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
-            poly.addPoint(p);
-        }
-
-        //---
-
-        fitData.calc(poly, bestFitOrder());
+      for (const auto &p : points) {
+        if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
+          poly.addPoint(p);
       }
-      else {
-        fitData.calc(points, bestFitOrder());
-      }
+
+      //---
+
+      fitData.calc(poly, bestFitOrder());
+    }
+    else {
+      fitData.calc(points, bestFitOrder());
     }
   }
 }
 
 void
 CQChartsScatterPlot::
-initGroupStats(int groupInd) const
+initGroupStats(int ind, const QVariant &var, bool isGroup) const
 {
   // init stats data
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
-  auto &statData = th->groupStatData_[groupInd];
+  auto &statData = th->groupStatData_[ind];
 
   if (! statData.xstat.set || ! statData.ystat.set) {
-    auto p = groupPoints_.find(groupInd);
+    auto points = indPoints(var, isGroup);
 
-    if (p != groupPoints_.end()) {
-      const auto &points = (*p).second;
+    std::vector<double> x, y;
 
-      std::vector<double> x, y;
-
-      for (std::size_t i = 0; i < points.size(); ++i) {
-        x.push_back(points[i].x);
-        y.push_back(points[i].y);
-      }
-
-      std::sort(x.begin(), x.end());
-      std::sort(y.begin(), y.end());
-
-      statData.xstat.calcStatValues(x);
-      statData.ystat.calcStatValues(y);
+    for (std::size_t i = 0; i < points.size(); ++i) {
+      x.push_back(points[i].x);
+      y.push_back(points[i].y);
     }
+
+    std::sort(x.begin(), x.end());
+    std::sort(y.begin(), y.end());
+
+    statData.xstat.calcStatValues(x);
+    statData.ystat.calcStatValues(y);
   }
 }
 
@@ -2118,38 +2313,58 @@ void
 CQChartsScatterPlot::
 drawBestFit(PaintDevice *device) const
 {
-  // init fit data
-  for (const auto &groupInd : groupInds_) {
-    if (isInterrupt())
-      return;
+  int nf = 0;
 
-    initGroupBestFit(groupInd);
-  }
-
-  //---
-
-  // draw fit data
-  int ig = 0;
   int ng = groupInds_.size();
 
-  for (const auto &groupInd : groupInds_) {
+  if (ng > 1) {
+    // init fit data
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      if (isInterrupt())
+        return;
+
+      initGroupBestFit(ig++, QVariant(groupInd), /*isGroup*/true);
+    }
+
+    nf = ng;
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int ns = nameValues.size();
+
+    //---
+
+    // init fit data
+    int is = 0;
+
+    for (const auto &nameValue : nameValues) {
+      if (isInterrupt())
+        return;
+
+      initGroupBestFit(is++, nameValue.first, /*isGroup*/false);
+    }
+
+    nf = ns;
+  }
+
+  // draw fit datas
+  for (int i = 0; i < nf; ++i) {
     if (isInterrupt())
       return;
 
-    auto pf = groupFitData_.find(groupInd);
+    auto pf = groupFitData_.find(i);
     assert(pf != groupFitData_.end());
 
     const auto &fitData = (*pf).second;
 
     //---
 
-    ColorInd ic(ig, ng);
+    ColorInd ic(i, nf);
 
     CQChartsPointPlot::drawBestFit(device, fitData, ic);
-
-    //---
-
-    ++ig;
   }
 }
 
@@ -2157,25 +2372,51 @@ void
 CQChartsScatterPlot::
 drawStatsLines(PaintDevice *device) const
 {
-  // init stats data
-  for (const auto &groupInd : groupInds_) {
-    if (isInterrupt())
-      return;
+  int ng = groupInds_.size();
 
-    initGroupStats(groupInd);
+  int nf;
+
+  if (ng > 1) {
+    // init stats data
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      if (isInterrupt())
+        return;
+
+      initGroupStats(ig++, QVariant(groupInd), /*isGroup*/true);
+    }
+
+    nf = ng;
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int ns = nameValues.size();
+
+    //---
+
+    // init fit data
+    int is = 0;
+
+    for (const auto &nameValue : nameValues) {
+      if (isInterrupt())
+        return;
+
+      initGroupStats(is++, nameValue.first, /*isGroup*/false);
+    }
+
+    nf = ns;
   }
 
   //---
 
   // draw stats data
-  int ig = 0;
-  int ng = groupInds_.size();
-
-  for (const auto &groupInd : groupInds_) {
+  for (int i = 0; i < nf; ++i) {
     if (isInterrupt())
       return;
 
-    auto ps = groupStatData_.find(groupInd);
+    auto ps = groupStatData_.find(i);
     assert(ps != groupStatData_.end());
 
     const auto &statData = (*ps).second;
@@ -2183,7 +2424,7 @@ drawStatsLines(PaintDevice *device) const
     //---
 
     // calc pen and brush
-    ColorInd ic(ig, ng);
+    ColorInd ic(i, nf);
 
     CQChartsPenBrush penBrush;
 
@@ -2213,6 +2454,8 @@ drawStatsLines(PaintDevice *device) const
       device->drawLine(p1, p2);
     };
 
+    //---
+
     drawXStatLine(statData.xstat.loutlier   );
     drawXStatLine(statData.xstat.lowerMedian);
     drawXStatLine(statData.xstat.median     );
@@ -2224,10 +2467,6 @@ drawStatsLines(PaintDevice *device) const
     drawYStatLine(statData.ystat.median     );
     drawYStatLine(statData.ystat.upperMedian);
     drawYStatLine(statData.ystat.uoutlier   );
-
-    //---
-
-    ++ig;
   }
 }
 
@@ -2237,43 +2476,25 @@ drawHull(PaintDevice *device) const
 {
   auto *th = const_cast<CQChartsScatterPlot *>(this);
 
-  int ig = 0;
-  int ng = groupInds_.size();
+  auto getHull = [&](int ind, bool &created) {
+    created = false;
 
-  for (const auto &groupInd : groupInds_) {
-    if (isInterrupt())
-      return;
-
-    //---
-
-    // get hull for group (add if needed)
-    auto ph = th->groupHull_.find(groupInd);
+    auto ph = th->groupHull_.find(ind);
 
     if (ph == th->groupHull_.end()) {
-      ph = th->groupHull_.insert(ph, GroupHull::value_type(groupInd, new CQChartsGrahamHull));
+      ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new CQChartsGrahamHull));
 
-      //---
-
-      auto *hull = (*ph).second;
-
-      const auto &points = th->groupPoints_[groupInd];
-
-      std::vector<double> x, y;
-
-      for (const auto &p : points) {
-        if (isInterrupt())
-          return;
-
-        hull->addPoint(p);
-      }
+      created = true;
     }
 
-    const auto *hull = (*ph).second;
+    return (*ph).second;
+  };
 
-    //---
+  //---
 
+  auto drawHullData = [&](const Hull *hull, int i, int n) {
     // set pen/brush
-    ColorInd colorInd(ig, ng);
+    ColorInd colorInd(i, n);
 
     CQChartsPenBrush penBrush;
 
@@ -2281,14 +2502,97 @@ drawHull(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    //---
-
     hull->draw(this, device);
+  };
 
-    //---
+  //---
 
-    ++ig;
+  int ng = groupInds_.size();
+
+  if (ng > 1) {
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      if (isInterrupt())
+        return;
+
+      //---
+
+      // get hull for group (add if needed)
+      bool created;
+
+      auto *hull = getHull(groupInd, created);
+
+      if (created) {
+        const auto &points = indPoints(QVariant(groupInd), /*isGroup*/true);
+
+        std::vector<double> x, y;
+
+        for (const auto &p : points)
+          hull->addPoint(p);
+      }
+
+      drawHullData(hull, ig++, ng);
+    }
   }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int is = 0;
+    int ns = nameValues.size();
+
+    for (const auto &nameValue : nameValues) {
+      if (isInterrupt())
+        return;
+
+      //---
+
+      // get hull for set (add if needed)
+      bool created;
+
+      auto *hull = getHull(is, created);
+
+      if (created) {
+        const auto &points = indPoints(QVariant(nameValue.first), /*isGroup*/false);
+
+        std::vector<double> x, y;
+
+        for (const auto &p : points)
+          hull->addPoint(p);
+      }
+
+      drawHullData(hull, is++, ns);
+    }
+  }
+}
+
+CQChartsScatterPlot::Points
+CQChartsScatterPlot::
+indPoints(const QVariant &var, int isGroup) const
+{
+  Points points;
+
+  if (isGroup) {
+    int groupInd = var.toInt();
+
+    auto p = groupPoints_.find(groupInd);
+    if (p == groupPoints_.end()) return points;
+
+    points = (*p).second;
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    auto pn = nameValues.find(var.toString());
+    if (pn == nameValues.end()) return points;
+
+    const auto &values = (*pn).second.values;
+
+    for (const auto &v : values)
+      points.push_back(v.p);
+  }
+
+  return points;
 }
 
 //------
@@ -2297,19 +2601,27 @@ void
 CQChartsScatterPlot::
 drawXRug(PaintDevice *device) const
 {
-  drawXYRug(device, xRug_);
+  double delta = xAxisSideHeight_[xRug_->side().type()];
+
+  drawXYRug(device, xRug_, delta);
+
+  xAxisSideHeight_[xRug_->side().type()] += xRug_->calcBBox().getHeight();
 }
 
 void
 CQChartsScatterPlot::
 drawYRug(PaintDevice *device) const
 {
-  drawXYRug(device, yRug_);
+  double delta = yAxisSideWidth_[yRug_->side().type()];
+
+  drawXYRug(device, yRug_, delta);
+
+  yAxisSideWidth_ [yRug_->side().type()] += yRug_->calcBBox().getWidth();
 }
 
 void
 CQChartsScatterPlot::
-drawXYRug(PaintDevice *device, const RugP &rug) const
+drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
 {
   rug->clearPoints();
 
@@ -2350,12 +2662,7 @@ drawXYRug(PaintDevice *device, const RugP &rug) const
     }
   }
 
-  rug->draw(device);
-
-  if (rug->direction() == Qt::Horizontal)
-    xAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
-  else
-    yAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
+  rug->draw(device, delta);
 }
 
 //------
@@ -2364,16 +2671,9 @@ void
 CQChartsScatterPlot::
 drawXDensity(PaintDevice *device) const
 {
+  double delta = xAxisSideHeight_[xAxisDensity_->side().type()];
+
   initWhiskerData();
-
-  //---
-
-  double delta = 0.0;
-
-  auto bbox = xAxisSideBBox_[(XYSide) xAxisDensity_->side()];
-
-  if (bbox.isSet())
-    delta = bbox.getHeight();
 
   //---
 
@@ -2397,23 +2697,17 @@ drawXDensity(PaintDevice *device) const
 
   //---
 
-  xAxisSideBBox_[(XYSide) xAxisDensity_->side()] += xAxisDensity_->calcDeltaBBox(delta);
+  xAxisSideHeight_[xAxisDensity_->side().type()] +=
+    xAxisDensity_->calcDeltaBBox(delta).getHeight();
 }
 
 void
 CQChartsScatterPlot::
 drawYDensity(PaintDevice *device) const
 {
+  double delta = yAxisSideWidth_[yAxisDensity_->side().type()];
+
   initWhiskerData();
-
-  //---
-
-  double delta = 0.0;
-
-  auto bbox = yAxisSideBBox_[(XYSide) yAxisDensity_->side()];
-
-  if (bbox.isSet())
-    delta = bbox.getWidth();
 
   //---
 
@@ -2437,7 +2731,8 @@ drawYDensity(PaintDevice *device) const
 
   //---
 
-  yAxisSideBBox_[(XYSide) yAxisDensity_->side()] += yAxisDensity_->calcDeltaBBox(delta);
+  yAxisSideWidth_[yAxisDensity_->side().type()] +=
+    yAxisDensity_->calcDeltaBBox(delta).getWidth();
 }
 
 void
@@ -2474,16 +2769,9 @@ void
 CQChartsScatterPlot::
 drawXWhisker(PaintDevice *device) const
 {
+  double delta = xAxisSideHeight_[xAxisWhisker_->side().type()];
+
   initWhiskerData();
-
-  //---
-
-  double delta = 0.0;
-
-  auto bbox = xAxisSideBBox_[(XYSide) xAxisWhisker_->side()];
-
-  if (bbox.isSet())
-    delta = bbox.getHeight();
 
   //---
 
@@ -2505,23 +2793,19 @@ drawXWhisker(PaintDevice *device) const
     ++ig;
   }
 
-  xAxisSideBBox_[(XYSide) xAxisWhisker_->side()] += xAxisWhisker_->calcNDeltaBBox(ng, delta);
+  //---
+
+  xAxisSideHeight_[xAxisWhisker_->side().type()] +=
+    xAxisWhisker_->calcNDeltaBBox(ng, delta).getHeight();
 }
 
 void
 CQChartsScatterPlot::
 drawYWhisker(PaintDevice *device) const
 {
+  double delta = yAxisSideWidth_[yAxisWhisker_->side().type()];
+
   initWhiskerData();
-
-  //---
-
-  double delta = 0.0;
-
-  auto bbox = yAxisSideBBox_[(XYSide) yAxisWhisker_->side()];
-
-  if (bbox.isSet())
-    delta = bbox.getWidth();
 
   //---
 
@@ -2543,7 +2827,10 @@ drawYWhisker(PaintDevice *device) const
     ++ig;
   }
 
-  yAxisSideBBox_[(XYSide) yAxisWhisker_->side()] += yAxisWhisker_->calcNDeltaBBox(ng, delta);
+  //---
+
+  yAxisSideWidth_[yAxisWhisker_->side().type()] +=
+    yAxisWhisker_->calcNDeltaBBox(ng, delta).getWidth();
 }
 
 void
@@ -2709,7 +2996,7 @@ initWhiskerData() const
 
     auto *xWhiskerData = (*xpw).second;
 
-    auto ypw = th->groupXWhiskers_.find(groupInd);
+    auto ypw = th->groupYWhiskers_.find(groupInd);
 
     if (ypw == th->groupYWhiskers_.end())
       ypw = th->groupYWhiskers_.insert(ypw,

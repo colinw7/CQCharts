@@ -439,6 +439,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   //! get/set name column
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);

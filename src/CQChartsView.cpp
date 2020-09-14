@@ -1867,12 +1867,20 @@ initOverlayAxes()
     if      (firstPlot->isX1X2()) {
       auto *plot2 = firstPlot->nextPlot();
 
-      plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      while (plot2) {
+        plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+
+        plot2 = plot2->nextPlot();
+      }
     }
     else if (firstPlot->isY1Y2()) {
       auto *plot2 = firstPlot->nextPlot();
 
-      plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      while (plot2) {
+        plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+
+        plot2 = plot2->nextPlot();
+      }
     }
   }
   else if (firstPlot->isOverlay(/*checkVisible*/false)) {
@@ -1899,42 +1907,62 @@ initOverlayAxes()
 
 void
 CQChartsView::
-initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
+initX1X2(const Plots &plots, bool overlay, bool reset)
 {
+  assert(plots.size() >= 2);
+
   if (reset) {
     if (isScrolled())
       setScrolled(false);
-
-    Plots plots {{ plot1, plot2 }};
 
     resetPlotGrouping(plots);
 
     resetConnections(plots, /*notify*/false);
   }
 
-  assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
+  using PlotSet = std::set<Plot *>;
+
+  PlotSet plotSet;
+
+  for (auto &plot : plots) {
+    assert(plotSet.find(plot) == plotSet.end() && ! plot->isOverlay());
+    plotSet.insert(plot);
+  }
+
+  auto *plot1 = plots[0];
 
   if (plot1->title() && title().length())
     plot1->title()->setTextStr(title());
 
-  plot1->setX1X2(true, /*notify*/false);
-  plot2->setX1X2(true, /*notify*/false);
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
 
-  plot1->setOverlay(overlay, /*notify*/false);
-  plot2->setOverlay(overlay, /*notify*/false);
+    plot->setX1X2   (true   , /*notify*/false);
+    plot->setOverlay(overlay, /*notify*/false);
 
-  plot1->setNextPlot(plot2);
-  plot2->setPrevPlot(plot1);
+    if (i > 0) {
+      auto *prevPlot = plots[i - 1];
 
-  // first plot x axis BOTTOM/LEFT (set by resetConnectData), second plot x axis TOP/RIGHT
-  if (plot2->xAxis()) {
-    if (plot2->isOverlay())
-      plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
+    }
   }
 
-  if (plot2->isOverlay()) {
-    if (plot2->yAxis())
-      plot2->yAxis()->setVisible(false);
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
+
+    if (i > 0) {
+      // first plot x axis BOTTOM/LEFT (set by resetConnectData), second plot x axis TOP/RIGHT
+      if (plot->xAxis()) {
+        if (plot->isOverlay())
+          plot->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      }
+
+      if (plot->isOverlay()) {
+        if (plot->yAxis())
+          plot->yAxis()->setVisible(false);
+      }
+    }
   }
 
   //---
@@ -1953,42 +1981,62 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
 void
 CQChartsView::
-initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
+initY1Y2(const Plots &plots, bool overlay, bool reset)
 {
+  assert(plots.size() >= 2);
+
   if (reset) {
     if (isScrolled())
       setScrolled(false);
-
-    Plots plots {{ plot1, plot2 }};
 
     resetPlotGrouping(plots);
 
     resetConnections(plots, /*notify*/false);
   }
 
-  assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
+  using PlotSet = std::set<Plot *>;
+
+  PlotSet plotSet;
+
+  for (auto &plot : plots) {
+    assert(plotSet.find(plot) == plotSet.end() && ! plot->isOverlay());
+    plotSet.insert(plot);
+  }
+
+  auto *plot1 = plots[0];
 
   if (plot1->title() && title().length())
     plot1->title()->setTextStr(title());
 
-  plot1->setY1Y2(true, /*notify*/false);
-  plot2->setY1Y2(true, /*notify*/false);
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
 
-  plot1->setOverlay(overlay, /*notify*/false);
-  plot2->setOverlay(overlay, /*notify*/false);
+    plot->setY1Y2   (true   , /*notify*/false);
+    plot->setOverlay(overlay, /*notify*/false);
 
-  plot1->setNextPlot(plot2);
-  plot2->setPrevPlot(plot1);
+    if (i > 0) {
+      auto *prevPlot = plots[i - 1];
 
-  // first plot y axis BOTTOM/LEFT (set by resetConnectData), second plot y axis TOP/RIGHT
-  if (plot2->yAxis()) {
-    if (plot2->isOverlay())
-      plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
+    }
   }
 
-  if (plot2->isOverlay()) {
-    if (plot2->xAxis())
-      plot2->xAxis()->setVisible(false);
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    auto *plot = plots[i];
+
+    if (i > 0) {
+      // first plot y axis BOTTOM/LEFT (set by resetConnectData), second plot y axis TOP/RIGHT
+      if (plot->yAxis()) {
+        if (plot->isOverlay())
+          plot->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      }
+
+      if (plot->isOverlay()) {
+        if (plot->xAxis())
+          plot->xAxis()->setVisible(false);
+      }
+    }
   }
 
   //---
@@ -6365,30 +6413,17 @@ getDrawPlots(Plots &plots) const
       if (! plot->isFirstPlot())
         continue;
 
-      if      (plot->isX1X2()) {
-        CQChartsPlot *plot1, *plot2;
+      Plots oplots;
 
-        plot->x1x2Plots(plot1, plot2);
-
-        plots.push_back(plot1);
-        plots.push_back(plot2);
-      }
-      else if (plot->isY1Y2()) {
-        CQChartsPlot *plot1, *plot2;
-
-        plot->y1y2Plots(plot1, plot2);
-
-        plots.push_back(plot1);
-        plots.push_back(plot2);
-      }
-      else if (plot->isOverlay()) {
-        Plots oplots;
-
+      if      (plot->isX1X2())
+        plot->x1x2Plots(oplots);
+      else if (plot->isY1Y2())
+        plot->y1y2Plots(oplots);
+      else if (plot->isOverlay())
         plot->overlayPlots(oplots);
 
-        for (const auto &oplot : oplots)
-          plots.push_back(oplot);
-      }
+      for (const auto &oplot : oplots)
+        plots.push_back(oplot);
     }
     else if (plot->parentPlot()) {
       continue;
@@ -6791,43 +6826,26 @@ writeAll(std::ostream &os) const
   addBasePlots(basePlots);
 
   for (const auto &plot : basePlots) {
-    if      (plot->isX1X2()) {
-      CQChartsPlot *plot1, *plot2;
-
-      plot->x1x2Plots(plot1, plot2);
-
-      os << "\n";
-      os << "group_charts_plots -x1x2";
-
-      if (plot->isOverlay())
-        os << " -overlay";
-
-      os << " $" << plotVars[plot1].toStdString();
-      os << " $" << plotVars[plot2].toStdString();
-      os << "\n";
-    }
-    else if (plot->isY1Y2()) {
-      CQChartsPlot *plot1, *plot2;
-
-      plot->y1y2Plots(plot1, plot2);
-
-      os << "\n";
-      os << "group_charts_plots -y1y2";
-
-      if (plot->isOverlay())
-        os << " -overlay";
-
-      os << " $" << plotVars[plot1].toStdString();
-      os << " $" << plotVars[plot2].toStdString();
-      os << "\n";
-    }
-    else if (plot->isOverlay()) {
+    if (plot->isX1X2() || plot->isY1Y2() || plot->isOverlay()) {
       Plots oplots;
 
-      plot->overlayPlots(oplots);
-
       os << "\n";
-      os << "group_charts_plots -overlay ";
+      os << "group_charts_plots ";
+
+      if      (plot->isX1X2())
+        plot->x1x2Plots(oplots);
+      else if (plot->isY1Y2())
+        plot->y1y2Plots(oplots);
+      else
+        plot->overlayPlots(oplots);
+
+      if      (plot->isX1X2())
+        os << "-x1x2";
+      else if (plot->isY1Y2())
+        os << "-y1y2";
+
+      if (plot->isOverlay())
+        os << " -overlay";
 
       for (const auto &oplot : oplots)
         os << " $" << plotVars[oplot].toStdString();

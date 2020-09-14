@@ -3,20 +3,16 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + sankey path id in/out consistency
  + key annotation (custom key)
    + key column ?
- + text placement class (quad tree, target position, align)
-   + text placement limit to rect (shape)
  + unset column from editor is -1 ?
  + null value per column
  + simplify column expressions (no back references, all calc on demand)
    + update test case with running sum
  + sankey_node.tcl bad placement (single x) -> rand ?
  + context menu for key/axis/... under mouse
+   + editing controls in menu (property to action(s)
  + opengl renderer (more work)
- + multi-axis (common code for overlay axis, rug, density, ...)
-   + x/y point plot
  + axis annotations for all 2d plots
  + surface plot
  + othello game

@@ -62,8 +62,12 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
  public:
   CQChartsGroupPlot(View *view, PlotType *plotType, const ModelP &model);
-
  ~CQChartsGroupPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

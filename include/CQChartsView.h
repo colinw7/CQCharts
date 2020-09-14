@@ -588,8 +588,8 @@ class CQChartsView : public QFrame,
 
   void initOverlay(const Plots &plots, bool reset=false);
 
-  void initX1X2(Plot *plot1, Plot *plot2, bool overlay, bool reset=false);
-  void initY1Y2(Plot *plot1, Plot *plot2, bool overlay, bool reset=false);
+  void initX1X2(const Plots &plots, bool overlay, bool reset=false);
+  void initY1Y2(const Plots &plots, bool overlay, bool reset=false);
 
   void initTabbed(const Plots &plots, bool reset=false);
 

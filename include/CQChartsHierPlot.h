@@ -25,8 +25,12 @@ class CQChartsHierPlot : public CQChartsPlot {
 
  public:
   CQChartsHierPlot(View *view, CQChartsPlotType *type, const ModelP &model);
-
  ~CQChartsHierPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

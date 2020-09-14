@@ -333,6 +333,7 @@ CQTrie.cpp \
 CQHandDrawnPainter.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
+CQFileWatcher.cpp \
 \
 CQDoubleRangeSlider.cpp \
 CQIntRangeSlider.cpp \
@@ -662,6 +663,7 @@ HEADERS += \
 ../include/CQHandDrawnPainter.h \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
+../include/CQFileWatcher.h \
 \
 ../include/CQDoubleRangeSlider.h \
 ../include/CQIntRangeSlider.h \

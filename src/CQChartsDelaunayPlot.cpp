@@ -82,6 +82,24 @@ CQChartsDelaunayPlot(View *view, const ModelP &model) :
  CQChartsObjVoronoiShapeData<CQChartsDelaunayPlot>(this),
  CQChartsObjPointData       <CQChartsDelaunayPlot>(this)
 {
+}
+
+CQChartsDelaunayPlot::
+~CQChartsDelaunayPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsDelaunayPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   CQChartsObjDelaunayLineData::setDelaunayReloadObj(false);
@@ -102,8 +120,9 @@ CQChartsDelaunayPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsDelaunayPlot::
-~CQChartsDelaunayPlot()
+term()
 {
   delete delaunayData_;
 }

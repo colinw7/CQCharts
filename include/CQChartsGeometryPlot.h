@@ -203,8 +203,12 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  public:
   CQChartsGeometryPlot(View *view, const ModelP &model);
-
  ~CQChartsGeometryPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

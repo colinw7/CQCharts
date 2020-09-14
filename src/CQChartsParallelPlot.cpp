@@ -117,6 +117,24 @@ CQChartsParallelPlot(View *view, const ModelP &model) :
  CQChartsObjLineData <CQChartsParallelPlot>(this),
  CQChartsObjPointData<CQChartsParallelPlot>(this)
 {
+}
+
+CQChartsParallelPlot::
+~CQChartsParallelPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsParallelPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setLinesColor(Color(Color::Type::PALETTE));
@@ -137,8 +155,9 @@ CQChartsParallelPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsParallelPlot::
-~CQChartsParallelPlot()
+term()
 {
   delete masterAxis_;
 

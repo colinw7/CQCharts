@@ -73,6 +73,24 @@ CQChartsImagePlot(View *view, const ModelP &model) :
  CQChartsObjXLabelTextData   <CQChartsImagePlot>(this),
  CQChartsObjYLabelTextData   <CQChartsImagePlot>(this)
 {
+}
+
+CQChartsImagePlot::
+~CQChartsImagePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsImagePlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -86,8 +104,9 @@ CQChartsImagePlot(View *view, const ModelP &model) :
   setYLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
+void
 CQChartsImagePlot::
-~CQChartsImagePlot()
+term()
 {
 }
 

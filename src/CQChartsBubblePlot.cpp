@@ -79,6 +79,24 @@ CQChartsBubblePlot(View *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsBubblePlot>(this),
  CQChartsObjTextData <CQChartsBubblePlot>(this)
 {
+}
+
+CQChartsBubblePlot::
+~CQChartsBubblePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsBubblePlot::
+init()
+{
+  CQChartsGroupPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setExactValue(false);
@@ -102,8 +120,9 @@ CQChartsBubblePlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsBubblePlot::
-~CQChartsBubblePlot()
+term()
 {
   delete nodeData_.root;
 }

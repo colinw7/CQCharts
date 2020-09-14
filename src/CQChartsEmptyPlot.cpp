@@ -49,13 +49,32 @@ CQChartsEmptyPlot::
 CQChartsEmptyPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("empty"), model)
 {
+}
+
+CQChartsEmptyPlot::
+~CQChartsEmptyPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsEmptyPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   addAxes();
 
   addTitle();
 }
 
+void
 CQChartsEmptyPlot::
-~CQChartsEmptyPlot()
+term()
 {
 }
 

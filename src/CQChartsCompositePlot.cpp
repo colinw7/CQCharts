@@ -65,6 +65,24 @@ CQChartsCompositePlot::
 CQChartsCompositePlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("composite"), model)
 {
+}
+
+CQChartsCompositePlot::
+~CQChartsCompositePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsCompositePlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   addAxes();
 
   addKey();
@@ -72,8 +90,9 @@ CQChartsCompositePlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsCompositePlot::
-~CQChartsCompositePlot()
+term()
 {
 }
 

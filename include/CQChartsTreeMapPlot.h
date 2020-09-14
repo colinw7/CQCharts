@@ -428,8 +428,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
  public:
   CQChartsTreeMapPlot(View *view, const ModelP &model);
-
  ~CQChartsTreeMapPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

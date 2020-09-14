@@ -437,6 +437,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   const Column &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const Column &c);
 

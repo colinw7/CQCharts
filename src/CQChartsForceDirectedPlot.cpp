@@ -91,6 +91,24 @@ CQChartsForceDirectedPlot(View *view, const ModelP &model) :
  CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>(this),
  CQChartsObjEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
+}
+
+CQChartsForceDirectedPlot::
+~CQChartsForceDirectedPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsForceDirectedPlot::
+init()
+{
+  CQChartsConnectionPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   forceDirected_ = new CQChartsForceDirected;
@@ -100,8 +118,9 @@ CQChartsForceDirectedPlot(View *view, const ModelP &model) :
   setNodeStrokeAlpha(Alpha(0.5));
 }
 
+void
 CQChartsForceDirectedPlot::
-~CQChartsForceDirectedPlot()
+term()
 {
   delete forceDirected_;
 }

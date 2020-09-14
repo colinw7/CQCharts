@@ -13,7 +13,21 @@ CQChartsHierPlot::
 {
 }
 
-//----
+//---
+
+void
+CQChartsHierPlot::
+init()
+{
+}
+
+void
+CQChartsHierPlot::
+term()
+{
+}
+
+//---
 
 void
 CQChartsHierPlot::

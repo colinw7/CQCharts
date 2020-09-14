@@ -2252,7 +2252,7 @@ updatePreviewPlot(bool valid)
     if (! previewPlot_ || previewPlot_->type() != type || previewPlot_->model() != previewModel) {
       previewView_->removeAllPlots();
 
-      previewPlot_ = type->create(previewView_, previewModel);
+      previewPlot_ = type->createAndInit(previewView_, previewModel);
 
       previewPlot_->setPreview(true);
 
@@ -2626,7 +2626,7 @@ applySlot()
   }
 
   // create plot
-  plot_ = type->create(view, model_);
+  plot_ = type->createAndInit(view, model_);
 
   if (isAdvanced())
     plot_->setFilterStr(whereEdit_->text());

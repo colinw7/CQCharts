@@ -129,6 +129,24 @@ CQChartsBarChartPlot(View *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("barchart"), model),
  CQChartsObjDotPointData<CQChartsBarChartPlot>(this)
 {
+}
+
+CQChartsBarChartPlot::
+~CQChartsBarChartPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsBarChartPlot::
+init()
+{
+  CQChartsBarPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -137,8 +155,9 @@ CQChartsBarChartPlot(View *view, const ModelP &model) :
   setDotSymbolSize(Length("7px"));
 }
 
+void
 CQChartsBarChartPlot::
-~CQChartsBarChartPlot()
+term()
 {
 }
 

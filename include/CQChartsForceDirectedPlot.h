@@ -113,8 +113,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
  public:
   CQChartsForceDirectedPlot(View *view, const ModelP &model);
-
  ~CQChartsForceDirectedPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //----
 

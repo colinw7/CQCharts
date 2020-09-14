@@ -85,6 +85,24 @@ CQChartsPiePlot(View *view, const ModelP &model) :
  CQChartsObjShapeData   <CQChartsPiePlot>(this),
  CQChartsObjGridLineData<CQChartsPiePlot>(this)
 {
+}
+
+CQChartsPiePlot::
+~CQChartsPiePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsPiePlot::
+init()
+{
+  CQChartsGroupPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -100,13 +118,16 @@ CQChartsPiePlot(View *view, const ModelP &model) :
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
+  textBox_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
+
   addKey();
 
   addTitle();
 }
 
+void
 CQChartsPiePlot::
-~CQChartsPiePlot()
+term()
 {
   delete textBox_;
 }

@@ -403,6 +403,11 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   //! get/set is value label
   bool isValueLabel() const { return valueLabel_; }
   void setValueLabel(bool b);

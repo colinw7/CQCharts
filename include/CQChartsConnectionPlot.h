@@ -73,8 +73,12 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
  public:
   CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model);
+ ~CQChartsConnectionPlot();
 
-  virtual ~CQChartsConnectionPlot();
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 
@@ -163,7 +167,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   //! add properties
-  void addProperties();
+  void addProperties() override;
 
   //---
 

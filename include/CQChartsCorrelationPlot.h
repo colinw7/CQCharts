@@ -151,8 +151,12 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
  public:
   CQChartsCorrelationPlot(View *view, const ModelP &model);
-
  ~CQChartsCorrelationPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

@@ -9,18 +9,11 @@ class CQChartsAxisRug : public CQChartsObj,
  public CQChartsObjPointData<CQChartsAxisRug> {
   Q_OBJECT
 
-  Q_PROPERTY(Side side READ side WRITE setSide)
+  Q_PROPERTY(CQChartsAxisSide side READ side WRITE setSide)
 
   CQCHARTS_POINT_DATA_PROPERTIES
 
-  Q_ENUMS(Side)
-
  public:
-  enum class Side {
-    BOTTOM_LEFT,
-    TOP_RIGHT
-  };
-
   //! rug point data
   struct RugPoint {
     double pos { 0.0 };
@@ -36,6 +29,7 @@ class CQChartsAxisRug : public CQChartsObj,
  public:
   using Plot        = CQChartsPlot;
   using PaintDevice = CQChartsPaintDevice;
+  using Side        = CQChartsAxisSide;
   using BBox        = CQChartsGeom::BBox;
 
  public:
@@ -60,15 +54,15 @@ class CQChartsAxisRug : public CQChartsObj,
 
   void dataInvalidate() override;
 
-  void draw(PaintDevice *device);
+  void draw(PaintDevice *device, double delta=0.0);
 
  private:
   using Points = std::vector<RugPoint>;
 
-  Plot*           plot_      { nullptr };           //!< plot
-  Side            side_      { Side::BOTTOM_LEFT }; //!< rug side
-  Qt::Orientation direction_ { Qt::Horizontal };    //!< rug direction
-  Points          points_;                          //!< rug points
+  Plot*            plot_      { nullptr };                 //!< plot
+  CQChartsAxisSide side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation  direction_ { Qt::Horizontal };          //!< rug direction
+  Points           points_;                                //!< rug points
 };
 
 #endif

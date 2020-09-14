@@ -67,15 +67,19 @@ calcBBox() const
   Point p1, p2;
 
   if (direction() == Qt::Horizontal) {
-    double y1 = (side() == Side::BOTTOM_LEFT ? dataRange.ymin()        : dataRange.ymax()       );
-    double y2 = (side() == Side::BOTTOM_LEFT ? dataRange.ymin() - 2*sy : dataRange.ymax() + 2*sy);
+    double y1 = (side() == Side::Type::BOTTOM_LEFT ?
+                   dataRange.ymin()        : dataRange.ymax()       );
+    double y2 = (side() == Side::Type::BOTTOM_LEFT ?
+                   dataRange.ymin() - 2*sy : dataRange.ymax() + 2*sy);
 
     p1 = Point(dataRange.xmin(), y1);
     p2 = Point(dataRange.xmax(), y2);
   }
   else {
-    double x1 = (side() == Side::BOTTOM_LEFT ? dataRange.xmin()        : dataRange.xmax()       );
-    double x2 = (side() == Side::BOTTOM_LEFT ? dataRange.xmin() - 2*sx : dataRange.xmax() + 2*sx);
+    double x1 = (side() == Side::Type::BOTTOM_LEFT ?
+                   dataRange.xmin()        : dataRange.xmax()       );
+    double x2 = (side() == Side::Type::BOTTOM_LEFT ?
+                   dataRange.xmin() - 2*sx : dataRange.xmax() + 2*sx);
 
     p1 = Point(x1, dataRange.ymin());
     p2 = Point(x2, dataRange.ymax());
@@ -105,7 +109,7 @@ dataInvalidate()
 
 void
 CQChartsAxisRug::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device, double delta)
 {
   auto symbolType  = this->symbolType();
   auto symbolSize  = this->symbolSize();
@@ -126,10 +130,12 @@ draw(CQChartsPaintDevice *device)
 
     if (direction() == Qt::Horizontal) {
       x = p.pos;
-      y = (side() == Side::BOTTOM_LEFT ? dataRange.ymin() - sy/2 : dataRange.ymax() + sy/2);
+      y = (side() == Side::Type::BOTTOM_LEFT ? dataRange.ymin() - delta - sy/2 :
+                                               dataRange.ymax() + delta + sy/2);
     }
     else {
-      x = (side() == Side::BOTTOM_LEFT ? dataRange.xmin() - sx/2 : dataRange.xmax() + sx/2);
+      x = (side() == Side::Type::BOTTOM_LEFT ? dataRange.xmin() - delta - sx/2 :
+                                               dataRange.xmax() + delta + sx/2);
       y = p.pos;
     }
 

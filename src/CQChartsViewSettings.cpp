@@ -2315,20 +2315,20 @@ groupPlotsSlot()
   bool y1y2    = plotsWidgets_.y1y2Check   ->isChecked();
 
   if      (x1x2) {
-    if (plots.size() != 2) {
-      charts->errorMsg("Need 2 plots for x1x2");
+    if (plots.size() < 2) {
+      charts->errorMsg("Need 2 (or more) plots for x1x2");
       return;
     }
 
-    view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
+    view->initX1X2(plots, overlay, /*reset*/true);
   }
   else if (y1y2) {
-    if (plots.size() != 2) {
-      charts->errorMsg("Need 2 plots for y1y2");
+    if (plots.size() < 2) {
+      charts->errorMsg("Need 2 (or more) plots for y1y2");
       return;
     }
 
-    view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
+    view->initY1Y2(plots, overlay, /*reset*/true);
   }
   else if (overlay) {
     if (plots.size() < 2) {

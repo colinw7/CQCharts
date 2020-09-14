@@ -358,8 +358,12 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
  public:
   CQChartsChordPlot(View *view, const ModelP &model);
-
  ~CQChartsChordPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

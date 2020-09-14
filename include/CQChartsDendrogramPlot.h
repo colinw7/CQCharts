@@ -103,8 +103,12 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);
-
  ~CQChartsDendrogramPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

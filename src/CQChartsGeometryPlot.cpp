@@ -151,6 +151,24 @@ CQChartsGeometryPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model),
  CQChartsObjShapeData<CQChartsGeometryPlot>(this)
 {
+}
+
+CQChartsGeometryPlot::
+~CQChartsGeometryPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsGeometryPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   dataLabel_ = new CQChartsDataLabel(this);
@@ -167,8 +185,9 @@ CQChartsGeometryPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsGeometryPlot::
-~CQChartsGeometryPlot()
+term()
 {
   delete dataLabel_;
 }

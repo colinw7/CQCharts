@@ -757,8 +757,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
  public:
   CQChartsSankeyPlot(View *view, const ModelP &model);
-
  ~CQChartsSankeyPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

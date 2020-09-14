@@ -92,6 +92,24 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
  CQChartsConnectionPlot(view, view->charts()->plotType("chord"), model),
  CQChartsObjStrokeData<CQChartsChordPlot>(this)
 {
+}
+
+CQChartsChordPlot::
+~CQChartsChordPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsChordPlot::
+init()
+{
+  CQChartsConnectionPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   textBox_ = new CQChartsRotatedTextBoxObj(this);
@@ -105,8 +123,9 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsChordPlot::
-~CQChartsChordPlot()
+term()
 {
   delete textBox_;
 }

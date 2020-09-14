@@ -265,6 +265,11 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   // columns
   const Column &xColumn() const { return xColumn_; }
   void setXColumn(const Column &c);

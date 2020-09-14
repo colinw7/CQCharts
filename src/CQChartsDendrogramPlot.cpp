@@ -65,6 +65,24 @@ CQChartsDendrogramPlot(View *view, const ModelP &model) :
  CQChartsObjEdgeLineData <CQChartsDendrogramPlot>(this),
  CQChartsObjTextData     <CQChartsDendrogramPlot>(this)
 {
+}
+
+CQChartsDendrogramPlot::
+~CQChartsDendrogramPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setNodeFillColor(Color(Color::Type::PALETTE));
@@ -74,8 +92,9 @@ CQChartsDendrogramPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsDendrogramPlot::
-~CQChartsDendrogramPlot()
+term()
 {
   delete dendrogram_;
 }

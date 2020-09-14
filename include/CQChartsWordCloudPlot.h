@@ -116,8 +116,12 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
 
  public:
   CQChartsWordCloudPlot(View *view, const ModelP &model);
-
  ~CQChartsWordCloudPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

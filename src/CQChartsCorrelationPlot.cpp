@@ -65,6 +65,24 @@ CQChartsCorrelationPlot(View *view, const ModelP &model) :
  CQChartsObjXLabelTextData   <CQChartsCorrelationPlot>(this),
  CQChartsObjYLabelTextData   <CQChartsCorrelationPlot>(this)
 {
+}
+
+CQChartsCorrelationPlot::
+~CQChartsCorrelationPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsCorrelationPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -72,7 +90,7 @@ CQChartsCorrelationPlot(View *view, const ModelP &model) :
   // create correlation model
   CQChartsLoader loader(charts());
 
-  correlationModel_ = loader.createCorrelationModel(model.data(), /*flip*/false);
+  correlationModel_ = loader.createCorrelationModel(model().data(), /*flip*/false);
 
   baseModel_ = dynamic_cast<CQChartsCorrelationModel *>(correlationModel_->baseModel());
 
@@ -101,8 +119,9 @@ CQChartsCorrelationPlot(View *view, const ModelP &model) :
   setYLabelTextFont(CQChartsFont().decFontSize(4));
 }
 
+void
 CQChartsCorrelationPlot::
-~CQChartsCorrelationPlot()
+term()
 {
   charts()->removeModelData(correlationModelP_);
 }

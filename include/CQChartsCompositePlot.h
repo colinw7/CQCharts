@@ -60,8 +60,12 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
  public:
   CQChartsCompositePlot(View *view, const ModelP &model);
-
  ~CQChartsCompositePlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

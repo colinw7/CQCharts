@@ -206,6 +206,24 @@ CQChartsXYPlot(View *view, const ModelP &model) :
  CQChartsObjBivariateLineData<CQChartsXYPlot>(this),
  CQChartsObjFillUnderFillData<CQChartsXYPlot>(this)
 {
+}
+
+CQChartsXYPlot::
+~CQChartsXYPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsXYPlot::
+init()
+{
+  CQChartsPointPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -247,8 +265,9 @@ CQChartsXYPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsXYPlot::
-~CQChartsXYPlot()
+term()
 {
   delete arrowObj_;
 }
@@ -2486,22 +2505,74 @@ calcAnnotationBBox() const
   BBox bbox;
 
   if (isXRug() || isYRug()) {
-    // x rug axis
-    if (isXRug()) {
-      auto bbox1 = xRug_->calcBBox();
+    double dx = 0.0, dy = 0.0;
 
-      bbox += bbox1;
-    }
+    auto addBBoxX = [&](const BBox &bbox1) {
+      if (bbox1.isSet()) {
+        dy += bbox1.getHeight();
 
-    // y rug axis
-    if (isYRug()) {
-      auto bbox1 = yRug_->calcBBox();
+        bbox += bbox1;
+      }
+    };
 
-      bbox += bbox1;
-    }
+    auto addBBoxY = [&](const BBox &bbox1) {
+      if (bbox1.isSet()) {
+        dx += bbox1.getWidth();
+
+        bbox += bbox1;
+      }
+    };
+
+    // x/y rug axis
+    if (isXRug()) addBBoxX(xRug_->calcBBox());
+    if (isYRug()) addBBoxY(yRug_->calcBBox());
   }
 
   return bbox;
+}
+
+double
+CQChartsXYPlot::
+xAxisHeight(const CQChartsAxisSide::Type &side) const
+{
+  double h = CQChartsPlot::xAxisHeight(side);
+
+  if (isXRug()) {
+    auto addHeight = [&](const BBox &bbox) {
+      if (bbox.isSet())
+        h += bbox.getHeight();
+    };
+
+    //---
+
+    // x rug axis
+    if (isXRug() && xRug_->side().type() == side)
+      addHeight(xRug_->calcBBox());
+  }
+
+  return h;
+}
+
+double
+CQChartsXYPlot::
+yAxisWidth(const CQChartsAxisSide::Type &side) const
+{
+  double w = CQChartsPlot::yAxisWidth(side);
+
+  if (isYRug()) {
+    auto addWidth = [&](const BBox &bbox) {
+      if (bbox.isSet())
+        w += bbox.getWidth();
+    };
+
+    //---
+
+    // y rug axis
+    if (isYRug() && yRug_->side().type() == side)
+      addWidth(yRug_->calcBBox());
+  }
+
+  return w;
 }
 
 //------
@@ -2522,8 +2593,63 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
+  //---
+
+  // drawn axis annotatons in inside->outside order
+  xAxisSideHeight_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  xAxisSideHeight_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    xAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  yAxisSideWidth_[CQChartsAxisSide::Type::BOTTOM_LEFT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::BOTTOM_LEFT);
+  yAxisSideWidth_[CQChartsAxisSide::Type::TOP_RIGHT] =
+    yAxisSideDelta(CQChartsAxisSide::Type::TOP_RIGHT);
+
+  //---
+
   if (isXRug()) drawXRug(device);
   if (isYRug()) drawYRug(device);
+}
+
+//---
+
+void
+CQChartsXYPlot::
+drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  auto addHeight = [&](const BBox &bbox) {
+    if (! bbox.isSet()) return;
+
+    if (xAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+      pos += bbox.getHeight();
+    else
+      pos -= bbox.getHeight();
+  };
+
+  if (isXRug() && xRug_->side().type() == xAxis()->side().type())
+    addHeight(xRug_->calcBBox());
+
+  CQChartsPlot::drawXAxisAt(device, plot, pos);
+}
+
+void
+CQChartsXYPlot::
+drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  auto addWidth = [&](const BBox &bbox) {
+    if (! bbox.isSet()) return;
+
+    if (yAxis()->side().type() == CQChartsAxisSide::Type::TOP_RIGHT)
+      pos += bbox.getWidth();
+    else
+      pos -= bbox.getWidth();
+  };
+
+  if (isYRug() && yRug_->side().type() == yAxis()->side().type())
+    addWidth(yRug_->calcBBox());
+
+  CQChartsPlot::drawYAxisAt(device, plot, pos);
 }
 
 //------
@@ -2547,19 +2673,27 @@ void
 CQChartsXYPlot::
 drawXRug(PaintDevice *device) const
 {
-  drawXYRug(device, xRug_);
+  double delta = xAxisSideHeight_[xRug_->side().type()];
+
+  drawXYRug(device, xRug_, delta);
+
+  xAxisSideHeight_[xRug_->side().type()] += xRug_->calcBBox().getHeight();
 }
 
 void
 CQChartsXYPlot::
 drawYRug(PaintDevice *device) const
 {
-  drawXYRug(device, yRug_);
+  double delta = yAxisSideWidth_[yRug_->side().type()];
+
+  drawXYRug(device, yRug_, delta);
+
+  yAxisSideWidth_ [yRug_->side().type()] += yRug_->calcBBox().getWidth();
 }
 
 void
 CQChartsXYPlot::
-drawXYRug(PaintDevice *device, const RugP &rug) const
+drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
 {
   rug->clearPoints();
 
@@ -2583,14 +2717,7 @@ drawXYRug(PaintDevice *device, const RugP &rug) const
     }
   }
 
-  rug->draw(device);
-
-#if 0
-  if (rug->direction() == Qt::Horizontal)
-    xAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
-  else
-    yAxisSideBBox_[(XYSide) rug->side()] += rug->calcBBox();
-#endif
+  rug->draw(device, delta);
 }
 
 //---

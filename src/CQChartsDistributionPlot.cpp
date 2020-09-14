@@ -147,6 +147,24 @@ CQChartsDistributionPlot(View *view, const ModelP &model) :
  CQChartsObjDotPointData <CQChartsDistributionPlot>(this),
  CQChartsObjRugPointData <CQChartsDistributionPlot>(this)
 {
+}
+
+CQChartsDistributionPlot::
+~CQChartsDistributionPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+init()
+{
+  CQChartsBarPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setAutoBucket    (true);
@@ -172,8 +190,9 @@ CQChartsDistributionPlot(View *view, const ModelP &model) :
   connect(yAxis(), SIGNAL(tickPlacementChanged()), this, SLOT(updateObjsSlot()));
 }
 
+void
 CQChartsDistributionPlot::
-~CQChartsDistributionPlot()
+term()
 {
   clearGroupValues();
   clearGroupBuckets();

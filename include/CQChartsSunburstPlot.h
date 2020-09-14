@@ -338,8 +338,12 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
  public:
   CQChartsSunburstPlot(View *view, const ModelP &model);
-
  ~CQChartsSunburstPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

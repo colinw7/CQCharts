@@ -22,6 +22,7 @@
 #include <CQHierSepModel.h>
 #include <CQPropertyViewModel.h>
 #include <CQTclUtil.h>
+#include <CQFileWatcher.h>
 
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
@@ -152,13 +153,43 @@ filename() const
 
 void
 CQChartsModelData::
-setFilename(const QString &s)
+setFilename(const QString &filename)
 {
-  if (s != filename_) {
-    filename_ = s;
+  if (filename != filename_) {
+    if (! fileWatcher_) {
+      fileWatcher_ = new CQFileWatcher;
+
+      connect(fileWatcher_, SIGNAL(fileChanged(const QString &)),
+              this, SLOT(fileChangedSlot(const QString &)));
+    }
+    else
+      fileWatcher_->removeFile(filename_);
+
+    filename_ = filename;
+
+    fileWatcher_->addFile(filename_);
 
     emit dataChanged();
   }
+}
+
+void
+CQChartsModelData::
+fileChangedSlot(const QString &)
+{
+  //std::cerr << "File Changed\n";
+
+  ModelP model = this->currentModel();
+
+  auto *absModel = CQChartsModelUtil::getBaseModel(model.data());
+  auto *csvModel = qobject_cast<CQCsvModel *>(absModel);
+
+  if (csvModel)
+    csvModel->load(filename_);
+  else
+    return;
+
+  emit modelChanged();
 }
 
 QString
@@ -1229,8 +1260,7 @@ write(std::ostream &os, const QString &varName) const
 
 bool
 CQChartsModelData::
-exportModel(const QString &fileName, const CQBaseModelDataType &type,
-            bool hheader, bool vheader)
+exportModel(const QString &fileName, const CQBaseModelDataType &type, bool hheader, bool vheader)
 {
   if (type == CQBaseModelDataType::CSV) {
     if (hheader && ! vheader)

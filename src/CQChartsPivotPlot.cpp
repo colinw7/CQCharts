@@ -81,6 +81,24 @@ CQChartsPivotPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("pivot"), model),
  CQChartsObjBarShapeData<CQChartsPivotPlot>(this)
 {
+}
+
+CQChartsPivotPlot::
+~CQChartsPivotPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsPivotPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -108,15 +126,16 @@ CQChartsPivotPlot(View *view, const ModelP &model) :
 
   //---
 
-  pivotModel_ = new CQPivotModel(model.data());
+  pivotModel_ = new CQPivotModel(model().data());
 
   pivotModel_->setIncludeTotals(false);
 
   updatePivot();
 }
 
+void
 CQChartsPivotPlot::
-~CQChartsPivotPlot()
+term()
 {
   delete dataLabel_;
   delete pivotModel_;

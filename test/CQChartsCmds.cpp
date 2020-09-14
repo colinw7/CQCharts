@@ -2554,16 +2554,16 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
   }
   else {
     if      (x1x2) {
-      if (plots.size() != 2)
-        return errorMsg("Need 2 plots for x1x2");
+      if (plots.size() < 2)
+        return errorMsg("Need 2 (or more) plots for x1x2");
 
-      view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
+      view->initX1X2(plots, overlay, /*reset*/true);
     }
     else if (y1y2) {
-      if (plots.size() != 2)
-        return errorMsg("Need 2 plots for y1y2");
+      if (plots.size() < 2)
+        return errorMsg("Need 2 (or more) plots for y1y2");
 
-      view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
+      view->initY1Y2(plots, overlay, /*reset*/true);
     }
     else if (overlay) {
       if (plots.size() < 2)
@@ -9042,7 +9042,7 @@ createPlot(CQChartsView *view, const ModelP &model, CQChartsPlotType *type, bool
 
   //---
 
-  auto *plot = type->create(view, model);
+  auto *plot = type->createAndInit(view, model);
 
   return plot;
 }

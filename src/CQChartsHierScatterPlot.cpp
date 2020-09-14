@@ -75,6 +75,24 @@ CQChartsHierScatterPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierscatter"), model),
  CQChartsObjPointData<CQChartsHierScatterPlot>(this)
 {
+}
+
+CQChartsHierScatterPlot::
+~CQChartsHierScatterPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsHierScatterPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -98,8 +116,9 @@ CQChartsHierScatterPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsHierScatterPlot::
-~CQChartsHierScatterPlot()
+term()
 {
   for (const auto &groupValueSet : groupValueSets_)
     delete groupValueSet.second;
@@ -109,7 +128,7 @@ CQChartsHierScatterPlot::
   delete dataLabel_;
 }
 
-//------
+//---
 
 void
 CQChartsHierScatterPlot::

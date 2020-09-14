@@ -57,6 +57,24 @@ CQChartsSunburstPlot(View *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsSunburstPlot>(this),
  CQChartsObjTextData <CQChartsSunburstPlot>(this)
 {
+}
+
+CQChartsSunburstPlot::
+~CQChartsSunburstPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsSunburstPlot::
+init()
+{
+  CQChartsHierPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setFillColor(Color(Color::Type::PALETTE));
@@ -75,8 +93,9 @@ CQChartsSunburstPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsSunburstPlot::
-~CQChartsSunburstPlot()
+term()
 {
   resetRoots();
 }

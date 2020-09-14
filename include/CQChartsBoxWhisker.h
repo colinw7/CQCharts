@@ -216,22 +216,16 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 class CQChartsAxisBoxWhisker : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(Side            side      READ side      WRITE setSide     )
-  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
-  Q_PROPERTY(CQChartsLength  width     READ width     WRITE setWidth    )
-  Q_PROPERTY(CQChartsLength  margin    READ margin    WRITE setMargin   )
-  Q_PROPERTY(CQChartsAlpha   alpha     READ alpha     WRITE setAlpha    )
-  Q_PROPERTY(DrawType        drawType  READ drawType  WRITE setDrawType )
+  Q_PROPERTY(CQChartsAxisSide side      READ side      WRITE setSide     )
+  Q_PROPERTY(Qt::Orientation  direction READ direction WRITE setDirection)
+  Q_PROPERTY(CQChartsLength   width     READ width     WRITE setWidth    )
+  Q_PROPERTY(CQChartsLength   margin    READ margin    WRITE setMargin   )
+  Q_PROPERTY(CQChartsAlpha    alpha     READ alpha     WRITE setAlpha    )
+  Q_PROPERTY(DrawType         drawType  READ drawType  WRITE setDrawType )
 
-  Q_ENUMS(Side)
   Q_ENUMS(DrawType)
 
  public:
-  enum class Side {
-    BOTTOM_LEFT,
-    TOP_RIGHT
-  };
-
   enum DrawType {
     WHISKER,
     WHISKER_BAR
@@ -244,6 +238,7 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   using BoxWhisker  = CQChartsBoxWhisker;
   using PaintDevice = CQChartsPaintDevice;
   using PenBrush    = CQChartsPenBrush;
+  using Side        = CQChartsAxisSide;
   using BBox        = CQChartsGeom::BBox;
 
  public:
@@ -314,14 +309,14 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
   void draw(PaintDevice *device, const PenBrush &penBrush, int ind=1, double delta=0.0);
 
  private:
-  Plot*           plot_      { nullptr };           //!< plot
-  Side            side_      { Side::BOTTOM_LEFT }; //!< rug side
-  Qt::Orientation direction_ { Qt::Horizontal };    //!< rug direction
-  Length          width_     { "24px" };            //!< width
-  Length          margin_    { "8px" };             //!< margin
-  Alpha           alpha_     { 0.5 };               //!< alpha
-  DrawType        drawType_  { DrawType::WHISKER }; //!< draw type
-  BoxWhisker      whisker_;                         //!< whisker data
+  Plot*           plot_      { nullptr };                 //!< plot
+  Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
+  Length          width_     { "24px" };                  //!< width
+  Length          margin_    { "8px" };                   //!< margin
+  Alpha           alpha_     { 0.5 };                     //!< alpha
+  DrawType        drawType_  { DrawType::WHISKER };       //!< draw type
+  BoxWhisker      whisker_;                               //!< whisker data
 };
 
 //---
@@ -333,21 +328,15 @@ class CQChartsAxisBoxWhisker : public CQChartsObj {
 class CQChartsAxisDensity : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(Side            side      READ side      WRITE setSide     )
-  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
-  Q_PROPERTY(CQChartsLength  width     READ width     WRITE setWidth    )
-  Q_PROPERTY(CQChartsAlpha   alpha     READ alpha     WRITE setAlpha    )
-  Q_PROPERTY(DrawType        drawType  READ drawType  WRITE setDrawType )
+  Q_PROPERTY(CQChartsAxisSide side      READ side      WRITE setSide     )
+  Q_PROPERTY(Qt::Orientation  direction READ direction WRITE setDirection)
+  Q_PROPERTY(CQChartsLength   width     READ width     WRITE setWidth    )
+  Q_PROPERTY(CQChartsAlpha    alpha     READ alpha     WRITE setAlpha    )
+  Q_PROPERTY(DrawType         drawType  READ drawType  WRITE setDrawType )
 
-  Q_ENUMS(Side)
   Q_ENUMS(DrawType)
 
  public:
-  enum class Side {
-    BOTTOM_LEFT,
-    TOP_RIGHT
-  };
-
   enum DrawType {
     DISTRIBUTION,
     BUCKETS
@@ -360,6 +349,7 @@ class CQChartsAxisDensity : public CQChartsObj {
   using Alpha       = CQChartsAlpha;
   using PaintDevice = CQChartsPaintDevice;
   using PenBrush    = CQChartsPenBrush;
+  using Side        = CQChartsAxisSide;
   using BBox        = CQChartsGeom::BBox;
 
  public:
@@ -422,13 +412,13 @@ class CQChartsAxisDensity : public CQChartsObj {
   void draw(PaintDevice *device, const PenBrush &penBrush, double delta=0.0);
 
  private:
-  Plot*           plot_      { nullptr };                //!< plot
-  Side            side_      { Side::BOTTOM_LEFT };      //!< rug side
-  Qt::Orientation direction_ { Qt::Horizontal };         //!< rug direction
-  Length          width_     { "48px" };                 //!< width
-  Alpha           alpha_     { 0.5 };                    //!< alpha
-  DrawType        drawType_  { DrawType::DISTRIBUTION }; //!< draw type
-  BoxWhisker      whisker_;                              //!< whisker data
+  Plot*           plot_      { nullptr };                 //!< plot
+  Side            side_      { Side::Type::BOTTOM_LEFT }; //!< rug side
+  Qt::Orientation direction_ { Qt::Horizontal };          //!< rug direction
+  Length          width_     { "48px" };                  //!< width
+  Alpha           alpha_     { 0.5 };                     //!< alpha
+  DrawType        drawType_  { DrawType::DISTRIBUTION };  //!< draw type
+  BoxWhisker      whisker_;                               //!< whisker data
 };
 
 //------

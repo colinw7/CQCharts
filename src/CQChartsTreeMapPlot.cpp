@@ -69,6 +69,24 @@ CQChartsTreeMapPlot(View *view, const ModelP &model) :
  CQChartsObjShapeData      <CQChartsTreeMapPlot>(this),
  CQChartsObjTextData       <CQChartsTreeMapPlot>(this)
 {
+}
+
+CQChartsTreeMapPlot::
+~CQChartsTreeMapPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsTreeMapPlot::
+init()
+{
+  CQChartsHierPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setHeaderFillColor(Color(Color::Type::INTERFACE_VALUE, 0.4));
@@ -96,8 +114,9 @@ CQChartsTreeMapPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsTreeMapPlot::
-~CQChartsTreeMapPlot()
+term()
 {
   delete root_;
 }

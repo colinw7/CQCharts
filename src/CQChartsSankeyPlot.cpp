@@ -108,6 +108,24 @@ CQChartsSankeyPlot(View *view, const ModelP &model) :
  CQChartsObjNodeShapeData <CQChartsSankeyPlot>(this),
  CQChartsObjEdgeShapeData <CQChartsSankeyPlot>(this)
 {
+}
+
+CQChartsSankeyPlot::
+~CQChartsSankeyPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
+init()
+{
+  CQChartsConnectionPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setLayerActive(Layer::Type::FG_PLOT, true);
@@ -143,8 +161,9 @@ CQChartsSankeyPlot(View *view, const ModelP &model) :
   setFitMargin(PlotMargin(Length("5%"), Length("5%"), Length("5%"), Length("5%")));
 }
 
+void
 CQChartsSankeyPlot::
-~CQChartsSankeyPlot()
+term()
 {
   // delete objects first to ensure link from edge/node to object reset
   clearPlotObjects();
@@ -153,6 +172,8 @@ CQChartsSankeyPlot::
 
   clearGraph();
 }
+
+//---
 
 void
 CQChartsSankeyPlot::

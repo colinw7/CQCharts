@@ -63,6 +63,21 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model)
 {
+  init();
+}
+
+CQChartsPlot::
+~CQChartsPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsPlot::
+init()
+{
   NoUpdate noUpdate(this);
 
   //---
@@ -89,7 +104,7 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   debugUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE"   , debugUpdate_  );
   debugQuadTree_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
 
-  editHandles_ = new EditHandles(view);
+  editHandles_ = new EditHandles(view());
 
   //--
 
@@ -156,8 +171,9 @@ CQChartsPlot(View *view, PlotType *type, const ModelP &model) :
   startThreadTimer();
 }
 
+void
 CQChartsPlot::
-~CQChartsPlot()
+term()
 {
   CQChartsPlot::clearPlotObjects();
 
@@ -186,6 +202,8 @@ CQChartsPlot::
   delete animateData_.timer;
   delete updateData_.timer;
 }
+
+//---
 
 QString
 CQChartsPlot::
@@ -1587,11 +1605,11 @@ setOverlayPlotsAxisNames()
 {
   assert(isFirstPlot() && isOverlay());
 
-  Plots plots;
+  Plots oplots;
 
-  overlayPlots(plots);
+  overlayPlots(oplots);
 
-  setPlotsAxisNames(plots, this);
+  setPlotsAxisNames(oplots, this);
 }
 
 void
@@ -1636,6 +1654,24 @@ setPlotsAxisNames(const Plots &plots, CQChartsPlot *axisPlot)
     if (yAxisLabels.length())
       axisPlot->yAxis()->setDefLabel(yAxisLabels.join(", "), /*notify*/false);
   }
+}
+
+double
+CQChartsPlot::
+xAxisSideDelta(const CQChartsAxisSide::Type &side) const
+{
+  auto p = xAxisSideDelta_.find(side);
+
+  return (p != xAxisSideDelta_.end() ? (*p).second : 0.0);
+}
+
+double
+CQChartsPlot::
+yAxisSideDelta(const CQChartsAxisSide::Type &side) const
+{
+  auto p = yAxisSideDelta_.find(side);
+
+  return (p != yAxisSideDelta_.end() ? (*p).second : 0.0);
 }
 
 //---
@@ -2062,11 +2098,11 @@ isOverlay(bool checkVisible) const
     return false;
 
   if (checkVisible) {
-    Plots plots;
+    Plots oplots;
 
-    overlayPlots(plots);
+    overlayPlots(oplots);
 
-    return plots.size() > 1;
+    return (oplots.size() > 1);
   }
 
   return true;
@@ -2104,11 +2140,11 @@ isX1X2(bool checkVisible) const
     return false;
 
   if (checkVisible) {
-    Plots plots;
+    Plots oplots;
 
-    overlayPlots(plots);
+    overlayPlots(oplots);
 
-    return plots.size() > 1;
+    return (oplots.size() > 1);
   }
 
   return true;
@@ -2132,11 +2168,11 @@ isY1Y2(bool checkVisible) const
     return false;
 
   if (checkVisible) {
-    Plots plots;
+    Plots oplots;
 
-    overlayPlots(plots);
+    overlayPlots(oplots);
 
-    return plots.size() > 1;
+    return (oplots.size() > 1);
   }
 
   return true;
@@ -2179,6 +2215,24 @@ setTabbed(bool b, bool notify)
   if (notify)
     emit connectDataChanged();
 }
+
+//---
+
+void
+CQChartsPlot::
+setShowAllXOverlayAxes(bool b)
+{
+  CQChartsUtil::testAndSet(showAllXOverlayAxes_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPlot::
+setShowAllYOverlayAxes(bool b)
+{
+  CQChartsUtil::testAndSet(showAllYOverlayAxes_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -2286,24 +2340,36 @@ overlayPlots(Plots &plots, bool visibleOnly) const
 
 void
 CQChartsPlot::
-x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
+x1x2Plots(Plots &plots)
 {
-  plot1 = firstPlot();
-  plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+  auto *plot1 = firstPlot();
 
-  assert(plot1->connectData_.x1x2);
-  assert(plot2->connectData_.x1x2);
+  while (plot1) {
+    assert(plot1->connectData_.x1x2);
+
+    plots.push_back(const_cast<CQChartsPlot *>(plot1));
+
+    plot1 = plot1->nextPlot();
+  }
+
+  assert(plots.size() >= 2);
 }
 
 void
 CQChartsPlot::
-y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
+y1y2Plots(Plots &plots)
 {
-  plot1 = firstPlot();
-  plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+  auto *plot1 = firstPlot();
 
-  assert(plot1->connectData_.y1y2);
-  assert(plot2->connectData_.y1y2);
+  while (plot1) {
+    assert(plot1->connectData_.y1y2);
+
+    plots.push_back(const_cast<CQChartsPlot *>(plot1));
+
+    plot1 = plot1->nextPlot();
+  }
+
+  assert(plots.size() >= 2);
 }
 
 bool
@@ -2751,6 +2817,8 @@ addBaseProperties()
 
 //  addProperty("xaxis", xAxis(), "userLabel", "userLabel")->
 //    setDesc("User defined x axis label");
+
+    addProp("xaxis", "showAllXOverlayAxes", "showOverlayAxes", "Show all overlay x axes");
   }
 
   // yaxis
@@ -2759,6 +2827,8 @@ addBaseProperties()
 
 //  addProperty("yaxis", yAxis(), "userLabel", "userLabel")->
 //    setDesc("User defined y axis label");
+
+    addProp("yaxis", "showAllYOverlayAxes", "showOverlayAxes", "Show all overlay y axes");
   }
 
   // key
@@ -3749,7 +3819,7 @@ updateAndApplyPlotRange1(bool updateObjs)
     updateData_.updateObjs   = updateObjs;
     updateData_.drawBusy.ind = -100;
 
-    setUpdateState(UpdateState::CALC_RANGE);
+    setGroupedUpdateState(UpdateState::CALC_RANGE);
 
     updateData_.rangeThread.start(this, debugUpdate_ ? "updateRange" : nullptr);
     updateData_.rangeThread.future = std::async(std::launch::async, updateRangeASync, this);
@@ -3910,7 +3980,7 @@ updateRangeThread()
   //---
 
   if (isOverlay())
-    crearOverlayErrors();
+    clearOverlayErrors();
 
   resetAnnotationBBox();
 
@@ -4003,7 +4073,7 @@ updatePlotObjs()
     // start update objs thread
     updateData_.drawBusy.ind = -100;
 
-    setUpdateState(UpdateState::CALC_OBJS);
+    setGroupedUpdateState(UpdateState::CALC_OBJS);
 
     updateData_.objsThread.start(this, debugUpdate_ ? "updatePlotObjs" : nullptr);
     updateData_.objsThread.future = std::async(std::launch::async, updateObjsASync, this);
@@ -4333,55 +4403,61 @@ applyDataRange(bool propagate)
       if      (isX1X2()) {
         auto dataRange1 = CQChartsUtil::bboxRange(rawRange);
 
-        CQChartsPlot *plot1, *plot2;
+        Plots plots;
 
-        x1x2Plots(plot1, plot2);
+        x1x2Plots(plots);
 
-        if (plot1) {
-          plot1->applyDataRange(/*propagate*/false);
-        }
+        int i = 0;
 
-        //---
+        for (auto &plot : plots) {
+          if (i == 0) {
+            plot->applyDataRange(/*propagate*/false);
+          }
+          else {
+            //plot->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
+            //plot->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
 
-        if (plot2) {
-          //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
-          //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
+            auto bbox2 = plot->calcDataRange(/*adjust*/false);
 
-          auto bbox2 = plot2->calcDataRange(/*adjust*/false);
+            Range dataRange2 = Range(bbox2.getXMin(), dataRange1.bottom(),
+                                     bbox2.getXMax(), dataRange1.top   ());
 
-          Range dataRange2 = Range(bbox2.getXMin(), dataRange1.bottom(),
-                                   bbox2.getXMax(), dataRange1.top   ());
+            plot->setDataRange(dataRange2, /*update*/false);
 
-          plot2->setDataRange(dataRange2, /*update*/false);
+            plot->applyDataRange(/*propagate*/false);
+          }
 
-          plot2->applyDataRange(/*propagate*/false);
+          ++i;
         }
       }
       else if (isY1Y2()) {
         auto dataRange1 = CQChartsUtil::bboxRange(rawRange);
 
-        CQChartsPlot *plot1, *plot2;
+        Plots plots;
 
-        y1y2Plots(plot1, plot2);
+        y1y2Plots(plots);
 
-        if (plot1) {
-          plot1->applyDataRange(/*propagate*/false);
-        }
+        int i = 0;
 
-        //---
+        for (auto &plot : plots) {
+          if (i == 0) {
+            plot->applyDataRange(/*propagate*/false);
+          }
+          else {
+            //plot->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
+            //plot->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
 
-        if (plot2) {
-          //plot2->resetDataRange(/*updateRange*/false, /*updateObjs*/false);
-          //plot2->updateAndApplyRange(/*apply*/false, /*updateObjs*/false);
+            auto bbox2 = plot->calcDataRange(/*adjust*/false);
 
-          auto bbox2 = plot2->calcDataRange(/*adjust*/false);
+            Range dataRange2 = Range(dataRange1.left (), bbox2.getYMin(),
+                                     dataRange1.right(), bbox2.getYMax());
 
-          Range dataRange2 = Range(dataRange1.left (), bbox2.getYMin(),
-                                   dataRange1.right(), bbox2.getYMax());
+            plot->setDataRange(dataRange2, /*update*/false);
 
-          plot2->setDataRange(dataRange2, /*update*/false);
+            plot->applyDataRange(/*propagate*/false);
+          }
 
-          plot2->applyDataRange(/*propagate*/false);
+          ++i;
         }
       }
       else {
@@ -4456,10 +4532,10 @@ updateAxisRanges(const BBox &adjustedRange)
 
 void
 CQChartsPlot::
-crearOverlayErrors()
+clearOverlayErrors()
 {
   if (! isFirstPlot())
-    return firstPlot()->crearOverlayErrors();
+    return firstPlot()->clearOverlayErrors();
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
@@ -7171,7 +7247,7 @@ initSymbolTypeData(SymbolTypeData &symbolTypeData) const
   if (! columnDetails) return;
 
   if (symbolTypeData.column.isGroup()) {
-    symbolTypeData.data_min = 0.0;
+    symbolTypeData.data_min = 0;
     symbolTypeData.data_max = std::max(numGroups() - 1, 0);
   }
   else {
@@ -7766,15 +7842,14 @@ panLeft(double f)
 
 #if 0
   if (! isOverlay() && isY1Y2()) {
-    CQChartsPlot *plot1, *plot2;
+    Plots plots;
 
-    y1y2Plots(plot1, plot2);
+    y1y2Plots(plots);
 
-    if (this == plot1) {
-      panX(plot2);
+    for (auto &plot : plots) {
+      if (plot != this)
+        panX(plot);
     }
-    else
-      panX(plot1);
   }
 #endif
 
@@ -7802,14 +7877,14 @@ panRight(double f)
 
 /*
   if (! isOverlay() && isY1Y2()) {
-    CQChartsPlot *plot1, *plot2;
+    Plots plots;
 
-    y1y2Plots(plot1, plot2);
+    y1y2Plots(plots);
 
-    if (this == plot1)
-      panX(plot2);
-    else
-      panX(plot1);
+    for (auto &plot : plots) {
+      if (plot != this)
+        panX(plot);
+    }
   }
 */
 
@@ -7837,14 +7912,14 @@ panUp(double f)
 
 /*
   if (! isOverlay() && isX1X2()) {
-    CQChartsPlot *plot1, *plot2;
+    Plots plots;
 
-    x1x2Plots(plot1, plot2);
+    x1x2Plots(plots);
 
-    if (this == plot1)
-      panY(plot2);
-    else
-      panY(plot1);
+    for (auto &plot : plots) {
+      if (plot != this)
+        panY(plot);
+    }
   }
 */
 
@@ -7872,14 +7947,14 @@ panDown(double f)
 
 #if 0
   if (! isOverlay() && isX1X2()) {
-    CQChartsPlot *plot1, *plot2;
+    Plots plots;
 
-    x1x2Plots(plot1, plot2);
+    x1x2Plots(plots);
 
-    if (this == plot1)
-      panY(plot2);
-    else
-      panY(plot1);
+    for (auto &plot : plots) {
+      if (plot != this)
+        panY(plot);
+    }
   }
 #endif
 
@@ -8480,7 +8555,7 @@ updateDraw()
 
     updateData_.drawBusy.ind = -100;
 
-    setUpdateState(UpdateState::DRAW_OBJS);
+    setGroupedUpdateState(UpdateState::DRAW_OBJS);
 
     updateData_.drawThread.start(this, debugUpdate_ ? "drawObjs" : nullptr);
     updateData_.drawThread.future = std::async(std::launch::async, drawASync, this);
@@ -8784,6 +8859,10 @@ void
 CQChartsPlot::
 drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes, bool bgKey) const
 {
+  const_cast<CQChartsPlot *>(this)->initAxisSizes();
+
+  //---
+
   // draw background (plot/data fill)
   if (bgLayer)
     drawBackgroundLayer(device);
@@ -8796,6 +8875,113 @@ drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes, bool b
 
   if (bgKey)
     drawBgKey(device);
+}
+
+void
+CQChartsPlot::
+initAxisSizes()
+{
+  if (! isOverlay()) {
+    const_cast<CQChartsPlot *>(this)->clearAxisSideDelta();
+    return;
+  }
+
+  //---
+
+  if (this == firstPlot())
+    const_cast<CQChartsPlot *>(this)->clearAxisSideDelta();
+
+  //---
+
+  bool x1x2 = this->isY1Y2();
+
+  if (x1x2 || (isOverlay() && isShowAllXOverlayAxes())) {
+    // only init on first plot
+    if (this != firstPlot()) return;
+
+    // get overlay plots
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    //---
+
+    // init bottom axes
+    double bdelta = 0.0;
+
+    for (auto &oplot : oplots) {
+      oplot->xAxisSideDelta_[CQChartsAxisSide::Type::BOTTOM_LEFT] = bdelta;
+
+      if (! oplot->xAxis())
+        continue;
+
+      if (oplot->xAxis()->position().isSet())
+        continue;
+
+      bdelta += oplot->xAxisHeight(CQChartsAxisSide::Type::BOTTOM_LEFT);
+    }
+
+    // init top axes
+    double tdelta = 0.0;
+
+    for (auto &oplot : oplots) {
+      oplot->xAxisSideDelta_[CQChartsAxisSide::Type::TOP_RIGHT] = tdelta;
+
+      if (! oplot->xAxis())
+        continue;
+
+      if (oplot->xAxis()->position().isSet())
+        continue;
+
+      tdelta += oplot->xAxisHeight(CQChartsAxisSide::Type::TOP_RIGHT);
+    }
+  }
+
+  //---
+
+  bool y1y2 = this->isY1Y2();
+
+  if (y1y2 || (isOverlay() && isShowAllYOverlayAxes())) {
+    // only init on first plot
+    if (this != firstPlot()) return;
+
+    // get overlay plots
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    //---
+
+    // init left axes
+    double ldelta = 0.0;
+
+    for (auto &oplot : oplots) {
+      oplot->yAxisSideDelta_[CQChartsAxisSide::Type::BOTTOM_LEFT] = ldelta;
+
+      if (! oplot->yAxis())
+        continue;
+
+      if (oplot->yAxis()->position().isSet())
+        continue;
+
+      ldelta += oplot->yAxisWidth(CQChartsAxisSide::Type::BOTTOM_LEFT);
+    }
+
+    // init right axes
+    double rdelta = 0.0;
+
+    for (auto &oplot : oplots) {
+      oplot->yAxisSideDelta_[CQChartsAxisSide::Type::TOP_RIGHT] = rdelta;
+
+      if (! oplot->yAxis())
+        continue;
+
+      if (oplot->yAxis()->position().isSet())
+        continue;
+
+      rdelta += oplot->yAxisWidth(CQChartsAxisSide::Type::TOP_RIGHT);
+    }
+  }
 }
 
 void
@@ -9125,8 +9311,20 @@ drawBackgroundLayer(PaintDevice *device) const
 
   //---
 
-  if (this->hasBackground())
-    execDrawBackground(device);
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      if (oplot->hasBackground())
+        oplot->execDrawBackground(device);
+    }
+  }
+  else {
+    if (this->hasBackground())
+      execDrawBackground(device);
+  }
 }
 
 void
@@ -9175,6 +9373,16 @@ bool
 CQChartsPlot::
 hasBackground() const
 {
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots)
+      if (oplot->hasBackground())
+        return true;
+  }
+
   return false;
 }
 
@@ -9644,9 +9852,110 @@ drawYGrid(PaintDevice *device) const
   yAxis()->drawGrid(this, device);
 }
 
+//---
+
 void
 CQChartsPlot::
 drawXAxis(PaintDevice *device) const
+{
+  // Draw separate X axes if X1/X2 (separate x values and shared y values) or
+  // showAllXOverlayAxes property is set for overlay.
+  //
+  // Note: X1/X2 uses individual plot's coordinates. Overlay uses shared (first plot) coordinates.
+  //
+  // TODO: Handle flip X
+
+  bool x1x2 = this->isX1X2();
+
+  auto drawPlotAxis = [&](CQChartsPlot *plot, double pos) {
+    if (x1x2) {
+      device->setPlot(plot);
+
+      plot->drawXAxisAt(device, plot, pos);
+
+      device->setPlot(const_cast<CQChartsPlot *>(this));
+    }
+    else
+      plot->drawXAxisAt(device, const_cast<CQChartsPlot *>(this), pos);
+  };
+
+  //---
+
+  if (x1x2 || (isOverlay() && isShowAllXOverlayAxes())) {
+    // always draw on first plot
+    if (this != firstPlot()) return;
+
+    //---
+
+    // get overlay plots
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    //---
+
+    // draw fixed position axes as is
+    for (auto &oplot : oplots) {
+      if (oplot->xAxis() && oplot->xAxis()->position().isSet())
+        drawPlotAxis(oplot, oplot->xAxis()->position().real());
+    }
+
+    //---
+
+    auto dataRange = calcDataRange();
+
+    //if (dataRange.isSet())
+    //  dataRange += annotationBBox();
+
+    // draw bottom axes
+    double bpos = (dataRange.isSet() ? dataRange.getYMin() : 0.0);
+
+    for (auto &oplot : oplots) {
+      if (! oplot->xAxis())
+        continue;
+
+      if (oplot->xAxis()->position().isSet())
+        continue;
+
+      // draw x axis at adjusted position and move position down for next axis
+      if (oplot->xAxis()->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
+        drawPlotAxis(oplot, bpos);
+
+      bpos -= oplot->xAxisHeight(CQChartsAxisSide::Type::BOTTOM_LEFT);
+    }
+
+    // draw top axes
+    double tpos = (dataRange.isSet() ? dataRange.getYMax() : 1.0);
+
+    for (auto &oplot : oplots) {
+      if (! oplot->xAxis())
+        continue;
+
+      if (oplot->yAxis()->position().isSet())
+        continue;
+
+      // draw x axis at adjusted position and move position up for next axis
+      if (oplot->xAxis()->side() == CQChartsAxisSide::Type::TOP_RIGHT)
+        drawPlotAxis(oplot, tpos);
+
+      tpos += oplot->xAxisHeight(CQChartsAxisSide::Type::TOP_RIGHT);
+    }
+  }
+  else {
+    drawXAxis1(device);
+  }
+}
+
+void
+CQChartsPlot::
+drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  xAxis()->drawAt(pos, plot, device);
+}
+
+void
+CQChartsPlot::
+drawXAxis1(PaintDevice *device) const
 {
   xAxis()->draw(this, device);
 }
@@ -9655,8 +9964,149 @@ void
 CQChartsPlot::
 drawYAxis(PaintDevice *device) const
 {
+  // Draw separate Y axes if Y1/Y2 (separate y values and shared x values) or
+  // showAllYOverlayAxes property is set for overlay.
+  //
+  // Note: Y1/Y2 uses individual plot's coordinates. Overlay uses shared (first plot) coordinates.
+  //
+  // TODO: Handle flip Y
+
+  bool y1y2 = this->isY1Y2();
+
+  auto drawPlotAxis = [&](CQChartsPlot *plot, double pos) {
+    if (y1y2) {
+      device->setPlot(plot);
+
+      plot->drawYAxisAt(device, plot, pos);
+
+      device->setPlot(const_cast<CQChartsPlot *>(this));
+    }
+    else
+      plot->drawYAxisAt(device, const_cast<CQChartsPlot *>(this), pos);
+  };
+
+  //---
+
+  if (y1y2 || (isOverlay() && isShowAllYOverlayAxes())) {
+    // always draw on first plot
+    if (this != firstPlot()) return;
+
+    //---
+
+    // get overlay plots
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    //---
+
+    // draw fixed position axes as is
+    for (auto &oplot : oplots) {
+      if (oplot->yAxis() && oplot->yAxis()->position().isSet())
+        drawPlotAxis(oplot, oplot->yAxis()->position().real());
+    }
+
+    //---
+
+    auto dataRange = calcDataRange();
+
+    //if (dataRange.isSet())
+    //  dataRange += annotationBBox();
+
+    // draw left axes
+    double lpos = (dataRange.isSet() ? dataRange.getXMin() : 0.0);
+
+    for (auto &oplot : oplots) {
+      if (! oplot->yAxis())
+        continue;
+
+      if (oplot->yAxis()->position().isSet())
+        continue;
+
+      // draw y axis at adjusted position and move position left for next axis
+      if (oplot->yAxis()->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
+        drawPlotAxis(oplot, lpos);
+
+      double w = oplot->yAxisWidth(CQChartsAxisSide::Type::BOTTOM_LEFT);
+
+      if (showBoxes())
+        drawWindowColorBox(device,
+          BBox(lpos - w, dataRange.getYMin(), lpos, dataRange.getYMax()), Qt::green);
+
+      lpos -= w;
+    }
+
+    // draw right axes
+    double rpos = (dataRange.isSet() ? dataRange.getXMax() : 1.0);
+
+    for (auto &oplot : oplots) {
+      if (! oplot->yAxis())
+        continue;
+
+      if (oplot->yAxis()->position().isSet())
+        continue;
+
+      // draw y axis at adjusted position and move position left for next axis
+      if (oplot->yAxis()->side() == CQChartsAxisSide::Type::TOP_RIGHT)
+        drawPlotAxis(oplot, rpos);
+
+      double w = oplot->yAxisWidth(CQChartsAxisSide::Type::TOP_RIGHT);
+
+      if (showBoxes())
+        drawWindowColorBox(device,
+          BBox(rpos, dataRange.getYMin(), rpos + w, dataRange.getYMax()), Qt::green);
+
+      rpos += w;
+    }
+  }
+  else {
+    drawYAxis1(device);
+  }
+}
+
+void
+CQChartsPlot::
+drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
+{
+  yAxis()->drawAt(pos, plot, device);
+}
+
+void
+CQChartsPlot::
+drawYAxis1(PaintDevice *device) const
+{
   yAxis()->draw(this, device);
 }
+
+double
+CQChartsPlot::
+xAxisHeight(const CQChartsAxisSide::Type &side) const
+{
+  if (xAxis()->side() == side) {
+    if (xAxis()->bbox().isSet())
+      return xAxis()->bbox().getHeight();
+    else
+      return pixelToWindowHeight(8); // TODO
+  }
+  else
+    return 0.0;
+}
+
+double
+CQChartsPlot::
+yAxisWidth(const CQChartsAxisSide::Type &side) const
+{
+  if (yAxis()->side() == side) {
+    if (yAxis()->bbox().isSet())
+      return yAxis()->bbox().getWidth();
+    else
+      return pixelToWindowWidth(8); // TODO
+  }
+  else
+    return 0.0;
+}
+
+//---
 
 bool
 CQChartsPlot::

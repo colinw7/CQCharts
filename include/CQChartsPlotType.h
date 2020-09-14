@@ -241,6 +241,10 @@ class CQChartsPlotType : public QObject {
 
   //---
 
+  // create plot and init
+  Plot *createAndInit(View *view, const ModelP &model) const;
+
+ protected:
   // create plot
   virtual Plot *create(View *view, const ModelP &model) const = 0;
 

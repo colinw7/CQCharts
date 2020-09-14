@@ -125,8 +125,12 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
  public:
   CQChartsDelaunayPlot(View *view, const ModelP &model);
-
  ~CQChartsDelaunayPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

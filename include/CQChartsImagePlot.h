@@ -143,8 +143,12 @@ class CQChartsImagePlot : public CQChartsPlot,
 
  public:
   CQChartsImagePlot(View *view, const ModelP &model);
-
  ~CQChartsImagePlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

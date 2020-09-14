@@ -10,6 +10,24 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
  CQChartsGroupPlot(view, plotType, model),
  CQChartsObjBarShapeData<CQChartsBarPlot>(this)
 {
+}
+
+CQChartsBarPlot::
+~CQChartsBarPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsBarPlot::
+init()
+{
+  CQChartsGroupPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setBarFilled   (true);
@@ -34,8 +52,9 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
   addTitle();
 }
 
+void
 CQChartsBarPlot::
-~CQChartsBarPlot()
+term()
 {
   delete dataLabel_;
 }

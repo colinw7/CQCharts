@@ -172,8 +172,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
  public:
   CQChartsParallelPlot(View *view, const ModelP &model);
-
  ~CQChartsParallelPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

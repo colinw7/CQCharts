@@ -1193,3 +1193,6 @@
 # 09/07/2020
  + Add prototype text overlap remover in sankey plot
  + Add simple work cloud plot
+# 09/14/2020
+ + Improve X1/X2 and Y1/Y2 to support more than two plots
+ + Improve axis annotations for X1/X2 and Y1/Y2

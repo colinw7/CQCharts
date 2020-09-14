@@ -141,8 +141,12 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
  public:
   CQChartsRadarPlot(View *view, const ModelP &model);
-
  ~CQChartsRadarPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

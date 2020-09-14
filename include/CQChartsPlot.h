@@ -247,6 +247,10 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool y1y2    READ isY1Y2    WRITE setY1Y2   )
   Q_PROPERTY(bool tabbed  READ isTabbed  WRITE setTabbed )
 
+  // show all overlay x/y axes
+  Q_PROPERTY(bool showAllXOverlayAxes READ isShowAllXOverlayAxes WRITE setShowAllXOverlayAxes)
+  Q_PROPERTY(bool showAllYOverlayAxes READ isShowAllYOverlayAxes WRITE setShowAllYOverlayAxes)
+
   // misc
   Q_PROPERTY(bool followMouse READ isFollowMouse WRITE setFollowMouse)
   Q_PROPERTY(bool invertX     READ isInvertX     WRITE setInvertX    )
@@ -412,6 +416,11 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsPlot(View *view, PlotType *type, const ModelP &model);
 
   virtual ~CQChartsPlot();
+
+  //---
+
+  virtual void init();
+  virtual void term();
 
   //---
 
@@ -775,6 +784,13 @@ class CQChartsPlot : public CQChartsObj,
   void setOverlayPlotsAxisNames();
   void setPlotsAxisNames(const Plots &plots, Plot *axisPlot);
 
+  void initAxisSizes();
+
+  void clearAxisSideDelta() { xAxisSideDelta_.clear(); yAxisSideDelta_.clear(); }
+
+  double xAxisSideDelta(const CQChartsAxisSide::Type &side) const;
+  double yAxisSideDelta(const CQChartsAxisSide::Type &side) const;
+
   //---
 
   PlotKey *key() const { return keyObj_; }
@@ -796,7 +812,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // Connection
+  // Connection (overlay, x1x2, y1y2, tabbed
   bool isOverlay(bool checkVisible=true) const;
   void setOverlay(bool b, bool notify=true);
 
@@ -811,16 +827,28 @@ class CQChartsPlot : public CQChartsObj,
   bool isTabbed(bool checkVisible=true) const;
   void setTabbed(bool b, bool notify=true);
 
-  const BBox &tabRect() const { return connectData_.tabRect; }
-  void setTabRect(const BBox &rect) { connectData_.tabRect = rect; }
+  //! get/set show all overlay x axes
+  bool isShowAllXOverlayAxes() const { return showAllXOverlayAxes_; }
+  void setShowAllXOverlayAxes(bool b);
 
-  bool isCurrent() const { return connectData_.current; }
-  void setCurrent(bool b, bool notify=false);
-
-  QString connectionStateStr() const;
+  //! get/set show all overlay y axes
+  bool isShowAllYOverlayAxes() const { return showAllYOverlayAxes_; }
+  void setShowAllYOverlayAxes(bool b);
 
   //---
 
+  //! get/set tabbed bar rect
+  const BBox &tabRect() const { return connectData_.tabRect; }
+  void setTabRect(const BBox &rect) { connectData_.tabRect = rect; }
+
+  //! get/set is current overlay
+  bool isCurrent() const { return connectData_.current; }
+  void setCurrent(bool b, bool notify=false);
+
+  //! get connection state summary string
+  QString connectionStateStr() const;
+
+  //! get/set tabbed bar font
   void setTabbedFont(const Font &f);
   const Font &tabbedFont() const;
 
@@ -891,8 +919,8 @@ class CQChartsPlot : public CQChartsObj,
     return b;
   }
 
-  void x1x2Plots(Plot* &plot1, Plot* &plot2);
-  void y1y2Plots(Plot* &plot1, Plot* &plot2);
+  void x1x2Plots(Plots &plots);
+  void y1y2Plots(Plots &plots);
 
   void resetConnectData(bool notify=true);
 
@@ -1543,7 +1571,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void updateAxisRanges(const BBox &adjustedRange);
 
-  void crearOverlayErrors();
+  void clearOverlayErrors();
   void updateOverlayRanges();
 
   void setPixelRange(const BBox &bbox);
@@ -2179,6 +2207,15 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawXAxis(PaintDevice *device) const;
   virtual void drawYAxis(PaintDevice *device) const;
+
+  virtual void drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const;
+  virtual void drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const;
+
+  void drawXAxis1(PaintDevice *device) const;
+  void drawYAxis1(PaintDevice *device) const;
+
+  virtual double xAxisHeight(const CQChartsAxisSide::Type &side) const;
+  virtual double yAxisWidth (const CQChartsAxisSide::Type &side) const;
 
   // draw key on foreground
   virtual bool hasGroupedFgKey() const;
@@ -2838,6 +2875,11 @@ class CQChartsPlot : public CQChartsObj,
   Axis* xAxis_ { nullptr }; //!< x axis object
   Axis* yAxis_ { nullptr }; //!< y axis object
 
+  using AxisSideDelta = std::map<CQChartsAxisSide::Type, double>;
+
+  AxisSideDelta xAxisSideDelta_;
+  AxisSideDelta yAxisSideDelta_;
+
   // key
   PlotKey* keyObj_   { nullptr }; //!< key object
   bool     colorKey_ { false };   //!< use color column for key
@@ -2904,6 +2946,9 @@ class CQChartsPlot : public CQChartsObj,
 
   // connect data (overlay, x1/x2, y1/y2)
   ConnectData connectData_; //!< associated plot data
+
+  bool showAllXOverlayAxes_ { false }; //!< show all x overlay axes
+  bool showAllYOverlayAxes_ { false }; //!< show all y overlay axes
 
   // objects
   PlotObjs plotObjs_; //!< plot objects

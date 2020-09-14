@@ -331,6 +331,11 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   const Columns &xColumns() const { return xColumns_; }
   void setXColumns(const Columns &c);
 

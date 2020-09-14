@@ -18,6 +18,8 @@ class CQFoldedModel;
 class CQSummaryModel;
 class CQPropertyViewModel;
 
+class CQFileWatcher;
+
 class QAbstractItemModel;
 class QItemSelectionModel;
 
@@ -37,8 +39,10 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
  public:
-  using ModelP  = QSharedPointer<QAbstractItemModel>;
-  using Columns = std::vector<CQChartsColumn>;
+  using ModelP        = QSharedPointer<QAbstractItemModel>;
+  using Columns       = std::vector<CQChartsColumn>;
+  using ModelDetails  = CQChartsModelDetails;
+  using PropertyModel = CQPropertyViewModel;
 
 #ifdef CQCHARTS_FOLDED_MODEL
   using FoldedModels = std::vector<CQFoldedModel *>;
@@ -129,8 +133,8 @@ class CQChartsModelData : public QObject {
   //---
 
   // get details
-  CQChartsModelDetails *details();
-  const CQChartsModelDetails *details() const;
+  ModelDetails *details();
+  const ModelDetails *details() const;
 
   //---
 
@@ -162,7 +166,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  CQPropertyViewModel *propertyViewModel();
+  PropertyModel *propertyViewModel();
 
   bool getPropertyData(const QString &name, QVariant &value) const;
   bool setPropertyData(const QString &name, const QVariant &value);
@@ -245,6 +249,8 @@ class CQChartsModelData : public QObject {
 
   void selectionSlot();
 
+  void fileChangedSlot(const QString &);
+
  signals:
   // data changed
   void dataChanged();
@@ -272,38 +278,40 @@ class CQChartsModelData : public QObject {
   using ModelPArray = std::vector<ModelP>;
 #endif
 
-  CQCharts*             charts_           { nullptr }; //!< parent charts
-  ModelP                model_;                        //!< model
-  int                   ind_              { -1 };      //!< model ind
-  QString               name_;                         //!< model name
-  QString               filename_;                     //!< model file name
-  int                   currentColumn_    { -1 };      //!< current column
+  CQCharts*          charts_           { nullptr }; //!< parent charts
+  ModelP             model_;                        //!< model
+  int                ind_              { -1 };      //!< model ind
+  QString            name_;                         //!< model name
+  QString            filename_;                     //!< model file name
+  int                currentColumn_    { -1 };      //!< current column
 
   // details
-  CQChartsModelDetails* details_          { nullptr }; //!< model details
+  ModelDetails*      details_          { nullptr }; //!< model details
 
   // selection models data
-  SelectionModels       selectionModels_;              //!< selection models
+  SelectionModels    selectionModels_;              //!< selection models
 
   // folded models data
 #ifdef CQCHARTS_FOLDED_MODEL
-  ModelP                foldProxyModel_;               //!< folded proxy model
-  ModelPArray           foldedModels_;                 //!< folded models
+  ModelP             foldProxyModel_;               //!< folded proxy model
+  ModelPArray        foldedModels_;                 //!< folded models
 #endif
 
   // hier sep model data
-  ModelP                hierSepModel_;                 //!< hier sep model
+  ModelP             hierSepModel_;                 //!< hier sep model
 
   // summary model data
-  bool                  summaryEnabled_   { false };   //!< summary model enabled
-  CQSummaryModel*       summaryModel_     { nullptr }; //!< summary model
-  ModelP                summaryModelP_;                //!< summary model (shared pointer)
-  CQChartsModelData*    summaryModelData_ { nullptr }; //!< summary model data
+  bool               summaryEnabled_   { false };   //!< summary model enabled
+  CQSummaryModel*    summaryModel_     { nullptr }; //!< summary model
+  ModelP             summaryModelP_;                //!< summary model (shared pointer)
+  CQChartsModelData* summaryModelData_ { nullptr }; //!< summary model data
 
   // property model
-  CQPropertyViewModel*  propertyModel_    { nullptr }; //!< property model
+  PropertyModel*     propertyModel_    { nullptr }; //!< property model
 
-  mutable std::mutex    mutex_;                        //!< thread mutex
+  CQFileWatcher* fileWatcher_ { nullptr };
+
+  mutable std::mutex mutex_;                        //!< thread mutex
 };
 
 #endif

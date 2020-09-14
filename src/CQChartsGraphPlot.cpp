@@ -85,6 +85,24 @@ CQChartsGraphPlot(View *view, const ModelP &model) :
  CQChartsObjEdgeShapeData <CQChartsGraphPlot>(this),
  CQChartsObjGraphShapeData<CQChartsGraphPlot>(this)
 {
+}
+
+CQChartsGraphPlot::
+~CQChartsGraphPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsGraphPlot::
+init()
+{
+  CQChartsConnectionPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setLayerActive(Layer::Type::FG_PLOT, true);
@@ -125,14 +143,17 @@ CQChartsGraphPlot(View *view, const ModelP &model) :
   setFitMargin(PlotMargin(Length("5%"), Length("5%"), Length("5%"), Length("5%")));
 }
 
+void
 CQChartsGraphPlot::
-~CQChartsGraphPlot()
+term()
 {
   // delete objects first to ensure link from edge/node to object reset
   clearPlotObjects();
 
   clearNodesAndEdges();
 }
+
+//---
 
 void
 CQChartsGraphPlot::

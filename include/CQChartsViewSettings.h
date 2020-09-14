@@ -60,8 +60,10 @@ class CQChartsViewSettings : public QFrame {
   Q_OBJECT
 
  public:
-  using Plots       = std::vector<CQChartsPlot *>;
-  using Annotations = std::vector<CQChartsAnnotation *>;
+  using Plot        = CQChartsPlot;
+  using Plots       = std::vector<Plot *>;
+  using Annotation  = CQChartsAnnotation;
+  using Annotations = std::vector<Annotation *>;
 
  public:
   CQChartsViewSettings(CQChartsWindow *window);
@@ -71,7 +73,7 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsPropertyViewTree *viewPropertyTree() const;
 
-  CQChartsPropertyViewTree *plotPropertyTree(CQChartsPlot *plot) const;
+  CQChartsPropertyViewTree *plotPropertyTree(Plot *plot) const;
 
   void showErrorsTab();
 
@@ -197,9 +199,9 @@ class CQChartsViewSettings : public QFrame {
 
   void updatePaletteWidgets();
 
-  CQChartsPlot *getPropertiesPlot() const;
+  Plot *getPropertiesPlot() const;
 
-  CQChartsPlot *getSelectedPlot() const;
+  Plot *getSelectedPlot() const;
 
   void getSelectedPlots(Plots &plots) const;
 
@@ -346,9 +348,12 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChartsPlot *plot);
+  using Plot = CQChartsPlot;
 
-  CQChartsPlot *plot() const { return plot_; }
+ public:
+  CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, Plot *plot);
+
+  Plot *plot() const { return plot_; }
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
@@ -359,7 +364,7 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
   void filterStateSlot(bool show, bool focus);
 
  private:
-  CQChartsPlot*                   plot_         { nullptr };
+  Plot*                           plot_         { nullptr };
   CQChartsPropertyViewTree*       propertyTree_ { nullptr };
   CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
 };
@@ -374,9 +379,12 @@ class CQChartsViewSettingsObjectPropertiesWidget : public QFrame {
   Q_OBJECT
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsViewSettingsObjectPropertiesWidget(CQChartsViewSettings *settings);
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
@@ -387,7 +395,7 @@ class CQChartsViewSettingsObjectPropertiesWidget : public QFrame {
   void filterStateSlot(bool show, bool focus);
 
  private:
-  CQChartsPlot*                   plot_         { nullptr };
+  Plot*                           plot_         { nullptr };
   CQChartsPropertyViewTree*       propertyTree_ { nullptr };
   CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
 };

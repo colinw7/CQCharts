@@ -57,6 +57,24 @@ CQChartsHierBubblePlot(View *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsHierBubblePlot>(this),
  CQChartsObjTextData <CQChartsHierBubblePlot>(this)
 {
+}
+
+CQChartsHierBubblePlot::
+~CQChartsHierBubblePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsHierBubblePlot::
+init()
+{
+  CQChartsHierPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
 //setExactValue(false);
@@ -78,8 +96,9 @@ CQChartsHierBubblePlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsHierBubblePlot::
-~CQChartsHierBubblePlot()
+term()
 {
   delete nodeData_.root;
 }

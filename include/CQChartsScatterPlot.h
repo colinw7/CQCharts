@@ -443,18 +443,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   enum XSide {
-    LEFT  = (int) CQChartsAxisBoxWhisker::Side::BOTTOM_LEFT,
-    RIGHT = (int) CQChartsAxisBoxWhisker::Side::TOP_RIGHT
+    LEFT  = (int) CQChartsAxisSide::Type::BOTTOM_LEFT,
+    RIGHT = (int) CQChartsAxisSide::Type::TOP_RIGHT
   };
 
   enum YSide {
-    BOTTOM = (int) CQChartsAxisBoxWhisker::Side::BOTTOM_LEFT,
-    TOP    = (int) CQChartsAxisBoxWhisker::Side::TOP_RIGHT
-  };
-
-  enum XYSide {
-    BOTTOM_LEFT,
-    TOP_RIGHT
+    BOTTOM = (int) CQChartsAxisSide::Type::BOTTOM_LEFT,
+    TOP    = (int) CQChartsAxisSide::Type::TOP_RIGHT
   };
 
 //using WhiskerSide = CQChartsAxisBoxWhisker::Side;
@@ -465,7 +460,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  // columns
+  void init() override;
+  void term() override;
+
+  //---
+
+  // name, label, x, y columns
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 
@@ -480,15 +480,17 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  // get x/y column type
   ColumnType xColumnType() const { return xColumnType_; }
   ColumnType yColumnType() const { return yColumnType_; }
 
+  // get x/y unique values
   bool isUniqueX() const { return uniqueX_; }
   bool isUniqueY() const { return uniqueY_; }
 
   //---
 
-  // axis names
+  // get x/y axis names
   bool xAxisName(QString &name, const QString &def="") const override;
   bool yAxisName(QString &name, const QString &def="") const override;
 
@@ -562,6 +564,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
+  // custom color interp (for overlay)
+  QColor interpColor(const Color &c, const ColorInd &ind) const override;
+
+  //---
+
+  // add properties
   void addProperties() override;
 
   //---
@@ -617,6 +625,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   BBox calcAnnotationBBox() const override;
 
+  double xAxisHeight(const CQChartsAxisSide::Type &side) const override;
+  double yAxisWidth (const CQChartsAxisSide::Type &side) const override;
+
   //---
 
   bool hasBackground() const override;
@@ -626,6 +637,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   bool hasForeground() const override;
 
   void execDrawForeground(PaintDevice *device) const override;
+
+  //---
+
+  void drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
+  void drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
 
   //---
 
@@ -650,13 +666,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void initGroupBestFit(int groupInd) const;
+  void initGroupBestFit(int ind, const QVariant &var, bool isGroup) const;
 
   void drawBestFit(PaintDevice *device) const;
 
   //---
 
-  void initGroupStats(int groupInd) const;
+  void initGroupStats(int ind, const QVariant &var, bool isGroup) const;
 
   void drawStatsLines(PaintDevice *device) const;
 
@@ -664,12 +680,14 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void drawHull(PaintDevice *device) const;
 
+  Points indPoints(const QVariant &var, int isGroup) const;
+
   //---
 
   void drawXRug(PaintDevice *device) const;
   void drawYRug(PaintDevice *device) const;
 
-  void drawXYRug(PaintDevice *device, const RugP &rug) const;
+  void drawXYRug(PaintDevice *device, const RugP &rug, double delta=0.0) const;
 
   //---
 
@@ -734,7 +752,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using GroupPoints   = std::map<int, Points>;
   using GroupFitData  = std::map<int, CQChartsFitData>;
   using GroupStatData = std::map<int, StatData>;
-  using GroupHull     = std::map<int, CQChartsGrahamHull *>;
+  using Hull          = CQChartsGrahamHull;
+  using GroupHull     = std::map<int, Hull *>;
   using GroupWhiskers = std::map<int, AxisBoxWhisker *>;
 
   struct DensityMapData {
@@ -789,10 +808,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   SymbolMapKeyData symbolMapKeyData_; //!< symbol map key data
 
   // axis side data
-  using AxisSideBBox = std::map<XYSide,BBox>;
+  using AxisSideSize = std::map<CQChartsAxisSide::Type,double>;
 
-  mutable AxisSideBBox xAxisSideBBox_; //!< top or bottom
-  mutable AxisSideBBox yAxisSideBBox_; //!< left or right
+  mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
+  mutable AxisSideSize yAxisSideWidth_;  //!< left or right
 };
 
 #endif

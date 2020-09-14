@@ -306,14 +306,18 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
  public:
   CQChartsAdjacencyPlot(View *view, const ModelP &model);
-
  ~CQChartsAdjacencyPlot();
 
-  //----
+  //---
+
+  void init() override;
+  void term() override;
+
+  //---
 
   void clearNodes();
 
-  //----
+  //---
 
   // options
   const SortType &sortType() const { return sortType_; }

@@ -832,8 +832,12 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
 
  public:
   CQChartsGraphPlot(View *view, const ModelP &model);
-
  ~CQChartsGraphPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

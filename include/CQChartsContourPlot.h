@@ -55,8 +55,12 @@ class CQChartsContourPlot : public CQChartsPlot,
 
  public:
   CQChartsContourPlot(View *view, const ModelP &model);
-
  ~CQChartsContourPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

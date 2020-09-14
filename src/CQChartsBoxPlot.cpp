@@ -181,6 +181,24 @@ CQChartsBoxPlot(View *view, const ModelP &model) :
  CQChartsObjOutlierPointData<CQChartsBoxPlot>(this),
  CQChartsObjJitterPointData <CQChartsBoxPlot>(this)
 {
+}
+
+CQChartsBoxPlot::
+~CQChartsBoxPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsBoxPlot::
+init()
+{
+  CQChartsGroupPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setBoxFillColor(Color(Color::Type::PALETTE));
@@ -205,8 +223,9 @@ CQChartsBoxPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsBoxPlot::
-~CQChartsBoxPlot()
+term()
 {
   clearRawWhiskers();
 }

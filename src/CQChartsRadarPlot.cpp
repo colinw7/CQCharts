@@ -107,6 +107,24 @@ CQChartsRadarPlot(View *view, const ModelP &model) :
  CQChartsObjTextData    <CQChartsRadarPlot>(this),
  CQChartsObjGridLineData<CQChartsRadarPlot>(this)
 {
+}
+
+CQChartsRadarPlot::
+~CQChartsRadarPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsRadarPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setGridLinesColor(Color(Color::Type::INTERFACE_VALUE, 0.5));
@@ -124,8 +142,9 @@ CQChartsRadarPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsRadarPlot::
-~CQChartsRadarPlot()
+term()
 {
 }
 

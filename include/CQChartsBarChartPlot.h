@@ -410,6 +410,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   const Column &nameColumn() const { return nameColumn_; }
   void setNameColumn(const Column &c);
 

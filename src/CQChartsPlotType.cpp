@@ -1,4 +1,5 @@
 #include <CQChartsPlotType.h>
+#include <CQChartsPlot.h>
 #include <CQUtil.h>
 #include <cassert>
 
@@ -401,4 +402,15 @@ getPropertyValue(const QString &name) const
     return QVariant();
 
   return var;
+}
+
+CQChartsPlot *
+CQChartsPlotType::
+createAndInit(View *view, const ModelP &model) const
+{
+  auto *plot = create(view, model);
+
+  plot->init();
+
+  return plot;
 }

@@ -720,8 +720,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
-
  ~CQChartsXYPlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 
@@ -751,13 +755,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //---
 
   // stacked, cumulative
-  bool isStacked() const { return stacked_; }
-
+  bool isStacked   () const { return stacked_; }
   bool isCumulative() const { return cumulative_; }
 
   //---
 
-  // time series
+  // get/set is time series
   bool isColumnSeries() const { return columnSeries_; }
   void setColumnSeries(bool b) { columnSeries_ = b; }
 
@@ -815,10 +818,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
+  // custom color interp (for overlay)
   QColor interpColor(const Color &c, const ColorInd &ind) const override;
 
   //---
 
+  // add properties
   void addProperties() override;
 
   //---
@@ -900,11 +905,19 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   BBox calcAnnotationBBox() const override;
 
+  double xAxisHeight(const CQChartsAxisSide::Type &side) const override;
+  double yAxisWidth (const CQChartsAxisSide::Type &side) const override;
+
   //---
 
   bool hasBackground() const override;
 
   void execDrawBackground(PaintDevice *device) const override;
+
+  //---
+
+  void drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
+  void drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
 
   //---
 
@@ -915,7 +928,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   void drawXRug(PaintDevice *device) const;
   void drawYRug(PaintDevice *device) const;
 
-  void drawXYRug(PaintDevice *device, const RugP &rug) const;
+  void drawXYRug(PaintDevice *device, const RugP &rug, double delta=0.0) const;
 
   //---
 
@@ -1026,6 +1039,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   double symbolWidth_  { 1.0 }; //!< current symbol width
   double symbolHeight_ { 1.0 }; //!< current symbol height
+
+  // axis side data
+  using AxisSideSize = std::map<CQChartsAxisSide::Type,double>;
+
+  mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
+  mutable AxisSideSize yAxisSideWidth_;  //!< left or right
 };
 
 #endif

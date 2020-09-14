@@ -15,7 +15,30 @@ CQChartsPlot3D::
 CQChartsPlot3D(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
  CQChartsGroupPlot(view, plotType, model)
 {
+}
+
+CQChartsPlot3D::
+~CQChartsPlot3D()
+{
+}
+
+//---
+
+void
+CQChartsPlot3D::
+init()
+{
+  CQChartsGroupPlot::init();
+
+  //---
+
   camera_ = new CQChartsCamera(this);
+}
+
+void
+CQChartsPlot3D::
+term()
+{
 }
 
 //---

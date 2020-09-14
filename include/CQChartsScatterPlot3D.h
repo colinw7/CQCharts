@@ -242,6 +242,11 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
+  void init() override;
+  void term() override;
+
+  //---
+
   // data label
   const DataLabel *dataLabel() const { return dataLabel_; }
   DataLabel *dataLabel() { return dataLabel_; }

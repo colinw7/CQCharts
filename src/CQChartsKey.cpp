@@ -914,7 +914,7 @@ updateLocation(const BBox &bbox)
     else {
       ky = bbox.getYMax() + ks.height() + ytm + ytp;
 
-      // offset by bottom x axis height
+      // offset by top x axis height
       if (xAxis)
         ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight() + ytm;
     }
@@ -928,7 +928,7 @@ updateLocation(const BBox &bbox)
     else {
       ky = bbox.getYMin() - ybm - ybp;
 
-      // offset by top x axis height
+      // offset by bottom x axis height
       if (xAxis)
         ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight() + ybm;
     }

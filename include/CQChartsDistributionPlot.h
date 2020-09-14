@@ -587,8 +587,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
  public:
   CQChartsDistributionPlot(View *view, const ModelP &model);
+ ~CQChartsDistributionPlot();
 
-  virtual ~CQChartsDistributionPlot();
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

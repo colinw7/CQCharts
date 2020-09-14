@@ -149,8 +149,12 @@ class CQChartsTablePlot : public CQChartsPlot {
 
  public:
   CQChartsTablePlot(View *view, const ModelP &model);
-
  ~CQChartsTablePlot();
+
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

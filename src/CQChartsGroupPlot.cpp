@@ -69,8 +69,25 @@ CQChartsGroupPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &
 CQChartsGroupPlot::
 ~CQChartsGroupPlot()
 {
+  term();
+}
+
+//---
+
+void
+CQChartsGroupPlot::
+init()
+{
+}
+
+void
+CQChartsGroupPlot::
+term()
+{
   delete groupBucket_;
 }
+
+//---
 
 void
 CQChartsGroupPlot::

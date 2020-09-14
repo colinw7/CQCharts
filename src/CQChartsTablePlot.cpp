@@ -88,6 +88,24 @@ CQChartsTablePlot::
 CQChartsTablePlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("table"), model)
 {
+}
+
+CQChartsTablePlot::
+~CQChartsTablePlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsTablePlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   //---
@@ -113,8 +131,8 @@ CQChartsTablePlot(View *view, const ModelP &model) :
 
   //---
 
-  if (! CQChartsModelUtil::isHierarchical(model.data()))
-    summaryModel_ = new CQSummaryModel(model.data());
+  if (! CQChartsModelUtil::isHierarchical(model().data()))
+    summaryModel_ = new CQSummaryModel(model().data());
 
   int pageSize = 1024;
 
@@ -136,8 +154,8 @@ CQChartsTablePlot(View *view, const ModelP &model) :
 
   //---
 
-  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view);
-  scrollData_.vbar = new QScrollBar(Qt::Vertical  , view);
+  scrollData_.hbar = new QScrollBar(Qt::Horizontal, view());
+  scrollData_.vbar = new QScrollBar(Qt::Vertical  , view());
 
   scrollData_.hbar->hide();
   scrollData_.vbar->hide();
@@ -145,11 +163,12 @@ CQChartsTablePlot(View *view, const ModelP &model) :
   connect(scrollData_.hbar, SIGNAL(valueChanged(int)), this, SLOT(hscrollSlot(int)));
   connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
 
-  scrollData_.pixelBarSize = view->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
+  scrollData_.pixelBarSize = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
 }
 
+void
 CQChartsTablePlot::
-~CQChartsTablePlot()
+term()
 {
   delete summaryModel_;
 

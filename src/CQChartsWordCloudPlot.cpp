@@ -101,6 +101,23 @@ CQChartsWordCloudPlot(View *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("wordCloud"), model),
  CQChartsObjTextData<CQChartsWordCloudPlot>(this)
 {
+}
+
+CQChartsWordCloudPlot::
+~CQChartsWordCloudPlot()
+{
+}
+
+//---
+
+void
+CQChartsWordCloudPlot::
+init()
+{
+  CQChartsPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
@@ -108,8 +125,9 @@ CQChartsWordCloudPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsWordCloudPlot::
-~CQChartsWordCloudPlot()
+term()
 {
 }
 

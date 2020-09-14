@@ -227,6 +227,22 @@ CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model) :
 CQChartsConnectionPlot::
 ~CQChartsConnectionPlot()
 {
+  term();
+}
+
+//---
+
+void
+CQChartsConnectionPlot::
+init()
+{
+  CQChartsPlot::init();
+}
+
+void
+CQChartsConnectionPlot::
+term()
+{
 }
 
 //---

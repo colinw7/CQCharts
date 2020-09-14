@@ -31,8 +31,12 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
  public:
   CQChartsBarPlot(View *view, PlotType *plotType, const ModelP &model);
+ ~CQChartsBarPlot();
 
-  virtual ~CQChartsBarPlot();
+  //---
+
+  void init() override;
+  void term() override;
 
   //---
 

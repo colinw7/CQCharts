@@ -100,6 +100,24 @@ CQChartsAdjacencyPlot(View *view, const ModelP &model) :
  CQChartsObjTextData          <CQChartsAdjacencyPlot>(this),
  CQChartsObjEmptyCellShapeData<CQChartsAdjacencyPlot>(this)
 {
+}
+
+CQChartsAdjacencyPlot::
+~CQChartsAdjacencyPlot()
+{
+  term();
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+init()
+{
+  CQChartsConnectionPlot::init();
+
+  //---
+
   NoUpdate noUpdate(this);
 
   setBackgroundFillColor(Color(Color::Type::INTERFACE_VALUE, 0.2));
@@ -117,11 +135,14 @@ CQChartsAdjacencyPlot(View *view, const ModelP &model) :
   addTitle();
 }
 
+void
 CQChartsAdjacencyPlot::
-~CQChartsAdjacencyPlot()
+term()
 {
   clearNodes();
 }
+
+//---
 
 void
 CQChartsAdjacencyPlot::
