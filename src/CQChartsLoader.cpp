@@ -36,7 +36,7 @@ setQtcl(CQTcl *qtcl)
 
 QAbstractItemModel *
 CQChartsLoader::
-loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData,
+loadFile(const QString &filename, CQChartsFileType type, const InputData &inputData,
          bool &hierarchical)
 {
   CQPerfTrace trace("CQChartsLoader::loadFile");
@@ -127,7 +127,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadCsv(const QString &filename, const CQChartsInputData &inputData)
+loadCsv(const QString &filename, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadCsv");
 
@@ -162,7 +162,7 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadTsv(const QString &filename, const CQChartsInputData &inputData)
+loadTsv(const QString &filename, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadTsv");
 
@@ -191,7 +191,7 @@ loadTsv(const QString &filename, const CQChartsInputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadJson(const QString &filename, const CQChartsInputData &inputData)
+loadJson(const QString &filename, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadJson");
 
@@ -213,7 +213,7 @@ loadJson(const QString &filename, const CQChartsInputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-loadData(const QString &filename, const CQChartsInputData &inputData)
+loadData(const QString &filename, const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadData");
 
@@ -267,7 +267,7 @@ createExprModel(int n)
 
 CQChartsFilterModel *
 CQChartsLoader::
-createVarsModel(const CQChartsInputData &inputData)
+createVarsModel(const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::createVarsModel");
 
@@ -450,7 +450,7 @@ createVarsModel(const CQChartsInputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-createTclModel(const CQChartsInputData &inputData)
+createTclModel(const InputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::createTclModel");
 
@@ -847,7 +847,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
 void
 CQChartsLoader::
-setFilter(CQChartsModelFilter *model, const CQChartsInputData &inputData)
+setFilter(ModelFilter *model, const InputData &inputData)
 {
   if (! inputData.filter.length())
     return;

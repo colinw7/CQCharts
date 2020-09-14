@@ -15,27 +15,32 @@ class CQChartsModelData;
  */
 class CQChartsAnalyzeModel {
  public:
-  using TypeAnalyzeModelData = std::map<QString, CQChartsAnalyzeModelData>;
+  using ModelData        = CQChartsModelData;
+  using PlotType         = CQChartsPlotType;
+  using AnalyzeModelData = CQChartsAnalyzeModelData;
 
  public:
-  CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData);
+  using TypeAnalyzeModelData = std::map<QString, AnalyzeModelData>;
+
+ public:
+  CQChartsAnalyzeModel(CQCharts *charts, ModelData *modelData);
 
   void analyze();
 
   const TypeAnalyzeModelData &typeAnalyzeModelData() const { return typeAnalyzeModelData_; }
 
-  bool analyzeType(CQChartsPlotType *type);
+  bool analyzeType(PlotType *type);
 
-  const CQChartsAnalyzeModelData &analyzeModelData(const CQChartsPlotType *type);
+  const AnalyzeModelData &analyzeModelData(const PlotType *type);
 
   void print() const;
 
  private:
-  bool analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData);
+  bool analyzeType(PlotType *type, AnalyzeModelData &analyzeModelData);
 
  private:
   CQCharts*            charts_                { nullptr }; //!< charts
-  CQChartsModelData*   modelData_             { nullptr }; //!< model data
+  ModelData*           modelData_             { nullptr }; //!< model data
   TypeAnalyzeModelData typeAnalyzeModelData_;              //!< type's parameter name column
 };
 

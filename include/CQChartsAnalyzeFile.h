@@ -10,12 +10,15 @@
  */
 class CQChartsAnalyzeFile {
  public:
+  using DataType = CQBaseModelDataType;
+
+ public:
   CQChartsAnalyzeFile(const QString &filename);
 
   int maxLines() const { return maxLines_; }
   void setMaxLines(int i) { maxLines_ = i; }
 
-  bool getDetails(CQBaseModelDataType &dataType, bool &commentHeader,
+  bool getDetails(DataType &dataType, bool &commentHeader,
                   bool &firstLineHeader, bool &firstColumnHeader);
 
  private:

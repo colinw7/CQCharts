@@ -25,20 +25,24 @@ class QStackedWidget;
  */
 class CQChartsWindowMgr {
  public:
+  using Window = CQChartsWindow;
+  using View   = CQChartsView;
+
+ public:
   static CQChartsWindowMgr *instance();
 
-  CQChartsWindow *createWindow(CQChartsView *view);
-  void removeWindow(CQChartsWindow *window);
+  Window *createWindow(View *view);
+  void removeWindow(Window *window);
 
  ~CQChartsWindowMgr();
 
-  CQChartsWindow *getWindowForView(CQChartsView *view) const;
+  Window *getWindowForView(View *view) const;
 
  private:
   CQChartsWindowMgr();
 
  private:
-  using Windows = std::vector<CQChartsWindow *>;
+  using Windows = std::vector<Window *>;
 
   Windows windows_;
 };
@@ -53,10 +57,14 @@ class CQChartsWindow : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsWindow(CQChartsView *view);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsWindow(View *view);
  ~CQChartsWindow();
 
-  CQChartsView *view() const { return view_; }
+  View *view() const { return view_; }
 
   //---
 
@@ -101,7 +109,7 @@ class CQChartsWindow : public QFrame {
   QSize sizeHint() const override;
 
  private:
-  CQChartsPlot *objectPlot(QObject *obj) const;
+  Plot *objectPlot(QObject *obj) const;
 
  signals:
   void interfacePaletteChanged();
@@ -137,20 +145,27 @@ class CQChartsWindow : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private:
-  CQChartsView*              view_         { nullptr }; //!< parent view
-  bool                       xRangeMap_    { false };   //!< xrange map
-  bool                       yRangeMap_    { false };   //!< xrange map
-  bool                       dataTable_    { false };   //!< data table
-  bool                       viewSettings_ { true };    //!< view settings
-  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; //!< xrange scroll
-  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; //!< yrange scroll
-  CQChartsViewSettings*      settings_     { nullptr }; //!< settings widget
-  QFrame*                    tableFrame_   { nullptr }; //!< table frame
-  QStackedWidget*            viewStack_    { nullptr }; //!< view stack
-  CQChartsFilterEdit*        filterEdit_   { nullptr }; //!< filter edit
-  CQChartsModelViewHolder*   modelView_    { nullptr }; //!< model view
-  CQChartsViewToolBar*       toolbar_      { nullptr }; //!< toolbar
-  CQChartsViewStatus*        status_       { nullptr }; //!< status
+  using RangeScroll     = CQChartsWindowRangeScroll;
+  using ViewSettings    = CQChartsViewSettings;
+  using FilterEdit      = CQChartsFilterEdit;
+  using ModelViewHolder = CQChartsModelViewHolder;
+  using ToolBar         = CQChartsViewToolBar;
+  using Status          = CQChartsViewStatus;
+
+  View*            view_         { nullptr }; //!< parent view
+  bool             xRangeMap_    { false };   //!< xrange map
+  bool             yRangeMap_    { false };   //!< xrange map
+  bool             dataTable_    { false };   //!< data table
+  bool             viewSettings_ { true };    //!< view settings
+  RangeScroll*     xrangeScroll_ { nullptr }; //!< xrange scroll
+  RangeScroll*     yrangeScroll_ { nullptr }; //!< yrange scroll
+  ViewSettings*    settings_     { nullptr }; //!< settings widget
+  QFrame*          tableFrame_   { nullptr }; //!< table frame
+  QStackedWidget*  viewStack_    { nullptr }; //!< view stack
+  FilterEdit*      filterEdit_   { nullptr }; //!< filter edit
+  ModelViewHolder* modelView_    { nullptr }; //!< model view
+  ToolBar*         toolbar_      { nullptr }; //!< toolbar
+  Status*          status_       { nullptr }; //!< status
 };
 
 //-----
@@ -163,12 +178,15 @@ class CQChartsWindowRangeScroll : public CQRangeScroll {
   Q_OBJECT
 
  public:
-  CQChartsWindowRangeScroll(CQChartsWindow *window, Qt::Orientation orientation);
+  using Window = CQChartsWindow;
+
+ public:
+  CQChartsWindowRangeScroll(Window *window, Qt::Orientation orientation);
 
   void drawBackground(QPainter *) override;
 
  private:
-  CQChartsWindow* window_ { nullptr };
+  Window* window_ { nullptr };
 };
 
 #endif

@@ -2242,6 +2242,16 @@ CQChartsKeyItemGroup::
 
 void
 CQChartsKeyItemGroup::
+setKey(PlotKey *key)
+{
+  CQChartsKeyItem::setKey(key);
+
+  for (auto &item : items_)
+    item->setKey(key);
+}
+
+void
+CQChartsKeyItemGroup::
 addItem(Item *item)
 {
   if (item->group())
@@ -2250,6 +2260,8 @@ addItem(Item *item)
   items_.push_back(item);
 
   item->setGroup(this);
+
+  item->setKey(const_cast<PlotKey *>(this->key()));
 }
 
 void

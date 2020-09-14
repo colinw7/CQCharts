@@ -587,7 +587,7 @@ class CQChartsKeyItem : public QObject {
 
   //! get/set parent plot key
   const PlotKey *key() const { return key_; }
-  void setKey(PlotKey *p) { key_ = p; }
+  virtual void setKey(PlotKey *key) { key_ = key; }
 
   const ItemGroup *group() const { return group_; }
   void setGroup(ItemGroup *g) { group_ = g; }
@@ -677,6 +677,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   virtual ~CQChartsKeyItemGroup();
 
   Plot *plot() const { return plot_; }
+
+  void setKey(PlotKey *p) override;
 
   //---
 

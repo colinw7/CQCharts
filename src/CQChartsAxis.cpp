@@ -1246,6 +1246,19 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
 void
 CQChartsAxis::
+drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device)
+{
+  CQChartsOptReal position = CQChartsOptReal(pos);
+
+  std::swap(position_, position);
+
+  draw(plot, device);
+
+  std::swap(position_, position);
+}
+
+void
+CQChartsAxis::
 draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 {
   fitBBox_   = BBox(); // fit box
@@ -2361,7 +2374,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     if (! data.visible)
       continue;
 
-    auto p1 = plot_->pixelToWindow(data.p);
+    auto p1 = plot->pixelToWindow(data.p);
 
     CQChartsTextOptions options;
 
@@ -2519,9 +2532,10 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       atw = plot->pixelToWindowWidth((a3.x - lbbox_.getXMin()) + tgap) + wfh;
 
-      double tx = lbbox_.getXMin() - tgap - td;
+    //double tx = lbbox_.getXMin() - tgap - td;
+      double tx = lbbox_.getXMin() - tgap;
 
-      auto p1 = plot_->pixelToWindow(Point(tx, aym));
+      auto p1 = plot->pixelToWindow(Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2553,7 +2567,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + td;
 
-      auto p1 = plot_->pixelToWindow(Point(tx, aym));
+      auto p1 = plot->pixelToWindow(Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2569,7 +2583,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + ta + td;
 
-      auto p1 = plot_->pixelToWindow(Point(tx, aym));
+      auto p1 = plot->pixelToWindow(Point(tx, aym));
 
       CQChartsTextOptions options;
 

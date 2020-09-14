@@ -556,9 +556,13 @@ updateColumns()
   columnsTable_->setColumnCount(3);
   columnsTable_->setRowCount(columns_.size());
 
-  columnsTable_->setHorizontalHeaderItem(0, new QTableWidgetItem("Name"));
-  columnsTable_->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
-  columnsTable_->setHorizontalHeaderItem(2, new QTableWidgetItem("Data"));
+  auto createHeaderItem = [&](int c, const QString &name) {
+    columnsTable_->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
+  };
+
+  createHeaderItem(0, "Name");
+  createHeaderItem(1, "Type");
+  createHeaderItem(2, "Data");
 
   auto createTableItem = [&](const QString &name) {
     auto *item = new QTableWidgetItem(name);

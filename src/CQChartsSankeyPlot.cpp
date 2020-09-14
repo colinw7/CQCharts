@@ -1758,6 +1758,9 @@ spreadPosNodes(const Nodes &nodes) const
     bbox += node2->rect();
   }
 
+  if (! node1 || ! node2)
+    return;
+
   double dy1 = node1->rect().getHeight()/2.0; // top
   double dy2 = node2->rect().getHeight()/2.0; // bottom
 

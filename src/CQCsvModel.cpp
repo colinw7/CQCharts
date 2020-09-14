@@ -40,6 +40,12 @@ load(const QString &filename)
 
   //---
 
+  hheader_.clear();
+  vheader_.clear();
+  data_   .clear();
+
+  //---
+
   int numColumns = 0;
 
   // add header to model

@@ -123,9 +123,14 @@ void
 CQChartsFillPatternLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = Qt::red;
+  // TODO: allow specify color
+  QColor c(71, 118, 180);
 
-  painter->fillRect(rect, QBrush(c));
+  QBrush brush;
+
+  CQChartsUtil::setBrush(brush, true, c, CQChartsAlpha(), fillPattern());
+
+  painter->fillRect(rect, brush);
 
   //---
 
@@ -179,9 +184,18 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   rect.adjust(0, 1, -3, -2);
 
-  QColor c = Qt::red;
+  //---
 
-  painter->fillRect(rect, QBrush(c));
+  // TODO: allow specify color
+  QColor c(71, 118, 180);
+
+  QBrush brush;
+
+  CQChartsUtil::setBrush(brush, true, c, CQChartsAlpha(), fillPattern);
+
+  painter->fillRect(rect, brush);
+
+  //---
 
   painter->setPen(Qt::black);
 

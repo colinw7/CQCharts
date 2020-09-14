@@ -7,7 +7,7 @@ set plot1 [create_charts_plot -model $model1 -type xy -columns {{x 0} {y 1}} \
   -title "multiple y axis"]
 set plot2 [create_charts_plot -model $model1 -type xy -columns {{x 0} {y 2}}]
 
-group_charts_plotoverlay -y1y2 [list $plot1 $plot2]
+group_charts_plots -overlay -y1y2 [list $plot1 $plot2]
 
 #set model2 [load_charts_model -csv data/pareto.csv -comment_header]
 

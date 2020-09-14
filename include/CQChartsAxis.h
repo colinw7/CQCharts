@@ -447,6 +447,8 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
+  void drawAt(double pos, const Plot *plot, PaintDevice *device);
+
   void draw(const Plot *plot, PaintDevice *device);
 
   void drawEditHandles(QPainter *painter) const;
