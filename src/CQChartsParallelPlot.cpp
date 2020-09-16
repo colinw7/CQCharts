@@ -299,6 +299,8 @@ addProperties()
                    "Axis tick label text contrast alpha");
   addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextClipLength"   , "clipLength",
                    "Axis tick label text clip length");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextClipElide"    , "clipElide",
+                   "Axis tick label text clip elide");
 
   //---
 
@@ -321,6 +323,8 @@ addProperties()
                    "Axis label text contrast alpha");
   addAxisStyleProp(labelTextPath, "axesLabelTextClipLength"   , "clipLength",
                    "Axis label text clip length");
+  addAxisStyleProp(labelTextPath, "axesLabelTextClipElide"    , "clipElide",
+                   "Axis label text clip elide");
 
 //masterAxis_->addProperties(propertyModel(), "axis");
 }
@@ -952,6 +956,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
     options.contrast      = masterAxis_->isAxesLabelTextContrast();
     options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
     options.clipLength    = masterAxis_->axesLabelTextClipLength();
+    options.clipElide     = masterAxis_->axesLabelTextClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,
                                       options, /*centered*/false);

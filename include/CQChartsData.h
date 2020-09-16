@@ -93,6 +93,10 @@ class CQChartsTextData {
   const Length &clipLength() const { return clipLength_; }
   void setClipLength(const Length &l) { clipLength_ = l; }
 
+  //! get/set clip elide
+  const Qt::TextElideMode &clipElide() const { return clipElide_; }
+  void setClipElide(const Qt::TextElideMode &e) { clipElide_ = e; }
+
   //---
 
   //! get is valid
@@ -119,23 +123,25 @@ class CQChartsTextData {
    *    "scaled"        : scaled
    *    "html"          : is html
    *    "clipLength"    : clip length
+   *    "clipElide"     : clip elide
    */
   void setNameValues(CQChartsNameValues &nameValues) const;
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool          visible_       { true };                              //!< is visible
-  Color         color_         { Color::Type::INTERFACE_VALUE, 1.0 }; //!< color
-  Alpha         alpha_;                                               //!< alpha
-  Font          font_;                                                //!< font
-  Angle         angle_;                                               //!< angle
-  bool          contrast_      { false };                             //!< contrast
-  Alpha         contrastAlpha_ { 0.5 };                               //!< contrast alpha
-  Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter };  //!< align
-  bool          formatted_     { false };                             //!< formatted
-  bool          scaled_        { false };                             //!< scaled
-  bool          html_          { false };                             //!< html
-  Length        clipLength_;                                          //!< clip length
+  bool              visible_       { true };                              //!< is visible
+  Color             color_         { Color::Type::INTERFACE_VALUE, 1.0 }; //!< color
+  Alpha             alpha_;                                               //!< alpha
+  Font              font_;                                                //!< font
+  Angle             angle_;                                               //!< angle
+  bool              contrast_      { false };                             //!< contrast
+  Alpha             contrastAlpha_ { 0.5 };                               //!< contrast alpha
+  Qt::Alignment     align_         { Qt::AlignLeft | Qt::AlignVCenter };  //!< align
+  bool              formatted_     { false };                             //!< formatted
+  bool              scaled_        { false };                             //!< scaled
+  bool              html_          { false };                             //!< html
+  Length            clipLength_;                                          //!< clip length
+  Qt::TextElideMode clipElide_     { Qt::ElideRight };                    //!< clip elide
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)

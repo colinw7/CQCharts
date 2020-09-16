@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + null, bad values special draw in table delegate
+ + per column null value
+ + sankey remove edge overlaps (limit move up/down)
  + key annotation (custom key)
    + key column ?
  + unset column from editor is -1 ?

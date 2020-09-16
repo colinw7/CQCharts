@@ -1685,6 +1685,7 @@ draw(CQChartsPaintDevice *device)
     textOptions.scaled        = plot_->dataLabel()->isTextScaled();
     textOptions.html          = false;
     textOptions.clipLength    = plot_->dataLabel()->textClipLength();
+    textOptions.clipElide     = plot_->dataLabel()->textClipElide();
     textOptions.clipped       = false;
     textOptions.margin        = 0;
 

@@ -326,7 +326,8 @@ addProperties()
   addProp("text", "selectedTextVisible", "selectedVisible", "Selected text label visible");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 }
 
 //---
@@ -378,7 +379,10 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 getCalcDataRange() const
 {
-  return Range(bbox_.getXMin(), bbox_.getYMax(), bbox_.getXMax(), bbox_.getYMin());
+  double xm = pixelToWindowWidth(nodeWidth());
+
+  return Range(bbox_.getXMin() - xm/2.0, bbox_.getYMax(),
+               bbox_.getXMax() + xm/2.0, bbox_.getYMin());
 }
 
 CQChartsGeom::Range
@@ -803,7 +807,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
 {
   auto *srcNode = findNode(fromStr);
 
-  if (fromToData.depth > 0)
+  if (fromToData.depth >= 0)
     srcNode->setDepth(fromToData.depth);
 
   //---
@@ -834,7 +838,7 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
 
     auto *destNode = findNode(toStr);
 
-    if (fromToData.depth > 0)
+    if (fromToData.depth >= 0)
       destNode->setDepth(fromToData.depth + 1);
 
     auto *edge = createEdge(OptReal(value), srcNode, destNode);
@@ -1299,8 +1303,10 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
 
   double dx = 1.0;
 
-  if (graph_->maxNodeDepth() > 0)
-    dx = xs/graph_->maxNodeDepth();
+  int maxX = graph_->maxNodeX();
+
+  if (maxX > 1)
+    dx = xs/maxX;
 
   double xm = pixelToWindowWidth(nodeWidth());
 
@@ -2724,6 +2730,20 @@ CQChartsSankeyNodeObj::
     node_->setObj(nullptr);
 }
 
+double
+CQChartsSankeyNodeObj::
+value() const
+{
+  return node_->value().realOr(0.0);
+}
+
+void
+CQChartsSankeyNodeObj::
+setValue(double r)
+{
+  node_->setValue(CQChartsSankeyPlotNode::OptReal(r));
+}
+
 void
 CQChartsSankeyNodeObj::
 placeEdges(bool reset)
@@ -2984,8 +3004,9 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
 
         nodeObj->drawFgRect(device, rect);
       }
-      else
-        nodeObj->drawFg(device);
+      else {
+        //nodeObj->drawFg(device);
+      }
     }
     else
       nodeObj->drawFg(device);
@@ -3131,6 +3152,7 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
   options.contrastAlpha = plot_->textContrastAlpha();
   options.align         = Qt::AlignLeft;
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   if (plot_->isAdjustText()) {
     auto *drawText =
@@ -3486,6 +3508,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.contrastAlpha = plot_->textContrastAlpha();
   options.align         = Qt::AlignLeft;
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
 }

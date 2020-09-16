@@ -348,6 +348,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(clipLengthLabel, row, 0);
   groupLayout->addWidget(clipLengthEdit_, row, 1); ++row;
 
+  // TODO : clip elide
+
   //---
 
   preview_ = new CQChartsTextDataEditPreview(this);

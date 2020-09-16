@@ -38,18 +38,19 @@ class CQChartsTextDlg : public QDialog {
 class CQChartsTextCanvas : public QWidget {
   Q_OBJECT
 
-  Q_PROPERTY(QString        text          READ text          WRITE setText         )
-  Q_PROPERTY(CQChartsColor  color         READ color         WRITE setColor        )
-  Q_PROPERTY(CQChartsAlpha  alpha         READ alpha         WRITE setAlpha        )
-  Q_PROPERTY(CQChartsFont   font          READ font          WRITE setFont         )
-  Q_PROPERTY(CQChartsAngle  angle         READ angle         WRITE setAngle        )
-  Q_PROPERTY(bool           contrast      READ isContrast    WRITE setContrast     )
-  Q_PROPERTY(CQChartsAlpha  contrastAlpha READ contrastAlpha WRITE setContrastAlpha)
-  Q_PROPERTY(Qt::Alignment  align         READ align         WRITE setAlign        )
-  Q_PROPERTY(bool           formatted     READ isFormatted   WRITE setFormatted    )
-  Q_PROPERTY(bool           scaled        READ isScaled      WRITE setScaled       )
-  Q_PROPERTY(bool           html          READ isHtml        WRITE setHtml         )
-  Q_PROPERTY(CQChartsLength clipLength    READ clipLength    WRITE setClipLength   )
+  Q_PROPERTY(QString           text          READ text          WRITE setText         )
+  Q_PROPERTY(CQChartsColor     color         READ color         WRITE setColor        )
+  Q_PROPERTY(CQChartsAlpha     alpha         READ alpha         WRITE setAlpha        )
+  Q_PROPERTY(CQChartsFont      font          READ font          WRITE setFont         )
+  Q_PROPERTY(CQChartsAngle     angle         READ angle         WRITE setAngle        )
+  Q_PROPERTY(bool              contrast      READ isContrast    WRITE setContrast     )
+  Q_PROPERTY(CQChartsAlpha     contrastAlpha READ contrastAlpha WRITE setContrastAlpha)
+  Q_PROPERTY(Qt::Alignment     align         READ align         WRITE setAlign        )
+  Q_PROPERTY(bool              formatted     READ isFormatted   WRITE setFormatted    )
+  Q_PROPERTY(bool              scaled        READ isScaled      WRITE setScaled       )
+  Q_PROPERTY(bool              html          READ isHtml        WRITE setHtml         )
+  Q_PROPERTY(CQChartsLength    clipLength    READ clipLength    WRITE setClipLength   )
+  Q_PROPERTY(Qt::TextElideMode clipElide     READ clipElide     WRITE setClipElide    )
 
  public:
   CQChartsTextCanvas(QWidget *parent=nullptr);
@@ -94,24 +95,29 @@ class CQChartsTextCanvas : public QWidget {
   void setClipLength(const CQChartsLength &l) {
     if (l != clipLength_) { clipLength_ = l; invalidate(); } }
 
+  const Qt::TextElideMode &clipElide() const { return clipElide_; }
+  void setClipElide(const Qt::TextElideMode &l) {
+    if (l != clipElide_) { clipElide_ = l; invalidate(); } }
+
   void invalidate() { update(); }
 
   QSize sizeHint() const override;
 
  private:
-  QString        text_          { "Abc" };
-  QRect          rect_          { 100, 100, 400, 400 };
-  CQChartsColor  color_;
-  CQChartsAlpha  alpha_;
-  CQChartsFont   font_;
-  CQChartsAngle  angle_         { 0.0 };
-  bool           contrast_      { false };
-  CQChartsAlpha  contrastAlpha_ { 0.5 };
-  Qt::Alignment  align_         { Qt::AlignHCenter | Qt::AlignVCenter };
-  bool           formatted_     { false };
-  bool           scaled_        { false };
-  bool           html_          { false };
-  CQChartsLength clipLength_;
+  QString           text_          { "Abc" };
+  QRect             rect_          { 100, 100, 400, 400 };
+  CQChartsColor     color_;
+  CQChartsAlpha     alpha_;
+  CQChartsFont      font_;
+  CQChartsAngle     angle_         { 0.0 };
+  bool              contrast_      { false };
+  CQChartsAlpha     contrastAlpha_ { 0.5 };
+  Qt::Alignment     align_         { Qt::AlignHCenter | Qt::AlignVCenter };
+  bool              formatted_     { false };
+  bool              scaled_        { false };
+  bool              html_          { false };
+  CQChartsLength    clipLength_;
+  Qt::TextElideMode clipElide_     { Qt::ElideRight };
 };
 
 #endif

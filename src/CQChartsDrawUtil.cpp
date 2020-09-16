@@ -157,7 +157,7 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
     device->save();
 
   if (CMathUtil::isZero(options.angle.value())) {
-    auto text1 = clipTextToLength(device, text, options.clipLength);
+    auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
 
     if (options.clipped)
       device->setClipRect(rect, Qt::IntersectClip);
@@ -280,7 +280,7 @@ CQChartsGeom::BBox
 calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
                     const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
-  auto text1 = clipTextToLength(device, text, options.clipLength);
+  auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
 
   //---
 
@@ -296,6 +296,8 @@ calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QStri
 
     return rect;
   }
+
+  //---
 
   QFontMetricsF fm(device->font());
 
@@ -365,7 +367,7 @@ void
 drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
                 const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
-  auto text1 = clipTextToLength(device, text, options.clipLength);
+  auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
 
   //---
 
@@ -394,22 +396,22 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
   double ta = fm.ascent();
   double td = fm.descent();
 
-  auto tw = [&]() { return fm.width(text1); };
+  double tw = fm.width(text1);
 
   //---
 
   if (CMathUtil::isZero(options.angle.value())) {
     // calc dx : point is left or hcenter of text (
     // drawContrastText and drawSimpleText wants left aligned
-    double dx1 = 0.0, dy1 = 0.0;
+    double dx1 = 0.0, dy1 = 0.0; // pixel
 
     if (! centered) { // point is left
-      if      (options.align & Qt::AlignHCenter) dx1 = -tw()/2.0;
-      else if (options.align & Qt::AlignRight  ) dx1 = -tw() - dx;
+      if      (options.align & Qt::AlignHCenter) dx1 = -tw/2.0;
+      else if (options.align & Qt::AlignRight  ) dx1 = -tw - dx;
     }
     else {            // point is center
-      if      (options.align & Qt::AlignLeft ) dx1 =  tw()/2.0 + dx;
-      else if (options.align & Qt::AlignRight) dx1 = -tw()/2.0 - dx;
+      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + dx;
+      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - dx;
     }
 
     if      (options.align & Qt::AlignTop    ) dy1 =  ta + dy;
@@ -436,7 +438,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
     auto tp = point;
 
     if (! centered) {
-      double dx1 = -tw()/2.0;
+      double dx1 = -tw/2.0;
 
       auto pp = device->windowToPixel(tp);
 
@@ -493,8 +495,8 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point 
   else if (align & Qt::AlignRight  ) dx1 = -tw - dx;
   else if (align & Qt::AlignHCenter) dx1 = -tw/2;
 
-  if      (align & Qt::AlignTop    ) dy1 =   ta + dy;
-  else if (align & Qt::AlignBottom ) dy1 = - td - dy;
+  if      (align & Qt::AlignTop    ) dy1 =  ta + dy;
+  else if (align & Qt::AlignBottom ) dy1 = -td - dy;
   else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
   auto pp = device->windowToPixel(p);
@@ -840,20 +842,24 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const CQChartsAngle &a1
 
 QString
 clipTextToLength(CQChartsPaintDevice *device, const QString &text,
-                 const CQChartsLength &clipLength)
+                 const CQChartsLength &clipLength, const Qt::TextElideMode &clipElide)
 {
   if (! clipLength.isValid())
     return text;
 
   double clipLengthPixels = device->lengthPixelWidth(clipLength);
 
-  return clipTextToLength(text, device->font(), clipLengthPixels);
+  return clipTextToLength(text, device->font(), clipLengthPixels, clipElide);
 }
 
 QString
-clipTextToLength(const QString &text, const QFont &font, double clipLength)
+clipTextToLength(const QString &text, const QFont &font, double clipLength,
+                 const Qt::TextElideMode &clipElide)
 {
   if (clipLength <= 0.0)
+    return text;
+
+  if (clipElide != Qt::ElideLeft && clipElide != Qt::ElideRight)
     return text;
 
   //---
@@ -876,7 +882,12 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength)
   };
 
   auto isLenClipped = [&](const QString &str, int len) {
-    return isClipped(str.mid(0, len));
+    if      (clipElide == Qt::ElideLeft)
+      return isClipped(str.right(len));
+    else if (clipElide == Qt::ElideRight)
+      return isClipped(str.left(len));
+    else
+      assert(false);
   };
 
   //---
@@ -897,7 +908,7 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength)
 
   int midLen = (len1 + len2)/2;
 
-  while (true) {
+  while (midLen > 0) {
     auto pl = lenClipped.find(midLen);
 
     bool clipped;
@@ -922,7 +933,14 @@ clipTextToLength(const QString &text, const QFont &font, double clipLength)
     midLen = (len1 + len2)/2;
   }
 
-  QString text1 = text.mid(0, midLen) + "...";
+  QString text1;
+
+  if      (clipElide == Qt::ElideLeft)
+    text1 = "..." + text.right(midLen);
+  else if (clipElide == Qt::ElideRight)
+    text1 = text.left(midLen) + "...";
+  else
+    assert(false);
 
   return text1;
 }

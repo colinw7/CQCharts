@@ -378,6 +378,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
   addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
   addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
+  addHeaderStyleProp("headerTextClipElide" , "clipElide" , "header text clip elide");
 
   //---
 
@@ -411,6 +412,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
   addTextStyleProp("textHtml"      , "html"      , "text is html");
   addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
+  addTextStyleProp("textClipElide" , "clipElide" , "text clipp elide");
 }
 
 bool
@@ -521,6 +523,7 @@ draw(PaintDevice *device) const
     textOptions.scaled        = isTextScaled();
     textOptions.html          = isTextHtml();
     textOptions.clipLength    = textClipLength();
+    textOptions.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextInBox(device, view()->pixelToWindow(rect1), name, textOptions);
 
@@ -1039,6 +1042,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addHeaderStyleProp("headerTextScaled"    , "scaled"    , "header text scaled to box");
   addHeaderStyleProp("headerTextHtml"      , "html"      , "header text is html");
   addHeaderStyleProp("headerTextClipLength", "clipLength", "header text clipped to length");
+  addHeaderStyleProp("headerTextClipElide" , "clipElide" , "header text clip elide");
 
   //---
 
@@ -1070,6 +1074,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addTextStyleProp("textScaled"    , "scaled"    , "text scaled to box");
   addTextStyleProp("textHtml"      , "html"      , "text is html");
   addTextStyleProp("textClipLength", "clipLength", "text clipped to length");
+  addTextStyleProp("textClipElide" , "clipElide" , "text clipp elide");
 }
 
 void
@@ -1889,6 +1894,7 @@ draw(CQChartsPaintDevice *device) const
     textOptions.scaled        = isHeaderTextScaled();
     textOptions.html          = isHeaderTextHtml();
     textOptions.clipLength    = headerTextClipLength();
+    textOptions.clipElide     = headerTextClipElide();
 
     textOptions = plot()->adjustTextOptions(textOptions);
 
@@ -2402,8 +2408,9 @@ size() const
   QFontMetricsF fm(font);
 
   double clipLength = plot->lengthPixelWidth(key_->textClipLength());
+  auto   clipElide  = key_->textClipElide();
 
-  QString text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength);
+  QString text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength, clipElide);
 
   double w = fm.width(text);
   double h = fm.height();
@@ -2442,6 +2449,7 @@ draw(PaintDevice *device, const BBox &rect) const
   textOptions.scaled        = key_->isTextScaled();
   textOptions.html          = key_->isTextHtml();
   textOptions.clipLength    = key_->textClipLength();
+  textOptions.clipElide     = key_->textClipElide();
 
   textOptions = plot->adjustTextOptions(textOptions);
 

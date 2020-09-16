@@ -600,18 +600,19 @@ class CQChartsObj##UNAME##FillData { \
 #define CQCHARTS_TEXT_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsTextData textData READ textData WRITE setTextData) \
 \
-Q_PROPERTY(bool           textVisible       READ isTextVisible     WRITE setTextVisible      ) \
-Q_PROPERTY(CQChartsColor  textColor         READ textColor         WRITE setTextColor        ) \
-Q_PROPERTY(CQChartsAlpha  textAlpha         READ textAlpha         WRITE setTextAlpha        ) \
-Q_PROPERTY(CQChartsFont   textFont          READ textFont          WRITE setTextFont         ) \
-Q_PROPERTY(CQChartsAngle  textAngle         READ textAngle         WRITE setTextAngle        ) \
-Q_PROPERTY(bool           textContrast      READ isTextContrast    WRITE setTextContrast     ) \
-Q_PROPERTY(CQChartsAlpha  textContrastAlpha READ textContrastAlpha WRITE setTextContrastAlpha) \
-Q_PROPERTY(Qt::Alignment  textAlign         READ textAlign         WRITE setTextAlign        ) \
-Q_PROPERTY(bool           textFormatted     READ isTextFormatted   WRITE setTextFormatted    ) \
-Q_PROPERTY(bool           textScaled        READ isTextScaled      WRITE setTextScaled       ) \
-Q_PROPERTY(bool           textHtml          READ isTextHtml        WRITE setTextHtml         ) \
-Q_PROPERTY(CQChartsLength textClipLength    READ textClipLength    WRITE setTextClipLength   )
+Q_PROPERTY(bool              textVisible       READ isTextVisible     WRITE setTextVisible      ) \
+Q_PROPERTY(CQChartsColor     textColor         READ textColor         WRITE setTextColor        ) \
+Q_PROPERTY(CQChartsAlpha     textAlpha         READ textAlpha         WRITE setTextAlpha        ) \
+Q_PROPERTY(CQChartsFont      textFont          READ textFont          WRITE setTextFont         ) \
+Q_PROPERTY(CQChartsAngle     textAngle         READ textAngle         WRITE setTextAngle        ) \
+Q_PROPERTY(bool              textContrast      READ isTextContrast    WRITE setTextContrast     ) \
+Q_PROPERTY(CQChartsAlpha     textContrastAlpha READ textContrastAlpha WRITE setTextContrastAlpha) \
+Q_PROPERTY(Qt::Alignment     textAlign         READ textAlign         WRITE setTextAlign        ) \
+Q_PROPERTY(bool              textFormatted     READ isTextFormatted   WRITE setTextFormatted    ) \
+Q_PROPERTY(bool              textScaled        READ isTextScaled      WRITE setTextScaled       ) \
+Q_PROPERTY(bool              textHtml          READ isTextHtml        WRITE setTextHtml         ) \
+Q_PROPERTY(CQChartsLength    textClipLength    READ textClipLength    WRITE setTextClipLength   ) \
+Q_PROPERTY(Qt::TextElideMode textClipElide     READ textClipElide     WRITE setTextClipElide    )
 
 /*!
  * \brief Object text data
@@ -703,6 +704,12 @@ class CQChartsObjTextData {
       textData_.setClipLength(l); textDataInvalidate(); }
   }
 
+  const Qt::TextElideMode &textClipElide() const { return textData_.clipElide(); }
+  void setTextClipElide(const Qt::TextElideMode &l) {
+    if (l != textData_.clipElide()) {
+      textData_.setClipElide(l); textDataInvalidate(); }
+  }
+
   //---
 
   const CQChartsTextData &textData() const { return textData_; }
@@ -752,7 +759,9 @@ Q_PROPERTY(bool           LNAME##TextScaled \
 Q_PROPERTY(bool           LNAME##TextHtml \
            READ is##UNAME##TextHtml       WRITE set##UNAME##TextHtml         ) \
 Q_PROPERTY(CQChartsLength LNAME##TextClipLength \
-           READ LNAME##TextClipLength WRITE set##UNAME##TextClipLength       )
+           READ LNAME##TextClipLength WRITE set##UNAME##TextClipLength       ) \
+Q_PROPERTY(Qt::TextElideMode LNAME##TextClipElide \
+           READ LNAME##TextClipElide WRITE set##UNAME##TextClipElide         )
 
 /*!
  * \brief Object named text data
@@ -844,6 +853,12 @@ class CQChartsObj##UNAME##TextData { \
   void set##UNAME##TextClipLength(const CQChartsLength &l) { \
     if (l != LNAME##TextData_.clipLength()) { \
       LNAME##TextData_.setClipLength(l); LNAME##TextDataInvalidate(); } \
+  } \
+\
+  const Qt::TextElideMode &LNAME##TextClipElide() const { return LNAME##TextData_.clipElide(); } \
+  void set##UNAME##TextClipElide(const Qt::TextElideMode &l) { \
+    if (l != LNAME##TextData_.clipElide()) { \
+      LNAME##TextData_.setClipElide(l); LNAME##TextDataInvalidate(); } \
   } \
 \
   const CQChartsTextData &LNAME##TextData() const { return LNAME##TextData_; } \

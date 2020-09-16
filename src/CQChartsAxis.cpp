@@ -295,6 +295,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis tick label text contrast alpha");
   addStyleProp(ticksLabelTextPath, "axesTickLabelTextClipLength"   , "clipLength",
                "Axis tick label text clip length");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextClipElide"    , "clipElide",
+               "Axis tick label text clip elide");
 
   addProp(ticksPath, "tickInside" , "inside", "Axis ticks drawn inside plot");
   addProp(ticksPath, "mirrorTicks", "mirror", "Axis tick are mirrored on other side of plot");
@@ -324,6 +326,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis label text contrast alpha");
   addStyleProp(labelTextPath, "axesLabelTextClipLength"   , "clipLength",
                "Axis label text clip length");
+  addStyleProp(labelTextPath, "axesLabelTextClipElide"    , "clipElide",
+               "Axis label text clip elide");
 
   //---
 
@@ -1814,10 +1818,11 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   auto angle      = axesTickLabelTextAngle();
   auto clipLength = axesTickLabelTextClipLength();
+  auto clipElide  = axesTickLabelTextClipElide();
 
   QFontMetricsF fm(device->font());
 
-  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength);
+  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength, clipElide);
 
   double tw = fm.width(text1);
   double ta = fm.ascent();
@@ -1908,6 +1913,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle      = angle;
         options.align      = align;
         options.clipLength = clipLength;
+        options.clipElide  = clipElide;
 
         auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
@@ -2016,6 +2022,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle      = angle;
         options.align      = align;
         options.clipLength = clipLength;
+        options.clipElide  = clipElide;
 
         auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
@@ -2153,6 +2160,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle      = angle;
         options.align      = align;
         options.clipLength = clipLength;
+        options.clipElide  = clipElide;
 
         auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
@@ -2262,6 +2270,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle      = angle;
         options.align      = align;
         options.clipLength = clipLength;
+        options.clipElide  = clipElide;
 
         auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
                                                    options, 0, /*alignBox*/true);
@@ -2385,6 +2394,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     options.contrastAlpha = axesTickLabelTextContrastAlpha();
     options.formatted     = isAxesTickLabelTextFormatted();
     options.clipLength    = axesTickLabelTextClipLength();
+    options.clipElide     = axesTickLabelTextClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
   }
@@ -2428,10 +2438,11 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
   view()->setPlotPainterFont(plot, device, axesLabelTextFont());
 
   auto clipLength = axesLabelTextClipLength();
+  auto clipElide  = axesLabelTextClipElide();
 
   QFontMetricsF fm(device->font());
 
-  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength);
+  auto text1 = CQChartsDrawUtil::clipTextToLength(device, text, clipLength, clipElide);
 
   double tw = fm.width(text1);
   double ta = fm.ascent();
@@ -2467,6 +2478,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
       options.clipLength    = clipLength;
+      options.clipElide     = clipElide;
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
@@ -2497,6 +2509,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
       options.clipLength    = clipLength;
+      options.clipElide     = clipElide;
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
                                         options, /*centered*/false);
@@ -2544,6 +2557,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
       options.clipLength    = clipLength;
+      options.clipElide     = clipElide;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 
@@ -2576,6 +2590,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
       options.clipLength    = clipLength;
+      options.clipElide     = clipElide;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #else
@@ -2592,6 +2607,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
       options.clipLength    = clipLength;
+      options.clipElide     = clipElide;
 
       CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #endif

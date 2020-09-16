@@ -2109,6 +2109,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(textPath, "textScaled"    , "scaled"    , "Text scaled to fit box");
   addStyleProp(textPath, "textHtml"      , "html"      , "Text is HTML");
   addStyleProp(textPath, "textClipLength", "clipLength", "Text clip length");
+  addStyleProp(textPath, "textClipElide" , "clipElide" , "Text clip elide");
 
   addProp(path1, "padding", "", "Text rectangle inner padding");
   addProp(path1, "margin" , "", "Text rectangle outer margin");
@@ -2329,6 +2330,7 @@ draw(PaintDevice *device)
   textOptions.scaled        = isTextScaled();
   textOptions.html          = isTextHtml();
   textOptions.clipLength    = textClipLength();
+  textOptions.clipElide     = textClipElide();
   textOptions.clipped       = false;
 
   adjustTextOptions(textOptions);

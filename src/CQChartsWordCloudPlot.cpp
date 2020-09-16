@@ -170,7 +170,8 @@ addProperties()
 //addProp("text", "textVisible", "visible", "Text visible");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 }
 
 CQChartsGeom::Range

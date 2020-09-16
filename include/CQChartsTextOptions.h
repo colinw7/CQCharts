@@ -19,26 +19,29 @@ struct CQChartsTextOptions {
     SCALED      = (1<<4),
     HTML        = (1<<5),
     CLIP_LENGTH = (1<<6),
+    CLIP_ELIDE  = (1<<7),
 
     NONE   = 0,
     SIMPLE = (ANGLE | CONTRAST | HTML),
-    ALL    = (ANGLE | CONTRAST | ALIGN | FORMATTED | SCALED | HTML | CLIP_LENGTH)
+    ALL    = (ANGLE | CONTRAST | ALIGN | FORMATTED | SCALED | HTML | CLIP_LENGTH | CLIP_ELIDE)
   };
 
-  CQChartsAngle  angle;                                                  //!< angle
-  bool           contrast         { false };                             //!< contrast
-  CQChartsAlpha  contrastAlpha    { 0.5 };                               //!< contrast alpha
-  Qt::Alignment  align            { Qt::AlignHCenter|Qt::AlignVCenter }; //!< align
-  bool           formatted        { false };                             //!< formatted
-  QString        formatSeps;                                             //!< format separators
-  bool           scaled           { false };                             //!< scaled
-  double         scale            { -1.0 };                              //!< fixed scale
-  bool           html             { false };                             //!< html
-  CQChartsLength clipLength;                                             //!< clip length
-  bool           clipped          { true };                              //!< clipped
-  int            margin           { 0 };                                 //!< margin (pixels)
-  double         minScaleFontSize { 6.0 };                               //!< min scaled font size
-  double         maxScaleFontSize { 48.0 };                              //!< max scaled font size
+  CQChartsAngle     angle;                                 //!< angle
+  bool              contrast         { false };            //!< contrast
+  CQChartsAlpha     contrastAlpha    { 0.5 };              //!< contrast alpha
+  Qt::Alignment     align            { Qt::AlignHCenter|
+                                       Qt::AlignVCenter }; //!< align
+  bool              formatted        { false };            //!< formatted
+  QString           formatSeps;                            //!< format separators
+  bool              scaled           { false };            //!< scaled
+  double            scale            { -1.0 };             //!< fixed scale
+  bool              html             { false };            //!< html
+  CQChartsLength    clipLength;                            //!< clip length
+  Qt::TextElideMode clipElide        { Qt::ElideRight };   //!< clip elide
+  bool              clipped          { true };             //!< clipped
+  int               margin           { 0 };                //!< margin (pixels)
+  double            minScaleFontSize { 6.0 };              //!< min scaled font size
+  double            maxScaleFontSize { 48.0 };             //!< max scaled font size
 
   CQChartsTextOptions() = default;
 };

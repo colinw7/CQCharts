@@ -109,6 +109,7 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   CQCheckBox*                  scaledEdit_        { nullptr }; //!< scaled edit
   CQCheckBox*                  htmlEdit_          { nullptr }; //!< html edit
   CQChartsLengthEdit*          clipLengthEdit_    { nullptr }; //!< clip length edit
+//CQChartsElideEdit*           clipElideEdit_     { nullptr }; //!< clip elide edit
   CQChartsTextDataEditPreview* preview_           { nullptr }; //!< preview
   bool                         connected_         { false };   //!< is connected
 };

@@ -850,6 +850,7 @@ addPointObjects() const
           textOptions.contrast      = dataLabel()->isTextContrast();
           textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
           textOptions.clipLength    = dataLabel()->textClipLength();
+          textOptions.clipElide     = dataLabel()->textClipElide();
 
           auto *textObj = createTextObj(p, p, pointName);
 

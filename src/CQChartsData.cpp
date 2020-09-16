@@ -65,6 +65,9 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (clipLength() != Length())
     nameValues.setNameValueType<Length>("clipLength", clipLength());
+
+//if (clipElide() != Elide())
+//  nameValues.setNameValueType<Length>("clipElide", clipElide());
 }
 
 bool
@@ -105,6 +108,8 @@ getNameValues(const CQChartsNameValues &nameValues)
   (void) nameValues.nameValueBool ("html"         , html_         , ok1); if (! ok1) ok = false;
 
   (void) nameValues.nameValueType<Length>("clipLength", clipLength_, ok1); if (! ok1) ok = false;
+
+//(void) nameValues.nameValueElide>("clipElide", clipElide_, ok1); if (! ok1) ok = false;
 
   return ok;
 }

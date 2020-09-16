@@ -222,7 +222,8 @@ addProperties()
 //addProp("text", "textVisible", "visible", "Text visible");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 }
 
 CQChartsGeom::Range
@@ -790,6 +791,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
             options.contrast      = isTextContrast();
             options.contrastAlpha = textContrastAlpha();
             options.clipLength    = textClipLength();
+            options.clipElide     = textClipElide();
 
             CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
 

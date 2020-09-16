@@ -571,6 +571,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.scaled        = isXLabelTextScaled();
   textOptions.html          = isXLabelTextHtml();
   textOptions.clipLength    = xLabelTextClipLength();
+  textOptions.clipElide     = xLabelTextClipElide();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -663,6 +664,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.scaled        = isYLabelTextScaled();
   textOptions.html          = isYLabelTextHtml();
   textOptions.clipLength    = yLabelTextClipLength();
+  textOptions.clipElide     = yLabelTextClipElide();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -946,6 +948,7 @@ draw(CQChartsPaintDevice *device)
       textOptions.scaled        = plot_->isCellLabelTextScaled();
       textOptions.html          = plot_->isCellLabelTextHtml();
       textOptions.clipLength    = plot_->cellLabelTextClipLength();
+      textOptions.clipElide     = plot_->cellLabelTextClipElide();
 
       textOptions = plot_->adjustTextOptions(textOptions);
 

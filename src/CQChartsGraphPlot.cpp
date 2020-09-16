@@ -327,7 +327,8 @@ addProperties()
   addProp("text", "align"      , "align"  , "Text label align");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 }
 
 //---
@@ -2884,6 +2885,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
       shapeType() == ShapeType::POLYGON || shapeType() == ShapeType::CIRCLE ||
@@ -3316,6 +3318,7 @@ drawFg(CQChartsPaintDevice *device) const
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
 }

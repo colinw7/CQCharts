@@ -412,6 +412,12 @@ class CQChartsSankeyPlotGraph {
   double totalSize() const { return totalSize_; }
   void setTotalSize(double r) { totalSize_ = r; }
 
+  int maxNodeX() const {
+    if (depthNodesMap_.empty()) return 0;
+
+    return depthNodesMap_.rbegin()->first;
+  }
+
   //---
 
   //! get depth nodes
@@ -527,8 +533,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void setName(const QString &s) { name_ = s; }
 
   //! get/set value
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
+  double value() const;
+  void setValue(double r);
 
   //! get/set depth
   int depth() const { return depth_; }

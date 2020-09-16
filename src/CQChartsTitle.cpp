@@ -483,6 +483,7 @@ draw(CQChartsPaintDevice *device)
   textOptions.scaled        = false;
   textOptions.html          = isTextHtml();
   textOptions.clipLength    = textClipLength();
+  textOptions.clipElide     = textClipElide();
   textOptions.clipped       = false;
 
   textOptions = plot_->adjustTextOptions(textOptions);

@@ -243,7 +243,8 @@ addProperties()
 
   addTextProperties("text", "text", "",
     CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED |
-    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // color map
   addColorMapProperties();
@@ -1191,6 +1192,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
 
   // set font
   auto clipLength = plot_->textClipLength();
+  auto clipElide  = plot_->textClipElide();
 
   plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
@@ -1203,7 +1205,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
     double tw = 0.0;
 
     for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength);
+      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength, clipElide);
 
       tw = std::max(tw, fm.width(str1));
 
@@ -1229,7 +1231,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   }
   else {
     for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength);
+      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength, clipElide);
 
       strs1.push_back(str1);
     }
@@ -1255,6 +1257,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   textOptions.contrast      = plot_->isTextContrast();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
 //textOptions.clipLength    = clipLength;
+//textOptions.clipElide     = clipElide;
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

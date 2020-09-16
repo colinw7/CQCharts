@@ -270,9 +270,11 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 //---
 
-QString clipTextToLength(PaintDevice *device, const QString &text, const Length &clipLength);
+QString clipTextToLength(PaintDevice *device, const QString &text, const Length &clipLength,
+                         const Qt::TextElideMode &clipElide);
 
-QString clipTextToLength(const QString &text, const QFont &font, double clipLength);
+QString clipTextToLength(const QString &text, const QFont &font, double clipLength,
+                         const Qt::TextElideMode &clipElide);
 
 }
 

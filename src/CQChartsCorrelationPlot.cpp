@@ -586,6 +586,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.scaled        = isXLabelTextScaled();
   textOptions.html          = isXLabelTextHtml();
   textOptions.clipLength    = xLabelTextClipLength();
+  textOptions.clipElide     = xLabelTextClipElide();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -684,6 +685,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.scaled        = isYLabelTextScaled();
   textOptions.html          = isYLabelTextHtml();
   textOptions.clipLength    = yLabelTextClipLength();
+  textOptions.clipElide     = yLabelTextClipElide();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -949,6 +951,7 @@ calcTextSize() const
   options.formatted  = plot_->isCellLabelTextFormatted();
   options.html       = plot_->isCellLabelTextHtml();
   options.clipLength = plot_->cellLabelTextClipLength();
+  options.clipElide  = plot_->cellLabelTextClipElide();
 
   return CQChartsDrawUtil::calcTextSize(valueStr, font, options);
 }
@@ -1254,6 +1257,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
   textOptions.scaled        = plot_->isCellLabelTextScaled();
   textOptions.html          = plot_->isCellLabelTextHtml();
   textOptions.clipLength    = plot_->cellLabelTextClipLength();
+  textOptions.clipElide     = plot_->cellLabelTextClipElide();
   textOptions.scale         = plot_->labelScale(); // TODO: optional
 
   textOptions = plot_->adjustTextOptions(textOptions);

@@ -35,6 +35,7 @@ CQChartsTextDlg(QWidget *parent) :
   propertyModel_->addProperty("", canvas_, "scaled"       );
   propertyModel_->addProperty("", canvas_, "html"         );
   propertyModel_->addProperty("", canvas_, "clipLength"   );
+  propertyModel_->addProperty("", canvas_, "clipElide"    );
 }
 
 QSize
@@ -72,6 +73,7 @@ paintEvent(QPaintEvent *)
   options.scaled           = isScaled();
   options.html             = isHtml();
   options.clipLength       = clipLength();
+  options.clipElide        = clipElide();
   options.minScaleFontSize = 4.0;
   options.maxScaleFontSize = 400.0;
 

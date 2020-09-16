@@ -1443,6 +1443,7 @@ drawText(PaintDevice *device, const BBox &bbox)
     textOptions.scaled        = plot_->isHeaderTextScaled();
     textOptions.html          = plot_->isHeaderTextHtml();
     textOptions.clipLength    = plot_->headerTextClipLength();
+    textOptions.clipElide     = plot_->headerTextClipElide();
     textOptions.clipped       = plot_->isTitleTextClipped();
 
     textOptions = plot_->adjustTextOptions(textOptions);
@@ -1758,6 +1759,7 @@ drawText(PaintDevice *device, const BBox &bbox)
     textOptions.scaled        = plot_->isTextScaled();
     textOptions.html          = plot_->isTextHtml();
     textOptions.clipLength    = plot_->textClipLength();
+    textOptions.clipElide     = plot_->textClipElide();
     textOptions.clipped       = plot_->isTextClipped();
     textOptions.formatSeps    = plot_->separator();
 

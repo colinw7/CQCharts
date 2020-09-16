@@ -242,7 +242,8 @@ addProperties()
   addProp("text", "clipText"   , "clip"   , "Text is clipped");
 
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   // color map
   addColorMapProperties();
@@ -1342,6 +1343,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
     options.clipLength    = textClipLength();
+    options.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
 

@@ -457,7 +457,8 @@ addProperties()
   addProp("labels", "textVisible", "visible", "Value labels visible");
 
   addTextProperties("labels/text", "text", "Value", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("labels", "textMargin", "margin", "Value text margin in pixels")->setMinValue(0.0);
 
@@ -3243,6 +3244,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   auto tw = plot_->pixelToWindow(tp);
 
@@ -3295,6 +3297,7 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   auto tw = plot_->pixelToWindow(tp);
 

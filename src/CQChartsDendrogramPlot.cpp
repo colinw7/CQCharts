@@ -129,7 +129,8 @@ addProperties()
 //addProp("label/text", "textVisible", "visible", "Labels visible");
 
   addTextProperties("label/text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
-                    CQChartsTextOptions::ValueType::CLIP_LENGTH);
+                    CQChartsTextOptions::ValueType::CLIP_LENGTH |
+                    CQChartsTextOptions::ValueType::CLIP_ELIDE);
 
   addProp("label", "textMargin", "margin", "Text margin in pixels")->setMinValue(1.0);
 }
@@ -694,6 +695,7 @@ draw(CQChartsPaintDevice *device)
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
   options.clipLength    = plot_->textClipLength();
+  options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, options);
 }
