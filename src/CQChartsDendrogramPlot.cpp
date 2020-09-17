@@ -510,7 +510,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     //---
 
-    CQChartsPenBrush lPenBrush;
+    PenBrush lPenBrush;
 
     setEdgeLineDataPen(lPenBrush.pen, ColorInd(0, 1));
 
@@ -634,7 +634,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor strokeColor = plot_->interpNodeStrokeColor(ColorInd());
   QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
@@ -658,7 +658,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node text
-  CQChartsPenBrush tpenBrush;
+  PenBrush tpenBrush;
 
   QColor tc = plot_->interpTextColor(ColorInd());
 

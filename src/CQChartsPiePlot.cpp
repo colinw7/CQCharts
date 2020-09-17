@@ -1511,7 +1511,7 @@ draw(CQChartsPaintDevice *device)
 
   // draw grid lines (as pie)
   if (plot_->isGridLines()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor gridColor = plot_->interpGridLinesColor(ColorInd());
 
@@ -1530,7 +1530,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   calcPenBrush(penBrush, /*updateState*/device->isInteractive(), /*inside*/false);
 
@@ -1548,7 +1548,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (isInside() && plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     calcPenBrush(penBrush, /*updateState*/false, /*inside*/true);
 
@@ -1565,7 +1565,7 @@ draw(CQChartsPaintDevice *device)
       //---
 
       // set text pen
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
@@ -1638,7 +1638,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
 
   // calc label pen
   // TODO: label alpha
-  CQChartsPenBrush lenBrush;
+  PenBrush lenBrush;
 
   QColor bg = fillColor();
 
@@ -1683,7 +1683,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
 
 void
 CQChartsPieObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState, bool inside) const
+calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
 {
   // calc stroke and brush
   ColorInd colorInd = this->calcColorInd();
@@ -1935,7 +1935,7 @@ draw(CQChartsPaintDevice *device)
   QColor bg = bgColor();
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setPenBrush(penBrush, PenData(true, fg), BrushData(true, bg));
 
@@ -1984,7 +1984,7 @@ drawFg(CQChartsPaintDevice *device) const
   //---
 
   // set text pen
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 

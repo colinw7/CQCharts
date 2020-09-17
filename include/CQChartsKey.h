@@ -565,6 +565,7 @@ class CQChartsKeyItem : public QObject {
   using PlotKey     = CQChartsPlotKey;
   using ItemGroup   = CQChartsKeyItemGroup;
   using SelMod      = CQChartsSelMod;
+  using PenBrush    = CQChartsPenBrush;
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
   using PaintDevice = CQChartsPaintDevice;

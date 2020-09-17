@@ -54,8 +54,8 @@ class CQChartsPlotObjTree;
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
 class CQChartsArrowAnnotation;
-class CQChartsButtonAnnotation;
 class CQChartsAxisAnnotation;
+class CQChartsButtonAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
 class CQChartsKeyAnnotation;
@@ -1973,8 +1973,8 @@ class CQChartsPlot : public CQChartsObj,
 
   // annotations
   using Annotation          = CQChartsAnnotation;
-  using AnnotationGroup     = CQChartsAnnotationGroup;
   using Annotations         = std::vector<Annotation *>;
+  using AnnotationGroup     = CQChartsAnnotationGroup;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using AxisAnnotation      = CQChartsAxisAnnotation;
   using ButtonAnnotation    = CQChartsButtonAnnotation;

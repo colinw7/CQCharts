@@ -2706,7 +2706,7 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
     auto *pointObj = dynamic_cast<CQChartsXYPointObj *>(plotObj);
 
     if (pointObj) {
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       pointObj->calcPenBrush(penBrush, /*updateState*/false);
 
@@ -2854,7 +2854,7 @@ CQChartsXYBiLineObj::
 drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor lc = plot()->interpBivariateLinesColor(is_);
 
@@ -2887,7 +2887,7 @@ drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setSymbolPenBrush(penBrush, is_);
 
@@ -3015,7 +3015,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor strokeColor = plot()->interpImpulseLinesColor(ic);
 
@@ -3405,7 +3405,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3460,7 +3460,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsXYPointObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd ic;
 
@@ -3597,7 +3597,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // text font color
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor tc = dataLabel->interpTextColor(ColorInd());
 
@@ -3891,7 +3891,7 @@ draw(CQChartsPaintDevice *device)
     // set pen/brush
     ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     plot()->setPenBrush(penBrush, plot()->hullPenData(ic), plot_->hullBrushData(ic));
 
@@ -3907,7 +3907,7 @@ draw(CQChartsPaintDevice *device)
   // draw lines
   if (plot()->isLines()) {
     // calc pen and brush
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     bool updateState = device->isInteractive();
 
@@ -3968,7 +3968,7 @@ draw(CQChartsPaintDevice *device)
     // calc pen and brush
     ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor c = plot()->interpStatsLinesColor(ic);
 
@@ -4002,7 +4002,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsXYPolylineObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
@@ -4142,7 +4142,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -4179,7 +4179,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsXYPolygonObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc pen and brush
   ColorInd ic = (ig_.n > 1 ? ig_ : is_);
@@ -4277,7 +4277,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
   }
 
   if (plot()->isFillUnderFilled()) {
-    CQChartsPenBrush fillPenBrush;
+    PenBrush fillPenBrush;
 
     QColor fillColor = plot()->interpFillUnderFillColor(ic_);
 
@@ -4305,7 +4305,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
 
-    CQChartsPenBrush linePenBrush;
+    PenBrush linePenBrush;
 
     if      (plot()->isLines()) {
       QColor lineColor = plot()->interpLinesColor(ic_);
@@ -4377,7 +4377,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
 
     //---
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     plot()->setPenBrush(penBrush,
       PenData  (plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
@@ -4407,7 +4407,7 @@ QBrush
 CQChartsXYKeyColor::
 fillBrush() const
 {
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor              c;
   Alpha               alpha;
@@ -4539,7 +4539,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
   }
 
   if (plot()->isFillUnderFilled()) {
-    CQChartsPenBrush fillPenBrush;
+    PenBrush fillPenBrush;
 
     QColor fillColor = plot()->interpFillUnderFillColor(ic_);
 
@@ -4567,7 +4567,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
 
-    CQChartsPenBrush linePenBrush;
+    PenBrush linePenBrush;
 
     if      (plot()->isLines()) {
       QColor lineColor = plot()->interpLinesColor(ic_);
@@ -4640,7 +4640,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
     //---
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     plot()->setPenBrush(penBrush,
       PenData  (plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),

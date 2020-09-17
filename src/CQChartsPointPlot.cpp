@@ -594,7 +594,7 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
 
   if (poly.size()) {
     // calc pen and brush
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor strokeColor = interpBestFitStrokeColor(ic);
     QColor fillColor   = interpBestFitFillColor  (ic);

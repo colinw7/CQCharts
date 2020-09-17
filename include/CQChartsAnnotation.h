@@ -234,8 +234,6 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void invalidate();
 
-  void emitDataChanged();
-
   //---
 
   //! draw
@@ -280,6 +278,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void pressed(const QString &id);
 
  protected slots:
+  void emitDataChanged();
+
   void invalidateSlot() { invalidate(); }
 
  protected:
@@ -1161,6 +1161,10 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(double position READ position WRITE setPosition)
+  Q_PROPERTY(double start    READ start    WRITE setStart   )
+  Q_PROPERTY(double end      READ end      WRITE setEnd     )
+
  public:
   using Axis = CQChartsAxis;
 
@@ -1180,8 +1184,21 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 
   //---
 
+  Axis *axis() const { return axis_; }
+
+  //---
+
+  //! get/set position
   double position() const;
   void setPosition(double r);
+
+  //! get/set start
+  double start() const;
+  void setStart(double r);
+
+  //! get/set end
+  double end() const;
+  void setEnd(double r);
 
   //---
 

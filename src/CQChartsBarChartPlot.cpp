@@ -1960,7 +1960,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush barPenBrush;
+  PenBrush barPenBrush;
 
   bool updateState = device->isInteractive();
 
@@ -2065,7 +2065,7 @@ drawFg(CQChartsPaintDevice *device) const
   auto pos = plot_->dataLabel()->position();
 
   if (! plot_->dataLabel()->isPositionOutside()) {
-    CQChartsPenBrush barPenBrush;
+    PenBrush barPenBrush;
 
     calcPenBrush(barPenBrush, /*updateState*/false);
 
@@ -2101,7 +2101,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsBarChartObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   static double minBorderSize = 5.0;
 

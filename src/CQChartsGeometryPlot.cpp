@@ -784,7 +784,7 @@ CQChartsGeometryObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -832,7 +832,7 @@ drawFg(CQChartsPaintDevice *device) const
     QColor pc = QColor(Qt::black);
     QColor bc = QColor(Qt::red);
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     plot_->setPenBrush(penBrush,
       PenData  (/*stroke*/true, pc),
@@ -851,7 +851,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsGeometryObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc pen and brush
   QColor fc;

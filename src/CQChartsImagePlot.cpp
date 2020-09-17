@@ -551,7 +551,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsPenBrush tpenBrush;
+  PenBrush tpenBrush;
 
   QColor tc = interpXLabelTextColor(ColorInd());
 
@@ -644,7 +644,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsPenBrush tpenBrush;
+  PenBrush tpenBrush;
 
   QColor tc = interpYLabelTextColor(ColorInd());
 
@@ -875,7 +875,7 @@ CQChartsImageObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -925,7 +925,7 @@ draw(CQChartsPaintDevice *device)
       //---
 
       // set pen
-      CQChartsPenBrush tPenBrush;
+      PenBrush tPenBrush;
 
       QColor tc = plot_->interpCellLabelTextColor(ic);
 
@@ -980,7 +980,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsImageObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc pen and brush
   ColorInd ic;

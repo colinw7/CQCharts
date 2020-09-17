@@ -58,13 +58,16 @@ class CQChartsAxis : public CQChartsObj,
 
   Q_PROPERTY(CQChartsAxisValueType valueType READ valueType WRITE setValueType)
 
-  Q_PROPERTY(QString          format           READ format             WRITE setFormat          )
-  Q_PROPERTY(double           maxFitExtent     READ maxFitExtent       WRITE setMaxFitExtent    )
-  Q_PROPERTY(CQChartsOptInt   tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
-  Q_PROPERTY(CQChartsOptInt   majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
-  Q_PROPERTY(double           start            READ start              WRITE setStart           )
-  Q_PROPERTY(double           end              READ end                WRITE setEnd             )
-  Q_PROPERTY(bool             includeZero      READ isIncludeZero      WRITE setIncludeZero     )
+  Q_PROPERTY(QString        format         READ format         WRITE setFormat        )
+  Q_PROPERTY(double         maxFitExtent   READ maxFitExtent   WRITE setMaxFitExtent  )
+  Q_PROPERTY(CQChartsOptInt tickIncrement  READ tickIncrement  WRITE setTickIncrement )
+  Q_PROPERTY(CQChartsOptInt majorIncrement READ majorIncrement WRITE setMajorIncrement)
+  Q_PROPERTY(double         start          READ start          WRITE setStart         )
+  Q_PROPERTY(double         end            READ end            WRITE setEnd           )
+  Q_PROPERTY(bool           includeZero    READ isIncludeZero  WRITE setIncludeZero   )
+
+  Q_PROPERTY(CQChartsOptReal valueStart READ valueStart WRITE setValueStart)
+  Q_PROPERTY(CQChartsOptReal valueEnd   READ valueEnd   WRITE setValueEnd  )
 
   // line
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes, axes)
@@ -146,6 +149,8 @@ class CQChartsAxis : public CQChartsObj,
   using PaintDevice            = CQChartsPaintDevice;
   using Column                 = CQChartsColumn;
   using Angle                  = CQChartsAngle;
+  using PenData                = CQChartsPenData;
+  using BrushData              = CQChartsBrushData;
 
  public:
   CQChartsAxis(const Plot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -216,6 +221,14 @@ class CQChartsAxis : public CQChartsObj,
 
   double end() const { return end_; }
   void setEnd(double end) { setRange(start_, end); }
+
+  //---
+
+  const OptReal &valueStart() const { return valueStart_; }
+  void setValueStart(const OptReal &v);
+
+  const OptReal &valueEnd() const { return valueEnd_; }
+  void setValueEnd(const OptReal &v);
 
   //---
 
@@ -470,8 +483,8 @@ class CQChartsAxis : public CQChartsObj,
   void drawTickLine(const Plot *plot, PaintDevice *device, double apos,
                     double tpos, bool inside, bool major);
 
-  void drawTickLabel(const Plot *plot, PaintDevice *device, double apos,
-                     double tpos, bool inside);
+  void drawTickLabel(const Plot *plot, PaintDevice *device, double apos, double tpos,
+                     double value, bool inside);
 
   void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device);
 
@@ -485,6 +498,8 @@ class CQChartsAxis : public CQChartsObj,
   void tickPlacementChanged();
 
   void selectionChanged();
+
+  void appearanceChanged();
 
  private:
   void init();
@@ -582,6 +597,9 @@ class CQChartsAxis : public CQChartsObj,
   OptInt tickIncrement_;             //!< user specified tick increment
   OptInt majorIncrement_;            //!< user specified major increment
   bool   needsCalc_       { true };  //!< needs tick calc
+
+  OptReal valueStart_; //!< custom value start
+  OptReal valueEnd_;   //!< custom value end
 
   // internal calculation data
   CInterval interval_;            //!< interval data

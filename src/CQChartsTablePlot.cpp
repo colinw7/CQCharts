@@ -1324,7 +1324,7 @@ drawTableBackground(PaintDevice *device) const
 
   // draw header background
   if (isHeaderVisible()) {
-    CQChartsPenBrush headerPenBrush;
+    PenBrush headerPenBrush;
 
     setPenBrush(headerPenBrush,
       PenData(false), BrushData(true, interpColor(headerColor(), ColorInd())));
@@ -1339,7 +1339,7 @@ drawTableBackground(PaintDevice *device) const
   }
 
   // draw cells background
-  CQChartsPenBrush cellPenBrush;
+  PenBrush cellPenBrush;
 
   setPenBrush(cellPenBrush,
     PenData(false), BrushData(true, interpColor(cellColor(), ColorInd())));
@@ -1355,7 +1355,7 @@ drawTableBackground(PaintDevice *device) const
   //---
 
   // draw table column lines
-  CQChartsPenBrush gridPenBrush;
+  PenBrush gridPenBrush;
 
   setPenBrush(gridPenBrush,
     PenData(true, interpColor(gridColor(), ColorInd())), BrushData(false));
@@ -1878,7 +1878,7 @@ draw(PaintDevice *device)
 
   device->setFont(plot_->tableFont());
 
-  CQChartsPenBrush textPenBrush;
+  PenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
     PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
@@ -1961,7 +1961,7 @@ draw(PaintDevice *device)
 
   device->setFont(plot_->tableFont());
 
-  CQChartsPenBrush textPenBrush;
+  PenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
     PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
@@ -2036,7 +2036,7 @@ draw(PaintDevice *device)
 
   // calc background pen and brush and draw
   if (isInside()) {
-    CQChartsPenBrush bgPenBrush;
+    PenBrush bgPenBrush;
 
     QColor c = plot_->interpColor(plot_->insideColor(), ColorInd());
 
@@ -2068,7 +2068,7 @@ draw(PaintDevice *device)
   // draw cell text
   device->setFont(plot_->tableFont());
 
-  CQChartsPenBrush textPenBrush;
+  PenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
     PenData(true, plot_->interpColor(textColor, ColorInd()), Alpha()));

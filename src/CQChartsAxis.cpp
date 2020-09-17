@@ -234,6 +234,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(path, "end"           , "", "Axis end position");
   addProp(path, "includeZero"   , "", "Axis force include zero")->setHidden(true);
 
+  addProp(path, "valueStart", "", "Axis custom start position");
+  addProp(path, "valueEnd"  , "", "Axis custom end position");
+
   addProp(path, "tickLabels"      , "", "Indexed Tick Labels")->setHidden(true);
   addProp(path, "customTickLabels", "", "Custom Tick Labels")->setHidden(true);
 
@@ -374,6 +377,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern", "Axis grid fill pattern");
 }
 
+//---
+
 void
 CQChartsAxis::
 setRange(double start, double end)
@@ -383,6 +388,26 @@ setRange(double start, double end)
 
   calcAndRedraw();
 }
+
+void
+CQChartsAxis::
+setValueStart(const OptReal &v)
+{
+  valueStart_ = v;
+
+  calcAndRedraw();
+}
+
+void
+CQChartsAxis::
+setValueEnd(const OptReal &v)
+{
+  valueEnd_ = v;
+
+  calcAndRedraw();
+}
+
+//---
 
 void
 CQChartsAxis::
@@ -821,8 +846,8 @@ void
 CQChartsAxis::
 calc()
 {
-  interval_.setStart(start());
-  interval_.setEnd  (end  ());
+  interval_.setStart(valueStart_.realOr(start()));
+  interval_.setEnd  (valueEnd_  .realOr(end  ()));
 
   interval_.setIntegral(isIntegral());
   interval_.setDate    (isDate    ());
@@ -953,26 +978,29 @@ CQChartsAxis::
 redraw(bool wait)
 {
   auto *plot = const_cast<CQChartsPlot *>(plot_);
-  if (! plot) return;
 
-  if (wait) {
-    if (isDrawAll()) {
-      plot->drawObjs();
+  if (plot) {
+    if (wait) {
+      if (isDrawAll()) {
+        plot->drawObjs();
+      }
+      else {
+        plot->drawBackground();
+        plot->drawForeground();
+      }
     }
     else {
-      plot->drawBackground();
-      plot->drawForeground();
+      if (isDrawAll()) {
+        plot->invalidateLayers();
+      }
+      else {
+        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      }
     }
   }
-  else {
-    if (isDrawAll()) {
-      plot->invalidateLayers();
-    }
-    else {
-      plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-      plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
-    }
-  }
+
+  emit appearanceChanged();
 }
 
 void
@@ -1130,8 +1158,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     QColor fillColor = interpAxesGridFillColor(ColorInd());
 
     plot->setPenBrush(penBrush,
-      CQChartsPenData  (false),
-      CQChartsBrushData(true, fillColor, axesGridFillAlpha(), axesGridFillPattern()));
+      PenData(false), BrushData(true, fillColor, axesGridFillAlpha(), axesGridFillPattern()));
 
     //---
 
@@ -1309,6 +1336,16 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //---
 
+  auto mapPos = [&](double pos) {
+    if (! valueStart_.isSet() && ! valueEnd_.isSet())
+      return pos;
+
+    return CMathUtil::map(pos, valueStart_.realOr(start()), valueEnd_.realOr(end()),
+                          start(), end());
+  };
+
+  //---
+
   double pos1;
 
   if (isDate())
@@ -1348,7 +1385,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
       // draw major tick label
       if (isAxesTickLabelTextVisible())
-        drawTickLabel(plot, device, apos1, pos, isTickInside());
+        drawTickLabel(plot, device, apos1, pos, pos, isTickInside());
     }
   }
   else if (isRequireTickLabel() && tickLabels_.size()) {
@@ -1370,7 +1407,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
       // draw major tick label
       if (isAxesTickLabelTextVisible())
-        drawTickLabel(plot, device, apos1, pos, isTickInside());
+        drawTickLabel(plot, device, apos1, pos, pos, isTickInside());
     }
   }
   else {
@@ -1381,20 +1418,23 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
       for (uint i = 0; i < numMajorTicks() + 1; i++) {
         double pos2 = pos1 + dt;
 
+        double mpos1 = mapPos(pos1);
+        double mpos2 = mapPos(pos2);
+
         // draw major line (grid and tick)
-        if (pos2 >= amin && pos2 <= amax) {
+        if (mpos2 >= amin && mpos2 <= amax) {
           // draw major tick (or minor tick if major ticks off and minor ones on)
           if      (isMajorTicksDisplayed()) {
-            drawMajorTickLine(plot, device, apos1, pos1, isTickInside());
+            drawMajorTickLine(plot, device, apos1, mpos1, isTickInside());
 
             if (isMirrorTicks())
-              drawMajorTickLine(plot, device, apos2, pos1, ! isTickInside());
+              drawMajorTickLine(plot, device, apos2, mpos1, ! isTickInside());
           }
           else if (isMinorTicksDisplayed()) {
-            drawMinorTickLine(plot, device, apos1, pos1, isTickInside());
+            drawMinorTickLine(plot, device, apos1, mpos1, isTickInside());
 
             if (isMirrorTicks())
-              drawMinorTickLine(plot, device, apos2, pos1, ! isTickInside());
+              drawMinorTickLine(plot, device, apos2, mpos1, ! isTickInside());
           }
         }
 
@@ -1406,12 +1446,14 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
             if (isIntegral() && ! CMathUtil::isInteger(pos2))
               continue;
 
+             double mpos2 = mapPos(pos2);
+
             // draw minor tick line
-            if (pos2 >= amin && pos2 <= amax) {
-              drawMinorTickLine(plot, device, apos1, pos2, isTickInside());
+            if (mpos2 >= amin && mpos2 <= amax) {
+              drawMinorTickLine(plot, device, apos1, mpos2, isTickInside());
 
               if (isMirrorTicks())
-                drawMinorTickLine(plot, device, apos2, pos2, ! isTickInside());
+                drawMinorTickLine(plot, device, apos2, mpos2, ! isTickInside());
             }
           }
         }
@@ -1420,8 +1462,10 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
         if (isAxesTickLabelTextVisible()) {
           // draw major tick label
-          if (pos1 >= amin && pos1 <= amax) {
-            drawTickLabel(plot, device, apos1, pos1, isTickInside());
+          double mpos1 = mapPos(pos1);
+
+          if (mpos1 >= amin && mpos1 <= amax) {
+            drawTickLabel(plot, device, apos1, mpos1, pos1, isTickInside());
           }
         }
 
@@ -1623,7 +1667,7 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double 
   QColor lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
-    CQChartsPenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
+    PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -1645,8 +1689,8 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   QColor lc = interpAxesMajorGridLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
-    CQChartsPenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
-                    axesMajorGridLinesDash()));
+    PenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
+            axesMajorGridLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -1668,8 +1712,8 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   QColor lc = interpAxesMinorGridLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
-    CQChartsPenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
-                    axesMinorGridLinesDash()));
+    PenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
+            axesMinorGridLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -1726,7 +1770,7 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
   QColor lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
-   CQChartsPenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
+   PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
   device->setPen(penBrush.pen);
 
@@ -1789,9 +1833,9 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-              double apos, double tpos, bool inside)
+              double apos, double tpos, double value, bool inside)
 {
-  QString text = valueStr(plot, tpos);
+  QString text = valueStr(plot, value);
   if (! text.length()) return;
 
   //---
@@ -2369,7 +2413,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   QColor tc = interpAxesTickLabelTextColor(ColorInd());
 
-  plot->setPen(tpenBrush, CQChartsPenData(true, tc, axesTickLabelTextAlpha()));
+  plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 
@@ -2431,7 +2475,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   QColor tc = interpAxesLabelTextColor(ColorInd());
 
-  plot->setPen(tpenBrush, CQChartsPenData(true, tc, axesLabelTextAlpha()));
+  plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
 
   device->setPen(tpenBrush.pen);
 

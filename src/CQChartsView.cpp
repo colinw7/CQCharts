@@ -146,8 +146,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   setSelectedMode(HighlightDataMode::FILL);
 
-  setSelectedFillAlpha(CQChartsAlpha(0.8));
-  setInsideFillAlpha  (CQChartsAlpha(0.8));
+  setSelectedFillAlpha(Alpha(0.8));
+  setInsideFillAlpha  (Alpha(0.8));
 
   //---
 
@@ -3851,10 +3851,10 @@ CQChartsView::
 drawBackground(CQChartsPaintDevice *device) const
 {
   // fill background
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
-  CQChartsBrushData brushData(true, interpBackgroundFillColor(ColorInd()),
-                              backgroundFillAlpha(), backgroundFillPattern());
+  BrushData brushData(true, interpBackgroundFillColor(ColorInd()),
+                      backgroundFillAlpha(), backgroundFillPattern());
 
   setBrush(penBrush, brushData);
 
@@ -4163,8 +4163,7 @@ lockPainter(bool lock)
 
 void
 CQChartsView::
-setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
-            const CQChartsBrushData &brushData) const
+setPenBrush(PenBrush &penBrush, const PenData &penData, const BrushData &brushData) const
 {
   setPen  (penBrush, penData  );
   setBrush(penBrush, brushData);
@@ -4172,7 +4171,7 @@ setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
 
 void
 CQChartsView::
-setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
+setPen(PenBrush &penBrush, const PenData &penData) const
 {
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
@@ -4182,7 +4181,7 @@ setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const
 
 void
 CQChartsView::
-setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
+setBrush(PenBrush &penBrush, const BrushData &brushData) const
 {
   CQChartsDrawUtil::setBrush(penBrush.brush, brushData);
 }
@@ -4191,8 +4190,7 @@ setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const
 
 void
 CQChartsView::
-updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
-                       DrawType drawType) const
+updateObjPenBrushState(const CQChartsObj *obj, PenBrush &penBrush, DrawType drawType) const
 {
   updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
 }
@@ -4200,7 +4198,7 @@ updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
 void
 CQChartsView::
 updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                       CQChartsPenBrush &penBrush, DrawType drawType) const
+                       PenBrush &penBrush, DrawType drawType) const
 {
   if (! isBufferLayers()) {
     // inside and selected
@@ -4242,15 +4240,15 @@ updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
 
 void
 CQChartsView::
-updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
+updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
                              bool outline, DrawType drawType) const
 {
   // fill and stroke
   if (drawType != DrawType::LINE) {
     // outline box, symbol
     if      (insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor        opc;
-      CQChartsAlpha alpha;
+      QColor opc;
+      Alpha  alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
         QColor pc = penBrush.pen.color();
@@ -4260,7 +4258,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         else
           opc = CQChartsUtil::invColor(pc);
 
-        alpha = CQChartsAlpha(pc.alphaF());
+        alpha = Alpha(pc.alphaF());
       }
       else {
         QColor bc = penBrush.brush.color();
@@ -4272,10 +4270,10 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       }
 
       setPen(penBrush,
-        CQChartsPenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+        PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
 
       if (outline)
-        setBrush(penBrush, CQChartsBrushData(false));
+        setBrush(penBrush, BrushData(false));
     }
     // fill box, symbol
     else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
@@ -4291,22 +4289,22 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       else
         ibc = insideColor(bc);
 
-      CQChartsAlpha alpha;
+      Alpha alpha;
 
       if (isBufferLayers()) {
         if (isInsideBlend())
-          alpha = CQChartsAlpha(insideFillAlpha().value()*bc.alphaF());
+          alpha = Alpha(insideFillAlpha().value()*bc.alphaF());
         else
-          alpha = CQChartsAlpha(insideFillAlpha().value());
+          alpha = Alpha(insideFillAlpha().value());
       }
       else {
         if (isInsideBlend())
-          alpha = CQChartsAlpha(bc.alphaF());
+          alpha = Alpha(bc.alphaF());
         else
-          alpha = CQChartsAlpha(1.0);
+          alpha = Alpha(1.0);
       }
 
-      setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, insideFillPattern()));
+      setBrush(penBrush, BrushData(true, ibc, alpha, insideFillPattern()));
     }
   }
   // just stroke
@@ -4320,24 +4318,23 @@ updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    CQChartsAlpha alpha(pc.alphaF());
+    Alpha alpha(pc.alphaF());
 
     setPen(penBrush,
-      CQChartsPenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+      PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
   }
 }
 
 void
 CQChartsView::
-updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
-                               DrawType drawType) const
+updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType drawType) const
 {
   // fill and stroke
   if      (drawType != DrawType::LINE) {
     // outline box, symbol
     if       (selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
-      QColor        opc;
-      CQChartsAlpha alpha;
+      QColor opc;
+      Alpha  alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
         QColor pc = penBrush.pen.color();
@@ -4347,7 +4344,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
         else
           opc = selectedColor(pc);
 
-        alpha = CQChartsAlpha(pc.alphaF());
+        alpha = Alpha(pc.alphaF());
       }
       else {
         QColor bc = penBrush.brush.color();
@@ -4359,9 +4356,9 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       }
 
       setPen(penBrush,
-        CQChartsPenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+        PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
 
-      setBrush(penBrush, CQChartsBrushData(false));
+      setBrush(penBrush, BrushData(false));
     }
     // fill box, symbol
     else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
@@ -4374,22 +4371,22 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
       else
         ibc = selectedColor(bc);
 
-      CQChartsAlpha alpha;
+      Alpha alpha;
 
       if (isBufferLayers()) {
         if (isInsideBlend())
-          alpha = CQChartsAlpha(selectedFillAlpha().value()*bc.alphaF());
+          alpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
         else
-          alpha = CQChartsAlpha(selectedFillAlpha().value());
+          alpha = Alpha(selectedFillAlpha().value());
       }
       else {
         if (isInsideBlend())
-          alpha = CQChartsAlpha(bc.alphaF());
+          alpha = Alpha(bc.alphaF());
         else
-          alpha = CQChartsAlpha(1.0);
+          alpha = Alpha(1.0);
       }
 
-      setBrush(penBrush, CQChartsBrushData(true, ibc, alpha, selectedFillPattern()));
+      setBrush(penBrush, BrushData(true, ibc, alpha, selectedFillPattern()));
     }
   }
   // just stroke
@@ -4403,10 +4400,10 @@ updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    CQChartsAlpha alpha(pc.alphaF());
+    Alpha alpha(pc.alphaF());
 
     setPen(penBrush,
-      CQChartsPenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+      PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
   }
 }
 

@@ -230,7 +230,11 @@ class CQChartsView : public QFrame,
   using Widget      = CQChartsWidget;
   using Font        = CQChartsFont;
   using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
   using PaintDevice = CQChartsPaintDevice;
+  using PenBrush    = CQChartsPenBrush;
+  using PenData     = CQChartsPenData;
+  using BrushData   = CQChartsBrushData;
   using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
@@ -687,24 +691,23 @@ class CQChartsView : public QFrame,
   //---
 
   // set pen/brush
-  void setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
-                   const CQChartsBrushData &brushData) const;
+  void setPenBrush(PenBrush &penBrush, const PenData &penData, const BrushData &brushData) const;
 
-  void setPen(CQChartsPenBrush &penBrush, const CQChartsPenData &penData) const;
+  void setPen(PenBrush &penBrush, const PenData &penData) const;
 
-  void setBrush(CQChartsPenBrush &penBrush, const CQChartsBrushData &brushData) const;
+  void setBrush(PenBrush &penBrush, const BrushData &brushData) const;
 
   //---
 
-  void updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
+  void updateObjPenBrushState(const CQChartsObj *obj, PenBrush &penBrush,
                               DrawType drawType=DrawType::BOX) const;
 
   void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                              CQChartsPenBrush &penBrush, DrawType drawType) const;
+                              PenBrush &penBrush, DrawType drawType) const;
 
-  void updateInsideObjPenBrushState  (const ColorInd &ic, CQChartsPenBrush &penBrush,
+  void updateInsideObjPenBrushState  (const ColorInd &ic, PenBrush &penBrush,
                                       bool outline, DrawType drawType) const;
-  void updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
+  void updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
                                       DrawType drawType) const;
 
   QColor insideColor  (const QColor &c) const;
@@ -774,8 +777,8 @@ class CQChartsView : public QFrame,
   bool mousePressed() const { return mouseData_.pressed; }
   int  mouseButton () const { return mouseData_.button; }
 
-  CQChartsSelMod mouseSelMod  () const { return mouseData_.selMod; }
-  CQChartsSelMod mouseClickMod() const { return mouseData_.clickMod; }
+  SelMod mouseSelMod  () const { return mouseData_.selMod; }
+  SelMod mouseClickMod() const { return mouseData_.clickMod; }
 
   //---
 
@@ -941,7 +944,7 @@ class CQChartsView : public QFrame,
   void currentPlotChanged();
 
   // emitted when plot added
-  void plotAdded(CQChartsPlot *);
+  void plotAdded(Plot *);
   void plotAdded(const QString &id);
 
   // emitted when plot removed
@@ -964,7 +967,7 @@ class CQChartsView : public QFrame,
   void keyIdPressed(const QString &);
 
   // emitted when annotation pressed
-  void annotationPressed(CQChartsAnnotation *);
+  void annotationPressed(Annotation *);
   void annotationIdPressed(const QString &);
 
   // emitted when annotations changed
@@ -977,8 +980,8 @@ class CQChartsView : public QFrame,
   void scrollDataChanged();
 
   // region point mouse release
-  void regionPointRelease(const CQChartsGeom::Point &p);
-  void regionRectRelease (const CQChartsGeom::BBox &r);
+  void regionPointRelease(const Point &p);
+  void regionRectRelease (const BBox &r);
 
   // emitted when errors added
   void updateErrors();
@@ -1177,21 +1180,23 @@ class CQChartsView : public QFrame,
     ANNOTATION
   };
 
+  using ResizeSide = CQChartsResizeSide;
+
   //! structure for mouse interaction data
   struct MouseData {
-    Plots              plots;                                   //!< plots at mouse point
-    Plot*              plot       { nullptr };                  //!< plot at mouse point
-    Point              pressPoint { 0, 0 };                     //!< press point
-    Point              oldMovePoint;                            //!< previous move point
-    Point              movePoint  { 0, 0 };                     //!< move point
-    bool               pressed    { false };                    //!< is pressed
-    bool               escape     { false };                    //!< escape pressed
-    int                button     { Qt::NoButton };             //!< press button
-    CQChartsSelMod     selMod     { CQChartsSelMod::REPLACE };  //!< selection modifier
-    CQChartsSelMod     clickMod   { CQChartsSelMod::REPLACE };  //!< click modifier
-    DragObj            dragObj    { DragObj::NONE };            //!< drag object
-    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE }; //!< drag side
-    bool               dragged    { false };                    //!< is dragged
+    Plots      plots;                           //!< plots at mouse point
+    Plot*      plot       { nullptr };          //!< plot at mouse point
+    Point      pressPoint { 0, 0 };             //!< press point
+    Point      oldMovePoint;                    //!< previous move point
+    Point      movePoint  { 0, 0 };             //!< move point
+    bool       pressed    { false };            //!< is pressed
+    bool       escape     { false };            //!< escape pressed
+    int        button     { Qt::NoButton };     //!< press button
+    SelMod     selMod     { SelMod::REPLACE };  //!< selection modifier
+    SelMod     clickMod   { SelMod::REPLACE };  //!< click modifier
+    DragObj    dragObj    { DragObj::NONE };    //!< drag object
+    ResizeSide dragSide   { ResizeSide::NONE }; //!< drag side
+    bool       dragged    { false };            //!< is dragged
 
     void reset() {
       plots.clear();
@@ -1200,8 +1205,8 @@ class CQChartsView : public QFrame,
       pressed  = false;
       escape   = false;
       button   = Qt::NoButton;
-      selMod   = CQChartsSelMod::REPLACE;
-      dragSide = CQChartsResizeSide::NONE;
+      selMod   = SelMod::REPLACE;
+      dragSide = ResizeSide::NONE;
       dragged  = false;
     }
   };
@@ -1377,13 +1382,17 @@ class CQChartsSplitter : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsSplitter(CQChartsView *view, Qt::Orientation orientation);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsSplitter(View *view, Qt::Orientation orientation);
 
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &o);
 
-  void setPlot1(CQChartsPlot *plot) { plot1_ = plot; }
-  void setPlot2(CQChartsPlot *plot) { plot2_ = plot; }
+  void setPlot1(Plot *plot) { plot1_ = plot; }
+  void setPlot2(Plot *plot) { plot2_ = plot; }
 
   void paintEvent(QPaintEvent *) override;
 
@@ -1398,10 +1407,10 @@ class CQChartsSplitter : public QFrame {
   }
 
  private:
-  CQChartsView*   view_        { nullptr };
+  View*           view_        { nullptr };
   Qt::Orientation orientation_ { Qt::Vertical };
-  CQChartsPlot*   plot1_       { nullptr };
-  CQChartsPlot*   plot2_       { nullptr };
+  Plot*           plot1_       { nullptr };
+  Plot*           plot2_       { nullptr };
   bool            pressed_     { false };
   QPoint          pressPos_;
   QPoint          movePos_;

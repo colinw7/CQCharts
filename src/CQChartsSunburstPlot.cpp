@@ -1204,7 +1204,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
   // calc stroke and brush
   ColorInd colorInd = nodeObj->calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor bc = interpStrokeColor(colorInd);
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
@@ -1252,7 +1252,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
   if (isTextVisible()) {
     // calc text pen
-    CQChartsPenBrush tPenBrush;
+    PenBrush tPenBrush;
 
     QColor tc = interpTextColor(colorInd);
 

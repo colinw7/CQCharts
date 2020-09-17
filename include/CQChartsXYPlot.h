@@ -282,7 +282,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) override;
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
  private:
   using OptPoint = boost::optional<Point>;

@@ -591,7 +591,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
   // fill voronoi polygons
   if (isVoronoiPolygon()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor pc = interpVoronoiStrokeColor(ColorInd());
     QColor fc = interpVoronoiFillColor  (ColorInd());
@@ -615,7 +615,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
       hull.getHull(poly);
 
-      CQChartsPenBrush penBrush1 = penBrush;
+      PenBrush penBrush1 = penBrush;
 
       if (valueRange_.isSet()) {
         double v = CMathUtil::map(v1->value(), valueRange_.min(), valueRange_.max(), 0.0, 1.0);
@@ -635,7 +635,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
   // draw voronoi points
   if (isVoronoiPoints()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     setVoronoiSymbolPenBrush(penBrush, ColorInd());
 
@@ -661,7 +661,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
   // draw voronoi lines
   if (isVoronoiLines() || isVoronoiCircles()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor lc = interpVoronoiLinesColor(ColorInd());
 
@@ -828,7 +828,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   ColorInd colorInd = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
 

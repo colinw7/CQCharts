@@ -49,26 +49,6 @@ invalidate(bool reload)
 
 //---
 
-#if 0
-QColor
-CQChartsInterpolator::
-interpColor(const CQChartsColor &c, int i, int n) const
-{
-  CQChartsUtil::ColorInd ic(i, n);
-
-  return interpColor(c, ic);
-}
-
-QColor
-CQChartsInterpolator::
-interpColor(const CQChartsColor &c, double r) const
-{
-  CQChartsUtil::ColorInd ic(r);
-
-  return interpColor(c, ic);
-}
-#endif
-
 QColor
 CQChartsInterpolator::
 interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const

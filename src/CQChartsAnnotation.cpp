@@ -387,7 +387,13 @@ getProperty(const QString &name, QVariant &value) const
   auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
-  return propertyModel->getProperty(this, name, value);
+  if (propertyModel->getProperty(this, name, value))
+    return true;
+
+  if (CQUtil::getTclProperty(this, name, value))
+    return true;
+
+  return false;
 }
 
 bool
@@ -397,7 +403,13 @@ getTclProperty(const QString &name, QVariant &value) const
   auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
-  return propertyModel->getTclProperty(this, name, value);
+  if (propertyModel->getTclProperty(this, name, value))
+    return true;
+
+  if (CQUtil::getTclProperty(this, name, value))
+    return true;
+
+  return false;
 }
 
 bool
@@ -504,7 +516,13 @@ setProperty(const QString &name, const QVariant &value)
   auto *propertyModel = this->propertyModel();
   if (! propertyModel) return false;
 
-  return propertyModel->setProperty(this, name, value);
+  if (propertyModel->setProperty(this, name, value))
+    return true;
+
+  if (CQUtil::setProperty(this, name, value))
+    return true;
+
+  return false;
 }
 
 void
@@ -1269,8 +1287,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -1473,8 +1491,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -1670,8 +1688,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -1883,7 +1901,7 @@ draw(PaintDevice *device)
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   setPen(penBrush,
-    CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
+    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
 
   //---
 
@@ -2275,8 +2293,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   if (isEnabled())
     updatePenBrushState(penBrush);
@@ -2308,7 +2326,7 @@ draw(PaintDevice *device)
     c = CQChartsUtil::blendColors(backgroundColor(), c, f);
   }
 
-  setPen(penBrush, CQChartsPenData(true, c, textAlpha()));
+  setPen(penBrush, PenData(true, c, textAlpha()));
 
   penBrush.brush.setStyle(Qt::NoBrush);
 
@@ -2762,8 +2780,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -3243,8 +3261,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
-    CQChartsBrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
+    PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
+    BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -3556,9 +3574,9 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (strokeData.isVisible(), lineColor, strokeData.alpha(),
-                      strokeData.width(), strokeData.dash()),
-    CQChartsBrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
+    PenData  (strokeData.isVisible(), lineColor, strokeData.alpha(),
+              strokeData.width(), strokeData.dash()),
+    BrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
 
   updatePenBrushState(penBrush, Plot::DrawType::SYMBOL);
 
@@ -3758,8 +3776,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -3809,6 +3827,10 @@ CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction, double start, doub
   init();
 
   axis_ = new CQChartsAxis(plot, direction, start, end);
+
+  connect(axis_, SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
+
+  connect(axis_, SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));
 }
 
 CQChartsAxisAnnotation::
@@ -3824,6 +3846,34 @@ init()
   setObjectName(QString("axis.%1").arg(ind()));
 
   editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
+}
+
+double
+CQChartsAxisAnnotation::
+start() const
+{
+  return axis_->start();
+}
+
+void
+CQChartsAxisAnnotation::
+setStart(double r)
+{
+  axis_->setStart(r);
+}
+
+double
+CQChartsAxisAnnotation::
+end() const
+{
+  return axis_->end();
+}
+
+void
+CQChartsAxisAnnotation::
+setEnd(double r)
+{
+  axis_->setEnd(r);
 }
 
 double
@@ -3873,6 +3923,9 @@ void
 CQChartsAxisAnnotation::
 draw(PaintDevice *device)
 {
+  if (! isVisible())
+    return;
+
   drawInit(device);
 
   //---
@@ -3890,9 +3943,9 @@ draw(PaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
-  CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-  CQChartsBrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
+  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
 
   setPenBrush(penBrush, penData, brushData);
 
@@ -4087,9 +4140,9 @@ draw(PaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
-  CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-  CQChartsBrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
+  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
 
   setPenBrush(penBrush, penData, brushData);
 
@@ -4243,9 +4296,9 @@ draw(PaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
   }
 
-  CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-  CQChartsBrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
+  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
 
   setPenBrush(penBrush, penData, brushData);
 
@@ -4368,7 +4421,7 @@ draw(PaintDevice *device)
         // set pen and brush
         CQChartsPenBrush penBrush;
 
-        setPenBrush(penBrush, penData, CQChartsBrushData(true, bgColor));
+        setPenBrush(penBrush, penData, BrushData(true, bgColor));
 
         CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4531,8 +4584,8 @@ draw(PaintDevice *device)
   }
 
   setPenBrush(penBrush,
-    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 

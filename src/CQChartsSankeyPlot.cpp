@@ -271,8 +271,11 @@ CQChartsSankeyPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    item->setHidden(hidden);
+    return item;
   };
 
   //---
@@ -554,7 +557,7 @@ postDrawFgObjs(CQChartsPaintDevice *device) const
   placer.place();
 
   for (const auto &drawText : drawTexts_) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     setPen(penBrush, PenData(true, drawText->color, drawText->alpha));
 
@@ -1358,15 +1361,10 @@ CQChartsSankeyPlot::
 placeDepthSubNodes(int xpos, const Nodes &nodes) const
 {
   // place nodes to fit in bbox
-  double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
 
-  double dx = 1.0;
-
-  int maxX = graph_->maxNodeX();
-
-  if (maxX > 1)
-    dx = xs/maxX;
+  int minX = this->minX();
+  int maxX = this->maxX();
 
   double xm = pixelToWindowWidth(nodeWidth());
 
@@ -1396,13 +1394,10 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
     //---
 
     // calc rect
-    int srcDepth  = node->srcDepth ();
-    int destDepth = node->destDepth();
-
     int xpos1 = calcXPos(node);
     assert(xpos == xpos1);
 
-    double x11 = bbox_.getXMin() + xpos*dx; // left
+    double x11 = CMathUtil::map(xpos1, minX, maxX, bbox_.getXMin(), bbox_.getXMax()); // left
     double x12 = x11 + xm;
 
     double yc = y1 - h/2.0; // placement center
@@ -1414,9 +1409,9 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
 
     BBox rect;
 
-    if      (srcDepth == 0)
+    if      (xpos1 == minX)
       rect = BBox(x11, y11, x12, y12); // no inputs (left align)
-    else if (destDepth == 0) {
+    else if (xpos1 == maxX) {
       x11 -= xm; x12 -= xm;
 
       rect = BBox(x11, y11, x12, y12); // no outputs (right align)
@@ -3035,7 +3030,7 @@ CQChartsSankeyNodeObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3213,7 +3208,7 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
   // set text pen
   ColorInd ic = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   auto c = plot_->interpTextColor(ic);
 
@@ -3284,7 +3279,7 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
 
 void
 CQChartsSankeyNodeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   ColorInd ic = calcColorInd();
@@ -3467,7 +3462,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3603,7 +3598,7 @@ drawFg(CQChartsPaintDevice *device) const
   // set text pen
   ColorInd ic = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor c = plot_->interpTextColor(ic);
 
@@ -3638,7 +3633,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsSankeyEdgeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   auto *srcNode  = edge()->srcNode ();

@@ -472,24 +472,6 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##PointData_.fill().setPattern(p); LNAME##PointDataInvalidate(); } \
   } \
 \
-  void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, int i, int n) const { \
-    LNAME##PointDataObj_->setPenBrush(penBrush, \
-      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
-                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
-                      LNAME##SymbolStrokeDash()), \
-      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
-                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
-  } \
-\
-  void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, double r) const { \
-    LNAME##PointDataObj_->setPenBrush(penBrush, \
-      CQChartsPenData(is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(r), \
-                      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), \
-                      LNAME##SymbolStrokeDash()), \
-      CQChartsBrushData(is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(r), \
-                        LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern())); \
-  } \
-\
   void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, \
                                   const CQChartsUtil::ColorInd &ind) const { \
     LNAME##PointDataObj_->setPenBrush(penBrush, \

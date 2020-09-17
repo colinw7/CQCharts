@@ -1677,6 +1677,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       else if (data == "owner") {
         QObject *obj = nullptr;
 
+        // view or plot
         if (! annotation->getPropertyObject(name, obj, /*hidden*/true))
           return errorMsg("Failed to get annotation parameter owner '" + name + "'");
 
@@ -6131,8 +6132,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsShapeData shapeData;
 
-  CQChartsFillData   &fill   = shapeData.fill();
-  CQChartsStrokeData &stroke = shapeData.stroke();
+  auto &fill   = shapeData.fill();
+  auto &stroke = shapeData.stroke();
 
   fill  .setVisible(true);
   stroke.setVisible(false);
@@ -6378,8 +6379,8 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().fill();
-  CQChartsStrokeData &stroke = boxData.shape().stroke();
+  auto &fill   = boxData.shape().fill();
+  auto &stroke = boxData.shape().stroke();
 
   stroke.setVisible(true);
 
@@ -6948,8 +6949,8 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsSymbolData symbolData;
 
-  CQChartsFillData   &fill   = symbolData.fill();
-  CQChartsStrokeData &stroke = symbolData.stroke();
+  auto &fill   = symbolData.fill();
+  auto &stroke = symbolData.stroke();
 
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
@@ -7185,10 +7186,10 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
-  CQChartsFillData   &fill   = shapeData.fill();
-  CQChartsStrokeData &stroke = shapeData.stroke();
+  auto &fill   = shapeData.fill();
+  auto &stroke = shapeData.stroke();
 
   stroke.setVisible(true);
 
@@ -7320,10 +7321,10 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsShapeData &shapeData = boxData.shape();
+  auto &shapeData = boxData.shape();
 
-  CQChartsFillData   &fill   = shapeData.fill();
-  CQChartsStrokeData &stroke = shapeData.stroke();
+  auto &fill   = shapeData.fill();
+  auto &stroke = shapeData.stroke();
 
   stroke.setVisible(true);
 
@@ -7467,8 +7468,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   boxData.setMargin (CQChartsMargin());
   boxData.setPadding(CQChartsMargin());
 
-  CQChartsFillData   &fill   = boxData.shape().fill  ();
-  CQChartsStrokeData &stroke = boxData.shape().stroke();
+  auto &fill   = boxData.shape().fill  ();
+  auto &stroke = boxData.shape().stroke();
 
   stroke.setVisible(true);
 
@@ -7653,8 +7654,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().fill();
-  CQChartsStrokeData &stroke = boxData.shape().stroke();
+  auto &fill   = boxData.shape().fill();
+  auto &stroke = boxData.shape().stroke();
 
   fill  .setVisible(false);
   stroke.setVisible(false);
@@ -9290,6 +9291,8 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
   if (! CQTcl::splitList(properties, strs))
     return errorMsg(QString("Invalid properties string '%1'").arg(properties));
 
+  bool rc = true;
+
   for (int i = 0; i < strs.length(); ++i) {
     QStringList strs1;
 
@@ -9299,8 +9302,12 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
     if (strs1.size() != 2)
       return errorMsg(QString("Invalid property string '%1'").arg(strs[i]));
 
-    annotation->setProperty(strs1[0], strs1[1]);
+    if (! annotation->setProperty(strs1[0], strs1[1]))
+      rc = false;
   }
+
+  if (! rc)
+    return errorMsg("Failed to set annotation properties '" + properties + "'");
 #else
   if (! annotation->setProperties(properties))
     return errorMsg("Failed to set annotation properties '" + properties + "'");

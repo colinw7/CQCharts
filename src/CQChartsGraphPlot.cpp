@@ -2785,7 +2785,7 @@ CQChartsGraphNodeObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -2850,7 +2850,7 @@ drawFg(CQChartsPaintDevice *device) const
   // set text pen
   ColorInd ic = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor c = plot_->interpTextColor(ic);
 
@@ -2903,7 +2903,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsGraphNodeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   ColorInd ic = calcColorInd();
@@ -3035,7 +3035,7 @@ CQChartsGraphEdgeObj::
 draw(PaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3287,7 +3287,7 @@ drawFg(CQChartsPaintDevice *device) const
   // set text pen
   ColorInd ic = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor c = plot_->interpTextColor(ic);
 
@@ -3325,7 +3325,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsGraphEdgeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   auto *srcNode  = edge()->srcNode ();
@@ -3517,7 +3517,7 @@ CQChartsGraphGraphObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3542,7 +3542,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsGraphGraphObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   ColorInd ic = calcColorInd();

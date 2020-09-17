@@ -2197,7 +2197,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set fill and stroke
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -2208,7 +2208,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set whisker fill and stroke
-  CQChartsPenBrush whiskerPenBrush;
+  PenBrush whiskerPenBrush;
 
   plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, colorInd);
 
@@ -2293,7 +2293,7 @@ draw(CQChartsPaintDevice *device)
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
-      CQChartsPenBrush symbolPenBrush;
+      PenBrush symbolPenBrush;
 
       QColor boxColor    = plot_->interpBoxFillColor  (colorInd);
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
@@ -2391,7 +2391,7 @@ draw(CQChartsPaintDevice *device)
 
         //---
 
-        CQChartsPenBrush penBrush;
+        PenBrush penBrush;
 
         QColor tc = plot_->interpTextColor(colorInd);
 
@@ -2456,7 +2456,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsBoxPlotWhiskerObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // get color index
   ColorInd colorInd = this->calcColorInd();
@@ -2700,7 +2700,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set fill and stroke
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
@@ -2798,7 +2798,7 @@ CQChartsBoxPlotDataObj::
 draw(CQChartsPaintDevice *device)
 {
   // set whisker fill and stroke
-  CQChartsPenBrush whiskerPenBrush;
+  PenBrush whiskerPenBrush;
 
   plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, ColorInd());
 
@@ -2809,7 +2809,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set fill and stroke
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor bc = plot_->interpBoxStrokeColor(ColorInd());
   QColor fc = plot_->interpBoxFillColor(ColorInd());
@@ -2893,7 +2893,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor tc = plot_->interpTextColor(ColorInd());
 
@@ -3128,7 +3128,7 @@ draw(CQChartsPaintDevice *device)
 
   if (np) {
     // set pen and brush
-    CQChartsPenBrush pPenBrush;
+    PenBrush pPenBrush;
 
     QColor bc = plot_->interpBoxStrokeColor(ig_);
     QColor fc = plot_->interpBoxFillColor  (ig_);
@@ -3153,7 +3153,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen
-  CQChartsPenBrush lPenBrush;
+  PenBrush lPenBrush;
 
   QColor lineColor = plot_->interpBoxStrokeColor(ig_);
 
@@ -3455,7 +3455,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setJitterSymbolPenBrush(penBrush, colorInd);
 

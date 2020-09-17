@@ -431,6 +431,12 @@ class CQChartsSankeyPlotGraph {
   double totalSize() const { return totalSize_; }
   void setTotalSize(double r) { totalSize_ = r; }
 
+  int minNodeX() const {
+    if (depthNodesMap_.empty()) return 0;
+
+    return depthNodesMap_.begin()->first;
+  }
+
   int maxNodeX() const {
     if (depthNodesMap_.empty()) return 0;
 
@@ -752,6 +758,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
 
+  // x scale
+  Q_PROPERTY(int minX READ minX)
+  Q_PROPERTY(int maxX READ maxX)
+
   Q_ENUMS(ConnectionType)
   Q_ENUMS(Align)
 
@@ -855,6 +865,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set use max of source/destination nodes for edge scaling
   bool useMaxTotals() const { return useMaxTotals_; }
   void setUseMaxTotals(bool b);
+
+  //---
+
+  // min/max X
+  int minX() const { return graph_->minNodeX(); }
+  int maxX() const { return graph_->maxNodeX(); }
 
   //---
 

@@ -1240,7 +1240,7 @@ execDrawBackground(PaintDevice *device) const
   //---
 
   // draw empty cells
-  CQChartsPenBrush emptyPenBrush;
+  PenBrush emptyPenBrush;
 
   auto pc = interpEmptyCellStrokeColor(ColorInd());
   auto bc = interpEmptyCellFillColor  (ColorInd());
@@ -1409,7 +1409,7 @@ draw(PaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1427,7 +1427,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsAdjacencyCellObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 

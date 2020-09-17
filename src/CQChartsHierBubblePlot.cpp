@@ -1168,7 +1168,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
   //---
 
   // draw bubble
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor bc = interpStrokeColor(ColorInd());
 
@@ -1274,7 +1274,7 @@ draw(PaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1294,7 +1294,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsHierBubbleHierObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   if (! hierNode()->isExpanded())
     return CQChartsHierBubbleNodeObj::calcPenBrush(penBrush, updateState);
@@ -1433,7 +1433,7 @@ draw(PaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1484,7 +1484,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   // calc text pen
   ColorInd colorInd = calcColorInd();
 
-  CQChartsPenBrush tPenBrush;
+  PenBrush tPenBrush;
 
   auto tc = plot_->interpTextColor(colorInd);
 
@@ -1591,7 +1591,7 @@ isPoint() const
 
 void
 CQChartsHierBubbleNodeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc stroke and brush
   auto colorInd = calcColorInd();

@@ -737,7 +737,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     //---
 
-    CQChartsPenBrush tpenBrush;
+    PenBrush tpenBrush;
 
     QColor tc = interpTextColor(ColorInd());
 
@@ -983,7 +983,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1027,7 +1027,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsRadarObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 

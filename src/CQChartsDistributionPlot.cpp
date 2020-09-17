@@ -2939,7 +2939,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
   // set pen
   QColor bc = interpStatsLinesColor(ColorInd());
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   setPen(penBrush,
     PenData(true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()));
@@ -3581,7 +3581,7 @@ drawRug(CQChartsPaintDevice *device) const
   // set pen and brush
   ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setRugSymbolPenBrush(penBrush, ic);
 
@@ -3739,7 +3739,7 @@ CQChartsDistributionBarObj::
 drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
 {
   // calc pen and brush
-  CQChartsPenBrush barPenBrush;
+  PenBrush barPenBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3821,7 +3821,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
     //---
 
     // set dot pen and brush
-    CQChartsPenBrush dotPenBrush;
+    PenBrush dotPenBrush;
 
     plot_->setDotSymbolPenBrush(dotPenBrush, ic);
 
@@ -3845,8 +3845,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
 
 void
 CQChartsDistributionBarObj::
-calcBarPenBrush(const Color &color, bool useLine, CQChartsPenBrush &barPenBrush,
-                bool updateState) const
+calcBarPenBrush(const Color &color, bool useLine, PenBrush &barPenBrush, bool updateState) const
 {
   // set pen and brush
   auto bc = plot_->interpBarStrokeColor(ColorInd());
@@ -4099,7 +4098,7 @@ CQChartsDistributionDensityObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -4156,7 +4155,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
   // set pen
   QColor bc = plot_->interpStatsLinesColor(ColorInd());
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setPen(penBrush,
     PenData(true, bc, plot_->statsLinesAlpha(), plot_->statsLinesWidth(), plot_->statsLinesDash()));
@@ -4207,7 +4206,7 @@ drawRug(CQChartsPaintDevice *device) const
 
   // set pen brush
   // TODO: allow control of alpha, and line width
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor fillColor = plot_->interpBarFillColor(is_);
 
@@ -4246,7 +4245,7 @@ drawRug(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionDensityObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
   QColor bc = plot_->interpBarStrokeColor(is_);
@@ -4361,7 +4360,7 @@ draw(CQChartsPaintDevice *device)
 
   QColor c = plot_->interpBarFillColor(ic);
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setPenBrush(penBrush, PenData(true, Qt::black), BrushData(true, c));
 

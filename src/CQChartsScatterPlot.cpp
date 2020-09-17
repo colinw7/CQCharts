@@ -2426,7 +2426,7 @@ drawStatsLines(PaintDevice *device) const
     // calc pen and brush
     ColorInd ic(i, nf);
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor c = interpStatsLinesColor(ic);
 
@@ -2496,7 +2496,7 @@ drawHull(PaintDevice *device) const
     // set pen/brush
     ColorInd colorInd(i, n);
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     setPenBrush(penBrush, hullPenData(colorInd), hullBrushData(colorInd));
 
@@ -2634,7 +2634,7 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
     auto *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
     if (pointObj) {
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       pointObj->calcPenBrush(penBrush, /*updateState*/false);
 
@@ -2649,7 +2649,7 @@ drawXYRug(PaintDevice *device, const RugP &rug, double delta) const
     auto *cellObj = dynamic_cast<CQChartsScatterCellObj *>(plotObj);
 
     if (cellObj) {
-      CQChartsPenBrush penBrush;
+      PenBrush penBrush;
 
       cellObj->calcRugPenBrush(penBrush, /*updateState*/false);
 
@@ -2748,7 +2748,7 @@ drawXYDensityWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
     th->yAxisDensity_->setWhisker(boxWhisker->whisker());
 
   // calc pen/brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
@@ -2846,7 +2846,7 @@ drawXYWhiskerWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
     th->yAxisWhisker_->setWhisker(boxWhisker->whisker());
 
   // calc pen/brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
@@ -3102,7 +3102,7 @@ drawSymbolMapKey(PaintDevice *device) const
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
 
   auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     setPenBrush(penBrush, PenData(true, strokeColor), BrushData(true, c));
 
@@ -3393,7 +3393,7 @@ CQChartsScatterPointObj::
 draw(PaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3470,7 +3470,7 @@ drawDataLabel(PaintDevice *device) const
   //---
 
   // text font color
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor tc = dataLabel->interpTextColor(calcColorInd());
 
@@ -3518,7 +3518,7 @@ drawDataLabel(PaintDevice *device) const
 
 void
 CQChartsScatterPointObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd ic;
 
@@ -3629,7 +3629,7 @@ CQChartsScatterCellObj::
 draw(PaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3653,7 +3653,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsScatterCellObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
   ColorInd ic(points_.size(), maxN_);
@@ -3673,7 +3673,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsScatterCellObj::
-calcRugPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcRugPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc stroke and brush
   ColorInd ic = (ig_.n > 1 ? ig_ : is_);
@@ -3740,7 +3740,7 @@ CQChartsScatterHexObj::
 draw(PaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -3764,7 +3764,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsScatterHexObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
   ColorInd ic(n_, maxN_);

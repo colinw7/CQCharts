@@ -1308,7 +1308,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   setClipRect(device);
 
   // draw edges
-  CQChartsPenBrush edgePenBrush;
+  PenBrush edgePenBrush;
 
   QColor edgeColor = this->interpEdgeLinesColor(ColorInd());
 
@@ -1324,7 +1324,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     const auto &p2 = spring->point2()->p();
 
     if (isEdgeLinesValueWidth()) {
-      CQChartsPenBrush edgePenBrush1 = edgePenBrush;
+      PenBrush edgePenBrush1 = edgePenBrush;
 
       double w = maxLineWidth()*(widthScale_*edge->value());
 
@@ -1372,7 +1372,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     //---
 
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor pc = interpNodeStrokeColor(ColorInd());
 

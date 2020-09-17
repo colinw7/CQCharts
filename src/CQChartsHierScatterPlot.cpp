@@ -896,7 +896,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
   QColor strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);

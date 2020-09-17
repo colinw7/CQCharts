@@ -934,7 +934,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     th->max_tw_ = std::max(max_tw_, tw);
 
-    CQChartsPenBrush tpenBrush;
+    PenBrush tpenBrush;
 
     QColor tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
 
@@ -1216,7 +1216,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1241,7 +1241,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsParallelLineObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   ColorInd colorInd = calcColorInd();
 
@@ -1398,7 +1398,7 @@ draw(CQChartsPaintDevice *device)
   // set pen and brush
   ColorInd colorInd = calcColorInd();
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
 

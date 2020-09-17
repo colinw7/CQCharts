@@ -1215,7 +1215,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1296,7 +1296,7 @@ drawFg(CQChartsPaintDevice *device) const
   // TODO: separate text and line pen control
   ColorInd colorInd = calcColorInd();
 
-  CQChartsPenBrush lpenBrush;
+  PenBrush lpenBrush;
 
   QColor bg = plot_->interpPaletteColor(colorInd);
 
@@ -1313,7 +1313,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsChordArcObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   // TODO: separate segment stroke/fill control
@@ -1587,7 +1587,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set arc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1621,7 +1621,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsChordEdgeObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   auto *fromObj = this->fromObj();
   auto *toObj   = this->toObj  ();

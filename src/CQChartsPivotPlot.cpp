@@ -1227,7 +1227,7 @@ CQChartsPivotBarObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1262,7 +1262,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsPivotBarObj::
-calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc pen and brush
   ColorInd colorInd = calcColorInd();
@@ -1399,7 +1399,7 @@ draw(CQChartsPaintDevice *device)
   // draw line
   if (isLines) {
     // calc pen and brush
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor lc = plot_->interpBarFillColor(colorInd);
 
@@ -1425,7 +1425,7 @@ draw(CQChartsPaintDevice *device)
   // draw points (symbols)
   if (isPoints) {
     // calc pen and brush
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
 
@@ -1444,7 +1444,7 @@ draw(CQChartsPaintDevice *device)
   // draw line
   if (isFilled) {
     // calc pen and brush
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
@@ -1538,7 +1538,7 @@ draw(CQChartsPaintDevice *device)
   // draw points (symbols)
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot_->setPenBrush(penBrush, plot_->barPenData(colorInd), plot_->barBrushData(colorInd));
 
@@ -1650,7 +1650,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc background pen and brush and draw
-  CQChartsPenBrush bgPenBrush;
+  PenBrush bgPenBrush;
 
   bool updateState = device->isInteractive();
 
@@ -1722,7 +1722,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsPenBrush fgPenBrush;
+    PenBrush fgPenBrush;
 
     calcFgPenBrush(fgPenBrush, updateState);
 
@@ -1741,7 +1741,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsPenBrush hbgPenBrush;
+    PenBrush hbgPenBrush;
 
     plot_->setPenBrush(hbgPenBrush, PenData(false), BrushData(true, hbg));
 
@@ -1767,7 +1767,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsPenBrush vbgPenBrush;
+    PenBrush vbgPenBrush;
 
     plot_->setPenBrush(vbgPenBrush, PenData(false), BrushData(true, vbg));
 
@@ -1782,7 +1782,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsPivotCellObj::
-calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const
+calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const
 {
   // get background color
   ColorInd colorInd = calcColorInd();
@@ -1798,7 +1798,7 @@ calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const
 
 void
 CQChartsPivotCellObj::
-calcFgPenBrush(CQChartsPenBrush &fgPenBrush, bool /*updateState*/) const
+calcFgPenBrush(PenBrush &fgPenBrush, bool /*updateState*/) const
 {
   // get foreground color
   ColorInd colorInd = calcColorInd();
@@ -1824,12 +1824,12 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
 void
 CQChartsPivotCellObj::
-writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &) const
+writeScriptGC(CQChartsScriptPaintDevice *device, const PenBrush &) const
 {
   device->setStrokeStyleName("bgStrokeColor");
   device->setFillStyleName  ("bgFillColor");
 
-  CQChartsPenBrush bgPenBrush;
+  PenBrush bgPenBrush;
 
   calcBgPenBrush(bgPenBrush, /*updateState*/ false);
 
@@ -1840,7 +1840,7 @@ writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &) const
   device->setStrokeStyleName("fgStrokeColor");
   device->setFillStyleName  ("fgFillColor");
 
-  CQChartsPenBrush fgPenBrush;
+  PenBrush fgPenBrush;
 
   calcFgPenBrush(fgPenBrush, /*updateState*/ false);
 
@@ -1881,7 +1881,7 @@ fillBrush() const
   if (plot_->isSetHidden(ig_.i))
     fc = CQChartsUtil::blendColors(fc, key_->interpBgColor(), key_->hiddenAlpha());
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   plot->setBrush(penBrush,
     BrushData(plot->isBarFilled(), fc, plot->barFillAlpha(), plot->barFillPattern()));
