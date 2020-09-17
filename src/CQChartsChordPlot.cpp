@@ -417,9 +417,9 @@ initPathObjs() const
 
 void
 CQChartsChordPlot::
-addPathValue(const QStringList &pathStrs, double value) const
+addPathValue(const PathData &pathData) const
 {
-  int n = pathStrs.length();
+  int n = pathData.pathStrs.length();
   assert(n > 0);
 
   auto *th = const_cast<CQChartsChordPlot *>(this);
@@ -428,32 +428,32 @@ addPathValue(const QStringList &pathStrs, double value) const
 
   QChar separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  QString path1 = pathStrs[0];
+  QString path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathStrs[i];
+    QString path2 = path1 + separator + pathData.pathStrs[i];
 
     auto &srcData  = findNameData(path1, QModelIndex());
     auto &destData = findNameData(path2, QModelIndex());
 
-    srcData .setLabel(pathStrs[i - 1]);
-    destData.setLabel(pathStrs[i    ]);
+    srcData .setLabel(pathData.pathStrs[i - 1]);
+    destData.setLabel(pathData.pathStrs[i    ]);
 
     srcData .setDepth(i - 1);
     destData.setDepth(i);
 
     if (i < n - 1) {
       if (! srcData.hasTo(destData.from())) {
-        addEdge(srcData, destData, value, /*symmetric*/true);
+        addEdge(srcData, destData, pathData.value, /*symmetric*/true);
 
         destData.setParent(srcData.from());
       }
     }
     else {
-      addEdge(srcData, destData, value, /*symmetric*/true);
+      addEdge(srcData, destData, pathData.value, /*symmetric*/true);
 
       destData.setParent(srcData.from());
-      destData.setValue (OptReal(value));
+      destData.setValue (OptReal(pathData.value));
     }
 
     path1 = path2;

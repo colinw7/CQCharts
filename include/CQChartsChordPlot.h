@@ -451,7 +451,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   bool initPathObjs() const;
 
-  void addPathValue(const QStringList &, double) const override;
+  void addPathValue(const PathData &pathData) const override;
 
   void propagatePathValues();
 

@@ -72,6 +72,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(double minValue  READ minValue    WRITE setMinValue )
 
  public:
+  using ColumnArray = std::vector<Column>;
+
+ public:
   CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model);
  ~CQChartsConnectionPlot();
 
@@ -128,6 +131,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  const ColumnArray &modelColumns() const { return modelColumns_; }
+
+  //---
+
   //! get/set separator
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s);
@@ -175,17 +182,6 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
-  //! hierarchical connection data
-  struct HierConnectionData {
-    ModelIndex  parentLinkInd;
-    QStringList linkStrs;
-    QString     parentStr;
-    double      total      { 0.0 };
-    double      childTotal { 0.0 };
-  };
-
-  using HierConnectionDataList = std::vector<HierConnectionData>;
-
   //! group data
   struct GroupData {
     QVariant value;
@@ -202,6 +198,8 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
     double ivalue() const { return (isValid() ? double(ig)/ng : 0.0); }
   };
+
+  //---
 
   /*!
    * \brief Table Connection Data
@@ -341,20 +339,16 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   };
 
  protected:
-  //! link connection data
-  struct LinkConnectionData {
-    QString    srcStr;
-    QString    destStr;
-    double     value { 0.0 };
-    int        depth { -1 };
-    GroupData  groupData;
-    ModelIndex groupModelInd;
-    ModelIndex linkModelInd;
-    ModelIndex valueModelInd;
-    ModelIndex nameModelInd;
+  //! hierarchical connection data
+  struct HierConnectionData {
+    ModelIndex  parentLinkInd;
+    QStringList linkStrs;
+    QString     parentStr;
+    double      total      { 0.0 };
+    double      childTotal { 0.0 };
   };
 
-  //---
+  using HierConnectionDataList = std::vector<HierConnectionData>;
 
   bool initHierObjs() const;
 
@@ -364,6 +358,20 @@ class CQChartsConnectionPlot : public CQChartsPlot {
                                              const HierConnectionData &destHierData) const = 0;
 
   //---
+
+  //! link connection data
+  struct LinkConnectionData {
+    QString    srcStr;        //!< source string
+    QString    destStr;       //!< destination string
+    double     value { 0.0 }; //!< value
+    int        depth { -1 };  //!< depth
+    GroupData  groupData;     //!< group data
+    ModelIndex groupModelInd; //!< group model index
+    ModelIndex linkModelInd;  //!< link model index
+    ModelIndex valueModelInd; //!< value model index
+    ModelIndex nameModelInd;  //!< name model index
+    ModelIndex depthModelInd; //!< depth model index
+  };
 
   bool initLinkObjs() const;
 
@@ -380,6 +388,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     int         node    { -1 };
     QString     name;
     GroupData   groupData;
+    ModelIndex  groupModelInd;
+    ModelIndex  nodeModelInd;
+    ModelIndex  connectionsModelInd;
+    ModelIndex  nameModelInd;
     double      total   { 0.0 };
     Connections connections;
   };
@@ -394,14 +406,25 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  struct PathData {
+    QStringList pathStrs;
+    double      value { 1.0 };
+    ModelIndex  pathModelInd;
+    ModelIndex  valueModelInd;
+  };
+
   bool initPathObjs() const;
 
-  virtual void addPathValue(const QStringList &, double) const { }
+  virtual void addPathValue(const PathData &) const { }
 
   //---
 
   //! from/to connection data
   struct FromToData {
+    ModelIndex         fromModelInd;      //!< from model index
+    ModelIndex         toModelInd;        //!< to model index
+    ModelIndex         valueModelInd;     //!< value model index
+    ModelIndex         depthModelInd;     //!< depth model index
     int                depth      { -1 }; //!< source node depth
     CQChartsNameValues nameValues;        //!< node/edge attributes
     GroupData          groupData;         //!< grouping data
@@ -436,19 +459,21 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   };
 
   // columns
-  Column     nodeColumn_;                                 //!< connection node column
-  Column     connectionsColumn_;                          //!< connections column
-  ColumnType connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
-  Column     linkColumn_;                                 //!< link column
-  Column     pathColumn_;                                 //!< path column
-  Column     fromColumn_;                                 //!< from column
-  Column     toColumn_;                                   //!< to column
-  Column     valueColumn_;                                //!< value column
-  Column     depthColumn_;                                //!< depth column
-  Column     attributesColumn_;                           //!< attributes column
-  Column     groupColumn_;                                //!< group column
-  ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
-  Column     nameColumn_;                                 //!< name column
+  Column      nodeColumn_;                                 //!< connection node column
+  Column      connectionsColumn_;                          //!< connections column
+  ColumnType  connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
+  Column      linkColumn_;                                 //!< link column
+  Column      pathColumn_;                                 //!< path column
+  Column      fromColumn_;                                 //!< from column
+  Column      toColumn_;                                   //!< to column
+  Column      valueColumn_;                                //!< value column
+  Column      depthColumn_;                                //!< depth column
+  Column      attributesColumn_;                           //!< attributes column
+  Column      groupColumn_;                                //!< group column
+  ColumnType  linkColumnType_ { ColumnType::NONE };        //!< link column type
+  Column      nameColumn_;                                 //!< name column
+
+  mutable ColumnArray modelColumns_; //!< used columns
 
   // options
   QString separator_;           //!< separator

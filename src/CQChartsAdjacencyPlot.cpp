@@ -389,9 +389,9 @@ initPathObjs() const
 
 void
 CQChartsAdjacencyPlot::
-addPathValue(const QStringList &pathStrs, double value) const
+addPathValue(const PathData &pathData) const
 {
-  int n = pathStrs.length();
+  int n = pathData.pathStrs.length();
   assert(n > 0);
 
   auto *th = const_cast<CQChartsAdjacencyPlot *>(this);
@@ -400,16 +400,16 @@ addPathValue(const QStringList &pathStrs, double value) const
 
   QChar separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  auto path1 = pathStrs[0];
+  auto path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    auto path2 = path1 + separator + pathStrs[i];
+    auto path2 = path1 + separator + pathData.pathStrs[i];
 
     auto *srcNode  = findNode(path1);
     auto *destNode = findNode(path2);
 
-    srcNode ->setLabel(pathStrs[i - 1]);
-    destNode->setLabel(pathStrs[i    ]);
+    srcNode ->setLabel(pathData.pathStrs[i - 1]);
+    destNode->setLabel(pathData.pathStrs[i    ]);
 
     srcNode->setDepth(i - 1);
     srcNode->setGroup(i - 1);
@@ -425,10 +425,10 @@ addPathValue(const QStringList &pathStrs, double value) const
       }
     }
     else {
-      srcNode->addEdge(destNode, OptReal(value));
+      srcNode->addEdge(destNode, OptReal(pathData.value));
 
       destNode->setParent(srcNode);
-      destNode->setValue (OptReal(value));
+      destNode->setValue (OptReal(pathData.value));
     }
 
     path1 = path2;

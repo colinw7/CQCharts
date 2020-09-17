@@ -688,9 +688,9 @@ initPathObjs() const
 
 void
 CQChartsSankeyPlot::
-addPathValue(const QStringList &pathStrs, double value) const
+addPathValue(const PathData &pathData) const
 {
-  int n = pathStrs.length();
+  int n = pathData.pathStrs.length();
   assert(n > 0);
 
   auto *th = const_cast<CQChartsSankeyPlot *>(this);
@@ -699,16 +699,16 @@ addPathValue(const QStringList &pathStrs, double value) const
 
   QChar separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  QString path1 = pathStrs[0];
+  QString path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathStrs[i];
+    QString path2 = path1 + separator + pathData.pathStrs[i];
 
     auto *srcNode  = findNode(path1);
     auto *destNode = findNode(path2);
 
-    srcNode ->setLabel(pathStrs[i - 1]);
-    destNode->setLabel(pathStrs[i    ]);
+    srcNode ->setLabel(pathData.pathStrs[i - 1]);
+    destNode->setLabel(pathData.pathStrs[i    ]);
 
     srcNode ->setDepth(i - 1);
     destNode->setDepth(i    );
@@ -726,10 +726,20 @@ addPathValue(const QStringList &pathStrs, double value) const
     else {
       auto *edge = createEdge(OptReal(), srcNode, destNode);
 
+      auto addModelInd = [&](const ModelIndex &modelInd) {
+        if (modelInd.isValid())
+          edge->addModelInd(modelInd);
+      };
+
+      addModelInd(pathData.pathModelInd );
+      addModelInd(pathData.valueModelInd);
+
+      //---
+
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
 
-      destNode->setValue(OptReal(value));
+      destNode->setValue(OptReal(pathData.value));
     }
 
     path1 = path2;
@@ -841,7 +851,21 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     if (fromToData.depth >= 0)
       destNode->setDepth(fromToData.depth + 1);
 
+    //---
+
     auto *edge = createEdge(OptReal(value), srcNode, destNode);
+
+    auto addModelInd = [&](const ModelIndex &modelInd) {
+      if (modelInd.isValid())
+        edge->addModelInd(modelInd);
+    };
+
+    addModelInd(fromToData.fromModelInd );
+    addModelInd(fromToData.toModelInd   );
+    addModelInd(fromToData.valueModelInd);
+    addModelInd(fromToData.depthModelInd);
+
+    //---
 
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);
@@ -889,11 +913,27 @@ void
 CQChartsSankeyPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
+  // each line is from/to and optional value and group
   auto *srcNode  = findNode(linkConnectionData.srcStr);
   auto *destNode = findNode(linkConnectionData.destStr);
 //assert(srcNode != destNode);
 
+  //---
+
   auto *edge = createEdge(OptReal(linkConnectionData.value), srcNode, destNode);
+
+  auto addModelInd = [&](const ModelIndex &modelInd) {
+    if (modelInd.isValid())
+      edge->addModelInd(modelInd);
+  };
+
+  addModelInd(linkConnectionData.groupModelInd);
+  addModelInd(linkConnectionData.linkModelInd );
+  addModelInd(linkConnectionData.valueModelInd);
+  addModelInd(linkConnectionData.nameModelInd );
+  addModelInd(linkConnectionData.depthModelInd);
+
+  //---
 
   srcNode ->addDestEdge(edge);
   destNode->addSrcEdge (edge);
@@ -934,6 +974,8 @@ void
 CQChartsSankeyPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
+  // each line of model is node and lisk of connections
+
   QString srcStr = QString("%1").arg(id);
 
   auto *srcNode = findNode(srcStr);
@@ -945,12 +987,30 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   else
     srcNode->setGroup(-1);
 
+  //---
+
+  auto addModelInd = [&](const ModelIndex &modelInd) {
+    if (modelInd.isValid())
+      srcNode->addModelInd(modelInd);
+  };
+
+  addModelInd(connectionsData.groupModelInd);
+  addModelInd(connectionsData.nodeModelInd);
+  addModelInd(connectionsData.connectionsModelInd);
+  addModelInd(connectionsData.nameModelInd);
+
+  //---
+
   for (const auto &connection : connectionsData.connections) {
     QString destStr = QString("%1").arg(connection.node);
 
     auto *destNode = findNode(destStr);
 
+    //---
+
     auto *edge = createEdge(OptReal(connection.value), srcNode, destNode);
+
+    //---
 
     srcNode ->addDestEdge(edge);
     destNode->addSrcEdge (edge);
@@ -1393,16 +1453,10 @@ createObjFromNode(Node *node) const
 
   auto *nodeObj = createNodeObj(node->rect(), node, ig, iv);
 
-  nodeObj->setHierName(node->str ());
-  nodeObj->setName    (node->name());
+  nodeObj->setHierName(node->str());
 
-  if (node->hasValue())
-    nodeObj->setValue(node->value().real());
-
-  nodeObj->setDepth(node->depth());
-
-  if (node->color().isValid())
-    nodeObj->setColor(node->color());
+  for (const auto &modelInd : node->modelInds())
+    nodeObj->addModelInd(modelIndex(modelInd));
 
   node->setObj(nodeObj);
 
@@ -1460,10 +1514,18 @@ addEdgeObj(Edge *edge) const
   double xm = bbox_.getHeight()*edgeMargin_;
   double ym = bbox_.getWidth ()*edgeMargin_;
 
-  BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
-            bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+  BBox nodeRect;
+
+  nodeRect += edge->srcNode ()->rect();
+  nodeRect += edge->destNode()->rect();
+
+  BBox rect(nodeRect.getXMin() - xm, nodeRect.getYMin() - ym,
+            nodeRect.getXMax() + xm, nodeRect.getYMax() + ym);
 
   auto *edgeObj = createEdgeObj(rect, edge);
+
+  for (const auto &modelInd : edge->modelInds())
+    edgeObj->addModelInd(modelIndex(modelInd));
 
   edge->setObj (edgeObj);
   edge->setLine(isEdgeLine());
@@ -2726,29 +2788,71 @@ CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
 CQChartsSankeyNodeObj::
 ~CQChartsSankeyNodeObj()
 {
-  if (node_)
-    node_->setObj(nullptr);
+  if (node())
+    node()->setObj(nullptr);
+}
+
+QString
+CQChartsSankeyNodeObj::
+name() const
+{
+  return node()->name();
+}
+
+void
+CQChartsSankeyNodeObj::
+setName(const QString &s)
+{
+  node()->setName(s);
 }
 
 double
 CQChartsSankeyNodeObj::
 value() const
 {
-  return node_->value().realOr(0.0);
+  return node()->value().realOr(0.0);
 }
 
 void
 CQChartsSankeyNodeObj::
 setValue(double r)
 {
-  node_->setValue(CQChartsSankeyPlotNode::OptReal(r));
+  node()->setValue(CQChartsSankeyPlotNode::OptReal(r));
+}
+
+int
+CQChartsSankeyNodeObj::
+depth() const
+{
+  return node()->depth();
+}
+
+void
+CQChartsSankeyNodeObj::
+setDepth(int depth)
+{
+  node()->setDepth(depth);
+}
+
+CQChartsColor
+CQChartsSankeyNodeObj::
+color() const
+{
+  return node()->color();
+}
+
+void
+CQChartsSankeyNodeObj::
+setColor(const CQChartsColor &c)
+{
+  node()->setColor(c);
 }
 
 void
 CQChartsSankeyNodeObj::
 placeEdges(bool reset)
 {
-  node_->placeEdges(reset);
+  node()->placeEdges(reset);
 }
 
 QString
@@ -2900,6 +3004,14 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 }
 
 //---
+
+void
+CQChartsSankeyNodeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : plot_->modelColumns())
+    addColumnSelectIndex(inds, c);
+}
 
 CQChartsSankeyNodeObj::PlotObjs
 CQChartsSankeyNodeObj::
@@ -3315,6 +3427,16 @@ CQChartsSankeyEdgeObj::
 inside(const Point &p) const
 {
   return path_.contains(p.qpoint());
+}
+
+//---
+
+void
+CQChartsSankeyEdgeObj::
+getObjSelectIndices(Indices &inds) const
+{
+  for (const auto &c : plot_->modelColumns())
+    addColumnSelectIndex(inds, c);
 }
 
 CQChartsSankeyEdgeObj::PlotObjs

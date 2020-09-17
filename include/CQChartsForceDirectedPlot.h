@@ -189,7 +189,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   bool initPathObjs() const;
 
-  void addPathValue(const QStringList &pathStrs, double value) const override;
+  void addPathValue(const PathData &pathData) const override;
 
   void propagatePathValues();
 

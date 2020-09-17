@@ -544,9 +544,9 @@ initPathObjs() const
 
 void
 CQChartsForceDirectedPlot::
-addPathValue(const QStringList &pathStrs, double value) const
+addPathValue(const PathData &pathData) const
 {
-  int n = pathStrs.length();
+  int n = pathData.pathStrs.length();
   assert(n > 0);
 
   auto *th = const_cast<CQChartsForceDirectedPlot *>(this);
@@ -555,21 +555,21 @@ addPathValue(const QStringList &pathStrs, double value) const
 
   QChar separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  QString path1 = pathStrs[0];
+  QString path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathStrs[i];
+    QString path2 = path1 + separator + pathData.pathStrs[i];
 
     auto &srcConnectionsData  = th->getConnections(path1);
     auto &destConnectionsData = th->getConnections(path2);
 
     srcConnectionsData.name  = path1;
-    srcConnectionsData.label = pathStrs[i - 1];
+    srcConnectionsData.label = pathData.pathStrs[i - 1];
     srcConnectionsData.depth = i - 1;
     srcConnectionsData.group = srcConnectionsData.depth;
 
     destConnectionsData.name  = path2;
-    destConnectionsData.label = pathStrs[i];
+    destConnectionsData.label = pathData.pathStrs[i];
     destConnectionsData.depth = i;
     destConnectionsData.group = destConnectionsData.depth;
 
@@ -597,12 +597,12 @@ addPathValue(const QStringList &pathStrs, double value) const
       Connection connection;
 
       connection.node  = destConnectionsData.node;
-      connection.value = OptReal(value);
+      connection.value = OptReal(pathData.value);
 
       srcConnectionsData.connections.push_back(connection);
 
       destConnectionsData.parentId = srcConnectionsData.node;
-      destConnectionsData.value    = OptReal(value);
+      destConnectionsData.value    = OptReal(pathData.value);
     }
 
     path1 = path2;
