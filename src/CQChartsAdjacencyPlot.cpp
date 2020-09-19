@@ -494,16 +494,15 @@ initFromToObjs() const
 
 void
 CQChartsAdjacencyPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const FromToData &fromToData) const
+addFromToValue(const FromToData &fromToData) const
 {
-  auto *srcNode = findNode(fromStr);
+  auto *srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth > 0)
     srcNode->setDepth(fromToData.depth);
 
   // Just node
-  if (toStr == "") {
+  if (fromToData.toStr == "") {
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       auto value = nv.second.toString();
 
@@ -516,15 +515,15 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     }
   }
   else {
-    if (fromStr == toStr)
+    if (fromToData.fromStr == fromToData.toStr)
       return;
 
-    auto *destNode = findNode(toStr);
+    auto *destNode = findNode(fromToData.toStr);
 
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);
 
-    srcNode->addEdge(destNode, OptReal(value));
+    srcNode->addEdge(destNode, fromToData.value);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       auto value = nv.second.toString();

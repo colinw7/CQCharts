@@ -9,12 +9,15 @@ class CQChartsModelExprMatch;
 //! plot model visitor
 class CQChartsPlotModelVisitor : public CQChartsModelVisitor {
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotModelVisitor();
 
   virtual ~CQChartsPlotModelVisitor();
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(const CQChartsPlot *p) { plot_ = p; }
+  const Plot *plot() const { return plot_; }
+  void setPlot(const Plot *p) { plot_ = p; }
 
   void initVisit() override;
   void termVisit() override;
@@ -22,7 +25,7 @@ class CQChartsPlotModelVisitor : public CQChartsModelVisitor {
   State preVisit(const QAbstractItemModel *model, const VisitData &data) override;
 
  private:
-  const CQChartsPlot*     plot_ { nullptr };
+  const Plot*             plot_ { nullptr };
   int                     vrow_ { 0 };
   CQChartsModelExprMatch* expr_ { nullptr };
 };

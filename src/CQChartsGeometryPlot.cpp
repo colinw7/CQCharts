@@ -577,6 +577,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // get geometry custom color
+  // TODO: just call colorColumnColor
   if (colorColumn().isValid()) {
     ModelIndex colorInd(th, data.row, colorColumn(), data.parent);
 

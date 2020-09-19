@@ -527,7 +527,7 @@ class CQChartsColumnKey : public CQChartsPlotKey {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
-  CQChartsColumnKey(CQChartsPlot *plot);
+  CQChartsColumnKey(Plot *plot);
 
   const CQChartsColumn &column() const { return column_; }
   void setColumn(const CQChartsColumn &c);

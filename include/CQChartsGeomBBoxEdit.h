@@ -31,7 +31,7 @@ class CQChartsGeomBBoxEdit : public QFrame {
   const CQChartsPlot *plot() const { return plot_; }
   void setPlot(CQChartsPlot *p);
 
-  void setRegion(const CQChartsGeom::BBox &bbox);
+  void setRegion(const BBox &bbox);
 
  private:
   void init(const BBox &value);

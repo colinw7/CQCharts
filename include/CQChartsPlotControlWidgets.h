@@ -31,10 +31,13 @@ class CQChartsPlotControlFrame : public QFrame {
   Q_PROPERTY(bool opAnd   READ isAnd   WRITE setAnd  )
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsPlotControlFrame(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p) { plot_ = p; }
+  Plot *plot() const { return plot_; }
+  void setPlot(Plot *p) { plot_ = p; }
 
   bool isEqual() const;
   void setEqual(bool b);
@@ -63,12 +66,12 @@ class CQChartsPlotControlFrame : public QFrame {
   void controlsChanged();
 
  private:
-  void addPlotControls(CQChartsPlot *plot);
+  void addPlotControls(Plot *plot);
 
  private:
   using IFaces = std::vector<CQChartsPlotControlIFace *>;
 
-  CQChartsPlot* plot_             { nullptr }; //!< plot
+  Plot*         plot_             { nullptr }; //!< plot
   QCheckBox*    equalCheck_       { nullptr }; //!< equal check
   QCheckBox*    andCheck_         { nullptr }; //!< and check
   QFrame*       controlArea_      { nullptr }; //!< controls area
@@ -89,14 +92,18 @@ class CQChartsPlotControlIFace : public QFrame {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
+  using Plot   = CQChartsPlot;
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsPlotControlIFace(QWidget *parent=nullptr);
-  CQChartsPlotControlIFace(CQChartsPlot *plot, const CQChartsColumn &column);
+  CQChartsPlotControlIFace(Plot *plot, const Column &column);
 
-  const CQChartsPlot *plot() const { return plot_; }
-  virtual void setPlot(CQChartsPlot *p) { plot_ = p; }
+  const Plot *plot() const { return plot_; }
+  virtual void setPlot(Plot *p) { plot_ = p; }
 
-  const CQChartsColumn &column() const { return column_; }
-  virtual void setColumn(const CQChartsColumn &c) { column_ = c; }
+  const Column &column() const { return column_; }
+  virtual void setColumn(const Column &c) { column_ = c; }
 
   QRadioButton *radio() const { return radio_; }
 
@@ -105,10 +112,10 @@ class CQChartsPlotControlIFace : public QFrame {
   virtual QString filterStr(const QString &cmpStr) const = 0;
 
  protected:
-  CQChartsPlot*  plot_  { nullptr };
-  CQChartsColumn column_;
-  QLabel*        label_ { nullptr };
-  QRadioButton*  radio_ { nullptr };
+  Plot*         plot_  { nullptr };
+  Column        column_;
+  QLabel*       label_ { nullptr };
+  QRadioButton* radio_ { nullptr };
 };
 
 //---
@@ -122,9 +129,9 @@ class CQChartsPlotRealControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotRealControl(QWidget *parent=nullptr);
-  CQChartsPlotRealControl(CQChartsPlot *plot, const CQChartsColumn &column);
+  CQChartsPlotRealControl(Plot *plot, const CQChartsColumn &column);
 
-  void setPlot(CQChartsPlot *p) override {
+  void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
   void setColumn(const CQChartsColumn &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
@@ -154,9 +161,9 @@ class CQChartsPlotIntControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotIntControl(QWidget *parent=nullptr);
-  CQChartsPlotIntControl(CQChartsPlot *plot, const CQChartsColumn &column);
+  CQChartsPlotIntControl(Plot *plot, const CQChartsColumn &column);
 
-  void setPlot(CQChartsPlot *p) override {
+  void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
   void setColumn(const CQChartsColumn &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
@@ -186,9 +193,9 @@ class CQChartsPlotTimeControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotTimeControl(QWidget *parent=nullptr);
-  CQChartsPlotTimeControl(CQChartsPlot *plot, const CQChartsColumn &column);
+  CQChartsPlotTimeControl(Plot *plot, const CQChartsColumn &column);
 
-  void setPlot(CQChartsPlot *p) override {
+  void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
   void setColumn(const CQChartsColumn &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
@@ -218,9 +225,9 @@ class CQChartsPlotValueControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotValueControl(QWidget *parent=nullptr);
-  CQChartsPlotValueControl(CQChartsPlot *plot, const CQChartsColumn &column);
+  CQChartsPlotValueControl(Plot *plot, const CQChartsColumn &column);
 
-  void setPlot(CQChartsPlot *p) override {
+  void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
   void setColumn(const CQChartsColumn &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }

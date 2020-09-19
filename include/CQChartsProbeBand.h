@@ -20,23 +20,27 @@ class CQChartsProbeBand : public QObject {
   Q_PROPERTY(QFont font READ font WRITE setFont)
 
  public:
-  CQChartsProbeBand(CQChartsView *view);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsProbeBand(View *view);
  ~CQChartsProbeBand();
 
   const QFont &font() const { return font_; }
   void setFont(const QFont &f) { font_ = f; }
 
-  void showVertical  (CQChartsPlot *plot, const QString &text, double px, double py1, double py2);
-  void showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, double py);
+  void showVertical  (Plot *plot, const QString &text, double px, double py1, double py2);
+  void showHorizontal(Plot *plot, const QString &text, double px1, double px2, double py);
 
   void hide();
 
  private:
-  CQChartsView* view_  { nullptr };
-  QRubberBand*  vband_ { nullptr };
-  QRubberBand*  hband_ { nullptr };
-  QLabel*       tip_   { nullptr };
-  QFont         font_;
+  View*        view_  { nullptr };
+  QRubberBand* vband_ { nullptr };
+  QRubberBand* hband_ { nullptr };
+  QLabel*      tip_   { nullptr };
+  QFont        font_;
 };
 
 #endif

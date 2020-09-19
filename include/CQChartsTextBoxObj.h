@@ -20,8 +20,12 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-  CQChartsTextBoxObj(CQChartsView *view);
-  CQChartsTextBoxObj(CQChartsPlot *plot);
+   using View = CQChartsView;
+   using Plot = CQChartsPlot;
+
+ public:
+  CQChartsTextBoxObj(View *view);
+  CQChartsTextBoxObj(Plot *plot);
 
   virtual ~CQChartsTextBoxObj() { }
 

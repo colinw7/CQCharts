@@ -40,11 +40,15 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsView *view);
-  CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsPlot *plot);
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
 
-  CQChartsView *view() const { return view_; }
-  CQChartsPlot *plot() const { return plot_; }
+ public:
+  CQChartsCreateAnnotationDlg(QWidget *parent, View *view);
+  CQChartsCreateAnnotationDlg(QWidget *parent, Plot *plot);
+
+  View *view() const { return view_; }
+  Plot *plot() const { return plot_; }
 
  private:
   struct Widgets {
@@ -211,8 +215,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQChartsView*     view_             { nullptr }; //!< associated view
-  CQChartsPlot*     plot_             { nullptr }; //!< associated plot
+  View*             view_             { nullptr }; //!< associated view
+  Plot*             plot_             { nullptr }; //!< associated plot
   QComboBox*        typeCombo_        { nullptr }; //!< type combo
   CQChartsLineEdit* idEdit_           { nullptr }; //!< id edit
   CQChartsLineEdit* tipEdit_          { nullptr }; //!< tip edit

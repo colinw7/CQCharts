@@ -109,12 +109,16 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsArrowDataEditPreview(CQChartsArrowDataEdit *edit);
 
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsArrowDataEdit *edit_ { nullptr }; //!< arrow data edit
@@ -130,10 +134,14 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
  */
 class CQChartsArrowDataPropertyViewType : public CQChartsPropertyViewType {
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

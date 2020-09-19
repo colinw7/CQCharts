@@ -139,6 +139,13 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(QString name READ name WRITE setName)
 
   // generic columns and control
+  // . idColumn used as unique id for row (tcl row lookup can use)
+  // . tipColumns/noTipColumns used for object tooltips for data in extra rows
+  // . visibleColumn used for individual row hide in model traversal
+  // . colorColumn used for custom color for data on row
+  // . fontColumn used for custom font for data on row
+  // . fontColumn used for custom image for data on row
+  // . controlColumns used for controls for filters on data in specified column
   Q_PROPERTY(CQChartsColumn  idColumn       READ idColumn       WRITE setIdColumn      )
   Q_PROPERTY(CQChartsColumns tipColumns     READ tipColumns     WRITE setTipColumns    )
   Q_PROPERTY(CQChartsColumns noTipColumns   READ noTipColumns   WRITE setNoTipColumns  )
@@ -519,6 +526,8 @@ class CQChartsPlot : public CQChartsObj,
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
+  double dataScale() const;
+
   double dataScaleX() const;
   void setDataScaleX(double r);
 
@@ -534,6 +543,7 @@ class CQChartsPlot : public CQChartsObj,
   const ZoomData &zoomData() const { return zoomData_; }
   void setZoomData(const ZoomData &zoomData);
 
+  void updateDataScale(double r);
   void updateDataScaleX(double r);
   void updateDataScaleY(double r);
 
@@ -1909,6 +1919,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void zoomTo(const BBox &bbox);
   virtual void unzoomTo(const BBox &bbox);
+
+  virtual void centerAt(const Point &c);
 
   //---
 

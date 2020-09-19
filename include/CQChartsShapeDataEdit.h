@@ -62,13 +62,17 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsShapeData data READ data WRITE setData)
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsShapeDataEdit(QWidget *parent=nullptr, bool tabbed=false);
 
   const CQChartsShapeData &data() const { return data_; }
   void setData(const CQChartsShapeData &d);
 
-  void setPlot(CQChartsPlot *plot) override;
-  void setView(CQChartsView *view) override;
+  void setPlot(Plot *plot) override;
+  void setView(View *view) override;
 
   void setTitle(const QString &title);
 
@@ -86,8 +90,8 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsPlot*                 plot_       { nullptr };
-  CQChartsView*                 view_       { nullptr };
+  Plot*                         plot_       { nullptr };
+  View*                         view_       { nullptr };
   bool                          tabbed_     { false };
   CQChartsShapeData             data_;
   CQChartsFillDataEdit*         fillEdit_   { nullptr };
@@ -105,12 +109,16 @@ class CQChartsShapeDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsShapeDataEditPreview(CQChartsShapeDataEdit *edit);
 
   void draw(QPainter *painter) override;
 
   static void draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
-                   CQChartsPlot *plot, CQChartsView *view);
+                   Plot *plot, View *view);
 
  private:
   CQChartsShapeDataEdit *edit_ { nullptr };
@@ -126,10 +134,14 @@ class CQChartsShapeDataEditPreview : public CQChartsEditPreview {
  */
 class CQChartsShapeDataPropertyViewType : public CQChartsPropertyViewType {
  public:
+  using View = CQChartsView;
+  using Plot = CQChartsPlot;
+
+ public:
   CQPropertyViewEditorFactory *getEditor() const override;
 
   void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
-                   CQChartsPlot *plot, CQChartsView *view) override;
+                   Plot *plot, View *view) override;
 
   QString tip(const QVariant &value) const override;
 

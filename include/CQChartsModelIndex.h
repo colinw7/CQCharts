@@ -18,24 +18,28 @@ class CQChartsModelIndex {
   static int metaTypeId;
 
  public:
+  using Plot   = CQChartsPlot;
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsModelIndex() = default;
 
-  //CQChartsModelIndex(int row, const CQChartsColumn &column,
+  //CQChartsModelIndex(int row, const Column &column,
   //                   const QModelIndex &parent=QModelIndex());
 
-  CQChartsModelIndex(CQChartsPlot *plot, int row, const CQChartsColumn &column,
+  CQChartsModelIndex(Plot *plot, int row, const Column &column,
                      const QModelIndex &parent=QModelIndex());
 
   //---
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p) { plot_ = p; }
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p) { plot_ = p; }
 
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &v) { column_ = v; }
+  const Column &column() const { return column_; }
+  void setColumn(const Column &v) { column_ = v; }
 
   const QModelIndex &parent() const { return parent_; }
   void setParent(const QModelIndex &v) { parent_ = v; }
@@ -55,12 +59,12 @@ class CQChartsModelIndex {
   bool fromString(const QString &s);
 
  private:
-  CQChartsPlot*  plot_       { nullptr };
-  int            row_        { -1 };
-  CQChartsColumn column_;
-  QModelIndex    parent_;
-  int            cellCol_    { -1 };
-  bool           normalized_ { false };
+  Plot*       plot_       { nullptr };
+  int         row_        { -1 };
+  Column      column_;
+  QModelIndex parent_;
+  int         cellCol_    { -1 };
+  bool        normalized_ { false };
 };
 
 //---

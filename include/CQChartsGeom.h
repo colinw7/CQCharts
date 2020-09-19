@@ -1065,11 +1065,11 @@ class Range {
 
   //---
 
-  CQChartsGeom::BBox bbox() const {
+  BBox bbox() const {
      if (isSet())
-      return CQChartsGeom::BBox(xmin(), ymin(), xmax(), ymax());
+      return BBox(xmin(), ymin(), xmax(), ymax());
     else
-      return CQChartsGeom::BBox();
+      return BBox();
   }
 
 #if 0
@@ -1235,9 +1235,6 @@ namespace CQChartsGeom {
  */
 class Polygon {
  public:
-  using Point = CQChartsGeom::Point;
-
- public:
   Polygon() = default;
 
   explicit Polygon(const QPolygonF &qpoly) :
@@ -1372,6 +1369,8 @@ class MinMax {
   }
 
   bool isSet() const { return set_; }
+
+  void reset() { set_ = false; }
 
   const T &min() const { assert(set_); return min_; }
   const T &max() const { assert(set_); return max_; }

@@ -18,15 +18,20 @@ class CQChartsPositionEdit : public QFrame {
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
+  using Plot     = CQChartsPlot;
+  using Position = CQChartsPosition;
+  using Point    = CQChartsGeom::Point;
+
+ public:
   CQChartsPositionEdit(QWidget *parent=nullptr);
 
-  const CQChartsPosition &position() const { return position_; }
-  void setPosition(const CQChartsPosition &pos);
+  const Position &position() const { return position_; }
+  void setPosition(const Position &pos);
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot);
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *plot);
 
-  void setRegion(const CQChartsGeom::Point &p);
+  void setRegion(const Point &p);
 
  signals:
   void positionChanged();
@@ -46,8 +51,8 @@ class CQChartsPositionEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsPosition       position_;              //!< position data
-  CQChartsPlot*          plot_      { nullptr }; //!< associated plot
+  Position               position_;              //!< position data
+  Plot*                  plot_      { nullptr }; //!< associated plot
   CQChartsGeomPointEdit* edit_      { nullptr }; //!< position edit
   CQChartsUnitsEdit*     unitsEdit_ { nullptr }; //!< units edit
   bool                   connected_ { false };   //!< is connected

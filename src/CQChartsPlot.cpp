@@ -1337,6 +1337,13 @@ resetDataRange(bool updateRange, bool updateObjs)
 
 double
 CQChartsPlot::
+dataScale() const
+{
+  return CMathUtil::avg(dataScaleX(), dataScaleY());
+}
+
+double
+CQChartsPlot::
 dataScaleX() const
 {
   if (parentPlot())
@@ -1446,6 +1453,16 @@ CQChartsPlot::
 setZoomData(const ZoomData &zoomData)
 {
   zoomData_ = zoomData;
+
+  applyDataRangeAndDraw();
+}
+
+void
+CQChartsPlot::
+updateDataScale(double r)
+{
+  setDataScaleX(r);
+  setDataScaleY(r);
 
   applyDataRangeAndDraw();
 }
@@ -7070,6 +7087,7 @@ initColorColumnData()
   colorColumnData_.valid = true;
 }
 
+// get color from colorColumn at specified row
 bool
 CQChartsPlot::
 colorColumnColor(int row, const QModelIndex &parent, Color &color) const
@@ -7730,6 +7748,11 @@ keyPress(int key, int modifier)
     else
       cyclePrev();
   }
+  else if (key == Qt::Key_Period) {
+    auto p = pixelToWindow(Point(view()->mapFromGlobal(QCursor::pos())));
+
+    centerAt(p);
+  }
   else
     return;
 }
@@ -8125,6 +8148,26 @@ zoomFull(bool notify)
 
   if (notify)
     emit zoomPanChanged();
+}
+
+void
+CQChartsPlot::
+centerAt(const Point &c)
+{
+  if (! dataRange_.isSet())
+    return;
+
+  auto c1 = Point(dataRange_.xmid(), dataRange_.ymid());
+
+  double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+  double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
+
+  setDataOffsetX(cx);
+  setDataOffsetY(cy);
+
+  applyDataRangeAndDraw();
+
+  emit zoomPanChanged();
 }
 
 void
@@ -10283,7 +10326,7 @@ hasAnnotations(const Layer::Type &layerType) const
         continue;
     }
 
-//  if (! bbox.overlaps(annotation->bbox()))
+//  if (! bbox.overlaps(annotation->rect()))
 //    continue;
 
     anyObjs = true;
@@ -10326,7 +10369,7 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
         continue;
     }
 
-//  if (! bbox.overlaps(annotation->bbox()))
+//  if (! bbox.overlaps(annotation->rect()))
 //    continue;
 
     annotation->draw(device);
@@ -12524,6 +12567,7 @@ modelMappedReal(const ModelIndex &ind, double &r, bool log, double def) const
 
 //------
 
+// used to lookup row by name in tcl
 int
 CQChartsPlot::
 getRowForId(const QString &id) const

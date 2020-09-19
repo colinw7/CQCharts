@@ -86,7 +86,7 @@ class CQChartsArrow : public QObject,
 
  public:
   CQChartsArrow(View *view, const Point &from=Point(0, 0), const Point &to=Point(1, 1));
-  CQChartsArrow(CQChartsPlot *plot, const Point &from=Point(0, 0), const Point &to=Point(1, 1));
+  CQChartsArrow(Plot *plot, const Point &from=Point(0, 0), const Point &to=Point(1, 1));
 
   CQCharts *charts() const;
 
@@ -241,7 +241,7 @@ class CQChartsArrow : public QObject,
     }
   };
 
-  static void pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
+  static void pathAddArrows(Plot *plot, const QPainterPath &path,
                             const CQChartsArrowData &arrowData, QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,

@@ -59,6 +59,9 @@ class CQChartsCompositePlot : public CQChartsPlot {
   };
 
  public:
+  using Plot = CQChartsPlot;
+
+ public:
   CQChartsCompositePlot(View *view, const ModelP &model);
  ~CQChartsCompositePlot();
 
@@ -80,7 +83,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  void addPlot(CQChartsPlot *plot);
+  void addPlot(Plot *plot);
 
   //---
 
@@ -102,7 +105,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  BBox adjustedViewBBox(const CQChartsPlot *plot) const override;
+  BBox adjustedViewBBox(const Plot *plot) const override;
 
   //---
 
@@ -160,12 +163,12 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  CQChartsPlot *currentPlot() const;
-  void setCurrentPlot(CQChartsPlot *plot);
+  Plot *currentPlot() const;
+  void setCurrentPlot(Plot *plot);
 
-  int childPlotIndex(const CQChartsPlot *) const override;
+  int childPlotIndex(const Plot *) const override;
   int numChildPlots() const override;
-  CQChartsPlot *childPlot(int i) const override;
+  Plot *childPlot(int i) const override;
 
   int currentPlotInd() const;
   void setCurrentPlotInd(int i);
@@ -179,10 +182,10 @@ class CQChartsCompositePlot : public CQChartsPlot {
   void setOverlayAxisLabels();
 
  private:
-  using Plots = std::vector<CQChartsPlot*>;
+  using Plots = std::vector<Plot*>;
 
   Plots         plots_;
-  CQChartsPlot* currentPlot_   { nullptr };
+  Plot*         currentPlot_   { nullptr };
   CompositeType compositeType_ { CompositeType::NONE };
   bool          commonXRange_  { true };
   bool          commonYRange_  { true };

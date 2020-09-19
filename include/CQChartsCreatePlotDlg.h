@@ -48,12 +48,16 @@ class CQChartsCreatePlotDlg : public QDialog {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
-  CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData);
+  using Plot      = CQChartsPlot;
+  using ModelData = CQChartsModelData;
+
+ public:
+  CQChartsCreatePlotDlg(CQCharts *charts, ModelData *modelData);
  ~CQChartsCreatePlotDlg();
 
   CQCharts *charts() const { return charts_; }
 
-  CQChartsModelData *modelData() const { return modelData_; }
+  ModelData *modelData() const { return modelData_; }
 
   QAbstractItemModel *model() const { return model_.data(); }
 
@@ -61,7 +65,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   int exec();
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
  private:
   struct MapEditData {
@@ -197,7 +201,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   void setXYMin(const QString &id);
 
-  void applyPlot(CQChartsPlot *plot, bool preview=false);
+  void applyPlot(Plot *plot, bool preview=false);
 
   CQChartsPlotType *getPlotType() const;
 
@@ -268,62 +272,62 @@ class CQChartsCreatePlotDlg : public QDialog {
     CQChartsModelViewHolder* modelView       { nullptr }; //!< summary model view
   };
 
-  CQCharts*                charts_                 { nullptr }; //!< parent charts
-  CQChartsModelData*       modelData_              { nullptr }; //!< model data
-  ModelP                   model_;                              //!< model
+  CQCharts*  charts_    { nullptr }; //!< parent charts
+  ModelData* modelData_ { nullptr }; //!< model data
+  ModelP     model_;                 //!< model
 
-  CQChartsModelChooser*    modelChooser_           { nullptr }; //!< model chooser
+  CQChartsModelChooser* modelChooser_ { nullptr }; //!< model chooser
 
   // plot type widgets
-  QStackedWidget*          plotDataStack_          { nullptr }; //!< plot widget stack
-  QStackedWidget*          basicPlotDataStack_     { nullptr }; //!< basic plot widget stack
-  QStackedWidget*          advancedPlotDataStack_  { nullptr }; //!< advanced plot widget stack
-  TypePlotData             basicTypePlotData_;                  //!< per type plot data
-  TypePlotData             advancedTypePlotData_;               //!< per type plot data
-  bool                     advanced_               { false };   //!< is advanced
-  TabType                  stackIndexPlotType_;                 //!< stacked index for plot type
+  QStackedWidget* plotDataStack_         { nullptr }; //!< plot widget stack
+  QStackedWidget* basicPlotDataStack_    { nullptr }; //!< basic plot widget stack
+  QStackedWidget* advancedPlotDataStack_ { nullptr }; //!< advanced plot widget stack
+  TypePlotData    basicTypePlotData_;                 //!< per type plot data
+  TypePlotData    advancedTypePlotData_;              //!< per type plot data
+  bool            advanced_              { false };   //!< is advanced
+  TabType         stackIndexPlotType_;                //!< stacked index for plot type
 
   // filter edit
-  QFrame*                  whereFrame_             { nullptr }; //!< where frame
-  CQChartsLineEdit*        whereEdit_              { nullptr }; //!< where edit
+  QFrame*           whereFrame_ { nullptr }; //!< where frame
+  CQChartsLineEdit* whereEdit_  { nullptr }; //!< where edit
 
   // general widgets
-  CQChartsLineEdit*        viewEdit_               { nullptr }; //!< view name edit
-  CQChartsLineEdit*        posEdit_                { nullptr }; //!< position edit
-  QCheckBox*               autoRangeEdit_          { nullptr }; //!< auto range check
-  CQChartsLineEdit*        titleEdit_              { nullptr }; //!< title edit
-  CQChartsLineEdit*        xLabelEdit_             { nullptr }; //!< x label edit
-  CQChartsLineEdit*        yLabelEdit_             { nullptr }; //!< y label edit
-  RangeEditData            rangeEditData_;
-  QCheckBox*               xintegralCheck_         { nullptr }; //!< x integral check
-  QCheckBox*               yintegralCheck_         { nullptr }; //!< y integral check
-  QCheckBox*               xlogCheck_              { nullptr }; //!< x log check
-  QCheckBox*               ylogCheck_              { nullptr }; //!< y log check
+  CQChartsLineEdit* viewEdit_       { nullptr }; //!< view name edit
+  CQChartsLineEdit* posEdit_        { nullptr }; //!< position edit
+  QCheckBox*        autoRangeEdit_  { nullptr }; //!< auto range check
+  CQChartsLineEdit* titleEdit_      { nullptr }; //!< title edit
+  CQChartsLineEdit* xLabelEdit_     { nullptr }; //!< x label edit
+  CQChartsLineEdit* yLabelEdit_     { nullptr }; //!< y label edit
+  RangeEditData     rangeEditData_;
+  QCheckBox*        xintegralCheck_ { nullptr }; //!< x integral check
+  QCheckBox*        yintegralCheck_ { nullptr }; //!< y integral check
+  QCheckBox*        xlogCheck_      { nullptr }; //!< x log check
+  QCheckBox*        ylogCheck_      { nullptr }; //!< y log check
 
   // description text
-  QTextEdit*               descText_               { nullptr }; //!< type description
+  QTextEdit* descText_ { nullptr }; //!< type description
 
-  QLabel*                  msgLabel_               { nullptr }; //!< message label
-  QPushButton*             okButton_               { nullptr }; //!< ok button
-  QPushButton*             applyButton_            { nullptr }; //!< apply button
+  QLabel*      msgLabel_    { nullptr }; //!< message label
+  QPushButton* okButton_    { nullptr }; //!< ok button
+  QPushButton* applyButton_ { nullptr }; //!< apply button
 
   // summary widgets
-  SummaryEditData          summaryEditData_;
+  SummaryEditData summaryEditData_;
 
   CQChartsModelDetailsWidget* detailsWidget_ { nullptr };
 
   // preview widgets
-  QCheckBox*               previewEnabledCheck_    { nullptr }; //!< preview enabled checkbox
-  CQChartsView*            previewView_            { nullptr }; //!< preview chart view
-  CQChartsPlot*            previewPlot_            { nullptr }; //!< preview plot
+  QCheckBox*    previewEnabledCheck_    { nullptr }; //!< preview enabled checkbox
+  CQChartsView* previewView_            { nullptr }; //!< preview chart view
+  Plot*         previewPlot_            { nullptr }; //!< preview plot
 
-  CQChartsPlot*            plot_                   { nullptr }; //!< last created plot (apply)
-  bool                     initialized_            { false   }; //!< is initialized
+  Plot* plot_        { nullptr }; //!< last created plot (apply)
+  bool  initialized_ { false   }; //!< is initialized
 
   // auto analyze
-  bool                     autoAnalyzeModel_       { true };    //!< auto analyze model
-  TypeInitialized          basicTypeInitialzed_;                //!< is type initialized
-  TypeInitialized          advancedTypeInitialzed_;             //!< is type initialized
+  bool            autoAnalyzeModel_       { true }; //!< auto analyze model
+  TypeInitialized basicTypeInitialzed_;             //!< is type initialized
+  TypeInitialized advancedTypeInitialzed_;          //!< is type initialized
 };
 
 #endif

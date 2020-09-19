@@ -757,18 +757,17 @@ initFromToObjs() const
 
 void
 CQChartsGraphPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const FromToData &fromToData) const
+addFromToValue(const FromToData &fromToData) const
 {
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
-  auto *srcNode = findNode(fromStr);
+  auto *srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth > 0)
     srcNode->setDepth(fromToData.depth);
 
   // Just node
-  if (toStr == "") {
+  if (fromToData.toStr == "") {
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
@@ -836,15 +835,15 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
       srcNode->setParentGraphId(parentGraphId);
   }
   else {
-    if (fromStr == toStr)
+    if (fromToData.fromStr == fromToData.toStr)
       return;
 
-    auto *destNode = findNode(toStr);
+    auto *destNode = findNode(fromToData.toStr);
 
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);
 
-    auto *edge = createEdge(OptReal(value), srcNode, destNode);
+    auto *edge = createEdge(fromToData.value, srcNode, destNode);
 
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);

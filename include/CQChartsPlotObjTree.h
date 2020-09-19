@@ -16,13 +16,14 @@ class QPainter;
  */
 class CQChartsPlotObjTree {
  public:
+  using Plot  = CQChartsPlot;
   using Obj   = CQChartsPlotObj;
   using Objs  = std::vector<Obj*>;
   using Point = CQChartsGeom::Point;
   using BBox  = CQChartsGeom::BBox;
 
  public:
-  CQChartsPlotObjTree(CQChartsPlot *plot, bool wait=false);
+  CQChartsPlotObjTree(Plot *plot, bool wait=false);
 
  ~CQChartsPlotObjTree();
 
@@ -56,7 +57,7 @@ class CQChartsPlotObjTree {
   void interruptTree();
 
  private:
-  CQChartsPlot*      plot_              { nullptr }; //!< parent plot
+  Plot*              plot_              { nullptr }; //!< parent plot
   PlotObjTree*       plotObjTree_       { nullptr }; //!< object tree
   PlotObjTreeFuture  plotObjTreeFuture_;             //!< future
   bool               wait_              { false };   //!< wait for thread

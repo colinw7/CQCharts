@@ -12,7 +12,9 @@
  */
 class CQChartsCorrelationModel : public CQDataModel {
  public:
-  using Points = std::vector<CQChartsGeom::Point>;
+  using Point   = CQChartsGeom::Point;
+  using Points  = std::vector<Point>;
+  using RMinMax = CQChartsGeom::RMinMax;
 
  public:
   CQChartsCorrelationModel(int numCols);
@@ -33,14 +35,14 @@ class CQChartsCorrelationModel : public CQDataModel {
     ijBestFit_[i][j].calc(points);
   }
 
-  const CQChartsGeom::RMinMax &minMax(int i) {
+  const RMinMax &minMax(int i) {
     auto p = iMinMax_.find(i);
     assert(p != iMinMax_.end());
 
     return (*p).second;
   }
 
-  void setMinMax(int i, const CQChartsGeom::RMinMax &minMax) {
+  void setMinMax(int i, const RMinMax &minMax) {
     iMinMax_[i] = minMax;
   }
 
@@ -92,7 +94,7 @@ class CQChartsCorrelationModel : public CQDataModel {
 
   using JPoints   = std::map<int, Points>;
   using IJPoints  = std::map<int, JPoints>;
-  using IMinMax   = std::map<int, CQChartsGeom::RMinMax>;
+  using IMinMax   = std::map<int, RMinMax>;
   using JDevData  = std::map<int, DevData>;
   using IJDevData = std::map<int, JDevData>;
   using JBestFit  = std::map<int, CQChartsFitData>;

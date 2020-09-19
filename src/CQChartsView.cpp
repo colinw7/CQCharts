@@ -46,6 +46,7 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QMenu>
+#include <QTime>
 
 #include <svg/models_light_svg.h>
 #include <svg/models_dark_svg.h>
@@ -2565,6 +2566,65 @@ keyPressEvent(QKeyEvent *ke)
 
   if (plot)
     plot->keyPress(ke->key(), ke->modifiers());
+}
+
+//------
+
+void
+CQChartsView::
+wheelEvent(QWheelEvent *e)
+{
+  static Plot* lastPlot { nullptr };
+  static Point lastPPoint, lastPoint;
+
+  Point pp(e->pos());
+
+  auto w = pixelToWindow(pp);
+
+  Plots         plots;
+  CQChartsPlot *plot;
+
+  plotsAt(w, plots, plot);
+  if (! plot) return;
+
+  double panFactor  = 0.50;
+  double zoomFactor = 1.10;
+
+  auto p = plot->pixelToWindow(pp);
+
+  if      (e->modifiers() & Qt::ShiftModifier) {
+    if      (e->delta() > 0)
+      plot->panLeft(panFactor);
+    else if (e->delta() < 0)
+      plot->panRight(panFactor);
+  }
+  else if (e->modifiers() & Qt::ControlModifier) {
+    if      (e->delta() > 0)
+      plot->panUp(panFactor);
+    else if (e->delta() < 0)
+      plot->panDown(panFactor);
+  }
+  else {
+    bool reuse = (plot == lastPlot && std::abs(lastPPoint.x - pp.x) < 4 &&
+                                      std::abs(lastPPoint.y - pp.y) < 4);
+std::cerr << "Reuse=" << reuse << "\n";
+
+    if (reuse)
+      p = lastPoint;
+
+    plot->centerAt(p);
+
+    if      (e->delta() > 0)
+      plot->updateDataScale(plot->dataScale()*zoomFactor);
+    else if (e->delta() < 0)
+      plot->updateDataScale(plot->dataScale()/zoomFactor);
+  }
+
+  lastPPoint = pp;
+  lastPoint  = p;
+  lastPlot   = plot;
+
+  update();
 }
 
 //------

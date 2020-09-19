@@ -634,6 +634,8 @@ class CQChartsView : public QFrame,
 
   void keyPressEvent(QKeyEvent *ke) override;
 
+  void wheelEvent(QWheelEvent *e) override;
+
   Point adjustMousePos(const Point &pos) const;
 
   //---
@@ -932,23 +934,23 @@ class CQChartsView : public QFrame,
   void themePalettesChanged();
 
   // emitted when status text changes
-  void statusTextChanged(const QString &text);
+  void statusTextChanged(const QString &);
 
   // emitted when position text changes
-  void posTextChanged(const QString &text);
+  void posTextChanged(const QString &);
 
   // emitted when selection text changed
-  void selTextChanged(const QString &text);
+  void selTextChanged(const QString &);
 
   // emitted when current plot changed
   void currentPlotChanged();
 
   // emitted when plot added
-  void plotAdded(Plot *);
-  void plotAdded(const QString &id);
+  void plotAdded(CQChartsPlot *);
+  void plotAdded(const QString &);
 
   // emitted when plot removed
-  void plotRemoved(const QString &id);
+  void plotRemoved(const QString &);
   // emitted when all plots removed
   void allPlotsRemoved();
 
@@ -959,7 +961,7 @@ class CQChartsView : public QFrame,
   void plotsReordered();
 
   // emitted when plot connect data changed
-  void plotConnectDataChanged(const QString &id);
+  void plotConnectDataChanged(const QString &);
   void connectDataChanged();
 
   // emitted when key pressed
@@ -967,7 +969,7 @@ class CQChartsView : public QFrame,
   void keyIdPressed(const QString &);
 
   // emitted when annotation pressed
-  void annotationPressed(Annotation *);
+  void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
   // emitted when annotations changed
@@ -980,8 +982,8 @@ class CQChartsView : public QFrame,
   void scrollDataChanged();
 
   // region point mouse release
-  void regionPointRelease(const Point &p);
-  void regionRectRelease (const BBox &r);
+  void regionPointRelease(const CQChartsGeom::Point &);
+  void regionRectRelease (const CQChartsGeom::BBox &);
 
   // emitted when errors added
   void updateErrors();

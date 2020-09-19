@@ -18,15 +18,20 @@ class CQChartsRectEdit : public QFrame {
   Q_PROPERTY(CQChartsRect rect READ rect WRITE setRect)
 
  public:
+  using Plot = CQChartsPlot;
+  using Rect = CQChartsRect;
+  using BBox = CQChartsGeom::BBox;
+
+ public:
   CQChartsRectEdit(QWidget *parent=nullptr);
 
-  const CQChartsRect &rect() const { return rect_; }
-  void setRect(const CQChartsRect &pos);
+  const Rect &rect() const { return rect_; }
+  void setRect(const Rect &pos);
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot);
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *plot);
 
-  void setRegion(const CQChartsGeom::BBox &bbox);
+  void setRegion(const BBox &bbox);
 
  signals:
   void rectChanged();
@@ -46,8 +51,8 @@ class CQChartsRectEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsRect          rect_;                  //!< rect data
-  CQChartsPlot*         plot_      { nullptr }; //!< associated plot
+  Rect                  rect_;                  //!< rect data
+  Plot*                 plot_      { nullptr }; //!< associated plot
   CQChartsGeomBBoxEdit* edit_      { nullptr }; //!< rect edit
   CQChartsUnitsEdit*    unitsEdit_ { nullptr }; //!< units edit
   bool                  connected_ { false };   //!< is connected

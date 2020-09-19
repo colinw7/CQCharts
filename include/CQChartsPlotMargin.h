@@ -13,6 +13,7 @@ class CQChartsPlot;
  */
 class CQChartsPlotMargin : public CQChartsMargin {
  public:
+  using Plot   = CQChartsPlot;
   using Length = CQChartsLength;
   using BBox   = CQChartsGeom::BBox;
   using Size   = CQChartsGeom::Size;
@@ -36,8 +37,8 @@ class CQChartsPlotMargin : public CQChartsMargin {
 
   bool setValue(const QString &str);
 
-  BBox adjustViewRange(const CQChartsPlot *plot, const BBox &bbox, bool inside=false) const;
-  BBox adjustPlotRange(const CQChartsPlot *plot, const BBox &bbox, bool inside=false) const;
+  BBox adjustViewRange(const Plot *plot, const BBox &bbox, bool inside=false) const;
+  BBox adjustPlotRange(const Plot *plot, const BBox &bbox, bool inside=false) const;
 };
 
 #endif

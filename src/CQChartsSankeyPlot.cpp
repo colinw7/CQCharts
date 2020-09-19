@@ -233,6 +233,13 @@ setSrcColoring(bool b)
 
 void
 CQChartsSankeyPlot::
+setBlendEdgeColor(bool b)
+{
+  CQChartsUtil::testAndSet(blendEdgeColor_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setAlign(const Align &a)
 {
   CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
@@ -291,8 +298,10 @@ addProperties()
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
 
   // coloring
-  addProp("coloring", "srcColoring"  , "srcColoring"  , "Color by Source Nodes");
-  addProp("coloring", "mouseColoring", "mouseColoring", "Mouse Over Connection Coloring");
+  addProp("coloring", "srcColoring"      , "", "Color by Source Nodes");
+  addProp("coloring", "blendEdgeColor"   , "", "Blend Edge Node Colors");
+  addProp("coloring", "mouseColoring"    , "", "Mouse Over Connection Coloring");
+  addProp("coloring", "mouseNodeColoring", "", "Mouse Over Node Coloring");
 
   // node
   addProp("node", "nodeMargin", "margin", "Node margin (Y)");
@@ -441,6 +450,10 @@ createObjs(PlotObjs &objs) const
 
   auto *model = this->model().data();
   if (! model) return false;
+
+  //---
+
+  pathIdMinMax_.reset();
 
   //---
 
@@ -815,10 +828,9 @@ initFromToObjs() const
 
 void
 CQChartsSankeyPlot::
-addFromToValue(const QString &fromStr, const QString &toStr, double value,
-               const FromToData &fromToData) const
+addFromToValue(const FromToData &fromToData) const
 {
-  auto *srcNode = findNode(fromStr);
+  auto *srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth >= 0)
     srcNode->setDepth(fromToData.depth);
@@ -833,7 +845,14 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
   //---
 
   // Just node
-  if (toStr == "") {
+  if (fromToData.toStr == "") {
+    Color c;
+
+    if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
+      srcNode->setColor(c);
+
+    //---
+
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
@@ -846,17 +865,17 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     }
   }
   else {
-    if (fromStr == toStr)
+    if (fromToData.fromStr == fromToData.toStr)
       return;
 
-    auto *destNode = findNode(toStr);
+    auto *destNode = findNode(fromToData.toStr);
 
     if (fromToData.depth >= 0)
       destNode->setDepth(fromToData.depth + 1);
 
     //---
 
-    auto *edge = createEdge(OptReal(value), srcNode, destNode);
+    auto *edge = createEdge(fromToData.value, srcNode, destNode);
 
     auto addModelInd = [&](const ModelIndex &modelInd) {
       if (modelInd.isValid())
@@ -873,18 +892,33 @@ addFromToValue(const QString &fromStr, const QString &toStr, double value,
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);
 
+    //---
+
+    Color c;
+
+    if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
+      edge->setColor(c);
+
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       QString value = nv.second.toString();
 
-      if      (nv.first == "label") {
-        edge->setLabel(value);
+      if      (nv.first == "path_id") {
+        bool ok;
+        int pathId = value.toInt(&ok);
+        if (! ok || pathId < 0) continue;
+
+        edge->setPathId(pathId);
+
+        pathIdMinMax_.add(pathId);
       }
       else if (nv.first == "color") {
         edge->setColor(CQChartsColor(value));
       }
-      else if (nv.first == "path_id") {
-        edge->setPathId(value.toInt());
+#if 0
+      else if (nv.first == "label") {
+        edge->setLabel(value);
       }
+#endif
       else if (nv.first == "src_label") {
         srcNode->setLabel(value);
       }
@@ -1410,11 +1444,11 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
     BBox rect;
 
     if      (xpos1 == minX)
-      rect = BBox(x11, y11, x12, y12); // no inputs (left align)
+      rect = BBox(x11, y11, x12, y12); // left edge (left align)
     else if (xpos1 == maxX) {
       x11 -= xm; x12 -= xm;
 
-      rect = BBox(x11, y11, x12, y12); // no outputs (right align)
+      rect = BBox(x11, y11, x12, y12); // right edge (right align)
     }
     else {
       x11 -= xm/2.0; x12 -= xm/2.0;
@@ -2868,9 +2902,15 @@ calcTipId() const
   if (name == "")
     name = this->id();
 
-  tableTip.addTableRow("Hier Name", hierName());
-  tableTip.addTableRow("Name"     , name      );
-  tableTip.addTableRow("Value"    , value   ());
+  QString hierName = this->hierName();
+
+  if (hierName != name)
+    tableTip.addTableRow("Hier Name", hierName);
+
+  tableTip.addTableRow("Name", name);
+
+  if (node()->hasValue())
+    tableTip.addTableRow("Value", value());
 
   if (depth() >= 0)
     tableTip.addTableRow("Depth", depth());
@@ -2878,7 +2918,7 @@ calcTipId() const
   int ns = node()->srcEdges ().size();
   int nd = node()->destEdges().size();
 
-  tableTip.addTableRow("Edges", QString("%1|%2").arg(ns).arg(nd));
+  tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
   if (plot_->groupColumn().isValid()) {
     tableTip.addTableRow("Group", node()->group());
@@ -2966,7 +3006,7 @@ editMove(const Point &p)
 
   editChanged_ = true;
 
-  plot()->drawObjs();
+  const_cast<CQChartsSankeyPlot *>(plot())->drawObjs();
 
   return true;
 }
@@ -2983,7 +3023,7 @@ CQChartsSankeyNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    plot()->invalidateObjTree();
+    const_cast<CQChartsSankeyPlot *>(plot())->invalidateObjTree();
 
   return true;
 }
@@ -3084,7 +3124,8 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
 
     nodeObj->setInside(true);
 
-    nodeObj->draw(device);
+    if (plot_->isMouseNodeColoring())
+      nodeObj->draw(device);
 
     if (pathId >= 0) {
       Edge *edge = nullptr;
@@ -3109,7 +3150,8 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
       if (edge) {
         auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
 
-        nodeObj->drawFgRect(device, rect);
+        if (! plot()->isTextVisible())
+          nodeObj->drawFgRect(device, rect);
       }
       else {
         //nodeObj->drawFg(device);
@@ -3430,7 +3472,7 @@ void
 CQChartsSankeyEdgeObj::
 getObjSelectIndices(Indices &inds) const
 {
-  for (const auto &c : plot_->modelColumns())
+  for (const auto &c : plot()->modelColumns())
     addColumnSelectIndex(inds, c);
 }
 
@@ -3485,13 +3527,21 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // show source and destination nodes on inside
-  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
-    if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
+  if (plot()->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+    if (plot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       auto drawNodeInside = [&](const Node *node, bool isSrc) {
         auto *nodeObj = node->obj(); if (! nodeObj) return;
+
         auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
+
         nodeObj->setInside(true);
-        nodeObj->draw(device); nodeObj->drawFgRect(device, rect);
+
+        if (plot()->isMouseNodeColoring())
+          nodeObj->draw(device);
+
+        if (! plot()->isTextVisible())
+          nodeObj->drawFgRect(device, rect);
+
         nodeObj->setInside(false);
       };
 
@@ -3503,33 +3553,33 @@ draw(CQChartsPaintDevice *device)
       auto *srcNodeObj  = srcNode ->obj();
       auto *destNodeObj = destNode->obj();
 
-      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
+      plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      if      (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC) {
+      if      (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC) {
         drawNodeInside(srcNode , /*isSrc*/true );
       }
-      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::DEST) {
+      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::DEST) {
         drawNodeInside(destNode, /*isSrc*/false);
       }
-      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
+      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
         drawNodeInside(srcNode , /*isSrc*/true );
         drawNodeInside(destNode, /*isSrc*/false);
       }
-      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
+      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
         drawNodeInside(srcNode , /*isSrc*/true );
 
         if (srcNodeObj)
           srcNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
       }
-      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
+      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
         drawNodeInside(destNode, /*isSrc*/false);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
       }
-      else if (plot_->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
+      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
         drawNodeInside(srcNode , /*isSrc*/true );
 
         if (srcNodeObj)
@@ -3543,7 +3593,7 @@ draw(CQChartsPaintDevice *device)
             (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
       }
 
-      plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
+      plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
   }
 }
@@ -3560,7 +3610,7 @@ void
 CQChartsSankeyEdgeObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  if (! plot_->isTextVisible())
+  if (! plot()->isTextVisible())
     return;
 
   QString str = edge()->label();
@@ -3584,12 +3634,12 @@ drawFg(CQChartsPaintDevice *device) const
 
   auto rect = (isSelf ? srcRect : srcRect + destRect);
 
-  auto prect = plot_->windowToPixel(rect);
+  auto prect = plot()->windowToPixel(rect);
 
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
+  plot()->view()->setPlotPainterFont(plot(), device, plot()->textFont());
 
   QFontMetricsF fm(device->font());
 
@@ -3600,9 +3650,9 @@ drawFg(CQChartsPaintDevice *device) const
 
   PenBrush penBrush;
 
-  QColor c = plot_->interpTextColor(ic);
+  QColor c = plot()->interpTextColor(ic);
 
-  plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
+  plot()->setPen(penBrush, PenData(true, c, plot()->textAlpha()));
 
   device->setPen(penBrush.pen);
 
@@ -3615,17 +3665,17 @@ drawFg(CQChartsPaintDevice *device) const
   double tx = prect.getXMid() - textMargin - ptw/2.0;
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
+  auto pt = plot()->pixelToWindow(Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;
 
   options.angle         = CQChartsAngle(0);
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
+  options.contrast      = plot()->isTextContrast();
+  options.contrastAlpha = plot()->textContrastAlpha();
   options.align         = Qt::AlignLeft;
-  options.clipLength    = plot_->textClipLength();
-  options.clipElide     = plot_->textClipElide();
+  options.clipLength    = plot()->textClipLength();
+  options.clipElide     = plot()->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
 }
@@ -3639,36 +3689,67 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto *srcNode  = edge()->srcNode ();
   auto *destNode = edge()->destNode();
 
+  //---
+
+  ColorInd colorInd; // TODO: index on path id ?
+
+  if (edge()->pathId() >= 0) {
+    const auto &pathIdMinMax = plot()->pathIdMinMax();
+
+    if (pathIdMinMax.isSet())
+      colorInd = ColorInd(edge()->pathId() - pathIdMinMax.min(),
+                          pathIdMinMax.max() - pathIdMinMax.min() + 1);
+  }
+
+  //---
+
+  // calc fill color
   QColor fc;
 
   if (! edge()->color().isValid()) {
-    QColor fc1 = srcNode ->obj()->calcFillColor();
-    QColor fc2 = destNode->obj()->calcFillColor();
+    if (plot()->isBlendEdgeColor()) {
+      QColor fc1 = srcNode ->obj()->calcFillColor();
+      QColor fc2 = destNode->obj()->calcFillColor();
 
-    fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+      fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+    }
+    else
+      fc = plot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fc = plot_->interpColor(edge()->color(), ColorInd());
+    fc = plot()->interpColor(edge()->color(), colorInd);
   }
 
-  int numNodes = plot_->numNodes();
+  //---
 
-  ColorInd ic1(srcNode ->id(), numNodes);
-  ColorInd ic2(destNode->id(), numNodes);
+  // calc stroke color
+  QColor sc;
 
-  QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
-  QColor sc2 = plot_->interpEdgeStrokeColor(ic2);
+  if (plot()->isBlendEdgeColor()) {
+    int numNodes = plot()->numNodes();
 
-  QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+    ColorInd ic1(srcNode ->id(), numNodes);
+    ColorInd ic2(destNode->id(), numNodes);
 
-  plot_->setPenBrush(penBrush,
-    PenData  (plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
-              plot_->edgeStrokeWidth(), plot_->edgeStrokeDash()),
-    BrushData(plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(),
-              plot_->edgeFillPattern()));
+    QColor sc1 = plot()->interpEdgeStrokeColor(ic1);
+    QColor sc2 = plot()->interpEdgeStrokeColor(ic2);
+
+    sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+  }
+  else {
+    sc = plot()->interpEdgeStrokeColor(colorInd);
+  }
+
+  //---
+
+  plot()->setPenBrush(penBrush,
+    PenData  (plot()->isEdgeStroked(), sc, plot()->edgeStrokeAlpha(),
+              plot()->edgeStrokeWidth(), plot()->edgeStrokeDash()),
+    BrushData(plot()->isEdgeFilled(), fc, plot()->edgeFillAlpha(),
+              plot()->edgeFillPattern()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    plot()->updateObjPenBrushState(this, penBrush);
 }
 
 void

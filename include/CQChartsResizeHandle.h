@@ -24,22 +24,26 @@ class CQChartsResizeHandle : QObject {
   Q_PROPERTY(QColor        strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
-  using Point = CQChartsGeom::Point;
-  using BBox  = CQChartsGeom::BBox;
+  using View       = CQChartsView;
+  using Plot       = CQChartsPlot;
+  using ResizeSide = CQChartsResizeSide;
+  using Alpha      = CQChartsAlpha;
+  using Point      = CQChartsGeom::Point;
+  using BBox       = CQChartsGeom::BBox;
 
  public:
   CQChartsResizeHandle() = default;
 
-  CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side);
-  CQChartsResizeHandle(const CQChartsPlot *plot, CQChartsResizeSide side);
+  CQChartsResizeHandle(const View *view, ResizeSide side);
+  CQChartsResizeHandle(const Plot *plot, ResizeSide side);
 
-  const CQChartsView* view() const { return view_; }
-  const CQChartsPlot* plot() const { return plot_; }
+  const View* view() const { return view_; }
+  const Plot* plot() const { return plot_; }
 
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &v) { bbox_ = v; }
 
-  const CQChartsResizeSide &side() const { return side_; }
+  const ResizeSide &side() const { return side_; }
 
   bool isSelected() const { return selected_; }
   void setSelected(bool b) { selected_ = b; }
@@ -47,8 +51,8 @@ class CQChartsResizeHandle : QObject {
   const QColor &fillColor() const { return fillColor_; }
   void setFillColor(const QColor &v) { fillColor_ = v; }
 
-  const CQChartsAlpha &fillAlpha() const { return fillAlpha_; }
-  void setFillAlpha(const CQChartsAlpha &a) { fillAlpha_ = a; }
+  const Alpha &fillAlpha() const { return fillAlpha_; }
+  void setFillAlpha(const Alpha &a) { fillAlpha_ = a; }
 
   const QColor &strokeColor() const { return strokeColor_; }
   void setStrokeColor(const QColor &v) { strokeColor_ = v; }
@@ -63,13 +67,13 @@ class CQChartsResizeHandle : QObject {
   Point windowToPixel(const Point &p) const;
 
  private:
-  const CQChartsView*  view_        { nullptr };
-  const CQChartsPlot*  plot_        { nullptr };
+  const View*          view_        { nullptr };
+  const Plot*          plot_        { nullptr };
   BBox                 bbox_;
-  CQChartsResizeSide   side_        { CQChartsResizeSide::NONE };
+  ResizeSide           side_        { ResizeSide::NONE };
   bool                 selected_    { false };
   QColor               fillColor_   { "#4444aa" };
-  CQChartsAlpha        fillAlpha_   { 0.5 };
+  Alpha                fillAlpha_   { 0.5 };
   QColor               strokeColor_ { Qt::black };
   mutable QPainterPath path_;
 };

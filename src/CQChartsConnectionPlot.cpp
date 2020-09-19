@@ -963,24 +963,24 @@ initFromToObjs() const
 
       // get from/to node names
       bool ok1;
-      auto fromName = plot_->modelString(fromToData.fromModelInd, ok1);
+      fromToData.fromStr = plot_->modelString(fromToData.fromModelInd, ok1);
       if (! ok1) return State::SKIP;
 
       bool ok2;
-      auto toName = plot_->modelString(fromToData.toModelInd, ok2);
+      fromToData.toStr = plot_->modelString(fromToData.toModelInd, ok2);
       if (! ok2) return State::SKIP;
 
       //---
 
       // get value from optional value column
-      double value = 1.0;
-
       if (plot_->valueColumn().isValid()) {
         fromToData.valueModelInd = ModelIndex(plot, data.row, plot_->valueColumn(), data.parent);
 
         bool ok3;
-        value = plot_->modelReal(fromToData.valueModelInd, ok3);
+        double value = plot_->modelReal(fromToData.valueModelInd, ok3);
         if (! ok3) return State::SKIP;
+
+        fromToData.value = OptReal(value);
       }
 
       //---
@@ -1023,7 +1023,7 @@ initFromToObjs() const
 
       //---
 
-      plot_->addFromToValue(fromName, toName, value, fromToData);
+      plot_->addFromToValue(fromToData);
 
       return State::OK;
     }

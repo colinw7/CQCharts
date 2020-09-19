@@ -607,18 +607,19 @@ class CQChartsValueSet : public QObject {
   Q_PROPERTY(bool           allowNaN READ isAllowNaN  WRITE setAllowNaN)
 
  public:
+  using Plot      = CQChartsPlot;
   using Type      = CQBaseModelType;
   using OptInt    = boost::optional<int>;
   using OptReal   = boost::optional<double>;
   using OptString = boost::optional<QString>;
 
  public:
-  CQChartsValueSet(const CQChartsPlot *plot=nullptr);
+  CQChartsValueSet(const Plot *plot=nullptr);
 
   //---
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(const CQChartsPlot *p) { plot_ = p; }
+  const Plot *plot() const { return plot_; }
+  void setPlot(const Plot *p) { plot_ = p; }
 
   //---
 
@@ -778,7 +779,7 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  const CQChartsPlot* plot_ { nullptr }; //!< plot
+  const Plot* plot_ { nullptr }; //!< plot
 
   CQChartsColumn column_; //!< associated model column
 

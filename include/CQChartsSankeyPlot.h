@@ -311,6 +311,9 @@ class CQChartsSankeyPlotEdge {
 
   virtual ~CQChartsSankeyPlotEdge();
 
+  //---
+
+  //! get plot
   const Plot *plot() const { return plot_; }
 
   //! get/set unique id
@@ -322,9 +325,11 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
+#if 0
   //! get/set label
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
+#endif
 
   //! get/set color
   const CQChartsColor &color() const { return color_; }
@@ -369,7 +374,7 @@ class CQChartsSankeyPlotEdge {
   const Plot*   plot_     { nullptr }; //!< plot
   int           id_       { -1 };      //!< unique id
   OptReal       value_;                //!< value
-  QString       label_;                //!< label
+//QString       label_;                //!< label
   CQChartsColor color_;                //!< color
   int           pathId_   { -1 };      //!< path id
   ModelInds     modelInds_;            //!< model inds
@@ -407,6 +412,8 @@ class CQChartsSankeyPlotGraph {
   CQChartsSankeyPlotGraph(const Plot *plot);
 
   virtual ~CQChartsSankeyPlotGraph() { }
+
+  //---
 
   //! get plot
   const Plot *plot() const { return plot_; }
@@ -545,6 +552,12 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   virtual ~CQChartsSankeyNodeObj();
 
+  //---
+
+  //! get plot
+  const Plot *plot() const { return plot_; }
+
+  //! get node
   Node *node() const { return node_; }
 
   //---
@@ -573,10 +586,13 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
+  //! typename
   QString typeName() const override { return "node"; }
 
+  //! get unique id
   QString calcId() const override;
 
+  //! get tip string
   QString calcTipId() const override;
 
   //---
@@ -636,7 +652,6 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   const Plot* plot_        { nullptr }; //!< parent plot
   Node*       node_        { nullptr }; //!< node
   QString     hierName_;                //!< node hier name
-  QString     name_;                    //!< node name
   bool        editChanged_ { false };   //!< edit is changed
 };
 
@@ -659,11 +674,18 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   virtual ~CQChartsSankeyEdgeObj();
 
-  //! typename
-  QString typeName() const override { return "edge"; }
+  //---
+
+  //! get plot
+  const Plot *plot() const { return plot_; }
 
   //! get edge
   Edge *edge() const { return edge_; }
+
+  //---
+
+  //! typename
+  QString typeName() const override { return "edge"; }
 
   //! get unique id
   QString calcId() const override;
@@ -734,8 +756,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool   edgeLine   READ isEdgeLine WRITE setEdgeLine  )
 
   // coloring
-  Q_PROPERTY(bool           srcColoring   READ isSrcColoring WRITE setSrcColoring  )
-  Q_PROPERTY(ConnectionType mouseColoring READ mouseColoring WRITE setMouseColoring)
+  Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
+  Q_PROPERTY(bool           blendEdgeColor    READ isBlendEdgeColor    WRITE setBlendEdgeColor   )
+  Q_PROPERTY(ConnectionType mouseColoring     READ mouseColoring       WRITE setMouseColoring    )
+  Q_PROPERTY(bool           mouseNodeColoring READ isMouseNodeColoring WRITE setMouseNodeColoring)
 
   // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
@@ -825,12 +849,21 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set color by source nodes
+  //! get/set node color from source nodes
   bool isSrcColoring() const { return srcColoring_; }
   void setSrcColoring(bool b);
 
+  //! get/set blend node colors for edge
+  bool isBlendEdgeColor() const { return blendEdgeColor_; }
+  void setBlendEdgeColor(bool b);
+
+  //! get/set mouse coloring
   const ConnectionType &mouseColoring() const { return mouseColoring_; }
   void setMouseColoring(const ConnectionType &t) { mouseColoring_ = t; }
+
+  //! get/set mouse node coloring
+  bool isMouseNodeColoring() const { return mouseNodeColoring_; }
+  void setMouseNodeColoring(bool b) { mouseNodeColoring_ = b; }
 
   //---
 
@@ -922,8 +955,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool initFromToObjs() const;
 
-  void addFromToValue(const QString &fromStr, const QString &toStr, double value,
-                      const FromToData &fromToData) const override;
+  void addFromToValue(const FromToData &fromToData) const override;
 
   //---
 
@@ -965,6 +997,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   void addObjects(PlotObjs &objs) const;
+
+  //---
+
+  const IMinMax &pathIdMinMax() const { return pathIdMinMax_; }
 
  protected:
   void clearNodesAndEdges();
@@ -1049,8 +1085,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
 
   // coloring
-  bool           srcColoring_   { false };                    //!< color by source nodes
-  ConnectionType mouseColoring_ { ConnectionType::ALL_DEST }; //!< mouse over connections
+  bool           srcColoring_       { false };                    //!< color by source nodes
+  bool           blendEdgeColor_    { true };                     //!< blend edge color
+  ConnectionType mouseColoring_     { ConnectionType::ALL_DEST }; //!< mouse over color connections
+  bool           mouseNodeColoring_ { false };                    //!< mouse over color nodes
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map
@@ -1064,6 +1102,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling
   bool        pressed_       { false };   //!< mouse pressed
+
+  mutable IMinMax pathIdMinMax_; //!< min/max path id
 
  public:
   //! draw text data

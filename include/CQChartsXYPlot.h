@@ -916,8 +916,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
-  void drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const override;
+  void drawXAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
+  void drawYAxisAt(PaintDevice *device, Plot *plot, double pos) const override;
 
   //---
 

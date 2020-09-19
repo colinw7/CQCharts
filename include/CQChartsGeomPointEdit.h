@@ -31,7 +31,7 @@ class CQChartsGeomPointEdit : public QFrame {
   const CQChartsPlot *plot() const { return plot_; }
   void setPlot(CQChartsPlot *p);
 
-  void setRegion(const CQChartsGeom::Point &p);
+  void setRegion(const Point &p);
 
  private:
   void init(const Point &value);

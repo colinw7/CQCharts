@@ -10,7 +10,8 @@
  */
 class CQChartsFitData {
  public:
-  using Point = CQChartsGeom::Point;
+  using Point   = CQChartsGeom::Point;
+  using Polygon = CQChartsGeom::Polygon;
 
  public:
   CQChartsFitData() { }
@@ -91,7 +92,7 @@ class CQChartsFitData {
     fitted_ = true;
   }
 
-  void calc(const CQChartsGeom::Polygon &poly, int order=-1) {
+  void calc(const Polygon &poly, int order=-1) {
     int np = poly.size();
 
     std::vector<double> x, y;

@@ -18,10 +18,13 @@ class CQChartsPlotPropertyEditGroup : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsPlotPropertyEditGroup(CQChartsPlot *plot=nullptr);
+  using Plot = CQChartsPlot;
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p);
+ public:
+  CQChartsPlotPropertyEditGroup(Plot *plot=nullptr);
+
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p);
 
   void addEdit(CQChartsPlotPropertyEdit *edit);
 
@@ -33,10 +36,10 @@ class CQChartsPlotPropertyEditGroup : public QFrame {
  private:
   using Edits = std::vector<CQChartsPlotPropertyEdit *>;
 
-  CQChartsPlot* plot_         { nullptr };
-  QVBoxLayout*  widgetLayout_ { nullptr };
-  QVBoxLayout*  layout_       { nullptr };
-  Edits         edits_;
+  Plot*        plot_         { nullptr };
+  QVBoxLayout* widgetLayout_ { nullptr };
+  QVBoxLayout* layout_       { nullptr };
+  Edits        edits_;
 };
 
 //------
@@ -52,10 +55,13 @@ class CQChartsPlotPropertyEdit : public QFrame {
   Q_PROPERTY(QString label        READ label        WRITE setLabel)
 
  public:
-  CQChartsPlotPropertyEdit(CQChartsPlot *plot=nullptr, const QString &propertyName="");
+  using Plot = CQChartsPlot;
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p);
+ public:
+  CQChartsPlotPropertyEdit(Plot *plot=nullptr, const QString &propertyName="");
+
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p);
 
   const QString &propertyName() const { return propertyName_; }
   void setPropertyName(const QString &s);
@@ -76,13 +82,13 @@ class CQChartsPlotPropertyEdit : public QFrame {
   void updateValue();
 
  private:
-  CQChartsPlot* plot_         { nullptr };
-  QString       propertyName_;
-  QString       label_;
-  QHBoxLayout*  layout_       { nullptr };
-  QLabel*       labelWidget_  { nullptr };
-  QHBoxLayout*  widgetLayout_ { nullptr };
-  QWidget*      widget_       { nullptr };
+  Plot*        plot_         { nullptr };
+  QString      propertyName_;
+  QString      label_;
+  QHBoxLayout* layout_       { nullptr };
+  QLabel*      labelWidget_  { nullptr };
+  QHBoxLayout* widgetLayout_ { nullptr };
+  QWidget*     widget_       { nullptr };
 };
 
 #endif

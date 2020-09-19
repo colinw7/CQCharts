@@ -421,19 +421,21 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //! from/to connection data
   struct FromToData {
-    ModelIndex         fromModelInd;      //!< from model index
-    ModelIndex         toModelInd;        //!< to model index
-    ModelIndex         valueModelInd;     //!< value model index
-    ModelIndex         depthModelInd;     //!< depth model index
-    int                depth      { -1 }; //!< source node depth
-    CQChartsNameValues nameValues;        //!< node/edge attributes
-    GroupData          groupData;         //!< grouping data
+    ModelIndex         fromModelInd;  //!< from model index
+    QString            fromStr;       //!< from string
+    ModelIndex         toModelInd;    //!< to model index
+    QString            toStr;         //!< to string
+    ModelIndex         valueModelInd; //!< value model index
+    OptReal            value;         //!< optional value
+    ModelIndex         depthModelInd; //!< depth model index
+    int                depth { -1 };  //!< source node depth
+    CQChartsNameValues nameValues;    //!< node/edge attributes
+    GroupData          groupData;     //!< grouping data
   };
 
   bool initFromToObjs() const;
 
-  virtual void addFromToValue(const QString &, const QString &, double,
-                              const FromToData &) const { }
+  virtual void addFromToValue(const FromToData &) const { }
 
   //---
 
