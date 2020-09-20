@@ -120,7 +120,7 @@ id() const
   if (name().length())
     return name();
 
-  return QString("%1").arg(ind());
+  return QString("model:%1").arg(ind());
 }
 
 void

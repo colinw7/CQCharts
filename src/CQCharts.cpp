@@ -1152,6 +1152,17 @@ getModelData(int ind) const
   return nullptr;
 }
 
+CQChartsModelData *
+CQCharts::
+getModelData(const QString &id) const
+{
+  for (auto &modelData : modelDatas_)
+    if (modelData->id() == id)
+      return modelData;
+
+  return nullptr;
+}
+
 void
 CQCharts::
 getModelDatas(ModelDatas &modelDatas) const

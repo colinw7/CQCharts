@@ -1196,3 +1196,7 @@
 # 09/14/2020
  + Improve X1/X2 and Y1/Y2 to support more than two plots
  + Improve axis annotations for X1/X2 and Y1/Y2
+# 09/20/2020
+ + Improve sankey placement and controls
+ + Start adding support for per column null values
+ + Switch to model id instead of integer index in tcl

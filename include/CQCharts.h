@@ -225,6 +225,7 @@ class CQCharts : public QObject {
   CQChartsModelData *initModelData(ModelP &model);
 
   CQChartsModelData *getModelData(const QAbstractItemModel *model) const;
+  CQChartsModelData *getModelData(const QString &id) const;
   CQChartsModelData *getModelData(int ind) const;
 
   int currentModelInd() const { return currentModelInd_; }

@@ -61,7 +61,8 @@ class CQChartsLoadModelDlg : public QDialog {
 
   QString filterStr() const;
 
-  int modelInd() const { return modelInd_; }
+  int     modelInd() const { return modelInd_; }
+  QString modelId() const { return modelId_; }
 
   QSize sizeHint() const override;
 
@@ -121,6 +122,7 @@ class CQChartsLoadModelDlg : public QDialog {
   CQCharts*         charts_                 { nullptr };
   bool              emitLoadSignal_         { false };
   int               modelInd_               { -1 };
+  QString           modelId_;
   QComboBox*        typeCombo_              { nullptr };
   CQFilename*       fileEdit_               { nullptr };
   QRadioButton*     noHeaderCheck_          { nullptr };

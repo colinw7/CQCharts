@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + more types in create/edit annotation dialog
+ + region tool for view and test in dialogs
  + null, bad values special draw in table delegate
    + per column null value
  + sankey remove edge overlaps (limit move up/down)

@@ -101,7 +101,10 @@ initWidgets()
   createArrowFrame   ();
   createPointFrame   ();
   createPieSliceFrame();
-  createAxisFrame    ();
+
+  if (plot_)
+    createAxisFrame();
+
   createKeyFrame     ();
   createPointSetFrame();
   createValueSetFrame();
@@ -116,7 +119,10 @@ initWidgets()
   typeStack_->addWidget(arrowWidgets_   .frame);
   typeStack_->addWidget(pointWidgets_   .frame);
   typeStack_->addWidget(pieSliceWidgets_ .frame);
-  typeStack_->addWidget(axisWidgets_     .frame);
+
+  if (plot_)
+    typeStack_->addWidget(axisWidgets_.frame);
+
   typeStack_->addWidget(keyWidgets_      .frame);
   typeStack_->addWidget(pointSetWidgets_ .frame);
   typeStack_->addWidget(valueSetWidgets_ .frame);
@@ -146,9 +152,15 @@ typeNames() const
 {
   static QStringList strs;
 
-  if (strs.length() == 0)
-    strs << "Rectangle" << "Ellipse" << "Polygon" << "Polyline" << "Text" << "Image" << "Arrow" <<
-            "Point" << "Pie Slice" << "Axis" << "Key" << "Point Set" << "Value Set" << "Button";
+  if (strs.length() == 0) {
+    strs << "Rectangle" << "Ellipse" << "Polygon" << "Polyline" << "Text" << "Image" <<
+            "Arrow" << "Point" << "Pie Slice";
+
+    if (plot_)
+      strs << "Axis";
+
+    strs << "Key" << "Point Set" << "Value Set" << "Button";
+  }
 
   return strs;
 }
@@ -975,11 +987,20 @@ applySlot()
   else if (ind == 6 ) rc = createImageAnnotation    ();
   else if (ind == 7 ) rc = createPointAnnotation    ();
   else if (ind == 8 ) rc = createPieSliceAnnotation ();
-  else if (ind == 9 ) rc = createAxisAnnotation     ();
-  else if (ind == 10) rc = createKeyAnnotation      ();
-  else if (ind == 11) rc = createPointSetAnnotation ();
-  else if (ind == 12) rc = createValueSetAnnotation ();
-  else if (ind == 13) rc = createButtonAnnotation   ();
+
+  if (plot_) {
+    if      (ind == 9 ) rc = createAxisAnnotation     ();
+    else if (ind == 10) rc = createKeyAnnotation      ();
+    else if (ind == 11) rc = createPointSetAnnotation ();
+    else if (ind == 12) rc = createValueSetAnnotation ();
+    else if (ind == 13) rc = createButtonAnnotation   ();
+  }
+  else {
+    if      (ind ==  9) rc = createKeyAnnotation      ();
+    else if (ind == 10) rc = createPointSetAnnotation ();
+    else if (ind == 11) rc = createValueSetAnnotation ();
+    else if (ind == 12) rc = createButtonAnnotation   ();
+  }
 
   return rc;
 }
@@ -1264,6 +1285,8 @@ bool
 CQChartsCreateAnnotationDlg::
 createImageAnnotation()
 {
+  std::cerr << "TODO\n";
+
   return true;
 }
 
@@ -1387,6 +1410,8 @@ bool
 CQChartsCreateAnnotationDlg::
 createAxisAnnotation()
 {
+  std::cerr << "TODO\n";
+
   return false;
 }
 
@@ -1420,6 +1445,8 @@ bool
 CQChartsCreateAnnotationDlg::
 createPointSetAnnotation()
 {
+  std::cerr << "TODO\n";
+
   return false;
 }
 
@@ -1427,6 +1454,8 @@ bool
 CQChartsCreateAnnotationDlg::
 createValueSetAnnotation()
 {
+  std::cerr << "TODO\n";
+
   return false;
 }
 

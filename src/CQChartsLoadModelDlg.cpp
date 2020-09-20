@@ -775,6 +775,7 @@ CQChartsLoadModelDlg::
 applySlot()
 {
   modelInd_ = -1;
+  modelId_  = "";
 
   //----
 
@@ -838,6 +839,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   //---
 
   modelInd_ = modelData->ind();
+  modelId_  = modelData->id();
 
   emit modelLoaded(modelInd_);
 
@@ -861,6 +863,7 @@ CQChartsLoadModelDlg::
 cancelSlot()
 {
   modelInd_ = -1;
+  modelId_  = "";
 
   hide();
 }

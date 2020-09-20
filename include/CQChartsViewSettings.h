@@ -164,9 +164,14 @@ class CQChartsViewSettings : public QFrame {
   void viewAnnotationSelectionChangeSlot();
   void plotAnnotationSelectionChangeSlot();
 
-  void createAnnotationSlot();
-  void editAnnotationSlot();
-  void removeAnnotationsSlot();
+  void createViewAnnotationSlot();
+  void editViewAnnotationSlot();
+  void removeViewAnnotationsSlot();
+
+  void createPlotAnnotationSlot();
+  void editPlotAnnotationSlot();
+  void removePlotAnnotationsSlot();
+
   void writeAnnotationSlot();
 
   //---
@@ -257,11 +262,13 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct AnnotationsWidgets {
-    ViewAnnotationsTable* viewTable    { nullptr }; //!< view annotations table
-    PlotAnnotationsTable* plotTable    { nullptr }; //!< plot annotations table
-    QPushButton*          editButton   { nullptr }; //!< edit button
-    QPushButton*          removeButton { nullptr }; //!< remove button
-    QPushButton*          writeButton  { nullptr }; //!< write button
+    ViewAnnotationsTable* viewTable        { nullptr }; //!< view annotations table
+    PlotAnnotationsTable* plotTable        { nullptr }; //!< plot annotations table
+    QPushButton*          viewEditButton   { nullptr }; //!< view edit button
+    QPushButton*          viewRemoveButton { nullptr }; //!< view remove button
+    QPushButton*          plotEditButton   { nullptr }; //!< plot edit button
+    QPushButton*          plotRemoveButton { nullptr }; //!< plot remove button
+    QPushButton*          writeButton      { nullptr }; //!< view and plots write button
   };
 
   struct ObjectsWidgets {

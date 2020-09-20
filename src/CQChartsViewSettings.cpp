@@ -1362,6 +1362,19 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //----
 
+  auto createPushButton = [&](const QString &label, const QString &objName,
+                              const char *slotName, const QString &tip) {
+    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  //---
+
   // view annotations
   auto *viewFrame       = CQUtil::makeWidget<QFrame>("viewFrame");
   auto *viewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
@@ -1376,6 +1389,34 @@ initAnnotationsFrame(QFrame *annotationsFrame)
           this, SLOT(viewAnnotationSelectionChangeSlot()));
 
   viewFrameLayout->addWidget(annotationsWidgets_.viewTable);
+
+  //---
+
+  // create view annotation buttons
+  auto *viewControlGroup =
+    CQUtil::makeLabelWidget<CQGroupBox>("View Control", "viewControlGroup");
+
+  viewFrameLayout->addWidget(viewControlGroup);
+
+  auto *viewControlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(viewControlGroup, 2, 2);
+
+  auto *viewCreateButton =
+    createPushButton("Create...", "create", SLOT(createViewAnnotationSlot()),
+                     "Create View Annotation");
+  annotationsWidgets_.viewEditButton =
+    createPushButton("Edit...", "edit", SLOT(editViewAnnotationSlot()),
+                     "Edit Selected View Annotation");
+  annotationsWidgets_.viewRemoveButton =
+    createPushButton("Remove", "remove", SLOT(removeViewAnnotationsSlot()),
+                     "Remove Selected View Annotation");
+
+  annotationsWidgets_.viewEditButton  ->setEnabled(false);
+  annotationsWidgets_.viewRemoveButton->setEnabled(false);
+
+  viewControlGroupLayout->addWidget(viewCreateButton);
+  viewControlGroupLayout->addWidget(annotationsWidgets_.viewEditButton);
+  viewControlGroupLayout->addWidget(annotationsWidgets_.viewRemoveButton);
+  viewControlGroupLayout->addStretch(1);
 
   //----
 
@@ -1394,49 +1435,54 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   plotFrameLayout->addWidget(annotationsWidgets_.plotTable);
 
-  //----
+  //--
 
-  auto createPushButton = [&](const QString &label, const QString &objName, const char *slotName) {
-    auto *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+  // create plot annotation buttons
+  auto *plotControlGroup =
+    CQUtil::makeLabelWidget<CQGroupBox>("Plot Control", "plotControlGroup");
 
-    connect(button, SIGNAL(clicked()), this, slotName);
+  plotFrameLayout->addWidget(plotControlGroup);
 
-    return button;
-  };
+  auto *plotControlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(plotControlGroup, 2, 2);
 
-  // create annotation buttons
-  auto *controlGroup = CQUtil::makeLabelWidget<CQGroupBox>("Control", "controlGroup");
+  auto *plotCreateButton =
+    createPushButton("Create...", "create", SLOT(createPlotAnnotationSlot()),
+                     "Create Plot Annotation");
+  annotationsWidgets_.plotEditButton =
+    createPushButton("Edit...", "edit", SLOT(editPlotAnnotationSlot()),
+                     "Edit Selected Plot Annotation");
+  annotationsWidgets_.plotRemoveButton =
+    createPushButton("Remove", "remove", SLOT(removePlotAnnotationsSlot()),
+                     "Remove Selected Plot Annotation");
+
+  annotationsWidgets_.plotEditButton  ->setEnabled(false);
+  annotationsWidgets_.plotRemoveButton->setEnabled(false);
+
+  plotControlGroupLayout->addWidget(plotCreateButton);
+  plotControlGroupLayout->addWidget(annotationsWidgets_.plotEditButton);
+  plotControlGroupLayout->addWidget(annotationsWidgets_.plotRemoveButton);
+  plotControlGroupLayout->addStretch(1);
+
+  //--
+
+  annotationsSplit->setSizes(QList<int>({INT_MAX, INT_MAX}));
+
+  //--
+
+  // create view/plot annotation buttons
+  auto *controlGroup =
+    CQUtil::makeLabelWidget<CQGroupBox>("View/Plot Control", "controlGroup");
 
   annotationsFrameLayout->addWidget(controlGroup);
 
   auto *controlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlGroup, 2, 2);
 
-  auto *createButton = createPushButton("Create...", "create", SLOT(createAnnotationSlot()));
-
-  annotationsWidgets_.editButton =
-    createPushButton("Edit...", "edit", SLOT(editAnnotationSlot()));
-  annotationsWidgets_.removeButton =
-    createPushButton("Remove", "remove", SLOT(removeAnnotationsSlot()));
   annotationsWidgets_.writeButton =
-    createPushButton("Write", "write", SLOT(writeAnnotationSlot()));
+    createPushButton("Write", "write", SLOT(writeAnnotationSlot()),
+                     "Write View and Plot Annotations");
 
-  createButton                    ->setToolTip("Create Annotation");
-  annotationsWidgets_.editButton  ->setToolTip("Edit Selected Annotation");
-  annotationsWidgets_.removeButton->setToolTip("Remove Selected Annotation");
-  annotationsWidgets_.writeButton ->setToolTip("Write Annotations");
-
-  annotationsWidgets_.editButton  ->setEnabled(false);
-  annotationsWidgets_.removeButton->setEnabled(false);
-
-  controlGroupLayout->addWidget(createButton);
-  controlGroupLayout->addWidget(annotationsWidgets_.editButton);
-  controlGroupLayout->addWidget(annotationsWidgets_.removeButton);
   controlGroupLayout->addWidget(annotationsWidgets_.writeButton);
   controlGroupLayout->addStretch(1);
-
-  //--
-
-  annotationsSplit->setSizes(QList<int>({INT_MAX, INT_MAX}));
 }
 
 void
@@ -2500,12 +2546,13 @@ viewAnnotationSelectionChangeSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  bool anyAnnotations = (viewAnnotations.size() > 0 || plotAnnotations.size() > 0);
+  bool anyViewAnnotations = (viewAnnotations.size() > 0);
 
-  annotationsWidgets_.editButton  ->setEnabled(anyAnnotations);
-  annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
+  annotationsWidgets_.viewEditButton  ->setEnabled(anyViewAnnotations);
+  annotationsWidgets_.viewRemoveButton->setEnabled(anyViewAnnotations);
 
-  if (viewAnnotations.size()) {
+  // deselect all plot annotations (needed ?)
+  if (anyViewAnnotations) {
     CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
       annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
       this, SLOT(plotAnnotationSelectionChangeSlot()));
@@ -2545,12 +2592,13 @@ plotAnnotationSelectionChangeSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  bool anyAnnotations = (viewAnnotations.size() > 0 || plotAnnotations.size() > 0);
+  bool anyPlotAnnotations = (plotAnnotations.size() > 0);
 
-  annotationsWidgets_.editButton  ->setEnabled(anyAnnotations);
-  annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
+  annotationsWidgets_.plotEditButton  ->setEnabled(anyPlotAnnotations);
+  annotationsWidgets_.plotRemoveButton->setEnabled(anyPlotAnnotations);
 
-  if (plotAnnotations.size()) {
+  // deselect all view annotations (needed ?)
+  if (anyPlotAnnotations) {
     CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
       annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
       this, SLOT(viewAnnotationSelectionChangeSlot()));
@@ -2599,15 +2647,31 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
     annotationsWidgets_.plotTable->getSelectedAnnotations(plot, plotAnnotations);
 }
 
+//---
+
 void
 CQChartsViewSettings::
-createAnnotationSlot()
+createViewAnnotationSlot()
 {
   auto *view = window_->view();
-  auto *plot = view->currentPlot();
 
-  if (! plot)
-    return;
+  if (createAnnotationDlg_)
+    delete createAnnotationDlg_;
+
+  createAnnotationDlg_ = new CQChartsCreateAnnotationDlg(this, view);
+
+  createAnnotationDlg_->show();
+  createAnnotationDlg_->raise();
+}
+
+void
+CQChartsViewSettings::
+createPlotAnnotationSlot()
+{
+  auto *view = window_->view();
+
+  auto *plot = view->currentPlot();
+  if (! plot) return;
 
   if (createAnnotationDlg_)
     delete createAnnotationDlg_;
@@ -2620,21 +2684,14 @@ createAnnotationSlot()
 
 void
 CQChartsViewSettings::
-editAnnotationSlot()
+editViewAnnotationSlot()
 {
   Annotations viewAnnotations, plotAnnotations;
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  CQChartsAnnotation *annotation = nullptr;
-
-  if      (! viewAnnotations.empty())
-    annotation = viewAnnotations[0];
-  else if (! plotAnnotations.empty())
-    annotation = plotAnnotations[0];
-
-  if (! annotation)
-    return;
+  auto *annotation = (! viewAnnotations.empty() ? viewAnnotations[0] : nullptr);
+  if (! annotation) return;
 
   if (editAnnotationDlg_)
     delete editAnnotationDlg_;
@@ -2647,23 +2704,55 @@ editAnnotationSlot()
 
 void
 CQChartsViewSettings::
-removeAnnotationsSlot()
+editPlotAnnotationSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  auto *annotation = (! plotAnnotations.empty() ? plotAnnotations[0] : nullptr);
+  if (! annotation) return;
+
+  if (editAnnotationDlg_)
+    delete editAnnotationDlg_;
+
+  editAnnotationDlg_ = new CQChartsEditAnnotationDlg(this, annotation);
+
+  editAnnotationDlg_->show();
+  editAnnotationDlg_->raise();
+}
+
+void
+CQChartsViewSettings::
+removeViewAnnotationsSlot()
 {
   Annotations viewAnnotations, plotAnnotations;
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
   auto *view = window_->view();
+  if (! view) return;
 
   for (const auto &annotation : viewAnnotations)
     view->removeAnnotation(annotation);
 
-  auto *plot = view->currentPlot();
+  updateView();
+}
 
-  if (plot) {
-    for (const auto &annotation : plotAnnotations)
-      plot->removeAnnotation(annotation);
-  }
+void
+CQChartsViewSettings::
+removePlotAnnotationsSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  auto *view = window_->view();
+  auto *plot = (view ? view->currentPlot() : nullptr);
+  if (! plot) return;
+
+  for (const auto &annotation : plotAnnotations)
+    plot->removeAnnotation(annotation);
 
   updateView();
 }
@@ -2724,7 +2813,7 @@ updatePlotObjects()
     objectsWidgets_.propertyModel = new CQPropertyViewModel;
 
     for (auto &obj : plot->plotObjects())
-      obj->addProperties(objectsWidgets_.propertyModel, "");
+      obj->addProperties(objectsWidgets_.propertyModel, obj->id());
   }
 
   objectsWidgets_.propertyTree->propertyTree()->setPropertyModel(objectsWidgets_.propertyModel);

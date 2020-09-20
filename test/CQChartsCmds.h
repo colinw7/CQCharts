@@ -86,9 +86,9 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  CQChartsModelData *getModelDataOrCurrent(int ind);
+  CQChartsModelData *getModelDataOrCurrent(const QString &id);
 
-  CQChartsModelData *getModelData(int ind);
+  CQChartsModelData *getModelData(const QString &id);
 
   //---
 

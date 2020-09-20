@@ -912,6 +912,8 @@ addFromToValue(const FromToData &fromToData) const
     addModelInd(fromToData.valueModelInd);
     addModelInd(fromToData.depthModelInd);
 
+    edge->setValueColumn(fromToData.valueModelInd.column());
+
     //---
 
     // set edge color (if color column specified)
@@ -1449,6 +1451,8 @@ createGraph() const
     th->graph_ = new Graph(this);
   }
 
+  assert(graph_);
+
   // Add nodes to graph for group
   for (const auto &idNode : indNodeMap_) {
     auto *node = idNode.second;
@@ -1981,7 +1985,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
 
   //---
 
-  auto removeNodesOverlays = [&](bool increasing) {
+  auto removeNodesOverlaps = [&](bool increasing) {
     // get nodes sorted by y (min->max or max->min)
     PosNodeMap posNodeMap;
 
@@ -2051,7 +2055,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
 
   bool changed = false;
 
-  if (removeNodesOverlays(/*increasing*/false))
+  if (removeNodesOverlaps(/*increasing*/false))
     changed = true;
 
   // move nodes back inside bbox (needed ?)
@@ -2065,7 +2069,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
       changed = true;
   }
 
-  if (removeNodesOverlays(/*increasing*/true))
+  if (removeNodesOverlaps(/*increasing*/true))
     changed = true;
 
   // move nodes back inside bbox (needed ?)
@@ -2215,9 +2219,12 @@ constrainPosNodes(const Nodes &nodes, bool center) const
       dy = -dy1;
     }
     else {
-      dy = -dy2;
+      dy = dy2;
     }
   }
+
+  if (CMathUtil::realEq(dy, 0.0))
+    return false;
 
   for (const auto &posNode : posNodeMap) {
     auto *node = posNode.second;
@@ -2592,12 +2599,13 @@ sortPathIdEdges()
   for (auto &edge : destEdges_)
     destPathIdEdges[-edge->pathId()].push_back(edge);
 
-  srcEdges_ .clear();
-  destEdges_.clear();
+  srcEdges_.clear();
 
   for (const auto &pe : srcPathIdEdges)
     for (const auto &edge : pe.second)
       srcEdges_.push_back(edge);
+
+  destEdges_.clear();
 
   for (const auto &pe : destPathIdEdges)
     for (const auto &edge : pe.second)
@@ -3165,10 +3173,10 @@ edgePath(QPainterPath &path, bool isLine) const
   }
 
   if (! srcRect.isSet())
-    srcRect = this->srcNode ()->rect();
+    srcRect = this->srcNode()->rect();
 
   if (! destRect.isSet())
-    destRect = this->destNode ()->rect();
+    destRect = this->destNode()->rect();
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return false;
@@ -3850,8 +3858,14 @@ calcTipId() const
   tableTip.addTableRow("Src"  , srcName);
   tableTip.addTableRow("Dest" , destName);
 
-  if (edge()->hasValue())
-    tableTip.addTableRow("Value", edge()->value().real());
+  if (edge()->hasValue()) {
+    QString headerStr("Value");
+
+    if (edge()->valueColumn().isValid())
+      headerStr = plot_->columnHeaderName(edge()->valueColumn());
+
+    tableTip.addTableRow(headerStr, edge()->value().real());
+  }
 
   if (edge()->pathId() >= 0)
     tableTip.addTableRow("Path Id", edge()->pathId());

@@ -373,9 +373,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     QString    destStr;       //!< destination string from link
     ModelIndex valueModelInd; //!< value model index
     OptReal    value;         //!< optional value
-    int        depth { -1 };  //!< depth
     ModelIndex nameModelInd;  //!< name model index
     ModelIndex depthModelInd; //!< depth model index
+    int        depth { -1 };  //!< depth
     NameValues nameValues;    //!< node/edge attributes
     ModelIndex groupModelInd; //!< group model index
     GroupData  groupData;     //!< group data
