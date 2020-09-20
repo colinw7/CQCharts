@@ -70,6 +70,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(bool   sorted    READ isSorted    WRITE setSorted   )
   Q_PROPERTY(int    maxDepth  READ maxDepth    WRITE setMaxDepth )
   Q_PROPERTY(double minValue  READ minValue    WRITE setMinValue )
+  Q_PROPERTY(bool   propagate READ isPropagate WRITE setPropagate)
 
  public:
   using ColumnArray = std::vector<Column>;
@@ -359,18 +360,25 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  using NameValues = CQChartsNameValues;
+
   //! link connection data
+  //!  Columns are link (From/To Pair) and value define an edge and value (real)
+  //!  Name column can be used for edge name
+  //!  Depth column can be used for depth
+  //!  Group column can be used to color group edges
   struct LinkConnectionData {
-    QString    srcStr;        //!< source string
-    QString    destStr;       //!< destination string
-    double     value { 0.0 }; //!< value
-    int        depth { -1 };  //!< depth
-    GroupData  groupData;     //!< group data
-    ModelIndex groupModelInd; //!< group model index
     ModelIndex linkModelInd;  //!< link model index
+    QString    srcStr;        //!< source string from link
+    QString    destStr;       //!< destination string from link
     ModelIndex valueModelInd; //!< value model index
+    OptReal    value;         //!< optional value
+    int        depth { -1 };  //!< depth
     ModelIndex nameModelInd;  //!< name model index
     ModelIndex depthModelInd; //!< depth model index
+    NameValues nameValues;    //!< node/edge attributes
+    ModelIndex groupModelInd; //!< group model index
+    GroupData  groupData;     //!< group data
   };
 
   bool initLinkObjs() const;
@@ -383,22 +391,24 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   using Connections    = ConnectionList::Connections;
 
   //! connections data
+  //!  Columns are node (source node id) and connections (destination node id and value)
+  //!  If no node column then row number is used.
+  //!  name column is used for node name
   struct ConnectionsData {
-    QModelIndex ind;
-    int         node    { -1 };
-    QString     name;
-    GroupData   groupData;
-    ModelIndex  groupModelInd;
-    ModelIndex  nodeModelInd;
-    ModelIndex  connectionsModelInd;
-    ModelIndex  nameModelInd;
-    double      total   { 0.0 };
-    Connections connections;
+    QModelIndex ind;                 //!< data model index (normalized)
+    ModelIndex  nodeModelInd;        //!< node model index
+    int         node    { -1 };      //!< node number
+    ModelIndex  connectionsModelInd; //!< connections model index
+    Connections connections;         //!< connection list
+    ModelIndex  nameModelInd;        //!< name model index
+    QString     name;                //!< name
+    double      total   { 0.0 };     //!< sum of all connection values
+    NameValues  nameValues;          //!< node attributes
+    ModelIndex  groupModelInd;       //!< group model index
+    GroupData   groupData;           //!< group data
   };
 
   using IdConnectionsData = std::map<int, ConnectionsData>;
-
-  //--
 
   bool initConnectionObjs() const;
 
@@ -406,11 +416,13 @@ class CQChartsConnectionPlot : public CQChartsPlot {
 
   //---
 
+  //! path data
+  //!  Columns are path (hierarchical edges) and value (to leaf)
   struct PathData {
-    QStringList pathStrs;
-    double      value { 1.0 };
-    ModelIndex  pathModelInd;
-    ModelIndex  valueModelInd;
+    ModelIndex  pathModelInd;  //!< path model index
+    QStringList pathStrs;      //!< path strings
+    ModelIndex  valueModelInd; //!< value model index
+    OptReal     value;         //!< optional value
   };
 
   bool initPathObjs() const;
@@ -420,17 +432,20 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   //---
 
   //! from/to connection data
+  //!  Columns are from and to (node names) and value
+  //!  Depth column can be used for depth
+  //!  Group column can be used to color group edges
   struct FromToData {
-    ModelIndex         fromModelInd;  //!< from model index
-    QString            fromStr;       //!< from string
-    ModelIndex         toModelInd;    //!< to model index
-    QString            toStr;         //!< to string
-    ModelIndex         valueModelInd; //!< value model index
-    OptReal            value;         //!< optional value
-    ModelIndex         depthModelInd; //!< depth model index
-    int                depth { -1 };  //!< source node depth
-    CQChartsNameValues nameValues;    //!< node/edge attributes
-    GroupData          groupData;     //!< grouping data
+    ModelIndex fromModelInd;  //!< from model index
+    QString    fromStr;       //!< from string
+    ModelIndex toModelInd;    //!< to model index
+    QString    toStr;         //!< to string
+    ModelIndex valueModelInd; //!< value model index
+    OptReal    value;         //!< optional value
+    ModelIndex depthModelInd; //!< depth model index
+    int        depth { -1 };  //!< source node depth
+    NameValues nameValues;    //!< node/edge attributes
+    GroupData  groupData;     //!< grouping data
   };
 
   bool initFromToObjs() const;

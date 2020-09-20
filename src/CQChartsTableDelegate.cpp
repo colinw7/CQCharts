@@ -17,21 +17,21 @@
 #include <QCheckBox>
 
 CQChartsTableDelegate::
-CQChartsTableDelegate(CQChartsTable *table) :
+CQChartsTableDelegate(Table *table) :
  table_(table)
 {
   init();
 }
 
 CQChartsTableDelegate::
-CQChartsTableDelegate(CQChartsTree *tree) :
+CQChartsTableDelegate(Tree *tree) :
  tree_(tree)
 {
   init();
 }
 
 CQChartsTableDelegate::
-CQChartsTableDelegate(CQChartsModelView *view) :
+CQChartsTableDelegate(ModelView *view) :
  view_(view)
 {
   init();
@@ -71,12 +71,24 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type =
-    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
+  const auto &nullStr = columnData.details->nullValue();
+
+  //---
+
+  auto isNullVar = [&](const QVariant &var) {
+    return (nullStr != "" && var.toString() == nullStr);
+  };
+
+  //---
+
+  auto type = (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if      (type == CQBaseModelType::BOOLEAN) {
     // get bool
-    QVariant var = modelP()->data(index);
+    auto var = modelP()->data(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
 
     bool b = var.toBool();
 
@@ -85,19 +97,21 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   }
   else if (type == CQBaseModelType::COLOR) {
     // get color value
-    QVariant var = getModelData(index);
+    auto var = getModelData(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
 
     // remap if needed
     auto *columnTypeMgr = charts()->columnTypeMgr();
 
-    const CQChartsColumnColorType *colorType =
+    const auto *colorType =
       dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(type));
 
     bool converted;
 
-    QVariant cvar =
-      colorType->userData(charts(), modelP().data(), CQChartsColumn(index.column()),
-                          var, columnData.details->typeData(), converted);
+    auto cvar = colorType->userData(charts(), modelP().data(), CQChartsColumn(index.column()),
+                                    var, columnData.details->typeData(), converted);
 
     // get color
     bool ok;
@@ -109,7 +123,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   }
   else if (type == CQBaseModelType::SYMBOL) {
     // get symbol value
-    QVariant var = getModelData(index);
+    auto var = getModelData(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
 
     // TODO: remap
 
@@ -122,7 +139,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   }
   else if (type == CQBaseModelType::IMAGE) {
     // get symbol value
-    QVariant var = getModelData(index);
+    auto var = getModelData(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
 
     bool ok;
 
@@ -134,17 +154,21 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   else if (type == CQBaseModelType::REAL ||
            type == CQBaseModelType::INTEGER ||
            type == CQBaseModelType::TIME) {
-    CQChartsModelColumnDetails::TableDrawType tableDrawType =
-      (columnData.details ? columnData.details->tableDrawType() :
-       CQChartsModelColumnDetails::TableDrawType::NORMAL);
+    // get model value (actual data if possible)
+    auto var = getModelData(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
+
+    //---
+
+    auto tableDrawType = (columnData.details ? columnData.details->tableDrawType() :
+                           CQChartsModelColumnDetails::TableDrawType::NORMAL);
 
     if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::NORMAL)
       return false;
 
     //---
-
-    // get model value (actual data if possible)
-    QVariant var = getModelData(index);
 
     bool ok;
     double r = var.toReal(&ok);
@@ -152,14 +176,14 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     //---
 
-    QStyleOptionViewItem option1 = option;
+    auto option1 = option;
 
     // align right for numeric
     if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER)
       option1.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
     auto initSelected = [&]() {
-      QColor c = option.palette.color(QPalette::Highlight);
+      auto c = option.palette.color(QPalette::Highlight);
 
       option1.palette.setColor(QPalette::Highlight, QColor(0, 0, 0, 0));
       option1.palette.setColor(QPalette::HighlightedText, c);
@@ -177,7 +201,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     auto realDisplayStr = [&](const QModelIndex &index, double r) {
       QString dstr;
 
-      QVariant dvar = modelP()->data(index, Qt::DisplayRole);
+      auto dvar = modelP()->data(index, Qt::DisplayRole);
 
       if (dvar.isValid())
         dstr = dvar.toString();
@@ -195,10 +219,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     const auto *columnType = columnTypeMgr->getType(type);
 
-    QVariant minVar = columnType->minValue(columnData.details->nameValues());
+    auto minVar = columnType->minValue(columnData.details->nameValues());
     if (! minVar.isValid()) minVar = columnData.details->minValue();
 
-    QVariant maxVar = columnType->maxValue(columnData.details->nameValues());
+    auto maxVar = columnType->maxValue(columnData.details->nameValues());
     if (! maxVar.isValid()) maxVar = columnData.details->maxValue();
 
     double min = minVar.toReal(&ok);
@@ -219,8 +243,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
           // blend fixed color with background color using normalized value
           CQChartsUtil::ColorInd colorInd;
 
-          QColor bg1 = charts()->interpColor(drawColor, colorInd);
-          QColor bg2 = option.palette.color(QPalette::Window);
+          auto bg1 = charts()->interpColor(drawColor, colorInd);
+          auto bg2 = option.palette.color(QPalette::Window);
 
           bg = CQChartsUtil::blendColors(bg1, bg2, norm);
         }
@@ -245,8 +269,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       }
       else {
         // blend default color (red) with background color using normalized value
-        QColor bg1 = QColor(255, 0, 0);
-        QColor bg2 = option.palette.color(QPalette::Window);
+        auto bg1 = QColor(255, 0, 0);
+        auto bg2 = option.palette.color(QPalette::Window);
 
         bg = CQChartsUtil::blendColors(bg1, bg2, norm);
       }
@@ -259,12 +283,12 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       if (option.state & QStyle::State_Selected)
         initSelected();
       else {
-        QColor tc = CQChartsUtil::bwColor(bg);
+        auto tc = CQChartsUtil::bwColor(bg);
 
         option1.palette.setColor(QPalette::Text, tc);
       }
 
-      QString dstr = realDisplayStr(index, r);
+      auto dstr = realDisplayStr(index, r);
 
       QItemDelegate::drawDisplay(painter, option1, option.rect, dstr);
 
@@ -278,8 +302,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       double lw =      norm *option.rect.width();
       double rw = (1 - norm)*option.rect.width();
 
-      QColor bg1(160, 160, 160);
-      QColor bg2 = option.palette.color(QPalette::Window);
+      auto bg1 = QColor(160, 160, 160);
+      auto bg2 = option.palette.color(QPalette::Window);
 
       if (drawColor.isValid()) {
         CQChartsUtil::ColorInd colorInd;
@@ -311,7 +335,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
       painter->save();
 
-      QString dstr = realDisplayStr(index, r);
+      auto dstr = realDisplayStr(index, r);
 
       painter->setClipRect(lrect);
       option1.palette.setColor(QPalette::Text, tc1);
@@ -334,7 +358,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   }
   else {
     // handle list
-    QVariant var = modelP()->data(index);
+    auto var = modelP()->data(index);
+
+    if (isNullVar(var))
+      return drawNullValue(painter, option, index);
 
     if (var.type() == QVariant::List) {
       QString str;
@@ -362,7 +389,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
     (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
-    QVariant var = modelP()->data(index);
+    auto var = modelP()->data(index);
 
     auto *check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
 
@@ -396,7 +423,7 @@ click(const QModelIndex &index) const
     (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
-    QVariant var = modelP()->data(index);
+    auto var = modelP()->data(index);
 
     modelP()->setData(index, ! var.toBool());
   }
@@ -444,9 +471,9 @@ drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
 {
   QItemDelegate::drawBackground(painter, option, index);
 
-  Qt::CheckState checkState = (checked ? Qt::Checked : Qt::Unchecked);
+  auto checkState = (checked ? Qt::Checked : Qt::Unchecked);
 
-  QRect rect = option.rect;
+  auto rect = option.rect;
 
   rect.setWidth(option.rect.height());
 
@@ -470,17 +497,17 @@ drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
 void
 CQChartsTableDelegate::
 drawColor(QPainter *painter, const QStyleOptionViewItem &option,
-          const CQChartsColor &color, const QModelIndex &index) const
+          const Color &color, const QModelIndex &index) const
 {
   QItemDelegate::drawBackground(painter, option, index);
 
-  QRect rect = option.rect;
+  auto rect = option.rect;
 
   rect.setWidth(option.rect.height());
 
   rect.adjust(0, 1, -3, -2);
 
-  QColor c = charts()->interpColor(color, CQChartsUtil::ColorInd());
+  auto c = charts()->interpColor(color, CQChartsUtil::ColorInd());
 
   painter->fillRect(rect, QBrush(c));
 
@@ -503,11 +530,11 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 void
 CQChartsTableDelegate::
 drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
-           const CQChartsSymbol &symbol, const QModelIndex &index) const
+           const Symbol &symbol, const QModelIndex &index) const
 {
   QItemDelegate::drawBackground(painter, option, index);
 
-  QRect rect = option.rect;
+  auto rect = option.rect;
 
   rect.setWidth(option.rect.height());
 
@@ -540,11 +567,11 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 void
 CQChartsTableDelegate::
 drawImage(QPainter *painter, const QStyleOptionViewItem &option,
-           const CQChartsImage &image, const QModelIndex &index) const
+           const Image &image, const QModelIndex &index) const
 {
   QItemDelegate::drawBackground(painter, option, index);
 
-  QRect rect = option.rect;
+  auto rect = option.rect;
 
   rect.setWidth(option.rect.height());
 
@@ -561,6 +588,16 @@ drawImage(QPainter *painter, const QStyleOptionViewItem &option,
 
     device.drawImageInRect(device.pixelToWindow(pbbox), image, /*stretch*/false);
   }
+}
+
+bool
+CQChartsTableDelegate::
+drawNullValue(QPainter *painter, const QStyleOptionViewItem &option,
+              const QModelIndex &index) const
+{
+  drawString(painter, option, "<null>", index);
+
+  return true;
 }
 
 void

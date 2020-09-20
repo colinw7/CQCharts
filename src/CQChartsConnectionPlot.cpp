@@ -408,6 +408,7 @@ addProperties()
   addProp("options", "sorted"   , "", "Sort values by size");
   addProp("options", "maxDepth" , "", "Max Node depth");
   addProp("options", "minValue" , "", "Min Node value");
+  addProp("options", "propagate", "", "Propagate values up hierarchy");
 }
 
 //---
@@ -551,12 +552,16 @@ initLinkObjs() const
       //---
 
       // Get value value
-      linkConnectionData.valueModelInd =
-        ModelIndex(plot, data.row, plot_->valueColumn(), data.parent);
+      if (plot_->valueColumn().isValid()) {
+        linkConnectionData.valueModelInd =
+          ModelIndex(plot, data.row, plot_->valueColumn(), data.parent);
 
-      bool ok1;
-      linkConnectionData.value = plot_->modelReal(linkConnectionData.valueModelInd, ok1);
-      if (! ok1) return addDataError(linkConnectionData.valueModelInd, "Invalid Value");
+        bool ok1;
+        double value = plot_->modelReal(linkConnectionData.valueModelInd, ok1);
+        if (! ok1) return addDataError(linkConnectionData.valueModelInd, "Invalid Value");
+
+        linkConnectionData.value = OptReal(value);
+      }
 
       //---
 
@@ -575,6 +580,19 @@ initLinkObjs() const
         bool ok2;
         linkConnectionData.depth = (int) plot_->modelInteger(linkConnectionData.depthModelInd, ok2);
         if (! ok2) return addDataError(linkConnectionData.depthModelInd, "Non-integer depth value");
+      }
+
+      //---
+
+      // get attributes from optional column
+      if (plot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(plot, data.row, plot_->attributesColumn(), data.parent);
+
+        bool ok4;
+        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
+        if (! ok4) return State::SKIP;
+
+        linkConnectionData.nameValues = CQChartsNameValues(attributesStr);
       }
 
       //---
@@ -640,17 +658,19 @@ initConnectionObjs() const
         groupData = GroupData("", data.row, numRows());
       }
 
+      connectionsData.groupData = groupData;
+
       //---
 
       // get optional node id (default to row)
-      int id = data.row;
+      connectionsData.node = data.row;
 
       if (plot_->nodeColumn().isValid()) {
         connectionsData.nodeModelInd =
           ModelIndex(plot, data.row, plot_->nodeColumn(), data.parent);
 
         bool ok2;
-        id = (int) plot_->modelInteger(connectionsData.nodeModelInd, ok2);
+        connectionsData.node = (int) plot_->modelInteger(connectionsData.nodeModelInd, ok2);
         if (! ok2) return addDataError(connectionsData.nodeModelInd, "Non-integer node value");
       }
 
@@ -678,39 +698,47 @@ initConnectionObjs() const
       //----
 
       // get name
-      QString name = QString("%1").arg(id);
+      connectionsData.name = QString("%1").arg(connectionsData.node);
 
       if (plot_->nameColumn().isValid()) {
         connectionsData.nameModelInd =
           ModelIndex(plot, data.row, plot_->nameColumn(), data.parent);
 
         bool ok4;
-        name = plot_->modelString(connectionsData.nameModelInd, ok4);
+        connectionsData.name = plot_->modelString(connectionsData.nameModelInd, ok4);
         if (! ok4) return addDataError(connectionsData.nameModelInd, "Invalid name string");
       }
 
       //---
 
-      // calc total
-      double total = 0.0;
+      // get attributes from optional column
+      if (plot_->attributesColumn().isValid()) {
+        ModelIndex attributesModelInd(plot, data.row, plot_->attributesColumn(), data.parent);
 
-      for (const auto &connection : connectionsData.connections)
-        total += connection.value;
+        bool ok4;
+        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
+        if (! ok4) return State::SKIP;
+
+        connectionsData.nameValues = CQChartsNameValues(attributesStr);
+      }
 
       //---
 
-      // return connections data
+      // calc total
+      connectionsData.total = 0.0;
+
+      for (const auto &connection : connectionsData.connections)
+        connectionsData.total += connection.value;
+
+      //---
+
+      // store connections data by node id
       if (connectionsData.nodeModelInd.isValid()) {
         auto nodeInd  = plot_->modelIndex(connectionsData.nodeModelInd);
         auto nodeInd1 = plot_->normalizeIndex(nodeInd);
 
         connectionsData.ind = nodeInd1;
       }
-
-      connectionsData.node      = id;
-      connectionsData.name      = name;
-      connectionsData.groupData = groupData;
-      connectionsData.total     = total;
 
       idConnectionsData_[connectionsData.node] = connectionsData;
 
@@ -736,6 +764,7 @@ initConnectionObjs() const
 
   //---
 
+  // add connections
   const auto &idConnectionsData = visitor.idConnectionsData();
 
   for (const auto &idConnections : idConnectionsData) {
@@ -908,14 +937,14 @@ initPathObjs() const
 
       //---
 
-      pathData.value = 1.0;
-
       if (plot_->valueColumn().isValid()) {
         pathData.valueModelInd = ModelIndex(plot, data.row, plot_->valueColumn(), data.parent);
 
         bool ok1;
-        pathData.value = plot_->modelReal(pathData.valueModelInd, ok1);
+        double value = plot_->modelReal(pathData.valueModelInd, ok1);
         if (! ok1) return State::SKIP;
+
+        pathData.value = OptReal(value);
       }
 
       //---
@@ -1118,10 +1147,11 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
   visitModel(visitor);
 
-  //---
-
   const auto &indRowDatas = visitor.indRowDatas();
 
+  //---
+
+  // calc table size
   int nr = indRowDatas.size();
   int nc = (nr > 0 ? int(indRowDatas[0].rowData.size()) : 0);
 
@@ -1164,6 +1194,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
   //---
 
+  // load table rows from model
   tableConnectionInfo.numNonZero = 0;
 
   tableConnectionInfo.total = 0.0;

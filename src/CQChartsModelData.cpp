@@ -1358,12 +1358,17 @@ writeCSV(std::ostream &fs) const
 
     writeMetaColumnData("type", typeName);
 
+    const auto &nullValue = columnDetails->nullValue();
+
+    if (nullValue.length())
+       writeMetaColumnData("null_value", nullValue);
+
+    writeMetaColumnData("key", "1");
+
     const auto &drawColor = columnDetails->tableDrawColor();
 
     auto tableDrawType  = columnDetails->tableDrawType();
     auto tableDrawStops = columnDetails->tableDrawStops();
-
-    writeMetaColumnData("key", "1");
 
     if (drawColor.isValid())
       writeMetaColumnData("draw_color", drawColor.toString());

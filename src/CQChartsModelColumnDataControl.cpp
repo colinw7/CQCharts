@@ -331,7 +331,7 @@ setColumnData(int column)
   //---
 
   // update column number
-  columnNumEdit_->setModel(model.data());
+  columnNumEdit_->setModelData(modelData_);
   columnNumEdit_->setColumn(CQChartsColumn(column));
 
   //---

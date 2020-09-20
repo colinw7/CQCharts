@@ -1,0 +1,12 @@
+Link,Value,Depth,Attributes
+A/B,1,1,path_id=1
+B/C,2,2,path_id=1
+C/D,1,3,path_id=1
+D/E,1,4,path_id=1
+A/B,1,1,path_id=2
+B/C,2,2,path_id=2
+C/D,1,3,path_id=2
+D/E,1,4,path_id=2
+A/B,1,1,path_id=3
+B/C,2,2,path_id=3
+C/D,1,3,path_id=3

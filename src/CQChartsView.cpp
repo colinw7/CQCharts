@@ -46,7 +46,6 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QMenu>
-#include <QTime>
 
 #include <svg/models_light_svg.h>
 #include <svg/models_dark_svg.h>
@@ -2122,6 +2121,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
   //---
 
+  // only place base plots (non-overlay)
   PlotSet basePlotSet;
 
   for (const auto &plot : plots) {
@@ -2592,22 +2592,23 @@ wheelEvent(QWheelEvent *e)
 
   auto p = plot->pixelToWindow(pp);
 
+  // scroll vertical
   if      (e->modifiers() & Qt::ShiftModifier) {
-    if      (e->delta() > 0)
-      plot->panLeft(panFactor);
-    else if (e->delta() < 0)
-      plot->panRight(panFactor);
-  }
-  else if (e->modifiers() & Qt::ControlModifier) {
     if      (e->delta() > 0)
       plot->panUp(panFactor);
     else if (e->delta() < 0)
       plot->panDown(panFactor);
   }
+  // scroll horizontal
+  else if (e->modifiers() & Qt::ControlModifier) {
+    if      (e->delta() > 0)
+      plot->panLeft(panFactor);
+    else if (e->delta() < 0)
+      plot->panRight(panFactor);
+  }
   else {
     bool reuse = (plot == lastPlot && std::abs(lastPPoint.x - pp.x) < 4 &&
                                       std::abs(lastPPoint.y - pp.y) < 4);
-std::cerr << "Reuse=" << reuse << "\n";
 
     if (reuse)
       p = lastPoint;
@@ -5149,7 +5150,6 @@ showMenu(const Point &p)
   auto *themeMenu = addSubMenu(popupMenu, "Theme");
 
   auto *interfaceGroup = createActionGroup(themeMenu);
-  auto *themeGroup     = createActionGroup(themeMenu);
 
   auto addInterfaceAction = [&](const QString &label, const char *slotName) {
     auto *action = new QAction(label, themeMenu);
@@ -5162,6 +5162,8 @@ showMenu(const Point &p)
 
     return action;
   };
+
+  auto *themeGroup = createActionGroup(themeMenu);
 
   auto addThemeAction = [&](const QString &label, const char *slotName) {
     auto *action = new QAction(label, themeMenu);
@@ -5767,7 +5769,7 @@ void
 CQChartsView::
 printPNGSlot(const QString &filename)
 {
-  printPNG(filename);
+  (void) printPNG(filename);
 }
 
 void
@@ -5786,7 +5788,7 @@ void
 CQChartsView::
 printSVGSlot(const QString &filename)
 {
-  printSVG(filename);
+  (void) printSVG(filename);
 }
 
 void

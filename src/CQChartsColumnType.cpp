@@ -796,6 +796,10 @@ CQChartsColumnType(Type type) :
   addParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
     setDesc("Preferred column width");
 
+  // null value
+  addParam("null_value", Type::STRING, "Null Value", "")->
+    setDesc("Null value string");
+
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
     setDesc("Base color for table value coloring");
@@ -895,6 +899,18 @@ preferredWidth(const CQChartsNameValues &nameValues) const
   int width = str.toInt(&ok);
 
   return (ok ? width : -1);
+}
+
+QString
+CQChartsColumnType::
+nullValue(const CQChartsNameValues &nameValues) const
+{
+  QString nullStr;
+
+  if (! nameValueString(nameValues, "null_value", nullStr))
+    nullStr = "";
+
+  return nullStr;
 }
 
 CQChartsColor

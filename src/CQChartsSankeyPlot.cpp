@@ -13,7 +13,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsScriptPaintDevice.h>
-#include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsTip.h>
@@ -245,6 +244,13 @@ setAlign(const Align &a)
   CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsSankeyPlot::
+setSpread(const Spread &s)
+{
+  CQChartsUtil::testAndSet(spread_, s, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -295,6 +301,7 @@ addProperties()
   addProp("options", "adjustNodes" , "adjustNodes" , "Adjust node placement");
   addProp("options", "adjustText"  , "adjustText"  , "Adjust text placement");
   addProp("options", "align"       , "align"       , "Node alignment");
+  addProp("options", "spread"      , "spread"      , "Node spread");
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
 
   // coloring
@@ -661,6 +668,9 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
   if (maxDepth() <= 0 || destDepth <= maxDepth())
     destNode = findNode(destStr);
 
+  //---
+
+  // create edge and link src/dest nodes
   auto *edge = (srcNode && destNode ? createEdge(OptReal(value), srcNode, destNode) : nullptr);
 
   if (edge) {
@@ -668,6 +678,9 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
     destNode->addSrcEdge (edge);
   }
 
+  //---
+
+  // set node depths
   if (srcNode)
     srcNode->setDepth(srcDepth);
 
@@ -733,6 +746,7 @@ addPathValue(const PathData &pathData) const
       bool hasEdge = srcNode->hasDestNode(destNode);
 
       if (! hasEdge) {
+        // create edge and link src/dest nodes
         auto *edge = createEdge(OptReal(), srcNode, destNode);
 
         srcNode ->addDestEdge(edge);
@@ -740,8 +754,17 @@ addPathValue(const PathData &pathData) const
       }
     }
     else {
-      auto *edge = createEdge(OptReal(), srcNode, destNode);
+      // create edge and link src/dest nodes
+      auto edgeValue = (! isPropagate() ? pathData.value : OptReal());
 
+      auto *edge = createEdge(edgeValue, srcNode, destNode);
+
+      srcNode ->addDestEdge(edge);
+      destNode->addSrcEdge (edge);
+
+      //---
+
+      // add model indices
       auto addModelInd = [&](const ModelIndex &modelInd) {
         if (modelInd.isValid())
           edge->addModelInd(modelInd);
@@ -752,10 +775,8 @@ addPathValue(const PathData &pathData) const
 
       //---
 
-      srcNode ->addDestEdge(edge);
-      destNode->addSrcEdge (edge);
-
-      destNode->setValue(OptReal(pathData.value));
+      // set destination node value (will be propagated up)
+      destNode->setValue(pathData.value);
     }
 
     path1 = path2;
@@ -796,18 +817,20 @@ propagatePathValues()
       // propagate set node value up to source nodes
       if (node->hasValue()) {
         if (! node->srcEdges().empty()) {
-          assert(node->srcEdges().size() == 1);
+          //int ns = node->srcEdges().size();
 
-          auto *srcEdge = *node->srcEdges().begin();
+          double value = node->value().realOr(1.0);
 
-          if (! srcEdge->hasValue())
-            srcEdge->setValue(node->value());
+          for (auto &srcEdge : node->srcEdges()) {
+            if (! srcEdge->hasValue())
+              srcEdge->setValue(OptReal(value));
 
-          auto *srcNode = srcEdge->srcNode();
+            auto *srcNode = srcEdge->srcNode();
 
-          for (const auto &edge : srcNode->destEdges()) {
-            if (edge->destNode() == node)
-              edge->setValue(node->value());
+            for (const auto &edge : srcNode->destEdges()) {
+              if (edge->destNode() == node)
+                edge->setValue(OptReal(value));
+            }
           }
         }
       }
@@ -830,6 +853,7 @@ void
 CQChartsSankeyPlot::
 addFromToValue(const FromToData &fromToData) const
 {
+  // get src node
   auto *srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth >= 0)
@@ -837,6 +861,7 @@ addFromToValue(const FromToData &fromToData) const
 
   //---
 
+  // set group
   if (fromToData.groupData.ng > 1)
     srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
   else
@@ -846,6 +871,7 @@ addFromToValue(const FromToData &fromToData) const
 
   // Just node
   if (fromToData.toStr == "") {
+    // set node color (if color column specified)
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
@@ -853,16 +879,8 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
-    for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
-
-      if      (nv.first == "label") {
-        srcNode->setLabel(value);
-      }
-      else if (nv.first == "color") {
-        srcNode->setColor(CQChartsColor(value));
-      }
-    }
+    // set node name values (attribute column)
+    processNodeNameValues(srcNode, fromToData.nameValues);
   }
   else {
     if (fromToData.fromStr == fromToData.toStr)
@@ -875,8 +893,15 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
+    // create edge and link src/dest nodes
     auto *edge = createEdge(fromToData.value, srcNode, destNode);
 
+    srcNode ->addDestEdge(edge, /*primary*/true );
+    destNode->addSrcEdge (edge, /*primary*/false);
+
+    //---
+
+    // add model indices
     auto addModelInd = [&](const ModelIndex &modelInd) {
       if (modelInd.isValid())
         edge->addModelInd(modelInd);
@@ -889,49 +914,16 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
-    srcNode ->addDestEdge(edge, /*primary*/true );
-    destNode->addSrcEdge (edge, /*primary*/false);
-
-    //---
-
+    // set edge color (if color column specified)
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
       edge->setColor(c);
 
-    for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+    //---
 
-      if      (nv.first == "path_id") {
-        bool ok;
-        int pathId = value.toInt(&ok);
-        if (! ok || pathId < 0) continue;
-
-        edge->setPathId(pathId);
-
-        pathIdMinMax_.add(pathId);
-      }
-      else if (nv.first == "color") {
-        edge->setColor(CQChartsColor(value));
-      }
-#if 0
-      else if (nv.first == "label") {
-        edge->setLabel(value);
-      }
-#endif
-      else if (nv.first == "src_label") {
-        srcNode->setLabel(value);
-      }
-      else if (nv.first == "dest_label") {
-        destNode->setLabel(value);
-      }
-      else if (nv.first == "src_color") {
-        srcNode->setColor(CQChartsColor(value));
-      }
-      else if (nv.first == "dest_color") {
-        destNode->setColor(CQChartsColor(value));
-      }
-    }
+    // set edge name values (attribute column)
+    processEdgeNameValues(edge, fromToData.nameValues);
   }
 }
 
@@ -950,15 +942,22 @@ void
 CQChartsSankeyPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
-  // each line is from/to and optional value and group
+  // get src/dest nodes (TODO: allow single source node)
   auto *srcNode  = findNode(linkConnectionData.srcStr);
   auto *destNode = findNode(linkConnectionData.destStr);
 //assert(srcNode != destNode);
 
   //---
 
-  auto *edge = createEdge(OptReal(linkConnectionData.value), srcNode, destNode);
+  // create edge and link src/dest nodes
+  auto *edge = createEdge(linkConnectionData.value, srcNode, destNode);
 
+  srcNode ->addDestEdge(edge);
+  destNode->addSrcEdge (edge);
+
+  //---
+
+  // add model indices
   auto addModelInd = [&](const ModelIndex &modelInd) {
     if (modelInd.isValid())
       edge->addModelInd(modelInd);
@@ -972,16 +971,29 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
-  srcNode ->addDestEdge(edge);
-  destNode->addSrcEdge (edge);
+  // set edge color (if color column specified)
+  Color c;
 
-  destNode->setValue(OptReal(linkConnectionData.value));
+  if (colorColumnColor(linkConnectionData.linkModelInd.row(),
+                       linkConnectionData.linkModelInd.parent(), c))
+    edge->setColor(c);
 
+  //---
+
+  // set value on dest node (NEEDED ?)
+  destNode->setValue(linkConnectionData.value);
+
+  //---
+
+  // set group
   if (linkConnectionData.groupData.isValid())
     srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
   else
     srcNode->setGroup(-1);
 
+  //---
+
+  // set name index
   if (linkConnectionData.nameModelInd.isValid()) {
     auto nameModelInd1 = normalizeIndex(linkConnectionData.nameModelInd);
 
@@ -990,10 +1002,16 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
+  // set depth
   if (linkConnectionData.depth > 0) {
     srcNode ->setDepth(linkConnectionData.depth);
     destNode->setDepth(linkConnectionData.depth + 1);
   }
+
+  //---
+
+  // set edge name values (attribute column)
+  processEdgeNameValues(edge, linkConnectionData.nameValues);
 }
 
 //---
@@ -1011,14 +1029,16 @@ void
 CQChartsSankeyPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
-  // each line of model is node and lisk of connections
-
+  // get src node
   QString srcStr = QString("%1").arg(id);
 
   auto *srcNode = findNode(srcStr);
 
   srcNode->setName(connectionsData.name);
 
+  //---
+
+  // set group
   if (connectionsData.groupData.isValid())
     srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
   else
@@ -1026,32 +1046,42 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
 
   //---
 
+  // add model indices
   auto addModelInd = [&](const ModelIndex &modelInd) {
     if (modelInd.isValid())
       srcNode->addModelInd(modelInd);
   };
 
-  addModelInd(connectionsData.groupModelInd);
   addModelInd(connectionsData.nodeModelInd);
   addModelInd(connectionsData.connectionsModelInd);
   addModelInd(connectionsData.nameModelInd);
+  addModelInd(connectionsData.groupModelInd);
 
   //---
 
+  // set node name values (attribute column)
+  processNodeNameValues(srcNode, connectionsData.nameValues);
+
+  //---
+
+  // process connections
   for (const auto &connection : connectionsData.connections) {
+    // get destination node
     QString destStr = QString("%1").arg(connection.node);
 
     auto *destNode = findNode(destStr);
 
     //---
 
+    // create edge and link src/dest nodes
     auto *edge = createEdge(OptReal(connection.value), srcNode, destNode);
-
-    //---
 
     srcNode ->addDestEdge(edge);
     destNode->addSrcEdge (edge);
 
+    //---
+
+    // set value
     destNode->setValue(OptReal(connection.value));
   }
 }
@@ -1094,6 +1124,7 @@ initTableObjs() const
 
       auto *destNode = findNode(destStr);
 
+      // create edge and link src/dest nodes
       auto *edge = createEdge(OptReal(value.value), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
@@ -1104,6 +1135,66 @@ initTableObjs() const
   //---
 
   return true;
+}
+
+//----
+
+void
+CQChartsSankeyPlot::
+processNodeNameValues(Node *node, const NameValues &nameValues) const
+{
+  for (const auto &nv : nameValues.nameValues()) {
+    QString value = nv.second.toString();
+
+    if      (nv.first == "label") {
+      node->setLabel(value);
+    }
+    else if (nv.first == "color") {
+      node->setColor(CQChartsColor(value));
+    }
+  }
+}
+
+void
+CQChartsSankeyPlot::
+processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
+{
+  auto *srcNode  = edge->srcNode ();
+  auto *destNode = edge->destNode();
+
+  for (const auto &nv : nameValues.nameValues()) {
+    QString value = nv.second.toString();
+
+    if      (nv.first == "path_id") {
+      bool ok;
+      int pathId = value.toInt(&ok);
+      if (! ok || pathId < 0) continue;
+
+      edge->setPathId(pathId);
+
+      pathIdMinMax_.add(pathId);
+    }
+    else if (nv.first == "color") {
+      edge->setColor(CQChartsColor(value));
+    }
+#if 0
+    else if (nv.first == "label") {
+      edge->setLabel(value);
+    }
+#endif
+    else if (nv.first == "src_label") {
+      srcNode->setLabel(value);
+    }
+    else if (nv.first == "dest_label") {
+      destNode->setLabel(value);
+    }
+    else if (nv.first == "src_color") {
+      srcNode->setColor(CQChartsColor(value));
+    }
+    else if (nv.first == "dest_color") {
+      destNode->setColor(CQChartsColor(value));
+    }
+  }
 }
 
 //---
@@ -1217,9 +1308,11 @@ addObjects(PlotObjs &objs) const
 
   //---
 
-  // adjust node rects
-  for (auto *node : graph_->nodes()) {
-    node->adjustSrcDestRects();
+  // adjust node rects to align on matching path id
+  if (hasAnyPathId()) {
+    for (auto *node : graph_->nodes()) {
+      node->adjustSrcDestRects();
+    }
   }
 }
 
@@ -1249,6 +1342,12 @@ placeGraphNodes(const Nodes &nodes) const
 
   // set x pos of nodes
   calcGraphNodesXPos(nodes);
+
+  //---
+
+  // sort x nodes by associated path ids
+  if (hasAnyPathId())
+    th->sortDepthNodes();
 
   //---
 
@@ -1284,6 +1383,14 @@ placeGraphNodes(const Nodes &nodes) const
 
 void
 CQChartsSankeyPlot::
+placeEdges()
+{
+  for (auto *node : graph_->nodes())
+    node->placeEdges(/*reset*/true);
+}
+
+void
+CQChartsSankeyPlot::
 calcGraphNodesXPos(const Nodes &nodes) const
 {
   // place graph nodes at x position
@@ -1307,6 +1414,28 @@ calcGraphNodesXPos(const Nodes &nodes) const
       node->setDepth(-1);
 
     calcGraphNodesXPos(nodes);
+  }
+}
+
+void
+CQChartsSankeyPlot::
+sortDepthNodes()
+{
+  using PathIdNodes = std::map<int, Nodes>;
+
+  for (auto &depthNodes : graph_->depthNodesMap()) {
+    PathIdNodes pathIdNodes;
+
+    for (auto &node : depthNodes.second.nodes)
+      pathIdNodes[-node->minPathId()].push_back(node);
+
+    Nodes nodes;
+
+    for (const auto &pn : pathIdNodes)
+      for (const auto &node : pn.second)
+        nodes.push_back(node);
+
+    depthNodes.second.nodes = nodes;
   }
 }
 
@@ -1672,15 +1801,31 @@ initPosNodesMap(const Nodes &nodes) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCenters() const
+adjustNodeCenters(bool remove) const
+{
+  bool changed = false;
+
+  if (adjustNodeCentersLtoR(remove))
+    changed = true;
+
+  if (adjustNodeCentersRtoL(remove))
+    changed = true;
+
+  return changed;
+}
+
+bool
+CQChartsSankeyPlot::
+adjustNodeCentersLtoR(bool remove) const
 {
   // adjust nodes so centered on src nodes
   bool changed = false;
 
-  // second to last
-  int posNodesDepth = graph_->posNodesMap().size();
+  int minX = this->minX();
+  int maxX = this->maxX();
 
-  for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
+  // second to last
+  for (int xpos = minX + 1; xpos <= maxX; ++xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
@@ -1691,12 +1836,26 @@ adjustNodeCenters() const
     }
   }
 
-  removeOverlaps();
+  if (remove) {
+    if (removeOverlaps())
+      changed = true;
+  }
 
-  //---
+  return changed;
+}
+
+bool
+CQChartsSankeyPlot::
+adjustNodeCentersRtoL(bool remove) const
+{
+  // adjust nodes so centered on src nodes
+  bool changed = false;
+
+  int minX = this->minX();
+  int maxX = this->maxX();
 
   // second to last to first
-  for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
+  for (int xpos = maxX - 1; xpos >= minX; --xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
@@ -1707,7 +1866,10 @@ adjustNodeCenters() const
     }
   }
 
-  removeOverlaps();
+  if (remove) {
+    if (removeOverlaps())
+      changed = true;
+  }
 
   return changed;
 }
@@ -1795,12 +1957,16 @@ adjustEdgeOverlaps() const
 
 bool
 CQChartsSankeyPlot::
-removeOverlaps() const
+removeOverlaps(bool spread, bool constrain) const
 {
   bool changed = false;
 
+  Nodes nodes = graph_->placeableNodes();
+
+  initPosNodesMap(nodes);
+
   for (const auto &posNodes : graph_->posNodesMap()) {
-    if (removePosOverlaps(posNodes.second))
+    if (removePosOverlaps(posNodes.first, posNodes.second, spread, constrain))
       changed = true;
   }
 
@@ -1809,60 +1975,142 @@ removeOverlaps() const
 
 bool
 CQChartsSankeyPlot::
-removePosOverlaps(const Nodes &nodes) const
+removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) const
 {
   double ym = pixelToWindowHeight(minNodeMargin());
 
-  // get nodes sorted by y (max to min)
-  PosNodeMap posNodeMap;
+  //---
 
-  createPosNodeMap(nodes, posNodeMap);
+  auto removeNodesOverlays = [&](bool increasing) {
+    // get nodes sorted by y (min->max or max->min)
+    PosNodeMap posNodeMap;
+
+    createPosNodeMap(nodes, posNodeMap, increasing);
+
+    //---
+
+    // remove overlaps between nodes
+    bool changed = false;
+
+    Node *node1 = nullptr;
+
+    for (const auto &posNode : posNodeMap) {
+      auto *node2 = posNode.second;
+
+      if (node1) {
+        const auto &rect1 = node1->rect();
+        const auto &rect2 = node2->rect();
+
+        if (increasing) {
+          if (rect2.getYMin() <= rect1.getYMax() + ym) {
+            double dy = rect1.getYMax() + ym - rect2.getYMin();
+
+            if (std::abs(dy) > 1E-6) {
+              node2->moveBy(Point(0, dy));
+              changed = true;
+            }
+          }
+        }
+        else {
+          if (rect2.getYMax() >= rect1.getYMin() - ym) {
+            double dy = rect1.getYMin() - ym - rect2.getYMax();
+
+            if (std::abs(dy) > 1E-6) {
+              node2->moveBy(Point(0, dy));
+              changed = true;
+            }
+          }
+        }
+      }
+
+      node1 = node2;
+    }
+
+    return changed;
+  };
 
   //---
 
-  // remove overlaps between nodes
-  bool changed = false;
+  bool spread1 = spread;
+  bool center  = false;
 
-  Node *node1 = nullptr;
-
-  for (const auto &posNode : posNodeMap) {
-    auto *node2 = posNode.second;
-
-    if (node1) {
-      const auto &rect1 = node1->rect();
-      const auto &rect2 = node2->rect();
-
-      if (rect2.getYMax() >= rect1.getYMin() - ym) {
-        double dy = rect1.getYMin() - ym - rect2.getYMax();
-
-        if (std::abs(dy) > 1E-6) {
-          node2->moveBy(Point(0, dy));
-          changed = true;
-        }
-      }
+  if (spread1) {
+    if      (this->spread() == Spread::NONE) {
+      spread1 = false;
+      center  = true;
     }
-
-    node1 = node2;
+    else if (this->spread() == Spread::FIRST)
+      spread1 = (pos == minX());
+    else if (this->spread() == Spread::LAST)
+      spread1 = (pos == maxX());
+    else if (this->spread() == Spread::FIRST_LAST)
+      spread1 = (pos == minX() || pos == maxX());
   }
 
-  // move nodes back inside bbox (needed ?)
-  if (node1) {
-    const auto &rect1 = node1->rect();
+  //---
 
-    if (rect1.getYMin() < bbox_.getYMin())
-      spreadPosNodes(nodes);
+  bool changed = false;
+
+  if (removeNodesOverlays(/*increasing*/false))
+    changed = true;
+
+  // move nodes back inside bbox (needed ?)
+  if (spread1) {
+    if (spreadPosNodes(nodes))
+      changed = true;
+  }
+
+  if (constrain) {
+    if (constrainPosNodes(nodes, center))
+      changed = true;
+  }
+
+  if (removeNodesOverlays(/*increasing*/true))
+    changed = true;
+
+  // move nodes back inside bbox (needed ?)
+  if (spread1) {
+    if (spreadPosNodes(nodes))
+      changed = true;
+  }
+
+  if (constrain) {
+    if (constrainPosNodes(nodes, center))
+      changed = true;
   }
 
   return changed;
 }
 
-void
+bool
+CQChartsSankeyPlot::
+spreadNodes() const
+{
+  bool changed = false;
+
+  Nodes nodes = graph_->placeableNodes();
+
+  initPosNodesMap(nodes);
+
+  for (const auto &posNodes : graph_->posNodesMap()) {
+    int pos = posNodes.first;
+
+    if (pos == minX() || pos == maxX()) {
+      if (spreadPosNodes(posNodes.second))
+        changed = true;
+    }
+  }
+
+  return changed;
+}
+
+bool
 CQChartsSankeyPlot::
 spreadPosNodes(const Nodes &nodes) const
 {
   PosNodeMap posNodeMap;
 
-  createPosNodeMap(nodes, posNodeMap);
+  createPosNodeMap(nodes, posNodeMap, /*increasing*/false);
 
   BBox bbox;
 
@@ -1877,19 +2125,22 @@ spreadPosNodes(const Nodes &nodes) const
   }
 
   if (! node1 || ! node2)
-    return;
+    return false;
 
   double dy1 = node1->rect().getHeight()/2.0; // top
   double dy2 = node2->rect().getHeight()/2.0; // bottom
 
   if (! bbox.isValid() || (bbox.getHeight() - dy1 - dy2) <= 0.0)
-    return;
+    return false;
 
   double ymin = bbox_.getYMin() + dy2;
   double ymax = bbox_.getYMax() - dy1;
 
   double dy = ymin - node2->rect().getYMid();
   double ys = (ymax - ymin)/(bbox.getHeight() - dy1 - dy2);
+
+  if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(ys, 1.0))
+    return false;
 
   for (const auto &posNode : posNodeMap) {
     auto *node = posNode.second;
@@ -1900,6 +2151,81 @@ spreadPosNodes(const Nodes &nodes) const
 
     node->moveBy(Point(0, y1 - node->rect().getYMid()));
   }
+
+  return true;
+}
+
+bool
+CQChartsSankeyPlot::
+constrainNodes(bool center) const
+{
+  bool changed = false;
+
+  Nodes nodes = graph_->placeableNodes();
+
+  initPosNodesMap(nodes);
+
+  for (const auto &posNodes : graph_->posNodesMap()) {
+    if (constrainPosNodes(posNodes.second, center))
+      changed = true;
+  }
+
+  return changed;
+}
+
+bool
+CQChartsSankeyPlot::
+constrainPosNodes(const Nodes &nodes, bool center) const
+{
+  PosNodeMap posNodeMap;
+
+  createPosNodeMap(nodes, posNodeMap, /*increasing*/false);
+
+  BBox bbox;
+
+  Node *node1 = nullptr, *node2 = nullptr;
+
+  for (const auto &posNode : posNodeMap) {
+    node2 = posNode.second;
+
+    if (! node1) node1 = node2;
+
+    bbox += node2->rect();
+  }
+
+  if (! node1 || ! node2)
+    return false;
+
+  double dy1 = node2->rect().getYMin() - bbox_.getYMin();
+  double dy2 = bbox_.getYMax() - node1->rect().getYMax();
+
+  double dy = 0.0;
+
+  if (dy1 >= 0 && dy2 >= 0) {
+    if (! center)
+      return false;
+
+    dy = bbox_.getYMid() - bbox.getYMid();
+  }
+  else {
+    if      (dy1 < 0 && dy2 < 0) {
+      dy = bbox_.getYMid() - bbox.getYMid();
+    }
+    else if (dy1 < 0) {
+      dy = -dy1;
+    }
+    else {
+      dy = -dy2;
+    }
+  }
+
+  for (const auto &posNode : posNodeMap) {
+    auto *node = posNode.second;
+
+    node->moveBy(Point(0, dy));
+  }
+
+  return true;
 }
 
 bool
@@ -1948,13 +2274,13 @@ reorderNodeEdges(const Nodes &nodes) const
 
 void
 CQChartsSankeyPlot::
-createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const
+createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const
 {
   for (const auto &node : nodes) {
     const auto &rect = node->rect();
     if (! rect.isValid()) continue;
 
-    double y = bbox_.getYMax() - rect.getYMid();
+    double y = (increasing ? rect.getYMid() - bbox_.getYMin() : bbox_.getYMax() - rect.getYMid());
 
     auto p = posNodeMap.find(y);
 
@@ -2116,6 +2442,30 @@ keyPress(int key, int modifier)
     if (adjustNodes())
       drawObjs();
   }
+  else if (key == Qt::Key_C) {
+    if (adjustNodeCenters())
+      drawObjs();
+  }
+  else if (key == Qt::Key_L) {
+    if (adjustNodeCentersLtoR(/*removeOverlaps*/false))
+      drawObjs();
+  }
+  else if (key == Qt::Key_R) {
+    if (adjustNodeCentersRtoL(/*removeOverlaps*/false))
+      drawObjs();
+  }
+  else if (key == Qt::Key_O) {
+    if (removeOverlaps(/*spread*/false, /*constrain*/false))
+      drawObjs();
+  }
+  else if (key == Qt::Key_I) {
+    if (constrainNodes())
+      drawObjs();
+  }
+  else if (key == Qt::Key_S) {
+    if (spreadNodes())
+      drawObjs();
+  }
   else if (key == Qt::Key_F) {
     bbox_ = nodesBBox(); // current
 
@@ -2123,7 +2473,14 @@ keyPress(int key, int modifier)
 
     drawObjs();
   }
-  else if (key == Qt::Key_S) {
+  else if (key == Qt::Key_P) {
+    placeGraph();
+
+    placeEdges();
+
+    drawObjs();
+  }
+  else if (key == Qt::Key_0) {
     printStats();
   }
   else if (key == Qt::Key_V) {
@@ -2219,6 +2576,57 @@ addDestEdge(Edge *edge, bool primary)
 
   if (! primary)
     nonPrimaryEdges_.push_back(edge);
+}
+
+void
+CQChartsSankeyPlotNode::
+sortPathIdEdges()
+{
+  using PathIdEdges = std::map<int, Edges>;
+
+  PathIdEdges srcPathIdEdges, destPathIdEdges;
+
+  for (auto &edge : srcEdges_)
+    srcPathIdEdges[-edge->pathId()].push_back(edge);
+
+  for (auto &edge : destEdges_)
+    destPathIdEdges[-edge->pathId()].push_back(edge);
+
+  srcEdges_ .clear();
+  destEdges_.clear();
+
+  for (const auto &pe : srcPathIdEdges)
+    for (const auto &edge : pe.second)
+      srcEdges_.push_back(edge);
+
+  for (const auto &pe : destPathIdEdges)
+    for (const auto &edge : pe.second)
+      destEdges_.push_back(edge);
+}
+
+int
+CQChartsSankeyPlotNode::
+minPathId() const
+{
+  int  minPathId    = -1;
+  bool minPathIdSet = false;
+
+  auto updateMinPathId = [&](int pathId) {
+    if (pathId < 0) return;
+
+    if (! minPathIdSet || pathId < minPathId) {
+      minPathId    = pathId;
+      minPathIdSet = true;
+    }
+  };
+
+  for (const auto &edge : srcEdges_)
+    updateMinPathId(edge->pathId());
+
+  for (const auto &edge : destEdges_)
+    updateMinPathId(edge->pathId());
+
+  return minPathId;
 }
 
 bool
@@ -2440,6 +2848,11 @@ placeEdges(bool reset)
 
   //---
 
+  if (plot()->hasAnyPathId())
+    sortPathIdEdges();
+
+  //---
+
   double x1 = rect().getXMin();
   double x2 = rect().getXMax();
   double y1 = rect().getYMin();
@@ -2579,6 +2992,7 @@ adjustSrcDestRects()
   if (! plot_->useMaxTotals())
     return;
 
+  // align each source path id rect with destination path id rects
   for (const auto &pathIdRect : srcPathIdRect_) {
     int pathId = pathIdRect.first;
 
@@ -2749,6 +3163,12 @@ edgePath(QPainterPath &path, bool isLine) const
     srcRect  = this->srcNode ()->destEdgeRect(th);
     destRect = this->destNode()->srcEdgeRect (th);
   }
+
+  if (! srcRect.isSet())
+    srcRect = this->srcNode ()->rect();
+
+  if (! destRect.isSet())
+    destRect = this->destNode ()->rect();
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return false;
@@ -3116,6 +3536,7 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
 
   auto drawEdgeInside = [&](const Edge *edge) {
     auto *edgeObj = edge->obj(); if (! edgeObj) return;
+
     edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
   };
 
@@ -3581,12 +4002,11 @@ draw(CQChartsPaintDevice *device)
       }
       else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
         drawNodeInside(srcNode , /*isSrc*/true );
+        drawNodeInside(destNode, /*isSrc*/false);
 
         if (srcNodeObj)
           srcNodeObj->drawConnectionMouseOver(device,
             (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
-
-        drawNodeInside(destNode, /*isSrc*/false);
 
         if (destNodeObj)
           destNodeObj->drawConnectionMouseOver(device,
@@ -3691,7 +4111,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
-  ColorInd colorInd; // TODO: index on path id ?
+  ColorInd colorInd;
 
   if (edge()->pathId() >= 0) {
     const auto &pathIdMinMax = plot()->pathIdMinMax();

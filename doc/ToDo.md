@@ -4,12 +4,12 @@ Abstract Painter/Javascript
 
 TODO:
  + null, bad values special draw in table delegate
- + per column null value
+   + per column null value
  + sankey remove edge overlaps (limit move up/down)
+   + edit constraints
  + key annotation (custom key)
    + key column ?
  + unset column from editor is -1 ?
- + null value per column
  + simplify column expressions (no back references, all calc on demand)
    + update test case with running sum
  + sankey_node.tcl bad placement (single x) -> rand ?

@@ -444,13 +444,13 @@ addPathValue(const PathData &pathData) const
 
     if (i < n - 1) {
       if (! srcData.hasTo(destData.from())) {
-        addEdge(srcData, destData, pathData.value, /*symmetric*/true);
+        addEdge(srcData, destData, pathData.value.realOr(1.0), /*symmetric*/true);
 
         destData.setParent(srcData.from());
       }
     }
     else {
-      addEdge(srcData, destData, pathData.value, /*symmetric*/true);
+      addEdge(srcData, destData, pathData.value.realOr(1.0), /*symmetric*/true);
 
       destData.setParent(srcData.from());
       destData.setValue (OptReal(pathData.value));
@@ -606,7 +606,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   auto &destData = findNameData(linkConnectionData.destStr, linkInd1);
 
   // create link from src to dest for value
-  addEdge(srcData, destData, linkConnectionData.value, /*symmetric*/true);
+  addEdge(srcData, destData, linkConnectionData.value.realOr(1.0), /*symmetric*/true);
 
   //---
 

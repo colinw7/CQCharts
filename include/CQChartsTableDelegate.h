@@ -30,10 +30,17 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
+  using Table     = CQChartsTable;
+  using Tree      = CQChartsTree;
+  using ModelView = CQChartsModelView;
+  using Color     = CQChartsColor;
+  using Symbol    = CQChartsSymbol;
+  using Image     = CQChartsImage;
+
  public:
-  CQChartsTableDelegate(CQChartsTable *table);
-  CQChartsTableDelegate(CQChartsTree *tree);
-  CQChartsTableDelegate(CQChartsModelView *tree);
+  CQChartsTableDelegate(Table *table);
+  CQChartsTableDelegate(Tree *tree);
+  CQChartsTableDelegate(ModelView *view);
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &index) const override;
@@ -51,13 +58,16 @@ class CQChartsTableDelegate : public QItemDelegate {
                        bool checked, const QModelIndex &index) const;
 
   void drawColor(QPainter *painter, const QStyleOptionViewItem &option,
-                 const CQChartsColor &c, const QModelIndex &index) const;
+                 const Color &c, const QModelIndex &index) const;
 
   void drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
-                  const CQChartsSymbol &symbol, const QModelIndex &index) const;
+                  const Symbol &symbol, const QModelIndex &index) const;
 
   void drawImage(QPainter *painter, const QStyleOptionViewItem &option,
-                 const CQChartsImage &image, const QModelIndex &index) const;
+                 const Image &image, const QModelIndex &index) const;
+
+  bool drawNullValue(QPainter *painter, const QStyleOptionViewItem &option,
+                     const QModelIndex &index) const;
 
   void drawString(QPainter *painter, const QStyleOptionViewItem &option, const QString &str,
                   const QModelIndex &index) const;
@@ -66,6 +76,9 @@ class CQChartsTableDelegate : public QItemDelegate {
 
  private slots:
   void updateBoolean();
+
+ private:
+  using ModelDetails = CQChartsModelDetails;
 
  private:
   void init();
@@ -77,14 +90,14 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   ModelP modelP() const;
 
-  CQChartsModelDetails *getDetails() const;
+  ModelDetails *getDetails() const;
 
  private:
   using ColumnDataMap = std::map<int, ColumnData>;
 
-  CQChartsTable*      table_ { nullptr };
-  CQChartsTree*       tree_  { nullptr };
-  CQChartsModelView*  view_  { nullptr };
+  Table*              table_ { nullptr };
+  Tree*               tree_  { nullptr };
+  ModelView*          view_  { nullptr };
   ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
   mutable std::mutex  mutex_;

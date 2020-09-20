@@ -1683,6 +1683,8 @@ calcType()
 
     preferredWidth_ = columnType->preferredWidth(nameValues);
 
+    nullValue_ = columnType->nullValue(nameValues);
+
     tableDrawColor_ = columnType->drawColor(nameValues);
     tableDrawType_  = columnType->drawType (nameValues);
     tableDrawStops_ = columnType->drawStops(nameValues);

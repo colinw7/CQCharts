@@ -134,6 +134,10 @@ class CQChartsSankeyPlotNode {
   //! add destination edge
   void addDestEdge(Edge *edge, bool primary=true);
 
+  void sortPathIdEdges();
+
+  int minPathId() const;
+
   //! has destination edge
   bool hasDestNode(CQChartsSankeyPlotNode *destNode) const;
 
@@ -454,6 +458,7 @@ class CQChartsSankeyPlotGraph {
 
   //! get depth nodes
   const DepthNodesMap &depthNodesMap() const { return depthNodesMap_; }
+  DepthNodesMap &depthNodesMap() { return depthNodesMap_; }
 
   //! clear depth nodes
   void clearDepthNodesMap() { depthNodesMap_.clear(); }
@@ -761,8 +766,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(ConnectionType mouseColoring     READ mouseColoring       WRITE setMouseColoring    )
   Q_PROPERTY(bool           mouseNodeColoring READ isMouseNodeColoring WRITE setMouseNodeColoring)
 
-  // align
-  Q_PROPERTY(Align align READ align WRITE setAlign)
+  // align, spread
+  Q_PROPERTY(Align  align  READ align  WRITE setAlign )
+  Q_PROPERTY(Spread spread READ spread WRITE setSpread)
 
   // placement
   Q_PROPERTY(bool adjustNodes READ isAdjustNodes WRITE setAdjustNodes)
@@ -788,6 +794,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   Q_ENUMS(ConnectionType)
   Q_ENUMS(Align)
+  Q_ENUMS(Spread)
 
  public:
   enum class ConnectionType {
@@ -805,6 +812,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     DEST,
     JUSTIFY,
     RAND
+  };
+
+  enum class Spread {
+    NONE,
+    FIRST,
+    LAST,
+    FIRST_LAST,
+    ALL
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -857,11 +872,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool isBlendEdgeColor() const { return blendEdgeColor_; }
   void setBlendEdgeColor(bool b);
 
-  //! get/set mouse coloring
+  //! get/set mouse over node/edge coloring
   const ConnectionType &mouseColoring() const { return mouseColoring_; }
   void setMouseColoring(const ConnectionType &t) { mouseColoring_ = t; }
 
-  //! get/set mouse node coloring
+  //! get/set mouse over node coloring (edge)
   bool isMouseNodeColoring() const { return mouseNodeColoring_; }
   void setMouseNodeColoring(bool b) { mouseNodeColoring_ = b; }
 
@@ -870,6 +885,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set text align
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
+
+  //---
+
+  //! get/set text align
+  const Spread &spread() const { return spread_; }
+  void setSpread(const Spread &s);
 
   //---
 
@@ -973,6 +994,13 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool initTableObjs() const;
 
+  //---
+
+  void processNodeNameValues(Node *node, const NameValues &valueValues) const;
+  void processEdgeNameValues(Edge *edge, const NameValues &valueValues) const;
+
+  //---
+
   void filterObjs();
 
   //---
@@ -992,6 +1020,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void placeGraph() const;
   void placeGraphNodes(const Nodes &nodes) const;
 
+  void placeEdges();
+
   void calcGraphNodesXPos(const Nodes &nodes) const;
 
   //---
@@ -999,6 +1029,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void addObjects(PlotObjs &objs) const;
 
   //---
+
+  bool hasAnyPathId() const { return pathIdMinMax_.isSet(); }
 
   const IMinMax &pathIdMinMax() const { return pathIdMinMax_; }
 
@@ -1011,6 +1043,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Edge *createEdge(const OptReal &value, Node *srcNode, Node *destNode) const;
 
   void createObjsGraph(PlotObjs &objs) const;
+
+  void sortDepthNodes();
 
   void createGraph() const;
 
@@ -1038,19 +1072,24 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void initPosNodesMap(const Nodes &nodes) const;
 
-  bool adjustNodeCenters() const;
+  bool adjustNodeCenters(bool remove=true) const;
+  bool adjustNodeCentersLtoR(bool remove=true) const;
+  bool adjustNodeCentersRtoL(bool remove=true) const;
 
   bool adjustEdgeOverlaps() const;
 
-  bool removeOverlaps() const;
+  bool removeOverlaps(bool spread=true, bool constrain=true) const;
+  bool removePosOverlaps(int pos, const Nodes &nodes, bool spread=true, bool constrain=true) const;
 
-  bool removePosOverlaps(const Nodes &nodes) const;
+  bool spreadNodes() const;
+  bool spreadPosNodes(const Nodes &nodes) const;
 
-  void spreadPosNodes(const Nodes &nodes) const;
+  bool constrainNodes(bool center=false) const;
+  bool constrainPosNodes(const Nodes &nodes, bool center=false) const;
 
   bool reorderNodeEdges(const Nodes &nodes) const;
 
-  void createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const;
+  void createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const;
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
 
   bool adjustNode(Node *node) const;
@@ -1071,24 +1110,25 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
  protected:
   // options
-  Align  align_       { Align::JUSTIFY }; //!< align
-  int    alignRand_   { 10 };             //!< number of random values for align
-  bool   adjustNodes_ { true };           //!< adjust nodes
-  bool   adjustText_  { false };          //!< adjust text position
-  double nodeMargin_  { 0.2 };            //!< node margin (y)
-  double nodeWidth_   { 16 };             //!< node x width in pixels
-  bool   edgeLine_    { false };          //!< draw line for edge
-  BBox   targetBBox_  { -1, -1, 1, 1 };   //!< target range bbox
+  Align  align_       { Align::JUSTIFY };     //!< align
+  Spread spread_      { Spread::FIRST_LAST }; //!< spread
+  int    alignRand_   { 10 };                 //!< number of random values for align
+  bool   adjustNodes_ { true };               //!< adjust nodes
+  bool   adjustText_  { false };              //!< adjust text position
+  double nodeMargin_  { 0.2 };                //!< node margin (y)
+  double nodeWidth_   { 16 };                 //!< node x width in pixels
+  bool   edgeLine_    { false };              //!< draw line for edge
+  BBox   targetBBox_  { -1, -1, 1, 1 };       //!< target range bbox
 
   // text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
   bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
 
   // coloring
-  bool           srcColoring_       { false };                    //!< color by source nodes
-  bool           blendEdgeColor_    { true };                     //!< blend edge color
-  ConnectionType mouseColoring_     { ConnectionType::ALL_DEST }; //!< mouse over color connections
-  bool           mouseNodeColoring_ { false };                    //!< mouse over color nodes
+  bool           srcColoring_       { false };                //!< color by source nodes
+  bool           blendEdgeColor_    { true };                 //!< blend edge color
+  ConnectionType mouseColoring_     { ConnectionType::NONE }; //!< mouse over color connections
+  bool           mouseNodeColoring_ { false };                //!< mouse over color nodes
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map

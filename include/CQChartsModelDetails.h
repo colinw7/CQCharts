@@ -198,6 +198,9 @@ class CQChartsModelColumnDetails {
   int preferredWidth() const { return preferredWidth_; }
   void setPreferredWidth(int w) { preferredWidth_ = w; }
 
+  const QString &nullValue() const { return nullValue_; }
+  void setNullValue(const QString &v) { nullValue_ = v; }
+
   const CQChartsColor &tableDrawColor() const { return tableDrawColor_; }
   void setTableDrawColor(const CQChartsColor &c) { tableDrawColor_ = c; }
 
@@ -260,6 +263,7 @@ class CQChartsModelColumnDetails {
 
   // table render data
   int                   preferredWidth_ { -1 };
+  QString               nullValue_;
   CQChartsColor         tableDrawColor_;
   TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
   CQChartsColorStops    tableDrawStops_;

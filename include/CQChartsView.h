@@ -525,8 +525,8 @@ class CQChartsView : public QFrame,
 
   // annotations
   using Annotation          = CQChartsAnnotation;
-  using AnnotationGroup     = CQChartsAnnotationGroup;
   using Annotations         = std::vector<Annotation *>;
+  using AnnotationGroup     = CQChartsAnnotationGroup;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using ButtonAnnotation    = CQChartsButtonAnnotation;
   using EllipseAnnotation   = CQChartsEllipseAnnotation;
@@ -1208,6 +1208,7 @@ class CQChartsView : public QFrame,
       escape   = false;
       button   = Qt::NoButton;
       selMod   = SelMod::REPLACE;
+      clickMod = SelMod::REPLACE;
       dragSide = ResizeSide::NONE;
       dragged  = false;
     }

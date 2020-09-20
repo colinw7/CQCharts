@@ -164,6 +164,7 @@ class CQChartsColumnType {
                                             const CQChartsColumn &column) const;
 
   int                preferredWidth(const CQChartsNameValues &nameValues) const;
+  QString            nullValue     (const CQChartsNameValues &nameValues) const;
   CQChartsColor      drawColor     (const CQChartsNameValues &nameValues) const;
   DrawType           drawType      (const CQChartsNameValues &nameValues) const;
   CQChartsColorStops drawStops     (const CQChartsNameValues &nameValues) const;
