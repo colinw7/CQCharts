@@ -1,6 +1,7 @@
 #include <CQChartsGeomBBoxEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsLineEdit.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -76,11 +77,20 @@ setValue(const BBox &bbox)
 
 void
 CQChartsGeomBBoxEdit::
-setPlot(CQChartsPlot *plot)
+setView(View *view)
+{
+  view_ = view;
+
+  regionButton_->setVisible(view_ || plot());
+}
+
+void
+CQChartsGeomBBoxEdit::
+setPlot(Plot *plot)
 {
   plot_ = plot;
 
-  regionButton_->setVisible(plot_);
+  regionButton_->setVisible(view() || plot_);
 }
 
 void
@@ -97,22 +107,26 @@ void
 CQChartsGeomBBoxEdit::
 regionSlot(bool b)
 {
-  if (! plot())
-    return;
-
-  CQChartsWidgetUtil::connectDisconnect(b,
-    plot_->view(), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
-    this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
+  if      (plot())
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plot()->view(), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
+      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
+  else if (view())
+    CQChartsWidgetUtil::connectDisconnect(b,
+      const_cast<View *>(view()), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
+      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
 }
 
 void
 CQChartsGeomBBoxEdit::
-regionReleaseSlot(const CQChartsGeom::BBox &bbox)
+regionReleaseSlot(const BBox &bbox)
 {
-  if (! plot_)
-    return;
+  BBox pbbox;
 
-  auto pbbox = plot_->viewToWindow(bbox);
+  if      (plot())
+    pbbox = plot()->viewToWindow(bbox);
+  else if (view())
+    pbbox = bbox;
 
   setRegion(pbbox);
 }

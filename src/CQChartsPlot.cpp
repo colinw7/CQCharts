@@ -8188,8 +8188,13 @@ tipText(const Point &p, QString &tip) const
   if (isOverlay() && ! isFirstPlot())
     return false;
 
-  //---
+  return plotTipText(p, tip);
+}
 
+bool
+CQChartsPlot::
+plotTipText(const Point &p, QString &tip) const
+{
   int objNum  = 0;
   int numObjs = 0;
 
@@ -8347,6 +8352,25 @@ annotationsAtPoint(const Point &p, Annotations &annotations) const
 {
   annotations.clear();
 
+  if (isOverlay()) {
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      auto p1 = p;
+
+      if (plot != this)
+        p1 = plot->pixelToWindow(windowToPixel(p));
+
+      plot->annotationsAtPoint1(p1, annotations);
+    });
+  }
+  else {
+    annotationsAtPoint1(p, annotations);
+  }
+}
+
+void
+CQChartsPlot::
+annotationsAtPoint1(const Point &p, Annotations &annotations) const
+{
   for (const auto &annotation : this->annotations()) {
     if (! annotation->isVisible())
       continue;
@@ -12433,6 +12457,18 @@ unnormalizeIndex(const QModelIndex &ind) const
   return ind1;
 }
 
+QAbstractItemModel *
+CQChartsPlot::
+sourceModel() const
+{
+  std::vector<QSortFilterProxyModel *> proxyModels;
+  QAbstractItemModel*                  sourceModel;
+
+  this->proxyModels(proxyModels, sourceModel);
+
+  return sourceModel;
+}
+
 void
 CQChartsPlot::
 proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
@@ -12642,6 +12678,18 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 }
 
 //------
+
+QModelIndex
+CQChartsPlot::
+normalizedModelIndex(const ModelIndex &ind) const
+{
+  ModelIndex ind1 = ind;
+
+  if (! ind1.isNormalized())
+    ind1 = normalizeIndex(ind1);
+
+  return modelIndex(ind1);
+}
 
 QModelIndex
 CQChartsPlot::

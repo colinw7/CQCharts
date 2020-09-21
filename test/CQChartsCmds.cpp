@@ -5874,8 +5874,6 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       }
     }
     else if (name == "model") {
-      bool ok;
-
       // get model
       auto *modelData = getModelDataOrCurrent(value);
       if (! modelData) return errorMsg("No model data for '" + value + "'");

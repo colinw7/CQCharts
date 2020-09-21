@@ -52,7 +52,16 @@ setPosition(const CQChartsPosition &position)
 
 void
 CQChartsPositionEdit::
-setPlot(CQChartsPlot *plot)
+setView(View *view)
+{
+  view_ = view;
+
+  edit_->setView(view);
+}
+
+void
+CQChartsPositionEdit::
+setPlot(Plot *plot)
 {
   plot_ = plot;
 

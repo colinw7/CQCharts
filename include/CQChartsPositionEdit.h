@@ -4,6 +4,7 @@
 #include <CQChartsPosition.h>
 #include <QFrame>
 
+class CQChartsView;
 class CQChartsPlot;
 class CQChartsGeomPointEdit;
 class CQChartsUnitsEdit;
@@ -18,6 +19,7 @@ class CQChartsPositionEdit : public QFrame {
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
+  using View     = CQChartsView;
   using Plot     = CQChartsPlot;
   using Position = CQChartsPosition;
   using Point    = CQChartsGeom::Point;
@@ -27,6 +29,9 @@ class CQChartsPositionEdit : public QFrame {
 
   const Position &position() const { return position_; }
   void setPosition(const Position &pos);
+
+  const View *view() const { return view_; }
+  void setView(View *view);
 
   const Plot *plot() const { return plot_; }
   void setPlot(Plot *plot);
@@ -52,6 +57,7 @@ class CQChartsPositionEdit : public QFrame {
 
  private:
   Position               position_;              //!< position data
+  View*                  view_      { nullptr }; //!< associated view
   Plot*                  plot_      { nullptr }; //!< associated plot
   CQChartsGeomPointEdit* edit_      { nullptr }; //!< position edit
   CQChartsUnitsEdit*     unitsEdit_ { nullptr }; //!< units edit

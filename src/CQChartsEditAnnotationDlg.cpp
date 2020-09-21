@@ -42,9 +42,12 @@ initWidgets()
 {
   setObjectName("createAnnotationDlg");
 
-//setWindowTitle("Edit Annotation");
-  setWindowTitle(QString("Edit %1 Annotation (%2)").
-    arg(annotation_->typeName()).arg(annotation_->id()));
+  if (annotation()->plot())
+    setWindowTitle(QString("Edit Plot %1 : %2 Annotation (%3)").
+      arg(annotation()->plot()->id()).arg(annotation()->typeName()).arg(annotation()->id()));
+  else
+    setWindowTitle(QString("Edit View : %1 Annotation (%2)").
+      arg(annotation()->typeName()).arg(annotation()->id()));
 
   //---
 
@@ -61,8 +64,8 @@ initWidgets()
   //--
 
   // id, tip edits
-  idEdit_  = createLineEdit("id" , annotation_->id   (), "Annotation Id");
-  tipEdit_ = createLineEdit("tip", annotation_->tipId(), "Annotation Tooltip");
+  idEdit_  = createLineEdit("id" , annotation()->id   (), "Annotation Id");
+  tipEdit_ = createLineEdit("tip", annotation()->tipId(), "Annotation Tooltip");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Id" , idEdit_ , row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Tip", tipEdit_, row);
@@ -72,33 +75,33 @@ initWidgets()
   // create widgets for annotation type
   frameLayout_ = CQUtil::makeLayout<QVBoxLayout>(2, 2);
 
-  if      (annotation_->type() == CQChartsAnnotation::Type::RECT)
+  if      (annotation()->type() == CQChartsAnnotation::Type::RECT)
     createRectFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::ELLIPSE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::ELLIPSE)
     createEllipseFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POLYGON)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POLYGON)
     createPolygonFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POLYLINE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POLYLINE)
     createPolyLineFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::TEXT)
+  else if (annotation()->type() == CQChartsAnnotation::Type::TEXT)
     createTextFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::IMAGE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::IMAGE)
     createImageFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::ARROW)
+  else if (annotation()->type() == CQChartsAnnotation::Type::ARROW)
     createArrowFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POINT)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POINT)
     createPointFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::PIE_SLICE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::PIE_SLICE)
     createPieSliceFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::AXIS)
+  else if (annotation()->type() == CQChartsAnnotation::Type::AXIS)
     createAxisFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::KEY)
+  else if (annotation()->type() == CQChartsAnnotation::Type::KEY)
     createKeyFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POINT_SET)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POINT_SET)
     createPointSetFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::VALUE_SET)
+  else if (annotation()->type() == CQChartsAnnotation::Type::VALUE_SET)
     createValueSetFrame();
-  else if (annotation_->type() == CQChartsAnnotation::Type::BUTTON)
+  else if (annotation()->type() == CQChartsAnnotation::Type::BUTTON)
     createButtonFrame();
 
   layout->addLayout(frameLayout_);
@@ -692,7 +695,7 @@ void
 CQChartsEditAnnotationDlg::
 addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 {
-  auto boxData = annotation_->boxData();
+  auto boxData = annotation()->boxData();
 
   auto &fillData = boxData.shape().fill();
 
@@ -711,7 +714,7 @@ void
 CQChartsEditAnnotationDlg::
 addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
 {
-  auto boxData = annotation_->boxData();
+  auto boxData = annotation()->boxData();
 
   auto &strokeData = boxData.shape().stroke();
 
@@ -731,7 +734,7 @@ void
 CQChartsEditAnnotationDlg::
 addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 {
-  auto boxData = annotation_->boxData();
+  auto boxData = annotation()->boxData();
 
   //---
 
@@ -791,7 +794,8 @@ createPositionEdit(const QString &name, const CQChartsPosition &pos, const QStri
 {
   auto *edit = CQUtil::makeWidget<CQChartsPositionEdit>(name);
 
-  edit->setPlot(annotation_->plot());
+  edit->setView(annotation()->view());
+  edit->setPlot(annotation()->plot());
 
   edit->setPosition(pos);
 
@@ -821,7 +825,8 @@ createRectEdit(const QString &name, const CQChartsRect &rect, const QString &tip
 {
   auto *edit = CQUtil::makeWidget<CQChartsRectEdit>(name);
 
-  edit->setPlot(annotation_->plot());
+  edit->setView(annotation()->view());
+  edit->setPlot(annotation()->plot());
 
   edit->setRect(rect);
 
@@ -837,12 +842,13 @@ createPolygonEdit(const QString &name, const CQChartsPolygon &poly, const QStrin
 {
   auto *edit = CQUtil::makeWidget<CQChartsPolygonEdit>(name);
 
-  edit->setPlot(annotation_->plot());
+  edit->setView(annotation()->view());
+  edit->setPlot(annotation()->plot());
 
   edit->setPolygon(poly);
 
-  if      (annotation_->view()) edit->setUnits(CQChartsUnits::VIEW);
-  else if (annotation_->plot()) edit->setUnits(CQChartsUnits::PLOT);
+  if      (annotation()->view()) edit->setUnits(CQChartsUnits::VIEW);
+  else if (annotation()->plot()) edit->setUnits(CQChartsUnits::PLOT);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -898,16 +904,16 @@ ellipseCenterSlot(bool)
     double              yr1 = 0.0;
     CQChartsUnits       units1 { CQChartsUnits::PIXEL };
 
-    if      (annotation_->view()) {
-      center1 = annotation_->view()->positionToView(center);
-      xr1     = annotation_->view()->lengthViewWidth(xr);
-      yr1     = annotation_->view()->lengthViewHeight(yr);
+    if      (annotation->view()) {
+      center1 = annotation->view()->positionToView(center);
+      xr1     = annotation->view()->lengthViewWidth(xr);
+      yr1     = annotation->view()->lengthViewHeight(yr);
       units1  = CQChartsUnits::VIEW;
     }
-    else if (annotation_->plot()) {
-      center1 = annotation_->plot()->positionToPlot(center);
-      xr1     = annotation_->plot()->lengthPlotWidth(xr);
-      yr1     = annotation_->plot()->lengthPlotHeight(yr);
+    else if (annotation->plot()) {
+      center1 = annotation->plot()->positionToPlot(center);
+      xr1     = annotation->plot()->lengthPlotWidth(xr);
+      yr1     = annotation->plot()->lengthPlotHeight(yr);
       units1  = CQChartsUnits::PLOT;
     }
 
@@ -961,33 +967,33 @@ applySlot()
 {
   bool rc = false;
 
-  if      (annotation_->type() == CQChartsAnnotation::Type::RECT)
+  if      (annotation()->type() == CQChartsAnnotation::Type::RECT)
     rc = updateRectangleAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::ELLIPSE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::ELLIPSE)
     rc = updateEllipseAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POLYGON)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POLYGON)
     rc = updatePolygonAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POLYLINE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POLYLINE)
     rc = updatePolylineAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::TEXT)
+  else if (annotation()->type() == CQChartsAnnotation::Type::TEXT)
     rc = updateTextAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::IMAGE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::IMAGE)
     rc = updateImageAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::ARROW)
+  else if (annotation()->type() == CQChartsAnnotation::Type::ARROW)
     rc = updateArrowAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POINT)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POINT)
     rc = updatePointAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::PIE_SLICE)
+  else if (annotation()->type() == CQChartsAnnotation::Type::PIE_SLICE)
     rc = updatePieSliceAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::AXIS)
+  else if (annotation()->type() == CQChartsAnnotation::Type::AXIS)
     rc = updateAxisAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::KEY)
+  else if (annotation()->type() == CQChartsAnnotation::Type::KEY)
     rc = updateKeyAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::POINT_SET)
+  else if (annotation()->type() == CQChartsAnnotation::Type::POINT_SET)
     rc = updatePointSetAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::VALUE_SET)
+  else if (annotation()->type() == CQChartsAnnotation::Type::VALUE_SET)
     rc = updateValueSetAnnotation();
-  else if (annotation_->type() == CQChartsAnnotation::Type::BUTTON)
+  else if (annotation()->type() == CQChartsAnnotation::Type::BUTTON)
     rc = updateButtonAnnotation();
 
   return rc;
@@ -1026,8 +1032,7 @@ updateRectangleAnnotation()
 
   //---
 
-  CQChartsRectangleAnnotation *annotation =
-    dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
+  auto *annotation = dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
   assert(annotation);
 
   annotation->setId(id);

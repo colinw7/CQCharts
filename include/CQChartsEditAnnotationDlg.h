@@ -45,6 +45,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
  public:
   CQChartsEditAnnotationDlg(QWidget *parent, CQChartsAnnotation *annotation);
 
+  CQChartsAnnotation *annotation() const { return annotation_; }
+
  private:
   struct Widgets {
     QFrame*                 frame              { nullptr };

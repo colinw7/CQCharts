@@ -1,6 +1,7 @@
 #include <CQChartsGeomPointEdit.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsVariant.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsWidgetUtil.h>
 
@@ -76,11 +77,20 @@ setValue(const Point &point)
 
 void
 CQChartsGeomPointEdit::
+setView(View *view)
+{
+  view_ = view;
+
+  regionButton_->setVisible(view_ || plot());
+}
+
+void
+CQChartsGeomPointEdit::
 setPlot(CQChartsPlot *plot)
 {
   plot_ = plot;
 
-  regionButton_->setVisible(plot_);
+  regionButton_->setVisible(view() || plot_);
 }
 
 void
@@ -97,22 +107,26 @@ void
 CQChartsGeomPointEdit::
 regionSlot(bool b)
 {
-  if (! plot())
-    return;
-
-  CQChartsWidgetUtil::connectDisconnect(b,
-    plot_->view(), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
-    this, SLOT(regionReleaseSlot(const CQChartsGeom::Point &)));
+  if      (plot())
+    CQChartsWidgetUtil::connectDisconnect(b,
+      plot()->view(), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
+      this, SLOT(regionReleaseSlot(const CQChartsGeom::Point &)));
+  else
+    CQChartsWidgetUtil::connectDisconnect(b,
+      const_cast<View *>(view()), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
+      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
 }
 
 void
 CQChartsGeomPointEdit::
 regionReleaseSlot(const CQChartsGeom::Point &p)
 {
-  if (! plot_)
-    return;
+  Point pp;
 
-  auto pp = plot_->viewToWindow(p);
+  if      (plot())
+    pp = plot()->viewToWindow(p);
+  else if (view())
+    pp = p;
 
   setRegion(pp);
 }

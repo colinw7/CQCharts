@@ -120,6 +120,8 @@ addModelInd(const QModelIndex &ind)
 {
   assert(ind.isValid());
 
+  assert(ind.model() == plot()->sourceModel());
+
   modelInds_.push_back(ind);
 }
 

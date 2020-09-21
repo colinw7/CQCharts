@@ -14,10 +14,13 @@ class CQChartsAngleEdit : public CQAngleSpinBox {
   Q_PROPERTY(CQChartsAngle angle READ angle WRITE setAngle)
 
  public:
+  using Angle = CQChartsAngle;
+
+ public:
   CQChartsAngleEdit(QWidget *parent=nullptr);
 
-  const CQChartsAngle &angle() const { return angle_; }
-  void setAngle(const CQChartsAngle &angle);
+  const Angle &angle() const { return angle_; }
+  void setAngle(const Angle &angle);
 
  signals:
   void angleChanged();
@@ -32,8 +35,8 @@ class CQChartsAngleEdit : public CQAngleSpinBox {
   void connectSlots(bool b);
 
  private:
-  CQChartsAngle angle_;               //!< angle value
-  bool          connected_ { false }; //!< is connected
+  Angle angle_;               //!< angle value
+  bool  connected_ { false }; //!< is connected
 };
 
 //------

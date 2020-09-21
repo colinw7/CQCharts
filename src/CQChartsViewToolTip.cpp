@@ -80,7 +80,7 @@ showTip(const QPoint &gpos)
 
     QString tip1;
 
-    if (plot->tipText(w, tip1)) {
+    if (plot->plotTipText(w, tip1)) {
       if (tip.length())
         tip += "\n";
 

@@ -1027,6 +1027,8 @@ class CQChartsPlot : public CQChartsObj,
   ModelIndex  unnormalizeIndex(const ModelIndex &ind) const;
   QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
 
+  QAbstractItemModel *sourceModel() const;
+
   void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
                    QAbstractItemModel* &sourceModel) const;
 
@@ -1053,6 +1055,8 @@ class CQChartsPlot : public CQChartsObj,
   QString idColumnString(int row, const QModelIndex &parent, bool &ok) const;
 
   //----
+
+  QModelIndex normalizedModelIndex(const ModelIndex &ind) const;
 
   QModelIndex modelIndex(const ModelIndex &ind) const;
 
@@ -1851,8 +1855,11 @@ class CQChartsPlot : public CQChartsObj,
   // handle key press
   virtual void keyPress(int key, int modifier);
 
-  // get tip text at point
-  virtual bool tipText(const Point &p, QString &tip) const;
+  // get tip text at point (checked)
+  bool tipText(const Point &p, QString &tip) const;
+
+  // get tip text at point (unchecked)
+  virtual bool plotTipText(const Point &p, QString &tip) const;
 
   void addNoTipColumns(CQChartsTableTip &tableTip) const;
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
@@ -2597,6 +2604,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+ public:
   enum class Constraints {
     NONE       = 0,
     SELECTABLE = (1<<0),
@@ -2605,18 +2613,22 @@ class CQChartsPlot : public CQChartsObj,
 
   void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
 
-  void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
-
-  virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs) const;
-
   void annotationsAtPoint(const Point &p, Annotations &annotations) const;
-
-  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
 
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 
+ protected:
+  virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs) const;
+
+  void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
+
+  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
+
+  void annotationsAtPoint1(const Point &p, Annotations &annotations) const;
+
   //---
 
+ public:
   void getSelectIndices(QItemSelectionModel *sm, QModelIndexSet &indices);
 
  protected:

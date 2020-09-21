@@ -223,7 +223,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
 
   void keyPress(int key, int modifier) override;
 
-  bool tipText(const Point &p, QString &tip) const override;
+  bool plotTipText(const Point &p, QString &tip) const override;
 
   //---
 

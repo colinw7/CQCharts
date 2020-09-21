@@ -1618,7 +1618,7 @@ createObjFromNode(Node *node) const
   nodeObj->setHierName(node->str());
 
   for (const auto &modelInd : node->modelInds())
-    nodeObj->addModelInd(modelIndex(modelInd));
+    nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
   node->setObj(nodeObj);
 
@@ -1687,7 +1687,7 @@ addEdgeObj(Edge *edge) const
   auto *edgeObj = createEdgeObj(rect, edge);
 
   for (const auto &modelInd : edge->modelInds())
-    edgeObj->addModelInd(modelIndex(modelInd));
+    edgeObj->addModelInd(normalizedModelIndex(modelInd));
 
   edge->setObj (edgeObj);
   edge->setLine(isEdgeLine());

@@ -4,6 +4,7 @@
 #include <CQChartsRect.h>
 #include <QFrame>
 
+class CQChartsView;
 class CQChartsPlot;
 class CQChartsGeomBBoxEdit;
 class CQChartsUnitsEdit;
@@ -18,6 +19,7 @@ class CQChartsRectEdit : public QFrame {
   Q_PROPERTY(CQChartsRect rect READ rect WRITE setRect)
 
  public:
+  using View = CQChartsView;
   using Plot = CQChartsPlot;
   using Rect = CQChartsRect;
   using BBox = CQChartsGeom::BBox;
@@ -27,6 +29,9 @@ class CQChartsRectEdit : public QFrame {
 
   const Rect &rect() const { return rect_; }
   void setRect(const Rect &pos);
+
+  const View *view() const { return view_; }
+  void setView(View *view);
 
   const Plot *plot() const { return plot_; }
   void setPlot(Plot *plot);
@@ -52,6 +57,7 @@ class CQChartsRectEdit : public QFrame {
 
  private:
   Rect                  rect_;                  //!< rect data
+  View*                 view_      { nullptr }; //!< associated view
   Plot*                 plot_      { nullptr }; //!< associated plot
   CQChartsGeomBBoxEdit* edit_      { nullptr }; //!< rect edit
   CQChartsUnitsEdit*    unitsEdit_ { nullptr }; //!< units edit

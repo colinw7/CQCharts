@@ -18,10 +18,13 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsArrowData arrowData READ arrowData WRITE setArrowData)
 
  public:
+  using ArrowData = CQChartsArrowData;
+
+ public:
   CQChartsArrowDataLineEdit(QWidget *parent=nullptr);
 
-  const CQChartsArrowData &arrowData() const;
-  void setArrowData(const CQChartsArrowData &c);
+  const ArrowData &arrowData() const;
+  void setArrowData(const ArrowData &c);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -34,7 +37,7 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
  private:
   void textChanged() override;
 
-  void updateArrowData(const CQChartsArrowData &c, bool updateText);
+  void updateArrowData(const ArrowData &c, bool updateText);
 
   void arrowDataToWidgets();
 
@@ -63,10 +66,13 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsArrowData data READ data WRITE setData)
 
  public:
+  using ArrowData = CQChartsArrowData;
+
+ public:
   CQChartsArrowDataEdit(QWidget *parent=nullptr);
 
-  const CQChartsArrowData &data() const { return data_; }
-  void setData(const CQChartsArrowData &d);
+  const ArrowData &data() const { return data_; }
+  void setData(const ArrowData &d);
 
   void setTitle(const QString &title);
 
@@ -86,17 +92,19 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsArrowData             data_;                      //!< arrow data
-//CQCheckBox*                   relativeEdit_  { nullptr }; //!< relative edit
-  CQChartsLengthEdit*           lengthEdit_    { nullptr }; //!< length edit
-  CQChartsAngleEdit*            angleEdit_     { nullptr }; //!< angle edit
-  CQChartsAngleEdit*            backAngleEdit_ { nullptr }; //!< back angle edit
-  CQCheckBox*                   fheadEdit_     { nullptr }; //!< start head edit
-  CQCheckBox*                   theadEdit_     { nullptr }; //!< end head edit
-  CQCheckBox*                   lineEndsEdit_  { nullptr }; //!< line ends edit
-  CQChartsLengthEdit*           lineWidthEdit_ { nullptr }; //!< line width edit
-  CQChartsArrowDataEditPreview* preview_       { nullptr }; //!< preview
-  bool                          connected_  { false };      //!< is connected
+  using Preview = CQChartsArrowDataEditPreview;
+
+  ArrowData           data_;                      //!< arrow data
+//CQCheckBox*         relativeEdit_  { nullptr }; //!< relative edit
+  CQChartsLengthEdit* lengthEdit_    { nullptr }; //!< length edit
+  CQChartsAngleEdit*  angleEdit_     { nullptr }; //!< angle edit
+  CQChartsAngleEdit*  backAngleEdit_ { nullptr }; //!< back angle edit
+  CQCheckBox*         fheadEdit_     { nullptr }; //!< start head edit
+  CQCheckBox*         theadEdit_     { nullptr }; //!< end head edit
+  CQCheckBox*         lineEndsEdit_  { nullptr }; //!< line ends edit
+  CQChartsLengthEdit* lineWidthEdit_ { nullptr }; //!< line width edit
+  Preview*            preview_       { nullptr }; //!< preview
+  bool                connected_     { false };   //!< is connected
 };
 
 //---
@@ -109,15 +117,16 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
-  using View = CQChartsView;
-  using Plot = CQChartsPlot;
+  using View      = CQChartsView;
+  using Plot      = CQChartsPlot;
+  using ArrowData = CQChartsArrowData;
 
  public:
   CQChartsArrowDataEditPreview(CQChartsArrowDataEdit *edit);
 
   void draw(QPainter *painter) override;
 
-  static void draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
+  static void draw(QPainter *painter, const ArrowData &data, const QRect &rect,
                    Plot *plot, View *view);
 
  private:

@@ -3,6 +3,7 @@
 
 #include <CQChartsGeom.h>
 
+class CQChartsView;
 class CQChartsPlot;
 class CQChartsLineEdit;
 class QToolButton;
@@ -17,6 +18,8 @@ class CQChartsGeomPointEdit : public QFrame {
   Q_PROPERTY(CQChartsGeom::Point point READ getValue WRITE setValue)
 
  public:
+  using View  = CQChartsView;
+  using Plot  = CQChartsPlot;
   using Point = CQChartsGeom::Point;
 
  public:
@@ -28,8 +31,11 @@ class CQChartsGeomPointEdit : public QFrame {
   const Point &getValue() const { return point_; }
   void setValue(const Point &point);
 
-  const CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *p);
+  const View *view() const { return view_; }
+  void setView(View *view);
+
+  const Plot *plot() const { return plot_; }
+  void setPlot(Plot *p);
 
   void setRegion(const Point &p);
 
@@ -55,7 +61,8 @@ class CQChartsGeomPointEdit : public QFrame {
 
  private:
   Point             point_          { 0, 0 };
-  CQChartsPlot*     plot_           { nullptr };
+  View*             view_           { nullptr };
+  Plot*             plot_           { nullptr };
   CQChartsLineEdit* edit_           { nullptr };
   QToolButton*      regionButton_   { nullptr };
   mutable bool      disableSignals_ { false };

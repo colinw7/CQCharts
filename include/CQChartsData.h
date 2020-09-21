@@ -176,7 +176,7 @@ class CQChartsLineData {
   explicit CQChartsLineData(bool visible, const Color &color=Color(),
                             const Alpha &alpha=Alpha(),
                             const Length &width=Length(),
-                            const CQChartsLineDash &dash=CQChartsLineDash()) :
+                            const LineDash &dash=LineDash()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
   }
 
@@ -192,8 +192,8 @@ class CQChartsLineData {
   const Length &width() const { return width_; }
   void setWidth(const Length &l) { width_ = l; }
 
-  const CQChartsLineDash &dash() const { return dash_; }
-  void setDash(const CQChartsLineDash &d) { dash_ = d; }
+  const LineDash &dash() const { return dash_; }
+  void setDash(const LineDash &d) { dash_ = d; }
 
   //---
 
@@ -206,11 +206,11 @@ class CQChartsLineData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool             visible_ { true };                                      //!< visible
+  bool     visible_ { true };                              //!< visible
   Color    color_   { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  Alpha    alpha_;                                                 //!< stroke alpha
-  Length   width_   { "0px" };                                     //!< stroke width
-  CQChartsLineDash dash_    { };                                           //!< stroke dash
+  Alpha    alpha_;                                         //!< stroke alpha
+  Length   width_   { "0px" };                             //!< stroke width
+  LineDash dash_    { };                                   //!< stroke dash
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -316,8 +316,8 @@ class CQChartsStrokeData {
   const Length &width() const { return width_; }
   void setWidth(const Length &w) { width_ = w; }
 
-  const CQChartsLineDash &dash() const { return dash_; }
-  void setDash(const CQChartsLineDash &d) { dash_ = d; }
+  const LineDash &dash() const { return dash_; }
+  void setDash(const LineDash &d) { dash_ = d; }
 
   const Length &cornerSize() const { return cornerSize_; }
   void setCornerSize(const Length &l) { cornerSize_ = l; }

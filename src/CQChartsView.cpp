@@ -4356,7 +4356,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         if (isInsideBlend())
           alpha = Alpha(insideFillAlpha().value()*bc.alphaF());
         else
-          alpha = Alpha(insideFillAlpha().value());
+          alpha = insideFillAlpha();
       }
       else {
         if (isInsideBlend())
@@ -4438,7 +4438,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         if (isInsideBlend())
           alpha = Alpha(selectedFillAlpha().value()*bc.alphaF());
         else
-          alpha = Alpha(selectedFillAlpha().value());
+          alpha = selectedFillAlpha();
       }
       else {
         if (isInsideBlend())

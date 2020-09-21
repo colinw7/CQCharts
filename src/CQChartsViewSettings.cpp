@@ -2533,7 +2533,7 @@ updateAnnotations()
 
   //---
 
-  auto *plot = view->currentPlot();
+  auto *plot = view->currentPlot(/*remap*/false);
 
   annotationsWidgets_.plotTable->updateAnnotations(plot);
 }
@@ -2610,7 +2610,7 @@ plotAnnotationSelectionChangeSlot()
 
   {
   auto *view = window_->view();
-  auto *plot = view->currentPlot();
+  auto *plot = view->currentPlot(/*remap*/false);
 
   CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
     annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
@@ -2641,7 +2641,7 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
 
   //---
 
-  auto *plot = view->currentPlot();
+  auto *plot = view->currentPlot(/*remap*/false);
 
   if (plot)
     annotationsWidgets_.plotTable->getSelectedAnnotations(plot, plotAnnotations);
@@ -2670,7 +2670,7 @@ createPlotAnnotationSlot()
 {
   auto *view = window_->view();
 
-  auto *plot = view->currentPlot();
+  auto *plot = view->currentPlot(/*remap*/false);
   if (! plot) return;
 
   if (createAnnotationDlg_)
@@ -2748,7 +2748,7 @@ removePlotAnnotationsSlot()
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
   auto *view = window_->view();
-  auto *plot = (view ? view->currentPlot() : nullptr);
+  auto *plot = (view ? view->currentPlot(/*remap*/false) : nullptr);
   if (! plot) return;
 
   for (const auto &annotation : plotAnnotations)
@@ -2807,7 +2807,7 @@ updatePlotObjects()
   //---
 
   auto *view = window_->view();
-  auto *plot = (view ? view->currentPlot() : nullptr);
+  auto *plot = (view ? view->currentPlot(/*remap*/false) : nullptr);
 
   if (plot) {
     objectsWidgets_.propertyModel = new CQPropertyViewModel;

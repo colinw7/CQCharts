@@ -210,7 +210,7 @@ Q_PROPERTY(CQChartsColor       symbolFillColor \
 Q_PROPERTY(CQChartsAlpha       symbolFillAlpha \
            READ symbolFillAlpha   WRITE setSymbolFillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
-           READ symbolFillPattern WRITE setSymbolFillPattern) \
+           READ symbolFillPattern WRITE setSymbolFillPattern)
 
 /*!
  * \brief Object point data

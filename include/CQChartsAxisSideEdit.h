@@ -14,10 +14,13 @@ class CQChartsAxisSideEdit : public CQChartsEnumEdit {
   Q_PROPERTY(CQChartsAxisSide axisSide READ axisSide WRITE setAxisSide)
 
  public:
+  using AxisSide = CQChartsAxisSide;
+
+ public:
   CQChartsAxisSideEdit(QWidget *parent=nullptr);
 
-  const CQChartsAxisSide &axisSide() const { return axisSide_; }
-  void setAxisSide(const CQChartsAxisSide &pos);
+  const AxisSide &axisSide() const { return axisSide_; }
+  void setAxisSide(const AxisSide &pos);
 
   QStringList enumNames() const override { return axisSide_.enumNames(); }
 
@@ -35,8 +38,8 @@ class CQChartsAxisSideEdit : public CQChartsEnumEdit {
   void axisSideChanged();
 
  private:
-  CQChartsAxisSide axisSide_;
-  QComboBox*       combo_ { nullptr };
+  AxisSide   axisSide_;
+  QComboBox* combo_ { nullptr };
 };
 
 //------

@@ -50,6 +50,15 @@ setRect(const CQChartsRect &rect)
 
 void
 CQChartsRectEdit::
+setView(CQChartsView *view)
+{
+  view_ = view;
+
+  edit_->setView(view);
+}
+
+void
+CQChartsRectEdit::
 setPlot(CQChartsPlot *plot)
 {
   plot_ = plot;
@@ -68,7 +77,10 @@ void
 CQChartsRectEdit::
 setRegion(const CQChartsGeom::BBox &bbox)
 {
-  setRect(CQChartsRect(bbox, CQChartsUnits::PLOT));
+  if      (plot_)
+    setRect(CQChartsRect(bbox, CQChartsUnits::PLOT));
+  else if (view_)
+    setRect(CQChartsRect(bbox, CQChartsUnits::VIEW));
 
   emit regionChanged();
 }
