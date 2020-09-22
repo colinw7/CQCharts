@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + annotation select in rect (overlay)
  + more types in create/edit annotation dialog
  + region tool for view and test in dialogs
  + null, bad values special draw in table delegate

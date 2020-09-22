@@ -129,11 +129,11 @@ class CQChartsPlotRealControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotRealControl(QWidget *parent=nullptr);
-  CQChartsPlotRealControl(Plot *plot, const CQChartsColumn &column);
+  CQChartsPlotRealControl(Plot *plot, const Column &column);
 
   void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
-  void setColumn(const CQChartsColumn &c) override {
+  void setColumn(const Column &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
 
   void connectValueChanged(QObject *obj, const char *slotName) override;
@@ -161,11 +161,11 @@ class CQChartsPlotIntControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotIntControl(QWidget *parent=nullptr);
-  CQChartsPlotIntControl(Plot *plot, const CQChartsColumn &column);
+  CQChartsPlotIntControl(Plot *plot, const Column &column);
 
   void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
-  void setColumn(const CQChartsColumn &c) override {
+  void setColumn(const Column &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
 
   void connectValueChanged(QObject *obj, const char *slotName) override;
@@ -193,11 +193,11 @@ class CQChartsPlotTimeControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotTimeControl(QWidget *parent=nullptr);
-  CQChartsPlotTimeControl(Plot *plot, const CQChartsColumn &column);
+  CQChartsPlotTimeControl(Plot *plot, const Column &column);
 
   void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
-  void setColumn(const CQChartsColumn &c) override {
+  void setColumn(const Column &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
 
   void connectValueChanged(QObject *obj, const char *slotName) override;
@@ -225,11 +225,11 @@ class CQChartsPlotValueControl : public CQChartsPlotControlIFace {
 
  public:
   CQChartsPlotValueControl(QWidget *parent=nullptr);
-  CQChartsPlotValueControl(Plot *plot, const CQChartsColumn &column);
+  CQChartsPlotValueControl(Plot *plot, const Column &column);
 
   void setPlot(Plot *p) override {
     CQChartsPlotControlIFace::setPlot(p); init(); }
-  void setColumn(const CQChartsColumn &c) override {
+  void setColumn(const Column &c) override {
     CQChartsPlotControlIFace::setColumn(c); init(); }
 
   void connectValueChanged(QObject *obj, const char *slotName) override;

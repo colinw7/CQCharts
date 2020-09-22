@@ -2615,6 +2615,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void annotationsAtPoint(const Point &p, Annotations &annotations) const;
 
+  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
+
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 
  protected:
@@ -2622,9 +2624,12 @@ class CQChartsPlot : public CQChartsObj,
 
   void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
 
-  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
-
   void annotationsAtPoint1(const Point &p, Annotations &annotations) const;
+
+  void plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
+
+  void annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const;
+  void annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const;
 
   //---
 

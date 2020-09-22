@@ -579,6 +579,16 @@ inside(const Point &p) const
   return annotationBBox().inside(p);
 }
 
+bool
+CQChartsAnnotation::
+intersects(const BBox &r, bool inside) const
+{
+  if (inside)
+    return r.inside(annotationBBox());
+  else
+    return r.overlaps(annotationBBox());
+}
+
 //------
 
 QColor

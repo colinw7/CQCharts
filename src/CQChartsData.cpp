@@ -84,12 +84,12 @@ CQChartsTextData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
   auto nameValueAlpha = [&](const QString &name, Alpha &alpha, bool &ok) {
-    double r; (void) nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
+    double r = 1.0; (void) nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
     return true;
   };
 
   auto nameValueAngle = [&](const QString &name, Angle &angle, bool &ok) {
-    double r; (void) nameValues.nameValueReal(name, r, ok); angle = Angle(r);
+    double r = 0.0; (void) nameValues.nameValueReal(name, r, ok); angle = Angle(r);
     return true;
   };
 
@@ -172,7 +172,7 @@ CQChartsLineData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
   auto nameValueAlpha = [&](const QString &name, Alpha &alpha, bool &ok) {
-    double r; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
+    double r = 1.0; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
     return true;
   };
 
@@ -427,7 +427,7 @@ CQChartsFillData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
   auto nameValueAlpha = [&](const QString &name, Alpha &alpha, bool &ok) {
-    double r; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
+    double r = 1.0; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
     return true;
   };
 
@@ -504,7 +504,7 @@ CQChartsStrokeData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
   auto nameValueAlpha = [&](const QString &name, Alpha &alpha, bool &ok) {
-    double r; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
+    double r = 1.0; nameValues.nameValueReal(name, r, ok); alpha = Alpha(r);
     return true;
   };
 
@@ -742,7 +742,7 @@ CQChartsArrowData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
   auto nameValueAngle = [&](const QString &name, Angle &angle, bool &ok) {
-    double r; nameValues.nameValueReal(name, r, ok); angle = Angle(r);
+    double r = 0.0; nameValues.nameValueReal(name, r, ok); angle = Angle(r);
     return true;
   };
 

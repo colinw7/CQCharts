@@ -17,13 +17,16 @@ class CQChartsColumnCombo : public QComboBox {
   Q_PROPERTY(CQChartsColumn column    READ getColumn   WRITE setColumn   )
 
  public:
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsColumnCombo(QWidget *parent=nullptr);
 
   bool isAllowNone() const { return allowNone_; }
   void setAllowNone(bool b);
 
-  CQChartsColumn getColumn() const;
-  void setColumn(const CQChartsColumn &column);
+  Column getColumn() const;
+  void setColumn(const Column &column);
 
   void setModelData(CQChartsModelData *model);
 

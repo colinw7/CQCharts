@@ -306,6 +306,7 @@ class CQChartsSankeyPlotEdge {
   using Obj        = CQChartsSankeyEdgeObj;
   using ModelIndex = CQChartsModelIndex;
   using ModelInds  = std::vector<ModelIndex>;
+  using Column     = CQChartsColumn;
   using OptReal    = CQChartsOptReal;
   using BBox       = CQChartsGeom::BBox;
   using Point      = CQChartsGeom::Point;
@@ -329,8 +330,8 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; }
+  const Column &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const Column &c) { valueColumn_ = c; }
 
 #if 0
   //! get/set label
@@ -378,18 +379,18 @@ class CQChartsSankeyPlotEdge {
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
  protected:
-  const Plot*    plot_     { nullptr }; //!< plot
-  int            id_       { -1 };      //!< unique id
-  OptReal        value_;                //!< value
-  CQChartsColumn valueColumn_;          //!< value column
-//QString        label_;                //!< label
-  CQChartsColor  color_;                //!< color
-  int            pathId_   { -1 };      //!< path id
-  ModelInds      modelInds_;            //!< model inds
-  Node*          srcNode_  { nullptr }; //!< source node
-  Node*          destNode_ { nullptr }; //!< destination node
-  Obj*           obj_      { nullptr }; //!< associated edge object
-  bool           isLine_   { false };   //!< is edge a line
+  const Plot*   plot_     { nullptr }; //!< plot
+  int           id_       { -1 };      //!< unique id
+  OptReal       value_;                //!< value
+  Column        valueColumn_;          //!< value column
+//QString       label_;                //!< label
+  CQChartsColor color_;                //!< color
+  int           pathId_   { -1 };      //!< path id
+  ModelInds     modelInds_;            //!< model inds
+  Node*         srcNode_  { nullptr }; //!< source node
+  Node*         destNode_ { nullptr }; //!< destination node
+  Obj*          obj_      { nullptr }; //!< associated edge object
+  bool          isLine_   { false };   //!< is edge a line
 };
 
 //---

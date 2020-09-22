@@ -18,6 +18,9 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsColumnLineEdit(QWidget *parent=nullptr);
 
   void setPlot(CQChartsPlot *plot) override;
@@ -25,8 +28,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   CQChartsModelData *modelData() const;
   void setModelData(CQChartsModelData *model);
 
-  const CQChartsColumn &column() const;
-  void setColumn(const CQChartsColumn &c);
+  const Column &column() const;
+  void setColumn(const Column &c);
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -39,7 +42,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
  private:
   void textChanged() override;
 
-  void updateColumn(const CQChartsColumn &c, bool updateText);
+  void updateColumn(const Column &c, bool updateText);
 
   void columnToWidgets();
 
@@ -66,13 +69,16 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
+  using Column = CQChartsColumn;
+
+ public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *model);
 
-  const CQChartsColumn &column() const;
-  void setColumn(const CQChartsColumn &c);
+  const Column &column() const;
+  void setColumn(const Column &c);
 
   QSize sizeHint() const override;
 
@@ -97,7 +103,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
   CQChartsModelData*   modelData_      { nullptr }; //!< model data
-  CQChartsColumn       column_;                     //!< column
+  Column               column_;                     //!< column
   CQChartsLineEdit*    nameEdit_       { nullptr }; //!< name edit
   QComboBox*           typeCombo_      { nullptr }; //!< type combo
   CQChartsColumnCombo* columnCombo_    { nullptr }; //!< column combo

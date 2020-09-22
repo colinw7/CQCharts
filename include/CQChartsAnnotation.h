@@ -193,6 +193,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! is point inside
   virtual bool inside(const Point &p) const;
 
+  bool intersects(const BBox &r, bool inside) const;
+
   //---
 
   virtual void mousePress  (const Point &, SelMod) { }

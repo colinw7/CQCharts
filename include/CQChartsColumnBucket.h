@@ -23,12 +23,14 @@ class CQChartsColumnBucket {
     PATH         // bucket by hierarchical path
   };
 
+  using Column = CQChartsColumn;
+
  public:
   CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE);
  ~CQChartsColumnBucket();
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c);
+  const Column &column() const { return column_; }
+  void setColumn(const Column &c);
 
   ColumnType columnType() const { return columnType_; }
   void setColumnType(ColumnType columnType);
@@ -105,7 +107,7 @@ class CQChartsColumnBucket {
  private:
   using IndName = std::map<int, QString>;
 
-  CQChartsColumn    column_;
+  Column            column_;
   ColumnType        columnType_  { ColumnType::NONE };
   DataType          dataType_    { DataType::NONE };
   bool              rowGrouping_ { false };

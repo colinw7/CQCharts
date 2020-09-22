@@ -5497,21 +5497,19 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
-      for (auto &plotObj : plot->plotObjects()) {
-        if (selMod == SelMod::REPLACE)
-          objsSelected[plotObj] = false;
-        else
-          objsSelected[plotObj] = plotObj->isSelected();
-      }
+      for (auto &plotObj : plot->plotObjects())
+        objsSelected[plotObj] = (selMod != SelMod::REPLACE ? plotObj->isSelected() : false);
+
+      for (const auto &annotation : plot->annotations())
+        objsSelected[annotation] = (selMod != SelMod::REPLACE ? annotation->isSelected() : false);
     });
   }
   else {
-    for (auto &plotObj : plotObjects()) {
-      if (selMod == SelMod::REPLACE)
-        objsSelected[plotObj] = false;
-      else
-        objsSelected[plotObj] = plotObj->isSelected();
-    }
+    for (auto &plotObj : plotObjects())
+      objsSelected[plotObj] = (selMod != SelMod::REPLACE ? plotObj->isSelected() : false);
+
+    for (const auto &annotation : annotations())
+      objsSelected[annotation] = (selMod != SelMod::REPLACE ? annotation->isSelected() : false);
   }
 
   //---
@@ -8386,6 +8384,35 @@ void
 CQChartsPlot::
 objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
 {
+  PlotObjs plotObjs;
+
+  plotObjsIntersectRect(r, plotObjs, inside);
+
+  for (const auto &plotObj : plotObjs) {
+    if (select && ! plotObj->isSelectable())
+      continue;
+
+    objs.push_back(plotObj);
+  }
+
+  //---
+
+  Annotations annotations;
+
+  annotationsIntersectRect(r, annotations, inside);
+
+  for (const auto &annotation : annotations) {
+    if (select && ! annotation->isSelectable())
+      continue;
+
+    objs.push_back(annotation);
+  }
+}
+
+void
+CQChartsPlot::
+plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const
+{
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
       auto r1 = r;
@@ -8393,29 +8420,47 @@ objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select) const
       if (plot != this)
         r1 = windowToPixel(plot->pixelToWindow(r));
 
-      PlotObjs plotObjs;
-
       plot->objTreeData_.tree->objectsIntersectRect(r1, plotObjs, inside);
-
-      for (const auto &plotObj : plotObjs) {
-        if (select && ! plotObj->isSelectable())
-          continue;
-
-        objs.push_back(plotObj);
-      }
     });
   }
   else {
-    PlotObjs plotObjs;
-
     objTreeData_.tree->objectsIntersectRect(r, plotObjs, inside);
+  }
+}
 
-    for (const auto &plotObj : plotObjs) {
-      if (select && ! plotObj->isSelectable())
-        continue;
+void
+CQChartsPlot::
+annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const
+{
+  annotations.clear();
 
-      objs.push_back(plotObj);
-    }
+  if (isOverlay()) {
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      auto r1 = r;
+
+      if (plot != this)
+        r1 = plot->pixelToWindow(windowToPixel(r));
+
+      plot->annotationsIntersectRect1(r1, annotations, inside);
+    });
+  }
+  else {
+    annotationsIntersectRect1(r, annotations, inside);
+  }
+}
+
+void
+CQChartsPlot::
+annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const
+{
+  for (const auto &annotation : this->annotations()) {
+    if (! annotation->isVisible())
+      continue;
+
+    if (! annotation->intersects(r, inside))
+      continue;
+
+    annotations.push_back(annotation);
   }
 }
 

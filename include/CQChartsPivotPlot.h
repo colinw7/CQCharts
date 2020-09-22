@@ -150,7 +150,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
   using PivotPlot = CQChartsPivotPlot;
 
  public:
-  CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+  CQChartsPivotPointObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
                         const ColorInd &ir, const ColorInd &ic, const Point &p, double value);
 
   //---
@@ -193,7 +193,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
   using Color     = CQChartsColor;
 
  public:
-  CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndex &ind,
+  CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,
                        const ColorInd &ir, const ColorInd &ic, const QString &name,
                        double value, double hnorm, double vnorm, bool valid);
 
@@ -439,11 +439,11 @@ class CQChartsPivotPlot : public CQChartsPlot,
                                  const ColorInd &ig, const Polygon &polygon,
                                  const QString &name) const;
 
-  virtual PointObj *createPointObj(const BBox &rect, const QModelIndex &ind,
+  virtual PointObj *createPointObj(const BBox &rect, const QModelIndices &inds,
                                    const ColorInd &ir, const ColorInd &ic,
                                    const Point &p, double value) const;
 
-  virtual CellObj *createCellObj(const BBox &rect, const QModelIndex &ind,
+  virtual CellObj *createCellObj(const BBox &rect, const QModelIndices &inds,
                                  const ColorInd &ir, const ColorInd &ic,
                                  const QString &name, double value, double hnorm,
                                  double vnorm, bool valid) const;

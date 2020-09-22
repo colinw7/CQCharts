@@ -26,6 +26,8 @@ class CQChartsModelDetails : public QObject {
   Q_PROPERTY(int hierarchical READ isHierarchical)
 
  public:
+  using Column        = CQChartsColumn;
+  using Columns       = CQChartsColumns;
   using ColumnDetails = CQChartsModelColumnDetails;
 
  public:
@@ -40,19 +42,19 @@ class CQChartsModelDetails : public QObject {
 
   bool isHierarchical() const;
 
-  ColumnDetails *columnDetails(const CQChartsColumn &column);
-  const ColumnDetails *columnDetails(const CQChartsColumn &column) const;
+  ColumnDetails *columnDetails(const Column &column);
+  const ColumnDetails *columnDetails(const Column &column) const;
 
-  CQChartsColumns numericColumns() const;
+  Columns numericColumns() const;
 
-  CQChartsColumns monotonicColumns() const;
+  Columns monotonicColumns() const;
 
   void reset();
 
   std::vector<int> duplicates() const;
-  std::vector<int> duplicates(const CQChartsColumn &column) const;
+  std::vector<int> duplicates(const Column &column) const;
 
-  double correlation(const CQChartsColumn &column1, const CQChartsColumn &column2) const;
+  double correlation(const Column &column1, const Column &column2) const;
 
   CQCharts *charts() const;
 
@@ -67,7 +69,7 @@ class CQChartsModelDetails : public QObject {
  private:
   void resetValues();
 
-  std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
+  std::vector<int> columnDuplicates(const Column &column, bool all) const;
 
   void updateSimple();
   void updateFull();
@@ -86,7 +88,7 @@ class CQChartsModelDetails : public QObject {
   CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
 
  private:
-  using ColumnDetailsMap = std::map<CQChartsColumn, ColumnDetails *>;
+  using ColumnDetailsMap = std::map<Column, ColumnDetails *>;
 
   CQChartsModelData* data_ { nullptr }; //!< model data
 
@@ -110,19 +112,20 @@ class CQChartsModelDetails : public QObject {
 class CQChartsModelColumnDetails {
  public:
   using Details       = CQChartsModelDetails;
+  using Column        = CQChartsColumn;
   using ColumnType    = CQBaseModelType;
   using TableDrawType = CQChartsColumnType::DrawType;
   using ValueCount    = std::pair<QVariant, int>;
   using ValueCounts   = std::vector<ValueCount>;
 
  public:
-  CQChartsModelColumnDetails(Details *details, const CQChartsColumn &column);
+  CQChartsModelColumnDetails(Details *details, const Column &column);
 
   virtual ~CQChartsModelColumnDetails();
 
   Details *details() const { return details_; }
 
-  const CQChartsColumn &column() const { return column_; }
+  const Column &column() const { return column_; }
 
   QString headerName() const;
 
@@ -243,8 +246,8 @@ class CQChartsModelColumnDetails {
  private:
   using VariantInds = std::map<QVariant, int>;
 
-  Details*       details_ { nullptr };
-  CQChartsColumn column_;
+  Details* details_ { nullptr };
+  Column   column_;
 
   // cached type data
   bool                  typeInitialized_ { false }; //!< is type data set

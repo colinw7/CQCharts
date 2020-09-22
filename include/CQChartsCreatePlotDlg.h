@@ -48,8 +48,12 @@ class CQChartsCreatePlotDlg : public QDialog {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
-  using Plot      = CQChartsPlot;
-  using ModelData = CQChartsModelData;
+  using Plot          = CQChartsPlot;
+  using PlotType      = CQChartsPlotType;
+  using ModelData     = CQChartsModelData;
+  using Column        = CQChartsColumn;
+  using Columns       = CQChartsColumns;
+  using PlotParameter = CQChartsPlotParameter;
 
  public:
   CQChartsCreatePlotDlg(CQCharts *charts, ModelData *modelData);
@@ -68,6 +72,11 @@ class CQChartsCreatePlotDlg : public QDialog {
   Plot *plot() const { return plot_; }
 
  private:
+  using ColumnLineEdit  = CQChartsColumnLineEdit;
+  using ColumnsLineEdit = CQChartsColumnsLineEdit;
+  using LineEdit        = CQChartsLineEdit;
+  using ColumnCombo     = CQChartsColumnCombo;
+
   struct MapEditData {
     QCheckBox*  mappedCheck { nullptr };
     CQRealSpin* mapMinSpin  { nullptr };
@@ -75,20 +84,20 @@ class CQChartsCreatePlotDlg : public QDialog {
   };
 
   struct FormatEditData {
-    CQChartsLineEdit* formatEdit   { nullptr };
-    QToolButton*      formatUpdate { nullptr };
+    LineEdit*    formatEdit   { nullptr };
+    QToolButton* formatUpdate { nullptr };
   };
 
   struct ColumnEditData {
-    CQChartsColumnCombo*    basicEdit    { nullptr };
-    CQChartsColumnLineEdit* advancedEdit { nullptr };
+    ColumnCombo*    basicEdit    { nullptr };
+    ColumnLineEdit* advancedEdit { nullptr };
   };
 
   struct PlotData {
     using Names        = std::set<QString>;
     using ColumnEdits  = std::map<QString, ColumnEditData>;
-    using ColumnsEdits = std::map<QString, CQChartsColumnsLineEdit*>;
-    using LineEdits    = std::map<QString, CQChartsLineEdit*>;
+    using ColumnsEdits = std::map<QString, ColumnsLineEdit*>;
+    using LineEdits    = std::map<QString, LineEdit*>;
     using WidgetEdits  = std::map<QString, QWidget*>;
     using FormatEdits  = std::map<QString, FormatEditData>;
     using Combos       = std::map<QString, QComboBox*>;
@@ -129,71 +138,60 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   void sortedPlotTypes(CQCharts::PlotTypes &sortedPlotTypes);
 
-  void addPlotWidgets(CQChartsPlotType *type, int ind);
+  void addPlotWidgets(PlotType *type, int ind);
 
-  void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
-                         QGridLayout *layout, int &row, bool isBasic);
-  void addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plotData,
+  void addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout,
+                         int &row, bool isBasic);
+  void addParameterEdits(const PlotType::Parameters &parameters, PlotData &plotData,
                          QGridLayout *layout, int &row, bool isBasic);
 
   void addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                        CQChartsPlotParameter *parameter, bool isBasic);
+                        PlotParameter *parameter, bool isBasic);
   void addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
-                        CQChartsPlotParameter *parameter, bool isBasic);
+                        PlotParameter *parameter, bool isBasic);
 
   void addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                                   CQChartsPlotParameter *parameter);
+                                   PlotParameter *parameter);
   void addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                              CQChartsPlotParameter *parameter);
+                              PlotParameter *parameter);
   void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                               CQChartsPlotParameter *parameter, bool isBasic);
+                               PlotParameter *parameter, bool isBasic);
 
-  void addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
-                            CQChartsPlotParameter *parameter);
-  void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
-                            CQChartsPlotParameter *parameter);
-  void addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
-                              CQChartsPlotParameter *parameter);
-  void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
-                            CQChartsPlotParameter *parameter);
-  void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
-                           CQChartsPlotParameter *parameter);
+  void addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
+  void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
+  void addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
+  void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
+  void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout, PlotParameter *parameter);
 
-  CQChartsColumnLineEdit* addColumnEdit(QLayout *grid, int &row, int &column,
-                                        const QString &name, const QString &objName,
-                                        const QString &placeholderText) const;
-  CQChartsColumnsLineEdit* addColumnsEdit(QLayout *grid, int &row, int &column,
-                                          const QString &name, const QString &objName,
-                                          const QString &placeholderText, bool isBasic) const;
-
-  CQChartsLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+  ColumnLineEdit* addColumnEdit(QLayout *grid, int &row, int &column, const QString &name,
                                 const QString &objName, const QString &placeholderText) const;
-  CQChartsLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
-                                  const QString &objName, const QString &placeholderText) const;
+
+  ColumnsLineEdit* addColumnsEdit(QLayout *grid, int &row, int &column, const QString &name,
+                                  const QString &objName, const QString &placeholderText,
+                                  bool isBasic) const;
+
+  LineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+                        const QString &objName, const QString &placeholderText) const;
+  LineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
+                          const QString &objName, const QString &placeholderText) const;
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
-  bool parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                                CQChartsColumn &column, QString &columnType,
-                                MapValueData &mapValueData);
-  bool parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                                 CQChartsColumns &columns, QString &columnType);
+  bool parseParameterColumnEdit(PlotParameter *parameter, const PlotData &plotData,
+                                Column &column, QString &columnType, MapValueData &mapValueData);
+  bool parseParameterColumnsEdit(PlotParameter *parameter, const PlotData &plotData,
+                                 Columns &columns, QString &columnType);
 
-  bool parseParameterStringEdit(CQChartsPlotParameter *parameter,
-                                const PlotData &plotData, QString &str);
-  bool parseParameterRealEdit(CQChartsPlotParameter *parameter,
-                              const PlotData &plotData, double &r);
-  bool parseParameterIntEdit(CQChartsPlotParameter *parameter,
-                             const PlotData &plotData, int &i);
-  bool parseParameterEnumEdit(CQChartsPlotParameter *parameter,
-                              const PlotData &plotData, int &i);
-  bool parseParameterBoolEdit(CQChartsPlotParameter *parameter,
-                              const PlotData &plotData, bool &b);
+  bool parseParameterStringEdit(PlotParameter *parameter, const PlotData &plotData, QString &str);
+  bool parseParameterRealEdit(PlotParameter *parameter, const PlotData &plotData, double &r);
+  bool parseParameterIntEdit(PlotParameter *parameter, const PlotData &plotData, int &i);
+  bool parseParameterEnumEdit(PlotParameter *parameter, const PlotData &plotData, int &i);
+  bool parseParameterBoolEdit(PlotParameter *parameter, const PlotData &plotData, bool &b);
 
-  bool columnLineEditValue(const ColumnEditData &editData, CQChartsColumn &column,
-                           const CQChartsColumn &defColumn=CQChartsColumn()) const;
-  bool columnsLineEditValue(CQChartsColumnsLineEdit *le, CQChartsColumns &columns,
-                            const CQChartsColumns &defColumns=CQChartsColumns()) const;
+  bool columnLineEditValue(const ColumnEditData &editData, Column &column,
+                           const Column &defColumn=Column()) const;
+  bool columnsLineEditValue(ColumnsLineEdit *le, Columns &columns,
+                            const Columns &defColumns=Columns()) const;
 
   bool validate(QStringList &msgs);
 
@@ -203,7 +201,7 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   void applyPlot(Plot *plot, bool preview=false);
 
-  CQChartsPlotType *getPlotType() const;
+  PlotType *getPlotType() const;
 
   bool isAutoAnalyzeModel() const { return autoAnalyzeModel_; }
   void setAutoAnalyzeModel(bool b) { autoAnalyzeModel_ = b; }
@@ -247,18 +245,18 @@ class CQChartsCreatePlotDlg : public QDialog {
 
  private:
   using TypePlotData    = std::map<QString, PlotData>;
-  using TabType         = std::map<int, CQChartsPlotType *>;
+  using TabType         = std::map<int, PlotType *>;
   using TypeInitialized = std::map<QString, bool>;
 
   struct RangeEditData {
-    CQChartsLineEdit* xminEdit   { nullptr }; //!< xmin edit
-    QToolButton*      xminButton { nullptr }; //!< xmin load button
-    CQChartsLineEdit* yminEdit   { nullptr }; //!< ymin edit
-    QToolButton*      yminButton { nullptr }; //!< ymin load button
-    CQChartsLineEdit* xmaxEdit   { nullptr }; //!< xmax edit
-    QToolButton*      xmaxButton { nullptr }; //!< xmax load button
-    CQChartsLineEdit* ymaxEdit   { nullptr }; //!< ymax edit
-    QToolButton*      ymaxButton { nullptr }; //!< ymax load button
+    LineEdit*    xminEdit   { nullptr }; //!< xmin edit
+    QToolButton* xminButton { nullptr }; //!< xmin load button
+    LineEdit*    yminEdit   { nullptr }; //!< ymin edit
+    QToolButton* yminButton { nullptr }; //!< ymin load button
+    LineEdit*    xmaxEdit   { nullptr }; //!< xmax edit
+    QToolButton* xmaxButton { nullptr }; //!< xmax load button
+    LineEdit*    ymaxEdit   { nullptr }; //!< ymax edit
+    QToolButton* ymaxButton { nullptr }; //!< ymax load button
   };
 
   struct SummaryEditData {
@@ -288,21 +286,21 @@ class CQChartsCreatePlotDlg : public QDialog {
   TabType         stackIndexPlotType_;                //!< stacked index for plot type
 
   // filter edit
-  QFrame*           whereFrame_ { nullptr }; //!< where frame
-  CQChartsLineEdit* whereEdit_  { nullptr }; //!< where edit
+  QFrame*   whereFrame_ { nullptr }; //!< where frame
+  LineEdit* whereEdit_  { nullptr }; //!< where edit
 
   // general widgets
-  CQChartsLineEdit* viewEdit_       { nullptr }; //!< view name edit
-  CQChartsLineEdit* posEdit_        { nullptr }; //!< position edit
-  QCheckBox*        autoRangeEdit_  { nullptr }; //!< auto range check
-  CQChartsLineEdit* titleEdit_      { nullptr }; //!< title edit
-  CQChartsLineEdit* xLabelEdit_     { nullptr }; //!< x label edit
-  CQChartsLineEdit* yLabelEdit_     { nullptr }; //!< y label edit
-  RangeEditData     rangeEditData_;
-  QCheckBox*        xintegralCheck_ { nullptr }; //!< x integral check
-  QCheckBox*        yintegralCheck_ { nullptr }; //!< y integral check
-  QCheckBox*        xlogCheck_      { nullptr }; //!< x log check
-  QCheckBox*        ylogCheck_      { nullptr }; //!< y log check
+  LineEdit*     viewEdit_       { nullptr }; //!< view name edit
+  LineEdit*     posEdit_        { nullptr }; //!< position edit
+  QCheckBox*    autoRangeEdit_  { nullptr }; //!< auto range check
+  LineEdit*     titleEdit_      { nullptr }; //!< title edit
+  LineEdit*     xLabelEdit_     { nullptr }; //!< x label edit
+  LineEdit*     yLabelEdit_     { nullptr }; //!< y label edit
+  RangeEditData rangeEditData_;
+  QCheckBox*    xintegralCheck_ { nullptr }; //!< x integral check
+  QCheckBox*    yintegralCheck_ { nullptr }; //!< y integral check
+  QCheckBox*    xlogCheck_      { nullptr }; //!< x log check
+  QCheckBox*    ylogCheck_      { nullptr }; //!< y log check
 
   // description text
   QTextEdit* descText_ { nullptr }; //!< type description

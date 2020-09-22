@@ -36,7 +36,7 @@ class CQChartsAlpha {
 
   //! operator ==
   friend bool operator==(const CQChartsAlpha &lhs, const CQChartsAlpha &rhs) {
-    return (lhs.a_ == rhs.a_);
+    return std::abs(lhs.a_ - rhs.a_) < 1E-6;
   }
 
   //! operator !=
