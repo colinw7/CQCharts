@@ -3,15 +3,12 @@
 #include <CQChartsLineEdit.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsRegionMgr.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
-#include <QToolButton>
 #include <QHBoxLayout>
-
-#include <svg/region_light_svg.h>
-#include <svg/region_dark_svg.h>
 
 CQChartsGeomBBoxEdit::
 CQChartsGeomBBoxEdit(QWidget *parent, const BBox &value) :
@@ -50,12 +47,12 @@ init(const BBox &value)
 
   //---
 
-  regionButton_ = CQUtil::makeWidget<QToolButton>("region");
+  regionButton_ = CQUtil::makeWidget<CQChartsRegionButton>("region");
 
-  regionButton_->setCheckable(true);
-  regionButton_->setIcon(CQPixmapCacheInst->getIcon("REGION_LIGHT", "REGION_DARK"));
+  regionButton_->setMode(CQChartsRegionButton::Mode::RECT);
 
-  connect(regionButton_, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+  connect(regionButton_, SIGNAL(rectRegionSet(const CQChartsGeom::BBox &)),
+          this, SLOT(regionSlot(const CQChartsGeom::BBox &)));
 
   layout->addWidget(regionButton_);
 
@@ -80,8 +77,10 @@ CQChartsGeomBBoxEdit::
 setView(View *view)
 {
   view_ = view;
+  plot_ = nullptr;
 
-  regionButton_->setVisible(view_ || plot());
+  regionButton_->setView(view_);
+  regionButton_->setVisible(view_);
 }
 
 void
@@ -89,8 +88,10 @@ CQChartsGeomBBoxEdit::
 setPlot(Plot *plot)
 {
   plot_ = plot;
+  view_ = nullptr;
 
-  regionButton_->setVisible(view() || plot_);
+  regionButton_->setView(plot_ ? plot_->view() : nullptr);
+  regionButton_->setVisible(plot_);
 }
 
 void
@@ -105,21 +106,7 @@ editingFinishedI()
 
 void
 CQChartsGeomBBoxEdit::
-regionSlot(bool b)
-{
-  if      (plot())
-    CQChartsWidgetUtil::connectDisconnect(b,
-      plot()->view(), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
-      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
-  else if (view())
-    CQChartsWidgetUtil::connectDisconnect(b,
-      const_cast<View *>(view()), SIGNAL(regionRectRelease(const CQChartsGeom::BBox &)),
-      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
-}
-
-void
-CQChartsGeomBBoxEdit::
-regionReleaseSlot(const BBox &bbox)
+regionSlot(const CQChartsGeom::BBox &bbox)
 {
   BBox pbbox;
 

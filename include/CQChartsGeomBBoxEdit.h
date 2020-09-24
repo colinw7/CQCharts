@@ -6,7 +6,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsLineEdit;
-class QToolButton;
+class CQChartsRegionButton;
 
 /*!
  * \brief geometry bbox edit
@@ -45,8 +45,7 @@ class CQChartsGeomBBoxEdit : public QFrame {
  private slots:
   void editingFinishedI();
 
-  void regionSlot(bool b);
-  void regionReleaseSlot(const CQChartsGeom::BBox &bbox);
+  void regionSlot(const CQChartsGeom::BBox &bbox);
 
  signals:
   void valueChanged();
@@ -60,12 +59,12 @@ class CQChartsGeomBBoxEdit : public QFrame {
   bool widgetToBBox();
 
  private:
-  BBox              bbox_           { 0, 0, 1, 1 };
-  View*             view_           { nullptr };
-  Plot*             plot_           { nullptr };
-  CQChartsLineEdit* edit_           { nullptr };
-  QToolButton*      regionButton_   { nullptr };
-  mutable bool      disableSignals_ { false };
+  BBox                  bbox_           { 0, 0, 1, 1 };
+  View*                 view_           { nullptr };
+  Plot*                 plot_           { nullptr };
+  CQChartsLineEdit*     edit_           { nullptr };
+  CQChartsRegionButton* regionButton_   { nullptr };
+  mutable bool          disableSignals_ { false };
 };
 
 //------

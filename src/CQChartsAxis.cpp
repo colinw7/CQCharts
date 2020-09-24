@@ -899,6 +899,8 @@ QString
 CQChartsAxis::
 valueStr(const CQChartsPlot *plot, double pos) const
 {
+  using ModelIndex = CQChartsModelIndex;
+
   if (isLog())
     pos = plot->expValue(pos);
 

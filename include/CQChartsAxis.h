@@ -10,7 +10,6 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsOptString.h>
 #include <CQChartsAxisTickLabelPlacement.h>
-#include <CQChartsModelIndex.h>
 #include <CInterval.h>
 
 #include <map>
@@ -141,7 +140,6 @@ class CQChartsAxis : public CQChartsObj,
   using AxisSide               = CQChartsAxisSide;
   using AxisTickLabelPlacement = CQChartsAxisTickLabelPlacement;
   using ColorInd               = CQChartsUtil::ColorInd;
-  using ModelIndex             = CQChartsModelIndex;
   using EditHandles            = CQChartsEditHandles;
   using OptReal                = CQChartsOptReal;
   using OptInt                 = CQChartsOptInt;

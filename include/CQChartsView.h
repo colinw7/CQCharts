@@ -55,6 +55,8 @@ class CQChartsReals;
 class CQChartsDocument;
 class CQChartsSplitter;
 
+class CQChartsRegionMgr;
+
 struct CQChartsTextOptions;
 
 class CQPropertyViewModel;
@@ -902,6 +904,10 @@ class CQChartsView : public QFrame,
 
   //---
 
+  CQChartsRegionMgr *regionMgr() const { return regionMgr_; }
+
+  //---
+
   // get pixel rect
   const BBox prect() const { return prect_; }
 
@@ -1373,6 +1379,7 @@ class CQChartsView : public QFrame,
   bool               separatorsInvalid_ { true };
   bool               plotsHorizontal_   { false };
   bool               plotsVertical_     { false };
+  CQChartsRegionMgr* regionMgr_         { nullptr };
 };
 
 //------

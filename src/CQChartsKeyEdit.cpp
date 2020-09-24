@@ -234,6 +234,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     // absolutePosition
     absolutePositionEdit_ = CQUtil::makeWidget<CQChartsGeomPointEdit>("absolutePositionEdit");
 
+    absolutePositionEdit_->setPlot(plotKey->plot());
     absolutePositionEdit_->setValue(data_.absolutePosition);
     absolutePositionEdit_->setToolTip("Absolute Position");
 

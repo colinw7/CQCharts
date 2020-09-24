@@ -31,6 +31,7 @@
 #include <CQChartsScriptPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsDocument.h>
+#include <CQChartsRegionMgr.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -187,6 +188,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   // TODO: only connect to current theme ?
   connect(CQColorsMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
   connect(CQColorsMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
+
+  //---
+
+  regionMgr_ = new CQChartsRegionMgr(this);
 }
 
 CQChartsView::
@@ -2422,8 +2427,11 @@ mouseMoveEvent(QMouseEvent *me)
       panMouseMove();
     else if (mode() == Mode::EDIT)
       (void) editMouseMove();
-    else if (mode() == Mode::REGION)
-      selectMouseMove();
+    else if (mode() == Mode::REGION) {
+      updatePosText(mouseMovePoint());
+
+      regionMouseMove();
+    }
   }
   else if (mouseButton() == Qt::MiddleButton) {
     if (! mousePressed())
@@ -2503,21 +2511,11 @@ keyPressEvent(QKeyEvent *ke)
     if (mousePressed())
       endRegionBand();
 
-    if      (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
+    if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT || mode() == Mode::PAN) {
       if (! mousePressed())
         selectModeSlot();
     }
-    else if (mode() == Mode::PAN) {
-      if (! mousePressed())
-        selectModeSlot();
-    }
-    else if (mode() == Mode::PROBE) {
-      selectModeSlot();
-    }
-    else if (mode() == Mode::QUERY) {
-      selectModeSlot();
-    }
-    else if (mode() == Mode::EDIT) {
+    else {
       selectModeSlot();
     }
 

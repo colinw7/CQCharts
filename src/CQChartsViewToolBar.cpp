@@ -265,6 +265,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   connect(regionButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(regionButtonClicked(int)));
 
+  connect(view(), SIGNAL(regionModeChanged()), this, SLOT(updateState()));
+
   //-----
 
   viewSettingsButton_ =
@@ -344,6 +346,11 @@ updateState()
     leftButton_ ->setEnabled(view()->scrollPage() > 0);
     rightButton_->setEnabled(view()->scrollPage() < view()->scrollNumPages() - 1);
   }
+
+  if      (view()->regionMode() == CQChartsView::RegionMode::POINT)
+    regionPointButton_->setChecked(true);
+  else if (view()->regionMode() == CQChartsView::RegionMode::RECT)
+    regionRectButton_->setChecked(true);
 }
 
 void

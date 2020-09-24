@@ -6,7 +6,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsLineEdit;
-class QToolButton;
+class CQChartsRegionButton;
 
 /*!
  * \brief geometry point edit
@@ -45,8 +45,7 @@ class CQChartsGeomPointEdit : public QFrame {
  private slots:
   void editingFinishedI();
 
-  void regionSlot(bool b);
-  void regionReleaseSlot(const CQChartsGeom::Point &p);
+  void regionSlot(const CQChartsGeom::Point &p);
 
  signals:
   void valueChanged();
@@ -60,12 +59,12 @@ class CQChartsGeomPointEdit : public QFrame {
   bool widgetToPoint();
 
  private:
-  Point             point_          { 0, 0 };
-  View*             view_           { nullptr };
-  Plot*             plot_           { nullptr };
-  CQChartsLineEdit* edit_           { nullptr };
-  QToolButton*      regionButton_   { nullptr };
-  mutable bool      disableSignals_ { false };
+  Point                 point_          { 0, 0 };
+  View*                 view_           { nullptr };
+  Plot*                 plot_           { nullptr };
+  CQChartsLineEdit*     edit_           { nullptr };
+  CQChartsRegionButton* regionButton_   { nullptr };
+  mutable bool          disableSignals_ { false };
 };
 
 //------

@@ -236,6 +236,7 @@ using BBox = CQChartsGeom::BBox;
 //! format string data
 struct FormatData {
   QString seps;
+  bool    continued { false };
 
   FormatData() { }
 

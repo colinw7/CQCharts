@@ -286,6 +286,7 @@ CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
 CQChartsPositionEdit.cpp \
 CQChartsRectEdit.cpp \
+CQChartsRegionMgr.cpp \
 CQChartsShapeDataEdit.cpp \
 CQChartsSidesEdit.cpp \
 CQChartsStrokeDataEdit.cpp \
@@ -616,6 +617,7 @@ HEADERS += \
 ../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPositionEdit.h \
 ../include/CQChartsRectEdit.h \
+../include/CQChartsRegionMgr.h \
 ../include/CQChartsShapeDataEdit.h \
 ../include/CQChartsSidesEdit.h \
 ../include/CQChartsStrokeDataEdit.h \

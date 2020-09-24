@@ -17,16 +17,18 @@ set plotId [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "This plot
 
 set viewId [get_charts_property -plot $plotId -name viewId]
 
-set textAnnotationId1 [create_charts_text_annotation -plot $plotId -id one -rect {0 -60 200 -50} -text "One"]
+set textAnnotationId1 [create_charts_text_annotation -plot $plotId -id one -rectangle {0 -60 200 -50} -text "One"]
 
-set textAnnotationId2 [create_charts_text_annotation -plot $plotId -id two -rect {0 -50 200 -40} -text "Two" -color red]
+set textAnnotationId2 [create_charts_text_annotation -plot $plotId -id two -rectangle {0 -50 200 -40} -text "Two" -color red]
 
-set textAnnotationId3 [create_charts_text_annotation -plot $plotId -id three -rect {0 -40 200 -30} -text "Three" -color green -alpha 0.5]
+set textAnnotationId3 [create_charts_text_annotation -plot $plotId -id three -rectangle {0 -40 200 -30} -text "Three" -color green -alpha 0.5]
 
-set textAnnotationId4 [create_charts_text_annotation -plot $plotId -id four -rect {0 -30 200 -20} -text "Four"  -color blue  -angle 45]
+set textAnnotationId4 [create_charts_text_annotation -plot $plotId -id four -rectangle {0 -30 200 -20} -text "Four"  -color blue  -angle 45]
 
-set textAnnotationId5 [create_charts_text_annotation -plot $plotId -id long -rect {-200 0 200 40} -text "The rain in spain falls mainly on the plain. She sell sea shells on the sea shore. The quick brown fox jumps over the lazy dog." -stroked 1 -filled 1 -corner_size 12]
+set textAnnotationId5 [create_charts_text_annotation -plot $plotId -id long -rectangle {-200 0 200 40} -text "The rain in spain falls mainly on the plain. She sells sea shells on the sea shore. The quick brown fox jumps over the lazy dog." -stroked 1 -filled 1 -corner_size 12]
 
-set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id long -rect {100 100 400 400 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -stroked 1 -filled 1 -corner_size 12 -html]
+set_charts_property -annotation $textAnnotationId5 -name text.formatted -value 1
+
+set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id long -rectangle {100 100 400 400 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -stroked 1 -filled 1 -corner_size 12 -html]
 
 connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot

@@ -7589,7 +7589,7 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-font"    , CQChartsCmdArg::Type::String , "font");
   argv.addCmdArg("-color"   , CQChartsCmdArg::Type::Color  , "color");
   argv.addCmdArg("-alpha"   , CQChartsCmdArg::Type::Real   , "alpha");
-  argv.addCmdArg("-angle"   , CQChartsCmdArg::Type::Real   , "angle");
+  argv.addCmdArg("-angle"   , CQChartsCmdArg::Type::String , "angle");
   argv.addCmdArg("-contrast", CQChartsCmdArg::Type::SBool  , "contrast");
   argv.addCmdArg("-align"   , CQChartsCmdArg::Type::Align  , "align string");
   argv.addCmdArg("-html"    , CQChartsCmdArg::Type::Boolean, "html text");

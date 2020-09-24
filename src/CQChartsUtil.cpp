@@ -1040,6 +1040,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
     strs.push_back(str);
   };
 
+  FormatData formatData1 = formatData;
+
   //---
 
   QString sstr = str.trimmed();
@@ -1072,8 +1074,10 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
     double dh = (bbox.getHeight() - h);
 
     if (dh < 0 || CMathUtil::isZero(dh)) { // bbox can only fit single line of text (TODO: factor)
-      addStr(sstr);
-      return false;
+      if (! formatData1.continued) {
+        addStr(sstr);
+        return false;
+      }
     }
   }
 
@@ -1082,8 +1086,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   // get potential split points
   std::vector<int> splits;
 
-  if (formatData.isValid())
-    findStringCustomSplits(sstr, splits, formatData);
+  if (formatData1.isValid())
+    findStringCustomSplits(sstr, splits, formatData1);
 
   if (splits.size() < nl + 1)
     findStringSpaceSplits(sstr, splits);
@@ -1169,12 +1173,14 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
     BBox bbox1(bbox.getXMin(), bbox.getYMin(),
                bbox.getXMax(), bbox.getYMin() + splitHeight);
     BBox bbox2(bbox.getXMin(), bbox.getYMin() + splitHeight,
-               bbox.getXMax(), bbox.getYMax() - splitHeight);
+               bbox.getXMax(), bbox.getYMax());
 
     QStringList strs1, strs2;
 
-    formatStringInRect(str1, font, bbox1, strs1, formatData);
-    formatStringInRect(str2, font, bbox2, strs2, formatData);
+    formatData1.continued = true;
+
+    formatStringInRect(str1, font, bbox1, strs1, formatData1);
+    formatStringInRect(str2, font, bbox2, strs2, formatData1);
 
     strs += strs1;
     strs += strs2;
@@ -1187,7 +1193,9 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 
     QStringList strs1;
 
-    formatStringInRect(str1, font, bbox1, strs1, formatData);
+    formatData1.continued = true;
+
+    formatStringInRect(str1, font, bbox1, strs1, formatData1);
 
     strs += strs1;
 
@@ -1199,7 +1207,9 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 
     QStringList strs2;
 
-    formatStringInRect(str2, font, bbox2, strs2, formatData);
+    formatData1.continued = true;
+
+    formatStringInRect(str2, font, bbox2, strs2, formatData1);
 
     addStr(str1);
 

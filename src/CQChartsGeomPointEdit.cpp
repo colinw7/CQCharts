@@ -3,15 +3,12 @@
 #include <CQChartsVariant.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsRegionMgr.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 
-#include <QToolButton>
 #include <QHBoxLayout>
-
-#include <svg/region_light_svg.h>
-#include <svg/region_dark_svg.h>
 
 CQChartsGeomPointEdit::
 CQChartsGeomPointEdit(QWidget *parent, const Point &value) :
@@ -50,12 +47,12 @@ init(const Point &value)
 
   //---
 
-  regionButton_ = CQUtil::makeWidget<QToolButton>("region");
+  regionButton_ = CQUtil::makeWidget<CQChartsRegionButton>("region");
 
-  regionButton_->setCheckable(true);
-  regionButton_->setIcon(CQPixmapCacheInst->getIcon("REGION_LIGHT", "REGION_DARK"));
+  regionButton_->setMode(CQChartsRegionButton::Mode::POINT);
 
-  connect(regionButton_, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+  connect(regionButton_, SIGNAL(pointRegionSet(const CQChartsGeom::Point &)),
+          this, SLOT(regionSlot(const CQChartsGeom::Point &)));
 
   layout->addWidget(regionButton_);
 
@@ -80,17 +77,22 @@ CQChartsGeomPointEdit::
 setView(View *view)
 {
   view_ = view;
+  plot_ = nullptr;
 
-  regionButton_->setVisible(view_ || plot());
+  regionButton_->setView(view_);
+  regionButton_->setVisible(view_);
 }
 
 void
 CQChartsGeomPointEdit::
-setPlot(CQChartsPlot *plot)
+setPlot(Plot *plot)
 {
   plot_ = plot;
+  view_ = nullptr;
 
-  regionButton_->setVisible(view() || plot_);
+  regionButton_->setView(plot_ ? plot_->view() : nullptr);
+  regionButton_->setVisible(plot_);
+
 }
 
 void
@@ -105,21 +107,7 @@ editingFinishedI()
 
 void
 CQChartsGeomPointEdit::
-regionSlot(bool b)
-{
-  if      (plot())
-    CQChartsWidgetUtil::connectDisconnect(b,
-      plot()->view(), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
-      this, SLOT(regionReleaseSlot(const CQChartsGeom::Point &)));
-  else
-    CQChartsWidgetUtil::connectDisconnect(b,
-      const_cast<View *>(view()), SIGNAL(regionPointRelease(const CQChartsGeom::Point &)),
-      this, SLOT(regionReleaseSlot(const CQChartsGeom::BBox &)));
-}
-
-void
-CQChartsGeomPointEdit::
-regionReleaseSlot(const CQChartsGeom::Point &p)
+regionSlot(const CQChartsGeom::Point &p)
 {
   Point pp;
 
