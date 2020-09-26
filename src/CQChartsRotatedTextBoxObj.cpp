@@ -4,14 +4,14 @@
 #include <CQChartsRotatedText.h>
 
 CQChartsRotatedTextBoxObj::
-CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
+CQChartsRotatedTextBoxObj(Plot *plot) :
  CQChartsTextBoxObj(plot)
 {
 }
 
 void
 CQChartsRotatedTextBoxObj::
-draw(CQChartsPaintDevice *device, const Point &center, const QString &text,
+draw(PaintDevice *device, const Point &center, const QString &text,
      double angle, Qt::Alignment align, bool isRotated) const
 {
   device->save();
@@ -88,8 +88,8 @@ draw(CQChartsPaintDevice *device, const Point &center, const QString &text,
 
     double tangle = CMathUtil::Deg2Rad(angle);
 
-    double c = cos(tangle);
-    double s = sin(tangle);
+    double c = std::cos(tangle);
+    double s = std::sin(tangle);
 
     cdx =  c*cd;
     cdy = -s*cd;
@@ -114,7 +114,7 @@ draw(CQChartsPaintDevice *device, const Point &center, const QString &text,
   options.align         = align;
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
-  options.clipLength    = textClipLength();
+  options.clipLength    = lengthPixelWidth(textClipLength());
   options.clipElide     = textClipElide();
 
   CQChartsRotatedText::draw(device, device->pixelToWindow(p1), text,
@@ -178,7 +178,7 @@ bbox(const Point &pcenter, const QString &text, double angle, Qt::Alignment alig
 
 void
 CQChartsRotatedTextBoxObj::
-drawConnectedRadialText(CQChartsPaintDevice *device, const Point &center, double ro, double lr,
+drawConnectedRadialText(PaintDevice *device, const Point &center, double ro, double lr,
                         double ta, const QString &text, const QPen &lpen, bool isRotated)
 {
   BBox tbbox;
@@ -193,13 +193,13 @@ calcConnectedRadialTextBBox(const Point &center, double ro, double lr, double ta
 {
   QPen lpen;
 
-  drawCalcConnectedRadialText((CQChartsPaintDevice *) 0, center, ro, lr, ta,
+  drawCalcConnectedRadialText((PaintDevice *) 0, center, ro, lr, ta,
                               text, lpen, isRotated, tbbox);
 }
 
 void
 CQChartsRotatedTextBoxObj::
-drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center, double ro,
+drawCalcConnectedRadialText(PaintDevice *device, const Point &center, double ro,
                             double lr, double ta, const QString &text,
                             const QPen &lpen, bool isRotated, BBox &tbbox)
 {
@@ -210,8 +210,8 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center, do
 
   double tangle = CMathUtil::Deg2Rad(ta);
 
-  double tc = cos(tangle);
-  double ts = sin(tangle);
+  double tc = std::cos(tangle);
+  double ts = std::sin(tangle);
 
   double tx = center.x + lr*tc;
   double ty = center.y + lr*ts;
@@ -271,7 +271,7 @@ drawCalcConnectedRadialText(CQChartsPaintDevice *device, const Point &center, do
   double angle = 0.0;
 
   if (isRotated)
-    angle = (tc >= 0 ? ta : 180.0 + ta);
+    angle = (tc >= 0.0 ? ta : 180.0 + ta);
 
   auto t1 = (device ? device->pixelToWindow(pt1) : pt1);
 

@@ -10,7 +10,7 @@
 #include <CQPropertyViewItem.h>
 
 CQChartsDataLabel::
-CQChartsDataLabel(CQChartsPlot *plot) :
+CQChartsDataLabel(Plot *plot) :
  CQChartsTextBoxObj(plot)
 {
   setVisible(false);
@@ -86,32 +86,31 @@ addTextProperties(const QString &path, const QString &desc)
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &str) const
+draw(PaintDevice *device, const BBox &bbox, const QString &str) const
 {
   draw(device, bbox, str, position());
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &str,
-     const Position &position) const
+draw(PaintDevice *device, const BBox &bbox, const QString &str, const Position &position) const
 {
   if (! isVisible())
     return;
 
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor tc = interpTextColor(ColorInd());
 
-  plot()->setPenBrush(penBrush, CQChartsPenData(true, tc, textAlpha()), CQChartsBrushData(false));
+  plot()->setPenBrush(penBrush, PenData(true, tc, textAlpha()), BrushData(false));
 
   draw(device, bbox, str, position, penBrush);
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
-     const Position &position, const CQChartsPenBrush &penBrush) const
+draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
+     const Position &position, const PenBrush &penBrush) const
 {
   bbox_ = bbox;
 
@@ -127,23 +126,23 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
 
   //---
 
-  if (CMathUtil::isZero(textAngle().value())) {
+  if (textAngle().isZero()) {
     auto pbbox = device->windowToPixel(bbox);
 
     double xm = 2; // pixels
     double ym = 2; // pixels
 
     // get inner padding
-    double pxlp = lengthPixelWidth (CQChartsBoxObj::padding().left  ());
-    double pxrp = lengthPixelWidth (CQChartsBoxObj::padding().right ());
-    double pytp = lengthPixelHeight(CQChartsBoxObj::padding().top   ());
-    double pybp = lengthPixelHeight(CQChartsBoxObj::padding().bottom());
+    double pxlp = lengthPixelWidth (BoxObj::padding().left  ());
+    double pxrp = lengthPixelWidth (BoxObj::padding().right ());
+    double pytp = lengthPixelHeight(BoxObj::padding().top   ());
+    double pybp = lengthPixelHeight(BoxObj::padding().bottom());
 
     // get outer margin
-    double pxlm = lengthPixelWidth (CQChartsBoxObj::margin().left  ());
-    double pxrm = lengthPixelWidth (CQChartsBoxObj::margin().right ());
-    double pytm = lengthPixelHeight(CQChartsBoxObj::margin().top   ());
-    double pybm = lengthPixelHeight(CQChartsBoxObj::margin().bottom());
+    double pxlm = lengthPixelWidth (BoxObj::margin().left  ());
+    double pxrm = lengthPixelWidth (BoxObj::margin().right ());
+    double pytm = lengthPixelHeight(BoxObj::margin().top   ());
+    double pybm = lengthPixelHeight(BoxObj::margin().bottom());
 
     //---
 
@@ -248,7 +247,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
                 px + tw + pxrm, py + fm.descent() + pytm);
 
-    CQChartsBoxObj::draw(device, plot()->pixelToWindow(tpbbox));
+    BoxObj::draw(device, plot()->pixelToWindow(tpbbox));
 
     // draw text
     if (ystr.length()) {
@@ -273,13 +272,13 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
 
         auto p1 = plot()->pixelToWindow(Point(px, py));
 
-        CQChartsTextOptions options;
+        TextOptions options;
 
-        options.angle         = CQChartsAngle(0);
+        options.angle         = Angle();
         options.align         = Qt::AlignLeft;
         options.contrast      = isTextContrast();
         options.contrastAlpha = textContrastAlpha();
-        options.clipLength    = textClipLength();
+        options.clipLength    = lengthPixelWidth(textClipLength());
         options.clipElide     = textClipElide();
 
         CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options);
@@ -288,10 +287,10 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
   }
   else {
     // get external margin
-    double xlm = lengthParentWidth (CQChartsBoxObj::margin().left  ());
-    double xrm = lengthParentWidth (CQChartsBoxObj::margin().right ());
-    double ytm = lengthParentHeight(CQChartsBoxObj::margin().top   ());
-    double ybm = lengthParentHeight(CQChartsBoxObj::margin().bottom());
+    double xlm = lengthParentWidth (BoxObj::margin().left  ());
+    double xrm = lengthParentWidth (BoxObj::margin().right ());
+    double ytm = lengthParentHeight(BoxObj::margin().top   ());
+    double ybm = lengthParentHeight(BoxObj::margin().bottom());
 
     // TODO: handle horizontal and angle
 
@@ -337,12 +336,14 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
       py = bbox.getYMid();
     }
 
-    BBox                        pbbox;
-    CQChartsRotatedText::Points ppoints;
+    using RotatedTextPoints = CQChartsRotatedText::Points;
 
-    CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
+    BBox              pbbox;
+    RotatedTextPoints ppoints;
 
-    CQChartsTextOptions options;
+    Margin border(xlm, ytm, xrm, ybm);
+
+    TextOptions options;
 
     options.angle = textAngle();
     options.align = align;
@@ -358,7 +359,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     for (std::size_t i = 0; i < ppoints.size(); ++i)
       poly.addPoint(plot()->pixelToWindow(ppoints[i]));
 
-    CQChartsBoxObj::draw(device, poly);
+    BoxObj::draw(device, poly);
 
     device->setPen(penBrush.pen);
 
@@ -366,13 +367,13 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const QString &ystr,
     if (ystr.length()) {
       auto p1 = plot()->pixelToWindow(Point(px, py));
 
-      CQChartsTextOptions options;
+      TextOptions options;
 
       options.angle         = textAngle();
       options.align         = align;
       options.contrast      = isTextContrast();
       options.contrastAlpha = textContrastAlpha();
-      options.clipLength    = textClipLength();
+      options.clipLength    = lengthPixelWidth(textClipLength());
       options.clipElide     = textClipElide();
 
 //    CQChartsRotatedText::draw(device, plot()->pixelToWindow(p1), ystr, options,
@@ -401,7 +402,7 @@ isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const
 
   //---
 
-  if (CMathUtil::isZero(textAngle().value())) {
+  if (textAngle().isZero()) {
     QFont font = plot()->view()->plotFont(plot(), textFont());
 
     QFontMetricsF fm(font);
@@ -467,16 +468,16 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
   double ym = 2;
 
   // get inner padding
-  double xlp = lengthPixelWidth (CQChartsBoxObj::padding().left  ());
-  double xrp = lengthPixelWidth (CQChartsBoxObj::padding().right ());
-  double ytp = lengthPixelHeight(CQChartsBoxObj::padding().top   ());
-  double ybp = lengthPixelHeight(CQChartsBoxObj::padding().bottom());
+  double xlp = lengthPixelWidth (BoxObj::padding().left  ());
+  double xrp = lengthPixelWidth (BoxObj::padding().right ());
+  double ytp = lengthPixelHeight(BoxObj::padding().top   ());
+  double ybp = lengthPixelHeight(BoxObj::padding().bottom());
 
   // get outer margin
-  double xlm = lengthPixelWidth (CQChartsBoxObj::margin().left  ());
-  double xrm = lengthPixelWidth (CQChartsBoxObj::margin().right ());
-  double ytm = lengthPixelHeight(CQChartsBoxObj::margin().top   ());
-  double ybm = lengthPixelHeight(CQChartsBoxObj::margin().bottom());
+  double xlm = lengthPixelWidth (BoxObj::margin().left  ());
+  double xrm = lengthPixelWidth (BoxObj::margin().right ());
+  double ytm = lengthPixelHeight(BoxObj::margin().top   ());
+  double ybm = lengthPixelHeight(BoxObj::margin().bottom());
 
   //---
 
@@ -488,7 +489,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 
   BBox wbbox;
 
-  if (CMathUtil::isZero(textAngle().value())) {
+  if (textAngle().isZero()) {
     QFontMetricsF fm(font);
 
     double tw = fm.width(ystr);
@@ -580,12 +581,14 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
       py = pbbox.getYMid();
     }
 
-    BBox                        pbbox1;
-    CQChartsRotatedText::Points ppoints;
+    using RotatedTextPoints = CQChartsRotatedText::Points;
 
-    CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
+    BBox              pbbox1;
+    RotatedTextPoints ppoints;
 
-    CQChartsTextOptions options;
+    Margin border(xlm, ytm, xrm, ybm);
+
+    TextOptions options;
 
     options.angle = textAngle();
     options.align = align;

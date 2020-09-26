@@ -1073,7 +1073,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 
     double dh = (bbox.getHeight() - h);
 
-    if (dh < 0 || CMathUtil::isZero(dh)) { // bbox can only fit single line of text (TODO: factor)
+    // bbox can only fit single line of text (TODO: factor)
+    if (dh < 0 || CMathUtil::isZero(dh)) {
       if (! formatData1.continued) {
         addStr(sstr);
         return false;

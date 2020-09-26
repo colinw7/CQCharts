@@ -481,9 +481,10 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
     DOUBLE_CIRCLE = (int) CQChartsBoxObj::ShapeType::DOUBLE_CIRCLE
   };
 
-  using Plot = CQChartsGraphPlot;
-  using Node = CQChartsGraphPlotNode;
-  using Edge = CQChartsGraphPlotEdge;
+  using Plot  = CQChartsGraphPlot;
+  using Node  = CQChartsGraphPlotNode;
+  using Edge  = CQChartsGraphPlotEdge;
+  using Angle = CQChartsAngle;
 
  public:
   CQChartsGraphNodeObj(const Plot *plot, const BBox &rect, Node *node, const ColorInd &ind);
@@ -625,6 +626,7 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
   using Edge   = CQChartsGraphPlotEdge;
   using Node   = CQChartsGraphPlotNode;
   using Length = CQChartsLength;
+  using Angle  = CQChartsAngle;
 
  public:
   CQChartsGraphEdgeObj(const Plot *plot, const BBox &rect, Edge *edge);

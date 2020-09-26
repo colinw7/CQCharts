@@ -3239,11 +3239,11 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->textClipLength();
+  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
   auto tw = plot_->pixelToWindow(tp);
@@ -3292,11 +3292,11 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.align         = Qt::AlignLeft | Qt::AlignBottom;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->textClipLength();
+  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
   auto tw = plot_->pixelToWindow(tp);

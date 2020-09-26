@@ -550,11 +550,11 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
 
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = CQChartsAngle();
   options.align         = Qt::AlignLeft;
   options.contrast      = data.isContrast();
   options.contrastAlpha = data.contrastAlpha();
-  options.clipLength    = data.clipLength();
+  options.clipLength    = plot->lengthPixelWidth(data.clipLength());
 
   CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, options);
 }

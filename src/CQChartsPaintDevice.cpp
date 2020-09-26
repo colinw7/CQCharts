@@ -19,8 +19,8 @@ polygonSidesPath(const BBox &bbox, int n, QPainterPath &path)
   double da = 2.0*M_PI/n;
 
   for (int i = 0; i < n; ++i) {
-    double c = cos(a);
-    double s = sin(a);
+    double c = std::cos(a);
+    double s = std::sin(a);
 
     double x = xc + c*r;
     double y = yc + s*r;
@@ -90,8 +90,8 @@ drawRoundedLine(const Point &p1, const Point &p2, double w)
 
   double a = atan2(p2.y - p1.y, p2.x - p1.x);
 
-  double c = cos(a);
-  double s = sin(a);
+  double c = std::cos(a);
+  double s = std::sin(a);
 
   QPainterPath path;
 

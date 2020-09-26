@@ -8,27 +8,27 @@
 #include <CQPropertyViewItem.h>
 
 CQChartsBoxObj::
-CQChartsBoxObj(CQChartsView *view) :
+CQChartsBoxObj(View *view) :
  CQChartsViewPlotObj(view), CQChartsObjBoxData<CQChartsBoxObj>(this)
 {
 }
 
 CQChartsBoxObj::
-CQChartsBoxObj(CQChartsPlot *plot) :
+CQChartsBoxObj(Plot *plot) :
  CQChartsViewPlotObj(plot), CQChartsObjBoxData<CQChartsBoxObj>(this)
 {
 }
 
 void
 CQChartsBoxObj::
-addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   addBoxProperties(model, path, desc);
 }
 
 void
 CQChartsBoxObj::
-addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+addBoxProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
@@ -74,17 +74,17 @@ addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString 
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const BBox &bbox) const
+draw(PaintDevice *device, const BBox &bbox) const
 {
   // set pen and brush
-  CQChartsPenBrush penBrush;
+  PenBrush penBrush;
 
   QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
 
   setPenBrush(penBrush,
-    CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    CQChartsBrushData(true, bgColor, fillAlpha(), fillPattern()));
+    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(true, bgColor, fillAlpha(), fillPattern()));
 
   if (isStateColoring())
     updatePenBrushState(penBrush);
@@ -94,7 +94,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox) const
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsPenBrush &penBrush) const
+draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
 {
   bbox_ = bbox;
 
@@ -102,7 +102,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsPenBrush &penB
 
   if (isFilled()) {
     // set pen and brush
-    CQChartsPenBrush penBrush1 = penBrush;
+    PenBrush penBrush1 = penBrush;
 
     penBrush1.pen = QPen(Qt::NoPen);
 
@@ -116,7 +116,7 @@ draw(CQChartsPaintDevice *device, const BBox &bbox, const CQChartsPenBrush &penB
 
   if (isStroked()) {
     // set pen and brush
-    CQChartsPenBrush penBrush1 = penBrush;
+    PenBrush penBrush1 = penBrush;
 
     penBrush1.brush = QBrush(Qt::NoBrush);
 
@@ -141,16 +141,18 @@ boxDataInvalidate()
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const Polygon &poly) const
+draw(PaintDevice *device, const Polygon &poly) const
 {
+  bbox_ = poly.boundingBox();
+
   if (isFilled()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor bgColor = interpFillColor(ColorInd());
 
     setPenBrush(penBrush,
-      CQChartsPenData(false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash()),
-      CQChartsBrushData(true , bgColor, fillAlpha(), fillPattern()));
+      PenData(false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash()),
+      BrushData(true , bgColor, fillAlpha(), fillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -158,13 +160,13 @@ draw(CQChartsPaintDevice *device, const Polygon &poly) const
   }
 
   if (isStroked()) {
-    CQChartsPenBrush penBrush;
+    PenBrush penBrush;
 
     QColor strokeColor = interpStrokeColor(ColorInd());
 
     setPenBrush(penBrush,
-      CQChartsPenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-      CQChartsBrushData(false, QColor(), CQChartsAlpha(), CQChartsFillPattern()));
+      PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+      BrushData(false, QColor(), CQChartsAlpha(), CQChartsFillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

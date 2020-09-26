@@ -1689,14 +1689,14 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsTextOptions textOptions;
 
-    textOptions.angle         = CQChartsAngle(0.0);
+    textOptions.angle         = Angle();
     textOptions.align         = Qt::AlignHCenter | Qt::AlignVCenter;
     textOptions.contrast      = plot_->dataLabel()->isTextContrast();
     textOptions.contrastAlpha = plot_->dataLabel()->textContrastAlpha();
     textOptions.formatted     = false;
     textOptions.scaled        = plot_->dataLabel()->isTextScaled();
     textOptions.html          = false;
-    textOptions.clipLength    = plot_->dataLabel()->textClipLength();
+    textOptions.clipLength    = plot_->lengthPixelWidth(plot_->dataLabel()->textClipLength());
     textOptions.clipElide     = plot_->dataLabel()->textClipElide();
     textOptions.clipped       = false;
     textOptions.margin        = 0;

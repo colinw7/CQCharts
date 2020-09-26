@@ -28,6 +28,7 @@ class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
 
 class CQPropertyViewItem;
+class CQTcl;
 
 /*!
  * \mainpage Charts Package
@@ -319,6 +320,10 @@ class CQCharts : public QObject {
 
   //---
 
+  CQTcl *cmdTcl() const { return cmdTcl_; }
+
+  //---
+
   const CQChartsExprTcl *currentExpr() const { return currentExpr_; }
   void setCurrentExpr(CQChartsExprTcl *p) { currentExpr_ = p; }
 
@@ -374,6 +379,7 @@ class CQCharts : public QObject {
   CQChartsManageModelsDlg* manageModelsDlg_ { nullptr }; //!< manage models dialog
   CQChartsEditModelDlg*    editModelDlg_    { nullptr }; //!< edit model dialog
   CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
+  CQTcl*                   cmdTcl_          { nullptr }; //!< command line tcl
   CQChartsExprTcl*         currentExpr_     { nullptr }; //!< current expression evaluator
 };
 

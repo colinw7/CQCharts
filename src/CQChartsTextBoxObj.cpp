@@ -10,14 +10,14 @@
 #include <CQPropertyViewItem.h>
 
 CQChartsTextBoxObj::
-CQChartsTextBoxObj(CQChartsView *view) :
+CQChartsTextBoxObj(View *view) :
  CQChartsBoxObj(view), CQChartsObjTextData<CQChartsTextBoxObj>(this)
 {
   init();
 }
 
 CQChartsTextBoxObj::
-CQChartsTextBoxObj(CQChartsPlot *plot) :
+CQChartsTextBoxObj(Plot *plot) :
  CQChartsBoxObj(plot), CQChartsObjTextData<CQChartsTextBoxObj>(this)
 {
   init();
@@ -37,7 +37,7 @@ init()
 
 void
 CQChartsTextBoxObj::
-addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+addProperties(PropertyView *model, const QString &path, const QString &desc)
 {
   addBoxProperties(model, path, desc);
 
@@ -52,7 +52,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &de
 
 void
 CQChartsTextBoxObj::
-addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QString &desc,
+addTextDataProperties(PropertyView *model, const QString &path, const QString &desc,
                       bool addVisible)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -102,7 +102,7 @@ write(std::ostream &os, const QString &varName) const
     return (varName != "" ? varName : "plot");
   };
 
-  CQPropertyViewModel::NameValues nameValues;
+  PropertyView::NameValues nameValues;
 
   plot()->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
 

@@ -191,6 +191,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
  public:
   using PivotPlot = CQChartsPivotPlot;
   using Color     = CQChartsColor;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsPivotCellObj(const PivotPlot *plot, const BBox &rect, const QModelIndices &inds,

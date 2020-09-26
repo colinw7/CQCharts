@@ -522,7 +522,7 @@ draw(PaintDevice *device) const
     textOptions.formatted     = isTextFormatted();
     textOptions.scaled        = isTextScaled();
     textOptions.html          = isTextHtml();
-    textOptions.clipLength    = textClipLength();
+    textOptions.clipLength    = lengthPixelWidth(textClipLength());
     textOptions.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextInBox(device, view()->pixelToWindow(rect1), name, textOptions);
@@ -1893,7 +1893,7 @@ draw(CQChartsPaintDevice *device) const
     textOptions.formatted     = isHeaderTextFormatted();
     textOptions.scaled        = isHeaderTextScaled();
     textOptions.html          = isHeaderTextHtml();
-    textOptions.clipLength    = headerTextClipLength();
+    textOptions.clipLength    = lengthPixelWidth(headerTextClipLength());
     textOptions.clipElide     = headerTextClipElide();
 
     textOptions = plot()->adjustTextOptions(textOptions);
@@ -2448,7 +2448,7 @@ draw(PaintDevice *device, const BBox &rect) const
   textOptions.formatted     = key_->isTextFormatted();
   textOptions.scaled        = key_->isTextScaled();
   textOptions.html          = key_->isTextHtml();
-  textOptions.clipLength    = key_->textClipLength();
+  textOptions.clipLength    = plot->lengthPixelWidth(key_->textClipLength());
   textOptions.clipElide     = key_->textClipElide();
 
   textOptions = plot->adjustTextOptions(textOptions);

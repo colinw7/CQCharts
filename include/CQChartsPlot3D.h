@@ -225,6 +225,7 @@ class CQChartsPlot3DObj : public CQChartsPlotObj {
  public:
   using Point3D   = CQChartsGeom::Point3D;
   using Polygon3D = CQChartsGeom::Polygon3D;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsPlot3DObj(const CQChartsPlot3D *plot);

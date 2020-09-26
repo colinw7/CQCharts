@@ -3,7 +3,6 @@
 
 #include <CQChartsAngle.h>
 #include <CQChartsAlpha.h>
-#include <CQChartsLength.h>
 #include <QString>
 
 /*!
@@ -36,7 +35,7 @@ struct CQChartsTextOptions {
   bool              scaled           { false };            //!< scaled
   double            scale            { -1.0 };             //!< fixed scale
   bool              html             { false };            //!< html
-  CQChartsLength    clipLength;                            //!< clip length
+  double            clipLength       { 0.0 };              //!< clip length (pixels)
   Qt::TextElideMode clipElide        { Qt::ElideRight };   //!< clip elide
   bool              clipped          { true };             //!< clipped
   int               margin           { 0 };                //!< margin (pixels)

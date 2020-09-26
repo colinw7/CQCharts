@@ -25,18 +25,35 @@ addButton(CQChartsRegionButton *button)
 {
   buttonSet_.insert(button);
 
-  if (button)
+  if (button) {
     connect(button, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+    connect(button, SIGNAL(hidden()), this, SLOT(buttonHideSlot()));
+  }
 }
 
 void
 CQChartsRegionMgr::
 removeButton(CQChartsRegionButton *button)
 {
-  if (button)
+  if (button) {
     disconnect(button, SIGNAL(clicked(bool)), this, SLOT(regionSlot(bool)));
+    disconnect(button, SIGNAL(hidden()), this, SLOT(buttonHideSlot()));
+  }
 
   buttonSet_.erase(button);
+}
+
+void
+CQChartsRegionMgr::
+buttonHideSlot()
+{
+  if (! view_) return;
+
+  auto *button = qobject_cast<CQChartsRegionButton *>(sender());
+  assert(button);
+
+  if (button->isChecked())
+    buttonChecked(button, false);
 }
 
 void
@@ -48,6 +65,13 @@ regionSlot(bool b)
   auto *button = qobject_cast<CQChartsRegionButton *>(sender());
   assert(button);
 
+  buttonChecked(button, b);
+}
+
+void
+CQChartsRegionMgr::
+buttonChecked(CQChartsRegionButton *button, bool b)
+{
   if (b) {
     view_->setMode(CQChartsView::Mode::REGION);
 
@@ -128,4 +152,11 @@ pointRegionSetSlot(const CQChartsGeom::Point &p)
   setPoint(p);
 
   emit pointRegionSet(p);
+}
+
+void
+CQChartsRegionButton::
+hideEvent(QHideEvent *)
+{
+   emit hidden();
 }

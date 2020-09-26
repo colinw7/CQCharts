@@ -804,13 +804,13 @@ postDraw(CQChartsPaintDevice *device)
     textOptions.align = 0;
 
     if (! isVertical()) {
-      if      (angle < -90) {
-        angle += 180;
+      if      (angle < -90.0) {
+        angle += 180.0;
 
         textOptions.align |= Qt::AlignRight;
       }
-      else if (angle >  90) {
-        angle -= 180;
+      else if (angle > 90.0) {
+        angle -= 180.0;
 
         textOptions.align |= Qt::AlignRight;
       }
@@ -819,10 +819,10 @@ postDraw(CQChartsPaintDevice *device)
 
       textOptions.align |= Qt::AlignVCenter;
 
-      angle = 0;
+      angle = 0.0;
     }
 
-    textOptions.angle = CQChartsAngle(angle);
+    textOptions.angle = Angle(angle);
   }
 
   //---

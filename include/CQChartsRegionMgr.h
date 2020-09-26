@@ -30,9 +30,13 @@ class CQChartsRegionButton : public QToolButton {
   virtual void setRect (const CQChartsGeom::BBox  &) { }
   virtual void setPoint(const CQChartsGeom::Point &) { }
 
+  void hideEvent(QHideEvent *) override;
+
  signals:
   void rectRegionSet (const CQChartsGeom::BBox  &bbox);
   void pointRegionSet(const CQChartsGeom::Point &p);
+
+  void hidden();
 
  private slots:
   void rectRegionSetSlot (const CQChartsGeom::BBox  &bbox);
@@ -58,9 +62,13 @@ class CQChartsRegionMgr : public QObject {
   void addButton   (CQChartsRegionButton *button);
   void removeButton(CQChartsRegionButton *button);
 
+  void buttonChecked(CQChartsRegionButton *button, bool b);
+
   void activateEdit(QWidget *w);
 
  private slots:
+  void buttonHideSlot();
+
   void regionSlot(bool);
 
  private:

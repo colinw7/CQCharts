@@ -2880,10 +2880,10 @@ drawFg(CQChartsPaintDevice *device) const
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->textClipLength();
+  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
@@ -3129,8 +3129,8 @@ draw(PaintDevice *device)
 
       double a = M_PI/4.0;
 
-      double c = cos(a);
-      double s = sin(a);
+      double c = std::cos(a);
+      double s = std::sin(a);
 
       double xm = srcRect.getXMid();
       double ym = srcRect.getYMid();
@@ -3217,8 +3217,8 @@ draw(PaintDevice *device)
 
         double a = M_PI/4.0;
 
-        double c = cos(a);
-        double s = sin(a);
+        double c = std::cos(a);
+        double s = std::sin(a);
 
         double xm = srcRect.getXMid();
         double ym = srcRect.getYMid();
@@ -3313,10 +3313,10 @@ drawFg(CQChartsPaintDevice *device) const
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->textClipLength();
+  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);

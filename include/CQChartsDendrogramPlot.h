@@ -49,8 +49,9 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsDendrogramPlot;
-  using Node = CQChartsDendrogram::Node;
+  using Plot  = CQChartsDendrogramPlot;
+  using Node  = CQChartsDendrogram::Node;
+  using Angle = CQChartsAngle;
 
  public:
   CQChartsDendrogramNodeObj(const Plot *plot, Node *node, const BBox &rect);

@@ -3700,7 +3700,7 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
 
   double ptw = fm.width(str);
 
-  double clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
+  double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
 
   if (clipLength > 0.0)
     ptw = std::min(ptw, clipLength);
@@ -3720,17 +3720,17 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
 
   double ty = prect.getYMid() + (fm.ascent() - fm.descent())/2;
 
-  auto pt = plot_->pixelToWindow(Point(tx, ty));
+  auto pt = plot()->pixelToWindow(Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
-  options.contrast      = plot_->isTextContrast();
-  options.contrastAlpha = plot_->textContrastAlpha();
+  options.angle         = Angle();
+  options.contrast      = plot()->isTextContrast();
+  options.contrastAlpha = plot()->textContrastAlpha();
   options.align         = Qt::AlignLeft;
-  options.clipLength    = plot_->textClipLength();
-  options.clipElide     = plot_->textClipElide();
+  options.clipLength    = clipLength;
+  options.clipElide     = plot()->textClipElide();
 
   if (plot_->isAdjustText()) {
     auto *drawText =
@@ -4104,11 +4104,11 @@ drawFg(CQChartsPaintDevice *device) const
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.contrast      = plot()->isTextContrast();
   options.contrastAlpha = plot()->textContrastAlpha();
   options.align         = Qt::AlignLeft;
-  options.clipLength    = plot()->textClipLength();
+  options.clipLength    = plot()->lengthPixelWidth(plot()->textClipLength());
   options.clipElide     = plot()->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);

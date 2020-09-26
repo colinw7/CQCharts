@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 
 #include <CQChartsCreatePlotDlg.h>
+#include <CQChartsCmdLine.h>
 #include <CQChartsHelpDlg.h>
 
 #include <CQPixmapCache.h>
@@ -50,6 +51,7 @@
 
 #include <svg/options_svg.h>
 #include <svg/table_svg.h>
+#include <svg/console_svg.h>
 #include <svg/info_svg.h>
 
 #include <QStackedWidget>
@@ -309,6 +311,13 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
+  consoleButton_ = createIconButton("console", "CONSOLE", "Show/Hide Console",
+                                    SLOT(consoleSlot()));
+
+  layout->addWidget(consoleButton_);
+
+  //---
+
   auto *helpButton = createIconButton("help", "INFO", "Help" , SLOT(helpSlot()));
 
   layout->addWidget(helpButton);
@@ -530,6 +539,15 @@ CQChartsViewToolBar::
 rightSlot()
 {
   view()->scrollRight();
+}
+
+void
+CQChartsViewToolBar::
+consoleSlot()
+{
+  auto *charts = view()->charts();
+
+  CQChartsCmdLineDlgMgrInst->showDialog(charts);
 }
 
 void

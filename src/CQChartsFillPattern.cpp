@@ -23,8 +23,8 @@ toString() const
   if (type_ == Type::PALETTE)
     str += ":" + palette_;
 
-  if (angle_ != 0.0)
-    str += QString("@%1").arg(angle_);
+  if (angle() != 0.0)
+    str += QString("@%1").arg(angle());
 
   return str;
 }

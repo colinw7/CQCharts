@@ -183,6 +183,7 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
   using ChordPlot = CQChartsChordPlot;
   using ChordData = CQChartsChordData;
   using ArcObj    = CQChartsChordArcObj;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsChordArcObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,
@@ -266,6 +267,7 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
   using ChordData = CQChartsChordData;
   using EdgeObj   = CQChartsChordEdgeObj;
   using OptReal   = CQChartsOptReal;
+  using Angle     = CQChartsAngle;
 
  public:
   CQChartsChordEdgeObj(const ChordPlot *plot, const BBox &rect, const ChordData &data,

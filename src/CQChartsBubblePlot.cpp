@@ -1191,7 +1191,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   //---
 
   // set font
-  auto clipLength = plot_->textClipLength();
+  auto clipLength = plot_->lengthPixelWidth(plot_->textClipLength());
   auto clipElide  = plot_->textClipElide();
 
   plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
@@ -1205,7 +1205,8 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
     double tw = 0.0;
 
     for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength, clipElide);
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
 
       tw = std::max(tw, fm.width(str1));
 
@@ -1231,7 +1232,8 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   }
   else {
     for (int i = 0; i < strs.size(); ++i) {
-      auto str1 = CQChartsDrawUtil::clipTextToLength(device, strs[i], clipLength, clipElide);
+      auto str1 = CQChartsDrawUtil::clipTextToLength(strs[i], device->font(),
+                                                     clipLength, clipElide);
 
       strs1.push_back(str1);
     }

@@ -156,8 +156,8 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
   if (options.clipped)
     device->save();
 
-  if (CMathUtil::isZero(options.angle.value())) {
-    auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
+  if (options.angle.isZero()) {
+    auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
     if (options.clipped)
       device->setClipRect(rect, Qt::IntersectClip);
@@ -280,7 +280,7 @@ CQChartsGeom::BBox
 calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
                     const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
-  auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
+  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
   //---
 
@@ -308,7 +308,7 @@ calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QStri
 
   //---
 
-  if (CMathUtil::isZero(options.angle.value())) {
+  if (options.angle.isZero()) {
     // calc dx : point is left or hcenter of text (
     // drawContrastText and drawSimpleText wants left aligned
     double dx1 = 0.0, dy1 = 0.0; // pixel
@@ -367,7 +367,7 @@ void
 drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
                 const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
-  auto text1 = clipTextToLength(device, text, options.clipLength, options.clipElide);
+  auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
   //---
 
@@ -400,7 +400,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
 
   //---
 
-  if (CMathUtil::isZero(options.angle.value())) {
+  if (options.angle.isZero()) {
     // calc dx : point is left or hcenter of text (
     // drawContrastText and drawSimpleText wants left aligned
     double dx1 = 0.0, dy1 = 0.0; // pixel
@@ -1049,7 +1049,7 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
 
   painter->save();
 
-  if (! CMathUtil::isZero(options.angle.value())) {
+  if (! options.angle.isZero()) {
     QPointF tc = tbbox.getCenter().qpoint();
 
     painter->translate(tc);

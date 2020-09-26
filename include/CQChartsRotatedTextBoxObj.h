@@ -6,6 +6,8 @@
 /*!
  * \brief Charts Rotated Text Box Object
  * \ingroup Charts
+ *
+ * TODO: allow round to increments (90 degrees, H/V)
  */
 class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
@@ -34,9 +36,6 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   void drawCalcConnectedRadialText(PaintDevice *device, const Point &center,
                                    double ro, double lr, double ta, const QString &text,
                                    const QPen &lpen, bool isRotated, BBox &tbbox);
-
- private:
-//mutable BBox bbox_;
 };
 
 #endif

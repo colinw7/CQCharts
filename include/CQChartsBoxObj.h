@@ -34,6 +34,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
     DOUBLE_CIRCLE
   };
 
+  using PropertyModel = CQPropertyViewModel;
+
  public:
   CQChartsBoxObj(View *view);
   CQChartsBoxObj(Plot *plot);
@@ -59,9 +61,9 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  virtual void addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc);
+  virtual void addProperties(PropertyModel *model, const QString &path, const QString &desc);
 
-  void addBoxProperties(CQPropertyViewModel *model, const QString &path, const QString &desc);
+  void addBoxProperties(PropertyModel *model, const QString &path, const QString &desc);
 
   //---
 

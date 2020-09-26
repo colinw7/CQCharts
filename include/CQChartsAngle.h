@@ -17,7 +17,7 @@ class CQChartsAngle {
   static int metaTypeId;
 
  public:
-  enum Type {
+  enum class Type {
     DEGREES,
     RADIANS
   };
@@ -32,12 +32,21 @@ class CQChartsAngle {
    a_(a) {
   }
 
+  CQChartsAngle(Type type, double value) {
+    a_ = (type == Type::RADIANS ? CMathUtil::Rad2Deg(value) : value);
+  }
+
   double value() const { return a_; }
   void setValue(double a) { a_ = a; }
 
   //---
 
   bool isValid() const { return true; }
+
+  bool isZero() const {
+    //double a = CMathUtil::normalizeAngle(a_, /*isEnd*/false);
+    return CMathUtil::isZero(a_);
+  }
 
   //---
 
@@ -46,17 +55,24 @@ class CQChartsAngle {
 
   //---
 
+  // operator +, +=
   friend CQChartsAngle operator+(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
     return CQChartsAngle(lhs.a_ + rhs.a_);
   }
 
   CQChartsAngle &operator+=(const CQChartsAngle &rhs) { a_ += rhs.a_; return *this; }
 
+  // operator -, -=
   friend CQChartsAngle operator-(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
     return CQChartsAngle(lhs.a_ - rhs.a_);
   }
 
   CQChartsAngle &operator-=(const CQChartsAngle &rhs) { a_ -= rhs.a_; return *this; }
+
+  //---
+
+  // operator -
+  CQChartsAngle operator-() const { return CQChartsAngle(-a_); }
 
   //---
 
@@ -77,7 +93,7 @@ class CQChartsAngle {
   bool fromString(const QString &s);
 
  private:
-  double a_ { 0.0 }; //!< angle
+  double a_ { 0.0 }; //!< angle (degrees)
 };
 
 //---

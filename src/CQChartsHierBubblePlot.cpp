@@ -1544,7 +1544,7 @@ drawText(PaintDevice *device, const BBox &bbox)
 
   textOptions.contrast      = plot_->isTextContrast ();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
-  textOptions.clipLength    = plot_->textClipLength();
+  textOptions.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   textOptions.clipElide     = plot_->textClipElide();
 
   textOptions = plot_->adjustTextOptions(textOptions);

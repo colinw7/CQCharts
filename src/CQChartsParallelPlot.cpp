@@ -951,11 +951,11 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = CQChartsAngle(0);
+    options.angle         = Angle();
     options.align         = Qt::AlignLeft;
     options.contrast      = masterAxis_->isAxesLabelTextContrast();
     options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
-    options.clipLength    = masterAxis_->axesLabelTextClipLength();
+    options.clipLength    = lengthPixelWidth(masterAxis_->axesLabelTextClipLength());
     options.clipElide     = masterAxis_->axesLabelTextClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(tp), label,

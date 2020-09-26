@@ -60,6 +60,8 @@ class CQChartsViewToolBar : public QFrame {
   void leftSlot();
   void rightSlot();
 
+  void consoleSlot();
+
   void helpSlot();
 
  private:
@@ -77,6 +79,7 @@ class CQChartsViewToolBar : public QFrame {
   QRadioButton*   regionRectButton_      { nullptr }; //!< region rect radio
   QToolButton*    leftButton_            { nullptr }; //!< scroll plots left button
   QToolButton*    rightButton_           { nullptr }; //!< scroll plots right button
+  QToolButton*    consoleButton_         { nullptr }; //!< show/hide console button
   QStackedWidget* controlsStack_         { nullptr }; //!< mode controls stack
 };
 

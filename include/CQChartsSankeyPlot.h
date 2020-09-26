@@ -552,9 +552,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor color    READ color    WRITE setColor   )
 
  public:
-  using Plot = CQChartsSankeyPlot;
-  using Node = CQChartsSankeyPlotNode;
-  using Edge = CQChartsSankeyPlotEdge;
+  using Plot  = CQChartsSankeyPlot;
+  using Node  = CQChartsSankeyPlotNode;
+  using Edge  = CQChartsSankeyPlotEdge;
+  using Angle = CQChartsAngle;
 
  public:
   CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,

@@ -136,6 +136,7 @@ CQChartsEditModelDlg.cpp \
 CQChartsModelDataWidget.cpp \
 CQChartsTextDlg.cpp \
 CQChartsHelpDlg.cpp \
+CQChartsCmdLine.cpp \
 \
 CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
@@ -341,6 +342,7 @@ CQIntRangeSlider.cpp \
 CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
+CQCommand.cpp \
 CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
 
@@ -503,6 +505,7 @@ HEADERS += \
 ../include/CQChartsModelDataWidget.h \
 ../include/CQChartsTextDlg.h \
 ../include/CQChartsHelpDlg.h \
+../include/CQChartsCmdLine.h \
 \
 ../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \
@@ -674,6 +677,7 @@ HEADERS += \
 \
 ../include/CUnixFile.h \
 \
+../include/CQCommand.h \
 ../include/CQCheckBox.h \
 ../include/CLeastSquaresFit.h \
 

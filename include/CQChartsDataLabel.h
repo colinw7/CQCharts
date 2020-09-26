@@ -36,8 +36,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   };
 
   using Plot        = CQChartsPlot;
+  using BoxObj      = CQChartsBoxObj;
   using PaintDevice = CQChartsPaintDevice;
   using PenBrush    = CQChartsPenBrush;
+  using Angle       = CQChartsAngle;
+  using Margin      = CQChartsGeom::Margin;
   using BBox        = CQChartsGeom::BBox;
 
  public:

@@ -482,7 +482,7 @@ draw(CQChartsPaintDevice *device)
   textOptions.formatted     = true;
   textOptions.scaled        = false;
   textOptions.html          = isTextHtml();
-  textOptions.clipLength    = textClipLength();
+  textOptions.clipLength    = lengthPixelWidth(textClipLength());
   textOptions.clipElide     = textClipElide();
   textOptions.clipped       = false;
 

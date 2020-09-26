@@ -205,21 +205,21 @@ setLabelRadius(double r)
 
 void
 CQChartsPiePlot::
-setStartAngle(const CQChartsAngle &a)
+setStartAngle(const Angle &a)
 {
   CQChartsUtil::testAndSet(startAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setAngleExtent(const CQChartsAngle &a)
+setAngleExtent(const Angle &a)
 {
   CQChartsUtil::testAndSet(angleExtent_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setGapAngle(const CQChartsAngle &a)
+setGapAngle(const Angle &a)
 {
   CQChartsUtil::testAndSet(gapAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
@@ -997,7 +997,7 @@ adjustObjAngles() const
 
     ga2 = ga1 - dga;
 
-    groupObj->setAngles(CQChartsAngle(ga1), CQChartsAngle(ga2));
+    groupObj->setAngles(Angle(ga1), Angle(ga2));
 
     //---
 
@@ -1045,8 +1045,8 @@ adjustObjAngles() const
         double angle  = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
         double angle2 = angle1 + angle;
 
-        obj->setAngle1(CQChartsAngle(angle1));
-        obj->setAngle2(CQChartsAngle(angle2));
+        obj->setAngle1(Angle(angle1));
+        obj->setAngle2(Angle(angle2));
 
         //---
 
@@ -1470,7 +1470,7 @@ annotationBBox() const
       double angle = 0.0;
 
       if (plot_->isRotatedText())
-        angle = (cos(tangle) >= 0 ? ta : 180.0 + ta);
+        angle = (std::cos(tangle) >= 0.0 ? ta : 180.0 + ta);
 
       // calc text box
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -1501,11 +1501,11 @@ draw(CQChartsPaintDevice *device)
   double ro = outerRadius();
   double rv = valueRadius();
 
-//CQChartsAngle ga = plot_->gapAngle().value()/2.0;
-  CQChartsAngle ga { 0.0 };
+//Angle ga = plot_->gapAngle().value()/2.0;
+  Angle ga { 0.0 };
 
-  CQChartsAngle aa1 = angle1() + ga;
-  CQChartsAngle aa2 = angle2() - ga;
+  Angle aa1 = angle1() + ga;
+  Angle aa2 = angle2() - ga;
 
   //---
 
@@ -1671,7 +1671,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
       double angle = 0.0;
 
       if (plot_->isRotatedText())
-        angle = (cos(tangle) >= 0 ? ta : 180.0 + ta);
+        angle = (std::cos(tangle) >= 0.0 ? ta : 180.0 + ta);
 
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -1924,8 +1924,8 @@ draw(CQChartsPaintDevice *device)
 
   double ga = plot_->gapAngle().value()/2.0;
 
-  CQChartsAngle aa1(startAngle().value() + ga);
-  CQChartsAngle aa2(endAngle  ().value() - ga);
+  Angle aa1(startAngle().value() + ga);
+  Angle aa2(endAngle  ().value() - ga);
 
   //---
 

@@ -13,8 +13,8 @@ drawInBox(CQChartsPaintDevice *device, const BBox &rect, const QString &text,
 {
   double a1 = options.angle.radians();
 
-  double c = cos(-a1);
-  double s = sin(-a1);
+  double c = std::cos(-a1);
+  double s = std::sin(-a1);
 
   //---
 
@@ -123,8 +123,8 @@ draw(CQChartsPaintDevice *device, const Point &p, const QString &text,
 
   double a1 = options.angle.radians();
 
-  double c = cos(-a1);
-  double s = sin(-a1);
+  double c = std::cos(-a1);
+  double s = std::sin(-a1);
 
   //---
 
@@ -300,8 +300,8 @@ calcBBoxData(double px, double py, const QString &text, const QFont &font,
 
   double a1 = options.angle.radians();
 
-  double c = cos(-a1);
-  double s = sin(-a1);
+  double c = std::cos(-a1);
+  double s = std::sin(-a1);
 
   //---
 

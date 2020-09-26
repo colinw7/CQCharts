@@ -171,14 +171,14 @@ setArcAlpha(const Alpha &a)
 
 void
 CQChartsChordPlot::
-setGapAngle(const CQChartsAngle &a)
+setGapAngle(const Angle &a)
 {
   CQChartsUtil::testAndSet(gapAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsChordPlot::
-setStartAngle(const CQChartsAngle &a)
+setStartAngle(const Angle &a)
 {
   CQChartsUtil::testAndSet(startAngle_, a, [&]() { updateRangeAndObjs(); } );
 }
@@ -729,7 +729,7 @@ initTableObjs(PlotObjs &objs) const
 
     double angle2 = angle1 + dangle;
 
-    data.setAngles(CQChartsAngle(angle1), CQChartsAngle(dangle));
+    data.setAngles(Angle(angle1), Angle(dangle));
 
     angle1 = angle2 + gap;
   }
@@ -968,7 +968,7 @@ addNameDataMap(const NameDataMap &nameDataMap, PlotObjs &objs)
 
     double angle2 = angle1 + dangle;
 
-    data.setAngles(CQChartsAngle(angle1), CQChartsAngle(dangle));
+    data.setAngles(Angle(angle1), Angle(dangle));
 
     angle1 = angle2 + gap;
   }
@@ -1153,8 +1153,8 @@ arcData() const
   double a1 = data_.angle().value();
   double a2 = a1 + data_.dangle().value();
 
-  arcData.setAngle1(CQChartsAngle(a1));
-  arcData.setAngle2(CQChartsAngle(a2));
+  arcData.setAngle1(Angle(a1));
+  arcData.setAngle2(Angle(a2));
 
   return arcData;
 }
@@ -1227,8 +1227,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, CQChartsAngle(angle1),
-                                   CQChartsAngle(dangle));
+  CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, Angle(angle1), Angle(dangle));
 
   device->resetColorNames();
 
@@ -1602,7 +1601,7 @@ draw(CQChartsPaintDevice *device)
   path_ = QPainterPath();
 
   CQChartsDrawUtil::arcsConnectorPath(path_, ibbox,
-    CQChartsAngle(a1), CQChartsAngle(da1), CQChartsAngle(a2), CQChartsAngle(da2), isSelf);
+    Angle(a1), Angle(da1), Angle(a2), Angle(da2), isSelf);
 
   device->drawPath(path_);
 

@@ -849,7 +849,7 @@ addPointObjects() const
           textOptions.align         = Qt::AlignHCenter|Qt::AlignBottom;
           textOptions.contrast      = dataLabel()->isTextContrast();
           textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
-          textOptions.clipLength    = dataLabel()->textClipLength();
+          textOptions.clipLength    = lengthPixelWidth(dataLabel()->textClipLength());
           textOptions.clipElide     = dataLabel()->textClipElide();
 
           auto *textObj = createTextObj(p, p, pointName);

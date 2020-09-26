@@ -47,7 +47,11 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const BBox &rect,
+  using CorrelationPlot = CQChartsCorrelationPlot;
+  using Angle           = CQChartsAngle;
+
+ public:
+  CQChartsCorrelationCellObj(const CorrelationPlot *plot, const BBox &rect,
                              int row, int col, double value, const QModelIndex &ind);
 
   //---
@@ -76,13 +80,13 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   void drawCellLabel(PaintDevice *device, const QString &str,
                      const BBox &rect, double fontInc=0.0);
 
-  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
   void valueColorInd(ColorInd &ic) const;
 
   //---
 
-  void writeScriptData(CQChartsScriptPaintDevice *device) const override;
+  void writeScriptData(ScriptPaintDevice *device) const override;
 
   //---
 
@@ -90,10 +94,10 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
   double yColorValue(bool relative) const override;
 
  private:
-  const CQChartsCorrelationPlot* plot_  { nullptr }; //!< parent plot
-  int                            row_   { -1 };      //!< row
-  int                            col_   { -1 };      //!< column
-  double                         value_ { 0.0 };     //!< value
+  const CorrelationPlot* plot_  { nullptr }; //!< parent plot
+  int                    row_   { -1 };      //!< row
+  int                    col_   { -1 };      //!< column
+  double                 value_ { 0.0 };     //!< value
 };
 
 //---

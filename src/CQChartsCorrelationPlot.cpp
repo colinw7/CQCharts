@@ -112,8 +112,8 @@ init()
 
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
-  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop    ); setXLabelTextAngle(CQChartsAngle(90));
-  setYLabelTextAlign(Qt::AlignRight   | Qt::AlignVCenter); setYLabelTextAngle(CQChartsAngle( 0));
+  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop    ); setXLabelTextAngle(Angle(90.0));
+  setYLabelTextAlign(Qt::AlignRight   | Qt::AlignVCenter); setYLabelTextAngle(Angle( 0.0));
 
   setXLabelTextFont(CQChartsFont().decFontSize(4));
   setYLabelTextFont(CQChartsFont().decFontSize(4));
@@ -585,7 +585,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.formatted     = isXLabelTextFormatted();
   textOptions.scaled        = isXLabelTextScaled();
   textOptions.html          = isXLabelTextHtml();
-  textOptions.clipLength    = xLabelTextClipLength();
+  textOptions.clipLength    = lengthPixelWidth(xLabelTextClipLength());
   textOptions.clipElide     = xLabelTextClipElide();
   textOptions.clipped       = false;
 
@@ -684,7 +684,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.formatted     = isYLabelTextFormatted();
   textOptions.scaled        = isYLabelTextScaled();
   textOptions.html          = isYLabelTextHtml();
-  textOptions.clipLength    = yLabelTextClipLength();
+  textOptions.clipLength    = lengthPixelWidth(yLabelTextClipLength());
   textOptions.clipElide     = yLabelTextClipElide();
   textOptions.clipped       = false;
 
@@ -950,7 +950,7 @@ calcTextSize() const
   options.contrast   = plot_->isCellLabelTextContrast();
   options.formatted  = plot_->isCellLabelTextFormatted();
   options.html       = plot_->isCellLabelTextHtml();
-  options.clipLength = plot_->cellLabelTextClipLength();
+  options.clipLength = plot_->lengthPixelWidth(plot_->cellLabelTextClipLength());
   options.clipElide  = plot_->cellLabelTextClipElide();
 
   return CQChartsDrawUtil::calcTextSize(valueStr, font, options);
@@ -1057,10 +1057,10 @@ draw(CQChartsPaintDevice *device)
       (isLower ? plot_->lowerDiagonalType() : plot_->upperDiagonalType());
 
     if      (type == CQChartsCorrelationPlot::OffDiagonalType::PIE) {
-      CQChartsAngle a1, a2;
+      Angle a1, a2;
 
-      a1 = CQChartsAngle(90);
-      a2 = a1 - CQChartsAngle(360.0*value());
+      a1 = Angle(90);
+      a2 = a1 - Angle(360.0*value());
 
       auto rc = rect().getCenter();
 
@@ -1130,7 +1130,7 @@ draw(CQChartsPaintDevice *device)
       BBox ebbox(Point(rect().getXMid() - dx1, rect().getYMid() - dy1),
                  Point(rect().getXMid() + dx1, rect().getYMid() + dy1));
 
-      device->drawEllipse(ebbox, CQChartsAngle(45));
+      device->drawEllipse(ebbox, Angle(45));
 
       //---
 
@@ -1256,7 +1256,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
   textOptions.formatted     = plot_->isCellLabelTextFormatted();
   textOptions.scaled        = plot_->isCellLabelTextScaled();
   textOptions.html          = plot_->isCellLabelTextHtml();
-  textOptions.clipLength    = plot_->cellLabelTextClipLength();
+  textOptions.clipLength    = plot_->lengthPixelWidth(plot_->cellLabelTextClipLength());
   textOptions.clipElide     = plot_->cellLabelTextClipElide();
   textOptions.scale         = plot_->labelScale(); // TODO: optional
 

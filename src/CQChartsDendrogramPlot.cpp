@@ -690,11 +690,11 @@ draw(CQChartsPaintDevice *device)
   // only support contrast
   CQChartsTextOptions options;
 
-  options.angle         = CQChartsAngle(0);
+  options.angle         = Angle();
   options.align         = Qt::AlignLeft;
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->textClipLength();
+  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
   CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(p), name, options);

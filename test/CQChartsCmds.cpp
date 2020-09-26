@@ -75,7 +75,7 @@ CQChartsCmds::
 CQChartsCmds(CQCharts *charts) :
  charts_(charts)
 {
-  cmdBase_ = new CQChartsCmdBase;
+  cmdBase_ = new CQChartsCmdBase(charts_);
 
   addCommands();
 }

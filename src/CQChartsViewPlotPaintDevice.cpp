@@ -281,7 +281,7 @@ drawRect(const BBox &bbox)
 
 void
 CQChartsViewPlotPaintDevice::
-drawEllipse(const BBox &bbox, const CQChartsAngle &a)
+drawEllipse(const BBox &bbox, const Angle &a)
 {
   auto pbbox = windowToPixel(bbox);
 
@@ -319,7 +319,7 @@ drawEllipse(const BBox &bbox, const CQChartsAngle &a)
 #if 0
 void
 CQChartsViewPlotPaintDevice::
-drawArc(const BBox &rect, const CQChartsAngle &a1, const CQChartsAngle &a2)
+drawArc(const BBox &rect, const Angle &a1, const Angle &a2)
 {
   auto pbbox = windowToPixel(bbox);
 

@@ -1270,10 +1270,10 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
     // check if text visible (see treemap)
     if (! isCircle) {
-      double c1 = cos(CMathUtil::Deg2Rad(a1));
-      double s1 = sin(CMathUtil::Deg2Rad(a1));
-      double c2 = cos(CMathUtil::Deg2Rad(a2));
-      double s2 = sin(CMathUtil::Deg2Rad(a2));
+      double c1 = std::cos(CMathUtil::Deg2Rad(a1));
+      double s1 = std::sin(CMathUtil::Deg2Rad(a1));
+      double c2 = std::cos(CMathUtil::Deg2Rad(a2));
+      double s2 = std::sin(CMathUtil::Deg2Rad(a2));
 
       Point pw1(r2*c1, r2*s1);
       Point pw2(r2*c2, r2*s2);
@@ -1308,8 +1308,8 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
     }
     else {
       ta = a1 + da/2.0;
-      c  = cos(CMathUtil::Deg2Rad(ta));
-      s  = sin(CMathUtil::Deg2Rad(ta));
+      c  = std::cos(CMathUtil::Deg2Rad(ta));
+      s  = std::sin(CMathUtil::Deg2Rad(ta));
     }
 
     double tx, ty;
@@ -1342,7 +1342,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
     options.align         = align;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = textClipLength();
+    options.clipLength    = lengthPixelWidth(textClipLength());
     options.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);

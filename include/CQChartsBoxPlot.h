@@ -129,7 +129,8 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   using VTexts = std::vector<VText>;
 
  public:
-  using Plot = CQChartsBoxPlot;
+  using Plot  = CQChartsBoxPlot;
+  using Angle = CQChartsAngle;
 
  public:
   CQChartsBoxPlotObj(const Plot *plot, const BBox &rect, const ColorInd &is=ColorInd(),

@@ -20,8 +20,9 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-   using View = CQChartsView;
-   using Plot = CQChartsPlot;
+   using View         = CQChartsView;
+   using Plot         = CQChartsPlot;
+   using PropertyView = CQPropertyViewModel;
 
  public:
   CQChartsTextBoxObj(View *view);
@@ -47,10 +48,10 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
+  void addProperties(PropertyView *model, const QString &path,
                      const QString &desc) override;
 
-  void addTextDataProperties(CQPropertyViewModel *model, const QString &path,
+  void addTextDataProperties(PropertyView *model, const QString &path,
                              const QString &desc, bool addVisible=false);
 
   //---

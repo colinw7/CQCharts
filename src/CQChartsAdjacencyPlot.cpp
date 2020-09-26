@@ -1177,11 +1177,11 @@ execDrawBackground(PaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = Angle(0);
+    options.angle         = Angle();
     options.align         = Qt::AlignLeft;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = textClipLength();
+    options.clipLength    = lengthPixelWidth(textClipLength());
     options.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(pt), str,
@@ -1204,11 +1204,11 @@ execDrawBackground(PaintDevice *device) const
 
     CQChartsTextOptions options;
 
-    options.angle         = Angle(90);
+    options.angle         = Angle(90.0);
     options.align         = Qt::AlignHCenter | Qt::AlignBottom;
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
-    options.clipLength    = textClipLength();
+    options.clipLength    = lengthPixelWidth(textClipLength());
     options.clipElide     = textClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, pixelToWindow(p1), node->name(),

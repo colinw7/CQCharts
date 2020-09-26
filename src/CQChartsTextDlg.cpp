@@ -72,7 +72,7 @@ paintEvent(QPaintEvent *)
   options.formatted        = isFormatted();
   options.scaled           = isScaled();
   options.html             = isHtml();
-  options.clipLength       = clipLength();
+  options.clipLength       = device.lengthPixelWidth(clipLength());
   options.clipElide        = clipElide();
   options.minScaleFontSize = 4.0;
   options.maxScaleFontSize = 400.0;

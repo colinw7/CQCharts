@@ -189,8 +189,8 @@ class CQChartsPlotSymbolList {
                     double w) const {
     auto addWidthToPoint= [&](const CQChartsPlotSymbol::Point &p, double a, double w,
                               CQChartsPlotSymbol::Point &p1, CQChartsPlotSymbol::Point &p2) {
-      double dx = w*sin(a)/2.0;
-      double dy = w*cos(a)/2.0;
+      double dx = w*std::sin(a)/2.0;
+      double dy = w*std::cos(a)/2.0;
 
       p1.x = p.x + dx;
       p1.y = p.y - dy;

@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + console widget
+ + polygon data label (text) does not set bbox. Check if inside ?
+   + rotated text box draw (correct ?)
  + region tool mgr activate/deactivate view region tool
  + annotation select in rect (overlay)
  + more types in create/edit annotation dialog

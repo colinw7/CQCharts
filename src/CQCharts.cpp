@@ -127,6 +127,7 @@
 #include <CQColorsTheme.h>
 
 #include <CQWidgetFactory.h>
+#include <CQTclUtil.h>
 
 #include <iostream>
 
@@ -362,6 +363,10 @@ CQCharts()
 
   addProc(ProcType::SCRIPT, "plotObjClick", "id", "charts.log('Click ' + id);");
   addProc(ProcType::SCRIPT, "annotationClick", "id", "charts.log('Click ' + id);");
+
+  //---
+
+  cmdTcl_ = new CQTcl();
 }
 
 CQCharts::

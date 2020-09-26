@@ -168,14 +168,14 @@ setValueColumns(const CQChartsColumns &c)
 
 void
 CQChartsRadarPlot::
-setAngleStart(const CQChartsAngle &a)
+setAngleStart(const Angle &a)
 {
   CQChartsUtil::testAndSet(angleStart_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
-setAngleExtent(const CQChartsAngle &a)
+setAngleExtent(const Angle &a)
 {
   CQChartsUtil::testAndSet(angleExtent_, a, [&]() { updateRangeAndObjs(); } );
 }
@@ -346,8 +346,8 @@ calcAnnotationBBox() const
     for (int iv = 0; iv < nv; ++iv) {
       double ra = CMathUtil::Deg2Rad(a);
 
-      double x = r*cos(ra);
-      double y = r*sin(ra);
+      double x = r*std::cos(ra);
+      double y = r*std::sin(ra);
 
       //---
 
@@ -526,8 +526,8 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 
     double ra = CMathUtil::Deg2Rad(a);
 
-    double x = value*cos(ra)/scale;
-    double y = value*sin(ra)/scale;
+    double x = value*std::cos(ra)/scale;
+    double y = value*std::sin(ra)/scale;
 
     poly.addPoint(Point(x, y));
 
@@ -718,8 +718,8 @@ execDrawBackground(CQChartsPaintDevice *device) const
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
 
-        double x = valueRadius_*cos(ra);
-        double y = valueRadius_*sin(ra);
+        double x = valueRadius_*std::cos(ra);
+        double y = valueRadius_*std::sin(ra);
 
         auto p2 = windowToPixel(Point(x, y));
 
@@ -760,8 +760,8 @@ execDrawBackground(CQChartsPaintDevice *device) const
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
 
-        double x = r*cos(ra);
-        double y = r*sin(ra);
+        double x = r*std::cos(ra);
+        double y = r*std::sin(ra);
 
         Point p1(x, y);
 
@@ -786,11 +786,11 @@ execDrawBackground(CQChartsPaintDevice *device) const
             // only contrast support (custom align, zero angle)
             CQChartsTextOptions options;
 
-            options.angle         = CQChartsAngle(0);
+            options.angle         = Angle();
             options.align         = align;
             options.contrast      = isTextContrast();
             options.contrastAlpha = textContrastAlpha();
-            options.clipLength    = textClipLength();
+            options.clipLength    = lengthPixelWidth(textClipLength());
             options.clipElide     = textClipElide();
 
             CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);

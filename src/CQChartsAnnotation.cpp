@@ -2357,7 +2357,7 @@ draw(PaintDevice *device)
   textOptions.formatted     = isTextFormatted();
   textOptions.scaled        = isTextScaled();
   textOptions.html          = isTextHtml();
-  textOptions.clipLength    = textClipLength();
+  textOptions.clipLength    = lengthPixelWidth(textClipLength());
   textOptions.clipElide     = textClipElide();
   textOptions.clipped       = false;
 
@@ -3341,34 +3341,35 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 
   // add angles if custom
   if      (fcustom && tcustom) {
-    if      (arrow()->frontAngle().value() != 0.0 && arrow()->tailAngle().value() != 0.0)
+    if      (! arrow()->frontAngle().isZero() && ! arrow()->tailAngle().isZero())
       os << " -angle {" << arrow()->frontAngle().value() << " " <<
                            arrow()->tailAngle ().value() << "}";
-    else if (arrow()->frontAngle().value() != 0.0)
+    else if (! arrow()->frontAngle().isZero())
       os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
-    else if (arrow()->tailAngle().value() != 0.0)
+    else if (! arrow()->tailAngle().isZero())
       os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
 
-    if      (arrow()->frontBackAngle().value() >= 0.0 && arrow()->tailBackAngle().value() >= 0.0)
+    if      (arrow()->frontBackAngle().value() >= 0.0 &&
+             arrow()->tailBackAngle ().value() >= 0.0) // delta angle
       os << " -angle {" << arrow()->frontBackAngle().value() << " " <<
                            arrow()->tailBackAngle ().value() << "}";
-    else if (arrow()->frontBackAngle().value() >= 0.0)
+    else if (arrow()->frontBackAngle().value() >= 0.0) // delta angle
       os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
-    else if (arrow()->tailBackAngle ().value() >= 0.0)
+    else if (arrow()->tailBackAngle ().value() >= 0.0) // delta angle
       os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
   }
   else if (fcustom) {
-    if (arrow()->frontAngle().value() != 0.0)
+    if (! arrow()->frontAngle().isZero())
       os << " -angle {" << arrow()->frontAngle().value() << " 0.0 }";
 
-    if (arrow()->frontBackAngle().value() >= 0.0)
+    if (arrow()->frontBackAngle().value() >= 0.0) // delta angle
       os << " -angle {" << arrow()->frontBackAngle().value() << " -1}";
   }
   else if (tcustom) {
-    if (arrow()->tailAngle().value() != 0.0)
+    if (! arrow()->tailAngle().isZero())
       os << " -angle {0.0 " << arrow()->tailAngle().value() << "}";
 
-    if (arrow()->tailBackAngle().value() >= 0.0)
+    if (arrow()->tailBackAngle().value() >= 0.0) // delta angle
       os << " -angle {-1 " << arrow()->tailBackAngle().value() << "}";
   }
 

@@ -19,7 +19,7 @@ class CQChartsCmdBase {
   using Vars = std::vector<QVariant>;
 
  public:
-  CQChartsCmdBase();
+  CQChartsCmdBase(CQCharts *charts);
  ~CQChartsCmdBase();
 
   void addCommands();
@@ -85,6 +85,7 @@ class CQChartsCmdBase {
   using CommandNames = std::vector<QString>;
   using CommandProcs = std::map<QString, CQChartsCmdProc *>;
 
+  CQCharts*    charts_       { nullptr };
   bool         continueFlag_ { false };
   CQTcl*       qtcl_         { nullptr };
   CommandNames commandNames_;

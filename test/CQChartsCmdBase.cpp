@@ -56,15 +56,15 @@ class CQChartsTclCmd {
 //----
 
 CQChartsCmdBase::
-CQChartsCmdBase()
+CQChartsCmdBase(CQCharts *charts) :
+ charts_(charts)
 {
-  qtcl_ = new CQTcl();
+  qtcl_ = charts_->cmdTcl();
 }
 
 CQChartsCmdBase::
 ~CQChartsCmdBase()
 {
-  delete qtcl_;
 }
 
 void
