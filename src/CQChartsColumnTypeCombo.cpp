@@ -61,7 +61,7 @@ columnType() const
 {
   auto *columnTypeMgr = charts_->columnTypeMgr();
 
-  QString typeStr = this->currentText();
+  auto typeStr = this->currentText();
 
   auto columnType = CQBaseModel::nameType(typeStr);
 

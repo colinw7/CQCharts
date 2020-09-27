@@ -194,7 +194,7 @@ update()
       columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
                     monoStr, uniqueStr, nullStr);
 
-      QString cstr = QString("%1").arg(c);
+      auto cstr = QString("%1").arg(c);
 
       int ic = 0;
 

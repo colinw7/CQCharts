@@ -138,7 +138,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   //---
 
-  QString str = (color().isValid() ? color().colorStr() : "<none>");
+  auto str = (color().isValid() ? color().colorStr() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -188,7 +188,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
     auto *obj = qobject_cast<CQChartsObj *>(item->object());
 
     if (obj) {
-      QRect rect = option.rect;
+      auto rect = option.rect;
 
       rect.setWidth(option.rect.height());
 
@@ -208,7 +208,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  QString str = color.colorStr();
+  auto str = color.colorStr();
 
   QFontMetrics fm(option.font);
 
@@ -850,8 +850,8 @@ QSize
 CQChartsColorEdit::
 sizeHint() const
 {
-  QSize s1 = CQChartsEditBase::sizeHint();
-  QSize s2 = minimumSizeHint();
+  auto s1 = CQChartsEditBase::sizeHint();
+  auto s2 = minimumSizeHint();
 
   return QSize(s1.width(), s2.height());
 }

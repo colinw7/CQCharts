@@ -157,7 +157,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
 
     if (str.left(1) != "(") {
       // support column numeric range <n>-<m>
-      QStringList strs1 = str.split("-", QString::SkipEmptyParts);
+      auto strs1 = str.split("-", QString::SkipEmptyParts);
 
       if (strs1.size() == 2) {
         bool ok1, ok2;
@@ -220,7 +220,7 @@ updateMenu()
 
   //---
 
-  QSize s = dataEdit_->sizeHint();
+  auto s = dataEdit_->sizeHint();
 
   int w = std::max(this->width(), s.width());
   int h = s.height();
@@ -240,7 +240,7 @@ void
 CQChartsColumnsLineEdit::
 drawPreview(QPainter *painter, const QRect &)
 {
-  QString str = (columns().isValid() ? columns().toString() : "<none>");
+  auto str = (columns().isValid() ? columns().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -281,9 +281,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
+  auto str = valueString(item, value, ok);
 
-  QFont font = option.font;
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);
@@ -309,7 +309,7 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  QString str = valueString(nullptr, value, ok);
+  auto str = valueString(nullptr, value, ok);
 
   return str;
 }
@@ -331,7 +331,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
       QString str1;
 
       for (const auto &column : columns.columns()) {
-        QString headerName = plot->columnHeaderName(column);
+        auto headerName = plot->columnHeaderName(column);
 
         if (headerName.length()) {
           if (str1.length())
@@ -672,7 +672,7 @@ QSize
 CQChartsColumnsEdit::
 sizeHint() const
 {
-  QSize s1 = controlFrame_->sizeHint();
+  auto s1 = controlFrame_->sizeHint();
 
   int w1 = s1.width();
   int h1 = s1.height() + 2;
@@ -681,7 +681,7 @@ sizeHint() const
     int ne = columnCombos_.size();
 
     for (int i = 0; i < ne; ++i) {
-      QSize s2 = columnCombos_[i]->sizeHint();
+      auto s2 = columnCombos_[i]->sizeHint();
 
       w1  = std::max(w1, s2.width());
       h1 += s2.height() + 2;
@@ -691,7 +691,7 @@ sizeHint() const
     int ne = columnEdits_.size();
 
     for (int i = 0; i < ne; ++i) {
-      QSize s2 = columnEdits_[i]->sizeHint();
+      auto s2 = columnEdits_[i]->sizeHint();
 
       w1  = std::max(w1, s2.width());
       h1 += s2.height() + 2;

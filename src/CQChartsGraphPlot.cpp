@@ -391,7 +391,7 @@ CQChartsGeom::Range
 CQChartsGraphPlot::
 objTreeRange() const
 {
-  BBox bbox = nodesBBox();
+  auto bbox = nodesBBox();
 
   return Range(bbox.getXMin(), bbox.getYMax(), bbox.getXMax(), bbox.getYMin());
 }
@@ -652,12 +652,12 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
 
-  QString path1 = pathData.pathStrs[0];
+  auto path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathData.pathStrs[i];
+    auto path2 = path1 + separator + pathData.pathStrs[i];
 
     auto *srcNode  = findNode(path1);
     auto *destNode = findNode(path2);
@@ -769,7 +769,7 @@ addFromToValue(const FromToData &fromToData) const
   // Just node
   if (fromToData.toStr == "") {
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "shape") {
         if      (value == "diamond")
@@ -804,7 +804,7 @@ addFromToValue(const FromToData &fromToData) const
         srcNode->setColor(QColor(value));
       }
       else if (nv.first == "fillcolor") {
-        QStringList colors = value.split(":");
+        auto colors = value.split(":");
 
         if (colors.length() > 0)
           srcNode->setColor(QColor(colors[0]));
@@ -815,7 +815,7 @@ addFromToValue(const FromToData &fromToData) const
 
     //---
 
-    QStringList groupNames = fromToData.groupData.value.toString().split("/");
+    auto groupNames = fromToData.groupData.value.toString().split("/");
 
     int graphId = -1, parentGraphId = -1;
 
@@ -849,7 +849,7 @@ addFromToValue(const FromToData &fromToData) const
     destNode->addSrcEdge (edge, /*primary*/false);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "shape") {
         if (value == "arrow")
@@ -927,7 +927,7 @@ void
 CQChartsGraphPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
-  QString srcStr = QString("%1").arg(id);
+  auto srcStr = QString("%1").arg(id);
 
   auto *srcNode = findNode(srcStr);
 
@@ -944,7 +944,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
     srcNode->setGroup(-1);
 
   for (const auto &connection : connectionsData.connections) {
-    QString destStr = QString("%1").arg(connection.node);
+    auto destStr = QString("%1").arg(connection.node);
 
     auto *destNode = findNode(destStr);
 
@@ -981,7 +981,7 @@ initTableObjs() const
     if (tableConnectionData.values().empty())
       continue;
 
-    QString srcStr = QString("%1").arg(tableConnectionData.from());
+    auto srcStr = QString("%1").arg(tableConnectionData.from());
 
     auto *srcNode = findNode(srcStr);
 
@@ -989,7 +989,7 @@ initTableObjs() const
     srcNode->setGroup(tableConnectionData.group().ig);
 
     for (const auto &value : tableConnectionData.values()) {
-      QString destStr = QString("%1").arg(value.to);
+      auto destStr = QString("%1").arg(value.to);
 
       auto *destNode = findNode(destStr);
 
@@ -1128,7 +1128,7 @@ placeGraph(Graph *graph) const
   //---
 
   // get placeable nodes (nodes and sub graphs)
-  Nodes nodes = graph->placeNodes();
+  auto nodes = graph->placeNodes();
 
   placeGraphNodes(graph, nodes);
 }
@@ -1254,7 +1254,7 @@ autoCreateGraphs() const
     workSet.push_back(node);
 
     while (! workSet.empty()) {
-      Node *node = workSet.front();
+      auto *node = workSet.front();
 
       workSet.pop_front();
 
@@ -1351,7 +1351,7 @@ getGraph(int graphId, int parentGraphId) const
   if (pg == graphs_.end()) {
     auto *th = const_cast<CQChartsGraphPlot *>(this);
 
-    QString name = QString("%1").arg(graphId);
+    auto name = QString("%1").arg(graphId);
 
     auto *graph = new Graph(this, name);
 
@@ -1413,8 +1413,9 @@ double
 CQChartsGraphPlot::
 calcNodeXMargin() const
 {
-  double nodeXMargin      = std::min(std::max(this->nodeXMargin(), 0.0), 1.0);
-  double pixelNodeXMargin = windowToPixelWidth(nodeXMargin);
+  double nodeXMargin = std::min(std::max(this->nodeXMargin(), 0.0), 1.0);
+
+  auto pixelNodeXMargin = windowToPixelWidth(nodeXMargin);
 
   if (pixelNodeXMargin < minNodeMargin())
     nodeXMargin = pixelToWindowWidth(minNodeMargin());
@@ -1426,8 +1427,9 @@ double
 CQChartsGraphPlot::
 calcNodeYMargin() const
 {
-  double nodeYMargin      = std::min(std::max(this->nodeYMargin(), 0.0), 1.0);
-  double pixelNodeYMargin = windowToPixelHeight(nodeYMargin);
+  double nodeYMargin = std::min(std::max(this->nodeYMargin(), 0.0), 1.0);
+
+  auto pixelNodeYMargin = windowToPixelHeight(nodeYMargin);
 
   if (pixelNodeYMargin < minNodeMargin())
     nodeYMargin = pixelToWindowHeight(minNodeMargin());
@@ -1707,7 +1709,7 @@ adjustNodes() const
   for (auto &pg : graphs_) {
     auto *graph = pg.second;
 
-    Nodes nodes = graph->placeNodes();
+    auto nodes = graph->placeNodes();
 
     if (adjustGraphNodes(graph, nodes))
       changed = true;
@@ -2188,7 +2190,7 @@ printStats()
   }
 
   for (auto &pn : nodeData) {
-    Node       *node     = pn.first;
+    auto       *node     = pn.first;
     const auto &nameData = pn.second;
 
     for (auto &pd : nameData) {
@@ -2699,12 +2701,12 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString name = this->name();
+  auto name = this->name();
 
   if (name == "")
     name = this->id();
 
-  QString hierName = this->hierName();
+  auto hierName = this->hierName();
 
   if (hierName != name)
     tableTip.addTableRow("Hier Name", hierName);
@@ -2737,7 +2739,7 @@ void
 CQChartsGraphNodeObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
+  auto path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -2951,7 +2953,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   double textMargin = 4; // pixels
 
-  QString str = node()->label();
+  auto str = node()->label();
 
   if (! str.length())
     str = node()->name();
@@ -3075,8 +3077,8 @@ calcTipId() const
   auto *srcObj  = edge()->srcNode ()->obj();
   auto *destObj = edge()->destNode()->obj();
 
-  QString srcName  = srcObj ->hierName();
-  QString destName = destObj->hierName();
+  auto srcName  = srcObj ->hierName();
+  auto destName = destObj->hierName();
 
   if (srcName  == "") srcName  = srcObj ->id();
   if (destName == "") destName = destObj->id();
@@ -3102,7 +3104,7 @@ void
 CQChartsGraphEdgeObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
+  auto path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -3406,7 +3408,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   double textMargin = 4; // pixels
 
-  QString str = edge()->label();
+  auto str = edge()->label();
 
   if (! str.length())
     return;
@@ -3529,7 +3531,7 @@ void
 CQChartsGraphGraphObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
+  auto path1 = (path.length() ? path + "/" : ""); path1 += propertyId();
 
   model->setObjectRoot(path1, this);
 

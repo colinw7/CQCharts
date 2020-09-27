@@ -11,5 +11,5 @@ set axis [create_charts_axis_annotation -plot $plot \
   -start -1 -end 1 -position -1 -direction horizontal]
 
 set_charts_property -annotation $axis -name valueStart     -value 1
-set_charts_property -annotation $axis -name valueEnd       -value 5
+set_charts_property -annotation $axis -name valueEnd       -value 4
 set_charts_property -annotation $axis -name majorIncrement -value 1

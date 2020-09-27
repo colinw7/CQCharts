@@ -221,7 +221,7 @@ calcRange() const
     if (! plot->isVisible())
       continue;
 
-    Range dataRange1 = plot->calcRange();
+    auto dataRange1 = plot->calcRange();
 
     if (plot == currentPlot())
       currentDataRange = dataRange1;
@@ -349,7 +349,7 @@ CQChartsGeom::BBox
 CQChartsCompositePlot::
 adjustedViewBBox(const CQChartsPlot *plot) const
 {
-  BBox bbox = plot->viewBBox();
+  auto bbox = plot->viewBBox();
 
   if (compositeType_ == CompositeType::TABBED) {
     calcTabData(plots_);

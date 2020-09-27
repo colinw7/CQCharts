@@ -324,8 +324,8 @@ preDrawObjs(CQChartsPaintDevice *device) const
       }
     }
 
-    double cw = windowToPixelWidth (cellSize.width ());
-    double ch = windowToPixelHeight(cellSize.height());
+    auto cw = windowToPixelWidth (cellSize.width ());
+    auto ch = windowToPixelHeight(cellSize.height());
 
     double xs = (maxWidth  > 0.0 ? cw/maxWidth  : 1.0);
     double ys = (maxHeight > 0.0 ? ch/maxHeight : 1.0);
@@ -625,7 +625,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  double cw = windowToPixelWidth(1.0);
+  auto cw = windowToPixelWidth(1.0);
 
   double tm = 4;
 
@@ -724,7 +724,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  double ch = windowToPixelHeight(1.0);
+  auto ch = windowToPixelHeight(1.0);
 
   double tm = 4;
 
@@ -764,8 +764,8 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsCorrelationPlot::calcAnnotationBBox");
 
-  QFont xfont = view()->plotFont(this, xLabelTextFont());
-  QFont yfont = view()->plotFont(this, yLabelTextFont());
+  auto xfont = view()->plotFont(this, xLabelTextFont());
+  auto yfont = view()->plotFont(this, yLabelTextFont());
 
   BBox bbox;
 
@@ -940,9 +940,9 @@ calcTextSize() const
   if (! plot_->isCellLabels())
     return Size();
 
-  QFont font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
+  auto font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
 
-  QString valueStr = CQChartsUtil::formatReal(value());
+  auto valueStr = CQChartsUtil::formatReal(value());
 
   CQChartsTextOptions options;
 
@@ -1069,7 +1069,7 @@ draw(CQChartsPaintDevice *device)
 
       BBox rect1(rc - ps, rc + ps);
 
-      PenBrush penBrush1 = penBrush;
+      auto penBrush1 = penBrush;
 
       plot_->setBrush(penBrush1, BrushData(false));
 
@@ -1196,7 +1196,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->isCellLabels() && ! skipLabel) {
-    QString valueStr = CQChartsUtil::formatReal(value());
+    auto valueStr = CQChartsUtil::formatReal(value());
 
     drawCellLabel(device, valueStr);
   }

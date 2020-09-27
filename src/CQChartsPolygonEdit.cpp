@@ -158,7 +158,7 @@ void
 CQChartsPolygonLineEdit::
 drawPreview(QPainter *painter, const QRect &)
 {
-  QString str = (polygon().isValid() ? polygon().toString() : "<none>");
+  auto str = (polygon().isValid() ? polygon().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }

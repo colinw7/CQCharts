@@ -30,7 +30,7 @@ restore()
 {
   assert(! dataStack_.empty());
 
-  Data data = dataStack_.back();
+  auto data = dataStack_.back();
 
   dataStack_.pop_back();
 
@@ -312,7 +312,7 @@ drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  QImage qimage = image.sizedImage(int(w), int(h));
+  auto qimage = image.sizedImage(int(w), int(h));
 
   drawImage(Point(x, y), qimage);
 }
@@ -331,7 +331,7 @@ drawImage(const Point &p, const QImage &image)
 
   std::vector<unsigned char> buffer;
 
-  QByteArray ba64 = ba.toBase64();
+  auto ba64 = ba.toBase64();
 
   *os_ << ba64.constData();
 

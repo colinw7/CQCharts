@@ -36,7 +36,7 @@ addPathProperties(const QString &path, const QString &desc)
 
   addTextProperties(path, desc);
 
-  QString boxPath = path + "/box";
+  auto boxPath = path + "/box";
 
   addBoxProperties(plot()->propertyModel(), boxPath, desc);
 }
@@ -71,7 +71,7 @@ addTextProperties(const QString &path, const QString &desc)
 
   //---
 
-  QString textPath = path + "/text";
+  auto textPath = path + "/text";
 
   addStyleProp(textPath, "textColor"        , "color"        , desc + " text color");
   addStyleProp(textPath, "textAlpha"        , "alpha"        , desc + " text alpha");
@@ -122,7 +122,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
 
   //---
 
-  Position position1 = adjustPosition(position);
+  auto position1 = adjustPosition(position);
 
   //---
 
@@ -297,7 +297,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
     // calc pixel position
     double px = 0.0, py = 0.0;
 
-    Qt::Alignment align = textAlignment();
+    auto align = textAlignment();
 
     if      (position1 == Position::TOP_INSIDE) {
       px = bbox.getXMid();
@@ -398,12 +398,12 @@ bool
 CQChartsDataLabel::
 isAdjustedPositionOutside(const BBox &pbbox, const QString &ystr) const
 {
-  Position position1 = adjustPosition(position());
+  auto position1 = adjustPosition(position());
 
   //---
 
   if (textAngle().isZero()) {
-    QFont font = plot()->view()->plotFont(plot(), textFont());
+    auto font = plot()->view()->plotFont(plot(), textFont());
 
     QFontMetricsF fm(font);
 
@@ -481,9 +481,9 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
 
   //---
 
-  QFont font = plot()->view()->plotFont(plot(), textFont());
+  auto font = plot()->view()->plotFont(plot(), textFont());
 
-  Position position1 = adjustPosition(position);
+  auto position1 = adjustPosition(position);
 
   //---
 
@@ -542,7 +542,7 @@ calcRect(const BBox &bbox, const QString &ystr, const Position &position) const
     // calc pixel position
     double px = 0.0, py = 0.0;
 
-    Qt::Alignment align = textAlignment();
+    auto align = textAlignment();
 
     if      (position1 == Position::TOP_INSIDE) {
       px = pbbox.getXMid();
@@ -608,7 +608,7 @@ CQChartsDataLabel::Position
 CQChartsDataLabel::
 adjustPosition(Position position) const
 {
-  Position position1 = position;
+  auto position1 = position;
 
   if (direction() == Qt::Vertical) {
     if (plot()->isInvertX()) {
@@ -660,7 +660,7 @@ Qt::Alignment
 CQChartsDataLabel::
 textAlignment() const
 {
-  Position position1 = adjustPosition(position());
+  auto position1 = adjustPosition(position());
 
   return textAlignment(position1);
 }

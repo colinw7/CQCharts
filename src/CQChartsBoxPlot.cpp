@@ -817,7 +817,7 @@ groupSetColumnName(const QString &def) const
 
   bool ok;
 
-  QString xname = xLabel();
+  auto xname = xLabel();
 
   if (! xname.length() && groupColumn().isValid())
     xname = groupColumnName();
@@ -837,7 +837,7 @@ valueColumnName(const QString &def) const
 {
   bool ok;
 
-  QString yname = yLabel();
+  auto yname = yLabel();
 
   if (valueColumns().count() == 1 && ! yname.length())
     yname = modelHHeaderString(valueColumns().column(), ok);
@@ -1000,7 +1000,7 @@ updateCalcRange() const
 
   bool ok;
 
-  QString xname = (xLabel().length() ? xLabel() : modelHHeaderString(xColumn(), ok));
+  auto xname = (xLabel().length() ? xLabel() : modelHHeaderString(xColumn(), ok));
 
   xAxis->setDefLabel(xname);
 
@@ -1038,7 +1038,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
     // x column can be string or real
     if (xType_ == ColumnType::STRING) {
-      QString xname = modelString(xInd, ok);
+      auto xname = modelString(xInd, ok);
 
       if (! ok) {
         th->addDataError(xInd, "Invalid x value");
@@ -1116,7 +1116,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     if (idColumn().isValid()) {
       ModelIndex idInd(th, vdata.row, idColumn(), vdata.parent);
 
-      QString id = modelString(idInd, ok);
+      auto id = modelString(idInd, ok);
 
       if (ok)
         data.name = id;
@@ -1767,7 +1767,7 @@ addKeyItems(CQChartsPlotKey *key)
       int         groupInd      = (*pg).first;
       const auto &setWhiskerMap = (*pg).second;
 
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       int is = 0;
       int ns = setWhiskerMap.size();
@@ -1776,7 +1776,7 @@ addKeyItems(CQChartsPlotKey *key)
         int   setId   = setWhiskers.first;
       //auto *whisker = setWhiskers.second;
 
-        QString setName = setIdName(setId);
+        auto setName = setIdName(setId);
 
         ColorInd sc(is, ns), gc;
 
@@ -1802,7 +1802,7 @@ addKeyItems(CQChartsPlotKey *key)
       for (const auto &groupIdWhiskers : this->groupWhiskers()) {
         int groupInd = groupIdWhiskers.first;
 
-        QString groupName = groupIndName(groupInd);
+        auto groupName = groupIndName(groupInd);
 
         ColorInd sc, gc(ig, ng);
 
@@ -1829,7 +1829,7 @@ addKeyItems(CQChartsPlotKey *key)
     int         groupInd      = (*pg).first;
     const auto &setWhiskerMap = (*pg).second;
 
-    QString groupName = groupIndName(groupInd);
+    auto groupName = groupIndName(groupInd);
 
     int is = 0;
     int ns = setWhiskerMap.size();
@@ -1838,7 +1838,7 @@ addKeyItems(CQChartsPlotKey *key)
     //int   setId   = setWhiskers.first;
       auto *whisker = setWhiskers.second;
 
-      QString name = whisker->name();
+      auto name = whisker->name();
 
       ColorInd sc(is, ns), gc;
 
@@ -2140,7 +2140,7 @@ void
 CQChartsBoxPlotWhiskerObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -2218,7 +2218,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  Qt::Orientation orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
+  auto orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   //---
 
@@ -2249,7 +2249,7 @@ draw(CQChartsPaintDevice *device)
 
     double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
 
-    BBox rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                           pos - vw, statData.min, pos + vw, statData.max);
 
     CQChartsWhiskerOpts opts;
@@ -2276,7 +2276,7 @@ draw(CQChartsPaintDevice *device)
     double dev1 = remapPos(this->mean() - this->stddev());
     double dev2 = remapPos(this->mean() + this->stddev());
 
-    BBox rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                           pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
@@ -2404,11 +2404,11 @@ draw(CQChartsPaintDevice *device)
         bool hasRange = (fabs(this->max() - this->min()) > 1E-6);
 
         if (hasRange) {
-          QString strl = QString("%1").arg(this->min        ());
-          QString lstr = QString("%1").arg(this->lowerMedian());
-          QString mstr = QString("%1").arg(this->median     ());
-          QString ustr = QString("%1").arg(this->upperMedian());
-          QString strh = QString("%1").arg(this->max        ());
+          auto strl = QString("%1").arg(this->min        ());
+          auto lstr = QString("%1").arg(this->lowerMedian());
+          auto mstr = QString("%1").arg(this->median     ());
+          auto ustr = QString("%1").arg(this->upperMedian());
+          auto strh = QString("%1").arg(this->max        ());
 
           if (! plot_->isHorizontal()) {
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true );
@@ -2426,7 +2426,7 @@ draw(CQChartsPaintDevice *device)
           }
         }
         else {
-          QString strl = QString("%1").arg(this->min());
+          auto strl = QString("%1").arg(this->min());
 
           if (! plot_->isHorizontal())
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true);
@@ -2541,11 +2541,11 @@ annotationBBox() const
     bool hasRange = (fabs(max() - min()) > 1E-6);
 
     if (hasRange) {
-      QString strl = QString("%1").arg(min        ());
-      QString lstr = QString("%1").arg(lowerMedian());
-      QString mstr = QString("%1").arg(median     ());
-      QString ustr = QString("%1").arg(upperMedian());
-      QString strh = QString("%1").arg(max        ());
+      auto strl = QString("%1").arg(min        ());
+      auto lstr = QString("%1").arg(lowerMedian());
+      auto mstr = QString("%1").arg(median     ());
+      auto ustr = QString("%1").arg(upperMedian());
+      auto strh = QString("%1").arg(max        ());
 
       if (! plot_->isHorizontal()) {
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2563,7 +2563,7 @@ annotationBBox() const
       }
     }
     else {
-      QString strl = QString("%1").arg(min());
+      auto strl = QString("%1").arg(min());
 
       if (! plot_->isHorizontal())
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2832,7 +2832,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  Qt::Orientation orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
+  auto orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   //---
 
@@ -2903,11 +2903,11 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    QString strl = QString("%1").arg(data_.statData.min        );
-    QString lstr = QString("%1").arg(data_.statData.lowerMedian);
-    QString mstr = QString("%1").arg(data_.statData.median     );
-    QString ustr = QString("%1").arg(data_.statData.upperMedian);
-    QString strh = QString("%1").arg(data_.statData.max        );
+    auto strl = QString("%1").arg(data_.statData.min        );
+    auto lstr = QString("%1").arg(data_.statData.lowerMedian);
+    auto mstr = QString("%1").arg(data_.statData.median     );
+    auto ustr = QString("%1").arg(data_.statData.upperMedian);
+    auto strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
       addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2968,11 +2968,11 @@ annotationBBox() const
   BBox pbbox;
 
   if (plot_->isTextVisible()) {
-    QString strl = QString("%1").arg(data_.statData.min        );
-    QString lstr = QString("%1").arg(data_.statData.lowerMedian);
-    QString mstr = QString("%1").arg(data_.statData.median     );
-    QString ustr = QString("%1").arg(data_.statData.upperMedian);
-    QString strh = QString("%1").arg(data_.statData.max        );
+    auto strl = QString("%1").arg(data_.statData.min        );
+    auto lstr = QString("%1").arg(data_.statData.lowerMedian);
+    auto mstr = QString("%1").arg(data_.statData.median     );
+    auto ustr = QString("%1").arg(data_.statData.upperMedian);
+    auto strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -3039,7 +3039,7 @@ QString
 CQChartsBoxPlotConnectedObj::
 calcTipId() const
 {
-  QString groupName = plot_->groupIndName(groupInd_);
+  auto groupName = plot_->groupIndName(groupInd_);
 
   const auto &setWhiskerMap = this->setWhiskerMap();
 
@@ -3326,7 +3326,7 @@ addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text, bool 
 
   double x = ((onLeft && ! invertX) || (! onLeft && invertX) ? xl : xr);
 
-  QFont font = plot_->qfont(plot_->textFont());
+  auto font = plot_->qfont(plot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3357,7 +3357,7 @@ addVBBox(BBox &pbbox, double yb, double yt, double x, const QString &text, bool 
 
   double y = ((onBottom && ! invertY) || (! onBottom && invertY) ? yb : yt);
 
-  QFont font = plot_->qfont(plot_->textFont());
+  auto font = plot_->qfont(plot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -3401,8 +3401,8 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString setName   = plot_->setIdName   (setId_);
-  QString groupName = plot_->groupIndName(groupInd_);
+  auto setName   = plot_->setIdName   (setId_);
+  auto groupName = plot_->groupIndName(groupInd_);
 
   tableTip.addTableRow("Set"  , setName);
   tableTip.addTableRow("Group", groupName);
@@ -3441,8 +3441,8 @@ void
 CQChartsBoxPlotPointObj::
 draw(CQChartsPaintDevice *device)
 {
-  Symbol symbolType = plot_->jitterSymbolType();
-  Length symbolSize = plot_->jitterSymbolSize();
+  auto symbolType = plot_->jitterSymbolType();
+  auto symbolSize = plot_->jitterSymbolSize();
 
   //---
 

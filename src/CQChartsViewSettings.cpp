@@ -84,7 +84,7 @@ class CQChartsPlotTipLabel : public QLabel {
 
     QFontMetrics fm(font());
 
-    QSize s = QLabel::sizeHint();
+    auto s = QLabel::sizeHint();
 
     int w = std::min(s.width(), fm.width("X")*50);
 
@@ -146,13 +146,13 @@ class CQChartsPlotTip : public CQToolTipIFace {
 
     QString text;
 
-    QString desc = plot_->type()->description();
+    auto desc = plot_->type()->description();
 
     int pos = desc.indexOf("</h2>");
 
     if (pos > 0) {
-      QString lhs = desc.mid(0, pos);
-      QString rhs = desc.mid(pos);
+      auto lhs = desc.mid(0, pos);
+      auto rhs = desc.mid(pos);
 
       if (! expanded_)
         text = lhs + " (" + plot_->id() + ")</h2>\n<p>(<b>PageDown</b> to expand)</p>";
@@ -358,7 +358,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       auto *item = items[i];
       if (item->column() != 0) continue;
 
-      QString id = item->text();
+      auto id = item->text();
 
       auto *plot = view->getPlotForId(id);
 
@@ -601,10 +601,10 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
 
       stateItem->setText("");
 
-      QRectF rect = (buffer ? buffer->rect() : QRectF());
+      auto rect = (buffer ? buffer->rect() : QRectF());
 
-      QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
-                          arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
+      auto rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
+                       arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
 
       rectItem->setText(rectStr);
     }
@@ -722,10 +722,10 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
 
-      QRectF rect = (buffer ? buffer->rect() : QRectF());
+      auto rect = (buffer ? buffer->rect() : QRectF());
 
-      QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
-                          arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
+      auto rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
+                      arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
 
       rectItem->setText(rectStr);
     }
@@ -734,7 +734,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
   bool getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &active) {
     auto *nameItem = item(row, 0);
 
-    QString name = nameItem->text();
+    auto name = nameItem->text();
 
     type = CQChartsLayer::nameType(name);
 
@@ -816,7 +816,7 @@ addWidgets()
   //----
 
   auto addTab = [&](const QString &name) {
-    QString objectName = name + "Frame";
+    auto objectName = name + "Frame";
 
     objectName[0] = objectName[0].toLower();
 
@@ -2004,9 +2004,9 @@ writeViewSlot()
   auto *view = window_->view();
   if (! view) return;
 
-  QString dir = QDir::current().dirName() + "/view.tcl";
+  auto dir = QDir::current().dirName() + "/view.tcl";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
   if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
@@ -2453,9 +2453,9 @@ writePlotSlot()
   auto *plot = getPropertiesPlot();
   if (! plot) return;
 
-  QString dir = QDir::current().dirName() + "/plot.tcl";
+  auto dir = QDir::current().dirName() + "/plot.tcl";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
   if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
@@ -2764,9 +2764,9 @@ writeAnnotationSlot()
   auto *view = window_->view();
   if (! view) return;
 
-  QString dir = QDir::current().dirName() + "/annotation.tcl";
+  auto dir = QDir::current().dirName() + "/annotation.tcl";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
   if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
@@ -2834,7 +2834,7 @@ void
 CQChartsViewSettings::
 palettesComboSlot(int)
 {
-  QString name = themeWidgets_.palettesCombo->currentText();
+  auto name = themeWidgets_.palettesCombo->currentText();
 
   auto *palette = CQColorsMgrInst->getNamedPalette(name);
 
@@ -2847,7 +2847,7 @@ void
 CQChartsViewSettings::
 palettesResetSlot()
 {
-  QString name = themeWidgets_.palettesCombo->currentText();
+  auto name = themeWidgets_.palettesCombo->currentText();
 
   auto *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return;
@@ -2870,7 +2870,7 @@ updatePalettes()
 {
   updatePaletteWidgets();
 
-  QString name = themeWidgets_.palettesCombo->currentText();
+  auto name = themeWidgets_.palettesCombo->currentText();
 
   auto *palette = CQColorsMgrInst->getNamedPalette(name);
 

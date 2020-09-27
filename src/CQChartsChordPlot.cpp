@@ -426,12 +426,12 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
 
-  QString path1 = pathData.pathStrs[0];
+  auto path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathData.pathStrs[i];
+    auto path2 = path1 + separator + pathData.pathStrs[i];
 
     auto &srcData  = findNameData(path1, QModelIndex());
     auto &destData = findNameData(path2, QModelIndex());
@@ -533,7 +533,7 @@ addFromToValue(const FromToData &fromToData) const
   // Just node
   if (fromToData.toStr == "") {
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "label") {
         srcData.setLabel(value);
@@ -555,7 +555,7 @@ addFromToValue(const FromToData &fromToData) const
     addEdge(srcData, destData, fromToData.value.realOr(1.0), /*symmetric*/true);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "label") {
       }
@@ -637,7 +637,7 @@ void
 CQChartsChordPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
-  QString srcStr = QString("%1").arg(id);
+  auto srcStr = QString("%1").arg(id);
 
   // find src (create if doesn't exist)
   auto &srcData = findNameData(srcStr, connectionsData.ind);
@@ -646,7 +646,7 @@ addConnectionObj(int id, const ConnectionsData &connectionsData) const
   srcData.setGroup(connectionsData.groupData);
 
   for (const auto &connection : connectionsData.connections) {
-    QString destStr = QString("%1").arg(connection.node);
+    auto destStr = QString("%1").arg(connection.node);
 
     auto &destData = findNameData(destStr, connectionsData.ind);
 
@@ -1097,7 +1097,7 @@ QString
 CQChartsChordArcObj::
 calcId() const
 {
-  QString name = data_.group().value.toString();
+  auto name = data_.group().value.toString();
 
   if (name != "")
     return QString("%1:%2:%3:%4").arg(typeName()).arg(dataName()).
@@ -1114,7 +1114,7 @@ calcTipId() const
 
   tableTip.addTableRow("Name", dataName());
 
-  QString name = data_.group().value.toString();
+  auto name = data_.group().value.toString();
 
   if (name != "")
     tableTip.addTableRow("Group", name);
@@ -1475,8 +1475,8 @@ calcId() const
   auto *fromObj = this->fromObj();
   auto *toObj   = this->toObj  ();
 
-  QString fromName = (fromObj ? fromObj->dataName() : QString("%1").arg(from()));
-  QString toName   = (toObj   ? toObj  ->dataName() : QString("%1").arg(to  ()));
+  auto fromName = (fromObj ? fromObj->dataName() : QString("%1").arg(from()));
+  auto toName   = (toObj   ? toObj  ->dataName() : QString("%1").arg(to  ()));
 
   return QString("%1:%2").arg(fromName).arg(toName);
 }

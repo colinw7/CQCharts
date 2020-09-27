@@ -107,7 +107,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   auto fillUnderSide = value.value<CQChartsFillUnderSide>();
 
-  QString str = fillUnderSide.toString();
+  auto str = fillUnderSide.toString();
 
   QFontMetrics fm(option.font);
 
@@ -126,7 +126,7 @@ QString
 CQChartsFillUnderSidePropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsFillUnderSide>().toString();
+  auto str = value.value<CQChartsFillUnderSide>().toString();
 
   return str;
 }
@@ -281,7 +281,7 @@ void
 CQChartsFillUnderPosLineEdit::
 drawPreview(QPainter *painter, const QRect &)
 {
-  QString str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
+  auto str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -320,7 +320,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   auto fillUnderPos = value.value<CQChartsFillUnderPos>();
 
-  QString str = fillUnderPos.toString();
+  auto str = fillUnderPos.toString();
 
   QFontMetrics fm(option.font);
 
@@ -339,7 +339,7 @@ QString
 CQChartsFillUnderPosPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsFillUnderPos>().toString();
+  auto str = value.value<CQChartsFillUnderPos>().toString();
 
   return str;
 }
@@ -592,7 +592,7 @@ void
 CQChartsFillUnderPosEdit::
 drawPreview(QPainter *painter, const QRect &)
 {
-  QString str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
+  auto str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }

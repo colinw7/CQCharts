@@ -32,7 +32,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   // ignore meta data
   if (lineNum < lines.length()) {
-    QString line = lines[lineNum];
+    auto line = lines[lineNum];
 
     CQStrParse parse(line);
 
@@ -43,7 +43,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
       // skip subsequent meta lines
       while (lineNum < lines.length()) {
-        QString line = lines[lineNum];
+        auto line = lines[lineNum];
 
         CQStrParse parse(line);
 
@@ -62,7 +62,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   // check for comment first line
   if (lineNum < lines.length()) {
-    QString line = lines[lineNum];
+    auto line = lines[lineNum];
 
     CQStrParse parse(line);
 
@@ -75,7 +75,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
       // skip subsequent comment lines
       while (lineNum < lines.length()) {
-        QString line = lines[lineNum];
+        auto line = lines[lineNum];
 
         CQStrParse parse(line);
 
@@ -92,7 +92,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
   // check line for comma, tab, space separators
   // TODO: combine multiple lines
   if (lineNum < lines.length()) {
-    QString line = lines[lineNum];
+    auto line = lines[lineNum];
 
     int commaPos = line.indexOf(',');
     int tabPos   = line.indexOf('\t');

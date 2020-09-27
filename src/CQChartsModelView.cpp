@@ -336,7 +336,7 @@ addReplaceSearch(const QString &text, bool add)
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelString(model, ind, ok);
+        auto str = CQChartsModelUtil::modelString(model, ind, ok);
         if (! ok) return State::SKIP;
 
         if (regexp_.match(str))
@@ -508,12 +508,12 @@ void
 CQChartsModelView::
 exportSlot(QAction *action)
 {
-  QString type = action->text();
+  auto type = action->text();
 
   bool hheader = true;
   bool vheader = false;
 
-  QString dir = QDir::current().dirName();
+  auto dir = QDir::current().dirName();
   QString pattern;
 
   if      (type == "CSV") {
@@ -533,7 +533,7 @@ exportSlot(QAction *action)
     return;
   }
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
+  auto fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
   if (! fileName.length()) return; // cancelled
 
   auto *modelData = getModelData();

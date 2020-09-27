@@ -143,7 +143,7 @@ QString
 CQChartsTextBoxDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsTextBoxData>().toString();
+  auto str = value.value<CQChartsTextBoxData>().toString();
 
   return str;
 }

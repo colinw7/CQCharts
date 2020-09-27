@@ -58,7 +58,7 @@ CQChartsRect::
 toString() const
 {
   if (isValid()) {
-    QString ustr = CQChartsUtil::unitsString(units_);
+    auto ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1 %2 %3 %4 %5").
              arg(bbox_.getXMin()).arg(bbox_.getYMin()).

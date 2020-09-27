@@ -9,8 +9,8 @@ CQChartsUnitsEdit(QWidget *parent) :
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  QStringList unitNames = CQChartsUtil::unitNames   (/*includeNone*/true);
-  QStringList tipNames  = CQChartsUtil::unitTipNames(/*includeNone*/true);
+  auto unitNames = CQChartsUtil::unitNames   (/*includeNone*/true);
+  auto tipNames  = CQChartsUtil::unitTipNames(/*includeNone*/true);
 
   addItems(unitNames);
 
@@ -37,7 +37,7 @@ setUnits(const CQChartsUnits &units)
 {
   units_ = units;
 
-  QString ustr = CQChartsUtil::unitsString(units_);
+  auto ustr = CQChartsUtil::unitsString(units_);
 
   int ind = findText(ustr, Qt::MatchExactly);
 
@@ -53,7 +53,7 @@ void
 CQChartsUnitsEdit::
 indexChanged()
 {
-  QString ustr = currentText();
+  auto ustr = currentText();
 
   (void) CQChartsUtil::decodeUnits(ustr, units_, /*default*/units_);
 

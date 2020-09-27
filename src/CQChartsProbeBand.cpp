@@ -49,9 +49,9 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
 
     Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2.0);
 
-    QPoint pos = p4.qpointi();
+    auto pos = p4.qpointi();
 
-    QPoint gpos = view_->mapToGlobal(pos);
+    auto gpos = view_->mapToGlobal(pos);
 
     auto wpos = view_->pixelToWindow(Point(pos.x(), pos.y()));
 
@@ -94,9 +94,9 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
 
     Point p4(px2 -  tip_->sizeHint().width()/2.0, py - tickLen - 2 - tip_->sizeHint().height());
 
-    QPoint pos = p4.qpointi();
+    auto pos = p4.qpointi();
 
-    QPoint gpos = view_->mapToGlobal(pos);
+    auto gpos = view_->mapToGlobal(pos);
 
     auto wpos = view_->pixelToWindow(Point(pos.x(), pos.y()));
 

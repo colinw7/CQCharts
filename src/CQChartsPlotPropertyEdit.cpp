@@ -63,7 +63,7 @@ addSlot(const QString &s)
   if (strs.size() > 1)
     label = strs[1];
 
-  QString propertyName = strs[0];
+  auto propertyName = strs[0];
 
   auto *edit = new CQChartsPlotPropertyEdit;
 
@@ -230,9 +230,9 @@ createEditor()
     factory->connect(widget, this, SLOT(updateValue()));
   }
   else if (propInfo.isEnumType()) {
-    QString valueStr = var.toString();
+    auto valueStr = var.toString();
 
-    const QStringList &names = propInfo.enumNames();
+    const auto &names = propInfo.enumNames();
 
     auto *combo = CQUtil::makeWidget<QComboBox>(this, "combo");
 
@@ -337,7 +337,7 @@ updateValue()
     auto *edit = qobject_cast<QLineEdit *>(widget_);
     assert(edit);
 
-    QString text = edit->text();
+    auto text = edit->text();
 
     var = text;
 
@@ -358,8 +358,8 @@ QSize
 CQChartsPlotPropertyEdit::
 sizeHint() const
 {
-  QSize ls = (labelWidget_ ? labelWidget_->sizeHint() : QSize());
-  QSize ws = (widget_      ? widget_     ->sizeHint() : QSize());
+  auto ls = (labelWidget_ ? labelWidget_->sizeHint() : QSize());
+  auto ws = (widget_      ? widget_     ->sizeHint() : QSize());
 
   return QSize(ls.width() + ws.width() + 6, std::max(ls.height(), ws.height()) + 4);
 }

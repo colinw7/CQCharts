@@ -33,7 +33,7 @@ bool
 CQChartsFillUnderSide::
 decodeString(const QString &str, Type &type)
 {
-  QString lstr = str.toLower();
+  auto lstr = str.toLower();
 
   if      (lstr == "both" ) type = Type::BOTH;
   else if (lstr == "above") type = Type::ABOVE;

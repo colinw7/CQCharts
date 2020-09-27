@@ -134,7 +134,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   //--
 
   // draw symbol name
-  QString str = symbolType.toString();
+  auto str = symbolType.toString();
 
   QFontMetrics fm(option.font);
 

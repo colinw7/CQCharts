@@ -310,7 +310,7 @@ initGroup(CQChartsGroupData &data) const
     for (const auto &column : data.columns) {
       bool ok;
 
-      QString name = modelHHeaderString(column, ok);
+      auto name = modelHHeaderString(column, ok);
 
       if (! name.length())
         name = QString("%1").arg(column.column());
@@ -410,7 +410,7 @@ initGroup(CQChartsGroupData &data) const
           bucket_->addValue(value);
 
         if (hier_) {
-          QStringList paths = plot_->pathStrs(value.toString());
+          auto paths = plot_->pathStrs(value.toString());
 
           for (int i = 0; i < paths.length(); ++i)
             bucket_->addValue(paths[i]);
@@ -418,7 +418,7 @@ initGroup(CQChartsGroupData &data) const
       }
       // add parent path (hierarchical)
       else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-        QString path = CQChartsModelUtil::parentPath(model, data.parent);
+        auto path = CQChartsModelUtil::parentPath(model, data.parent);
 
         bucket_->addString(path);
       }
@@ -540,7 +540,7 @@ rowGroupInds(const ModelIndex &ind, std::vector<int> &inds, bool hier) const
   }
   // get group id from parent path name
   else if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsModelUtil::parentPath(model, ind.parent());
+    auto path = CQChartsModelUtil::parentPath(model, ind.parent());
 
     if (hier) {
       inds = pathInds(path);
@@ -572,7 +572,7 @@ pathInds(const QString &path) const
   if (! groupBucket_)
     return inds;
 
-  QStringList paths = pathStrs(path);
+  auto paths = pathStrs(path);
 
   for (int i = 0; i < paths.length(); ++i) {
     const auto &path1 = paths[i];
@@ -591,7 +591,7 @@ pathStrs(const QString &path) const
 {
   QStringList paths;
 
-  QStringList strs = path.split("/", QString::KeepEmptyParts);
+  auto strs = path.split("/", QString::KeepEmptyParts);
   assert(strs.length() > 0);
 
   QString path1;

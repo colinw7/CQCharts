@@ -75,7 +75,7 @@ CQChartsImage::
 sizedImage(int w, int h) const
 {
   if      (type_ == Type::ICON) {
-    QPixmap pixmap = icon_.pixmap(w, h);
+    auto pixmap = icon_.pixmap(w, h);
 
     return pixmap.toImage();
   }
@@ -153,13 +153,13 @@ bool
 CQChartsImage::
 fromString(const QString &s, Type type)
 {
-  QString s1 = s;
+  auto s1 = s;
 
   if (type == Type::NONE) {
     auto pos = s1.indexOf(':');
 
     if (pos > 0) {
-      QString typeName = s1.mid(0, pos);
+      auto typeName = s1.mid(0, pos);
 
       if      (typeName == "icon") {
         type = Type::ICON;

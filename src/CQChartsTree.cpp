@@ -234,7 +234,7 @@ void
 CQChartsTree::
 exportSlot(QAction *action)
 {
-  QString type = action->text();
+  auto type = action->text();
 
   auto *modelData = getModelData();
 

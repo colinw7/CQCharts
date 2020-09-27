@@ -387,7 +387,7 @@ filterAndSlot(bool b)
 {
   modelView_->setFilterAnd(b);
 
-  QString details = modelView_->filterDetails();
+  auto details = modelView_->filterDetails();
 
   filterEdit_->setFilterDetails(details);
 }
@@ -398,7 +398,7 @@ replaceFilterSlot(const QString &text)
 {
   modelView_->setFilter(text);
 
-  QString details = modelView_->filterDetails();
+  auto details = modelView_->filterDetails();
 
   filterEdit_->setFilterDetails(details);
 }
@@ -409,7 +409,7 @@ addFilterSlot(const QString &text)
 {
   modelView_->addFilter(text);
 
-  QString details = modelView_->filterDetails();
+  auto details = modelView_->filterDetails();
 
   filterEdit_->setFilterDetails(details);
 }

@@ -256,8 +256,8 @@ drawContents(const PenBrush &penBrush) const
 
   if (isFrontVisible()) {
     // calc front head angle (relative to line)
-    ArrowAngle a1 = a.angle + faa.angle;
-    ArrowAngle a2 = a.angle - faa.angle;
+    auto a1 = ArrowAngle(a.angle + faa.angle);
+    auto a2 = ArrowAngle(a.angle - faa.angle);
 
     //---
 
@@ -284,8 +284,8 @@ drawContents(const PenBrush &penBrush) const
       }
       else {
         // calc front head angle (relative to line)
-        ArrowAngle a1 = a.angle + faa.angle;
-        ArrowAngle a2 = a.angle - faa.angle;
+        auto a1 = ArrowAngle(a.angle + faa.angle);
+        auto a2 = ArrowAngle(a.angle - faa.angle);
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
         auto pf11 = movePointPerpLine(pf1, a1,  lpw);
@@ -328,7 +328,7 @@ drawContents(const PenBrush &penBrush) const
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (fba.angle > faa.angle && fba.angle < M_PI) {
-        ArrowAngle a3 = a.angle + fba.angle;
+        auto a3 = ArrowAngle(a.angle + fba.angle);
 
         auto pf1t = movePointOnLine(pf1, a3, -10);
 
@@ -363,8 +363,8 @@ drawContents(const PenBrush &penBrush) const
 
   if (isTailVisible()) {
     // calc tail head angle (relative to line)
-    ArrowAngle a1 = a.angle + M_PI - taa.angle;
-    ArrowAngle a2 = a.angle + M_PI + taa.angle;
+    auto a1 = ArrowAngle(a.angle + M_PI - taa.angle);
+    auto a2 = ArrowAngle(a.angle + M_PI + taa.angle);
 
     //---
 
@@ -391,8 +391,8 @@ drawContents(const PenBrush &penBrush) const
       }
       else {
         // calc tail head angle (relative to line)
-        ArrowAngle a1 = a.angle + M_PI - taa.angle;
-        ArrowAngle a2 = a.angle + M_PI + taa.angle;
+        auto a1 = ArrowAngle(a.angle + M_PI - taa.angle);
+        auto a2 = ArrowAngle(a.angle + M_PI + taa.angle);
 
         // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
         auto pt11 = movePointPerpLine(pt1, a1, -lpw);
@@ -435,7 +435,7 @@ drawContents(const PenBrush &penBrush) const
 
       // if valid back angle intersect arrow mid line (p1, p2) to back line
       if (tba.angle > taa.angle && tba.angle < M_PI) {
-        ArrowAngle a3 = a.angle + M_PI - tba.angle;
+        auto a3 = ArrowAngle(a.angle + M_PI - tba.angle);
 
         auto pt1t = movePointOnLine(pt1, a3, -10);
 
@@ -586,7 +586,7 @@ drawContents(const PenBrush &penBrush) const
 
     auto addLMidPoints = [&]() {
       if (isRectilinear()) {
-        Point prm = (p1 + p4)/2.0;
+        auto prm = (p1 + p4)/2.0;
 
         Point plr1, plr2;
 
@@ -613,7 +613,7 @@ drawContents(const PenBrush &penBrush) const
 
     auto addUMidPoints = [&]() {
       if (isRectilinear()) {
-        Point prm = (p1 + p4)/2.0;
+        auto prm = (p1 + p4)/2.0;
 
         Point pur1, pur2;
 
@@ -738,7 +738,7 @@ drawPolygon(const GeomPolygon &points, double width, bool filled, bool stroked,
     device_->fillPath(path_, penBrush.brush);
 
     if (stroked) {
-      QPen pen1 = penBrush.pen;
+      auto pen1 = penBrush.pen;
 
       pen1.setWidthF(width);
 
@@ -746,7 +746,7 @@ drawPolygon(const GeomPolygon &points, double width, bool filled, bool stroked,
     }
   }
   else {
-    QPen pen1 = penBrush.pen;
+    auto pen1 = penBrush.pen;
 
     if (! stroked)
       pen1 = QPen(Qt::NoPen);
@@ -774,7 +774,7 @@ drawLine(const Point &point1, const Point &point2, double width, const PenBrush 
 
   //---
 
-  QPen pen1 = penBrush.pen;
+  auto pen1 = penBrush.pen;
 
   if      (isStroked)
     pen1.setColor(penBrush.pen.color());

@@ -47,7 +47,7 @@ place(const Plot *plot)
 
   tree_.reset();
 
-  QFont font = plot->font().font();
+  auto font = plot->font().font();
 
   CountWordDatas countWordDatas;
 

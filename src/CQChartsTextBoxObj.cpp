@@ -41,9 +41,9 @@ addProperties(PropertyView *model, const QString &path, const QString &desc)
 {
   addBoxProperties(model, path, desc);
 
-  QString textPath = path + "/text";
+  auto textPath = path + "/text";
 
-  QString desc1 = (desc.length() ? desc + " text" : "Text");
+  auto desc1 = (desc.length() ? desc + " text" : "Text");
 
   model->addProperty(textPath, this, "textStr", "string")->setDesc(desc1 + " string");
 
@@ -69,7 +69,7 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
 
   //---
 
-  QString desc1 = (desc.length() ? desc + " text" : "Text");
+  auto desc1 = (desc.length() ? desc + " text" : "Text");
 
   if (addVisible)
     addProp(path, "textVisible", "visible", desc1 + " visible");

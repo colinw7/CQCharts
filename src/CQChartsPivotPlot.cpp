@@ -736,7 +736,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (isFilled && lastR >= 0) {
-        Point p = (! isHorizontal() ? Point(lastR, 0.0) : Point(0.0, lastR));
+        auto p = (! isHorizontal() ? Point(lastR, 0.0) : Point(0.0, lastR));
 
         polygon.addPoint(p);
       }

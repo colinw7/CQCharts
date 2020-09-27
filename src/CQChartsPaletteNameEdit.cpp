@@ -114,7 +114,7 @@ QString
 CQChartsPaletteNamePropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsPaletteName>().toString();
+  auto str = value.value<CQChartsPaletteName>().toString();
 
   return str;
 }
@@ -132,7 +132,7 @@ createEdit(QWidget *parent)
 {
   auto *item = CQPropertyViewMgrInst->editItem();
 
-  QObject *obj = (item ? item->object() : nullptr);
+  auto *obj = (item ? item->object() : nullptr);
 
   auto *plot = qobject_cast<CQChartsPlot *>(obj);
 

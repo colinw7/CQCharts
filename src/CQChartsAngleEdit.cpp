@@ -104,7 +104,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   auto angle = CQChartsVariant::toAngle(value, ok);
   if (! ok) return;
 
-  QString str = angle.toString();
+  auto str = angle.toString();
 
   QFontMetrics fm(option.font);
 

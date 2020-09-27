@@ -95,7 +95,7 @@ textChanged()
 {
   CQChartsColumn column;
 
-  QString text = edit_->text();
+  auto text = edit_->text();
 
   if (text.simplified() == "") {
     column = CQChartsColumn();
@@ -154,7 +154,7 @@ void
 CQChartsColumnLineEdit::
 drawPreview(QPainter *painter, const QRect &)
 {
-  QString str = (column().isValid() ? column().toString() : "<none>");
+  auto str = (column().isValid() ? column().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -195,9 +195,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
+  auto str = valueString(item, value, ok);
 
-  QFont font = option.font;
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);
@@ -223,7 +223,7 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  QString str = valueString(nullptr, value, ok);
+  auto str = valueString(nullptr, value, ok);
 
   return str;
 }
@@ -242,7 +242,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
     auto *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
 
     if (plot) {
-      QString str1 = plot->columnHeaderName(column);
+      auto str1 = plot->columnHeaderName(column);
 
       if (str1.length())
         str += " (" + str1 + ")";

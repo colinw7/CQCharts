@@ -354,7 +354,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
       parse.skipChar();
     }
 
-    QString str = parse.getBefore(pos);
+    auto str = parse.getBefore(pos);
 
     if (parse.isChar(')'))
       parse.skipChar();

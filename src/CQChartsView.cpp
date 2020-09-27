@@ -583,7 +583,7 @@ double
 CQChartsView::
 fontEm() const
 {
-  QFont qfont = this->font().font();
+  auto qfont = this->font().font();
   QFontMetricsF fm(qfont);
 
   return fm.height();
@@ -593,7 +593,7 @@ double
 CQChartsView::
 fontEx() const
 {
-  QFont qfont = this->font().font();
+  auto qfont = this->font().font();
   QFontMetricsF fm(qfont);
 
   return fm.width("x");
@@ -620,7 +620,7 @@ setHandDrawn(bool b)
     if (handDrawn_) {
       saveFont_ = font_;
 
-      QFont f = font_.font();
+      auto f = font_.font();
 
       f.setFamily("purisa");
 
@@ -714,7 +714,7 @@ CQChartsView::
 viewFont(const CQChartsFont &font) const
 {
   // Calc specified font from view font
-  QFont font1 = font.calcFont(font_.font());
+  auto font1 = font.calcFont(font_.font());
 
   if (isScaleFont())
     return scaledFont(font1, Size(this->size()));
@@ -4069,7 +4069,7 @@ void
 CQChartsView::
 drawNoData(CQChartsPaintDevice *)
 {
-  QFont p_font = this->font().font();
+  auto p_font = this->font().font();
   QFontMetricsF p_fm(p_font);
 
   int is = int(4*p_fm.height());

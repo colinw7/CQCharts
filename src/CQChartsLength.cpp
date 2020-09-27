@@ -36,7 +36,7 @@ QString
 CQChartsLength::
 toString() const
 {
-  QString ustr = CQChartsUtil::unitsString(units_);
+  auto ustr = CQChartsUtil::unitsString(units_);
 
   return QString("%1%2").arg(value_).arg(ustr);
 }
@@ -59,7 +59,7 @@ decodeString(const QString &str, CQChartsUnits &units, double &value,
   //---
 
   if (strs.length() == 1) {
-    QString str0 = strs[0];
+    auto str0 = strs[0];
 
     for (int i = 0; i < str0.length(); ++i) {
       if (! str0[i].isLetter() && str0[i] != '%') continue;
@@ -67,7 +67,7 @@ decodeString(const QString &str, CQChartsUnits &units, double &value,
       CQChartsUnits units1;
 
       if (CQChartsUtil::decodeUnits(str0.mid(i), units1, defUnits)) {
-        QString strl = str0.mid(0, i);
+        auto strl = str0.mid(0, i);
 
         double value1;
 

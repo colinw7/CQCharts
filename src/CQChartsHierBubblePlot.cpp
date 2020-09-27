@@ -848,7 +848,7 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
   //---
 
-  QString name = nameStrs[nameStrs.length() - 1];
+  auto name = nameStrs[nameStrs.length() - 1];
 
   auto *node = childNode(parent, name);
 
@@ -1367,7 +1367,7 @@ calcTipId() const
 
     bool ok;
 
-    QString colorStr = plot_->modelString(colorColumnInd, ok);
+    auto colorStr = plot_->modelString(colorColumnInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1471,7 +1471,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   // get labels (name and optional size)
   QStringList strs;
 
-  QString name = (! node()->isFiller() ? node()->name() : node()->parent()->name());
+  auto name = (! node()->isFiller() ? node()->name() : node()->parent()->name());
 
   strs.push_back(name);
 
@@ -1583,8 +1583,8 @@ isPoint() const
   // check if small enough to draw as point
   double r = this->radius();
 
-  double pw = plot()->windowToPixelWidth (2*r) - 2;
-  double ph = plot()->windowToPixelHeight(2*r) - 2;
+  auto pw = plot()->windowToPixelWidth (2*r) - 2;
+  auto ph = plot()->windowToPixelHeight(2*r) - 2;
 
   return (pw <= 1.5 || ph <= 1.5);
 }

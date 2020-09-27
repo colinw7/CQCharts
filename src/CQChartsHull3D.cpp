@@ -66,7 +66,7 @@ CQChartsHull3D::PVertex
 CQChartsHull3D::
 addVertex(double x, double y, double z)
 {
-  PVertex v = new Vertex(x, y, z);
+  auto v = new Vertex(x, y, z);
 
   v->assignNum();
 
@@ -88,10 +88,10 @@ clearVertices()
 {
   if (! vertices_) return;
 
-  PVertex v = vertices_;
+  auto v = vertices_;
 
   for (;;) {
-    PVertex v1 = v->next;
+    auto v1 = v->next;
 
     if (v1 == vertices_)
       break;
@@ -111,29 +111,29 @@ CQChartsHull3D::
 reset()
 {
   if (vertices_) {
-    PVertex v = vertices_; do { v->reset(); v = v->next; } while (v != vertices_);
+    auto v = vertices_; do { v->reset(); v = v->next; } while (v != vertices_);
   }
 
   if (edges_) {
-    PEdge e = edges_; do { PEdge e1 = e->next; delete e; e = e1; } while (e != edges_);
+    auto e = edges_; do { auto e1 = e->next; delete e; e = e1; } while (e != edges_);
 
     edges_ = nullptr;
   }
 
   if (faces_) {
-    PFace f = faces_; do { PFace f1 = f->next; delete f; f = f1; } while (f != faces_);
+    auto f = faces_; do { auto f1 = f->next; delete f; f = f1; } while (f != faces_);
 
     faces_ = nullptr;
   }
 
   if (vvertices_) {
-    PVertex v = vvertices_; do { PVertex v1 = v->next; delete v; v = v1; } while (v != vvertices_);
+    auto v = vvertices_; do { auto v1 = v->next; delete v; v = v1; } while (v != vvertices_);
 
     vvertices_ = nullptr;
   }
 
   if (vedges_) {
-    PEdge e = vedges_; do { PEdge e1 = e->next; delete e; e = e1; } while (e != vedges_);
+    auto e = vedges_; do { auto e1 = e->next; delete e; e = e1; } while (e != vedges_);
 
     vedges_ = nullptr;
   }
@@ -155,9 +155,9 @@ doubleTriangle()
   if (! vertices_) return false;
 
   // Find 3 non-collinear points.
-  PVertex v0 = vertices_;
-  PVertex v1 = v0->next;
-  PVertex v2 = v1->next;
+  auto v0 = vertices_;
+  auto v1 = v0->next;
+  auto v2 = v1->next;
 
   while (collinear(v0, v1, v2)) {
     v2 = v1;
@@ -178,8 +178,8 @@ doubleTriangle()
   v2->setProcessed(true);
 
   // Create the two "twin" faces.
-  PFace f0 = makeFace(v0, v1, v2, nullptr);
-  PFace f1 = makeFace(v2, v1, v0, f0     );
+  auto f0 = makeFace(v0, v1, v2, nullptr);
+  auto f1 = makeFace(v2, v1, v0, f0     );
 
   /* Link adjacent face fields. */
   f0->edge(0)->setRightFace(f1);
@@ -191,7 +191,7 @@ doubleTriangle()
   f1->edge(2)->setRightFace(f0);
 
   // Find a fourth, non-coplanar point to form tetrahedron.
-  PVertex v3 = v2->next;
+  auto v3 = v2->next;
 
   int vol = volumeSign(f0, v3);
 
@@ -229,10 +229,10 @@ constructHull()
 {
   if (! vertices_) return;
 
-  PVertex v0 = vertices_;
+  auto v0 = vertices_;
 
   do {
-    PVertex v1 = v0->next;
+    auto v1 = v0->next;
 
     if (! v0->isProcessed()) {
       addOne(v0);
@@ -265,7 +265,7 @@ void
 CQChartsHull3D::
 edgeOrderOnFaces()
 {
-  PFace f = faces_;
+  auto f = faces_;
 
   do {
     for (int i = 0; i < 3; i++) {
@@ -293,7 +293,7 @@ edgeOrderOnFaces()
             }
 #endif
 
-            PEdge newEdge = f->edge(i);
+            auto newEdge = f->edge(i);
 
             f->setEdge(i, f->edge(j));
             f->setEdge(j, newEdge);
@@ -330,7 +330,7 @@ addOne(PVertex p)
   // Mark faces visible from p
   bool vis = false;
 
-  PFace f = faces_;
+  auto f = faces_;
   if (! f) return false;
 
   do {
@@ -360,13 +360,13 @@ addOne(PVertex p)
 
   // Mark edges in interior of visible region for deletion.
   // Erect a new face based on each border edge.
-  PEdge e = edges_;
+  auto e = edges_;
 
   do {
-    PEdge e1 = e->next;
+    auto e1 = e->next;
 
-    PFace lf = e->leftFace ();
-    PFace rf = e->rightFace();
+    auto lf = e->leftFace ();
+    auto rf = e->rightFace();
 
     if (lf && rf) {
       if      (lf->isVisible() && rf->isVisible())
@@ -410,7 +410,7 @@ makeConeFace(PEdge e, PVertex p)
   }
 
   /* Make the new face. */
-  PFace new_face = makeFace();
+  auto new_face = makeFace();
 
   new_face->setEdge(0, e);
   new_face->setEdge(1, new_edge[0]);
@@ -449,8 +449,8 @@ makeCcw(PFace f, PEdge e, PVertex p)
 {
   PFace fv; /* The visible face adjacent to e */
 
-  PFace lf = e->leftFace ();
-  PFace rf = e->rightFace();
+  auto lf = e->leftFace ();
+  auto rf = e->rightFace();
 
   if (lf && lf->isVisible())
     fv = lf;
@@ -524,7 +524,7 @@ dumpPS(const char *filename)
 
   // Vertices.
   if (vertices_) {
-    PVertex v = vertices_;
+    auto v = vertices_;
 
     do {
       if (v->isProcessed()) numV++;
@@ -547,7 +547,7 @@ dumpPS(const char *filename)
 
   // Faces. (visible faces only)
   if (faces_) {
-    PFace f = faces_;
+    auto f = faces_;
 
     do {
       ++numF;
@@ -600,7 +600,7 @@ dumpPS(const char *filename)
 
   // Edges.
   if (edges_) {
-    PEdge e = edges_;
+    auto e = edges_;
 
     do {
       numE++;
@@ -628,7 +628,7 @@ getRange(double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, d
   /*-- find X min & max --*/
   if (! vertices_) return;
 
-  PVertex v = vertices_;
+  auto v = vertices_;
 
   *xmin = v->x(), *xmax = *xmin;
   *ymin = v->y(), *ymax = *ymin;
@@ -659,7 +659,9 @@ int
 CQChartsHull3D::
 volumeSign(PFace f, PVertex p)
 {
-  PVertex fv1 = f->vertex(0), fv2 = f->vertex(1), fv3 = f->vertex(2);
+  auto fv1 = f->vertex(0);
+  auto fv2 = f->vertex(1);
+  auto fv3 = f->vertex(2);
 
   double ax = fv1->x() - p->x(), ay = fv1->y() - p->y(), az = fv1->z() - p->z();
   double bx = fv2->x() - p->x(), by = fv2->y() - p->y(), bz = fv2->z() - p->z();
@@ -682,7 +684,7 @@ CQChartsHull3D::PFace
 CQChartsHull3D::
 makeFace()
 {
-  PFace f = new Face;
+  auto f = new Face;
 
   f->addTo(&faces_);
 
@@ -717,7 +719,7 @@ makeFace(PVertex v0, PVertex v1, PVertex v2, PFace fold)
 
   /* Create face for triangle. */
 
-  PFace f = makeFace();
+  auto f = makeFace();
 
   f->setEdge  (0, e0); f->setEdge  (1, e1); f->setEdge  (2, e2);
   f->setVertex(0, v0); f->setVertex(1, v1); f->setVertex(2, v2);
@@ -738,7 +740,7 @@ CQChartsHull3D::PEdge
 CQChartsHull3D::
 makeEdge()
 {
-  PEdge e = new Edge;
+  auto e = new Edge;
 
   e->addTo(&edges_);
 
@@ -774,11 +776,11 @@ cleanEdges()
 
   /* Integrate the new face's into the data structure. */
   /* Check every edge. */
-  PEdge e = edges_;
+  auto e = edges_;
 
   do {
     if (e->coneFace()) {
-      PFace lf = e->leftFace();
+      auto lf = e->leftFace();
 
       if (lf && lf->isVisible())
         e->setLeftFace(e->coneFace());
@@ -806,7 +808,7 @@ cleanEdges()
 
   do {
     if (e->isRemoved()) {
-      PEdge t = e;
+      auto t = e;
 
       e = e->next;
 
@@ -844,7 +846,7 @@ cleanFaces()
 
   do {
     if (f->isVisible()) {
-      PFace t = f;
+      auto t = f;
 
       f = f->next;
 
@@ -872,7 +874,7 @@ cleanVertices(PVertex *pvnext)
   if (! edges_) return;
 
   // Mark all vertices incident to some undeleted edge as on the hull.
-  PEdge e = edges_;
+  auto e = edges_;
 
   do {
     e->start()->setOnHull(true);
@@ -902,7 +904,7 @@ cleanVertices(PVertex *pvnext)
 
     do {
       if (v->isProcessed() && ! v->onHull()) {
-        PVertex t = v;
+        auto t = v;
 
         v = v->next;
 
@@ -982,7 +984,7 @@ checks()
 
   uint numV = 0;
 
-  PVertex v = vertices_;
+  auto v = vertices_;
 
   if (v) {
     do {
@@ -994,7 +996,7 @@ checks()
 
   uint numE = 0;
 
-  PEdge e = edges_;
+  auto e = edges_;
 
   if (e) {
     do {
@@ -1006,7 +1008,7 @@ checks()
 
   uint numF = 0;
 
-  PFace f = faces_;
+  auto f = faces_;
 
   if (f) {
     do {
@@ -1032,11 +1034,11 @@ void
 CQChartsHull3D::
 consistency()
 {
-  PEdge e = edges_;
+  auto e = edges_;
 
   do {
     /* find index of endpoint[0] in adjacent face[0] */
-    PFace lf = e->leftFace();
+    auto lf = e->leftFace();
 
     int i = 0;
 
@@ -1044,7 +1046,7 @@ consistency()
       ++i;
 
     /* find index of endpoint[0] in adjacent face[1] */
-    PFace rf = e->rightFace();
+    auto rf = e->rightFace();
 
     int j = 0;
 
@@ -1085,10 +1087,10 @@ convexity()
 {
   if (! faces_) return;
 
-  PFace f = faces_;
+  auto f = faces_;
 
   do {
-    PVertex v = vertices_;
+    auto v = vertices_;
 
     do {
       if (v->isProcessed()) {
@@ -1167,7 +1169,7 @@ void
 CQChartsHull3D::
 printVertices()
 {
-  PVertex temp = vertices_;
+  auto temp = vertices_;
 
   fprintf(stderr, "Vertex List\n");
 
@@ -1194,7 +1196,7 @@ printEdges()
 {
   if (! edges_) return;
 
-  PEdge temp = edges_;
+  auto temp = edges_;
 
   fprintf(stderr, "Edge List\n");
 
@@ -1227,7 +1229,7 @@ printFaces()
 {
   if (! faces_) return;
 
-  PFace temp = faces_;
+  auto temp = faces_;
 
   fprintf(stderr, "Face List\n");
 
@@ -1263,14 +1265,14 @@ CQChartsHull3D::
 checkEndpts()
 {
   if (faces_) {
-    PFace fstart = faces_;
+    auto fstart = faces_;
 
     bool error = false;
 
     do {
       for (int i = 0; i < 3; ++i) {
-        PVertex v = faces_->vertex(i);
-        PEdge   e = faces_->edge(i);
+        auto v = faces_->vertex(i);
+        auto e = faces_->edge(i);
 
         if (v != e->start() && v != e->end()) {
           error = true;

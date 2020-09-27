@@ -61,7 +61,7 @@ setValue(const QString &str)
   auto parseChar = [&]() {
     parse.skipSpace();
 
-    QChar c = parse.getChar();
+    auto c = parse.getChar();
 
     parse.skipSpace();
 
@@ -93,7 +93,7 @@ setValue(const QString &str)
   bool valid = true;
 
   while (! parse.eof()) {
-    QChar c = parseChar();
+    auto c = parseChar();
 
     if      (c == 'M') {
       QPointF p;

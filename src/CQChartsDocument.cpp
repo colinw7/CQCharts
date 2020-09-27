@@ -22,10 +22,10 @@ anchorSlot(const QUrl &url)
 {
   QString chartsPrefix("charts://");
 
-  QString str = url.toString();
+  auto str = url.toString();
 
   if (str.startsWith(chartsPrefix)) {
-    QString str1 = str.mid(chartsPrefix.length());
+    auto str1 = str.mid(chartsPrefix.length());
 
     emit linkClicked(str1);
   }

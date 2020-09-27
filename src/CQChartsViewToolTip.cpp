@@ -59,7 +59,7 @@ bool
 CQChartsViewToolTip::
 showTip(const QPoint &gpos)
 {
-  QPoint p = view_->mapFromGlobal(gpos);
+  auto p = view_->mapFromGlobal(gpos);
 
   auto wpos = view_->pixelToWindow(Point(p.x(), p.y()));
 

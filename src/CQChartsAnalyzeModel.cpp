@@ -128,7 +128,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   NameSet requiredInvalid;
 
-  IColumnUsed columnUsed1 = columnUsed;
+  auto columnUsed1 = columnUsed;
 
   for (const auto &parameter : type->parameters()) {
     if (! parameter->isColumn())

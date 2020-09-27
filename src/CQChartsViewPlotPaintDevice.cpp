@@ -285,7 +285,7 @@ drawEllipse(const BBox &bbox, const Angle &a)
 {
   auto pbbox = windowToPixel(bbox);
 
-  QRectF prect = pbbox.qrect();
+  auto prect = pbbox.qrect();
   if (! prect.isValid()) return;
 
   if (handDrawn_) {
@@ -323,7 +323,7 @@ drawArc(const BBox &rect, const Angle &a1, const Angle &a2)
 {
   auto pbbox = windowToPixel(bbox);
 
-  QRectF prect = pbbox.qrect();
+  auto prect = pbbox.qrect();
   if (! prect.isValid()) return;
 
   if (handDrawn_)
@@ -443,7 +443,7 @@ drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch)
     pbbox1 = pbbox;
   }
 
-  QImage qimage = image.sizedImage(int(w), int(h));
+  auto qimage = image.sizedImage(int(w), int(h));
 
   if (handDrawn_)
     hdPainter_->drawImage(pbbox1.qrect(), qimage);
@@ -483,7 +483,7 @@ setTransformRotate(const Point &p, double angle)
 {
   auto p1 = windowToPixel(p);
 
-  QTransform t = painter_->transform();
+  auto t = painter_->transform();
 
   t.translate(p1.x, p1.y);
   t.rotate(-angle);

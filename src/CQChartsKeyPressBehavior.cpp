@@ -38,7 +38,7 @@ setValue(const QString &str)
 {
   Type type = Type::NONE;
 
-  QString lstr = str.toLower();
+  auto lstr = str.toLower();
 
   if      (lstr == "show"  ) type = Type::SHOW;
   else if (lstr == "select") type = Type::SELECT;

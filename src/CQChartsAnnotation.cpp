@@ -321,7 +321,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path, "selectable", "selectable", "Is selectable", true);
   addProp(path, "editable"  , "editable"  , "Is editable"  , true);
 
-  QString coloringPath = path + "/coloring";
+  auto coloringPath = path + "/coloring";
 
   addProp(coloringPath, "disabledLighter" , "disabledLighter" , "Ligher when disabled" , true);
   addProp(coloringPath, "uncheckedLighter", "uncheckedLighter", "Ligher when unchecked", true);
@@ -801,7 +801,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -1041,7 +1041,7 @@ void
 CQChartsRectangleAnnotation::
 setRectangle(const Position &start, const Position &end)
 {
-  Rect rectangle = CQChartsViewPlotObj::makeRect(view(), plot(), start, end);
+  auto rectangle = CQChartsViewPlotObj::makeRect(view(), plot(), start, end);
 
   setRectangle(rectangle);
 }
@@ -1207,7 +1207,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -1417,7 +1417,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -1604,7 +1604,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -1807,7 +1807,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -2085,7 +2085,7 @@ CQChartsTextAnnotation::
 rectToBBox()
 {
   if (rectangle().isSet()) {
-    Rect rect = this->rectangleValue();
+    auto rect = this->rectangleValue();
 
     if (plot())
       setAnnotationBBox(plot()->rectToPlot(rect));
@@ -2115,14 +2115,14 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addProp(path1, "position" , "position" , "Text origin");
   addProp(path1, "rectangle", "rectangle", "Text bounding box");
 
-  QString textPath = path1 + "/text";
+  auto textPath = path1 + "/text";
 
   addProp(textPath, "textStr", "string", "Text string");
 
@@ -2150,7 +2150,7 @@ CQChartsTextAnnotation::
 calcTextSize(Size &psize, Size &wsize) const
 {
   // get font
-  QFont font = calcFont(textFont());
+  auto font = calcFont(textFont());
 
   // get text size (pixel)
   CQChartsTextOptions textOptions;
@@ -2629,7 +2629,7 @@ CQChartsImageAnnotation::
 rectToBBox()
 {
   if (rectangle().isSet()) {
-    Rect rect = this->rectangleValue();
+    auto rect = this->rectangleValue();
 
     if (plot())
       setAnnotationBBox(plot()->rectToPlot(rect));
@@ -2677,7 +2677,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -2876,11 +2876,11 @@ updateDisabledImage(const DisabledImageType &type)
     int iw = image.width ();
     int ih = image.height();
 
-    QImage disabledImage = CQChartsUtil::initImage(QSize(iw, ih));
+    auto disabledImage = CQChartsUtil::initImage(QSize(iw, ih));
 
     for (int y = 0; y < ih; ++y) {
       for (int x = 0; x < iw; ++x) {
-        QRgb rgba = image.pixel(x, y);
+        auto rgba = image.pixel(x, y);
 
         int r = qRed  (rgba);
         int g = qGreen(rgba);
@@ -3054,7 +3054,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -3063,13 +3063,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "end"        , "", "Arrow end point");
   addProp(path1, "endObjRef"  , "", "Arrow end object reference");
 
-  QString linePath = path1 + "/line";
+  auto linePath = path1 + "/line";
 
   addArrowStyleProp(linePath, "lineWidth", "width", "Arrow connecting line width");
 
   addArrowStyleProp(linePath, "rectilinear", "rectilinear", "Rectilinear line");
 
-  QString frontHeadPath = path1 + "/frontHead";
+  auto frontHeadPath = path1 + "/frontHead";
 
   addArrowProp     (frontHeadPath, "frontVisible"  , "visible",
                     "Arrow front head visible", /*hidden*/true);
@@ -3084,7 +3084,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
                     "Arrow front head is drawn using lines", /*hidden*/true);
 
-  QString tailHeadPath = path1 + "/tailHead";
+  auto tailHeadPath = path1 + "/tailHead";
 
   addArrowProp     (tailHeadPath, "tailVisible"  , "visible",
                     "Arrow tail head visible", /*hidden*/true);
@@ -3099,13 +3099,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
                     "Arrow tail head is drawn using lines", /*hidden*/true);
 
-  QString fillPath = path1 + "/fill";
+  auto fillPath = path1 + "/fill";
 
   addArrowStyleProp(fillPath, "filled"   , "visible", "Arrow fill visible");
   addArrowStyleProp(fillPath, "fillColor", "color"  , "Arrow fill color");
   addArrowStyleProp(fillPath, "fillAlpha", "alpha"  , "Arrow fill alpha");
 
-  QString strokePath = path1 + "/stroke";
+  auto strokePath = path1 + "/stroke";
 
   addArrowStyleProp(strokePath, "stroked"    , "visible", "Arrow stroke visible");
   addArrowStyleProp(strokePath, "strokeColor", "color"  , "Arrow stroke color");
@@ -3482,25 +3482,25 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addProp(path1, "position", "", "Point position");
 
-  QString symbolPath = path1 + "/symbol";
+  auto symbolPath = path1 + "/symbol";
 
   addProp(symbolPath, "symbolType", "type", "Point symbol type");
   addProp(symbolPath, "symbolSize", "size", "Point symbol size");
 
-  QString fillPath = path1 + "/fill";
+  auto fillPath = path1 + "/fill";
 
   addStyleProp(fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
   addStyleProp(fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
   addStyleProp(fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
   addStyleProp(fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern");
 
-  QString strokePath = path1 + "/stroke";
+  auto strokePath = path1 + "/stroke";
 
   addStyleProp(strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
   addStyleProp(strokePath, "symbolStrokeColor", "color"  , "Point symbol stroke color");
@@ -3700,7 +3700,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -3905,7 +3905,7 @@ void
 CQChartsAxisAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -4062,13 +4062,13 @@ void
 CQChartsKeyAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addStrokeProperties(model, path1 + "/stroke");
 
-  QString keyPath = path1 + "/key";
+  auto keyPath = path1 + "/key";
 
   key_->addProperties(model, keyPath, "");
 
@@ -4247,7 +4247,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -4364,8 +4364,8 @@ draw(PaintDevice *device)
 
     fitData.calc(poly, 3);
 
-    Point p1 = device->windowToPixel(Point(xrange_.min(), yrange_.min()));
-    Point p2 = device->windowToPixel(Point(xrange_.max(), yrange_.max()));
+    auto p1 = device->windowToPixel(Point(xrange_.min(), yrange_.min()));
+    auto p2 = device->windowToPixel(Point(xrange_.max(), yrange_.max()));
 
     double dx = (p2.x - p1.x)/100.0;
 
@@ -4526,7 +4526,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
     return &(model->addProperty(path, density_, name, alias)->setDesc(desc));
   };
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -4696,13 +4696,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addProp(path1, "position", "position", "Text origin");
 
-  QString textPath = path1 + "/text";
+  auto textPath = path1 + "/text";
 
   addProp(textPath, "textStr", "string", "Text string");
 
@@ -4768,7 +4768,7 @@ draw(PaintDevice *device)
   if (device->isInteractive()) {
     auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
-    QImage img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
+    auto img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
 
     QStylePainter spainter(&img, view());
 
@@ -4812,7 +4812,7 @@ draw(PaintDevice *device)
 
     spainter.drawControl(QStyle::CE_PushButton, opt);
 
-    QPointF p = prect_.topLeft();
+    auto p = prect_.topLeft();
 
     painter->painter()->drawImage(p.x(), p.y(), img);
   }
@@ -4836,7 +4836,7 @@ QRect
 CQChartsButtonAnnotation::
 calcPixelRect() const
 {
-  QFont font = calcFont(textFont());
+  auto font = calcFont(textFont());
 
   QFontMetrics fm(font);
 
@@ -5042,7 +5042,7 @@ CQChartsWidgetAnnotation::
 rectToBBox()
 {
   if (rectangle().isSet()) {
-    Rect rect = this->rectangleValue();
+    auto rect = this->rectangleValue();
 
     if (plot())
       setAnnotationBBox(plot()->rectToPlot(rect));
@@ -5123,7 +5123,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 

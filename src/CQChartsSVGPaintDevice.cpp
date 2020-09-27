@@ -28,7 +28,7 @@ restore()
 {
   assert(! dataStack_.empty());
 
-  Data data = dataStack_.back();
+  auto data = dataStack_.back();
 
   dataStack_.pop_back();
 
@@ -380,7 +380,7 @@ drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool /*stretch*/)
 
   auto pw = pixelToWindow(Point(px, py));
 
-  QImage qimage = image.sizedImage(int(pbbox.getWidth()), int(pbbox.getHeight()));
+  auto qimage = image.sizedImage(int(pbbox.getWidth()), int(pbbox.getHeight()));
 
   drawImage(pw, qimage);
 }
@@ -406,7 +406,7 @@ drawImage(const Point &p, const QImage &image)
 
   std::vector<unsigned char> buffer;
 
-  QByteArray ba64 = ba.toBase64();
+  auto ba64 = ba.toBase64();
 
   *os_ << ba64.constData();
 
@@ -495,7 +495,7 @@ void
 CQChartsSVGPaintDevice::
 writeFont() const
 {
-  QString styleName = data_.font.styleName();
+  auto styleName = data_.font.styleName();
 
   if (! styleName.length())
     styleName = "normal";

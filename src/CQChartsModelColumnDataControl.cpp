@@ -226,7 +226,7 @@ applySlot()
   //--
 
   // set name
-  QString nameStr = nameEdit_->text();
+  auto nameStr = nameEdit_->text();
 
   if (nameStr.length()) {
     if (! model->setHeaderData(icolumn, Qt::Horizontal, nameStr, Qt::DisplayRole)) {
@@ -267,7 +267,7 @@ applySlot()
   CQChartsNameValues nameValues;
 
   for (const auto &paramEdit : paramEdits_) {
-    QString name = paramEdit.label->text();
+    auto name = paramEdit.label->text();
 
     const auto *param = typeData->getParam(name);
 
@@ -337,7 +337,7 @@ setColumnData(int column)
   //---
 
   // update column name
-  QString headerStr = model->headerData(column, Qt::Horizontal).toString();
+  auto headerStr = model->headerData(column, Qt::Horizontal).toString();
 
   nameEdit_->setText(headerStr);
 

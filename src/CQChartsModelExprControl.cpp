@@ -218,7 +218,7 @@ applySlot()
   CQChartsColumn column;
 
 #if 0
-  QString columnStr = columnEdit_->text();
+  auto columnStr = columnEdit_->text();
 
   if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
     bool ok;
@@ -242,7 +242,7 @@ applySlot()
   // apply function
   int icolumn1 = column.column();
 
-  QString expr = valueEdit_->text().simplified();
+  auto expr = valueEdit_->text().simplified();
 
   if (expr.length()) {
     icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
@@ -261,7 +261,7 @@ applySlot()
     }
 
     // set name
-    QString nameStr = nameEdit_->text();
+    auto nameStr = nameEdit_->text();
 
     if (nameStr.length())
       model->setHeaderData(icolumn1, Qt::Horizontal, nameStr, Qt::DisplayRole);
@@ -272,7 +272,7 @@ applySlot()
     CQChartsColumn column1(icolumn1);
 
 #if 0
-    QString typeStr = typeEdit_->text();
+    auto typeStr = typeEdit_->text();
 
     if (typeStr.length()) {
       if (! CQChartsModelUtil::setColumnTypeStr(charts, model.data(), column1, typeStr)) {

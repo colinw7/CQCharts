@@ -398,7 +398,7 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+  auto separator = (this->separator().length() ? this->separator()[0] : QChar('/'));
 
   auto path1 = pathData.pathStrs[0];
 
@@ -1132,8 +1132,8 @@ execDrawBackground(PaintDevice *device) const
   // calc text size
   auto po = windowToPixel(Point(0.0, 1.0));
 
-  double pxs = windowToPixelWidth (scale());
-  double pys = windowToPixelHeight(scale());
+  auto pxs = windowToPixelWidth (scale());
+  auto pys = windowToPixelHeight(scale());
 
   double xts = maxLen()*factor_*pxs;
   double yts = maxLen()*factor_*pys;
@@ -1269,7 +1269,7 @@ execDrawBackground(PaintDevice *device) const
         connected = ! CMathUtil::isZero(value);
 
       if (! connected) {
-        BBox cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
+        auto cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 

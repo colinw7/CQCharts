@@ -53,7 +53,7 @@ bool
 CQChartsTitleLocation::
 decodeString(const QString &str, Type &type)
 {
-  QString ustr = str.toUpper().replace(' ', '_');
+  auto ustr = str.toUpper().replace(' ', '_');
 
   if      (ustr == "TOP"               ) type = Type::TOP;
   else if (ustr == "CENTER"            ) type = Type::CENTER;

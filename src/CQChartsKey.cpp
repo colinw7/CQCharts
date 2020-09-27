@@ -237,7 +237,7 @@ doLayout()
 
   //----
 
-  QFont font = view()->viewFont(textFont());
+  auto font = view()->viewFont(textFont());
 
   QFontMetricsF fm(font);
 
@@ -288,7 +288,7 @@ doLayout()
     for (int i = 0; i < numPlots_; ++i) {
       auto *plot = view()->plot(i);
 
-      QString name = plot->keyText();
+      auto name = plot->keyText();
 
       double tw = fm.width(name) + bs + xlm + xrm;
 
@@ -350,8 +350,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // header text
-  QString headerPath     = path + "/header";
-  QString headerTextPath = headerPath + "/text";
+  auto headerPath     = path + "/header";
+  auto headerTextPath = headerPath + "/text";
 
   auto addHeaderProp = [&](const QString &name, const QString &alias, const QString &desc) {
     return &(model->addProperty(headerTextPath, this, name, alias)->
@@ -388,7 +388,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // key text
-  QString textPath = path + "/text";
+  auto textPath = path + "/text";
 
   auto addTextProp = [&](const QString &name, const QString &alias, const QString &desc) {
     return &(model->addProperty(textPath, this, name, alias)->setDesc("Key text " + desc));
@@ -506,7 +506,7 @@ draw(PaintDevice *device) const
 
     device->setPen(interpTextColor(ColorInd()));
 
-    QString name = plot->keyText();
+    auto name = plot->keyText();
 
     double px2 = px1 + bs + xrm;
 
@@ -560,7 +560,7 @@ void
 CQChartsViewKey::
 drawCheckBox(PaintDevice *device, double x, double y, int bs, bool checked) const
 {
-  QImage cimage = CQChartsUtil::initImage(QSize(bs, bs));
+  auto cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
   cimage.fill(QColor(0, 0, 0, 0));
 
@@ -1002,7 +1002,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  QString scrollPath = path + "/scroll";
+  auto scrollPath = path + "/scroll";
 
   auto addScrollProp = [&](const QString &name, const QString &alias, const QString &desc) {
     model->addProperty(scrollPath, this, name, alias)->setDesc(desc);
@@ -1014,8 +1014,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // header text
-  QString headerPath     = path + "/header";
-  QString headerTextPath = headerPath + "/text";
+  auto headerPath     = path + "/header";
+  auto headerTextPath = headerPath + "/text";
 
   auto addHeaderProp = [&](const QString &name, const QString &alias, const QString &desc) {
     return &(model->addProperty(headerTextPath, this, name, alias)->
@@ -1052,7 +1052,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   //---
 
   // key text
-  QString textPath = path + "/text";
+  auto textPath = path + "/text";
 
   auto addTextProp = [&](const QString &name, const QString &alias, const QString &desc) {
     return &(model->addProperty(textPath, this, name, alias)->setDesc("Key text " + desc));
@@ -1224,7 +1224,7 @@ doLayout()
     textOptions.html = isHeaderTextHtml();
 
     // get font
-    QFont font = view()->plotFont(plot(), headerTextFont());
+    auto font = view()->plotFont(plot(), headerTextFont());
 
     // get text size
     auto tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
@@ -1299,8 +1299,8 @@ doLayout()
   double maxPixelWidth  = plotPixelRect.getWidth ()*0.8;
   double maxPixelHeight = plotPixelRect.getHeight()*0.8;
 
-  double pixelWidth  = plot()->windowToPixelWidth (layoutData_.fullSize.width ());
-  double pixelHeight = plot()->windowToPixelHeight(layoutData_.fullSize.height());
+  auto pixelWidth  = plot()->windowToPixelWidth (layoutData_.fullSize.width ());
+  auto pixelHeight = plot()->windowToPixelHeight(layoutData_.fullSize.height());
 
   layoutData_.pixelWidthExceeded  = (pixelWidth  > maxPixelWidth );
   layoutData_.pixelHeightExceeded = (pixelHeight > maxPixelHeight);
@@ -1747,7 +1747,7 @@ draw(CQChartsPaintDevice *device) const
   sx_ = 0.0;
   sy_ = 0.0;
 
-  double phh = plot()->windowToPixelHeight(layoutData_.headerHeight);
+  auto phh = plot()->windowToPixelHeight(layoutData_.headerHeight);
 
   double vspw = 0.0;
   double hsph = 0.0;
@@ -1815,8 +1815,8 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // update scroll bar
-    int pageStep  = (int) plot()->windowToPixelWidth(sw - layoutData_.vbarWidth);
-    int fullWidth = (int) plot()->windowToPixelWidth(layoutData_.fullSize.width());
+    auto pageStep  = (int) plot()->windowToPixelWidth(sw - layoutData_.vbarWidth);
+    auto fullWidth = (int) plot()->windowToPixelWidth(layoutData_.fullSize.width());
 
     if (scrollData_.hbar->pageStep() != pageStep)
       scrollData_.hbar->setPageStep(pageStep);
@@ -1901,7 +1901,7 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // get font
-    QFont font = view()->plotFont(plot(), headerTextFont());
+    auto font = view()->plotFont(plot(), headerTextFont());
 
     device->setFont(font);
 
@@ -1910,7 +1910,7 @@ draw(CQChartsPaintDevice *device) const
     // get key top left, width (pixels), margins
     auto p = plot()->windowToPixel(Point(x, y)); // top left
 
-    double pw = plot()->windowToPixelWidth(sw);
+    auto pw = plot()->windowToPixelWidth(sw);
 
     //---
 
@@ -2403,14 +2403,14 @@ size() const
 {
   auto *plot = key_->plot();
 
-  QFont font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = plot->view()->plotFont(plot, key_->textFont());
 
   QFontMetricsF fm(font);
 
   double clipLength = plot->lengthPixelWidth(key_->textClipLength());
   auto   clipElide  = key_->textClipElide();
 
-  QString text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength, clipElide);
+  auto text = CQChartsDrawUtil::clipTextToLength(text_, font, clipLength, clipElide);
 
   double w = fm.width(text);
   double h = fm.height();
@@ -2495,7 +2495,7 @@ size() const
 {
   auto *plot = key_->plot();
 
-  QFont font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = plot->view()->plotFont(plot, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -2632,7 +2632,7 @@ size() const
 {
   auto *plot = key_->plot();
 
-  QFont font = plot->view()->plotFont(plot, key_->textFont());
+  auto font = plot->view()->plotFont(plot, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -2719,7 +2719,7 @@ CQChartsGeom::Size
 CQChartsGradientKeyItem::
 size() const
 {
-  QFont font = plot_->view()->plotFont(plot_, key_->textFont());
+  auto font = plot_->view()->plotFont(plot_, key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -2821,7 +2821,7 @@ draw(PaintDevice *device, const BBox &rect) const
   auto drawTextLabel = [&](const Point &p, int n) {
     auto p1 = plot_->pixelToWindow(p);
 
-    QString text = QString("%1").arg(n);
+    auto text = QString("%1").arg(n);
 
     CQChartsTextOptions options;
 

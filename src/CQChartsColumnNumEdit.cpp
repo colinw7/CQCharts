@@ -156,9 +156,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
+  auto str = valueString(item, value, ok);
 
-  QFont font = option.font;
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);
@@ -184,7 +184,7 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  QString str = valueString(nullptr, value, ok);
+  auto str = valueString(nullptr, value, ok);
 
   return str;
 }
@@ -203,7 +203,7 @@ valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
     auto *plot = (item ? qobject_cast<CQChartsPlot *>(item->object()) : nullptr);
 
     if (plot) {
-      QString str1 = plot->columnHeaderName(CQChartsColumn(columnNum.column()));
+      auto str1 = plot->columnHeaderName(CQChartsColumn(columnNum.column()));
 
       if (str1.length())
         str += " (" + str1 + ")";

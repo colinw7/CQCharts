@@ -135,7 +135,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   //---
 
-  QString str = QString("%1 %2").
+  auto str = QString("%1 %2").
     arg(symbolData().type().toString()).arg(symbolData().size().toString());
 
   drawCenteredText(painter, str);
@@ -164,7 +164,7 @@ QString
 CQChartsSymbolDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsSymbolData>().toString();
+  auto str = value.value<CQChartsSymbolData>().toString();
 
   return str;
 }

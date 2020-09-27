@@ -563,11 +563,11 @@ addProperties()
   // vectors
   addProp("vectors", "vectors", "visible", "Vectors at points visible");
 
-  QString vectorLinePath = "vectors/line";
+  auto vectorLinePath = "vectors/line";
 
   addArrowStyleProp(vectorLinePath, "lineWidth", "width", "Vector arrow connecting line width");
 
-  QString vectorFrontHeadPath = "vectors/frontHead";
+  auto vectorFrontHeadPath = "vectors/frontHead";
 
 //addArrowProp     (vectorFrontHeadPath, "frontVisible"  , "visible",
 //                  "Vector arrow front head visible");
@@ -582,7 +582,7 @@ addProperties()
 //addArrowStyleProp(vectorFrontHeadPath, "frontLineEnds" , "line",
 //                  "Vector arrow front head back is drawn using lines");
 
-  QString vectorTailHeadPath = "vectors/tailHead";
+  auto vectorTailHeadPath = "vectors/tailHead";
 
 //addArrowProp     (vectorTailHeadPath, "tailVisible"  , "visible",
 //                  "Vector arrow tail head visible");
@@ -597,13 +597,13 @@ addProperties()
 //addArrowStyleProp(vectorTailHeadPath, "tailLineEnds" , "line",
 //                  "Vector arrow tail head back is drawn using lines");
 
-  QString vectorFillPath = "vectors/fill";
+  auto vectorFillPath = "vectors/fill";
 
   addArrowStyleProp(vectorFillPath, "filled"   , "visible", "Vector arrow fill visible");
   addArrowStyleProp(vectorFillPath, "fillColor", "color"  , "Vector arrow fill color");
   addArrowStyleProp(vectorFillPath, "fillAlpha", "alpha"  , "Vector arrow fill alpha");
 
-  QString vectorStrokePath = "vectors/stroke";
+  auto vectorStrokePath = "vectors/stroke";
 
   addArrowStyleProp(vectorStrokePath, "stroked"    , "visible", "Vector stroke visible");
   addArrowStyleProp(vectorStrokePath, "strokeColor", "color"  , "Vector stroke color");

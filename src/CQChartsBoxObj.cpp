@@ -48,18 +48,18 @@ addBoxProperties(PropertyModel *model, const QString &path, const QString &desc)
   addProp(path, "margin" , "", desc.length() ? desc + " outer margin" : "Outer margin");
   addProp(path, "padding", "", desc.length() ? desc + " inner padding" : "Inner padding");
 
-  QString bgPath = path + "/fill";
+  auto bgPath = path + "/fill";
 
-  QString fillDesc = (desc.length() ? desc + " fill" : "Fill");
+  auto fillDesc = (desc.length() ? desc + " fill" : "Fill");
 
   addStyleProp(bgPath, "filled"     , "visible", fillDesc + " visible");
   addStyleProp(bgPath, "fillColor"  , "color"  , fillDesc + " color");
   addStyleProp(bgPath, "fillAlpha"  , "alpha"  , fillDesc + " alpha");
   addStyleProp(bgPath, "fillPattern", "pattern", fillDesc + " pattern");
 
-  QString strokePath = path + "/stroke";
+  auto strokePath = path + "/stroke";
 
-  QString strokeDesc = (desc.length() ? desc + " stroke" : "Stroke");
+  auto strokeDesc = (desc.length() ? desc + " stroke" : "Stroke");
 
   addStyleProp(strokePath, "stroked"    , "visible", strokeDesc + " visible");
   addStyleProp(strokePath, "strokeColor", "color"  , strokeDesc + " color");
@@ -102,7 +102,7 @@ draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
 
   if (isFilled()) {
     // set pen and brush
-    PenBrush penBrush1 = penBrush;
+    auto penBrush1 = penBrush;
 
     penBrush1.pen = QPen(Qt::NoPen);
 
@@ -116,7 +116,7 @@ draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
 
   if (isStroked()) {
     // set pen and brush
-    PenBrush penBrush1 = penBrush;
+    auto penBrush1 = penBrush;
 
     penBrush1.brush = QBrush(Qt::NoBrush);
 

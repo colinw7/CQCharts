@@ -129,7 +129,7 @@ CQChartsRotatedTextBoxObj::
 bbox(const Point &pcenter, const QString &text, double angle, Qt::Alignment align,
      bool isRotated) const
 {
-  QFont font = calcFont(textFont());
+  auto font = calcFont(textFont());
 
   QFontMetricsF fm(font);
 

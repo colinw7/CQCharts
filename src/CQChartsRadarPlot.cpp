@@ -330,7 +330,7 @@ calcAnnotationBBox() const
 
     CQChartsPlotPaintDevice device(th, nullptr);
 
-    QFont font = view()->plotFont(this, textFont());
+    auto font = view()->plotFont(this, textFont());
 
     //---
 
@@ -355,10 +355,10 @@ calcAnnotationBBox() const
 
       bool ok;
 
-      QString name = modelHHeaderString(valueColumn, ok);
+      auto name = modelHHeaderString(valueColumn, ok);
 
       if (name.length()) {
-        Qt::Alignment align = alignForPosition(x, y);
+        auto align = alignForPosition(x, y);
 
         BBox tbbox =
           CQChartsDrawUtil::calcAlignedTextRect(&device, font, Point(x, y), name, align, 2, 2);
@@ -510,7 +510,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     // get column name (unique ?)
     bool ok;
 
-    QString name = modelHHeaderString(valueColumn, ok);
+    auto name = modelHHeaderString(valueColumn, ok);
 
     //---
 
@@ -563,7 +563,7 @@ bool
 CQChartsRadarPlot::
 columnValue(const ModelIndex &ind, double &value) const
 {
-  ColumnType columnType = columnValueType(ind.column());
+  auto columnType = columnValueType(ind.column());
 
   value = 1.0;
 
@@ -778,10 +778,10 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
           bool ok;
 
-          QString name = modelHHeaderString(valueColumn, ok);
+          auto name = modelHHeaderString(valueColumn, ok);
 
           if (name.length()) {
-            Qt::Alignment align = alignForPosition(x, y);
+            auto align = alignForPosition(x, y);
 
             // only contrast support (custom align, zero angle)
             CQChartsTextOptions options;
@@ -891,7 +891,7 @@ void
 CQChartsRadarObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 

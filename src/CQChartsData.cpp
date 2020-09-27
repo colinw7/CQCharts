@@ -828,7 +828,7 @@ nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible)
   visible  = true;
   type     = CQChartsArrowData::HeadType::STEALTH;
 
-  QString lstr = name.toLower();
+  auto lstr = name.toLower();
 
   if (lstr == "yes" || lstr == "true"  || lstr == "1") { visible = true ; return true; }
   if (lstr == "no"  || lstr == "false" || lstr == "0") { visible = false; return true; }

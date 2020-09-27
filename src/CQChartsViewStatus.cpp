@@ -271,7 +271,7 @@ void
 CQChartsViewStatusPos::
 posTextTypeAction(QAction *action)
 {
-  QString str = action->text();
+  auto str = action->text();
 
   if      (str == "Plot")
     status_->window()->view()->setPosTextType(CQChartsView::PosTextType::PLOT);

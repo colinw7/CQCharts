@@ -1681,8 +1681,8 @@ postDraw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  Symbol symbolType = this->symbolType();
-  Length symbolSize = this->symbolSize();
+  auto symbolType = this->symbolType();
+  auto symbolSize = this->symbolSize();
 
 //double sx, sy;
 //plot_->pixelSymbolSize(symbolSize, sx, sy);

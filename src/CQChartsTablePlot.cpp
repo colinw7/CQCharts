@@ -708,7 +708,7 @@ calcTableSize() const
 
         bool ok;
 
-        QString str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
+        auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
         if (! ok) continue;
 
         auto &data = tableData_.columnDataMap[c];
@@ -983,7 +983,7 @@ setModeSlot(bool b)
   auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
-  QString name = action->text();
+  auto name = action->text();
 
   for (const auto &mode : modes()) {
     if (modeName(mode) == name) {
@@ -1553,7 +1553,7 @@ createTableObjData() const
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
+        auto str = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
         if (! ok) continue;
 
         //---
@@ -1616,7 +1616,7 @@ createTableObjData() const
 
       bool ok;
 
-      QString str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
+      auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
       if (! ok) str = "";
 
       //---
@@ -1856,7 +1856,7 @@ QString
 CQChartsTableHeaderObj::
 calcTipId() const
 {
-  QString id = headerObjData_.str;
+  auto id = headerObjData_.str;
 
   if (! id.length())
     id = QString("%1").arg(headerObjData_.c.column());
@@ -1911,7 +1911,7 @@ bool
 CQChartsTableHeaderObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  BBox rect = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -1939,7 +1939,7 @@ QString
 CQChartsTableRowObj::
 calcTipId() const
 {
-  QString id = rowObjData_.str;
+  auto id = rowObjData_.str;
 
   if (! id.length())
     id = QString("%1").arg(rowObjData_.r);
@@ -1985,7 +1985,7 @@ bool
 CQChartsTableRowObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  BBox rect = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);
@@ -2014,7 +2014,7 @@ QString
 CQChartsTableCellObj::
 calcTipId() const
 {
-  QString id = cellObjData_.str;
+  auto id = cellObjData_.str;
 
   if (! id.length())
     id = QString("%1").arg(cellObjData_.ind.column().column());
@@ -2049,7 +2049,7 @@ draw(PaintDevice *device)
 
   //---
 
-  Color textColor = plot_->textColor();
+  auto textColor = plot_->textColor();
 
   auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
 
@@ -2103,7 +2103,7 @@ inside(const Point &p) const
 {
   if (! isVisible()) return false;
 
-  BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   return rect.inside(p);
 }
@@ -2112,7 +2112,7 @@ bool
 CQChartsTableCellObj::
 rectIntersect(const BBox &r, bool inside) const
 {
-  BBox rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto rect = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   if (inside)
     return r.inside(rect);

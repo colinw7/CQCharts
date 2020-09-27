@@ -265,16 +265,16 @@ addProperties()
 
   addAxisProp(ticksPath, "ticksDisplayed", "lines", "Axis major and/or minor ticks visible");
 
-  QString majorTicksPath = ticksPath + "/major";
-  QString minorTicksPath = ticksPath + "/minor";
+  auto majorTicksPath = ticksPath + "/major";
+  auto minorTicksPath = ticksPath + "/minor";
 
   addAxisProp(majorTicksPath, "majorTickLen", "length", "Axis major ticks pixel length");
   addAxisProp(minorTicksPath, "minorTickLen", "length", "Axis minor ticks pixel length");
 
   //---
 
-  QString ticksLabelPath     = ticksPath + "/label";
-  QString ticksLabelTextPath = ticksLabelPath + "/text";
+  auto ticksLabelPath     = ticksPath + "/label";
+  auto ticksLabelTextPath = ticksLabelPath + "/text";
 
   addAxisProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide",
               "Axis tick label text is auto hide");
@@ -305,7 +305,7 @@ addProperties()
   //---
 
   QString labelPath     = "axis/label";
-  QString labelTextPath = labelPath + "/text";
+  auto    labelTextPath = labelPath + "/text";
 
   addAxisStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                    "Axis label text style", true);
@@ -359,7 +359,7 @@ calcRange() const
   // create axes
   int ns = yColumns().count();
 
-  Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
+  auto adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   if (int(axes_.size()) != ns || adir_ != adir) {
     th->adir_ = adir;
@@ -483,7 +483,7 @@ calcRange() const
 
     bool ok;
 
-    QString name = modelHHeaderString(setColumn, ok);
+    auto name = modelHHeaderString(setColumn, ok);
 
     const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
@@ -615,9 +615,9 @@ createObjs(PlotObjs &objs) const
 
     bool ok;
 
-    QString xname = modelString(xModelInd, ok);
+    auto xname = modelString(xModelInd, ok);
 
-    BBox bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+    auto bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                      normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
     ColorInd is(i, n);
@@ -681,9 +681,9 @@ createObjs(PlotObjs &objs) const
 
       //bool ok;
 
-      //QString yname = modelHHeaderString(setColumn, ok);
+      //auto yname = modelHHeaderString(setColumn, ok);
 
-      //QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y);
+      //auto id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y);
 
       //pointObj->setId(id);
 
@@ -820,7 +820,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcAnnotationBBox");
 
-  QFont font = view()->plotFont(this, view()->font());
+  auto font = view()->plotFont(this, view()->font());
 
   QFontMetricsF fm(font);
 
@@ -917,7 +917,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
     //---
 
     // draw set label
-    QString label = axis->label().string();
+    auto label = axis->label().string();
 
     Point p;
 
@@ -1081,7 +1081,7 @@ calcId() const
 
   bool ok;
 
-  QString xname = plot()->modelString(xModelInd, ok);
+  auto xname = plot()->modelString(xModelInd, ok);
 
   return QString("%1:%2").arg(typeName()).arg(xname);
 }
@@ -1094,7 +1094,7 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelString(xModelInd, ok);
+  auto xname = plot_->modelString(xModelInd, ok);
 
   CQChartsTableTip tableTip;
 
@@ -1107,7 +1107,7 @@ calcTipId() const
 
     bool ok;
 
-    QString yname = plot_->modelHHeaderString(yColumn, ok);
+    auto yname = plot_->modelHHeaderString(yColumn, ok);
 
     tableTip.addTableRow(yname, poly_.point(j).y);
   }
@@ -1305,11 +1305,11 @@ calcId() const
 
   bool ok;
 
-  QString xname = plot_->modelString(xModelInd, ok);
+  auto xname = plot_->modelString(xModelInd, ok);
 
   const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  QString yname = plot_->modelHHeaderString(yColumn, ok);
+  auto yname = plot_->modelHHeaderString(yColumn, ok);
 
   return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
 }
@@ -1324,13 +1324,13 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelString(xModelInd, ok);
+  auto xname = plot_->modelString(xModelInd, ok);
 
   tableTip.addBoldLine(xname);
 
   const auto &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  QString yname = plot_->modelHHeaderString(yColumn, ok);
+  auto yname = plot_->modelHHeaderString(yColumn, ok);
 
   tableTip.addTableRow(yname, yval_);
 
@@ -1407,8 +1407,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  Symbol symbolType = plot_->symbolType();
-  Length symbolSize = plot_->symbolSize();
+  auto symbolType = plot_->symbolType();
+  auto symbolSize = plot_->symbolSize();
 
   double sx, sy;
 

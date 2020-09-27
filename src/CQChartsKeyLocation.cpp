@@ -39,7 +39,7 @@ bool
 CQChartsKeyLocation::
 decodeString(const QString &str, Type &type)
 {
-  QString ustr = str.toUpper().replace(' ', '_');
+  auto ustr = str.toUpper().replace(' ', '_');
 
   if      (ustr == "AUTO"              ) type = Type::AUTO;
   else if (ustr == "TOP_LEFT"          ) type = Type::TOP_LEFT;

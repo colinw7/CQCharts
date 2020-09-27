@@ -35,7 +35,7 @@ void
 CQChartsDelaunay::
 lowerFaces()
 {
-  PFace f = faces_;
+  auto f = faces_;
 
   uint numLower = 0; /* Total number of lower faces. */
 
@@ -63,22 +63,22 @@ calcVoronoi()
   //---
 
   // get center of circle for each face
-  PFace f = faces_;
+  auto f = faces_;
 
   do {
     if (f->isLower()) {
       double xc, yc, r;
 
       if (faceCenter(f, &xc, &yc, &r)) {
-        PVertex v = new Vertex(xc, yc, r);
+        auto v = new Vertex(xc, yc, r);
 
         f->setVoronoi(v);
 
         v->addTo(&vvertices_);
 
-        PVertex v1 = f->vertex(0);
-        PVertex v2 = f->vertex(1);
-        PVertex v3 = f->vertex(2);
+        auto v1 = f->vertex(0);
+        auto v2 = f->vertex(1);
+        auto v3 = f->vertex(2);
 
         v1->addVoronoi(v);
         v2->addVoronoi(v);
@@ -97,23 +97,23 @@ calcVoronoi()
     f->clearVoronoiEdges();
 
     // get center point
-    PVertex v = f->getVoronoi();
+    auto v = f->getVoronoi();
 
     if (v) {
       // get face edges
-      PEdge e1 = f->edge(0);
-      PEdge e2 = f->edge(1);
-      PEdge e3 = f->edge(2);
+      auto e1 = f->edge(0);
+      auto e2 = f->edge(1);
+      auto e3 = f->edge(2);
 
       // get face on other side of edge
-      PFace f1 = e1->otherFace(f);
-      PFace f2 = e2->otherFace(f);
-      PFace f3 = e3->otherFace(f);
+      auto f1 = e1->otherFace(f);
+      auto f2 = e2->otherFace(f);
+      auto f3 = e3->otherFace(f);
 
       // get center points of outside faces
-      PVertex v1 = (f1 ? f1->getVoronoi() : nullptr);
-      PVertex v2 = (f2 ? f2->getVoronoi() : nullptr);
-      PVertex v3 = (f3 ? f3->getVoronoi() : nullptr);
+      auto v1 = (f1 ? f1->getVoronoi() : nullptr);
+      auto v2 = (f2 ? f2->getVoronoi() : nullptr);
+      auto v3 = (f3 ? f3->getVoronoi() : nullptr);
 
       //----
 
@@ -122,7 +122,7 @@ calcVoronoi()
       if (! v2) { v2 = calcEdgePoint(f, v, e2); v2->addTo(&vvertices_); }
       if (! v3) { v3 = calcEdgePoint(f, v, e3); v3->addTo(&vvertices_); }
 
-      PEdge pe1 = new Edge(v, v1);
+      auto pe1 = new Edge(v, v1);
       pe1->setLeftFace(f1); pe1->setRightFace(f);
 
       f->addVoronoiEdge(pe1);
@@ -130,7 +130,7 @@ calcVoronoi()
 
       //--
 
-      PEdge pe2 = new Edge(v, v2);
+      auto pe2 = new Edge(v, v2);
       pe2->setLeftFace(f2); pe2->setRightFace(f);
 
       f->addVoronoiEdge(pe2);
@@ -138,7 +138,7 @@ calcVoronoi()
 
       //--
 
-      PEdge pe3 = new Edge(v, v3);
+      auto pe3 = new Edge(v, v3);
       pe3->setLeftFace(f3); pe3->setRightFace(f);
 
       f->addVoronoiEdge(pe3);
@@ -153,9 +153,9 @@ bool
 CQChartsDelaunay::
 faceCenter(PFace f, double *xc, double *yc, double *r)
 {
-  PVertex v1 = f->vertex(0);
-  PVertex v2 = f->vertex(1);
-  PVertex v3 = f->vertex(2);
+  auto v1 = f->vertex(0);
+  auto v2 = f->vertex(1);
+  auto v3 = f->vertex(2);
 
   double A = v2->x() - v1->x();
   double B = v2->y() - v1->y();
@@ -188,7 +188,8 @@ calcEdgePoint(PFace f, PVertex v, PEdge e)
 
   f->getCenter(&fx, &fy, &fz);
 
-  PVertex v1 = e->start(), v2 = e->end();
+  auto v1 = e->start();
+  auto v2 = e->end();
 
   double xe = (v1->x() + v2->x())/2, ye = (v1->y() + v2->y())/2;
 
@@ -215,7 +216,8 @@ bool
 CQChartsDelaunay::
 isLeft(double x, double y, PEdge e)
 {
-  PVertex v1 = e->start(), v2 = e->end();
+  auto v1 = e->start();
+  auto v2 = e->end();
 
   double area2 = (v1->x() - x)*(v2->y() - y) - (v2->x() - x)*(v1->y() - y);
 
@@ -229,9 +231,9 @@ double
 CQChartsDelaunay::
 normz(PFace f)
 {
-  PVertex a = f->vertex(0);
-  PVertex b = f->vertex(1);
-  PVertex c = f->vertex(2);
+  auto a = f->vertex(0);
+  auto b = f->vertex(1);
+  auto c = f->vertex(2);
 
   return (b->x() - a->x())*(c->y() - a->y()) - (b->y() - a->y())*(c->x() - a->x());
 }

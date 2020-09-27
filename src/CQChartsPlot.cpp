@@ -820,8 +820,8 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = device->encodeObjId(objId).toStdString();
+      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objStr = device->encodeObjId(objId).toStdString();
 
       if (imajor > 0)
         os << "\n";
@@ -952,8 +952,8 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = device->encodeObjId(objId).toStdString();
+      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objStr = device->encodeObjId(objId).toStdString();
 
       os << "\n";
       os << "function Charts_" << objStr << "(plot) {\n";
@@ -1054,8 +1054,8 @@ writeScript(ScriptPaintDevice *device) const
     if (! plotObj->isVisible()) continue;
 
     if (plotObj->detailHint() == PlotObj::DetailHint::MAJOR) {
-      QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = device->encodeObjId(objId).toStdString();
+      auto objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
+      auto objStr = device->encodeObjId(objId).toStdString();
 
       os << "  this." << objStr << ".draw();\n";
     }
@@ -1158,7 +1158,7 @@ void
 CQChartsPlot::
 writeSVG(SVGPaintDevice *device) const
 {
-  QString plotId = "plot_" + this->id();
+  auto plotId = "plot_" + this->id();
 
   SVGPaintDevice::GroupData groupData;
 
@@ -1191,7 +1191,7 @@ writeSVG(SVGPaintDevice *device) const
   }
 
   for (const auto &plotObj : plotObjects()) {
-    QString objId = QString("obj_") + plotId + "_" + plotObj->id();
+    auto objId = QString("obj_") + plotId + "_" + plotObj->id();
 
     SVGPaintDevice::GroupData objGroupData;
 
@@ -2010,10 +2010,10 @@ double
 CQChartsPlot::
 aspect() const
 {
-  BBox viewBBox = calcViewBBox();
+  auto viewBBox = calcViewBBox();
 
-  Point p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
-  Point p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
+  auto p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
+  auto p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
 
   if (p1.y == p2.y)
     return 1.0;
@@ -2491,7 +2491,7 @@ connectionStateStr() const
 
   if (isTabbed()) states += "tabbed";
 
-  QString stateStr = states.join("|");
+  auto stateStr = states.join("|");
 
   if (stateStr == "")
     stateStr = "none";
@@ -2730,8 +2730,8 @@ addBaseProperties()
 
   // plot box
   QString plotStyleStr       = "plotBox";
-  QString plotStyleFillStr   = plotStyleStr + "/fill";
-  QString plotStyleStrokeStr = plotStyleStr + "/stroke";
+  auto    plotStyleFillStr   = plotStyleStr + "/fill";
+  auto    plotStyleStrokeStr = plotStyleStr + "/stroke";
 
   addProp(plotStyleStr, "plotClip", "clip" , "Clip to plot bounding box");
 
@@ -2754,8 +2754,8 @@ addBaseProperties()
 
   // data box
   QString dataStyleStr       = "dataBox";
-  QString dataStyleFillStr   = dataStyleStr + "/fill";
-  QString dataStyleStrokeStr = dataStyleStr + "/stroke";
+  auto    dataStyleFillStr   = dataStyleStr + "/fill";
+  auto    dataStyleStrokeStr = dataStyleStr + "/stroke";
 
   addProp(dataStyleStr, "dataClip", "clip" , "Clip to data bounding box");
 
@@ -2778,8 +2778,8 @@ addBaseProperties()
 
   // fit box
   QString fitStyleStr       = "fitBox";
-  QString fitStyleFillStr   = fitStyleStr + "/fill";
-  QString fitStyleStrokeStr = fitStyleStr + "/stroke";
+  auto    fitStyleFillStr   = fitStyleStr + "/fill";
+  auto    fitStyleStrokeStr = fitStyleStr + "/stroke";
 
   addStyleProp(fitStyleFillStr, "fitFilled", "visible",
                "Fit background bounding box fill visible", true);
@@ -2884,12 +2884,12 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   //---
 
-  QString prefix1 = (descPrefix.length() ? descPrefix + " symbol" : "Symbol");
+  auto prefix1 = (descPrefix.length() ? descPrefix + " symbol" : "Symbol");
 
-  QString strokePath = path + "/stroke";
-  QString fillPath   = path + "/fill";
+  auto strokePath = path + "/stroke";
+  auto fillPath   = path + "/fill";
 
-  QString symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
+  auto symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
 
   addProp(path, symbolPrefix + "Type", "type", prefix1 + " type", hidden);
   addProp(path, symbolPrefix + "Size", "size", prefix1 + " size", hidden);
@@ -2940,7 +2940,7 @@ addLineProperties(const QString &path, const QString &prefix, const QString &des
 
   //---
 
-  QString prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
+  auto prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
 
   addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
   addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
@@ -2964,7 +2964,7 @@ addFillProperties(const QString &path, const QString &prefix, const QString &des
 
   //---
 
-  QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
+  auto prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
   addStyleProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  , hidden);
   addStyleProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  , hidden);
@@ -2987,7 +2987,7 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
 
   //---
 
-  QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
+  auto prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
   // style
   addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
@@ -3468,9 +3468,9 @@ threadTimerSlot()
 
   //---
 
-  UpdateState updateState = this->updateState();
-  UpdateState nextState   = UpdateState::INVALID;
-  bool        updateView  = false;
+  auto updateState = this->updateState();
+  auto nextState   = UpdateState::INVALID;
+  bool updateView  = false;
 
   {
   TryLockMutex lock(this, "threadTimerSlot");
@@ -3645,7 +3645,7 @@ calcNextState() const
 {
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  UpdateState nextState = UpdateState::INVALID;
+  auto nextState = UpdateState::INVALID;
 
   // check queued updates to determine required state
   if      (th->updatesData_.stateFlag[UpdateState::UPDATE_RANGE] > 0) {
@@ -3710,7 +3710,7 @@ setUpdateState(UpdateState state)
   if (debugUpdate_) {
     std::cerr << "State: " << id().toStdString() << ": ";
 
-    UpdateState updateState = this->updateState();
+    auto updateState = this->updateState();
 
     switch (updateState) {
       case UpdateState::CALC_RANGE:       std::cerr << "Calc Range\n"; break;
@@ -3905,7 +3905,7 @@ syncState()
   if (isOverlay() && ! isFirstPlot())
     return;
 
-  UpdateState updateState = this->updateState();
+  auto updateState = this->updateState();
 
   while (updateState == UpdateState::INVALID) {
     if (isInterrupt())
@@ -3956,7 +3956,7 @@ execWaitRange()
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitRange\n";
 
-  UpdateState updateState = this->updateState();
+  auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_RANGE) {
     if (updateData_.rangeThread.busy.load()) {
@@ -4074,7 +4074,7 @@ updatePlotObjs()
 
     //---
 
-    UpdateState updateState = this->updateState();
+    auto updateState = this->updateState();
 
     // if calc range still running then run update objects after finished
     if (updateState == UpdateState::CALC_RANGE) {
@@ -4165,7 +4165,7 @@ execWaitObjs()
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitObjs\n";
 
-  UpdateState updateState = this->updateState();
+  auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_OBJS) {
     if (updateData_.objsThread.busy.load()) {
@@ -4439,8 +4439,8 @@ applyDataRange(bool propagate)
 
             auto bbox2 = plot->calcDataRange(/*adjust*/false);
 
-            Range dataRange2 = Range(bbox2.getXMin(), dataRange1.bottom(),
-                                     bbox2.getXMax(), dataRange1.top   ());
+            auto dataRange2 = Range(bbox2.getXMin(), dataRange1.bottom(),
+                                    bbox2.getXMax(), dataRange1.top   ());
 
             plot->setDataRange(dataRange2, /*update*/false);
 
@@ -4469,8 +4469,8 @@ applyDataRange(bool propagate)
 
             auto bbox2 = plot->calcDataRange(/*adjust*/false);
 
-            Range dataRange2 = Range(dataRange1.left (), bbox2.getYMin(),
-                                     dataRange1.right(), bbox2.getYMax());
+            auto dataRange2 = Range(dataRange1.left (), bbox2.getYMin(),
+                                    dataRange1.right(), bbox2.getYMax());
 
             plot->setDataRange(dataRange2, /*update*/false);
 
@@ -4939,7 +4939,7 @@ columnHeaderName(const Column &column, bool tip) const
 
   bool ok;
 
-  QString str = (tip ? modelHHeaderTip(column, ok) : modelHHeaderString(column, ok));
+  auto str = (tip ? modelHHeaderTip(column, ok) : modelHHeaderString(column, ok));
   if (! ok) return "";
 
   return str;
@@ -5273,7 +5273,7 @@ getErrors(QStringList &strs)
 
   if (! errorData_.columnErrors.empty()) {
     for (const auto &error : errorData_.columnErrors) {
-      QString msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
+      auto msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
 
       strs << msg;
     }
@@ -5281,7 +5281,7 @@ getErrors(QStringList &strs)
 
   if (! errorData_.dataErrors.empty()) {
     for (const auto &error : errorData_.dataErrors) {
-      QString msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
+      auto msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
 
       strs << msg;
     }
@@ -5306,7 +5306,7 @@ addErrorsToWidget(QTextBrowser *text)
     html.h2("Column Errors");
 
     for (const auto &error : errorData_.columnErrors) {
-      QString msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
+      auto msg = QString("Column %1 : %2").arg(error.column.toString()).arg(error.msg);
 
       html.p(msg);
     }
@@ -5316,7 +5316,7 @@ addErrorsToWidget(QTextBrowser *text)
     html.h2("Data Errors");
 
     for (const auto &error : errorData_.dataErrors) {
-      QString msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
+      auto msg = QString("Ind %1 : %2").arg(error.ind.toString()).arg(error.msg);
 
       html.p(msg);
     }
@@ -8648,7 +8648,7 @@ updateDraw()
     {
       LockMutex lock(this, "draw::updateDraw");
 
-      UpdateState updateState = this->updateState();
+      auto updateState = this->updateState();
 
       if (updateState == UpdateState::CALC_RANGE)
         return;
@@ -8737,7 +8737,7 @@ execWaitDraw()
   if (debugUpdate_)
     std::cerr << "CQChartsPlot::execWaitDraw\n";
 
-  UpdateState updateState = this->updateState();
+  auto updateState = this->updateState();
 
   while (updateState == UpdateState::DRAW_OBJS) {
     if (updateData_.drawThread.busy.load()) {
@@ -8800,10 +8800,10 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
   //---
 
-  BBox viewBBox = calcViewBBox();
+  auto viewBBox = calcViewBBox();
 
-  Point p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
-  Point p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
+  auto p1 = view()->windowToPixel(Point(viewBBox.getXMin(), viewBBox.getYMin()));
+  auto p2 = view()->windowToPixel(Point(viewBBox.getXMax(), viewBBox.getYMax()));
 
   //---
 
@@ -11260,7 +11260,7 @@ plotControlUpdateSlot()
   QStringList filters;
 
   for (const auto &control : controls_) {
-    QString filter = control->filterStr(cmpStr);
+    auto filter = control->filterStr(cmpStr);
 
     if (filter.length())
       filters.push_back(filter);
@@ -11268,7 +11268,7 @@ plotControlUpdateSlot()
 
   QString combStr = "&&";
 
-  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
+  auto filterStr = filters.join(QString(" %1 ").arg(combStr));
 
   setVisibleFilterStr(filterStr);
 }
@@ -11700,7 +11700,7 @@ beginPaint(Buffer *buffer, QPainter *painter, const QRectF &rect) const
     return painter;
 
   // resize and clear
-  QRectF prect = (! rect.isValid() ? calcPlotPixelRect().qrect() : rect);
+  auto prect = (! rect.isValid() ? calcPlotPixelRect().qrect() : rect);
 
   auto *painter1 = buffer->beginPaint(painter, prect, view()->isAntiAlias());
 
@@ -12085,7 +12085,7 @@ QColor
 CQChartsPlot::
 interpColor(const Color &c, const ColorInd &ind) const
 {
-  Color c1 = c;
+  auto c1 = c;
 
   if (defaultPalette_.isValid())
     c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
@@ -12728,7 +12728,7 @@ QModelIndex
 CQChartsPlot::
 normalizedModelIndex(const ModelIndex &ind) const
 {
-  ModelIndex ind1 = ind;
+  auto ind1 = ind;
 
   if (! ind1.isNormalized())
     ind1 = normalizeIndex(ind1);
@@ -12936,7 +12936,7 @@ CQChartsPlot::
 modelValue(const ModelIndex &ind, int role, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -12954,7 +12954,7 @@ CQChartsPlot::
 modelValue(const ModelIndex &ind, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -13065,7 +13065,7 @@ CQChartsPlot::
 modelReal(const ModelIndex &ind, int role, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -13083,7 +13083,7 @@ CQChartsPlot::
 modelReal(const ModelIndex &ind, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -13137,7 +13137,7 @@ CQChartsPlot::
 modelInteger(const ModelIndex &ind, int role, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());
@@ -13155,7 +13155,7 @@ CQChartsPlot::
 modelInteger(const ModelIndex &ind, bool &ok) const
 {
   if (ind.column().isColumn() || ind.column().isCell()) {
-    Column c = ind.column();
+    auto c = ind.column();
 
     if (ind.column().isColumn())
       c.setColumnCol(ind.cellCol());

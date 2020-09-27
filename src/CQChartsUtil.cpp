@@ -153,7 +153,7 @@ QString formatReal(double r, const QString &fmt) {
     }
 
     // add commas to value to left of decimal point
-    QString rhs = res.mid(pos);
+    auto rhs = res.mid(pos);
 
     int ncomma = pos/3; // number of comma to add
 
@@ -546,8 +546,8 @@ void findStringCaseSplits(const QString &str, std::vector<int> &splits) {
     }
 
     if (i > 0) {
-      const QChar &c1 = str[i - 1];
-      const QChar &c2 = str[i];
+      const auto &c1 = str[i - 1];
+      const auto &c2 = str[i];
 
       if (c1.isLower() && c2.isUpper())
         splits.push_back(i);
@@ -1040,11 +1040,11 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
     strs.push_back(str);
   };
 
-  FormatData formatData1 = formatData;
+  auto formatData1 = formatData;
 
   //---
 
-  QString sstr = str.trimmed();
+  auto sstr = str.trimmed();
 
   if (! sstr.length()) { // empty
     addStr(sstr);
@@ -1130,7 +1130,7 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
   // split at best and measure
   int split = splits[bestInd];
 
-  QString str1 = sstr.mid(0, split).trimmed();
+  auto str1 = sstr.mid(0, split).trimmed();
 
   QString str2;
 
@@ -1368,7 +1368,7 @@ QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize)
 
   fs = CMathUtil::clamp(fs, minSize, maxSize);
 
-  QFont font1 = font;
+  auto font1 = font;
 
   if (fs > 0.0)
     font1.setPointSizeF(fs);
@@ -1405,11 +1405,11 @@ Point nearestRectPoint(const BBox &rect, const Point &pos) {
     return std::hypot(p1.x - p2.x, p1.y - p2.y);
   };
 
-  Point  rp = pointList[0];
-  double d  = pointPointDist(rp, pos);
+  auto rp = pointList[0];
+  auto d  = pointPointDist(rp, pos);
 
   for (int ip = 1; ip < np; ++ip) {
-    double d1 = pointPointDist(pointList[ip], pos);
+    auto d1 = pointPointDist(pointList[ip], pos);
 
     if (d1 < d) {
       rp = pointList[ip];

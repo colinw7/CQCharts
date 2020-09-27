@@ -35,7 +35,7 @@ CQChartsSymbol::Type
 CQChartsSymbol::
 nameToType(const QString &str)
 {
-  QString lstr = str.toLower();
+  auto lstr = str.toLower();
 
   if (lstr == "dot"      ) return Type::DOT;
   if (lstr == "cross"    ) return Type::CROSS;
@@ -98,7 +98,7 @@ bool
 CQChartsSymbol::
 fromString(const QString &s)
 {
-  Type type = nameToType(s);
+  auto type = nameToType(s);
 
   if (type != Type::NONE)
     type_ = nameToType(s);

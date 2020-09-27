@@ -787,21 +787,19 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(ConnectionType mouseColoring     READ mouseColoring       WRITE setMouseColoring    )
   Q_PROPERTY(bool           mouseNodeColoring READ isMouseNodeColoring WRITE setMouseNodeColoring)
 
-  // align, spread
-  Q_PROPERTY(Align  align  READ align  WRITE setAlign )
-  Q_PROPERTY(Spread spread READ spread WRITE setSpread)
-
   // placement
-  Q_PROPERTY(bool sortPathIdNodes    READ isSortPathIdNodes    WRITE setSortPathIdNodes   )
-  Q_PROPERTY(bool sortPathIdEdges    READ isSortPathIdEdges    WRITE setSortPathIdEdges   )
-  Q_PROPERTY(bool adjustNodes        READ isAdjustNodes        WRITE setAdjustNodes       )
-  Q_PROPERTY(bool adjustCenters      READ isAdjustCenters      WRITE setAdjustCenters     )
-  Q_PROPERTY(bool removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
-  Q_PROPERTY(bool reorderEdges       READ isReorderEdges       WRITE setReorderEdges      )
-  Q_PROPERTY(bool adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
-  Q_PROPERTY(bool adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
-  Q_PROPERTY(int  adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
-  Q_PROPERTY(bool adjustText         READ isAdjustText         WRITE setAdjustText        )
+  Q_PROPERTY(Align  align              READ align                WRITE setAlign             )
+  Q_PROPERTY(Spread spread             READ spread               WRITE setSpread            )
+  Q_PROPERTY(bool   sortPathIdNodes    READ isSortPathIdNodes    WRITE setSortPathIdNodes   )
+  Q_PROPERTY(bool   sortPathIdEdges    READ isSortPathIdEdges    WRITE setSortPathIdEdges   )
+  Q_PROPERTY(bool   adjustNodes        READ isAdjustNodes        WRITE setAdjustNodes       )
+  Q_PROPERTY(bool   adjustCenters      READ isAdjustCenters      WRITE setAdjustCenters     )
+  Q_PROPERTY(bool   removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
+  Q_PROPERTY(bool   reorderEdges       READ isReorderEdges       WRITE setReorderEdges      )
+  Q_PROPERTY(bool   adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
+  Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
+  Q_PROPERTY(int    adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
+  Q_PROPERTY(bool   adjustText         READ isAdjustText         WRITE setAdjustText        )
 
   // edge scaling
   Q_PROPERTY(bool useMaxTotals READ useMaxTotals WRITE setUseMaxTotals)
@@ -861,8 +859,39 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using NodeObj     = CQChartsSankeyNodeObj;
   using EdgeObj     = CQChartsSankeyEdgeObj;
   using Graph       = CQChartsSankeyPlotGraph;
-  using PosNodeMap  = std::map<double, Node *>;
-  using PosEdgeMap  = std::map<double, Edge *>;
+
+  struct NodeYPos {
+    double y      { 0.0 };
+    int    id     { -1 };
+    int    pathId { -1 };
+
+    NodeYPos(double y, int id, int pathId=-1) :
+     y(y), id(id), pathId(pathId) {
+    }
+
+    friend bool operator<(const NodeYPos &pos1, const NodeYPos &pos2) {
+      if (std::fabs(pos1.y - pos2.y) >= 1E-4)
+        return pos1.y < pos2.y;
+
+      if (pos1.pathId != pos2.pathId)
+        return (pos1.pathId < pos2.pathId);
+
+      return (pos1.id < pos2.id);
+    }
+
+    friend bool operator==(const NodeYPos &pos1, const NodeYPos &pos2) {
+      if (std::fabs(pos1.y - pos2.y) >= 1E-4)
+        return false;
+
+      if (pos1.pathId != pos2.pathId)
+        return false;
+
+      return (pos1.id == pos2.id);
+    }
+  };
+
+  using PosNodeMap  = std::map<NodeYPos, Node *>;
+  using PosEdgeMap  = std::map<NodeYPos, Edge *>;
 
  public:
   CQChartsSankeyPlot(View *view, const ModelP &model);
@@ -911,13 +940,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  //! get/set text align
+  //! get/set node align
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
 
-  //---
-
-  //! get/set text align
+  //! get/set node spread
   const Spread &spread() const { return spread_; }
   void setSpread(const Spread &s);
 
@@ -1078,10 +1105,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   Graph *graph() const { return graph_; }
 
-  void placeGraph() const;
-  void placeGraphNodes(const Nodes &nodes) const;
+  void placeGraph(bool placed=false) const;
+  void placeGraphNodes(const Nodes &nodes, bool placed=false) const;
 
-  void placeEdges();
+  void placeEdges() const;
 
   void calcGraphNodesXPos(const Nodes &nodes) const;
 
@@ -1107,6 +1134,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void sortDepthNodes(bool force=false);
 
+  void adjustSrcDestRects() const;
+
   void createGraph() const;
 
   void clearGraph();
@@ -1128,14 +1157,15 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void updateGraphMaxDepth(const Nodes &nodes) const;
 
-  bool adjustNodes(bool force=false) const;
-  bool adjustGraphNodes(const Nodes &nodes, bool force=false) const;
+  bool adjustNodes(bool placed=false, bool force=false) const;
+  bool adjustGraphNodes(const Nodes &nodes, bool placed=false, bool force=false) const;
 
   void initPosNodesMap(const Nodes &nodes) const;
 
-  bool adjustNodeCenters(bool removeOverlaps=true, bool force=false) const;
-  bool adjustNodeCentersLtoR(bool removeOverlaps=true, bool force=false) const;
-  bool adjustNodeCentersRtoL(bool removeOverlaps=true, bool force=false) const;
+  bool adjustNodeCenters(bool remove=true, bool placed=false, bool force=false) const;
+
+  bool adjustNodeCentersLtoR(bool placed=false, bool force=false) const;
+  bool adjustNodeCentersRtoL(bool placed=false, bool force=false) const;
 
   bool adjustEdgeOverlaps(bool force=false) const;
 
@@ -1143,17 +1173,17 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool removePosOverlaps(int pos, const Nodes &nodes, bool spread=true, bool constrain=true) const;
 
   bool spreadNodes() const;
-  bool spreadPosNodes(const Nodes &nodes) const;
+  bool spreadPosNodes(int pos, const Nodes &nodes) const;
 
   bool constrainNodes(bool center=false) const;
-  bool constrainPosNodes(const Nodes &nodes, bool center=false) const;
+  bool constrainPosNodes(int pos, const Nodes &nodes, bool center=false) const;
 
   bool reorderNodeEdges(const Nodes &nodes, bool force=false) const;
 
-  void createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const;
+  void createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const;
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
 
-  bool adjustNode(Node *node) const;
+  bool adjustNode(Node *node, bool placed=false) const;
 
   //---
 
@@ -1170,7 +1200,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void printStats();
 
  protected:
-  // options
+  // placement
   Align  align_              { Align::JUSTIFY };     //!< align
   Spread spread_             { Spread::FIRST_LAST }; //!< spread
   int    alignRand_          { 10 };                 //!< number of random values for align
@@ -1184,10 +1214,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool   adjustSelected_     { false };              //!< adjust only selected
   int    adjustIterations_   { 25 };                 //!< number of adjust iterations
   bool   adjustText_         { false };              //!< adjust text position
-  double nodeMargin_         { 0.2 };                //!< node margin (y)
-  double nodeWidth_          { 16 };                 //!< node x width in pixels
-  bool   edgeLine_           { false };              //!< draw line for edge
-  BBox   targetBBox_         { -1, -1, 1, 1 };       //!< target range bbox
+
+  // options
+  bool edgeLine_ { false }; //!< draw line for edge
+
+  // bbox, margin, node width
+  BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
+  double nodeMargin_ { 0.2 };          //!< node margin (y)
+  double nodeWidth_  { 16 };           //!< node x width in pixels
 
   // text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)

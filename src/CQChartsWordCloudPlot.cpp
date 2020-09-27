@@ -252,7 +252,7 @@ createObjs(PlotObjs &objs) const
         ModelIndex countModelInd(plot, data.row, plot_->countColumn(), data.parent);
 
         bool ok1;
-        QString name = plot_->modelString(valueModelInd, ok1);
+        auto name = plot_->modelString(valueModelInd, ok1);
         if (! ok1) return State::SKIP;
 
         bool ok2;
@@ -352,7 +352,7 @@ void
 CQChartsWordObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 

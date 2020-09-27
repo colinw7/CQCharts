@@ -185,7 +185,7 @@ double
 CQChartsTreeMapPlot::
 calcTitleHeight() const
 {
-  QFont font = view()->plotFont(this, headerTextFont());
+  auto font = view()->plotFont(this, headerTextFont());
 
   QFontMetricsF fm(font);
 
@@ -251,7 +251,7 @@ CQChartsTreeMapPlot::
 setHeaderTextFontSize(double s)
 {
   if (s != headerTextData_.font().pointSizeF()) {
-    Font f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
+    auto f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
 
     drawObjs();
   }
@@ -264,7 +264,7 @@ CQChartsTreeMapPlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    Font f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    auto f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     drawObjs();
   }
@@ -355,7 +355,7 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 currentRoot() const
 {
-  QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+  auto names = currentRootName_.split(separator(), QString::SkipEmptyParts);
 
   if (names.empty())
     return firstHier();
@@ -986,7 +986,7 @@ flatAddNode(const QStringList &nameStrs, double size,
 
   //---
 
-  QString nodeName = nameStrs.back();
+  auto nodeName = nameStrs.back();
 
   auto *node = childNode(parent, nodeName);
 
@@ -1382,7 +1382,7 @@ CQChartsTreeMapHierObj::
 drawText(PaintDevice *device, const BBox &bbox)
 {
   // get label (name)
-  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
+  auto name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
 
   //---
 
@@ -1395,7 +1395,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   //---
 
   // calc text pen
-  PenBrush tPenBrush = penBrush;
+  auto tPenBrush = penBrush;
 
   auto tc = plot_->interpHeaderTextColor(ColorInd());
 
@@ -1574,7 +1574,7 @@ calcTipId() const
 
     bool ok;
 
-    QString colorStr = plot_->modelString(colorInd1, ok);
+    auto colorStr = plot_->modelString(colorInd1, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1685,7 +1685,7 @@ drawText(PaintDevice *device, const BBox &bbox)
     int nh = plot_->numSkipHier();
 
     if (nh > 0) {
-      QStringList strs = name.split(sep);
+      auto strs = name.split(sep);
 
       int ns = strs.size();
 
@@ -1779,7 +1779,7 @@ drawText(PaintDevice *device, const BBox &bbox)
         device->setClipRect(bbox1);
 
       if (textOptions.formatted) {
-        QString str1 = strs.join('\n');
+        auto str1 = strs.join('\n');
 
         CQChartsDrawUtil::drawTextInBox(device, bbox1, str1, textOptions);
       }
@@ -1841,8 +1841,8 @@ bool
 CQChartsTreeMapNodeObj::
 isPoint() const
 {
-  Point p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
-  Point p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
+  auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
+  auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
   double pw = std::abs(p2.x - p1.x) - 2;
   double ph = std::abs(p2.y - p1.y) - 2;

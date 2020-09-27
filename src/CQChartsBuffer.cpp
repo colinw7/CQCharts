@@ -222,7 +222,7 @@ void
 CQChartsBuffer::
 updateSize()
 {
-  QSizeF fsize = rect_.size();
+  auto fsize = rect_.size();
 
   QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
 

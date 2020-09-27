@@ -66,7 +66,7 @@ drawEditHandles(QPainter *painter) const
 
   auto *th = const_cast<CQChartsViewPlotObj *>(this);
 
-  BBox rect = this->rect();
+  auto rect = this->rect();
 
   if (! rect.isValid())
     return;

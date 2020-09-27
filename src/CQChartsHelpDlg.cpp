@@ -214,7 +214,7 @@ bool
 CQChartsHelpDlg::
 setCurrentSection(const QString &section, bool updateUndoRedo)
 {
-  QStringList parts = section.split("/");
+  auto parts = section.split("/");
 
   auto *item = getTreeItem(nullptr, parts, 0);
 
@@ -264,7 +264,7 @@ prevSlot()
   if (undoSections_.empty())
     return;
 
-  QString section = undoSections_.back();
+  auto section = undoSections_.back();
 
   undoSections_.pop_back();
 
@@ -282,7 +282,7 @@ nextSlot()
   if (redoSections_.empty())
     return;
 
-  QString section = redoSections_.back();
+  auto section = redoSections_.back();
 
   redoSections_.pop_back();
 
@@ -326,7 +326,7 @@ loadSectionText()
 
   auto *item = items[0];
 
-  QString id = item->data(0, Qt::UserRole).toString();
+  auto id = item->data(0, Qt::UserRole).toString();
 
   QString parentId;
 
@@ -376,7 +376,7 @@ QString
 CQChartsHelpDlg::
 itemPath(QTreeWidgetItem *item) const
 {
-  QString name = item->data(0, Qt::UserRole).toString();
+  auto name = item->data(0, Qt::UserRole).toString();
 
   auto *parent = item->parent();
 
@@ -393,11 +393,11 @@ setHtml(const QString &text)
   int pos = text.indexOf("@CHARTS_DOC_PATH@");
 
   if (pos >= 0) {
-    QString text1 = text;
+    auto text1 = text;
 
     while (pos >= 0) {
-      QString lhs = text1.mid(0, pos);
-      QString rhs = text1.mid(pos + 17, pos);
+      auto lhs = text1.mid(0, pos);
+      auto rhs = text1.mid(pos + 17, pos);
 
       text1 = lhs + "/home/colinw/dev/progs/charts/doc/CQCharts" + rhs;
 
@@ -416,7 +416,7 @@ CQChartsHelpDlg::
 treeLinkSlot(const QString &name)
 {
   if (name.startsWith("column_type/")) {
-    QString dest = name.mid(12);
+    auto dest = name.mid(12);
 
     setCurrentSection("Models/Types/" + dest);
   }
@@ -436,7 +436,7 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
   if (ind == parts.length())
     return parent;
 
-  QString part = parts.at(ind);
+  auto part = parts.at(ind);
 
   if (! parent) {
     int n = tree_->topLevelItemCount();
@@ -444,7 +444,7 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     for (int i = 0; i < n; ++i) {
       auto *item = tree_->topLevelItem(i);
 
-      QString id = item->data(0, Qt::UserRole).toString();
+      auto id = item->data(0, Qt::UserRole).toString();
 
       if (part == id)
         return getTreeItem(item, parts, ind + 1);
@@ -456,7 +456,7 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     for (int i = 0; i < n; ++i) {
       auto *item = parent->child(i);
 
-      QString id = item->data(0, Qt::UserRole).toString();
+      auto id = item->data(0, Qt::UserRole).toString();
 
       if (part == id)
         return getTreeItem(item, parts, ind + 1);

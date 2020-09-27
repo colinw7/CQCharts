@@ -115,7 +115,7 @@ void
 CQChartsFilterEdit::
 acceptSlot()
 {
-  QString text = edit_->text();
+  auto text = edit_->text();
 
   if (combo_->currentIndex() == 0) {
     if (text != filterText_) {

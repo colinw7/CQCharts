@@ -200,7 +200,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp("insidePlot"       , "Title is inside plot");
   addProp("expandWidth"      , "Title is sized to plot width");
 
-  QString fitPath = path + "/fit";
+  auto fitPath = path + "/fit";
 
   model->addProperty(fitPath, this, "fitHorizontal", "horizontal")->
     setDesc("Fit title horizontally");
@@ -244,7 +244,7 @@ calcSize()
 {
   if (textStr().length()) {
     // get font
-    QFont font = view()->plotFont(plot(), textFont());
+    auto font = view()->plotFont(plot(), textFont());
 
     // get pixel size
     CQChartsTextOptions textOptions;
@@ -286,7 +286,7 @@ CQChartsGeom::BBox
 CQChartsTitle::
 fitBBox() const
 {
-  BBox bbox = this->bbox();
+  auto bbox = this->bbox();
 
   if (! bbox.isValid())
     return bbox;

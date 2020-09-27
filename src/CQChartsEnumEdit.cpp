@@ -86,7 +86,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  QString str = variantToString(value);
+  auto str = variantToString(value);
 
   QFontMetrics fm(option.font);
 
@@ -105,7 +105,7 @@ QString
 CQChartsEnumPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = variantToString(value);
+  auto str = variantToString(value);
 
   return str;
 }

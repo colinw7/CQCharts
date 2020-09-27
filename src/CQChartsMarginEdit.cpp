@@ -45,7 +45,7 @@ void
 CQChartsMarginEdit::
 editChanged()
 {
-  QString value = edit_->text();
+  auto value = edit_->text();
 
   CQChartsMargin margin(value);
 
@@ -62,7 +62,7 @@ marginToWidgets()
 {
   connectSlots(false);
 
-  QString value = margin_.toString();
+  auto value = margin_.toString();
 
   edit_->setText(value);
 
@@ -73,7 +73,7 @@ void
 CQChartsMarginEdit::
 widgetsToMargin()
 {
-  QString value = edit_->text();
+  auto value = edit_->text();
 
   CQChartsMargin margin(value);
 
@@ -122,7 +122,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   auto margin = value.value<CQChartsMargin>();
 
-  QString str = margin.toString();
+  auto str = margin.toString();
 
   QFontMetrics fm(option.font);
 
@@ -141,7 +141,7 @@ QString
 CQChartsMarginPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsMargin>().toString();
+  auto str = value.value<CQChartsMargin>().toString();
 
   return str;
 }

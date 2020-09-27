@@ -76,7 +76,7 @@ stepPlace()
       //---
 
       // get touching (hit) rects
-      Rect dirRect = rectData->rect();
+      auto dirRect = rectData->rect();
 
       RectDatas hitRects;
 
@@ -134,8 +134,8 @@ stepPlace()
     double          moveDist = -1;
 
     for (const auto &moveRect1 : moveRects) {
-      const Rect &rect1 = moveRect1.rectData->rect();
-      const Rect &rect2 = moveRect1.rect;
+      const auto &rect1 = moveRect1.rectData->rect();
+      const auto &rect2 = moveRect1.rect;
 
       double moveDist1 = std::hypot(rect1.xmid() - rect2.xmid(), rect1.ymid() - rect2.ymid());
 
@@ -336,7 +336,7 @@ moveOut(RectData *rectData)
     int       numMove      = 0;
 
     for (auto &rectData1 : rectDatas_) {
-      Rect dirRect1 = rectData1->rect();
+      auto dirRect1 = rectData1->rect();
 
       RectDatas hitRects;
 
@@ -366,7 +366,7 @@ moveOut(RectData *rectData)
 
   //---
 
-  Rect dirRect = rectData->rect();
+  auto dirRect = rectData->rect();
 
   RectDatas hitRects;
 

@@ -181,7 +181,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  QFont fixedFont = CQChartsWidgetUtil::getMonospaceFont();
+  auto fixedFont = CQChartsWidgetUtil::getMonospaceFont();
 
   //--
 
@@ -302,7 +302,7 @@ void
 CQChartsLoadModelDlg::
 previewFileSlot()
 {
-  QString fileName = fileEdit_->name();
+  auto fileName = fileEdit_->name();
 
   int maxLines = 1024;
 
@@ -491,7 +491,7 @@ void
 CQChartsLoadModelDlg::
 typeSlot()
 {
-  QString str = typeCombo_->currentText();
+  auto str = typeCombo_->currentText();
 
   numberEdit_->setEnabled(str == "Expr");
 
@@ -580,7 +580,7 @@ updateColumns()
 
     auto p = columnTypes_.find(c);
 
-    QString type = (p != columnTypes_.end() ? (*p).second : QString("string"));
+    auto type = (p != columnTypes_.end() ? (*p).second : QString("string"));
 
     auto *typeItem = createTableItem(type);
 
@@ -605,7 +605,7 @@ updateColumns()
         strs << CQTcl::mergeList(strs1);
       }
 
-      QString str = CQTcl::mergeList(strs);
+      auto str = CQTcl::mergeList(strs);
 
       auto *dataItem = createTableItem(str);
 
@@ -673,7 +673,7 @@ parseCSVColumns()
 
     parse.skipSpace();
 
-    QString l1 = parse.getAt();
+    auto l1 = parse.getAt();
 
     CCsv::Fields metaColumns;
 
@@ -681,16 +681,16 @@ parseCSVColumns()
 
     if (metaColumns.size() == 4) {
       if (metaColumns[0] == "column") {
-        QString colName = metaColumns[1].c_str();
+        auto colName = metaColumns[1].c_str();
 
         if (metaColumns[2] == "type") {
-          QString type = metaColumns[3].c_str();
+          auto type = metaColumns[3].c_str();
 
           columnTypes_[colName] = type;
         }
         else {
-          QString name  = metaColumns[2].c_str();
-          QString value = metaColumns[3].c_str();
+          auto name  = metaColumns[2].c_str();
+          auto value = metaColumns[3].c_str();
 
           columnData_[colName][name] = value;
         }
@@ -754,9 +754,9 @@ typeChangedSlot(int)
   auto *combo = qobject_cast<QComboBox *>(sender());
   if (! combo) return;
 
-  QString type = combo->currentText();
+  auto type = combo->currentText();
 
-  QString colName = combo->property("colName").toString();
+  auto colName = combo->property("colName").toString();
   if (colName == "") return;
 
   columnTypes_[colName] = type;
@@ -779,8 +779,8 @@ applySlot()
 
   //----
 
-  QString filename = fileEdit_->name();
-  QString type     = typeCombo_->currentText();
+  auto filename = fileEdit_->name();
+  auto type     = typeCombo_->currentText();
 
   //----
 

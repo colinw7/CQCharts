@@ -257,7 +257,7 @@ currentRoot() const
 {
   HierNode *currentRoot = nullptr;
 
-  QStringList names = currentRootName_.split('@', QString::SkipEmptyParts);
+  auto names = currentRootName_.split('@', QString::SkipEmptyParts);
 
   if (names.empty())
     return currentRoot;
@@ -789,7 +789,7 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
 
   //---
 
-  QString nodeName = nameStrs[nameStrs.length() - 1];
+  auto nodeName = nameStrs[nameStrs.length() - 1];
 
   auto *node = childNode(parent, nodeName);
 
@@ -1331,7 +1331,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
 
     Point pt(tx, ty);
 
-    QString name = (! node->isFiller() ? node->name() : node->parent()->name());
+    auto name = (! node->isFiller() ? node->name() : node->parent()->name());
 
     double ta1 = (c >= 0 ? ta : ta - 180);
 
@@ -1379,7 +1379,7 @@ QString
 CQChartsSunburstNodeObj::
 calcId() const
 {
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  auto name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   return QString("%1:%2:%3").arg(typeName()).arg(name).arg(node_->hierSize());
 }
@@ -1390,7 +1390,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+  auto name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
 
   //return QString("%1:%2").arg(name).arg(node_->hierSize());
 
@@ -1405,7 +1405,7 @@ calcTipId() const
 
     bool ok;
 
-    QString colorStr = plot_->modelString(colorModelInd, ok);
+    auto colorStr = plot_->modelString(colorModelInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

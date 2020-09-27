@@ -345,7 +345,7 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
     poly.addPoint(p3);
     poly.addPoint(p4);
 
-    Point3D pm = (p1 + p2 + p3 + p4)/4.0;
+    auto pm = (p1 + p2 + p3 + p4)/4.0;
 
     auto *polyObj = new CQChartsAxisPolygon3DObj(this, poly);
 
@@ -829,7 +829,7 @@ postDraw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush());
 
-  QFont font = plot3D()->font().calcFont();
+  auto font = plot3D()->font().calcFont();
 
   device->setFont(font);
 

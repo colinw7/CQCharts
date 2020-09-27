@@ -198,7 +198,7 @@ mousePressEvent(QMouseEvent *me)
 {
   if      (me->button() == Qt::LeftButton) {
     if (! detached_) {
-      QRect handleRect = this->handleRect();
+      auto handleRect = this->handleRect();
 
       if (handleRect.contains(me->pos())) {
         setExpanded(! isExpanded());
@@ -279,7 +279,7 @@ CQChartsViewExpander::
 mouseMoveEvent(QMouseEvent *me)
 {
   if (pressed_) {
-    QPoint lastMovePos = movePos_;
+    auto lastMovePos = movePos_;
 
     movePos_ = me->globalPos();
 
@@ -367,7 +367,7 @@ mouseMoveEvent(QMouseEvent *me)
   }
   else {
     if (! detached_) {
-      QRect handleRect = this->handleRect();
+      auto handleRect = this->handleRect();
 
       if (handleRect.contains(me->pos())) {
         if (isVertical())
@@ -383,7 +383,7 @@ mouseMoveEvent(QMouseEvent *me)
       }
     }
     else {
-      PressSide pressSide = posToPressSide(me->pos());
+      auto pressSide = posToPressSide(me->pos());
 
       switch (pressSide) {
         case PressSide::TOP_LEFT:

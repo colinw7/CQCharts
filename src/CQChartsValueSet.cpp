@@ -196,7 +196,7 @@ imap(int i, double mapMin, double mapMax) const
 
   if      (type() == Type::INTEGER) {
     // get nth integer
-    OptInt ival = ivals_.value(i);
+    auto ival = ivals_.value(i);
 
     if (! ival)
       return mapMin;
@@ -221,7 +221,7 @@ imap(int i, double mapMin, double mapMax) const
   }
   else if (type() == Type::REAL) {
     // get nth real
-    OptReal rval = rvals_.value(i);
+    auto rval = rvals_.value(i);
 
     if (! rval)
       return mapMin;
@@ -235,7 +235,7 @@ imap(int i, double mapMin, double mapMax) const
   }
   else if (type() == Type::STRING) {
     // get nth string
-    OptString sval = svals_.value(i);
+    auto sval = svals_.value(i);
 
     if (! sval)
       return mapMin;
@@ -263,7 +263,7 @@ imap(int i, double mapMin, double mapMax) const
   }
   else if (type() == Type::TIME) {
     // get nth tile
-    OptReal tval = tvals_.value(i);
+    auto tval = tvals_.value(i);
 
     if (! tval)
       return mapMin;
@@ -528,7 +528,7 @@ reals(std::vector<double> &reals) const
     int n = ivals_.size();
 
     for (int i = 0; i < n; ++i) {
-      OptInt ival = ivals_.value(i);
+      auto ival = ivals_.value(i);
       if (! ival) continue;
 
       reals.push_back(*ival);
@@ -538,7 +538,7 @@ reals(std::vector<double> &reals) const
     int n = rvals_.size();
 
     for (int i = 0; i < n; ++i) {
-      OptReal rval = rvals_.value(i);
+      auto rval = rvals_.value(i);
       if (! rval) continue;
 
       reals.push_back(*rval);
@@ -548,7 +548,7 @@ reals(std::vector<double> &reals) const
     int n = svals_.size();
 
     for (int i = 0; i < n; ++i) {
-      OptString sval = svals_.value(i);
+      auto sval = svals_.value(i);
       if (! sval) continue;
 
       bool ok;

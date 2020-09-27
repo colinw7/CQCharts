@@ -154,9 +154,9 @@ void
 CQChartsEditModelDlg::
 writeSlot()
 {
-  QString dir = QDir::current().dirName() + "/model.csv";
+  auto dir = QDir::current().dirName() + "/model.csv";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
   if (! fileName.length()) return; // cancelled
 
   modelData_->writeCSV(fileName);
@@ -185,7 +185,7 @@ writeModelCmds()
 
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-    QString value = typeData->name();
+    auto value = typeData->name();
 
     bool first = true;
 
@@ -225,7 +225,7 @@ writeModelCmds()
           continue;
       }
 
-      QString str = var.toString();
+      auto str = var.toString();
 
       if (first)
         value += ":";

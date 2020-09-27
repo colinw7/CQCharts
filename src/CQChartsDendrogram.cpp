@@ -13,8 +13,8 @@ struct NodeCmp {
     int l2 = name2.size();
 
     for (int i = 0; i < std::max(l1, l2); ++i) {
-      QChar c1 = (i < l1 ? name1[i].toLower() : '\0');
-      QChar c2 = (i < l2 ? name2[i].toLower() : '\0');
+      auto c1 = (i < l1 ? name1[i].toLower() : '\0');
+      auto c2 = (i < l2 ? name2[i].toLower() : '\0');
 
       if (c1 > c2) return true;
       if (c1 < c2) return false;

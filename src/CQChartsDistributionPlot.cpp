@@ -1711,7 +1711,7 @@ createObjs(PlotObjs &objs) const
           const auto &bucket   = bucketValues.first;
           const auto &varsData = bucketValues.second;
 
-          BarValue barValue = varIndsValue(varsData);
+          auto barValue = varIndsValue(varsData);
 
           int n = int(barValue.n2);
 
@@ -1824,7 +1824,7 @@ createObjs(PlotObjs &objs) const
 
         const auto *pVarsData = &varsData;
 
-        BarValue barValue = varIndsValue(*pVarsData);
+        auto barValue = varIndsValue(*pVarsData);
 
         valueSetTotals[bucket] += barValue.n2 - barValue.n1;
 
@@ -1918,7 +1918,7 @@ createObjs(PlotObjs &objs) const
 
         const auto *pVarsData = &varsData;
 
-        Bucket sbucket = bucket;
+        auto sbucket = bucket;
 
         if (isSorted()) {
           if (isStackedActive || isOverlayActive || isSideBySideActive) {
@@ -2003,7 +2003,7 @@ createObjs(PlotObjs &objs) const
 
         const auto *pVarsData = &varsData;
 
-        Bucket sbucket = bucket;
+        auto sbucket = bucket;
 
         if (isSorted()) {
           if (isStackedActive || isOverlayActive || isSideBySideActive) {
@@ -2037,7 +2037,7 @@ createObjs(PlotObjs &objs) const
         //if (! isValueCount() && ! isNumeric)
         //  continue;
 
-        BarValue barValue = varIndsValue(*pVarsData);
+        auto barValue = varIndsValue(*pVarsData);
 
         if (minValue().isSet()) {
           if (barValue.n2 < minValue().value())
@@ -2585,7 +2585,7 @@ addKeyItems(CQChartsPlotKey *key)
 
         this->bucketValues(groupInd, bucket, value1, value2);
 
-        BarValue barValue = varIndsValue(varsData);
+        auto barValue = varIndsValue(varsData);
 
         auto bucketName = bucketValuesStr(groupInd, bucket, values);
 

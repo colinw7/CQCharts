@@ -141,7 +141,7 @@ CQChartsLineEditBase::
 menuButtonSlot()
 {
   // popup menu below or above the widget bounding box
-  QPoint tl = edit_->mapToGlobal(edit_->rect().topLeft());
+  auto tl = edit_->mapToGlobal(edit_->rect().topLeft());
 
   QRect rect(tl.x(), tl.y(), edit_->parentWidget()->rect().width(), edit_->rect().height());
 
@@ -335,7 +335,7 @@ CQChartsLineEditMenuButton(CQChartsLineEditBase *edit) :
 
   edit_->initStyle(opt);
 
-  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
+  auto r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
 
   setFixedWidth(r.size().width());
 

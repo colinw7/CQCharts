@@ -18,7 +18,7 @@ QString
 CQChartsFillPattern::
 toString() const
 {
-  QString str = typeToString(type_);
+  auto str = typeToString(type_);
 
   if (type_ == Type::PALETTE)
     str += ":" + palette_;
@@ -40,7 +40,8 @@ bool
 CQChartsFillPattern::
 setValue(const QString &s)
 {
-  QString s1 = s;
+  auto s1 = s;
+
   QString s2;
   QString s3;
 
@@ -66,7 +67,7 @@ setValue(const QString &s)
     }
   }
 
-  Type type = stringToType(s1);
+  auto type = stringToType(s1);
 
   if (type == Type::NONE)
     return false;
@@ -92,7 +93,7 @@ CQChartsFillPattern::Type
 CQChartsFillPattern::
 stringToType(const QString &str)
 {
-  QString ustr = str.toUpper();
+  auto ustr = str.toUpper();
 
   if (ustr == "SOLID"     ) return Type::SOLID;
   if (ustr == "HATCH"     ) return Type::HATCH;

@@ -53,7 +53,7 @@ QFont getMonospaceFont() {
 }
 
 void setTextColor(QWidget *w, const QColor &c) {
-  QPalette palette = w->palette();
+  auto palette = w->palette();
 
   palette.setColor(QPalette::WindowText, c);
   palette.setColor(QPalette::Text      , c);

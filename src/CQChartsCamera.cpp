@@ -150,7 +150,7 @@ transform(const Point3D &p) const
   // transform to 2D
   CPoint3D p1(x1, y1, z1);
 
-  CPoint3D p2 = coordFrame_.transformTo(p1);
+  auto p2 = coordFrame_.transformTo(p1);
 
   CPoint3D p3;
 
@@ -204,7 +204,7 @@ untransform(const Point3D &p) const
 
   iprojMatrix_.multiplyPoint(p3, p2);
 
-  CPoint3D p1 = coordFrame_.transformFrom(p2);
+  auto p1 = coordFrame_.transformFrom(p2);
 
   double x = CMathUtil::map(p1.x, -scaleX_, scaleX_, xmin, xmax);
   double y = CMathUtil::map(p1.y, -scaleY_, scaleY_, ymin, ymax);

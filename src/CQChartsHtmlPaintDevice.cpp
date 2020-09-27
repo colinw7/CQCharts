@@ -44,7 +44,7 @@ void
 CQChartsHtmlPaintDevice::
 setTransformRotate(const Point &p, double angle)
 {
-  QTransform t = data_.transform;
+  auto t = data_.transform;
 
   t.translate(p.x, p.y);
   t.rotate(angle);
@@ -102,7 +102,7 @@ createButton(const BBox &bbox, const QString &text, const QString &id, const QSt
           " left:"  << pbbox.getXMin () << "px; top:"    << pbbox.getYMin  () << "px;"
           " width:" << pbbox.getWidth() << "px; height:" << pbbox.getHeight() << "px;";
 
-  QString styleName = data_.font.styleName();
+  auto styleName = data_.font.styleName();
 
   if (! styleName.length())
     styleName = "normal";

@@ -134,7 +134,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   //---
 
-  QString str = (fillPattern().isValid() ? fillPattern().toString() : "<none>");
+  auto str = (fillPattern().isValid() ? fillPattern().toString() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -178,7 +178,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   //---
 
   // draw fillPattern if can be directly determined
-  QRect rect = option.rect;
+  auto rect = option.rect;
 
   rect.setWidth(option.rect.height());
 
@@ -205,7 +205,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QString str = fillPattern.toString();
+  auto str = fillPattern.toString();
 
   QFontMetrics fm(option.font);
 
@@ -407,7 +407,7 @@ fillPatternToWidgets()
   connectSlots(false);
 
   if (fillPattern_.isValid()) {
-    QStringList names = fillPattern_.enumNames();
+    auto names = fillPattern_.enumNames();
 
     for (int i = 0; i < names.length(); ++i) {
       if (fillPattern_.type() ==  fillPattern_.stringToType(names[i]))
@@ -431,7 +431,7 @@ void
 CQChartsFillPatternEdit::
 widgetsToFillPattern()
 {
-  QString typeName = typeCombo_->currentText();
+  auto typeName = typeCombo_->currentText();
 
   auto type = fillPattern_.stringToType(typeName);
 
@@ -475,8 +475,8 @@ QSize
 CQChartsFillPatternEdit::
 sizeHint() const
 {
-  QSize s1 = CQChartsEditBase::sizeHint();
-  QSize s2 = minimumSizeHint();
+  auto s1 = CQChartsEditBase::sizeHint();
+  auto s2 = minimumSizeHint();
 
   return QSize(s1.width(), s2.height());
 }

@@ -72,8 +72,8 @@ operator==(const CQChartsLineDash &dash) const
 {
   if (getOffset() != dash.getOffset()) return false;
 
-  QLengths qlengths1 =      getLengths();
-  QLengths qlengths2 = dash.getLengths();
+  auto qlengths1 =      getLengths();
+  auto qlengths2 = dash.getLengths();
 
   if (qlengths1.size() != qlengths2.size())
     return false;
@@ -96,7 +96,7 @@ scale(double factor)
 
   setOffset(getOffset()*factor);
 
-  QLengths qlengths = getLengths();
+  auto qlengths = getLengths();
 
   int num_lengths = qlengths.size();
 
@@ -204,7 +204,7 @@ lineDash() const
 {
   if (isSolid()) return CLineDash();
 
-  QLengths qlengths = getLengths();
+  auto qlengths = getLengths();
 
   uint num_lengths = qlengths.size();
 
@@ -224,7 +224,7 @@ toString() const
 
   std::stringstream ss;
 
-  QLengths qlengths = getLengths();
+  auto qlengths = getLengths();
 
   uint num_lengths = qlengths.size();
 

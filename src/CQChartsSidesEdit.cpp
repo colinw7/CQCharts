@@ -47,7 +47,7 @@ void
 CQChartsSidesEdit::
 mousePressEvent(QMouseEvent *e)
 {
-  QPoint p = e->pos();
+  auto p = e->pos();
 
   QStyleOptionComboBox opt;
 
@@ -62,7 +62,7 @@ mousePressEvent(QMouseEvent *e)
 
   menu->setWidget(widget);
 
-  QPoint gpos = mapToGlobal(rect().bottomLeft());
+  auto gpos = mapToGlobal(rect().bottomLeft());
 
   menu->exec(gpos);
 
@@ -93,13 +93,13 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
+  auto r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
 
   painter.setClipRect(r);
 
   //---
 
-  QString str = sides().toString();
+  auto str = sides().toString();
 
   QFontMetrics fm(font());
 
@@ -110,7 +110,7 @@ QSize
 CQChartsSidesEdit::
 sizeHint() const
 {
-  QString str = sides().toString();
+  auto str = sides().toString();
 
   QFontMetrics fm(font());
 
@@ -147,7 +147,7 @@ void
 CQChartsSidesEditMenuWidget::
 resizeEvent(QResizeEvent *)
 {
-  QRect rect = this->rect();
+  auto rect = this->rect();
 
   int m = 4;
   int s = 8;
@@ -169,7 +169,7 @@ paintEvent(QPaintEvent *)
 {
   auto bg = palette().color(QPalette::Window);
 
-  QRect rect = this->rect();
+  auto rect = this->rect();
 
   QPainter painter(this);
 
@@ -290,7 +290,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   auto sides = value.value<CQChartsSides>();
 
-  QString str = sides.toString();
+  auto str = sides.toString();
 
   QFontMetrics fm(option.font);
 
@@ -309,7 +309,7 @@ QString
 CQChartsSidesPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsSides>().toString();
+  auto str = value.value<CQChartsSides>().toString();
 
   return str;
 }

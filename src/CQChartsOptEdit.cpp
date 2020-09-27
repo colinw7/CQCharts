@@ -37,7 +37,7 @@ void
 CQChartsOptEdit::
 editChanged()
 {
-  QString str = edit_->text();
+  auto str = edit_->text();
 
   if (str.simplified() != "")
     setTextValue(str);
@@ -65,7 +65,7 @@ void
 CQChartsOptEdit::
 widgetsToValue()
 {
-  QString str = edit_->text();
+  auto str = edit_->text();
 
   setTextValue(str);
 }
@@ -106,9 +106,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
+  auto str = valueString(item, value, ok);
 
-  QFont font = option.font;
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);
@@ -134,7 +134,7 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  QString str = valueString(nullptr, value, ok);
+  auto str = valueString(nullptr, value, ok);
 
   return str;
 }

@@ -8,4 +8,7 @@
   + calc scale factors so nodes and margins will fit in bbox
   + place nodes per depth, top to bottom
   + adjust centers L->R and R->L
+    + align determines with directions and whether first/last are adjusted or not
+  + remove overlaps
+    + remove overlapping nodes are each depth
   + reorder node edges to match y position (center)

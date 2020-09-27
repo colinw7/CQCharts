@@ -321,13 +321,13 @@ calcRange() const
 
   xAxis_->setColumn(xColumn());
 
-  QString xname = modelHHeaderString(xColumn(), ok);
+  auto xname = modelHHeaderString(xColumn(), ok);
 
   xAxis_->setDefLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = modelHHeaderString(yColumn(), ok);
+  auto yname = modelHHeaderString(yColumn(), ok);
 
   yAxis_->setDefLabel(yname);
 
@@ -615,7 +615,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
       hull.getHull(poly);
 
-      PenBrush penBrush1 = penBrush;
+      auto penBrush1 = penBrush;
 
       if (valueRange_.isSet()) {
         double v = CMathUtil::map(v1->value(), valueRange_.min(), valueRange_.max(), 0.0, 1.0);
@@ -753,7 +753,7 @@ calcTipId() const
     ModelIndex nameInd(plot, modelInd().row(), plot_->nameColumn(), modelInd().parent());
 
     bool ok;
-    QString name = plot_->modelString(nameInd, ok);
+    auto name = plot_->modelString(nameInd, ok);
 
     if (ok && name.length())
       tableTip.addTableRow("Name", name);
@@ -762,8 +762,8 @@ calcTipId() const
   //---
 
   // add x, y columns
-  QString xstr = plot()->xStr(x());
-  QString ystr = plot()->yStr(y());
+  auto xstr = plot()->xStr(x());
+  auto ystr = plot()->yStr(y());
 
   tableTip.addTableRow("X", xstr);
   tableTip.addTableRow("Y", ystr);
@@ -839,8 +839,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  Symbol symbolType = plot_->symbolType();
-  Length symbolSize = plot_->symbolSize();
+  auto symbolType = plot_->symbolType();
+  auto symbolSize = plot_->symbolSize();
 
   //---
 

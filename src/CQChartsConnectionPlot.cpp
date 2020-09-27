@@ -796,7 +796,7 @@ initHierObjs() const
     State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
       auto *plot = const_cast<CQChartsConnectionPlot *>(plot_);
 
-      HierConnectionData hierData = hierData_; // parent hier
+      auto hierData = hierData_; // parent hier
 
       hierDataList_.push_back(hierData);
 
@@ -820,7 +820,7 @@ initHierObjs() const
 
     // leave hierarchical row
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
-      HierConnectionData hierData = hierData_; // save current hier
+      auto hierData = hierData_; // save current hier
 
       hierData_ = hierDataList_.back(); // set current to parent hier
 

@@ -107,7 +107,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   auto alpha = CQChartsVariant::toAlpha(value, ok);
   if (! ok) return;
 
-  QString str = alpha.toString();
+  auto str = alpha.toString();
 
   QFontMetrics fm(option.font);
 

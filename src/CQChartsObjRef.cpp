@@ -65,7 +65,7 @@ CQChartsObjRef::Location
 CQChartsObjRef::
 nameToLocation(const QString &name)
 {
-  QString lname = name.toLower();
+  auto lname = name.toLower();
 
   if      (lname == "center"   ) return Location::CENTER;
   else if (lname == "left"     ) return Location::LEFT;

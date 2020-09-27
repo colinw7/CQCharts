@@ -137,7 +137,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   //---
 
-  QString str = (font().isValid() ? font().toString() : "<none>");
+  auto str = (font().isValid() ? font().toString() : "<none>");
 
   painter->setFont(font().calcFont());
 
@@ -182,7 +182,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  QString str = font.toString();
+  auto str = font.toString();
 
   QFontMetrics fm(option.font);
 

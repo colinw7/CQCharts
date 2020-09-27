@@ -101,7 +101,7 @@ writeSlot()
 
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-    QString value = typeData->name();
+    auto value = typeData->name();
 
     bool first = true;
 
@@ -141,7 +141,7 @@ writeSlot()
           continue;
       }
 
-      QString str = var.toString();
+      auto str = var.toString();
 
       if (first)
         value += ":";

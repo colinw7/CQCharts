@@ -912,8 +912,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  Symbol symbolType = plot_->symbolType();
-  Length symbolSize = plot_->symbolSize();
+  auto symbolType = plot_->symbolType();
+  auto symbolSize = plot_->symbolSize();
 
   // draw symbol
   plot_->drawSymbol(device, p_, symbolType, symbolSize, penBrush);

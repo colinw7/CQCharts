@@ -888,7 +888,7 @@ getColumnSizeValue(const ModelIndex &ind, double &value, bool &missing) const
   missing = false;
   value   = 1.0;
 
-  ColumnType columnType = columnValueType(ind.column());
+  auto columnType = columnValueType(ind.column());
 
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;

@@ -606,7 +606,7 @@ loadModel() const
       if (! hasName) {
         name = pnode->hierName();
 
-        QStringList names = name.split("/", QString::KeepEmptyParts);
+        auto names = name.split("/", QString::KeepEmptyParts);
 
         if (names.size() > 0)
           name = names.back();
@@ -651,7 +651,7 @@ loadModel() const
 
         auto nameInd1 = plot_->normalizeIndex(nameInd);
 
-        QString groupName = plot_->groupIndName(groupInd, /*hier*/false);
+        auto groupName = plot_->groupIndName(groupInd, /*hier*/false);
 
         auto *pnode = parentHier(data);
         auto *node  = plot_->addNode(pnode, groupName, size, nameInd1);
@@ -779,11 +779,11 @@ groupHierNode(HierNode *parent, int groupInd) const
 
   auto *th = const_cast<CQChartsBubblePlot *>(this);
 
-  QString name = groupIndName(groupInd, /*hier*/true);
+  auto name = groupIndName(groupInd, /*hier*/true);
 
-  QString name1 = name;
+  auto name1 = name;
 
-  QStringList names = name.split("/", QString::KeepEmptyParts);
+  auto names = name.split("/", QString::KeepEmptyParts);
 
   if (names.size() > 0)
     name1 = names.back();
@@ -1068,7 +1068,7 @@ calcTipId() const
 
     bool ok;
 
-    QString colorStr = plot_->modelString(colorModelInd, ok);
+    auto colorStr = plot_->modelString(colorModelInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1161,7 +1161,7 @@ drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
   // get labels (name and optional size)
   QStringList strs;
 
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  auto name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   strs.push_back(name);
 
@@ -1299,8 +1299,8 @@ isPoint() const
   // check if small enough to draw as point
   double r = this->radius();
 
-  double pw = plot()->windowToPixelWidth (2*r) - 2;
-  double ph = plot()->windowToPixelHeight(2*r) - 2;
+  auto pw = plot()->windowToPixelWidth (2*r) - 2;
+  auto ph = plot()->windowToPixelHeight(2*r) - 2;
 
   return (pw <= 1.5 || ph <= 1.5);
 }

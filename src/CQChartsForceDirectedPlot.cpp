@@ -1276,7 +1276,7 @@ draw(QPainter *painter)
   {
   LockMutex lock(this, "draw");
 
-  UpdateState updateState = this->updateState();
+  auto updateState = this->updateState();
 
   if (updateState == UpdateState::READY)
     setGroupedUpdateState(UpdateState::DRAWN);
@@ -1323,7 +1323,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     const auto &p2 = spring->point2()->p();
 
     if (isEdgeLinesValueWidth()) {
-      PenBrush edgePenBrush1 = edgePenBrush;
+      auto edgePenBrush1 = edgePenBrush;
 
       double w = maxLineWidth()*(widthScale_*edge->value());
 

@@ -1213,7 +1213,7 @@ addView(CQChartsView *view)
 
   //---
 
-  QString id = view->id();
+  auto id = view->id();
 
   if (id == "")
     id = QString("view%1").arg(views_.size() + 1);

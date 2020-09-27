@@ -208,7 +208,7 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      QString path = CQChartsModelUtil::parentPath(model, data.parent);
+      auto path = CQChartsModelUtil::parentPath(model, data.parent);
 
       //---
 
@@ -224,7 +224,7 @@ calcRange() const
 
       bool ok1;
 
-      QString name = plot_->modelString(nameModelInd, ok1);
+      auto name = plot_->modelString(nameModelInd, ok1);
 
       if (path.length())
         name = path + "/" + name;
@@ -291,14 +291,14 @@ addNameValue(const QString &name, double value) const
 {
   QStringList names;
 
-  QString name1 = name;
+  auto name1 = name;
 
   int pos = name1.indexOf('/');
 
   if (pos != -1) {
     while (pos != -1) {
-      QString lhs = name1.mid(0, pos);
-      QString rhs = name1.mid(pos + 1);
+      auto lhs = name1.mid(0, pos);
+      auto rhs = name1.mid(pos + 1);
 
       names.push_back(lhs);
 
@@ -589,7 +589,7 @@ textRect() const
 
   //---
 
-  QFont font = plot_->view()->plotFont(plot_, plot_->textFont());
+  auto font = plot_->view()->plotFont(plot_, plot_->textFont());
 
   QFontMetricsF fm(font);
 

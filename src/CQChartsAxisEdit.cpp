@@ -92,7 +92,7 @@ QSize
 CQChartsEditAxisDlg::
 sizeHint() const
 {
-  QSize s = QDialog::sizeHint();
+  auto s = QDialog::sizeHint();
 
   QFontMetrics fm(font());
 

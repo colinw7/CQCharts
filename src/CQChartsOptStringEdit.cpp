@@ -45,7 +45,7 @@ QString
 CQChartsOptStringEdit::
 valueToText()
 {
-  QString s = value_.string();
+  auto s = value_.string();
 
   return s;
 }

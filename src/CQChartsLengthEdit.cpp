@@ -181,7 +181,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   auto length = CQChartsVariant::toLength(value, ok);
   if (! ok) return;
 
-  QString str = length.toString();
+  auto str = length.toString();
 
   QFontMetrics fm(option.font);
 

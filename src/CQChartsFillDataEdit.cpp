@@ -145,7 +145,7 @@ QString
 CQChartsFillDataPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsFillData>().toString();
+  auto str = value.value<CQChartsFillData>().toString();
 
   return str;
 }

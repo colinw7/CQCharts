@@ -76,8 +76,8 @@ printItem(CQPropertyViewItem *item) const
 {
   auto *object = item->object();
 
-  QString dataStr = item->dataStr();
-  QString path    = item->path(".", /*alias*/true);
+  auto dataStr = item->dataStr();
+  auto path    = item->path(".", /*alias*/true);
 
   auto *plot       = qobject_cast<CQChartsPlot       *>(object);
   auto *annotation = qobject_cast<CQChartsAnnotation *>(object);

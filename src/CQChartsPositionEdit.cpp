@@ -205,9 +205,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   bool ok;
 
-  QString str = valueString(item, value, ok);
+  auto str = valueString(item, value, ok);
 
-  QFont font = option.font;
+  auto font = option.font;
 
   if (! ok)
     font.setItalic(true);
@@ -233,7 +233,7 @@ tip(const QVariant &value) const
 {
   bool ok;
 
-  QString str = valueString(nullptr, value, ok);
+  auto str = valueString(nullptr, value, ok);
 
   return str;
 }
