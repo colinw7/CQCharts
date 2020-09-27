@@ -64,8 +64,8 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
   else if (minSize >= minSize2) {
     QPen pen = device->pen();
 
-    QColor pc = pen.color();
-    double f  = (minSize - minSize2)/(minSize1 - minSize2);
+    auto pc = pen.color();
+    auto f  = (minSize - minSize2)/(minSize1 - minSize2);
 
     pc.setAlphaF(f*pc.alphaF());
 
@@ -76,7 +76,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
     CQChartsRoundedPolygon::draw(device, bbox, xsize, ysize, sides);
   }
   else {
-    QColor bc = device->brush().color();
+    auto bc = device->brush().color();
 
     device->setPen(bc);
     device->setBrush(Qt::NoBrush);
@@ -114,7 +114,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
     CQChartsRoundedPolygon::draw(device, poly, xsize, ysize);
   }
   else {
-    QColor bc = device->brush().color();
+    auto bc = device->brush().color();
 
     device->setPen(bc);
     device->setBrush(Qt::NoBrush);
@@ -519,8 +519,8 @@ drawContrastText(CQChartsPaintDevice *device, const Point &p,
 
   // set contrast color
   // TODO: allow set type (invert, bw) and alpha
-//QColor icolor = CQChartsUtil::invColor(pen.color());
-  QColor icolor = CQChartsUtil::bwColor(pen.color());
+//auto icolor = CQChartsUtil::invColor(pen.color());
+  auto icolor = CQChartsUtil::bwColor(pen.color());
 
   icolor.setAlphaF(alpha.value());
 
@@ -1090,7 +1090,7 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
 
   QAbstractTextDocumentLayout::PaintContext ctx;
 
-  QColor pc = device->pen().color();
+  auto pc = device->pen().color();
 
   ctx.palette.setColor(QPalette::Text, pc);
 
@@ -1099,8 +1099,8 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   layout->setPaintDevice(painter->device());
 
   if (options.contrast) {
-  //QColor ipc = CQChartsUtil::invColor(pc);
-    QColor ipc = CQChartsUtil::bwColor(pc);
+  //auto ipc = CQChartsUtil::invColor(pc);
+    auto ipc = CQChartsUtil::bwColor(pc);
 
     ctx.palette.setColor(QPalette::Text, ipc);
 

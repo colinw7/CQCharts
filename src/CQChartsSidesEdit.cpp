@@ -167,7 +167,7 @@ void
 CQChartsSidesEditMenuWidget::
 paintEvent(QPaintEvent *)
 {
-  QColor bg = palette().color(QPalette::Window);
+  auto bg = palette().color(QPalette::Window);
 
   QRect rect = this->rect();
 
@@ -189,7 +189,7 @@ void
 CQChartsSidesEditMenuWidget::
 mousePressEvent(QMouseEvent *me)
 {
-  CQChartsSides::Sides sides = edit_->sides().sides();
+  auto sides = edit_->sides().sides();
 
   for (auto &rect : sideRect_) {
     if (! rect.second.r.contains(me->pos()))
@@ -220,13 +220,13 @@ void
 CQChartsSidesEditMenuWidget::
 drawSideRect(QPainter *p, CQChartsSides::Side rectSide, bool on)
 {
-  CQChartsSides::Sides sides = edit_->sides().sides();
+  auto sides = edit_->sides().sides();
 
-  QColor bg       = palette().color(QPalette::Window);
-  QColor onColor  = QColor("#586e75");
-  QColor offColor = CQChartsUtil::blendColors(onColor, bg, 0.5);
+  auto bg       = palette().color(QPalette::Window);
+  auto onColor  = QColor("#586e75");
+  auto offColor = CQChartsUtil::blendColors(onColor, bg, 0.5);
 
-  QColor highlight = palette().color(QPalette::Highlight);
+  auto highlight = palette().color(QPalette::Highlight);
 
   if (! sideRect_[rectSide].inside) {
     if (sides & int(rectSide)) {
@@ -288,7 +288,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  CQChartsSides sides = value.value<CQChartsSides>();
+  auto sides = value.value<CQChartsSides>();
 
   QString str = sides.toString();
 
@@ -298,7 +298,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -357,7 +357,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSidesEdit *>(w);
   assert(edit);
 
-  CQChartsSides sides = var.value<CQChartsSides>();
+  auto sides = var.value<CQChartsSides>();
 
   edit->setSides(sides);
 }

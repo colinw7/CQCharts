@@ -352,8 +352,8 @@ calcRange() const
 
   //---
 
-  QStringList hkeys = pivotModel()->hkeys(isXSorted());
-  QStringList vkeys = pivotModel()->vkeys(isYSorted());
+  auto hkeys = pivotModel()->hkeys(isXSorted());
+  auto vkeys = pivotModel()->vkeys(isYSorted());
 
   int nh = hkeys.length();
   int nv = vkeys.length();
@@ -375,9 +375,9 @@ calcRange() const
 
         int c1 = c + 1;
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -406,9 +406,9 @@ calcRange() const
 
         int c1 = c + 1;
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -555,8 +555,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  QStringList hkeys = pivotModel()->hkeys(isXSorted());
-  QStringList vkeys = pivotModel()->vkeys(isYSorted());
+  auto hkeys = pivotModel()->hkeys(isXSorted());
+  auto vkeys = pivotModel()->vkeys(isYSorted());
 
   int nh = hkeys.length();
   int nv = vkeys.length();
@@ -580,9 +580,9 @@ createObjs(PlotObjs &objs) const
 
         int c1 = c + 1;
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -615,9 +615,9 @@ createObjs(PlotObjs &objs) const
 
         int c1 = c + 1;
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -698,9 +698,9 @@ createObjs(PlotObjs &objs) const
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -743,7 +743,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      QString name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
+      auto name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
 
       ColorInd ic(ih, nh);
 
@@ -775,9 +775,9 @@ createObjs(PlotObjs &objs) const
 
         int c1 = c + 1;
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -821,9 +821,9 @@ createObjs(PlotObjs &objs) const
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
 
-        QModelIndex ind = pivotModel()->index(r, c1, QModelIndex());
+        auto ind = pivotModel()->index(r, c1, QModelIndex());
 
-        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+        auto var = pivotModel()->data(ind, Qt::EditRole);
 
         bool ok;
 
@@ -846,7 +846,7 @@ createObjs(PlotObjs &objs) const
 
         //---
 
-        QString name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
+        auto name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
 
         ColorInd ir(iv, nv);
         ColorInd ic(ih, nh);
@@ -871,9 +871,9 @@ createObjs(PlotObjs &objs) const
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
 
-        QModelIndex ind = pivotModel()->index(r, 0, QModelIndex());
+        auto ind = pivotModel()->index(r, 0, QModelIndex());
 
-        QString name = pivotModel()->data(ind, Qt::EditRole).toString();
+        auto name = pivotModel()->data(ind, Qt::EditRole).toString();
 
         xAxis->setTickLabel(iv, name);
       }
@@ -882,7 +882,7 @@ createObjs(PlotObjs &objs) const
       for (int ih = 0; ih < nh; ++ih) {
         int c = pivotModel()->hkeyCol(hkeys[ih]);
 
-        QString name = pivotModel()->headerData(c + 1, Qt::Horizontal).toString();
+        auto name = pivotModel()->headerData(c + 1, Qt::Horizontal).toString();
 
         xAxis->setTickLabel(ih, name);
       }
@@ -892,9 +892,9 @@ createObjs(PlotObjs &objs) const
     for (int iv = 0; iv < nv; ++iv) {
       int r = pivotModel()->vkeyRow(vkeys[iv]);
 
-      QModelIndex ind = pivotModel()->index(r, 0, QModelIndex());
+      auto ind = pivotModel()->index(r, 0, QModelIndex());
 
-      QString name = pivotModel()->data(ind, Qt::EditRole).toString();
+      auto name = pivotModel()->data(ind, Qt::EditRole).toString();
 
       xAxis->setTickLabel(iv, name);
     }
@@ -902,7 +902,7 @@ createObjs(PlotObjs &objs) const
     for (int ih = 0; ih < nh; ++ih) {
       int c = pivotModel()->hkeyCol(hkeys[ih]);
 
-      QString name = pivotModel()->headerData(c + 1, Qt::Horizontal).toString();
+      auto name = pivotModel()->headerData(c + 1, Qt::Horizontal).toString();
 
       yAxis->setTickLabel(ih, name);
     }
@@ -956,8 +956,8 @@ addKeyItems(CQChartsPlotKey *key)
 
     //---
 
-    QStringList hkeys = pivotModel()->hkeys(isXSorted());
-  //QStringList vkeys = pivotModel()->vkeys(isYSorted());
+    auto hkeys = pivotModel()->hkeys(isXSorted());
+  //auto vkeys = pivotModel()->vkeys(isYSorted());
 
     int nh = hkeys.length();
   //int nv = vkeys.length();
@@ -969,7 +969,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       ColorInd ic(ih, nh);
 
-      QString name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
+      auto name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
 
       addKeyRow(ic, name);
     }
@@ -1050,7 +1050,7 @@ setPlotTypeSlot(bool b)
   auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
-  QString name = action->text();
+  auto name = action->text();
 
   for (const auto &plotType : plotTypes()) {
     if (plotTypeName(plotType) == name) {
@@ -1069,7 +1069,7 @@ setValueTypeSlot(bool b)
   auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
-  QString name = action->text();
+  auto name = action->text();
 
   for (const auto &valueType : valueTypes()) {
     if (valueTypeName(valueType) == name) {
@@ -1187,9 +1187,9 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString("%1").arg(value()));
@@ -1214,7 +1214,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return BBox();
 
-  QString label = QString("%1").arg(value());
+  auto label = QString("%1").arg(value());
 
   return plot_->dataLabel()->calcRect(rect(), label);
 }
@@ -1263,7 +1263,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  QString label = QString("%1").arg(value());
+  auto label = QString("%1").arg(value());
 
   if (label != "") {
     auto pos = plot_->dataLabel()->position();
@@ -1466,7 +1466,7 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(polygon_, /*closed*/false);
+    auto path = CQChartsDrawUtil::polygonToPath(polygon_, /*closed*/false);
 
     device->drawPath(path);
   }
@@ -1499,9 +1499,9 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString("%1").arg(value()));
@@ -1604,9 +1604,9 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  QString valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
-  QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
-  QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
+  auto valueName = plot()->columnHeaderName(plot_->valueColumn(), /*tip*/true);
+  auto vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
+  auto hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
     tableTip.addTableRow(valueName, QString("%1").arg(value()));
@@ -1683,7 +1683,7 @@ draw(CQChartsPaintDevice *device)
   // draw value
   // TODO: honor label visible ?
   if (valid_) {
-    QString valueStr = CQChartsUtil::formatReal(value());
+    auto valueStr = CQChartsUtil::formatReal(value());
 
     //---
 

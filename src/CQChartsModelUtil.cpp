@@ -69,12 +69,12 @@ int hierRowCount(CQCharts *charts, const QAbstractItemModel *model) {
 QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent) {
   QString path;
 
-  QModelIndex pind = parent;
+  auto pind = parent;
 
   while (pind.isValid()) {
     bool ok;
 
-    QString str = modelString(model, pind, ok);
+    auto str = modelString(model, pind, ok);
 
     if (! ok)
       break;
@@ -108,7 +108,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      QModelIndex ind = model->index(data.row, column_, data.parent);
+      auto ind = model->index(data.row, column_, data.parent);
 
       // if column can be integral, check if value is valid integer
       if (isInt_) {
@@ -119,7 +119,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
         if (ok)
           return State::SKIP;
 
-        QString str = modelString(model, ind, ok);
+        auto str = modelString(model, ind, ok);
 
         if (! str.length())
           return State::SKIP;
@@ -136,7 +136,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn, i
         if (ok)
           return State::SKIP;
 
-        QString str = modelString(model, ind, ok);
+        auto str = modelString(model, ind, ok);
 
         if (! str.length())
           return State::SKIP;
@@ -316,7 +316,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                       const CQChartsModelTypeData &typeData, double value, QString &str) {
   bool converted;
 
-  QVariant var = columnType->dataName(charts, model, column, value, typeData, converted);
+  auto var = columnType->dataName(charts, model, column, value, typeData, converted);
 
   if (! var.isValid())
     return false;
@@ -333,7 +333,7 @@ columnDisplayData(CQCharts *charts, const QAbstractItemModel *model, const CQCha
   auto *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
-  QVariant var1 = columnTypeMgr->getDisplayData(model, column, var, converted);
+  auto var1 = columnTypeMgr->getDisplayData(model, column, var, converted);
 
   return var1;
 }
@@ -345,7 +345,7 @@ columnUserData(CQCharts *charts, const QAbstractItemModel *model, const CQCharts
   auto *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
-  QVariant var1 = columnTypeMgr->getUserData(model, column, var, converted);
+  auto var1 = columnTypeMgr->getUserData(model, column, var, converted);
 
   return var1;
 }
@@ -355,7 +355,7 @@ columnHeaderUserData(CQCharts *charts, const QAbstractItemModel *model, int sect
                      const QVariant &var, bool &converted) {
   auto *columnTypeMgr = charts->columnTypeMgr();
 
-  QVariant var1 = columnTypeMgr->getHeaderUserData(model, section, var, converted);
+  auto var1 = columnTypeMgr->getHeaderUserData(model, section, var, converted);
 
   return var1;
 }
@@ -418,10 +418,10 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
   bool rc = true;
 
   // split into multiple column type definitions
-  QStringList fstrs = columnTypes.split(";", QString::KeepEmptyParts);
+  auto fstrs = columnTypes.split(";", QString::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    QString typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].simplified();
 
     if (! typeStr.length())
       continue;
@@ -446,7 +446,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
     return false;
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    QString typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].simplified();
 
     if (! typeStr.length())
       continue;
@@ -463,7 +463,7 @@ bool
 setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
                       int i, const QString &typeStr)
 {
-  QString typeStr1 = typeStr;
+  auto typeStr1 = typeStr;
 
   // default column to index
   CQChartsColumn column(i);
@@ -472,7 +472,7 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
   int pos = typeStr1.indexOf("#");
 
   if (pos >= 0) {
-    QString columnStr = typeStr1.mid(0, pos).simplified();
+    auto columnStr = typeStr1.mid(0, pos).simplified();
 
     CQChartsColumn column1;
 
@@ -516,7 +516,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
     return false;
 
   // store in model
-  CQBaseModelType columnType = typeData->type();
+  auto columnType = typeData->type();
 
   if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues))
     return false;
@@ -598,7 +598,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   if (strs.length() == 1 && strs[0].simplified() == "")
     return true;
 
-  QString typeName = strs[0];
+  auto typeName = strs[0];
 
   return setColumnTypeStrI(charts, model, column, typeName, typeStr, strs.mid(1), errorMsg);
 }
@@ -635,7 +635,7 @@ setColumnTypeStrI(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
   }
 
   // store in model
-  CQBaseModelType columnType = typeData->type();
+  auto columnType = typeData->type();
 
   if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues)) {
     errorMsg = QString("Failed to set column type '%1'").arg(typeStr);
@@ -659,7 +659,7 @@ setHeaderTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
     return false;
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    QString typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].simplified();
 
     if (! typeStr.length())
       continue;
@@ -744,7 +744,7 @@ setHeaderTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   if (strs.length() == 1 && strs[0].simplified() == "")
     return true;
 
-  QString typeName = strs[0];
+  auto typeName = strs[0];
 
   return setHeaderTypeStrI(charts, model, column, typeName, typeStr, strs.mid(1), errorMsg);
 }
@@ -781,7 +781,7 @@ setHeaderTypeStrI(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
   }
 
   // store in model
-  CQBaseModelType columnType = typeData->type();
+  auto columnType = typeData->type();
 
   if (! columnTypeMgr->setModelHeaderType(model, column, columnType, nameValues)) {
     errorMsg = QString("Failed to set header type '%1'").arg(typeStr);
@@ -1136,7 +1136,7 @@ QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn 
 
 QString modelHeaderStringI(const QAbstractItemModel *model, const CQChartsColumn &column,
                           Qt::Orientation orient, int role, bool &ok) {
-  QVariant var = modelHeaderValueI(model, column, orient, role, ok);
+  auto var = modelHeaderValueI(model, column, orient, role, ok);
   if (! var.isValid()) return "";
 
   QString str;
@@ -1206,7 +1206,7 @@ bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return false;
 
-  QModelIndex ind = model->index(row, column.column(), QModelIndex());
+  auto ind = model->index(row, column.column(), QModelIndex());
 
   return model->setData(ind, var, role);
 }
@@ -1223,7 +1223,7 @@ QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, int
 }
 
 QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QVariant var = modelValue(model, ind, Qt::EditRole, ok);
+  auto var = modelValue(model, ind, Qt::EditRole, ok);
 
   if (! ok)
     var = modelValue(model, ind, Qt::DisplayRole, ok);
@@ -1241,16 +1241,16 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
   }
 
   if      (column.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, column.column(), parent);
+    auto ind = model->index(row, column.column(), parent);
 
     return modelValue(model, ind, role, ok);
   }
   else if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
     int icolumn = column.column();
 
-    QModelIndex ind = model->index(row, icolumn, parent);
+    auto ind = model->index(row, icolumn, parent);
 
-    QVariant var = modelValue(model, ind, role, ok);
+    auto var = modelValue(model, ind, role, ok);
     if (! ok) return QVariant();
 
     CQChartsModelTypeData columnTypeData;
@@ -1264,7 +1264,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
-    QVariant ivar = typeData->indexVar(var, column.index());
+    auto ivar = typeData->indexVar(var, column.index());
     ok = ivar.isValid();
 
     return ivar;
@@ -1282,12 +1282,12 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
   else if (column.type() == CQChartsColumn::Type::CELL) {
     ok = true;
 
-    QModelIndex ind = model->index(row, column.cellCol(), parent);
+    auto ind = model->index(row, column.cellCol(), parent);
 
     return modelValue(model, ind, role, ok);
   }
   else if (column.type() == CQChartsColumn::Type::VHEADER) {
-    QVariant var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
+    auto var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 
     return var;
   }
@@ -1346,7 +1346,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 //---
 
 QString modelString(const QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-  QVariant var = modelValue(model, ind, role, ok);
+  auto var = modelValue(model, ind, role, ok);
   if (! ok) return "";
 
   QString str;
@@ -1358,7 +1358,7 @@ QString modelString(const QAbstractItemModel *model, const QModelIndex &ind, int
 }
 
 QString modelString(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QString str = modelString(model, ind, Qt::EditRole, ok);
+  auto str = modelString(model, ind, Qt::EditRole, ok);
 
   if (! ok)
     str = modelString(model, ind, Qt::DisplayRole, ok);
@@ -1368,7 +1368,7 @@ QString modelString(const QAbstractItemModel *model, const QModelIndex &ind, boo
 
 QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok) {
-  QVariant var = modelValue(charts, model, row, column, parent, role, ok);
+  auto var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return "";
 
   QString str;
@@ -1409,11 +1409,11 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model,
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent,
                         int role, bool &ok) {
-  QString s = modelString(charts, model, row, column, parent, role, ok);
+  auto s = modelString(charts, model, row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1428,11 +1428,11 @@ QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int r
 
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent, bool &ok) {
-  QString s = modelString(charts, model, row, column, parent, ok);
+  auto s = modelString(charts, model, row, column, parent, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1449,7 +1449,7 @@ QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int r
 //---
 
 double modelReal(const QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-  QVariant var = modelValue(model, ind, role, ok);
+  auto var = modelValue(model, ind, role, ok);
   if (! ok) return 0.0;
 
   return CQChartsVariant::toReal(var, ok);
@@ -1466,7 +1466,7 @@ double modelReal(const QAbstractItemModel *model, const QModelIndex &ind, bool &
 
 double modelReal(CQCharts *charts, const QAbstractItemModel *model, int row,
                  const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok) {
-  QVariant var = modelValue(charts, model, row, column, parent, role, ok);
+  auto var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return 0.0;
 
   return CQChartsVariant::toReal(var, ok);
@@ -1494,8 +1494,8 @@ double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
   double r = modelReal(charts, model, row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1513,8 +1513,8 @@ double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
   double r = modelReal(charts, model, row, column, parent, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1531,7 +1531,7 @@ double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
 //---
 
 long modelInteger(const QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-  QVariant var = modelValue(model, ind, role, ok);
+  auto var = modelValue(model, ind, role, ok);
   if (! ok) return 0;
 
   return CQChartsVariant::toInt(var, ok);
@@ -1548,7 +1548,7 @@ long modelInteger(const QAbstractItemModel *model, const QModelIndex &ind, bool 
 
 long modelInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
                   const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok) {
-  QVariant var = modelValue(charts, model, row, column, parent, role, ok);
+  auto var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return 0;
 
   return CQChartsVariant::toInt(var, ok);
@@ -1577,8 +1577,8 @@ long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row
   long l = modelInteger(charts, model, row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1596,8 +1596,8 @@ long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row
   long l = modelInteger(charts, model, row, column, parent, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
-    QModelIndex parent1 = parent;
-    int         row1    = row;
+    auto parent1 = parent;
+    int  row1    = row;
 
     while (! ok && parent1.isValid()) {
       row1    = parent1.row();
@@ -1640,14 +1640,14 @@ CQChartsColor variantToColor(const QVariant &var) {
 #if 0
 CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind,
                          int role, bool &ok) {
-  QVariant var = modelValue(model, ind, role, ok);
+  auto var = modelValue(model, ind, role, ok);
   if (! ok) return CQChartsColor();
 
   return variantToColor(var);
 }
 
 CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  CQChartsColor c = modelColor(model, ind, Qt::EditRole, ok);
+  auto c = modelColor(model, ind, Qt::EditRole, ok);
 
   if (! ok)
     c = modelColor(model, ind, Qt::DisplayRole, ok);
@@ -1658,7 +1658,7 @@ CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind
 CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int row,
                          const CQChartsColumn &column, const QModelIndex &parent,
                          int role, bool &ok) {
-  QVariant var = modelValue(charts, model, row, column, parent, role, ok);
+  auto var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return CQChartsColor();
 
   return variantToColor(var);
@@ -1702,10 +1702,10 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
   for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
     bool ok;
 
-    QVariant var = modelHeaderValue(model, icolumn, role, ok);
+    auto var = modelHeaderValue(model, icolumn, role, ok);
     if (! ok)) continue;
 
-    //QString name1 = CQChartsVariant::toString(var, rc);
+    //auto name1 = CQChartsVariant::toString(var, rc);
 
     QString name1;
 
@@ -1761,13 +1761,13 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
   //---
 
   // check for column sub value
-  QString str1 = str.simplified();
+  auto str1 = str.simplified();
 
   if (str1.right(1) == "]") {
     int pos = str1.lastIndexOf('[');
 
-    QString lhs = str1.mid(0, pos);
-    QString rhs = str1.mid(pos + 1, str1.length() - pos - 2);
+    auto lhs = str1.mid(0, pos);
+    auto rhs = str1.mid(pos + 1, str1.length() - pos - 2);
 
     CQChartsColumn column1;
 
@@ -1804,8 +1804,8 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
     int pos = str.indexOf('~');
 
     if (pos >= 0) {
-      QString lhs = str.mid(0, pos);
-      QString rhs = str.mid(pos + 1);
+      auto lhs = str.mid(0, pos);
+      auto rhs = str.mid(pos + 1);
 
       CQChartsColumn c1, c2;
 
@@ -1926,18 +1926,18 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         while (parse.isDigit())
           parse.skipChar();
 
-        QString str = parse.getBefore(pos);
+        auto str = parse.getBefore(pos);
 
         bool ok;
 
         int column1 = (int) CQChartsUtil::toInt(str, ok);
 
         if (stringify) {
-          QModelIndex ind1 = model->index(ind.row(), column1, ind.parent());
+          auto ind1 = model->index(ind.row(), column1, ind.parent());
 
           bool ok;
 
-          QVariant var = CQModelUtil::modelValue(model, ind1, Qt::DisplayRole, ok);
+          auto var = CQModelUtil::modelValue(model, ind1, Qt::DisplayRole, ok);
 
           expr1 += quoteStr(var.toString(), true);
         }
@@ -1998,7 +1998,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
           if (stringify) {
             bool ok;
 
-            QVariant var = CQModelUtil::modelValue(model, ind, Qt::DisplayRole, ok);
+            auto var = CQModelUtil::modelValue(model, ind, Qt::DisplayRole, ok);
 
             expr1 += quoteStr(var.toString(), true);
           }
@@ -2017,7 +2017,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         while (! parse.eof() && ! parse.isChar('}'))
           parse.skipChar();
 
-        QString str = parse.getBefore(pos + 1);
+        auto str = parse.getBefore(pos + 1);
 
         if (parse.isChar('}'))
           parse.skipChar();
@@ -2052,7 +2052,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         while (! parse.eof() && ! parse.isChar('}'))
           parse.skipChar();
 
-        QString str = parse.getBefore(pos + 1);
+        auto str = parse.getBefore(pos + 1);
 
         if (parse.isChar('}'))
           parse.skipChar();
@@ -2095,7 +2095,7 @@ bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter
   if (! filter1.length())
     return false;
 
-  QStringList strs = filter1.split(':', QString::KeepEmptyParts);
+  auto strs = filter1.split(':', QString::KeepEmptyParts);
 
   if (strs.size() != 2)
     return false;
@@ -2117,7 +2117,7 @@ bool decodeModelFilterStrs(const QAbstractItemModel *model, const QString &filte
   if (! filter.length())
     return false;
 
-  QStringList strs = filter.split(' ', QString::SkipEmptyParts);
+  auto strs = filter.split(' ', QString::SkipEmptyParts);
 
   for (auto &str : strs) {
     QString filter;
@@ -2321,7 +2321,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
   auto initModelColumn = [&](int c, bool isGroup) {
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+    auto name = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
 
     CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal, name);
 
@@ -2367,7 +2367,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   for (int r = 0; r < nr; ++r) {
     if (flattenVisitor.isHierarchical()) {
-      QVariant var = flattenVisitor.groupValue(r);
+      auto var = flattenVisitor.groupValue(r);
 
       CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
     }

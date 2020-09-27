@@ -379,7 +379,7 @@ acceptsRow(int row, const QModelIndex &parent) const
 
     bool ok;
 
-    QString name = modelString(modelInd, ok);
+    auto name = modelString(modelInd, ok);
 
     if (! ok)
       return false;
@@ -414,7 +414,7 @@ initAxes()
   if (xAxis_->label().string() == "") {
     bool ok;
 
-    QString xname = modelHHeaderString(xColumn(), ok);
+    auto xname = modelHHeaderString(xColumn(), ok);
 
     xAxis_->setDefLabel(xname);
   }
@@ -422,7 +422,7 @@ initAxes()
   if (yAxis_->label().string() == "") {
     bool ok;
 
-    QString yname = modelHHeaderString(yColumn(), ok);
+    auto yname = modelHHeaderString(yColumn(), ok);
 
     yAxis_->setDefLabel(yname);
   }
@@ -487,7 +487,7 @@ addRowGroupValueSets(const ModelVisitor::VisitData &data) const
 
     bool ok;
 
-    QVariant value = modelValue(groupModelInd, ok);
+    auto value = modelValue(groupModelInd, ok);
 
     if (! ok)
       continue;
@@ -565,7 +565,7 @@ createObjs(PlotObjs &objs) const
 
         ModelIndex nameModelInd(plot, data.row, plot_->nameColumn(), data.parent);
 
-        QString name = plot_->modelString(nameModelInd, ok);
+        auto name = plot_->modelString(nameModelInd, ok);
 
         //---
 
@@ -680,8 +680,8 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
   ModelIndex xModelInd(th, data.row, xColumn(), data.parent);
 
-  QModelIndex xInd  = modelIndex(xModelInd);
-  QModelIndex xInd1 = normalizeIndex(xInd);
+  auto xInd  = modelIndex(xModelInd);
+  auto xInd1 = normalizeIndex(xInd);
 
   CQChartsHierScatterPoint point(group, x, y, name, data.row, xInd1);
 
@@ -715,7 +715,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
-    ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
+    auto iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
     auto *pointObj = createPointObj(bbox, p, iv);
 
@@ -891,15 +891,15 @@ void
 CQChartsHierScatterPointObj::
 draw(CQChartsPaintDevice *device)
 {
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   //---
 
   // calc pen and brush
   PenBrush penBrush;
 
-  QColor fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
-  QColor strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
+  auto fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
+  auto strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (true, strokeColor, plot_->symbolStrokeAlpha()),
@@ -965,7 +965,7 @@ QBrush
 CQChartsHierScatterKeyColor::
 fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillBrush().color();
+  auto c = CQChartsKeyColorBox::fillBrush().color();
 
   //auto *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 

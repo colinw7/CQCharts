@@ -136,7 +136,7 @@ CQChartsLineDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsLineData data = value.value<CQChartsLineData>();
+  auto data = value.value<CQChartsLineData>();
 
   CQChartsLineDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -186,7 +186,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsLineDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsLineData data = var.value<CQChartsLineData>();
+  auto data = var.value<CQChartsLineData>();
 
   edit->setLineData(data);
 }
@@ -369,7 +369,7 @@ draw(QPainter *painter, const CQChartsLineData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen
-  QColor pc = interpColor(plot, view, data.color());
+  auto pc = interpColor(plot, view, data.color());
 
   double width = CQChartsUtil::limitLineWidth(data.width().value());
 

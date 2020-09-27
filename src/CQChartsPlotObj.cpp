@@ -165,7 +165,7 @@ isSelectIndex(const QModelIndex &ind) const
   getHierSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    QModelIndex ind2 = plot()->normalizeIndex(ind1);
+    auto ind2 = plot()->normalizeIndex(ind1);
 
     if (ind == ind2)
       return true;
@@ -183,7 +183,7 @@ isSelectIndices(const Indices &indices) const
   getHierSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    QModelIndex ind2 = plot()->normalizeIndex(ind1);
+    auto ind2 = plot()->normalizeIndex(ind1);
 
     if (indices.find(ind2) != indices.end())
       return true;
@@ -201,7 +201,7 @@ getSelectIndices(Indices &indices) const
   getHierSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    QModelIndex ind2 = plot()->normalizeIndex(ind1);
+    auto ind2 = plot()->normalizeIndex(ind1);
 
     indices.insert(ind2);
   }
@@ -261,7 +261,7 @@ addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  QModelIndex ind = plot()->selectIndex(row, CQChartsColumn(column.column()), parent);
+  auto ind = plot()->selectIndex(row, CQChartsColumn(column.column()), parent);
 
   addSelectIndex(inds, ind);
 }
@@ -393,7 +393,7 @@ writeObjScriptData(CQChartsScriptPaintDevice *device) const
     os << "  this.radius = " << this->radius() << ";\n";
   }
   else if (this->isArc()) {
-    CQChartsArcData arc = this->arcData();
+    auto arc = this->arcData();
 
     os << "\n";
     os << "  this.arc = {};\n";

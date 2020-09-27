@@ -101,7 +101,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  auto angle = CQChartsVariant::toAngle(value, ok);
   if (! ok) return;
 
   QString str = angle.toString();
@@ -112,7 +112,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -124,7 +124,7 @@ CQChartsAnglePropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  auto angle = CQChartsVariant::toAngle(value, ok);
   if (! ok) return "";
 
   return angle.toString();
@@ -169,7 +169,7 @@ setValue(QWidget *w, const QVariant &value)
   assert(edit);
 
   bool ok;
-  CQChartsAngle angle = CQChartsVariant::toAngle(value, ok);
+  auto angle = CQChartsVariant::toAngle(value, ok);
   if (! ok) return;
 
   edit->setAngle(angle);

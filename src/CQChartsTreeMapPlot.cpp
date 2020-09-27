@@ -802,7 +802,7 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *hier1 = new HierNode(this, hier, name, nameInd1);
 
@@ -833,7 +833,7 @@ hierAddNode(HierNode *hier, const QString &name, double size, const QModelIndex 
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *node = new Node(this, hier, name, size, nameInd1);
 
@@ -890,7 +890,7 @@ loadFlat() const
         nameInd = nameInds[0];
       }
 
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+      auto nameInd1 = plot_->normalizeIndex(nameInd);
 
       //---
 
@@ -957,8 +957,8 @@ flatAddNode(const QStringList &nameStrs, double size,
 
     if (! child) {
       // remove any existing leaf node (save size to use in new hier node)
-      QModelIndex nameInd1 = nameInd;
-      double      size1    = 0.0;
+      auto   nameInd1 = nameInd;
+      double size1    = 0.0;
 
       auto *node = childNode(parent, nameStrs[j]);
 
@@ -1018,7 +1018,7 @@ addExtraNodes(HierNode *hier) const
   if (hier->size() > 0) {
     auto *node = new Node(this, hier, "", hier->size(), hier->ind());
 
-    QModelIndex ind1 = unnormalizeIndex(hier->ind());
+    auto ind1 = unnormalizeIndex(hier->ind());
 
     if (colorColumn().isValid()) {
       Color color;
@@ -1397,7 +1397,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   // calc text pen
   PenBrush tPenBrush = penBrush;
 
-  QColor tc = plot_->interpHeaderTextColor(ColorInd());
+  auto tc = plot_->interpHeaderTextColor(ColorInd());
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->headerTextAlpha()));
 
@@ -1471,19 +1471,19 @@ void
 CQChartsTreeMapHierObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor bc = plot_->interpHeaderStrokeColor(colorInd);
+  auto bc = plot_->interpHeaderStrokeColor(colorInd);
 
   if (isChildSelected())
     bc.setAlphaF(1.0);
 
-  QColor hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   QColor fc;
 
   if (hierNode()->isExpanded()) {
-    QColor c = plot_->interpHeaderFillColor(colorInd);
+    auto c = plot_->interpHeaderFillColor(colorInd);
 
     fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
   }
@@ -1535,7 +1535,7 @@ calcId() const
 //if (node_->isFiller())
 //  return hierObj_->calcId();
 
-  QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+  auto ind1 = plot_->unnormalizeIndex(node_->ind());
 
   QString idStr;
 
@@ -1716,11 +1716,11 @@ drawText(PaintDevice *device, const BBox &bbox)
   //---
 
   // calc text pen
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
 
-  QColor tc = plot_->interpTextColor(colorInd);
+  auto tc = plot_->interpTextColor(colorInd);
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->textAlpha()));
 
@@ -1811,10 +1811,10 @@ void
 CQChartsTreeMapNodeObj::
 calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+  auto bc = plot_->interpStrokeColor(colorInd);
+  auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   if (isPoint) {
     if      (plot_->isFilled())

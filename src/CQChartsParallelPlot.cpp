@@ -539,7 +539,7 @@ createObjs(PlotObjs &objs) const
 
       Polygon poly;
 
-      QModelIndex xind = plot_->modelIndex(xModelInd);
+      auto xind = plot_->modelIndex(xModelInd);
 
       xinds_.push_back(xind);
 
@@ -606,7 +606,7 @@ createObjs(PlotObjs &objs) const
     const auto &poly = polys[i];
     const auto &xind = xinds[i];
 
-    QModelIndex xind1 = normalizeIndex(xind);
+    auto xind1 = normalizeIndex(xind);
 
     //---
 
@@ -636,8 +636,8 @@ createObjs(PlotObjs &objs) const
 
       ModelIndex setColumnInd(th, i, setColumn, xind.parent());
 
-      QModelIndex yind  = modelIndex(setColumnInd);
-      QModelIndex yind1 = normalizeIndex(yind);
+      auto yind  = modelIndex(setColumnInd);
+      auto yind1 = normalizeIndex(yind);
 
       //---
 
@@ -936,7 +936,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     PenBrush tpenBrush;
 
-    QColor tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
+    auto tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
 
     setPen(tpenBrush, PenData(true, tc, masterAxis_->axesLabelTextAlpha()));
 
@@ -1243,7 +1243,7 @@ void
 CQChartsParallelLineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   plot_->setLineDataPen(penBrush.pen, colorInd);
 
@@ -1396,7 +1396,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   PenBrush penBrush;
 

@@ -964,8 +964,8 @@ yColumnName(QString &name, const QString &def, bool tip) const
 
       bool ok1, ok2;
 
-      QString yname1 = (tip ? modelHHeaderTip(yColumn1, ok1) : modelHHeaderString(yColumn1, ok1));
-      QString yname2 = (tip ? modelHHeaderTip(yColumn2, ok2) : modelHHeaderString(yColumn2, ok2));
+      auto yname1 = (tip ? modelHHeaderTip(yColumn1, ok1) : modelHHeaderString(yColumn1, ok1));
+      auto yname2 = (tip ? modelHHeaderTip(yColumn2, ok2) : modelHHeaderString(yColumn2, ok2));
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -979,7 +979,7 @@ yColumnName(QString &name, const QString &def, bool tip) const
 
         auto yColumn = yColumns().getColumn(j);
 
-        QString name1 = (tip ? modelHHeaderTip(yColumn, ok) : modelHHeaderString(yColumn, ok));
+        auto name1 = (tip ? modelHHeaderTip(yColumn, ok) : modelHHeaderString(yColumn, ok));
         if (! ok || ! name1.length()) continue;
 
         if (name.length())
@@ -1337,8 +1337,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
     ModelIndex xModelInd(th, ip, xColumn(), parent);
 
-    QModelIndex xind  = modelIndex(xModelInd);
-    QModelIndex xind1 = normalizeIndex(xind);
+    auto xind  = modelIndex(xModelInd);
+    auto xind1 = normalizeIndex(xind);
 
     //---
 
@@ -1380,7 +1380,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
   // add lower, upper and polygon objects for fill under
   if (isFillUnderFilled()) {
-    QString name = titleStr();
+    auto name = titleStr();
 
     if (! name.length()) {
       auto yColumn1 = yColumns().getColumn(0);
@@ -1392,8 +1392,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       bool ok;
 
-      QString yname1 = modelHHeaderString(yColumn1, ok);
-      QString yname2 = modelHHeaderString(yColumn2, ok);
+      auto yname1 = modelHHeaderString(yColumn1, ok);
+      auto yname2 = modelHHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1653,7 +1653,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       if (valid) {
         const auto &xind = inds[ip];
 
-        QModelIndex xind1 = normalizeIndex(xind);
+        auto xind1 = normalizeIndex(xind);
 
         //---
 
@@ -1765,7 +1765,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
           bool ok;
 
-          QVariant imageVar = modelValue(imageColumnInd, ok);
+          auto imageVar = modelValue(imageColumnInd, ok);
 
           if (ok)
             image = CQChartsVariant::toImage(imageVar, ok);
@@ -1936,7 +1936,7 @@ headerSeriesData(std::vector<double> &x) const
 
     bool ok;
 
-    QVariant var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::EditRole, ok);
+    auto var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::EditRole, ok);
 
     if (! ok)
       var = CQChartsModelUtil::modelHeaderValue(model().data(), yColumn, Qt::DisplayRole, ok);
@@ -1979,7 +1979,7 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
   else {
     bool ok;
 
-    QVariant var = modelValue(xModelInd, ok);
+    auto var = modelValue(xModelInd, ok);
 
     if (var.isValid()) {
       auto *columnDetails = this->columnDetails(xColumn());
@@ -2192,7 +2192,7 @@ valueName(int is, int ns, int irow, bool tip) const
 
     bool ok;
 
-    QString name1 = modelString(labelModelInd, ok);
+    auto name1 = modelString(labelModelInd, ok);
 
     if (ok)
       return name1;
@@ -2235,7 +2235,7 @@ addKeyItems(CQChartsPlotKey *key)
   int ng = numGroups();
 
   if      (isBivariateLines()) {
-    QString name = titleStr();
+    auto name = titleStr();
 
     if (! name.length()) {
       auto yColumn1 = yColumns().getColumn(0);
@@ -2247,8 +2247,8 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString yname1 = modelHHeaderString(yColumn1, ok);
-      QString yname2 = modelHHeaderString(yColumn2, ok);
+      auto yname1 = modelHHeaderString(yColumn1, ok);
+      auto yname2 = modelHHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -2311,7 +2311,7 @@ addKeyItems(CQChartsPlotKey *key)
     }
     else if (ng > 1) {
       for (int i = 0; i < ng; ++i) {
-        QString name = groupIndName(i);
+        auto name = groupIndName(i);
 
         ColorInd is, ig(i, ng);
 
@@ -2319,7 +2319,7 @@ addKeyItems(CQChartsPlotKey *key)
       }
     }
     else {
-      QString name = groupIndName(0);
+      auto name = groupIndName(0);
 
       if (name == "")
         (void) yAxisName(name);
@@ -2748,7 +2748,7 @@ QString
 CQChartsXYBiLineObj::
 calcId() const
 {
-  QModelIndex ind1 = plot_->unnormalizeIndex(modelInd());
+  auto ind1 = plot_->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2762,10 +2762,10 @@ QString
 CQChartsXYBiLineObj::
 calcTipId() const
 {
-  QString name  = plot()->valueName(-1, -1, modelInd().row());
-  QString xstr  = plot()->xStr(x());
-  QString y1str = plot()->yStr(y1());
-  QString y2str = plot()->yStr(y2());
+  auto name  = plot()->valueName(-1, -1, modelInd().row());
+  auto xstr  = plot()->xStr(x());
+  auto y1str = plot()->yStr(y1());
+  auto y2str = plot()->yStr(y2());
 
   CQChartsTableTip tableTip;
 
@@ -2856,7 +2856,7 @@ drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
   // calc pen and brush
   PenBrush penBrush;
 
-  QColor lc = plot()->interpBivariateLinesColor(is_);
+  auto lc = plot()->interpBivariateLinesColor(is_);
 
   plot()->setPenBrush(penBrush,
     PenData  (true, lc, plot()->bivariateLinesAlpha(),
@@ -2920,7 +2920,7 @@ QString
 CQChartsXYImpulseLineObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
+  auto ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2934,10 +2934,10 @@ QString
 CQChartsXYImpulseLineObj::
 calcTipId() const
 {
-  QString name  = plot()->valueName(is_.i, is_.n, modelInd().row());
-  QString xstr  = plot()->xStr(x());
-  QString y1str = plot()->yStr(y1());
-  QString y2str = plot()->yStr(y2());
+  auto name  = plot()->valueName(is_.i, is_.n, modelInd().row());
+  auto xstr  = plot()->xStr(x());
+  auto y1str = plot()->yStr(y1());
+  auto y2str = plot()->yStr(y2());
 
   CQChartsTableTip tableTip;
 
@@ -3010,14 +3010,14 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  ColorInd ic = (is_.n > 1 ? is_ : iv_);
+  auto ic = (is_.n > 1 ? is_ : iv_);
 
   //---
 
   // calc pen and brush
   PenBrush penBrush;
 
-  QColor strokeColor = plot()->interpImpulseLinesColor(ic);
+  auto strokeColor = plot()->interpImpulseLinesColor(ic);
 
   double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
 
@@ -3207,7 +3207,7 @@ QString
 CQChartsXYPointObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
+  auto ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -3239,7 +3239,7 @@ calcTipId() const
   //---
 
   // add id column
-  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
+  auto ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -3255,7 +3255,7 @@ calcTipId() const
 
   // add group column (TODO: check group column)
   if (ig_.n > 1) {
-    QString groupName = plot()->groupIndName(ig_.i);
+    auto groupName = plot()->groupIndName(ig_.i);
 
     tableTip.addTableRow("Group", groupName);
   }
@@ -3264,7 +3264,7 @@ calcTipId() const
 
   // add name column (TODO: needed or combine with header)
   if (! labelObj() || ! labelObj()->label().length()) {
-    QString name = plot()->valueName(is_.i, is_.n, modelInd().row());
+    auto name = plot()->valueName(is_.i, is_.n, modelInd().row());
 
     if (name.length())
       tableTip.addTableRow("Name", name);
@@ -3299,7 +3299,7 @@ calcTipId() const
   if (! tableTip.hasColumn(plot()->yColumns().getColumn(0))) {
     double y = point().y;
 
-    QString ystr = plot()->yStr(y);
+    auto ystr = plot()->yStr(y);
 
     QString yname;
 
@@ -3324,7 +3324,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(columnModelInd, ok);
+    auto str = plot_->modelString(columnModelInd, ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);
@@ -3425,7 +3425,7 @@ draw(CQChartsPaintDevice *device)
     auto symbolSize = this->symbolSize();
 
     // draw symbol or image
-    CQChartsImage image = this->image();
+    auto image = this->image();
 
     if (! image.isValid()) {
       plot()->drawSymbol(device, pos_, symbolType, symbolSize, penBrush);
@@ -3483,7 +3483,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto color = this->color();
 
   if (color.isValid()) {
-    QColor c = plot()->interpColor(color, ic);
+    auto c = plot()->interpColor(color, ic);
 
     c.setAlphaF(plot_->symbolFillAlpha().value());
 
@@ -3515,7 +3515,7 @@ QString
 CQChartsXYLabelObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
+  auto ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -3599,7 +3599,7 @@ draw(CQChartsPaintDevice *device)
   // text font color
   PenBrush penBrush;
 
-  QColor tc = dataLabel->interpTextColor(ColorInd());
+  auto tc = dataLabel->interpTextColor(ColorInd());
 
   plot()->setPenBrush(penBrush,
     PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
@@ -3889,7 +3889,7 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // set pen/brush
-    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+    auto ic = (ig_.n > 1 ? ig_ : is_);
 
     PenBrush penBrush;
 
@@ -3921,7 +3921,7 @@ draw(CQChartsPaintDevice *device)
       initSmooth();
 
       // draw path
-      QPainterPath path = smooth_->createPath(/*closed*/false);
+      auto path = smooth_->createPath(/*closed*/false);
 
       device->setColorNames();
 
@@ -3953,7 +3953,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+    auto ic = (ig_.n > 1 ? ig_ : is_);
 
     plot()->drawBestFit(device, bestFit_, ic);
   }
@@ -3966,11 +3966,11 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // calc pen and brush
-    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+    auto ic = (ig_.n > 1 ? ig_ : is_);
 
     PenBrush penBrush;
 
-    QColor c = plot()->interpStatsLinesColor(ic);
+    auto c = plot()->interpStatsLinesColor(ic);
 
     plot()->setPenBrush(penBrush,
       PenData  (true, c, plot()->statsLinesAlpha(),
@@ -4004,9 +4004,9 @@ void
 CQChartsXYPolylineObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+  auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  QColor c = plot()->interpLinesColor(ic);
+  auto c = plot()->interpLinesColor(ic);
 
   plot()->setPenBrush(penBrush,
     PenData  (true, c, plot()->linesAlpha(), plot()->linesWidth(), plot()->linesDash()),
@@ -4155,7 +4155,7 @@ draw(CQChartsPaintDevice *device)
     initSmooth();
 
     // draw polygon
-    QPainterPath path = smooth_->createPath(/*closed*/true);
+    auto path = smooth_->createPath(/*closed*/true);
 
     device->setColorNames();
 
@@ -4182,9 +4182,9 @@ CQChartsXYPolygonObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc pen and brush
-  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+  auto ic = (ig_.n > 1 ? ig_ : is_);
 
-  QColor fillColor = plot()->interpFillUnderFillColor(ic);
+  auto fillColor = plot()->interpFillUnderFillColor(ic);
 
   plot()->setPenBrush(penBrush,
     PenData  (false),
@@ -4279,7 +4279,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
   if (plot()->isFillUnderFilled()) {
     PenBrush fillPenBrush;
 
-    QColor fillColor = plot()->interpFillUnderFillColor(ic_);
+    auto fillColor = plot()->interpFillUnderFillColor(ic_);
 
     plot()->setPenBrush(fillPenBrush,
       PenData  (false),
@@ -4308,7 +4308,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
     PenBrush linePenBrush;
 
     if      (plot()->isLines()) {
-      QColor lineColor = plot()->interpLinesColor(ic_);
+      auto lineColor = plot()->interpLinesColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
@@ -4318,7 +4318,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
         BrushData(false));
     }
     else if (plot()->isBestFit()) {
-      QColor fitColor = plot()->interpBestFitStrokeColor(ic_);
+      auto fitColor = plot()->interpBestFitStrokeColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
@@ -4329,7 +4329,7 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
         BrushData(false));
     }
     else {
-      QColor impulseColor = plot()->interpImpulseLinesColor(ic_);
+      auto impulseColor = plot()->interpImpulseLinesColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
@@ -4367,8 +4367,8 @@ drawLine(CQChartsPaintDevice *device, const BBox &rect) const
 
     //---
 
-    QColor pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
-    QColor pointFillColor   = plot()->interpSymbolFillColor  (ic_);
+    auto pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
+    auto pointFillColor   = plot()->interpSymbolFillColor  (ic_);
 
     if (plot()->isSetHidden(ic_.i)) {
       pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, hideBg, hideAlpha);
@@ -4409,9 +4409,9 @@ fillBrush() const
 {
   PenBrush penBrush;
 
-  QColor              c;
-  Alpha               alpha;
-  CQChartsFillPattern pattern = CQChartsFillPattern::Type::SOLID;
+  QColor c;
+  Alpha  alpha;
+  auto   pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot()->isBivariateLines()) {
     c = plot()->interpBivariateLinesColor(is_);
@@ -4469,7 +4469,7 @@ size() const
   if (! keyPlot)
     keyPlot = plot();
 
-  QFont font = plot()->view()->plotFont(plot(), key_->textFont());
+  auto font = plot()->view()->plotFont(plot(), key_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -4541,7 +4541,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
   if (plot()->isFillUnderFilled()) {
     PenBrush fillPenBrush;
 
-    QColor fillColor = plot()->interpFillUnderFillColor(ic_);
+    auto fillColor = plot()->interpFillUnderFillColor(ic_);
 
     plot()->setPenBrush(fillPenBrush,
       PenData  (false),
@@ -4570,7 +4570,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
     PenBrush linePenBrush;
 
     if      (plot()->isLines()) {
-      QColor lineColor = plot()->interpLinesColor(ic_);
+      auto lineColor = plot()->interpLinesColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
@@ -4581,7 +4581,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
         BrushData(false));
     }
     else if (plot()->isBestFit()) {
-      QColor fitColor = plot()->interpBestFitStrokeColor(ic_);
+      auto fitColor = plot()->interpBestFitStrokeColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
@@ -4592,7 +4592,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
         BrushData(false));
     }
     else {
-      QColor impulseColor = plot()->interpImpulseLinesColor(ic_);
+      auto impulseColor = plot()->interpImpulseLinesColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
@@ -4630,8 +4630,8 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
     //---
 
-    QColor pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
-    QColor pointFillColor   = plot()->interpSymbolFillColor  (ic_);
+    auto pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
+    auto pointFillColor   = plot()->interpSymbolFillColor  (ic_);
 
     if (plot()->isSetHidden(ic_.i)) {
       pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, hideBg, hideAlpha);
@@ -4692,7 +4692,7 @@ QColor
 CQChartsXYKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsKeyText::interpTextColor(ind);
 
   if (plot()->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());

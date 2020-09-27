@@ -115,7 +115,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -328,7 +328,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -541,7 +541,7 @@ void
 CQChartsFillUnderPosEdit::
 widgetsToFillUnderPos()
 {
-  CQChartsFillUnderPos::Type xtype = CQChartsFillUnderPos::Type::NONE;
+  auto xtype = CQChartsFillUnderPos::Type::NONE;
 
   int xtypeInd = xtypeCombo_->currentIndex();
 
@@ -552,7 +552,7 @@ widgetsToFillUnderPos()
 
   double xpos = xposEdit_->value();
 
-  CQChartsFillUnderPos::Type ytype = CQChartsFillUnderPos::Type::NONE;
+  auto ytype = CQChartsFillUnderPos::Type::NONE;
 
   int ytypeInd = ytypeCombo_->currentIndex();
 

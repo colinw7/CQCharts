@@ -208,7 +208,7 @@ void
 CQChartsTree::
 selectionSlot()
 {
-  QModelIndexList indices = selectedIndexes();
+  auto indices = selectedIndexes();
   if (indices.empty()) return;
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);

@@ -258,7 +258,7 @@ void
 CQChartsLineEditBase::
 drawBackground(QPainter *painter) const
 {
-  QColor c = palette().color(QPalette::Window);
+  auto c = palette().color(QPalette::Window);
 
   painter->fillRect(rect(), QBrush(c));
 

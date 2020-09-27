@@ -369,14 +369,14 @@ createObjs(PlotObjs &objs) const
       for (int ic = 0; ic < numCols(); ++ic) {
         ModelIndex columnModelInd(plot, data.row, CQChartsColumn(ic), data.parent);
 
-        QModelIndex ind = plot_->modelIndex(columnModelInd);
+        auto ind = plot_->modelIndex(columnModelInd);
 
         if (columnTypes_[ic] == CQBaseModelType::IMAGE) {
           CQChartsImage image;
 
           bool ok;
 
-          QVariant imageVar = plot_->modelValue(columnModelInd, ok);
+          auto imageVar = plot_->modelValue(columnModelInd, ok);
 
           if (ok)
             image = CQChartsVariant::toImage(imageVar, ok);
@@ -429,7 +429,7 @@ CQChartsImagePlot::
 addImageObj(int row, int col, double x, double y, double dx, double dy, double value,
             const QModelIndex &ind, PlotObjs &objs) const
 {
-  QModelIndex ind1 = normalizeIndex(ind);
+  auto ind1 = normalizeIndex(ind);
 
   BBox bbox(x, y, x + dx, y + dy);
 
@@ -448,7 +448,7 @@ CQChartsImagePlot::
 addImageObj(int row, int col, double x, double y, double dx, double dy, const CQChartsImage &image,
             const QModelIndex &ind, PlotObjs &objs) const
 {
-  QModelIndex ind1 = normalizeIndex(ind);
+  auto ind1 = normalizeIndex(ind);
 
   BBox bbox(x, y, x + dx, y + dy);
 
@@ -553,7 +553,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   PenBrush tpenBrush;
 
-  QColor tc = interpXLabelTextColor(ColorInd());
+  auto tc = interpXLabelTextColor(ColorInd());
 
   setPen(tpenBrush, PenData(true, tc, xLabelTextAlpha()));
 
@@ -590,7 +590,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     bool ok;
 
-    QString name = modelHHeaderString(col, ok);
+    auto name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
     double px = 0.0;
@@ -614,7 +614,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     bool ok;
 
-    QString name = modelHHeaderString(col, ok);
+    auto name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
     Point p(c + 0.5, 0);
@@ -646,7 +646,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   PenBrush tpenBrush;
 
-  QColor tc = interpYLabelTextColor(ColorInd());
+  auto tc = interpYLabelTextColor(ColorInd());
 
   setPen(tpenBrush, PenData(true, tc, yLabelTextAlpha()));
 
@@ -683,7 +683,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    QString name = modelVHeaderString(row, Qt::Vertical, ok);
+    auto name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     double px = 0.0;
@@ -705,7 +705,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    QString name = modelVHeaderString(row, Qt::Vertical, ok);
+    auto name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     Point p(0, row + 0.5);
@@ -735,7 +735,7 @@ calcAnnotationBBox() const
 {
   CQPerfTrace trace("CQChartsImagePlot::calcAnnotationBBox");
 
-  QFont font = view()->plotFont(this, cellLabelTextFont());
+  auto font = view()->plotFont(this, cellLabelTextFont());
 
   QFontMetricsF fm(font);
 
@@ -751,7 +751,7 @@ calcAnnotationBBox() const
 
       bool ok;
 
-      QString name = modelHHeaderString(col, ok);
+      auto name = modelHHeaderString(col, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -770,7 +770,7 @@ calcAnnotationBBox() const
     for (int row = 0; row < numRows(); ++row) {
       bool ok;
 
-      QString name = modelVHeaderString(row, Qt::Vertical, ok);
+      auto name = modelVHeaderString(row, Qt::Vertical, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -843,8 +843,8 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelHHeaderString(CQChartsColumn(modelInd().column()), ok);
-  QString yname = plot_->modelVHeaderString(modelInd().row(), Qt::Vertical, ok);
+  auto xname = plot_->modelHHeaderString(CQChartsColumn(modelInd().column()), ok);
+  auto yname = plot_->modelVHeaderString(modelInd().row(), Qt::Vertical, ok);
 
   if (xname.length())
     tableTip.addTableRow("X", xname);
@@ -927,7 +927,7 @@ draw(CQChartsPaintDevice *device)
       // set pen
       PenBrush tPenBrush;
 
-      QColor tc = plot_->interpCellLabelTextColor(ic);
+      auto tc = plot_->interpCellLabelTextColor(ic);
 
       plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
@@ -937,7 +937,7 @@ draw(CQChartsPaintDevice *device)
 
       //---
 
-      QString valueStr = CQChartsUtil::formatReal(value());
+      auto valueStr = CQChartsUtil::formatReal(value());
 
       CQChartsTextOptions textOptions;
 
@@ -996,8 +996,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // set pen and brush
-  QColor fc = plot_->interpCellFillColor  (ic);
-  QColor bc = plot_->interpCellStrokeColor(ic);
+  auto fc = plot_->interpCellFillColor  (ic);
+  auto bc = plot_->interpCellStrokeColor(ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),

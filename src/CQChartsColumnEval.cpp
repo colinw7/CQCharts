@@ -93,7 +93,7 @@ columnCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   if (! eval->checkIndex(row, col))
     return TCL_ERROR;
 
-  QVariant res = eval->getModelData(row, col);
+  auto res = eval->getModelData(row, col);
 
   return (res.isValid() ? eval->setResult(res) : TCL_ERROR);
 }
@@ -125,7 +125,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
     c.setRgb(clamp(r), clamp(g), clamp(b));
   }
 
-  QVariant res = c;
+  auto res = c;
 
   return (res.isValid() ? eval->setResult(res) : TCL_ERROR);
 }
@@ -208,9 +208,9 @@ getModelData(int row, int col) const
 
   QModelIndex parent; // TODO
 
-  QModelIndex ind = model_->index(row, col, parent);
+  auto ind = model_->index(row, col, parent);
 
-  QVariant var = model_->data(ind, Qt::EditRole);
+  auto var = model_->data(ind, Qt::EditRole);
 
   if (! var.isValid())
     var = model_->data(ind, Qt::DisplayRole);

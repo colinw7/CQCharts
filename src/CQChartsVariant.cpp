@@ -23,54 +23,54 @@ bool toString(const QVariant &var, QString &str) {
     str = CQChartsUtil::formatInteger((long) var.toInt());
   }
   else if (var.type() == QVariant::Point) {
-    QPoint point = var.value<QPoint>();
+    auto point = var.value<QPoint>();
 
     str = CQChartsUtil::pointToString(Point(point));
   }
   else if (var.type() == QVariant::PointF) {
-    QPointF point = var.value<QPointF>();
+    auto point = var.value<QPointF>();
 
     str = CQChartsUtil::pointToString(Point(point));
   }
   else if (var.type() == QVariant::Size) {
-    QSize size = var.value<QSize>();
+    auto size = var.value<QSize>();
 
     str = CQChartsUtil::sizeToString(Size(QSizeF(size)));
   }
   else if (var.type() == QVariant::SizeF) {
-    QSizeF size = var.value<QSizeF>();
+    auto size = var.value<QSizeF>();
 
     str = CQChartsUtil::sizeToString(Size(size));
   }
   else if (var.type() == QVariant::Rect) {
-    QRect rect = var.value<QRect>();
+    auto rect = var.value<QRect>();
 
     str = CQChartsUtil::bboxToString(BBox(QRectF(rect)));
   }
   else if (var.type() == QVariant::RectF) {
-    QRectF rect = var.value<QRectF>();
+    auto rect = var.value<QRectF>();
 
     str = CQChartsUtil::bboxToString(BBox(rect));
   }
   else if (var.type() == QVariant::PolygonF) {
-    QPolygonF poly = var.value<QPolygonF>();
+    auto poly = var.value<QPolygonF>();
 
     str = CQChartsUtil::polygonToString(Polygon(poly));
   }
   else if (var.type() == QVariant::Image) {
-    QImage image = var.value<QImage>();
+    auto image = var.value<QImage>();
 
     str = image.text("filename");
   }
   else if (var.type() == QVariant::UserType) {
 #if 0
     if      (var.userType() == CQChartsPath::metaTypeId) {
-      CQChartsPath path = var.value<CQChartsPath>();
+      auto path = var.value<CQChartsPath>();
 
       str = path.toString();
     }
     else if (var.userType() == CQChartsStyle::metaTypeId) {
-      CQChartsStyle style = var.value<CQChartsStyle>();
+      auto style = var.value<CQChartsStyle>();
 
       str = style.toString();
     }
@@ -83,7 +83,7 @@ bool toString(const QVariant &var, QString &str) {
 #endif
   }
   else if (var.type() == QVariant::List) {
-    QList<QVariant> vars = var.toList();
+    auto vars = var.toList();
 
     QStringList strs;
 
@@ -162,8 +162,8 @@ int cmp(const QVariant &var1, const QVariant &var2) {
     }
 
     if (var1.userType() == CQChartsColor::metaTypeId) {
-      CQChartsColor color1 = var1.value<CQChartsColor>();
-      CQChartsColor color2 = var2.value<CQChartsColor>();
+      auto color1 = var1.value<CQChartsColor>();
+      auto color2 = var2.value<CQChartsColor>();
 
       return CQChartsColor::cmp(color1, color2);
     }
@@ -171,8 +171,8 @@ int cmp(const QVariant &var1, const QVariant &var2) {
 
   //---
 
-  QString str1 = var1.toString();
-  QString str2 = var2.toString();
+  auto str1 = var1.toString();
+  auto str2 = var2.toString();
 
   if (str1 < str2) return -1;
   if (str1 > str2) return  1;
@@ -194,7 +194,7 @@ double toConvertedReal(const QVariant &var, bool &ok, bool &converted) {
 
   converted = true;
 
-  QString str = toString(var, ok);
+  auto str = toString(var, ok);
 
   if (! ok)
     return CMathUtil::getNaN();
@@ -223,7 +223,7 @@ long toInt(const QVariant &var, bool &ok) {
       return int(r);
   }
 
-  QString str = toString(var, ok);
+  auto str = toString(var, ok);
 
   if (! ok)
     return 0;
@@ -243,7 +243,7 @@ bool toBool(const QVariant &var, bool &ok) {
     return var.toInt();
 
   if (var.type() == QVariant::String) {
-    QString str = var.toString();
+    auto str = var.toString();
 
     if (str == "yes" || str == "true"  || str == "1") { ok = true ; return true; }
     if (str == "no"  || str == "false" || str == "0") { ok = false; return true; }
@@ -260,18 +260,18 @@ CQChartsColor toColor(const QVariant &var, bool &ok) {
   ok = true;
 
   if (var.type() == QVariant::Color) {
-    CQChartsColor color = var.value<QColor>();
+    auto color = var.value<QColor>();
     ok = color.isValid();
     return color;
   }
 
   if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId) {
-    CQChartsColor color = var.value<CQChartsColor>();
+    auto color = var.value<CQChartsColor>();
     ok = color.isValid();
     return color;
   }
 
-  CQChartsColor color = QColor(var.toString());
+  auto color = QColor(var.toString());
   ok = color.isValid();
   return color;
 }
@@ -292,7 +292,7 @@ CQChartsFont toFont(const QVariant &var, bool &ok) {
   }
 
   if (var.type() == QVariant::UserType && var.userType() == CQChartsFont::metaTypeId) {
-    CQChartsFont font = var.value<CQChartsFont>();
+    auto font = var.value<CQChartsFont>();
     ok = font.isValid();
     return font;
   }
@@ -336,7 +336,7 @@ CQChartsImage toImage(const QVariant &var, bool &ok) {
   ok = true;
 
   if (var.type() == QVariant::Image) {
-    QImage image = var.value<QImage>();
+    auto image = var.value<QImage>();
 
     return CQChartsImage(image);
   }
@@ -390,7 +390,7 @@ std::vector<double> toReals(const QVariant &var, bool &ok) {
   std::vector<double> reals;
 
   if      (var.type() == QVariant::List) {
-    QList<QVariant> vars = var.toList();
+    auto vars = var.toList();
 
     for (int i = 0; i < vars.length(); ++i) {
       bool ok1;
@@ -436,14 +436,14 @@ Point toPoint(const QVariant &var, bool &ok) {
   if      (var.type() == QVariant::PointF) {
     ok = true;
 
-    QPointF p = var.value<QPointF>();
+    auto p = var.value<QPointF>();
 
     point = Point(p);
   }
   else if (var.type() == QVariant::Point) {
     ok = true;
 
-    QPoint p = var.value<QPoint>();
+    auto p = var.value<QPoint>();
 
     point = Point(p);
   }
@@ -456,7 +456,7 @@ Point toPoint(const QVariant &var, bool &ok) {
     ok = point.fromString(str);
   }
   else {
-    QString str = var.toString();
+    auto str = var.toString();
 
     ok = point.fromString(str);
   }
@@ -482,14 +482,14 @@ BBox toBBox(const QVariant &var, bool &ok) {
   if      (var.type() == QVariant::RectF) {
     ok = true;
 
-    QRectF r = var.value<QRectF>();
+    auto r = var.value<QRectF>();
 
     bbox = BBox(r);
   }
   else if (var.type() == QVariant::Rect) {
     ok = true;
 
-    QRect r = var.value<QRect>();
+    auto r = var.value<QRect>();
 
     bbox = BBox(QRectF(r));
   }
@@ -502,7 +502,7 @@ BBox toBBox(const QVariant &var, bool &ok) {
     ok = bbox.fromString(str);
   }
   else {
-    QString str = var.toString();
+    auto str = var.toString();
 
     ok = bbox.fromString(str);
   }

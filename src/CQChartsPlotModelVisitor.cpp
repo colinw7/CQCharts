@@ -59,7 +59,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
   if (plot_->filterStr().length()) {
     bool ok;
 
-    QModelIndex ind = model->index(data.row, 0, data.parent);
+    auto ind = model->index(data.row, 0, data.parent);
 
     if (! expr_->match(ind, ok))
       return State::SKIP;
@@ -94,7 +94,7 @@ preVisit(const QAbstractItemModel *model, const VisitData &data)
 
     bool ok;
 
-    QVariant value = plot_->modelValue(visibleColumnInd, ok);
+    auto value = plot_->modelValue(visibleColumnInd, ok);
 
     if (! ok || ! CQChartsVariant::toBool(value, ok))
       return State::SKIP;

@@ -136,7 +136,7 @@ CQChartsFillDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsFillData data = value.value<CQChartsFillData>();
+  auto data = value.value<CQChartsFillData>();
 
   CQChartsFillDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -186,7 +186,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsFillData data = var.value<CQChartsFillData>();
+  auto data = var.value<CQChartsFillData>();
 
   edit->setFillData(data);
 }
@@ -376,7 +376,7 @@ draw(QPainter *painter, const CQChartsFillData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set brush
-  QColor fc = interpColor(plot, view, data.color());
+  auto fc = interpColor(plot, view, data.color());
 
   QBrush brush;
 

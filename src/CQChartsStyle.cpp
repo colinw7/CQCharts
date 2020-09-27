@@ -109,7 +109,7 @@ setValue(const QString &str)
       double a = CQChartsVariant::toReal(value, ok);
       if (! ok) continue;
 
-      QColor c = brush_->color();
+      auto c = brush_->color();
       c.setAlphaF(a);
       brush_->setColor(c);
     }

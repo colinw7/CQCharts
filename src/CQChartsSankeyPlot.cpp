@@ -255,9 +255,65 @@ setSpread(const Spread &s)
 
 void
 CQChartsSankeyPlot::
+setSortPathIdNodes(bool b)
+{
+  CQChartsUtil::testAndSet(sortPathIdNodes_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setSortPathIdEdges(bool b)
+{
+  CQChartsUtil::testAndSet(sortPathIdEdges_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setAdjustNodes(bool b)
 {
   CQChartsUtil::testAndSet(adjustNodes_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setAdjustCenters(bool b)
+{
+  CQChartsUtil::testAndSet(adjustCenters_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setRemoveOverlaps(bool b)
+{
+  CQChartsUtil::testAndSet(removeOverlaps_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setReorderEdges(bool b)
+{
+  CQChartsUtil::testAndSet(reorderEdges_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setAdjustEdgeOverlaps(bool b)
+{
+  CQChartsUtil::testAndSet(adjustEdgeOverlaps_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setAdjustSelected(bool b)
+{
+  CQChartsUtil::testAndSet(adjustSelected_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setAdjustIterations(int n)
+{
+  CQChartsUtil::testAndSet(adjustIterations_, n, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -297,12 +353,22 @@ addProperties()
 
   //---
 
+  // placement
+  addProp("placement", "sortPathIdNodes"   , "sortPathIdNodes"   , "Sort depth nodes by path id");
+  addProp("placement", "sortPathIdEdges"   , "sortPathIdEdges"   , "Sort node edges by path id");
+  addProp("placement", "adjustNodes"       , "adjustNodes"       , "Adjust node placement");
+  addProp("placement", "adjustCenters"     , "adjustCenters"     , "Adjust node centers");
+  addProp("placement", "removeOverlaps"    , "removeOverlaps"    , "Remove overlapping nodes");
+  addProp("placement", "reorderEdges"      , "reorderEdges"      , "Reorder edges");
+  addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
+  addProp("placement", "adjustSelected"    , "adjustSelected"    , "Adjust only selected");
+  addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
+  addProp("placement", "adjustText"        , "adjustText"        , "Adjust text placement");
+
   // options
-  addProp("options", "adjustNodes" , "adjustNodes" , "Adjust node placement");
-  addProp("options", "adjustText"  , "adjustText"  , "Adjust text placement");
-  addProp("options", "align"       , "align"       , "Node alignment");
-  addProp("options", "spread"      , "spread"      , "Node spread");
-  addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
+  addProp("options", "align"        , "align"        , "Node alignment");
+  addProp("options", "spread"       , "spread"       , "Node spread");
+  addProp("options", "useMaxTotals" , "useMaxTotals" , "Use max of src/dest totals for edge scaling");
 
   // coloring
   addProp("coloring", "srcColoring"      , "", "Color by Source Nodes");
@@ -347,6 +413,11 @@ addProperties()
   addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST |
                     CQChartsTextOptions::ValueType::CLIP_LENGTH |
                     CQChartsTextOptions::ValueType::CLIP_ELIDE);
+
+  //---
+
+  // add color map properties
+  addColorMapProperties();
 }
 
 //---
@@ -372,24 +443,6 @@ calcRange() const
   dataRange.updateRange(bbox_.getUR());
 
   //---
-
-#if 0
-  if (isEqualScale()) {
-    double aspect = this->aspect();
-
-    dataRange.equalScale(aspect);
-  }
-#endif
-
-  //---
-
-#if 0
-  double xm = (boxMargin_ > 0.0 ? dataRange.xsize()*boxMargin_ : 0.0);
-  double ym = (boxMargin_ > 0.0 ? dataRange.ysize()*boxMargin_ : 0.0);
-
-  dataRange.updateRange(dataRange.xmin() - xm, dataRange.ymin() - ym);
-  dataRange.updateRange(dataRange.xmax() + xm, dataRange.ymax() + ym);
-#endif
 
   return dataRange;
 }
@@ -586,6 +639,10 @@ postDrawFgObjs(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::drawTextAtPoint(device, drawText->point, drawText->str, drawText->options);
 
     if (drawText->point != drawText->origPoint) {
+      setPen(penBrush, PenData(true, drawText->color, Alpha(0.4)));
+
+      device->setPen(penBrush.pen);
+
       auto bbox = CQChartsDrawUtil::calcTextAtPointRect(device, drawText->point, drawText->str,
                                                         drawText->options);
 
@@ -1243,18 +1300,7 @@ createObjsGraph(PlotObjs &objs) const
 
   //---
 
-#if 0
-  //auto *th = const_cast<CQChartsSankeyPlot *>(this);
-
-  // th->calcMaxNodeDepth();
-#endif
-
-  //---
-
-  //th->setNodeYRange();
-
-  //---
-
+  // add objects to plot
   addObjects(objs);
 }
 
@@ -1262,9 +1308,12 @@ void
 CQChartsSankeyPlot::
 addObjects(PlotObjs &objs) const
 {
-  if (! graph_ || graph_->nodes().empty() || ! graph_->rect().isSet())
+  assert(graph_);
+
+  if (graph_->nodes().empty() || ! graph_->rect().isSet())
     return;
 
+  // if graph rectangle invalid (zero width/height) then adjust to valid rect
   if (! graph_->rect().isValid()) {
     auto rect = graph_->rect();
 
@@ -1323,7 +1372,9 @@ void
 CQChartsSankeyPlot::
 placeGraph() const
 {
-  // get placable nodes (nodes and sub graphs)
+  assert(graph_);
+
+  // get placeable nodes (nodes and sub graphs)
   Nodes nodes = graph_->placeableNodes();
 
   placeGraphNodes(nodes);
@@ -1370,6 +1421,8 @@ placeGraphNodes(const Nodes &nodes) const
   // calc y value scale and margins to fit in bbox
   th->calcValueMarginScale();
 
+  //---
+
   // place node objects at each depth (xpos)
   placeDepthNodes();
 
@@ -1405,10 +1458,13 @@ calcGraphNodesXPos(const Nodes &nodes) const
     graph_->addDepthNode(xpos, node);
   }
 
+  //----
+
   // check if all nodes at single x
   if (graph_->depthNodesMap().size() == 1 && align() != Align::RAND) {
     auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
+    // TODO: stable pos (spiral/circle/grid ?)
     th->align_     = Align::RAND;
     th->alignRand_ = std::max(CMathRound::RoundNearest(sqrt(nodes.size())), 2);
 
@@ -1421,8 +1477,11 @@ calcGraphNodesXPos(const Nodes &nodes) const
 
 void
 CQChartsSankeyPlot::
-sortDepthNodes()
+sortDepthNodes(bool force)
 {
+  if (! force && ! isSortPathIdNodes())
+    return;
+
   using PathIdNodes = std::map<int, Nodes>;
 
   for (auto &depthNodes : graph_->depthNodesMap()) {
@@ -1475,12 +1534,12 @@ void
 CQChartsSankeyPlot::
 calcValueMarginScale()
 {
-  // get node margins
+  // get node margin (int window coords ?)
   double nodeMargin = calcNodeMargin();
 
   //---
 
-  double ys = 2.0;
+  double ys = 2.0; // default size of bbox
 
   if (bbox_.isSet()) {
   //ys = bbox.getHeight();
@@ -1488,11 +1547,11 @@ calcValueMarginScale()
   }
 
   double ys1 = nodeMargin*ys;
-  double ys2 = ys - ys1;
+  double ys2 = ys - ys1; // size minus margin
 
   //---
 
-  // calc value margin/scale
+  // calc value margin (per node)/scale (to fit nodes in box)
   graph_->setValueMargin(graph_->maxHeight() > 1.0 ? ys1/(graph_->maxHeight() - 1) : 0.0);
   graph_->setValueScale (graph_->totalSize() > 0.0 ? ys2/ graph_->totalSize()      : 1.0);
 }
@@ -1544,9 +1603,11 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
   for (const auto &node : nodes)
     height += graph_->valueScale()*node->edgeSum();
 
+  // TODO: assert matches bbox height (with tolerance)
+
   //---
 
-  // place top to bottom
+  // calc top (placing top to bottom)
   double y1 = bbox_.getYMax() - (ys - height)/2.0;
 
   //---
@@ -1564,16 +1625,18 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
     int xpos1 = calcXPos(node);
     assert(xpos == xpos1);
 
-    double x11 = CMathUtil::map(xpos1, minX, maxX, bbox_.getXMin(), bbox_.getXMax()); // left
+    // map xpos to bbox range (use for left)
+    double x11 = CMathUtil::map(xpos1, minX, maxX, bbox_.getXMin(), bbox_.getXMax());
     double x12 = x11 + xm;
 
     double yc = y1 - h/2.0; // placement center
 
-    double y11 = yc - h/2.0;
-    double y12 = yc + h/2.0;
+    double y11 = yc - h/2.0; // y1 - h
+    double y12 = yc + h/2.0; // y1
 
     //---
 
+    // calc bbox (adjust align for first left edge (minX) or right edge (maxX))
     BBox rect;
 
     if      (xpos1 == minX)
@@ -1621,6 +1684,8 @@ createObjFromNode(Node *node) const
     nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
   node->setObj(nodeObj);
+
+  nodeObj->setSelected(node->isSelected());
 
   return nodeObj;
 }
@@ -1731,14 +1796,14 @@ updateGraphMaxDepth(const Nodes &nodes) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodes() const
+adjustNodes(bool force) const
 {
   bool changed = false;
 
   if (graph_) {
     Nodes nodes = graph_->placeableNodes();
 
-    if (adjustGraphNodes(nodes))
+    if (adjustGraphNodes(nodes, force))
       changed = true;
   }
 
@@ -1747,47 +1812,29 @@ adjustNodes() const
 
 bool
 CQChartsSankeyPlot::
-adjustGraphNodes(const Nodes &nodes) const
+adjustGraphNodes(const Nodes &nodes, bool force) const
 {
-//auto *th = const_cast<CQChartsSankeyPlot *>(this);
-
-  //---
-
-  // update range
-//th->bbox_ = nodesBBox();
-
-//th->dataRange_ = calcRange();
-
-  //---
+  if (! force && ! isAdjustNodes())
+    return false;
 
   initPosNodesMap(nodes);
 
   //---
 
-  if (isAdjustNodes()) {
-    int numPasses = 25;
+  int numPasses = adjustIterations();
 
-    for (int pass = 0; pass < numPasses; ++pass) {
-      //std::cerr << "Pass " << pass << "\n";
-
-      if (! adjustNodeCenters()) {
-        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
-        break;
-      }
-    }
-
-    //---
-
-    reorderNodeEdges(nodes);
-
-    adjustEdgeOverlaps();
+  for (int pass = 0; pass < numPasses; ++pass) {
+    if (! adjustNodeCenters())
+      break;
   }
 
   //---
 
-//placeDepthNodes();
+  reorderNodeEdges(nodes);
 
   //---
+
+  adjustEdgeOverlaps();
 
   return true;
 }
@@ -1805,14 +1852,17 @@ initPosNodesMap(const Nodes &nodes) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCenters(bool remove) const
+adjustNodeCenters(bool removeOverlaps, bool force) const
 {
+  if (! force && ! isAdjustCenters())
+    return false;
+
   bool changed = false;
 
-  if (adjustNodeCentersLtoR(remove))
+  if (adjustNodeCentersLtoR(removeOverlaps, force))
     changed = true;
 
-  if (adjustNodeCentersRtoL(remove))
+  if (adjustNodeCentersRtoL(removeOverlaps, force))
     changed = true;
 
   return changed;
@@ -1820,21 +1870,27 @@ adjustNodeCenters(bool remove) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCentersLtoR(bool remove) const
+adjustNodeCentersLtoR(bool remove, bool force) const
 {
+  if (! force && ! isAdjustCenters())
+    return false;
+
   // adjust nodes so centered on src nodes
   bool changed = false;
 
   int minX = this->minX();
   int maxX = this->maxX();
 
-  // second to last
-  for (int xpos = minX + 1; xpos <= maxX; ++xpos) {
+  // second to last minus one
+  for (int xpos = minX + 1; xpos < maxX; ++xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
 
     for (const auto &node : nodes) {
+      if (isAdjustSelected() && ! node->isSelected())
+        continue;
+
       if (adjustNode(node))
         changed = true;
     }
@@ -1850,21 +1906,27 @@ adjustNodeCentersLtoR(bool remove) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCentersRtoL(bool remove) const
+adjustNodeCentersRtoL(bool remove, bool force) const
 {
+  if (! force && ! isAdjustCenters())
+    return false;
+
   // adjust nodes so centered on src nodes
   bool changed = false;
 
   int minX = this->minX();
   int maxX = this->maxX();
 
-  // second to last to first
-  for (int xpos = maxX - 1; xpos >= minX; --xpos) {
+  // second to last to second
+  for (int xpos = maxX - 1; xpos > minX; --xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
 
     for (const auto &node : nodes) {
+      if (isAdjustSelected() && ! node->isSelected())
+        continue;
+
       if (adjustNode(node))
         changed = true;
     }
@@ -1880,8 +1942,13 @@ adjustNodeCentersRtoL(bool remove) const
 
 bool
 CQChartsSankeyPlot::
-adjustEdgeOverlaps() const
+adjustEdgeOverlaps(bool force) const
 {
+  if (! force && ! isAdjustEdgeOverlaps())
+    return false;
+
+  //---
+
   auto hasNode = [&](Node *node, const Nodes &nodes) {
     for (auto &node1 : nodes)
       if (node == node1)
@@ -1927,7 +1994,6 @@ adjustEdgeOverlaps() const
       }
     }
 
-#if 0
     // check edges for overlaps
     int numEdges = edges.size();
 
@@ -1951,7 +2017,6 @@ adjustEdgeOverlaps() const
         }
       }
     }
-#endif
 
     xpos1 = xpos2++;
   }
@@ -1961,8 +2026,11 @@ adjustEdgeOverlaps() const
 
 bool
 CQChartsSankeyPlot::
-removeOverlaps(bool spread, bool constrain) const
+removeOverlaps(bool spread, bool constrain, bool force) const
 {
+  if (! force && ! isRemoveOverlaps())
+    return false;
+
   bool changed = false;
 
   Nodes nodes = graph_->placeableNodes();
@@ -2237,8 +2305,13 @@ constrainPosNodes(const Nodes &nodes, bool center) const
 
 bool
 CQChartsSankeyPlot::
-reorderNodeEdges(const Nodes &nodes) const
+reorderNodeEdges(const Nodes &nodes, bool force) const
 {
+  if (! force && ! isReorderEdges())
+    return false;
+
+  //---
+
   bool changed = false;
 
   // sort node edges nodes by bbox
@@ -2446,23 +2519,23 @@ CQChartsSankeyPlot::
 keyPress(int key, int modifier)
 {
   if      (key == Qt::Key_A) {
-    if (adjustNodes())
+    if (adjustNodes(/*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_C) {
-    if (adjustNodeCenters())
+    if (adjustNodeCenters(/*removeOverlaps*/ false, /*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_L) {
-    if (adjustNodeCentersLtoR(/*removeOverlaps*/false))
+    if (adjustNodeCentersLtoR(/*removeOverlaps*/false, /*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_R) {
-    if (adjustNodeCentersRtoL(/*removeOverlaps*/false))
+    if (adjustNodeCentersRtoL(/*removeOverlaps*/false, /*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_O) {
-    if (removeOverlaps(/*spread*/false, /*constrain*/false))
+    if (removeOverlaps(/*spread*/false, /*constrain*/false, /*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_I) {
@@ -2491,7 +2564,7 @@ keyPress(int key, int modifier)
     printStats();
   }
   else if (key == Qt::Key_V) {
-    adjustEdgeOverlaps();
+    adjustEdgeOverlaps(/*force*/true);
   }
   else
     CQChartsPlot::keyPress(key, modifier);
@@ -2587,8 +2660,13 @@ addDestEdge(Edge *edge, bool primary)
 
 void
 CQChartsSankeyPlotNode::
-sortPathIdEdges()
+sortPathIdEdges(bool force)
 {
+  if (! force && ! plot()->isSortPathIdEdges())
+    return;
+
+  //---
+
   using PathIdEdges = std::map<int, Edges>;
 
   PathIdEdges srcPathIdEdges, destPathIdEdges;
@@ -3677,7 +3755,7 @@ drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
   //---
 
   // set text pen
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   PenBrush penBrush;
 
@@ -3753,10 +3831,10 @@ CQChartsSankeyNodeObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
-  QColor bc = plot_->interpNodeStrokeColor(ic);
-  QColor fc = calcFillColor();
+  auto bc = plot_->interpNodeStrokeColor(ic);
+  auto fc = calcFillColor();
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
@@ -3793,7 +3871,7 @@ calcFillColor() const
       fc = node()->calcColor();
   }
   else {
-    ColorInd ic = calcColorInd();
+    auto ic = calcColorInd();
 
     if (color().isValid())
       fc = plot_->interpColor(color(), ic);
@@ -4080,11 +4158,11 @@ drawFg(CQChartsPaintDevice *device) const
   //---
 
   // set text pen
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   PenBrush penBrush;
 
-  QColor c = plot()->interpTextColor(ic);
+  auto c = plot()->interpTextColor(ic);
 
   plot()->setPen(penBrush, PenData(true, c, plot()->textAlpha()));
 
@@ -4142,8 +4220,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   if (! edge()->color().isValid()) {
     if (plot()->isBlendEdgeColor()) {
-      QColor fc1 = srcNode ->obj()->calcFillColor();
-      QColor fc2 = destNode->obj()->calcFillColor();
+      auto fc1 = srcNode ->obj()->calcFillColor();
+      auto fc2 = destNode->obj()->calcFillColor();
 
       fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
     }
@@ -4165,8 +4243,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     ColorInd ic1(srcNode ->id(), numNodes);
     ColorInd ic2(destNode->id(), numNodes);
 
-    QColor sc1 = plot()->interpEdgeStrokeColor(ic1);
-    QColor sc2 = plot()->interpEdgeStrokeColor(ic2);
+    auto sc1 = plot()->interpEdgeStrokeColor(ic1);
+    auto sc2 = plot()->interpEdgeStrokeColor(ic2);
 
     sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
   }

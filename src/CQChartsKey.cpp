@@ -942,7 +942,7 @@ updateLocation(const BBox &bbox)
   //---
 
   // update location for absolute position/rectangle
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  auto locationType = this->location().type();
 
   if      (locationType == CQChartsKeyLocation::Type::ABSOLUTE_POSITION) {
     kp = absolutePlotPosition();
@@ -1494,7 +1494,7 @@ editPress(const Point &p)
 {
   editHandles()->setDragPos(p);
 
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  auto locationType = this->location().type();
 
   if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
       locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
@@ -1557,7 +1557,7 @@ void
 CQChartsPlotKey::
 editMoveBy(const Point &f)
 {
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  auto locationType = this->location().type();
 
   if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
       locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
@@ -1660,7 +1660,7 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  auto locationType = this->location().type();
 
   //---
 
@@ -1941,7 +1941,7 @@ draw(CQChartsPaintDevice *device) const
     // set text pen
     CQChartsPenBrush tPenBrush;
 
-    QColor tc = interpHeaderTextColor(ColorInd());
+    auto tc = interpHeaderTextColor(ColorInd());
 
     plot()->setPen(tPenBrush, PenData(true, tc, headerTextAlpha()));
 
@@ -2036,7 +2036,7 @@ interpBgColor() const
   if (isFilled())
     return interpFillColor(ColorInd());
 
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  auto locationType = this->location().type();
 
   if (locationType != CQChartsKeyLocation::Type::ABSOLUTE_POSITION &&
       locationType != CQChartsKeyLocation::Type::ABSOLUTE_RECTANGLE) {
@@ -2436,7 +2436,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   plot->view()->setPlotPainterFont(plot, device, key_->textFont());
 
-  QColor tc = interpTextColor(ColorInd());
+  auto tc = interpTextColor(ColorInd());
 
   device->setPen(tc);
 
@@ -2565,7 +2565,7 @@ fillBrush() const
 {
   auto *plot = key_->plot();
 
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   QColor c;
 
@@ -2591,7 +2591,7 @@ QPen
 CQChartsKeyColorBox::
 strokePen() const
 {
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   return interpStrokeColor(ic);
 }
@@ -2689,8 +2689,8 @@ draw(PaintDevice *device, const BBox &rect) const
   const auto &fillData   = symbolData_.fill();
   const auto &strokeData = symbolData_.stroke();
 
-  QColor lc = plot->interpColor(fillData  .color(), ig_);
-  QColor fc = plot->interpColor(strokeData.color(), ig_);
+  auto lc = plot->interpColor(fillData  .color(), ig_);
+  auto fc = plot->interpColor(strokeData.color(), ig_);
 
   CQChartsPenBrush penBrush;
 
@@ -2809,7 +2809,7 @@ draw(PaintDevice *device, const BBox &rect) const
   // set text pen
   CQChartsPenBrush penBrush;
 
-  QColor tc = plot_->interpThemeColor(ColorInd(1.0));
+  auto tc = plot_->interpThemeColor(ColorInd(1.0));
 
   plot_->setPen(penBrush, PenData(true, tc, CQChartsAlpha()));
 

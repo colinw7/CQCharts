@@ -132,7 +132,7 @@ void
 CQChartsGroupPlot::
 setAutoRange(bool b)
 {
-  CQBucketer::Type type = (b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
+  auto type = (b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
 
   if (type != groupData_.bucketer.type()) {
     groupData_.bucketer.setType(type);

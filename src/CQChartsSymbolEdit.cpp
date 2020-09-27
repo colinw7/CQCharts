@@ -105,7 +105,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsSymbol symbolType = CQChartsVariant::toSymbol(value, ok);
+  auto symbolType = CQChartsVariant::toSymbol(value, ok);
   if (! ok) return;
 
   //---
@@ -142,7 +142,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect = QRect(x, option1.rect.top(), w + 2*margin(), option1.rect.height());
 
@@ -154,7 +154,7 @@ CQChartsSymbolPropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsSymbol symbolType = CQChartsVariant::toSymbol(value, ok);
+  auto symbolType = CQChartsVariant::toSymbol(value, ok);
   if (! ok) return "";
 
   return symbolType.toString();
@@ -204,7 +204,7 @@ setValue(QWidget *w, const QVariant &var)
   assert(edit);
 
   bool ok;
-  CQChartsSymbol symbol = CQChartsVariant::toSymbol(var, ok);
+  auto symbol = CQChartsVariant::toSymbol(var, ok);
   if (! ok) return;
 
   edit->setSymbol(symbol);

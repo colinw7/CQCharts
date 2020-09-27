@@ -52,7 +52,7 @@ addObjectsThread()
 
   PlotObjTree *plotObjTree = nullptr;
 
-  CQChartsPlot::PlotObjs plotObjs = plot_->plotObjects();
+  auto plotObjs = plot_->plotObjects();
 
   if (! plotObjs.empty() && ! plot_->isNoData()) {
     const auto &range = plot_->objTreeRange();

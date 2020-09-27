@@ -739,8 +739,8 @@ CQChartsView::
 plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled) const
 {
   // adjust font by plot font and then by view font
-  CQChartsFont font1 = font.calcFont(plot->font());
-  QFont        font2 = font1.calcFont(font_.font());
+  auto font1 = font.calcFont(plot->font());
+  auto font2 = font1.calcFont(font_.font());
 
   if (scaled && isScaleFont())
     return scaledFont(font2, plot->calcPixelSize());
@@ -1599,7 +1599,7 @@ removePlot(CQChartsPlot *plot)
   //---
 
   // remove plot
-  QString id = plot->id();
+  auto id = plot->id();
 
   propertyModel()->removeProperties(id, plot);
 
@@ -2285,7 +2285,7 @@ CQChartsView::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
   if (defaultPalette_ != "") {
-    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+    auto c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
 
     return charts()->interpColor(c1, ind);
   }
@@ -2925,7 +2925,7 @@ showProbeLines(const Point &p)
         auto px2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
         auto py2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
 
-        QString tip = QString("%1, %2").
+        auto tip = QString("%1, %2").
           arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
           arg(yval.label.length() ? yval.label : plot->yStr(yval.value));
 
@@ -2940,7 +2940,7 @@ showProbeLines(const Point &p)
       for (const auto &yval : probeData.yvals) {
         auto p2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
 
-        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+        auto tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
         addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
       }
@@ -2952,7 +2952,7 @@ showProbeLines(const Point &p)
       for (const auto &xval : probeData.xvals) {
         auto p2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
 
-        QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+        auto tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
 
         addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
       }
@@ -4310,7 +4310,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
       Alpha  alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
-        QColor pc = penBrush.pen.color();
+        auto pc = penBrush.pen.color();
 
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
@@ -4320,7 +4320,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         alpha = Alpha(pc.alphaF());
       }
       else {
-        QColor bc = penBrush.brush.color();
+        auto bc = penBrush.brush.color();
 
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
@@ -4336,12 +4336,12 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
     }
     // fill box, symbol
     else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
-      QColor bc = penBrush.brush.color();
+      auto bc = penBrush.brush.color();
 
       QColor ibc;
 
       if (isInsideFilled()) {
-        ColorInd ic1 = ic; ic1.c = bc;
+        auto ic1 = ic; ic1.c = bc;
 
         ibc = interpInsideFillColor(ic1);
       }
@@ -4368,7 +4368,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
   }
   // just stroke
   else {
-    QColor pc = penBrush.pen.color();
+    auto pc = penBrush.pen.color();
 
     QColor opc;
 
@@ -4396,7 +4396,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       Alpha  alpha;
 
       if (penBrush.pen.style() != Qt::NoPen) {
-        QColor pc = penBrush.pen.color();
+        auto pc = penBrush.pen.color();
 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
@@ -4406,7 +4406,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         alpha = Alpha(pc.alphaF());
       }
       else {
-        QColor bc = penBrush.brush.color();
+        auto bc = penBrush.brush.color();
 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
@@ -4421,7 +4421,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
     }
     // fill box, symbol
     else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
-      QColor bc = penBrush.brush.color();
+      auto bc = penBrush.brush.color();
 
       QColor ibc;
 
@@ -4450,7 +4450,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
   }
   // just stroke
   else if (penBrush.pen.style() != Qt::NoPen) {
-    QColor pc = penBrush.pen.color();
+    auto pc = penBrush.pen.color();
 
     QColor opc;
 
@@ -4786,7 +4786,7 @@ showMenu(const Point &p)
       return action;
     };
 
-    QStringList locationNames = QStringList() <<
+    auto locationNames = QStringList() <<
       "Top Left"    << "Top Center"    << "Top Right"    <<
       "Center Left" << "Center Center" << "Center Right" <<
       "Bottom Left" << "Bottom Center" << "Bottom Right" <<
@@ -4803,7 +4803,7 @@ showMenu(const Point &p)
 
     keyLocationActionGroup->setExclusive(true);
 
-    CQChartsKeyLocation::Type location = key()->location().type();
+    auto location = key()->location().type();
 
     keyLocationActionMap[location]->setChecked(true);
 
@@ -4904,7 +4904,7 @@ showMenu(const Point &p)
       return action;
     };
 
-    QStringList locationNames = QStringList() <<
+    auto locationNames = QStringList() <<
       "Top Left"    << "Top Center"    << "Top Right"    <<
       "Center Left" << "Center Center" << "Center Right" <<
       "Bottom Left" << "Bottom Center" << "Bottom Right" <<
@@ -4922,7 +4922,7 @@ showMenu(const Point &p)
     keyLocationActionGroup->setExclusive(true);
 
     if (plotKey) {
-      CQChartsKeyLocation::Type location = plotKey->location().type();
+      auto location = plotKey->location().type();
 
       auto p = keyLocationActionMap.find(location);
 
@@ -5090,7 +5090,7 @@ showMenu(const Point &p)
       return action;
     };
 
-    QStringList locationNames = QStringList() <<
+    auto locationNames = QStringList() <<
       "Top" << "Center" << "Bottom" << "Absolute Position" << "Absolute Rectangle";
 
     for (const auto &name : locationNames) {
@@ -5680,7 +5680,7 @@ themeNameSlot()
   auto *action = qobject_cast<QAction *>(sender());
   if (! action) return;
 
-  QString name = action->data().toString();
+  auto name = action->data().toString();
 
   themeSlot(name);
 }
@@ -5735,7 +5735,7 @@ printFile(const QString &filename, CQChartsPlot *plot)
   auto p = filename.lastIndexOf(".");
 
   if (p > 0) {
-    QString suffix = filename.mid(p + 1).toLower();
+    auto suffix = filename.mid(p + 1).toLower();
 
     if      (suffix == "png")
       return printPNG(filename, plot);
@@ -5755,9 +5755,9 @@ void
 CQChartsView::
 printPNGSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts.png";
+  auto dir = QDir::current().dirName() + "/charts.png";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
   if (! fileName.length()) return; // cancelled
 
   printPNGSlot(fileName);
@@ -5774,9 +5774,9 @@ void
 CQChartsView::
 printSVGSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts.svg";
+  auto dir = QDir::current().dirName() + "/charts.svg";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
   if (! fileName.length()) return; // cancelled
 
   printSVGSlot(fileName);
@@ -5793,9 +5793,9 @@ void
 CQChartsView::
 writeSVGSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts_svg.html";
+  auto dir = QDir::current().dirName() + "/charts_svg.html";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
   if (! fileName.length()) return; // cancelled
 
   writeSVGSlot(fileName);
@@ -5819,9 +5819,9 @@ void
 CQChartsView::
 writeScriptSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts_js.html";
+  auto dir = QDir::current().dirName() + "/charts_js.html";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
+  auto fileName = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
   if (! fileName.length()) return; // cancelled
 
   writeScriptSlot(fileName);
@@ -5834,7 +5834,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   int w = width ();
   int h = height();
 
-  QImage image = CQChartsUtil::initImage(QSize(w, h));
+  auto image = CQChartsUtil::initImage(QSize(w, h));
 
   QPainter painter;
 
@@ -6840,14 +6840,14 @@ writeAll(std::ostream &os) const
     QString modelVarName;
 
     if (modelData) {
-      QString id = modelData->id();
+      auto id = modelData->id();
 
       auto p = modelVars.find(id);
 
       if (p == modelVars.end()) {
         os << "\n";
 
-        QString modelVarName = QString("model%1").arg(modelVars.size() + 1);
+        auto modelVarName = QString("model%1").arg(modelVars.size() + 1);
 
         p = modelVars.insert(p, ModelVars::value_type(id, modelVarName));
 
@@ -6859,7 +6859,7 @@ writeAll(std::ostream &os) const
 
     os << "\n";
 
-    QString plotVarName = QString("plot%1").arg(plotVars.size() + 1);
+    auto plotVarName = QString("plot%1").arg(plotVars.size() + 1);
 
     plotVars[plot] = plotVarName;
 

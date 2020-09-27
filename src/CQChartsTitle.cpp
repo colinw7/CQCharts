@@ -464,7 +464,7 @@ draw(CQChartsPaintDevice *device)
   // set text pen
   CQChartsPenBrush penBrush;
 
-  QColor tc = interpTextColor(ColorInd());
+  auto tc = interpTextColor(ColorInd());
 
   plot()->setPen(penBrush, CQChartsPenData(true, tc, textAlpha()));
 

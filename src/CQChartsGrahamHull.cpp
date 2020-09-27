@@ -266,7 +266,7 @@ draw(const CQChartsPlot *, CQChartsPaintDevice *device) const
   int n = hpoly.size();
 
   if (n > 0) {
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(hpoly, /*closed*/true);
+    auto path = CQChartsDrawUtil::polygonToPath(hpoly, /*closed*/true);
 
     device->fillPath  (path, device->brush());
     device->strokePath(path, device->pen());

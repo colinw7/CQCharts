@@ -406,9 +406,9 @@ void
 CQChartsWordObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor textColor = plot_->interpTextColor(colorInd);
+  auto textColor = plot_->interpTextColor(colorInd);
 
   plot_->setPen(penBrush, PenData(true, textColor, plot_->textAlpha()));
 

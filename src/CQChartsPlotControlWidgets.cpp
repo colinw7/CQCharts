@@ -108,7 +108,7 @@ void
 CQChartsPlotControlFrame::
 addPlotControls(CQChartsPlot *plot)
 {
-  CQChartsColumns columns = plot->controlColumns();
+  auto columns = plot->controlColumns();
 
   for (int ic = 0; ic < columns.count(); ++ic) {
     const auto &column = columns.getColumn(ic);
@@ -120,7 +120,7 @@ addPlotControls(CQChartsPlot *plot)
     //---
 
     // create widget
-    CQChartsPlotControlIFace* iface = nullptr;
+    CQChartsPlotControlIFace *iface = nullptr;
 
     if      (details->type() == CQBaseModelType::REAL)
       iface = new CQChartsPlotRealControl(plot, column);
@@ -195,7 +195,7 @@ controlsChanged()
   auto *obj = sender();
   if (! obj) return;
 
-  QString id = obj->property("plot").toString();
+  auto id = obj->property("plot").toString();
 
   auto *view = plot_->view();
   if (! view) return;
@@ -207,7 +207,7 @@ controlsChanged()
 
   QStringList filters;
 
-  QString cmpStr = (this->isEqual() ? "==" : "!=");
+  auto cmpStr = (this->isEqual() ? "==" : "!=");
 
   int n = numIFaces(); // all same size
 
@@ -224,16 +224,16 @@ controlsChanged()
         groupPlot->setGroupColumn(CQChartsColumn(column));
     }
     else {
-      QString filter = iface->filterStr(cmpStr);
+      auto filter = iface->filterStr(cmpStr);
 
       if (filter.length())
         filters.push_back(filter);
     }
   }
 
-  QString combStr = (this->isAnd() ? "&&" : "||");
+  auto combStr = (this->isAnd() ? "&&" : "||");
 
-  QString filterStr = filters.join(QString(" %1 ").arg(combStr));
+  auto filterStr = filters.join(QString(" %1 ").arg(combStr));
 
   //std::cerr << filterStr.toStdString() << "\n";
 
@@ -339,7 +339,7 @@ filterStr(const QString &) const
   auto header = property("header").toString();
   if (! header.length()) return "";
 
-  QString header1 = CQChartsExprTcl::encodeColumnName(header);
+  auto header1 = CQChartsExprTcl::encodeColumnName(header);
 
   QString filter;
 
@@ -457,7 +457,7 @@ filterStr(const QString &) const
   auto header = property("header").toString();
   if (! header.length()) return "";
 
-  QString header1 = CQChartsExprTcl::encodeColumnName(header);
+  auto header1 = CQChartsExprTcl::encodeColumnName(header);
 
   QString filter;
 
@@ -575,7 +575,7 @@ filterStr(const QString &) const
   auto header = property("header").toString();
   if (! header.length()) return "";
 
-  QString header1 = CQChartsExprTcl::encodeColumnName(header);
+  auto header1 = CQChartsExprTcl::encodeColumnName(header);
 
   QString filter;
 
@@ -677,10 +677,10 @@ init()
 
       combo_->addItem("<any>");
 
-      QVariantList uniqueValues = details->uniqueValues();
+      auto uniqueValues = details->uniqueValues();
 
       for (const auto &value : uniqueValues) {
-        QString str = value.toString();
+        auto str = value.toString();
         if (! str.length()) continue;
 
         combo_->addItem(str);
@@ -706,7 +706,7 @@ filterStr(const QString &cmpStr) const
   auto header = property("header").toString();
   if (! header.length()) return "";
 
-  QString header1 = CQChartsExprTcl::encodeColumnName(header);
+  auto header1 = CQChartsExprTcl::encodeColumnName(header);
 
   return QString("$%1 %2 {%3}").arg(header1).arg(cmpStr).arg(combo_->itemText(ind));
 }

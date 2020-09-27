@@ -689,7 +689,7 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
            c.type() == CQChartsColor::Type::CONTRAST_VALUE) {
     value = 1.0; // no interp ?
 
-    QColor cc = contrastColor();
+    auto cc = contrastColor();
 
     if (! cc.isValid()) {
       if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
@@ -698,8 +698,8 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
         return interpThemeColor(ColorInd(1.0 - value));
     }
 
-    QColor c1 = CQChartsUtil::bwColor(cc);
-    QColor c2 = CQChartsUtil::bwColor(c1);
+    auto c1 = CQChartsUtil::bwColor(cc);
+    auto c2 = CQChartsUtil::bwColor(c1);
 
     if (c.type() == CQChartsColor::Type::CONTRAST_VALUE)
       c1 = CQChartsUtil::blendColors(c1, c2, CMathUtil::clamp(c.value(), 0.0, 1.0));
@@ -936,7 +936,7 @@ adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) cons
   if ((c.type() == CQChartsColor::Type::PALETTE ||
        c.type() == CQChartsColor::Type::PALETTE_VALUE) &&
       c.ind() < 0) {
-    CQChartsColor c1 = c;
+    auto c1 = c;
 
     int ind = theme()->paletteInd(defaultPalette);
 

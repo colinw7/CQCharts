@@ -100,7 +100,7 @@ draw(PaintDevice *device, const BBox &bbox, const QString &str, const Position &
 
   PenBrush penBrush;
 
-  QColor tc = interpTextColor(ColorInd());
+  auto tc = interpTextColor(ColorInd());
 
   plot()->setPenBrush(penBrush, PenData(true, tc, textAlpha()), BrushData(false));
 

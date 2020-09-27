@@ -120,7 +120,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  CQChartsMargin margin = value.value<CQChartsMargin>();
+  auto margin = value.value<CQChartsMargin>();
 
   QString str = margin.toString();
 
@@ -130,7 +130,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*CQPropertyViewType::margin());
 
@@ -184,7 +184,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsMarginEdit *>(w);
   assert(edit);
 
-  CQChartsMargin margin = var.value<CQChartsMargin>();
+  auto margin = var.value<CQChartsMargin>();
 
   edit->setMargin(margin);
 }

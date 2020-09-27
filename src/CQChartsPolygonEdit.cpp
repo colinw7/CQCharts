@@ -371,7 +371,7 @@ void
 CQChartsPolygonEdit::
 setUnits(const CQChartsUnits &units)
 {
-  CQChartsPolygon polygon = polygon_;
+  auto polygon = polygon_;
 
   polygon.setUnits(units);
 

@@ -681,7 +681,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     for (int l = l1; l <= l2; ++l) {
       int i = l - l1;
 
-      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+      auto type = CQChartsLayer::Type(l);
 
       auto *idItem = createItem(CQChartsLayer::typeName(type), i, 0);
 
@@ -703,7 +703,7 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     for (int l = l1; l <= l2; ++l) {
       int i = l - l1;
 
-      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+      auto type = CQChartsLayer::Type(l);
 
       auto *layer = plot->getLayer(type);
 

@@ -294,7 +294,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -318,7 +318,7 @@ QString
 CQChartsColumnsPropertyViewType::
 valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
 {
-  CQChartsColumns columns = value.value<CQChartsColumns>();
+  auto columns = value.value<CQChartsColumns>();
 
   QString str;
 
@@ -409,7 +409,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
-  CQChartsColumns columns = var.value<CQChartsColumns>();
+  auto columns = var.value<CQChartsColumns>();
 
   edit->setColumns(columns);
 }

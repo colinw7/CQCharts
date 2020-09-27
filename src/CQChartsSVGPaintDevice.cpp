@@ -126,7 +126,7 @@ void
 CQChartsSVGPaintDevice::
 addPathParts(const QPainterPath &path)
 {
-  QPainterPath ppath = windowToPixel(path);
+  auto ppath = windowToPixel(path);
 
   int n = ppath.elementCount();
 

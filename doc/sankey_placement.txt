@@ -1,0 +1,11 @@
++ create graph of connected nodes
++ place nodes
+  + get max depth (src or dest)
+  + create map of depth nodes (from depth or auto calc)
+  + place src/dest edges for node
+  + sort depth nodes by path id
+  + calc max height of all depths (number of nodes and sum of sizes)
+  + calc scale factors so nodes and margins will fit in bbox
+  + place nodes per depth, top to bottom
+  + adjust centers L->R and R->L
+  + reorder node edges to match y position (center)

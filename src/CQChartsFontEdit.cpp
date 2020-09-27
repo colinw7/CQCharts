@@ -131,7 +131,7 @@ void
 CQChartsFontLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
+  auto c = palette().color(QPalette::Window);
 
   painter->fillRect(rect, QBrush(c));
 
@@ -177,7 +177,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsFont font = CQChartsVariant::toFont(value, ok);
+  auto font = CQChartsVariant::toFont(value, ok);
   if (! ok) return;
 
   //---
@@ -188,7 +188,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -243,7 +243,7 @@ CQChartsFontPropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsFont font = CQChartsVariant::toFont(value, ok);
+  auto font = CQChartsVariant::toFont(value, ok);
   if (! ok) return "";
 
   return font.toString();
@@ -293,7 +293,7 @@ setValue(QWidget *w, const QVariant &var)
   assert(edit);
 
   bool ok;
-  CQChartsFont font = CQChartsVariant::toFont(var, ok);
+  auto font = CQChartsVariant::toFont(var, ok);
   if (! ok) return;
 
   edit->setFont(font);

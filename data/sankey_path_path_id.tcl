@@ -1,5 +1,5 @@
 # sankey link model
-set model [load_charts_model -csv data/sankey_link_path_id.csv -first_line_header]
+set model [load_charts_model -csv data/sankey_link_path_id_1.csv -first_line_header]
 
 set plot [create_charts_plot -model $model -type sankey \
  -columns {{path Link} {value Value} {depth Depth} {attributes Attributes}}]

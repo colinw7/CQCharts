@@ -394,7 +394,7 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   //---
 
   // set pen
-  QColor pc = interpColor(plot, view, shape.stroke().color());
+  auto pc = interpColor(plot, view, shape.stroke().color());
 
   QPen pen;
 
@@ -408,7 +408,7 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   //---
 
   // set brush
-  QColor fc = interpColor(plot, view, shape.fill().color());
+  auto fc = interpColor(plot, view, shape.fill().color());
 
   QBrush brush;
 

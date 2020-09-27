@@ -1428,7 +1428,7 @@ void
 CQChartsAdjacencyCellObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   //---
 

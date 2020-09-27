@@ -61,7 +61,7 @@ void
 CQChartsOptRectEdit::
 fromVariant(const QVariant &var)
 {
-  CQChartsOptRect value = var.value<CQChartsOptRect>();
+  auto value = var.value<CQChartsOptRect>();
 
   setValue(value);
 }
@@ -79,7 +79,7 @@ QString
 CQChartsOptRectPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsOptRect optRect = value.value<CQChartsOptRect>();
+  auto optRect = value.value<CQChartsOptRect>();
 
   QString str;
 

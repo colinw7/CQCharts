@@ -338,7 +338,7 @@ addReplaceSearch(const QString &text, bool add)
       CQChartsTable *table() const { return table_; }
 
       State visit(const QAbstractItemModel *model, const VisitData &data) override {
-        QModelIndex ind = model->index(data.row, column_, data.parent);
+        auto ind = model->index(data.row, column_, data.parent);
 
         bool ok;
 
@@ -382,7 +382,7 @@ addReplaceSearch(const QString &text, bool add)
       CQChartsTable *table() const { return table_; }
 
       State visit(const QAbstractItemModel *model, const VisitData &data) override {
-        QModelIndex ind = model->index(data.row, column_, data.parent);
+        auto ind = model->index(data.row, column_, data.parent);
 
         bool isMatch = false;
 
@@ -422,7 +422,7 @@ addReplaceSearch(const QString &text, bool add)
   QItemSelection sel;
 
   for (auto &r : rows) {
-    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
+    auto ind = model_->index(r.row(), keyColumn, r.parent());
 
     sel.select(ind, ind);
   }
@@ -437,7 +437,7 @@ addReplaceSearch(const QString &text, bool add)
 
   // make item visible
   for (auto &r : rows) {
-    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
+    auto ind = model_->index(r.row(), keyColumn, r.parent());
 
     scrollTo(ind);
 
@@ -469,7 +469,7 @@ void
 CQChartsTable::
 selectionSlot()
 {
-  QModelIndexList indices = selectedIndexes();
+  auto indices = selectedIndexes();
   if (indices.empty()) return;
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);

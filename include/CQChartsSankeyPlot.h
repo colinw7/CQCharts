@@ -134,7 +134,8 @@ class CQChartsSankeyPlotNode {
   //! add destination edge
   void addDestEdge(Edge *edge, bool primary=true);
 
-  void sortPathIdEdges();
+  //! sort edges path id
+  void sortPathIdEdges(bool force=false);
 
   int minPathId() const;
 
@@ -144,6 +145,12 @@ class CQChartsSankeyPlotNode {
   //! get/set object
   Obj *obj() const { return obj_; }
   void setObj(Obj *obj);
+
+  //! get/set selected
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; }
+
+  //---
 
   //! get source depth (from connections)
   int srcDepth() const;
@@ -264,32 +271,33 @@ class CQChartsSankeyPlotNode {
   int calcDestDepth(NodeSet &visited) const;
 
  protected:
-  const Plot*   plot_          { nullptr }; //!< associated plot
-  Node*         parent_        { nullptr }; //!< parent node
-  QString       str_;                       //!< string
-  int           id_            { -1 };      //!< id
-  bool          visible_       { true };    //!< is visible
-  ModelIndex    ind_;                       //!< model index
-  QString       name_;                      //!< name
-  QString       label_;                     //!< label
-  OptReal       value_;                     //!< value
-  int           group_         { -1 };      //!< group index
-  int           ngroup_        { 0 };       //!< number of groups
-  int           depth_         { -1 };      //!< depth
-  CQChartsColor color_;                     //!< fill color
-  Edges         srcEdges_;                  //!< source edges
-  Edges         destEdges_;                 //!< destination edges
-  Edges         nonPrimaryEdges_;           //!< non-primary edges
-  int           srcDepth_      { -1 };      //!< source depth (calculated)
-  int           destDepth_     { -1 };      //!< destination depth (calculated)
-  int           xpos_          { -1 };      //!< x position
-  BBox          rect_;                      //!< placed rectangle
-  ModelInds     modelInds_;                 //!< model inds
-  EdgeRect      srcEdgeRect_;               //!< edge to src
-  EdgeRect      destEdgeRect_;              //!< edge to dest
-  PathIdRect    srcPathIdRect_;             //!< src path id rect
-  PathIdRect    destPathIdRect_;            //!< dest path id rect
-  Obj*          obj_           { nullptr }; //!< plot object
+  const Plot*   plot_            { nullptr }; //!< associated plot
+  Node*         parent_          { nullptr }; //!< parent node
+  QString       str_;                         //!< string
+  int           id_              { -1 };      //!< id
+  bool          visible_         { true };    //!< is visible
+  ModelIndex    ind_;                         //!< model index
+  QString       name_;                        //!< name
+  QString       label_;                       //!< label
+  OptReal       value_;                       //!< value
+  int           group_           { -1 };      //!< group index
+  int           ngroup_          { 0 };       //!< number of groups
+  int           depth_           { -1 };      //!< depth
+  CQChartsColor color_;                       //!< fill color
+  Edges         srcEdges_;                    //!< source edges
+  Edges         destEdges_;                   //!< destination edges
+  Edges         nonPrimaryEdges_;             //!< non-primary edges
+  int           srcDepth_        { -1 };      //!< source depth (calculated)
+  int           destDepth_       { -1 };      //!< destination depth (calculated)
+  int           xpos_            { -1 };      //!< x position
+  BBox          rect_;                        //!< placed rectangle
+  ModelInds     modelInds_;                   //!< model inds
+  EdgeRect      srcEdgeRect_;                 //!< edge to src
+  EdgeRect      destEdgeRect_;                //!< edge to dest
+  PathIdRect    srcPathIdRect_;               //!< src path id rect
+  PathIdRect    destPathIdRect_;              //!< dest path id rect
+  Obj*          obj_             { nullptr }; //!< plot object
+  bool          selected_        { false };   //!< is selected
 };
 
 //---
@@ -531,7 +539,7 @@ class CQChartsSankeyPlotGraph {
   int           maxHeight_    { 0 };       //!< max height of all depth nodes
   double        totalSize_    { 0.0 };     //!< total size of all depth nodes
   DepthNodesMap depthNodesMap_;            //!< nodes data at depth
-  PosNodesMap   posNodesMap_;              //!< pos node map
+  PosNodesMap   posNodesMap_;              //!< pos node map (needed ?)
   double        valueMargin_  { 0.0 };     //!< y value margin
   double        valueScale_   { 1.0 };     //!< y value scale
 };
@@ -605,6 +613,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //! get tip string
   QString calcTipId() const override;
+
+  //---
+
+  void setSelected(bool b) override { CQChartsPlotObj::setSelected(b); node_->setSelected(b); }
 
   //---
 
@@ -777,8 +789,16 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(Spread spread READ spread WRITE setSpread)
 
   // placement
-  Q_PROPERTY(bool adjustNodes READ isAdjustNodes WRITE setAdjustNodes)
-  Q_PROPERTY(bool adjustText  READ isAdjustText  WRITE setAdjustText )
+  Q_PROPERTY(bool sortPathIdNodes    READ isSortPathIdNodes    WRITE setSortPathIdNodes   )
+  Q_PROPERTY(bool sortPathIdEdges    READ isSortPathIdEdges    WRITE setSortPathIdEdges   )
+  Q_PROPERTY(bool adjustNodes        READ isAdjustNodes        WRITE setAdjustNodes       )
+  Q_PROPERTY(bool adjustCenters      READ isAdjustCenters      WRITE setAdjustCenters     )
+  Q_PROPERTY(bool removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
+  Q_PROPERTY(bool reorderEdges       READ isReorderEdges       WRITE setReorderEdges      )
+  Q_PROPERTY(bool adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
+  Q_PROPERTY(bool adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
+  Q_PROPERTY(int  adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
+  Q_PROPERTY(bool adjustText         READ isAdjustText         WRITE setAdjustText        )
 
   // edge scaling
   Q_PROPERTY(bool useMaxTotals READ useMaxTotals WRITE setUseMaxTotals)
@@ -900,9 +920,41 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
+  //! get/set sort path id edges
+  bool isSortPathIdNodes() const { return sortPathIdNodes_; }
+  void setSortPathIdNodes(bool b);
+
+  //! get/set sort path id edges
+  bool isSortPathIdEdges() const { return sortPathIdEdges_; }
+  void setSortPathIdEdges(bool b);
+
   //! get/set adjust nodes
   bool isAdjustNodes() const { return adjustNodes_; }
   void setAdjustNodes(bool b);
+
+  //! get/set adjust center
+  bool isAdjustCenters() const { return adjustCenters_; }
+  void setAdjustCenters(bool b);
+
+  //! get/set remove overlaps
+  bool isRemoveOverlaps() const { return removeOverlaps_; }
+  void setRemoveOverlaps(bool b);
+
+  //! get/set reorder edges
+  bool isReorderEdges() const { return reorderEdges_; }
+  void setReorderEdges(bool b);
+
+  //! get/set adjust edge overlaps
+  bool isAdjustEdgeOverlaps() const { return adjustEdgeOverlaps_; }
+  void setAdjustEdgeOverlaps(bool b);
+
+  //! get/set adjust selected
+  bool isAdjustSelected() const { return adjustSelected_; }
+  void setAdjustSelected(bool b);
+
+  //! get/set adjust iterations
+  int adjustIterations() const { return adjustIterations_; }
+  void setAdjustIterations(int n);
 
   //---
 
@@ -1050,7 +1102,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void createObjsGraph(PlotObjs &objs) const;
 
-  void sortDepthNodes();
+  void sortDepthNodes(bool force=false);
 
   void createGraph() const;
 
@@ -1073,18 +1125,18 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void updateGraphMaxDepth(const Nodes &nodes) const;
 
-  bool adjustNodes() const;
-  bool adjustGraphNodes(const Nodes &nodes) const;
+  bool adjustNodes(bool force=false) const;
+  bool adjustGraphNodes(const Nodes &nodes, bool force=false) const;
 
   void initPosNodesMap(const Nodes &nodes) const;
 
-  bool adjustNodeCenters(bool remove=true) const;
-  bool adjustNodeCentersLtoR(bool remove=true) const;
-  bool adjustNodeCentersRtoL(bool remove=true) const;
+  bool adjustNodeCenters(bool removeOverlaps=true, bool force=false) const;
+  bool adjustNodeCentersLtoR(bool removeOverlaps=true, bool force=false) const;
+  bool adjustNodeCentersRtoL(bool removeOverlaps=true, bool force=false) const;
 
-  bool adjustEdgeOverlaps() const;
+  bool adjustEdgeOverlaps(bool force=false) const;
 
-  bool removeOverlaps(bool spread=true, bool constrain=true) const;
+  bool removeOverlaps(bool spread=true, bool constrain=true, bool force=false) const;
   bool removePosOverlaps(int pos, const Nodes &nodes, bool spread=true, bool constrain=true) const;
 
   bool spreadNodes() const;
@@ -1093,7 +1145,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool constrainNodes(bool center=false) const;
   bool constrainPosNodes(const Nodes &nodes, bool center=false) const;
 
-  bool reorderNodeEdges(const Nodes &nodes) const;
+  bool reorderNodeEdges(const Nodes &nodes, bool force=false) const;
 
   void createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const;
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
@@ -1116,15 +1168,23 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
  protected:
   // options
-  Align  align_       { Align::JUSTIFY };     //!< align
-  Spread spread_      { Spread::FIRST_LAST }; //!< spread
-  int    alignRand_   { 10 };                 //!< number of random values for align
-  bool   adjustNodes_ { true };               //!< adjust nodes
-  bool   adjustText_  { false };              //!< adjust text position
-  double nodeMargin_  { 0.2 };                //!< node margin (y)
-  double nodeWidth_   { 16 };                 //!< node x width in pixels
-  bool   edgeLine_    { false };              //!< draw line for edge
-  BBox   targetBBox_  { -1, -1, 1, 1 };       //!< target range bbox
+  Align  align_              { Align::JUSTIFY };     //!< align
+  Spread spread_             { Spread::FIRST_LAST }; //!< spread
+  int    alignRand_          { 10 };                 //!< number of random values for align
+  bool   sortPathIdNodes_    { true };               //!< sort nodes at depth by path id
+  bool   sortPathIdEdges_    { true };               //!< sort node edges by path id
+  bool   adjustNodes_        { true };               //!< adjust nodes
+  bool   adjustCenters_      { true };               //!< adjust centers
+  bool   removeOverlaps_     { true };               //!< remove overlaps
+  bool   reorderEdges_       { true };               //!< reorder edges
+  bool   adjustEdgeOverlaps_ { false };              //!< adjust edge overlaps
+  bool   adjustSelected_     { false };              //!< adjust only selected
+  int    adjustIterations_   { 25 };                 //!< number of adjust iterations
+  bool   adjustText_         { false };              //!< adjust text position
+  double nodeMargin_         { 0.2 };                //!< node margin (y)
+  double nodeWidth_          { 16 };                 //!< node x width in pixels
+  bool   edgeLine_           { false };              //!< draw line for edge
+  BBox   targetBBox_         { -1, -1, 1, 1 };       //!< target range bbox
 
   // text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)

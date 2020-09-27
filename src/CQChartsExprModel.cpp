@@ -343,14 +343,14 @@ assignColumn(const QString &header, int column, const QString &expr)
     currentRow_ = r;
     currentCol_ = column;
 
-    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     QVariant var;
 
     if (evaluateExpression(expr1, var)) {
       currentCol_ = column;
 
-      QModelIndex ind = index(currentRow_, currentCol_, QModelIndex());
+      auto ind = index(currentRow_, currentCol_, QModelIndex());
 
       setData(ind, var, role);
     }
@@ -363,8 +363,8 @@ assignColumn(const QString &header, int column, const QString &expr)
 
   //---
 
-  QModelIndex index1 = index(0      , column, QModelIndex());
-  QModelIndex index2 = index(nr_ - 1, column, QModelIndex());
+  auto index1 = index(0      , column, QModelIndex());
+  auto index2 = index(nr_ - 1, column, QModelIndex());
 
   emit dataChanged(index1, index2);
 
@@ -418,8 +418,8 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
 
   //---
 
-  QModelIndex index1 = index(0      , column, QModelIndex());
-  QModelIndex index2 = index(nr_ - 1, column, QModelIndex());
+  auto index1 = index(0      , column, QModelIndex());
+  auto index2 = index(nr_ - 1, column, QModelIndex());
 
   emit dataChanged(index1, index2);
 
@@ -445,7 +445,7 @@ calcColumn(int column, const QString &expr, Values &values, const NameValues &na
 
     QVariant var;
 
-    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     if (! evaluateExpression(expr1, var))
       ++numErrors;
@@ -472,7 +472,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 
     QVariant var;
 
-    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     if (! evaluateExpression(expr1, var)) {
       ++numErrors;
@@ -548,7 +548,7 @@ initCalc()
 
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHHeaderString(this, c, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(this, c, ok);
 
     columnNames_[ic  ] = name;
     nameColumns_[name] = ic;
@@ -594,7 +594,7 @@ processExpr(const QString &expr)
 
   int numErrors = 0;
 
-  QString expr1 = replaceExprColumns(expr, -1, -1);
+  auto expr1 = replaceExprColumns(expr, -1, -1);
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -645,9 +645,9 @@ calcColumnRange(int column, double &minVal, double &maxVal)
   nr_ = rowCount();
 
   for (int r = 0; r < nr_; ++r) {
-    QModelIndex ind = index(r, column, QModelIndex());
+    auto ind = index(r, column, QModelIndex());
 
-    QVariant var = data(ind, Qt::DisplayRole);
+    auto var = data(ind, Qt::DisplayRole);
 
     bool ok;
 
@@ -705,9 +705,9 @@ calcColumnRange(int column, int &minVal, int &maxVal)
   nr_ = rowCount();
 
   for (int r = 0; r < nr_; ++r) {
-    QModelIndex ind = index(r, column, QModelIndex());
+    auto ind = index(r, column, QModelIndex());
 
-    QVariant var = data(ind, Qt::DisplayRole);
+    auto var = data(ind, Qt::DisplayRole);
 
     bool ok;
 
@@ -787,9 +787,9 @@ data(const QModelIndex &index, int role) const
   int nc = sourceModel()->columnCount(mapToSource(index));
 
   if (index.column() >= 0 && index.column() < nc) {
-    QModelIndex sind = mapToSource(index);
+    auto sind = mapToSource(index);
 
-    QVariant var = sourceModel()->data(sind, role);
+    auto var = sourceModel()->data(sind, role);
 
     if (role == Qt::ToolTipRole && ! var.isValid())
       var = sourceModel()->data(sind, Qt::DisplayRole);
@@ -850,7 +850,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
   else if (expr[0] == '-') {
     function = Function::DELETE;
 
-    QString columnStr = exprStr.mid(1).simplified();
+    auto columnStr = exprStr.mid(1).simplified();
 
     bool ok;
 
@@ -862,15 +862,15 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
   else if (expr[0] == '=') {
     function = Function::ASSIGN;
 
-    QString columnExprStr = exprStr.mid(1).simplified();
+    auto columnExprStr = exprStr.mid(1).simplified();
 
     int pos = columnExprStr.indexOf(':');
 
     if (pos < 0)
       return false;
 
-    QString columnStr = columnExprStr.mid(0, pos).simplified();
-    QString exprStr   = columnExprStr.mid(pos + 1).simplified();
+    auto columnStr = columnExprStr.mid(0, pos).simplified();
+    auto exprStr   = columnExprStr.mid(pos + 1).simplified();
 
     bool ok;
 
@@ -941,7 +941,7 @@ getExtraColumnValue(int row, int column, int ecolumn, bool &rc) const
 
   bool rc1 = true;
 
-  QVariant var = th->calcExtraColumnValue(row, column, ecolumn, rc1);
+  auto var = th->calcExtraColumnValue(row, column, ecolumn, rc1);
 
   if (! rc1)
     rc = false;
@@ -959,7 +959,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 
   extraColumn.evaluating = true;
 
-  QString expr = extraColumn.expr;
+  auto expr = extraColumn.expr;
 
   expr = replaceExprColumns(expr, row, column).simplified();
 
@@ -1073,14 +1073,14 @@ headerData(int section, Qt::Orientation orientation, int role) const
     if (extraColumn.header.length())
       return extraColumn.header;
 
-    QString header = QString("%1").arg(section + 1);
+    auto header = QString("%1").arg(section + 1);
 
     return header;
   }
   else if (role == Qt::ToolTipRole) {
-    QString str = extraColumn.header;
+    auto str = extraColumn.header;
 
-    CQBaseModelType type = extraColumn.typeData.type;
+    auto type = extraColumn.typeData.type;
 
     str += ":" + CQBaseModel::typeName(type);
 
@@ -1452,7 +1452,7 @@ setColumnCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant(false);
 
-  QVariant var = cmdValues.popValue(); // last value
+  auto var = cmdValues.popValue(); // last value
 
   //---
 
@@ -1485,7 +1485,7 @@ setRowCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant(false);
 
-  QVariant var = cmdValues.popValue(); // last value
+  auto var = cmdValues.popValue(); // last value
 
   //---
 
@@ -1518,7 +1518,7 @@ setCellCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant(false);
 
-  QVariant var = cmdValues.popValue();
+  auto var = cmdValues.popValue();
 
   //---
 
@@ -1572,7 +1572,7 @@ setHeaderCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant(false);
 
-  QVariant var = cmdValues.popValue();
+  auto var = cmdValues.popValue();
 
   //---
 
@@ -1609,14 +1609,14 @@ typeCmd(const Values &values) const
 
   int role = static_cast<int>(CQBaseModelRole::Type);
 
-  QVariant var = headerData(col, Qt::Horizontal, role);
+  auto var = headerData(col, Qt::Horizontal, role);
 
   bool ok;
 
-  CQBaseModelType type = (CQBaseModelType) CQChartsVariant::toInt(var, ok);
+  auto type = (CQBaseModelType) CQChartsVariant::toInt(var, ok);
   if (! ok) return "";
 
-  QString typeName = CQBaseModel::typeName(type);
+  auto typeName = CQBaseModel::typeName(type);
 
   return QVariant(typeName);
 }
@@ -1634,7 +1634,7 @@ setTypeCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant(false);
 
-  QVariant var = cmdValues.popValue();
+  auto var = cmdValues.popValue();
 
   //---
 
@@ -1649,7 +1649,7 @@ setTypeCmd(const Values &values)
 
   int role = static_cast<int>(CQBaseModelRole::Type);
 
-  CQBaseModelType type = CQBaseModel::nameType(var.toString());
+  auto type = CQBaseModel::nameType(var.toString());
 
   QVariant typeVar(static_cast<int>(type));
 
@@ -1733,7 +1733,7 @@ remapCmd(const Values &values)
   if (! this->checkIndex(row, col))
     return QVariant(0.0);
 
-  QModelIndex ind = this->index(row, col, QModelIndex());
+  auto ind = this->index(row, col, QModelIndex());
 
   //---
 
@@ -1782,7 +1782,7 @@ bucketCmd(const Values &values) const
 
   //---
 
-  QVariant var = getCmdData(row, col);
+  auto var = getCmdData(row, col);
 
   //---
 
@@ -1824,7 +1824,7 @@ bucketCmd(const Values &values) const
       return QVariant(-1);
     }
 
-    CQBucketer bucketer1 = bucketer;
+    auto bucketer1 = bucketer;
 
     bucketer1.setType(CQBucketer::Type::REAL_RANGE);
 
@@ -1837,7 +1837,7 @@ bucketCmd(const Values &values) const
     return var;
   }
   else {
-    QString str = var.toString();
+    auto str = var.toString();
 
     bucket = bucketer.stringBucket(str);
   }
@@ -1878,7 +1878,7 @@ normCmd(const Values &values) const
   if (! checkIndex(row, col))
     return QVariant();
 
-  QVariant var = getCmdData(row, col);
+  auto var = getCmdData(row, col);
 
   if (! var.isValid())
     return QVariant();
@@ -1971,7 +1971,7 @@ scaleCmd(const Values &values) const
   if (! checkIndex(row, col))
     return QVariant(0.0);
 
-  QVariant var = getCmdData(row, col);
+  auto var = getCmdData(row, col);
 
   if (! var.isValid())
     return QVariant(0.0);
@@ -1982,7 +1982,7 @@ scaleCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = this->index(row, col, QModelIndex());
+  auto ind = this->index(row, col, QModelIndex());
 
   CQChartsColumn column(ind.column());
 
@@ -1995,8 +1995,8 @@ scaleCmd(const Values &values) const
   auto *columnDetails = details->columnDetails(column);
   assert(columnDetails);
 
-  QVariant meanVar   = columnDetails->meanValue  (/*useNaN*/false);
-  QVariant stddevVar = columnDetails->stdDevValue(/*useNaN*/false);
+  auto meanVar   = columnDetails->meanValue  (/*useNaN*/false);
+  auto stddevVar = columnDetails->stdDevValue(/*useNaN*/false);
 
   if (! meanVar.isValid() || ! stddevVar.isValid())
     return QVariant(0.0);
@@ -2108,8 +2108,8 @@ CQChartsExprModel::
 matchCmd(const Values &values) const
 {
   if (values.size() == 2) {
-    QString str     = values[0].toString();
-    QString pattern = values[1].toString();
+    auto str     = values[0].toString();
+    auto pattern = values[1].toString();
 
     QRegExp regexp(pattern);
 
@@ -2147,7 +2147,7 @@ timevalCmd(const Values &values) const
   if (cmdValues.numValues() < 1)
     return QVariant();
 
-  QString fmt = cmdValues.popValue().toString(); // last value
+  auto fmt = cmdValues.popValue().toString(); // last value
 
   //---
 
@@ -2164,18 +2164,18 @@ timevalCmd(const Values &values) const
 
   auto *th = const_cast<CQChartsExprModel *>(this);
 
-  QModelIndex ind = index(row, col, QModelIndex());
+  auto ind = index(row, col, QModelIndex());
 
   bool ok;
 
-  QVariant var = CQChartsModelUtil::modelValue(th, ind, Qt::EditRole, ok);
+  auto var = CQChartsModelUtil::modelValue(th, ind, Qt::EditRole, ok);
   if (! ok) return QVariant();
 
   CQChartsColumn column(col);
 
   bool converted;
 
-  QVariant var1 = CQChartsModelUtil::columnUserData(charts_, th, column, var, converted);
+  auto var1 = CQChartsModelUtil::columnUserData(charts_, th, column, var, converted);
 
   if (var1.isValid())
     var = var1;
@@ -2229,9 +2229,9 @@ getCmdData(int row, int col) const
 {
   QModelIndex parent; // TODO
 
-  QModelIndex ind = this->index(row, col, parent);
+  auto ind = this->index(row, col, parent);
 
-  QVariant var = this->data(ind, Qt::EditRole);
+  auto var = this->data(ind, Qt::EditRole);
 
   if (! var.isValid())
     var = this->data(ind, Qt::DisplayRole);
@@ -2245,7 +2245,7 @@ setCmdData(int row, int col, const QVariant &var)
 {
   QModelIndex parent; // TODO
 
-  QModelIndex ind = this->index(row, col, parent);
+  auto ind = this->index(row, col, parent);
 
   bool b = this->setData(ind, var, Qt::EditRole);
 
@@ -2293,7 +2293,7 @@ QString
 CQChartsExprModel::
 replaceExprColumns(const QString &expr, int row, int column) const
 {
-  QModelIndex ind = this->index(row, column, QModelIndex());
+  auto ind = this->index(row, column, QModelIndex());
 
   if (! ind.isValid())
     ind = this->index(row, 0, QModelIndex());

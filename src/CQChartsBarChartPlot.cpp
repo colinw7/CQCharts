@@ -626,7 +626,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
     bool ok;
 
-    QVariant colorValue = modelValue(colorModelInd, ok);
+    auto colorValue = modelValue(colorModelInd, ok);
 
     bool hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
 
@@ -664,7 +664,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   int groupInd = rowGroupInd(ind);
 
   // get group name
-  QString groupName = groupIndName(groupInd);
+  auto groupName = groupIndName(groupInd);
 
   //---
 
@@ -695,7 +695,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
     bool ok2;
 
-    QVariant var = modelValue(nameInd, ok2);
+    auto var = modelValue(nameInd, ok2);
 
     // convert real value to string for real value name (e.g. date)
     double r;
@@ -771,8 +771,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     //---
 
     // get associated model index
-    QModelIndex valInd  = modelIndex(valueModelInd);
-    QModelIndex valInd1 = normalizeIndex(valInd);
+    auto valInd  = modelIndex(valueModelInd);
+    auto valInd1 = normalizeIndex(valInd);
 
     // add value and index
     ValueInd valueInd;
@@ -917,7 +917,7 @@ groupValueSetI(int groupInd)
 
   int ind = numValueSets();
 
-  QString name = groupIndName(groupInd);
+  auto name = groupIndName(groupInd);
 
   valueData_.valueSets.emplace_back(name, ind);
 
@@ -1096,7 +1096,8 @@ createObjs(PlotObjs &objs) const
 
         const auto &ivalue = valueSet.value(ivs);
 
-        CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
+        CQChartsBarChartValue::ValueInd minInd, maxInd;
+        double                          mean = 0.0, sum = 0.0;
 
         ivalue.calcRange(minInd, maxInd, mean, sum);
 
@@ -1411,7 +1412,7 @@ addKeyItems(CQChartsPlotKey *key)
       for (int iv = 0; iv < nv; ++iv) {
         const auto &valueSet = this->valueSet(iv);
 
-        QString name = valueSet.name();
+        auto name = valueSet.name();
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name);
       }
@@ -1424,7 +1425,7 @@ addKeyItems(CQChartsPlotKey *key)
       for (int ivs = 0; ivs < nvs; ++ivs) {
         const auto &value = valueSet.value(ivs);
 
-        QString name = value.valueName();
+        auto name = value.valueName();
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), name);
       }
@@ -1433,7 +1434,7 @@ addKeyItems(CQChartsPlotKey *key)
   else {
     if      (nv > 1) {
       if (isColorBySet()) {
-        QString name = this->valueName();
+        auto name = this->valueName();
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(), name);
       }
@@ -1464,7 +1465,7 @@ addKeyItems(CQChartsPlotKey *key)
               c = interpColor(color, ColorInd());
           }
 
-          QString name = valueSet.name();
+          auto name = valueSet.name();
 
           addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
         }
@@ -1491,7 +1492,7 @@ addKeyItems(CQChartsPlotKey *key)
         if (colorColumnColor(ind0.vrow, parent, color))
           c = interpColor(color, ColorInd());
 
-        QString iname = ivalue.valueName();
+        auto iname = ivalue.valueName();
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), iname, c);
       }
@@ -1519,18 +1520,18 @@ addKeyItems(CQChartsPlotKey *key)
             c = interpColor(color, ColorInd());
         }
 
-        QString name = valueSet.name();
+        auto name = valueSet.name();
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), name, c);
       }
     }
     else {
-      QString title = this->titleStr();
+      auto title = this->titleStr();
 
       if (! title.length()) {
         bool ok;
 
-        QString yname = modelHHeaderString(valueColumns().column(), ok);
+        auto yname = modelHHeaderString(valueColumns().column(), ok);
 
         title = yname;
       }
@@ -1707,9 +1708,9 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString nameStr  = this->nameStr ();
-  QString groupStr = this->groupStr();
-  QString valueStr = this->valueStr();
+  auto nameStr  = this->nameStr ();
+  auto groupStr = this->groupStr();
+  auto valueStr = this->valueStr();
 
   if (groupStr.length())
     tableTip.addTableRow("Group", groupStr);
@@ -1787,8 +1788,8 @@ valueStr() const
       return "";
 
     if      (plot_->isValueRange()) {
-      QString minValueStr = plot_->valueStr(min);
-      QString maxValueStr = plot_->valueStr(max);
+      auto minValueStr = plot_->valueStr(min);
+      auto maxValueStr = plot_->valueStr(max);
 
       valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
     }
@@ -1804,7 +1805,8 @@ valueStr() const
   else {
     const auto *value = this->value();
 
-    CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
+    CQChartsBarChartValue::ValueInd minInd, maxInd;
+    double                          mean = 0.0, sum = 0.0;
 
     value->calcRange(minInd, maxInd, mean, sum);
 
@@ -1812,8 +1814,8 @@ valueStr() const
       valueStr = plot_->valueStr(minInd.value);
     }
     else if (plot_->isValueRange()) {
-      QString minValueStr = plot_->valueStr(minInd.value);
-      QString maxValueStr = plot_->valueStr(maxInd.value);
+      auto minValueStr = plot_->valueStr(minInd.value);
+      auto maxValueStr = plot_->valueStr(maxInd.value);
 
       valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
     }
@@ -1839,7 +1841,7 @@ dataLabelRect() const
 
   const auto &value = this->value();
 
-  QString label = value->getNameValue("Label");
+  auto label = value->getNameValue("Label");
 
   if (! plot_->labelColumn().isValid()) {
     const auto &valueInds = value->valueInds();
@@ -1859,7 +1861,7 @@ void
 CQChartsBarChartObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -2050,10 +2052,11 @@ drawFg(CQChartsPaintDevice *device) const
 
   const auto *value = this->value();
 
-  QString minLabel = value->getNameValue("Label");
-  QString maxLabel = minLabel;
+  auto minLabel = value->getNameValue("Label");
+  auto maxLabel = minLabel;
 
-  CQChartsBarChartValue::ValueInd minInd, maxInd; double mean = 0.0, sum = 0.0;
+  CQChartsBarChartValue::ValueInd minInd, maxInd;
+  double                          mean = 0.0, sum = 0.0;
 
   if (! plot_->labelColumn().isValid()) {
     value->calcRange(minInd, maxInd, mean, sum);
@@ -2113,11 +2116,11 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   //---
 
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor bc = plot_->interpBarStrokeColor(colorInd);
+  auto bc = plot_->interpBarStrokeColor(colorInd);
 
-  QColor barColor = calcBarColor();
+  auto barColor = calcBarColor();
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
@@ -2134,7 +2137,7 @@ CQChartsBarChartObj::
 calcBarColor() const
 {
   // calc bar color
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   QColor barColor;
 
@@ -2157,8 +2160,8 @@ calcBarColor() const
           ColorInd ig1(ig_.i    , ig_.n + 1);
           ColorInd ig2(ig_.i + 1, ig_.n + 1);
 
-          QColor barColor1 = plot_->interpBarFillColor(ig1);
-          QColor barColor2 = plot_->interpBarFillColor(ig2);
+          auto barColor1 = plot_->interpBarFillColor(ig1);
+          auto barColor2 = plot_->interpBarFillColor(ig2);
 
           barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
         }
@@ -2250,7 +2253,7 @@ CQChartsBarKeyColor::
 fillBrush() const
 {
   // calc bar color
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   QColor barColor;
 
@@ -2281,8 +2284,8 @@ fillBrush() const
           ColorInd ig1(ig_.i    , ig_.n + 1);
           ColorInd ig2(ig_.i + 1, ig_.n + 1);
 
-          QColor barColor1 = plot_->interpBarFillColor(ig1);
-          QColor barColor2 = plot_->interpBarFillColor(ig2);
+          auto barColor1 = plot_->interpBarFillColor(ig1);
+          auto barColor2 = plot_->interpBarFillColor(ig2);
 
           barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
         }
@@ -2316,9 +2319,9 @@ QPen
 CQChartsBarKeyColor::
 strokePen() const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor bc = plot_->interpBarStrokeColor(colorInd);
+  auto bc = plot_->interpBarStrokeColor(colorInd);
 
   QPen pen;
 
@@ -2462,7 +2465,7 @@ QColor
 CQChartsBarKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsKeyText::interpTextColor(ind);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

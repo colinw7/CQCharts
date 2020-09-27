@@ -519,7 +519,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen
-  QColor pc = interpColor(plot, view, data.color());
+  auto pc = interpColor(plot, view, data.color());
 
   QPen pen;
 

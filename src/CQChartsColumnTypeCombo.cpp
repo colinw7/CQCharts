@@ -63,7 +63,7 @@ columnType() const
 
   QString typeStr = this->currentText();
 
-  CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
+  auto columnType = CQBaseModel::nameType(typeStr);
 
   return columnTypeMgr->getType(columnType);
 }

@@ -173,7 +173,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsPaletteNameEdit *>(w);
   assert(edit);
 
-  CQChartsPaletteName name = var.value<CQChartsPaletteName>();
+  auto name = var.value<CQChartsPaletteName>();
 
   edit->setPaletteName(name);
 }

@@ -739,7 +739,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     PenBrush tpenBrush;
 
-    QColor tc = interpTextColor(ColorInd());
+    auto tc = interpTextColor(ColorInd());
 
     setPen(tpenBrush, PenData(true, tc, textAlpha()));
 
@@ -1029,10 +1029,10 @@ void
 CQChartsRadarObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
-  QColor strokeColor = plot_->interpStrokeColor(colorInd);
-  QColor fillColor   = plot_->interpFillColor  (colorInd);
+  auto strokeColor = plot_->interpStrokeColor(colorInd);
+  auto fillColor   = plot_->interpFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),

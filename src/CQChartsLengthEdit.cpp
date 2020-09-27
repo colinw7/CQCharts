@@ -59,7 +59,7 @@ editChanged()
 {
   double value = edit_->value();
 
-  CQChartsUnits units = (length_.isValid() ? length_.units() : CQChartsUnits::NONE);
+  auto units = (length_.isValid() ? length_.units() : CQChartsUnits::NONE);
 
   CQChartsLength length(value, units);
 
@@ -77,7 +77,7 @@ unitsChanged()
 {
   double value = (length_.isValid() ? length_.value() : 0.0);
 
-  CQChartsUnits units = unitsEdit_->units();
+  auto units = unitsEdit_->units();
 
   CQChartsLength length(value, units);
 
@@ -178,7 +178,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  auto length = CQChartsVariant::toLength(value, ok);
   if (! ok) return;
 
   QString str = length.toString();
@@ -189,7 +189,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -201,7 +201,7 @@ CQChartsLengthPropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  auto length = CQChartsVariant::toLength(value, ok);
   if (! ok) return "";
 
   return length.toString();
@@ -251,7 +251,7 @@ setValue(QWidget *w, const QVariant &value)
   assert(edit);
 
   bool ok;
-  CQChartsLength length = CQChartsVariant::toLength(value, ok);
+  auto length = CQChartsVariant::toLength(value, ok);
   if (! ok) return;
 
   edit->setLength(length);

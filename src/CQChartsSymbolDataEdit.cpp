@@ -120,7 +120,7 @@ void
 CQChartsSymbolDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  CQChartsSymbolData data = this->symbolData();
+  auto data = this->symbolData();
 
   double s  = rect.height()/2.0 - 4.0;
   double is = std::round(s);
@@ -155,7 +155,7 @@ CQChartsSymbolDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsSymbolData data = value.value<CQChartsSymbolData>();
+  auto data = value.value<CQChartsSymbolData>();
 
   CQChartsSymbolDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -205,7 +205,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsSymbolData data = var.value<CQChartsSymbolData>();
+  auto data = var.value<CQChartsSymbolData>();
 
   edit->setSymbolData(data);
 }
@@ -425,7 +425,7 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen
-  QColor pc = interpColor(plot, view, data.stroke().color());
+  auto pc = interpColor(plot, view, data.stroke().color());
 
   QPen pen;
 
@@ -439,7 +439,7 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
   //---
 
   // set brush
-  QColor fc = interpColor(plot, view, data.fill().color());
+  auto fc = interpColor(plot, view, data.fill().color());
 
   QBrush brush;
 

@@ -703,7 +703,7 @@ calcRange() const
 
       bool ok;
 
-      QVariant var = plot_->modelValue(columnInd, ok);
+      auto var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(column);
@@ -1479,8 +1479,8 @@ addNameValues() const
       //---
 
       // get x, y value
-      QModelIndex xInd  = plot_->modelIndex(xModelInd);
-      QModelIndex xInd1 = plot_->normalizeIndex(xInd);
+      auto xInd  = plot_->modelIndex(xModelInd);
+      auto xInd1 = plot_->normalizeIndex(xInd);
 
       double x   { 0.0  }, y   { 0.0  };
       bool   okx { true }, oky { true };
@@ -1564,7 +1564,7 @@ addNameValues() const
 
       bool ok;
 
-      QVariant var = plot_->modelValue(columnInd, ok);
+      auto var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(column);
@@ -1771,7 +1771,7 @@ addPointKeyItems(CQChartsPlotKey *key)
     int ig = 0;
 
     for (const auto &groupInd : groupInds_) {
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       auto *colorItem = addKeyItem(groupInd, groupName, ig, ng);
 
@@ -1841,7 +1841,7 @@ addPointKeyItems(CQChartsPlotKey *key)
           (void) addKeyItem(-1, name, ig, ng);
         }
         else {
-          QString name = groupIndName(0);
+          auto name = groupIndName(0);
 
           if (name == "") {
             if (isX1X2())
@@ -1868,7 +1868,7 @@ addPointKeyItems(CQChartsPlotKey *key)
   }
   else {
     if (isSymbols()) {
-      QString name = groupIndName(0);
+      auto name = groupIndName(0);
 
       if (name == "") {
         if (isX1X2())
@@ -2428,7 +2428,7 @@ drawStatsLines(PaintDevice *device) const
 
     PenBrush penBrush;
 
-    QColor c = interpStatsLinesColor(ic);
+    auto c = interpStatsLinesColor(ic);
 
     setPenBrush(penBrush,
       PenData  (true, c, statsLinesAlpha(), statsLinesWidth(), statsLinesDash()),
@@ -2750,8 +2750,8 @@ drawXYDensityWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
   // calc pen/brush
   PenBrush penBrush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig);
-  QColor fillColor   = interpSymbolFillColor  (ig);
+  auto strokeColor = interpSymbolStrokeColor(ig);
+  auto fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(penBrush,
     PenData  (true, strokeColor, symbolStrokeAlpha()),
@@ -2848,8 +2848,8 @@ drawXYWhiskerWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
   // calc pen/brush
   PenBrush penBrush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig);
-  QColor fillColor   = interpSymbolFillColor  (ig);
+  auto strokeColor = interpSymbolStrokeColor(ig);
+  auto fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(penBrush,
     PenData  (true, strokeColor, symbolStrokeAlpha()),
@@ -3086,7 +3086,7 @@ drawSymbolMapKey(PaintDevice *device) const
 
   //---
 
-  QColor strokeColor = interpThemeColor(ColorInd(1.0));
+  auto strokeColor = interpThemeColor(ColorInd(1.0));
 
   double xm = px - pr1 - pm;
   double ym = py - pm;
@@ -3097,9 +3097,9 @@ drawSymbolMapKey(PaintDevice *device) const
 
   auto a = symbolMapKeyAlpha();
 
-  QColor fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a.value());
-  QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
-  QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
+  auto fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a.value());
+  auto fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a.value());
+  auto fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a.value());
 
   auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
     PenBrush penBrush;
@@ -3118,7 +3118,7 @@ drawSymbolMapKey(PaintDevice *device) const
   //---
 
   auto drawText = [&](const Point &p, double value) {
-    QString text = QString("%1").arg(value);
+    auto text = QString("%1").arg(value);
 
     QFontMetricsF fm(device->font());
 
@@ -3214,7 +3214,7 @@ QString
 CQChartsScatterPointObj::
 calcId() const
 {
-  QModelIndex ind1 = plot_->unnormalizeIndex(modelInd());
+  auto ind1 = plot_->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -3251,7 +3251,7 @@ calcTipId() const
 
   // add group column (TODO: check group column)
   if (ig_.n > 1) {
-    QString groupName = plot_->groupIndName(groupInd_);
+    auto groupName = plot_->groupIndName(groupInd_);
 
     tableTip.addTableRow("Group", groupName);
   }
@@ -3306,7 +3306,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(columnInd, ok);
+    auto str = plot_->modelString(columnInd, ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column, /*tip*/true), str);
@@ -3472,7 +3472,7 @@ drawDataLabel(PaintDevice *device) const
   // text font color
   PenBrush penBrush;
 
-  QColor tc = dataLabel->interpTextColor(calcColorInd());
+  auto tc = dataLabel->interpTextColor(calcColorInd());
 
   plot_->setPenBrush(penBrush,
     PenData(true, tc, dataLabel->textAlpha()), BrushData(false));
@@ -3540,7 +3540,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto color = this->color();
 
   if (color.isValid()) {
-    QColor c = plot_->interpColor(color, ic);
+    auto c = plot_->interpColor(color, ic);
 
     c.setAlphaF(plot_->symbolFillAlpha().value());
 
@@ -3658,8 +3658,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set pen and brush
   ColorInd ic(points_.size(), maxN_);
 
-  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
-  QColor fc = plot_->interpPaletteColor(ic);
+  auto pc = plot_->interpGridCellStrokeColor(ColorInd());
+  auto fc = plot_->interpPaletteColor(ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
@@ -3676,7 +3676,7 @@ CQChartsScatterCellObj::
 calcRugPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // calc stroke and brush
-  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+  auto ic = (ig_.n > 1 ? ig_ : is_);
 
   plot_->setSymbolPenBrush(penBrush, ic);
 
@@ -3769,8 +3769,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set pen and brush
   ColorInd ic(n_, maxN_);
 
-  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
-  QColor fc = plot_->interpPaletteColor(ic);
+  auto pc = plot_->interpGridCellStrokeColor(ColorInd());
+  auto fc = plot_->interpPaletteColor(ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),

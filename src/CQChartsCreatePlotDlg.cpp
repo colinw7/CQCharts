@@ -355,14 +355,14 @@ createTypeCombo()
 
   QStringList items;
 
-  bool                        plotTypeHier = false;
-  CQChartsPlotType::Dimension plotTypeDim  = CQChartsPlotType::Dimension::NONE;
+  bool plotTypeHier = false;
+  auto plotTypeDim  = CQChartsPlotType::Dimension::NONE;
 
   QString title;
 
   for (auto &plotType : plotTypes) {
-    bool                        hier = plotType->isHierarchical();
-    CQChartsPlotType::Dimension dim  = plotType->dimension();
+    bool hier = plotType->isHierarchical();
+    auto dim  = plotType->dimension();
 
     if (hier != plotTypeHier) {
       if (hier)
@@ -547,7 +547,7 @@ sortedPlotTypes(CQCharts::PlotTypes &plotTypes1)
   HierDimPlotsTypeMap hierDimPlotsTypeMap;
 
   for (auto &plotType : plotTypes) {
-    CQChartsPlotType::Dimension dim = plotType->dimension();
+    auto dim = plotType->dimension();
 
     int dim1 = 999;
 
@@ -1162,7 +1162,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
 
   //---
 
-  CQChartsPlotType::Parameters parameters = type->nonGroupParameters();
+  auto parameters = type->nonGroupParameters();
 
   if (! parameters.empty())
     addParameterEdits(parameters, plotData, layout, row, isBasic);
@@ -1332,13 +1332,13 @@ CQChartsCreatePlotDlg::
 addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
                             CQChartsPlotParameter *parameter)
 {
-  QString objName = parameter->name() + "Column";
+  auto objName = parameter->name() + "Column";
 
   auto *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), objName + "Label");
 
   auto *columnCombo = CQUtil::makeWidget<CQChartsColumnCombo>(objName + "Combo");
 
-  CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
+  auto column = parameter->defValue().value<CQChartsColumn>();
 
   columnCombo->setModelData(modelData_);
   columnCombo->setColumn   (column);
@@ -1347,7 +1347,7 @@ addParameterBasicColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(columnCombo, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     columnCombo->setToolTip(tip);
@@ -1372,7 +1372,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
     addColumnEdit(layout, row, col, parameter->desc(), parameter->name() + "Column",
                   "Column Name or Number");
 
-  CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
+  auto column = parameter->defValue().value<CQChartsColumn>();
 
   columnEdit->setModelData(modelData_);
   columnEdit->setColumn   (column);
@@ -1381,7 +1381,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(columnEdit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     columnEdit->setToolTip(tip);
@@ -1418,7 +1418,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   //----
 
   // add attributes tip label
-  QSize is = formatEditData.formatUpdate->iconSize();
+  auto is = formatEditData.formatUpdate->iconSize();
 
   auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
@@ -1496,7 +1496,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
     addColumnsEdit(layout, row, col, parameter->desc(), parameter->name() + "Columns",
                    "Column Names or Numbers", isBasic);
 
-  CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
+  auto columns = parameter->defValue().value<CQChartsColumns>();
 
   columnsEdit->setModelData(modelData_);
   columnsEdit->setColumns  (columns);
@@ -1505,7 +1505,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(columnsEdit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     columnsEdit->setToolTip(tip);
@@ -1543,7 +1543,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
     //----
 
     // add attributes tip label
-    QSize is = formatEditData.formatUpdate->iconSize();
+    auto is = formatEditData.formatUpdate->iconSize();
 
     auto *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
@@ -1565,7 +1565,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 {
   bool ok;
 
-  QString str = CQChartsVariant::toString(parameter->defValue(), ok);
+  auto str = CQChartsVariant::toString(parameter->defValue(), ok);
 
   auto *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
@@ -1584,7 +1584,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     edit->setToolTip(tip);
@@ -1635,7 +1635,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   plotData.realEdits[parameter->name()] = edit;
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     edit->setToolTip(tip);
@@ -1686,7 +1686,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   plotData.intEdits[parameter->name()] = edit;
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     edit->setToolTip(tip);
@@ -1713,7 +1713,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   auto *combo = CQUtil::makeWidget<QComboBox>(eparameter->name() + "_combo");
 
-  QStringList names = eparameter->names();
+  auto names = eparameter->names();
 
   combo->addItems(names);
 
@@ -1727,7 +1727,7 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   plotData.enumEdits[eparameter->name()] = combo;
 
-  QString tip = eparameter->tip();
+  auto tip = eparameter->tip();
 
   if (tip.length())
     combo->setToolTip(tip);
@@ -1750,7 +1750,7 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
 
   connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
-  QString tip = parameter->tip();
+  auto tip = parameter->tip();
 
   if (tip.length())
     checkBox->setToolTip(tip);
@@ -1988,7 +1988,7 @@ setXYMin(const QString &id)
 
   CQChartsColumn column;
 
-  QString colName = (id == "xmin" || id == "xmax" ? type->xColumnName() : type->yColumnName());
+  auto colName = (id == "xmin" || id == "xmax" ? type->xColumnName() : type->yColumnName());
   if (colName == "") return;
 
   for (const auto &parameter : type->parameters()) {
@@ -2002,7 +2002,7 @@ setXYMin(const QString &id)
       continue;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      CQChartsColumn column1 = parameter->defValue().value<CQChartsColumn>();
+      auto column1 = parameter->defValue().value<CQChartsColumn>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2013,7 +2013,7 @@ setXYMin(const QString &id)
       column = column1;
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
+      auto columns = parameter->defValue().value<CQChartsColumns>();
 
       QString columnTypeStr;
 
@@ -2043,22 +2043,22 @@ setXYMin(const QString &id)
   if (! columnDetails) return;
 
   if      (id == "xmin") {
-    QVariant xmin = columnDetails->minValue();
+    auto xmin = columnDetails->minValue();
 
     rangeEditData_.xminEdit->setText(QString("%1").arg(xmin.toString()));
   }
   else if (id == "ymin") {
-    QVariant ymin = columnDetails->minValue();
+    auto ymin = columnDetails->minValue();
 
     rangeEditData_.yminEdit->setText(QString("%1").arg(ymin.toString()));
   }
   else if (id == "xmax") {
-    QVariant xmax = columnDetails->maxValue();
+    auto xmax = columnDetails->maxValue();
 
     rangeEditData_.xmaxEdit->setText(QString("%1").arg(xmax.toString()));
   }
   else if (id == "ymax") {
-    QVariant ymax = columnDetails->maxValue();
+    auto ymax = columnDetails->maxValue();
 
     rangeEditData_.ymaxEdit->setText(QString("%1").arg(ymax.toString()));
   }
@@ -2188,8 +2188,8 @@ validateSlot()
   rangeEditData_.ymaxEdit->setEnabled(type->customYRange());
 
   // can only set range if plot type supplies which column refers to these axes
-  QString xcolName = type->xColumnName();
-  QString ycolName = type->yColumnName();
+  auto xcolName = type->xColumnName();
+  auto ycolName = type->yColumnName();
 
   rangeEditData_.xminButton->setEnabled(xcolName != "");
   rangeEditData_.yminButton->setEnabled(ycolName != "");
@@ -2401,7 +2401,7 @@ validate(QStringList &msgs)
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
       ++num_cols;
 
-      CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
+      auto column = parameter->defValue().value<CQChartsColumn>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2473,7 +2473,7 @@ validate(QStringList &msgs)
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
       ++num_cols;
 
-      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
+      auto columns = parameter->defValue().value<CQChartsColumns>();
 
       QString columnTypeStr;
 
@@ -2611,7 +2611,7 @@ applySlot()
   if (! type) return false;
 
   // get or create view
-  QString viewId = viewEdit_->text();
+  auto viewId = viewEdit_->text();
 
   auto *view = charts()->getView(viewId);
 
@@ -2704,7 +2704,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
       continue;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
+      auto column = parameter->defValue().value<CQChartsColumn>();
 
       QString      columnTypeStr;
       MapValueData mapValueData;
@@ -2745,12 +2745,12 @@ applyPlot(CQChartsPlot *plot, bool preview)
       }
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
+      auto columns = parameter->defValue().value<CQChartsColumns>();
 
       QString columnTypeStr;
 
       if (parseParameterColumnsEdit(parameter, plotData, columns, columnTypeStr)) {
-        QString s = columns.toString();
+        auto s = columns.toString();
 
         if (! plot->setParameter(parameter, QVariant(s)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
@@ -2772,9 +2772,9 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter->type() == CQChartsPlotParameter::Type::STRING) {
       bool ok;
 
-      QString defStr = CQChartsVariant::toString(parameter->defValue(), ok);
+      auto defStr = CQChartsVariant::toString(parameter->defValue(), ok);
 
-      QString str = defStr;
+      auto str = defStr;
 
       if (parseParameterStringEdit(parameter, plotData, str)) {
         if (! plot->setParameter(parameter, QVariant(str)))
@@ -2936,7 +2936,7 @@ bool
 CQChartsCreatePlotDlg::
 parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 {
-  QString posStr = posEdit_->text();
+  auto posStr = posEdit_->text();
 
   QStringList posStrs;
 
@@ -2986,7 +2986,7 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
 
     const auto &formatEditData = (*pf).second;
 
-    QString format = formatEditData.formatEdit->text();
+    auto format = formatEditData.formatEdit->text();
 
     if (format != "")
       columnType = format;
@@ -2995,7 +2995,7 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
   //---
 
   // get column value
-  CQChartsColumn defColumn = parameter->defValue().value<CQChartsColumn>();
+  auto defColumn = parameter->defValue().value<CQChartsColumn>();
 
   auto pe = plotData.columnEdits.find(parameter->name());
   assert(pe != plotData.columnEdits.end());
@@ -3039,7 +3039,7 @@ parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plot
 
     const auto &formatEditData = (*pf).second;
 
-    QString format = formatEditData.formatEdit->text();
+    auto format = formatEditData.formatEdit->text();
 
     if (format != "")
       columnType = format;
@@ -3048,7 +3048,7 @@ parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plot
   //---
 
   // get columns value
-  CQChartsColumns defColumns = parameter->defValue().value<CQChartsColumns>();
+  auto defColumns = parameter->defValue().value<CQChartsColumns>();
 
   auto pe = plotData.columnsEdits.find(parameter->name());
   assert(pe != plotData.columnsEdits.end());

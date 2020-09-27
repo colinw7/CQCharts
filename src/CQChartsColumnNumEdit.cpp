@@ -71,7 +71,7 @@ void
 CQChartsColumnNumLineEdit::
 columnComboChanged()
 {
-  CQChartsColumn column = combo_->getColumn();
+  auto column = combo_->getColumn();
 
   CQChartsColumnNum columnNum;
 
@@ -102,7 +102,7 @@ void
 CQChartsColumnNumLineEdit::
 widgetsToColumn()
 {
-  CQChartsColumn column = combo_->getColumn();
+  auto column = combo_->getColumn();
 
   if (column.isValid())
     columnNum_ = CQChartsColumnNum(column.column());
@@ -169,7 +169,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -193,7 +193,7 @@ QString
 CQChartsColumnNumPropertyViewType::
 valueString(CQPropertyViewItem *item, const QVariant &value, bool &ok) const
 {
-  CQChartsColumnNum columnNum = value.value<CQChartsColumnNum>();
+  auto columnNum = value.value<CQChartsColumnNum>();
 
   QString str;
 
@@ -273,7 +273,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsColumnNumLineEdit *>(w);
   assert(edit);
 
-  CQChartsColumnNum columnNum = var.value<CQChartsColumnNum>();
+  auto columnNum = var.value<CQChartsColumnNum>();
 
   edit->setColumnNum(columnNum);
 }

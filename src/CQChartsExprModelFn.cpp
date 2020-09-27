@@ -27,7 +27,7 @@ commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
     values.push_back(CQTclUtil::variantFromObj(command->qtcl()->interp(), obj));
   }
 
-  QVariant var = command->exec(values);
+  auto var = command->exec(values);
 
   command->qtcl()->setResult(var);
 

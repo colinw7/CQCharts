@@ -251,7 +251,7 @@ createExprModel(int n)
   QModelIndex parent;
 
   for (int r = 0; r < n; ++r) {
-    QModelIndex ind = dataModel->index(r, 0, parent);
+    auto ind = dataModel->index(r, 0, parent);
 
     dataModel->setData(ind, QVariant(r));
   }
@@ -290,7 +290,7 @@ createVarsModel(const InputData &inputData)
   int nv = varNames.length();
 
   if (nv == 1) {
-    QString varName = varNames[0];
+    auto varName = varNames[0];
 
     ColumnValues columnValues;
 
@@ -304,7 +304,7 @@ createVarsModel(const InputData &inputData)
         ColumnValues columnValues1;
 
         if (columnValues[c].type() == QVariant::List) {
-          QList<QVariant> rowVars = columnValues[c].toList();
+          auto rowVars = columnValues[c].toList();
 
           for (int i = 0; i < rowVars.length(); ++i)
             columnValues1.push_back(rowVars[i]);
@@ -332,7 +332,7 @@ createVarsModel(const InputData &inputData)
 
       for (int r = 0; r < nr; ++r) {
         if (columnValues[r].type() == QVariant::List) {
-          QList<QVariant> columnVars = columnValues[r].toList();
+          auto columnVars = columnValues[r].toList();
 
           for (int c = 0; c < columnVars.length(); ++c)
             indColumnValues[c].push_back(columnVars[c]);
@@ -366,7 +366,7 @@ createVarsModel(const InputData &inputData)
   }
   else {
     for (int i = 0; i < nv; ++i) {
-      QString varName = varNames[i];
+      auto varName = varNames[i];
 
       ColumnValues columnValues;
 
@@ -429,7 +429,7 @@ createVarsModel(const InputData &inputData)
     const auto &columnValues = varColumns[c];
 
     for (int r = ir; r < nr; ++r) {
-      QModelIndex ind = varsModel->index(r - ir, c - ic, parent);
+      auto ind = varsModel->index(r - ir, c - ic, parent);
 
       varsModel->setData(ind, columnValues[r]);
     }
@@ -463,7 +463,7 @@ createTclModel(const InputData &inputData)
   if (! inputData.transpose) {
     // var per column
     for (const auto &var : inputData.vars) {
-      QStringList strs = var.toStringList();
+      auto strs = var.toStringList();
 
       nr = std::max(nr, strs.length());
     }
@@ -471,7 +471,7 @@ createTclModel(const InputData &inputData)
     nc = inputData.vars.size();
 
     for (const auto &var : inputData.vars) {
-      QStringList strs = var.toStringList();
+      auto strs = var.toStringList();
 
       while (strs.length() < nr)
         strs << "";
@@ -482,7 +482,7 @@ createTclModel(const InputData &inputData)
   else {
     // var per row
     for (const auto &var : inputData.vars) {
-      QStringList strs = var.toStringList();
+      auto strs = var.toStringList();
 
       nc = std::max(nc, strs.length());
     }
@@ -492,7 +492,7 @@ createTclModel(const InputData &inputData)
     columnStrs.resize(nc);
 
     for (const auto &var : inputData.vars) {
-      QStringList strs = var.toStringList();
+      auto strs = var.toStringList();
 
       while (strs.length() < nc)
         strs << "";
@@ -527,7 +527,7 @@ createTclModel(const InputData &inputData)
     const auto &strs = columnStrs[c];
 
     for (int r = ir; r < nr; ++r) {
-      QModelIndex ind = tclModel->index(r - ir, c - ic, parent);
+      auto ind = tclModel->index(r - ir, c - ic, parent);
 
       tclModel->setData(ind, strs[r]);
     }
@@ -622,7 +622,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
       values.resize(nr);
 
       for (int ir = 0; ir < nr; ++ir) {
-        QModelIndex ind = model->index(ir, c.column(), QModelIndex());
+        auto ind = model->index(ir, c.column(), QModelIndex());
 
         bool ok;
 
@@ -656,7 +656,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
       values.resize(nc);
 
       for (int ic = 0; ic < nc; ++ic) {
-        QModelIndex ind = model->index(ir, ic, QModelIndex());
+        auto ind = model->index(ir, ic, QModelIndex());
 
         bool ok;
 
@@ -786,7 +786,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
     CQChartsColumn c(ic);
 
-    QString columnName = columnNames[ics];
+    auto columnName = columnNames[ics];
 
     CQChartsModelUtil::setModelHeaderValue(correlationModel, ic, Qt::Horizontal,
                                            columnName, Qt::DisplayRole);

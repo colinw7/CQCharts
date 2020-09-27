@@ -412,7 +412,7 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      QModelIndex xInd1 = plot_->modelIndex(xInd);
+      auto xInd1 = plot_->modelIndex(xInd);
 
       plot_->addPointObj(x, y, value, xInd1, ModelVisitor::row(), nr_, objs_);
 
@@ -455,7 +455,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
 
   auto *th = const_cast<CQChartsDelaunayPlot *>(this);
 
-  CQChartsDelaunay::PVertex v = th->delaunayData_->addVertex(x, y);
+  auto v = th->delaunayData_->addVertex(x, y);
 
   v->setValue(value);
 
@@ -466,7 +466,7 @@ addPointObj(double x, double y, double value, const QModelIndex &xind,
   double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
   double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
 
-  QModelIndex xind1 = normalizeIndex(xind);
+  auto xind1 = normalizeIndex(xind);
 
   BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
 
@@ -593,8 +593,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
   if (isVoronoiPolygon()) {
     PenBrush penBrush;
 
-    QColor pc = interpVoronoiStrokeColor(ColorInd());
-    QColor fc = interpVoronoiFillColor  (ColorInd());
+    auto pc = interpVoronoiStrokeColor(ColorInd());
+    auto fc = interpVoronoiFillColor  (ColorInd());
 
     setPenBrush(penBrush,
       PenData  (true, pc, voronoiStrokeAlpha(), voronoiStrokeWidth(), voronoiStrokeDash()),
@@ -620,7 +620,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
       if (valueRange_.isSet()) {
         double v = CMathUtil::map(v1->value(), valueRange_.min(), valueRange_.max(), 0.0, 1.0);
 
-        QColor fc1 = interpVoronoiFillColor(ColorInd(v));
+        auto fc1 = interpVoronoiFillColor(ColorInd(v));
 
         penBrush1.brush.setColor(fc1);
       }
@@ -642,8 +642,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     // get symbol type and size
-    CQChartsSymbol symbolType = this->voronoiSymbolType();
-    Length         symbolSize = this->voronoiSymbolSize();
+    auto symbolType = this->voronoiSymbolType();
+    auto symbolSize = this->voronoiSymbolSize();
 
     for (auto pf = delaunayData_->facesBegin(); pf != delaunayData_->facesEnd(); ++pf) {
       const auto *f = *pf;
@@ -663,7 +663,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
   if (isVoronoiLines() || isVoronoiCircles()) {
     PenBrush penBrush;
 
-    QColor lc = interpVoronoiLinesColor(ColorInd());
+    auto lc = interpVoronoiLinesColor(ColorInd());
 
     setPenBrush(penBrush,
       PenData(true, lc, voronoiLinesAlpha(), voronoiLinesWidth(), voronoiLinesDash()),
@@ -826,7 +826,7 @@ draw(CQChartsPaintDevice *device)
     return;
 
   // calc pen and brush
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   PenBrush penBrush;
 

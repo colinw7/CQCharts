@@ -181,7 +181,7 @@ selectionChanged()
 #ifdef CQCHARTS_MODEL_VIEW
   auto *sm = view_->selectionModel();
 
-  QModelIndexList inds = sm->selectedIndexes();
+  auto inds = sm->selectedIndexes();
 
   for (int i = 0; i < inds.length(); ++i)
     columns.insert(inds[i].column());
@@ -192,7 +192,7 @@ selectionChanged()
     auto *sm = table_->selectionModel();
 
     if      (table_->selectionBehavior() == QAbstractItemView::SelectColumns) {
-      QModelIndexList inds = sm->selectedColumns();
+      auto inds = sm->selectedColumns();
 
       if (inds.size() >= 1) {
         int column = inds[0].column();
@@ -201,7 +201,7 @@ selectionChanged()
       }
     }
     else if (table_->selectionBehavior() == QAbstractItemView::SelectItems) {
-      QModelIndexList inds = sm->selectedIndexes();
+      auto inds = sm->selectedIndexes();
 
       for (int i = 0; i < inds.length(); ++i)
         columns.insert(inds[i].column());

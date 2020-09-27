@@ -114,7 +114,7 @@ iset(const QVariant &value) const
     return svals_.id(s);
   }
   else if (type() == Type::COLOR) {
-    CQChartsColor c = CQChartsVariant::toColor(value, ok);
+    auto c = CQChartsVariant::toColor(value, ok);
 
     if (ok)
       return cvals_.id(c);
@@ -249,7 +249,7 @@ imap(int i, double mapMin, double mapMax) const
   }
   else if (type() == Type::COLOR) {
     // get nth color
-    CQChartsColor cval = cvals_.value(i);
+    auto cval = cvals_.value(i);
 
     if (! cval.isValid())
       return mapMin;
@@ -626,7 +626,7 @@ init()
       svals_.addValue(ok ? OptString(s) : OptString());
     }
     else if (type() == Type::COLOR) {
-      CQChartsColor c = CQChartsVariant::toColor(value, ok);
+      auto c = CQChartsVariant::toColor(value, ok);
 
       cvals_.addValue(c);
     }
@@ -645,7 +645,7 @@ CQChartsValueSet::Type
 CQChartsValueSet::
 calcType() const
 {
-  CQChartsValueSet::Type type = Type::NONE;
+  auto type = Type::NONE;
 
   int ni = 0, nr = 0;
 

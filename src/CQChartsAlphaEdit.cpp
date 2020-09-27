@@ -104,7 +104,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  auto alpha = CQChartsVariant::toAlpha(value, ok);
   if (! ok) return;
 
   QString str = alpha.toString();
@@ -115,7 +115,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
 
@@ -127,7 +127,7 @@ CQChartsAlphaPropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  auto alpha = CQChartsVariant::toAlpha(value, ok);
   if (! ok) return "";
 
   return alpha.toString();
@@ -172,7 +172,7 @@ setValue(QWidget *w, const QVariant &value)
   assert(edit);
 
   bool ok;
-  CQChartsAlpha alpha = CQChartsVariant::toAlpha(value, ok);
+  auto alpha = CQChartsVariant::toAlpha(value, ok);
   if (! ok) return;
 
   edit->setAlpha(alpha);

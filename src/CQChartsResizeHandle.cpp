@@ -23,8 +23,8 @@ draw(QPainter *painter) const
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor pc = strokeColor();
-  QColor bc = fillColor();
+  auto pc = strokeColor();
+  auto bc = fillColor();
 
   if (isSelected())
     bc = CQChartsUtil::invColor(bc);

@@ -1044,14 +1044,12 @@ createObjsGraph(PlotObjs &objs) const
 
   //---
 
+  // place graphs
   placeGraphs();
 
   //---
 
-  //adjustGraphs();
-
-  //---
-
+  // add objects to plot
   addObjects(objs);
 }
 
@@ -1059,7 +1057,7 @@ void
 CQChartsGraphPlot::
 addObjects(PlotObjs &objs) const
 {
-  // add node objects (per graphs)
+  // add node objects (per graph)
   for (auto &pg : graphs_) {
     auto *graph = pg.second;
 
@@ -1068,6 +1066,7 @@ addObjects(PlotObjs &objs) const
 
     //---
 
+    // add node objects
     for (auto *node : graph->nodes()) {
       auto *nodeObj = createObjFromNode(graph, node);
 
@@ -1076,6 +1075,7 @@ addObjects(PlotObjs &objs) const
 
     //---
 
+    // create graph object
     auto *graphObj = createGraphObj(graph->rect(), graph);
 
     if (graph->parent())
@@ -1099,6 +1099,7 @@ addObjects(PlotObjs &objs) const
   }
 }
 
+// place graphs
 void
 CQChartsGraphPlot::
 placeGraphs() const
@@ -1126,10 +1127,8 @@ placeGraph(Graph *graph) const
 
   //---
 
-  // get placable nodes (nodes and sub graphs)
+  // get placeable nodes (nodes and sub graphs)
   Nodes nodes = graph->placeNodes();
-
-  //---
 
   placeGraphNodes(graph, nodes);
 }
@@ -1586,7 +1585,6 @@ createObjFromNode(Graph *, Node *node) const
   nodeObj->setShapeType(shapeType);
   nodeObj->setNumSides (node->numSides());
   nodeObj->setHierName (node->str  ());
-  nodeObj->setName     (node->name ());
 
   if (node->hasValue())
     nodeObj->setValue(node->value().real());
@@ -2058,6 +2056,7 @@ adjustNode(Node *node) const
 
 //---
 
+#if 0
 void
 CQChartsGraphPlot::
 adjustGraphs() const
@@ -2088,6 +2087,7 @@ adjustGraphs() const
     y += graph->rect().getHeight();
   }
 }
+#endif
 
 //---
 
@@ -2519,6 +2519,90 @@ CQChartsGraphNodeObj::
     node_->setObj(nullptr);
 }
 
+QString
+CQChartsGraphNodeObj::
+name() const
+{
+  return node()->name();
+}
+
+void
+CQChartsGraphNodeObj::
+setName(const QString &s)
+{
+  node()->setName(s);
+}
+
+double
+CQChartsGraphNodeObj::
+value() const
+{
+  return node()->value().realOr(0.0);
+}
+
+void
+CQChartsGraphNodeObj::
+setValue(double r)
+{
+  node()->setValue(CQChartsGraphPlotNode::OptReal(r));
+}
+
+int
+CQChartsGraphNodeObj::
+depth() const
+{
+  return node()->depth();
+}
+
+void
+CQChartsGraphNodeObj::
+setDepth(int depth)
+{
+  node()->setDepth(depth);
+}
+
+CQChartsGraphNodeObj::ShapeType
+CQChartsGraphNodeObj::
+shapeType() const
+{
+  return (CQChartsGraphNodeObj::ShapeType) node()->shapeType();
+}
+
+void
+CQChartsGraphNodeObj::
+setShapeType(const ShapeType &s)
+{
+  node()->setShapeType((CQChartsGraphPlotNode::ShapeType) s);
+}
+
+int
+CQChartsGraphNodeObj::
+numSides() const
+{
+  return node()->numSides();
+}
+
+void
+CQChartsGraphNodeObj::
+setNumSides(int n)
+{
+  node()->setNumSides(n);
+}
+
+CQChartsColor
+CQChartsGraphNodeObj::
+color() const
+{
+  return node()->color();
+}
+
+void
+CQChartsGraphNodeObj::
+setColor(const CQChartsColor &c)
+{
+  node()->setColor(c);
+}
+
 void
 CQChartsGraphNodeObj::
 placeEdges()
@@ -2620,9 +2704,15 @@ calcTipId() const
   if (name == "")
     name = this->id();
 
-  tableTip.addTableRow("Hier Name", hierName());
-  tableTip.addTableRow("Name"     , name      );
-  tableTip.addTableRow("Value"    , value   ());
+  QString hierName = this->hierName();
+
+  if (hierName != name)
+    tableTip.addTableRow("Hier Name", hierName);
+
+  tableTip.addTableRow("Name", name);
+
+  if (node()->hasValue())
+    tableTip.addTableRow("Value", value());
 
   if (depth() >= 0)
     tableTip.addTableRow("Depth", depth());
@@ -2630,7 +2720,7 @@ calcTipId() const
   int ns = node()->srcEdges ().size();
   int nd = node()->destEdges().size();
 
-  tableTip.addTableRow("Edges", QString("%1|%2").arg(ns).arg(nd));
+  tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
   //---
 
@@ -2728,7 +2818,7 @@ editMove(const Point &p)
 
   editChanged_ = true;
 
-  plot()->drawObjs();
+  const_cast<CQChartsGraphPlot *>(plot())->drawObjs();
 
   return true;
 }
@@ -2745,7 +2835,7 @@ CQChartsGraphNodeObj::
 editRelease(const Point &)
 {
   if (editChanged_)
-    plot()->invalidateObjTree();
+    const_cast<CQChartsGraphPlot *>(plot())->invalidateObjTree();
 
   return true;
 }
@@ -2847,11 +2937,11 @@ drawFg(CQChartsPaintDevice *device) const
   //---
 
   // set text pen
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   PenBrush penBrush;
 
-  QColor c = plot_->interpTextColor(ic);
+  auto c = plot_->interpTextColor(ic);
 
   plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
 
@@ -2905,13 +2995,13 @@ CQChartsGraphNodeObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
-  QColor bc = plot_->interpNodeStrokeColor(ic);
-  QColor fc = plot_->interpNodeFillColor  (ic);
+  auto bc = plot_->interpNodeStrokeColor(ic);
+  auto fc = plot_->interpNodeFillColor  (ic);
 
-  if (color_.isValid())
-    fc = color_;
+  if (color().isValid())
+    fc = color().color();
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
@@ -2947,6 +3037,24 @@ CQChartsGraphEdgeObj::
   if (edge_)
     edge_->setObj(nullptr);
 }
+
+//---
+
+CQChartsGraphEdgeObj::ShapeType
+CQChartsGraphEdgeObj::
+shapeType() const
+{
+  return (CQChartsGraphEdgeObj::ShapeType) edge()->shapeType();
+}
+
+void
+CQChartsGraphEdgeObj::
+setShapeType(const ShapeType &s)
+{
+  edge()->setShapeType((CQChartsGraphPlotEdge::ShapeType) s);
+}
+
+//---
 
 QString
 CQChartsGraphEdgeObj::
@@ -3100,10 +3208,10 @@ draw(PaintDevice *device)
     if (swapped)
       std::swap(y1, y2);
 
-    plot()->setUpdatesEnabled(false);
+    const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(false);
 
     if (! isSelf) {
-      CQChartsArrow arrow(plot(), Point(x1, y1), Point(x2, y2));
+      CQChartsArrow arrow(const_cast<CQChartsGraphPlot *>(plot()), Point(x1, y1), Point(x2, y2));
 
       arrow.setRectilinear (true);
       arrow.setLineWidth   (Length(8, CQChartsUnits::PIXEL));
@@ -3147,12 +3255,12 @@ draw(PaintDevice *device)
 
       //---
 
-      CQChartsArrow::pathAddArrows(plot(), path, arrowData, path_);
+      CQChartsArrow::pathAddArrows(const_cast<CQChartsGraphPlot *>(plot()), path, arrowData, path_);
 
       device->drawPath(path_);
     }
 
-    plot()->setUpdatesEnabled(true);
+    const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(true);
   }
   else {
     if (plot_->isEdgeScaled()) {
@@ -3284,11 +3392,11 @@ drawFg(CQChartsPaintDevice *device) const
   //---
 
   // set text pen
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   PenBrush penBrush;
 
-  QColor c = plot_->interpTextColor(ic);
+  auto c = plot_->interpTextColor(ic);
 
   plot_->setPen(penBrush, PenData(true, c, plot_->textAlpha()));
 
@@ -3335,15 +3443,15 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   ColorInd ic1(srcNode ->id(), numNodes);
   ColorInd ic2(destNode->id(), numNodes);
 
-  QColor fc1 = plot_->interpEdgeFillColor(ic1);
-  QColor fc2 = plot_->interpEdgeFillColor(ic2);
+  auto fc1 = plot_->interpEdgeFillColor(ic1);
+  auto fc2 = plot_->interpEdgeFillColor(ic2);
 
-  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+  auto fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
 
-  QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
-  QColor sc2 = plot_->interpEdgeStrokeColor(ic2);
+  auto sc1 = plot_->interpEdgeStrokeColor(ic1);
+  auto sc2 = plot_->interpEdgeStrokeColor(ic2);
 
-  QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+  auto sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
@@ -3544,10 +3652,10 @@ CQChartsGraphGraphObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
-  QColor bc = plot_->interpGraphStrokeColor(ic);
-  QColor fc = plot_->interpGraphFillColor  (ic);
+  auto bc = plot_->interpGraphStrokeColor(ic);
+  auto fc = plot_->interpGraphFillColor  (ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isGraphStroked(), bc, plot_->graphStrokeAlpha(),

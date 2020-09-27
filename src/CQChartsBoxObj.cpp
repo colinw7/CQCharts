@@ -79,8 +79,8 @@ draw(PaintDevice *device, const BBox &bbox) const
   // set pen and brush
   PenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   setPenBrush(penBrush,
     PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
@@ -148,7 +148,7 @@ draw(PaintDevice *device, const Polygon &poly) const
   if (isFilled()) {
     PenBrush penBrush;
 
-    QColor bgColor = interpFillColor(ColorInd());
+    auto bgColor = interpFillColor(ColorInd());
 
     setPenBrush(penBrush,
       PenData(false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash()),
@@ -162,7 +162,7 @@ draw(PaintDevice *device, const Polygon &poly) const
   if (isStroked()) {
     PenBrush penBrush;
 
-    QColor strokeColor = interpStrokeColor(ColorInd());
+    auto strokeColor = interpStrokeColor(ColorInd());
 
     setPenBrush(penBrush,
       PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),

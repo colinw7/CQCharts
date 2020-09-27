@@ -98,7 +98,7 @@ draw(PaintDevice *device, const Point &center, const QString &text,
   //---
 
   // draw text
-  QColor c = interpTextColor(ColorInd());
+  auto c = interpTextColor(ColorInd());
 
   CQChartsPenBrush penBrush;
 

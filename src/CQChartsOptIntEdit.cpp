@@ -61,7 +61,7 @@ void
 CQChartsOptIntEdit::
 fromVariant(const QVariant &var)
 {
-  CQChartsOptInt value = var.value<CQChartsOptInt>();
+  auto value = var.value<CQChartsOptInt>();
 
   setValue(value);
 }
@@ -79,7 +79,7 @@ QString
 CQChartsOptIntPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsOptInt optInt = value.value<CQChartsOptInt>();
+  auto optInt = value.value<CQChartsOptInt>();
 
   QString str;
 

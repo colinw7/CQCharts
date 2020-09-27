@@ -119,7 +119,7 @@ CQChartsHierBubblePlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    auto f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     drawObjs();
   }
@@ -679,7 +679,7 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *hier1 = new HierNode(this, hier, name, nameInd1);
 
@@ -700,7 +700,7 @@ addNode(HierNode *hier, const QString &name, double size, const QModelIndex &nam
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
 
@@ -863,7 +863,7 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) co
 
     //---
 
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
+    auto nameInd1 = normalizeIndex(nameInd);
 
     node = new CQChartsHierBubbleNode(this, parent, name, size, nameInd1);
 
@@ -882,7 +882,7 @@ addExtraNodes(HierNode *hier) const
   if (hier->size() > 0) {
     auto *node = new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
 
-    QModelIndex ind1 = unnormalizeIndex(hier->ind());
+    auto ind1 = unnormalizeIndex(hier->ind());
 
     Color color;
 
@@ -1170,7 +1170,7 @@ drawBounds(PaintDevice *device, HierNode *hier) const
   // draw bubble
   PenBrush penBrush;
 
-  QColor bc = interpStrokeColor(ColorInd());
+  auto bc = interpStrokeColor(ColorInd());
 
   setPenBrush(penBrush, PenData(true, bc), BrushData(false));
 
@@ -1361,7 +1361,7 @@ calcTipId() const
   tableTip.addTableRow("Size", node()->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QModelIndex ind1 = plot_->unnormalizeIndex(node()->ind());
+    auto ind1 = plot_->unnormalizeIndex(node()->ind());
 
     ModelIndex colorColumnInd(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
 
@@ -1482,7 +1482,7 @@ drawText(PaintDevice *device, const BBox &bbox)
   //---
 
   // calc text pen
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   PenBrush tPenBrush;
 

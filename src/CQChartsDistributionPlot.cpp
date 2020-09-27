@@ -797,7 +797,7 @@ bucketGroupValues() const
     //---
 
     // get consistent type
-    CQChartsValueSet::Type type = CQChartsValueSet::Type::NONE;
+    auto type = CQChartsValueSet::Type::NONE;
 
     for (auto &groupValues : groupData_.groupValues) {
       auto *values = groupValues.second;
@@ -931,7 +931,7 @@ bucketGroupValues() const
           QString str;
 
           if (hierValue) {
-            QVariant value = modelRootValue(ind, Qt::DisplayRole, ok);
+            auto value = modelRootValue(ind, Qt::DisplayRole, ok);
 
             str = value.toString();
           }
@@ -1388,7 +1388,7 @@ addRowColumn(const ModelIndex &ind) const
 
   bool ok;
 
-  QVariant value = modelValue(ind, ok);
+  auto value = modelValue(ind, ok);
 
   //---
 
@@ -1949,14 +1949,14 @@ createObjs(PlotObjs &objs) const
 
         objs.push_back(scatterObj);
 
-        QString bucketName = bucketStr(groupInd, bucket);
+        auto bucketName = bucketStr(groupInd, bucket);
 
         countAxis()->setTickLabel(iv, bucketName);
 
         ++iv;
       }
 
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       valueAxis()->setTickLabel(ig, groupName);
     }
@@ -2158,7 +2158,7 @@ createObjs(PlotObjs &objs) const
         //---
 
         if      (! isBucketed()) {
-          QString groupName = groupIndName(groupInd);
+          auto groupName = groupIndName(groupInd);
 
           valueAxis()->setTickLabel(bucket1, groupName);
         }
@@ -2166,7 +2166,7 @@ createObjs(PlotObjs &objs) const
           int xm = CMathRound::RoundNearest(bbox.getXMid());
 
           if (valueAxis()->tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
-            QString bucketStr = bucketValuesStr(groupInd, sbucket, values);
+            auto bucketStr = bucketValuesStr(groupInd, sbucket, values);
 
             if      (isStackedActive)
               valueAxis()->setTickLabel(xm, bucketStr);
@@ -2178,8 +2178,8 @@ createObjs(PlotObjs &objs) const
               valueAxis()->setTickLabel(xm, bucketStr);
           }
           else {
-            QString bucketStr1 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
-            QString bucketStr2 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::END  );
+            auto bucketStr1 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
+            auto bucketStr2 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::END  );
 
             if      (isStackedActive) {
               valueAxis()->setTickLabel(xm    , bucketStr1);
@@ -2200,7 +2200,7 @@ createObjs(PlotObjs &objs) const
           }
         }
         else {
-          QString bucketStr = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
+          auto bucketStr = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
 
           int xm = CMathRound::RoundNearest(bbox.getXMid());
 
@@ -2250,7 +2250,7 @@ createObjs(PlotObjs &objs) const
     for (const auto &groupValues : groupData_.groupValues) {
       int groupInd = groupValues.first;
 
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       groupLabels.push_back(groupName);
     }
@@ -2282,12 +2282,12 @@ createObjs(PlotObjs &objs) const
   }
   else {
     auto setCountLabel = [&](const QString &label) {
-      QString label1 = label;
+      auto label1 = label;
 
       if (dataColumn().isValid()) {
         bool ok;
 
-        QString header = modelHHeaderString(dataColumn(), ok);
+        auto header = modelHHeaderString(dataColumn(), ok);
 
         if (ok && header.length())
           label1 += " (" + header + ")";
@@ -2320,11 +2320,11 @@ valueColumnName(const QString &def) const
   if (xLabel().length())
     return xLabel();
 
-  CQChartsColumn c = valueColumns().column();
+  auto c = valueColumns().column();
 
   bool ok;
 
-  QString name = modelHHeaderString(c, ok);
+  auto name = modelHHeaderString(c, ok);
 
   if (! ok)
     name = def;
@@ -2526,7 +2526,7 @@ addKeyItems(CQChartsPlotKey *key)
       int         groupInd = groupValues.first;
     //const auto *values   = groupValues.second;
 
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       addKeyRow(ColorInd(ig, ng), ColorInd(), RangeValue(), RangeValue(), groupName);
 
@@ -2537,7 +2537,7 @@ addKeyItems(CQChartsPlotKey *key)
     if (colorColumn().isValid()) {
       bool ok;
 
-      QString header = modelHHeaderString(colorColumn(), ok);
+      auto header = modelHHeaderString(colorColumn(), ok);
 
       key->setHeaderStr(header);
 
@@ -2546,7 +2546,7 @@ addKeyItems(CQChartsPlotKey *key)
       int nv = (columnDetails ? columnDetails->numUnique() : 0);
 
       for (int iv = 0; iv < nv; ++iv) {
-        QVariant value = columnDetails->uniqueValue(iv);
+        auto value = columnDetails->uniqueValue(iv);
 
         CQChartsDistKeyColorBox *colorBox =
           addKeyRow(ColorInd(), ColorInd(iv, nv), RangeValue(), RangeValue(),
@@ -2557,7 +2557,7 @@ addKeyItems(CQChartsPlotKey *key)
         Color c = CQChartsVariant::toColor(value, ok);
 
         if (ok) {
-          QColor c1 = interpColor(c, ColorInd());
+          auto c1 = interpColor(c, ColorInd());
 
           c1.setAlphaF(barFillAlpha().value());
 
@@ -2587,7 +2587,7 @@ addKeyItems(CQChartsPlotKey *key)
 
         BarValue barValue = varIndsValue(varsData);
 
-        QString bucketName = bucketValuesStr(groupInd, bucket, values);
+        auto bucketName = bucketValuesStr(groupInd, bucket, values);
 
         if (values->xValueRange.isSet() &&  values->yValueRange.isSet()) {
           RangeValue xv(CMathUtil::avg(value1, value2),
@@ -2767,7 +2767,7 @@ posStr(const Point &w) const
   //---
 
   if (! isHorizontal()) {
-    QString xstr = xStr(int(w.x));
+    auto xstr = xStr(int(w.x));
 
     for (const auto &plotObj : plotObjs_) {
       auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
@@ -2783,7 +2783,7 @@ posStr(const Point &w) const
     return xstr + " " + yStr(w.y);
   }
   else {
-    QString ystr = yStr(int(w.y));
+    auto ystr = yStr(int(w.y));
 
     for (const auto &plotObj : plotObjs_) {
       auto *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
@@ -2937,7 +2937,7 @@ CQChartsDistributionPlot::
 drawStatsLines(CQChartsPaintDevice *device) const
 {
   // set pen
-  QColor bc = interpStatsLinesColor(ColorInd());
+  auto bc = interpStatsLinesColor(ColorInd());
 
   PenBrush penBrush;
 
@@ -2961,7 +2961,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
     int         groupInd = groupValues.first;
     const auto *values   = groupValues.second;
 
-    CQStatData statData = values->statData;
+    auto statData = values->statData;
 
     //---
 
@@ -3154,14 +3154,14 @@ calcTipId() const
 
   //---
 
-  QString groupName = this->groupName();
+  auto groupName = this->groupName();
 
   if (groupName.length())
     tableTip.addTableRow("Group", groupName);
 
   //---
 
-  QString bucketStr = this->bucketStr();
+  auto bucketStr = this->bucketStr();
 
   tableTip.addTableRow("Bucket", bucketStr);
 
@@ -3200,7 +3200,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(colorColumnInd, ok);
+    auto str = plot_->modelString(colorColumnInd, ok);
 
     if (ok)
       strs.push_back(str);
@@ -3209,7 +3209,7 @@ calcTipId() const
   if (strs.length()) {
     bool ok;
 
-    QString name = plot_->modelHHeaderString(plot_->colorColumn(), ok);
+    auto name = plot_->modelHHeaderString(plot_->colorColumn(), ok);
 
     QString name1;
 
@@ -3236,7 +3236,7 @@ void
 CQChartsDistributionBarObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -3423,7 +3423,7 @@ draw(CQChartsPaintDevice *device)
 
       bool ok;
 
-      QVariant imageVar = plot_->modelValue(ind, ok);
+      auto imageVar = plot_->modelValue(ind, ok);
       if (! ok) continue;
 
       image = CQChartsVariant::toImage(imageVar, ok);
@@ -3579,7 +3579,7 @@ drawRug(CQChartsPaintDevice *device) const
   //---
 
   // set pen and brush
-  ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
+  auto ic = (ig_.n > 1 ? ig_ : iv_);
 
   PenBrush penBrush;
 
@@ -3638,8 +3638,8 @@ getBarColoredRects(ColorData &colorData) const
     return false;
 
   // get normal bar color
-  QColor barColor = this->barColor();
-  QColor bgColor  = plot_->interpThemeColor(ColorInd(0.2));
+  auto barColor = this->barColor();
+  auto bgColor  = plot_->interpThemeColor(ColorInd(0.2));
 
   // get color of individual values
   colorData.nv = 0;
@@ -3685,7 +3685,7 @@ getBarColoredRects(ColorData &colorData) const
     Color color;
 
     if (plot_->colorColumnColor(ind.row(), ind.parent(), color)) {
-      QColor c1 = plot_->interpColor(color, ColorInd());
+      auto c1 = plot_->interpColor(color, ColorInd());
 
       c1.setAlphaF(plot_->barFillAlpha().value());
 
@@ -3694,7 +3694,7 @@ getBarColoredRects(ColorData &colorData) const
     else {
       double alpha = (maxAlpha - minAlpha)*colorData.nv/(nvi - 1.0) + minAlpha;
 
-      QColor barColor1 = CQChartsUtil::blendColors(barColor, bgColor, alpha);
+      auto barColor1 = CQChartsUtil::blendColors(barColor, bgColor, alpha);
 
       color = barColor1;
     }
@@ -3816,7 +3816,7 @@ drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool
     auto symbolType = plot_->dotSymbolType();
     auto symbolSize = plot_->dotSymbolSize();
 
-    ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
+    auto ic = (ig_.n > 1 ? ig_ : iv_);
 
     //---
 
@@ -3900,7 +3900,7 @@ void
 CQChartsDistributionBarObj::
 writeScriptData(CQChartsScriptPaintDevice *device) const
 {
-  QColor barColor = this->barColor();
+  auto barColor = this->barColor();
 
   bool useLine = this->isUseLine();
 
@@ -4052,8 +4052,8 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString groupName = this->groupName();
-  int     ns        = this->numSamples();
+  auto groupName = this->groupName();
+  auto ns        = this->numSamples();
 
   tableTip.addTableRow("Name"   , groupName);
   tableTip.addTableRow("Samples", ns);
@@ -4153,7 +4153,7 @@ CQChartsDistributionDensityObj::
 drawStatsLines(CQChartsPaintDevice *device) const
 {
   // set pen
-  QColor bc = plot_->interpStatsLinesColor(ColorInd());
+  auto bc = plot_->interpStatsLinesColor(ColorInd());
 
   PenBrush penBrush;
 
@@ -4208,7 +4208,7 @@ drawRug(CQChartsPaintDevice *device) const
   // TODO: allow control of alpha, and line width
   PenBrush penBrush;
 
-  QColor fillColor = plot_->interpBarFillColor(is_);
+  auto fillColor = plot_->interpBarFillColor(is_);
 
   plot_->setPenBrush(penBrush,
     PenData(true, fillColor), BrushData(true, fillColor, Alpha(0.5)));
@@ -4248,8 +4248,8 @@ CQChartsDistributionDensityObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set pen and brush
-  QColor bc = plot_->interpBarStrokeColor(is_);
-  QColor fc = plot_->interpBarFillColor  (is_);
+  auto bc = plot_->interpBarStrokeColor(is_);
+  auto fc = plot_->interpBarFillColor  (is_);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
@@ -4329,8 +4329,8 @@ QString
 CQChartsDistributionScatterObj::
 calcTipId() const
 {
-  QString groupName = plot_->groupIndName(groupInd_);
-  QString bucketStr = plot_->bucketStr(groupInd_, bucket_);
+  auto groupName = plot_->groupIndName(groupInd_);
+  auto bucketStr = plot_->bucketStr(groupInd_, bucket_);
 
   CQChartsTableTip tableTip;
 
@@ -4356,9 +4356,9 @@ draw(CQChartsPaintDevice *device)
 {
   // set pen brush
   // TODO: allow control of stroke color, alpha, and line width
-  ColorInd ic = (is_.n > 1 ? is_ : iv_);
+  auto ic = (is_.n > 1 ? is_ : iv_);
 
-  QColor c = plot_->interpBarFillColor(ic);
+  auto c = plot_->interpBarFillColor(ic);
 
   PenBrush penBrush;
 
@@ -4425,9 +4425,9 @@ fillBrush() const
   if (color_.isValid())
     return plot_->interpColor(color_, ColorInd());
 
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
-  QColor c = plot_->interpBarFillColor(colorInd);
+  auto c = plot_->interpBarFillColor(colorInd);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
@@ -4467,7 +4467,7 @@ QColor
 CQChartsDistKeyText::
 interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsKeyText::interpTextColor(ind);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

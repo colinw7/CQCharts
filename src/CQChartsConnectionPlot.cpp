@@ -533,7 +533,7 @@ initLinkObjs() const
 
       if (plot_->linkColumnType() == ColumnType::NAME_PAIR) {
         bool ok;
-        QVariant linkVar = plot_->modelValue(linkConnectionData.linkModelInd, ok);
+        auto linkVar = plot_->modelValue(linkConnectionData.linkModelInd, ok);
         if (! ok) return addDataError(linkConnectionData.linkModelInd, "Invalid Link");
 
         namePair = linkVar.value<CQChartsNamePair>();
@@ -682,7 +682,7 @@ initConnectionObjs() const
 
       if (plot_->connectionsColumnType() == ColumnType::CONNECTION_LIST) {
         bool ok3;
-        QVariant connectionsVar = plot_->modelValue(connectionsData.connectionsModelInd, ok3);
+        auto connectionsVar = plot_->modelValue(connectionsData.connectionsModelInd, ok3);
 
         connectionsData.connections = connectionsVar.value<CQChartsConnectionList>().connections();
       }
@@ -1120,7 +1120,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
 
         ModelIndex columnInd(plot, data.row, c, data.parent);
 
-        QModelIndex ind = plot_->modelIndex(columnInd);
+        auto ind = plot_->modelIndex(columnInd);
 
         // save index for first column
         if (ic == 0)
@@ -1186,7 +1186,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
     assert(igroup >= 0);
 
     for (int row = 0; row < nv; ++row) {
-      QVariant group = indRowDatas[row].rowData[igroup];
+      auto group = indRowDatas[row].rowData[igroup];
 
       groupValues.addValue(group);
     }
@@ -1221,10 +1221,10 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       int ilink = linkColumn().column();
       assert(ilink >= 0);
 
-      QModelIndex linkInd  = modelIndex(linkModelInd);
-      QModelIndex linkInd1 = normalizeIndex(linkInd);
+      auto linkInd  = modelIndex(linkModelInd);
+      auto linkInd1 = normalizeIndex(linkInd);
 
-      QVariant linkVar = indRowData.rowData[ilink];
+      auto linkVar = indRowData.rowData[ilink];
 
       QString linkStr;
 
@@ -1243,10 +1243,10 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       int igroup = groupColumn().column();
       assert(igroup >= 0);
 
-      QModelIndex groupInd  = modelIndex(groupColumnInd);
-      QModelIndex groupInd1 = normalizeIndex(groupInd);
+      auto groupInd  = modelIndex(groupColumnInd);
+      auto groupInd1 = normalizeIndex(groupInd);
 
-      QVariant groupVar = indRowData.rowData[igroup];
+      auto groupVar = indRowData.rowData[igroup];
 
       QString groupStr;
 
@@ -1322,7 +1322,7 @@ groupColumnData(const ModelIndex &groupModelInd, GroupData &groupData) const
   auto *groupDetails = columnDetails(groupColumn());
 
   bool ok1;
-  QVariant groupVar = modelValue(groupModelInd, ok1);
+  auto groupVar = modelValue(groupModelInd, ok1);
   if (! ok1) return false;
 
   //---

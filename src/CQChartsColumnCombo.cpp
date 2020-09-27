@@ -32,7 +32,7 @@ CQChartsColumn
 CQChartsColumnCombo::
 getColumn() const
 {
-  QVariant var = itemData(currentIndex());
+  auto var = itemData(currentIndex());
 
   bool ok;
 
@@ -99,7 +99,7 @@ updateItems()
   int nc = model->columnCount();
 
   for (int c = 0; c < nc; ++c) {
-    QString name = model->headerData(c, Qt::Horizontal).toString();
+    auto name = model->headerData(c, Qt::Horizontal).toString();
 
     QString label;
 

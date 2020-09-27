@@ -211,10 +211,10 @@ drawDelta(CQChartsPaintDevice *device, const Point &p, const QString &text,
   device->setTransformRotate(pt1, options.angle.value());
 
   if (options.contrast) {
-    QColor tc = device->pen().color();
+    auto tc = device->pen().color();
 
-  //QColor icolor = CQChartsUtil::invColor(tc);
-    QColor icolor = CQChartsUtil::bwColor(tc);
+  //auto icolor = CQChartsUtil::invColor(tc);
+    auto icolor = CQChartsUtil::bwColor(tc);
 
     icolor.setAlphaF(options.contrastAlpha.value());
 

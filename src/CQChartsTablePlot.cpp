@@ -674,7 +674,7 @@ calcTableSize() const
       expandStack_.push_back(expanded_);
 
       if (plot_->isFollowView()) {
-        QModelIndex ind = model_->index(data.row, 0, data.parent);
+        auto ind = model_->index(data.row, 0, data.parent);
 
         expanded_ = tableData_.expandInds.contains(ind);
       }
@@ -1465,7 +1465,7 @@ createTableObjData() const
       expandStack_.push_back(expanded_);
 
       if (plot_->isFollowView()) {
-        QModelIndex ind = model_->index(data.row, 0, data.parent);
+        auto ind = model_->index(data.row, 0, data.parent);
 
         expanded_ = tableData_.expandInds.contains(ind);
       }
@@ -1701,7 +1701,7 @@ getCellObjData(const ModelIndex &ind) const
 {
   auto *th = const_cast<CQChartsTablePlot *>(this);
 
-  QModelIndex modelInd = th->modelIndex(ind);
+  auto modelInd = th->modelIndex(ind);
 
   auto pc = th->cellObjMap_.find(modelInd);
 
@@ -1902,7 +1902,7 @@ void
 CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
-  QModelIndex modelInd = plot_->modelIndex(0, CQChartsColumn(headerObjData_.c));
+  auto modelInd = plot_->modelIndex(0, CQChartsColumn(headerObjData_.c));
 
   inds.insert(modelInd);
 }
@@ -2038,7 +2038,7 @@ draw(PaintDevice *device)
   if (isInside()) {
     PenBrush bgPenBrush;
 
-    QColor c = plot_->interpColor(plot_->insideColor(), ColorInd());
+    auto c = plot_->interpColor(plot_->insideColor(), ColorInd());
 
     plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, c));
 
@@ -2092,7 +2092,7 @@ void
 CQChartsTableCellObj::
 getObjSelectIndices(Indices &inds) const
 {
-  QModelIndex modelInd = plot_->modelIndex(cellObjData_.ind);
+  auto modelInd = plot_->modelIndex(cellObjData_.ind);
 
   inds.insert(modelInd);
 }

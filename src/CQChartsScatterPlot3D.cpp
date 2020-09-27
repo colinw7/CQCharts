@@ -494,7 +494,7 @@ calcRange() const
     int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
-      QVariant var = plot_->modelValue(columnInd, ok);
+      auto var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(columnInd.column());
@@ -816,7 +816,7 @@ addPointObjects() const
         if (dataLabel()->isVisible()) {
           CQChartsPenBrush penBrush;
 
-          QColor tc = dataLabel()->interpTextColor(ColorInd());
+          auto tc = dataLabel()->interpTextColor(ColorInd());
 
           setPenBrush(penBrush,
             PenData(true, tc, dataLabel()->textAlpha()), BrushData(false));
@@ -921,8 +921,8 @@ addNameValues() const
       //---
 
       // get x, y, z value
-      QModelIndex xInd  = plot_->modelIndex(xModelInd);
-      QModelIndex xInd1 = plot_->normalizeIndex(xInd);
+      auto xInd  = plot_->modelIndex(xModelInd);
+      auto xInd1 = plot_->normalizeIndex(xInd);
 
       double x   { 0.0  }, y   { 0.0  }, z   { 0.0  };
       bool   okx { true }, oky { true }, okz { true };
@@ -996,7 +996,7 @@ addNameValues() const
     int uniqueId(const ModelIndex &columnInd) {
       bool ok;
 
-      QVariant var = plot_->modelValue(columnInd, ok);
+      auto var = plot_->modelValue(columnInd, ok);
       if (! var.isValid()) return -1;
 
       auto *columnDetails = this->columnDetails(columnInd.column());
@@ -1080,8 +1080,8 @@ addPointKeyItems(CQChartsPlotKey *key)
     int ig = 0;
 
     for (const auto &groupNameValue : groupNameValues_) {
-      int     groupInd  = groupNameValue.first;
-      QString groupName = groupIndName(groupInd);
+      int  groupInd  = groupNameValue.first;
+      auto groupName = groupIndName(groupInd);
 
       auto *colorItem = addKeyItem(groupInd, groupName, ig, ng);
 
@@ -1505,7 +1505,7 @@ QString
 CQChartsScatterPoint3DObj::
 calcId() const
 {
-  QModelIndex ind1 = plot_->unnormalizeIndex(modelInd());
+  auto ind1 = plot_->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -1533,7 +1533,7 @@ calcTipId() const
 
   // add group column
   if (ig_.n > 1) {
-    QString groupName = scatterPlot()->groupIndName(groupInd_);
+    auto groupName = scatterPlot()->groupIndName(groupInd_);
 
     tableTip.addTableRow("Group", groupName);
   }
@@ -1541,9 +1541,9 @@ calcTipId() const
   //---
 
   // add x, y columns
-  QString xstr = plot()->xStr(pos_.x);
-  QString ystr = plot()->yStr(pos_.y);
-  QString zstr = plot()->yStr(pos_.z);
+  auto xstr = plot()->xStr(pos_.x);
+  auto ystr = plot()->yStr(pos_.y);
+  auto zstr = plot()->yStr(pos_.z);
 
   tableTip.addTableRow(scatterPlot()->xHeaderName(), xstr);
   tableTip.addTableRow(scatterPlot()->yHeaderName(), ystr);
@@ -1576,7 +1576,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(columnInd, ok);
+    auto str = plot_->modelString(columnInd, ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);
@@ -1639,7 +1639,7 @@ void
 CQChartsScatterPoint3DObj::
 calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
-  ColorInd ic = calcColorInd();
+  auto ic = calcColorInd();
 
   scatterPlot()->setSymbolPenBrush(penBrush, ic);
 
@@ -1647,7 +1647,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   auto color = this->color();
 
   if (color.isValid()) {
-    QColor c = plot_->interpColor(color, ic);
+    auto c = plot_->interpColor(color, ic);
 
     c.setAlphaF(scatterPlot()->symbolFillAlpha().value());
 

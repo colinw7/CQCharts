@@ -214,7 +214,7 @@ applySlot()
   //---
 
   // get column to change
-  CQChartsColumn column = columnNumEdit_->getColumn();
+  auto column = columnNumEdit_->getColumn();
 
   if (! column.isValid()) {
     charts->errorMsg("Invalid column");

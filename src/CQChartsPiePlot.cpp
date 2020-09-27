@@ -661,7 +661,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
   //---
 
   // get key label
-  QString keyLabel = label;
+  auto keyLabel = label;
 
   if (keyLabelColumn().isValid()) {
     ModelIndex kind(th, ind.row(), keyLabelColumn(), ind.parent());
@@ -703,8 +703,8 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
   //---
 
-  QModelIndex dataInd  = modelIndex(ind);
-  QModelIndex dataInd1 = normalizeIndex(dataInd);
+  auto dataInd  = modelIndex(ind);
+  auto dataInd1 = normalizeIndex(dataInd);
 
   //---
 
@@ -716,7 +716,7 @@ addRowColumn(const ModelIndex &ind, PlotObjs &objs) const
 
     int objInd = (groupObj ? groupObj->numObjs() : 0);
 
-    ColorInd ig = (groupObj ? groupObj->ig() : ColorInd());
+    auto ig = (groupObj ? groupObj->ig() : ColorInd());
 
     obj = createPieObj(rect, dataInd1, ig);
 
@@ -829,7 +829,7 @@ addRowColumnDataTotal(const ModelIndex &ind) const
     auto pg1 = th->groupDatas_.find(groupInd);
 
     if (pg1 == th->groupDatas_.end()) {
-      QString groupName = groupIndName(groupInd);
+      auto groupName = groupIndName(groupInd);
 
       pg1 = th->groupDatas_.insert(pg1, GroupDatas::value_type(groupInd, GroupData(groupName)));
     }
@@ -1096,7 +1096,7 @@ isIndexHidden(const ModelIndex &ind) const
 
     bool ok;
 
-    QVariant colorValue = modelValue(colorInd, ok);
+    auto colorValue = modelValue(colorInd, ok);
 
     hidden = (ok && CQChartsVariant::cmp(hideValue(), colorValue) == 0);
   }
@@ -1293,7 +1293,7 @@ void
 CQChartsPieObj::
 calcTipData(QString &groupName, QString &label, QString &valueStr) const
 {
-  QModelIndex ind = plot_->unnormalizeIndex(modelInd());
+  auto ind = plot_->unnormalizeIndex(modelInd());
 
   // get group name and label
   bool hasGroup = (plot_->numGroups() > 1 && groupObj_);
@@ -1343,7 +1343,7 @@ void
 CQChartsPieObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + "/" + propertyId();
+  auto path1 = path + "/" + propertyId();
 
   model->setObjectRoot(path1, this);
 
@@ -1513,7 +1513,7 @@ draw(CQChartsPaintDevice *device)
   if (plot_->isGridLines()) {
     PenBrush penBrush;
 
-    QColor gridColor = plot_->interpGridLinesColor(ColorInd());
+    auto gridColor = plot_->interpGridLinesColor(ColorInd());
 
     plot_->setPenBrush(penBrush,
       PenData  (true, gridColor, plot_->gridLinesAlpha(),
@@ -1560,14 +1560,14 @@ draw(CQChartsPaintDevice *device)
     CQChartsDrawUtil::drawPieSlice(device, c, r1, r2, aa1, aa2, isInvertX, isInvertY);
 
     if (! plot_->textBox()->isTextVisible()) {
-      QString labelStr = calcTipId();
+      auto labelStr = calcTipId();
 
       //---
 
       // set text pen
       PenBrush penBrush;
 
-      QColor fg = plot_->interpPlotStrokeColor(ColorInd());
+      auto fg = plot_->interpPlotStrokeColor(ColorInd());
 
       plot_->setPen(penBrush, PenData(true, fg, Alpha()));
 
@@ -1640,7 +1640,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
   // TODO: label alpha
   PenBrush lenBrush;
 
-  QColor bg = fillColor();
+  auto bg = fillColor();
 
   plot_->setPen(lenBrush, PenData(true, bg, Alpha()));
 
@@ -1686,12 +1686,12 @@ CQChartsPieObj::
 calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
 {
   // calc stroke and brush
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
-  QColor pc = plot_->interpStrokeColor(colorInd);
-  Alpha  pa = (inside ? Alpha(0.0) : plot_->strokeAlpha());
-  QColor fc = fillColor();
-  Alpha  fa = (inside ? Alpha(0.7) : plot_->fillAlpha());
+  auto pc = plot_->interpStrokeColor(colorInd);
+  auto pa = (inside ? Alpha(0.0) : plot_->strokeAlpha());
+  auto fc = fillColor();
+  auto fa = (inside ? Alpha(0.7) : plot_->fillAlpha());
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), pc, pa, plot_->strokeWidth(), plot_->strokeDash()),
@@ -1721,7 +1721,7 @@ fillColor() const
 {
   auto *groupObj = this->groupObj();
 
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   QColor fc;
 
@@ -1932,8 +1932,8 @@ draw(CQChartsPaintDevice *device)
   // set pen and brush
   // TODO: more customization support
 
-  QColor bg = bgColor();
-  QColor fg = plot_->interpPlotStrokeColor(ColorInd());
+  auto bg = bgColor();
+  auto fg = plot_->interpPlotStrokeColor(ColorInd());
 
   PenBrush penBrush;
 
@@ -1979,14 +1979,14 @@ drawFg(CQChartsPaintDevice *device) const
     pt = CQChartsGeom::circlePoint(c, 0.5, tangle);
   }
 
-  QString label = QString("%1").arg(numValues());
+  auto label = QString("%1").arg(numValues());
 
   //---
 
   // set text pen
   PenBrush penBrush;
 
-  QColor fg = plot_->interpPlotStrokeColor(ColorInd());
+  auto fg = plot_->interpPlotStrokeColor(ColorInd());
 
   plot_->setPen(penBrush, PenData(true, fg, Alpha()));
 
@@ -2098,7 +2098,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  QColor c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsKeyText::interpTextColor(ind);
 
   int is = setIndex();
 

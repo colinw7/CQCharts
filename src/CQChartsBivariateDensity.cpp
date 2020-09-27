@@ -84,7 +84,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
       // set brush
       CQChartsPenBrush penBrush;
 
-      QColor c = plot->interpPaletteColor(CQChartsUtil::ColorInd(v));
+      auto c = plot->interpPaletteColor(CQChartsUtil::ColorInd(v));
 
       plot->setPenBrush(penBrush,
         CQChartsPenData  (false),

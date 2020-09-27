@@ -649,7 +649,7 @@ loadModel() const
 
         (void) getName(data, name, nameInd);
 
-        QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+        auto nameInd1 = plot_->normalizeIndex(nameInd);
 
         QString groupName = plot_->groupIndName(groupInd, /*hier*/false);
 
@@ -806,7 +806,7 @@ addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) con
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *hier1 = new HierNode(this, hier, name, nameInd1);
 
@@ -827,7 +827,7 @@ addNode(HierNode *hier, const QString &name, double size, const QModelIndex &nam
 
   int depth1 = hier->depth() + 1;
 
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *node = new Node(this, hier, name, size, nameInd1);
 
@@ -1062,7 +1062,7 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+    auto ind1 = plot_->unnormalizeIndex(node_->ind());
 
     ModelIndex colorModelInd(plot(), ind1.row(), plot_->colorColumn(), ind1.parent());
 

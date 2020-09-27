@@ -41,7 +41,7 @@ class CQChartsModelExprMatchFn {
       values.push_back(command->qtcl()->variantFromObj(obj));
     }
 
-    QVariant var = command->exec(values);
+    auto var = command->exec(values);
 
     command->qtcl()->setResult(var);
 
@@ -182,7 +182,7 @@ initColumns()
 
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
+    auto name = CQChartsModelUtil::modelHHeaderString(model_, c, ok);
 
     columnNames_[ic  ] = name;
     nameColumns_[name] = ic;
@@ -442,7 +442,7 @@ definedCmd(const Values &values) const
 
   //---
 
-  QVariant var = getCmdData(row, col);
+  auto var = getCmdData(row, col);
 
   return QVariant(var.isValid());
 }
@@ -533,7 +533,7 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
 
   //---
 
-  QString expr1 = (replace ? replaceExprColumns(expr, ind) : expr);
+  auto expr1 = (replace ? replaceExprColumns(expr, ind) : expr);
 
   return qtcl_->evaluateExpression(expr1, value, isDebug());
 }
@@ -544,7 +544,7 @@ getCmdData(int row, int col) const
 {
   QModelIndex parent; // TODO
 
-  QModelIndex ind = model()->index(row, col, parent);
+  auto ind = model()->index(row, col, parent);
 
   return getCmdData(ind);
 }
@@ -553,7 +553,7 @@ QVariant
 CQChartsModelExprMatch::
 getCmdData(const QModelIndex &ind) const
 {
-  QVariant var = model()->data(ind, Qt::EditRole);
+  auto var = model()->data(ind, Qt::EditRole);
 
   if (! var.isValid())
     var = model()->data(ind, Qt::DisplayRole);

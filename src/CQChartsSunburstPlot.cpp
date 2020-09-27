@@ -623,7 +623,7 @@ CQChartsSunburstHierNode *
 CQChartsSunburstPlot::
 addHierNode(HierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   auto *hier1 = new HierNode(this, hier, name);
 
@@ -642,12 +642,12 @@ hierAddNode(HierNode *hier, const QString &name, double size,
   node->setSize(size);
 
   if (valueInd.isValid()) {
-    QModelIndex valueInd1 = normalizeIndex(valueInd);
+    auto valueInd1 = normalizeIndex(valueInd);
 
     node->setInd(valueInd1);
   }
   else {
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
+    auto nameInd1 = normalizeIndex(nameInd);
 
     node->setInd(nameInd1);
   }
@@ -679,7 +679,7 @@ loadFlat(HierNode *root) const
                                       plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInds[0]);
+      auto nameInd1 = plot_->normalizeIndex(nameInds[0]);
 
       //---
 
@@ -809,7 +809,7 @@ flatAddNode(HierNode *root, const QStringList &nameStrs, double size,
     node->setSize(size);
 
     if (valueInd.isValid()) {
-      QModelIndex valueInd1 = normalizeIndex(valueInd);
+      auto valueInd1 = normalizeIndex(valueInd);
 
       node->setInd(valueInd1);
     }
@@ -833,7 +833,7 @@ addExtraNodes(HierNode *hier) const
   if (hier->size() > 0) {
     auto *node = new Node(this, hier, "");
 
-    QModelIndex ind1 = unnormalizeIndex(hier->ind());
+    auto ind1 = unnormalizeIndex(hier->ind());
 
     Color color;
 
@@ -1202,12 +1202,12 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = nodeObj->calcColorInd();
+  auto colorInd = nodeObj->calcColorInd();
 
   PenBrush penBrush;
 
-  QColor bc = interpStrokeColor(colorInd);
-  QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
+  auto bc = interpStrokeColor(colorInd);
+  auto fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
   setPenBrush(penBrush,
     PenData  (isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash()),
@@ -1254,7 +1254,7 @@ drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
     // calc text pen
     PenBrush tPenBrush;
 
-    QColor tc = interpTextColor(colorInd);
+    auto tc = interpTextColor(colorInd);
 
     setPen(tPenBrush, PenData(true, tc, textAlpha()));
 
@@ -1398,7 +1398,7 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+    auto ind1 = plot_->unnormalizeIndex(node_->ind());
 
     ModelIndex colorModelInd(const_cast<CQChartsSunburstPlot *>(plot_),
                              ind1.row(), plot_->colorColumn(), ind1.parent());

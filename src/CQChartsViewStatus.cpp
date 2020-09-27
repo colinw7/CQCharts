@@ -238,7 +238,7 @@ contextMenuEvent(QContextMenuEvent *e)
 
   actionGroup->setExclusive(true);
 
-  CQChartsView::PosTextType posTextType = status_->window()->view()->posTextType();
+  auto posTextType = status_->window()->view()->posTextType();
 
   if      (posTextType == CQChartsView::PosTextType::PLOT)
     plotAction->setChecked(true);

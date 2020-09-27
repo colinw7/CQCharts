@@ -359,7 +359,7 @@ addIdConnections() const
 
     auto *node = forceDirected_->newNodeT<CQChartsSpringyNode>();
 
-    QString label = QString("%1:%2").arg(name).arg(group);
+    auto label = QString("%1:%2").arg(name).arg(group);
 
     node->setLabel(label);
     node->setMass (nodeMass_);
@@ -468,8 +468,8 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
   //---
 
   if (srcLinkInd.isValid()) {
-    QModelIndex srcLinkIndex  = modelIndex(srcLinkInd);
-    QModelIndex srcLinkIndex1 = normalizeIndex(srcLinkIndex);
+    auto srcLinkIndex  = modelIndex(srcLinkInd);
+    auto srcLinkIndex1 = normalizeIndex(srcLinkIndex);
 
     //---
 
@@ -493,8 +493,8 @@ initHierObjsAddConnection(const QString &srcStr, const ModelIndex &srcLinkInd, d
   //---
 
   if (destLinkInd.isValid()) {
-    QModelIndex destLinkIndex  = modelIndex(destLinkInd);
-    QModelIndex destLinkIndex1 = normalizeIndex(destLinkIndex);
+    auto destLinkIndex  = modelIndex(destLinkInd);
+    auto destLinkIndex1 = normalizeIndex(destLinkIndex);
 
     //---
 
@@ -553,12 +553,12 @@ addPathValue(const PathData &pathData) const
 
   th->maxNodeDepth_ = std::max(maxNodeDepth_, n - 1);
 
-  QChar separator = (this->separator().length() ? this->separator()[0] : '/');
+  auto separator = (this->separator().length() ? this->separator()[0] : '/');
 
-  QString path1 = pathData.pathStrs[0];
+  auto path1 = pathData.pathStrs[0];
 
   for (int i = 1; i < n; ++i) {
-    QString path2 = path1 + separator + pathData.pathStrs[i];
+    auto path2 = path1 + separator + pathData.pathStrs[i];
 
     auto &srcConnectionsData  = th->getConnections(path1);
     auto &destConnectionsData = th->getConnections(path2);
@@ -688,7 +688,7 @@ addFromToValue(const FromToData &fromToData) const
   // Just node
   if (fromToData.toStr == "") {
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "label") {
         srcConnectionsData.label = value;
@@ -710,7 +710,7 @@ addFromToValue(const FromToData &fromToData) const
     addEdge(srcConnectionsData, destConnectionsData, fromToData.value.realOr(1.0));
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
-      QString value = nv.second.toString();
+      auto value = nv.second.toString();
 
       if      (nv.first == "label") {
       }
@@ -825,14 +825,14 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
 
   if (linkColumnType() == ColumnType::NAME_PAIR) {
     bool ok;
-    QVariant linkVar = modelValue(linkModelInd, ok);
+    auto linkVar = modelValue(linkModelInd, ok);
     if (! ok) return th->addDataError(linkModelInd, "Invalid Link");
 
     namePair = linkVar.value<CQChartsNamePair>();
   }
   else {
     bool ok;
-    QString linkStr = modelString(linkModelInd, ok);
+    auto linkStr = modelString(linkModelInd, ok);
     if (! ok) return th->addDataError(linkModelInd, "Invalid Link");
 
     namePair = CQChartsNamePair(linkStr, separator);
@@ -852,8 +852,8 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
 
   //---
 
-  QString srcStr  = namePair.name1();
-  QString destStr = namePair.name2();
+  auto srcStr  = namePair.name1();
+  auto destStr = namePair.name2();
 
   srcId  = getStringId(srcStr);
   destId = getStringId(destStr);
@@ -863,8 +863,8 @@ getNameConnections(int group, const ModelVisitor::VisitData &data, int &srcId, i
   // return connections data
   auto &connectionsData = const_cast<ConnectionsData &>(getConnections(srcId));
 
-  QModelIndex nameInd  = modelIndex(linkModelInd);
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
+  auto nameInd  = modelIndex(linkModelInd);
+  auto nameInd1 = normalizeIndex(nameInd);
 
   connectionsData.ind   = nameInd1;
   connectionsData.name  = srcStr;
@@ -918,13 +918,13 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
 
   if (connectionsColumnType() == ColumnType::CONNECTION_LIST) {
     bool ok3;
-    QVariant connectionsVar = modelValue(connectionsModelInd, ok3);
+    auto connectionsVar = modelValue(connectionsModelInd, ok3);
 
     connections = connectionsVar.value<CQChartsConnectionList>().connections();
   }
   else {
     bool ok3;
-    QString connectionsStr = modelString(connectionsModelInd, ok3);
+    auto connectionsStr = modelString(connectionsModelInd, ok3);
     if (! ok3) return false;
 
     CQChartsConnectionList::stringToConnections(connectionsStr, connections);
@@ -942,7 +942,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data) const
   //---
 
   // get optional name
-  QString name = QString("%1").arg(id);
+  auto name = QString("%1").arg(id);
 
   if (nameColumn().isValid()) {
     ModelIndex nameModelInd(th, data.row, nameColumn(), data.parent);
@@ -1309,7 +1309,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
   // draw edges
   PenBrush edgePenBrush;
 
-  QColor edgeColor = this->interpEdgeLinesColor(ColorInd());
+  auto edgeColor = this->interpEdgeLinesColor(ColorInd());
 
   setPen(edgePenBrush,
     PenData(true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash()));
@@ -1373,7 +1373,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     PenBrush penBrush;
 
-    QColor pc = interpNodeStrokeColor(ColorInd());
+    auto pc = interpNodeStrokeColor(ColorInd());
 
     QColor fc;
 

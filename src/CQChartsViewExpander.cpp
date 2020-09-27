@@ -505,7 +505,7 @@ paintEvent(QPaintEvent *)
     }
 
     if (title_.length()) {
-      QColor c = this->palette().color(QPalette::WindowText);
+      auto c = this->palette().color(QPalette::WindowText);
 
       p.setPen(c);
 
@@ -531,8 +531,8 @@ drawTitleLines(QPainter *p, const QRect &r)
 
   int y = r.center().y() - (gap + 1)*num_lines/2;
 
-  QColor c1 = this->palette().color(QPalette::WindowText);
-  QColor c2 = c1;
+  auto c1 = this->palette().color(QPalette::WindowText);
+  auto c2 = c1;
 
   c1.setAlphaF(0.6);
   c2.setAlphaF(0.4);

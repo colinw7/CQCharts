@@ -367,7 +367,7 @@ createObjs(PlotObjs &objs) const
       double y = (nc_ - 1 - data.row)*dy_;
 
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = model->index(data.row, col, data.parent);
+        auto ind = model->index(data.row, col, data.parent);
 
         bool ok;
 
@@ -568,7 +568,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   PenBrush tpenBrush;
 
-  QColor tc = interpXLabelTextColor(ColorInd());
+  auto tc = interpXLabelTextColor(ColorInd());
 
   setPen(tpenBrush, PenData(true, tc, xLabelTextAlpha()));
 
@@ -667,7 +667,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   PenBrush tpenBrush;
 
-  QColor tc = interpYLabelTextColor(ColorInd());
+  auto tc = interpYLabelTextColor(ColorInd());
 
   setPen(tpenBrush, PenData(true, tc, yLabelTextAlpha()));
 
@@ -979,7 +979,7 @@ draw(CQChartsPaintDevice *device)
 
   // diagonal
   if (row_ == col_) {
-    CQChartsCorrelationPlot::DiagonalType type = plot_->diagonalType();
+    auto type = plot_->diagonalType();
 
     if      (type == CQChartsCorrelationPlot::DiagonalType::NAME) {
       bool ok;
@@ -1086,9 +1086,9 @@ draw(CQChartsPaintDevice *device)
 
       //---
 
-      QColor lc = Qt::white;
+      auto lc = Qt::white;
 
-      CQChartsFillPattern fillPattern = CQChartsFillPattern::Type::SOLID;
+      auto fillPattern = CQChartsFillPattern(CQChartsFillPattern::Type::SOLID);
 
       if      (value() > 0)
         fillPattern = CQChartsFillPattern(CQChartsFillPattern::Type::FDIAG);
@@ -1151,7 +1151,7 @@ draw(CQChartsPaintDevice *device)
         poly.addPoint(Point(rect().getXMid() + px2, rect().getYMid() + py2));
       }
 
-      QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
+      auto path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
 
       device->strokePath(path, penBrush.pen);
     }
@@ -1225,7 +1225,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
   //---
 
   // set font
-  CQChartsFont font = plot_->cellLabelTextFont();
+  auto font = plot_->cellLabelTextFont();
 
   if (fontInc != 0.0)
     font.incFontSize(fontInc);
@@ -1237,7 +1237,7 @@ drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect,
   // set pen
   PenBrush tPenBrush;
 
-  QColor tc = plot_->interpCellLabelTextColor(ic);
+  auto tc = plot_->interpCellLabelTextColor(ic);
 
   plot_->setPen(tPenBrush, PenData(true, tc, plot_->cellLabelTextAlpha()));
 
@@ -1277,8 +1277,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // set pen and brush
-  QColor fc = plot_->interpCellFillColor  (ic);
-  QColor bc = plot_->interpCellStrokeColor(ic);
+  auto fc = plot_->interpCellFillColor  (ic);
+  auto bc = plot_->interpCellStrokeColor(ic);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),

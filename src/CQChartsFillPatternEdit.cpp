@@ -171,7 +171,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  CQChartsFillPattern fillPattern = value.value<CQChartsFillPattern>();
+  auto fillPattern = value.value<CQChartsFillPattern>();
 
   int x = option.rect.left();
 
@@ -211,7 +211,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect = QRect(x, option1.rect.top(), w + 2*margin(), option1.rect.height());
 
@@ -222,7 +222,7 @@ QString
 CQChartsFillPatternPropertyViewType::
 tip(const QVariant &value) const
 {
-  CQChartsFillPattern fillPattern = value.value<CQChartsFillPattern>();
+  auto fillPattern = value.value<CQChartsFillPattern>();
 
   return fillPattern.toString();
 }
@@ -271,7 +271,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsFillPatternLineEdit *>(w);
   assert(edit);
 
-  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
+  auto fillPattern = var.value<CQChartsFillPattern>();
 
   edit->setFillPattern(fillPattern);
 }
@@ -433,9 +433,9 @@ widgetsToFillPattern()
 {
   QString typeName = typeCombo_->currentText();
 
-  CQChartsFillPattern::Type type = fillPattern_.stringToType(typeName);
+  auto type = fillPattern_.stringToType(typeName);
 
-  CQChartsFillPattern fillPattern = CQChartsFillPattern(type);
+  auto fillPattern = CQChartsFillPattern(type);
 
   if (fillPattern.type() == CQChartsFillPattern::Type::PALETTE)
     fillPattern.setPalette(paletteEdit_->text());

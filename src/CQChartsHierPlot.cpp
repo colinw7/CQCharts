@@ -65,7 +65,7 @@ expandedModelIndices(std::set<QModelIndex> &indSet) const
   view()->expandedModelIndices(inds);
 
   for (const auto &ind : inds) {
-    QModelIndex ind1 = normalizeIndex(ind);
+    auto ind1 = normalizeIndex(ind);
 
     indSet.insert(ind1);
   }

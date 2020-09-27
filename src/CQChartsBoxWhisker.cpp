@@ -339,7 +339,7 @@ void
 CQChartsAxisBoxWhisker::
 draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, double delta)
 {
-  CQChartsPenBrush penBrush1 = penBrush;
+  auto penBrush1 = penBrush;
 
   CQChartsDrawUtil::setBrushAlpha(penBrush1.brush, alpha().value());
 
@@ -529,7 +529,7 @@ void
 CQChartsAxisDensity::
 draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta)
 {
-  CQChartsPenBrush penBrush1 = penBrush;
+  auto penBrush1 = penBrush;
 
   CQChartsDrawUtil::setBrushAlpha(penBrush1.brush, alpha().value());
 

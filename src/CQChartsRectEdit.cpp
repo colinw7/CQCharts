@@ -219,7 +219,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -243,7 +243,7 @@ QString
 CQChartsRectPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsRect rect = value.value<CQChartsRect>();
+  auto rect = value.value<CQChartsRect>();
 
   QString str;
 
@@ -302,7 +302,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsRectEdit *>(w);
   assert(edit);
 
-  CQChartsRect rect = var.value<CQChartsRect>();
+  auto rect = var.value<CQChartsRect>();
 
   edit->setRect(rect);
 }

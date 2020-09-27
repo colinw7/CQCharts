@@ -207,9 +207,9 @@ updateState()
   edit_->setText(dash_.toString());
 
   for (int i = 0; i < combo_->count(); ++i) {
-    QVariant var = combo_->itemData(i);
+    auto var = combo_->itemData(i);
 
-    CQChartsLineDash dash = var.value<CQChartsLineDash>();
+    auto dash = var.value<CQChartsLineDash>();
 
     if (dash_ == dash) {
       if (i != combo_->currentIndex())
@@ -227,7 +227,7 @@ dashChangedSlot()
   // line edit changed
   CQChartsLineDash dash;
 
-  QString str = edit_->text();
+  auto str = edit_->text();
 
   if (dash.fromString(str)) {
     dash_ = dash;
@@ -253,7 +253,7 @@ comboItemChanged()
   // combo (non editable) changed
   int ind = combo_->currentIndex();
 
-  QVariant var = combo_->itemData(ind);
+  auto var = combo_->itemData(ind);
 
   dash_ = var.value<CQChartsLineDash>();
 
@@ -267,7 +267,7 @@ addDashOption(const std::string &id, const CQChartsLineDash &dash)
   auto p = actions_.find(id);
   if (p != actions_.end()) return;
 
-  QIcon icon = dashIcon(dash);
+  auto icon = dashIcon(dash);
 
   auto *action = new CQChartsLineDashEditAction(this, id, dash, icon);
 
@@ -275,7 +275,7 @@ addDashOption(const std::string &id, const CQChartsLineDash &dash)
 
   menu_->addAction(action);
 
-  QVariant var = QVariant::fromValue(dash);
+  auto var = QVariant::fromValue(dash);
 
   combo_->addItem(icon, action->text(), var);
 }
@@ -396,11 +396,11 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, itemState);
 
-  CQChartsLineDash dash = value.value<CQChartsLineDash>();
+  auto dash = value.value<CQChartsLineDash>();
 
-  QIcon icon = CQChartsLineDashEdit::dashIcon(dash, /*bg*/false);
+  auto icon = CQChartsLineDashEdit::dashIcon(dash, /*bg*/false);
 
-  QString str = dash.toString();
+  auto str = dash.toString();
 
   QFontMetrics fm(option.font);
 
@@ -408,7 +408,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  QRect irect = option.rect;
+  auto irect = option.rect;
 
   irect.setLeft(irect.left() + w + 2*margin());
 
@@ -416,7 +416,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //--
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -427,7 +427,7 @@ QString
 CQChartsLineDashPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsLineDash>().toString();
+  auto str = value.value<CQChartsLineDash>().toString();
 
   return str;
 }
@@ -475,7 +475,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsLineDashEdit *>(w);
   assert(edit);
 
-  CQChartsLineDash dash = var.value<CQChartsLineDash>();
+  auto dash = var.value<CQChartsLineDash>();
 
   edit->setLineDash(dash);
 }

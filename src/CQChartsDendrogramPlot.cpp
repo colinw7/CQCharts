@@ -217,8 +217,8 @@ calcRange() const
       ModelIndex nameModelInd (plot, data.row, plot_->nameColumn (), data.parent);
       ModelIndex valueModelInd(plot, data.row, plot_->valueColumn(), data.parent);
 
-    //QModelIndex nameInd  = modelIndex(nameModelInd);
-    //QModelIndex nameInd1 = normalizeIndex(nameInd);
+    //auto nameInd  = modelIndex(nameModelInd);
+    //auto nameInd1 = normalizeIndex(nameInd);
 
       //---
 
@@ -636,8 +636,8 @@ draw(CQChartsPaintDevice *device)
   // set pen and brush
   PenBrush penBrush;
 
-  QColor strokeColor = plot_->interpNodeStrokeColor(ColorInd());
-  QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
+  auto strokeColor = plot_->interpNodeStrokeColor(ColorInd());
+  auto fillColor   = plot_->interpNodeFillColor  (ColorInd());
 
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
@@ -660,7 +660,7 @@ draw(CQChartsPaintDevice *device)
   // draw node text
   PenBrush tpenBrush;
 
-  QColor tc = plot_->interpTextColor(ColorInd());
+  auto tc = plot_->interpTextColor(ColorInd());
 
   plot_->setPen(tpenBrush, PenData(/*stroked*/true, tc, plot_->textAlpha()));
 

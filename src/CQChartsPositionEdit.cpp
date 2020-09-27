@@ -218,7 +218,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 2*margin());
 
@@ -242,7 +242,7 @@ QString
 CQChartsPositionPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsPosition position = value.value<CQChartsPosition>();
+  auto position = value.value<CQChartsPosition>();
 
   QString str;
 
@@ -301,7 +301,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsPositionEdit *>(w);
   assert(edit);
 
-  CQChartsPosition position = var.value<CQChartsPosition>();
+  auto position = var.value<CQChartsPosition>();
 
   edit->setPosition(position);
 }

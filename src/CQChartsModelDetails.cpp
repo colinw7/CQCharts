@@ -296,7 +296,7 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
       bool ok;
 
-      QVariant var = CQChartsModelUtil::modelValue(charts, model, r, column, parent, ok);
+      auto var = CQChartsModelUtil::modelValue(charts, model, r, column, parent, ok);
 
       rowValues2[0] = var;
 
@@ -610,7 +610,7 @@ dataName(const QVariant &v) const
 
   bool converted;
 
-  QVariant v1 = columnType->dataName(charts, model, column_, v, typeData(), converted);
+  auto v1 = columnType->dataName(charts, model, column_, v, typeData(), converted);
 
   return v1;
 }
@@ -669,11 +669,11 @@ isIncreasing() const
 
     auto *model = details_->model();
 
-    QVariant var = CQChartsModelUtil::modelHeaderValue(
+    auto var = CQChartsModelUtil::modelHeaderValue(
       model, column_, static_cast<int>(CQBaseModelRole::Sorted), ok);
 
     if (ok && var.isValid() && var.toBool()) {
-      QVariant var = CQChartsModelUtil::modelHeaderValue(
+      auto var = CQChartsModelUtil::modelHeaderValue(
         model, column_, static_cast<int>(CQBaseModelRole::SortOrder), ok);
 
       if (ok && var.isValid()) {
@@ -915,7 +915,7 @@ uniqueId(const QVariant &var) const
   else if (type() == CQBaseModelType::COLOR) {
     bool ok;
 
-    CQChartsColor color = CQChartsVariant::toColor(var, ok);
+    auto color = CQChartsVariant::toColor(var, ok);
 
     if (ok)
       return valueSet_->cvals().id(color);
@@ -932,7 +932,7 @@ uniqueValue(int i) const
     return QVariant(i);
   }
 
-  QVariantList uniqueValues = this->uniqueValues();
+  auto uniqueValues = this->uniqueValues();
 
   if (i >= 0 && i < uniqueValues.size())
     return uniqueValues[i];
@@ -1262,7 +1262,7 @@ initData()
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
       bool ok;
 
-      QVariant var = CQChartsModelUtil::modelValue(
+      auto var = CQChartsModelUtil::modelValue(
         charts_, model, data.row, details_->column(), data.parent, ok);
       if (! ok) return State::SKIP;
 
@@ -1475,7 +1475,7 @@ initData()
       if (visitMin_) {
         bool ok1;
 
-        QString smin = CQChartsVariant::toString(min_, ok1);
+        auto smin = CQChartsVariant::toString(min_, ok1);
 
         smin = (! ok1 ? s : std::min(smin, s));
 
@@ -1486,7 +1486,7 @@ initData()
       if (visitMax_) {
         bool ok1;
 
-        QString smax = CQChartsVariant::toString(max_, ok1);
+        auto smax = CQChartsVariant::toString(max_, ok1);
 
         smax = (! ok1 ? s : std::max(smax, s));
 
@@ -1496,8 +1496,8 @@ initData()
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
         bool ok1, ok2;
 
-        QString s1 = CQChartsVariant::toString(lastValue1_, ok1);
-        QString s2 = CQChartsVariant::toString(lastValue2_, ok2);
+        auto s1 = CQChartsVariant::toString(lastValue1_, ok1);
+        auto s2 = CQChartsVariant::toString(lastValue2_, ok2);
 
         if (! monotonicSet_) {
           if (s1 != s2) {
@@ -1769,7 +1769,7 @@ columnColor(const QVariant &var, CQChartsColor &color) const
 
   bool converted;
 
-  QVariant cvar = colorType->userData(charts, model, column_, var, typeData(), converted);
+  auto cvar = colorType->userData(charts, model, column_, var, typeData(), converted);
 
   bool ok;
 

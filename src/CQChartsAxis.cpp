@@ -245,13 +245,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
-  QString posPath = path + "/position";
+  auto posPath = path + "/position";
 
   addProp(posPath, "position", "value", "Axis position");
 
   //---
 
-  QString linePath = path + "/stroke";
+  auto linePath = path + "/stroke";
 
   addStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
   addStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
@@ -262,20 +262,20 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
-  QString ticksPath = path + "/ticks";
+  auto ticksPath = path + "/ticks";
 
   addProp(ticksPath, "ticksDisplayed", "lines", "Axis major and/or minor ticks visible");
 
-  QString majorTicksPath = ticksPath + "/major";
-  QString minorTicksPath = ticksPath + "/minor";
+  auto majorTicksPath = ticksPath + "/major";
+  auto minorTicksPath = ticksPath + "/minor";
 
   addProp(majorTicksPath, "majorTickLen", "length", "Axis major ticks pixel length");
   addProp(minorTicksPath, "minorTickLen", "length", "Axis minor ticks pixel length");
 
   //---
 
-  QString ticksLabelPath     = ticksPath + "/label";
-  QString ticksLabelTextPath = ticksLabelPath + "/text";
+  auto ticksLabelPath     = ticksPath + "/label";
+  auto ticksLabelTextPath = ticksLabelPath + "/text";
 
   addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide", "Axis tick label text is auto hide");
   addProp(ticksLabelPath, "tickLabelPlacement", "placement", "Axis tick label text placement");
@@ -306,8 +306,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
-  QString labelPath     = path + "/label";
-  QString labelTextPath = labelPath + "/text";
+  auto labelPath     = path + "/label";
+  auto labelTextPath = labelPath + "/text";
 
   addProp(labelTextPath, "labelStr" , "string"   , "Axis label text string");
   addProp(labelTextPath, "defLabel" , "defString", "Axis label text default string");
@@ -334,13 +334,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
-  QString gridPath            = path + "/grid";
-  QString gridLinePath        = gridPath + "/stroke";
-  QString gridMajorPath       = gridPath + "/major";
-  QString gridMajorStrokePath = gridMajorPath + "/stroke";
-  QString gridMajorFillPath   = gridMajorPath + "/fill";
-  QString gridMinorPath       = gridPath + "/minor";
-  QString gridMinorStrokePath = gridMinorPath + "/stroke";
+  auto gridPath            = path + "/grid";
+  auto gridLinePath        = gridPath + "/stroke";
+  auto gridMajorPath       = gridPath + "/major";
+  auto gridMajorStrokePath = gridMajorPath + "/stroke";
+  auto gridMajorFillPath   = gridMajorPath + "/fill";
+  auto gridMinorPath       = gridPath + "/minor";
+  auto gridMinorStrokePath = gridMinorPath + "/stroke";
 
   addProp(gridPath, "gridMid"  , "middle", "Grid at make tick mid point");
   addProp(gridPath, "gridAbove", "above" , "Grid is drawn above axes");
@@ -451,7 +451,7 @@ tickLabelsStr() const
     strs1 << QString("%1").arg(p.first );
     strs1 << QString("%1").arg(p.second);
 
-    QString str1 = CQTcl::mergeList(strs1);
+    auto str1 = CQTcl::mergeList(strs1);
 
     strs << str1;
   }
@@ -536,7 +536,7 @@ customTickLabelsStr() const
     strs1 << QString("%1").arg(p.first );
     strs1 << QString("%1").arg(p.second);
 
-    QString str1 = CQTcl::mergeList(strs1);
+    auto str1 = CQTcl::mergeList(strs1);
 
     strs << str1;
   }
@@ -938,7 +938,7 @@ valueStr(const CQChartsPlot *plot, double pos) const
 
       bool ok;
 
-      QVariant header = plot->modelValue(columnInd, ok);
+      auto header = plot->modelValue(columnInd, ok);
 
       if (header.isValid()) {
         QString headerStr;
@@ -1157,7 +1157,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     CQChartsPenBrush penBrush;
 
-    QColor fillColor = interpAxesGridFillColor(ColorInd());
+    auto fillColor = interpAxesGridFillColor(ColorInd());
 
     plot->setPenBrush(penBrush,
       PenData(false), BrushData(true, fillColor, axesGridFillAlpha(), axesGridFillPattern()));
@@ -1281,7 +1281,7 @@ void
 CQChartsAxis::
 drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device)
 {
-  CQChartsOptReal position = CQChartsOptReal(pos);
+  auto position = CQChartsOptReal(pos);
 
   std::swap(position_, position);
 
@@ -1517,7 +1517,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
   //---
 
   if (isAxesLabelTextVisible()) {
-    QString text = userLabel();
+    auto text = userLabel();
 
     if (! text.length())
       text = label().string();
@@ -1666,7 +1666,7 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double 
 {
   CQChartsPenBrush penBrush;
 
-  QColor lc = interpAxesLinesColor(ColorInd());
+  auto lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
     PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
@@ -1688,7 +1688,7 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 {
   CQChartsPenBrush penBrush;
 
-  QColor lc = interpAxesMajorGridLinesColor(ColorInd());
+  auto lc = interpAxesMajorGridLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
     PenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
@@ -1711,7 +1711,7 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 {
   CQChartsPenBrush penBrush;
 
-  QColor lc = interpAxesMinorGridLinesColor(ColorInd());
+  auto lc = interpAxesMinorGridLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
     PenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
@@ -1769,7 +1769,7 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   CQChartsPenBrush penBrush;
 
-  QColor lc = interpAxesLinesColor(ColorInd());
+  auto lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
    PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
@@ -1837,7 +1837,7 @@ CQChartsAxis::
 drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
               double apos, double tpos, double value, bool inside)
 {
-  QString text = valueStr(plot, value);
+  auto text = valueStr(plot, value);
   if (! text.length()) return;
 
   //---
@@ -1853,7 +1853,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #if 0
   QPen tpen;
 
-  QColor tc = interpAxesTickLabelTextColor(ColorInd());
+  auto tc = interpAxesTickLabelTextColor(ColorInd());
 
   plot->setPen(tpen, true, tc, axesTickLabelTextAlpha());
 
@@ -2413,7 +2413,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   CQChartsPenBrush tpenBrush;
 
-  QColor tc = interpAxesTickLabelTextColor(ColorInd());
+  auto tc = interpAxesTickLabelTextColor(ColorInd());
 
   plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
 
@@ -2475,7 +2475,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   CQChartsPenBrush tpenBrush;
 
-  QColor tc = interpAxesLabelTextColor(ColorInd());
+  auto tc = interpAxesLabelTextColor(ColorInd());
 
   plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
 

@@ -7440,7 +7440,7 @@ columnSymbolSize(int row, const QModelIndex &parent, const SymbolSizeData &symbo
 
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  CQChartsUnits units = CQChartsUnits::PIXEL;
+  auto units = CQChartsUnits::PIXEL;
 
   (void) CQChartsUtil::decodeUnits(symbolSizeData.units, units);
 
@@ -7564,7 +7564,7 @@ columnFontSize(int row, const QModelIndex &parent, const FontSizeData &fontSizeD
 
   auto *th = const_cast<CQChartsPlot *>(this);
 
-  CQChartsUnits units = CQChartsUnits::PIXEL;
+  auto units = CQChartsUnits::PIXEL;
 
   (void) CQChartsUtil::decodeUnits(fontSizeData.units, units);
 

@@ -174,7 +174,7 @@ drawContourLines(CQChartsPaintDevice *device)
   for (uint l = 0; l < levels.size(); l++) {
     double level = levels[l];
 
-    QColor c = getLevelColor(l);
+    auto c = getLevelColor(l);
 
     if (c.isValid()) {
       device->setPen  (c);
@@ -484,7 +484,7 @@ fillContourBox(CQChartsPaintDevice *device, double x1, double y1, double x2, dou
 
   // if consistent level then fill
   if (l >= 0 && l <= int(levels.size())) {
-    QColor c = getLevelColor(l);
+    auto c = getLevelColor(l);
 
     device->setPen  (c);
     device->setBrush(c);
@@ -524,16 +524,7 @@ void
 CQChartsContour::
 fillPolygon(CQChartsPaintDevice *device, const double *x, const double *y, int n)
 {
-  QPainterPath path;
-
-  for (int i = 0; i < n; ++i) {
-    if (i == 0)
-      path.moveTo(x[i], y[i]);
-    else
-      path.lineTo(x[i], y[i]);
-  }
-
-  path.closeSubpath();
+  auto path = CQChartsDrawUtil::polygonToPath(x, y, n, /*closed*/true);
 
   device->drawPath(path);
 }

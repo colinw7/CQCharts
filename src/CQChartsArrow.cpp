@@ -50,8 +50,8 @@ draw(CQChartsPaintDevice *device) const
 {
   PenBrush penBrush;
 
-  QColor fc = interpFillColor  (ColorInd());
-  QColor sc = interpStrokeColor(ColorInd());
+  auto fc = interpFillColor  (ColorInd());
+  auto sc = interpStrokeColor(ColorInd());
 
   CQChartsUtil::setPen  (penBrush.pen  , isStroked(), sc, strokeAlpha(), 0.0, CQChartsLineDash());
   CQChartsUtil::setBrush(penBrush.brush, isFilled (), fc, fillAlpha(), fillPattern());
@@ -801,7 +801,7 @@ drawPointLabel(const Point &point, const QString &text, bool above) const
   // draw cross symbol
   QPen tpen;
 
-  QColor tc = Qt::black;
+  auto tc = Qt::black;
 
   CQChartsUtil::setPen(tpen, true, tc, CQChartsAlpha(), 0.0);
 

@@ -57,7 +57,7 @@ CQChartsTableDelegate::
 drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
   auto getModelData = [&](const QModelIndex &index) {
-    QVariant var = modelP()->data(index, Qt::EditRole);
+    auto var = modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
       var = modelP()->data(index, Qt::DisplayRole);

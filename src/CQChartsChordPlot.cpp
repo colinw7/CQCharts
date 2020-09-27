@@ -372,14 +372,14 @@ initHierObjsConnection(const QString &srcStr, const ModelIndex &srcLinkInd, doub
                        double destValue) const
 {
   // find src (create if doesn't exist)
-  QModelIndex srcModelIndex  = modelIndex(srcLinkInd);
-  QModelIndex srcModelIndex1 = normalizeIndex(srcModelIndex);
+  auto srcModelIndex  = modelIndex(srcLinkInd);
+  auto srcModelIndex1 = normalizeIndex(srcModelIndex);
 
   auto &srcData = findNameData(srcStr, srcModelIndex1);
 
   // find dest (create if doesn't exist)
-  QModelIndex destModelIndex  = modelIndex(destLinkInd);
-  QModelIndex destModelIndex1 = normalizeIndex(destModelIndex);
+  auto destModelIndex  = modelIndex(destLinkInd);
+  auto destModelIndex1 = normalizeIndex(destModelIndex);
 
   auto &destData = findNameData(destStr, destModelIndex1);
 
@@ -594,8 +594,8 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
   //---
 
   // Get link value
-  QModelIndex linkInd  = modelIndex(linkConnectionData.linkModelInd);
-  QModelIndex linkInd1 = normalizeIndex(linkInd);
+  auto linkInd  = modelIndex(linkConnectionData.linkModelInd);
+  auto linkInd1 = normalizeIndex(linkInd);
 
   //---
 
@@ -1292,11 +1292,11 @@ drawFg(CQChartsPaintDevice *device) const
 
   // set connection line pen
   // TODO: separate text and line pen control
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   PenBrush lpenBrush;
 
-  QColor bg = plot_->interpPaletteColor(colorInd);
+  auto bg = plot_->interpPaletteColor(colorInd);
 
   plot_->setPen(lpenBrush, PenData(true, bg, Alpha()));
 
@@ -1315,10 +1315,10 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // set fill and stroke
   // TODO: separate segment stroke/fill control
-  QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
+  auto segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  QColor fromColor = calcFromColor();
-  Alpha  fromAlpha;
+  auto  fromColor = calcFromColor();
+  Alpha fromAlpha;
 
   if (! isInside() && ! isSelected())
     fromAlpha = plot_->segmentAlpha();
@@ -1336,7 +1336,7 @@ QColor
 CQChartsChordArcObj::
 calcFromColor() const
 {
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     if (data_.group().isValid())
@@ -1630,12 +1630,12 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   // set pen and brush
   // TODO: separate arc stroke/fill control
-  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
+  auto arcStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  QColor fromColor = fromObj->calcFromColor();
-  QColor toColor   = toObj  ->calcFromColor();
+  auto fromColor = fromObj->calcFromColor();
+  auto toColor   = toObj  ->calcFromColor();
 
-  QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+  auto fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
   Alpha fillAlpha;
 

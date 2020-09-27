@@ -596,8 +596,8 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
     // calc pen and brush
     PenBrush penBrush;
 
-    QColor strokeColor = interpBestFitStrokeColor(ic);
-    QColor fillColor   = interpBestFitFillColor  (ic);
+    auto strokeColor = interpBestFitStrokeColor(ic);
+    auto fillColor   = interpBestFitFillColor  (ic);
 
     setPenBrush(penBrush,
       PenData  (isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
@@ -639,7 +639,7 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
     //---
 
     // draw fit line
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
+    auto path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
 
     device->strokePath(path, penBrush.pen);
   }

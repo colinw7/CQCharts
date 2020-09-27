@@ -132,7 +132,7 @@ void
 CQChartsColorLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = (color().isValid() ? interpColor(color()) : palette().color(QPalette::Window));
+  auto c = (color().isValid() ? interpColor(color()) : palette().color(QPalette::Window));
 
   painter->fillRect(rect, QBrush(c));
 
@@ -176,7 +176,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
   delegate->drawBackground(painter, option, ind, itemState);
 
   bool ok;
-  CQChartsColor color = CQChartsVariant::toColor(value, ok);
+  auto color = CQChartsVariant::toColor(value, ok);
   if (! ok) return;
 
   int x = option.rect.left();
@@ -194,7 +194,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
       rect.adjust(0, 1, -3, -2);
 
-      QColor c = obj->charts()->interpColor(color, CQChartsUtil::ColorInd());
+      auto c = obj->charts()->interpColor(color, CQChartsUtil::ColorInd());
 
       painter->fillRect(rect, QBrush(c));
 
@@ -214,7 +214,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   int w = fm.width(str);
 
-  QStyleOptionViewItem option1 = option;
+  auto option1 = option;
 
   option1.rect = QRect(x, option1.rect.top(), w + 2*margin(), option1.rect.height());
 
@@ -226,7 +226,7 @@ CQChartsColorPropertyViewType::
 tip(const QVariant &value) const
 {
   bool ok;
-  CQChartsColor color = CQChartsVariant::toColor(value, ok);
+  auto color = CQChartsVariant::toColor(value, ok);
   if (! ok) return "";
 
   return color.colorStr();
@@ -277,7 +277,7 @@ setValue(QWidget *w, const QVariant &var)
   assert(edit);
 
   bool ok;
-  CQChartsColor color = CQChartsVariant::toColor(var, ok);
+  auto color = CQChartsVariant::toColor(var, ok);
   if (! ok) return;
 
   edit->setColor(color);
@@ -761,7 +761,7 @@ widgetsToColor()
   else if (typeInd == 8) {
     color = CQChartsColor(CQChartsColor::Type::COLOR);
 
-    QColor c = colorEdit_->color();
+    auto c = colorEdit_->color();
 
     if (c.isValid())
       color.setColor(c);

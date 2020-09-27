@@ -1232,7 +1232,7 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAl
 
   // calc pen (stroke)
   if (stroked) {
-    QColor color = strokeColor;
+    auto color = strokeColor;
 
     color.setAlphaF(CMathUtil::clamp(strokeAlpha.value(), 0.0, 1.0));
 
@@ -1289,7 +1289,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChart
     else {
       brush.setStyle(pattern.style());
 
-      QColor color = fillColor;
+      auto color = fillColor;
 
       color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
 

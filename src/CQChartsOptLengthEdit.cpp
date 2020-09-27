@@ -61,7 +61,7 @@ void
 CQChartsOptLengthEdit::
 fromVariant(const QVariant &var)
 {
-  CQChartsOptLength value = var.value<CQChartsOptLength>();
+  auto value = var.value<CQChartsOptLength>();
 
   setValue(value);
 }
@@ -79,7 +79,7 @@ QString
 CQChartsOptLengthPropertyViewType::
 valueString(CQPropertyViewItem *, const QVariant &value, bool &ok) const
 {
-  CQChartsOptLength optLength = value.value<CQChartsOptLength>();
+  auto optLength = value.value<CQChartsOptLength>();
 
   QString str;
 

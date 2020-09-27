@@ -47,7 +47,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 {
   CQPerfTrace trace("CQChartsAnalyzeModel::analyzeType");
 
-  CQChartsModelDetails *details = (modelData_ ? modelData_->details() : nullptr);
+  auto *details = (modelData_ ? modelData_->details() : nullptr);
   if (! details) return false;
 
   int nc = details->numColumns();
@@ -103,7 +103,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   // check if model has required number of numeric columns
   if (numNumeric > 0) {
-    CQChartsColumns numericColumns = details->numericColumns();
+    auto numericColumns = details->numericColumns();
 
     if (int(numericColumns.count()) < numNumeric)
       return false;
@@ -111,7 +111,7 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
 
   // check if model has required number of monotonic columns
   if (numMonotonic > 0) {
-    CQChartsColumns monotonicColumns = details->monotonicColumns();
+    auto monotonicColumns = details->monotonicColumns();
 
     if (int(monotonicColumns.count()) < numMonotonic)
       return false;

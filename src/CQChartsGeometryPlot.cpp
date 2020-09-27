@@ -440,7 +440,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       geometryColumnType_ == ColumnType::PATH) {
     bool ok2;
 
-    QVariant var = modelValue(geometryInd, ok2);
+    auto var = modelValue(geometryInd, ok2);
 
     bool converted;
 
@@ -465,7 +465,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON_LIST) {
-      CQChartsPolygonList polyList = CQChartsVariant::toPolygonList(rvar, ok3);
+      auto polyList = CQChartsVariant::toPolygonList(rvar, ok3);
 
       bool rc = true;
 
@@ -482,7 +482,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
       }
     }
     else if (geometryColumnType_ == ColumnType::PATH) {
-      CQChartsPath path = CQChartsVariant::toPath(rvar, ok3);
+      auto path = CQChartsVariant::toPath(rvar, ok3);
 
       auto poly = Polygon(path.path().toFillPolygon());
 
@@ -500,7 +500,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   else {
     bool ok2;
 
-    QString geomStr = modelString(geometryInd, ok2);
+    auto geomStr = modelString(geometryInd, ok2);
 
     CQChartsGeometryShape shape(geomStr);
 
@@ -590,7 +590,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     else {
       bool ok4;
 
-      QString str = modelString(colorInd, ok4);
+      auto str = modelString(colorInd, ok4);
 
       if (ok4)
         geometry.color = Color(str);
@@ -606,7 +606,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     bool ok4;
 
     if (styleColumnType_ == ColumnType::STYLE) {
-      QString str = modelString(styleInd, ok4);
+      auto str = modelString(styleInd, ok4);
 
       geometry.style = CQChartsStyle(str);
     }
@@ -615,8 +615,8 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // save model index for geometry
-  QModelIndex geomInd  = modelIndex(geometryInd);
-  QModelIndex geomInd1 = normalizeIndex(geomInd);
+  auto geomInd  = modelIndex(geometryInd);
+  auto geomInd1 = normalizeIndex(geomInd);
 
   geometry.ind = geomInd1;
 
@@ -830,8 +830,8 @@ drawFg(CQChartsPaintDevice *device) const
 
     ColorInd colorInd;
 
-    QColor pc = QColor(Qt::black);
-    QColor bc = QColor(Qt::red);
+    auto pc = QColor(Qt::black);
+    auto bc = QColor(Qt::red);
 
     PenBrush penBrush;
 
@@ -859,7 +859,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
 
-  ColorInd colorInd = calcColorInd();
+  auto colorInd = calcColorInd();
 
   if (color().isValid()) {
     if (hasValue_ && plot_->valueStyle() == CQChartsGeometryPlot::ValueStyle::COLOR)
@@ -874,7 +874,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       fc = plot_->interpFillColor(colorInd);
   }
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
+  auto bc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),

@@ -136,6 +136,22 @@ namespace CQChartsDrawUtil {
 
 using Polygon = CQChartsGeom::Polygon;
 
+inline QPainterPath polygonToPath(const double *x, const double *y, int n, bool closed=false) {
+  QPainterPath path;
+
+  for (int i = 0; i < n; ++i) {
+    if (i == 0)
+      path.moveTo(x[i], y[i]);
+    else
+      path.lineTo(x[i], y[i]);
+  }
+
+  if (closed)
+    path.closeSubpath();
+
+  return path;
+}
+
 inline QPainterPath polygonToPath(const Polygon &polygon, bool closed=false) {
   QPainterPath path;
 

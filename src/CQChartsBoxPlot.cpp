@@ -1254,8 +1254,8 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     if (CMathUtil::isNaN(value))
       continue;
 
-    QModelIndex yind  = modelIndex(ind);
-    QModelIndex yind1 = normalizeIndex(yind);
+    auto yind  = modelIndex(ind);
+    auto yind1 = normalizeIndex(yind);
 
     CQChartsBoxPlotValue wv(value, yind1);
 
@@ -2189,7 +2189,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get color index
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
@@ -2295,8 +2295,8 @@ draw(CQChartsPaintDevice *device)
       // set fill and stroke
       PenBrush symbolPenBrush;
 
-      QColor boxColor    = plot_->interpBoxFillColor  (colorInd);
-      QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
+      auto boxColor    = plot_->interpBoxFillColor  (colorInd);
+      auto strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
       plot_->setPenBrush(symbolPenBrush,
         PenData  (true, strokeColor, plot_->boxShapeData().stroke()),
@@ -2331,7 +2331,7 @@ draw(CQChartsPaintDevice *device)
     //---
 
     if (! drawBoxFilled) {
-      QColor boxColor = plot_->interpThemeColor(ColorInd());
+      auto boxColor = plot_->interpThemeColor(ColorInd());
 
       penBrush.brush.setColor(boxColor);
 
@@ -2393,7 +2393,7 @@ draw(CQChartsPaintDevice *device)
 
         PenBrush penBrush;
 
-        QColor tc = plot_->interpTextColor(colorInd);
+        auto tc = plot_->interpTextColor(colorInd);
 
         plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
 
@@ -2459,7 +2459,7 @@ CQChartsBoxPlotWhiskerObj::
 calcPenBrush(PenBrush &penBrush, bool updateState) const
 {
   // get color index
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
@@ -2467,8 +2467,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // set fill and stroke
-  QColor bc = plot_->interpBoxStrokeColor(colorInd);
-  QColor fc = plot_->interpBoxFillColor  (colorInd);
+  auto bc = plot_->interpBoxStrokeColor(colorInd);
+  auto fc = plot_->interpBoxFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
@@ -2692,7 +2692,7 @@ CQChartsBoxPlotOutlierObj::
 draw(CQChartsPaintDevice *device)
 {
   // get color index
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
@@ -2811,8 +2811,8 @@ draw(CQChartsPaintDevice *device)
   // set fill and stroke
   PenBrush penBrush;
 
-  QColor bc = plot_->interpBoxStrokeColor(ColorInd());
-  QColor fc = plot_->interpBoxFillColor(ColorInd());
+  auto bc = plot_->interpBoxStrokeColor(ColorInd());
+  auto fc = plot_->interpBoxFillColor(ColorInd());
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
@@ -2895,7 +2895,7 @@ draw(CQChartsPaintDevice *device)
 
     PenBrush penBrush;
 
-    QColor tc = plot_->interpTextColor(ColorInd());
+    auto tc = plot_->interpTextColor(ColorInd());
 
     plot_->setPen(penBrush, PenData(true, tc, plot_->textAlpha()));
 
@@ -3130,8 +3130,8 @@ draw(CQChartsPaintDevice *device)
     // set pen and brush
     PenBrush pPenBrush;
 
-    QColor bc = plot_->interpBoxStrokeColor(ig_);
-    QColor fc = plot_->interpBoxFillColor  (ig_);
+    auto bc = plot_->interpBoxStrokeColor(ig_);
+    auto fc = plot_->interpBoxFillColor  (ig_);
 
     plot_->setPenBrush(pPenBrush,
       PenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
@@ -3145,7 +3145,7 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // draw poly
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(poly_, /*closed*/true);
+    auto path = CQChartsDrawUtil::polygonToPath(poly_, /*closed*/true);
 
     device->drawPath(path);
   }
@@ -3155,7 +3155,7 @@ draw(CQChartsPaintDevice *device)
   // set pen
   PenBrush lPenBrush;
 
-  QColor lineColor = plot_->interpBoxStrokeColor(ig_);
+  auto lineColor = plot_->interpBoxStrokeColor(ig_);
 
   plot_->setPen(lPenBrush,
     PenData(true, lineColor, plot_->boxShapeData().stroke()));
@@ -3447,7 +3447,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get color index
-  ColorInd colorInd = this->calcColorInd();
+  auto colorInd = this->calcColorInd();
 
   if (plot_->hasSets() && plot_->isColorBySet())
     colorInd = is_;
@@ -3483,7 +3483,7 @@ selectPress(const Point &, CQChartsSelMod)
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  ColorInd ic = (is_.n > 1 ? is_ : ig_);
+  auto ic = (is_.n > 1 ? is_ : ig_);
 
   plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
 
@@ -3496,11 +3496,11 @@ QBrush
 CQChartsBoxKeyColor::
 fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillBrush().color();
+  auto c = CQChartsKeyColorBox::fillBrush().color();
 
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  ColorInd ic = (is_.n > 1 ? is_ : ig_);
+  auto ic = (is_.n > 1 ? is_ : ig_);
 
   if (plot->isSetHidden(ic.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
@@ -3556,7 +3556,7 @@ interpTextColor(const ColorInd &ind) const
 {
   auto *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  QColor c = CQChartsKeyText::interpTextColor(ind);
+  auto c = CQChartsKeyText::interpTextColor(ind);
 
   if (plot->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

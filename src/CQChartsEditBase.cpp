@@ -18,10 +18,10 @@ void
 CQChartsEditBase::
 drawCenteredText(QPainter *painter, const QString &text)
 {
-  QColor c = palette().color(QPalette::Window);
+  auto c = palette().color(QPalette::Window);
 
-//QColor tc = CQChartsUtil::invColor(c);
-  QColor tc = CQChartsUtil::bwColor(c);
+//auto tc = CQChartsUtil::invColor(c);
+  auto tc = CQChartsUtil::bwColor(c);
 
   painter->setPen(tc);
 

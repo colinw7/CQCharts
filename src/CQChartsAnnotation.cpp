@@ -1286,8 +1286,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -1490,8 +1490,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -1687,8 +1687,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -1908,7 +1908,7 @@ draw(PaintDevice *device)
   // set pen
   CQChartsPenBrush penBrush;
 
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   setPen(penBrush,
     PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
@@ -2284,8 +2284,8 @@ draw(PaintDevice *device)
   // set rect pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isEnabled()) {
     if (isCheckable() && ! isChecked()) {
@@ -2321,7 +2321,7 @@ draw(PaintDevice *device)
   //---
 
   // set text pen and brush
-  QColor c = interpColor(textColor(), ColorInd());
+  auto c = interpColor(textColor(), ColorInd());
 
   if (isEnabled()) {
     if (isCheckable() && ! isChecked()) {
@@ -2779,8 +2779,8 @@ draw(PaintDevice *device)
   // set rect pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -2889,7 +2889,7 @@ updateDisabledImage(const DisabledImageType &type)
 
         QColor c(r, g, b, a);
 
-        QColor c1 = CQChartsUtil::blendColors(bg, c, f);
+        auto c1 = CQChartsUtil::blendColors(bg, c, f);
 
       //c1.setAlpha(a);
 
@@ -3260,8 +3260,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = arrow()->interpFillColor  (ColorInd());
-  QColor strokeColor = arrow()->interpStrokeColor(ColorInd());
+  auto bgColor     = arrow()->interpFillColor  (ColorInd());
+  auto strokeColor = arrow()->interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -3574,8 +3574,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor lineColor = interpColor(strokeData.color(), ColorInd());
-  QColor fillColor = interpColor(fillData  .color(), ColorInd());
+  auto lineColor = interpColor(strokeData.color(), ColorInd());
+  auto fillColor = interpColor(fillData  .color(), ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -3776,8 +3776,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -3944,8 +3944,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -4141,8 +4141,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -4297,8 +4297,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -4381,7 +4381,7 @@ draw(PaintDevice *device)
       fitPoly.addPoint(Point(p.x, y));
     }
 
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(fitPoly, /*closed*/false);
+    auto path = CQChartsDrawUtil::polygonToPath(fitPoly, /*closed*/false);
 
     device->strokePath(path, penBrush.pen);
   }
@@ -4427,7 +4427,7 @@ draw(PaintDevice *device)
 
         ColorInd colorInd(CMathUtil::map(double(n), 1.0, 1.0*maxN, 0.0, 1.0));
 
-        QColor bgColor = view()->interpColor(CQChartsColor(CQChartsColor::Type::PALETTE), colorInd);
+        auto bgColor = view()->interpColor(CQChartsColor(CQChartsColor::Type::PALETTE), colorInd);
 
         // set pen and brush
         CQChartsPenBrush penBrush;
@@ -4584,8 +4584,8 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor     = interpFillColor  (ColorInd());
-  QColor strokeColor = interpStrokeColor(ColorInd());
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     double f = uncheckedLighter();
@@ -4798,10 +4798,10 @@ draw(PaintDevice *device)
 
     spainter.setFont(calcFont(textFont()));
 
-    QColor bg = opt.palette.color(QPalette::Button);
-    QColor fg = opt.palette.color(QPalette::ButtonText);
+    auto bg = opt.palette.color(QPalette::Button);
+    auto fg = opt.palette.color(QPalette::ButtonText);
 
-    QColor c = fg;
+    auto c = fg;
 
     if      (! isEnabled())
       c = CQChartsUtil::blendColors(bg, fg, 0.6);

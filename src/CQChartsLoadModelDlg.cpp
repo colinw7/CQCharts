@@ -398,7 +398,7 @@ previewFileSlot()
 
   //---
 
-  CQBaseModelDataType dataType = CQBaseModelDataType::NONE;
+  auto dataType = CQBaseModelDataType::NONE;
 
   bool commentHeader     = false;
   bool firstLineHeader   = false;
@@ -784,7 +784,7 @@ applySlot()
 
   //----
 
-  CQChartsFileType fileType = CQChartsFileTypeUtil::stringToFileType(type);
+  auto fileType = CQChartsFileTypeUtil::stringToFileType(type);
 
   if (fileType == CQChartsFileType::NONE)
     return false;

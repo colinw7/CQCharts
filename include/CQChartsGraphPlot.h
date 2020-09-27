@@ -162,8 +162,8 @@ class CQChartsGraphPlotNode {
   void setNumSides(int n) { numSides_ = n; }
 
   //! get/set color
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &v) { color_ = v; }
 
   // get/set x pos
   int xpos() const { return xpos_; }
@@ -207,30 +207,30 @@ class CQChartsGraphPlotNode {
   int calcDestDepth(NodeSet &visited) const;
 
  protected:
-  const Plot* plot_          { nullptr };         //!< associated plot
-  Node*       parent_        { nullptr };         //!< parent node
-  QString     str_;                               //!< string
-  int         id_            { -1 };              //!< id
-  bool        visible_       { true };            //!< is visible
-  ModelIndex  ind_;                               //!< model index
-  QString     name_;                              //!< name
-  QString     label_;                             //!< label
-  OptReal     value_;                             //!< value
-  int         group_         { -1 };              //!< group
-  int         graphId_       { -1 };              //!< graph id
-  int         parentGraphId_ { -1 };              //!< parent graph id
-  int         depth_         { -1 };              //!< depth
-  ShapeType   shapeType_     { ShapeType::NONE }; //!< shape type
-  int         numSides_      { 4 };               //!< number of polygon sides
-  QColor      color_;                             //!< fill color
-  Edges       srcEdges_;                          //!< source edges
-  Edges       destEdges_;                         //!< destination edges
-  Edges       nonPrimaryEdges_;                   //!< non-primary edges
-  int         srcDepth_      { -1 };              //!< source depth (calculated)
-  int         destDepth_     { -1 };              //!< destination depth (calculated)
-  int         xpos_          { -1 };              //!< x position
-  BBox        rect_;                              //!< placed rectangle
-  Obj*        obj_           { nullptr };         //!< node plot object
+  const Plot*   plot_          { nullptr };         //!< associated plot
+  Node*         parent_        { nullptr };         //!< parent node
+  QString       str_;                               //!< string
+  int           id_            { -1 };              //!< id
+  bool          visible_       { true };            //!< is visible
+  ModelIndex    ind_;                               //!< model index
+  QString       name_;                              //!< name
+  QString       label_;                             //!< label
+  OptReal       value_;                             //!< value
+  int           group_         { -1 };              //!< group
+  int           graphId_       { -1 };              //!< graph id
+  int           parentGraphId_ { -1 };              //!< parent graph id
+  int           depth_         { -1 };              //!< depth
+  ShapeType     shapeType_     { ShapeType::NONE }; //!< shape type
+  int           numSides_      { 4 };               //!< number of polygon sides
+  CQChartsColor color_;                             //!< fill color
+  Edges         srcEdges_;                          //!< source edges
+  Edges         destEdges_;                         //!< destination edges
+  Edges         nonPrimaryEdges_;                   //!< non-primary edges
+  int           srcDepth_      { -1 };              //!< source depth (calculated)
+  int           destDepth_     { -1 };              //!< destination depth (calculated)
+  int           xpos_          { -1 };              //!< x position
+  BBox          rect_;                              //!< placed rectangle
+  Obj*          obj_           { nullptr };         //!< node plot object
 };
 
 //---
@@ -460,13 +460,13 @@ class CQChartsGraphPlotGraph : public CQChartsGraphPlotNode {
 class CQChartsGraphNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString   hierName  READ hierName  WRITE setHierName )
-  Q_PROPERTY(QString   name      READ name      WRITE setName     )
-  Q_PROPERTY(double    value     READ value     WRITE setValue    )
-  Q_PROPERTY(int       depth     READ depth     WRITE setDepth    )
-  Q_PROPERTY(ShapeType shapeType READ shapeType WRITE setShapeType)
-  Q_PROPERTY(int       numSides  READ numSides  WRITE setNumSides )
-  Q_PROPERTY(QColor    color     READ color     WRITE setColor    )
+  Q_PROPERTY(QString       hierName  READ hierName  WRITE setHierName )
+  Q_PROPERTY(QString       name      READ name      WRITE setName     )
+  Q_PROPERTY(double        value     READ value     WRITE setValue    )
+  Q_PROPERTY(int           depth     READ depth     WRITE setDepth    )
+  Q_PROPERTY(ShapeType     shapeType READ shapeType WRITE setShapeType)
+  Q_PROPERTY(int           numSides  READ numSides  WRITE setNumSides )
+  Q_PROPERTY(CQChartsColor color     READ color     WRITE setColor    )
 
   Q_ENUMS(ShapeType)
 
@@ -491,20 +491,31 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
 
   virtual ~CQChartsGraphNodeObj();
 
-  Node *node() const { return node_; }
-  void setNode(Node *node) { node_ = node; }
+  //---
 
+  //! get plot
+  const Plot *plot() const { return plot_; }
+
+  //! get node
+  Node *node() const { return node_; }
+
+  //---
+
+  //! get/set hier name
   const QString &hierName() const { return hierName_; }
   void setHierName(const QString &s) { hierName_ = s; }
 
-  const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  //! get/set name
+  QString name() const;
+  void setName(const QString &s);
 
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
+  //! get/set value
+  double value() const;
+  void setValue(double r);
 
-  int depth() const { return depth_; }
-  void setDepth(int i) { depth_ = i; }
+  //! get/set depth
+  int depth() const;
+  void setDepth(int depth);
 
   //---
 
@@ -525,23 +536,26 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
   //---
 
   //! get/set shape type
-  const ShapeType &shapeType() const { return shapeType_; }
-  void setShapeType(const ShapeType &s) { shapeType_ = s; }
+  ShapeType shapeType() const;
+  void setShapeType(const ShapeType &s);
 
   //! get/set num side
-  int numSides() const { return numSides_; }
-  void setNumSides(int n) { numSides_ = n; }
+  int numSides() const;
+  void setNumSides(int n);
 
   //! get/set color
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &v) { color_ = v; }
+  CQChartsColor color() const;
+  void setColor(const CQChartsColor &c);
 
   //---
 
+  //! typename
   QString typeName() const override { return "node"; }
 
+  //! get unique id
   QString calcId() const override;
 
+  // get tip string
   QString calcTipId() const override;
 
   //---
@@ -588,18 +602,12 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
  protected:
   using EdgeRect = std::map<Edge *, BBox>;
 
-  const Plot* plot_        { nullptr };         //!< parent plot
-  Node*       node_        { nullptr };         //!< node
-  EdgeRect    srcEdgeRect_;                     //!< edge to src
-  EdgeRect    destEdgeRect_;                    //!< edge to dest
-  QString     hierName_;                        //!< node hier name
-  QString     name_;                            //!< node name
-  double      value_       { 0.0 };             //!< node value
-  int         depth_       { -1 };              //!< node depth
-  ShapeType   shapeType_   { ShapeType::NONE }; //!< shape type
-  int         numSides_    { 4 };               //!< num sides
-  QColor      color_;                           //!< custom color
-  bool        editChanged_ { false };           //!< edit is changed
+  const Plot* plot_        { nullptr }; //!< parent plot
+  Node*       node_        { nullptr }; //!< node
+  EdgeRect    srcEdgeRect_;             //!< edge to src
+  EdgeRect    destEdgeRect_;            //!< edge to dest
+  QString     hierName_;                //!< node hier name
+  bool        editChanged_ { false };   //!< edit is changed
 };
 
 //---
@@ -633,12 +641,19 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
 
   virtual ~CQChartsGraphEdgeObj();
 
-  //! typename
-  QString typeName() const override { return "edge"; }
+  //---
 
-  //! get edge
+  //! get plot
+  const Plot *plot() const { return plot_; }
+
+  //! get/set edge
   Edge *edge() const { return edge_; }
   void setEdge(Edge *edge) { edge_ = edge; }
+
+  //---
+
+  //! typename
+  QString typeName() const override { return "edge"; }
 
   //! get unique id
   QString calcId() const override;
@@ -651,8 +666,8 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
   void setDestRect(const BBox &rect) { destRect_ = rect; }
 
   //! get/set shape type
-  const ShapeType &shapeType() const { return shapeType_; }
-  void setShapeType(const ShapeType &s) { shapeType_ = s; }
+  ShapeType shapeType() const;
+  void setShapeType(const ShapeType &s);
 
   //---
 
@@ -662,6 +677,8 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
 
   //! is point inside
   bool inside(const Point &p) const override;
+
+  //---
 
   //! get connected objects
   PlotObjs getConnected() const override;
@@ -679,12 +696,11 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  const Plot*  plot_      { nullptr };        //!< parent plot
-  Edge*        edge_      { nullptr };        //!< edge
-  BBox         srcRect_;                      //!< src rect
-  BBox         destRect_;                     //!< dest rect
-  ShapeType    shapeType_ { ShapeType::ARC }; //!< shape type
-  QPainterPath path_;                         //!< painter path
+  const Plot*  plot_      { nullptr }; //!< parent plot
+  Edge*        edge_      { nullptr }; //!< edge
+  BBox         srcRect_;               //!< src rect
+  BBox         destRect_;              //!< dest rect
+  QPainterPath path_;                  //!< painter path
 };
 
 //---
@@ -1027,8 +1043,6 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
 
   bool adjustNode(Node *node) const;
-
-  void adjustGraphs() const;
 
   //---
 

@@ -136,7 +136,7 @@ CQChartsStrokeDataPropertyViewType::
 drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
             CQChartsPlot *plot, CQChartsView *view)
 {
-  CQChartsStrokeData data = value.value<CQChartsStrokeData>();
+  auto data = value.value<CQChartsStrokeData>();
 
   CQChartsStrokeDataEditPreview::draw(painter, data, rect, plot, view);
 }
@@ -186,7 +186,7 @@ setValue(QWidget *w, const QVariant &var)
   auto *edit = qobject_cast<CQChartsStrokeDataLineEdit *>(w);
   assert(edit);
 
-  CQChartsStrokeData data = var.value<CQChartsStrokeData>();
+  auto data = var.value<CQChartsStrokeData>();
 
   edit->setStrokeData(data);
 }
@@ -394,7 +394,7 @@ draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen
-  QColor pc = interpColor(plot, view, data.color());
+  auto pc = interpColor(plot, view, data.color());
 
   double width = CQChartsUtil::limitLineWidth(data.width().value());
 

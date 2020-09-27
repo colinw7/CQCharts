@@ -185,7 +185,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      QModelIndex ind = model->index(data.row, column_, data.parent);
+      auto ind = model->index(data.row, column_, data.parent);
 
       if (filter_->acceptsItem(ind)) {
         accepted_ = true;
@@ -197,7 +197,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 
     State hierPostVisit(const QAbstractItemModel *model, const VisitData &data) override {
       if (isAccepted()) {
-        QModelIndex ind = model->index(data.row, column_, data.parent);
+        auto ind = model->index(data.row, column_, data.parent);
 
         filter_->addExpand(ind);
       }
@@ -279,7 +279,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     auto *model = sourceModel();
     assert(model);
 
-    QModelIndex ind1 = model->index(ind.row(), 0, ind.parent());
+    auto ind1 = model->index(ind.row(), 0, ind.parent());
 
     bool rc = filterData.filterRows().contains(ind1);
 
@@ -290,11 +290,11 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     auto *model = sourceModel();
     assert(model);
 
-    QVariant var = model->data(ind);
+    auto var = model->data(ind);
 
     bool ok;
 
-    QString str = CQChartsVariant::toString(var, ok);
+    auto str = CQChartsVariant::toString(var, ok);
 
     return filterData.regexp().match(str);
   }
@@ -304,13 +304,13 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     assert(model);
 
     for (const auto &columnFilter : filterData.columnFilterMap()) {
-      QModelIndex ind1 = model->index(ind.row(), columnFilter.first, ind.parent());
+      auto ind1 = model->index(ind.row(), columnFilter.first, ind.parent());
 
-      QVariant var1 = model->data(ind1);
+      auto var1 = model->data(ind1);
 
       bool ok1;
 
-      QString str1 = CQChartsVariant::toString(var1, ok1);
+      auto str1 = CQChartsVariant::toString(var1, ok1);
 
       if (! columnFilter.second.match(str1))
         return false;
@@ -339,7 +339,7 @@ expandMatches()
   std::vector<QModelIndex> inds;
 
   for (const auto &ind : expand_) {
-    QModelIndex ind1 = filterModel->mapFromSource(ind);
+    auto ind1 = filterModel->mapFromSource(ind);
 
     inds.push_back(ind1);
   }
@@ -358,12 +358,12 @@ initFilterData(CQChartsModelFilterData &filterData)
     assert(selectionModel_);
 
     if (selectionModel_->hasSelection()) {
-      QModelIndexList selectedRows = selectionModel_->selectedRows();
+      auto selectedRows = selectionModel_->selectedRows();
 
       QModelIndexList selectedRows1;
 
       for (int i = 0; i < selectedRows.size(); ++i) {
-        QModelIndex ind1 = mapToSource(selectedRows[i]);
+        auto ind1 = mapToSource(selectedRows[i]);
 
         selectedRows1.push_back(ind1);
       }
@@ -393,7 +393,7 @@ initFilterData(CQChartsModelFilterData &filterData)
     auto *model = this->sourceModel();
     assert(model);
 
-    QStringList strs = filterData.filter().split(",");
+    auto strs = filterData.filter().split(",");
 
     CQChartsModelFilterData::ColumnFilterMap columnFilterMap;
 
@@ -413,7 +413,7 @@ initFilterData(CQChartsModelFilterData &filterData)
     auto *model = this->sourceModel();
     assert(model);
 
-    QString expr1 = replaceNamedColumns(model, filterData.filter());
+    auto expr1 = replaceNamedColumns(model, filterData.filter());
 
     filterData.setFilterExpr(expr1);
   }
@@ -457,12 +457,12 @@ bool
 CQChartsModelFilter::
 lessThan(const QModelIndex &lhs, const QModelIndex &rhs) const
 {
-  QVariant ldata = sourceModel()->data(lhs, Qt::EditRole);
+  auto ldata = sourceModel()->data(lhs, Qt::EditRole);
 
   if (! ldata.isValid())
     ldata = sourceModel()->data(lhs, Qt::DisplayRole);
 
-  QVariant rdata = sourceModel()->data(rhs, Qt::EditRole);
+  auto rdata = sourceModel()->data(rhs, Qt::EditRole);
 
   if (! rdata.isValid())
     rdata = sourceModel()->data(rhs, Qt::DisplayRole);
@@ -475,7 +475,7 @@ QVariant
 CQChartsModelFilter::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QVariant var = QSortFilterProxyModel::headerData(section, orientation, role);
+  auto var = QSortFilterProxyModel::headerData(section, orientation, role);
 
   if (! var.isValid())
     return var;
@@ -530,7 +530,7 @@ data(const QModelIndex &ind, int role) const
   if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
     assert(ind.model() == this);
 
-    QModelIndex ind1 = mapToSource(ind);
+    auto ind1 = mapToSource(ind);
 
     assert(ind.column() == ind1.column());
 
@@ -561,7 +561,7 @@ data(const QModelIndex &ind, int role) const
     // convert variant using column type data
     bool converted;
 
-    QVariant var1 = var;
+    auto var1 = var;
 
     if (role == Qt::DisplayRole) {
       var1 = CQChartsModelUtil::columnDisplayData(charts_, this,

@@ -794,7 +794,7 @@ postDraw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsTextOptions textOptions = this->textOptions();
+  auto textOptions = this->textOptions();
 
   //---
 
@@ -859,21 +859,21 @@ postDraw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  QColor pc = plot_->charts()->interpInterfaceColor(0.0);
+  auto pc = plot_->charts()->interpInterfaceColor(0.0);
 
   if (color_.isValid()) {
     plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.2)), BrushData(true, color()));
   }
   else {
-    QColor fc = plot_->charts()->interpPaletteColor(ig());
-    QColor bg = plot_->charts()->interpInterfaceColor(1.0);
+    auto fc = plot_->charts()->interpPaletteColor(ig());
+    auto bg = plot_->charts()->interpInterfaceColor(1.0);
 
     auto trp = camera->transform(refPoint());
 
     double z = trp.z;
     double s = CMathUtil::map(z, plot3D()->boxZMin(), plot3D()->boxZMax(), 1.0, 0.3);
 
-    QColor fc1 = CQChartsUtil::blendColors(fc, bg, s);
+    auto fc1 = CQChartsUtil::blendColors(fc, bg, s);
 
     plot_->setPenBrush(penBrush, PenData(true, pc, Alpha(0.2)), BrushData(true, fc1));
   }
@@ -929,7 +929,7 @@ postDraw(CQChartsPaintDevice *device)
 {
   CQChartsPenBrush penBrush;
 
-  QColor lc = plot_->charts()->interpPaletteColor(ig());
+  auto lc = plot_->charts()->interpPaletteColor(ig());
 
   plot_->setPenBrush(penBrush, PenData(true, lc), BrushData(false));
 
