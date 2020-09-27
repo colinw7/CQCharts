@@ -1534,7 +1534,7 @@ void
 CQChartsSankeyPlot::
 calcValueMarginScale()
 {
-  // get node margin (int window coords ?)
+  // get node margin (in window coords ?)
   double nodeMargin = calcNodeMargin();
 
   //---
@@ -1881,8 +1881,14 @@ adjustNodeCentersLtoR(bool remove, bool force) const
   int minX = this->minX();
   int maxX = this->maxX();
 
-  // second to last minus one
-  for (int xpos = minX + 1; xpos < maxX; ++xpos) {
+  // second to last minus one (last if SRC align)
+  int startX = minX + 1;
+  int endX   = maxX - 1;
+
+  if (align() == Align::SRC)
+    endX = maxX;
+
+  for (int xpos = startX; xpos <= endX; ++xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
@@ -1917,8 +1923,15 @@ adjustNodeCentersRtoL(bool remove, bool force) const
   int minX = this->minX();
   int maxX = this->maxX();
 
+  // last minus one to second (first if DEST align)
+  int startX = minX + 1;
+  int endX   = maxX - 1;
+
+  if (align() == Align::DEST)
+    startX = minX;
+
   // second to last to second
-  for (int xpos = maxX - 1; xpos > minX; --xpos) {
+  for (int xpos = endX; xpos >= startX; --xpos) {
     if (! graph_->hasPosNodes(xpos)) continue;
 
     const auto &nodes = graph_->posNodes(xpos);
@@ -2364,10 +2377,19 @@ createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) co
 
     auto p = posNodeMap.find(y);
 
-    while (p != posNodeMap.end()) {
-      y -= 0.001;
+    double dy = 0.001;
 
-      p = posNodeMap.find(y);
+    while (p != posNodeMap.end()) {
+      double y1 = y - dy;
+
+      while (y1 == y) {
+        dy *= 10;
+
+        y1 = y - dy;
+      }
+
+      p = posNodeMap.find(y1);
+      y = y1;
     }
 
     posNodeMap[y] = node;
@@ -2391,10 +2413,19 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
 
     auto p = posEdgeMap.find(y);
 
-    while (p != posEdgeMap.end()) {
-      y -= 0.001;
+    double dy = 0.001;
 
-      p = posEdgeMap.find(y);
+    while (p != posEdgeMap.end()) {
+      double y1 = y - dy;
+
+      while (y1 == y) {
+        dy *= 10;
+
+        y1 = y - dy;
+      }
+
+      p = posEdgeMap.find(y1);
+      y = y1;
     }
 
     posEdgeMap[y] = edge;
@@ -2838,19 +2869,26 @@ rect() const
 
 void
 CQChartsSankeyPlotNode::
-setRect(const BBox &r)
+setRect(const BBox &rect)
 {
-  rect_ = r;
+  assert(rect.isSet());
+
+  rect_ = rect;
 
   if (obj_) // TODO: assert null or use move by
-    obj_->setRect(r);
+    obj_->setRect(rect);
 }
 
 double
 CQChartsSankeyPlotNode::
 edgeSum() const
 {
-  return std::max(srcEdgeSum(), destEdgeSum());
+  double sum = std::max(srcEdgeSum(), destEdgeSum());
+
+  if (CMathUtil::realEq(sum, 0.0))
+    sum = 1.0;
+
+  return sum;
 }
 
 double
@@ -3088,11 +3126,16 @@ adjustSrcDestRects()
     BBox srcRect  = pathIdRect.second;
     BBox destRect = (*p).second;
 
+    if (! srcRect.isSet() || ! destRect.isSet())
+      continue;
+
     double y1 = srcRect .getYMid();
     double y2 = destRect.getYMid();
 
     double dy = y1 - y2;
-    if (CMathUtil::realEq(dy, 0.0)) continue;
+
+    if (CMathUtil::realEq(dy, 0.0))
+      continue;
 
     if (srcEdgeSum() > destEdgeSum()) {
       destRect.moveBy(Point(0, dy));
@@ -3538,6 +3581,8 @@ void
 CQChartsSankeyNodeObj::
 setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 {
+  assert(bbox.isSet());
+
   double dx = bbox.getXMin() - rect_.getXMin();
   double dy = bbox.getYMin() - rect_.getYMin();
 
@@ -3657,7 +3702,7 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
       if (edge) {
         auto rect = (isSrc ? node->destEdgeRect(edge) : node->srcEdgeRect(edge));
 
-        if (! plot()->isTextVisible())
+        if (! plot()->isTextVisible() && rect.isSet())
           nodeObj->drawFgRect(device, rect);
       }
       else {
@@ -4046,6 +4091,7 @@ draw(CQChartsPaintDevice *device)
         auto *nodeObj = node->obj(); if (! nodeObj) return;
 
         auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
+        if (! rect.isSet()) return;
 
         nodeObj->setInside(true);
 
@@ -4341,6 +4387,8 @@ void
 CQChartsSankeyPlotGraph::
 setRect(const BBox &rect)
 {
+  assert(rect.isSet());
+
   // rect is always from nodes so adjust nodes to give rect
   updateRect();
 

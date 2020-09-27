@@ -64,6 +64,7 @@ class CQChartsSankeyPlotNode {
   using EdgeSet    = std::set<const Edge *>;
   using Plot       = CQChartsSankeyPlot;
   using Obj        = CQChartsSankeyNodeObj;
+  using Color      = CQChartsColor;
   using OptReal    = CQChartsOptReal;
   using ModelIndex = CQChartsModelIndex;
   using ModelInds  = std::vector<ModelIndex>;
@@ -158,8 +159,8 @@ class CQChartsSankeyPlotNode {
   int destDepth() const;
 
   //! get/set color
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &c) { color_ = c; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &c) { color_ = c; }
 
   // get/set x pos
   int xpos() const { return xpos_; }
@@ -271,33 +272,33 @@ class CQChartsSankeyPlotNode {
   int calcDestDepth(NodeSet &visited) const;
 
  protected:
-  const Plot*   plot_            { nullptr }; //!< associated plot
-  Node*         parent_          { nullptr }; //!< parent node
-  QString       str_;                         //!< string
-  int           id_              { -1 };      //!< id
-  bool          visible_         { true };    //!< is visible
-  ModelIndex    ind_;                         //!< model index
-  QString       name_;                        //!< name
-  QString       label_;                       //!< label
-  OptReal       value_;                       //!< value
-  int           group_           { -1 };      //!< group index
-  int           ngroup_          { 0 };       //!< number of groups
-  int           depth_           { -1 };      //!< depth
-  CQChartsColor color_;                       //!< fill color
-  Edges         srcEdges_;                    //!< source edges
-  Edges         destEdges_;                   //!< destination edges
-  Edges         nonPrimaryEdges_;             //!< non-primary edges
-  int           srcDepth_        { -1 };      //!< source depth (calculated)
-  int           destDepth_       { -1 };      //!< destination depth (calculated)
-  int           xpos_            { -1 };      //!< x position
-  BBox          rect_;                        //!< placed rectangle
-  ModelInds     modelInds_;                   //!< model inds
-  EdgeRect      srcEdgeRect_;                 //!< edge to src
-  EdgeRect      destEdgeRect_;                //!< edge to dest
-  PathIdRect    srcPathIdRect_;               //!< src path id rect
-  PathIdRect    destPathIdRect_;              //!< dest path id rect
-  Obj*          obj_             { nullptr }; //!< plot object
-  bool          selected_        { false };   //!< is selected
+  const Plot* plot_            { nullptr }; //!< associated plot
+  Node*       parent_          { nullptr }; //!< parent node
+  QString     str_;                         //!< string
+  int         id_              { -1 };      //!< id
+  bool        visible_         { true };    //!< is visible
+  ModelIndex  ind_;                         //!< model index
+  QString     name_;                        //!< name
+  QString     label_;                       //!< label
+  OptReal     value_;                       //!< value
+  int         group_           { -1 };      //!< group index
+  int         ngroup_          { 0 };       //!< number of groups
+  int         depth_           { -1 };      //!< depth
+  Color       color_;                       //!< fill color
+  Edges       srcEdges_;                    //!< source edges
+  Edges       destEdges_;                   //!< destination edges
+  Edges       nonPrimaryEdges_;             //!< non-primary edges
+  int         srcDepth_        { -1 };      //!< source depth (calculated)
+  int         destDepth_       { -1 };      //!< destination depth (calculated)
+  int         xpos_            { -1 };      //!< x position
+  BBox        rect_;                        //!< placed rectangle
+  ModelInds   modelInds_;                   //!< model inds
+  EdgeRect    srcEdgeRect_;                 //!< edge to src
+  EdgeRect    destEdgeRect_;                //!< edge to dest
+  PathIdRect  srcPathIdRect_;               //!< src path id rect
+  PathIdRect  destPathIdRect_;              //!< dest path id rect
+  Obj*        obj_             { nullptr }; //!< plot object
+  bool        selected_        { false };   //!< is selected
 };
 
 //---
@@ -315,6 +316,7 @@ class CQChartsSankeyPlotEdge {
   using ModelIndex = CQChartsModelIndex;
   using ModelInds  = std::vector<ModelIndex>;
   using Column     = CQChartsColumn;
+  using Color      = CQChartsColor;
   using OptReal    = CQChartsOptReal;
   using BBox       = CQChartsGeom::BBox;
   using Point      = CQChartsGeom::Point;
@@ -338,6 +340,7 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
+  //! get/set value column
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c) { valueColumn_ = c; }
 
@@ -348,8 +351,8 @@ class CQChartsSankeyPlotEdge {
 #endif
 
   //! get/set color
-  const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &c) { color_ = c; }
+  const Color &color() const { return color_; }
+  void setColor(const Color &c) { color_ = c; }
 
   //! get/set path id
   int pathId() const { return pathId_; }
@@ -387,18 +390,18 @@ class CQChartsSankeyPlotEdge {
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
  protected:
-  const Plot*   plot_     { nullptr }; //!< plot
-  int           id_       { -1 };      //!< unique id
-  OptReal       value_;                //!< value
-  Column        valueColumn_;          //!< value column
-//QString       label_;                //!< label
-  CQChartsColor color_;                //!< color
-  int           pathId_   { -1 };      //!< path id
-  ModelInds     modelInds_;            //!< model inds
-  Node*         srcNode_  { nullptr }; //!< source node
-  Node*         destNode_ { nullptr }; //!< destination node
-  Obj*          obj_      { nullptr }; //!< associated edge object
-  bool          isLine_   { false };   //!< is edge a line
+  const Plot* plot_     { nullptr }; //!< plot
+  int         id_       { -1 };      //!< unique id
+  OptReal     value_;                //!< value
+  Column      valueColumn_;          //!< value column
+//QString     label_;                //!< label
+  Color       color_;                //!< color
+  int         pathId_   { -1 };      //!< path id
+  ModelInds   modelInds_;            //!< model inds
+  Node*       srcNode_  { nullptr }; //!< source node
+  Node*       destNode_ { nullptr }; //!< destination node
+  Obj*        obj_      { nullptr }; //!< associated edge object
+  bool        isLine_   { false };   //!< is edge a line
 };
 
 //---

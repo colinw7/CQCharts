@@ -1200,3 +1200,6 @@
  + Improve sankey placement and controls
  + Start adding support for per column null values
  + Switch to model id instead of integer index in tcl
+# 09/27/2020
+ + Add command line widget
+ + Improve sankey placement and controls
