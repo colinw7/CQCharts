@@ -3,7 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + sankey placement
+   + don't center single item at src/dest when align src/dest
  + console widget
+   + cut/paste
+   + scroll bottom
  + polygon data label (text) does not set bbox. Check if inside ?
    + rotated text box draw (correct ?)
  + region tool mgr activate/deactivate view region tool

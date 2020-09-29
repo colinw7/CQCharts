@@ -295,12 +295,14 @@ setReorderEdges(bool b)
   CQChartsUtil::testAndSet(reorderEdges_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+#if 0
 void
 CQChartsSankeyPlot::
 setAdjustEdgeOverlaps(bool b)
 {
   CQChartsUtil::testAndSet(adjustEdgeOverlaps_, b, [&]() { updateRangeAndObjs(); } );
 }
+#endif
 
 void
 CQChartsSankeyPlot::
@@ -362,7 +364,7 @@ addProperties()
   addProp("placement", "adjustCenters"     , "adjustCenters"     , "Adjust node centers");
   addProp("placement", "removeOverlaps"    , "removeOverlaps"    , "Remove overlapping nodes");
   addProp("placement", "reorderEdges"      , "reorderEdges"      , "Reorder edges");
-  addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
+//addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
   addProp("placement", "adjustSelected"    , "adjustSelected"    , "Adjust only selected");
   addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
   addProp("placement", "adjustText"        , "adjustText"        , "Adjust text placement");
@@ -1841,9 +1843,13 @@ adjustGraphNodes(const Nodes &nodes, bool placed, bool force) const
   int numPasses = adjustIterations();
 
   for (int pass = 0; pass < numPasses; ++pass) {
-    if (! adjustNodeCenters(/*remove*/true, placed))
+    if (! adjustNodeCenters(placed))
       break;
   }
+
+  //---
+
+  (void) removeOverlaps();
 
   //---
 
@@ -1851,7 +1857,9 @@ adjustGraphNodes(const Nodes &nodes, bool placed, bool force) const
 
   //---
 
+#if 0
   adjustEdgeOverlaps();
+#endif
 
   return true;
 }
@@ -1869,7 +1877,7 @@ initPosNodesMap(const Nodes &nodes) const
 
 bool
 CQChartsSankeyPlot::
-adjustNodeCenters(bool remove, bool placed, bool force) const
+adjustNodeCenters(bool placed, bool force) const
 {
   if (! force && ! isAdjustCenters())
     return false;
@@ -1883,9 +1891,6 @@ adjustNodeCenters(bool remove, bool placed, bool force) const
     changed = true;
 
   if (adjustNodeCentersRtoL(placed, force))
-    changed = true;
-
-  if (remove && removeOverlaps())
     changed = true;
 
   return changed;
@@ -1971,6 +1976,7 @@ adjustNodeCentersRtoL(bool placed, bool force) const
   return changed;
 }
 
+#if 0
 bool
 CQChartsSankeyPlot::
 adjustEdgeOverlaps(bool force) const
@@ -2054,6 +2060,7 @@ adjustEdgeOverlaps(bool force) const
 
   return true;
 }
+#endif
 
 bool
 CQChartsSankeyPlot::
@@ -2431,7 +2438,7 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     // use distance from top (decreasing)
     double y = bbox_.getYMax() - rect.getYMid();
 
-    NodeYPos ypos(y, node->id(), -node->minPathId());
+    NodeYPos ypos(y, edge->id(), -node->minPathId());
 
     auto p = posEdgeMap.find(ypos);
     assert(p == posEdgeMap.end());
@@ -2576,7 +2583,7 @@ keyPress(int key, int modifier)
       drawObjs();
   }
   else if (key == Qt::Key_C) {
-    if (adjustNodeCenters(/*removeOverlaps*/false, /*placed*/false, /*force*/true))
+    if (adjustNodeCenters(/*placed*/false, /*force*/true))
       drawObjs();
   }
   else if (key == Qt::Key_L) {
@@ -2616,9 +2623,11 @@ keyPress(int key, int modifier)
   else if (key == Qt::Key_0) {
     printStats();
   }
+#if 0
   else if (key == Qt::Key_V) {
     adjustEdgeOverlaps(/*force*/true);
   }
+#endif
   else
     CQChartsPlot::keyPress(key, modifier);
 }

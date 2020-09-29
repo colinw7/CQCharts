@@ -5,6 +5,8 @@
 #include <QScrollBar>
 #include <QKeyEvent>
 
+#include <iostream>
+
 CQScrolledCommand::
 CQScrolledCommand(QWidget *parent) :
  QScrollArea(parent)
@@ -22,6 +24,8 @@ CQScrolledCommand(QWidget *parent) :
           this, SIGNAL(executeCommand(const QString &)));
 
   connect(command_, SIGNAL(scrollEnd()), this, SLOT(updateScroll()));
+
+  setFocusProxy(command_);
 }
 
 void
@@ -61,7 +65,7 @@ CQCommand(QWidget *parent) :
 
   //---
 
-  prompt_ = ">";
+  prompt_ = "> ";
 
   parent_width_  = 0;
   parent_height_ = 0;
@@ -91,11 +95,10 @@ updateSize(int w, int h)
 
   QFontMetrics fm(font());
 
-  int ascent  = fm.ascent();
-  int descent = fm.descent();
+  int char_height = fm.height();
 
   int w1 = std::max(parent_width_, 100);
-  int h1 = std::max(parent_height_, num_lines*(ascent + descent));
+  int h1 = std::max(parent_height_, (num_lines + 1)*char_height);
 
   resize(w1, h1);
 
@@ -109,43 +112,60 @@ paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
 
-  //int w = width();
+//int w = width();
   int h = height();
 
   QFontMetrics fm(font());
 
-  int ascent  = fm.ascent();
-  int descent = fm.descent();
+  int ascent = fm.ascent();
 
-  int char_height = ascent + descent;
+  int char_height = fm.height();
 
   int x = 0;
-  int y = h - ascent;
+  int y = h - ascent; // bottom
 
+  //---
+
+  // draw prompt
   painter.setPen(QColor(0,0,0));
 
   painter.drawText(x, y, prompt());
 
+  //---
+
+  // get entry text before/after cursor
+  const auto &str = entry_.getText();
+  int         pos = entry_.getPos();
+
+  auto lhs = str.substr(0, pos);
+  auto rhs = str.substr(pos);
+
+  //---
+
+  // draw entry text before cursor
   x += fm.width(prompt());
-
-  const std::string &str = entry_.getText();
-  int                pos = entry_.getPos();
-
-  std::string lhs = str.substr(0, pos);
-  std::string rhs = str.substr(pos);
 
   painter.drawText(x, y, lhs.c_str());
 
+  //---
+
+  // draw cursor
   x += fm.width(lhs.c_str());
 
   painter.setPen(QColor(0,255,0));
 
   painter.drawLine(x, y - ascent, x, y);
 
+  //---
+
+  // draw entry text after cursor
   painter.setPen(QColor(0,0,0));
 
   painter.drawText(x, y, rhs.c_str());
 
+  //---
+
+  // draw lines (bottom to top)
   x  = 0;
   y -= char_height;
 
@@ -159,6 +179,100 @@ paintEvent(QPaintEvent *)
     if (y + char_height < 0)
       break;
   }
+
+  //---
+
+  if (pressed_) {
+    int cw = fm.width("X");
+
+    int lineNum1 = pressLineNum_;
+    int charNum1 = pressCharNum_;
+    int lineNum2 = moveLineNum_;
+    int charNum2 = moveCharNum_;
+
+    if (lineNum1 > lineNum2 || (lineNum1 == lineNum2 && charNum1 > charNum2)) {
+      std::swap(lineNum1, lineNum2);
+      std::swap(charNum1, charNum2);
+    }
+
+    int num_lines = lines_.size();
+
+    for (int i = lineNum1; i <= lineNum2; ++i) {
+      if (i < 0 || i >= num_lines) continue;
+
+      int ty = h + i*char_height;
+
+      const auto &text = lines_[i]->text();
+
+      int len = text.size();
+
+      for (int j = 0; j < len; ++j) {
+        if      (i == lineNum1 && i == lineNum2) {
+          if (j < charNum1 || j > charNum2)
+            continue;
+        }
+        else if (i == lineNum1) {
+          if (j < charNum1)
+            continue;
+        }
+        else if (i == lineNum2) {
+          if (j > charNum2)
+            continue;
+        }
+
+        int tx = j*cw;
+
+        painter.setPen(Qt::red);
+
+        painter.drawText(tx, ty + ascent, text.substr(j, 1).c_str());
+      }
+    }
+  }
+}
+
+void
+CQCommand::
+mousePressEvent(QMouseEvent *e)
+{
+  pixelToText(e->pos(), pressLineNum_, pressCharNum_);
+
+  moveLineNum_ = pressLineNum_;
+  moveCharNum_ = pressCharNum_;
+  pressed_     = true;
+}
+
+void
+CQCommand::
+mouseMoveEvent(QMouseEvent *e)
+{
+  if (pressed_) {
+    pixelToText(e->pos(), moveLineNum_, moveCharNum_);
+
+    update();
+  }
+}
+
+void
+CQCommand::
+mouseReleaseEvent(QMouseEvent *e)
+{
+  if (pressed_)
+    pixelToText(e->pos(), moveLineNum_, moveCharNum_);
+
+  pressed_ = false;
+}
+
+void
+CQCommand::
+pixelToText(const QPoint &p, int &lineNum, int &charNum)
+{
+  QFontMetrics fm(font());
+
+  int char_width  = fm.width("X");
+  int char_height = fm.height();
+
+  charNum = p.x()/char_width;
+  lineNum = p.y()/char_height;
 }
 
 void

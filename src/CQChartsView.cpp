@@ -2572,9 +2572,6 @@ void
 CQChartsView::
 wheelEvent(QWheelEvent *e)
 {
-  static Plot* lastPlot { nullptr };
-  static Point lastPPoint, lastPoint;
-
   Point pp(e->pos());
 
   auto w = pixelToWindow(pp);
@@ -2587,8 +2584,6 @@ wheelEvent(QWheelEvent *e)
 
   double panFactor  = 0.50;
   double zoomFactor = 1.10;
-
-  auto p = plot->pixelToWindow(pp);
 
   // scroll vertical
   if      (e->modifiers() & Qt::ShiftModifier) {
@@ -2605,23 +2600,17 @@ wheelEvent(QWheelEvent *e)
       plot->panRight(panFactor);
   }
   else {
-    bool reuse = (plot == lastPlot && std::abs(lastPPoint.x - pp.x) < 4 &&
-                                      std::abs(lastPPoint.y - pp.y) < 4);
-
-    if (reuse)
-      p = lastPoint;
-
-    plot->centerAt(p);
+    auto pp1 = plot->pixelToWindow(pp);
 
     if      (e->delta() > 0)
       plot->updateDataScale(plot->dataScale()*zoomFactor);
     else if (e->delta() < 0)
       plot->updateDataScale(plot->dataScale()/zoomFactor);
-  }
 
-  lastPPoint = pp;
-  lastPoint  = p;
-  lastPlot   = plot;
+    auto pp2 = plot->pixelToWindow(pp);
+
+    plot->pan(pp1.x - pp2.x, pp1.y - pp2.y);
+  }
 
   update();
 }

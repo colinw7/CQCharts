@@ -122,8 +122,15 @@ class CQCommand : public QWidget {
 
   void updateSize(int w, int h);
 
-  void paintEvent(QPaintEvent *);
-  void keyPressEvent(QKeyEvent *);
+  void paintEvent(QPaintEvent *e);
+
+  void mousePressEvent  (QMouseEvent *e);
+  void mouseMoveEvent   (QMouseEvent *e);
+  void mouseReleaseEvent(QMouseEvent *e);
+
+  void pixelToText(const QPoint &p, int &lineNum, int &charNum);
+
+  void keyPressEvent(QKeyEvent *e);
 
   void outputText(const std::string &str);
 
@@ -143,7 +150,11 @@ class CQCommand : public QWidget {
   Entry       entry_;
   int         parent_width_  { 0 };
   int         parent_height_ { 0 };
-
+  int         pressLineNum_  { -1 };
+  int         pressCharNum_  { -1 };
+  int         moveLineNum_   { -1 };
+  int         moveCharNum_   { -1 };
+  bool        pressed_       { false };
 };
 
 #endif

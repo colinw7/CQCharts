@@ -796,7 +796,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool   adjustCenters      READ isAdjustCenters      WRITE setAdjustCenters     )
   Q_PROPERTY(bool   removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
   Q_PROPERTY(bool   reorderEdges       READ isReorderEdges       WRITE setReorderEdges      )
-  Q_PROPERTY(bool   adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
+//Q_PROPERTY(bool   adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
   Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
   Q_PROPERTY(int    adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
   Q_PROPERTY(bool   adjustText         READ isAdjustText         WRITE setAdjustText        )
@@ -974,9 +974,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool isReorderEdges() const { return reorderEdges_; }
   void setReorderEdges(bool b);
 
+#if 0
   //! get/set adjust edge overlaps
   bool isAdjustEdgeOverlaps() const { return adjustEdgeOverlaps_; }
   void setAdjustEdgeOverlaps(bool b);
+#endif
 
   //! get/set adjust selected
   bool isAdjustSelected() const { return adjustSelected_; }
@@ -1162,12 +1164,12 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void initPosNodesMap(const Nodes &nodes) const;
 
-  bool adjustNodeCenters(bool remove=true, bool placed=false, bool force=false) const;
+  bool adjustNodeCenters(bool placed=false, bool force=false) const;
 
   bool adjustNodeCentersLtoR(bool placed=false, bool force=false) const;
   bool adjustNodeCentersRtoL(bool placed=false, bool force=false) const;
 
-  bool adjustEdgeOverlaps(bool force=false) const;
+//bool adjustEdgeOverlaps(bool force=false) const;
 
   bool removeOverlaps(bool spread=true, bool constrain=true, bool force=false) const;
   bool removePosOverlaps(int pos, const Nodes &nodes, bool spread=true, bool constrain=true) const;
@@ -1210,7 +1212,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool   adjustCenters_      { true };               //!< adjust centers
   bool   removeOverlaps_     { true };               //!< remove overlaps
   bool   reorderEdges_       { true };               //!< reorder edges
-  bool   adjustEdgeOverlaps_ { false };              //!< adjust edge overlaps
+//bool   adjustEdgeOverlaps_ { false };              //!< adjust edge overlaps
   bool   adjustSelected_     { false };              //!< adjust only selected
   int    adjustIterations_   { 25 };                 //!< number of adjust iterations
   bool   adjustText_         { false };              //!< adjust text position

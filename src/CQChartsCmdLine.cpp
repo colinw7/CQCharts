@@ -1,9 +1,11 @@
 #include <CQChartsCmdLine.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQCommand.h>
 #include <CQTclUtil.h>
 #include <COSExec.h>
+#include <COSProcess.h>
 
 #include <QVBoxLayout>
 
@@ -56,6 +58,12 @@ CQChartsCmdLine(CQCharts *charts, QWidget *parent) :
 
   //---
 
+  auto fixedFont = CQChartsWidgetUtil::getMonospaceFont();
+
+  command_->setFont(fixedFont);
+
+  //---
+
   qtcl_ = charts_->cmdTcl();
 }
 
@@ -68,6 +76,23 @@ void
 CQChartsCmdLine::
 executeCommand(const QString &line)
 {
+  auto line1 = line.simplified();
+
+  if (! line1.length())
+    return;
+
+  if (line1[0] == '!') {
+    line1 = line.mid(1);
+
+    std::string str;
+
+    COSProcess::executeCommand(line1.toStdString(), str);
+
+    command_->outputText(str);
+
+    return;
+  }
+
   COSExec::grabOutput();
 
   bool log = true;
