@@ -1300,15 +1300,16 @@ createObjsGraph(PlotObjs &objs) const
   // place graph
   placeGraph(/*placed*/false);
 
-  //---
-
-  // adjust rects to match path id (needed ?)
+  // adjust rects to match path id
   adjustSrcDestRects();
 
   //---
 
   // re-place graph using placed edges
   placeGraph(/*placed*/true);
+
+  // adjust rects to match path id
+  adjustSrcDestRects();
 
   //---
 
@@ -1507,15 +1508,15 @@ void
 CQChartsSankeyPlot::
 adjustSrcDestRects() const
 {
+  if (! hasAnyPathId())
+    return;
+
   // place edges (reset)
   placeEdges();
 
   // adjust node rects to align on matching path id
-  if (hasAnyPathId()) {
-    for (auto *node : graph_->nodes()) {
-      node->adjustSrcDestRects();
-    }
-  }
+  for (auto *node : graph_->nodes())
+    node->adjustSrcDestRects();
 }
 
 void
@@ -3391,7 +3392,7 @@ CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
 
   //---
 
-  placeEdges();
+//placeEdges();
 }
 
 CQChartsSankeyNodeObj::

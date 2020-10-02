@@ -619,10 +619,12 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
   else if (c.type() == CQChartsColor::Type::PALETTE ||
            c.type() == CQChartsColor::Type::PALETTE_VALUE) {
     if      (c.hasPaletteIndex()) {
+      int ind = c.getPaletteIndex();
+
       if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
-        return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
+        return interpIndPaletteColor(ind, c.value(), c.isScale());
       else
-        return interpIndPaletteColorValue(c.ind(), ig, ng, value, c.isScale());
+        return interpIndPaletteColorValue(ind, ig, ng, value, c.isScale());
     }
     else if (c.hasPaletteName()) {
       QString name;
@@ -650,10 +652,12 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
   else if (c.type() == CQChartsColor::Type::INDEXED ||
            c.type() == CQChartsColor::Type::INDEXED_VALUE) {
     if      (c.hasPaletteIndex()) {
+      int ind = c.getPaletteIndex();
+
       if (c.type() == CQChartsColor::Type::INDEXED_VALUE)
-        return indexIndPaletteColor(c.ind(), int(c.value()), ng);
+        return indexIndPaletteColor(ind, int(c.value()), ng);
       else
-        return indexIndPaletteColor(c.ind(), ig, ng);
+        return indexIndPaletteColor(ind, ig, ng);
     }
     else if (c.hasPaletteName()) {
       QString name;
@@ -933,14 +937,14 @@ CQChartsColor
 CQCharts::
 adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const
 {
+  assert(defaultPalette.length());
+
   if ((c.type() == CQChartsColor::Type::PALETTE ||
        c.type() == CQChartsColor::Type::PALETTE_VALUE) &&
-      c.ind() < 0) {
+      ! c.hasPaletteIndex() && ! c.hasPaletteName()) {
     auto c1 = c;
 
-    int ind = theme()->paletteInd(defaultPalette);
-
-    c1.setInd(ind);
+    c1.setPaletteName(defaultPalette);
 
     return c1;
   }
@@ -1216,7 +1220,7 @@ addView(CQChartsView *view)
   auto id = view->id();
 
   if (id == "")
-    id = QString("view%1").arg(views_.size() + 1);
+    id = QString("view:%1").arg(views_.size() + 1);
 
   assert(! getView(id));
 

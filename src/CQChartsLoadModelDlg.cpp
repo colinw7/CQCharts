@@ -181,7 +181,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  auto fixedFont = CQChartsWidgetUtil::getMonospaceFont();
+  auto fixedFont = CQUtil::getMonospaceFont();
 
   //--
 

@@ -835,11 +835,27 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
           valueData.setGroupName(groupName);
       }
 
+      auto setColumnNameValue = [&](const CQChartsColumn &column, const QString &header,
+                                    const QString &value) {
+        if (! value.length()) return;
+
+        QString headerStr = header;
+
+        if (column.isValid()) {
+          headerStr = columnHeaderName(column, /*tip*/true);
+
+          if (headerStr == "")
+            headerStr = header;
+        }
+
+        valueData.setNameValue(headerStr, value);
+      };
+
       // save other name values for tip
-      if (group   .length()) valueData.setNameValue("Group", group);
-      if (name    .length()) valueData.setNameValue("Name" , name);
-      if (labelStr.length()) valueData.setNameValue("Label", labelStr);
-      if (colorStr.length()) valueData.setNameValue("Color", colorStr);
+      setColumnNameValue(groupColumn(), "Group", group   );
+      setColumnNameValue(nameColumn (), "Name" , name    );
+      setColumnNameValue(labelColumn(), "Label", labelStr);
+      setColumnNameValue(colorColumn(), "Color", colorStr);
     }
     else {
       valueData.setValueName(name);
@@ -1708,33 +1724,43 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  auto nameStr  = this->nameStr ();
-  auto groupStr = this->groupStr();
-  auto valueStr = this->valueStr();
+  auto addOptColumnRow = [&](const CQChartsColumn &column, const QString &header,
+                             const QString &value) {
+    if (! value.length()) return;
 
-  if (groupStr.length())
-    tableTip.addTableRow("Group", groupStr);
+    QString headerStr = header;
 
-  if (nameStr.length()) {
-    QString headerStr("Name");
+    if (column.isValid()) {
+      headerStr = plot_->columnHeaderName(column, /*tip*/true);
 
-    if (plot_->nameColumn().isValid())
-      headerStr = plot_->columnHeaderName(plot_->nameColumn(), /*tip*/true);
+      if (headerStr == "")
+        headerStr = header;
+    }
 
-    tableTip.addTableRow(headerStr, nameStr);
-  }
+    tableTip.addTableRow(headerStr, value);
+  };
 
-  if (valueStr.length()) {
-    QString headerStr;
+  auto addOptColumnsRow = [&](const CQChartsColumns &columns, const QString &header,
+                              const QString &value) {
+    if (! value.length()) return;
 
-    if (plot_->valueColumns().isValid())
-      headerStr = plot_->columnsHeaderName(plot_->valueColumns(), /*tip*/true);
+    QString headerStr = header;
 
-    if (headerStr == "")
-      headerStr = "Value";
+    if (columns.isValid()) {
+      headerStr = plot_->columnsHeaderName(columns, /*tip*/true);
 
-    tableTip.addTableRow(headerStr, valueStr);
-  }
+      if (headerStr == "")
+        headerStr = header;
+    }
+
+    tableTip.addTableRow(headerStr, value);
+  };
+
+  addOptColumnRow (plot_->groupColumn (), "Group", this->groupStr());
+  addOptColumnRow (plot_->nameColumn  (), "Name" , this->nameStr ());
+  addOptColumnsRow(plot_->valueColumns(), "Value", this->valueStr());
+
+  //---
 
   const auto &value = this->value();
 

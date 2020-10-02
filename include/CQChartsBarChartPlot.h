@@ -78,7 +78,7 @@ class CQChartsBarChartValue {
   const NameValues &nameValues() const { return nameValues_; }
   void setNameValues(const NameValues &v) { nameValues_ = v; }
 
-  void setNameValue(const QString &name, QString &value) {
+  void setNameValue(const QString &name, const QString &value) {
     nameValues_[name] = value;
   }
 

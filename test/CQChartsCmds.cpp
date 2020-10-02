@@ -4589,7 +4589,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
   auto roleName = argv.getParseStr("role");
 
-  int role = Qt::EditRole;
+  int role = -1;
 
   if (roleName != "") {
     if (roleName == "?")
@@ -4872,6 +4872,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       QModelIndex parent;
 
       bool ok;
+
+      int role = -1; // edit or display role
 
       auto var = CQChartsModelUtil::modelValue(charts_, model.data(), row.row(),
                                                column, parent, role, ok);
@@ -5663,17 +5665,17 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  auto objectId = argv.getParseStr("object");
+  auto objectId = argv.getParseStr ("object");
   bool header   = argv.getParseBool("header");
   auto name     = argv.getParseStr ("name");
 //bool hidden   = argv.getParseBool("hidden");
-  auto value    = argv.getParseStr("value");
+  auto value    = argv.getParseStr ("value");
 
   //---
 
   auto roleName = argv.getParseStr("role");
 
-  int role = Qt::EditRole;
+  int role = -1;
 
   if (roleName != "") {
     if (roleName == "?")

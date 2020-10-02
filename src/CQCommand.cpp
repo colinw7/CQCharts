@@ -1,22 +1,34 @@
 #include <CQCommand.h>
+#include <CQUtil.h>
 
+#include <QApplication>
 #include <QPainter>
 #include <QFontMetrics>
 #include <QScrollBar>
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <QKeyEvent>
+#include <QClipboard>
 
 #include <iostream>
 
-CQScrolledCommand::
-CQScrolledCommand(QWidget *parent) :
+namespace CQCommand {
+
+ScrollArea::
+ScrollArea(QWidget *parent) :
  QScrollArea(parent)
 {
   setObjectName("scrolledCommand");
 
   setVerticalScrollBarPolicy  (Qt::ScrollBarAlwaysOn);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+}
 
-  command_ = new CQCommand(this);
+void
+ScrollArea::
+init()
+{
+  command_ = createCommandWidget();
 
   setWidget(command_);
 
@@ -26,39 +38,62 @@ CQScrolledCommand(QWidget *parent) :
   connect(command_, SIGNAL(scrollEnd()), this, SLOT(updateScroll()));
 
   setFocusProxy(command_);
+
+  initialized_ = true;
+}
+
+CommandWidget *
+ScrollArea::
+createCommandWidget() const
+{
+  return new CommandWidget(const_cast<ScrollArea *>(this));
+}
+
+CommandWidget *
+ScrollArea::
+getCommand() const
+{
+  if (! initialized_)
+    const_cast<ScrollArea *>(this)->init();
+
+  return command_;
 }
 
 void
-CQScrolledCommand::
+ScrollArea::
 resizeEvent(QResizeEvent *)
 {
+  //---
+
   int w = width();
   int h = height();
 
   int sh = horizontalScrollBar()->height();
   int sw = verticalScrollBar  ()->width ();
 
-  command_->updateSize(w - sw, h - sh);
+  getCommand()->updateSize(w - sw, h - sh);
+
+  updateScroll();
 }
 
 void
-CQScrolledCommand::
-outputText(const std::string &str)
+ScrollArea::
+outputText(const QString &str)
 {
-  command_->outputText(str);
+  getCommand()->outputText(str);
 }
 
 void
-CQScrolledCommand::
+ScrollArea::
 updateScroll()
 {
-  ensureVisible(0, command_->height() - 1);
+  ensureVisible(0, getCommand()->height() - 1);
 }
 
 //------------
 
-CQCommand::
-CQCommand(QWidget *parent) :
+CommandWidget::
+CommandWidget(QWidget *parent) :
  QWidget(parent)
 {
   setObjectName("command");
@@ -67,38 +102,53 @@ CQCommand(QWidget *parent) :
 
   prompt_ = "> ";
 
-  parent_width_  = 0;
-  parent_height_ = 0;
+  parentWidth_  = 0;
+  parentHeight_ = 0;
 
   setFocusPolicy(Qt::StrongFocus);
 
   updateSize(0, 0);
+
+  //---
+
+  auto fixedFont = CQUtil::getMonospaceFont();
+
+  setFont(fixedFont);
+
+  //---
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
+}
+
+CommandWidget::
+~CommandWidget()
+{
 }
 
 QSize
-CQCommand::
+CommandWidget::
 sizeHint() const
 {
   return QSize(std::max(width(), 100), std::max(height(), 100));
 }
 
 void
-CQCommand::
+CommandWidget::
 updateSize(int w, int h)
 {
   if (w > 0 && h > 0) {
-    parent_width_  = w;
-    parent_height_ = h;
+    parentWidth_  = w;
+    parentHeight_ = h;
   }
 
-  int num_lines = std::max(int(lines_.size()) + 1, minLines());
+  int numLines = std::max(int(lines_.size()) + 1, minLines());
 
   QFontMetrics fm(font());
 
-  int char_height = fm.height();
+  charHeight_ = fm.height();
 
-  int w1 = std::max(parent_width_, 100);
-  int h1 = std::max(parent_height_, (num_lines + 1)*char_height);
+  int w1 = std::max(parentWidth_, 100);
+  int h1 = std::max(parentHeight_, (numLines + 1)*charHeight_);
 
   resize(w1, h1);
 
@@ -107,29 +157,52 @@ updateSize(int w, int h)
 }
 
 void
-CQCommand::
+CommandWidget::
 paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
+
+  painter.fillRect(rect(), bgColor_);
+
+  //---
 
 //int w = width();
   int h = height();
 
   QFontMetrics fm(font());
 
-  int ascent = fm.ascent();
+  charWidth_   = fm.width("X");
+  charHeight_  = fm.height();
+  charAscent_  = fm.ascent();
+  charDescent_ = fm.descent();
 
-  int char_height = fm.height();
+  //---
 
-  int x = 0;
-  int y = h - ascent; // bottom
+  int indLen = 1;
+  int indVal = lastInd_;
+
+  while (indVal > 9) {
+    indVal /= 10;
+
+    ++indLen;
+  }
+
+  indMargin_ = charWidth_*indLen;
+
+  //--
+
+  int x = indMargin_;
+  int y = h - 1; // bottom
 
   //---
 
   // draw prompt
-  painter.setPen(QColor(0,0,0));
+  promptY_     = y;
+  promptWidth_ = prompt().length()*charWidth_;
 
-  painter.drawText(x, y, prompt());
+  drawPrompt(&painter, nullptr, y);
+
+  x += promptWidth_;
 
   //---
 
@@ -137,112 +210,201 @@ paintEvent(QPaintEvent *)
   const auto &str = entry_.getText();
   int         pos = entry_.getPos();
 
-  auto lhs = str.substr(0, pos);
-  auto rhs = str.substr(pos);
+  auto lhs = str.mid(0, pos);
+  auto rhs = str.mid(pos);
 
   //---
 
   // draw entry text before cursor
-  x += fm.width(prompt());
+  painter.setPen(commandColor_);
 
-  painter.drawText(x, y, lhs.c_str());
+  painter.drawText(x, y - charDescent_, lhs);
+
+  x += lhs.length()*charWidth_;
+
+  int cx = x;
+
+  painter.drawText(x, y - charDescent_, rhs);
+
+  x += rhs.length()*charWidth_;
 
   //---
 
   // draw cursor
-  x += fm.width(lhs.c_str());
-
-  painter.setPen(QColor(0,255,0));
-
-  painter.drawLine(x, y - ascent, x, y);
-
-  //---
-
-  // draw entry text after cursor
-  painter.setPen(QColor(0,0,0));
-
-  painter.drawText(x, y, rhs.c_str());
+  drawCursor(&painter, cx, y, (rhs.length() ? rhs[0] : QChar()));
 
   //---
 
   // draw lines (bottom to top)
-  x  = 0;
-  y -= char_height;
+  y -= charHeight_;
 
-  int num_lines = lines_.size();
+  int numLines = lines_.size();
 
-  for (int i = num_lines - 1; i >= 0; --i) {
-    painter.drawText(x, y, lines_[i]->text().c_str());
+  for (int i = numLines - 1; i >= 0; --i) {
+    const auto &line = lines_[i];
 
-    y -= char_height;
+    drawLine(&painter, line, y);
 
-    if (y + char_height < 0)
-      break;
+    y -= charHeight_;
   }
 
   //---
 
-  if (pressed_) {
-    int cw = fm.width("X");
+  int lineNum1 = pressLineNum_;
+  int charNum1 = pressCharNum_;
+  int lineNum2 = moveLineNum_;
+  int charNum2 = moveCharNum_;
 
-    int lineNum1 = pressLineNum_;
-    int charNum1 = pressCharNum_;
-    int lineNum2 = moveLineNum_;
-    int charNum2 = moveCharNum_;
+  if (lineNum1 > lineNum2 || (lineNum1 == lineNum2 && charNum1 > charNum2)) {
+    std::swap(lineNum1, lineNum2);
+    std::swap(charNum1, charNum2);
+  }
 
-    if (lineNum1 > lineNum2 || (lineNum1 == lineNum2 && charNum1 > charNum2)) {
-      std::swap(lineNum1, lineNum2);
-      std::swap(charNum1, charNum2);
+  if (lineNum1 != lineNum2 || charNum1 != charNum2)
+    drawSelectedChars(&painter, lineNum1, charNum1, lineNum2, charNum2);
+}
+
+void
+CommandWidget::
+drawCursor(QPainter *painter, int x, int y, const QChar &c)
+{
+  QRect r(x, y - charHeight_, charWidth_, charHeight_);
+
+  if (hasFocus()) {
+    painter->fillRect(r, cursorColor_);
+
+    if (! c.isNull()) {
+      painter->setPen(bgColor_);
+
+      painter->drawText(x, y - charDescent_, QString(c));
     }
+  }
+  else {
+    painter->setPen(cursorColor_);
 
-    int num_lines = lines_.size();
+    painter->drawRect(r);
+  }
+}
 
-    for (int i = lineNum1; i <= lineNum2; ++i) {
-      if (i < 0 || i >= num_lines) continue;
+void
+CommandWidget::
+drawLine(QPainter *painter, Line *line, int y)
+{
+  line->setY(y);
 
-      int ty = h + i*char_height;
+  if      (line->type() == LineType::OUTPUT)
+    line->setX(0);
+  else if (line->type() == LineType::COMMAND)
+    line->setX(indMargin_ + promptWidth_);
+  else
+    line->setX(0);
 
-      const auto &text = lines_[i]->text();
+  if (y + charHeight_ < 0)
+    return;
 
-      int len = text.size();
+  if (line->type() == LineType::COMMAND)
+    drawPrompt(painter, line, y);
 
-      for (int j = 0; j < len; ++j) {
-        if      (i == lineNum1 && i == lineNum2) {
-          if (j < charNum1 || j > charNum2)
-            continue;
-        }
-        else if (i == lineNum1) {
-          if (j < charNum1)
-            continue;
-        }
-        else if (i == lineNum2) {
-          if (j > charNum2)
-            continue;
-        }
+  if      (line->type() == LineType::OUTPUT)
+    painter->setPen(outputColor_);
+  else if (line->type() == LineType::COMMAND)
+    painter->setPen(commandColor_);
+  else
+    painter->setPen(Qt::red);
 
-        int tx = j*cw;
+  const auto &text = line->text();
 
-        painter.setPen(Qt::red);
+  int x = line->x();
 
-        painter.drawText(tx, ty + ascent, text.substr(j, 1).c_str());
+  for (int j = 0; j < text.length(); ++j) {
+    painter->drawText(x, y - charDescent_, text[j]);
+
+    x += charWidth_;
+  }
+}
+
+void
+CommandWidget::
+drawPrompt(QPainter *painter, Line *line, int y)
+{
+  int ind = (line ? line->ind() : lastInd_ + 1);
+
+  painter->setPen(indColor_);
+
+  int x = 0;
+
+  painter->drawText(x, y - charDescent_, QString("%1").arg(ind));
+
+  x += indMargin_;
+
+  painter->setPen(promptColor_);
+
+  painter->drawText(x, y - charDescent_, prompt());
+}
+
+void
+CommandWidget::
+drawSelectedChars(QPainter *painter, int lineNum1, int charNum1, int lineNum2, int charNum2)
+{
+  int numLines = lines_.size();
+
+  painter->setPen(bgColor_);
+
+  for (int i = lineNum1; i <= lineNum2; ++i) {
+    if (i < 0 || i >= numLines) continue;
+
+    const auto &line = lines_[i];
+
+    int ty = line->y();
+    int tx = line->x();
+
+    const auto &text = line->text();
+
+    int len = text.size();
+
+    for (int j = 0; j < len; ++j) {
+      if      (i == lineNum1 && i == lineNum2) {
+        if (j < charNum1 || j > charNum2)
+          continue;
       }
+      else if (i == lineNum1) {
+        if (j < charNum1)
+          continue;
+      }
+      else if (i == lineNum2) {
+        if (j > charNum2)
+          continue;
+      }
+
+      int tx1 = tx + j*charWidth_;
+
+      painter->fillRect(QRect(tx1, ty - charHeight_, charWidth_, charHeight_), outputColor_);
+
+      painter->drawText(tx1, ty - charDescent_, text.mid(j, 1));
     }
   }
 }
 
 void
-CQCommand::
+CommandWidget::
 mousePressEvent(QMouseEvent *e)
 {
-  pixelToText(e->pos(), pressLineNum_, pressCharNum_);
+  if      (e->button() == Qt::LeftButton) {
+    pixelToText(e->pos(), pressLineNum_, pressCharNum_);
 
-  moveLineNum_ = pressLineNum_;
-  moveCharNum_ = pressCharNum_;
-  pressed_     = true;
+    moveLineNum_ = pressLineNum_;
+    moveCharNum_ = pressCharNum_;
+    pressed_     = true;
+  }
+  else if (e->button() == Qt::MiddleButton) {
+    paste();
+
+    update();
+  }
 }
 
 void
-CQCommand::
+CommandWidget::
 mouseMoveEvent(QMouseEvent *e)
 {
   if (pressed_) {
@@ -253,7 +415,7 @@ mouseMoveEvent(QMouseEvent *e)
 }
 
 void
-CQCommand::
+CommandWidget::
 mouseReleaseEvent(QMouseEvent *e)
 {
   if (pressed_)
@@ -263,118 +425,267 @@ mouseReleaseEvent(QMouseEvent *e)
 }
 
 void
-CQCommand::
+CommandWidget::
 pixelToText(const QPoint &p, int &lineNum, int &charNum)
 {
-  QFontMetrics fm(font());
+  int numLines = lines_.size();
 
-  int char_width  = fm.width("X");
-  int char_height = fm.height();
+  lineNum = -1;
+  charNum = -1;
 
-  charNum = p.x()/char_width;
-  lineNum = p.y()/char_height;
+  for (int i = 0; i < numLines; ++i) {
+    const auto &line = lines_[i];
+
+    int y2 = line->y(); // bottom
+    int y1 = y2 - charHeight_ + 1;
+
+    if (p.y() >= y1 && p.y() <= y2) {
+      lineNum = i;
+      charNum = (p.x() - line->x())/charWidth_;
+      break;
+    }
+  }
 }
 
 void
-CQCommand::
+CommandWidget::
 keyPressEvent(QKeyEvent *event)
 {
-  switch (event->key()) {
-    case Qt::Key_Return:
-    case Qt::Key_Enter: {
-      const std::string &str = entry_.getText();
+  auto key = event->key();
+  auto mod = event->modifiers();
 
-      QString qstr(str.c_str());
+  if (key == Qt::Key_Return || key == Qt::Key_Enter) {
+    auto str = entry_.getText();
 
-      outputText(prompt().toStdString() + str + "\n");
+    outputTypeText(str + "\n", LineType::COMMAND, ++lastInd_);
 
-      entry_.clear();
+    entry_.clear();
 
-      emit executeCommand(qstr);
+    emit executeCommand(str);
 
-      emit scrollEnd();
+    emit scrollEnd();
 
-      commands_.push_back(qstr);
+    commands_.push_back(str);
 
+    commandNum_ = -1;
+  }
+  else if (key == Qt::Key_Left) {
+    entry_.cursorLeft();
+  }
+  else if (key == Qt::Key_Right) {
+    entry_.cursorRight();
+  }
+  else if (key == Qt::Key_Up) {
+    QString command;
+
+    int pos = commands_.size() + commandNum_;
+
+    if (pos >= 0 && pos < commands_.size()) {
+      command = commands_[pos];
+
+      --commandNum_;
+    }
+
+    entry_.setText(command);
+  }
+  else if (key == Qt::Key_Down) {
+    ++commandNum_;
+
+    QString command;
+
+    int pos = commands_.size() + commandNum_;
+
+    if (pos >= 0 && pos < commands_.size())
+      command = commands_[pos];
+    else
       commandNum_ = -1;
 
-      break;
-    }
-    case Qt::Key_Left:
-      entry_.cursorLeft();
-
-      break;
-    case Qt::Key_Right:
-      entry_.cursorRight();
-
-      break;
-    case Qt::Key_Up: {
-      QString command;
-
-      int pos = commands_.size() + commandNum_;
-
-      if (pos >= 0 && pos < commands_.size()) {
-        command = commands_[pos];
-
-        --commandNum_;
-      }
-
-      entry_.setText(command.toStdString());
-
-      break;
-    }
-    case Qt::Key_Down: {
-      ++commandNum_;
-
-      QString command;
-
-      int pos = commands_.size() + commandNum_;
-
-      if (pos >= 0 && pos < commands_.size())
-        command = commands_[pos];
-      else
-        commandNum_ = -1;
-
-      entry_.setText(command.toStdString());
-
-      break;
-    }
-    case Qt::Key_Backspace:
+    entry_.setText(command);
+  }
+  else if (key == Qt::Key_Backspace) {
+    entry_.backSpace();
+  }
+  else if (key == Qt::Key_Delete) {
+    entry_.deleteChar();
+  }
+  else if (key == Qt::Key_Insert) {
+    paste();
+  }
+  else if (key == Qt::Key_Tab) {
+    complete();
+  }
+  else if (key == Qt::Key_Home) {
+    // TODO
+  }
+  else if (key == Qt::Key_Escape) {
+    // TODO
+  }
+  else if ((key >= Qt::Key_A && key <= Qt::Key_Z) && (mod & Qt::ControlModifier)) {
+    if      (key == Qt::Key_A) // beginning
+      entry_.cursorStart();
+    else if (key == Qt::Key_E) // end
+      entry_.cursorEnd();
+//  else if (key == Qt::Key_U) // delete all before
+//    entry_.clearBefore();
+    else if (key == Qt::Key_H)
       entry_.backSpace();
-
-      break;
-    case Qt::Key_Delete:
-      entry_.deleteChar();
-
-      break;
-    default:
-      entry_.insert(event->text().toStdString());
-
-      break;
+//  else if (key == Qt::Key_W) // delete word before
+//    entry_.clearWordBefore();
+//  else if (key == Qt::Key_K) // delete all after
+//    entry_.clearAfter();
+//  else if (key == Qt::Key_T) // swap chars before
+//    entry_.swapBefore();
+    else if (key == Qt::Key_C)
+      copy(selectedText());
+    else if (key == Qt::Key_V)
+      paste();
+  }
+  else {
+    entry_.insert(event->text());
   }
 
   update();
 }
 
 void
-CQCommand::
-outputText(const std::string &str)
+CommandWidget::
+contextMenuEvent(QContextMenuEvent *e)
 {
-  static std::string buffer;
+  auto *menu = new QMenu;
+
+  //---
+
+  auto *copyAction  = menu->addAction("&Copy\tCtrl+C");
+  auto *pasteAction = menu->addAction("&Paste\tCtrl+V");
+
+  connect(copyAction, SIGNAL(triggered()), this, SLOT(copySlot()));
+  connect(pasteAction, SIGNAL(triggered()), this, SLOT(pasteSlot()));
+
+  //---
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+QString
+CommandWidget::
+selectedText() const
+{
+  int lineNum1 = pressLineNum_;
+  int charNum1 = pressCharNum_;
+  int lineNum2 = moveLineNum_;
+  int charNum2 = moveCharNum_;
+
+  if (lineNum1 > lineNum2 || (lineNum1 == lineNum2 && charNum1 > charNum2)) {
+    std::swap(lineNum1, lineNum2);
+    std::swap(charNum1, charNum2);
+  }
+
+  if (lineNum1 == lineNum2 && charNum1 == charNum2)
+    return "";
+
+  int numLines = lines_.size();
+
+  QString str;
+
+  for (int i = lineNum1; i <= lineNum2; ++i) {
+    if (i < 0 || i >= numLines) continue;
+
+    const auto &line = lines_[i];
+
+    const auto &text = line->text();
+
+    if (str.length() > 0)
+      str += "\n";
+
+    int len = text.size();
+
+    for (int j = 0; j < len; ++j) {
+      if      (i == lineNum1 && i == lineNum2) {
+        if (j < charNum1 || j > charNum2)
+          continue;
+      }
+      else if (i == lineNum1) {
+        if (j < charNum1)
+          continue;
+      }
+      else if (i == lineNum2) {
+        if (j > charNum2)
+          continue;
+      }
+
+      str += text.mid(j, 1);
+    }
+  }
+
+  return str;
+}
+
+void
+CommandWidget::
+copySlot()
+{
+  copy(selectedText());
+}
+
+void
+CommandWidget::
+pasteSlot()
+{
+  paste();
+
+  update();
+}
+
+void
+CommandWidget::
+copy(const QString &text) const
+{
+  auto *clipboard = QApplication::clipboard();
+
+  clipboard->setText(text, QClipboard::Selection);
+}
+
+void
+CommandWidget::
+paste()
+{
+  auto *clipboard = QApplication::clipboard();
+
+  auto text = clipboard->text(QClipboard::Selection);
+
+  entry_.insert(text);
+}
+
+void
+CommandWidget::
+outputText(const QString &str)
+{
+  outputTypeText(str, CQCommand::LineType::OUTPUT, -1);
+}
+
+void
+CommandWidget::
+outputTypeText(const QString &str, const LineType &type, int ind)
+{
+  static QString buffer;
 
   buffer += str;
 
-  std::string::size_type pos = buffer.find('\n');
+  auto pos = buffer.indexOf('\n');
 
-  while (pos != std::string::npos) {
-    std::string lhs = buffer.substr(0, pos);
+  while (pos != -1) {
+    auto lhs = buffer.mid(0, pos);
 
-    lines_.push_back(new Line(lhs));
+    lines_.push_back(new Line(lhs, type, ind));
 
-    buffer = buffer.substr(pos + 1);
+    buffer = buffer.mid(pos + 1);
 
-    pos = buffer.find('\n');
+    pos = buffer.indexOf('\n');
   }
 
   updateSize(0, 0);
+}
+
 }

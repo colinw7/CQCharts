@@ -854,6 +854,9 @@ class BBox {
   double getWidth () const { return std::abs(getXMax() - getXMin()); }
   double getHeight() const { return std::abs(getYMax() - getYMin()); }
 
+  double getOptWidth (double def=0.0) const { return (set_ ? getWidth () : def); }
+  double getOptHeight(double def=0.0) const { return (set_ ? getHeight() : def); }
+
   BBox &moveXTo(double x) {
     assert(set_);
 

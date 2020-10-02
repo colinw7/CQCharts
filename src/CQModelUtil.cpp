@@ -32,7 +32,12 @@ QVariant
 modelHeaderValue(const QAbstractItemModel *model, int c, Qt::Orientation orientation,
                  int role, bool &ok)
 {
-  QVariant var = model->headerData(c, orientation, role);
+  QVariant var;
+
+  if (role >= 0)
+    var = model->headerData(c, orientation, role);
+  else
+    var = model->headerData(c, orientation, Qt::DisplayRole);
 
   ok = var.isValid();
 
@@ -84,7 +89,14 @@ modelValue(const QAbstractItemModel *model, const QModelIndex &ind, int role, bo
   ok = ind.isValid();
 
   if (ok) {
-    var = model->data(ind, role);
+    if (role >= 0)
+      var = model->data(ind, role);
+    else {
+      var = model->data(ind, Qt::EditRole);
+
+      if (! var.isValid())
+        var = model->data(ind, Qt::DisplayRole);
+    }
 
     ok = var.isValid();
   }

@@ -1601,7 +1601,21 @@ class CQChartsPlot : public CQChartsObj,
 
   Range adjustDataRange(const Range &range) const;
 
-  BBox calcGroupedDataRange(bool includeAnnotation=true) const;
+  struct RangeTypes {
+    bool annotation { false };
+    bool axes       { false };
+    bool key        { false };
+    bool title      { false };
+
+    RangeTypes &setAnnotation(bool b=true) { annotation = b; return *this; }
+    RangeTypes &setAxes      (bool b=true) { axes       = b; return *this; }
+    RangeTypes &setKey       (bool b=true) { key        = b; return *this; }
+    RangeTypes &setTitle     (bool b=true) { title      = b; return *this; }
+
+    RangeTypes() { }
+  };
+
+  BBox calcGroupedDataRange(const RangeTypes &rangeTypes=RangeTypes()) const;
 
   BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
   BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;

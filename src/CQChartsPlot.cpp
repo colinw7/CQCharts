@@ -496,7 +496,7 @@ QString
 CQChartsPlot::
 pathId() const
 {
-  return view()->id() + ":" + id();
+  return view()->id() + "|" + id();
 }
 
 //---
@@ -596,16 +596,18 @@ void
 CQChartsPlot::
 updateRange()
 {
+  if (! isUpdatesEnabled()) {
+    execUpdateRange();
+    return;
+  }
+
+  if (parentPlot())
+    return parentPlot()->updateRange();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateRange();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (parentPlot())
-      return parentPlot()->updateRange();
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->updateRange();
-
     if (debugUpdate_)
       std::cerr << "updateRange : " << id().toStdString() << "\n";
 
@@ -623,8 +625,10 @@ void
 CQChartsPlot::
 updateRangeAndObjs()
 {
-  if (! isUpdatesEnabled())
+  if (! isUpdatesEnabled()) {
+    execUpdateRangeAndObjs();
     return;
+  }
 
   if (parentPlot())
     return parentPlot()->updateRangeAndObjs();
@@ -658,16 +662,18 @@ void
 CQChartsPlot::
 updateObjs()
 {
+  if (! isUpdatesEnabled()) {
+    execUpdateObjs();
+    return;
+  }
+
+  if (parentPlot())
+    return parentPlot()->updateObjs();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateObjs();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (parentPlot())
-      return parentPlot()->updateObjs();
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->updateObjs();
-
     if (debugUpdate_)
       std::cerr << "updateObjs : " << id().toStdString() << "\n";
 
@@ -676,8 +682,9 @@ updateObjs()
 
     startThreadTimer();
   }
-  else
+  else {
     execUpdateObjs();
+  }
 }
 
 //------
@@ -720,13 +727,13 @@ void
 CQChartsPlot::
 drawBackground()
 {
+  if (! isUpdatesEnabled())
+    return;
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->drawBackground();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->drawBackground();
-
     if (debugUpdate_)
       std::cerr << "drawBackground : " << id().toStdString() << "\n";
 
@@ -734,21 +741,22 @@ drawBackground()
 
     startThreadTimer();
   }
-  else
+  else {
     invalidateLayer(Buffer::Type::BACKGROUND);
+  }
 }
 
 void
 CQChartsPlot::
 drawForeground()
 {
+  if (! isUpdatesEnabled())
+    return;
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->drawForeground();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->drawForeground();
-
     if (debugUpdate_)
       std::cerr << "drawForeground : " << id().toStdString() << "\n";
 
@@ -767,16 +775,16 @@ void
 CQChartsPlot::
 drawObjs()
 {
+  if (! isUpdatesEnabled())
+    return;
+
+  if (parentPlot())
+    return parentPlot()->drawObjs();
+
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->drawObjs();
+
   if (isQueueUpdate()) {
-    if (! isUpdatesEnabled())
-      return;
-
-    if (parentPlot())
-      return parentPlot()->drawObjs();
-
-    if (isOverlay() && ! isFirstPlot())
-      return firstPlot()->drawObjs();
-
     if (debugUpdate_)
       std::cerr << "drawObjs : " << id().toStdString() << "\n";
 
@@ -4638,7 +4646,7 @@ adjustDataRange(const Range &calcDataRange) const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-calcGroupedDataRange(bool includeAnnotation) const
+calcGroupedDataRange(const RangeTypes &rangeTypes) const
 {
   BBox bbox;
 
@@ -4647,8 +4655,21 @@ calcGroupedDataRange(bool includeAnnotation) const
       auto bbox1 = plot->calcDataRange();
       if (! bbox1.isSet()) return;
 
-      if (bbox1.isSet() && includeAnnotation)
-        bbox1 += plot->annotationBBox();
+      if (bbox1.isSet()) {
+        if (rangeTypes.annotation)
+          bbox1 += plot->annotationBBox();
+
+        if (rangeTypes.axes) {
+          bbox1 += plot->calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
+          bbox1 += plot->calcGroupedYAxisRange(CQChartsAxisSide::Type::NONE);
+        }
+
+        if (rangeTypes.key)
+          bbox1 += plot->keyFitBBox();
+
+        if (rangeTypes.title)
+          bbox1 += plot->titleFitBBox();
+      }
 
       if (plot != this)
         bbox1 = viewToWindow(plot->windowToView(bbox1));
@@ -4664,8 +4685,19 @@ calcGroupedDataRange(bool includeAnnotation) const
     bbox = calcDataRange();
 
     if (bbox.isSet()) {
-      if (includeAnnotation)
+      if (rangeTypes.annotation)
         bbox += annotationBBox();
+
+      if (rangeTypes.axes) {
+        bbox += calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
+        bbox += calcGroupedYAxisRange(CQChartsAxisSide::Type::NONE);
+      }
+
+      if (rangeTypes.key)
+        bbox += keyFitBBox();
+
+      if (rangeTypes.title)
+        bbox += titleFitBBox();
     }
     else
       bbox = BBox(0, 0, 1, 1);
@@ -4678,13 +4710,16 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
 {
-  assert(xAxis());
+  if (! xAxis())
+    return BBox();
 
   BBox xbbox;
 
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      if (plot->xAxis() && plot->xAxis()->side() == side) {
+      if (! plot->xAxis()) return;
+
+      if (side == CQChartsAxisSide::Type::NONE || plot->xAxis()->side() == side) {
         auto xbbox1 = plot->xAxis()->bbox();
         if (! xbbox1.isSet()) return;
 
@@ -4696,12 +4731,9 @@ calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
-    if (xAxis()->side() == side)
+    if (side == CQChartsAxisSide::Type::NONE || xAxis()->side() == side)
       xbbox = xAxis()->bbox();
   }
-
-  if (! xbbox.isSet())
-    xbbox = BBox(0, 0, 0, 0);
 
   return xbbox;
 }
@@ -4710,13 +4742,16 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
 {
-  assert(yAxis());
+  if (! yAxis())
+    return BBox();
 
   BBox ybbox;
 
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      if (plot->yAxis() && plot->yAxis()->side() == side) {
+      if (! plot->yAxis()) return;
+
+      if (side == CQChartsAxisSide::Type::NONE || plot->yAxis()->side() == side) {
         auto ybbox1 = plot->yAxis()->bbox();
         if (! ybbox1.isSet()) return;
 
@@ -4728,12 +4763,9 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     });
   }
   else {
-    if (yAxis()->side() == side)
+    if (side == CQChartsAxisSide::Type::NONE || yAxis()->side() == side)
       ybbox = yAxis()->bbox();
   }
-
-  if (! ybbox.isSet())
-    ybbox = BBox(0, 0, 0, 0);
 
   return ybbox;
 }

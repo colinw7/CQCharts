@@ -6,7 +6,12 @@
 class CQChartsCmdLine;
 class CQCharts;
 
-class CQScrolledCommand;
+namespace CQCommand {
+
+class ScrollArea;
+
+}
+
 class CQTcl;
 
 #define CQChartsCmdLineDlgMgrInst CQChartsCmdLineDlgMgr::instance()
@@ -54,9 +59,9 @@ class CQChartsCmdLine : public QFrame {
   void executeCommand(const QString &);
 
  private:
-  CQCharts*          charts_  { nullptr }; //!< charts
-  CQScrolledCommand* command_ { nullptr }; //!< command widget
-  CQTcl*             qtcl_    { nullptr };
+  CQCharts*              charts_  { nullptr }; //!< charts
+  CQCommand::ScrollArea* command_ { nullptr }; //!< command widget
+  CQTcl*                 qtcl_    { nullptr }; //!< qtcl interface
 };
 
 #endif

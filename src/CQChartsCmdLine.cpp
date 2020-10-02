@@ -46,7 +46,7 @@ CQChartsCmdLine(CQCharts *charts, QWidget *parent) :
 
   auto *layout = new QVBoxLayout(this);
 
-  command_ = new CQScrolledCommand;
+  command_ = new CQCommand::ScrollArea;
 
   command_->getCommand()->setMinLines(10);
   command_->getCommand()->setPrompt("> ");
@@ -55,12 +55,6 @@ CQChartsCmdLine(CQCharts *charts, QWidget *parent) :
           this, SLOT(executeCommand(const QString &)));
 
   layout->addWidget(command_);
-
-  //---
-
-  auto fixedFont = CQChartsWidgetUtil::getMonospaceFont();
-
-  command_->setFont(fixedFont);
 
   //---
 
@@ -88,7 +82,7 @@ executeCommand(const QString &line)
 
     COSProcess::executeCommand(line1.toStdString(), str);
 
-    command_->outputText(str);
+    command_->outputText(str.c_str());
 
     return;
   }
@@ -110,7 +104,7 @@ executeCommand(const QString &line)
 
   COSExec::ungrabOutput();
 
-  command_->outputText(str);
+  command_->outputText(str.c_str());
 }
 
 QSize

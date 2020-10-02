@@ -123,7 +123,8 @@ updateLocation()
   bbox_ = BBox();
 
   // all overlay plots and annotation boxes
-  auto bbox = plot_->calcGroupedDataRange();
+  auto bbox = plot_->calcGroupedDataRange(
+                CQChartsPlot::RangeTypes().setAnnotation().setAxes().setKey());
 
   //---
 
@@ -132,7 +133,7 @@ updateLocation()
 
   auto location = this->location();
 
-  //auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
+//auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
   auto marginSize = plot_->pixelToWindowSize(Size(0, 0));
 
   double kx = bbox.getXMid() - ts.width()/2;
@@ -145,7 +146,7 @@ updateLocation()
       ky = bbox.getYMax() + marginSize.height();
 
       if (xAxis)
-        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight();
+        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getOptHeight();
     }
     else
       ky = bbox.getYMax() - ts.height() - marginSize.height();
@@ -158,7 +159,7 @@ updateLocation()
       ky = bbox.getYMin() - ts.height() - marginSize.height();
 
       if (xAxis)
-        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight();
+        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getOptHeight();
     }
     else
       ky = bbox.getYMin() + marginSize.height();
@@ -274,7 +275,7 @@ calcSize()
   }
 
   if (isExpandWidth()) {
-    auto bbox = plot_->calcGroupedDataRange(/*includeAnnotation*/false);
+    auto bbox = plot_->calcGroupedDataRange();
 
     size_.setWidth(bbox.getWidth());
   }

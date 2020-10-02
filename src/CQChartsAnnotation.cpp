@@ -96,9 +96,9 @@ pathId() const
   auto id = propertyId();
 
   if      (plot())
-    return plot()->pathId() + ":" + id;
+    return plot()->pathId() + "|" + id;
   else if (view())
-    return view()->id() + ":" + id;
+    return view()->id() + "|" + id;
   else
     return id;
 }

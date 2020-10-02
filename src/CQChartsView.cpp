@@ -1469,9 +1469,9 @@ addPlot(CQChartsPlot *plot, const BBox &bbox)
     bbox1 = BBox(0, 0, viewportRange(), viewportRange());
 
   if (! plot->hasId()) {
-    QString id(QString("%1").arg(numPlots() + 1));
+    auto id = QString("%1").arg(numPlots() + 1);
 
-    plot->setId(QString("%1%2").arg(plot->typeName()).arg(id));
+    plot->setId(QString("plot:%1:%2").arg(plot->typeName()).arg(id));
 
     plot->setObjectName(plot->id());
   }

@@ -1175,7 +1175,10 @@ bool setModelHeaderValueI(QAbstractItemModel *model, const CQChartsColumn &colum
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return false;
 
-  return model->setHeaderData(column.column(), orient, var, role);
+  if (role >= 0)
+    return model->setHeaderData(column.column(), orient, var, role);
+  else
+    return model->setHeaderData(column.column(), orient, var, Qt::DisplayRole);
 }
 
 bool setModelHeaderValue(QAbstractItemModel *model, int section,
@@ -1208,7 +1211,10 @@ bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col
 
   auto ind = model->index(row, column.column(), QModelIndex());
 
-  return model->setData(ind, var, role);
+  if (role >= 0)
+    return model->setData(ind, var, role);
+  else
+    return model->setData(ind, var, Qt::EditRole);
 }
 
 bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,

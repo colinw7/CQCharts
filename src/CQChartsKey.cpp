@@ -893,7 +893,8 @@ updateLocation(const BBox &bbox)
 
       // offset by left y axis width
       if (yAxis)
-        kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getWidth() + xlm;
+        kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+                getOptWidth() + xlm;
     }
   }
   else if (location().onHCenter()) {
@@ -907,7 +908,8 @@ updateLocation(const BBox &bbox)
 
       // offset by right y axis width
       if (yAxis)
-        kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getWidth() + xrm;
+        kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+                getOptWidth() + xrm;
     }
   }
 
@@ -919,7 +921,8 @@ updateLocation(const BBox &bbox)
 
       // offset by top x axis height
       if (xAxis)
-        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight() + ytm;
+        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).
+                getOptHeight() + ytm;
     }
   }
   else if (location().onVCenter()) {
@@ -933,7 +936,8 @@ updateLocation(const BBox &bbox)
 
       // offset by bottom x axis height
       if (xAxis)
-        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight() + ybm;
+        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).
+                getOptHeight() + ybm;
     }
   }
 

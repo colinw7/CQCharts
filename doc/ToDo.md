@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + key outside plot overlaps title
+ + barchart column header names in tip
  + sankey placement
    + don't center single item at src/dest when align src/dest
  + console widget

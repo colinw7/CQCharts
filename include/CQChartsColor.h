@@ -139,6 +139,7 @@ class CQChartsColor {
 
   //---
 
+  // explicity palette index (in current theme)
   bool hasPaletteIndex() const {
     assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
            type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);
@@ -146,6 +147,9 @@ class CQChartsColor {
     return (ind() >= 0);
   }
 
+  int getPaletteIndex() const { return ind(); }
+
+  // named palette index (index is global)
   bool hasPaletteName() const {
     assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
            type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);
@@ -153,7 +157,9 @@ class CQChartsColor {
     return (ind() <= -2);
   }
 
-  int getPaletteInd() const { return -ind() - 2; }
+  int getNamedPaletteIndex() const { return -ind() - 2; }
+
+  //---
 
   bool getPaletteName(QString &name) const;
   bool setPaletteName(const QString &name);
