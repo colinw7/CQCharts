@@ -2812,7 +2812,12 @@ updatePlotObjects()
   if (plot) {
     objectsWidgets_.propertyModel = new CQPropertyViewModel;
 
-    for (auto &obj : plot->plotObjects())
+    const auto &objs = plot->plotObjects();
+
+    if (objs.size() > 100) // config
+      return;
+
+    for (auto &obj : objs)
       obj->addProperties(objectsWidgets_.propertyModel, obj->id());
   }
 

@@ -345,6 +345,8 @@ CQRangeSlider.cpp \
 CQCommand.cpp \
 CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
+\
+CTclParse.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -680,6 +682,8 @@ HEADERS += \
 ../include/CQCommand.h \
 ../include/CQCheckBox.h \
 ../include/CLeastSquaresFit.h \
+\
+../include/CTclParse.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

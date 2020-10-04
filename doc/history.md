@@ -1203,3 +1203,5 @@
 # 09/27/2020
  + Add command line widget
  + Improve sankey placement and controls
+# 10/04/2020
+ + Add completion support to commands and command line widget

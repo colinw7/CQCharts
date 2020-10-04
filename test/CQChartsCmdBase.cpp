@@ -4,6 +4,7 @@
 #include <CQWidgetFactory.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
+#include <CQStrUtil.h>
 #include <CQTclUtil.h>
 
 #include <QApplication>
@@ -74,7 +75,8 @@ addCommands()
   static bool cmdsAdded;
 
   if (! cmdsAdded) {
-    addCommand("help", new CQChartsBaseHelpCmd(this));
+    addCommand("help"    , new CQChartsBaseHelpCmd    (this));
+    addCommand("complete", new CQChartsBaseCompleteCmd(this));
 
     // qt generic
     addCommand("qt_create_widget"   , new CQChartsBaseCreateWidgetCmd  (this));
@@ -633,8 +635,14 @@ bool
 CQChartsCmdBase::
 helpCmd(CQChartsCmdArgs &argv)
 {
+  argv.addCmdArg("-hidden" , CQChartsCmdArg::Type::Boolean, "show hidden");
+  argv.addCmdArg("-verbose", CQChartsCmdArg::Type::Boolean, "verbose help");
+
   if (! argv.parse())
     return false;
+
+  auto hidden  = argv.getParseBool("hidden");
+  auto verbose = argv.getParseBool("verbose");
 
   //---
 
@@ -645,19 +653,266 @@ helpCmd(CQChartsCmdArgs &argv)
   //---
 
   if (pattern.length()) {
-    QRegExp re(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+    using Procs = std::vector<CQChartsCmdProc *>;
 
-    for (auto &p : commandProcs_) {
-      if (re.exactMatch(p.first))
-        std::cout << p.first.toStdString() << "\n";
+    Procs procs;
+
+    auto p = commandProcs_.find(pattern);
+
+    if (p != commandProcs_.end()) {
+      procs.push_back((*p).second);
+    }
+    else {
+      QRegExp re(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+
+      for (auto &p : commandProcs_) {
+        if (re.exactMatch(p.first))
+          procs.push_back(p.second);
+      }
+    }
+
+    if (procs.empty()) {
+      std::cout << "Command not found\n";
+      return true;
+    }
+
+    for (const auto &proc : procs) {
+      if (verbose) {
+        Vars vars;
+
+        CQChartsCmdArgs args(proc->name(), vars);
+
+        proc->addArgs(args);
+
+        args.help(hidden);
+      }
+      else {
+        std::cout << proc->name().toStdString() << "\n";
+      }
     }
   }
   else {
-    for (auto &p : commandProcs_)
-      std::cout << p.first.toStdString() << "\n";
+    // all procs
+    for (auto &p : commandProcs_) {
+      auto *proc = p.second;
+
+      if (verbose) {
+        Vars vars;
+
+        CQChartsCmdArgs args(proc->name(), vars);
+
+        proc->addArgs(args);
+
+        args.help(hidden);
+      }
+      else {
+        std::cout << proc->name().toStdString() << "\n";
+      }
+    }
   }
 
   return true;
+}
+
+//------
+
+bool
+CQChartsCmdBase::
+completeCmd(CQChartsCmdArgs &argv)
+{
+  argv.addCmdArg("-command", CQChartsCmdArg::Type::String, "complete command").setRequired();
+
+  argv.addCmdArg("-option"     , CQChartsCmdArg::Type::String , "complete option");
+  argv.addCmdArg("-value"      , CQChartsCmdArg::Type::String , "complete value");
+  argv.addCmdArg("-name_values", CQChartsCmdArg::Type::String , "option name values");
+  argv.addCmdArg("-all"        , CQChartsCmdArg::Type::Boolean, "get all matches");
+  argv.addCmdArg("-exact_space", CQChartsCmdArg::Type::Boolean, "add space if exact");
+
+  if (! argv.parse())
+    return false;
+
+  auto command    = argv.getParseStr ("command");
+  auto allFlag    = argv.getParseBool("all");
+  auto exactSpace = argv.getParseBool("exact_space");
+
+  //---
+
+  using NameValueMap = std::map<QString, QString>;
+
+  NameValueMap nameValueMap;
+
+  auto nameValues = argv.getParseStr ("name_values");
+
+  QStringList nameValues1;
+
+  (void) CQTcl::splitList(nameValues, nameValues1);
+
+  for (const auto &nv : nameValues1) {
+    QStringList nameValues2;
+
+    (void) CQTcl::splitList(nv, nameValues2);
+
+    if (nameValues2.length() == 2)
+      nameValueMap[nameValues2[0]] = nameValues2[1];
+  }
+
+  //---
+
+  if (argv.hasParseArg("option")) {
+    // get option to complete
+    auto option = argv.getParseStr ("option");
+
+    auto optionStr = "-" + option;
+
+    //---
+
+    // get proc
+    auto p = commandProcs_.find(command);
+    if (p == commandProcs_.end()) return false;
+
+    auto *proc = (*p).second;
+
+    //---
+
+    // get arg info
+    Vars vars;
+
+    CQChartsCmdArgs args(command, vars);
+
+    proc->addArgs(args);
+
+    //---
+
+    if (argv.hasParseArg("value")) {
+      // get option arg type
+      auto *arg = args.getCmdOpt(option);
+      if (! arg) return false;
+
+      auto type = arg->type();
+
+      //---
+
+      // get value to complete
+      auto value = argv.getParseStr("value");
+
+      //---
+
+      // complete by type
+      QStringList strs;
+
+      if      (type == CQChartsCmdArg::Type::Boolean) {
+      }
+      else if (type == CQChartsCmdArg::Type::Integer) {
+      }
+      else if (type == CQChartsCmdArg::Type::Real) {
+      }
+      else if (type == CQChartsCmdArg::Type::SBool) {
+        strs << "0" << "1";
+      }
+      else if (type == CQChartsCmdArg::Type::Enum) {
+        auto &nv = arg->nameValues();
+
+        for (const auto &p : nv)
+          strs.push_back(p.first);
+      }
+      else if (type == CQChartsCmdArg::Type::Color) {
+      }
+      else if (type == CQChartsCmdArg::Type::Font) {
+      }
+      else if (type == CQChartsCmdArg::Type::LineDash) {
+      }
+      else if (type == CQChartsCmdArg::Type::Length) {
+      }
+      else if (type == CQChartsCmdArg::Type::Position) {
+      }
+      else if (type == CQChartsCmdArg::Type::Rect) {
+      }
+      else if (type == CQChartsCmdArg::Type::Polygon) {
+      }
+      else if (type == CQChartsCmdArg::Type::Align) {
+      }
+      else if (type == CQChartsCmdArg::Type::Sides) {
+      }
+      else if (type == CQChartsCmdArg::Type::Column) {
+      }
+      else if (type == CQChartsCmdArg::Type::Row) {
+      }
+      else if (type == CQChartsCmdArg::Type::Reals) {
+      }
+      else if (type == CQChartsCmdArg::Type::String) {
+        strs = proc->getArgValues(option, nameValueMap);
+      }
+      else {
+        return setCmdRc(strs);
+      }
+
+      //---
+
+      if (allFlag)
+        return setCmdRc(strs);
+
+      auto matchValues = CQStrUtil::matchStrs(value, strs);
+
+      bool exact;
+
+      auto newValue = CQStrUtil::longestMatch(matchValues, exact);
+
+      if (newValue.length() >= value.length()) {
+        if (exact && exactSpace)
+          newValue += " ";
+
+        return setCmdRc(newValue);
+      }
+
+      return setCmdRc(strs);
+    }
+    else {
+      const auto &names = args.getCmdArgNames();
+
+      if (allFlag) {
+        QStringList strs;
+
+        for (const auto &name : names)
+          strs.push_back(name.mid(1));
+
+        return setCmdRc(strs);
+      }
+
+      auto matchArgs = CQStrUtil::matchStrs(optionStr, names);
+
+      bool exact;
+
+      auto newOption = CQStrUtil::longestMatch(matchArgs, exact);
+
+      if (newOption.length() >= optionStr.length()) {
+        if (exact && exactSpace)
+          newOption += " ";
+
+        return setCmdRc(newOption);
+      }
+    }
+  }
+  else {
+    const auto &cmds = qtcl()->commandNames();
+
+    auto matchCmds = CQStrUtil::matchStrs(command, cmds);
+
+    if (allFlag)
+      return setCmdRc(matchCmds);
+
+    bool exact;
+
+    auto newCommand = CQStrUtil::longestMatch(matchCmds, exact);
+
+    if (newCommand.length() >= command.length()) {
+      if (exact && exactSpace)
+        newCommand += " ";
+
+      return setCmdRc(newCommand);
+    }
+  }
+
+  return setCmdRc(QString());
 }
 
 //------
@@ -672,20 +927,6 @@ stringToCmdData(const QString &str) const
    }
   );
 }
-
-//------
-
-#if 0
-bool
-CQChartsCmdBase::
-valueToStrs(const QString &str, QStringList &strs) const
-{
-  if (str.length() >= 2 && str[0] == '{' && str[str.length() - 1] == '}')
-    return qtcl()->splitList(str.mid(1, str.length() - 2), strs);
-  else
-    return qtcl()->splitList(str, strs);
-}
-#endif
 
 //------
 

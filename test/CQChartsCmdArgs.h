@@ -53,6 +53,7 @@ class CQChartsCmdBaseArgs {
     QVariant var() const { assert(! isOpt_); return var_; }
 
     bool isOpt() const { return isOpt_; }
+    void setIsOpt(bool b) { isOpt_ = b; }
 
     QString opt() const { assert(isOpt_); return toString(var_).mid(1); }
 
@@ -323,10 +324,14 @@ class CQChartsCmdBaseArgs {
 
     bool help       = false;
     bool showHidden = false;
+    bool allowOpt   = true;
 
     while (! eof()) {
       // get next arg
-      const Arg &arg = getArg();
+      Arg arg = getArg();
+
+      if (! allowOpt && arg.isOpt())
+        arg.setIsOpt(false);
 
       // handle option (starts with '-')
       if (arg.isOpt()) {
@@ -341,13 +346,16 @@ class CQChartsCmdBaseArgs {
           continue;
         }
 
-        // flag if hidden option
+        // flag if hidden option (don't skip argument for command)
         if (opt == "hidden") {
           showHidden = true;
-          continue;
         }
 
-        // TODO: handle '--' for no more options
+        // Thandle '--' for no more options
+        if (opt == "-") {
+          allowOpt = false;
+          continue;
+        }
 
         //---
 
@@ -355,7 +363,8 @@ class CQChartsCmdBaseArgs {
         CQChartsCmdArg *cmdArg = getCmdOpt(opt);
 
         if (! cmdArg) {
-          return this->error();
+          if (opt != "hidden")
+            return this->error();
         }
 
         //---
@@ -838,6 +847,19 @@ class CQChartsCmdBaseArgs {
 
   //---
 
+  QStringList getCmdArgNames() const {
+    QStringList names;
+
+    for (auto &cmdArg : cmdArgs_) {
+      if (cmdArg.isOpt())
+        names.push_back("-" + cmdArg.name());
+    }
+
+    return names;
+  }
+
+  //---
+
   // handle missing value error
   bool valueError(const QString &opt) {
     errorMsg(QString("Missing value for '-%1'").arg(opt));
@@ -856,7 +878,7 @@ class CQChartsCmdBaseArgs {
   //---
 
   // display help
-  void help(bool showHidden) const {
+  void help(bool showHidden=false) const {
     using GroupIds = std::set<int>;
 
     GroupIds groupInds;

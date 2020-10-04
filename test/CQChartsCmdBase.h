@@ -77,7 +77,8 @@ class CQChartsCmdBase {
 
   bool shellCmd(CQChartsCmdArgs &args);
 
-  bool helpCmd(CQChartsCmdArgs &args);
+  bool helpCmd    (CQChartsCmdArgs &args);
+  bool completeCmd(CQChartsCmdArgs &args);
 
   //---
 
@@ -102,7 +103,8 @@ class CQChartsTclCmd;
  */
 class CQChartsCmdProc {
  public:
-  using Vars = std::vector<QVariant>;
+  using Vars         = std::vector<QVariant>;
+  using NameValueMap = std::map<QString, QString>;
 
  public:
   CQChartsCmdProc(CQChartsCmdBase *cmdBase) :
@@ -119,10 +121,16 @@ class CQChartsCmdProc {
 
   virtual bool exec(CQChartsCmdArgs &args) = 0;
 
+  virtual void addArgs(CQChartsCmdArgs & /*args*/) { }
+
+  virtual QStringList getArgValues(const QString& /*arg*/, const NameValueMap& /*nameValueMap*/) {
+    return QStringList();
+  }
+
  protected:
-  CQChartsCmdBase* cmdBase_   { nullptr };
+  CQChartsCmdBase* cmdBase_ { nullptr };
   QString          name_;
-  CQChartsTclCmd*  tclCmd_ { nullptr };
+  CQChartsTclCmd*  tclCmd_  { nullptr };
 };
 
 //---
@@ -145,7 +153,7 @@ class CQChartsCmdBaseSlot : public QObject {
   void execProc();
 
  private:
-  CQChartsCmdBase *base_     { nullptr };
+  CQChartsCmdBase *base_ { nullptr };
   QString          procName_;
 };
 
@@ -182,6 +190,7 @@ CQCHARTS_BASE_DEF_CMD(Assert, assertCmd)
 
 CQCHARTS_BASE_DEF_CMD(Shell, shellCmd)
 
-CQCHARTS_BASE_DEF_CMD(Help, helpCmd)
+CQCHARTS_BASE_DEF_CMD(Help    , helpCmd)
+CQCHARTS_BASE_DEF_CMD(Complete, completeCmd)
 
 #endif

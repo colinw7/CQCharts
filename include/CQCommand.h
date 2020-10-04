@@ -2,14 +2,17 @@
 #define CQCOMMAND_H
 
 #include <QScrollArea>
+#include <QListWidget>
 
 class QPaintEvent;
 class QKeyEvent;
 class QResizeEvent;
+class QEventLoop;
 
 namespace CQCommand {
 
 class CommandWidget;
+class CompletionList;
 
 enum class LineType {
   NONE,
@@ -46,25 +49,40 @@ class ScrollArea : public QScrollArea {
 
 //---
 
-class CommandWidget : public QWidget {
+class CommandWidget : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(QString prompt   READ prompt   WRITE setPrompt  )
   Q_PROPERTY(int     minLines READ minLines WRITE setMinLines)
 
+ public:
+  enum class CompleteMode {
+    None,
+    Longest,
+    Interactive
+  };
+
+ private:
+  struct Part {
+    Part() = default;
+
+    QString text;
+    QColor  color;
+  };
+
+  using Parts = std::vector<Part>;
+
   class Line {
    public:
     Line() = default;
 
-    Line(const QString &text, LineType type, int ind=-1) :
-     text_(text), type_(type), ind_(ind) {
-    }
+    Line(const QString &text, LineType type, int ind=-1);
 
     const QString &text() const { return text_; }
-    void setText(const QString &s) { text_ = s; }
+    void setText(const QString &s);
 
     const LineType &type() const { return type_; }
-    void setType(const LineType &t) { type_ = t; }
+    void setType(const LineType &t);
 
     int ind() const { return ind_; }
     void setInd(int i) { ind_ = i; }
@@ -75,12 +93,17 @@ class CommandWidget : public QWidget {
     int y() const { return y_; }
     void setY(int y) { y_ = y; }
 
+    void initParts();
+
+    const Parts &parts() const { return parts_; }
+
    private:
     QString  text_;
     LineType type_ { LineType::NONE };
     int      ind_  { -1 };
     int      x_    { 0 };
     int      y_    { 0 };
+    Parts    parts_;
   };
 
   class Entry {
@@ -154,25 +177,32 @@ class CommandWidget : public QWidget {
   int minLines() const { return minLines_; }
   void setMinLines(int i) { minLines_ = i; }
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
   void updateSize(int w, int h);
 
-  void paintEvent(QPaintEvent *e);
+  void paintEvent(QPaintEvent *e) override;
 
-  void mousePressEvent  (QMouseEvent *e);
-  void mouseMoveEvent   (QMouseEvent *e);
-  void mouseReleaseEvent(QMouseEvent *e);
+  void mousePressEvent  (QMouseEvent *e) override;
+  void mouseMoveEvent   (QMouseEvent *e) override;
+  void mouseReleaseEvent(QMouseEvent *e) override;
 
   void pixelToText(const QPoint &p, int &lineNum, int &charNum);
 
-  void keyPressEvent(QKeyEvent *e);
+  bool event(QEvent *event) override;
 
-  void contextMenuEvent(QContextMenuEvent *e);
+  void keyPressEvent(QKeyEvent *e) override;
+
+  void contextMenuEvent(QContextMenuEvent *e) override;
 
   void outputText(const QString &str);
 
-  virtual void complete() { }
+  virtual bool complete(const QString & /*text*/, int /*pos*/,
+                        QString & /*newText*/, CompleteMode /*completeMode*/) const {
+    return false;
+  }
+
+  QString showCompletionChooser(const QStringList &strs, bool modal=true);
 
  private:
   void outputTypeText(const QString &str, const LineType &type, int ind);
@@ -185,6 +215,8 @@ class CommandWidget : public QWidget {
 
   void drawSelectedChars(QPainter *painter, int lineNum1, int charNum1,
                          int lineNum2, int charNum2);
+
+  void drawText(QPainter *painter, int x, int y, const QString &text);
 
   void copy(const QString &text) const;
   void paste();
@@ -199,6 +231,9 @@ class CommandWidget : public QWidget {
  private slots:
   void copySlot();
   void pasteSlot();
+
+  void completionSelectedSlot(const QString &str);
+  void completionCancelledSlot();
 
  private:
   using LineList = std::vector<Line *>;
@@ -235,12 +270,31 @@ class CommandWidget : public QWidget {
 #else
   /* dark */
   QColor      bgColor_      { 40, 40, 40 };
-  QColor      indColor_     { 240, 240, 240 };
+  QColor      indColor_     { 240, 255, 255 };
   QColor      commandColor_ { 200, 255, 200 };
-  QColor      outputColor_  { 200, 200, 255 };
+  QColor      outputColor_  { 240, 240, 240 };
   QColor      promptColor_  { 240, 240, 240 };
   QColor      cursorColor_  { 255, 255, 0 };
 #endif
+  CompletionList *completionList_ { nullptr };
+  QEventLoop*     eventLoop_      { nullptr };
+  QString         completionItem_;
+};
+
+class CompletionList : public QListWidget {
+  Q_OBJECT
+
+ public:
+  CompletionList(CommandWidget *w);
+
+  bool event(QEvent *event) override;
+
+ signals:
+  void itemSelected(const QString &);
+  void itemCancelled();
+
+ private:
+  CommandWidget* w_ { nullptr };
 };
 
 }

@@ -44,6 +44,8 @@ class CQChartsCmdLineDlgMgr {
 
 //---
 
+class CQChartsCmdWidget;
+
 class CQChartsCmdLine : public QFrame {
   Q_OBJECT
 
@@ -52,6 +54,9 @@ class CQChartsCmdLine : public QFrame {
  ~CQChartsCmdLine();
 
   CQCharts *charts() const { return charts_; }
+
+  bool complete(CQChartsCmdWidget *widget, const QString &text, int pos,
+                QString &newText, bool interactive) const;
 
   QSize sizeHint() const override;
 

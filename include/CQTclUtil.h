@@ -470,13 +470,16 @@ class CQTcl : public CTcl {
   Tcl_Command createExprCommand(const QString &name, ObjCmdProc proc, ObjCmdData data) {
     QString mathName = "tcl::mathfunc::" + name;
 
-    return createObjCommand(mathName, proc, data);
+    return createObjCommandI(mathName, proc, data);
   }
 
   Tcl_Command createObjCommand(const QString &name, ObjCmdProc proc, ObjCmdData data) {
-    return Tcl_CreateObjCommand(interp(), (char *) name.toLatin1().constData(),
-                                proc, data, nullptr);
+    commandNames_.push_back(name);
+
+    return createObjCommandI(name, proc, data);
   }
+
+  const QStringList &commandNames() const { return commandNames_; }
 
   int createAlias(const QString &newName, const QString &oldName) {
     return Tcl_CreateAlias(interp(), newName.toLatin1().constData(),
@@ -614,6 +617,12 @@ class CQTcl : public CTcl {
   }
 
  private:
+  Tcl_Command createObjCommandI(const QString &name, ObjCmdProc proc, ObjCmdData data) {
+    return Tcl_CreateObjCommand(interp(), (char *) name.toLatin1().constData(),
+                                proc, data, nullptr);
+  }
+
+ private:
   static char *traceProc(ClientData data, Tcl_Interp *, const char *name1,
                          const char *, int flags) {
     CQTcl *th = static_cast<CQTcl *>(data);
@@ -625,7 +634,8 @@ class CQTcl : public CTcl {
   }
 
  private:
-  Traces traces_;
+  Traces      traces_;
+  QStringList commandNames_;
 };
 
 #endif

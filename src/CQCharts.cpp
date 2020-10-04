@@ -120,11 +120,11 @@
 #include <CQChartsModelExprControl.h>
 
 #include <CQColorsPalette.h>
+#include <CQColorsTheme.h>
+#include <CQColors.h>
 
 #include <CQPropertyView.h>
 #include <CQPropertyViewItem.h>
-#include <CQColors.h>
-#include <CQColorsTheme.h>
 
 #include <CQWidgetFactory.h>
 #include <CQTclUtil.h>

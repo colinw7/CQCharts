@@ -9,6 +9,7 @@
 #include <QMenu>
 #include <QKeyEvent>
 #include <QClipboard>
+#include <QEventLoop>
 
 #include <iostream>
 
@@ -94,7 +95,7 @@ updateScroll()
 
 CommandWidget::
 CommandWidget(QWidget *parent) :
- QWidget(parent)
+ QFrame(parent)
 {
   setObjectName("command");
 
@@ -218,13 +219,13 @@ paintEvent(QPaintEvent *)
   // draw entry text before cursor
   painter.setPen(commandColor_);
 
-  painter.drawText(x, y - charDescent_, lhs);
+  drawText(&painter, x, y, lhs);
 
   x += lhs.length()*charWidth_;
 
   int cx = x;
 
-  painter.drawText(x, y - charDescent_, rhs);
+  drawText(&painter, x, y, rhs);
 
   x += rhs.length()*charWidth_;
 
@@ -276,7 +277,7 @@ drawCursor(QPainter *painter, int x, int y, const QChar &c)
     if (! c.isNull()) {
       painter->setPen(bgColor_);
 
-      painter->drawText(x, y - charDescent_, QString(c));
+      drawText(painter, x, y, QString(c));
     }
   }
   else {
@@ -312,14 +313,26 @@ drawLine(QPainter *painter, Line *line, int y)
   else
     painter->setPen(Qt::red);
 
-  const auto &text = line->text();
-
   int x = line->x();
 
-  for (int j = 0; j < text.length(); ++j) {
-    painter->drawText(x, y - charDescent_, text[j]);
+  const auto &parts = line->parts();
 
-    x += charWidth_;
+  if (parts.empty()) {
+    const auto &text = line->text();
+
+    drawText(painter, x, y, text);
+  }
+  else {
+    for (const auto &part : parts) {
+      if (part.color.isValid())
+        painter->setPen(part.color);
+      else
+        painter->setPen(outputColor_);
+
+      const auto &text = part.text;
+
+      drawText(painter, x, y, text);
+    }
   }
 }
 
@@ -333,13 +346,13 @@ drawPrompt(QPainter *painter, Line *line, int y)
 
   int x = 0;
 
-  painter->drawText(x, y - charDescent_, QString("%1").arg(ind));
+  drawText(painter, x, y, QString("%1").arg(ind));
 
   x += indMargin_;
 
   painter->setPen(promptColor_);
 
-  painter->drawText(x, y - charDescent_, prompt());
+  drawText(painter, x, y, prompt());
 }
 
 void
@@ -380,8 +393,19 @@ drawSelectedChars(QPainter *painter, int lineNum1, int charNum1, int lineNum2, i
 
       painter->fillRect(QRect(tx1, ty - charHeight_, charWidth_, charHeight_), outputColor_);
 
-      painter->drawText(tx1, ty - charDescent_, text.mid(j, 1));
+      drawText(painter, tx1, ty, text.mid(j, 1));
     }
+  }
+}
+
+void
+CommandWidget::
+drawText(QPainter *painter, int x, int y, const QString &text)
+{
+  for (int i = 0; i < text.length(); ++i) {
+    painter->drawText(x, y - charDescent_, text[i]);
+
+    x += charWidth_;
   }
 }
 
@@ -447,6 +471,36 @@ pixelToText(const QPoint &p, int &lineNum, int &charNum)
   }
 }
 
+bool
+CommandWidget::
+event(QEvent *e)
+{
+  if (e->type() == QEvent::KeyPress) {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+
+    if (ke->key() == Qt::Key_Tab) {
+      CompleteMode completeMode = CompleteMode::Longest;
+
+      if (ke->modifiers() & Qt::ControlModifier)
+        completeMode = CompleteMode::Interactive;
+
+      QString text;
+
+      if (complete(entry_.getText(), entry_.getPos(), text, completeMode)) {
+        entry_.setText(text);
+
+        entry_.cursorEnd();
+
+        update();
+      }
+
+      return true;
+    }
+  }
+
+  return QFrame::event(e);
+}
+
 void
 CommandWidget::
 keyPressEvent(QKeyEvent *event)
@@ -487,6 +541,8 @@ keyPressEvent(QKeyEvent *event)
     }
 
     entry_.setText(command);
+
+    entry_.cursorEnd();
   }
   else if (key == Qt::Key_Down) {
     ++commandNum_;
@@ -501,6 +557,8 @@ keyPressEvent(QKeyEvent *event)
       commandNum_ = -1;
 
     entry_.setText(command);
+
+    entry_.cursorEnd();
   }
   else if (key == Qt::Key_Backspace) {
     entry_.backSpace();
@@ -512,7 +570,7 @@ keyPressEvent(QKeyEvent *event)
     paste();
   }
   else if (key == Qt::Key_Tab) {
-    complete();
+    // handled by event
   }
   else if (key == Qt::Key_Home) {
     // TODO
@@ -678,7 +736,12 @@ outputTypeText(const QString &str, const LineType &type, int ind)
   while (pos != -1) {
     auto lhs = buffer.mid(0, pos);
 
-    lines_.push_back(new Line(lhs, type, ind));
+    auto *line = new Line(lhs, type, ind);
+
+    if (type == CQCommand::LineType::OUTPUT)
+      line->initParts();
+
+    lines_.push_back(line);
 
     buffer = buffer.mid(pos + 1);
 
@@ -686,6 +749,214 @@ outputTypeText(const QString &str, const LineType &type, int ind)
   }
 
   updateSize(0, 0);
+}
+
+QString
+CommandWidget::
+showCompletionChooser(const QStringList &strs, bool modal)
+{
+  if (! completionList_)
+    completionList_ = new CompletionList(this);
+
+  completionList_->move(0, height() - charHeight_);
+
+  int margin = 4;
+  int border = 10;
+
+  int w = 0;
+
+  for (const auto &str : strs)
+    w = std::max(w, str.length()*charWidth_);
+
+  if (w + 2*border >= width() - 2*margin)
+    w = width() - 2*margin - 2*border;
+
+  int h = strs.size()*charHeight_;
+
+  if (h + 2*border >= height() - charHeight_ - 2*margin)
+    h = height() - charHeight_ - 2*margin - 2*border;
+
+  completionList_->move(margin, height() - h - 2*border - charHeight_ - margin);
+  completionList_->resize(w + 2*border, h + 2*border);
+
+  completionList_->clear();
+
+  for (const auto &str : strs)
+    completionList_->addItem(str);
+
+  completionList_->setCurrentItem(completionList_->item(0));
+
+  completionList_->show();
+
+  completionList_->setFocus();
+
+  completionItem_ = "";
+
+  if (modal) {
+    connect(completionList_, SIGNAL(itemSelected(const QString &)),
+            this, SLOT(completionSelectedSlot(const QString &)));
+    connect(completionList_, SIGNAL(itemCancelled()), this, SLOT(completionCancelledSlot()));
+
+    assert(! eventLoop_);
+
+    eventLoop_ = new QEventLoop;
+
+    (void) eventLoop_->exec();
+
+    disconnect(completionList_, SIGNAL(itemSelected(const QString &)),
+               this, SLOT(completionSelectedSlot(const QString &)));
+    disconnect(completionList_, SIGNAL(itemCancelled()), this, SLOT(completionCancelledSlot()));
+
+    delete eventLoop_;
+
+    eventLoop_ = nullptr;
+  }
+
+  return completionItem_;
+}
+
+void
+CommandWidget::
+completionSelectedSlot(const QString &str)
+{
+  completionItem_ = str;
+
+  if (eventLoop_)
+    eventLoop_->exit();
+}
+
+void
+CommandWidget::
+completionCancelledSlot()
+{
+  completionItem_ = "";
+
+  if (eventLoop_)
+    eventLoop_->exit();
+}
+
+//------
+
+CommandWidget::Line::
+Line(const QString &text, LineType type, int ind) :
+ text_(text), type_(type), ind_(ind)
+{
+}
+
+void
+CommandWidget::Line::
+setText(const QString &s)
+{
+  text_ = s;
+
+  parts_.clear();
+}
+
+void
+CommandWidget::Line::
+setType(const LineType &t)
+{
+  type_ = t;
+}
+
+void
+CommandWidget::Line::
+initParts()
+{
+  auto getEscapeColor = [](int n) {
+    if      (n ==  0) return QColor();
+    else if (n == 31) return QColor(Qt::red);
+    else if (n == 32) return QColor(Qt::green);
+    else if (n == 33) return QColor(Qt::yellow);
+    else if (n == 34) return QColor(Qt::blue);
+    else if (n == 35) return QColor(Qt::magenta);
+    else if (n == 36) return QColor(Qt::cyan);
+    else if (n == 37) return QColor(Qt::white);
+    else              return QColor();
+  };
+
+  parts_.clear();
+
+  int len = text_.length();
+
+  Part part;
+
+  for (int i = 0; i < len; ++i) {
+    char c = text_[i].toLatin1();
+
+    if (c == '') {
+      if (part.text.length()) {
+        parts_.push_back(part);
+
+        part = Part();
+      }
+
+      c = text_[++i].toLatin1();
+
+      if (i < len && c == '[') {
+        c = text_[++i].toLatin1();
+
+        int n = 0;
+
+        while (i < len && isdigit(c)) {
+          n = n*10 + (c - '0');
+
+          c = text_[++i].toLatin1();
+        }
+
+        if (i < len && c == 'm') {
+          part.color = getEscapeColor(n);
+        }
+      }
+    }
+    else {
+      part.text += text_[i];
+    }
+  }
+
+  if (part.text.length())
+    parts_.push_back(part);
+}
+
+//------
+
+CompletionList::
+CompletionList(CommandWidget *w) :
+ QListWidget(w), w_(w)
+{
+  setFocusPolicy(Qt::StrongFocus);
+}
+
+bool
+CompletionList::
+event(QEvent *e)
+{
+  if (e->type() == QEvent::KeyPress) {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+
+    if      (ke->key() == Qt::Key_Escape) {
+      emit itemCancelled();
+
+      hide();
+
+      return true;
+    }
+    else if (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter) {
+      if (currentItem())
+        emit itemSelected(currentItem()->text());
+
+      hide();
+
+      return true;
+    }
+    else if (ke->key() == Qt::Key_Up || ke->key() == Qt::Key_Down) {
+      QListWidget::event(e);
+
+      return true;
+    }
+  }
+
+  return QListWidget::event(e);
 }
 
 }
