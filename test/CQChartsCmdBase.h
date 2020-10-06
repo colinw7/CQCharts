@@ -26,7 +26,9 @@ class CQChartsCmdBase {
 
   void addCommand(const QString &name, CQChartsCmdProc *proc);
 
-  bool processCmd(const QString &cmd, const Vars &vars);
+  bool processCmd(const QString &name, const Vars &vars);
+
+  CQChartsCmdProc *getCommand(const QString &cmd) const;
 
   //---
 
@@ -35,6 +37,12 @@ class CQChartsCmdBase {
   void parseLine(const QString &line, bool log=true);
 
   void parseScriptLine(const QString &line);
+
+  //---
+
+  bool help(const QString &pattern, bool verbose, bool hidden);
+
+  void helpAll(bool verbose, bool hidden);
 
   //---
 
@@ -60,17 +68,6 @@ class CQChartsCmdBase {
   //---
 
  public:
-  bool qtCreateWidgetCmd  (CQChartsCmdArgs &args);
-  bool qtCreateLayoutCmd  (CQChartsCmdArgs &args);
-  bool qtAddChildWidgetCmd(CQChartsCmdArgs &args);
-  bool qtAddStretchCmd    (CQChartsCmdArgs &args);
-  bool qtConnectWidgetCmd (CQChartsCmdArgs &args);
-  bool qtActivateSlotCmd  (CQChartsCmdArgs &args);
-  bool qtGetPropertyCmd   (CQChartsCmdArgs &args);
-  bool qtSetPropertyCmd   (CQChartsCmdArgs &args);
-  bool qtHasPropertyCmd   (CQChartsCmdArgs &args);
-  bool qtSyncCmd          (CQChartsCmdArgs &args);
-
   bool perfCmd(CQChartsCmdArgs &args);
 
   bool assertCmd(CQChartsCmdArgs &args);
@@ -163,34 +160,46 @@ class CQChartsCmdBaseSlot : public QObject {
  * \brief Charts Named Basic Command
  * \ingroup Charts
  */
-#define CQCHARTS_BASE_DEF_CMD(NAME, PROC) \
+#define CQCHARTS_BASE_DEF_CMD(NAME) \
 class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
  public: \
   CQChartsBase##NAME##Cmd(CQChartsCmdBase *cmdBase) : CQChartsCmdProc(cmdBase) { } \
- \
-  bool exec(CQChartsCmdArgs &args) override { return cmdBase_->PROC(args); } \
+\
+  bool exec(CQChartsCmdArgs &args) override; \
+\
+  void addArgs(CQChartsCmdArgs &args) override; \
+\
+  QStringList getArgValues(const QString &arg, \
+                           const NameValueMap &nameValueMap=NameValueMap()) override; \
 };
 
 //---
 
-CQCHARTS_BASE_DEF_CMD(CreateWidget  , qtCreateWidgetCmd  )
-CQCHARTS_BASE_DEF_CMD(CreateLayout  , qtCreateLayoutCmd  )
-CQCHARTS_BASE_DEF_CMD(AddChildWidget, qtAddChildWidgetCmd)
-CQCHARTS_BASE_DEF_CMD(AddStretch    , qtAddStretchCmd    )
-CQCHARTS_BASE_DEF_CMD(ConnectWidget , qtConnectWidgetCmd )
-CQCHARTS_BASE_DEF_CMD(ActivateSlot  , qtActivateSlotCmd  )
-CQCHARTS_BASE_DEF_CMD(GetProperty   , qtGetPropertyCmd   )
-CQCHARTS_BASE_DEF_CMD(SetProperty   , qtSetPropertyCmd   )
-CQCHARTS_BASE_DEF_CMD(HasProperty   , qtHasPropertyCmd   )
-CQCHARTS_BASE_DEF_CMD(QtSync        , qtSyncCmd          )
+// widgets
+CQCHARTS_BASE_DEF_CMD(CreateWidget  )
+CQCHARTS_BASE_DEF_CMD(CreateLayout  )
+CQCHARTS_BASE_DEF_CMD(AddChildWidget)
+CQCHARTS_BASE_DEF_CMD(AddStretch    )
 
-CQCHARTS_BASE_DEF_CMD(Perf, perfCmd)
+// signals, slots
+CQCHARTS_BASE_DEF_CMD(ConnectWidget)
+CQCHARTS_BASE_DEF_CMD(ActivateSlot )
 
-CQCHARTS_BASE_DEF_CMD(Assert, assertCmd)
+// qt properties
+CQCHARTS_BASE_DEF_CMD(GetProperty)
+CQCHARTS_BASE_DEF_CMD(SetProperty)
+CQCHARTS_BASE_DEF_CMD(HasProperty)
 
-CQCHARTS_BASE_DEF_CMD(Shell, shellCmd)
+// misc
+CQCHARTS_BASE_DEF_CMD(QtSync)
 
-CQCHARTS_BASE_DEF_CMD(Help    , helpCmd)
-CQCHARTS_BASE_DEF_CMD(Complete, completeCmd)
+CQCHARTS_BASE_DEF_CMD(Perf)
+
+CQCHARTS_BASE_DEF_CMD(Assert)
+
+CQCHARTS_BASE_DEF_CMD(Shell)
+
+CQCHARTS_BASE_DEF_CMD(Help)
+CQCHARTS_BASE_DEF_CMD(Complete)
 
 #endif

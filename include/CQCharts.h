@@ -225,9 +225,11 @@ class CQCharts : public QObject {
  public:
   CQChartsModelData *initModelData(ModelP &model);
 
+  CQChartsModelData *getModelData(const ModelP &model) const;
   CQChartsModelData *getModelData(const QAbstractItemModel *model) const;
-  CQChartsModelData *getModelData(const QString &id) const;
-  CQChartsModelData *getModelData(int ind) const;
+
+  CQChartsModelData *getModelDataById(const QString &id) const;
+  CQChartsModelData *getModelDataByInd(int ind) const;
 
   int currentModelInd() const { return currentModelInd_; }
   void setCurrentModelInd(int ind);
@@ -244,8 +246,9 @@ class CQCharts : public QObject {
   //---
 
   // remove model data for model
-  bool removeModelData(ModelP &model);
+  bool removeModel(ModelP &model);
 
+  // remove model data
   bool removeModelData(CQChartsModelData *modelData);
 
   //---

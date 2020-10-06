@@ -293,13 +293,15 @@ inline QString variantListToString(const QVariantList &vars) {
     Tcl_ListObjAppendElement(nullptr, obj, obj1);
   }
 
+  Tcl_IncrRefCount(obj);
+
   int len = 0;
 
   char *str = Tcl_GetStringFromObj(obj, &len);
 
   QString qstr(str);
 
-  Tcl_IncrRefCount(obj); Tcl_DecrRefCount(obj);
+  Tcl_DecrRefCount(obj);
 
   return qstr;
 }
@@ -308,23 +310,23 @@ inline QString variantListToString(const QVariantList &vars) {
 
 inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &var) {
   if (var.isValid()) {
-    Tcl_Obj *nameObj  = variantToObj(interp, name);
+    Tcl_Obj *nameObj  = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
     Tcl_Obj *valueObj = variantToObj(interp, var );
 
     Tcl_ObjSetVar2(interp, nameObj, nullptr, valueObj, TCL_GLOBAL_ONLY);
 
-    Tcl_IncrRefCount(nameObj); Tcl_DecrRefCount(nameObj);
+    Tcl_DecrRefCount(nameObj);
   }
 }
 
 //---
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
-  Tcl_Obj *nameObj = variantToObj(interp, name);
+  Tcl_Obj *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
 
   Tcl_Obj *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
 
-  Tcl_IncrRefCount(nameObj); Tcl_DecrRefCount(nameObj);
+  Tcl_DecrRefCount(nameObj);
 
   if (! obj)
     return QVariant();
@@ -335,7 +337,11 @@ inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
 //---
 
 inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
-  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, variantToObj(interp, name), nullptr, TCL_GLOBAL_ONLY);
+  Tcl_Obj *nameObj = variantToObj(interp, name); Tcl_IncrRefCount(nameObj);
+
+  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
+
+  Tcl_DecrRefCount(nameObj);
 
   if (! obj)
     return Vars();

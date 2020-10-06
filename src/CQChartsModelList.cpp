@@ -44,7 +44,7 @@ void
 CQChartsModelList::
 addModelData(int ind)
 {
-  auto *modelData = charts_->getModelData(ind);
+  auto *modelData = charts_->getModelDataByInd(ind);
   if (! modelData) return;
 
   addModelData(modelData);
@@ -116,7 +116,7 @@ currentTabChanged(int)
   auto *modelDataWidget = currentModelDataWidget();
 
   if (modelDataWidget)
-    charts_->setCurrentModelInd(modelDataWidget->modelData()->ind());
+    charts_->setCurrentModelData(modelDataWidget->modelData());
 }
 
 CQChartsModelData *
@@ -126,7 +126,7 @@ currentModelData() const
   auto *modelDataWidget = currentModelDataWidget();
 
   if (modelDataWidget)
-    return charts_->getModelData(modelDataWidget->modelData()->ind());
+    return modelDataWidget->modelData();
 
   return nullptr;
 }
@@ -144,7 +144,7 @@ CQChartsModelDataWidget *
 CQChartsModelList::
 modelDataWidget(int ind) const
 {
-  auto *modelData = charts_->getModelData(ind);
+  auto *modelData = charts_->getModelDataByInd(ind);
 
   for (int i = 0; i < viewTab_->count(); ++i) {
     auto *modelWidget = qobject_cast<CQChartsModelDataWidget *>(viewTab_->widget(i));

@@ -563,7 +563,7 @@ CQChartsModelView::
 getModelData()
 {
   if (! modelData_) {
-    modelData_ = charts_->getModelData(model_.data());
+    modelData_ = charts_->getModelData(model_);
 
     if (modelData_)
       connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));

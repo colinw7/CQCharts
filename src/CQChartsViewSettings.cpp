@@ -1937,7 +1937,7 @@ editModelSlot()
 
   auto *charts = window_->view()->charts();
 
-  auto *modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelDataByInd(int(ind));
   if (! modelData) return;
 
   charts->editModelDlg(modelData);
@@ -1954,7 +1954,7 @@ removeModelSlot()
 
   auto *charts = window_->view()->charts();
 
-  auto *modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelDataByInd(int(ind));
   if (! modelData) return;
 
   charts->removeModelData(modelData);
@@ -1971,7 +1971,7 @@ createPlotModelSlot()
 
   auto *charts = window_->view()->charts();
 
-  auto *modelData = charts->getModelData(int(ind));
+  auto *modelData = charts->getModelDataByInd(int(ind));
   if (! modelData) return;
 
   auto *createPlotDlg = charts->createPlotDlg(modelData);

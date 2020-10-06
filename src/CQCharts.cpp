@@ -980,7 +980,14 @@ initModelData(ModelP &model)
   if (! getModelInd(model.data(), ind))
     ind = addModelData(model);
 
-  return getModelData(ind);
+  return getModelDataByInd(ind);
+}
+
+CQChartsModelData *
+CQCharts::
+getModelData(const ModelP &model) const
+{
+  return getModelData(model.data());
 }
 
 CQChartsModelData *
@@ -995,7 +1002,7 @@ getModelData(const QAbstractItemModel *model) const
   if (! getModelInd(model, ind))
     return nullptr;
 
-  return getModelData(ind);
+  return getModelDataByInd(ind);
 }
 
 void
@@ -1066,12 +1073,10 @@ addModelData(ModelP &model)
 
 bool
 CQCharts::
-removeModelData(ModelP &model)
+removeModel(ModelP &model)
 {
-  auto *modelData = getModelData(model.data());
-
-  if (! modelData)
-    return false;
+  auto *modelData = getModelData(model);
+  if (! modelData) return false;
 
   return removeModelData(modelData);
 }
@@ -1152,7 +1157,7 @@ setModelInd(QAbstractItemModel *model, int ind)
 
 CQChartsModelData *
 CQCharts::
-getModelData(int ind) const
+getModelDataByInd(int ind) const
 {
   for (auto &modelData : modelDatas_)
     if (modelData->ind() == ind)
@@ -1163,7 +1168,7 @@ getModelData(int ind) const
 
 CQChartsModelData *
 CQCharts::
-getModelData(const QString &id) const
+getModelDataById(const QString &id) const
 {
   for (auto &modelData : modelDatas_)
     if (modelData->id() == id)

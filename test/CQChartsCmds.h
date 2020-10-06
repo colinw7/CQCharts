@@ -111,31 +111,6 @@ class CQChartsCmds : public QObject {
                              CQChartsColumn &column);
 
  public:
-  bool createChartsCorrelationModelCmd(CQChartsCmdArgs &args);
-  bool createChartsFoldedModelCmd     (CQChartsCmdArgs &args);
-  bool createChartsBucketModelCmd     (CQChartsCmdArgs &args);
-  bool createChartsSubsetModelCmd     (CQChartsCmdArgs &args);
-  bool createChartsTransposeModelCmd  (CQChartsCmdArgs &args);
-  bool createChartsCollapseModelCmd   (CQChartsCmdArgs &args);
-  bool createChartsPivotModelCmd      (CQChartsCmdArgs &args);
-  bool createChartsStatsModelCmd      (CQChartsCmdArgs &args);
-  bool createChartsDataModelCmd       (CQChartsCmdArgs &args);
-
-  bool addChartsKeyItemCmd(CQChartsCmdArgs &args);
-
-  bool printChartsImageCmd(CQChartsCmdArgs &args);
-  bool writeChartsDataCmd (CQChartsCmdArgs &args);
-
-  bool showChartsLoadModelDlgCmd   (CQChartsCmdArgs &args);
-  bool showChartsManageModelsDlgCmd(CQChartsCmdArgs &args);
-  bool showChartsCreatePlotDlgCmd  (CQChartsCmdArgs &args);
-  bool showChartsTextDlgCmd        (CQChartsCmdArgs &args);
-  bool showChartsHelpDlgCmd        (CQChartsCmdArgs &args);
-
-  bool testEditCmd(CQChartsCmdArgs &args);
-
-  //---
-
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
 
@@ -177,17 +152,6 @@ class CQChartsCmds : public QObject {
  * \brief Charts Tcl Command
  * \ingroup Charts
  */
-#define CQCHARTS_DEF_PROC_CMD(NAME, PROC) \
-class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
- public: \
-  CQCharts##NAME##Cmd(CQChartsCmds *cmds) : CQChartsCmdProc(cmds->cmdBase()), cmds_(cmds) { } \
-\
-  bool exec(CQChartsCmdArgs &args) override { return cmds_->PROC(args); } \
-\
- private: \
-  CQChartsCmds* cmds_ { nullptr }; \
-};
-
 #define CQCHARTS_DEF_CMD(NAME) \
 class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
  public: \
@@ -228,16 +192,16 @@ CQCHARTS_DEF_CMD(RemoveChartsModel)
 
 //---
 
-CQCHARTS_DEF_PROC_CMD(CreateChartsCorrelationModel, createChartsCorrelationModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsFoldedModel     , createChartsFoldedModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsBucketModel     , createChartsBucketModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsSubsetModel     , createChartsSubsetModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsTransposeModel  , createChartsTransposeModelCmd)
-CQCHARTS_DEF_CMD     (CreateChartsSummaryModel)
-CQCHARTS_DEF_PROC_CMD(CreateChartsCollapseModel   , createChartsCollapseModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsPivotModel      , createChartsPivotModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsStatsModel      , createChartsStatsModelCmd)
-CQCHARTS_DEF_PROC_CMD(CreateChartsDataModel       , createChartsDataModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsCorrelationModel)
+CQCHARTS_DEF_CMD(CreateChartsFoldedModel)
+CQCHARTS_DEF_CMD(CreateChartsBucketModel)
+CQCHARTS_DEF_CMD(CreateChartsSubsetModel)
+CQCHARTS_DEF_CMD(CreateChartsTransposeModel)
+CQCHARTS_DEF_CMD(CreateChartsSummaryModel)
+CQCHARTS_DEF_CMD(CreateChartsCollapseModel)
+CQCHARTS_DEF_CMD(CreateChartsPivotModel)
+CQCHARTS_DEF_CMD(CreateChartsStatsModel)
+CQCHARTS_DEF_CMD(CreateChartsDataModel)
 
 //---
 
@@ -289,7 +253,7 @@ CQCHARTS_DEF_CMD(RemoveChartsAnnotation)
 
 //---
 
-CQCHARTS_DEF_PROC_CMD(AddChartsKeyItem, addChartsKeyItemCmd)
+CQCHARTS_DEF_CMD(AddChartsKeyItem)
 
 //---
 
@@ -297,20 +261,20 @@ CQCHARTS_DEF_CMD(ConnectChartsSignal)
 
 //---
 
-CQCHARTS_DEF_PROC_CMD(PrintChartsImage, printChartsImageCmd)
-CQCHARTS_DEF_PROC_CMD(WriteChartsData , writeChartsDataCmd)
+CQCHARTS_DEF_CMD(PrintChartsImage)
+CQCHARTS_DEF_CMD(WriteChartsData)
 
 //---
 
-CQCHARTS_DEF_PROC_CMD(ShowChartsLoadModelDlg   , showChartsLoadModelDlgCmd)
-CQCHARTS_DEF_PROC_CMD(ShowChartsManageModelsDlg, showChartsManageModelsDlgCmd)
-CQCHARTS_DEF_PROC_CMD(ShowChartsCreatePlotDlg  , showChartsCreatePlotDlgCmd)
-CQCHARTS_DEF_PROC_CMD(ShowChartsTextDlg        , showChartsTextDlgCmd)
-CQCHARTS_DEF_PROC_CMD(ShowChartsHelpDlg        , showChartsHelpDlgCmd)
+CQCHARTS_DEF_CMD(ShowChartsLoadModelDlg)
+CQCHARTS_DEF_CMD(ShowChartsManageModelsDlg)
+CQCHARTS_DEF_CMD(ShowChartsCreatePlotDlg)
+CQCHARTS_DEF_CMD(ShowChartsTextDlg)
+CQCHARTS_DEF_CMD(ShowChartsHelpDlg)
 
 //---
 
-CQCHARTS_DEF_PROC_CMD(TestEdit, testEditCmd)
+CQCHARTS_DEF_CMD(TestEdit)
 
 //---
 

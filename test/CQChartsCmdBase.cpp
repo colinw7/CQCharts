@@ -12,10 +12,11 @@
 
 namespace {
 
-void
+bool
 errorMsg(const QString &msg)
 {
   std::cerr << msg.toStdString() << "\n";
+  return false;
 }
 
 }
@@ -49,9 +50,9 @@ class CQChartsTclCmd {
   }
 
  private:
-  CQChartsCmdBase *cmdBase_  { nullptr };
+  CQChartsCmdBase *cmdBase_ { nullptr };
   QString          name_;
-  Tcl_Command      cmdId_ { nullptr };
+  Tcl_Command      cmdId_   { nullptr };
 };
 
 //----
@@ -123,49 +124,143 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 
 bool
 CQChartsCmdBase::
-processCmd(const QString &cmd, const Vars &vars)
+processCmd(const QString &name, const Vars &vars)
 {
-  auto p = commandProcs_.find(cmd);
+  auto p = commandProcs_.find(name);
 
   if (p != commandProcs_.end()) {
     auto *proc = (*p).second;
 
-    CQChartsCmdArgs argv(cmd, vars);
+    CQChartsCmdArgs argv(name, vars);
 
     return proc->exec(argv);
   }
 
   //---
 
-  if (cmd == "exit") { exit(0); }
+  if (name == "exit") { exit(0); }
 
   //---
 
   return false;
 }
 
-//------
+CQChartsCmdProc *
+CQChartsCmdBase::
+getCommand(const QString &name) const
+{
+  auto p = commandProcs_.find(name);
+  if (p == commandProcs_.end()) return nullptr;
+
+  auto *proc = (*p).second;
+
+  return proc;
+}
 
 bool
 CQChartsCmdBase::
-qtCreateWidgetCmd(CQChartsCmdArgs &argv)
+help(const QString &pattern, bool verbose, bool hidden)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtCreateWidgetCmd");
+  using Procs = std::vector<CQChartsCmdProc *>;
 
+  Procs procs;
+
+  auto p = commandProcs_.find(pattern);
+
+  if (p != commandProcs_.end()) {
+    procs.push_back((*p).second);
+  }
+  else {
+    QRegExp re(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
+
+    for (auto &p : commandProcs_) {
+      if (re.exactMatch(p.first))
+        procs.push_back(p.second);
+    }
+  }
+
+  if (procs.empty()) {
+    std::cout << "Command not found\n";
+    return false;
+  }
+
+  for (const auto &proc : procs) {
+    if (verbose) {
+      Vars vars;
+
+      CQChartsCmdArgs args(proc->name(), vars);
+
+      proc->addArgs(args);
+
+      args.help(hidden);
+    }
+    else {
+      std::cout << proc->name().toStdString() << "\n";
+    }
+  }
+
+  return true;
+}
+
+void
+CQChartsCmdBase::
+helpAll(bool verbose, bool hidden)
+{
+  // all procs
+  for (auto &p : commandProcs_) {
+    auto *proc = p.second;
+
+    if (verbose) {
+      Vars vars;
+
+      CQChartsCmdArgs args(proc->name(), vars);
+
+      proc->addArgs(args);
+
+      args.help(hidden);
+    }
+    else {
+      std::cout << proc->name().toStdString() << "\n";
+    }
+  }
+}
+
+//------
+
+void
+CQChartsBaseCreateWidgetCmd::
+addArgs(CQChartsCmdArgs &argv)
+{
   argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "widget type");
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String, "widget name");
+}
+
+QStringList
+CQChartsBaseCreateWidgetCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "type")
+    return CQWidgetFactoryMgrInst->widgetFactoryNames();
+
+  return QStringList();
+}
+
+bool
+CQChartsBaseCreateWidgetCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseCreateWidgetCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
 
-  QString typeName = argv.getParseStr("type");
+  auto typeName = argv.getParseStr("type");
 
-  if (typeName == "?") {
-    auto names = CQWidgetFactoryMgrInst->widgetFactoryNames();
-
-    return setCmdRc(names);
-  }
+  if (typeName == "?")
+    return cmdBase_->setCmdRc(CQWidgetFactoryMgrInst->widgetFactoryNames());
 
   QWidget *parentWidget = nullptr;
 
@@ -176,44 +271,50 @@ qtCreateWidgetCmd(CQChartsCmdArgs &argv)
 
     parentWidget = qobject_cast<QWidget *>(parent);
 
-    if (! parentWidget) {
-      errorMsg(QString("No parent '%1'").arg(parentName));
-      return false;
-    }
+    if (! parentWidget)
+      return errorMsg(QString("No parent '%1'").arg(parentName));
   }
 
   auto name = argv.getParseStr("name");
 
-  if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName)) {
-    errorMsg(QString("Invalid type '%1'").arg(typeName));
-    return false;
-  }
+  if (! CQWidgetFactoryMgrInst->isWidgetFactory(typeName))
+    return errorMsg(QString("Invalid type '%1'").arg(typeName));
 
   auto *w = CQWidgetFactoryMgrInst->createWidget(typeName, parentWidget);
 
-  if (! w) {
-    errorMsg(QString("Failed to create '%1'").arg(typeName));
-    return false;
-  }
+  if (! w)
+    return errorMsg(QString("Failed to create '%1'").arg(typeName));
 
   if (name != "")
     w->setObjectName(name);
 
-  setCmdRc(CQUtil::fullName(w));
-
-  return true;
+  return cmdBase_->setCmdRc(CQUtil::fullName(w));
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtAddChildWidgetCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseAddChildWidgetCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtAddChildWidgetCmd");
-
   argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
   argv.addCmdArg("-child" , CQChartsCmdArg::Type::String, "child name");
+}
+
+QStringList
+CQChartsBaseAddChildWidgetCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseAddChildWidgetCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseAddChildWidgetCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -221,18 +322,14 @@ qtAddChildWidgetCmd(CQChartsCmdArgs &argv)
   auto  parentName   = argv.getParseStr("parent");
   auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
-  if (! parentWidget) {
-    errorMsg(QString("No parent '%1'").arg(parentName));
-    return false;
-  }
+  if (! parentWidget)
+    return errorMsg(QString("No parent '%1'").arg(parentName));
 
   auto  childName   = argv.getParseStr("child");
   auto *childWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(childName));
 
-  if (! childWidget) {
-    errorMsg(QString("No widget '%1'").arg(childName));
-    return false;
-  }
+  if (! childWidget)
+    return errorMsg(QString("No widget '%1'").arg(childName));
 
   auto *layout = parentWidget->layout();
 
@@ -241,20 +338,32 @@ qtAddChildWidgetCmd(CQChartsCmdArgs &argv)
 
   layout->addWidget(childWidget);
 
-  setCmdRc(CQUtil::fullName(childWidget));
-
-  return true;
+  return cmdBase_->setCmdRc(CQUtil::fullName(childWidget));
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtAddStretchCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseAddStretchCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtAddStretchCmd");
-
   argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
+}
+
+QStringList
+CQChartsBaseAddStretchCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseAddStretchCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseAddStretchCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -262,10 +371,8 @@ qtAddStretchCmd(CQChartsCmdArgs &argv)
   auto  parentName   = argv.getParseStr("parent");
   auto *parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
-  if (! parentWidget) {
-    errorMsg(QString("No parent '%1'").arg(parentName));
-    return false;
-  }
+  if (! parentWidget)
+    return errorMsg(QString("No parent '%1'").arg(parentName));
 
   auto *layout = parentWidget->layout();
 
@@ -282,25 +389,39 @@ qtAddStretchCmd(CQChartsCmdArgs &argv)
 
 //------
 
-bool
-CQChartsCmdBase::
-qtCreateLayoutCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseCreateLayoutCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtCreateLayoutCmd");
-
   argv.addCmdArg("-parent", CQChartsCmdArg::Type::String, "parent name");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "layout type");
+}
+
+QStringList
+CQChartsBaseCreateLayoutCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "type")
+    return CQWidgetFactoryMgrInst->layoutFactoryNames();
+
+  return QStringList();
+}
+
+bool
+CQChartsBaseCreateLayoutCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseCreateLayoutCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
 
   auto typeName = argv.getParseStr("type");
 
-  if (typeName == "?") {
-    auto names = CQWidgetFactoryMgrInst->layoutFactoryNames();
-
-    return setCmdRc(names);
-  }
+  if (typeName == "?")
+    return cmdBase_->setCmdRc(CQWidgetFactoryMgrInst->layoutFactoryNames());
 
   QWidget *parentWidget = nullptr;
 
@@ -309,42 +430,49 @@ qtCreateLayoutCmd(CQChartsCmdArgs &argv)
 
     parentWidget = qobject_cast<QWidget *>(CQUtil::nameToObject(parentName));
 
-    if (! parentWidget) {
-      errorMsg(QString("No parent '%1'").arg(parentName));
-      return false;
-    }
+    if (! parentWidget)
+      return errorMsg(QString("No parent '%1'").arg(parentName));
   }
   else {
-    errorMsg("No parent");
-    return false;
+    return errorMsg("No parent");
   }
 
-  if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName)) {
-    errorMsg(QString("Invalid type '%1'").arg(typeName));
-    return false;
-  }
+  if (! CQWidgetFactoryMgrInst->isLayoutFactory(typeName))
+    return errorMsg(QString("Invalid type '%1'").arg(typeName));
 
   auto *l = CQWidgetFactoryMgrInst->createLayout(typeName, parentWidget);
 
-  if (! l) {
-    errorMsg(QString("Failed to create '%1'").arg(typeName));
-    return false;
-  }
+  if (! l)
+    return errorMsg(QString("Failed to create '%1'").arg(typeName));
 
   return true;
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtConnectWidgetCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseConnectWidgetCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtConnectWidgetCmd");
-
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String, "widget name");
   argv.addCmdArg("-signal", CQChartsCmdArg::Type::String, "signal name");
   argv.addCmdArg("-proc"  , CQChartsCmdArg::Type::String, "tcl proc name");
+}
+
+QStringList
+CQChartsBaseConnectWidgetCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseConnectWidgetCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseConnectWidgetCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -352,15 +480,13 @@ qtConnectWidgetCmd(CQChartsCmdArgs &argv)
   auto  name   = argv.getParseStr("name");
   auto *widget = qobject_cast<QWidget *>(CQUtil::nameToObject(name));
 
-  if (! widget) {
-    errorMsg(QString("No widget '%1'").arg(name));
-    return false;
-  }
+  if (! widget)
+    return errorMsg(QString("No widget '%1'").arg(name));
 
   auto signalName = argv.getParseStr("signal");
   auto procName   = argv.getParseStr("proc");
 
-  auto *slot = new CQChartsCmdBaseSlot(this, procName);
+  auto *slot = new CQChartsCmdBaseSlot(cmdBase_, procName);
 
   auto signalName2 = (QString("2") + signalName).toStdString();
   auto slotName1   = (QString("1") + signalName).toStdString();
@@ -372,15 +498,29 @@ qtConnectWidgetCmd(CQChartsCmdArgs &argv)
 
 //------
 
-bool
-CQChartsCmdBase::
-qtActivateSlotCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseActivateSlotCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtActivateSlotCmd");
-
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "widget name");
   argv.addCmdArg("-slot", CQChartsCmdArg::Type::String, "slot name");
   argv.addCmdArg("-args", CQChartsCmdArg::Type::String, "slot args");
+}
+
+QStringList
+CQChartsBaseActivateSlotCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseActivateSlotCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseActivateSlotCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -388,116 +528,142 @@ qtActivateSlotCmd(CQChartsCmdArgs &argv)
   auto  name   = argv.getParseStr("name");
   auto *object = CQUtil::nameToObject(name);
 
-  if (! object) {
-    errorMsg(QString("No object '%1'").arg(name));
-    return false;
-  }
+  if (! object)
+    return errorMsg(QString("No object '%1'").arg(name));
 
   auto slotName = argv.getParseStr("slot").toStdString();
   auto argsStr  = argv.getParseStr("args").toStdString();
 
-  if (! CQUtil::activateSlot(object, slotName.c_str(), argsStr.c_str())) {
-    errorMsg(QString("Invalid slot '%1'").arg(slotName.c_str()));
-    return false;
-  }
+  if (! CQUtil::activateSlot(object, slotName.c_str(), argsStr.c_str()))
+    return errorMsg(QString("Invalid slot '%1'").arg(slotName.c_str()));
 
   return true;
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtGetPropertyCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseGetPropertyCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtGetPropertyCmd");
-
   argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
   argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
+}
+
+QStringList
+CQChartsBaseGetPropertyCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseGetPropertyCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseGetPropertyCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
 
-  QString objectName = argv.getParseStr("object");
-  QString propName   = argv.getParseStr("property");
+  auto objectName = argv.getParseStr("object");
+  auto propName   = argv.getParseStr("property");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
-  if (! obj) {
-    errorMsg(QString("No object '%1'").arg(objectName));
-    return false;
-  }
+  if (! obj)
+    return errorMsg(QString("No object '%1'").arg(objectName));
 
   QVariant v;
 
-  if (! CQUtil::getProperty(obj, propName, v)) {
-    errorMsg(QString("Failed to get property '%1' for '%2'").arg(propName).arg(objectName));
-    return false;
-  }
+  if (! CQUtil::getProperty(obj, propName, v))
+    return errorMsg(QString("Failed to get property '%1' for '%2'").arg(propName).arg(objectName));
 
-  setCmdRc(v);
-
-  return true;
+  return cmdBase_->setCmdRc(v);
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtSetPropertyCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseSetPropertyCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtSetPropertyCmd");
-
   argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
   argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
   argv.addCmdArg("-value"   , CQChartsCmdArg::Type::String, "property value");
+}
+
+QStringList
+CQChartsBaseSetPropertyCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseSetPropertyCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseSetPropertyCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
 
-  QString objectName = argv.getParseStr("object");
-  QString propName   = argv.getParseStr("property");
-  QString value      = argv.getParseStr("value");
+  auto objectName = argv.getParseStr("object");
+  auto propName   = argv.getParseStr("property");
+  auto value      = argv.getParseStr("value");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
-  if (! obj) {
-    errorMsg(QString("No object '%1'").arg(objectName));
-    return false;
-  }
+  if (! obj)
+    return errorMsg(QString("No object '%1'").arg(objectName));
 
-  if (! CQUtil::setProperty(obj, propName, value)) {
-    errorMsg(QString("Failed to set property '%1' for '%2'").arg(propName).arg(objectName));
-    return false;
-  }
+  if (! CQUtil::setProperty(obj, propName, value))
+    return errorMsg(QString("Failed to set property '%1' for '%2'").arg(propName).arg(objectName));
 
   return true;
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtHasPropertyCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseHasPropertyCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtHasPropertyCmd");
-
   argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String , "object name");
   argv.addCmdArg("-property", CQChartsCmdArg::Type::String , "property name");
   argv.addCmdArg("-writable", CQChartsCmdArg::Type::Boolean, "property is writable");
+}
+
+QStringList
+CQChartsBaseHasPropertyCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseHasPropertyCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseHasPropertyCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
 
-  QString objectName = argv.getParseStr("object");
-  QString propName   = argv.getParseStr("property");
+  auto objectName = argv.getParseStr("object");
+  auto propName   = argv.getParseStr("property");
 
   auto *obj = CQUtil::nameToObject(objectName);
 
-  if (! obj) {
-    errorMsg(QString("No object '%1'").arg(objectName));
-    return false;
-  }
+  if (! obj)
+    return errorMsg(QString("No object '%1'").arg(objectName));
 
   bool b;
 
@@ -506,20 +672,32 @@ qtHasPropertyCmd(CQChartsCmdArgs &argv)
   else
     b = CQUtil::hasProperty(obj, propName);
 
-  setCmdRc(b);
-
-  return true;
+  return cmdBase_->setCmdRc(b);
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-qtSyncCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseQtSyncCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::qtSyncCmd");
-
   argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
+}
+
+QStringList
+CQChartsBaseQtSyncCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseQtSyncCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseQtSyncCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -540,16 +718,30 @@ qtSyncCmd(CQChartsCmdArgs &argv)
 
 //------
 
-bool
-CQChartsCmdBase::
-perfCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBasePerfCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmdBase::perfCmd");
-
   argv.addCmdArg("-start_recording", CQChartsCmdArg::Type::Boolean, "start recording");
   argv.addCmdArg("-end_recording"  , CQChartsCmdArg::Type::Boolean, "end recording"  );
   argv.addCmdArg("-tracing"        , CQChartsCmdArg::Type::SBool  , "enable tracing" );
   argv.addCmdArg("-debug"          , CQChartsCmdArg::Type::SBool  , "enable debug"   );
+}
+
+QStringList
+CQChartsBasePerfCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBasePerfCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBasePerfCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -573,11 +765,26 @@ perfCmd(CQChartsCmdArgs &argv)
 
 //------
 
-bool
-CQChartsCmdBase::
-assertCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseAssertCmd::
+addArgs(CQChartsCmdArgs &)
 {
-  CQPerfTrace trace("CQChartsCmdBase::assertCmd");
+}
+
+QStringList
+CQChartsBaseAssertCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseAssertCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseAssertCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -590,7 +797,7 @@ assertCmd(CQChartsCmdArgs &argv)
 
   QVariant res;
 
-  bool rc = qtcl()->evalExpr(expr, res, /*showError*/true);
+  bool rc = cmdBase_->qtcl()->evalExpr(expr, res, /*showError*/true);
   if (! rc) return false;
 
   bool b = res.toBool();
@@ -600,11 +807,26 @@ assertCmd(CQChartsCmdArgs &argv)
 
 //------
 
-bool
-CQChartsCmdBase::
-shellCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseShellCmd::
+addArgs(CQChartsCmdArgs &)
 {
-  CQPerfTrace trace("CQChartsCmdBase::shellCmd");
+}
+
+QStringList
+CQChartsBaseShellCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseShellCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseShellCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -617,26 +839,38 @@ shellCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (cmd == "") {
-    errorMsg("No command");
-    return false;
-  }
+  if (cmd == "")
+    return errorMsg("No command");
 
   int rc = system(cmd.toLatin1().constData());
 
-  setCmdRc(rc);
-
-  return true;
+  return cmdBase_->setCmdRc(rc);
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-helpCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseHelpCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
   argv.addCmdArg("-hidden" , CQChartsCmdArg::Type::Boolean, "show hidden");
   argv.addCmdArg("-verbose", CQChartsCmdArg::Type::Boolean, "verbose help");
+}
+
+QStringList
+CQChartsBaseHelpCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseHelpCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseHelpCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -652,73 +886,19 @@ helpCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (pattern.length()) {
-    using Procs = std::vector<CQChartsCmdProc *>;
-
-    Procs procs;
-
-    auto p = commandProcs_.find(pattern);
-
-    if (p != commandProcs_.end()) {
-      procs.push_back((*p).second);
-    }
-    else {
-      QRegExp re(pattern, Qt::CaseSensitive, QRegExp::Wildcard);
-
-      for (auto &p : commandProcs_) {
-        if (re.exactMatch(p.first))
-          procs.push_back(p.second);
-      }
-    }
-
-    if (procs.empty()) {
-      std::cout << "Command not found\n";
-      return true;
-    }
-
-    for (const auto &proc : procs) {
-      if (verbose) {
-        Vars vars;
-
-        CQChartsCmdArgs args(proc->name(), vars);
-
-        proc->addArgs(args);
-
-        args.help(hidden);
-      }
-      else {
-        std::cout << proc->name().toStdString() << "\n";
-      }
-    }
-  }
-  else {
-    // all procs
-    for (auto &p : commandProcs_) {
-      auto *proc = p.second;
-
-      if (verbose) {
-        Vars vars;
-
-        CQChartsCmdArgs args(proc->name(), vars);
-
-        proc->addArgs(args);
-
-        args.help(hidden);
-      }
-      else {
-        std::cout << proc->name().toStdString() << "\n";
-      }
-    }
-  }
+  if (pattern.length())
+    cmdBase_->help(pattern, verbose, hidden);
+  else
+    cmdBase_->helpAll(verbose, hidden);
 
   return true;
 }
 
 //------
 
-bool
-CQChartsCmdBase::
-completeCmd(CQChartsCmdArgs &argv)
+void
+CQChartsBaseCompleteCmd::
+addArgs(CQChartsCmdArgs &argv)
 {
   argv.addCmdArg("-command", CQChartsCmdArg::Type::String, "complete command").setRequired();
 
@@ -727,6 +907,22 @@ completeCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name_values", CQChartsCmdArg::Type::String , "option name values");
   argv.addCmdArg("-all"        , CQChartsCmdArg::Type::Boolean, "get all matches");
   argv.addCmdArg("-exact_space", CQChartsCmdArg::Type::Boolean, "add space if exact");
+}
+
+QStringList
+CQChartsBaseCompleteCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseCompleteCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseCompleteCmd::exec");
+
+  addArgs(argv);
 
   if (! argv.parse())
     return false;
@@ -741,7 +937,7 @@ completeCmd(CQChartsCmdArgs &argv)
 
   NameValueMap nameValueMap;
 
-  auto nameValues = argv.getParseStr ("name_values");
+  auto nameValues = argv.getParseStr("name_values");
 
   QStringList nameValues1;
 
@@ -760,17 +956,15 @@ completeCmd(CQChartsCmdArgs &argv)
 
   if (argv.hasParseArg("option")) {
     // get option to complete
-    auto option = argv.getParseStr ("option");
+    auto option = argv.getParseStr("option");
 
     auto optionStr = "-" + option;
 
     //---
 
     // get proc
-    auto p = commandProcs_.find(command);
-    if (p == commandProcs_.end()) return false;
-
-    auto *proc = (*p).second;
+    auto *proc = cmdBase_->getCommand(command);
+    if (! proc) return false;
 
     //---
 
@@ -843,13 +1037,13 @@ completeCmd(CQChartsCmdArgs &argv)
         strs = proc->getArgValues(option, nameValueMap);
       }
       else {
-        return setCmdRc(strs);
+        return cmdBase_->setCmdRc(strs);
       }
 
       //---
 
       if (allFlag)
-        return setCmdRc(strs);
+        return cmdBase_->setCmdRc(strs);
 
       auto matchValues = CQStrUtil::matchStrs(value, strs);
 
@@ -861,10 +1055,10 @@ completeCmd(CQChartsCmdArgs &argv)
         if (exact && exactSpace)
           newValue += " ";
 
-        return setCmdRc(newValue);
+        return cmdBase_->setCmdRc(newValue);
       }
 
-      return setCmdRc(strs);
+      return cmdBase_->setCmdRc(strs);
     }
     else {
       const auto &names = args.getCmdArgNames();
@@ -875,7 +1069,7 @@ completeCmd(CQChartsCmdArgs &argv)
         for (const auto &name : names)
           strs.push_back(name.mid(1));
 
-        return setCmdRc(strs);
+        return cmdBase_->setCmdRc(strs);
       }
 
       auto matchArgs = CQStrUtil::matchStrs(optionStr, names);
@@ -888,17 +1082,17 @@ completeCmd(CQChartsCmdArgs &argv)
         if (exact && exactSpace)
           newOption += " ";
 
-        return setCmdRc(newOption);
+        return cmdBase_->setCmdRc(newOption);
       }
     }
   }
   else {
-    const auto &cmds = qtcl()->commandNames();
+    const auto &cmds = cmdBase_->qtcl()->commandNames();
 
     auto matchCmds = CQStrUtil::matchStrs(command, cmds);
 
     if (allFlag)
-      return setCmdRc(matchCmds);
+      return cmdBase_->setCmdRc(matchCmds);
 
     bool exact;
 
@@ -908,11 +1102,11 @@ completeCmd(CQChartsCmdArgs &argv)
       if (exact && exactSpace)
         newCommand += " ";
 
-      return setCmdRc(newCommand);
+      return cmdBase_->setCmdRc(newCommand);
     }
   }
 
-  return setCmdRc(QString());
+  return cmdBase_->setCmdRc(QString());
 }
 
 //------

@@ -260,15 +260,15 @@ setDetails()
   const CQChartsModelData *modelData1 = nullptr;
 
 #ifdef CQCHARTS_MODEL_VIEW
-  modelData1 = charts_->getModelData(view_->modelP().data());
+  modelData1 = charts_->getModelData(view_->modelP());
 #else
   if (stack_->currentIndex() == 0) {
     if (tree_)
-      modelData1 = charts_->getModelData(tree_->modelP().data());
+      modelData1 = charts_->getModelData(tree_->modelP());
   }
   else {
     if (table_)
-      modelData1 = charts_->getModelData(table_->modelP().data());
+      modelData1 = charts_->getModelData(table_->modelP());
   }
 #endif
 

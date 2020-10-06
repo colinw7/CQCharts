@@ -123,7 +123,7 @@ void
 CQChartsCorrelationPlot::
 term()
 {
-  charts()->removeModelData(correlationModelP_);
+  charts()->removeModel(correlationModelP_);
 }
 
 //---
