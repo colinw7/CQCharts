@@ -25,15 +25,12 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsModelTypes.h>
 #include <CQChartsModelIndex.h>
-#include <CHRTime.h>
 
 #include <QAbstractItemModel>
 #include <QFrame>
 #include <QTimer>
 #include <QPointer>
 
-#include <future>
-#include <memory>
 #include <set>
 
 #include <boost/optional.hpp>
@@ -50,6 +47,7 @@ class CQChartsKeyColorBox;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
+class CQChartsPlotThread;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -2667,42 +2665,7 @@ class CQChartsPlot : public CQChartsObj,
     DRAWN                   //!< drawn
   };
 
-  //! \brief Thread data
-  struct ThreadData {
-    CHRTime           startTime;
-    std::future<void> future;
-    std::atomic<bool> busy { false };
-
-    void start(const Plot *plot, const char *id) {
-      if (id) {
-        std::cerr << "Start: " << plot->id().toStdString() << " : " << id << "\n";
-
-        startTime = CHRTime::getTime();
-      }
-
-      busy.store(true);
-    }
-
-    void end(const Plot *plot, const char *id) {
-      busy.store(false);
-
-      if (id) {
-        CHRTime dt = startTime.diffTime();
-
-        std::cerr << "Elapsed: " << plot->id().toStdString() << " : " << id << " " <<
-                     dt.getMSecs() << "\n";
-      }
-    }
-
-    void finish(const Plot *plot, const char *id) {
-      if (id) {
-        CHRTime dt = startTime.diffTime();
-
-        std::cerr << "Finish: " << plot->id().toStdString() << " : " << id << " " <<
-                     dt.getMSecs() << "\n";
-      }
-    }
-  };
+  using ThreadData = CQChartsPlotThread;
 
   //*! \brief lock data
   struct LockData {
@@ -2724,9 +2687,9 @@ class CQChartsPlot : public CQChartsObj,
   struct UpdateData {
     std::atomic<int> state       { 0 };
     std::atomic<int> interrupt   { 0 };
-    ThreadData       rangeThread;
-    ThreadData       objsThread;
-    ThreadData       drawThread;
+    ThreadData*      rangeThread { nullptr };
+    ThreadData*      objsThread  { nullptr };
+    ThreadData*      drawThread  { nullptr };
     LockData         lockData;
     bool             updateObjs  { false };
     QTimer*          timer       { nullptr };

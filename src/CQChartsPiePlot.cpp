@@ -270,8 +270,11 @@ CQChartsPiePlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
@@ -291,8 +294,8 @@ addProperties()
   addProp("options", "count"      , "", "Show count of groups");
   addProp("options", "innerRadius", "", "Inner radius for donut")->
     setMinValue(0.0).setMaxValue(1.0);
-  addProp("options", "outerRadius", "", "Outer radius for donut")->
-    setMinValue(0.0).setMaxValue(1.0).setHidden(true);
+  addProp("options", "outerRadius", "", "Outer radius for donut", true)->
+    setMinValue(0.0).setMaxValue(1.0);
   addProp("options", "startAngle" , "", "Start angle for first segment");
   addProp("options", "angleExtent", "", "Angle extent for pie segments");
   addProp("options", "gapAngle"   , "", "Gap angle");

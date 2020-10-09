@@ -188,7 +188,10 @@ CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    model->addProperty(path, this, name)->setDesc(desc).setHidden(hidden);
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---

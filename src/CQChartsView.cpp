@@ -298,15 +298,15 @@ addProperties()
   //---
 
   // data
-  addProp("", "mode"          , "", "View mouse mode" )->setHidden(true);
-  addProp("", "id"            , "", "View id"         )->setHidden(true);
-  addProp("", "currentPlotInd", "", "Current plot ind")->setHidden(true);
+  addProp("", "mode"          , "", "View mouse mode" , true);
+  addProp("", "id"            , "", "View id"         , true);
+  addProp("", "currentPlotInd", "", "Current plot ind", true);
 
-  addProp("", "viewSizeHint", "", "View size hint")->setHidden(true);
-  addProp("", "bufferLayers", "", "Buffer layer"  )->setHidden(true);
+  addProp("", "viewSizeHint", "", "View size hint", true);
+  addProp("", "bufferLayers", "", "Buffer layer"  , true);
 
-  addProp("", "showTable"   , "", "Show table of value")->setHidden(true);
-  addProp("", "showSettings", "", "Show settings panel")->setHidden(true);
+  addProp("", "showTable"   , "", "Show table of value", true);
+  addProp("", "showSettings", "", "Show settings panel", true);
 
   // options
   addStyleProp("options", "antiAlias", "", "Draw aliased shapes", true);
@@ -392,13 +392,13 @@ addProperties()
   addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
 
   // status
-  addProp("status", "posTextType", "posTextType", "Position text type")->setHidden(true);
+  addProp("status", "posTextType", "posTextType", "Position text type", true);
 
   // TODO: remove or make more general
-  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     )->setHidden(true);
-  addProp("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          )->setHidden(true);
-  addProp("scroll", "scrollNumPages", "numPages", "Scroll number of pages")->setHidden(true);
-  addProp("scroll", "scrollPage"    , "page"    , "Scroll current page"   )->setHidden(true);
+  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     , true);
+  addProp("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          , true);
+  addProp("scroll", "scrollNumPages", "numPages", "Scroll number of pages", true);
+  addProp("scroll", "scrollPage"    , "page"    , "Scroll current page"   , true);
 
   if (key())
     key()->addProperties(propertyModel(), "key");

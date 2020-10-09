@@ -232,13 +232,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(path, "majorIncrement", "", "Axis tick major increment");
   addProp(path, "start"         , "", "Axis start position");
   addProp(path, "end"           , "", "Axis end position");
-  addProp(path, "includeZero"   , "", "Axis force include zero")->setHidden(true);
+  addProp(path, "includeZero"   , "", "Axis force include zero", true);
 
   addProp(path, "valueStart", "", "Axis custom start position");
   addProp(path, "valueEnd"  , "", "Axis custom end position");
 
-  addProp(path, "tickLabels"      , "", "Indexed Tick Labels")->setHidden(true);
-  addProp(path, "customTickLabels", "", "Custom Tick Labels")->setHidden(true);
+  addProp(path, "tickLabels"      , "", "Indexed Tick Labels", true);
+  addProp(path, "customTickLabels", "", "Custom Tick Labels", true);
 
   addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit")->
     setMinValue(0.0);

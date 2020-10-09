@@ -520,8 +520,11 @@ CQChartsTablePlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
@@ -534,7 +537,7 @@ addProperties()
   addProp("options", "mode"       , "mode"       , "Set mode"        );
   addProp("options", "maxRows"    , "maxRows"    , "Set max rows"    )->setMinValue(1);
   addProp("options", "sortColumn" , "sortColumn" , "Set sort column" );
-  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"   )->setHidden(true);
+  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"   , true);
   addProp("options", "sortOrder"  , "sortOrder"  , "Set sort order"  );
   addProp("options", "pageSize"   , "pageSize"   , "Set page size"   )->setMinValue(1);
   addProp("options", "currentPage", "currentPage", "Set current page")->setMinValue(0);

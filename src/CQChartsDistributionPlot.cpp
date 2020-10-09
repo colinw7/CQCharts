@@ -344,8 +344,11 @@ CQChartsDistributionPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
@@ -375,10 +378,10 @@ addProperties()
   addProp("options", "percent"      , "", "Show value as percentage");
   addProp("options", "skipEmpty"    , "", "Skip empty buckets");
   addProp("options", "sorted"       , "", "Sort by count");
-  addProp("options", "minBarSize"   , "", "Minimum bar size in pixels")->
-   setMinValue(0.0).setHidden(true);
-  addProp("options", "scatterMargin", "", "Scatter bar margin")->
-   setMinValue(0.0).setMaxValue(1.0).setHidden(true);
+  addProp("options", "minBarSize"   , "", "Minimum bar size in pixels", true)->
+   setMinValue(0.0);
+  addProp("options", "scatterMargin", "", "Scatter bar margin", true)->
+   setMinValue(0.0).setMaxValue(1.0);
 
   addProp("filter", "minValue", "minValue", "Min value");
 

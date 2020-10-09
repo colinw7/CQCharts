@@ -345,7 +345,7 @@ addProperties()
                      const QString &desc, bool hidden=false) {
     auto *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
-    item->setHidden(hidden);
+    if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
 

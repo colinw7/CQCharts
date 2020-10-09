@@ -118,15 +118,15 @@ initWidgets()
   typeStack_->addWidget(imageWidgets_   .frame);
   typeStack_->addWidget(arrowWidgets_   .frame);
   typeStack_->addWidget(pointWidgets_   .frame);
-  typeStack_->addWidget(pieSliceWidgets_ .frame);
+  typeStack_->addWidget(pieSliceWidgets_.frame);
 
   if (plot_)
     typeStack_->addWidget(axisWidgets_.frame);
 
-  typeStack_->addWidget(keyWidgets_      .frame);
-  typeStack_->addWidget(pointSetWidgets_ .frame);
-  typeStack_->addWidget(valueSetWidgets_ .frame);
-  typeStack_->addWidget(buttonWidgets_   .frame);
+  typeStack_->addWidget(keyWidgets_     .frame);
+  typeStack_->addWidget(pointSetWidgets_.frame);
+  typeStack_->addWidget(valueSetWidgets_.frame);
+  typeStack_->addWidget(buttonWidgets_  .frame);
 
   //---
 

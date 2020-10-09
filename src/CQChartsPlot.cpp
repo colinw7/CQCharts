@@ -27,6 +27,7 @@
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsPlotThread.h>
 
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
@@ -168,6 +169,14 @@ init()
   ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
   ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
 
+  updateData_.rangeThread = new ThreadData(this, "updateRange");
+  updateData_.objsThread  = new ThreadData(this, "updateObjs" );
+  updateData_.drawThread  = new ThreadData(this, "drawObjs"   );
+
+  updateData_.rangeThread->setDebug(debugUpdate_);
+  updateData_.objsThread ->setDebug(debugUpdate_);
+  updateData_.drawThread ->setDebug(debugUpdate_);
+
   startThreadTimer();
 }
 
@@ -200,7 +209,11 @@ term()
   delete editHandles_;
 
   delete animateData_.timer;
+
   delete updateData_.timer;
+  delete updateData_.rangeThread;
+  delete updateData_.objsThread;
+  delete updateData_.drawThread;
 }
 
 //---
@@ -3497,8 +3510,8 @@ threadTimerSlot()
 
   if      (updateState == UpdateState::CALC_RANGE) {
     // check if calc range finished
-    if (! updateData_.rangeThread.busy.load()) {
-      updateData_.rangeThread.finish(this, debugUpdate_ ? "updateRange" : nullptr);
+    if (! updateData_.rangeThread->isBusy()) {
+      updateData_.rangeThread->finish();
 
       // ensure all overlay plot ranges done
       if (isOverlay())
@@ -3520,8 +3533,8 @@ threadTimerSlot()
   }
   else if (updateState == UpdateState::CALC_OBJS) {
     // check if calc objs finished
-    if (! updateData_.objsThread.busy.load()) {
-      updateData_.objsThread.finish(this, debugUpdate_ ? "updateObjs" : nullptr);
+    if (! updateData_.objsThread->isBusy()) {
+      updateData_.objsThread->finish();
 
       // ensure all overlay plot objs done
       if (isOverlay())
@@ -3540,8 +3553,8 @@ threadTimerSlot()
   }
   else if (updateState == UpdateState::DRAW_OBJS) {
     // check if draw objs finished
-    if (! updateData_.drawThread.busy.load()) {
-      updateData_.drawThread.finish(this, debugUpdate_ ? "drawObjs" : nullptr);
+    if (! updateData_.drawThread->isBusy()) {
+      updateData_.drawThread->finish();
 
       // ensure all overlay draw done
       if (isOverlay())
@@ -3849,8 +3862,7 @@ updateAndApplyPlotRange1(bool updateObjs)
 
     setGroupedUpdateState(UpdateState::CALC_RANGE);
 
-    updateData_.rangeThread.start(this, debugUpdate_ ? "updateRange" : nullptr);
-    updateData_.rangeThread.future = std::async(std::launch::async, updateRangeASync, this);
+    updateData_.rangeThread->exec(updateRangeASync);
 
     startThreadTimer();
   }
@@ -3967,13 +3979,8 @@ execWaitRange()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_RANGE) {
-    if (updateData_.rangeThread.busy.load()) {
-      (void) updateData_.rangeThread.future.get();
-
-      assert(! updateData_.rangeThread.future.valid());
-
-      updateData_.rangeThread.finish(this, debugUpdate_ ? "updateRange" : nullptr);
-
+    if (updateData_.rangeThread->isBusy()) {
+      (void) updateData_.rangeThread->term();
       return;
     }
 
@@ -4021,7 +4028,7 @@ updateRangeThread()
   if (debugUpdate_)
     std::cerr << "updateRangeThread: " << id().toStdString() << " : " << dataRange_ << "\n";
 
-  updateData_.rangeThread.end(this, debugUpdate_ ? "updateRange" : nullptr);
+  updateData_.rangeThread->end();
 
   if (isOverlay())
     updateOverlayRanges();
@@ -4103,8 +4110,7 @@ updatePlotObjs()
 
     setGroupedUpdateState(UpdateState::CALC_OBJS);
 
-    updateData_.objsThread.start(this, debugUpdate_ ? "updatePlotObjs" : nullptr);
-    updateData_.objsThread.future = std::async(std::launch::async, updateObjsASync, this);
+    updateData_.objsThread->exec(updateObjsASync);
 
     startThreadTimer();
   }
@@ -4176,13 +4182,8 @@ execWaitObjs()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_OBJS) {
-    if (updateData_.objsThread.busy.load()) {
-      (void) updateData_.objsThread.future.get();
-
-      assert(! updateData_.objsThread.future.valid());
-
-      updateData_.objsThread.finish(this, debugUpdate_ ? "execWaitObjs" : nullptr);
-
+    if (updateData_.objsThread->isBusy()) {
+      (void) updateData_.objsThread->term();
       return;
     }
 
@@ -4222,7 +4223,7 @@ updateObjsThread()
 
   initPlotObjs();
 
-  updateData_.objsThread.end(this, debugUpdate_ ? "updateObjsThread" : nullptr);
+  updateData_.objsThread->end();
 }
 
 void
@@ -8704,8 +8705,7 @@ updateDraw()
 
     setGroupedUpdateState(UpdateState::DRAW_OBJS);
 
-    updateData_.drawThread.start(this, debugUpdate_ ? "drawObjs" : nullptr);
-    updateData_.drawThread.future = std::async(std::launch::async, drawASync, this);
+    updateData_.drawThread->exec(drawASync);
 
     startThreadTimer();
     }
@@ -8772,13 +8772,8 @@ execWaitDraw()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::DRAW_OBJS) {
-    if (updateData_.drawThread.busy.load()) {
-      (void) updateData_.drawThread.future.get();
-
-      assert(! updateData_.drawThread.future.valid());
-
-      updateData_.drawThread.finish(this, debugUpdate_ ? "drawObjs" : nullptr);
-
+    if (updateData_.drawThread->isBusy()) {
+      (void) updateData_.drawThread->term();
       return;
     }
 
@@ -8818,7 +8813,7 @@ drawThread()
 
   view()->lockPainter(false);
 
-  updateData_.drawThread.end(this, debugUpdate_ ? "drawThread" : nullptr);
+  updateData_.drawThread->end();
 }
 
 void
@@ -11647,7 +11642,7 @@ void
 CQChartsPlot::
 setLayersChanged(bool update)
 {
-  if (updateData_.rangeThread.busy.load())
+  if (updateData_.rangeThread->isBusy())
     return;
 
   //---
