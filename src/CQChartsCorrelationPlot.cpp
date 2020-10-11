@@ -958,7 +958,7 @@ calcTextSize() const
 
 void
 CQChartsCorrelationCellObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -1208,14 +1208,15 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(CQChartsPaintDevice *device, const QString &str)
+drawCellLabel(CQChartsPaintDevice *device, const QString &str) const
 {
   drawCellLabel(device, str, rect());
 }
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(CQChartsPaintDevice *device, const QString &str, const BBox &rect, double fontInc)
+drawCellLabel(CQChartsPaintDevice *device, const QString &str,
+              const BBox &rect, double fontInc) const
 {
   // calc pen and brush
   ColorInd ic;

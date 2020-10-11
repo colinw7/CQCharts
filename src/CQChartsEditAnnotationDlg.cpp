@@ -40,7 +40,7 @@ void
 CQChartsEditAnnotationDlg::
 initWidgets()
 {
-  setObjectName("createAnnotationDlg");
+  setObjectName("editAnnotationDlg");
 
   if (annotation()->plot())
     setWindowTitle(QString("Edit Plot %1 : %2 Annotation (%3)").

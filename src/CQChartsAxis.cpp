@@ -904,6 +904,8 @@ valueStr(const CQChartsPlot *plot, double pos) const
   if (isLog())
     pos = plot->expValue(pos);
 
+  QVariant valuePos(pos);
+
   if (isIntegral()) {
     long ipos = long(pos);
 
@@ -912,13 +914,15 @@ valueStr(const CQChartsPlot *plot, double pos) const
 
     if (isRequireTickLabel())
       return "";
+
+    valuePos = QVariant(int(pos));
   }
 
   if (formatStr_.length()) {
     QString str;
 
     if (CQChartsModelUtil::formatColumnTypeValue(plot->charts(), plot->model().data(),
-                                                 column(), formatStr_, pos, str))
+                                                 column(), formatStr_, valuePos, str))
       return str;
   }
 
@@ -926,7 +930,7 @@ valueStr(const CQChartsPlot *plot, double pos) const
     QString str;
 
     if (CQChartsModelUtil::formatColumnValue(plot->charts(), plot->model().data(),
-                                             column(), pos, str))
+                                             column(), valuePos, str))
       return str;
 
     if (isDataLabels()) {

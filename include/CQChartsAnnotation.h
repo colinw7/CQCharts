@@ -33,12 +33,15 @@ class CQPropertyViewItem;
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(int    ind              READ ind              WRITE setInd             )
-  Q_PROPERTY(bool   enabled          READ isEnabled        WRITE setEnabled         )
-  Q_PROPERTY(bool   checkable        READ isCheckable      WRITE setCheckable       )
-  Q_PROPERTY(bool   checked          READ isChecked        WRITE setChecked         )
-  Q_PROPERTY(double disabledLighter  READ disabledLighter  WRITE setDisabledLighter )
-  Q_PROPERTY(double uncheckedLighter READ uncheckedLighter WRITE setUncheckedLighter)
+  Q_PROPERTY(int       ind              READ ind              WRITE setInd             )
+  Q_PROPERTY(bool      enabled          READ isEnabled        WRITE setEnabled         )
+  Q_PROPERTY(bool      checkable        READ isCheckable      WRITE setCheckable       )
+  Q_PROPERTY(bool      checked          READ isChecked        WRITE setChecked         )
+  Q_PROPERTY(double    disabledLighter  READ disabledLighter  WRITE setDisabledLighter )
+  Q_PROPERTY(double    uncheckedLighter READ uncheckedLighter WRITE setUncheckedLighter)
+  Q_PROPERTY(DrawLayer drawLayer        READ drawLayer        WRITE setDrawLayer       )
+
+  Q_ENUMS(DrawLayer)
 
  public:
   enum class Type {
@@ -59,6 +62,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     VALUE_SET,
     BUTTON,
     WIDGET
+  };
+
+  enum class DrawLayer {
+    BACKGROUND,
+    FOREGROUND
   };
 
   using View       = CQChartsView;
@@ -97,6 +105,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  //! get/set parent annotation group
   const Group *group() const { return group_; }
   void setGroup(Group *g) { group_ = g; }
 
@@ -113,32 +122,39 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  // enabled
+  // get/set enabled
   bool isEnabled() const { return enabled_; }
   void setEnabled(bool b);
 
-  // checkable/checked
+  // get/set checkable
   bool isCheckable() const { return checkable_; }
   void setCheckable(bool b);
 
+  // get/set checked
   bool isChecked() const { return checked_; }
   void setChecked(bool b);
 
   //---
 
-  // disabled lighter
+  // get/set disabled lighter
   double disabledLighter() const { return disabledLighter_; }
   void setDisabledLighter(double r) { disabledLighter_ = r; }
 
-  // unchecked lighter
+  // get/set unchecked lighter
   double uncheckedLighter() const { return uncheckedLighter_; }
   void setUncheckedLighter(double r) { uncheckedLighter_ = r; }
 
   //---
 
-  //! get bounding box
+  //! get/set bounding box
   const BBox &annotationBBox() const { return annotationBBox_; }
   void setAnnotationBBox(const BBox &bbox);
+
+  //---
+
+  //! get/set draw layer
+  const DrawLayer &drawLayer() const { return drawLayer_; }
+  void setDrawLayer(const DrawLayer &l);
 
   //---
 
@@ -238,6 +254,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  void calcPenBrush(CQChartsPenBrush &penBrush);
+
+  //---
+
   //! draw
   virtual void draw(PaintDevice *device);
 
@@ -288,16 +308,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void init(int &lastInd);
 
  protected:
-  Type         type_               { Type::NONE }; //!< type
-  int          ind_                { 0 };          //!< unique ind
-  Group*       group_              { nullptr };    //!< parent group
-  bool         enabled_            { true };       //!< is enabled
-  bool         checkable_          { false };      //!< is checkable
-  bool         checked_            { false };      //!< is checked
-  double       disabledLighter_    { 0.8 };        //!< disabled lighter
-  double       uncheckedLighter_   { 0.5 };        //!< unchecked lighter
-  BBox         annotationBBox_;                    //!< bbox (plot coords) (remove ?)
-  mutable bool disableSignals_     { false };      //!< disable signals
+  Type         type_             { Type::NONE };            //!< type
+  int          ind_              { 0 };                     //!< unique ind
+  Group*       group_            { nullptr };               //!< parent group
+  bool         enabled_          { true };                  //!< is enabled
+  bool         checkable_        { false };                 //!< is checkable
+  bool         checked_          { false };                 //!< is checked
+  double       disabledLighter_  { 0.8 };                   //!< disabled lighter
+  double       uncheckedLighter_ { 0.5 };                   //!< unchecked lighter
+  BBox         annotationBBox_;                             //!< bbox (plot coords) (remove ?)
+  DrawLayer    drawLayer_        { DrawLayer::FOREGROUND }; //!< draw foreground
+  mutable bool disableSignals_   { false };                 //!< disable signals
 };
 
 //---
@@ -521,8 +542,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
  public:
   CQChartsEllipseAnnotation(View *view, const Position &center=Position(),
-                            const Length &xRadius=Length(1.0, Units::PLOT),
-                            const Length &yRadius=Length(1.0, Units::PLOT));
+                            const Length &xRadius=Length(1.0, Units::VIEW),
+                            const Length &yRadius=Length(1.0, Units::VIEW));
   CQChartsEllipseAnnotation(Plot *plot, const Position &center=Position(),
                             const Length &xRadius=Length(1.0, Units::PLOT),
                             const Length &yRadius=Length(1.0, Units::PLOT));

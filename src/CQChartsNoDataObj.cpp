@@ -12,7 +12,7 @@ CQChartsNoDataObj(CQChartsPlot *plot) :
 
 void
 CQChartsNoDataObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   auto *view = plot()->view();
 

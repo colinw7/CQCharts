@@ -1487,7 +1487,7 @@ annotationBBox() const
 
 void
 CQChartsPieObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1897,7 +1897,7 @@ inside(const Point &p) const
 
 void
 CQChartsPieGroupObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! plot()->isCount())
     return;

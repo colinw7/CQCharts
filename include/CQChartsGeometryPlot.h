@@ -121,7 +121,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 

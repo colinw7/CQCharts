@@ -230,6 +230,13 @@ setChecked(bool b)
   CQChartsUtil::testAndSet(checked_, b, [&]() { invalidate(); } );
 }
 
+void
+CQChartsAnnotation::
+setDrawLayer(const DrawLayer &l)
+{
+  CQChartsUtil::testAndSet(drawLayer_, l, [&]() { invalidate(); } );
+}
+
 //---
 
 void
@@ -256,7 +263,8 @@ CQChartsAnnotation::
 invalidate()
 {
   if      (plot()) {
-    plot()->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+    plot()->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
     plot()->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
   }
   else if (view()) {
@@ -321,6 +329,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path, "selected"  , "selected"  , "Is selected"  , true);
   addProp(path, "selectable", "selectable", "Is selectable", true);
   addProp(path, "editable"  , "editable"  , "Is editable"  , true);
+  addProp(path, "drawLayer" , "drawLayer" , "Draw layer");
 
   auto coloringPath = path + "/coloring";
 
@@ -691,6 +700,34 @@ editMoveBy(const Point &f)
 }
 
 //------
+
+void
+CQChartsAnnotation::
+calcPenBrush(CQChartsPenBrush &penBrush)
+{
+  // set pen and brush
+  auto bgColor     = interpFillColor  (ColorInd());
+  auto strokeColor = interpStrokeColor(ColorInd());
+
+  if (isEnabled()) {
+    if (isCheckable() && ! isChecked()) {
+      double f = uncheckedLighter();
+
+      bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+      strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
+    }
+  }
+  else {
+    double f = disabledLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
+  }
+
+  setPenBrush(penBrush,
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+}
 
 void
 CQChartsAnnotation::
@@ -1304,19 +1341,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -1460,8 +1485,14 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
 
   assert(w > 0.0 && h > 0.0);
 
-  xRadius_ = Length(w/2, Units::PLOT);
-  yRadius_ = Length(h/2, Units::PLOT);
+  if      (plot()) {
+    xRadius_ = Length(w/2, Units::PLOT);
+    yRadius_ = Length(h/2, Units::PLOT);
+  }
+  else if (view()) {
+    xRadius_ = Length(w/2, Units::VIEW);
+    yRadius_ = Length(h/2, Units::VIEW);
+  }
 
   setAnnotationBBox(bbox);
 }
@@ -1511,19 +1542,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -1711,19 +1730,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -2313,27 +2320,7 @@ draw(PaintDevice *device)
   // set rect pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isEnabled()) {
-    if (isCheckable() && ! isChecked()) {
-      double f = uncheckedLighter();
-
-      bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-      strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-    }
-  }
-  else {
-    double f = disabledLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   if (isEnabled())
     updatePenBrushState(penBrush);
@@ -2811,19 +2798,7 @@ draw(PaintDevice *device)
   // set rect pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -3296,19 +3271,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = arrow()->interpFillColor  (ColorInd());
-  auto strokeColor = arrow()->interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
-    BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -3817,19 +3780,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -3985,21 +3936,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
-
-  setPenBrush(penBrush, penData, brushData);
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -4182,21 +4119,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
-
-  setPenBrush(penBrush, penData, brushData);
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -4341,21 +4264,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  PenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-  BrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
-
-  setPenBrush(penBrush, penData, brushData);
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 
@@ -4373,9 +4282,13 @@ draw(PaintDevice *device)
     }
   }
   else if (drawType() == DrawType::HULL) {
+    if (! plot_) return;
+
     hull_.draw(plot_, device);
   }
   else if (drawType() == DrawType::DENSITY) {
+    if (! plot_) return;
+
     CQChartsBivariateDensity density;
 
     CQChartsBivariateDensity::Data data;
@@ -4392,8 +4305,9 @@ draw(PaintDevice *device)
     data.xrange = xrange_;
     data.yrange = yrange_;
 
-    if (plot_)
-      density.draw(plot_, device, data);
+    density.calc(plot_, data);
+
+    density.draw(plot_, device);
   }
   else if (drawType() == DrawType::BEST_FIT) {
     CQChartsFitData fitData;
@@ -4446,6 +4360,14 @@ draw(PaintDevice *device)
 
     int maxN = gridCell_.maxN();
 
+    //---
+
+    auto strokeColor = interpStrokeColor(ColorInd());
+
+    PenData penData1(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+    //---
+
     for (const auto &px : gridCell_.xyPoints()) {
       int         ix      = px.first;
       const auto &yPoints = px.second;
@@ -4474,11 +4396,11 @@ draw(PaintDevice *device)
         auto bgColor = view()->interpColor(CQChartsColor(CQChartsColor::Type::PALETTE), colorInd);
 
         // set pen and brush
-        CQChartsPenBrush penBrush;
+        CQChartsPenBrush penBrush1;
 
-        setPenBrush(penBrush, penData, BrushData(true, bgColor));
+        setPenBrush(penBrush1, penData1, BrushData(true, bgColor));
 
-        CQChartsDrawUtil::setPenBrush(device, penBrush);
+        CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
         // draw rect
         device->drawRect(bbox);
@@ -4631,19 +4553,7 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  auto bgColor     = interpFillColor  (ColorInd());
-  auto strokeColor = interpStrokeColor(ColorInd());
-
-  if (isCheckable() && ! isChecked()) {
-    double f = uncheckedLighter();
-
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
-  }
-
-  setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-    BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+  calcPenBrush(penBrush);
 
   updatePenBrushState(penBrush);
 

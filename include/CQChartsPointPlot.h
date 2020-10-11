@@ -2,9 +2,12 @@
 #define CQChartsPointPlot_H
 
 #include <CQChartsGroupPlot.h>
+#include <CQChartsPlotObj.h>
 #include <CQChartsAxisRug.h>
 
+class CQChartsPointPlot;
 class CQChartsDataLabel;
+class CQChartsGrahamHull;
 class CQChartsFitData;
 
 /*!
@@ -21,6 +24,48 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
   QString yColumnName() const override { return "y"; }
 
   void addMappingParameters();
+};
+
+//---
+
+/*!
+ * \brief Point Plot Hull object
+ * \ingroup Charts
+ */
+class CQChartsPointHullObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using Plot = CQChartsPointPlot;
+
+ public:
+  CQChartsPointHullObj(const Plot *plot, int groupInd, const QString &name,
+                       const ColorInd &ig, const ColorInd &is, const BBox &rect);
+
+  int groupInd() const { return groupInd_; }
+
+  const QString &name() const { return name_; }
+
+  //---
+
+  QString typeName() const override { return "hull"; }
+
+  QString calcId() const override;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  bool drawMouseOver() const override { return false; }
+
+ private:
+  const Plot* plot_     { nullptr }; //!< scatter plot
+  int         groupInd_ { -1 };      //!< plot group index
+  QString     name_;                 //!< plot set name
 };
 
 //---
@@ -71,7 +116,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit, bestFit)
 
   // convex hull
-  Q_PROPERTY(bool hull READ isHull WRITE setHull)
+  Q_PROPERTY(bool      hull      READ isHull    WRITE setHull     )
+  Q_PROPERTY(DrawLayer hullLayer READ hullLayer WRITE setHullLayer)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull, hull)
 
@@ -83,6 +129,19 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsAxisRug::Side xRugSide READ xRugSide WRITE setXRugSide)
   Q_PROPERTY(bool                  yRug     READ isYRug   WRITE setYRug    )
   Q_PROPERTY(CQChartsAxisRug::Side yRugSide READ yRugSide WRITE setYRugSide)
+
+  Q_ENUMS(DrawLayer)
+
+ public:
+  enum class DrawLayer {
+    NONE,
+    BACKGROUND,
+    MIDDLE,
+    FOREGROUND
+  };
+
+ protected:
+  using HullObj = CQChartsPointHullObj;
 
  public:
   CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);
@@ -169,6 +228,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   // convex hull
   bool isHull() const { return hullData_.visible; }
 
+  const DrawLayer &hullLayer() const { return hullData_.layer; }
+  void setHullLayer(const DrawLayer &layer);
+
   //---
 
   // axis x rug
@@ -199,10 +261,14 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  void clearHullData();
+
+  //---
+
   void addPointProperties();
 
   void addBestFitProperties();
-  void addHullProperties();
+  void addHullProperties(bool hasLayer);
   void addStatsProperties();
   void addRugProperties();
 
@@ -241,9 +307,51 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  virtual HullObj *createHullObj(int groupInd, const QString &name, const ColorInd &ig,
+                                 const ColorInd &is, const BBox &rect) const;
+
+ protected:
+  using Points = std::vector<Point>;
+
+  Points indPoints(const QVariant &var, int isGroup) const;
+
+  //---
+
  public:
+  void drawHull(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
+                const ColorInd &is) const;
+
   void drawBestFit(PaintDevice *device, const CQChartsFitData &fitData,
                    const ColorInd &ic) const;
+
+  //---
+
+  //! point value data
+  struct ValueData {
+    Point       p;
+    int         row { -1 };
+    QModelIndex ind;
+    Color       color;
+
+    ValueData(const Point &p=Point(), int row=-1, const QModelIndex &ind=QModelIndex(),
+              const Color &color=Color()) :
+     p(p), row(row), ind(ind), color(color) {
+    }
+  };
+
+  using Values = std::vector<ValueData>;
+
+  //! real values data
+  struct ValuesData {
+    Values  values;
+    RMinMax xrange;
+    RMinMax yrange;
+  };
+
+  using NameValues      = std::map<QString, ValuesData>;
+  using GroupNameValues = std::map<int, NameValues>;
+
+  const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
  public slots:
   // overlays
@@ -267,11 +375,15 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
   struct HullData {
-    bool visible { false }; //!< show convex hull
+    bool      visible { false };                 //!< show convex hull
+    DrawLayer layer   { DrawLayer::BACKGROUND }; //!< draw layer
   };
 
  protected:
-  using RugP = std::unique_ptr<CQChartsAxisRug>;
+  using GroupPoints = std::map<int, Points>;
+  using Hull        = CQChartsGrahamHull;
+  using GroupHull   = std::map<int, Hull *>;
+  using RugP        = std::unique_ptr<CQChartsAxisRug>;
 
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
@@ -281,11 +393,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   FontSizeData   fontSizeData_;   //!< font size column data
 
   // plot overlay data
-  BestFitData    bestFitData_; //!< best fit data
-  HullData       hullData_;    //!< hull data
+  BestFitData bestFitData_; //!< best fit data
+  HullData    hullData_;    //!< hull data
 
-  RugP xRug_;
-  RugP yRug_;
+  // group data
+  GroupPoints     groupPoints_;     //!< group fit points
+  GroupNameValues groupNameValues_; //!< group name values (individual points)
+  GroupHull       groupHull_;       //!< group hull
+
+  RugP xRug_; //! x rug
+  RugP yRug_; //! y rug
 };
 
 #endif

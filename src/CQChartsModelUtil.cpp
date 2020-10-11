@@ -249,7 +249,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
 bool
 formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                       const CQChartsColumn &column, const QString &formatStr,
-                      double value, QString &str) {
+                      const QVariant &value, QString &str) {
 #if 0
   CQChartsNameValues nameValues;
 
@@ -279,10 +279,9 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
 }
 
 // use column type details to format an internal value (real) to a display value
-//  TODO: value should be variant ?
 bool
 formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
-                  double value, QString &str) {
+                  const QVariant &value, QString &str) {
   CQChartsModelTypeData typeData;
 
   if (! columnValueType(charts, model, column, typeData))
@@ -313,7 +312,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQCha
 bool
 formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                       const CQChartsColumn &column, const CQChartsColumnType *columnType,
-                      const CQChartsModelTypeData &typeData, double value, QString &str) {
+                      const CQChartsModelTypeData &typeData, const QVariant &value, QString &str) {
   bool converted;
 
   auto var = columnType->dataName(charts, model, column, value, typeData, converted);

@@ -272,7 +272,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -464,6 +464,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   //---
 
   Range calcRange() const override;
+
+  void postCalcRange() override;
 
   bool createObjs(PlotObjs &objs) const override;
 

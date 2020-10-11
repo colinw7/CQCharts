@@ -62,7 +62,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   BBox textRect() const;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_ { nullptr };

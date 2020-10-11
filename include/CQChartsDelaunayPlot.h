@@ -72,7 +72,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_  { nullptr };
@@ -169,6 +169,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void addProperties() override;
 
   Range calcRange() const override;
+
+  void postCalcRange() override;
 
   bool createObjs(PlotObjs &objs) const override;
 

@@ -1392,7 +1392,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsAdjacencyCellObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   // draw inside object
   if (isInside()) {

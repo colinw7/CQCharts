@@ -6,6 +6,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsFitData.h>
+#include <CQChartsGrahamHull.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyViewModel.h>
@@ -120,7 +121,21 @@ void
 CQChartsPointPlot::
 term()
 {
+  clearHullData();
+
   delete dataLabel_;
+}
+
+//---
+
+void
+CQChartsPointPlot::
+clearHullData()
+{
+  for (const auto &ghull : groupHull_)
+    delete ghull.second;
+
+  groupHull_.clear();
 }
 
 //---
@@ -178,7 +193,7 @@ addBestFitProperties()
 
 void
 CQChartsPointPlot::
-addHullProperties()
+addHullProperties(bool hasLayer)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
@@ -187,6 +202,9 @@ addHullProperties()
 
   // convex hull shape
   addProp("hull", "hull", "visible", "Show convex hull overlay");
+
+  if (hasLayer)
+    addProp("hull", "hullLayer", "layer"  , "Convex hull draw layer");
 
   addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
   addLineProperties("hull/stroke", "hullStroke", "Convex hull");
@@ -647,11 +665,140 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
 
 //---
 
+CQChartsPointHullObj *
+CQChartsPointPlot::
+createHullObj(int groupInd, const QString &name, const ColorInd &ig, const ColorInd &is,
+              const BBox &rect) const
+{
+  return new CQChartsPointHullObj(this, groupInd, name, ig, is, rect);
+}
+
+void
+CQChartsPointPlot::
+drawHull(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
+         const ColorInd &is) const
+{
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  // get hull for group or set id
+  auto getHull = [&](int ind, bool &created) {
+    created = false;
+
+    auto ph = th->groupHull_.find(ind);
+
+    if (ph == th->groupHull_.end()) {
+      ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new CQChartsGrahamHull));
+
+      created = true;
+    }
+
+    return (*ph).second;
+  };
+
+  //---
+
+  // draw hull
+  auto drawHullData = [&](const Hull *hull, const ColorInd &ic) {
+    // set pen/brush
+    PenBrush penBrush;
+
+    setPenBrush(penBrush, hullPenData(ic), hullBrushData(ic));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    hull->draw(this, device);
+  };
+
+  //---
+
+  if (name == "") {
+    // get hull for group (add if needed)
+    bool created;
+
+    auto *hull = getHull(groupInd, created);
+
+    if (created) {
+      const auto &points = indPoints(QVariant(groupInd), /*isGroup*/true);
+
+      std::vector<double> x, y;
+
+      for (const auto &p : points)
+        hull->addPoint(p);
+    }
+
+    drawHullData(hull, ig);
+  }
+  else {
+    // get hull for set (add if needed)
+    bool created;
+
+    auto *hull = getHull(is.i, created);
+
+    if (created) {
+      const auto &points = indPoints(QVariant(name), /*isGroup*/false);
+
+      std::vector<double> x, y;
+
+      for (const auto &p : points)
+        hull->addPoint(p);
+    }
+
+    drawHullData(hull, is);
+  }
+}
+
+CQChartsPointPlot::Points
+CQChartsPointPlot::
+indPoints(const QVariant &var, int isGroup) const
+{
+  Points points;
+
+  if (isGroup) {
+    int groupInd = var.toInt();
+
+    auto p = groupPoints_.find(groupInd);
+    if (p == groupPoints_.end()) return points;
+
+    points = (*p).second;
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    auto pn = nameValues.find(var.toString());
+    if (pn == nameValues.end()) return points;
+
+    const auto &values = (*pn).second.values;
+
+    for (const auto &v : values)
+      points.push_back(v.p);
+  }
+
+  return points;
+}
+
+//---
+
 void
 CQChartsPointPlot::
 setHull(bool b)
 {
   CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setHullLayer(const DrawLayer &l)
+{
+  CQChartsUtil::testAndSet(hullData_.layer, l, [&]() {
+    for (const auto &plotObj : plotObjs_) {
+      auto *hullObj = dynamic_cast<CQChartsPointHullObj *>(plotObj);
+
+      if (hullObj)
+        hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+    }
+
+    drawObjs();
+  } );
 }
 
 //---
@@ -673,7 +820,7 @@ bool
 CQChartsPointPlot::
 isXRug() const
 {
-  return xRug_->isVisible();
+  return (xRug_ && xRug_->isVisible());
 }
 
 void
@@ -731,7 +878,7 @@ bool
 CQChartsPointPlot::
 isYRug() const
 {
-  return yRug_->isVisible();
+  return (yRug_ && yRug_->isVisible());
 }
 
 void
@@ -793,4 +940,36 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//------
+
+CQChartsPointHullObj::
+CQChartsPointHullObj(const CQChartsPointPlot *plot, int groupInd, const QString &name,
+                     const ColorInd &ig, const ColorInd &is, const BBox &rect) :
+ CQChartsPlotObj(const_cast<CQChartsPointPlot *>(plot), rect, is,
+                 ig, ColorInd()), plot_(plot), groupInd_(groupInd), name_(name)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsPointHullObj::
+calcId() const
+{
+  return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(is().i);
+}
+
+void
+CQChartsPointHullObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  CQChartsPlotObj::addProperties(model, path);
+}
+
+void
+CQChartsPointHullObj::
+draw(PaintDevice *device) const
+{
+  plot_->drawHull(device, groupInd_, name_, ig_, is_);
 }

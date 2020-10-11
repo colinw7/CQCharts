@@ -589,7 +589,7 @@ class CQChartsGraphNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -685,7 +685,7 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -696,11 +696,11 @@ class CQChartsGraphEdgeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  const Plot*  plot_      { nullptr }; //!< parent plot
-  Edge*        edge_      { nullptr }; //!< edge
-  BBox         srcRect_;               //!< src rect
-  BBox         destRect_;              //!< dest rect
-  QPainterPath path_;                  //!< painter path
+  const Plot*          plot_      { nullptr }; //!< parent plot
+  Edge*                edge_      { nullptr }; //!< edge
+  BBox                 srcRect_;               //!< src rect
+  BBox                 destRect_;              //!< dest rect
+  mutable QPainterPath path_;                  //!< painter path
 };
 
 //---
@@ -757,7 +757,7 @@ class CQChartsGraphGraphObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   //---
 

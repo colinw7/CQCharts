@@ -618,7 +618,7 @@ textRect() const
 
 void
 CQChartsDendrogramNodeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! node_->isPlaced()) return;
 

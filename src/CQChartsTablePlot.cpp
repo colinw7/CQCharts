@@ -1869,7 +1869,7 @@ calcTipId() const
 
 void
 CQChartsTableHeaderObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   device->save();
 
@@ -1892,7 +1892,9 @@ draw(PaintDevice *device)
 
   textOptions.align = headerObjData_.align;
 
-  rect_ = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto *th = const_cast<CQChartsTableHeaderObj *>(this);
+
+  th->rect_ = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   CQChartsDrawUtil::drawTextInBox(device, rect_, headerObjData_.str, textOptions);
 
@@ -1952,7 +1954,7 @@ calcTipId() const
 
 void
 CQChartsTableRowObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   device->save();
 
@@ -1975,7 +1977,9 @@ draw(PaintDevice *device)
 
   textOptions.align = rowObjData_.align;
 
-  rect_ = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto *th = const_cast<CQChartsTableRowObj *>(this);
+
+  th->rect_ = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   CQChartsDrawUtil::drawTextInBox(device, rect_, rowObjData_.str, textOptions);
 
@@ -2027,7 +2031,7 @@ calcTipId() const
 
 void
 CQChartsTableCellObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   device->save();
 
@@ -2082,7 +2086,9 @@ draw(PaintDevice *device)
 
   textOptions.align = cellObjData_.align;
 
-  rect_ = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  auto *th = const_cast<CQChartsTableCellObj *>(this);
+
+  th->rect_ = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   CQChartsDrawUtil::drawTextInBox(device, rect_, cellObjData_.str, textOptions);
 

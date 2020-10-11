@@ -26,7 +26,7 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
   const Font &font() const { return font_; }
   void setFont(const Font &f) { font_ = f; }
 
-  void draw(PaintDevice *) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   Font font_; //!< label font

@@ -1472,9 +1472,9 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsSunburstNodeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
-  plot_->drawNode(device, this, node_);
+  plot_->drawNode(device, const_cast<CQChartsSunburstNodeObj *>(this), node_);
 }
 
 //------

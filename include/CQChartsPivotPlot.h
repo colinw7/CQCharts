@@ -83,7 +83,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -129,7 +129,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  protected:
   const PivotPlot* plot_     { nullptr }; //!< parent plot
@@ -171,7 +171,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  protected:
   const PivotPlot* plot_  { nullptr }; //!< parent plot
@@ -216,7 +216,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcBgPenBrush(PenBrush &bgPenBrush, bool updateState) const;
   void calcFgPenBrush(PenBrush &bgPenBrush, bool updateState) const;

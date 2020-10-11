@@ -533,7 +533,7 @@ addProperties()
   addBestFitProperties();
 
   // convex hull shape
-  addHullProperties();
+  addHullProperties(/*hasLayer*/false);
 
   // stats
   addStatsProperties();
@@ -793,6 +793,20 @@ calcRange() const
 
   //---
 
+  // ensure range non-zero
+  dataRange.makeNonZero();
+
+  //---
+
+  return dataRange;
+}
+
+void
+CQChartsXYPlot::
+postCalcRange()
+{
+  xAxis()->clearTickLabels();
+
   if (isMapXColumn()) {
     auto *columnDetails = this->columnDetails(xColumn());
 
@@ -802,20 +816,7 @@ calcRange() const
 
   //---
 
-  //dataRange = adjustDataRange(dataRange);
-
-  //---
-
-  // ensure range non-zero
-  dataRange.makeNonZero();
-
-  //---
-
-  th->initAxes();
-
-  //---
-
-  return dataRange;
+  initAxes();
 }
 
 void
@@ -2834,7 +2835,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYBiLineObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -2851,7 +2852,7 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsXYBiLineObj::
-drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
+drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -2875,7 +2876,7 @@ drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
 
 void
 CQChartsXYBiLineObj::
-drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2)
+drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
 {
   // get symbol and size
   auto symbol = plot()->symbolType();
@@ -3003,7 +3004,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYImpulseLineObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -3395,7 +3396,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   bool isVector = this->isVector();
 
@@ -3587,7 +3588,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYLabelObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -3864,7 +3865,7 @@ initStats()
 
 void
 CQChartsXYPolylineObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! plot()->isLines() && ! plot()->isBestFit() && ! plot()->isStatsLines())
     return;
@@ -3872,18 +3873,22 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot()->isHull()) {
-    if (! hull_)
-      hull_ = new CQChartsGrahamHull;
+    auto *th = const_cast<CQChartsXYPolylineObj *>(this);
+
+    if (! th->hull_)
+      th->hull_ = new CQChartsGrahamHull;
+
+    auto *hull = th->hull_;
 
     //---
 
-    hull_->clear();
+    hull->clear();
 
     for (int i = 0; i < poly_.size(); ++i) {
       if (plot()->isInterrupt())
         return;
 
-      hull_->addPoint(poly_.point(i));
+      hull->addPoint(poly_.point(i));
     }
 
     //---
@@ -3899,7 +3904,7 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    hull_->draw(plot(), device);
+    hull->draw(plot(), device);
   }
 
   //---
@@ -4134,7 +4139,7 @@ initSmooth() const
 
 void
 CQChartsXYPolygonObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;

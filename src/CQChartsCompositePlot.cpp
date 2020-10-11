@@ -499,7 +499,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 void
 CQChartsCompositePlot::
 drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
-                          bool bgKey) const
+                          bool bgKey, bool bgAnnotations) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -508,7 +508,8 @@ drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawBackgroundDeviceParts(device, bgLayer, /*bgAxes*/false, /*bgKey*/false);
+    plot->drawBackgroundDeviceParts(device, bgLayer, /*bgAxes*/false, /*bgKey*/false,
+                                    bgAnnotations);
   }
 
   if (bgAxes)
@@ -520,8 +521,7 @@ drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes
 
 void
 CQChartsCompositePlot::
-drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid,
-                      bool fg, bool annotations) const
+drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -530,14 +530,14 @@ drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid,
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawMiddleDeviceParts(device, bg, mid, fg, annotations);
+    plot->drawMiddleDeviceParts(device, bg, mid, fg);
   }
 }
 
 void
 CQChartsCompositePlot::
 drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
-                          bool title, bool foreground, bool tabbed) const
+                          bool fgAnnotations, bool title, bool foreground, bool tabbed) const
 {
   if (fgAxes)
     drawGroupedFgAxes(device);
@@ -555,7 +555,7 @@ drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawForegroundDeviceParts(device, /*fgAxes*/false, /*fgKey*/false,
+    plot->drawForegroundDeviceParts(device, /*fgAxes*/false, /*fgKey*/false, fgAnnotations,
                                     /*title*/false, foreground, /*tabbed*/false);
   }
 

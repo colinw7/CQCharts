@@ -357,11 +357,14 @@ calcRange() const
 
   //---
 
-  th->initAxes();
-
-  //---
-
   return dataRange;
+}
+
+void
+CQChartsHierScatterPlot::
+postCalcRange()
+{
+  initAxes();
 }
 
 int
@@ -889,7 +892,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsHierScatterPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   auto ic = calcColorInd();
 

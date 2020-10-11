@@ -225,7 +225,7 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -298,7 +298,7 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   //---
 
@@ -311,11 +311,11 @@ class CQChartsChordEdgeObj : public CQChartsPlotObj {
   CQChartsChordArcObj *toObj  () const;
 
  private:
-  const ChordPlot* plot_ { nullptr }; //!< parent plot
-  ChordData        data_;             //!< chord data (from)
-  int              to_ { -1 };        //!< to index
-  OptReal          value_;            //!< edge value
-  QPainterPath     path_;             //!< drawn path
+  const ChordPlot*     plot_ { nullptr }; //!< parent plot
+  ChordData            data_;             //!< chord data (from)
+  int                  to_ { -1 };        //!< to index
+  OptReal              value_;            //!< edge value
+  mutable QPainterPath path_;             //!< drawn path
 };
 
 //---

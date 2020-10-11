@@ -3400,7 +3400,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsDistributionBarObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   auto bbox = calcRect();
 
@@ -4098,7 +4098,7 @@ inside(const Point &p) const
 
 void
 CQChartsDistributionDensityObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -4355,7 +4355,7 @@ calcTipId() const
 
 void
 CQChartsDistributionScatterObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // set pen brush
   // TODO: allow control of stroke color, alpha, and line width

@@ -199,7 +199,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot*                    plot_ { nullptr };
@@ -314,6 +314,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   //---
 
   Range calcRange() const override;
+
+  void postCalcRange() override;
 
   void initGroupValueSets();
 

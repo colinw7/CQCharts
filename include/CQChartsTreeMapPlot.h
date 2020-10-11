@@ -293,9 +293,9 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox);
+  void drawText(PaintDevice *device, const BBox &bbox) const;
 
   void calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const;
 
@@ -353,9 +353,9 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox);
+  void drawText(PaintDevice *device, const BBox &bbox) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 

@@ -59,6 +59,7 @@
 #include <QButtonGroup>
 #include <QVBoxLayout>
 #include <QPainter>
+#include <QItemDelegate>
 #include <QFileDialog>
 #include <QDir>
 #include <QTimer>
@@ -369,20 +370,154 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
 //---
 
-class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
- public:
-  CQChartsViewSettingsViewAnnotationsTable() {
-    setObjectName("viewAnnotationsTable");
+class CQChartsViewSettingsAnnotationsTable;
 
+class CQChartsViewSettingsAnnotationDelegate : public QItemDelegate {
+ public:
+  CQChartsViewSettingsAnnotationDelegate(CQChartsViewSettingsAnnotationsTable *table) :
+   table_(table) {
+  }
+
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const override;
+
+  CQChartsViewSettingsAnnotationsTable *table() const { return table_; }
+
+ private:
+  CQChartsViewSettingsAnnotationsTable *table_ { nullptr };
+};
+
+//--
+
+class CQChartsViewSettingsAnnotationsTable : public CQTableWidget {
+ public:
+  CQChartsViewSettingsAnnotationsTable(CQChartsView *view=nullptr, CQChartsPlot *plot=nullptr) :
+   view_(view), plot_(plot) {
     horizontalHeader()->setStretchLastSection(true);
     verticalHeader()->setVisible(false);
 
   //setSelectionMode(ExtendedSelection);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    //---
+
+    delegate_ = new CQChartsViewSettingsAnnotationDelegate(this);
+
+    setItemDelegate(delegate_);
+  }
+
+ ~CQChartsViewSettingsAnnotationsTable() {
+    delete delegate_;
+  }
+
+  void setView(CQChartsView *view) { view_ = view; plot_ = nullptr; }
+  void setPlot(CQChartsPlot *plot) { plot_ = plot; view_ = nullptr; }
+
+  void addHeaderItems() {
+    setColumnCount(3);
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"   ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Type" ));
+    setHorizontalHeaderItem(2, new QTableWidgetItem("Style"));
+  }
+
+  QTableWidgetItem *createItem(const QString &name, int r, int c,
+                               CQChartsAnnotation *annotation) {
+    auto *item = new QTableWidgetItem(name);
+
+    item->setToolTip(name);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    item->setData(Qt::UserRole, annotation->ind());
+
+    setItem(r, c, item);
+
+    return item;
+  }
+
+  void getSelectedAnnotations(std::vector<CQChartsAnnotation *> &annotations) {
+    auto items = selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      auto *item = items[i];
+      if (item->column() != 0) continue;
+
+      CQChartsAnnotation *annotation = itemAnnotation(item);
+
+      if (annotation)
+        annotations.push_back(annotation);
+    }
+  }
+
+  CQChartsAnnotation *itemAnnotation(QTableWidgetItem *item) const {
+    bool ok;
+
+    long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+
+    CQChartsAnnotation *annotation = nullptr;
+
+    if      (view_)
+      annotation = view_->getAnnotationByInd(int(ind));
+    else if (plot_)
+      annotation = plot_->getAnnotationByInd(int(ind));
+
+    return annotation;
+  }
+
+ protected:
+  CQChartsView*                           view_     { nullptr };
+  CQChartsPlot*                           plot_     { nullptr };
+  CQChartsViewSettingsAnnotationDelegate* delegate_ { nullptr };
+};
+
+//--
+
+void
+CQChartsViewSettingsAnnotationDelegate::
+paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  if (index.column() == 2) {
+    auto *item = table_->item(index.row(), index.column());
+    if (! item) return;
+
+    auto *annotation = table_->itemAnnotation(item);
+    if (! annotation) return;
+
+    QItemDelegate::drawBackground(painter, option, index);
+
+    auto rect = option.rect;
+
+    rect.setWidth(option.rect.height());
+
+    rect.adjust(0, 1, -3, -2);
+
+    CQChartsPenBrush penBrush;
+
+    annotation->calcPenBrush(penBrush);
+
+    painter->fillRect(rect, penBrush.brush);
+
+    painter->setPen(penBrush.pen);
+
+    painter->drawRect(rect);
+  }
+  else {
+    QItemDelegate::paint(painter, option, index);
+  }
+}
+
+//--
+
+class CQChartsViewSettingsViewAnnotationsTable : public CQChartsViewSettingsAnnotationsTable {
+ public:
+  CQChartsViewSettingsViewAnnotationsTable() {
+    setObjectName("viewAnnotationsTable");
   }
 
   void updateAnnotations(CQChartsView *view) {
+    setView(view);
+
     clear();
 
     if (! view)
@@ -392,69 +527,31 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
     int nv = viewAnnotations.size();
 
-    setColumnCount(2);
     setRowCount(nv);
 
-    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
-    setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
-
-    auto createItem = [&](const QString &name, int r, int c) {
-      auto *item = new QTableWidgetItem(name);
-
-      item->setToolTip(name);
-      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-      setItem(r, c, item);
-
-      return item;
-    };
+    addHeaderItems();
 
     for (int i = 0; i < nv; ++i) {
       auto *annotation = viewAnnotations[i];
 
-      auto *idItem = createItem(annotation->id(), i, 0);
-
-      idItem->setData(Qt::UserRole, annotation->ind());
-
-      (void) createItem(annotation->typeName(), i, 1);
-    }
-  }
-
-  void getSelectedAnnotations(CQChartsView *view, std::vector<CQChartsAnnotation *> &annotations) {
-    auto items = selectedItems();
-
-    for (int i = 0; i < items.length(); ++i) {
-      auto *item = items[i];
-      if (item->column() != 0) continue;
-
-      bool ok;
-
-      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-
-      auto *annotation = view->getAnnotationByInd(int(ind));
-
-      if (annotation)
-        annotations.push_back(annotation);
+      (void) createItem(annotation->id()      , i, 0, annotation);
+      (void) createItem(annotation->typeName(), i, 1, annotation);
+      (void) createItem(""                    , i, 2, annotation);
     }
   }
 };
 
-//---
+//--
 
-class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
+class CQChartsViewSettingsPlotAnnotationsTable : public CQChartsViewSettingsAnnotationsTable {
  public:
   CQChartsViewSettingsPlotAnnotationsTable() {
     setObjectName("plotAnnotationsTable");
-
-    horizontalHeader()->setStretchLastSection(true);
-    verticalHeader()->setVisible(false);
-
-  //setSelectionMode(ExtendedSelection);
-
-    setSelectionBehavior(QAbstractItemView::SelectRows);
   }
 
   void updateAnnotations(CQChartsPlot *plot) {
+    setPlot(plot);
+
     clear();
 
     if (! plot)
@@ -464,49 +561,16 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
 
     int np = plotAnnotations.size();
 
-    setColumnCount(2);
     setRowCount(np);
 
-    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
-    setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
-
-    auto createItem = [&](const QString &name, int r, int c) {
-      auto *item = new QTableWidgetItem(name);
-
-      item->setToolTip(name);
-      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-      setItem(r, c, item);
-
-      return item;
-    };
+    addHeaderItems();
 
     for (int i = 0; i < np; ++i) {
       auto *annotation = plotAnnotations[i];
 
-      auto *idItem = createItem(annotation->id(), i, 0);
-
-      idItem->setData(Qt::UserRole, annotation->ind());
-
-      (void) createItem(annotation->typeName(), i, 1);
-    }
-  }
-
-  void getSelectedAnnotations(CQChartsPlot *plot, std::vector<CQChartsAnnotation *> &annotations) {
-    auto items = selectedItems();
-
-    for (int i = 0; i < items.length(); ++i) {
-      auto *item = items[i];
-      if (item->column() != 0) continue;
-
-      bool ok;
-
-      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-
-      auto *annotation = plot->getAnnotationByInd(int(ind));
-
-      if (annotation)
-        annotations.push_back(annotation);
+      (void) createItem(annotation->id()      , i, 0, annotation);
+      (void) createItem(annotation->typeName(), i, 1, annotation);
+      (void) createItem(""                    , i, 2, annotation);
     }
   }
 };
@@ -541,8 +605,10 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     CQChartsBuffer *buffer = nullptr;
 
     if      (l == 0)
-      buffer = view->objectsBuffer();
+      buffer = view->bgBuffer();
     else if (l == 1)
+      buffer = view->fgBuffer();
+    else if (l == 2)
       buffer = view->overlayBuffer();
 
     if (! buffer) return nullptr;
@@ -559,7 +625,7 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     clear();
 
     setColumnCount(3);
-    setRowCount(2);
+    setRowCount(3);
 
     setHorizontalHeaderItem(0, new QTableWidgetItem("Buffer"));
     setHorizontalHeaderItem(1, new QTableWidgetItem("State" ));
@@ -576,8 +642,10 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
       return item;
     };
 
-    for (int l = 0; l < 2; ++l) {
-      auto *item = createItem(l == 0 ? "Objects" : "Overlay", l, 0);
+    QStringList names = QStringList() << "Bg" << "Fg" << "Overlay";
+
+    for (int l = 0; l < 3; ++l) {
+      auto *item = createItem(names[l], l, 0);
 
       item->setData(Qt::UserRole, l);
 
@@ -587,12 +655,14 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
   }
 
   void updateLayers(CQChartsView *view) {
-    for (int l = 0; l < 2; ++l) {
+    for (int l = 0; l < 3; ++l) {
       CQChartsBuffer *buffer = nullptr;
 
       if      (l == 0)
-        buffer = view->objectsBuffer();
+        buffer = view->bgBuffer();
       else if (l == 1)
+        buffer = view->fgBuffer();
+      else if (l == 2)
         buffer = view->overlayBuffer();
 
   //  auto *idItem    = item(l, 0);
@@ -1313,10 +1383,10 @@ initPlotsFrame(QFrame *plotsFrame)
 
   auto *controlPlotsGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlPlotsGroup, 2, 2);
 
-  plotsWidgets_.raiseButton  = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
-  plotsWidgets_.lowerButton  = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
-  plotsWidgets_.createButton = createPushButton("Create", "create", SLOT(createPlotSlot()));
-  plotsWidgets_.removeButton = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
+  plotsWidgets_.raiseButton  = createPushButton("Raise"    , "raise" , SLOT(raisePlotSlot()));
+  plotsWidgets_.lowerButton  = createPushButton("Lower"    , "lower" , SLOT(lowerPlotSlot()));
+  plotsWidgets_.createButton = createPushButton("Create...", "create", SLOT(createPlotSlot()));
+  plotsWidgets_.removeButton = createPushButton("Remove"   , "remove", SLOT(removePlotsSlot()));
 
 //auto *writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
@@ -1400,7 +1470,13 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   auto *viewControlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(viewControlGroup, 2, 2);
 
-  auto *viewCreateButton =
+  annotationsWidgets_.viewRaiseButton =
+    createPushButton("Raise"    , "raise" , SLOT(raiseViewAnnotationSlot()),
+                     "Raise View Annotation");
+  annotationsWidgets_.viewLowerButton =
+    createPushButton("Lower"    , "lower" , SLOT(lowerViewAnnotationSlot()),
+                     "Lower View Annotation");
+  annotationsWidgets_.viewCreateButton =
     createPushButton("Create...", "create", SLOT(createViewAnnotationSlot()),
                      "Create View Annotation");
   annotationsWidgets_.viewEditButton =
@@ -1413,7 +1489,10 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   annotationsWidgets_.viewEditButton  ->setEnabled(false);
   annotationsWidgets_.viewRemoveButton->setEnabled(false);
 
-  viewControlGroupLayout->addWidget(viewCreateButton);
+  viewControlGroupLayout->addWidget(annotationsWidgets_.viewRaiseButton);
+  viewControlGroupLayout->addWidget(annotationsWidgets_.viewLowerButton);
+  viewControlGroupLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+  viewControlGroupLayout->addWidget(annotationsWidgets_.viewCreateButton);
   viewControlGroupLayout->addWidget(annotationsWidgets_.viewEditButton);
   viewControlGroupLayout->addWidget(annotationsWidgets_.viewRemoveButton);
   viewControlGroupLayout->addStretch(1);
@@ -1445,7 +1524,13 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   auto *plotControlGroupLayout = CQUtil::makeLayout<QHBoxLayout>(plotControlGroup, 2, 2);
 
-  auto *plotCreateButton =
+  annotationsWidgets_.plotRaiseButton =
+    createPushButton("Raise"    , "raise" , SLOT(raisePlotAnnotationSlot()),
+                     "Raise View Annotation");
+  annotationsWidgets_.plotLowerButton =
+    createPushButton("Lower"    , "lower" , SLOT(lowerPlotAnnotationSlot()),
+                     "Lower View Annotation");
+  annotationsWidgets_.plotCreateButton =
     createPushButton("Create...", "create", SLOT(createPlotAnnotationSlot()),
                      "Create Plot Annotation");
   annotationsWidgets_.plotEditButton =
@@ -1458,7 +1543,10 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   annotationsWidgets_.plotEditButton  ->setEnabled(false);
   annotationsWidgets_.plotRemoveButton->setEnabled(false);
 
-  plotControlGroupLayout->addWidget(plotCreateButton);
+  plotControlGroupLayout->addWidget(annotationsWidgets_.plotRaiseButton);
+  plotControlGroupLayout->addWidget(annotationsWidgets_.plotLowerButton);
+  plotControlGroupLayout->addWidget(CQChartsWidgetUtil::createHSpacer(1));
+  plotControlGroupLayout->addWidget(annotationsWidgets_.plotCreateButton);
   plotControlGroupLayout->addWidget(annotationsWidgets_.plotEditButton);
   plotControlGroupLayout->addWidget(annotationsWidgets_.plotRemoveButton);
   plotControlGroupLayout->addStretch(1);
@@ -1819,7 +1907,7 @@ plotLayerImageSlot()
 
   //---
 
-  auto *plot = window_->view()->currentPlot();
+  auto *plot = currentPlot();
   if (! plot) return;
 
   auto *image = layersWidgets_.plotLayerTable->selectedImage(plot);
@@ -2171,6 +2259,18 @@ updateCurrentPlot()
 
 CQChartsPlot *
 CQChartsViewSettings::
+currentPlot(bool remap) const
+{
+  auto *view = window_->view();
+  if (! view) return nullptr;
+
+  return view->currentPlot(remap);
+}
+
+//---
+
+CQChartsPlot *
+CQChartsViewSettings::
 getPropertiesPlot() const
 {
   auto *plotWidget =
@@ -2480,13 +2580,8 @@ void
 CQChartsViewSettings::
 updatePlotControls()
 {
-  auto *view = window_->view();
-  assert(view);
-
-  //---
-
   // add controls for plot and child plots
-  auto *plot = view->currentPlot();
+  auto *plot = currentPlot();
 
   controlFrame_->setPlot(plot);
 
@@ -2527,13 +2622,24 @@ void
 CQChartsViewSettings::
 updateAnnotations()
 {
+  updateViewAnnotations();
+  updatePlotAnnotations();
+}
+
+void
+CQChartsViewSettings::
+updateViewAnnotations()
+{
   auto *view = window_->view();
 
   annotationsWidgets_.viewTable->updateAnnotations(view);
+}
 
-  //---
-
-  auto *plot = view->currentPlot(/*remap*/false);
+void
+CQChartsViewSettings::
+updatePlotAnnotations()
+{
+  auto *plot = currentPlot(/*remap*/false);
 
   annotationsWidgets_.plotTable->updateAnnotations(plot);
 }
@@ -2548,6 +2654,8 @@ viewAnnotationSelectionChangeSlot()
 
   bool anyViewAnnotations = (viewAnnotations.size() > 0);
 
+  annotationsWidgets_.viewRaiseButton ->setEnabled(anyViewAnnotations);
+  annotationsWidgets_.viewLowerButton ->setEnabled(anyViewAnnotations);
   annotationsWidgets_.viewEditButton  ->setEnabled(anyViewAnnotations);
   annotationsWidgets_.viewRemoveButton->setEnabled(anyViewAnnotations);
 
@@ -2594,6 +2702,8 @@ plotAnnotationSelectionChangeSlot()
 
   bool anyPlotAnnotations = (plotAnnotations.size() > 0);
 
+  annotationsWidgets_.plotRaiseButton ->setEnabled(anyPlotAnnotations);
+  annotationsWidgets_.plotLowerButton ->setEnabled(anyPlotAnnotations);
   annotationsWidgets_.plotEditButton  ->setEnabled(anyPlotAnnotations);
   annotationsWidgets_.plotRemoveButton->setEnabled(anyPlotAnnotations);
 
@@ -2610,7 +2720,7 @@ plotAnnotationSelectionChangeSlot()
 
   {
   auto *view = window_->view();
-  auto *plot = view->currentPlot(/*remap*/false);
+  auto *plot = currentPlot(/*remap*/false);
 
   CQChartsWidgetUtil::AutoDisconnect tableDisconnect(
     annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
@@ -2635,19 +2745,87 @@ void
 CQChartsViewSettings::
 getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const
 {
-  auto *view = window_->view();
-
-  annotationsWidgets_.viewTable->getSelectedAnnotations(view, viewAnnotations);
+  annotationsWidgets_.viewTable->getSelectedAnnotations(viewAnnotations);
 
   //---
 
-  auto *plot = view->currentPlot(/*remap*/false);
+  auto *plot = currentPlot(/*remap*/false);
 
   if (plot)
-    annotationsWidgets_.plotTable->getSelectedAnnotations(plot, plotAnnotations);
+    annotationsWidgets_.plotTable->getSelectedAnnotations(plotAnnotations);
+}
+
+CQChartsAnnotation *
+CQChartsViewSettings::
+getSelectedViewAnnotation() const
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  return (! viewAnnotations.empty() ? viewAnnotations[0] : nullptr);
+}
+
+CQChartsAnnotation *
+CQChartsViewSettings::
+getSelectedPlotAnnotation() const
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  return (! plotAnnotations.empty() ? plotAnnotations[0] : nullptr);
 }
 
 //---
+
+void
+CQChartsViewSettings::
+raiseViewAnnotationSlot()
+{
+  auto *annotation = getSelectedViewAnnotation();
+  if (! annotation) return;
+
+  annotation->view()->raiseAnnotation(annotation);
+
+  updateViewAnnotations();
+}
+
+void
+CQChartsViewSettings::
+lowerViewAnnotationSlot()
+{
+  auto *annotation = getSelectedViewAnnotation();
+  if (! annotation) return;
+
+  annotation->view()->lowerAnnotation(annotation);
+
+  updateViewAnnotations();
+}
+
+void
+CQChartsViewSettings::
+raisePlotAnnotationSlot()
+{
+  auto *annotation = getSelectedPlotAnnotation();
+  if (! annotation) return;
+
+  annotation->plot()->raiseAnnotation(annotation);
+
+  updatePlotAnnotations();
+}
+
+void
+CQChartsViewSettings::
+lowerPlotAnnotationSlot()
+{
+  auto *annotation = getSelectedPlotAnnotation();
+  if (! annotation) return;
+
+  annotation->plot()->lowerAnnotation(annotation);
+
+  updatePlotAnnotations();
+}
 
 void
 CQChartsViewSettings::
@@ -2668,9 +2846,7 @@ void
 CQChartsViewSettings::
 createPlotAnnotationSlot()
 {
-  auto *view = window_->view();
-
-  auto *plot = view->currentPlot(/*remap*/false);
+  auto *plot = currentPlot(/*remap*/false);
   if (! plot) return;
 
   if (createAnnotationDlg_)
@@ -2686,11 +2862,7 @@ void
 CQChartsViewSettings::
 editViewAnnotationSlot()
 {
-  Annotations viewAnnotations, plotAnnotations;
-
-  getSelectedAnnotations(viewAnnotations, plotAnnotations);
-
-  auto *annotation = (! viewAnnotations.empty() ? viewAnnotations[0] : nullptr);
+  auto *annotation = getSelectedViewAnnotation();
   if (! annotation) return;
 
   if (editAnnotationDlg_)
@@ -2706,11 +2878,7 @@ void
 CQChartsViewSettings::
 editPlotAnnotationSlot()
 {
-  Annotations viewAnnotations, plotAnnotations;
-
-  getSelectedAnnotations(viewAnnotations, plotAnnotations);
-
-  auto *annotation = (! plotAnnotations.empty() ? plotAnnotations[0] : nullptr);
+  auto *annotation = getSelectedPlotAnnotation();
   if (! annotation) return;
 
   if (editAnnotationDlg_)
@@ -2747,8 +2915,7 @@ removePlotAnnotationsSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  auto *view = window_->view();
-  auto *plot = (view ? view->currentPlot(/*remap*/false) : nullptr);
+  auto *plot = currentPlot(/*remap*/false);
   if (! plot) return;
 
   for (const auto &annotation : plotAnnotations)
@@ -2806,16 +2973,26 @@ updatePlotObjects()
 
   //---
 
-  auto *view = window_->view();
-  auto *plot = (view ? view->currentPlot(/*remap*/false) : nullptr);
+  auto *plot = currentPlot(/*remap*/false);
 
   if (plot) {
     objectsWidgets_.propertyModel = new CQPropertyViewModel;
 
-    const auto &objs = plot->plotObjects();
+    auto objs = plot->plotObjects();
 
-    if (objs.size() > 100) // config
-      return;
+    if (int(objs.size()) > maxPlotObjs_) {
+      CQChartsPlot::PlotObjs majorPlotObjs;
+
+      for (auto &obj : objs) {
+        if (obj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR)
+          majorPlotObjs.push_back(obj);
+      }
+
+      if (int(majorPlotObjs.size()) > maxPlotObjs_)
+        return;
+
+      objs = majorPlotObjs;
+    }
 
     for (auto &obj : objs)
       obj->addProperties(objectsWidgets_.propertyModel, obj->id());
@@ -2930,7 +3107,7 @@ updateLayers()
   if (view)
     layersWidgets_.viewLayerTable->updateLayers(view);
 
-  auto *plot = (view ? view->currentPlot() : nullptr);
+  auto *plot = currentPlot();
 
   if (plot)
     layersWidgets_.plotLayerTable->updateLayers(plot);
@@ -2970,8 +3147,7 @@ plotLayersClickedSlot(int row, int column)
   if (column != 1)
     return;
 
-  auto *view = window_->view();
-  auto *plot = (view ? view->currentPlot() : nullptr);
+  auto *plot = currentPlot();
   if (! plot) return;
 
   CQChartsLayer::Type type;

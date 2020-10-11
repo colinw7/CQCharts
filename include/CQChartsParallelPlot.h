@@ -88,7 +88,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
@@ -100,9 +100,9 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void getPolyLine(Polygon &poly) const;
 
  private:
-  const Plot* plot_ { nullptr }; //!< plot
-  Polygon     poly_;             //!< polygon
-  Polygon     polyLine_;         //!< polyline
+  const Plot*     plot_ { nullptr }; //!< plot
+  Polygon         poly_;             //!< polygon
+  mutable Polygon polyLine_;         //!< polyline
 };
 
 //---
@@ -135,7 +135,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_  { nullptr };

@@ -31,6 +31,15 @@ CQChartsPlotObj::
 
 //---
 
+void
+CQChartsPlotObj::
+setDrawLayer(const DrawLayer &l)
+{
+  drawLayer_ = l;
+
+  emit layerChanged();
+}
+
 CQChartsEditHandles *
 CQChartsPlotObj::
 editHandles() const
@@ -289,7 +298,7 @@ drawFg(CQChartsPaintDevice *) const
 
 void
 CQChartsPlotObj::
-draw(CQChartsPaintDevice *)
+draw(CQChartsPaintDevice *) const
 {
 }
 

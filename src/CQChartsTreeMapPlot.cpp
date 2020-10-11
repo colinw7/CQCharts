@@ -1332,7 +1332,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsTreeMapHierObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   auto *pnode = node()->parent();
 
@@ -1379,7 +1379,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsTreeMapHierObj::
-drawText(PaintDevice *device, const BBox &bbox)
+drawText(PaintDevice *device, const BBox &bbox) const
 {
   // get label (name)
   auto name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
@@ -1612,7 +1612,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsTreeMapNodeObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   auto *pnode = node()->parent();
 
@@ -1670,7 +1670,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsTreeMapNodeObj::
-drawText(PaintDevice *device, const BBox &bbox)
+drawText(PaintDevice *device, const BBox &bbox) const
 {
   // get labels (name and optional size)
   QStringList strs;

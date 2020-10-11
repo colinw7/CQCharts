@@ -525,7 +525,8 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // annotations
+  // --- annotations ---
+
   using Annotation          = CQChartsAnnotation;
   using Annotations         = std::vector<Annotation *>;
   using AnnotationGroup     = CQChartsAnnotationGroup;
@@ -544,8 +545,12 @@ class CQChartsView : public QFrame,
   using ValueSetAnnotation  = CQChartsValueSetAnnotation;
   using WidgetAnnotation    = CQChartsWidgetAnnotation;
   using Buffer              = CQChartsBuffer;
+  using Layer               = CQChartsLayer;
 
+  // get annotations
   const Annotations &annotations() const { return annotations_; }
+
+  // --- add annotation ---
 
   AnnotationGroup     *addAnnotationGroup    ();
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
@@ -577,11 +582,22 @@ class CQChartsView : public QFrame,
     return annotation;
   }
 
+  // --- get annotation ---
+
   Annotation *getAnnotationByName(const QString &id) const;
   Annotation *getAnnotationByInd(int ind) const;
 
+  //! raise/lower annotation
+  void raiseAnnotation(Annotation *annotation);
+  void lowerAnnotation(Annotation *annotation);
+
+  //! get annotation position
+  int annotationPos(Annotation *annotation) const;
+
+  //! remove annotation
   void removeAnnotation(Annotation *annotation);
 
+  //! remove all annotations
   void removeAllAnnotations();
 
   //---
@@ -662,22 +678,24 @@ class CQChartsView : public QFrame,
 
   void drawNoData(PaintDevice *device);
 
-  bool hasAnnotations() const;
-  void drawAnnotations(PaintDevice *device, const CQChartsLayer::Type &layerType);
+  bool hasAnnotations(const Layer::Type &layerType) const;
+  void drawAnnotations(PaintDevice *device, const Layer::Type &layerType);
 
-  void drawKey(PaintDevice *device, const CQChartsLayer::Type &layerType);
+  void drawKey(PaintDevice *device, const Layer::Type &layerType);
 
   void lockPainter(bool lock);
 
   //---
 
   // get buffers
-  Buffer *objectsBuffer() const { return objectsBuffer_; }
+  Buffer *bgBuffer() const { return bgBuffer_; }
+  Buffer *fgBuffer() const { return fgBuffer_; }
+
   Buffer *overlayBuffer() const { return overlayBuffer_; }
 
   // get/set draw layer type
-  const CQChartsLayer::Type &drawLayerType() const { return drawLayerType_; }
-  void setDrawLayerType(const CQChartsLayer::Type &t) { drawLayerType_ = t; }
+  const Layer::Type &drawLayerType() const { return drawLayerType_; }
+  void setDrawLayerType(const Layer::Type &t) { drawLayerType_ = t; }
 
   //---
 
@@ -981,6 +999,9 @@ class CQChartsView : public QFrame,
   // emitted when annotations changed
   void annotationsChanged();
 
+  // emitted when annotations reordered
+  void annotationsReordered();
+
   // emitted when selection changed
   void selectionChanged();
 
@@ -998,6 +1019,7 @@ class CQChartsView : public QFrame,
   void updateNoData();
 
   void editObjectSlot();
+  void removeObjectSlot();
 
   void expansionChangeSlot();
 
@@ -1314,7 +1336,7 @@ class CQChartsView : public QFrame,
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;
 
-  using LayerType = CQChartsLayer::Type;
+  using LayerType = Layer::Type;
 
   using Separators = std::vector<CQChartsSplitter *>;
 
@@ -1363,7 +1385,8 @@ class CQChartsView : public QFrame,
   ProbeBands         probeBands_;                              //!< probe lines
   QMenu*             popupMenu_         { nullptr };           //!< context menu
   QSize              viewSizeHint_;                            //!< view size hint
-  Buffer*            objectsBuffer_     { nullptr };           //!< buffer for view objects
+  Buffer*            bgBuffer_          { nullptr };           //!< buffer for view bg
+  Buffer*            fgBuffer_          { nullptr };           //!< buffer for view fg
   Buffer*            overlayBuffer_     { nullptr };           //!< buffer for view overlays
   LayerType          drawLayerType_     { LayerType::NONE };   //!< current draw layer type
   mutable std::mutex painterMutex_;                            //!< painter mutex

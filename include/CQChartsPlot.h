@@ -47,7 +47,6 @@ class CQChartsKeyColorBox;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
-class CQChartsPlotThread;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -84,6 +83,8 @@ class CQChartsSVGPaintDevice;
 
 class CQPropertyViewModel;
 class CQPropertyViewItem;
+
+class CQThreadObject;
 
 class QSortFilterProxyModel;
 class QItemSelectionModel;
@@ -1370,6 +1371,8 @@ class CQChartsPlot : public CQChartsObj,
   // calculate and return range from data
   virtual Range calcRange() const = 0;
 
+  virtual void postCalcRange() { }
+
   virtual void postUpdateRange() { }
 
   // update plot objects (clear objects, objects updated on next redraw)
@@ -2002,7 +2005,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // annotations
+  // --- annotations ---
+
   using Annotation          = CQChartsAnnotation;
   using Annotations         = std::vector<Annotation *>;
   using AnnotationGroup     = CQChartsAnnotationGroup;
@@ -2022,7 +2026,10 @@ class CQChartsPlot : public CQChartsObj,
   using ValueSetAnnotation  = CQChartsValueSetAnnotation;
   using WidgetAnnotation    = CQChartsWidgetAnnotation;
 
+  // get annotations
   const Annotations &annotations() const { return annotations_; }
+
+  // --- add annotation ---
 
   AnnotationGroup     *addAnnotationGroup    ();
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
@@ -2055,12 +2062,23 @@ class CQChartsPlot : public CQChartsObj,
     return annotation;
   }
 
+  // --- get annotation ---
+
   Annotation *getAnnotationById(const QString &id) const;
   Annotation *getAnnotationByPathId(const QString &pathId) const;
   Annotation *getAnnotationByInd(int ind) const;
 
+  //! raise/lower annotation
+  void raiseAnnotation(Annotation *annotation);
+  void lowerAnnotation(Annotation *annotation);
+
+  //! get annotation position
+  int annotationPos(Annotation *annotation) const;
+
+  //! remove annotation
   void removeAnnotation(Annotation *annotation);
 
+  //! remove all annotations
   void removeAllAnnotations();
 
   //---
@@ -2142,21 +2160,21 @@ class CQChartsPlot : public CQChartsObj,
 
   // draw background layer plot device parts
   virtual void drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
-                                         bool bgKey) const;
+                                         bool bgKey, bool bgAnnotations) const;
 
   // draw middle layer plot parts
   virtual void drawMiddleParts(QPainter *painter) const;
 
   // draw middle layer plot device parts
-  virtual void drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg,
-                                     bool annotations) const;
+  virtual void drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const;
 
   // draw foreground layer plot parts
   virtual void drawForegroundParts(QPainter *painter) const;
 
   // draw foreground layer plot device parts
   virtual void drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
-                                         bool title, bool foreground, bool tabbed) const;
+                                         bool fgAnnotations, bool title, bool foreground,
+                                         bool tabbed) const;
 
   virtual void drawTabs(PaintDevice *device) const;
 
@@ -2579,10 +2597,13 @@ class CQChartsPlot : public CQChartsObj,
   // annotations changed
   void annotationsChanged();
 
-  // selection changed
+  // emitted when annotations reordered
+  void annotationsReordered();
+
+  // emitted when selection changed
   void selectionChanged();
 
-  // errors cleared or added
+  // mitted when errors cleared or added
   void errorsCleared();
   void errorAdded();
 
@@ -2665,7 +2686,7 @@ class CQChartsPlot : public CQChartsObj,
     DRAWN                   //!< drawn
   };
 
-  using ThreadData = CQChartsPlotThread;
+  using ThreadObj = CQThreadObject;
 
   //*! \brief lock data
   struct LockData {
@@ -2687,12 +2708,13 @@ class CQChartsPlot : public CQChartsObj,
   struct UpdateData {
     std::atomic<int> state       { 0 };
     std::atomic<int> interrupt   { 0 };
-    ThreadData*      rangeThread { nullptr };
-    ThreadData*      objsThread  { nullptr };
-    ThreadData*      drawThread  { nullptr };
+    ThreadObj*       rangeThread { nullptr };
+    ThreadObj*       objsThread  { nullptr };
+    ThreadObj*       drawThread  { nullptr };
     LockData         lockData;
     bool             updateObjs  { false };
     QTimer*          timer       { nullptr };
+    int              timeout     { 10 };
     DrawBusyData     drawBusy;
   };
 

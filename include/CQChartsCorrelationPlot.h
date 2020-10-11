@@ -74,11 +74,11 @@ class CQChartsCorrelationCellObj : public CQChartsPlotObj {
 
   Size calcTextSize() const;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
-  void drawCellLabel(PaintDevice *device, const QString &str);
+  void drawCellLabel(PaintDevice *device, const QString &str) const;
   void drawCellLabel(PaintDevice *device, const QString &str,
-                     const BBox &rect, double fontInc=0.0);
+                     const BBox &rect, double fontInc=0.0) const;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 

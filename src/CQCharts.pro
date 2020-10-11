@@ -336,6 +336,7 @@ CQHandDrawnPainter.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
 CQFileWatcher.cpp \
+CQThreadObject.cpp \
 \
 CQDoubleRangeSlider.cpp \
 CQIntRangeSlider.cpp \
@@ -343,7 +344,6 @@ CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
 CQCommand.cpp \
-CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
 \
 CTclParse.cpp \
@@ -671,6 +671,7 @@ HEADERS += \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
 ../include/CQFileWatcher.h \
+../include/CQThreadObject.h \
 \
 ../include/CQDoubleRangeSlider.h \
 ../include/CQIntRangeSlider.h \
@@ -680,7 +681,6 @@ HEADERS += \
 ../include/CUnixFile.h \
 \
 ../include/CQCommand.h \
-../include/CQCheckBox.h \
 ../include/CLeastSquaresFit.h \
 \
 ../include/CTclParse.h \

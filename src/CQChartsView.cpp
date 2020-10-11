@@ -120,7 +120,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
 
-  objectsBuffer_ = new CQChartsBuffer(this);
+  bgBuffer_      = new CQChartsBuffer(this);
+  fgBuffer_      = new CQChartsBuffer(this);
   overlayBuffer_ = new CQChartsBuffer(this);
 
   //---
@@ -202,7 +203,8 @@ CQChartsView::
 
   //---
 
-  delete objectsBuffer_;
+  delete bgBuffer_;
+  delete fgBuffer_;
   delete overlayBuffer_;
 
   delete ipainter_;
@@ -417,7 +419,7 @@ maximizePlotsSlot()
 
 void
 CQChartsView::
-maximizePlot(CQChartsPlot *plot)
+maximizePlot(Plot *plot)
 {
   scrollData_.autoInit = true;
 
@@ -703,8 +705,7 @@ setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
 
 void
 CQChartsView::
-setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                   const CQChartsFont &font) const
+setPlotPainterFont(const Plot *plot, CQChartsPaintDevice *device, const CQChartsFont &font) const
 {
   device->setFont(plotFont(plot, font));
 }
@@ -736,7 +737,7 @@ viewFont(const QFont &font) const
 
 QFont
 CQChartsView::
-plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled) const
+plotFont(const Plot *plot, const CQChartsFont &font, bool scaled) const
 {
   // adjust font by plot font and then by view font
   auto font1 = font.calcFont(plot->font());
@@ -751,7 +752,7 @@ plotFont(const CQChartsPlot *plot, const CQChartsFont &font, bool scaled) const
 #if 0
 QFont
 CQChartsView::
-plotFont(const CQChartsPlot *plot, const QFont &font, bool scaled) const
+plotFont(const Plot *plot, const QFont &font, bool scaled) const
 {
   if (scaled && isScaleFont())
     return scaledFont(font, plot->calcPixelSize());
@@ -791,7 +792,7 @@ scaledFont(const QFont &font, double s) const
 
 void
 CQChartsView::
-setCurrentPlot(CQChartsPlot *plot)
+setCurrentPlot(Plot *plot)
 {
   if (plot)
     setCurrentPlotInd(getIndForPlot(plot));
@@ -1371,7 +1372,7 @@ addWidgetAnnotation(const CQChartsRect &rect, const CQChartsWidget &widget)
 
 void
 CQChartsView::
-addAnnotation(CQChartsAnnotation *annotation)
+addAnnotation(Annotation *annotation)
 {
   annotations_.push_back(annotation);
 
@@ -1379,6 +1380,15 @@ addAnnotation(CQChartsAnnotation *annotation)
   connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
 
   annotation->addProperties(propertyModel(), "annotations");
+
+  //---
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //---
 
   emit annotationsChanged();
 }
@@ -1409,7 +1419,57 @@ getAnnotationByInd(int ind) const
 
 void
 CQChartsView::
-removeAnnotation(CQChartsAnnotation *annotation)
+raiseAnnotation(Annotation *annotation)
+{
+  int pos = annotationPos(annotation);
+  if (pos < 0) return; // not found
+
+  int np = annotations().size();
+  if (np < 2) return;
+
+  if (pos < np - 1)
+    std::swap(annotations_[pos + 1], annotations_[pos]);
+
+  update();
+
+  emit annotationsReordered();
+}
+
+void
+CQChartsView::
+lowerAnnotation(Annotation *annotation)
+{
+  int pos = annotationPos(annotation);
+  if (pos < 0) return; // not found
+
+  int np = annotations().size();
+  if (np < 2) return;
+
+  if (pos > 0)
+    std::swap(annotations_[pos - 1], annotations_[pos]);
+
+  update();
+
+  emit annotationsReordered();
+}
+
+int
+CQChartsView::
+annotationPos(Annotation *annotation) const
+{
+  int np = annotations().size();
+
+  for (int i = 0; i < np; ++i) {
+    if (annotations_[i] == annotation)
+      return i;
+  }
+
+  return -1;
+}
+
+void
+CQChartsView::
+removeAnnotation(Annotation *annotation)
 {
   int pos = 0;
 
@@ -1431,6 +1491,15 @@ removeAnnotation(CQChartsAnnotation *annotation)
 
   annotations_.pop_back();
 
+  //---
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //---
+
   emit annotationsChanged();
 }
 
@@ -1444,6 +1513,15 @@ removeAllAnnotations()
   annotations_.clear();
 
   propertyModel()->removeProperties("annotations");
+
+  //---
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //---
 
   emit annotationsChanged();
 }
@@ -1461,7 +1539,7 @@ updateAnnotationSlot()
 
 void
 CQChartsView::
-addPlot(CQChartsPlot *plot, const BBox &bbox)
+addPlot(Plot *plot, const BBox &bbox)
 {
   auto bbox1 = bbox;
 
@@ -1524,7 +1602,7 @@ addPlot(CQChartsPlot *plot, const BBox &bbox)
 
 void
 CQChartsView::
-raisePlot(CQChartsPlot *plot)
+raisePlot(Plot *plot)
 {
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
@@ -1542,7 +1620,7 @@ raisePlot(CQChartsPlot *plot)
 
 void
 CQChartsView::
-lowerPlot(CQChartsPlot *plot)
+lowerPlot(Plot *plot)
 {
   int pos = plotPos(plot);
   if (pos < 0) return; // not found
@@ -1560,7 +1638,7 @@ lowerPlot(CQChartsPlot *plot)
 
 int
 CQChartsView::
-plotPos(CQChartsPlot *plot) const
+plotPos(Plot *plot) const
 {
   int np = plots().size();
 
@@ -1574,7 +1652,7 @@ plotPos(CQChartsPlot *plot) const
 
 void
 CQChartsView::
-removePlot(CQChartsPlot *plot)
+removePlot(Plot *plot)
 {
   assert(plot);
 
@@ -1669,7 +1747,7 @@ void
 CQChartsView::
 plotModelChanged()
 {
-  auto *plot = qobject_cast<CQChartsPlot *>(sender());
+  auto *plot = qobject_cast<Plot *>(sender());
 
   if (plot == currentPlot(/*remap*/false))
     emit currentPlotChanged();
@@ -1679,7 +1757,7 @@ void
 CQChartsView::
 plotConnectDataChangedSlot()
 {
-  auto *plot = qobject_cast<CQChartsPlot *>(sender());
+  auto *plot = qobject_cast<Plot *>(sender());
 
   if (plot)
     emit plotConnectDataChanged(plot->id());
@@ -1818,7 +1896,7 @@ initOverlay(const Plots &plots, bool reset)
 
 void
 CQChartsView::
-initOverlayPlot(CQChartsPlot *firstPlot)
+initOverlayPlot(Plot *firstPlot)
 {
   firstPlot->setOverlay(true, /*notify*/false);
 
@@ -1827,7 +1905,7 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
   //---
 
-  CQChartsPlot::Plots plots;
+  Plot::Plots plots;
 
   firstPlot->overlayPlots(plots);
 
@@ -1854,7 +1932,7 @@ initOverlayAxes()
   auto *firstPlot = plots_[0]->firstPlot();
 
   if      (firstPlot->isOverlay()) {
-    CQChartsPlot::Plots plots;
+    Plot::Plots plots;
 
     firstPlot->overlayPlots(plots);
 
@@ -1889,7 +1967,7 @@ initOverlayAxes()
     }
   }
   else if (firstPlot->isOverlay(/*checkVisible*/false)) {
-    CQChartsPlot::Plots plots;
+    Plot::Plots plots;
 
     firstPlot->overlayPlots(plots);
 
@@ -2161,7 +2239,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
   //---
 
-  auto setViewBBox = [&](CQChartsPlot *plot, const BBox &bbox) {
+  auto setViewBBox = [&](Plot *plot, const BBox &bbox) {
     if (plot->isOverlay()) {
       Plots plots;
 
@@ -2557,8 +2635,8 @@ keyPressEvent(QKeyEvent *ke)
 
   auto w = pixelToWindow(Point(pos));
 
-  Plots         plots;
-  CQChartsPlot *plot;
+  Plots plots;
+  Plot* plot;
 
   plotsAt(w, plots, plot);
 
@@ -2576,8 +2654,8 @@ wheelEvent(QWheelEvent *e)
 
   auto w = pixelToWindow(pp);
 
-  Plots         plots;
-  CQChartsPlot *plot;
+  Plots plots;
+  Plot* plot;
 
   plotsAt(w, plots, plot);
   if (! plot) return;
@@ -2715,14 +2793,14 @@ editMousePress()
 
   //---
 
-  bool rc = processMouseDataPlots([&](CQChartsPlot *plot, const Point &p) {
+  bool rc = processMouseDataPlots([&](Plot *plot, const Point &p) {
     return plot->editMousePress(p, /*inside*/false);
   }, p);
 
   if (rc)
     return true;
 
-  rc = processMouseDataPlots([&](CQChartsPlot *plot, const Point &p) {
+  rc = processMouseDataPlots([&](Plot *plot, const Point &p) {
     return plot->editMousePress(p, /*inside*/true);
   }, p);
 
@@ -2766,7 +2844,7 @@ editMouseMove()
 
   //---
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const Point &pos) {
+  processMouseDataPlots([&](Plot *plot, const Point &pos) {
     bool current = (plot == mousePlot());
 
     return plot->editMouseMove(pos, current);
@@ -2811,8 +2889,8 @@ editMouseMotion()
   //---
 
   // update plot mouse inside
-  Plots         plots;
-  CQChartsPlot *plot;
+  Plots plots;
+  Plot* plot;
 
   plotsAt(w, plots, plot);
 
@@ -2832,7 +2910,7 @@ editMouseRelease()
 {
   mouseData_.dragObj = DragObj::NONE;
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const Point &pos) {
+  processMouseDataPlots([&](Plot *plot, const Point &pos) {
     plot->editMouseRelease(pos); return false;
   }, mouseMovePoint());
 }
@@ -2843,7 +2921,7 @@ void
 CQChartsView::
 showProbeLines(const Point &p)
 {
-  auto addVerticalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
+  auto addVerticalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
                                   double px, double py1, double py2) -> void {
     while (ind >= int(probeBands_.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
@@ -2856,7 +2934,7 @@ showProbeLines(const Point &p)
     ++ind;
   };
 
-  auto addHorizontalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
+  auto addHorizontalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
                                     double px1, double px2, double py) -> void {
     while (ind >= int(probeBands_.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
@@ -2873,8 +2951,8 @@ showProbeLines(const Point &p)
 
   auto w = pixelToWindow(p);
 
-  Plots         plots;
-  CQChartsPlot *plot;
+  Plots plots;
+  Plot* plot;
 
   plotsAt(w, plots, plot);
 
@@ -2885,7 +2963,7 @@ showProbeLines(const Point &p)
 
     //---
 
-    CQChartsPlot::ProbeData probeData;
+    Plot::ProbeData probeData;
 
     probeData.p = w;
 
@@ -3023,7 +3101,7 @@ selectPointPress()
 
   SelData selData(mousePressPoint(), mouseSelMod());
 
-  if (processMouseDataPlots([&](CQChartsPlot *plot, const SelData &data) {
+  if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
         if (plot->selectMousePress(data.pos, data.selMod)) {
           setCurrentPlot(plot);
           return true;
@@ -3072,7 +3150,7 @@ selectMouseMove()
 
     //---
 
-    processMouseDataPlots([&](CQChartsPlot *plot, const Point &pos) {
+    processMouseDataPlots([&](Plot *plot, const Point &pos) {
       bool current = (plot == mousePlot());
 
       return plot->selectMouseMove(pos, current);
@@ -3109,7 +3187,7 @@ selectMouseRelease()
         mouseData_.plot->selectMouseRelease(mouseMovePoint());
     }
     else {
-      processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
+      processMouseDataPlots([&](Plot *plot, const CQChartsSelMod &selMod) {
         auto w1 = plot->pixelToWindow(mousePressPoint());
         auto w2 = plot->pixelToWindow(mouseMovePoint());
 
@@ -3394,7 +3472,7 @@ startRegionBand(const Point &pos)
 
 void
 CQChartsView::
-updateRegionBand(CQChartsPlot *plot, const Point &pressPoint, const Point &movePoint)
+updateRegionBand(Plot *plot, const Point &pressPoint, const Point &movePoint)
 {
   updateRegionBand(pressPoint, movePoint);
 
@@ -3446,7 +3524,7 @@ void
 CQChartsView::
 updateSelText()
 {
-  CQChartsPlot::Objs objs;
+  Plot::Objs objs;
 
   selectedObjs(objs);
 
@@ -3466,7 +3544,7 @@ updateSelText()
     if (! plot->isVisible())
       continue;
 
-    CQChartsPlot::Objs objs1;
+    Plot::Objs objs1;
 
     plot->selectedObjs(objs1);
 
@@ -3514,7 +3592,7 @@ void
 CQChartsView::
 allSelectedObjs(Objs &objs) const
 {
-  CQChartsPlot::Objs objs1;
+  Plot::Objs objs1;
 
   selectedObjs(objs1);
 
@@ -3525,7 +3603,7 @@ allSelectedObjs(Objs &objs) const
     if (! plot->isVisible())
       continue;
 
-    CQChartsPlot::Objs objs1;
+    Plot::Objs objs1;
 
     plot->selectedObjs(objs1);
 
@@ -3712,7 +3790,7 @@ updateSeparators()
       return;
     }
 
-    using PosPlots = std::map<int,CQChartsPlot *>;
+    using PosPlots = std::map<int, Plot *>;
 
     PosPlots xPlots, yPlots;
 
@@ -3794,7 +3872,7 @@ updateSeparators()
       double x = 0.0;
       int    i = 0;
 
-      CQChartsPlot *lastPlot = nullptr;
+      Plot *lastPlot = nullptr;
 
       for (const auto &pp : xPlots) {
         const auto &bbox = pp.second->viewBBox();
@@ -3823,7 +3901,7 @@ updateSeparators()
       double y = 0.0;
       int    i = 0;
 
-      CQChartsPlot *lastPlot = nullptr;
+      Plot *lastPlot = nullptr;
 
       for (const auto &pp : yPlots) {
         const auto &bbox = pp.second->viewBBox();
@@ -3870,7 +3948,7 @@ paintEvent(QPaintEvent *)
 
 void
 CQChartsView::
-paint(QPainter *painter, CQChartsPlot *plot)
+paint(QPainter *painter, Plot *plot)
 {
   if (isAntiAlias())
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -3915,16 +3993,17 @@ void
 CQChartsView::
 drawPlots(QPainter *painter)
 {
-  bool hasPlots       = ! plots().empty();
-  bool hasAnnotations = this->hasAnnotations();
+  bool hasPlots         = ! plots().empty();
+  bool hasBgAnnotations = this->hasAnnotations(Layer::Type::BG_ANNOTATION);
+  bool hasFgAnnotations = this->hasAnnotations(Layer::Type::FG_ANNOTATION);
 
   //---
 
   // draw no data
-  if (! hasPlots && ! hasAnnotations && ! isPreview()) {
+  if (! hasPlots && ! hasBgAnnotations && ! hasFgAnnotations && ! isPreview()) {
     showNoData(true);
 
-    auto *painter1 = objectsBuffer_->beginPaint(painter, rect());
+    auto *painter1 = bgBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
@@ -3934,12 +4013,30 @@ drawPlots(QPainter *painter)
       drawNoData(&device);
     }
 
-    objectsBuffer_->endPaint();
+    bgBuffer_->endPaint();
 
     return;
   }
 
   showNoData(false);
+
+  //---
+
+  // draw bg annotations
+  if (hasBgAnnotations) {
+    auto *painter1 = bgBuffer_->beginPaint(painter, rect());
+
+    if (painter1) {
+      auto *th = const_cast<CQChartsView *>(this);
+
+      CQChartsViewPaintDevice device(th, painter1);
+
+      // draw bg annotations
+      drawAnnotations(&device, CQChartsLayer::Type::BG_ANNOTATION);
+    }
+
+    bgBuffer_->endPaint();
+  }
 
   //---
 
@@ -3957,35 +4054,33 @@ drawPlots(QPainter *painter)
 
   //---
 
-  // draw annotations and key
-  if (hasAnnotations || hasPlots) {
-    auto *painter1 = objectsBuffer_->beginPaint(painter, rect());
+  // draw fg annotations and key
+  if (hasFgAnnotations || hasPlots) {
+    auto *painter1 = fgBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       auto *th = const_cast<CQChartsView *>(this);
 
       CQChartsViewPaintDevice device(th, painter1);
 
-      if (hasAnnotations) {
-        // draw annotations
-        drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
-      }
+      // draw fg annotations
+      if (hasFgAnnotations)
+        drawAnnotations(&device, CQChartsLayer::Type::FG_ANNOTATION);
 
       //---
 
       // draw view key
-      if (hasPlots) {
+      if (hasPlots)
         drawKey(&device, CQChartsLayer::Type::FG_KEY);
-      }
     }
 
-    objectsBuffer_->endPaint();
+    fgBuffer_->endPaint();
   }
 
   //---
 
   // draw overlay (annotations and key)
-  if (hasPlots || hasAnnotations) {
+  if (hasPlots || hasBgAnnotations || hasFgAnnotations) {
     auto *painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
@@ -3993,20 +4088,16 @@ drawPlots(QPainter *painter)
 
       CQChartsViewPaintDevice device(th, painter1);
 
-      if (hasAnnotations) {
-        // draw selected annotations
+      if (hasBgAnnotations || hasFgAnnotations) {
+        // draw selected/mouse over annotations
         drawAnnotations(&device, CQChartsLayer::Type::SELECTION);
-
-        // draw annotations
         drawAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
       }
 
       //---
 
-      // draw view key
+      // draw selected/mouse over view key
       drawKey(&device, CQChartsLayer::Type::SELECTION);
-
-      // draw view key
       drawKey(&device, CQChartsLayer::Type::MOUSE_OVER);
     }
 
@@ -4022,10 +4113,11 @@ updateNoData()
 {
   updateNoData_ = true;
 
-  bool hasPlots       = ! plots().empty();
-  bool hasAnnotations = this->hasAnnotations();
+  bool hasPlots         = ! plots().empty();
+  bool hasBgAnnotations = hasAnnotations(Layer::Type::BG_ANNOTATION);
+  bool hasFgAnnotations = hasAnnotations(Layer::Type::FG_ANNOTATION);
 
-  if (! hasPlots && ! hasAnnotations) {
+  if (! hasPlots && ! hasBgAnnotations && ! hasFgAnnotations) {
     invalidateObjects();
 
     update();
@@ -4132,15 +4224,62 @@ drawNoData(CQChartsPaintDevice *)
 
 bool
 CQChartsView::
-hasAnnotations() const
+hasAnnotations(const Layer::Type &layerType) const
 {
-  return annotations().size();
+  auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
+    return ((layerType == Layer::Type::BG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
+            (layerType == Layer::Type::FG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+  };
+
+  //---
+
+  bool anyObjs = false;
+
+  for (const auto &annotation : annotations()) {
+    if (! annotation->isVisible())
+      continue;
+
+    if      (layerType == Layer::Type::SELECTION) {
+      if (! annotation->isSelected())
+        continue;
+    }
+    else if (layerType == Layer::Type::MOUSE_OVER) {
+      if (! annotation->isInside())
+        continue;
+    }
+    else {
+      if (! isAnnotationLayer(annotation, layerType))
+        continue;
+    }
+
+    anyObjs = true;
+
+    break;
+  }
+
+  if (! anyObjs)
+    return false;
+
+  //---
+
+  return true;
 }
 
 void
 CQChartsView::
 drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
 {
+  auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
+    return ((layerType == Layer::Type::BG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
+            (layerType == Layer::Type::FG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+  };
+
+  //---
+
   // set draw layer
   setDrawLayerType(layerType);
 
@@ -4151,6 +4290,10 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
     }
     else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
       if (! annotation->isInside())
+        continue;
+    }
+    else {
+      if (! isAnnotationLayer(annotation, layerType))
         continue;
     }
 
@@ -4494,7 +4637,7 @@ searchSlot()
 
   bool handled = false;
 
-  processMouseDataPlots([&](CQChartsPlot *plot, const Point &pos) {
+  processMouseDataPlots([&](Plot *plot, const Point &pos) {
     auto w = plot->pixelToWindow(pos);
 
     if (plot->selectMove(w, ! handled))
@@ -4546,7 +4689,8 @@ void
 CQChartsView::
 invalidateObjects()
 {
-  objectsBuffer_->setValid(false);
+  bgBuffer_->setValid(false);
+  fgBuffer_->setValid(false);
 }
 
 void
@@ -4607,8 +4751,8 @@ showMenu(const Point &p)
   // get current plot
   auto w = pixelToWindow(p);
 
-  Plots         plots;
-  CQChartsPlot* plot { nullptr };
+  Plots plots;
+  Plot* plot { nullptr };
 
   plotsAt(w, plots, plot);
 
@@ -4682,6 +4826,7 @@ showMenu(const Point &p)
 
   //---
 
+  // Mode Menu
   if (hasPlots) {
     popupMenu->addSeparator();
 
@@ -4709,22 +4854,27 @@ showMenu(const Point &p)
 
   //---
 
-  CQChartsPlot::Objs objs;
+  // Edit Object
+  Plot::Objs objs;
 
   allSelectedObjs(objs);
 
-  if (objs.size() == 1) {
+  auto *plotObj = (objs.size() ? objs[0] : nullptr);
+
+  auto *selAnnotation = qobject_cast<Annotation    *>(plotObj);
+  auto *selAxis       = qobject_cast<CQChartsAxis  *>(plotObj);
+  auto *selKey        = qobject_cast<CQChartsKey   *>(plotObj);
+  auto *selTitle      = qobject_cast<CQChartsTitle *>(plotObj);
+
+  if (selAnnotation || selAxis || selKey || selTitle) {
     popupMenu->addSeparator();
 
-    //---
+    auto *objMenu = addSubMenu(popupMenu, "Selected");
 
-    auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-    auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-    auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-    auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+    addAction(objMenu, "Edit", SLOT(editObjectSlot()));
 
-    if (annotation || axis || key || title)
-      addAction(popupMenu, "Edit", SLOT(editObjectSlot()));
+    if (selAnnotation)
+      addAction(objMenu, "Remove", SLOT(removeObjectSlot()));
   }
 
   //---
@@ -5249,46 +5399,73 @@ void
 CQChartsView::
 editObjectSlot()
 {
-  CQChartsPlot::Objs objs;
+  Plot::Objs objs;
 
   allSelectedObjs(objs);
 
-  auto *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-  auto *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-  auto *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-  auto *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+  auto *plotObj = (objs.size() ? objs[0] : nullptr);
 
-  if (annotation) {
+  auto *selAnnotation = qobject_cast<Annotation    *>(plotObj);
+  auto *selAxis       = qobject_cast<CQChartsAxis  *>(plotObj);
+  auto *selKey        = qobject_cast<CQChartsKey   *>(plotObj);
+  auto *selTitle      = qobject_cast<CQChartsTitle *>(plotObj);
+
+  if      (selAnnotation) {
     delete editAnnotationDlg_;
 
-    editAnnotationDlg_ = new CQChartsEditAnnotationDlg(this, annotation);
+    editAnnotationDlg_ = new CQChartsEditAnnotationDlg(this, selAnnotation);
 
     editAnnotationDlg_->show();
     editAnnotationDlg_->raise();
   }
-  else if (axis) {
+  else if (selAxis) {
     delete editAxisDlg_;
 
-    editAxisDlg_ = new CQChartsEditAxisDlg(this, axis);
+    editAxisDlg_ = new CQChartsEditAxisDlg(this, selAxis);
 
     editAxisDlg_->show();
     editAxisDlg_->raise();
   }
-  else if (key) {
+  else if (selKey) {
     delete editKeyDlg_;
 
-    editKeyDlg_ = new CQChartsEditKeyDlg(this, key);
+    editKeyDlg_ = new CQChartsEditKeyDlg(this, selKey);
 
     editKeyDlg_->show();
     editKeyDlg_->raise();
   }
-  else if (title) {
+  else if (selTitle) {
     delete editTitleDlg_;
 
-    editTitleDlg_ = new CQChartsEditTitleDlg(this, title);
+    editTitleDlg_ = new CQChartsEditTitleDlg(this, selTitle);
 
     editTitleDlg_->show();
     editTitleDlg_->raise();
+  }
+}
+
+void
+CQChartsView::
+removeObjectSlot()
+{
+  Plot::Objs objs;
+
+  allSelectedObjs(objs);
+
+  auto *plotObj = (objs.size() ? objs[0] : nullptr);
+
+  auto *selAnnotation = qobject_cast<Annotation *>(plotObj);
+
+  if (selAnnotation) {
+    if (selAnnotation->plot()) {
+      selAnnotation->plot()->removeAnnotation(selAnnotation);
+
+      selAnnotation->plot()->drawObjs();
+    }
+    else
+      selAnnotation->view()->removeAnnotation(selAnnotation);
+
+    update();
   }
 }
 
@@ -5719,7 +5896,7 @@ setDark(bool b)
 
 bool
 CQChartsView::
-printFile(const QString &filename, CQChartsPlot *plot)
+printFile(const QString &filename, Plot *plot)
 {
   auto p = filename.lastIndexOf(".");
 
@@ -5818,7 +5995,7 @@ writeScriptSlot()
 
 bool
 CQChartsView::
-printPNG(const QString &filename, CQChartsPlot *plot)
+printPNG(const QString &filename, Plot *plot)
 {
   int w = width ();
   int h = height();
@@ -5845,7 +6022,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
 
 bool
 CQChartsView::
-printSVG(const QString &filename, CQChartsPlot *plot)
+printSVG(const QString &filename, Plot *plot)
 {
   bool buffer = isBufferLayers();
 
@@ -5872,7 +6049,7 @@ printSVG(const QString &filename, CQChartsPlot *plot)
 
 bool
 CQChartsView::
-writeSVG(const QString &filename, CQChartsPlot *plot)
+writeSVG(const QString &filename, Plot *plot)
 {
   auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
 
@@ -5932,7 +6109,10 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
   //---
 
   // write custom html for annotations
-  if (hasAnnotations()) {
+  bool hasBgAnnotations = hasAnnotations(Layer::Type::BG_ANNOTATION);
+  bool hasFgAnnotations = hasAnnotations(Layer::Type::FG_ANNOTATION);
+
+  if (hasBgAnnotations || hasFgAnnotations) {
     for (auto &annotation : annotations()) {
       annotation->writeHtml(&device);
     }
@@ -5940,13 +6120,13 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   // write custom html for plots
   if (plot) {
-    CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsSVGPaintDevice device(const_cast<Plot *>(plot), os);
 
     plot->writeHtml(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsSVGPaintDevice device(const_cast<Plot *>(plot), os);
 
       plot->writeHtml(&device);
     }
@@ -5970,25 +6150,26 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   // draw specific plot
   if (plot) {
-    CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsSVGPaintDevice device(const_cast<Plot *>(plot), os);
 
     plot->writeSVG(&device);
   }
   // draw all plots
   else {
     for (auto &plot : plots()) {
-      CQChartsSVGPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsSVGPaintDevice device(const_cast<Plot *>(plot), os);
 
       plot->writeSVG(&device);
     }
 
     //---
 
-    if (hasAnnotations()) {
+    if (hasBgAnnotations || hasFgAnnotations) {
       CQChartsSVGPaintDevice device(th, os);
 
       // draw annotations
-      drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+      drawAnnotations(&device, CQChartsLayer::Type::BG_ANNOTATION);
+      drawAnnotations(&device, CQChartsLayer::Type::FG_ANNOTATION);
     }
   }
 
@@ -6016,7 +6197,7 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
 bool
 CQChartsView::
-writeScript(const QString &filename, CQChartsPlot *plot)
+writeScript(const QString &filename, Plot *plot)
 {
   auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
 
@@ -6166,11 +6347,23 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   //---
 
   // draw annotations proc
-  if (hasAnnotations()) {
-    os << "\n";
-    os << "Charts.prototype.drawAnnotations = function() {\n";
+  bool hasBgAnnotations = hasAnnotations(Layer::Type::BG_ANNOTATION);
+  bool hasFgAnnotations = hasAnnotations(Layer::Type::FG_ANNOTATION);
 
-    drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+  if (hasBgAnnotations) {
+    os << "\n";
+    os << "Charts.prototype.drawBgAnnotations = function() {\n";
+
+    drawAnnotations(&device, CQChartsLayer::Type::BG_ANNOTATION);
+
+    os << "}\n";
+  }
+
+  if (hasFgAnnotations) {
+    os << "\n";
+    os << "Charts.prototype.drawFgAnnotations = function() {\n";
+
+    drawAnnotations(&device, CQChartsLayer::Type::FG_ANNOTATION);
 
     os << "}\n";
   }
@@ -6201,7 +6394,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   //---
 
   // draw view annotations
-  if (hasAnnotations()) {
+  if (hasBgAnnotations || hasFgAnnotations) {
     os << "\n";
     os << "  this.invertX = 0;\n";
     os << "  this.invertY = 0;\n";
@@ -6218,7 +6411,11 @@ writeScript(const QString &filename, CQChartsPlot *plot)
     os << "  this.ymax = 100.0;\n";
     os << "\n";
 
-    os << "  this.drawAnnotations();\n";
+    if (hasBgAnnotations)
+      os << "  this.drawBgAnnotations();\n";
+
+    if (hasFgAnnotations)
+      os << "  this.drawFgAnnotations();\n";
   }
 
   os << "}\n";
@@ -6228,13 +6425,13 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   os << "\n";
 
   if (plot) {
-    CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsScriptPaintDevice device(const_cast<Plot *>(plot), os);
 
     plot->writeScript(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsScriptPaintDevice device(const_cast<Plot *>(plot), os);
 
       plot->writeScript(&device);
     }
@@ -6265,7 +6462,7 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   //---
 
   // write custom html for annotations
-  if (hasAnnotations()) {
+  if (hasBgAnnotations || hasFgAnnotations) {
     for (auto &annotation : annotations()) {
       annotation->writeHtml(&device);
     }
@@ -6273,13 +6470,13 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   // write custom html for plots
   if (plot) {
-    CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+    CQChartsScriptPaintDevice device(const_cast<Plot *>(plot), os);
 
     plot->writeHtml(&device);
   }
   else {
     for (auto &plot : plots()) {
-      CQChartsScriptPaintDevice device(const_cast<CQChartsPlot *>(plot), os);
+      CQChartsScriptPaintDevice device(const_cast<Plot *>(plot), os);
 
       plot->writeHtml(&device);
     }
@@ -6502,7 +6699,7 @@ addPlots(Plots &plots, bool clear) const
 
 CQChartsPlot *
 CQChartsView::
-basePlot(CQChartsPlot *plot) const
+basePlot(Plot *plot) const
 {
   if      (plot->isOverlay())
     return plot->firstPlot();
@@ -6530,7 +6727,7 @@ addBasePlots(PlotSet &plots, bool clear) const
 
 bool
 CQChartsView::
-plotsAt(const Point &p, Plots &plots, CQChartsPlot* &plot, bool clear, bool first) const
+plotsAt(const Point &p, Plots &plots, Plot* &plot, bool clear, bool first) const
 {
   if (clear)
     plots.clear();
@@ -6584,8 +6781,8 @@ CQChartsPlot *
 CQChartsView::
 plotAt(const Point &p) const
 {
-  Plots         plots;
-  CQChartsPlot *plot;
+  Plots plots;
+  Plot* plot;
 
   (void) plotsAt(p, plots, plot, true);
 
@@ -6596,7 +6793,7 @@ bool
 CQChartsView::
 plotsAt(const Point &p, Plots &plots, bool clear) const
 {
-  CQChartsPlot *plot;
+  Plot *plot;
 
   return plotsAt(p, plots, plot, clear);
 }
@@ -6627,7 +6824,7 @@ basePlotsAt(const Point &p, PlotSet &plots, bool clear) const
 
 CQChartsGeom::BBox
 CQChartsView::
-plotBBox(CQChartsPlot *plot) const
+plotBBox(Plot *plot) const
 {
   for (const auto &plot1 : plots()) {
     if (plot1 != plot)
@@ -6681,7 +6878,7 @@ getPlotForInd(int ind) const
 
 int
 CQChartsView::
-getIndForPlot(const CQChartsPlot *plot) const
+getIndForPlot(const Plot *plot) const
 {
   if (! plot)
     return -1;
@@ -6703,7 +6900,7 @@ calcCurrentPlotInd(bool remap) const
   if (plots().empty())
     return -1;
 
-  CQChartsPlot *plot = nullptr;
+  Plot *plot = nullptr;
 
   for (auto &plot1 : plots()) {
     if (plot1->isVisible()) {
@@ -6818,7 +7015,7 @@ writeAll(std::ostream &os) const
   this->getPlots(plots);
 
   using ModelVars = std::map<QString, QString>;
-  using PlotVars  = std::map<CQChartsPlot*, QString>;
+  using PlotVars  = std::map<Plot*, QString>;
 
   ModelVars modelVars;
   PlotVars  plotVars;

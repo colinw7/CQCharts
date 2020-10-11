@@ -656,7 +656,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawConnectionMouseOver(PaintDevice *device, int mouseColoring, int pathId=-1) const;
 
@@ -742,7 +742,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
 #if 0
   void drawFg(PaintDevice *device) const override;
@@ -757,11 +757,11 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void writeScriptData(ScriptPaintDevice *device) const override;
 
  protected:
-  const Plot*  plot_      { nullptr }; //!< parent plot
-  Edge*        edge_      { nullptr }; //!< edge
-  BBox         srcRect_;               //!< src rect
-  BBox         destRect_;              //!< dest rect
-  QPainterPath path_;                  //!< painter path
+  const Plot*          plot_      { nullptr }; //!< parent plot
+  Edge*                edge_      { nullptr }; //!< edge
+  BBox                 srcRect_;               //!< src rect
+  BBox                 destRect_;              //!< dest rect
+  mutable QPainterPath path_;                  //!< painter path
 };
 
 //---

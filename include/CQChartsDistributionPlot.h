@@ -212,7 +212,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -251,15 +251,15 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   double yColorValue(bool relative=true) const override;
 
  private:
-  const Plot*    plot_     { nullptr };
-  int            groupInd_ { -1 };
-  Bucket         bucket_;
-  BarValue       barValue_;
-  double         value1_   { 0.0 };
-  double         value2_   { 1.0 };
-  bool           isLine_   { false };
-  ColorData      colorData_;
-  mutable QColor barColor_;
+  const Plot*       plot_     { nullptr };
+  int               groupInd_ { -1 };
+  Bucket            bucket_;
+  BarValue          barValue_;
+  double            value1_   { 0.0 };
+  double            value2_   { 1.0 };
+  bool              isLine_   { false };
+  mutable ColorData colorData_;
+  mutable QColor    barColor_;
 };
 
 //---
@@ -340,7 +340,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawFg(PaintDevice *device) const override;
 
@@ -402,7 +402,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   //---
 

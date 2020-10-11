@@ -71,7 +71,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 

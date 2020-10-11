@@ -872,7 +872,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsImageObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;

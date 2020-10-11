@@ -27,7 +27,6 @@
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
-#include <CQChartsPlotThread.h>
 
 #include <CQChartsPlotControlWidgets.h>
 #include <CQChartsModelViewHolder.h>
@@ -41,6 +40,7 @@
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
+#include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CQTclUtil.h>
@@ -140,24 +140,25 @@ init()
   //---
 
   // all layers active except BG_PLOT and FG_PLOT
-  initLayer(Layer::Type::BACKGROUND , Buffer::Type::BACKGROUND, true );
-  initLayer(Layer::Type::BG_AXES    , Buffer::Type::BACKGROUND, true );
-  initLayer(Layer::Type::BG_KEY     , Buffer::Type::BACKGROUND, true );
+  initLayer(Layer::Type::BACKGROUND   , Buffer::Type::BACKGROUND, true);
+  initLayer(Layer::Type::BG_AXES      , Buffer::Type::BACKGROUND, true);
+  initLayer(Layer::Type::BG_KEY       , Buffer::Type::BACKGROUND, true);
+  initLayer(Layer::Type::BG_ANNOTATION, Buffer::Type::BACKGROUND, true);
 
-  initLayer(Layer::Type::BG_PLOT    , Buffer::Type::MIDDLE    , false);
-  initLayer(Layer::Type::MID_PLOT   , Buffer::Type::MIDDLE    , true );
-  initLayer(Layer::Type::FG_PLOT    , Buffer::Type::MIDDLE    , false);
+  initLayer(Layer::Type::BG_PLOT , Buffer::Type::MIDDLE, false);
+  initLayer(Layer::Type::MID_PLOT, Buffer::Type::MIDDLE, true );
+  initLayer(Layer::Type::FG_PLOT , Buffer::Type::MIDDLE, false);
 
-  initLayer(Layer::Type::FG_AXES    , Buffer::Type::FOREGROUND, true );
-  initLayer(Layer::Type::FG_KEY     , Buffer::Type::FOREGROUND, true );
-  initLayer(Layer::Type::TITLE      , Buffer::Type::FOREGROUND, true );
-  initLayer(Layer::Type::ANNOTATION , Buffer::Type::FOREGROUND, true );
-  initLayer(Layer::Type::FOREGROUND , Buffer::Type::FOREGROUND, true );
+  initLayer(Layer::Type::FG_AXES      , Buffer::Type::FOREGROUND, true);
+  initLayer(Layer::Type::FG_KEY       , Buffer::Type::FOREGROUND, true);
+  initLayer(Layer::Type::FG_ANNOTATION, Buffer::Type::FOREGROUND, true);
+  initLayer(Layer::Type::TITLE        , Buffer::Type::FOREGROUND, true);
+  initLayer(Layer::Type::FOREGROUND   , Buffer::Type::FOREGROUND, true);
 
-  initLayer(Layer::Type::EDIT_HANDLE, Buffer::Type::OVERLAY   , true );
-  initLayer(Layer::Type::BOXES      , Buffer::Type::OVERLAY   , true );
-  initLayer(Layer::Type::SELECTION  , Buffer::Type::OVERLAY   , true );
-  initLayer(Layer::Type::MOUSE_OVER , Buffer::Type::OVERLAY   , true );
+  initLayer(Layer::Type::EDIT_HANDLE, Buffer::Type::OVERLAY, true);
+  initLayer(Layer::Type::BOXES      , Buffer::Type::OVERLAY, true);
+  initLayer(Layer::Type::SELECTION  , Buffer::Type::OVERLAY, true);
+  initLayer(Layer::Type::MOUSE_OVER , Buffer::Type::OVERLAY, true);
 
   //---
 
@@ -169,9 +170,9 @@ init()
   ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
   ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
 
-  updateData_.rangeThread = new ThreadData(this, "updateRange");
-  updateData_.objsThread  = new ThreadData(this, "updateObjs" );
-  updateData_.drawThread  = new ThreadData(this, "drawObjs"   );
+  updateData_.rangeThread = new ThreadObj("updateRange");
+  updateData_.objsThread  = new ThreadObj("updateObjs" );
+  updateData_.drawThread  = new ThreadObj("drawObjs"   );
 
   updateData_.rangeThread->setDebug(debugUpdate_);
   updateData_.objsThread ->setDebug(debugUpdate_);
@@ -266,7 +267,7 @@ startThreadTimer()
   }
 
   if (! updateData_.timer->isActive())
-    updateData_.timer->start(10);
+    updateData_.timer->start(updateData_.timeout);
 }
 
 void
@@ -916,47 +917,46 @@ writeScript(ScriptPaintDevice *device) const
 
   //---
 
-  // background parts (background, bg axes, bg key)
+  // background parts (bg axis, bg key, bg annotations, backgroun)
   if (hasBackgroundLayer()) {
     os << "\n"; drawBackgroundLayer(device);
   }
 
-  //---
-
   bool bgAxes = hasGroupedBgAxes();
-  bool fgAxes = hasGroupedFgAxes();
   bool bgKey  = hasGroupedBgKey();
-  bool fgKey  = hasGroupedFgKey();
-
-  //---
 
   if (bgAxes) { os << "\n"; os << "  this.drawBgAxis();\n"; }
   if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
 
-  //---
 
-  // middle parts (objects and annotations)
-  os << "\n"; os << "  this.drawObjs();\n";
-
-  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
-    os << "\n"; os << "  this.drawAnnotations();\n";
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
+    os << "\n"; os << "  this.drawBgAnnotations();\n";
   }
 
   //---
 
-  // foreground parts (fg axis, fg key, title, annotations, foreground)
-  if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
-  if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
+  // middle parts (objects)
+  os << "\n"; os << "  this.drawObjs();\n";
+
 
   //---
+
+  // foreground parts (fg annotations, fg axis, fg key, title, foreground)
+  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
+    os << "\n"; os << "  this.drawFgAnnotations();\n";
+  }
+
+  bool fgAxes = hasGroupedFgAxes();
+  bool fgKey  = hasGroupedFgKey();
+
+  if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
+  if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
 
   bool title = hasTitle();
 
   if (title) {
     os << "\n"; os << "  this.drawTitle();\n";
   }
-
-  //---
 
   if (this->hasForeground()) {
     os << "\n"; execDrawForeground(device);
@@ -1065,6 +1065,16 @@ writeScript(ScriptPaintDevice *device) const
 
   //---
 
+  // draw background annotations proc
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
+    os << "\n";
+    os << "Charts_" << plotId << ".prototype.drawBgAnnotations = function() {\n";
+    drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
+    os << "}\n";
+  }
+
+  //---
+
   // draw objects proc
   device->resetData();
 
@@ -1094,10 +1104,10 @@ writeScript(ScriptPaintDevice *device) const
   //---
 
   // draw annotations proc
-  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
+  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
     os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
-    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
+    os << "Charts_" << plotId << ".prototype.drawFgAnnotations = function() {\n";
+    drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
     os << "}\n";
   }
 
@@ -1211,6 +1221,10 @@ writeSVG(SVGPaintDevice *device) const
     device->endGroup();
   }
 
+  if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
+    drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
+  }
+
   for (const auto &plotObj : plotObjects()) {
     auto objId = QString("obj_") + plotId + "_" + plotObj->id();
 
@@ -1231,8 +1245,8 @@ writeSVG(SVGPaintDevice *device) const
     device->endGroup();
   }
 
-  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
-    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
+  if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
+    drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
   }
 
   if (hasForeground()) {
@@ -1270,25 +1284,41 @@ void
 CQChartsPlot::
 writeHtml(HtmlPaintDevice *device) const
 {
-  if (hasGroupedAnnotations(Layer::Type::ANNOTATION)) {
-    if (isOverlay()) {
-      if (! isFirstPlot())
-        return;
+  auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
+    return ((layerType == Layer::Type::BG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
+            (layerType == Layer::Type::FG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+  };
 
-      processOverlayPlots([&](const CQChartsPlot *plot) {
-        device->setPlot(const_cast<CQChartsPlot *>(plot));
+  auto writeAnnotations = [&](const CQChartsLayer::Type &layerType) {
+    if (hasGroupedAnnotations(layerType)) {
+      if (isOverlay()) {
+        if (! isFirstPlot())
+          return;
 
-        for (auto &annotation : plot->annotations())
-          annotation->writeHtml(device);
-      });
+        processOverlayPlots([&](const CQChartsPlot *plot) {
+          device->setPlot(const_cast<CQChartsPlot *>(plot));
 
-      device->setPlot(const_cast<CQChartsPlot *>(this));
+          for (auto &annotation : plot->annotations()) {
+            if (isAnnotationLayer(annotation, layerType))
+              annotation->writeHtml(device);
+          }
+        });
+
+        device->setPlot(const_cast<CQChartsPlot *>(this));
+      }
+      else {
+        for (auto &annotation : annotations()) {
+          if (isAnnotationLayer(annotation, layerType))
+            annotation->writeHtml(device);
+        }
+      }
     }
-    else {
-      for (auto &annotation : annotations())
-        annotation->writeHtml(device);
-    }
-  }
+  };
+
+  writeAnnotations(Layer::Type::BG_ANNOTATION);
+  writeAnnotations(Layer::Type::FG_ANNOTATION);
 }
 
 //---
@@ -3509,8 +3539,9 @@ threadTimerSlot()
   // ensure threads state is up to date (thread may have finished)
 
   if      (updateState == UpdateState::CALC_RANGE) {
-    // check if calc range finished
-    if (! updateData_.rangeThread->isBusy()) {
+    // check if calc range result ready
+    if (updateData_.rangeThread->isReady()) {
+      // if ready then mark finished (handled)
       updateData_.rangeThread->finish();
 
       // ensure all overlay plot ranges done
@@ -3532,8 +3563,9 @@ threadTimerSlot()
     }
   }
   else if (updateState == UpdateState::CALC_OBJS) {
-    // check if calc objs finished
-    if (! updateData_.objsThread->isBusy()) {
+    // check if calc objs result ready
+    if (updateData_.objsThread->isReady()) {
+      // if ready then mark finished (handled)
       updateData_.objsThread->finish();
 
       // ensure all overlay plot objs done
@@ -3552,8 +3584,9 @@ threadTimerSlot()
     }
   }
   else if (updateState == UpdateState::DRAW_OBJS) {
-    // check if draw objs finished
-    if (! updateData_.drawThread->isBusy()) {
+    // check if draw objs result ready
+    if (updateData_.drawThread->isReady()) {
+      // if ready then mark finished (handled)
       updateData_.drawThread->finish();
 
       // ensure all overlay draw done
@@ -3862,7 +3895,7 @@ updateAndApplyPlotRange1(bool updateObjs)
 
     setGroupedUpdateState(UpdateState::CALC_RANGE);
 
-    updateData_.rangeThread->exec(updateRangeASync);
+    updateData_.rangeThread->exec(updateRangeASync, this);
 
     startThreadTimer();
   }
@@ -3979,6 +4012,7 @@ execWaitRange()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_RANGE) {
+    // if busy wait for range thread to finish
     if (updateData_.rangeThread->isBusy()) {
       (void) updateData_.rangeThread->term();
       return;
@@ -4023,15 +4057,17 @@ updateRangeThread()
   dataRange_      = adjustDataRange(getCalcDataRange());
   outerDataRange_ = dataRange_;
 
+  postCalcRange();
+
   //---
-
-  if (debugUpdate_)
-    std::cerr << "updateRangeThread: " << id().toStdString() << " : " << dataRange_ << "\n";
-
-  updateData_.rangeThread->end();
 
   if (isOverlay())
     updateOverlayRanges();
+
+  //---
+
+  // mark thread done
+  updateData_.rangeThread->end();
 }
 
 //------
@@ -4110,7 +4146,7 @@ updatePlotObjs()
 
     setGroupedUpdateState(UpdateState::CALC_OBJS);
 
-    updateData_.objsThread->exec(updateObjsASync);
+    updateData_.objsThread->exec(updateObjsASync, this);
 
     startThreadTimer();
   }
@@ -4182,6 +4218,7 @@ execWaitObjs()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::CALC_OBJS) {
+    // if busy wait for objs thread to finish
     if (updateData_.objsThread->isBusy()) {
       (void) updateData_.objsThread->term();
       return;
@@ -4223,6 +4260,9 @@ updateObjsThread()
 
   initPlotObjs();
 
+  //---
+
+  // mark thread done
   updateData_.objsThread->end();
 }
 
@@ -4592,6 +4632,8 @@ updateOverlayRanges()
         plot->setDataRange(dataRange, /*update*/false);
 
         plot->applyDataRange(/*propagate*/false);
+
+        plot->postCalcRange();
       });
     }
   }
@@ -6390,6 +6432,11 @@ editMove(const Point &p, const Point &w, bool /*first*/)
 
     if (! edited)
       return false;
+
+    invalidateLayer(Buffer::Type::BACKGROUND);
+    invalidateLayer(Buffer::Type::FOREGROUND);
+
+    invalidateOverlay();
   }
   else if (mouseData_.dragObjType == DragObjType::OBJECT) {
     bool edited = false;
@@ -7710,20 +7757,22 @@ yStr(double y) const
 
 QString
 CQChartsPlot::
-columnStr(const Column &column, double x) const
+columnStr(const Column &column, double r) const
 {
   if (! column.isValid())
-    return CQChartsUtil::formatReal(x);
+    return CQChartsUtil::formatReal(r);
 
   auto *model = this->model().data();
 
   if (! model)
-    return CQChartsUtil::formatReal(x);
+    return CQChartsUtil::formatReal(r);
 
   QString str;
 
-  if (! CQChartsModelUtil::formatColumnValue(charts(), model, column, x, str))
-    return CQChartsUtil::formatReal(x);
+  QVariant var(r);
+
+  if (! CQChartsModelUtil::formatColumnValue(charts(), model, column, var, str))
+    return CQChartsUtil::formatReal(r);
 
   return str;
 }
@@ -8705,7 +8754,7 @@ updateDraw()
 
     setGroupedUpdateState(UpdateState::DRAW_OBJS);
 
-    updateData_.drawThread->exec(drawASync);
+    updateData_.drawThread->exec(drawASync, this);
 
     startThreadTimer();
     }
@@ -8772,6 +8821,7 @@ execWaitDraw()
   auto updateState = this->updateState();
 
   while (updateState == UpdateState::DRAW_OBJS) {
+    // if busy wait for draw thread to finish
     if (updateData_.drawThread->isBusy()) {
       (void) updateData_.drawThread->term();
       return;
@@ -8813,6 +8863,9 @@ drawThread()
 
   view()->lockPainter(false);
 
+  //---
+
+  // mark thread done
   updateData_.drawThread->end();
 }
 
@@ -8960,11 +9013,12 @@ drawBackgroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundParts");
 
-  bool bgLayer = hasBackgroundLayer();
-  bool bgAxes  = hasGroupedBgAxes();
-  bool bgKey   = hasGroupedBgKey();
+  bool bgLayer       = hasBackgroundLayer();
+  bool bgAxes        = hasGroupedBgAxes();
+  bool bgKey         = hasGroupedBgKey();
+  bool bgAnnotations = hasGroupedAnnotations(Layer::Type::BG_ANNOTATION);
 
-  if (! bgLayer && ! bgAxes && ! bgKey)
+  if (! bgLayer && ! bgAxes && ! bgKey && ! bgAnnotations)
     return;
 
   //---
@@ -8981,7 +9035,7 @@ drawBackgroundParts(QPainter *painter) const
 
     CQChartsPlotPaintDevice device(th, painter1);
 
-    drawBackgroundDeviceParts(&device, bgLayer, bgAxes, bgKey);
+    drawBackgroundDeviceParts(&device, bgLayer, bgAxes, bgKey, bgAnnotations);
 
     //---
 
@@ -8999,7 +9053,8 @@ drawBackgroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes, bool bgKey) const
+drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
+                          bool bgKey, bool bgAnnotations) const
 {
   const_cast<CQChartsPlot *>(this)->initAxisSizes();
 
@@ -9017,6 +9072,12 @@ drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes, bool b
 
   if (bgKey)
     drawBgKey(device);
+
+  //---
+
+  // draw annotations
+  if (bgAnnotations)
+    drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
 }
 
 void
@@ -9137,12 +9198,11 @@ drawMiddleParts(QPainter *painter) const
 
   //---
 
-  bool bg          = hasGroupedObjs(Layer::Type::BG_PLOT );
-  bool mid         = hasGroupedObjs(Layer::Type::MID_PLOT);
-  bool fg          = hasGroupedObjs(Layer::Type::FG_PLOT );
-  bool annotations = hasGroupedAnnotations(Layer::Type::ANNOTATION);
+  bool bg  = hasGroupedObjs(Layer::Type::BG_PLOT );
+  bool mid = hasGroupedObjs(Layer::Type::MID_PLOT);
+  bool fg  = hasGroupedObjs(Layer::Type::FG_PLOT );
 
-  if (! bg && ! mid && ! fg && ! annotations) {
+  if (! bg && ! mid && ! fg) {
     buffer->clear();
     return;
   }
@@ -9158,7 +9218,7 @@ drawMiddleParts(QPainter *painter) const
 
     CQChartsPlotPaintDevice device(th, painter1);
 
-    drawMiddleDeviceParts(&device, bg, mid, fg, annotations);
+    drawMiddleDeviceParts(&device, bg, mid, fg);
   }
 
   //---
@@ -9168,16 +9228,12 @@ drawMiddleParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg, bool annotations) const
+drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const
 {
   // draw objects (background, mid, foreground)
   if (bg ) drawGroupedObjs(device, Layer::Type::BG_PLOT );
   if (mid) drawGroupedObjs(device, Layer::Type::MID_PLOT);
   if (fg ) drawGroupedObjs(device, Layer::Type::FG_PLOT );
-
-  // draw annotations
-  if (annotations)
-    drawGroupedAnnotations(device, Layer::Type::ANNOTATION);
 }
 
 void
@@ -9186,12 +9242,13 @@ drawForegroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
 
-  bool fgAxes     = hasGroupedFgAxes();
-  bool fgKey      = hasGroupedFgKey();
-  bool title      = hasTitle();
-  bool foreground = hasForeground();
+  bool fgAxes        = hasGroupedFgAxes();
+  bool fgKey         = hasGroupedFgKey();
+  bool fgAnnotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
+  bool title         = hasTitle();
+  bool foreground    = hasForeground();
 
-  if (! fgAxes && ! fgKey && ! title && ! foreground)
+  if (! fgAxes && ! fgKey && ! fgAnnotations && ! title && ! foreground)
     return;
 
   //---
@@ -9210,7 +9267,7 @@ drawForegroundParts(QPainter *painter) const
 
     bool tabbed = (isTabbed() && isCurrent());
 
-    drawForegroundDeviceParts(&device, fgAxes, fgKey, title, foreground, tabbed);
+    drawForegroundDeviceParts(&device, fgAxes, fgKey, fgAnnotations, title, foreground, tabbed);
   }
 
   //---
@@ -9220,9 +9277,15 @@ drawForegroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey, bool title,
-                          bool foreground, bool tabbed) const
+drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey, bool fgAnnotations,
+                          bool title, bool foreground, bool tabbed) const
 {
+  // draw annotations
+  if (fgAnnotations)
+    drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
+
+  //---
+
   // draw axes/key above plot
   if (fgAxes)
     drawGroupedFgAxes(device);
@@ -9766,17 +9829,27 @@ hasObjs(const Layer::Type &layerType) const
   bool anyObjs = false;
 
   for (const auto &plotObj : plotObjects()) {
+    if (! plotObj->isVisible())
+      continue;
+
+    // skip unselected objects on selection layer
     if      (layerType == Layer::Type::SELECTION) {
       if (! plotObj->isSelected())
         continue;
     }
+    // skip non-inside objects on mouse over layer
     else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! plotObj->isInside())
         continue;
     }
 
+    //---
+
+    // skip objects not inside plot
     if (isPlotClip() && ! objInsideBox(plotObj, bbox))
       continue;
+
+    //---
 
     anyObjs = true;
 
@@ -9836,6 +9909,9 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
     else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! plotObj->isInside())
         continue;
+
+      if (! plotObj->drawMouseOver())
+        continue;
     }
 
     //---
@@ -9847,19 +9923,36 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
     //---
 
     // draw object on layer
-    if      (layerType == Layer::Type::BG_PLOT)
-      plotObj->drawBg(device);
-    else if (layerType == Layer::Type::FG_PLOT)
-      plotObj->drawFg(device);
-    else if (layerType == Layer::Type::MID_PLOT)
-      plotObj->draw  (device);
-    else if (layerType == Layer::Type::SELECTION) {
+    if      (layerType == Layer::Type::SELECTION) {
       plotObj->draw  (device);
       plotObj->drawFg(device);
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
       plotObj->draw  (device);
       plotObj->drawFg(device);
+    }
+    else {
+      auto drawLayer = plotObj->drawLayer();
+
+      if (drawLayer != CQChartsPlotObj::DrawLayer::NONE) {
+        bool draw = ((drawLayer == CQChartsPlotObj::DrawLayer::BACKGROUND &&
+                      layerType == Layer::Type::BG_PLOT) ||
+                     (drawLayer == CQChartsPlotObj::DrawLayer::MIDDLE &&
+                      layerType == Layer::Type::MID_PLOT) ||
+                     (drawLayer == CQChartsPlotObj::DrawLayer::FOREGROUND &&
+                      layerType == Layer::Type::FG_PLOT));
+
+        if (draw)
+          plotObj->draw(device);
+      }
+      else {
+        if      (layerType == Layer::Type::BG_PLOT)
+          plotObj->drawBg(device);
+        else if (layerType == Layer::Type::FG_PLOT)
+          plotObj->drawFg(device);
+        else if (layerType == Layer::Type::MID_PLOT)
+          plotObj->draw  (device);
+      }
     }
 
     //---
@@ -10407,6 +10500,15 @@ bool
 CQChartsPlot::
 hasAnnotations(const Layer::Type &layerType) const
 {
+  auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
+    return ((layerType == Layer::Type::BG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
+            (layerType == Layer::Type::FG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+  };
+
+  //---
+
   bool anyObjs = false;
 
   for (const auto &annotation : annotations()) {
@@ -10419,6 +10521,10 @@ hasAnnotations(const Layer::Type &layerType) const
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! annotation->isInside())
+        continue;
+    }
+    else {
+      if (! isAnnotationLayer(annotation, layerType))
         continue;
     }
 
@@ -10445,6 +10551,15 @@ void
 CQChartsPlot::
 drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
 {
+  auto isAnnotationLayer = [&](const Annotation *annotation, const CQChartsLayer::Type &layerType) {
+    return ((layerType == Layer::Type::BG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::BACKGROUND) ||
+            (layerType == Layer::Type::FG_ANNOTATION &&
+             annotation->drawLayer() == Annotation::DrawLayer::FOREGROUND));
+  };
+
+  //---
+
   CQPerfTrace trace("CQChartsPlot::drawAnnotations");
 
   // set draw layer
@@ -10462,6 +10577,10 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
     }
     else if (layerType == Layer::Type::MOUSE_OVER) {
       if (! annotation->isInside())
+        continue;
+    }
+    else {
+      if (! isAnnotationLayer(annotation, layerType))
         continue;
     }
 
@@ -11302,7 +11421,7 @@ plotControlUpdateSlot()
 
 void
 CQChartsPlot::
-addAnnotation(CQChartsAnnotation *annotation)
+addAnnotation(Annotation *annotation)
 {
   annotations_.push_back(annotation);
 
@@ -11353,7 +11472,57 @@ getAnnotationByInd(int ind) const
 
 void
 CQChartsPlot::
-removeAnnotation(CQChartsAnnotation *annotation)
+raiseAnnotation(Annotation *annotation)
+{
+  int pos = annotationPos(annotation);
+  if (pos < 0) return; // not found
+
+  int np = annotations().size();
+  if (np < 2) return;
+
+  if (pos < np - 1)
+    std::swap(annotations_[pos + 1], annotations_[pos]);
+
+  drawObjs();
+
+  emit annotationsReordered();
+}
+
+void
+CQChartsPlot::
+lowerAnnotation(Annotation *annotation)
+{
+  int pos = annotationPos(annotation);
+  if (pos < 0) return; // not found
+
+  int np = annotations().size();
+  if (np < 2) return;
+
+  if (pos > 0)
+    std::swap(annotations_[pos - 1], annotations_[pos]);
+
+  drawObjs();
+
+  emit annotationsReordered();
+}
+
+int
+CQChartsPlot::
+annotationPos(Annotation *annotation) const
+{
+  int np = annotations().size();
+
+  for (int i = 0; i < np; ++i) {
+    if (annotations_[i] == annotation)
+      return i;
+  }
+
+  return -1;
+}
+
+void
+CQChartsPlot::
+removeAnnotation(Annotation *annotation)
 {
   int pos = 0;
 
@@ -11658,7 +11827,8 @@ setLayersChanged(bool update)
       updateDraw();
   }
   else {
-    //drawNonMiddleParts(view()->ipainter());
+  //drawNonMiddleParts(view()->ipainter());
+
     drawParts(view()->ipainter());
 
     fromInvalidate_ = true;

@@ -1208,7 +1208,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelLineObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1382,7 +1382,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;

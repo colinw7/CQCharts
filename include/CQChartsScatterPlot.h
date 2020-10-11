@@ -12,7 +12,9 @@
 #include <CHexMap.h>
 
 class CQChartsScatterPlot;
-class CQChartsGrahamHull;
+class CQChartsBivariateDensity;
+
+class CQThreadObject;
 
 //---
 
@@ -132,7 +134,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void drawPoint(PaintDevice *device) const;
 
@@ -173,7 +175,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 //---
 
 /*!
- * \brief Scatter Plot Cell object
+ * \brief Scatter Plot Grid Cell object
  * \ingroup Charts
  */
 class CQChartsScatterCellObj : public CQChartsPlotObj {
@@ -206,7 +208,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
@@ -259,7 +261,7 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
@@ -275,6 +277,44 @@ class CQChartsScatterHexObj : public CQChartsPlotObj {
   Polygon     poly_;                 //!< polygon
   int         n_        { 0 };       //!< number of points
   int         maxN_     { 0 };       //!< max number of points
+};
+
+//---
+
+/*!
+ * \brief Scatter Plot Density object
+ * \ingroup Charts
+ */
+class CQChartsScatterDensityObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using Plot = CQChartsScatterPlot;
+
+ public:
+  CQChartsScatterDensityObj(const Plot *plot, int groupInd, const BBox &rect);
+
+  int groupInd() const { return groupInd_; }
+
+  //---
+
+  QString typeName() const override { return "density"; }
+
+  QString calcId() const override;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  bool drawMouseOver() const override { return false; }
+
+ private:
+  const Plot* plot_     { nullptr }; //!< scatter plot
+  int         groupInd_ { -1 };      //!< plot group index
 };
 
 //---
@@ -370,9 +410,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
 
   // density map
-  Q_PROPERTY(bool   densityMap         READ isDensityMap       WRITE setDensityMap        )
-  Q_PROPERTY(int    densityMapGridSize READ densityMapGridSize WRITE setDensityMapGridSize)
-  Q_PROPERTY(double densityMapDelta    READ densityMapDelta    WRITE setDensityMapDelta   )
+  Q_PROPERTY(bool      densityMap         READ isDensityMap       WRITE setDensityMap        )
+  Q_PROPERTY(int       densityMapGridSize READ densityMapGridSize WRITE setDensityMapGridSize)
+  Q_PROPERTY(double    densityMapDelta    READ densityMapDelta    WRITE setDensityMapDelta   )
+  Q_PROPERTY(DrawLayer densityMapLayer    READ densityMapLayer    WRITE setDensityMapLayer   )
 
   // symbol data
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -393,39 +434,24 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   Q_ENUMS(XSide)
   Q_ENUMS(YSide)
 
+//Q_ENUMS(DrawLayer)
+
  public:
   enum class PlotType {
+    NONE,
     SYMBOLS,
     GRID_CELLS,
     HEX_CELLS
   };
 
-  using Points = std::vector<Point>;
-
-  //! point value data
-  struct ValueData {
-    Point       p;
-    int         row { -1 };
-    QModelIndex ind;
-    Color       color;
-
-    ValueData(const Point &p=Point(), int row=-1, const QModelIndex &ind=QModelIndex(),
-              const Color &color=Color()) :
-     p(p), row(row), ind(ind), color(color) {
-    }
+#if 0
+  enum class DrawLayer {
+    NONE,
+    BACKGROUND,
+    MIDDLE,
+    FOREGROUND
   };
-
-  using Values = std::vector<ValueData>;
-
-  //! real values data
-  struct ValuesData {
-    Values  values;
-    RMinMax xrange;
-    RMinMax yrange;
-  };
-
-  using NameValues      = std::map<QString, ValuesData>;
-  using GroupNameValues = std::map<int, NameValues>;
+#endif
 
   //--
 
@@ -499,6 +525,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   // plot type
   PlotType plotType() const { return plotType_; }
 
+  bool isNoType   () const { return (plotType() == PlotType::NONE      ); }
   bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS   ); }
   bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS); }
   bool isHexCells () const { return (plotType() == PlotType::HEX_CELLS ); }
@@ -525,6 +552,9 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   double densityMapDelta() const { return densityMapData_.delta; }
   void setDensityMapDelta(double d);
+
+  const DrawLayer &densityMapLayer() const { return densityMapData_.layer; }
+  void setDensityMapLayer(const DrawLayer &layer);
 
   //---
 
@@ -560,8 +590,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void addNameValue(int groupInd, const QString &name, const Point &p, int row,
                     const QModelIndex &xind, const Color &color=Color());
 
-  const GroupNameValues &groupNameValues() const { return groupNameValues_; }
-
   //---
 
   // custom color interp (for overlay)
@@ -576,13 +604,17 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   Range calcRange() const override;
 
+  void postCalcRange() override;
+
   void clearPlotObjects() override;
 
   bool createObjs(PlotObjs &obj) const override;
 
-  void addPointObjects(PlotObjs &objs) const;
-  void addGridObjects (PlotObjs &objs) const;
-  void addHexObjects  (PlotObjs &objs) const;
+  void addPointObjects  (PlotObjs &objs) const;
+  void addGridObjects   (PlotObjs &objs) const;
+  void addHexObjects    (PlotObjs &objs) const;
+  void addHullObjects   (PlotObjs &objs) const;
+  void addDensityObjects(PlotObjs &objs) const;
 
   void addNameValues() const;
 
@@ -599,9 +631,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  using PointObj = CQChartsScatterPointObj;
-  using CellObj  = CQChartsScatterCellObj;
-  using HexObj   = CQChartsScatterHexObj;
+  using PointObj   = CQChartsScatterPointObj;
+  using CellObj    = CQChartsScatterCellObj;
+  using HexObj     = CQChartsScatterHexObj;
+  using DensityObj = CQChartsScatterDensityObj;
 
   virtual PointObj *createPointObj(int groupInd, const BBox &rect, const Point &p,
                                    const ColorInd &is, const ColorInd &ig,
@@ -614,6 +647,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   virtual HexObj *createHexObj(int groupInd, const BBox &rect, const ColorInd &is,
                                const ColorInd &ig, int ix, int iy, const Polygon &poly, int n,
                                int maxN) const;
+
+  virtual DensityObj *createDensityObj(int groupInd, const BBox &rect) const;
 
   //---
 
@@ -678,12 +713,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawHull(PaintDevice *device) const;
-
-  Points indPoints(const QVariant &var, int isGroup) const;
-
-  //---
-
   void drawXRug(PaintDevice *device) const;
   void drawYRug(PaintDevice *device) const;
 
@@ -707,19 +736,26 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawDensityMap(PaintDevice *device) const;
-
-  //---
-
   void drawSymbolMapKey(PaintDevice *device) const;
 
   //---
+
+ public:
+  void drawDensityMap(PaintDevice *device, int groupInd) const;
+
+ private:
+  void calcDensityMap(int groupInd);
+
+  static void calcDensityMapThread(CQChartsScatterPlot *plot, int groupInd);
+
+  void calcDensityMapImpl(int groupInd);
 
  public slots:
   // set plot type
   void setPlotType(PlotType plotType);
 
   // set symbols, grid cells
+  void setNoType   (bool b);
   void setSymbols  (bool b);
   void setGridCells(bool b);
   void setHexCells (bool b);
@@ -748,18 +784,24 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
-  using GroupInds     = std::set<int>;
-  using GroupPoints   = std::map<int, Points>;
-  using GroupFitData  = std::map<int, CQChartsFitData>;
-  using GroupStatData = std::map<int, StatData>;
-  using Hull          = CQChartsGrahamHull;
-  using GroupHull     = std::map<int, Hull *>;
-  using GroupWhiskers = std::map<int, AxisBoxWhisker *>;
+  using GroupInds         = std::set<int>;
+  using GroupFitData      = std::map<int, CQChartsFitData>;
+  using GroupStatData     = std::map<int, StatData>;
+  using Density           = CQChartsBivariateDensity;
+  using NamedDensity      = std::map<QString, Density *>;
+  using GroupNamedDensity = std::map<int, NamedDensity>;
+  using GroupWhiskers     = std::map<int, AxisBoxWhisker *>;
 
+  // global density data (all groups)
+  //
+  // Depends on groupNameValues which are calculated on draw objs
   struct DensityMapData {
-    bool   visible  { false }; //!< visible
-    int    gridSize { 16 };    //!< grid size
-    double delta    { 0.0 };   //!< value delta
+    bool            visible   { false };                 //!< visible
+    int             gridSize  { 16 };                    //!< grid size
+    double          delta     { 0.0 };                   //!< value delta
+    DrawLayer       layer     { DrawLayer::BACKGROUND }; //!< draw layer
+    mutable Size    psize;                               //!< last calculated pixel size
+    CQThreadObject* thread    { nullptr };               //!< calc thread
   };
 
  private:
@@ -779,8 +821,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   PlotType plotType_ { PlotType::SYMBOLS }; //!< plot type
 
   // axis density data
-  AxisDensity*    xAxisDensity_ { nullptr }; //!< x axis whisker density object
-  AxisDensity*    yAxisDensity_ { nullptr }; //!< x axis whisker density object
+  AxisDensity* xAxisDensity_ { nullptr }; //!< x axis whisker density object
+  AxisDensity* yAxisDensity_ { nullptr }; //!< x axis whisker density object
 
   // axis whisker data
   GroupWhiskers   groupXWhiskers_;           //!< group x whiskers
@@ -796,13 +838,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   // group data
   GroupInds         groupInds_;         //!< group indices
-  GroupNameValues   groupNameValues_;   //!< group name values (individual points)
   GroupNameGridData groupNameGridData_; //!< grid cell values
   GroupNameHexData  groupNameHexData_;  //!< hex cell values
-  GroupPoints       groupPoints_;       //!< group fit points
   GroupFitData      groupFitData_;      //!< group fit data
   GroupStatData     groupStatData_;     //!< group stat data
-  GroupHull         groupHull_;         //!< group hull
+  GroupNamedDensity groupNamedDensity_; //!< group named density
 
   // symbol map
   SymbolMapKeyData symbolMapKeyData_; //!< symbol map key data

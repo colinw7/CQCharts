@@ -36,6 +36,22 @@ class CQChartsPaintDevice {
   using Polygon = CQChartsGeom::Polygon;
 
  public:
+  class SaveRestore {
+   public:
+    SaveRestore(CQChartsPaintDevice *device) :
+     device_(device) {
+      device_->save();
+    }
+
+   ~SaveRestore() {
+     device_->restore();
+    }
+
+   private:
+    CQChartsPaintDevice *device_ { nullptr };
+  };
+
+ public:
   CQChartsPaintDevice(View *view) : view_(view) { }
   CQChartsPaintDevice(Plot *plot) : plot_(plot) { }
   CQChartsPaintDevice() { }

@@ -597,6 +597,18 @@ calcRange() const
 
   //---
 
+  if (! isPreCalc())
+    dataRange = updateRawRange();
+  else
+    dataRange = updateCalcRange();
+
+  return dataRange;
+}
+
+void
+CQChartsBoxPlot::
+postCalcRange()
+{
   // x-axis must be integer, y-axis must be real
   auto *xAxis = mappedXAxis();
   auto *yAxis = mappedYAxis();
@@ -606,15 +618,6 @@ calcRange() const
 
   yAxis->setValueType     (CQChartsAxisValueType::Type::REAL, /*notify*/false);
   yAxis->setMajorIncrement(0);
-
-  //---
-
-  if (! isPreCalc())
-    dataRange = updateRawRange();
-  else
-    dataRange = updateCalcRange();
-
-  return dataRange;
 }
 
 // calculate box plot from individual values
@@ -2182,7 +2185,7 @@ inside(const Point &p) const
 
 void
 CQChartsBoxPlotWhiskerObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   device->setColorNames();
 
@@ -2437,16 +2440,18 @@ draw(CQChartsPaintDevice *device)
     }
   }
 
-  clearDrawBBoxes();
+  auto *th = const_cast<CQChartsBoxPlotWhiskerObj *>(this);
+
+  th->clearDrawBBoxes();
 
   for (const auto &t : htexts) {
     if (drawHText(device, t.xl, t.xr, t.y, t.text, t.onLeft, t.bbox))
-      addDrawBBox(t.bbox);
+      th->addDrawBBox(t.bbox);
   }
 
   for (const auto &t : vtexts) {
     if (drawVText(device, t.yb, t.yt, t.x, t.text, t.onBottom, t.bbox))
-      addDrawBBox(t.bbox);
+      th->addDrawBBox(t.bbox);
   }
 
   //---
@@ -2689,7 +2694,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotOutlierObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // get color index
   auto colorInd = this->calcColorInd();
@@ -2795,7 +2800,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotDataObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // set whisker fill and stroke
   PenBrush whiskerPenBrush;
@@ -2925,16 +2930,20 @@ draw(CQChartsPaintDevice *device)
     }
   }
 
-  clearDrawBBoxes();
+  //---
+
+  auto *th = const_cast<CQChartsBoxPlotDataObj *>(this);
+
+  th->clearDrawBBoxes();
 
   for (const auto &t : htexts) {
     if (drawHText(device, t.xl, t.xr, t.y, t.text, t.onLeft, t.bbox))
-      addDrawBBox(t.bbox);
+      th->addDrawBBox(t.bbox);
   }
 
   for (const auto &t : vtexts) {
     if (drawVText(device, t.yb, t.yt, t.x, t.text, t.onBottom, t.bbox))
-      addDrawBBox(t.bbox);
+      th->addDrawBBox(t.bbox);
   }
 }
 
@@ -3121,7 +3130,7 @@ inside(const Point &p) const
 
 void
 CQChartsBoxPlotConnectedObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // draw range polygon
   int np = poly_.size();
@@ -3213,7 +3222,7 @@ checkDrawBBox(const BBox &bbox) const
 bool
 CQChartsBoxPlotObj::
 drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
-          const QString &text, bool onLeft, BBox &bbox)
+          const QString &text, bool onLeft, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
   bool   invertX = plot_->isInvertX();
@@ -3264,7 +3273,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
 bool
 CQChartsBoxPlotObj::
 drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
-          const QString &text, bool onBottom, BBox &bbox)
+          const QString &text, bool onBottom, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
   bool   invertY = plot_->isInvertY();
@@ -3439,7 +3448,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   auto symbolType = plot_->jitterSymbolType();
   auto symbolSize = plot_->jitterSymbolSize();

@@ -42,14 +42,14 @@ bool columnValueType(CQCharts *charts, const QAbstractItemModel *model,
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                            const Column &column, const QString &typeStr,
-                           double value, QString &str);
+                           const QVariant &value, QString &str);
 
 bool formatColumnValue(CQCharts *charts, const QAbstractItemModel *model,
-                       const Column &column, double value, QString &str);
+                       const Column &column, const QVariant &value, QString &str);
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
                            const Column &column, const ColumnType *columnType,
-                           const ModelTypeData &typeData, double value, QString &str);
+                           const ModelTypeData &typeData, const QVariant &value, QString &str);
 
 QVariant columnDisplayData(CQCharts *charts, const QAbstractItemModel *model,
                            const Column &column, const QVariant &var, bool &converted);

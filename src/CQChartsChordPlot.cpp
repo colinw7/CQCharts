@@ -1192,7 +1192,7 @@ getConnected() const
 
 void
 CQChartsChordArcObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc inner outer arc rectangles
   double ri = innerRadius();
@@ -1545,7 +1545,7 @@ getConnected() const
 
 void
 CQChartsChordEdgeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   auto *fromObj = this->fromObj();
   auto *toObj   = this->toObj  ();

@@ -374,7 +374,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsWordObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc stroke and brush
   PenBrush penBrush;

@@ -1236,7 +1236,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotBarObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -1392,7 +1392,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotLineObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc bar color
   auto colorInd = calcColorInd();
@@ -1540,7 +1540,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc bar color
   auto colorInd = calcColorInd();
@@ -1638,7 +1638,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotCellObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // get column palette and bg color
   QColor hbg, vbg;

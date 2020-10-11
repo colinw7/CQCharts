@@ -11,7 +11,6 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsVariant.h>
-#include <CQChartsGrahamHull.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQChartsViewPlotPaintDevice.h>
@@ -23,6 +22,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQColorsPalette.h>
+#include <CQThreadObject.h>
 #include <CQPerfMonitor.h>
 
 #include <QMenu>
@@ -53,6 +53,7 @@ addParameters()
 
   // options
   addEnumParameter("plotType", "Plot Type", "plotType").
+    addNameValue("NONE"      , int(CQChartsScatterPlot::PlotType::NONE      )).
     addNameValue("SYMBOLS"   , int(CQChartsScatterPlot::PlotType::SYMBOLS   )).
     addNameValue("GRID_CELLS", int(CQChartsScatterPlot::PlotType::GRID_CELLS)).
     addNameValue("HEX_CELLS" , int(CQChartsScatterPlot::PlotType::HEX_CELLS )).
@@ -126,6 +127,8 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
+  setLayerActive(CQChartsLayer::Type::BG_PLOT, true);
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 }
 
 CQChartsScatterPlot::
@@ -200,8 +203,9 @@ void
 CQChartsScatterPlot::
 term()
 {
-  for (const auto &ghull : groupHull_)
-    delete ghull.second;
+  for (const auto &pn : groupNamedDensity_)
+    for (const auto &pd : pn.second)
+      delete pd.second;
 
   for (const auto &groupWhisker_ : groupXWhiskers_)
     delete groupWhisker_.second;
@@ -310,20 +314,41 @@ setSymbolMapKeyMargin(double m)
 
 void
 CQChartsScatterPlot::
-setSymbols(bool)
+setNoType(bool b)
 {
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
       auto *splot = qobject_cast<CQChartsScatterPlot *>(plot);
 
       if (splot)
-        splot->plotType_ = PlotType::SYMBOLS;
+        splot->plotType_ = (b ? PlotType::NONE : PlotType::SYMBOLS);
     });
 
     updateRangeAndObjs();
   }
   else {
-    CQChartsUtil::testAndSet(plotType_, PlotType::SYMBOLS, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_,
+     (b ? PlotType::NONE : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+  }
+}
+
+void
+CQChartsScatterPlot::
+setSymbols(bool b)
+{
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      auto *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+
+      if (splot)
+        splot->plotType_ = (b ? PlotType::SYMBOLS : PlotType::NONE);
+    });
+
+    updateRangeAndObjs();
+  }
+  else {
+    CQChartsUtil::testAndSet(plotType_,
+     (b ? PlotType::SYMBOLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -343,7 +368,7 @@ setGridCells(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+     (b ? PlotType::GRID_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -363,7 +388,7 @@ setHexCells(bool b)
   }
   else {
     CQChartsUtil::testAndSet(plotType_,
-     (b ? PlotType::HEX_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+     (b ? PlotType::HEX_CELLS : PlotType::NONE), [&]() { updateRangeAndObjs(); } );
   }
 }
 
@@ -373,7 +398,7 @@ void
 CQChartsScatterPlot::
 setDensityMap(bool b)
 {
-  CQChartsUtil::testAndSet(densityMapData_.visible, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(densityMapData_.visible, b, [&]() { updateObjs(); } );
 }
 
 void
@@ -390,13 +415,29 @@ setDensityMapDelta(double d)
   CQChartsUtil::testAndSet(densityMapData_.delta, d, [&]() { drawObjs(); } );
 }
 
+void
+CQChartsScatterPlot::
+setDensityMapLayer(const DrawLayer &l)
+{
+  CQChartsUtil::testAndSet(densityMapData_.layer, l, [&]() {
+    for (const auto &plotObj : plotObjs_) {
+      auto *densityObj = dynamic_cast<CQChartsScatterDensityObj *>(plotObj);
+
+      if (densityObj)
+        densityObj->setDrawLayer((CQChartsPlotObj::DrawLayer) densityMapLayer());
+    }
+
+    drawObjs();
+  } );
+}
+
 //------
 
 bool
 CQChartsScatterPlot::
 isXDensity() const
 {
-  return xAxisDensity_->isVisible();
+  return (xAxisDensity_ && xAxisDensity_->isVisible());
 }
 
 void
@@ -410,7 +451,7 @@ bool
 CQChartsScatterPlot::
 isYDensity() const
 {
-  return yAxisDensity_->isVisible();
+  return (yAxisDensity_ && yAxisDensity_->isVisible());
 }
 
 void
@@ -426,7 +467,7 @@ bool
 CQChartsScatterPlot::
 isXWhisker() const
 {
-  return xAxisWhisker_->isVisible();
+  return (xAxisWhisker_ && xAxisWhisker_->isVisible());
 }
 
 void
@@ -440,7 +481,7 @@ bool
 CQChartsScatterPlot::
 isYWhisker() const
 {
-  return yAxisWhisker_->isVisible();
+  return (yAxisWhisker_ && yAxisWhisker_->isVisible());
 }
 
 void
@@ -490,7 +531,7 @@ addProperties()
   addBestFitProperties();
 
   // convex hull shape
-  addHullProperties();
+  addHullProperties(/*hasLayer*/true);
 
   // stats
   addStatsProperties();
@@ -501,6 +542,7 @@ addProperties()
   addProp("densityMap", "densityMap"        , "visible" , "Show density map overlay");
   addProp("densityMap", "densityMapGridSize", "gridSize", "Density map grid size");
   addProp("densityMap", "densityMapDelta"   , "delta"   , "Density map delta");
+  addProp("densityMap", "densityMapLayer"   , "layer"   , "Density map draw layer");
 
   // rug axis
   addRugProperties();
@@ -804,11 +846,14 @@ calcRange() const
 
   //---
 
-  th->initAxes();
-
-  //---
-
   return dataRange;
+}
+
+void
+CQChartsScatterPlot::
+postCalcRange()
+{
+  initAxes();
 }
 
 void
@@ -988,10 +1033,15 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  for (const auto &ghull : th->groupHull_)
-    delete ghull.second;
+  th->clearHullData();
 
-  th->groupHull_.clear();
+  //---
+
+  for (const auto &pn : th->groupNamedDensity_)
+    for (const auto &pd : pn.second)
+      delete pd.second;
+
+  th->groupNamedDensity_.clear();
 
   //---
 
@@ -1010,9 +1060,20 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  addPointObjects(objs);
-  addGridObjects (objs);
-  addHexObjects  (objs);
+  if (isSymbols())
+    addPointObjects(objs);
+
+  if (isGridCells())
+    addGridObjects(objs);
+
+  if (isHexCells())
+    addHexObjects(objs);
+
+  if (isHull())
+    addHullObjects(objs);
+
+  if (isDensityMap())
+    addDensityObjects(objs);
 
   //---
 
@@ -1040,6 +1101,8 @@ updateColumnNames()
   setColumnHeaderName(symbolSizeColumn(), "SymbolSize");
   setColumnHeaderName(fontSizeColumn  (), "FontSize"  );
 }
+
+//------
 
 void
 CQChartsScatterPlot::
@@ -1457,6 +1520,64 @@ addHexObjects(PlotObjs &objs) const
 
 void
 CQChartsScatterPlot::
+addHullObjects(PlotObjs &objs) const
+{
+  auto bbox = calcDataRange(/*adjust*/false);
+
+  // one hull per group (multiple groups) or set (name values)
+  int ng = groupInds_.size();
+
+  if (ng > 1) {
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      auto *hullObj = createHullObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+
+      hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+
+      objs.push_back(hullObj);
+    }
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int is = 0;
+    int ns = nameValues.size();
+
+    for (const auto &nameValue : nameValues) {
+      auto *hullObj = createHullObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
+
+      hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+
+      objs.push_back(hullObj);
+    }
+  }
+}
+
+void
+CQChartsScatterPlot::
+addDensityObjects(PlotObjs &objs) const
+{
+  auto bbox = calcDataRange(/*adjust*/false);
+
+  // one map per group
+  for (const auto &groupNameValue : groupNameValues_) {
+    int groupInd = groupNameValue.first;
+
+    auto *densityObj = createDensityObj(groupInd, bbox);
+
+    densityObj->setDrawLayer((CQChartsPlotObj::DrawLayer) densityMapLayer());
+
+    connect(densityObj, SIGNAL(layerChanged()), this, SLOT(updateSlot()));
+
+    objs.push_back(densityObj);
+  }
+}
+
+//------
+
+void
+CQChartsScatterPlot::
 addNameValues() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::addNameValues");
@@ -1601,6 +1722,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
   //---
 
+  // add value to grid data if enabled
   if (isGridCells()) {
     auto pi = groupNameGridData_.find(groupInd);
 
@@ -1623,6 +1745,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
   //---
 
+  // add value to hex data if enabled
   if (isHexCells()) {
     auto pi = groupNameHexData_.find(groupInd);
 
@@ -1663,6 +1786,7 @@ addNameValue(int groupInd, const QString &name, const Point &p, int row,
 
   //---
 
+  // add value to values data if symbol or density map enabled (always ?)
   if (isSymbols() || isDensityMap()) {
     auto pi = groupNameValues_.find(groupInd);
 
@@ -1709,6 +1833,13 @@ createHexObj(int groupInd, const BBox &rect, const ColorInd &is, const ColorInd 
              int ix, int iy, const Polygon &poly, int n, int maxN) const
 {
   return new CQChartsScatterHexObj(this, groupInd, rect, is, ig, ix, iy, poly, n, maxN);
+}
+
+CQChartsScatterDensityObj *
+CQChartsScatterPlot::
+createDensityObj(int groupInd, const BBox &rect) const
+{
+  return new CQChartsScatterDensityObj(this, groupInd, rect);
 }
 
 //---
@@ -1958,6 +2089,7 @@ addMenuItems(QMenu *menu)
 
   auto *typeMenu = new QMenu("Plot Type", menu);
 
+  (void) addMenuCheckedAction(typeMenu, "None"      , isNoType   (), SLOT(setNoType(bool)));
   (void) addMenuCheckedAction(typeMenu, "Symbols"   , isSymbols  (), SLOT(setSymbols(bool)));
   (void) addMenuCheckedAction(typeMenu, "Grid Cells", isGridCells(), SLOT(setGridCells(bool)));
   (void) addMenuCheckedAction(typeMenu, "Hex Cells" , isHexCells (), SLOT(setHexCells(bool)));
@@ -2129,7 +2261,7 @@ hasBackground() const
   if (isXDensity()) return true;
   if (isYDensity()) return true;
 
-  return false;
+  return true;
 }
 
 void
@@ -2138,11 +2270,9 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
-  // draw hull, best fit, stats lines and denisty on background
-  if (isHull      ()) drawHull      (device);
+  // draw best fit and stats lines on background
   if (isBestFit   ()) drawBestFit   (device);
   if (isStatsLines()) drawStatsLines(device);
-  if (isDensityMap()) drawDensityMap(device);
 
   //---
 
@@ -2470,131 +2600,6 @@ drawStatsLines(PaintDevice *device) const
   }
 }
 
-void
-CQChartsScatterPlot::
-drawHull(PaintDevice *device) const
-{
-  auto *th = const_cast<CQChartsScatterPlot *>(this);
-
-  auto getHull = [&](int ind, bool &created) {
-    created = false;
-
-    auto ph = th->groupHull_.find(ind);
-
-    if (ph == th->groupHull_.end()) {
-      ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new CQChartsGrahamHull));
-
-      created = true;
-    }
-
-    return (*ph).second;
-  };
-
-  //---
-
-  auto drawHullData = [&](const Hull *hull, int i, int n) {
-    // set pen/brush
-    ColorInd colorInd(i, n);
-
-    PenBrush penBrush;
-
-    setPenBrush(penBrush, hullPenData(colorInd), hullBrushData(colorInd));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    hull->draw(this, device);
-  };
-
-  //---
-
-  int ng = groupInds_.size();
-
-  if (ng > 1) {
-    int ig = 0;
-
-    for (const auto &groupInd : groupInds_) {
-      if (isInterrupt())
-        return;
-
-      //---
-
-      // get hull for group (add if needed)
-      bool created;
-
-      auto *hull = getHull(groupInd, created);
-
-      if (created) {
-        const auto &points = indPoints(QVariant(groupInd), /*isGroup*/true);
-
-        std::vector<double> x, y;
-
-        for (const auto &p : points)
-          hull->addPoint(p);
-      }
-
-      drawHullData(hull, ig++, ng);
-    }
-  }
-  else {
-    const auto &nameValues = (*groupNameValues_.begin()).second;
-
-    int is = 0;
-    int ns = nameValues.size();
-
-    for (const auto &nameValue : nameValues) {
-      if (isInterrupt())
-        return;
-
-      //---
-
-      // get hull for set (add if needed)
-      bool created;
-
-      auto *hull = getHull(is, created);
-
-      if (created) {
-        const auto &points = indPoints(QVariant(nameValue.first), /*isGroup*/false);
-
-        std::vector<double> x, y;
-
-        for (const auto &p : points)
-          hull->addPoint(p);
-      }
-
-      drawHullData(hull, is++, ns);
-    }
-  }
-}
-
-CQChartsScatterPlot::Points
-CQChartsScatterPlot::
-indPoints(const QVariant &var, int isGroup) const
-{
-  Points points;
-
-  if (isGroup) {
-    int groupInd = var.toInt();
-
-    auto p = groupPoints_.find(groupInd);
-    if (p == groupPoints_.end()) return points;
-
-    points = (*p).second;
-  }
-  else {
-    const auto &nameValues = (*groupNameValues_.begin()).second;
-
-    auto pn = nameValues.find(var.toString());
-    if (pn == nameValues.end()) return points;
-
-    const auto &values = (*pn).second.values;
-
-    for (const auto &v : values)
-      points.push_back(v.p);
-  }
-
-  return points;
-}
-
 //------
 
 void
@@ -2865,53 +2870,160 @@ drawXYWhiskerWhisker(PaintDevice *device, const AxisBoxWhisker *boxWhisker,
 
 void
 CQChartsScatterPlot::
-drawDensityMap(PaintDevice *device) const
+drawDensityMap(PaintDevice *device, int groupInd) const
 {
-  device->save();
+  auto *th = const_cast<CQChartsScatterPlot *>(this);
+
+  //---
+
+  bool needsCalc = false;
+
+  // create density data if does not exist
+  auto pd = th->groupNamedDensity_.find(groupInd);
+
+  if (pd == th->groupNamedDensity_.end()) {
+    // get name values for group
+    auto pnv = groupNameValues_.find(groupInd);
+    assert(pnv != groupNameValues_.end());
+
+    const auto &nameValues = (*pnv).second;
+
+    //---
+
+    // create bivariate density for each name
+    NamedDensity namedDensity;
+
+    for (const auto &pn : nameValues) {
+      auto *density = new CQChartsBivariateDensity;
+
+      namedDensity[pn.first] = density;
+    }
+
+    pd = th->groupNamedDensity_.insert(pd,
+      GroupNamedDensity::value_type(groupInd, namedDensity));
+
+    //---
+
+    needsCalc = true;
+  }
+
+  //---
+
+  // check if pixel size matches calculation,
+  // if new we need a new calculation for new pixel grid
+  if (! needsCalc) {
+    auto psize = calcPixelSize();
+
+    if (psize != densityMapData_.psize)
+      needsCalc = true;
+  }
+
+  //---
+
+  // if new calc needed then start or restart thread calc
+  if (needsCalc) {
+    if (! densityMapData_.thread || densityMapData_.thread->isReady())
+      th->calcDensityMap(groupInd);
+
+    // trigger redraw to check for result
+    // TODO: separate timer
+    th->updateSlot();
+    return;
+  }
+
+  //---
+
+  // if result not ready then wait
+  // TODO: separate timer
+  if (! densityMapData_.thread->isReady()) {
+    th->updateSlot();
+    return;
+  }
+
+  //---
+
+  // draw result
+  CQChartsPaintDevice::SaveRestore saveRestore(device);
 
   setClipRect(device);
 
   //---
 
-  initWhiskerData();
+  const auto &namedDensity = (*pd).second;
+
+  for (const auto &pdn : namedDensity)
+    pdn.second->draw(this, device);
+}
+
+void
+CQChartsScatterPlot::
+calcDensityMap(int groupInd)
+{
+  if (! densityMapData_.thread)
+    densityMapData_.thread = new CQThreadObject;
+
+  densityMapData_.thread->exec(calcDensityMapThread, this, groupInd);
+}
+
+void
+CQChartsScatterPlot::
+calcDensityMapThread(CQChartsScatterPlot *plot, int groupInd)
+{
+  plot->calcDensityMapImpl(groupInd);
+}
+
+void
+CQChartsScatterPlot::
+calcDensityMapImpl(int groupInd)
+{
+  auto pnv = groupNameValues_.find(groupInd);
+  assert(pnv != groupNameValues_.end());
+
+  auto pd = groupNamedDensity_.find(groupInd);
+  assert(pd != groupNamedDensity_.end());
 
   //---
-
-  CQChartsBivariateDensity density;
 
   CQChartsBivariateDensity::Data data;
 
   data.gridSize = densityMapGridSize();
   data.delta    = densityMapDelta();
 
-  // density only if symbols ...
-  for (const auto &groupNameValue : groupNameValues_) {
+  const auto &nameValues = (*pnv).second;
+
+  for (const auto &pn : nameValues) {
     if (isInterrupt())
       return;
 
-    const auto &nameValues = groupNameValue.second;
+    const auto &name   = pn.first;
+    const auto &values = pn.second;
 
-    for (const auto &nameValue : nameValues) {
-      if (isInterrupt())
-        return;
+    data.values.clear();
 
-      const auto &values = nameValue.second;
+    for (const auto &v : values.values)
+      data.values.push_back(v.p);
 
-      data.values.clear();
+    data.xrange = values.xrange;
+    data.yrange = values.yrange;
 
-      for (const auto &v : values.values)
-        data.values.push_back(v.p);
+    auto pdn = (*pd).second.find(name);
+    assert(pdn != (*pd).second.end());
 
-      data.xrange = values.xrange;
-      data.yrange = values.yrange;
+    auto *density = (*pdn).second;
 
-      density.draw(this, device, data);
-    }
+    density->calc(this, data);
   }
 
   //---
 
-  device->restore();
+  // set pixel size of result
+  auto psize = calcPixelSize();
+
+  densityMapData_.psize = psize;
+
+  //---
+
+  densityMapData_.thread->end();
 }
 
 //------
@@ -3146,7 +3258,7 @@ CQChartsScatterPointObj(const Plot *plot, int groupInd, const BBox &rect, const 
  CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv), plot_(plot),
  groupInd_(groupInd), pos_(pos)
 {
-  setDetailHint(DetailHint::MAJOR);
+//setDetailHint(DetailHint::MAJOR);
 }
 
 //---
@@ -3324,7 +3436,7 @@ calcTipId() const
   //---
 
   // get values for name (grouped id identical names)
-  CQChartsScatterPlot::ValueData valuePoint;
+  CQChartsPointPlot::ValueData valuePoint;
 
   auto pg = plot_->groupNameValues().find(groupInd_);
   assert(pg != plot_->groupNameValues().end());
@@ -3390,7 +3502,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsScatterPointObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3626,7 +3738,7 @@ inside(const Point &p) const
 
 void
 CQChartsScatterCellObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3737,7 +3849,7 @@ inside(const Point &p) const
 
 void
 CQChartsScatterHexObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3794,6 +3906,37 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 
   os << "\n";
   os << "  this.count = " << n_ << ";\n";
+}
+
+//------
+
+CQChartsScatterDensityObj::
+CQChartsScatterDensityObj(const CQChartsScatterPlot *plot, int groupInd, const BBox &rect) :
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect,
+                 ColorInd(), ColorInd(), ColorInd()), plot_(plot), groupInd_(groupInd)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsScatterDensityObj::
+calcId() const
+{
+  return QString("%1:%2").arg(typeName()).arg(groupInd_);
+}
+
+void
+CQChartsScatterDensityObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  CQChartsPlotObj::addProperties(model, path);
+}
+
+void
+CQChartsScatterDensityObj::
+draw(PaintDevice *device) const
+{
+  plot_->drawDensityMap(device, groupInd_);
 }
 
 //------

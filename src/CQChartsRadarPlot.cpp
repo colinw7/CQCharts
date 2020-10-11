@@ -963,7 +963,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsRadarObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! poly_.size())
     return;

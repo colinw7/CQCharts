@@ -525,6 +525,13 @@ calcRange() const
 
 void
 CQChartsBarChartPlot::
+postCalcRange()
+{
+  initRangeAxes();
+}
+
+void
+CQChartsBarChartPlot::
 initRangeAxes() const
 {
   auto *th = const_cast<CQChartsBarChartPlot *>(this);
@@ -1939,7 +1946,7 @@ isHidden() const
 
 void
 CQChartsBarChartObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   //if (isHidden())
   //  return;

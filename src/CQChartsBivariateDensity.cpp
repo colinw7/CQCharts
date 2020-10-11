@@ -7,7 +7,7 @@
 
 void
 CQChartsBivariateDensity::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
+calc(const CQChartsPlot *plot, const Data &data)
 {
   const int gridSize = std::max(data.gridSize, 1);
 
@@ -58,6 +58,8 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   //---
 
   // calc values for grid
+  cells_.clear();
+
   for (int y = y1; y <= y2; y += dy) {
     for (int x = x1; x <= x2; x += dx) {
       // calc value at normalized pixel sample point (use box center ?)
@@ -66,38 +68,50 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
       double x1 = (xmax > xmin ? CMathUtil::norm(p.x, xmin, xmax) : 0.0);
       double y1 = (ymax > ymin ? CMathUtil::norm(p.y, ymin, ymax) : 0.0);
 
-      double v = bivariate.calc(x1, y1);
+      //---
+
+      Cell cell;
+
+      cell.bbox  = plot->pixelToWindow(BBox(x, y, x + dx, y + dy));
+      cell.value = bivariate.calc(x1, y1);
 
       //---
 
       // set alpha for delta (if defined)
-      double a = 1.0;
+      cell.alpha = 1.0;
 
       if (delta > 0.0) {
-        double v1 = CMathRound::RoundDown(v/delta)*delta;
+        double v1 = CMathRound::RoundDown(cell.value/delta)*delta;
 
-        a = CMathUtil::clamp(sqrt(1.0 - (v - v1)), 0.0, 1.0);
+        cell.alpha = CMathUtil::clamp(sqrt(1.0 - (cell.value - v1)), 0.0, 1.0);
       }
 
       //---
 
-      // set brush
-      CQChartsPenBrush penBrush;
-
-      auto c = plot->interpPaletteColor(CQChartsUtil::ColorInd(v));
-
-      plot->setPenBrush(penBrush,
-        CQChartsPenData  (false),
-        CQChartsBrushData(true, c, CQChartsAlpha(a), CQChartsFillPattern()));
-
-      //---
-
-      // fill rect
-      BBox pb1(x, y, x + dx, y + dy);
-
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-      device->fillRect(plot->pixelToWindow(pb1));
+      cells_.push_back(cell);
     }
+  }
+}
+
+void
+CQChartsBivariateDensity::
+draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
+{
+  for (const auto &cell : cells_) {
+    // set brush
+    CQChartsPenBrush penBrush;
+
+    auto c = plot->interpPaletteColor(CQChartsUtil::ColorInd(cell.value));
+
+    plot->setPenBrush(penBrush,
+      CQChartsPenData  (false),
+      CQChartsBrushData(true, c, CQChartsAlpha(cell.alpha), CQChartsFillPattern()));
+
+    //---
+
+    // fill rect
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->fillRect(cell.bbox);
   }
 }

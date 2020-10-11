@@ -2873,7 +2873,7 @@ getConnected() const
 
 void
 CQChartsGraphNodeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3141,7 +3141,7 @@ getConnected() const
 
 void
 CQChartsGraphEdgeObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3623,7 +3623,7 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
 void
 CQChartsGraphGraphObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;

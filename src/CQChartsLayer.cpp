@@ -14,22 +14,23 @@ void initLayerTypeName() {
     s_NameLayerType[name] = type;
   };
 
-  addLayerTypeName(CQChartsLayer::Type::NONE       , "none");
-  addLayerTypeName(CQChartsLayer::Type::BACKGROUND , "background");
-  addLayerTypeName(CQChartsLayer::Type::BG_AXES    , "bg_axes");
-  addLayerTypeName(CQChartsLayer::Type::BG_KEY     , "bg_key");
-  addLayerTypeName(CQChartsLayer::Type::BG_PLOT    , "bg_plot");
-  addLayerTypeName(CQChartsLayer::Type::MID_PLOT   , "mid_plot");
-  addLayerTypeName(CQChartsLayer::Type::FG_PLOT    , "fg_plot");
-  addLayerTypeName(CQChartsLayer::Type::FG_AXES    , "fg_axes");
-  addLayerTypeName(CQChartsLayer::Type::FG_KEY     , "fg_key");
-  addLayerTypeName(CQChartsLayer::Type::TITLE      , "title");
-  addLayerTypeName(CQChartsLayer::Type::ANNOTATION , "annotation");
-  addLayerTypeName(CQChartsLayer::Type::FOREGROUND , "foreground");
-  addLayerTypeName(CQChartsLayer::Type::EDIT_HANDLE, "edit_handle");
-  addLayerTypeName(CQChartsLayer::Type::BOXES      , "boxes");
-  addLayerTypeName(CQChartsLayer::Type::SELECTION  , "selection");
-  addLayerTypeName(CQChartsLayer::Type::MOUSE_OVER , "mouse_over");
+  addLayerTypeName(CQChartsLayer::Type::NONE         , "none");
+  addLayerTypeName(CQChartsLayer::Type::BACKGROUND   , "background");
+  addLayerTypeName(CQChartsLayer::Type::BG_AXES      , "bg_axes");
+  addLayerTypeName(CQChartsLayer::Type::BG_KEY       , "bg_key");
+  addLayerTypeName(CQChartsLayer::Type::BG_ANNOTATION, "bg annotation");
+  addLayerTypeName(CQChartsLayer::Type::BG_PLOT      , "bg_plot");
+  addLayerTypeName(CQChartsLayer::Type::MID_PLOT     , "mid_plot");
+  addLayerTypeName(CQChartsLayer::Type::FG_PLOT      , "fg_plot");
+  addLayerTypeName(CQChartsLayer::Type::FG_ANNOTATION, "fg annotation");
+  addLayerTypeName(CQChartsLayer::Type::FG_AXES      , "fg_axes");
+  addLayerTypeName(CQChartsLayer::Type::FG_KEY       , "fg_key");
+  addLayerTypeName(CQChartsLayer::Type::TITLE        , "title");
+  addLayerTypeName(CQChartsLayer::Type::FOREGROUND   , "foreground");
+  addLayerTypeName(CQChartsLayer::Type::EDIT_HANDLE  , "edit_handle");
+  addLayerTypeName(CQChartsLayer::Type::BOXES        , "boxes");
+  addLayerTypeName(CQChartsLayer::Type::SELECTION    , "selection");
+  addLayerTypeName(CQChartsLayer::Type::MOUSE_OVER   , "mouse_over");
 }
 
 }

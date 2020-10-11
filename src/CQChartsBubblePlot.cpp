@@ -965,7 +965,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBubbleHierObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   double r = this->radius();
 
@@ -1104,7 +1104,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBubbleNodeObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   double r = this->radius();
 
@@ -1156,7 +1156,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsBubbleNodeObj::
-drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor)
+drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const
 {
   // get labels (name and optional size)
   QStringList strs;

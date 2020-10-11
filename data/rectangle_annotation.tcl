@@ -22,6 +22,7 @@ set rectId2 [create_charts_rectangle_annotation -plot $plotId -id rectId2 -tip "
 
 set rectId3 [create_charts_rectangle_annotation -plot $plotId -id rectId3 -tip "Rectangle 3" \
   -start {0 0} -end {100 20} \
-  -stroke_color blue -stroke_alpha 0.5 -stroke_width 3 -border_sides tl]
+  -stroke_color blue -stroke_alpha 0.5 -stroke_width 3 -border_sides tl \
+  -filled 1 -fill_color orange -fill_alpha 0.7]
 
 connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot

@@ -3,8 +3,6 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + density plot (object) on thread
- + all commands to new style
  + command completion widget when multiple matches
  + command value completion
  + add completion support for args (and values)

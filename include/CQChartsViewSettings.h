@@ -77,6 +77,8 @@ class CQChartsViewSettings : public QFrame {
 
   void showErrorsTab();
 
+  CQChartsPlot *currentPlot(bool remap=true) const;
+
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -95,6 +97,8 @@ class CQChartsViewSettings : public QFrame {
   void updatePlotControls();
 
   void updateAnnotations();
+  void updateViewAnnotations();
+  void updatePlotAnnotations();
 
   void updatePlotObjects();
 
@@ -164,10 +168,14 @@ class CQChartsViewSettings : public QFrame {
   void viewAnnotationSelectionChangeSlot();
   void plotAnnotationSelectionChangeSlot();
 
+  void raiseViewAnnotationSlot();
+  void lowerViewAnnotationSlot();
   void createViewAnnotationSlot();
   void editViewAnnotationSlot();
   void removeViewAnnotationsSlot();
 
+  void raisePlotAnnotationSlot();
+  void lowerPlotAnnotationSlot();
   void createPlotAnnotationSlot();
   void editPlotAnnotationSlot();
   void removePlotAnnotationsSlot();
@@ -211,6 +219,9 @@ class CQChartsViewSettings : public QFrame {
   void getSelectedPlots(Plots &plots) const;
 
   void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
+
+  CQChartsAnnotation *getSelectedViewAnnotation() const;
+  CQChartsAnnotation *getSelectedPlotAnnotation() const;
 
  private:
   using ViewPropertiesWidget   = CQChartsViewSettingsViewPropertiesWidget;
@@ -264,11 +275,17 @@ class CQChartsViewSettings : public QFrame {
   struct AnnotationsWidgets {
     ViewAnnotationsTable* viewTable        { nullptr }; //!< view annotations table
     PlotAnnotationsTable* plotTable        { nullptr }; //!< plot annotations table
-    QPushButton*          viewEditButton   { nullptr }; //!< view edit button
-    QPushButton*          viewRemoveButton { nullptr }; //!< view remove button
-    QPushButton*          plotEditButton   { nullptr }; //!< plot edit button
-    QPushButton*          plotRemoveButton { nullptr }; //!< plot remove button
-    QPushButton*          writeButton      { nullptr }; //!< view and plots write button
+    QPushButton*          viewRaiseButton  { nullptr }; //!< view annotation raise button
+    QPushButton*          viewLowerButton  { nullptr }; //!< view annotation lower button
+    QPushButton*          viewCreateButton { nullptr }; //!< view annotation create button
+    QPushButton*          viewEditButton   { nullptr }; //!< view annotation edit button
+    QPushButton*          viewRemoveButton { nullptr }; //!< view annotation remove button
+    QPushButton*          plotRaiseButton  { nullptr }; //!< plot annotation raise button
+    QPushButton*          plotLowerButton  { nullptr }; //!< plot annotation lower button
+    QPushButton*          plotCreateButton { nullptr }; //!< plot annotation create button
+    QPushButton*          plotEditButton   { nullptr }; //!< plot annotation edit button
+    QPushButton*          plotRemoveButton { nullptr }; //!< plot annotation remove button
+    QPushButton*          writeButton      { nullptr }; //!< view and plot annotations write button
   };
 
   struct ObjectsWidgets {
@@ -315,6 +332,8 @@ class CQChartsViewSettings : public QFrame {
   QString plotId_; //!< current plot id
 
   QTimer *updateErrorsTimer_ { nullptr }; //!< update error delay timer
+
+  int maxPlotObjs_ { 100 };
 };
 
 //---

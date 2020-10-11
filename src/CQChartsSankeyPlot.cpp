@@ -3650,7 +3650,7 @@ getConnected() const
 
 void
 CQChartsSankeyNodeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -4085,7 +4085,7 @@ getConnected() const
 
 void
 CQChartsSankeyEdgeObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   // get edge path
   if (! edgePath(path_, edge()->isLine()))

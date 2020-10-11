@@ -280,6 +280,17 @@ class Size {
   double height() const { return size_.height(); }
   void setHeight(double h) { size_.setHeight(h); }
 
+  //---
+
+  friend bool operator==(const Size &lhs, const Size &rhs) {
+    return (lhs.size_.width () == rhs.size_.width () &&
+            lhs.size_.height() == rhs.size_.height());
+  }
+
+  friend bool operator!=(const Size &lhs, const Size &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
  private:
   QSizeF size_;
 };

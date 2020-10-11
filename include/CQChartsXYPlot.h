@@ -95,11 +95,11 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
-  void drawLines (PaintDevice *device, const Point &p1, const Point &p2);
-  void drawPoints(PaintDevice *device, const Point &p1, const Point &p2);
+  void drawLines (PaintDevice *device, const Point &p1, const Point &p2) const;
+  void drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const;
 
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
@@ -159,7 +159,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
@@ -280,7 +280,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
@@ -372,7 +372,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot*     plot_     { nullptr }; //!< parent plot
@@ -452,7 +452,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
@@ -540,7 +540,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
@@ -829,6 +829,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   //---
 
   Range calcRange() const override;
+
+  void postCalcRange() override;
 
   bool createObjs(PlotObjs &objs) const override;
 

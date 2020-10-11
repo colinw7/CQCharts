@@ -25,12 +25,22 @@ class  CQChartsEditHandles;
 class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString typeName READ typeName)
+  Q_PROPERTY(QString   typeName  READ typeName )
+  Q_PROPERTY(DrawLayer drawLayer READ drawLayer)
+
+  Q_ENUMS(DrawLayer)
 
  public:
   enum class DetailHint {
     MAJOR,
     MINOR
+  };
+
+  enum class DrawLayer {
+    NONE,
+    BACKGROUND,
+    MIDDLE,
+    FOREGROUND
   };
 
   using Plot          = CQChartsPlot;
@@ -80,51 +90,70 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  //! get/set detail hint
   const DetailHint &detailHint() const { return detailHint_; }
   void setDetailHint(const DetailHint &h) { detailHint_ = h; }
 
   //---
 
+  //! get/set draw layer
+  const DrawLayer &drawLayer() const { return drawLayer_; }
+  void setDrawLayer(const DrawLayer &l);
+
+  //---
+
   // shapes
+
+  // get is polygon and polygon shape
   virtual bool isPolygon() const { return false; }
   virtual Polygon polygon() const { return Polygon(); }
 
+  // get is circle and circle shape
   virtual bool isCircle() const { return false; }
   virtual double radius() const { return 1.0; }
 
+  // get is arc and arc shape
   virtual bool isArc() const { return false; }
   virtual CQChartsArcData arcData() const { return CQChartsArcData(); }
 
+  //! get is solid (not a point/line)
   virtual bool isSolid() const { return true; }
 
   //---
 
-  // colors
+  // get color type
   virtual CQChartsColorType colorType() const { return CQChartsColorType::AUTO; }
 
+  //! get/set set index
   const ColorInd &is() const { return is_; }
   void setIs(const ColorInd &is) { is_ = is; }
 
+  //! get/set group index
   const ColorInd &ig() const { return ig_; }
   void setIg(const ColorInd &ig) { ig_ = ig; }
 
+  //! get/set value index
   const ColorInd &iv() const { return iv_; }
   void setIv(const ColorInd &iv) { iv_ = iv; }
 
+  //! calc color index (from set, group or value index)
   virtual ColorInd calcColorInd() const;
 
+  //! get x/y color value
   virtual double xColorValue(bool relative=true) const;
   virtual double yColorValue(bool relative=true) const;
 
   //---
 
-  // model data
+  // get/set model index
   QModelIndex modelInd() const;
   void setModelInd(const QModelIndex &ind);
 
+  // get/set model indices
   const QModelIndices &modelInds() const { return modelInds_; }
   void setModelInds(const QModelIndices &inds);
 
+  // add model index
   void addModelInd(const QModelIndex &ind);
 
   //---
@@ -239,11 +268,10 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  // draw
+  // draw background, middle, foreground
   virtual void drawBg(PaintDevice *) const;
+  virtual void draw  (PaintDevice *) const;
   virtual void drawFg(PaintDevice *) const;
-
-  virtual void draw(PaintDevice *);
 
   virtual void postDraw(PaintDevice *) { }
 
@@ -251,6 +279,8 @@ class CQChartsPlotObj : public CQChartsObj {
                           const BBox &rect, const CQChartsLength &cornerSize) const;
 
   void drawDebugRect(PaintDevice *device);
+
+  virtual bool drawMouseOver() const { return true; }
 
   //---
 
@@ -262,9 +292,13 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const;
 
+ signals:
+  void layerChanged();
+
  protected:
   Plot*                plot_        { nullptr };           //!< parent plot
   DetailHint           detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
+  DrawLayer            drawLayer_   { DrawLayer::NONE };   //!< draw layer
   ColorInd             is_;                                //!< set index
   ColorInd             ig_;                                //!< group index
   ColorInd             iv_;                                //!< value index

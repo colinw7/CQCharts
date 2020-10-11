@@ -143,9 +143,9 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   bool checkDrawBBox(const BBox &bbox) const;
 
   bool drawHText(PaintDevice *device, double xl, double xr, double y,
-                 const QString &text, bool onLeft, BBox &bbox);
+                 const QString &text, bool onLeft, BBox &bbox) const;
   bool drawVText(PaintDevice *device, double yt, double yb, double x,
-                 const QString &text, bool onBottom, BBox &bbox);
+                 const QString &text, bool onBottom, BBox &bbox) const;
 
   void addHBBox(BBox &pbbox, double xl, double xr, double y, const QString &text,
                 bool onLeft) const;
@@ -215,7 +215,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   //---
 
@@ -231,10 +231,10 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   double remapPos(double pos) const;
 
  private:
-  int            setId_    { 0 };       //!< set id
-  int            groupInd_ { 0 };       //!< group ind
-  const Whisker* whisker_  { nullptr }; //!< whisker data
-  Polygon        poly_;                 //!< draw polygon
+  int             setId_    { 0 };       //!< set id
+  int             groupInd_ { 0 };       //!< group ind
+  const Whisker*  whisker_  { nullptr }; //!< whisker data
+  mutable Polygon poly_;                 //!< draw polygon
 };
 
 //---
@@ -261,7 +261,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   double remapPos(double pos) const;
@@ -301,7 +301,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   BBox annotationBBox() const;
 
@@ -335,7 +335,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   using Whisker       = CQChartsBoxPlotWhisker;
@@ -380,7 +380,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_     { nullptr }; //!< parent plot
@@ -699,6 +699,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   Range calcRange() const override;
+
+  void postCalcRange() override;
 
   Range updateRawRange () const;
   Range updateCalcRange() const;

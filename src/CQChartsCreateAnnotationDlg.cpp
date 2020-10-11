@@ -144,6 +144,10 @@ initWidgets()
   buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
   layout->addWidget(buttons);
+
+  //---
+
+  typeSlot(0);
 }
 
 QStringList

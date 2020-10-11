@@ -1243,7 +1243,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsHierBubbleHierObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   auto *pnode = node()->parent();
 
@@ -1405,7 +1405,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsHierBubbleNodeObj::
-draw(PaintDevice *device)
+draw(PaintDevice *device) const
 {
   auto *pnode = node()->parent();
 
@@ -1466,7 +1466,7 @@ draw(PaintDevice *device)
 
 void
 CQChartsHierBubbleNodeObj::
-drawText(PaintDevice *device, const BBox &bbox)
+drawText(PaintDevice *device, const BBox &bbox) const
 {
   // get labels (name and optional size)
   QStringList strs;

@@ -316,9 +316,9 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
-  void drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor);
+  void drawText(PaintDevice *device, const BBox &bbox, const QColor &brushColor) const;
 
   //---
 
@@ -373,7 +373,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   //---
 

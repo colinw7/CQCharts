@@ -68,7 +68,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
  private:
   const Plot* plot_ { nullptr }; //!< parent plot

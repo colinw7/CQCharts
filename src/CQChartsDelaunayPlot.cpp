@@ -317,6 +317,21 @@ calcRange() const
 
   //---
 
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    dataRange.equalScale(aspect);
+  }
+
+  //---
+
+  return dataRange;
+}
+
+void
+CQChartsDelaunayPlot::
+postCalcRange()
+{
   bool ok;
 
   xAxis_->setColumn(xColumn());
@@ -330,18 +345,6 @@ calcRange() const
   auto yname = modelHHeaderString(yColumn(), ok);
 
   yAxis_->setDefLabel(yname);
-
-  //---
-
-  if (isEqualScale()) {
-    double aspect = this->aspect();
-
-    dataRange.equalScale(aspect);
-  }
-
-  //---
-
-  return dataRange;
 }
 
 bool
@@ -820,7 +823,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsDelaunayPointObj::
-draw(CQChartsPaintDevice *device)
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;

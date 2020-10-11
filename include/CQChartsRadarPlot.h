@@ -95,7 +95,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(PaintDevice *device) override;
+  void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
