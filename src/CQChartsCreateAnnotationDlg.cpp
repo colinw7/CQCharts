@@ -548,7 +548,7 @@ createArrowFrame()
   arrowWidgets_.filledCheck = CQUtil::makeWidget<CQCheckBox>("filledCheck");
   arrowWidgets_.filledCheck->setToolTip("Is Filled");
 
-  arrowWidgets_.fillColorEdit = createColorEdit ("fillColorEdit", "Arrow Fill Color");
+  arrowWidgets_.fillColorEdit = createColorEdit("fillColorEdit", "Arrow Fill Color");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Width",
     arrowWidgets_.strokeWidthEdit, row1);
@@ -656,6 +656,44 @@ CQChartsCreateAnnotationDlg::
 createAxisFrame()
 {
   axisWidgets_.frame = CQUtil::makeWidget<QFrame>("axisFrame");
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(axisWidgets_.frame, 2, 2);
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //--
+
+  axisWidgets_.orientationEdit = CQUtil::makeWidget<QComboBox>("orientation");
+
+  axisWidgets_.orientationEdit->addItem("Horizontal");
+  axisWidgets_.orientationEdit->addItem("Vertical"  );
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Orientation",
+                                         axisWidgets_.orientationEdit, row);
+
+  //--
+
+  axisWidgets_.positionEdit = createRealEdit("position", 0.0, "Position");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", axisWidgets_.positionEdit, row);
+
+  //--
+
+  axisWidgets_.startEdit = createRealEdit("start", 0.0, "Start Value");
+  axisWidgets_.endEdit   = createRealEdit("end"  , 1.0, "End Value");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start", axisWidgets_.startEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "End"  , axisWidgets_.endEdit  , row);
+
+  //---
+
+  frameLayout->addStretch(1);
 }
 
 void
@@ -788,6 +826,20 @@ CQChartsCreateAnnotationDlg::
 createLineEdit(const QString &name, const QString &tip) const
 {
   auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(name);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
+CQRealSpin *
+CQChartsCreateAnnotationDlg::
+createRealEdit(const QString &name, double r, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQRealSpin>(name);
+
+  edit->setValue(r);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -982,28 +1034,28 @@ applySlot()
 
   bool rc = false;
 
-  if      (ind == 0 ) rc = createRectangleAnnotation();
-  else if (ind == 1 ) rc = createEllipseAnnotation  ();
-  else if (ind == 2 ) rc = createPolygonAnnotation  ();
-  else if (ind == 3 ) rc = createPolylineAnnotation ();
-  else if (ind == 4 ) rc = createTextAnnotation     ();
-  else if (ind == 5 ) rc = createArrowAnnotation    ();
-  else if (ind == 6 ) rc = createImageAnnotation    ();
-  else if (ind == 7 ) rc = createPointAnnotation    ();
-  else if (ind == 8 ) rc = createPieSliceAnnotation ();
+  if      (ind == 0) rc = createRectangleAnnotation();
+  else if (ind == 1) rc = createEllipseAnnotation  ();
+  else if (ind == 2) rc = createPolygonAnnotation  ();
+  else if (ind == 3) rc = createPolylineAnnotation ();
+  else if (ind == 4) rc = createTextAnnotation     ();
+  else if (ind == 5) rc = createImageAnnotation    ();
+  else if (ind == 6) rc = createArrowAnnotation    ();
+  else if (ind == 7) rc = createPointAnnotation    ();
+  else if (ind == 8) rc = createPieSliceAnnotation ();
 
   if (plot_) {
-    if      (ind == 9 ) rc = createAxisAnnotation     ();
-    else if (ind == 10) rc = createKeyAnnotation      ();
-    else if (ind == 11) rc = createPointSetAnnotation ();
-    else if (ind == 12) rc = createValueSetAnnotation ();
-    else if (ind == 13) rc = createButtonAnnotation   ();
+    if      (ind == 9 ) rc = createAxisAnnotation    ();
+    else if (ind == 10) rc = createKeyAnnotation     ();
+    else if (ind == 11) rc = createPointSetAnnotation();
+    else if (ind == 12) rc = createValueSetAnnotation();
+    else if (ind == 13) rc = createButtonAnnotation  ();
   }
   else {
-    if      (ind ==  9) rc = createKeyAnnotation      ();
-    else if (ind == 10) rc = createPointSetAnnotation ();
-    else if (ind == 11) rc = createValueSetAnnotation ();
-    else if (ind == 12) rc = createButtonAnnotation   ();
+    if      (ind ==  9) rc = createKeyAnnotation     ();
+    else if (ind == 10) rc = createPointSetAnnotation();
+    else if (ind == 11) rc = createValueSetAnnotation();
+    else if (ind == 12) rc = createButtonAnnotation  ();
   }
 
   return rc;
@@ -1048,6 +1100,8 @@ createRectangleAnnotation()
     annotation = plot()->addRectangleAnnotation(rect);
   else
     return false;
+
+  //---
 
   if (id != "")
     annotation->setId(id);
@@ -1110,6 +1164,8 @@ createEllipseAnnotation()
   else
     return false;
 
+  //---
+
   if (id != "")
     annotation->setId(id);
 
@@ -1159,6 +1215,8 @@ createPolygonAnnotation()
     annotation = plot()->addPolygonAnnotation(polygon);
   else
     return false;
+
+  //---
 
   if (id != "")
     annotation->setId(id);
@@ -1210,6 +1268,8 @@ createPolylineAnnotation()
   else
     return false;
 
+  //---
+
   if (id != "")
     annotation->setId(id);
 
@@ -1233,11 +1293,12 @@ createTextAnnotation()
   auto id    = idEdit_ ->text();
   auto tipId = tipEdit_->text();
 
-  auto pos  = textWidgets_.positionEdit->position();
-  auto rect = textWidgets_.rectEdit->rect();
-  auto text = textWidgets_.textEdit->text();
+  bool isPos = textWidgets_.positionRadio->isChecked();
+  auto pos   = textWidgets_.positionEdit->position();
+  auto rect  = textWidgets_.rectEdit->rect();
+  auto text  = textWidgets_.textEdit->text();
 
-  if (! textWidgets_.positionRadio->isChecked()) {
+  if (! isPos) {
     if (! rect.isValid())
       return setErrorMsg("Invalid text rectangle");
   }
@@ -1260,19 +1321,21 @@ createTextAnnotation()
   CQChartsTextAnnotation *annotation = nullptr;
 
   if      (view()) {
-    if (textWidgets_.positionRadio->isChecked())
+    if (isPos)
       annotation = view()->addTextAnnotation(pos, text);
     else
       annotation = view()->addTextAnnotation(rect, text);
   }
   else if (plot()) {
-    if (textWidgets_.positionRadio->isChecked())
+    if (isPos)
       annotation = plot()->addTextAnnotation(pos, text);
     else
       annotation = plot()->addTextAnnotation(rect, text);
   }
   else
     return false;
+
+  //---
 
   if (id != "")
     annotation->setId(id);
@@ -1289,7 +1352,52 @@ bool
 CQChartsCreateAnnotationDlg::
 createImageAnnotation()
 {
-  std::cerr << "TODO\n";
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  bool isPos = imageWidgets_.positionRadio->isChecked();
+  auto pos   = imageWidgets_.positionEdit->position();
+  auto rect  = imageWidgets_.rectEdit->rect();
+
+  if (! isPos) {
+    if (! rect.isValid())
+      return setErrorMsg("Invalid image rectangle");
+  }
+
+  auto imageText    = imageWidgets_.imageEdit->text();
+  auto disImageText = imageWidgets_.disabledImageEdit->text();
+
+  CQChartsImage image   (imageText);
+  CQChartsImage disImage(disImageText);
+
+  //---
+
+  CQChartsImageAnnotation *annotation = nullptr;
+
+  if      (view()) {
+    if (isPos)
+      annotation = view()->addImageAnnotation(pos, image);
+    else
+      annotation = view()->addImageAnnotation(rect, image);
+  }
+  else if (plot()) {
+    if (isPos)
+      annotation = plot()->addImageAnnotation(pos, image);
+    else
+      annotation = plot()->addImageAnnotation(rect, image);
+  }
+  else
+    return false;
+
+  if (disImage.isValid())
+    annotation->setDisabledImage(disImage);
+
+  //---
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
 
   return true;
 }
@@ -1333,6 +1441,8 @@ createArrowAnnotation()
   else
     return false;
 
+  //---
+
   if (id != "")
     annotation->setId(id);
 
@@ -1365,6 +1475,8 @@ createPointAnnotation()
     annotation = plot()->addPointAnnotation(pos, symbolData.type());
   else
     return false;
+
+  //---
 
   if (id != "")
     annotation->setId(id);
@@ -1402,6 +1514,8 @@ createPieSliceAnnotation()
   else
     return false;
 
+  //---
+
   if (id != "")
     annotation->setId(id);
 
@@ -1414,9 +1528,37 @@ bool
 CQChartsCreateAnnotationDlg::
 createAxisAnnotation()
 {
-  std::cerr << "TODO\n";
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  return false;
+  Qt::Orientation orient = Qt::Horizontal;
+
+  if (axisWidgets_.orientationEdit->currentIndex() == 1)
+    orient = Qt::Vertical;
+
+  auto position = axisWidgets_.positionEdit->value();
+  auto start    = axisWidgets_.startEdit->value();
+  auto end      = axisWidgets_.endEdit->value();
+
+  //---
+
+  CQChartsAxisAnnotation *annotation = nullptr;
+
+  if (plot())
+    annotation = plot()->addAxisAnnotation(orient, start, end);
+  else
+    return false;
+
+  annotation->setPosition(position);
+
+  //---
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
+
+  return true;
 }
 
 bool
@@ -1437,6 +1579,8 @@ createKeyAnnotation()
   else
     return false;
 
+  //---
+
   if (id != "")
     annotation->setId(id);
 
@@ -1449,7 +1593,28 @@ bool
 CQChartsCreateAnnotationDlg::
 createPointSetAnnotation()
 {
-  std::cerr << "TODO\n";
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  //---
+
+  CQChartsPointSetAnnotation *annotation = nullptr;
+
+  CQChartsPoints points;
+
+  if      (view())
+    annotation = view()->addPointSetAnnotation(points);
+  else if (plot())
+    annotation = plot()->addPointSetAnnotation(points);
+  else
+    return false;
+
+  //---
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
 
   return false;
 }
@@ -1458,7 +1623,30 @@ bool
 CQChartsCreateAnnotationDlg::
 createValueSetAnnotation()
 {
-  std::cerr << "TODO\n";
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  //---
+
+  CQChartsValueSetAnnotation *annotation = nullptr;
+
+  CQChartsRect rect(CQChartsUnits::VIEW, CQChartsGeom::BBox(10, 10, 90, 90));
+
+  CQChartsReals reals;
+
+  if      (view())
+    annotation = view()->addValueSetAnnotation(rect, reals);
+  else if (plot())
+    annotation = plot()->addValueSetAnnotation(rect, reals);
+  else
+    return false;
+
+  //---
+
+  if (id != "")
+    annotation->setId(id);
+
+  annotation->setTipId(tipId);
 
   return false;
 }
@@ -1486,6 +1674,8 @@ createButtonAnnotation()
     annotation = plot()->addButtonAnnotation(pos, text);
   else
     return false;
+
+  //---
 
   if (id != "")
     annotation->setId(id);

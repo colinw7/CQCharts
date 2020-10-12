@@ -3851,6 +3851,20 @@ init()
   editHandles()->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
+Qt::Orientation
+CQChartsAxisAnnotation::
+direction()
+{
+  return axis_->direction();
+}
+
+void
+CQChartsAxisAnnotation::
+setDirection(Qt::Orientation &d)
+{
+  axis_->setDirection(d);
+}
+
 double
 CQChartsAxisAnnotation::
 start() const

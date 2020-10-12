@@ -7517,8 +7517,8 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-inner_radius", CQChartsCmdArg::Type::Length, "inner radius");
   argv.addCmdArg("-outer_radius", CQChartsCmdArg::Type::Length, "outer radius");
 
-  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::Real, "start angle");
-  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::Real, "span angle");
+  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::String, "start angle");
+  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::String, "span angle");
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 }

@@ -124,6 +124,10 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   };
 
   struct AxisWidgets : public Widgets {
+    QComboBox*  orientationEdit { nullptr };
+    CQRealSpin* positionEdit    { nullptr };
+    CQRealSpin* startEdit       { nullptr };
+    CQRealSpin* endEdit         { nullptr };
   };
 
   struct KeyWidgets : public Widgets {
@@ -170,6 +174,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   //---
 
   CQChartsLineEdit*      createLineEdit(const QString &name, const QString &tip="") const;
+  CQRealSpin*            createRealEdit(const QString &name, double r,
+                                        const QString &tip="") const;
   CQChartsPositionEdit*  createPositionEdit(const QString &name, double x, double y,
                                             const QString &tip="") const;
   CQChartsLengthEdit*    createLengthEdit(const QString &name, double l,

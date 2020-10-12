@@ -1184,9 +1184,10 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(double position READ position WRITE setPosition)
-  Q_PROPERTY(double start    READ start    WRITE setStart   )
-  Q_PROPERTY(double end      READ end      WRITE setEnd     )
+  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
+  Q_PROPERTY(double          position  READ position  WRITE setPosition )
+  Q_PROPERTY(double          start     READ start     WRITE setStart    )
+  Q_PROPERTY(double          end       READ end       WRITE setEnd      )
 
  public:
   using Axis = CQChartsAxis;
@@ -1210,6 +1211,10 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Axis *axis() const { return axis_; }
 
   //---
+
+  //! get/set direction
+  Qt::Orientation direction();
+  void setDirection(Qt::Orientation &d);
 
   //! get/set position
   double position() const;

@@ -4867,8 +4867,6 @@ showMenu(const Point &p)
   auto *selTitle      = qobject_cast<CQChartsTitle *>(plotObj);
 
   if (selAnnotation || selAxis || selKey || selTitle) {
-    popupMenu->addSeparator();
-
     auto *objMenu = addSubMenu(popupMenu, "Selected");
 
     addAction(objMenu, "Edit", SLOT(editObjectSlot()));
@@ -4878,6 +4876,8 @@ showMenu(const Point &p)
   }
 
   //---
+
+  popupMenu->addSeparator();
 
   if (hasPlots) {
     addCheckAction(popupMenu, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));

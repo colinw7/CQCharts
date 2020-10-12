@@ -570,7 +570,7 @@ class CQChartsView : public QFrame,
   RectangleAnnotation *addRectangleAnnotation(const Rect &rect);
   TextAnnotation      *addTextAnnotation     (const Position &pos, const QString &text);
   TextAnnotation      *addTextAnnotation     (const Rect &rect, const QString &text);
-  ValueSetAnnotation  *addValueSetAnnotation (const Rect &rectangle, const CQChartsReals &values);
+  ValueSetAnnotation  *addValueSetAnnotation (const Rect &rect, const CQChartsReals &values);
   WidgetAnnotation    *addWidgetAnnotation   (const Position &pos, const Widget &widget);
   WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
 

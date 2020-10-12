@@ -1423,12 +1423,12 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //---
 
-  auto *annotationsSplit = CQUtil::makeWidget<CQTabSplit>("annotationsSplit");
+  annotationsWidgets_.split = CQUtil::makeWidget<CQTabSplit>("annotationsSplit");
 
-  annotationsSplit->setOrientation(Qt::Vertical);
-  annotationsSplit->setGrouped(true);
+  annotationsWidgets_.split->setOrientation(Qt::Vertical);
+  annotationsWidgets_.split->setGrouped(true);
 
-  annotationsFrameLayout->addWidget(annotationsSplit);
+  annotationsFrameLayout->addWidget(annotationsWidgets_.split);
 
   //----
 
@@ -1446,10 +1446,11 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   //---
 
   // view annotations
-  auto *viewFrame       = CQUtil::makeWidget<QFrame>("viewFrame");
-  auto *viewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(viewFrame, 2, 2);
+  annotationsWidgets_.viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
-  annotationsSplit->addWidget(viewFrame, "View");
+  auto *viewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(annotationsWidgets_.viewFrame, 2, 2);
+
+  annotationsWidgets_.split->addWidget(annotationsWidgets_.viewFrame, "View");
 
   //--
 
@@ -1500,10 +1501,11 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   //----
 
   // plot annotations
-  auto *plotFrame       = CQUtil::makeWidget<QFrame>("plotFrame");
-  auto *plotFrameLayout = CQUtil::makeLayout<QVBoxLayout>(plotFrame, 2, 2);
+  annotationsWidgets_.plotFrame = CQUtil::makeWidget<QFrame>("plotFrame");
 
-  annotationsSplit->addWidget(plotFrame, "Plot");
+  auto *plotFrameLayout = CQUtil::makeLayout<QVBoxLayout>(annotationsWidgets_.plotFrame, 2, 2);
+
+  annotationsWidgets_.split->addWidget(annotationsWidgets_.plotFrame, "Plot");
 
   //--
 
@@ -1553,7 +1555,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //--
 
-  annotationsSplit->setSizes(QList<int>({INT_MAX, INT_MAX}));
+  annotationsWidgets_.split->setSizes(QList<int>({INT_MAX, INT_MAX}));
 
   //--
 
@@ -2640,6 +2642,10 @@ CQChartsViewSettings::
 updatePlotAnnotations()
 {
   auto *plot = currentPlot(/*remap*/false);
+
+  QString plotName = (plot ? QString("Plot %1").arg(plot->id()) : "Plot");
+
+  annotationsWidgets_.split->setWidgetName(annotationsWidgets_.plotFrame, plotName);
 
   annotationsWidgets_.plotTable->updateAnnotations(plot);
 }

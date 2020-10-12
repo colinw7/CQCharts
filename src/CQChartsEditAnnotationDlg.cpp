@@ -25,6 +25,7 @@
 #include <CQUtil.h>
 
 #include <QFrame>
+#include <QComboBox>
 #include <QRadioButton>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -657,12 +658,117 @@ void
 CQChartsEditAnnotationDlg::
 createPieSliceFrame()
 {
+  auto *annotation = dynamic_cast<CQChartsPieSliceAnnotation *>(annotation_);
+  assert(annotation);
+
+  //---
+
+  pieSliceWidgets_.frame = CQUtil::makeWidget<QFrame>("pieSliceFrame");
+
+  frameLayout_->addWidget(pieSliceWidgets_.frame);
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(pieSliceWidgets_.frame, 2, 2);
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //---
+
+  // center
+  pieSliceWidgets_.centerEdit =
+    createPositionEdit("centerEdit", annotation->position(), "Center");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Center", pieSliceWidgets_.centerEdit, row);
+
+  //--
+
+  // radii
+  pieSliceWidgets_.innerRadiusEdit =
+    createLengthEdit("innerRadius", annotation->innerRadius(), "Inner Radius");
+  pieSliceWidgets_.outerRadiusEdit =
+    createLengthEdit("outerRadius", annotation->outerRadius(), "Outer Radius");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Inner Radius",
+    pieSliceWidgets_.innerRadiusEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Outer Radius",
+    pieSliceWidgets_.outerRadiusEdit, row);
+
+  //---
+
+  // angles
+  pieSliceWidgets_.startAngleEdit =
+    createAngleEdit("startAngle", annotation->startAngle(), "Start Angle");
+  pieSliceWidgets_.spanAngleEdit  =
+    createAngleEdit("spanAngle" , annotation->spanAngle(), "Span Angle");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start Angle",
+    pieSliceWidgets_.startAngleEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Span Angle",
+    pieSliceWidgets_.spanAngleEdit, row);
+
+  //---
+
+  frameLayout->addStretch(1);
 }
 
 void
 CQChartsEditAnnotationDlg::
 createAxisFrame()
 {
+  auto *annotation = dynamic_cast<CQChartsAxisAnnotation *>(annotation_);
+  assert(annotation);
+
+  //---
+
+  axisWidgets_.frame = CQUtil::makeWidget<QFrame>("axisFrame");
+
+  frameLayout_->addWidget(axisWidgets_.frame);
+
+  auto *frameLayout = CQUtil::makeLayout<QVBoxLayout>(axisWidgets_.frame, 2, 2);
+
+  //---
+
+  auto *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
+
+  frameLayout->addLayout(gridLayout);
+
+  int row = 0;
+
+  //---
+
+  axisWidgets_.orientationEdit = CQUtil::makeWidget<QComboBox>("orientation");
+
+  axisWidgets_.orientationEdit->addItem("Horizontal");
+  axisWidgets_.orientationEdit->addItem("Vertical"  );
+
+  if (annotation->direction() == Qt::Vertical)
+    axisWidgets_.orientationEdit->setCurrentIndex(1);
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Orientation",
+                                         axisWidgets_.orientationEdit, row);
+
+  //--
+
+  axisWidgets_.positionEdit = createRealEdit("position", annotation->position(), "Position");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Position", axisWidgets_.positionEdit, row);
+
+  //--
+
+  axisWidgets_.startEdit = createRealEdit("start", annotation->start(), "Start Value");
+  axisWidgets_.endEdit   = createRealEdit("end"  , annotation->end  (), "End Value");
+
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Start", axisWidgets_.startEdit, row);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "End"  , axisWidgets_.endEdit  , row);
+
+  //---
+
+  frameLayout->addStretch(1);
 }
 
 void
@@ -788,6 +894,20 @@ createLineEdit(const QString &name, const QString &text, const QString &tip) con
   return edit;
 }
 
+CQRealSpin *
+CQChartsEditAnnotationDlg::
+createRealEdit(const QString &name, double r, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQRealSpin>(name);
+
+  edit->setValue(r);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
 CQChartsPositionEdit *
 CQChartsEditAnnotationDlg::
 createPositionEdit(const QString &name, const CQChartsPosition &pos, const QString &tip) const
@@ -863,6 +983,20 @@ createMarginEdit(const QString &name, const CQChartsMargin &margin, const QStrin
   auto *edit = CQUtil::makeWidget<CQChartsMarginEdit>(name);
 
   edit->setMargin(margin);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
+CQChartsAngleEdit *
+CQChartsEditAnnotationDlg::
+createAngleEdit(const QString &name, const CQChartsAngle &a, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsAngleEdit>(name);
+
+  edit->setAngle(a);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -1350,6 +1484,31 @@ bool
 CQChartsEditAnnotationDlg::
 updatePieSliceAnnotation()
 {
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto position    = pieSliceWidgets_.centerEdit->position();
+  auto innerRadius = pieSliceWidgets_.innerRadiusEdit->length();
+  auto outerRadius = pieSliceWidgets_.outerRadiusEdit->length();
+  auto startAngle  = pieSliceWidgets_.startAngleEdit->angle();
+  auto spanAngle   = pieSliceWidgets_.spanAngleEdit->angle();
+
+  //---
+
+  auto *annotation = dynamic_cast<CQChartsPieSliceAnnotation *>(annotation_);
+  assert(annotation);
+
+  //---
+
+  annotation->setId(id);
+  annotation->setTipId(tipId);
+
+  annotation->setPosition   (position);
+  annotation->setInnerRadius(innerRadius);
+  annotation->setOuterRadius(outerRadius);
+  annotation->setStartAngle (startAngle);
+  annotation->setSpanAngle  (spanAngle);
+
   return true;
 }
 
@@ -1357,6 +1516,30 @@ bool
 CQChartsEditAnnotationDlg::
 updateAxisAnnotation()
 {
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto direction = (axisWidgets_.orientationEdit->currentIndex() == 0 ?
+                    Qt::Horizontal : Qt::Vertical);
+  auto position  = axisWidgets_.positionEdit->value();
+  auto start     = axisWidgets_.startEdit->value();
+  auto end       = axisWidgets_.endEdit->value();
+
+  //---
+
+  auto *annotation = dynamic_cast<CQChartsAxisAnnotation *>(annotation_);
+  assert(annotation);
+
+  //---
+
+  annotation->setId(id);
+  annotation->setTipId(tipId);
+
+  annotation->setDirection(direction);
+  annotation->setPosition (position);
+  annotation->setStart    (start);
+  annotation->setEnd      (end);
+
   return true;
 }
 

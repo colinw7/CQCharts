@@ -21,6 +21,7 @@ class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
 class CQChartsColorLineEdit;
+class CQChartsAngle;
 class CQChartsAngleEdit;
 class CQChartsLineEdit;
 
@@ -28,6 +29,7 @@ class CQRealSpin;
 class CQCheckBox;
 
 class QFrame;
+class QComboBox;
 class QRadioButton;
 class QLabel;
 class QBoxLayout;
@@ -121,6 +123,10 @@ class CQChartsEditAnnotationDlg : public QDialog {
   };
 
   struct AxisWidgets : public Widgets {
+    QComboBox*  orientationEdit { nullptr };
+    CQRealSpin* positionEdit    { nullptr };
+    CQRealSpin* startEdit       { nullptr };
+    CQRealSpin* endEdit         { nullptr };
   };
 
   struct KeyWidgets : public Widgets {
@@ -168,6 +174,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
   CQChartsLineEdit*     createLineEdit(const QString &name, const QString &text,
                                        const QString &tip) const;
+  CQRealSpin*           createRealEdit(const QString &name, double r, const QString &tip) const;
   CQChartsPositionEdit* createPositionEdit(const QString &name, const CQChartsPosition &pos,
                                            const QString &tip) const;
   CQChartsLengthEdit*   createLengthEdit(const QString &name, const CQChartsLength &len,
@@ -178,6 +185,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
                                           const QString &tip) const;
   CQChartsMarginEdit*   createMarginEdit(const QString &name, const CQChartsMargin &margin,
                                          const QString &tip) const;
+  CQChartsAngleEdit*    createAngleEdit(const QString &name, const CQChartsAngle &a,
+                                        const QString &tip) const;
 
   //---
 

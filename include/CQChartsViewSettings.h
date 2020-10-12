@@ -273,6 +273,9 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct AnnotationsWidgets {
+    CQTabSplit*           split            { nullptr }; //!< tab split
+    QFrame*               viewFrame        { nullptr }; //!< view frame
+    QFrame*               plotFrame        { nullptr }; //!< plot frame
     ViewAnnotationsTable* viewTable        { nullptr }; //!< view annotations table
     PlotAnnotationsTable* plotTable        { nullptr }; //!< plot annotations table
     QPushButton*          viewRaiseButton  { nullptr }; //!< view annotation raise button
