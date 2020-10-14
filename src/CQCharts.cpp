@@ -622,31 +622,31 @@ interpColorValueI(const CQChartsColor &c, int ig, int ng, double value, const QC
       int ind = c.getPaletteIndex();
 
       if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
-        return interpIndPaletteColor(ind, c.value(), c.isScale());
+        return interpIndPaletteColor(ind, c.value(), c.isScale(), c.isInvert());
       else
-        return interpIndPaletteColorValue(ind, ig, ng, value, c.isScale());
+        return interpIndPaletteColorValue(ind, ig, ng, value, c.isScale(), c.isInvert());
     }
     else if (c.hasPaletteName()) {
       QString name;
 
       if (c.getPaletteName(name)) {
         if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
-          return interpNamePaletteColor(name, c.value(), c.isScale());
+          return interpNamePaletteColor(name, c.value(), c.isScale(), c.isInvert());
         else
-          return interpNamePaletteColorValue(name, ig, ng, value, c.isScale());
+          return interpNamePaletteColorValue(name, ig, ng, value, c.isScale(), c.isInvert());
       }
       else {
         if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
-          return interpPaletteColor(ColorInd(c.value()), c.isScale());
+          return interpPaletteColor(ColorInd(c.value()), c.isScale(), c.isInvert());
         else
-          return interpPaletteColorValue(ig, ng, value, c.isScale());
+          return interpPaletteColorValue(ig, ng, value, c.isScale(), c.isInvert());
       }
     }
     else {
       if (c.type() == CQChartsColor::Type::PALETTE_VALUE)
-        return interpPaletteColor(ColorInd(c.value()), c.isScale());
+        return interpPaletteColor(ColorInd(c.value()), c.isScale(), c.isInvert());
       else
-        return interpPaletteColorValue(ig, ng, value, c.isScale());
+        return interpPaletteColorValue(ig, ng, value, c.isScale(), c.isInvert());
     }
   }
   else if (c.type() == CQChartsColor::Type::INDEXED ||
@@ -766,60 +766,61 @@ setDark(bool b)
 
 QColor
 CQCharts::
-interpPaletteColor(const ColorInd &ind, bool scale) const
+interpPaletteColor(const ColorInd &ind, bool scale, bool invert) const
 {
-  return interpIndPaletteColor(/*palette_ind*/-1, ind.value(), scale);
+  return interpIndPaletteColor(/*palette_ind*/-1, ind.value(), scale, invert);
 }
 
 QColor
 CQCharts::
-interpIndPaletteColor(int ind, int i, int n, bool scale) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpIndPaletteColor(ind, r, scale);
-}
-
-QColor
-CQCharts::
-interpIndPaletteColor(int ind, double r, bool scale) const
-{
-  return interpIndPaletteColorValue(ind, 0, 1, r, scale);
-}
-
-QColor
-CQCharts::
-interpNamePaletteColor(const QString &name, double r, bool scale) const
-{
-  return interpNamePaletteColorValue(name, 0, 1, r, scale);
-}
-
-QColor
-CQCharts::
-interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
-{
-  return themeGroupPalette(ig.i, ig.n)->getColor(iv.value(), scale);
-}
-
-QColor
-CQCharts::
-interpPaletteColorValue(int ig, int ng, int i, int n, bool scale) const
+interpIndPaletteColor(int ind, int i, int n, bool scale, bool invert) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale);
+  return interpIndPaletteColor(ind, r, scale, invert);
 }
 
 QColor
 CQCharts::
-interpPaletteColorValue(int ig, int ng, double r, bool scale) const
+interpIndPaletteColor(int ind, double r, bool scale, bool invert) const
 {
-  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale);
+  return interpIndPaletteColorValue(ind, 0, 1, r, scale, invert);
 }
 
 QColor
 CQCharts::
-interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r, bool scale) const
+interpNamePaletteColor(const QString &name, double r, bool scale, bool invert) const
+{
+  return interpNamePaletteColorValue(name, 0, 1, r, scale, invert);
+}
+
+QColor
+CQCharts::
+interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale, bool invert) const
+{
+  return themeGroupPalette(ig.i, ig.n)->getColor(iv.value(), scale, invert);
+}
+
+QColor
+CQCharts::
+interpPaletteColorValue(int ig, int ng, int i, int n, bool scale, bool invert) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale, invert);
+}
+
+QColor
+CQCharts::
+interpPaletteColorValue(int ig, int ng, double r, bool scale, bool invert) const
+{
+  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale, invert);
+}
+
+QColor
+CQCharts::
+interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r,
+                           bool scale, bool invert) const
 {
   // if ind unset then use default palette number
   if (ind < 0)
@@ -840,18 +841,18 @@ interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r, bool scale
   }
 #endif
 
-  return palette->getColor(r, scale);
+  return palette->getColor(r, scale, invert);
 }
 
 QColor
 CQCharts::
-interpNamePaletteColorValue(const QString &name, int /*ig*/, int /*ng*/,
-                            double r, bool scale) const
+interpNamePaletteColorValue(const QString &name, int /*ig*/, int /*ng*/, double r,
+                            bool scale, bool invert) const
 {
   auto *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return QColor(); // assert ?
 
-  return palette->getColor(r, scale);
+  return palette->getColor(r, scale, invert);
 }
 
 QColor

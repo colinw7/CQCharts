@@ -1673,6 +1673,8 @@ initThemeFrame(QFrame *themeFrame)
 
   themeWidgets_.palettesCombo->addItems(paletteNames);
 
+  themeWidgets_.palettesCombo->setToolTip("Name of Palette to View/Edit");
+
   palettesControlFrameLayout->addWidget(paletteNameLabel);
   palettesControlFrameLayout->addWidget(themeWidgets_.palettesCombo);
 
@@ -1682,6 +1684,8 @@ initThemeFrame(QFrame *themeFrame)
   //--
 
   auto *resetButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "resetButton");
+
+  resetButton->setToolTip("Reset palette to default (initial) values");
 
   palettesControlFrameLayout->addWidget(resetButton);
 
@@ -1782,15 +1786,23 @@ initLayersFrame(QFrame *layersFrame)
 
   auto *viewImageButton = CQUtil::makeLabelWidget<QPushButton>("View Image", "viewImage");
 
+  viewImageButton->setToolTip("Show View Layer Image");
+
   controlLayout->addWidget(viewImageButton);
 
   connect(viewImageButton, SIGNAL(clicked()), this, SLOT(viewLayerImageSlot()));
 
+  //--
+
   auto *plotImageButton = CQUtil::makeLabelWidget<QPushButton>("Plot Image", "plotImage");
+
+  plotImageButton->setToolTip("Show Plot Layer Image");
 
   controlLayout->addWidget(plotImageButton);
 
   connect(plotImageButton, SIGNAL(clicked()), this, SLOT(plotLayerImageSlot()));
+
+  //--
 
   controlLayout->addStretch(1);
 }

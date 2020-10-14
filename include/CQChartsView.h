@@ -627,9 +627,10 @@ class CQChartsView : public QFrame,
 
  public:
   // interp palette/theme color
-  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false, bool invert=false) const;
 
-  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const;
+  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
+                                 bool scale=false, bool invert=false) const;
 
   QColor interpThemeColor(const ColorInd &ind) const;
 

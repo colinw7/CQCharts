@@ -344,6 +344,8 @@ CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
 CQCommand.cpp \
+CQScrollArea.cpp \
+CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
 \
 CTclParse.cpp \
@@ -681,6 +683,8 @@ HEADERS += \
 ../include/CUnixFile.h \
 \
 ../include/CQCommand.h \
+../include/CQScrollArea.h \
+../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
 \
 ../include/CTclParse.h \

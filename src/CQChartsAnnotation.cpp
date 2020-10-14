@@ -3271,7 +3271,19 @@ draw(PaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  calcPenBrush(penBrush);
+  auto bgColor     = arrow()->interpFillColor  (ColorInd());
+  auto strokeColor = arrow()->interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    double f = uncheckedLighter();
+
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , f);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, f);
+  }
+
+  setPenBrush(penBrush,
+    PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
+    BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -5140,7 +5152,7 @@ positionToTopLeft(double w, double h, double &x, double &y) const
     y = p.y - h;
   else if (align() & Qt::AlignVCenter)
     y = p.y - h/2;
-  else if (align() & Qt::AlignTop)
+  else
     y = p.y;
 }
 
@@ -5239,7 +5251,7 @@ draw(PaintDevice *)
     widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
                    CMathRound::RoundNearest(ptbbox.getHeight()));
 
-    widget_.move(ptbbox.getXMin(), ptbbox.getYMin());
+    widget_.move(int(ptbbox.getXMin()), int(ptbbox.getYMin()));
 
     //---
 

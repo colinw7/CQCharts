@@ -44,9 +44,10 @@ colorStr() const
     if (type() == Type::PALETTE_VALUE) {
       strs << QString::number(value());
 
-      if (isScale())
-        strs << "s";
+      if (isScale ()) strs << "s";
     }
+
+    if (isInvert()) strs << "i";
   }
   else if (type() == Type::INDEXED || type() == Type::INDEXED_VALUE) {
     if      (hasPaletteIndex())
@@ -62,12 +63,10 @@ colorStr() const
     else
       strs << "ind_palette";
 
-    if (type() == Type::INDEXED_VALUE) {
+    if (type() == Type::INDEXED_VALUE)
       strs << QString::number(value());
 
-      if (isScale())
-        strs << "s";
-    }
+    if (isInvert()) strs << "i";
   }
   else if (type() == Type::INTERFACE || type() == Type::INTERFACE_VALUE) {
     strs << "interface";
@@ -129,11 +128,12 @@ setColorStr(const QString &str)
   //---
 
   // reset
-  type_  = Type::NONE;
-  ind_   = -1;
-  value_ = 0.0;
-  color_ = QColor();
-  scale_ = false;
+  type_   = Type::NONE;
+  ind_    = -1;
+  value_  = 0.0;
+  color_  = QColor();
+  scale_  = false;
+  invert_ = false;
 
   //---
 
@@ -148,23 +148,77 @@ setColorStr(const QString &str)
 
   //---
 
+  auto parsePaletteData = [&](double &value, bool &hasValue, bool &scale, bool &invert) {
+    hasValue = false;
+    scale    = false;
+    invert   = false;
+
+    int ind = 1;
+
+    bool ok;
+
+    value = CQChartsUtil::toReal(strs[1], ok);
+
+    if (ok) {
+      hasValue = true;
+
+      ++ind;
+    }
+    else
+      value = 0.0;
+
+    for (int i = ind; i < strs.length(); ++i) {
+      if      (strs[i][0] == 's')
+        scale = true;
+      else if (strs[i][0] == 'i')
+        invert = true;
+    }
+
+    return true;
+  };
+
+  auto parseIndPaletteData = [&](int &value, bool &hasValue, bool &invert) {
+    hasValue = false;
+    invert   = false;
+
+    int ind = 1;
+
+    bool ok;
+
+    long lvalue = CQChartsUtil::toInt(strs[1], ok);
+
+    if (ok) {
+      value = int(lvalue);
+
+      hasValue = true;
+
+      ++ind;
+    }
+
+    for (int i = ind; i < strs.length(); ++i) {
+      if (strs[i][0] == 'i')
+        invert = true;
+    }
+
+    return true;
+  };
+
   QString rhs;
 
   if      (strs[0] == "palette") {
     if (strs.length() > 1) {
-      bool ok;
+      double value;
+      bool   hasValue, scale, invert;
 
-      double value = CQChartsUtil::toReal(strs[1], ok);
-      if (! ok) return false;
+      if (! parsePaletteData(value, hasValue, scale, invert))
+        return false;
 
-      bool scale = false;
+      if (hasValue)
+        setScaleValue(Type::PALETTE_VALUE, value, scale);
+      else
+        setValue(Type::PALETTE, 0.0);
 
-      if (strs.length() > 2) {
-        if (strs[2][0] == 's')
-          scale = true;
-      }
-
-      setScaleValue(Type::PALETTE_VALUE, value, scale);
+      setInvert(invert);
     }
     else
       setValue(Type::PALETTE, 0.0);
@@ -180,31 +234,36 @@ setColorStr(const QString &str)
     }
 
     if (strs.length() > 1) {
-      bool ok;
+      double value;
+      bool   hasValue, scale, invert;
 
-      double value = CQChartsUtil::toReal(strs[1], ok);
-      if (! ok) return false;
+      if (! parsePaletteData(value, hasValue, scale, invert))
+        return false;
 
-      bool scale = false;
+      if (hasValue)
+        setIndScaleValue(Type::PALETTE_VALUE, int(ind), value, scale);
+      else
+        setIndValue(Type::PALETTE, int(ind), 0.0);
 
-      if (strs.length() > 2) {
-        if (strs[2][0] == 's')
-          scale = true;
-      }
-
-      setIndScaleValue(Type::PALETTE_VALUE, int(ind), value, scale);
+      setInvert(invert);
     }
     else
       setIndValue(Type::PALETTE, int(ind), 0.0);
   }
   else if (strs[0] == "ind_palette") {
     if (strs.length() > 1) {
-      bool ok;
+      int  value;
+      bool hasValue, invert;
 
-      long value = CQChartsUtil::toInt(strs[1], ok);
-      if (! ok) return false;
+      if (! parseIndPaletteData(value, hasValue, invert))
+        return false;
 
-      setValue(Type::INDEXED_VALUE, int(value));
+      if (hasValue)
+        setValue(Type::INDEXED_VALUE, value);
+      else
+        setValue(Type::INDEXED, 0);
+
+      setInvert(invert);
     }
     else
       setValue(Type::INDEXED, 0);
@@ -220,12 +279,18 @@ setColorStr(const QString &str)
     }
 
     if (strs.length() > 1) {
-      bool ok;
+      int  value;
+      bool hasValue, invert;
 
-      long value = CQChartsUtil::toInt(strs[1], ok);
-      if (! ok) return false;
+      if (! parseIndPaletteData(value, hasValue, invert))
+        return false;
 
-      setIndValue(Type::INDEXED_VALUE, int(ind), int(value));
+      if (hasValue)
+        setIndValue(Type::INDEXED_VALUE, int(ind), value);
+      else
+        setIndValue(Type::INDEXED, int(ind), 0);
+
+      setInvert(invert);
     }
     else
       setIndValue(Type::INDEXED, int(ind), 0);

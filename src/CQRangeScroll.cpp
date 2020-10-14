@@ -25,6 +25,10 @@ void
 CQRangeScroll::
 init()
 {
+  setObjectName("rangeScroll");
+
+  //--
+
   QBoxLayout *layout;
 
   if (orientation_ == Qt::Horizontal) {
@@ -36,11 +40,19 @@ init()
     layout->setMargin(0); layout->setSpacing(0);
   }
 
+  //---
+
   canvas_ = new CQRangeScrollCanvas(this);
+
+  canvas_->setObjectName("canvas");
 
   layout->addWidget(canvas_);
 
+  //---
+
   scroll_ = new QScrollBar;
+
+  scroll_->setObjectName("scroll");
 
   if (orientation_ == Qt::Horizontal)
     scroll_->setOrientation(Qt::Horizontal);
@@ -240,6 +252,9 @@ CQRangeScrollCanvas(CQRangeScroll *scroll) :
 {
   startHandle_ = new CQRangeScrollHandle(scroll_);
   endHandle_   = new CQRangeScrollHandle(scroll_);
+
+  startHandle_->setObjectName("startHandle");
+  endHandle_  ->setObjectName("endHandle");
 
   connect(startHandle_, SIGNAL(valueChanged(double)), this, SLOT(startHandleSlot(double)));
   connect(endHandle_  , SIGNAL(valueChanged(double)), this, SLOT(endHandleSlot(double)));

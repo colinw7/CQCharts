@@ -170,15 +170,18 @@ class CQCharts : public QObject {
   //---
 
  public:
-  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false, bool invert=false) const;
 
-  QColor interpIndPaletteColor(int ind, int i, int n, bool scale=false) const;
-  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
+  QColor interpIndPaletteColor(int ind, int i, int n, bool scale=false, bool invert=false) const;
+  QColor interpIndPaletteColor(int ind, double r, bool scale=false, bool invert=false) const;
 
-  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale=false) const;
+  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
+                                 bool scale=false, bool invert=false) const;
 
-  QColor interpPaletteColorValue(int ig, int ng, int i, int n, bool scale=false) const;
-  QColor interpPaletteColorValue(int ig, int ng, double r, bool scale=false) const;
+  QColor interpPaletteColorValue(int ig, int ng, int i, int n,
+                                 bool scale=false, bool invert=false) const;
+  QColor interpPaletteColorValue(int ig, int ng, double r,
+                                 bool scale=false, bool invert=false) const;
 
   QColor indexPaletteColor(int i, int n) const;
   QColor indexIndPaletteColor(int ind, int i, int n) const;
@@ -210,13 +213,13 @@ class CQCharts : public QObject {
   CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
 
  private:
-  QColor interpIndPaletteColorValue(int ind, int ig, int ng,
-                                    double r, bool scale) const;
+  QColor interpIndPaletteColorValue(int ind, int ig, int ng, double r,
+                                    bool scale, bool invert) const;
 
-  QColor interpNamePaletteColorValue(const QString &name, int ig, int ng,
-                                     double r, bool scale) const;
+  QColor interpNamePaletteColorValue(const QString &name, int ig, int ng, double r,
+                                     bool scale, bool invert) const;
 
-  QColor interpNamePaletteColor(const QString &name, double r, bool scale) const;
+  QColor interpNamePaletteColor(const QString &name, double r, bool scale, bool invert) const;
 
   QColor indexNamePaletteColor(const QString &name, int ig, int ng) const;
 

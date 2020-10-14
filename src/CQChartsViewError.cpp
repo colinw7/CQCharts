@@ -13,6 +13,8 @@ CQChartsViewError::
 CQChartsViewError(CQChartsView *view) :
  view_(view)
 {
+  setObjectName("viewError");
+
   auto *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   tab_ = CQUtil::makeWidget<CQTabSplit>("area");

@@ -33,6 +33,9 @@ CQChartsPlotControlFrame(QWidget *parent) :
   equalCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Equal", "equalCheck");
   andCheck_   = CQUtil::makeLabelWidget<QCheckBox>("And"  , "andCheck");
 
+  equalCheck_->setToolTip("Compare Equal or Non-Equal");
+  andCheck_  ->setToolTip("Combine with And or Or");
+
   equalCheck_->setChecked(true);
   andCheck_  ->setChecked(true);
 

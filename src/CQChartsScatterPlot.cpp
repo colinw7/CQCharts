@@ -629,10 +629,10 @@ interpColor(const Color &c, const ColorInd &ind) const
       plot1 = plot1->prevPlot();
     }
 
-    return view()->interpPaletteColor(ColorInd(i, n), c.isScale());
+    return view()->interpPaletteColor(ColorInd(i, n), c.isScale(), c.isInvert());
   }
   else {
-    return view()->interpPaletteColor(ind, c.isScale());
+    return view()->interpPaletteColor(ind, c.isScale(), c.isInvert());
   }
 }
 

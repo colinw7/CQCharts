@@ -49,6 +49,7 @@ CQChartsFilterEdit(QWidget *parent) :
   addReplaceSwitch_->setChecked(true);
   addReplaceSwitch_->setHighlightOn(false);
   addReplaceSwitch_->setFocusPolicy(Qt::NoFocus);
+  addReplaceSwitch_->setToolTip("Add To or Replace Filter");
 
   opLayout->addWidget(addReplaceSwitch_);
 
@@ -58,6 +59,7 @@ CQChartsFilterEdit(QWidget *parent) :
   andOrSwitch_->setChecked(true);
   andOrSwitch_->setHighlightOn(false);
   andOrSwitch_->setFocusPolicy(Qt::NoFocus);
+  andOrSwitch_->setToolTip("Combine with And or Or");
 
   connect(andOrSwitch_, SIGNAL(toggled(bool)), this, SLOT(andSlot()));
 

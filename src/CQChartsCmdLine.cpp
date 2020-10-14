@@ -40,9 +40,7 @@ showDialog(CQCharts *charts)
 
 class CQChartsCmdWidget : public CQCommand::CommandWidget {
  public:
-  CQChartsCmdWidget(CQChartsCmdLine *cmdLine) :
-   cmdLine_(cmdLine) {
-  }
+  CQChartsCmdWidget(CQChartsCmdLine *cmdLine);
 
   bool complete(const QString &text, int pos,
                 QString &newText, CompleteMode completeMode) const override {
@@ -55,6 +53,8 @@ class CQChartsCmdWidget : public CQCommand::CommandWidget {
  private:
   CQChartsCmdLine *cmdLine_ { nullptr };
 };
+
+//---
 
 class CQChartsCmdScrollArea : public CQCommand::ScrollArea {
  public:
@@ -70,10 +70,22 @@ class CQChartsCmdScrollArea : public CQCommand::ScrollArea {
   CQChartsCmdLine *cmdLine_ { nullptr };
 };
 
+//---
+
+CQChartsCmdWidget::
+CQChartsCmdWidget(CQChartsCmdLine *cmdLine) :
+ CQCommand::CommandWidget(nullptr), cmdLine_(cmdLine)
+{
+}
+
+//---
+
 CQChartsCmdLine::
 CQChartsCmdLine(CQCharts *charts, QWidget *parent) :
  QFrame(parent), charts_(charts)
 {
+  setWindowTitle("Charts Command Line");
+
   setObjectName("cmdLine");
 
   //---

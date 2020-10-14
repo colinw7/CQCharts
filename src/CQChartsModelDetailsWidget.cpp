@@ -57,7 +57,7 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
   //--
 
   // flip check
-  flipCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Flip");
+  flipCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Flip", "flip");
 
   flipCheck_->setToolTip("Flip orientation of details table");
 

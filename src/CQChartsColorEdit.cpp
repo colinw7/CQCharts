@@ -449,6 +449,14 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
+  invertCheck_ = CQUtil::makeWidget<CQCheckBox>("invertCheck");
+
+  invertCheck_->setToolTip("Invert palette color value");
+
+  addLabelWidget("Invert", invertCheck_);
+
+  //---
+
   layout->setRowStretch(row, 1);
 
   layout->setColumnStretch(2, 1);
@@ -481,11 +489,12 @@ setNoFocus()
 {
 //colorEdit_->setNoFocus();
 
-  typeCombo_ ->setFocusPolicy(Qt::NoFocus);
-//indEdit_   ->setFocusPolicy(Qt::NoFocus);
-//valueEdit_ ->setFocusPolicy(Qt::NoFocus);
-  valueCheck_->setFocusPolicy(Qt::NoFocus);
-  scaleCheck_->setFocusPolicy(Qt::NoFocus);
+  typeCombo_  ->setFocusPolicy(Qt::NoFocus);
+//indEdit_    ->setFocusPolicy(Qt::NoFocus);
+//valueEdit_  ->setFocusPolicy(Qt::NoFocus);
+  valueCheck_ ->setFocusPolicy(Qt::NoFocus);
+  scaleCheck_ ->setFocusPolicy(Qt::NoFocus);
+  invertCheck_->setFocusPolicy(Qt::NoFocus);
 }
 
 void
@@ -516,6 +525,7 @@ connectSlots(bool b)
   connectDisconnect(valueCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
   connectDisconnect(colorEdit_  , SIGNAL(colorChanged(const QColor &)), SLOT(widgetsToColor()));
   connectDisconnect(scaleCheck_ , SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(invertCheck_, SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
 }
 
 void
@@ -562,7 +572,7 @@ colorToWidgets()
       else
         scaleCheck_->setChecked(false);
 
-      scaleCheck_->setEnabled(hasValue);
+      invertCheck_->setChecked(color_.isInvert());
     }
     else if (color_.type() == CQChartsColor::Type::INDEXED ||
              color_.type() == CQChartsColor::Type::INDEXED_VALUE) {
@@ -594,12 +604,7 @@ colorToWidgets()
 
       hasValue = (color_.type() == CQChartsColor::Type::INDEXED_VALUE);
 
-      if (hasValue)
-        scaleCheck_->setChecked(color_.isScale());
-      else
-        scaleCheck_->setChecked(false);
-
-      scaleCheck_->setEnabled(hasValue);
+      invertCheck_->setChecked(color_.isInvert());
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE ||
              color_.type() == CQChartsColor::Type::INTERFACE_VALUE) {
@@ -692,6 +697,9 @@ widgetsToColor()
       else
         color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_->value());
     }
+
+    if (invertCheck_->isChecked())
+      color.setInvert(true);
   }
   else if (typeInd == 2) {
     if (valueCheck_->isChecked())
@@ -706,6 +714,9 @@ widgetsToColor()
 
     if (valueCheck_->isChecked())
       color.setValue(CQChartsColor::Type::INDEXED_VALUE, valueEdit_->value());
+
+    if (invertCheck_->isChecked())
+      color.setInvert(true);
   }
   else if (typeInd == 3) {
     if (valueCheck_->isChecked())
@@ -789,6 +800,7 @@ updateState()
 {
   auto setEditVisible = [&](QWidget *w, bool visible) {
     w->setVisible(visible);
+    w->setEnabled(visible);
 
     widgetLabels_[w]->setVisible(visible);
   };
@@ -800,12 +812,14 @@ updateState()
   setEditVisible(valueEdit_  , false);
   setEditVisible(colorEdit_  , false);
   setEditVisible(scaleCheck_ , false);
+  setEditVisible(invertCheck_, false);
 
   if (color_.isValid()) {
     if      (color_.type() == CQChartsColor::Type::PALETTE ||
              color_.type() == CQChartsColor::Type::PALETTE_VALUE) {
       setEditVisible(indPalStack_, true);
       setEditVisible(valueEdit_  , true);
+      setEditVisible(invertCheck_, true);
 
       if (color_.type() == CQChartsColor::Type::PALETTE_VALUE)
         setEditVisible(scaleCheck_, true);
@@ -814,6 +828,7 @@ updateState()
              color_.type() == CQChartsColor::Type::INDEXED_VALUE) {
       setEditVisible(indPalStack_, true);
       setEditVisible(valueEdit_  , true);
+      setEditVisible(invertCheck_, true);
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE ||
              color_.type() == CQChartsColor::Type::INTERFACE_VALUE) {

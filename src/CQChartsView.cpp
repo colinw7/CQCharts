@@ -2324,22 +2324,23 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
 QColor
 CQChartsView::
-interpPaletteColor(const ColorInd &ind, bool scale) const
+interpPaletteColor(const ColorInd &ind, bool scale, bool invert) const
 {
   Color c(CQChartsColor::Type::PALETTE);
 
-  c.setScale(scale);
+  c.setScale (scale );
+  c.setInvert(invert);
 
   return interpColor(c, ind);
 
-  //return charts()->interpPaletteColor(ind, scale);
+  //return charts()->interpPaletteColor(ind, scale, invert);
 }
 
 QColor
 CQChartsView::
-interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
+interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale, bool invert) const
 {
-  return charts()->interpGroupPaletteColor(ig, iv, scale);
+  return charts()->interpGroupPaletteColor(ig, iv, scale, invert);
 }
 
 QColor

@@ -6,6 +6,7 @@
 #include <CQUtil.h>
 #include <CQStrUtil.h>
 #include <CQTclUtil.h>
+#include <CQWidgetTest.h>
 
 #include <QApplication>
 #include <QVBoxLayout>
@@ -92,6 +93,8 @@ addCommands()
     addCommand("qt_has_property", new CQChartsBaseHasPropertyCmd(this));
 
     addCommand("qt_sync", new CQChartsBaseQtSyncCmd(this));
+
+    addCommand("widget_test", new CQChartsBaseWidgetTestCmd(this));
 
     addCommand("perf", new CQChartsBasePerfCmd(this));
 
@@ -712,6 +715,41 @@ exec(CQChartsCmdArgs &argv)
 
     qApp->processEvents();
   }
+
+  return true;
+}
+
+//------
+
+void
+CQChartsBaseWidgetTestCmd::
+addArgs(CQChartsCmdArgs &)
+{
+}
+
+QStringList
+CQChartsBaseWidgetTestCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseWidgetTestCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseWidgetTestCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  CQWidgetTest test;
+
+  test.addType(CQWidgetTest::TestType::TOOLTIP);
+
+  test.exec();
 
   return true;
 }

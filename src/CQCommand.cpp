@@ -17,12 +17,12 @@ namespace CQCommand {
 
 ScrollArea::
 ScrollArea(QWidget *parent) :
- QScrollArea(parent)
+ CQScrollArea(parent, nullptr)
 {
   setObjectName("scrolledCommand");
 
-  setVerticalScrollBarPolicy  (Qt::ScrollBarAlwaysOn);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  //setVerticalScrollBarPolicy  (Qt::ScrollBarAlwaysOn);
+  //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
 void
@@ -31,6 +31,8 @@ init()
 {
   command_ = createCommandWidget();
 
+  command_->setArea(this);
+
   setWidget(command_);
 
   connect(command_, SIGNAL(executeCommand(const QString &)),
@@ -38,7 +40,7 @@ init()
 
   connect(command_, SIGNAL(scrollEnd()), this, SLOT(updateScroll()));
 
-  setFocusProxy(command_);
+  command_->updateSize();
 
   initialized_ = true;
 }
@@ -62,23 +64,6 @@ getCommand() const
 
 void
 ScrollArea::
-resizeEvent(QResizeEvent *)
-{
-  //---
-
-  int w = width();
-  int h = height();
-
-  int sh = horizontalScrollBar()->height();
-  int sw = verticalScrollBar  ()->width ();
-
-  getCommand()->updateSize(w - sw, h - sh);
-
-  updateScroll();
-}
-
-void
-ScrollArea::
 outputText(const QString &str)
 {
   getCommand()->outputText(str);
@@ -88,14 +73,21 @@ void
 ScrollArea::
 updateScroll()
 {
-  ensureVisible(0, getCommand()->height() - 1);
+  ensureVisible(0, getYSize() - 1);
+}
+
+void
+ScrollArea::
+updateContents()
+{
+  getWidget()->update();
 }
 
 //------------
 
 CommandWidget::
-CommandWidget(QWidget *parent) :
- QFrame(parent)
+CommandWidget(ScrollArea *area) :
+ QFrame(area), area_(area)
 {
   setObjectName("command");
 
@@ -103,12 +95,7 @@ CommandWidget(QWidget *parent) :
 
   prompt_ = "> ";
 
-  parentWidth_  = 0;
-  parentHeight_ = 0;
-
   setFocusPolicy(Qt::StrongFocus);
-
-  updateSize(0, 0);
 
   //---
 
@@ -135,26 +122,31 @@ sizeHint() const
 
 void
 CommandWidget::
-updateSize(int w, int h)
+updateSize()
 {
-  if (w > 0 && h > 0) {
-    parentWidth_  = w;
-    parentHeight_ = h;
-  }
-
   int numLines = std::max(int(lines_.size()) + 1, minLines());
 
   QFontMetrics fm(font());
 
+  charWidth_  = fm.width("X");
   charHeight_ = fm.height();
 
-  int w1 = std::max(parentWidth_, 100);
-  int h1 = std::max(parentHeight_, (numLines + 1)*charHeight_);
+  int maxLen = 0;
 
-  resize(w1, h1);
+  for (const auto &line : lines_)
+    maxLen = std::max(maxLen, line->text().length());
 
-  setMinimumSize(w1, h1);
-  setMaximumSize(w1, h1);
+  if (maxLen < 100)
+    maxLen = 100;
+
+  int w1 = maxLen*charWidth_;
+  int h1 = (numLines + 1)*charHeight_;
+
+  area_->setXSize(w1);
+  area_->setYSize(h1);
+
+  area_->setXSingleStep(charWidth_);
+  area_->setYSingleStep(charHeight_);
 }
 
 void
@@ -167,8 +159,13 @@ paintEvent(QPaintEvent *)
 
   //---
 
-//int w = width();
-  int h = height();
+  xo_ = area_->getXOffset();
+  yo_ = area_->getYOffset();
+
+  //---
+
+//int w = area_->getXSize();
+  int h = std::max(height(), area_->getYSize());
 
   QFontMetrics fm(font());
 
@@ -192,8 +189,8 @@ paintEvent(QPaintEvent *)
 
   //--
 
-  int x = indMargin_;
-  int y = h - 1; // bottom
+  int x = xo_ + indMargin_;
+  int y = yo_ + h - 1; // bottom
 
   //---
 
@@ -291,14 +288,16 @@ void
 CommandWidget::
 drawLine(QPainter *painter, Line *line, int y)
 {
+  int x = xo_;
+
   line->setY(y);
 
   if      (line->type() == LineType::OUTPUT)
-    line->setX(0);
+    line->setX(x);
   else if (line->type() == LineType::COMMAND)
-    line->setX(indMargin_ + promptWidth_);
+    line->setX(x + indMargin_ + promptWidth_);
   else
-    line->setX(0);
+    line->setX(x);
 
   if (y + charHeight_ < 0)
     return;
@@ -313,7 +312,7 @@ drawLine(QPainter *painter, Line *line, int y)
   else
     painter->setPen(Qt::red);
 
-  int x = line->x();
+  x = line->x();
 
   const auto &parts = line->parts();
 
@@ -344,7 +343,7 @@ drawPrompt(QPainter *painter, Line *line, int y)
 
   painter->setPen(indColor_);
 
-  int x = 0;
+  int x = xo_;
 
   drawText(painter, x, y, QString("%1").arg(ind));
 
@@ -496,6 +495,9 @@ event(QEvent *e)
 
       return true;
     }
+  }
+  else if (e->type() == QEvent::Wheel) {
+    area_->handleWheelEvent(static_cast<QWheelEvent *>(e));
   }
 
   return QFrame::event(e);
@@ -748,7 +750,7 @@ outputTypeText(const QString &str, const LineType &type, int ind)
     pos = buffer.indexOf('\n');
   }
 
-  updateSize(0, 0);
+  updateSize();
 }
 
 QString

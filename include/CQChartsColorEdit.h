@@ -115,6 +115,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
   QCheckBox*         valueCheck_    { nullptr }; //!< value check
   CQColorEdit*       colorEdit_     { nullptr }; //!< color edit
   CQCheckBox*        scaleCheck_    { nullptr }; //!< scale check
+  CQCheckBox*        invertCheck_   { nullptr }; //!< invert check
   WidgetLabels       widgetLabels_;              //!< widget labels
   bool               connected_     { false };   //!< is connected
 };

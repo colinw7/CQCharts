@@ -121,9 +121,13 @@ class CQChartsColor {
     scale_ = scale;
   }
 
-  //! get/set scale
+  //! get/set scale (map value from palettes defined range)
   bool isScale() const { return scale_; }
   void setScale(bool scale) { scale_ = scale; }
+
+  //! get/set invert
+  bool isInvert() const { return invert_; }
+  void setInvert(bool invert) { invert_ = invert; }
 
   //---
 
@@ -209,9 +213,10 @@ class CQChartsColor {
 
   //! compare two colors
   static int cmp(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    if (lhs.type_  != rhs.type_ ) return (lhs.type_  < rhs.type_  ? -1 : 1);
-    if (lhs.ind_   != rhs.ind_  ) return (lhs.ind_   < rhs.ind_   ? -1 : 1);
-    if (lhs.scale_ != rhs.scale_) return (lhs.scale_ < rhs.scale_ ? -1 : 1);
+    if (lhs.type_   != rhs.type_  ) return (lhs.type_   < rhs.type_   ? -1 : 1);
+    if (lhs.ind_    != rhs.ind_   ) return (lhs.ind_    < rhs.ind_    ? -1 : 1);
+    if (lhs.scale_  != rhs.scale_ ) return (lhs.scale_  < rhs.scale_  ? -1 : 1);
+    if (lhs.invert_ != rhs.invert_) return (lhs.invert_ < rhs.invert_ ? -1 : 1);
 
     if (lhs.type_ == Type::COLOR) {
       return cmp(lhs.color_, rhs.color_);
@@ -282,11 +287,12 @@ class CQChartsColor {
   }
 
  private:
-  Type   type_  { Type::NONE }; //!< color type (palette, theme or color)
-  int    ind_   { -1 };         //!< -1 unset, >=0 palette index, <-2 color mgr index - 2
-  double value_ { 0.0 };        //!< specific palette or theme value
-  QColor color_ { 0, 0, 0 };    //!< specific color
-  bool   scale_ { false };      //!< color scaled to palette defined color values (pseudo index)
+  Type   type_   { Type::NONE }; //!< color type (palette, theme or color)
+  int    ind_    { -1 };         //!< -1 unset, >=0 palette index, <-2 color mgr index - 2
+  double value_  { 0.0 };        //!< specific palette or theme value
+  QColor color_  { 0, 0, 0 };    //!< specific color
+  bool   scale_  { false };      //!< color scaled to palette defined color values (pseudo index)
+  bool   invert_ { false };      //!< color inverted
 };
 
 //---

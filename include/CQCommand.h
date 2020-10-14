@@ -1,7 +1,7 @@
 #ifndef CQCOMMAND_H
 #define CQCOMMAND_H
 
-#include <QScrollArea>
+#include <CQScrollArea.h>
 #include <QListWidget>
 
 class QPaintEvent;
@@ -20,7 +20,7 @@ enum class LineType {
   OUTPUT
 };
 
-class ScrollArea : public QScrollArea {
+class ScrollArea : public CQScrollArea {
   Q_OBJECT
 
  public:
@@ -32,9 +32,11 @@ class ScrollArea : public QScrollArea {
 
   CommandWidget *getCommand() const;
 
-  void resizeEvent(QResizeEvent *);
+  //void resizeEvent(QResizeEvent *);
 
   void outputText(const QString &str);
+
+  void updateContents() override;
 
  public slots:
   void updateScroll();
@@ -167,9 +169,12 @@ class CommandWidget : public QFrame {
   };
 
  public:
-  CommandWidget(QWidget *parent=nullptr);
+  CommandWidget(ScrollArea *area);
 
   virtual ~CommandWidget();
+
+  ScrollArea *area() const { return area_; }
+  void setArea(ScrollArea *area) { area_ = area; }
 
   const QString &prompt() const { return prompt_; }
   void setPrompt(const QString &s) { prompt_ = s; }
@@ -179,7 +184,7 @@ class CommandWidget : public QFrame {
 
   QSize sizeHint() const override;
 
-  void updateSize(int w, int h);
+  void updateSize();
 
   void paintEvent(QPaintEvent *e) override;
 
@@ -238,14 +243,13 @@ class CommandWidget : public QFrame {
  private:
   using LineList = std::vector<Line *>;
 
+  ScrollArea* area_         { nullptr };
   LineList    lines_;
   QString     prompt_;
   QStringList commands_;
   int         commandNum_   { -1 };
   int         minLines_     { 5 };
   Entry       entry_;
-  int         parentWidth_  { 0 };
-  int         parentHeight_ { 0 };
   int         pressLineNum_ { -1 };
   int         pressCharNum_ { -1 };
   int         moveLineNum_  { -1 };
@@ -259,6 +263,8 @@ class CommandWidget : public QFrame {
   bool        pressed_      { false };
   int         lastInd_      { 0 };
   int         indMargin_    { 0 };
+  int         xo_           { 0 };
+  int         yo_           { 0 };
 #if 0
   /* light */
   QColor      bgColor_      { 255, 255, 255 };
