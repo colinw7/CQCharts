@@ -163,8 +163,14 @@ description()
         IMG("images/bubbleplot.png")),
      LI("Chord : Circlular connectivity chart (needs special column value syntax for "
         "connections) " + IMG("images/chord_plot.png")),
+     LI("Contour : Contour plot" +
+        IMG("images/contour.png")),
+     LI("Correlation : Correlation plot" +
+        IMG("images/correlation.png")),
      LI("Delaunay : Delaunay/Voronoi geometric connectivity chart" +
         IMG("images/delaunay.png")),
+     LI("Dendrogram : Dendrogram plot" +
+        IMG("images/dendogram.png")),
      LI("Distribution : Distribution count of range based column values" +
         IMG("images/distribution.png")),
      LI("ForceDirected : Force directed connectivity chart" +
@@ -181,16 +187,24 @@ description()
         IMG("images/parallelplot.png")),
      LI("Pie : Pie chart" +
         IMG("images/piechart.png")),
+     LI("Pie : Pivot chart" +
+        IMG("images/pivot.png")),
      LI("Radar : Radar (polygon pie chart)" +
         IMG("images/radar.png")),
      LI("Sankey : Sankey plot of connected values" +
         IMG("images/sankey.png")),
      LI("Scatter : Scatter plot of disparate x/y column values" +
         IMG("images/scatterplot.png")),
+     LI("Scatter 3D : Scatter plot of disparate x/y/z column values" +
+        IMG("images/scatter3d.png")),
      LI("Sunburst : Hierarchical pie chart plot" +
         IMG("images/sunburst.png")),
+     LI("Table : Table in a plot" +
+        IMG("images/table.png")),
      LI("TreeMap : Hierarchical tree map" +
         IMG("images/treemap.png")),
+     LI("Word Cloud : Word Cloud plot" +
+        IMG("images/wordcloud.png")),
      LI("XY : x/y monotonic value plot" +
         IMG("images/xychart.png") + IMG("images/goal_scorers.png")) }).
    h3("Adjacency").

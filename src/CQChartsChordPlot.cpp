@@ -224,7 +224,7 @@ addProperties()
   addStyleProp("arc/fill", "arcAlpha", "alpha", "Alpha for arc fill");
 
   // labels
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
   addProp("labels", "labelRadius", "radius", "Radius for segment label (>= 1.0)")->
     setMinValue(1.0);

@@ -442,7 +442,6 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
   objs.push_back(imageObj);
 }
 
-
 void
 CQChartsImagePlot::
 addImageObj(int row, int col, double x, double y, double dx, double dy, const CQChartsImage &image,

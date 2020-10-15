@@ -4,6 +4,8 @@
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAxisRug.h>
+#include <CQChartsFitData.h>
+#include <CQStatData.h>
 
 class CQChartsPointPlot;
 class CQChartsDataLabel;
@@ -24,6 +26,48 @@ class CQChartsPointPlotType : public CQChartsGroupPlotType {
   QString yColumnName() const override { return "y"; }
 
   void addMappingParameters();
+};
+
+//---
+
+/*!
+ * \brief Point Plot Best Fit object
+ * \ingroup Charts
+ */
+class CQChartsPointBestFitObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using Plot = CQChartsPointPlot;
+
+ public:
+  CQChartsPointBestFitObj(const Plot *plot, int groupInd, const QString &name,
+                          const ColorInd &ig, const ColorInd &is, const BBox &rect);
+
+  int groupInd() const { return groupInd_; }
+
+  const QString &name() const { return name_; }
+
+  //---
+
+  QString typeName() const override { return "best_fit"; }
+
+  QString calcId() const override;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
+
+  void draw(PaintDevice *device) const override;
+
+  bool drawMouseOver() const override { return false; }
+
+ private:
+  const Plot* plot_     { nullptr }; //!< scatter plot
+  int         groupInd_ { -1 };      //!< plot group index
+  QString     name_;                 //!< plot set name
 };
 
 //---
@@ -108,10 +152,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
 
   // best fit
-  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
-  Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
-  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
-  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
+  Q_PROPERTY(bool      bestFit          READ isBestFit          WRITE setBestFit         )
+  Q_PROPERTY(bool      bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
+  Q_PROPERTY(int       bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
+  Q_PROPERTY(bool      bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
+  Q_PROPERTY(DrawLayer bestFitLayer     READ bestFitLayer       WRITE setBestFitLayer    )
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit, bestFit)
 
@@ -141,7 +186,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
-  using HullObj = CQChartsPointHullObj;
+  using HullObj    = CQChartsPointHullObj;
+  using BestFitObj = CQChartsPointBestFitObj;
 
  public:
   CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);
@@ -223,6 +269,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
   void setBestFitDeviation(bool b);
 
+  const DrawLayer &bestFitLayer() const { return bestFitData_.layer; }
+  void setBestFitLayer(const DrawLayer &layer);
+
   //---
 
   // convex hull
@@ -261,14 +310,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  void clearFitData ();
   void clearHullData();
 
   //---
 
   void addPointProperties();
 
-  void addBestFitProperties();
-  void addHullProperties(bool hasLayer);
+  void addBestFitProperties(bool hasLayer);
+  void addHullProperties   (bool hasLayer);
+
   void addStatsProperties();
   void addRugProperties();
 
@@ -307,6 +358,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   //---
 
+  virtual BestFitObj *createBestFitObj(int groupInd, const QString &name, const ColorInd &ig,
+                                       const ColorInd &is, const BBox &rect) const;
+
   virtual HullObj *createHullObj(int groupInd, const QString &name, const ColorInd &ig,
                                  const ColorInd &is, const BBox &rect) const;
 
@@ -318,14 +372,23 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
  public:
+  void drawBestFit(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
+                   const ColorInd &is) const;
+
+  void drawBestFitData(PaintDevice *device, const CQChartsFitData *fitData,
+                       const ColorInd &ic) const;
+
   void drawHull(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
                 const ColorInd &is) const;
 
-  void drawBestFit(PaintDevice *device, const CQChartsFitData &fitData,
-                   const ColorInd &ic) const;
+ protected:
+  void initGroupBestFit(CQChartsFitData *fitData, int ind, const QVariant &var, bool isGroup) const;
+
+  void initGroupStats(int ind, const QVariant &var, bool isGroup) const;
 
   //---
 
+ public:
   //! point value data
   struct ValueData {
     Point       p;
@@ -351,6 +414,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   using NameValues      = std::map<QString, ValuesData>;
   using GroupNameValues = std::map<int, NameValues>;
 
+ public:
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
  public slots:
@@ -368,10 +432,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
  protected:
   struct BestFitData {
-    bool visible         { false }; //!< show fit
-    bool showDeviation   { false }; //!< show fit deviation
-    int  order           { 3 };     //!< fit order
-    bool includeOutliers { true };  //!< include outliers
+    bool      visible         { false };                 //!< show fit
+    bool      showDeviation   { false };                 //!< show fit deviation
+    int       order           { 3 };                     //!< fit order
+    bool      includeOutliers { true };                  //!< include outliers
+    DrawLayer layer           { DrawLayer::BACKGROUND }; //!< draw layer
   };
 
   struct HullData {
@@ -379,11 +444,19 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
     DrawLayer layer   { DrawLayer::BACKGROUND }; //!< draw layer
   };
 
+  struct StatData {
+    CQStatData xstat;
+    CQStatData ystat;
+  };
+
  protected:
-  using GroupPoints = std::map<int, Points>;
-  using Hull        = CQChartsGrahamHull;
-  using GroupHull   = std::map<int, Hull *>;
-  using RugP        = std::unique_ptr<CQChartsAxisRug>;
+  using GroupPoints   = std::map<int, Points>;
+  using GroupStatData = std::map<int, StatData>;
+  using FitData       = CQChartsFitData;
+  using GroupFitData  = std::map<int, FitData *>;
+  using Hull          = CQChartsGrahamHull;
+  using GroupHull     = std::map<int, Hull *>;
+  using RugP          = std::unique_ptr<CQChartsAxisRug>;
 
   CQChartsDataLabel* dataLabel_ { nullptr }; //!< data label style
 
@@ -398,7 +471,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // group data
   GroupPoints     groupPoints_;     //!< group fit points
+  GroupStatData   groupStatData_;   //!< group stat data
   GroupNameValues groupNameValues_; //!< group name values (individual points)
+  GroupFitData    groupFitData_;    //!< group fit data
   GroupHull       groupHull_;       //!< group hull
 
   RugP xRug_; //! x rug

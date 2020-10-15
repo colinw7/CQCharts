@@ -14,6 +14,19 @@ CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
  CQChartsTextBoxObj(plot)
 {
+  init();
+}
+
+CQChartsTitle::
+~CQChartsTitle()
+{
+  delete subTitle_;
+}
+
+void
+CQChartsTitle::
+init()
+{
   setObjectName("title");
 
   setTextStr("Title");
@@ -28,15 +41,18 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   //---
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
-
   setFilled (false);
   setStroked(false);
-}
 
-CQChartsTitle::
-~CQChartsTitle()
-{
+  setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+
+  //---
+
+  subTitle_ = new TextBoxObj(plot_);
+
+  subTitle_->setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+  subTitle_->setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
 }
 
 QString
@@ -211,7 +227,18 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(fitPath, this, "fitVertical"  , "vertical"  )->
     setDesc("Fit title vertically");
 
-  CQChartsTextBoxObj::addProperties(model, path, "");
+  addTypeProperties(model, path, "", PropertyType::ALL & ~PropertyType::ANGLE);
+
+  //---
+
+  // subtitle
+  auto subTitlePath = path + "/subtitle";
+
+  model->addProperty(subTitlePath + "/text", subTitle_, "textStr", "string")->
+    setDesc("Subtitle text string");
+
+  subTitle_->addTextDataProperties(model, subTitlePath, "Subtitle",
+                                   PropertyType::VISIBLE | PropertyType::ALIGN);
 }
 
 CQChartsGeom::Point
@@ -246,7 +273,12 @@ CQChartsGeom::Size
 CQChartsTitle::
 calcSize()
 {
-  if (textStr().length()) {
+  textSize_         = Size();
+  subTitleTextSize_ = Size();
+  allTextSize_      = Size();
+  size_             = Size();
+
+  if (isTextVisible() && textStr().length()) {
     // get font
     auto font = view()->plotFont(plot(), textFont());
 
@@ -260,6 +292,27 @@ calcSize()
     // convert to window size
     auto wsize = plot_->pixelToWindowSize(psize);
 
+    textSize_ = Size(wsize);
+  }
+
+  if (subTitle_->isTextVisible() && subTitle_->textStr().length()) {
+    // get font
+    auto font = view()->plotFont(plot(), subTitle_->textFont());
+
+    // get pixel size
+    CQChartsTextOptions textOptions;
+
+    textOptions.html = subTitle_->isTextHtml();
+
+    auto psize = CQChartsDrawUtil::calcTextSize(subTitle_->textStr(), font, textOptions);
+
+    // convert to window size
+    auto wsize = plot_->pixelToWindowSize(psize);
+
+    subTitleTextSize_ = Size(wsize);
+  }
+
+  if (textSize_.isSet() || subTitleTextSize_.isSet()) {
     // add outer margin and inner padding
     double xlm = lengthParentWidth (margin().left  ());
     double xrm = lengthParentWidth (margin().right ());
@@ -271,13 +324,16 @@ calcSize()
     double ytp = lengthParentHeight(padding().top   ());
     double ybp = lengthParentHeight(padding().bottom());
 
-    size_ = Size(wsize.width() + xlp + xrp + xlm + xrm, wsize.height() + ybp + ytp + + ybm + ytm);
-  }
-  else {
-    size_ = Size();
+    auto textWidth  = std::max(textSize_.optWidth(), subTitleTextSize_.optWidth());
+    auto textHeight = textSize_.optHeight() + subTitleTextSize_.optHeight();
+
+    allTextSize_ = Size(textWidth, textHeight);
+
+    size_ = Size(allTextSize_.width () + xlp + xrp + xlm + xrm,
+                 allTextSize_.height() + ybp + ytp + ybm + ytm);
   }
 
-  if (isExpandWidth()) {
+  if (isExpandWidth() && size_.isSet()) {
     auto bbox = plot_->calcGroupedDataRange();
 
     size_.setWidth(bbox.getWidth());
@@ -429,8 +485,9 @@ draw(CQChartsPaintDevice *device)
   if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE) {
     x = position_.x; // bottom
     y = position_.y; // top
-    w = size_.width ();
-    h = size_.height();
+
+    w = allTextSize_.width ();
+    h = allTextSize_.height();
 
     bbox_ = BBox(x, y, x + w, y + h);
   }
@@ -456,53 +513,105 @@ draw(CQChartsPaintDevice *device)
   double ytp = device->lengthWindowHeight(padding().top   ());
   double ybp = device->lengthWindowHeight(padding().bottom());
 
-  BBox ibbox(x     + xlp      , y + ybp      , x + w - xrp      , y + h - ytp      );
-  BBox tbbox(x     + xlp + xlm, y + ybp + ybm, x + w - xrp - xrm, y + h - ytp - ytm);
+  BBox ibbox(x + xlp      , y + ybp      , x + w - xrp      , y + h - ytp      );
+  BBox tbbox(x + xlp + xlm, y + ybp + ybm, x + w - xrp - xrm, y + h - ytp - ytm);
 
   //---
 
+  // draw outer box (if stroked/filled)
   CQChartsBoxObj::draw(device, ibbox);
 
   //---
 
-  // set text pen
-  CQChartsPenBrush penBrush;
+  if (isTextVisible() && textStr().length()) {
+    // set text pen
+    CQChartsPenBrush penBrush;
 
-  auto tc = interpTextColor(ColorInd());
+    auto tc = interpTextColor(ColorInd());
 
-  plot()->setPen(penBrush, CQChartsPenData(true, tc, textAlpha()));
+    plot()->setPen(penBrush, CQChartsPenData(true, tc, textAlpha()));
 
-  device->setPen(penBrush.pen);
+    device->setPen(penBrush.pen);
+
+    //---
+
+    // set text options
+    CQChartsTextOptions textOptions;
+
+    textOptions.angle         = CQChartsAngle();
+    textOptions.align         = textAlign();
+    textOptions.contrast      = isTextContrast();
+    textOptions.contrastAlpha = textContrastAlpha();
+    textOptions.formatted     = true;
+    textOptions.scaled        = false;
+    textOptions.html          = isTextHtml();
+    textOptions.clipLength    = lengthPixelWidth(textClipLength());
+    textOptions.clipElide     = textClipElide();
+    textOptions.clipped       = false;
+
+    textOptions = plot_->adjustTextOptions(textOptions);
+
+    //---
+
+    // set font
+    view()->setPlotPainterFont(plot(), device, textFont());
+
+    //---
+
+    // draw text
+    device->setRenderHints(QPainter::Antialiasing);
+
+    BBox tbbox1(tbbox.getXMin(), tbbox.getYMax() - textSize_.height() - ytp - ytm,
+                tbbox.getXMax(), tbbox.getYMax());
+
+    CQChartsDrawUtil::drawTextInBox(device, tbbox1, textStr(), textOptions);
+  }
 
   //---
 
-  // set text options
-  CQChartsTextOptions textOptions;
+  // TODO: handle rotated text
+  if (subTitle_->isTextVisible() && subTitle_->textStr().length()) {
+    // set text pen
+    CQChartsPenBrush penBrush;
 
-  textOptions.angle         = textAngle();
-  textOptions.align         = textAlign();
-  textOptions.contrast      = isTextContrast();
-  textOptions.contrastAlpha = textContrastAlpha();
-  textOptions.formatted     = true;
-  textOptions.scaled        = false;
-  textOptions.html          = isTextHtml();
-  textOptions.clipLength    = lengthPixelWidth(textClipLength());
-  textOptions.clipElide     = textClipElide();
-  textOptions.clipped       = false;
+    auto tc = subTitle_->interpTextColor(ColorInd());
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+    plot()->setPen(penBrush, CQChartsPenData(true, tc, subTitle_->textAlpha()));
 
-  //---
+    device->setPen(penBrush.pen);
 
-  // set font
-  view()->setPlotPainterFont(plot(), device, textFont());
+    //---
 
-  //---
+    CQChartsTextOptions textOptions;
 
-  // draw text
-  device->setRenderHints(QPainter::Antialiasing);
+    textOptions.angle         = CQChartsAngle();
+    textOptions.align         = subTitle_->textAlign();
+    textOptions.contrast      = subTitle_->isTextContrast();
+    textOptions.contrastAlpha = subTitle_->textContrastAlpha();
+    textOptions.formatted     = true;
+    textOptions.scaled        = false;
+    textOptions.html          = subTitle_->isTextHtml();
+    textOptions.clipLength    = lengthPixelWidth(subTitle_->textClipLength());
+    textOptions.clipElide     = subTitle_->textClipElide();
+    textOptions.clipped       = false;
 
-  CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
+    textOptions = plot_->adjustTextOptions(textOptions);
+
+    //---
+
+    // set font
+    view()->setPlotPainterFont(plot(), device, subTitle_->textFont());
+
+    //---
+
+    // draw text
+    device->setRenderHints(QPainter::Antialiasing);
+
+    BBox tbbox1(tbbox.getXMin(), tbbox.getYMin(),
+                tbbox.getXMax(), tbbox.getYMin() + subTitleTextSize_.height() + ybp + ybm);
+
+    CQChartsDrawUtil::drawTextInBox(device, tbbox1, subTitle_->textStr(), textOptions);
+  }
 
   //---
 

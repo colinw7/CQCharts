@@ -325,7 +325,6 @@ setAdjustText(bool b)
   CQChartsUtil::testAndSet(adjustText_, b, [&]() { updateRangeAndObjs(); } );
 }
 
-
 //---
 
 void

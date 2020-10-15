@@ -4,10 +4,8 @@
 #include <CQChartsPointPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsBoxWhisker.h>
-#include <CQChartsFitData.h>
 #include <CQChartsGridCell.h>
 #include <CQChartsImage.h>
-#include <CQStatData.h>
 #include <CInterval.h>
 #include <CHexMap.h>
 
@@ -613,6 +611,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void addPointObjects  (PlotObjs &objs) const;
   void addGridObjects   (PlotObjs &objs) const;
   void addHexObjects    (PlotObjs &objs) const;
+  void addBestFitObjects(PlotObjs &objs) const;
   void addHullObjects   (PlotObjs &objs) const;
   void addDensityObjects(PlotObjs &objs) const;
 
@@ -701,14 +700,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  void initGroupBestFit(int ind, const QVariant &var, bool isGroup) const;
-
-  void drawBestFit(PaintDevice *device) const;
-
-  //---
-
-  void initGroupStats(int ind, const QVariant &var, bool isGroup) const;
-
   void drawStatsLines(PaintDevice *device) const;
 
   //---
@@ -779,14 +770,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     double margin    { 16.0 };  //!< symbol map key margin in pixels
   };
 
-  struct StatData {
-    CQStatData xstat;
-    CQStatData ystat;
-  };
-
   using GroupInds         = std::set<int>;
-  using GroupFitData      = std::map<int, CQChartsFitData>;
-  using GroupStatData     = std::map<int, StatData>;
   using Density           = CQChartsBivariateDensity;
   using NamedDensity      = std::map<QString, Density *>;
   using GroupNamedDensity = std::map<int, NamedDensity>;
@@ -840,15 +824,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   GroupInds         groupInds_;         //!< group indices
   GroupNameGridData groupNameGridData_; //!< grid cell values
   GroupNameHexData  groupNameHexData_;  //!< hex cell values
-  GroupFitData      groupFitData_;      //!< group fit data
-  GroupStatData     groupStatData_;     //!< group stat data
   GroupNamedDensity groupNamedDensity_; //!< group named density
 
   // symbol map
   SymbolMapKeyData symbolMapKeyData_; //!< symbol map key data
 
   // axis side data
-  using AxisSideSize = std::map<CQChartsAxisSide::Type,double>;
+  using AxisSideSize = std::map<CQChartsAxisSide::Type, double>;
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right

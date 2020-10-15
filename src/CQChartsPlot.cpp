@@ -928,7 +928,6 @@ writeScript(ScriptPaintDevice *device) const
   if (bgAxes) { os << "\n"; os << "  this.drawBgAxis();\n"; }
   if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
 
-
   if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
     os << "\n"; os << "  this.drawBgAnnotations();\n";
   }
@@ -937,7 +936,6 @@ writeScript(ScriptPaintDevice *device) const
 
   // middle parts (objects)
   os << "\n"; os << "  this.drawObjs();\n";
-
 
   //---
 

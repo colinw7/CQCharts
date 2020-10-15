@@ -218,7 +218,7 @@ calcRange() const
   double xmax = visitor.maxXValue();
   double ymax = visitor.maxYValue();
 
-  Range dataRange(xmin, ymin, xmax, ymax);;
+  Range dataRange(xmin, ymin, xmax, ymax);
 
   //---
 

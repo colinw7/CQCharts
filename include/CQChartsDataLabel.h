@@ -157,7 +157,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   bool            drawClipped_ { true };                 //!< draw clipped text
   bool            moveClipped_ { true };                 //!< move clipped
   bool            sendSignal_  { false };                //!< send signal on data change
-//mutable BBox    bbox_;                                 //!< last drawn bbox
 };
 
 #endif

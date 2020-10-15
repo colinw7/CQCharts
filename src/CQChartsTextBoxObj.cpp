@@ -39,6 +39,13 @@ void
 CQChartsTextBoxObj::
 addProperties(PropertyView *model, const QString &path, const QString &desc)
 {
+  addTypeProperties(model, path, desc);
+}
+
+void
+CQChartsTextBoxObj::
+addTypeProperties(PropertyView *model, const QString &path, const QString &desc, uint addTypes)
+{
   addBoxProperties(model, path, desc);
 
   auto textPath = path + "/text";
@@ -47,13 +54,13 @@ addProperties(PropertyView *model, const QString &path, const QString &desc)
 
   model->addProperty(textPath, this, "textStr", "string")->setDesc(desc1 + " string");
 
-  addTextDataProperties(model, textPath, desc);
+  addTextDataProperties(model, textPath, desc, addTypes);
 }
 
 void
 CQChartsTextBoxObj::
 addTextDataProperties(PropertyView *model, const QString &path, const QString &desc,
-                      bool addVisible)
+                      uint addTypes)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
@@ -71,16 +78,21 @@ addTextDataProperties(PropertyView *model, const QString &path, const QString &d
 
   auto desc1 = (desc.length() ? desc + " text" : "Text");
 
-  if (addVisible)
+  if (addTypes & int(PropertyType::VISIBLE))
     addProp(path, "textVisible", "visible", desc1 + " visible");
 
-  addStyleProp(path, "textColor"   , "color"   , desc1 + " color");
-  addStyleProp(path, "textAlpha"   , "alpha"   , desc1 + " alpha");
-  addStyleProp(path, "textFont"    , "font"    , desc1 + " font");
-  addStyleProp(path, "textAngle"   , "angle"   , desc1 + " angle");
+  addStyleProp(path, "textColor", "color", desc1 + " color");
+  addStyleProp(path, "textAlpha", "alpha", desc1 + " alpha");
+  addStyleProp(path, "textFont" , "font" , desc1 + " font");
+
+  if (addTypes & int(PropertyType::ANGLE))
+    addStyleProp(path, "textAngle", "angle", desc1 + " angle");
+
   addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
   addStyleProp(path, "textHtml"    , "html"    , desc1 + " is HTML");
-  addStyleProp(path, "textAlign"   , "align"   , desc1 + " alignment");
+
+  if (addTypes & int(PropertyType::ALIGN))
+    addStyleProp(path, "textAlign", "align", desc1 + " alignment");
 }
 
 void

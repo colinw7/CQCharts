@@ -377,12 +377,6 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   //---
 
-  void initGroupBestFit(int groupInd) const;
-
-  void drawBestFit(PaintDevice *device) const;
-
-  //---
-
   void initGroupStats(int groupInd) const;
 
   void drawStatsLines(PaintDevice *device) const;

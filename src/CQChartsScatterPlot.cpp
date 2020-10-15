@@ -528,7 +528,7 @@ addProperties()
   //---
 
   // best fit line and deviation fill
-  addBestFitProperties();
+  addBestFitProperties(/*hasLayer*/true);
 
   // convex hull shape
   addHullProperties(/*hasLayer*/true);
@@ -1028,11 +1028,11 @@ createObjs(PlotObjs &objs) const
     addNameValues();
 
   th->groupPoints_  .clear();
-  th->groupFitData_ .clear();
   th->groupStatData_.clear();
 
   //---
 
+  th->clearFitData ();
   th->clearHullData();
 
   //---
@@ -1068,6 +1068,9 @@ createObjs(PlotObjs &objs) const
 
   if (isHexCells())
     addHexObjects(objs);
+
+  if (isBestFit())
+    addBestFitObjects(objs);
 
   if (isHull())
     addHullObjects(objs);
@@ -1520,6 +1523,46 @@ addHexObjects(PlotObjs &objs) const
 
 void
 CQChartsScatterPlot::
+addBestFitObjects(PlotObjs &objs) const
+{
+  auto bbox = calcDataRange(/*adjust*/false);
+
+  // one best fit per group (multiple groups) or set (name values)
+  int ng = groupInds_.size();
+
+  if (ng > 1) {
+    int ig = 0;
+
+    for (const auto &groupInd : groupInds_) {
+      auto *bestFitObj = createBestFitObj(groupInd, "", ColorInd(ig, ng), ColorInd(), bbox);
+
+      bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+
+      objs.push_back(bestFitObj);
+
+      ++ig;
+    }
+  }
+  else {
+    const auto &nameValues = (*groupNameValues_.begin()).second;
+
+    int is = 0;
+    int ns = nameValues.size();
+
+    for (const auto &nameValue : nameValues) {
+      auto *bestFitObj = createBestFitObj(-1, nameValue.first, ColorInd(), ColorInd(is, ns), bbox);
+
+      bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+
+      objs.push_back(bestFitObj);
+
+      ++is;
+    }
+  }
+}
+
+void
+CQChartsScatterPlot::
 addHullObjects(PlotObjs &objs) const
 {
   auto bbox = calcDataRange(/*adjust*/false);
@@ -1536,6 +1579,8 @@ addHullObjects(PlotObjs &objs) const
       hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
 
       objs.push_back(hullObj);
+
+      ++ig;
     }
   }
   else {
@@ -1550,6 +1595,8 @@ addHullObjects(PlotObjs &objs) const
       hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
 
       objs.push_back(hullObj);
+
+      ++is;
     }
   }
 }
@@ -2247,10 +2294,7 @@ bool
 CQChartsScatterPlot::
 hasBackground() const
 {
-  if (isHull      ()) return true;
-  if (isBestFit   ()) return true;
   if (isStatsLines()) return true;
-  if (isDensityMap()) return true;
 
   if (isXRug()) return true;
   if (isYRug()) return true;
@@ -2270,8 +2314,7 @@ execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 
-  // draw best fit and stats lines on background
-  if (isBestFit   ()) drawBestFit   (device);
+  // draw stats lines on background
   if (isStatsLines()) drawStatsLines(device);
 
   //---
@@ -2370,133 +2413,6 @@ drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
 }
 
 //---
-
-void
-CQChartsScatterPlot::
-initGroupBestFit(int ind, const QVariant &var, bool isGroup) const
-{
-  // init best fit data
-  auto *th = const_cast<CQChartsScatterPlot *>(this);
-
-  auto &fitData = th->groupFitData_[ind];
-
-  if (! fitData.isFitted()) {
-    auto points = indPoints(var, isGroup);
-
-    if (! isBestFitOutliers()) {
-      initGroupStats(ind, var, isGroup);
-
-      //---
-
-      auto ps = groupStatData_.find(ind);
-      assert(ps != groupStatData_.end());
-
-      const auto &statData = (*ps).second;
-
-      //---
-
-      Polygon poly;
-
-      for (const auto &p : points) {
-        if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
-          poly.addPoint(p);
-      }
-
-      //---
-
-      fitData.calc(poly, bestFitOrder());
-    }
-    else {
-      fitData.calc(points, bestFitOrder());
-    }
-  }
-}
-
-void
-CQChartsScatterPlot::
-initGroupStats(int ind, const QVariant &var, bool isGroup) const
-{
-  // init stats data
-  auto *th = const_cast<CQChartsScatterPlot *>(this);
-
-  auto &statData = th->groupStatData_[ind];
-
-  if (! statData.xstat.set || ! statData.ystat.set) {
-    auto points = indPoints(var, isGroup);
-
-    std::vector<double> x, y;
-
-    for (std::size_t i = 0; i < points.size(); ++i) {
-      x.push_back(points[i].x);
-      y.push_back(points[i].y);
-    }
-
-    std::sort(x.begin(), x.end());
-    std::sort(y.begin(), y.end());
-
-    statData.xstat.calcStatValues(x);
-    statData.ystat.calcStatValues(y);
-  }
-}
-
-void
-CQChartsScatterPlot::
-drawBestFit(PaintDevice *device) const
-{
-  int nf = 0;
-
-  int ng = groupInds_.size();
-
-  if (ng > 1) {
-    // init fit data
-    int ig = 0;
-
-    for (const auto &groupInd : groupInds_) {
-      if (isInterrupt())
-        return;
-
-      initGroupBestFit(ig++, QVariant(groupInd), /*isGroup*/true);
-    }
-
-    nf = ng;
-  }
-  else {
-    const auto &nameValues = (*groupNameValues_.begin()).second;
-
-    int ns = nameValues.size();
-
-    //---
-
-    // init fit data
-    int is = 0;
-
-    for (const auto &nameValue : nameValues) {
-      if (isInterrupt())
-        return;
-
-      initGroupBestFit(is++, nameValue.first, /*isGroup*/false);
-    }
-
-    nf = ns;
-  }
-
-  // draw fit datas
-  for (int i = 0; i < nf; ++i) {
-    if (isInterrupt())
-      return;
-
-    auto pf = groupFitData_.find(i);
-    assert(pf != groupFitData_.end());
-
-    const auto &fitData = (*pf).second;
-
-    //---
-
-    ColorInd ic(i, nf);
-
-    CQChartsPointPlot::drawBestFit(device, fitData, ic);
-  }
-}
 
 void
 CQChartsScatterPlot::

@@ -265,24 +265,39 @@ class Size {
   Size() = default;
 
   Size(double w, double h) :
-   size_(w, h) {
+   size_(w, h), set_(true) {
   }
 
   explicit Size(const QSizeF &s) :
-   size_(s) {
+   size_(s), set_(true) {
   }
 
-  const QSizeF &qsize() const { return size_; }
+  bool isSet() const { return set_; }
 
-  double width () const { return size_.width (); }
-  void setWidth(double w) { size_.setWidth(w); }
+  const QSizeF &qsize() const { assert(set_); return size_; }
 
-  double height() const { return size_.height(); }
-  void setHeight(double h) { size_.setHeight(h); }
+  double width() const { assert(set_); return size_.width(); }
+  void setWidth(double w) { size_.setWidth(w); set_ = true; }
+
+  double height() const { assert(set_); return size_.height(); }
+  void setHeight(double h) { size_.setHeight(h); set_ = true; }
+
+  double optWidth(double defWidth=0.0) const {
+    if (! set_) return defWidth;
+    return size_.width();
+  }
+
+  double optHeight(double defHeight=0.0) const {
+    if (! set_) return defHeight;
+    return size_.height();
+  }
 
   //---
 
   friend bool operator==(const Size &lhs, const Size &rhs) {
+    if (! lhs.set_ && ! rhs.set_) return true;
+    if (! lhs.set_ || ! rhs.set_) return false;
+
     return (lhs.size_.width () == rhs.size_.width () &&
             lhs.size_.height() == rhs.size_.height());
   }
@@ -293,6 +308,7 @@ class Size {
 
  private:
   QSizeF size_;
+  bool   set_ { false };
 };
 
 }

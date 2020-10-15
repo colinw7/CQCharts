@@ -33,6 +33,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
  public:
   using TitleLocation = CQChartsTitleLocation;
+  using TextBoxObj    = CQChartsTextBoxObj;
   using Position      = CQChartsPosition;
   using Rect          = CQChartsRect;
 
@@ -44,7 +45,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setVisible(bool b) override { CQChartsTextBoxObj::setVisible(b); redraw(); }
+  void setVisible(bool b) override { TextBoxObj::setVisible(b); redraw(); }
 
   void setSelected(bool b) override;
 
@@ -91,8 +92,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-//const BBox &bbox() const { return bbox_; }
-//void setBBox(const BBox &b) { bbox_ = b; }
+  TextBoxObj *subTitleTextBox() const { return subTitle_; }
 
   //---
 
@@ -136,6 +136,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void drawEditHandles(QPainter *painter) const override;
 
  private:
+  void init();
+
   void updateLocation();
 
   void textBoxDataInvalidate() override;
@@ -152,9 +154,12 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   bool          insidePlot_        { false };   //!< is placed inside plot
   bool          expandWidth_       { false };   //!< is width expanded to plot
   Point         position_          { 0, 0 };    //!< position
-  Size          size_;                          //!< size
+  TextBoxObj*   subTitle_          { nullptr }; //!< subtitle text box
+  Size          textSize_;                      //!< main size (without padding, border)
+  Size          subTitleTextSize_;              //!< subtitle size (without padding, border)
+  Size          allTextSize_;                   //!< combined size (without padding, border)
+  Size          size_;                          //!< size (width padding, border)
   FitData       fitData_;                       //!< fit data
-//mutable BBox  bbox_;                          //!< bbox
 };
 
 #endif

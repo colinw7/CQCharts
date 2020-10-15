@@ -567,7 +567,7 @@ drawBuckets(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
   bucketer.setRMin(xmin());
   bucketer.setRMax(xmax());
 
-  using BucketCount = std::map<int,int>;
+  using BucketCount = std::map<int, int>;
 
   BucketCount bucketCount;
 

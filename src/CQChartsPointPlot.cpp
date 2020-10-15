@@ -121,12 +121,23 @@ void
 CQChartsPointPlot::
 term()
 {
+  clearFitData ();
   clearHullData();
 
   delete dataLabel_;
 }
 
 //---
+
+void
+CQChartsPointPlot::
+clearFitData()
+{
+  for (const auto &gfit : groupFitData_)
+    delete gfit.second;
+
+  groupFitData_.clear();
+}
 
 void
 CQChartsPointPlot::
@@ -174,7 +185,7 @@ addPointProperties()
 
 void
 CQChartsPointPlot::
-addBestFitProperties()
+addBestFitProperties(bool hasLayer)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
@@ -186,6 +197,9 @@ addBestFitProperties()
   addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
   addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
   addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
+
+  if (hasLayer)
+    addProp("bestFit", "bestFitLayer", "layer", "Best fit draw layer");
 
   addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
   addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
@@ -204,7 +218,7 @@ addHullProperties(bool hasLayer)
   addProp("hull", "hull", "visible", "Show convex hull overlay");
 
   if (hasLayer)
-    addProp("hull", "hullLayer", "layer"  , "Convex hull draw layer");
+    addProp("hull", "hullLayer", "layer", "Convex hull draw layer");
 
   addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
   addLineProperties("hull/stroke", "hullStroke", "Convex hull");
@@ -546,7 +560,7 @@ void
 CQChartsPointPlot::
 setBestFit(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { resetBestFit(); drawObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { resetBestFit(); updateObjs(); } );
 }
 
 void
@@ -570,17 +584,114 @@ setBestFitOrder(int o)
   CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { resetBestFit(); drawObjs(); } );
 }
 
+void
+CQChartsPointPlot::
+setBestFitLayer(const DrawLayer &l)
+{
+  CQChartsUtil::testAndSet(bestFitData_.layer, l, [&]() {
+    for (const auto &plotObj : plotObjs_) {
+      auto *bestFitObj = dynamic_cast<CQChartsPointBestFitObj *>(plotObj);
+
+      if (bestFitObj)
+        bestFitObj->setDrawLayer((CQChartsPlotObj::DrawLayer) bestFitLayer());
+    }
+
+    drawObjs();
+  } );
+}
+
 //---
 
 void
 CQChartsPointPlot::
-drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const ColorInd &ic) const
+setHull(bool b)
+{
+  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsPointPlot::
+setHullLayer(const DrawLayer &l)
+{
+  CQChartsUtil::testAndSet(hullData_.layer, l, [&]() {
+    for (const auto &plotObj : plotObjs_) {
+      auto *hullObj = dynamic_cast<CQChartsPointHullObj *>(plotObj);
+
+      if (hullObj)
+        hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
+    }
+
+    drawObjs();
+  } );
+}
+
+//---
+
+CQChartsPointBestFitObj *
+CQChartsPointPlot::
+createBestFitObj(int groupInd, const QString &name, const ColorInd &ig, const ColorInd &is,
+                 const BBox &rect) const
+{
+  return new CQChartsPointBestFitObj(this, groupInd, name, ig, is, rect);
+}
+
+void
+CQChartsPointPlot::
+drawBestFit(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
+            const ColorInd &is) const
+{
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  // get best fit for group or set id
+  auto getBestFit = [&](int ind, bool &created) {
+    created = false;
+
+    auto ph = th->groupFitData_.find(ind);
+
+    if (ph == th->groupFitData_.end()) {
+      ph = th->groupFitData_.insert(ph, GroupFitData::value_type(ind, new CQChartsFitData));
+
+      created = true;
+    }
+
+    return (*ph).second;
+  };
+
+  //---
+
+  if (name == "") {
+    // get fit data for group (add if needed)
+    bool created;
+
+    auto *fitData = getBestFit(groupInd, created);
+
+    if (created)
+      initGroupBestFit(fitData, ig.i, QVariant(groupInd), /*isGroup*/true);
+
+    drawBestFitData(device, fitData, ig);
+  }
+  else {
+    // get fit data for set (add if needed)
+    bool created;
+
+    auto *fitData = getBestFit(is.i, created);
+
+    if (created)
+      initGroupBestFit(fitData, is.i, QVariant(name), /*isGroup*/false);
+
+    drawBestFitData(device, fitData, is);
+  }
+}
+
+void
+CQChartsPointPlot::
+drawBestFitData(PaintDevice *device, const FitData *fitData, const ColorInd &ic) const
 {
   // calc fit shape at each pixel
   Polygon bpoly, poly, tpoly;
 
-  auto pl = windowToPixel(Point(fitData.xmin(), 0));
-  auto pr = windowToPixel(Point(fitData.xmax(), 0));
+  auto pl = windowToPixel(Point(fitData->xmin(), 0));
+  auto pr = windowToPixel(Point(fitData->xmax(), 0));
 
   double dx = std::max((pr.x - pl.x)/100, 1.0);
 
@@ -590,7 +701,7 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
 
     auto p1 = pixelToWindow(Point(px, 0.0));
 
-    double y2 = fitData.interp(p1.x);
+    double y2 = fitData->interp(p1.x);
 
     auto p2 = Point(p1.x, y2);
 
@@ -598,11 +709,11 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
 
     // deviation curve above/below
     if (isBestFitDeviation()) {
-      p2 = Point(p1.x, y2 - fitData.deviation());
+      p2 = Point(p1.x, y2 - fitData->deviation());
 
       bpoly.addPoint(p2);
 
-      p2 = Point(p1.x, y2 + fitData.deviation());
+      p2 = Point(p1.x, y2 + fitData->deviation());
 
       tpoly.addPoint(p2);
     }
@@ -660,6 +771,70 @@ drawBestFit(CQChartsPaintDevice *device, const CQChartsFitData &fitData, const C
     auto path = CQChartsDrawUtil::polygonToPath(poly, /*closed*/false);
 
     device->strokePath(path, penBrush.pen);
+  }
+}
+
+void
+CQChartsPointPlot::
+initGroupBestFit(FitData *fitData, int ind, const QVariant &var, bool isGroup) const
+{
+  // init best fit data
+  if (! fitData->isFitted()) {
+    auto points = indPoints(var, isGroup);
+
+    if (! isBestFitOutliers()) {
+      initGroupStats(ind, var, isGroup);
+
+      //---
+
+      auto ps = groupStatData_.find(ind);
+      assert(ps != groupStatData_.end());
+
+      const auto &statData = (*ps).second;
+
+      //---
+
+      Polygon poly;
+
+      for (const auto &p : points) {
+        if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
+          poly.addPoint(p);
+      }
+
+      //---
+
+      fitData->calc(poly, bestFitOrder());
+    }
+    else {
+      fitData->calc(points, bestFitOrder());
+    }
+  }
+}
+
+void
+CQChartsPointPlot::
+initGroupStats(int ind, const QVariant &var, bool isGroup) const
+{
+  // init stats data
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  auto &statData = th->groupStatData_[ind];
+
+  if (! statData.xstat.set || ! statData.ystat.set) {
+    auto points = indPoints(var, isGroup);
+
+    std::vector<double> x, y;
+
+    for (std::size_t i = 0; i < points.size(); ++i) {
+      x.push_back(points[i].x);
+      y.push_back(points[i].y);
+    }
+
+    std::sort(x.begin(), x.end());
+    std::sort(y.begin(), y.end());
+
+    statData.xstat.calcStatValues(x);
+    statData.ystat.calcStatValues(y);
   }
 }
 
@@ -774,31 +949,6 @@ indPoints(const QVariant &var, int isGroup) const
   }
 
   return points;
-}
-
-//---
-
-void
-CQChartsPointPlot::
-setHull(bool b)
-{
-  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { drawObjs(); } );
-}
-
-void
-CQChartsPointPlot::
-setHullLayer(const DrawLayer &l)
-{
-  CQChartsUtil::testAndSet(hullData_.layer, l, [&]() {
-    for (const auto &plotObj : plotObjs_) {
-      auto *hullObj = dynamic_cast<CQChartsPointHullObj *>(plotObj);
-
-      if (hullObj)
-        hullObj->setDrawLayer((CQChartsPlotObj::DrawLayer) hullLayer());
-    }
-
-    drawObjs();
-  } );
 }
 
 //---
@@ -940,6 +1090,38 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
   dataLabel_->write(os, plotVarName);
+}
+
+//------
+
+CQChartsPointBestFitObj::
+CQChartsPointBestFitObj(const CQChartsPointPlot *plot, int groupInd, const QString &name,
+                        const ColorInd &ig, const ColorInd &is, const BBox &rect) :
+ CQChartsPlotObj(const_cast<CQChartsPointPlot *>(plot), rect, is,
+                 ig, ColorInd()), plot_(plot), groupInd_(groupInd), name_(name)
+{
+  setDetailHint(DetailHint::MAJOR);
+}
+
+QString
+CQChartsPointBestFitObj::
+calcId() const
+{
+  return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(is().i);
+}
+
+void
+CQChartsPointBestFitObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  CQChartsPlotObj::addProperties(model, path);
+}
+
+void
+CQChartsPointBestFitObj::
+draw(PaintDevice *device) const
+{
+  plot_->drawBestFit(device, groupInd_, name_, ig_, is_);
 }
 
 //------

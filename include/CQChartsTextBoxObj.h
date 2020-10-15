@@ -9,6 +9,8 @@
 /*!
  * \brief Charts Text Box Object
  * \ingroup Charts
+ *
+ * Extends CQChartsBoxObj with text properties
  */
 class CQChartsTextBoxObj : public CQChartsBoxObj,
  public CQChartsObjTextData<CQChartsTextBoxObj> {
@@ -20,9 +22,19 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
-   using View         = CQChartsView;
-   using Plot         = CQChartsPlot;
-   using PropertyView = CQPropertyViewModel;
+  enum PropertyType {
+    VISIBLE = (1<<0),
+    ANGLE   = (1<<1),
+    ALIGN   = (1<<2),
+
+    NONE        = 0,
+    NOT_VISIBLE = ANGLE | ALIGN,
+    ALL         = VISIBLE | ANGLE | ALIGN
+  };
+
+  using View         = CQChartsView;
+  using Plot         = CQChartsPlot;
+  using PropertyView = CQPropertyViewModel;
 
  public:
   CQChartsTextBoxObj(View *view);
@@ -48,11 +60,13 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void addProperties(PropertyView *model, const QString &path,
-                     const QString &desc) override;
+  void addProperties(PropertyView *model, const QString &path, const QString &desc) override;
+
+  void addTypeProperties(PropertyView *model, const QString &path,
+                         const QString &desc, uint addTypes=PropertyType::ALL);
 
   void addTextDataProperties(PropertyView *model, const QString &path,
-                             const QString &desc, bool addVisible=false);
+                             const QString &desc, uint addTypes=PropertyType::ALL);
 
   //---
 

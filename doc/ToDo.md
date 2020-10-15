@@ -3,10 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + command completion widget when multiple matches
- + command value completion
- + add completion support for args (and values)
- + key outside plot overlaps title
+ + rolling average for xy plot
+ + more objects in scatter plot (point plot) overlays
+   + use objects ?? mouse over tip ....
+ + Completion
+   + more command value completion (all ?)
+   + add completion support for all args (and values)
  + barchart column header names in tip
  + sankey placement
    + don't center single item at src/dest when align src/dest

@@ -530,7 +530,7 @@ addProperties()
   //---
 
   // best fit line and deviation fill
-  addBestFitProperties();
+  addBestFitProperties(/*hasLayer*/false);
 
   // convex hull shape
   addHullProperties(/*hasLayer*/false);
@@ -3960,7 +3960,7 @@ draw(CQChartsPaintDevice *device) const
 
     auto ic = (ig_.n > 1 ? ig_ : is_);
 
-    plot()->drawBestFit(device, bestFit_, ic);
+    plot()->drawBestFitData(device, &bestFit_, ic);
   }
 
   //---

@@ -1043,7 +1043,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   double symbolHeight_ { 1.0 }; //!< current symbol height
 
   // axis side data
-  using AxisSideSize = std::map<CQChartsAxisSide::Type,double>;
+  using AxisSideSize = std::map<CQChartsAxisSide::Type, double>;
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right

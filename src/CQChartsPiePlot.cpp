@@ -325,7 +325,8 @@ addProperties()
   addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at")->setMinValue(0.0);
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
-  textBox_->addTextDataProperties(propertyModel(), "labels/text", "Labels", /*addVisible*/false);
+  textBox_->addTextDataProperties(propertyModel(), "labels/text", "Labels",
+                                  CQChartsTextBoxObj::PropertyType::NOT_VISIBLE);
 
   textBox_->addBoxProperties(propertyModel(), "labels/box", "Labels");
 

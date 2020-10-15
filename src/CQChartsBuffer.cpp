@@ -109,7 +109,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
     ipainter()->begin(glDevice_);
 
-    ipainter()->fillRect(QRect(QPoint(0, 0), size_), QColor(0,0,0,0));
+    ipainter()->fillRect(QRect(QPoint(0, 0), size_), QColor(0, 0, 0, 0));
   }
 #endif
   else if (bufferType() == BufferType::IMAGE) {
