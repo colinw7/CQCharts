@@ -175,14 +175,14 @@ term()
 
 void
 CQChartsScatterPlot3D::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot3D::
-setLabelColumn(const CQChartsColumn &c)
+setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -191,21 +191,21 @@ setLabelColumn(const CQChartsColumn &c)
 
 void
 CQChartsScatterPlot3D::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot3D::
-setYColumn(const CQChartsColumn &c)
+setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot3D::
-setZColumn(const CQChartsColumn &c)
+setZColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(zColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -221,7 +221,7 @@ symbolTypeColumn() const
 
 void
 CQChartsScatterPlot3D::
-setSymbolTypeColumn(const CQChartsColumn &c)
+setSymbolTypeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
 }
@@ -235,7 +235,7 @@ symbolSizeColumn() const
 
 void
 CQChartsScatterPlot3D::
-setSymbolSizeColumn(const CQChartsColumn &c)
+setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -249,7 +249,7 @@ fontSizeColumn() const
 
 void
 CQChartsScatterPlot3D::
-setFontSizeColumn(const CQChartsColumn &c)
+setFontSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -393,7 +393,7 @@ calcRange() const
 
   //---
 
-  initGroupData(CQChartsColumns(), CQChartsColumn());
+  initGroupData(Columns(), Column());
 
   //---
 
@@ -502,7 +502,7 @@ calcRange() const
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
 
-    CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
+    CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
         auto *modelData = plot_->getModelData();
 
@@ -1004,7 +1004,7 @@ addNameValues() const
       return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
 
-    CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
+    CQChartsModelColumnDetails *columnDetails(const Column &column) {
       if (! details_) {
         auto *modelData = plot_->getModelData();
 
@@ -1040,7 +1040,7 @@ addNameValue(int groupInd, const QString &name, const Point3D &p, int row,
 
 void
 CQChartsScatterPlot3D::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   if (isOverlay() && ! isFirstPlot())
     return;
@@ -1208,7 +1208,7 @@ hasBackground() const
 
 void
 CQChartsScatterPlot3D::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   CQChartsPlot::execDrawBackground(device);
 }
@@ -1225,13 +1225,13 @@ hasForeground() const
 
 void
 CQChartsScatterPlot3D::
-execDrawForeground(CQChartsPaintDevice *) const
+execDrawForeground(PaintDevice *) const
 {
 }
 
 void
 CQChartsScatterPlot3D::
-preDrawObjs(CQChartsPaintDevice *) const
+preDrawObjs(PaintDevice *) const
 {
 }
 
@@ -1404,7 +1404,7 @@ addBarPolygons(const Point3D &p, const ColorInd &ig)
 
 void
 CQChartsScatterPlot3D::
-postDrawObjs(CQChartsPaintDevice *device) const
+postDrawObjs(PaintDevice *device) const
 {
   drawPointObjs(device);
 }
@@ -1660,7 +1660,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsScatterPoint3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   if (! scatterPlot()->isDrawSymbols())
     return;

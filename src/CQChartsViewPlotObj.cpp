@@ -7,13 +7,13 @@
 #include <CQChartsEditHandles.h>
 
 CQChartsViewPlotObj::
-CQChartsViewPlotObj(CQChartsView *view) :
+CQChartsViewPlotObj(View *view) :
  CQChartsObj(view->charts()), view_(view)
 {
 }
 
 CQChartsViewPlotObj::
-CQChartsViewPlotObj(CQChartsPlot *plot) :
+CQChartsViewPlotObj(Plot *plot) :
  CQChartsObj(plot->charts()), plot_(plot)
 {
 }
@@ -50,9 +50,9 @@ editHandles() const
     auto *th = const_cast<CQChartsViewPlotObj *>(this);
 
     if      (plot())
-      th->editHandles_ = new CQChartsEditHandles(plot(), CQChartsEditHandles::Mode::MOVE);
+      th->editHandles_ = new EditHandles(plot(), EditHandles::Mode::MOVE);
     else if (view())
-      th->editHandles_ = new CQChartsEditHandles(view(), CQChartsEditHandles::Mode::MOVE);
+      th->editHandles_ = new EditHandles(view(), EditHandles::Mode::MOVE);
   }
 
   return editHandles_;
@@ -62,7 +62,7 @@ void
 CQChartsViewPlotObj::
 drawEditHandles(QPainter *painter) const
 {
-  assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+  assert(view()->mode() == View::Mode::EDIT && isSelected());
 
   auto *th = const_cast<CQChartsViewPlotObj *>(this);
 
@@ -80,8 +80,7 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsViewPlotObj::
-setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
-            const CQChartsBrushData &brushData) const
+setPenBrush(PenBrush &penBrush, const PenData &penData, const BrushData &brushData) const
 {
   if      (plot())
     plot()->setPenBrush(penBrush, penData, brushData);
@@ -102,26 +101,26 @@ setPen(PenBrush &penBrush, const PenData &penData) const
 #if 0
 void
 CQChartsViewPlotObj::
-setPenBrush(CQChartsPenBrush &penBrush,
+setPenBrush(PenBrush &penBrush,
             bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
-            const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+            const Length &strokeWidth, const LineDash &strokeDash,
             bool filled, const QColor &fillColor, const Alpha &fillAlpha,
-            const CQChartsFillPattern &pattern) const
+            const FillPattern &pattern) const
 {
   if      (plot())
     plot()->setPenBrush(penBrush,
-      CQChartsPenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
-      CQChartsBrushData(filled, fillColor, fillAlpha, pattern));
+      PenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
+      BrushData(filled, fillColor, fillAlpha, pattern));
   else if (view())
     view()->setPenBrush(penBrush,
-      CQChartsPenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
-      CQChartsBrushData(filled, fillColor, fillAlpha, pattern));
+      PenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
+      BrushData(filled, fillColor, fillAlpha, pattern));
 }
 
 void
 CQChartsViewPlotObj::
 setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
-       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
+       const Length &strokeWidth, const LineDash &strokeDash) const
 {
   if      (plot())
     plot()->setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
@@ -132,7 +131,7 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &strokeAl
 void
 CQChartsViewPlotObj::
 setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &fillAlpha,
-         const CQChartsFillPattern &pattern) const
+         const FillPattern &pattern) const
 {
   if      (plot())
     plot()->setBrush(brush, filled, fillColor, fillAlpha, pattern);
@@ -143,7 +142,7 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &fillA
 
 void
 CQChartsViewPlotObj::
-updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType) const
+updatePenBrushState(PenBrush &penBrush, DrawType drawType) const
 {
   if      (plot())
     plot()->updateObjPenBrushState(this, penBrush, drawType);
@@ -155,7 +154,7 @@ updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType) const
 
 QFont
 CQChartsViewPlotObj::
-calcFont(const CQChartsFont &font) const
+calcFont(const Font &font) const
 {
   QFont font1;
 
@@ -169,7 +168,7 @@ calcFont(const CQChartsFont &font) const
 
 void
 CQChartsViewPlotObj::
-setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
+setPainterFont(PaintDevice *device, const Font &font) const
 {
   if      (plot())
     view()->setPlotPainterFont(plot(), device, font);
@@ -180,7 +179,7 @@ setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
 #if 0
 void
 CQChartsViewPlotObj::
-setPainterFont(QPainter *painter, const CQChartsFont &font) const
+setPainterFont(QPainter *painter, const Font &font) const
 {
   if      (plot())
     view()->setPlotPainterFont(plot(), painter, font);
@@ -191,7 +190,7 @@ setPainterFont(QPainter *painter, const CQChartsFont &font) const
 
 void
 CQChartsViewPlotObj::
-adjustTextOptions(CQChartsTextOptions &textOptions) const
+adjustTextOptions(TextOptions &textOptions) const
 {
   if (plot())
     textOptions = plot()->adjustTextOptions(textOptions);
@@ -209,11 +208,11 @@ positionToParent(const ObjRef &objRef, const Position &pos) const
   if (! objectRect(objRef, obj, bbox))
     return positionToParent(pos);
 
-  CQChartsLength xlen(pos.p().x, pos.units());
-  CQChartsLength ylen(pos.p().y, pos.units());
+  Length xlen(pos.p().x, pos.units());
+  Length ylen(pos.p().y, pos.units());
 
-  auto x = lengthParentWidth (xlen);
-  auto y = lengthParentHeight(ylen);
+  auto x = lengthParentSignedWidth (xlen);
+  auto y = lengthParentSignedHeight(ylen);
 
   Point p(x, y);
 
@@ -233,6 +232,56 @@ positionToParent(const ObjRef &objRef, const Position &pos) const
   return p;
 }
 
+CQChartsPosition
+CQChartsViewPlotObj::
+positionFromParent(const ObjRef &objRef, const Position &pos) const
+{
+  BBox         bbox;
+  CQChartsObj *obj = nullptr;
+
+  if (! objectRect(objRef, obj, bbox))
+    return pos;
+
+  Length xlen(pos.p().x, pos.units());
+  Length ylen(pos.p().y, pos.units());
+
+  auto x = lengthParentSignedWidth (xlen);
+  auto y = lengthParentSignedHeight(ylen);
+
+  Point p(x, y);
+
+  if      (objRef.location() == ObjRef::Location::LEFT)
+    p -= bbox.getMidL();
+  else if (objRef.location() == ObjRef::Location::RIGHT)
+    p -= bbox.getMidR();
+  else if (objRef.location() == ObjRef::Location::BOTTOM)
+    p -= bbox.getMidB();
+  else if (objRef.location() == ObjRef::Location::TOP)
+    p -= bbox.getMidT();
+  else if (objRef.location() == ObjRef::Location::INTERSECT)
+    p = bbox.getCenter();
+  else
+    p -= bbox.getCenter();
+
+  if      (plot())
+    return CQChartsPosition(p, CQChartsUnits::PLOT);
+  else if (view())
+    return CQChartsPosition(p, CQChartsUnits::VIEW);
+  else
+    return p;
+}
+
+CQChartsGeom::Point
+CQChartsViewPlotObj::
+positionToPixel(const ObjRef &objRef, const Position &pos) const
+{
+  auto p = positionToParent(objRef, pos);
+
+  return windowToPixel(p);
+}
+
+//---
+
 CQChartsGeom::Point
 CQChartsViewPlotObj::
 intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const
@@ -249,15 +298,6 @@ intersectObjRef(const ObjRef &objRef, const Point &p1, const Point &p2) const
     return p1;
 
   return pi;
-}
-
-CQChartsGeom::Point
-CQChartsViewPlotObj::
-positionToPixel(const ObjRef &objRef, const Position &pos) const
-{
-  auto p = positionToParent(objRef, pos);
-
-  return windowToPixel(p);
 }
 
 bool
@@ -320,7 +360,7 @@ positionToPixel(const Position &pos) const
 
 double
 CQChartsViewPlotObj::
-lengthParentWidth(const CQChartsLength &len) const
+lengthParentWidth(const Length &len) const
 {
   double w = 1.0;
 
@@ -334,7 +374,7 @@ lengthParentWidth(const CQChartsLength &len) const
 
 double
 CQChartsViewPlotObj::
-lengthParentHeight(const CQChartsLength &len) const
+lengthParentHeight(const Length &len) const
 {
   double h = 1.0;
 
@@ -348,7 +388,35 @@ lengthParentHeight(const CQChartsLength &len) const
 
 double
 CQChartsViewPlotObj::
-lengthPixelWidth(const CQChartsLength &len) const
+lengthParentSignedWidth(const Length &len) const
+{
+  double w = 1.0;
+
+  if      (plot())
+    w = plot()->lengthPlotSignedWidth(len);
+  else if (view())
+    w = view()->lengthViewSignedWidth(len);
+
+  return w;
+}
+
+double
+CQChartsViewPlotObj::
+lengthParentSignedHeight(const Length &len) const
+{
+  double h = 1.0;
+
+  if      (plot())
+    h = plot()->lengthPlotSignedHeight(len);
+  else if (view())
+    h = view()->lengthViewSignedHeight(len);
+
+  return h;
+}
+
+double
+CQChartsViewPlotObj::
+lengthPixelWidth(const Length &len) const
 {
   double w = 1.0;
 
@@ -362,7 +430,7 @@ lengthPixelWidth(const CQChartsLength &len) const
 
 double
 CQChartsViewPlotObj::
-lengthPixelHeight(const CQChartsLength &len) const
+lengthPixelHeight(const Length &len) const
 {
   double h = 1.0;
 
@@ -478,21 +546,21 @@ backgroundColor() const
 
 CQChartsLength
 CQChartsViewPlotObj::
-makeLength(CQChartsView *view, CQChartsPlot *plot, double len)
+makeLength(View *view, Plot *plot, double len)
 {
   assert(view || plot);
 
   if      (view)
-    return CQChartsLength(len, CQChartsUnits::VIEW);
+    return Length(len, CQChartsUnits::VIEW);
   else if (plot)
-    return CQChartsLength(len, CQChartsUnits::PLOT);
+    return Length(len, CQChartsUnits::PLOT);
   else
-    return CQChartsLength();
+    return Length();
 }
 
 CQChartsPosition
 CQChartsViewPlotObj::
-makePosition(CQChartsView *view, CQChartsPlot *plot, double x, double y)
+makePosition(View *view, Plot *plot, double x, double y)
 {
   assert(view || plot);
 
@@ -506,25 +574,25 @@ makePosition(CQChartsView *view, CQChartsPlot *plot, double x, double y)
 
 CQChartsRect
 CQChartsViewPlotObj::
-makeRect(CQChartsView *view, CQChartsPlot *plot, double x1, double y1, double x2, double y2)
+makeRect(View *view, Plot *plot, double x1, double y1, double x2, double y2)
 {
   assert(view || plot);
 
   if      (view)
-    return CQChartsRect(BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
+    return Rect(BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
   else if (plot)
-    return CQChartsRect(BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
+    return Rect(BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
   else
-    return CQChartsRect();
+    return Rect();
 }
 
 CQChartsRect
 CQChartsViewPlotObj::
-makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Position &end)
+makeRect(View *view, Plot *plot, const Position &start, const Position &end)
 {
   assert(view || plot);
 
-  CQChartsRect rectangle;
+  Rect rectangle;
 
   // if different units then convert rectangle
   if (start.units() != end.units()) {
@@ -542,12 +610,12 @@ makeRect(CQChartsView *view, CQChartsPlot *plot, const Position &start, const Po
     BBox bbox(pstart, pend);
 
     if      (plot)
-      rectangle = CQChartsRect(bbox, CQChartsUnits::PLOT);
+      rectangle = Rect(bbox, CQChartsUnits::PLOT);
     else if (view)
-      rectangle = CQChartsRect(bbox, CQChartsUnits::VIEW);
+      rectangle = Rect(bbox, CQChartsUnits::VIEW);
   }
   else {
-    rectangle = CQChartsRect(BBox(start.p(), end.p()), start.units());
+    rectangle = Rect(BBox(start.p(), end.p()), start.units());
   }
 
   return rectangle;

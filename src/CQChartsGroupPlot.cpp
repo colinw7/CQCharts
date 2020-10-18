@@ -91,7 +91,7 @@ term()
 
 void
 CQChartsGroupPlot::
-setGroupColumn(const CQChartsColumn &c)
+setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -226,8 +226,7 @@ setGroupBucket(CQChartsColumnBucket *groupBucket)
 
 void
 CQChartsGroupPlot::
-initGroupData(const CQChartsColumns &dataColumns,
-              const CQChartsColumn &nameColumn, bool hier) const
+initGroupData(const Columns &dataColumns, const Column &nameColumn, bool hier) const
 {
   CQPerfTrace trace("CQChartsGroupPlot::initGroupData");
 
@@ -239,7 +238,7 @@ initGroupData(const CQChartsColumns &dataColumns,
 
 CQChartsColumnBucket *
 CQChartsGroupPlot::
-initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn, bool hier,
+initGroupData(const Columns &dataColumns, const Column &nameColumn, bool hier,
               const CQChartsGroupData &groupData) const
 {
   // if multiple data columns then use name column and data labels
@@ -327,7 +326,7 @@ initGroup(CQChartsGroupData &data) const
 
   // for specified grouping columns, set column and column type
   if      (data.columns.count() > 1) {
-    CQChartsColumn column;
+    Column column;
 
     if (data.column.isValid())
       column = data.column;
@@ -340,8 +339,8 @@ initGroup(CQChartsGroupData &data) const
 
     ColumnType columnType = ColumnType::STRING;
 
-    if (column.type() == CQChartsColumn::Type::DATA ||
-        column.type() == CQChartsColumn::Type::DATA_INDEX)
+    if (column.type() == Column::Type::DATA ||
+        column.type() == Column::Type::DATA_INDEX)
       columnType = columnValueType(column);
 
     if (isHierarchical())
@@ -356,8 +355,8 @@ initGroup(CQChartsGroupData &data) const
   else if (data.column.isValid()) {
     ColumnType columnType = ColumnType::STRING;
 
-    if (data.column.type() == CQChartsColumn::Type::DATA ||
-        data.column.type() == CQChartsColumn::Type::DATA_INDEX)
+    if (data.column.type() == Column::Type::DATA ||
+        data.column.type() == Column::Type::DATA_INDEX)
       columnType = columnValueType(data.column);
 
     if (isHierarchical())

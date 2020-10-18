@@ -1192,7 +1192,7 @@ getConnected() const
 
 void
 CQChartsChordArcObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc inner outer arc rectangles
   double ri = innerRadius();
@@ -1252,7 +1252,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsChordArcObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (dataName() == "")
     return;
@@ -1350,7 +1350,7 @@ calcFromColor() const
 
 void
 CQChartsChordArcObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1545,7 +1545,7 @@ getConnected() const
 
 void
 CQChartsChordEdgeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   auto *fromObj = this->fromObj();
   auto *toObj   = this->toObj  ();

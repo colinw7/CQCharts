@@ -187,6 +187,7 @@ CQChartsColorStops.cpp \
 CQChartsFont.cpp \
 CQChartsNamePair.cpp \
 CQChartsObjRef.cpp \
+CQChartsObjRefPos.cpp \
 CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
 CQChartsLength.cpp \
@@ -555,6 +556,7 @@ HEADERS += \
 ../include/CQChartsNamePair.h \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsObjRef.h \
+../include/CQChartsObjRefPos.h \
 ../include/CQChartsPosition.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsMargin.h \

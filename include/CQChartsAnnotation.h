@@ -73,8 +73,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using Plot       = CQChartsPlot;
   using Group      = CQChartsAnnotationGroup;
   using ResizeSide = CQChartsResizeSide;
+  using Color      = CQChartsColor;
   using SelMod     = CQChartsSelMod;
   using ColorInd   = CQChartsUtil::ColorInd;
+  using ObjRef     = CQChartsObjRef;
+  using Units      = CQChartsUnits;
 
   using PaintDevice     = CQChartsPaintDevice;
   using HtmlPaintDevice = CQChartsHtmlPaintDevice;
@@ -167,17 +170,16 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual QString propertyId() const;
 
   //! add properties
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //! add stroke and fill properties
-  void addStrokeFillProperties(CQPropertyViewModel *model, const QString &path);
+  void addStrokeFillProperties(PropertyModel *model, const QString &path);
 
   //! add stroke properties
-  void addStrokeProperties(CQPropertyViewModel *model, const QString &path);
+  void addStrokeProperties(PropertyModel *model, const QString &path);
 
   //! add fill properties
-  void addFillProperties(CQPropertyViewModel *model, const QString &path);
+  void addFillProperties(PropertyModel *model, const QString &path);
 
   bool setProperties(const QString &properties);
 
@@ -197,7 +199,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! get property names
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
-  CQPropertyViewModel *propertyModel() const;
+  PropertyModel *propertyModel() const;
 
   const CQPropertyViewItem *propertyItem(const QString &name, bool hidden=false) const;
 
@@ -220,7 +222,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! interp color
-  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
+  QColor interpColor(const Color &c, const ColorInd &ind) const;
 
   //---
 
@@ -307,6 +309,13 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  protected:
   void init(int &lastInd);
 
+  Units parentUnits() const {
+    if      (plot()) return Units::PLOT;
+    else if (view()) return Units::VIEW;
+
+    return Units::NONE;
+  }
+
  protected:
   Type         type_             { Type::NONE };            //!< type
   int          ind_              { 0 };                     //!< unique ind
@@ -368,8 +377,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -408,6 +416,8 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+
  public:
   using Polygon = CQChartsPolygon;
 
@@ -418,8 +428,12 @@ class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
   const Polygon &polygon() const { return polygon_; }
   void setPolygon(const Polygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
  protected:
   Polygon polygon_; //!< polygon points
+  ObjRef  objRef_;  //!< object ref
 };
 
 //---
@@ -436,6 +450,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle)
   Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
   Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
+  Q_PROPERTY(CQChartsObjRef   objRef    READ objRef    WRITE setObjRef   )
   Q_PROPERTY(ShapeType        shapeType READ shapeType WRITE setShapeType)
   Q_PROPERTY(int              numSides  READ numSides  WRITE setNumSides )
 
@@ -485,6 +500,11 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Position end() const;
   void setEnd(const Position &p);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   //! get/set shape
   const ShapeType &shapeType() const { return shapeType_; }
   void setShapeType(const ShapeType &s);
@@ -499,8 +519,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -516,8 +535,9 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
  private:
   Rect      rectangle_;                     //!< rectangle
+  ObjRef    objRef_;                        //!< object ref
   ShapeType shapeType_ { ShapeType::NONE }; //!< shape type
-  int       numSides_ { -1 };               //!< number of sides
+  int       numSides_  { -1 };              //!< number of sides
 };
 
 //---
@@ -534,6 +554,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition center  READ center  WRITE setCenter )
   Q_PROPERTY(CQChartsLength   xRadius READ xRadius WRITE setXRadius)
   Q_PROPERTY(CQChartsLength   yRadius READ yRadius WRITE setYRadius)
+  Q_PROPERTY(CQChartsObjRef   objRef  READ objRef  WRITE setObjRef )
 
  public:
   using Position = CQChartsPosition;
@@ -569,10 +590,12 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   const Length &yRadius() const { return yRadius_; }
   void setYRadius(const Length &r) { yRadius_ = r; }
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -592,6 +615,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Position center_;                       //!< ellipse center
   Length   xRadius_ { 1.0, Units::PLOT }; //!< ellipse x radius
   Length   yRadius_ { 1.0, Units::PLOT }; //!< ellipse y radius
+  ObjRef   objRef_;                       //!< object ref
 };
 
 //---
@@ -629,8 +653,7 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -694,8 +717,7 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -736,6 +758,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
   Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsObjRef      objRef    READ objRef    WRITE setObjRef   )
 
  public:
   using Rect        = CQChartsRect;
@@ -774,10 +797,12 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -810,6 +835,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
  private:
   OptPosition position_;  //!< text position
   OptRect     rectangle_; //!< text bounding rect
+  ObjRef      objRef_;    //!< reference object
 };
 
 //---
@@ -825,6 +851,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsOptPosition position      READ position      WRITE setPosition     )
   Q_PROPERTY(CQChartsOptRect     rectangle     READ rectangle     WRITE setRectangle    )
+  Q_PROPERTY(CQChartsObjRef      objRef        READ objRef        WRITE setObjRef       )
   Q_PROPERTY(CQChartsImage       image         READ image         WRITE setImage        )
   Q_PROPERTY(CQChartsImage       disabledImage READ disabledImage WRITE setDisabledImage)
 
@@ -866,6 +893,11 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   const Image &image() const { return image_; }
   void setImage(const Image &image);
 
@@ -874,8 +906,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -917,6 +948,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
  private:
   OptPosition       position_;                                      //!< image position
   OptRect           rectangle_;                                     //!< image bounding rectangle
+  ObjRef            objRef_;                                        //!< object ref
   Image             image_;                                         //!< image
   Image             disabledImage_;                                 //!< disabled image
   DisabledImageType disabledImageType_ { DisabledImageType::NONE }; //!< disabled image type
@@ -983,8 +1015,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
@@ -1031,11 +1062,13 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsObjRef   objRef   READ objRef   WRITE setObjRef  )
 
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
   using Position = CQChartsPosition;
+  using ObjRef   = CQChartsObjRef;
   using Symbol   = CQChartsSymbol;
 
  public:
@@ -1059,10 +1092,12 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1081,8 +1116,9 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   void init();
 
  private:
-  Position position_;                                //!< point position
-  Symbol   type_     { CQChartsSymbol::Type::NONE }; //!< symbol type
+  Position position_; //!< point position
+  ObjRef   objRef_;   //!< reference object
+  Symbol   type_;     //!< symbol type
 };
 
 //---
@@ -1097,6 +1133,7 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position    READ position    WRITE setPosition   )
+  Q_PROPERTY(CQChartsObjRef   objRef      READ objRef      WRITE setObjRef     )
   Q_PROPERTY(CQChartsLength   innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(CQChartsLength   outerRadius READ outerRadius WRITE setOuterRadius)
   Q_PROPERTY(CQChartsAngle    startAngle  READ startAngle  WRITE setStartAngle )
@@ -1134,6 +1171,11 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; emit dataChanged(); }
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   const Length &innerRadius() const { return innerRadius_; }
   void setInnerRadius(const Length &r) { innerRadius_ = r; }
 
@@ -1148,8 +1190,7 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1169,6 +1210,7 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 
  private:
   Position position_;             //!< point position
+  ObjRef   objRef_;               //!< object ref
   Length   innerRadius_;          //!< inner radius
   Length   outerRadius_;          //!< outer radius
   Angle    startAngle_  {  0.0 }; //!< start angle
@@ -1188,6 +1230,7 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(double          position  READ position  WRITE setPosition )
   Q_PROPERTY(double          start     READ start     WRITE setStart    )
   Q_PROPERTY(double          end       READ end       WRITE setEnd      )
+  Q_PROPERTY(CQChartsObjRef  objRef    READ objRef    WRITE setObjRef   )
 
  public:
   using Axis = CQChartsAxis;
@@ -1228,10 +1271,12 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   double end() const;
   void setEnd(double r);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1250,7 +1295,8 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  Axis *axis_ { nullptr };
+  ObjRef objRef_;             //!< object ref
+  Axis*  axis_   { nullptr }; //!< axis
 };
 
 //---
@@ -1262,12 +1308,15 @@ class CQChartsAxisAnnotation : public CQChartsAnnotation {
 class CQChartsKeyAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+
  public:
-  using Key = CQChartsKey;
+  using Column = CQChartsColumn;
+  using Key    = CQChartsKey;
 
  public:
   CQChartsKeyAnnotation(View *plot);
-  CQChartsKeyAnnotation(Plot *plot, const CQChartsColumn &column=CQChartsColumn());
+  CQChartsKeyAnnotation(Plot *plot, const Column &column=Column());
 
   virtual ~CQChartsKeyAnnotation();
 
@@ -1281,12 +1330,16 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 
   //---
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   Key *key() const { return key_; }
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1312,7 +1365,8 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
   void updateLocationSlot();
 
  private:
-  Key *key_ { nullptr };
+  ObjRef objRef_;              //!< object ref
+  Key*   key_     { nullptr }; //!< key
 };
 
 //---
@@ -1328,6 +1382,7 @@ class CQChartsKeyAnnotation : public CQChartsAnnotation {
 class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsObjRef objRef   READ objRef   WRITE setObjRef  )
   Q_PROPERTY(CQChartsPoints values   READ values   WRITE setValues  )
   Q_PROPERTY(DrawType       drawType READ drawType WRITE setDrawType)
 
@@ -1361,6 +1416,11 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   //---
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   const Points &values() const { return values_; }
   void setValues(const Points &values) { values_ = values; updateValues(); }
 
@@ -1369,8 +1429,7 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1395,6 +1454,7 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   using Hull     = CQChartsGrahamHull;
   using GridCell = CQChartsGridCell;
 
+  ObjRef   objRef_;                         //!< object ref
   Points   values_;                         //!< point values
   Hull     hull_;                           //!< hull
   RMinMax  xrange_;                         //!< x range
@@ -1409,13 +1469,14 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
  * \brief value set annotation
  * \ingroup Charts
  *
- * Set of values draw as statistics or error bar
+ * Set of values draw as statistics or error bar scaled to rectangle
  */
 class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect  rectangle READ rectangle WRITE setRectangle)
-  Q_PROPERTY(CQChartsReals values    READ values    WRITE setValues   )
+  Q_PROPERTY(CQChartsRect   rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsObjRef objRef    READ objRef    WRITE setObjRef   )
+  Q_PROPERTY(CQChartsReals  values    READ values    WRITE setValues   )
 
  public:
   using Rect  = CQChartsRect;
@@ -1440,13 +1501,17 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   const Rect &rectangle() const { return rectangle_; }
   void setRectangle(const Rect &rectangle) { rectangle_ = rectangle; emit dataChanged(); }
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   const Reals &values() const { return values_; }
   void setValues(const Reals &values) { values_ = values; updateValues(); }
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1471,6 +1536,7 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   using Density = CQChartsDensity;
 
   Rect     rectangle_;           //!< rectangle
+  ObjRef   objRef_;              //!< object ref
   Reals    values_;              //!< real values
   Density* density_ { nullptr }; //!< density object
 };
@@ -1487,6 +1553,7 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsObjRef   objRef   READ objRef   WRITE setObjRef  )
 
  public:
   using Position = CQChartsPosition;
@@ -1510,10 +1577,12 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
   const Position &position() const { return position_; }
   void setPosition(const Position &p);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1543,6 +1612,7 @@ class CQChartsButtonAnnotation : public CQChartsAnnotation {
 
  private:
   Position position_;          //!< button position
+  ObjRef   objRef_;            //!< object ref
   QRect    prect_;             //!< pixel rect
   bool     pressed_ { false }; //!< is pressed
 };
@@ -1562,6 +1632,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   Q_PROPERTY(CQChartsOptPosition position    READ position      WRITE setPosition   )
   Q_PROPERTY(CQChartsOptRect     rectangle   READ rectangle     WRITE setRectangle  )
+  Q_PROPERTY(CQChartsObjRef      objRef      READ objRef        WRITE setObjRef     )
   Q_PROPERTY(CQChartsWidget      widget      READ widget        WRITE setWidget     )
   Q_PROPERTY(Qt::Alignment       align       READ align         WRITE setAlign      )
   Q_PROPERTY(QSizePolicy         sizePolicy  READ sizePolicy    WRITE setSizePolicy )
@@ -1605,6 +1676,11 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
   const Widget &widget() const { return widget_; }
   void setWidget(const Widget &widget);
 
@@ -1619,8 +1695,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path,
-                     const QString &desc="") override;
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //---
 
@@ -1656,6 +1731,7 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
  private:
   OptPosition   position_;                                     //!< widget position
   OptRect       rectangle_;                                    //!< widget bounding rectangle
+  ObjRef        objRef_;                                       //!< object ref
   Widget        widget_;                                       //!< widget
   Qt::Alignment align_       { Qt::AlignLeft | Qt::AlignTop }; //!< position alignment
   QSizePolicy   sizePolicy_;                                   //!< size policy

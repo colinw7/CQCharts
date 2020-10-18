@@ -104,12 +104,12 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *charts = modelData->charts();
   auto *model  = modelData->model().data();
 
-  CQChartsColumn geometryColumn;
+  Column geometryColumn;
 
   int nc = details->numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     int         row = 0;
@@ -196,28 +196,28 @@ term()
 
 void
 CQChartsGeometryPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
-setGeometryColumn(const CQChartsColumn &c)
+setGeometryColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(geometryColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
-setStyleColumn(const CQChartsColumn &c)
+setStyleColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(styleColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -782,7 +782,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsGeometryObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -806,7 +806,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsGeometryObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   plot_->dataLabel()->draw(device, rect(), name());
 
@@ -892,7 +892,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsGeometryObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

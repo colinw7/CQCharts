@@ -152,7 +152,7 @@ updateLocation()
 //auto marginSize = plot_->pixelToWindowSize(Size(8, 8));
   auto marginSize = plot_->pixelToWindowSize(Size(0, 0));
 
-  double kx = bbox.getXMid() - ts.width()/2;
+  double kx = bbox.getXMid() - ts.optWidth()/2;
   double ky = 0.0;
 
   auto *xAxis = plot_->xAxis();
@@ -234,7 +234,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   // subtitle
   auto subTitlePath = path + "/subtitle";
 
-  model->addProperty(subTitlePath + "/text", subTitle_, "textStr", "string")->
+  model->addProperty(subTitlePath, subTitle_, "textStr", "string")->
     setDesc("Subtitle text string");
 
   subTitle_->addTextDataProperties(model, subTitlePath, "Subtitle",
@@ -324,13 +324,18 @@ calcSize()
     double ytp = lengthParentHeight(padding().top   ());
     double ybp = lengthParentHeight(padding().bottom());
 
+    double ts = 0.0;
+
+    if (textSize_.isSet() && subTitleTextSize_.isSet())
+      ts = plot_->pixelToWindowHeight(4);
+
     auto textWidth  = std::max(textSize_.optWidth(), subTitleTextSize_.optWidth());
     auto textHeight = textSize_.optHeight() + subTitleTextSize_.optHeight();
 
     allTextSize_ = Size(textWidth, textHeight);
 
     size_ = Size(allTextSize_.width () + xlp + xrp + xlm + xrm,
-                 allTextSize_.height() + ybp + ytp + ybm + ytm);
+                 allTextSize_.height() + ybp + ytp + ybm + ytm + ts);
   }
 
   if (isExpandWidth() && size_.isSet()) {
@@ -486,8 +491,8 @@ draw(CQChartsPaintDevice *device)
     x = position_.x; // bottom
     y = position_.y; // top
 
-    w = allTextSize_.width ();
-    h = allTextSize_.height();
+    w = size_.width ();
+    h = size_.height();
 
     bbox_ = BBox(x, y, x + w, y + h);
   }

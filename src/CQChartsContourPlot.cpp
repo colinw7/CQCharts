@@ -156,7 +156,7 @@ calcRange() const
       // first row is y values (skip first column)
       if (data.row == 0) {
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
+          ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
 
           bool ok;
 
@@ -168,7 +168,7 @@ calcRange() const
       }
       // remaining rows are x values (first column)
       else {
-        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(0), data.parent);
+        ModelIndex columnModelInd(plot, data.row, Column(0), data.parent);
 
         bool ok;
 
@@ -178,7 +178,7 @@ calcRange() const
           xValueRange_.add(x);
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
+          ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
 
           bool ok;
 
@@ -266,7 +266,7 @@ createObjs(PlotObjs &) const
       // first row is y values (skip first column)
       if (data.row == 0) {
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
+          ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
 
           bool ok;
 
@@ -280,7 +280,7 @@ createObjs(PlotObjs &) const
       }
       // remaining rows are x values (first column) and z values
       else {
-        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(0), data.parent);
+        ModelIndex columnModelInd(plot, data.row, Column(0), data.parent);
 
         bool ok;
 
@@ -292,7 +292,7 @@ createObjs(PlotObjs &) const
          x_[ix_++] = x;
 
         for (int col = 1; col < numCols(); ++col) {
-          ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
+          ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
 
           bool ok;
 
@@ -356,7 +356,7 @@ hasForeground() const
 
 void
 CQChartsContourPlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   device->save();
 
@@ -369,13 +369,13 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
 void
 CQChartsContourPlot::
-execDrawForeground(CQChartsPaintDevice *) const
+execDrawForeground(PaintDevice *) const
 {
 }
 
 void
 CQChartsContourPlot::
-drawContour(CQChartsPaintDevice *device) const
+drawContour(PaintDevice *device) const
 {
   contour_->setSolid(isSolid());
   contour_->setNumContourLevels(numContourLevels());

@@ -964,7 +964,7 @@ createPreviewFrame()
 
 void
 CQChartsCreatePlotDlg::
-addPlotWidgets(CQChartsPlotType *type, int ind)
+addPlotWidgets(PlotType *type, int ind)
 {
   // add widgets for type
   auto *basicFrame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
@@ -1007,8 +1007,7 @@ addPlotWidgets(CQChartsPlotType *type, int ind)
 
 void
 CQChartsCreatePlotDlg::
-addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
-                  QGridLayout *layout, int &row, bool isBasic)
+addParameterEdits(PlotType *type, PlotData &plotData, QGridLayout *layout, int &row, bool isBasic)
 {
   using GroupTab    = std::map<int, QTabWidget*>;
   using ChildGroups = std::vector<CQChartsPlotParameterGroup *>;
@@ -2136,7 +2135,7 @@ validateSlot()
             CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
               edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
-            edit->setColumns(CQChartsColumns(column));
+            edit->setColumns(Columns(column));
           }
         }
       }
@@ -2686,7 +2685,7 @@ getPlotType() const
 
 void
 CQChartsCreatePlotDlg::
-applyPlot(CQChartsPlot *plot, bool preview)
+applyPlot(Plot *plot, bool preview)
 {
   ModelP model = plot->model();
 
@@ -2975,9 +2974,8 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                         CQChartsColumn &column, QString &columnType,
-                         MapValueData &mapValueData)
+parseParameterColumnEdit(PlotParameter *parameter, const PlotData &plotData,
+                         Column &column, QString &columnType, MapValueData &mapValueData)
 {
   // get format value
   if (isAdvanced()) {
@@ -3029,8 +3027,8 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                          CQChartsColumns &columns, QString &columnType)
+parseParameterColumnsEdit(PlotParameter *parameter, const PlotData &plotData,
+                          Columns &columns, QString &columnType)
 {
   // get format value
   if (isAdvanced()) {
@@ -3061,8 +3059,7 @@ parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plot
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterStringEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                         QString &str)
+parseParameterStringEdit(PlotParameter *parameter, const PlotData &plotData, QString &str)
 {
   auto p = plotData.stringEdits.find(parameter->name());
   assert(p != plotData.stringEdits.end());
@@ -3074,7 +3071,7 @@ parseParameterStringEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterRealEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, double &r)
+parseParameterRealEdit(PlotParameter *parameter, const PlotData &plotData, double &r)
 {
   auto p = plotData.realEdits.find(parameter->name());
   assert(p != plotData.realEdits.end());
@@ -3097,7 +3094,7 @@ parseParameterRealEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, int &i)
+parseParameterIntEdit(PlotParameter *parameter, const PlotData &plotData, int &i)
 {
   auto p = plotData.intEdits.find(parameter->name());
   assert(p != plotData.intEdits.end());
@@ -3120,7 +3117,7 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterEnumEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, int &i)
+parseParameterEnumEdit(PlotParameter *parameter, const PlotData &plotData, int &i)
 {
   auto *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
@@ -3135,7 +3132,7 @@ parseParameterEnumEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
 
 bool
 CQChartsCreatePlotDlg::
-parseParameterBoolEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, bool &b)
+parseParameterBoolEdit(PlotParameter *parameter, const PlotData &plotData, bool &b)
 {
   auto p = plotData.boolEdits.find(parameter->name());
   assert(p != plotData.boolEdits.end());
@@ -3171,8 +3168,8 @@ columnLineEditValue(const ColumnEditData &editData, CQChartsColumn &column,
 
 bool
 CQChartsCreatePlotDlg::
-columnsLineEditValue(CQChartsColumnsLineEdit *le, CQChartsColumns &columns,
-                     const CQChartsColumns &defColumns) const
+columnsLineEditValue(CQChartsColumnsLineEdit *le, Columns &columns,
+                     const Columns &defColumns) const
 {
   columns = le->columns();
 

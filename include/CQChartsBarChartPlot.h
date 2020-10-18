@@ -233,7 +233,10 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsColor color READ color    WRITE setColor)
 
  public:
-  CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const BBox &rect, const ColorInd &iset,
+  using Plot = CQChartsBarChartPlot;
+
+ public:
+  CQChartsBarChartObj(const Plot *plot, const BBox &rect, const ColorInd &iset,
                       const ColorInd &ival, const ColorInd &isval, const QModelIndex &ind);
 
   QString typeName() const override { return "bar"; }
@@ -293,9 +296,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   const CQChartsBarChartValueSet *valueSet() const;
 
  private:
-  const CQChartsBarChartPlot* plot_     { nullptr }; //!< parent plot
-  CQChartsColor               color_;                //!< custom color
-  bool                        valueSet_ { false };   //!< is value set
+  const Plot*   plot_     { nullptr }; //!< parent plot
+  CQChartsColor color_;                //!< custom color
+  bool          valueSet_ { false };   //!< is value set
 };
 
 //---
@@ -312,7 +315,10 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
-  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const QString &name, const ColorInd &is,
+  using Plot = CQChartsBarChartPlot;
+
+ public:
+  CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                       const ColorInd &ig, const ColorInd &iv);
 
   bool selectPress(const Point &p, CQChartsSelMod selMod) override;
@@ -327,8 +333,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot* plot_ { nullptr }; //!< plot
-  QString               name_;             //!< item name
+  Plot*   plot_ { nullptr }; //!< plot
+  QString name_;             //!< item name
 };
 
 /*!
@@ -339,7 +345,10 @@ class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorInd &ic);
+  using Plot = CQChartsBarChartPlot;
+
+ public:
+  CQChartsBarKeyText(Plot *plot, const QString &text, const ColorInd &ic);
 
   QColor interpTextColor(const ColorInd &ind) const override;
 

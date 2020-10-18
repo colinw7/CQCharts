@@ -297,7 +297,7 @@ calcRange() const
 
 void
 CQChartsCorrelationPlot::
-preDrawObjs(CQChartsPaintDevice *device) const
+preDrawObjs(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -549,7 +549,7 @@ hasForeground() const
 
 void
 CQChartsCorrelationPlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   if (isXLabels())
     drawXLabels(device);
@@ -560,7 +560,7 @@ execDrawForeground(CQChartsPaintDevice *device) const
 
 void
 CQChartsCorrelationPlot::
-drawXLabels(CQChartsPaintDevice *device) const
+drawXLabels(PaintDevice *device) const
 {
   view()->setPlotPainterFont(this, device, xLabelTextFont());
 
@@ -603,7 +603,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   int nc = numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -630,7 +630,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   double tm = 4;
 
   for (int c = 0; c < nc; ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -659,7 +659,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
 void
 CQChartsCorrelationPlot::
-drawYLabels(CQChartsPaintDevice *device) const
+drawYLabels(PaintDevice *device) const
 {
   view()->setPlotPainterFont(this, device, yLabelTextFont());
 
@@ -702,7 +702,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   int nc = numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -729,7 +729,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   double tm = 4;
 
   for (int c = 0; c < nc; ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -779,7 +779,7 @@ calcAnnotationBBox() const
     double th = 0.0;
 
     for (int c = 0; c < nc; ++c) {
-      CQChartsColumn col(c);
+      Column col(c);
 
       bool ok;
 
@@ -814,7 +814,7 @@ calcAnnotationBBox() const
     double tw = 0.0;
 
     for (int c = 0; c < nc; ++c) {
-      CQChartsColumn col(c);
+      Column col(c);
 
       bool ok;
 
@@ -958,7 +958,7 @@ calcTextSize() const
 
 void
 CQChartsCorrelationCellObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -1208,15 +1208,14 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(CQChartsPaintDevice *device, const QString &str) const
+drawCellLabel(PaintDevice *device, const QString &str) const
 {
   drawCellLabel(device, str, rect());
 }
 
 void
 CQChartsCorrelationCellObj::
-drawCellLabel(CQChartsPaintDevice *device, const QString &str,
-              const BBox &rect, double fontInc) const
+drawCellLabel(PaintDevice *device, const QString &str, const BBox &rect, double fontInc) const
 {
   // calc pen and brush
   ColorInd ic;
@@ -1300,7 +1299,7 @@ valueColorInd(ColorInd &ic) const
 
 void
 CQChartsCorrelationCellObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

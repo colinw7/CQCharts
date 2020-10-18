@@ -53,3 +53,12 @@ tipId() const
 
   return *tipId_;
 }
+
+void
+CQChartsObj::
+setTipId(const QString &s)
+{
+  tipId_ = s;
+
+  dataInvalidate();
+}

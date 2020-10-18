@@ -136,14 +136,14 @@ term()
 
 void
 CQChartsPiePlot::
-setLabelColumn(const CQChartsColumn &c)
+setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setValueColumns(const CQChartsColumns &c)
+setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -152,14 +152,14 @@ setValueColumns(const CQChartsColumns &c)
 
 void
 CQChartsPiePlot::
-setRadiusColumn(const CQChartsColumn &c)
+setRadiusColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
-setKeyLabelColumn(const CQChartsColumn &c)
+setKeyLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -1119,7 +1119,7 @@ isIndexHidden(const ModelIndex &ind) const
 
 void
 CQChartsPiePlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
@@ -1488,7 +1488,7 @@ annotationBBox() const
 
 void
 CQChartsPieObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1592,7 +1592,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsPieObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1606,7 +1606,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsPieObj::
-drawSegmentLabel(CQChartsPaintDevice *device, const Point &c) const
+drawSegmentLabel(PaintDevice *device, const Point &c) const
 {
   if (! plot_->textBox()->isTextVisible())
     return;
@@ -1707,7 +1707,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState, bool inside) const
 
 void
 CQChartsPieObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/false, /*inside*/false);
 
@@ -1898,7 +1898,7 @@ inside(const Point &p) const
 
 void
 CQChartsPieGroupObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! plot()->isCount())
     return;
@@ -1955,7 +1955,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsPieGroupObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! plot()->isCount())
     return;

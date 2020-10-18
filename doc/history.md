@@ -1209,3 +1209,6 @@
  + Allow Raise/Lower Annotation
  + Allow Annotation to be drawn in background/foreground
  + Support threaded load of scatter density map
+# 10/18/2020
+ + Add obj ref position support to more annotation types
+ + Improve tip for scatter plot overlays

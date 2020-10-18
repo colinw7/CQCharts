@@ -286,19 +286,19 @@ addSelectIndex(Indices &inds, const QModelIndex &ind) const
 
 void
 CQChartsPlotObj::
-drawBg(CQChartsPaintDevice *) const
+drawBg(PaintDevice *) const
 {
 }
 
 void
 CQChartsPlotObj::
-drawFg(CQChartsPaintDevice *) const
+drawFg(PaintDevice *) const
 {
 }
 
 void
 CQChartsPlotObj::
-draw(CQChartsPaintDevice *) const
+draw(PaintDevice *) const
 {
 }
 
@@ -320,7 +320,7 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsPlotObj::
-drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
+drawRoundedPolygon(PaintDevice *device, const CQChartsPenBrush &penBrush,
                    const BBox &rect, const CQChartsLength &cornerSize) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -330,7 +330,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush
 
 void
 CQChartsPlotObj::
-drawDebugRect(CQChartsPaintDevice *device)
+drawDebugRect(PaintDevice *device)
 {
   plot()->drawWindowColorBox(device, rect());
 }
@@ -348,17 +348,17 @@ contains(const Point &p) const
 
 void
 CQChartsPlotObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   writeObjScriptData(device);
 }
 
 void
 CQChartsPlotObj::
-writeObjScriptData(CQChartsScriptPaintDevice *device) const
+writeObjScriptData(ScriptPaintDevice *device) const
 {
   auto encodeString = [&](const QString &str) {
-    return CQChartsScriptPaintDevice::encodeString(str).toStdString();
+    return ScriptPaintDevice::encodeString(str).toStdString();
   };
 
   std::ostream &os = device->os();
@@ -417,7 +417,7 @@ writeObjScriptData(CQChartsScriptPaintDevice *device) const
 
 void
 CQChartsPlotObj::
-writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &penBrush) const
+writeScriptGC(ScriptPaintDevice *device, const CQChartsPenBrush &penBrush) const
 {
   std::ostream &os = device->os();
 
@@ -450,7 +450,7 @@ writeScriptGC(CQChartsScriptPaintDevice *device, const CQChartsPenBrush &penBrus
 
 void
 CQChartsPlotObj::
-writeScriptInsideColor(CQChartsScriptPaintDevice *device, bool isSave) const
+writeScriptInsideColor(ScriptPaintDevice *device, bool isSave) const
 {
   std::ostream &os = device->os();
 

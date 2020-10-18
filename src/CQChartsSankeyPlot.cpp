@@ -600,7 +600,7 @@ fitToBBox(const BBox &bbox)
 
 void
 CQChartsSankeyPlot::
-preDrawFgObjs(CQChartsPaintDevice *) const
+preDrawFgObjs(PaintDevice *) const
 {
   if (! isAdjustText())
     return;
@@ -613,7 +613,7 @@ preDrawFgObjs(CQChartsPaintDevice *) const
 
 void
 CQChartsSankeyPlot::
-postDrawFgObjs(CQChartsPaintDevice *device) const
+postDrawFgObjs(PaintDevice *device) const
 {
   if (! isAdjustText())
     return;
@@ -3649,7 +3649,7 @@ getConnected() const
 
 void
 CQChartsSankeyNodeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3690,7 +3690,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsSankeyNodeObj::
-drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pathId) const
+drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) const
 {
   auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
 
@@ -3797,14 +3797,14 @@ drawConnectionMouseOver(CQChartsPaintDevice *device, int imouseColoring, int pat
 
 void
 CQChartsSankeyNodeObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   drawFgRect(device, rect());
 }
 
 void
 CQChartsSankeyNodeObj::
-drawFgRect(CQChartsPaintDevice *device, const BBox &rect) const
+drawFgRect(PaintDevice *device, const BBox &rect) const
 {
   if (! plot_->isTextVisible()) {
     bool visible = false;
@@ -3960,7 +3960,7 @@ calcFillColor() const
 
 void
 CQChartsSankeyNodeObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -4084,7 +4084,7 @@ getConnected() const
 
 void
 CQChartsSankeyEdgeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // get edge path
   if (! edgePath(path_, edge()->isLine()))
@@ -4197,7 +4197,7 @@ edgePath(QPainterPath &path, bool isLine) const
 #if 0
 void
 CQChartsSankeyEdgeObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! plot()->isTextVisible())
     return;
@@ -4343,7 +4343,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsSankeyEdgeObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

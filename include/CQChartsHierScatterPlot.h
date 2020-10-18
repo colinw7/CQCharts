@@ -335,7 +335,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   int acceptsRow(int row, const QModelIndex &parent) const;
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   //---
 

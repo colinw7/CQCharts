@@ -98,6 +98,8 @@ class CQChartsPlotType : public QObject {
   using AnalyzeModelData    = CQChartsAnalyzeModelData;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
   using ModelIndex          = CQChartsModelIndex;
+  using Column              = CQChartsColumn;
+  using Columns             = CQChartsColumns;
 
   enum Dimension {
     NONE,

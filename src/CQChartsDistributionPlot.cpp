@@ -202,14 +202,14 @@ term()
 
 void
 CQChartsDistributionPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
-setDataColumn(const CQChartsColumn &c)
+setDataColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(dataColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -2495,7 +2495,7 @@ countAxis() const
 
 void
 CQChartsDistributionPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
@@ -2926,7 +2926,7 @@ hasForeground() const
 
 void
 CQChartsDistributionPlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   if (! hasForeground())
     return;
@@ -2937,7 +2937,7 @@ execDrawForeground(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionPlot::
-drawStatsLines(CQChartsPaintDevice *device) const
+drawStatsLines(PaintDevice *device) const
 {
   // set pen
   auto bc = interpStatsLinesColor(ColorInd());
@@ -3400,7 +3400,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsDistributionBarObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   auto bbox = calcRect();
 
@@ -3529,7 +3529,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionBarObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! isLine()) {
     auto bbox = calcRect();
@@ -3565,7 +3565,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionBarObj::
-drawRug(CQChartsPaintDevice *device) const
+drawRug(PaintDevice *device) const
 {
   // get symbol and size
   auto symbolType = plot_->rugSymbolType();
@@ -3739,7 +3739,7 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(CQChartsPaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
+drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine) const
 {
   // calc pen and brush
   PenBrush barPenBrush;
@@ -3901,7 +3901,7 @@ isUseLine() const
 
 void
 CQChartsDistributionBarObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   auto barColor = this->barColor();
 
@@ -4098,7 +4098,7 @@ inside(const Point &p) const
 
 void
 CQChartsDistributionDensityObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -4142,7 +4142,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionDensityObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (plot_->isStatsLines())
     drawStatsLines(device);
@@ -4153,7 +4153,7 @@ drawFg(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionDensityObj::
-drawStatsLines(CQChartsPaintDevice *device) const
+drawStatsLines(PaintDevice *device) const
 {
   // set pen
   auto bc = plot_->interpStatsLinesColor(ColorInd());
@@ -4191,7 +4191,7 @@ drawStatsLines(CQChartsPaintDevice *device) const
 
 void
 CQChartsDistributionDensityObj::
-drawRug(CQChartsPaintDevice *device) const
+drawRug(PaintDevice *device) const
 {
   // get symbol and size
   auto symbolType = plot_->rugSymbolType();
@@ -4290,7 +4290,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsDistributionDensityObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -4355,7 +4355,7 @@ calcTipId() const
 
 void
 CQChartsDistributionScatterObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // set pen brush
   // TODO: allow control of stroke color, alpha, and line width

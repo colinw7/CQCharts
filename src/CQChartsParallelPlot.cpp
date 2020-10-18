@@ -73,13 +73,13 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  using UniqueColumns = std::map<int, CQChartsColumn>;
+  using UniqueColumns = std::map<int, Column>;
 
   UniqueColumns   xColumns;
   CQChartsColumns yColumns;
 
   for (int c = 0; c < details->numColumns(); ++c) {
-    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     if      (columnDetails->isNumeric()) {
@@ -169,14 +169,14 @@ term()
 
 void
 CQChartsParallelPlot::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsParallelPlot::
-setYColumns(const CQChartsColumns &c)
+setYColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -611,7 +611,7 @@ createObjs(PlotObjs &objs) const
     //---
 
     // add poly line object
-    ModelIndex xModelInd(th, xind.row(), CQChartsColumn(xind.column()), xind.parent());
+    ModelIndex xModelInd(th, xind.row(), Column(xind.column()), xind.parent());
 
     bool ok;
 
@@ -679,14 +679,6 @@ createObjs(PlotObjs &objs) const
 
       auto *pointObj = createPointObj(bbox, p.y, x, y, yind1, is, iv);
 
-      //bool ok;
-
-      //auto yname = modelHHeaderString(setColumn, ok);
-
-      //auto id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y);
-
-      //pointObj->setId(id);
-
       objs.push_back(pointObj);
     }
   }
@@ -698,7 +690,7 @@ createObjs(PlotObjs &objs) const
 
 bool
 CQChartsParallelPlot::
-rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
+rowColValue(int row, const Column &column, const QModelIndex &parent,
             double &value, double defVal) const
 {
   bool ok;
@@ -856,7 +848,7 @@ hasFgAxes() const
 
 void
 CQChartsParallelPlot::
-drawFgAxes(CQChartsPaintDevice *device) const
+drawFgAxes(PaintDevice *device) const
 {
   auto *th = const_cast<CQChartsParallelPlot *>(this);
 
@@ -901,7 +893,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
       //---
 
       if (! device->isInteractive()) {
-        auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
+        auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
 
         writeScriptRange(painter);
       }
@@ -988,7 +980,7 @@ postDraw()
 
 void
 CQChartsParallelPlot::
-setObjRange(CQChartsPaintDevice *device)
+setObjRange(PaintDevice *device)
 {
   if (rangeType_ == RangeType::OBJ)
     return;
@@ -1010,7 +1002,7 @@ setObjRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
+    auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
 
     writeScriptRange(painter);
   }
@@ -1018,7 +1010,7 @@ setObjRange(CQChartsPaintDevice *device)
 
 void
 CQChartsParallelPlot::
-setNormalizedRange(CQChartsPaintDevice *device)
+setNormalizedRange(PaintDevice *device)
 {
   if (rangeType_ == RangeType::NORMALIZED)
     return;
@@ -1036,7 +1028,7 @@ setNormalizedRange(CQChartsPaintDevice *device)
   //---
 
   if (! device->isInteractive()) {
-    auto *painter = dynamic_cast<CQChartsScriptPaintDevice *>(device);
+    auto *painter = dynamic_cast<ScriptPaintDevice *>(device);
 
     writeScriptRange(painter);
   }
@@ -1208,7 +1200,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelLineObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -1278,7 +1270,7 @@ getPolyLine(Polygon &poly) const
 
 void
 CQChartsParallelLineObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -1288,10 +1280,10 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const BBox &rect, double yval,
+CQChartsParallelPointObj(const Plot *plot, const BBox &rect, double yval,
                          double x, double y, const QModelIndex &ind, const ColorInd &is,
                          const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), iv),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv),
  plot_(plot), yval_(yval), x_(x), y_(y)
 {
   setModelInd(ind);
@@ -1382,7 +1374,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelPointObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;

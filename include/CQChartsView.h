@@ -891,6 +891,9 @@ class CQChartsView : public QFrame,
   double lengthViewWidth (const Length &len) const;
   double lengthViewHeight(const Length &len) const;
 
+  double lengthViewSignedWidth (const Length &len) const;
+  double lengthViewSignedHeight(const Length &len) const;
+
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;
 

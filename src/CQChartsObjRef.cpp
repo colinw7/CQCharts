@@ -12,7 +12,7 @@ registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsObjRef);
 
-  CQPropertyViewMgrInst->setUserName("CQChartsObjRef", "objREf");
+  CQPropertyViewMgrInst->setUserName("CQChartsObjRef", "objRef");
 }
 
 QString
@@ -22,7 +22,14 @@ toString() const
   if (location_ == Location::CENTER)
     return name();
 
-  return CQTcl::mergeList(QStringList() << name() << locationToName(location_));
+  return CQTcl::mergeList(toStrings());
+}
+
+QStringList
+CQChartsObjRef::
+toStrings() const
+{
+  return QStringList() << name() << locationToName(location_);
 }
 
 bool
@@ -34,12 +41,19 @@ fromString(const QString &str)
   if (! CQTcl::splitList(str, strs))
     return false;
 
+  return fromStrings(strs);
+}
+
+bool
+CQChartsObjRef::
+fromStrings(const QStringList &strs)
+{
   if (strs.length() >= 2) {
     setName    (strs[0]);
     setLocation(nameToLocation(strs[1]));
   }
   else {
-    setName    (str);
+    setName    (strs[0]);
     setLocation(Location::CENTER);
   }
 

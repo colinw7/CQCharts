@@ -290,15 +290,20 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
   using Plot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterDensityObj(const Plot *plot, int groupInd, const BBox &rect);
+  CQChartsScatterDensityObj(const Plot *plot, int groupInd,
+                            const QString &name, const BBox &rect);
 
   int groupInd() const { return groupInd_; }
+
+  const QString name() const { return name_; }
 
   //---
 
   QString typeName() const override { return "density"; }
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   //---
 
@@ -313,6 +318,7 @@ class CQChartsScatterDensityObj : public CQChartsPlotObj {
  private:
   const Plot* plot_     { nullptr }; //!< scatter plot
   int         groupInd_ { -1 };      //!< plot group index
+  QString     name_;                 //!< name
 };
 
 //---
@@ -464,7 +470,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using NameHexData      = std::map<QString, HexMap>;
   using GroupNameHexData = std::map<int, NameHexData>;
 
-  //---
+  //--
+
+  using Density = CQChartsBivariateDensity;
+
+  //--
 
   enum XSide {
     LEFT  = (int) CQChartsAxisSide::Type::BOTTOM_LEFT,
@@ -617,6 +627,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   void addNameValues() const;
 
+  QString singleGroupName(ColorInd &ind) const override;
+
+  //---
+
+  Density *getDensity(int groupInd, const QString &name) const;
+
   //---
 
   QString xHeaderName(bool tip=false) const { return columnHeaderName(xColumn(), tip); }
@@ -647,7 +663,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
                                const ColorInd &ig, int ix, int iy, const Polygon &poly, int n,
                                int maxN) const;
 
-  virtual DensityObj *createDensityObj(int groupInd, const BBox &rect) const;
+  virtual DensityObj *createDensityObj(int groupInd, const QString &name,
+                                       const BBox &rect) const;
 
   //---
 
@@ -731,8 +748,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
- public:
-  void drawDensityMap(PaintDevice *device, int groupInd) const;
+  void clearDensityData();
 
  private:
   void calcDensityMap(int groupInd);
@@ -771,7 +787,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   };
 
   using GroupInds         = std::set<int>;
-  using Density           = CQChartsBivariateDensity;
   using NamedDensity      = std::map<QString, Density *>;
   using GroupNamedDensity = std::map<int, NamedDensity>;
   using GroupWhiskers     = std::map<int, AxisBoxWhisker *>;

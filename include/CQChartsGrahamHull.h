@@ -36,6 +36,8 @@ class CQChartsGrahamHull {
 
   BBox bbox() const;
 
+  double area() const;
+
  private:
   bool constCalc() const;
   bool calc();

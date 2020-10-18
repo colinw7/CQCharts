@@ -5,6 +5,17 @@
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
 
+CQChartsBivariateDensity::
+CQChartsBivariateDensity()
+{
+}
+
+CQChartsBivariateDensity::
+~CQChartsBivariateDensity()
+{
+  delete bivariate_;
+}
+
 void
 CQChartsBivariateDensity::
 calc(const CQChartsPlot *plot, const Data &data)
@@ -32,7 +43,9 @@ calc(const CQChartsPlot *plot, const Data &data)
     yv.push_back(y1);
   }
 
-  CMathBivariate bivariate(xv, yv);
+  delete bivariate_;
+
+  bivariate_ = new CMathBivariate(xv, yv);
 
   //---
 
@@ -73,7 +86,7 @@ calc(const CQChartsPlot *plot, const Data &data)
       Cell cell;
 
       cell.bbox  = plot->pixelToWindow(BBox(x, y, x + dx, y + dy));
-      cell.value = bivariate.calc(x1, y1);
+      cell.value = bivariate_->calc(x1, y1);
 
       //---
 
@@ -115,3 +128,18 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     device->fillRect(cell.bbox);
   }
 }
+
+double
+CQChartsBivariateDensity::
+xStdDev() const
+{
+  return (bivariate_ ? bivariate_->xStdDev() : 0.0);
+}
+
+double
+CQChartsBivariateDensity::
+yStdDev() const
+{
+  return (bivariate_ ? bivariate_->yStdDev() : 0.0);
+}
+

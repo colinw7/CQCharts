@@ -110,15 +110,15 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *charts = modelData->charts();
   auto *model  = modelData->model().data();
 
-  CQChartsColumn nodeColumn;
-  CQChartsColumn connectionsColumn;
-  CQChartsColumn linkColumn;
-  CQChartsColumn valueColumn;
+  Column nodeColumn;
+  Column connectionsColumn;
+  Column linkColumn;
+  Column valueColumn;
 
   int nc = details->numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     int         row = 0;
@@ -197,7 +197,7 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
     bool allNumeric = true;
 
     for (int c = skip + 1; c < nc; ++c) {
-      auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+      auto *columnDetails = details->columnDetails(Column(c));
       if (! columnDetails) continue;
 
       if (! columnDetails->isNumeric()) {
@@ -209,10 +209,10 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
     if (! allNumeric)
       return;
 
-    analyzeModelData.parameterNameColumn["link"] = CQChartsColumn(0);
+    analyzeModelData.parameterNameColumn["link"] = Column(0);
 
     if (skip == 1)
-      analyzeModelData.parameterNameColumn["group"] = CQChartsColumn(1);
+      analyzeModelData.parameterNameColumn["group"] = Column(1);
   }
 }
 
@@ -249,49 +249,49 @@ term()
 
 void
 CQChartsConnectionPlot::
-setNodeColumn(const CQChartsColumn &c)
+setNodeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setConnectionsColumn(const CQChartsColumn &c)
+setConnectionsColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setLinkColumn(const CQChartsColumn &c)
+setLinkColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setPathColumn(const CQChartsColumn &c)
+setPathColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(pathColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setFromColumn(const CQChartsColumn &c)
+setFromColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fromColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setToColumn(const CQChartsColumn &c)
+setToColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(toColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsConnectionPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -305,7 +305,7 @@ setDepthColumn(const Column &c)
 
 void
 CQChartsConnectionPlot::
-setGroupColumn(const CQChartsColumn &c)
+setGroupColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -314,7 +314,7 @@ setGroupColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
-setAttributesColumn(const CQChartsColumn &c)
+setAttributesColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(attributesColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -323,7 +323,7 @@ setAttributesColumn(const CQChartsColumn &c)
 
 void
 CQChartsConnectionPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -1116,7 +1116,7 @@ processTableModel(TableConnectionDatas &tableConnectionDatas,
       indRowData.rowData.resize(nc);
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        CQChartsColumn c(ic);
+        Column c(ic);
 
         ModelIndex columnInd(plot, data.row, c, data.parent);
 

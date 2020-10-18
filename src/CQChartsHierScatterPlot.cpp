@@ -132,28 +132,28 @@ term()
 
 void
 CQChartsHierScatterPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
-setYColumn(const CQChartsColumn &c)
+setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
-setGroupColumns(const CQChartsColumns &c)
+setGroupColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
     initGroupValueSets();
@@ -631,7 +631,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 {
   // get point groups
   struct GroupData {
-    CQChartsColumn    column;
+    Column            column;
     CQChartsValueSet* valueSet { nullptr };
     QString           str;
     int               ind      { -1 };
@@ -734,7 +734,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
 void
 CQChartsHierScatterPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   auto *group = currentGroup();
 
@@ -892,7 +892,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsHierScatterPointObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   auto ic = calcColorInd();
 

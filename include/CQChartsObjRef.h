@@ -51,6 +51,9 @@ class CQChartsObjRef {
   QString toString() const;
   bool fromString(const QString &s);
 
+  QStringList toStrings() const;
+  bool fromStrings(const QStringList &strs);
+
   //---
 
   friend bool operator==(const CQChartsObjRef &lhs, const CQChartsObjRef &rhs) {

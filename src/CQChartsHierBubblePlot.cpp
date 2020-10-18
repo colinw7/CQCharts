@@ -1145,7 +1145,7 @@ hasForeground() const
 
 void
 CQChartsHierBubblePlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   drawBounds(device, currentRoot());
 }
@@ -1318,7 +1318,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsHierBubbleHierObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   CQChartsHierBubbleNodeObj::writeScriptData(device);
 }
@@ -1624,7 +1624,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsHierBubbleNodeObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

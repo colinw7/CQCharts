@@ -139,14 +139,14 @@ addProperties()
 
 void
 CQChartsDendrogramPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDendrogramPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -453,7 +453,7 @@ hasForeground() const
 
 void
 CQChartsDendrogramPlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   auto *root = dendrogram_->root();
 
@@ -466,7 +466,7 @@ execDrawForeground(CQChartsPaintDevice *device) const
 
 void
 CQChartsDendrogramPlot::
-drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const
+drawNodes(PaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const
 {
   const auto &children = hier->getChildren();
 
@@ -486,7 +486,7 @@ drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int d
 
 void
 CQChartsDendrogramPlot::
-drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
+drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
          CQChartsDendrogram::Node *node) const
 {
   if (! node->isPlaced()) return;
@@ -618,7 +618,7 @@ textRect() const
 
 void
 CQChartsDendrogramNodeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! node_->isPlaced()) return;
 

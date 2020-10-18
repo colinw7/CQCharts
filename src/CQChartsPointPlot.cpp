@@ -8,6 +8,7 @@
 #include <CQChartsFitData.h>
 #include <CQChartsGrahamHull.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsTip.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -139,6 +140,28 @@ clearFitData()
   groupFitData_.clear();
 }
 
+CQChartsFitData *
+CQChartsPointPlot::
+getBestFit(int ind, bool &created) const
+{
+  // get best fit for group or set id
+  created = false;
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  auto ph = th->groupFitData_.find(ind);
+
+  if (ph == th->groupFitData_.end()) {
+    ph = th->groupFitData_.insert(ph, GroupFitData::value_type(ind, new BestFit));
+
+    created = true;
+  }
+
+  return (*ph).second;
+}
+
+//---
+
 void
 CQChartsPointPlot::
 clearHullData()
@@ -147,6 +170,26 @@ clearHullData()
     delete ghull.second;
 
   groupHull_.clear();
+}
+
+CQChartsGrahamHull *
+CQChartsPointPlot::
+getHull(int ind, bool &created) const
+{
+  // get hull for group or set id
+  created = false;
+
+  auto *th = const_cast<CQChartsPointPlot *>(this);
+
+  auto ph = th->groupHull_.find(ind);
+
+  if (ph == th->groupHull_.end()) {
+    ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new Hull));
+
+    created = true;
+  }
+
+  return (*ph).second;
 }
 
 //---
@@ -267,7 +310,7 @@ symbolTypeColumn() const
 
 void
 CQChartsPointPlot::
-setSymbolTypeColumn(const CQChartsColumn &c)
+setSymbolTypeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
 }
@@ -325,7 +368,7 @@ symbolSizeColumn() const
 
 void
 CQChartsPointPlot::
-setSymbolSizeColumn(const CQChartsColumn &c)
+setSymbolSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -397,7 +440,7 @@ fontSizeColumn() const
 
 void
 CQChartsPointPlot::
-setFontSizeColumn(const CQChartsColumn &c)
+setFontSizeColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -637,55 +680,7 @@ createBestFitObj(int groupInd, const QString &name, const ColorInd &ig, const Co
 
 void
 CQChartsPointPlot::
-drawBestFit(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
-            const ColorInd &is) const
-{
-  auto *th = const_cast<CQChartsPointPlot *>(this);
-
-  // get best fit for group or set id
-  auto getBestFit = [&](int ind, bool &created) {
-    created = false;
-
-    auto ph = th->groupFitData_.find(ind);
-
-    if (ph == th->groupFitData_.end()) {
-      ph = th->groupFitData_.insert(ph, GroupFitData::value_type(ind, new CQChartsFitData));
-
-      created = true;
-    }
-
-    return (*ph).second;
-  };
-
-  //---
-
-  if (name == "") {
-    // get fit data for group (add if needed)
-    bool created;
-
-    auto *fitData = getBestFit(groupInd, created);
-
-    if (created)
-      initGroupBestFit(fitData, ig.i, QVariant(groupInd), /*isGroup*/true);
-
-    drawBestFitData(device, fitData, ig);
-  }
-  else {
-    // get fit data for set (add if needed)
-    bool created;
-
-    auto *fitData = getBestFit(is.i, created);
-
-    if (created)
-      initGroupBestFit(fitData, is.i, QVariant(name), /*isGroup*/false);
-
-    drawBestFitData(device, fitData, is);
-  }
-}
-
-void
-CQChartsPointPlot::
-drawBestFitData(PaintDevice *device, const FitData *fitData, const ColorInd &ic) const
+drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) const
 {
   // calc fit shape at each pixel
   Polygon bpoly, poly, tpoly;
@@ -776,7 +771,7 @@ drawBestFitData(PaintDevice *device, const FitData *fitData, const ColorInd &ic)
 
 void
 CQChartsPointPlot::
-initGroupBestFit(FitData *fitData, int ind, const QVariant &var, bool isGroup) const
+initGroupBestFit(BestFit *fitData, int ind, const QVariant &var, bool isGroup) const
 {
   // init best fit data
   if (! fitData->isFitted()) {
@@ -846,80 +841,6 @@ createHullObj(int groupInd, const QString &name, const ColorInd &ig, const Color
               const BBox &rect) const
 {
   return new CQChartsPointHullObj(this, groupInd, name, ig, is, rect);
-}
-
-void
-CQChartsPointPlot::
-drawHull(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
-         const ColorInd &is) const
-{
-  auto *th = const_cast<CQChartsPointPlot *>(this);
-
-  // get hull for group or set id
-  auto getHull = [&](int ind, bool &created) {
-    created = false;
-
-    auto ph = th->groupHull_.find(ind);
-
-    if (ph == th->groupHull_.end()) {
-      ph = th->groupHull_.insert(ph, GroupHull::value_type(ind, new CQChartsGrahamHull));
-
-      created = true;
-    }
-
-    return (*ph).second;
-  };
-
-  //---
-
-  // draw hull
-  auto drawHullData = [&](const Hull *hull, const ColorInd &ic) {
-    // set pen/brush
-    PenBrush penBrush;
-
-    setPenBrush(penBrush, hullPenData(ic), hullBrushData(ic));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    hull->draw(this, device);
-  };
-
-  //---
-
-  if (name == "") {
-    // get hull for group (add if needed)
-    bool created;
-
-    auto *hull = getHull(groupInd, created);
-
-    if (created) {
-      const auto &points = indPoints(QVariant(groupInd), /*isGroup*/true);
-
-      std::vector<double> x, y;
-
-      for (const auto &p : points)
-        hull->addPoint(p);
-    }
-
-    drawHullData(hull, ig);
-  }
-  else {
-    // get hull for set (add if needed)
-    bool created;
-
-    auto *hull = getHull(is.i, created);
-
-    if (created) {
-      const auto &points = indPoints(QVariant(name), /*isGroup*/false);
-
-      std::vector<double> x, y;
-
-      for (const auto &p : points)
-        hull->addPoint(p);
-    }
-
-    drawHullData(hull, is);
-  }
 }
 
 CQChartsPointPlot::Points
@@ -1110,6 +1031,36 @@ calcId() const
   return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(is().i);
 }
 
+QString
+CQChartsPointBestFitObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  auto *bestFit = getBestFit();
+
+  auto dev = bestFit->deviation();
+
+  QString groupName;
+
+  if (name_ == "")
+    groupName = plot_->groupIndName(groupInd_);
+  else {
+    ColorInd ind;
+
+    groupName = plot_->singleGroupName(ind);
+
+    if (groupName == "")
+      groupName = name_;
+  }
+
+  tableTip.addBoldLine("Best Fit");
+  tableTip.addTableRow("Group"    , groupName);
+  tableTip.addTableRow("Deviation", dev);
+
+  return tableTip.str();
+}
+
 void
 CQChartsPointBestFitObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
@@ -1121,7 +1072,38 @@ void
 CQChartsPointBestFitObj::
 draw(PaintDevice *device) const
 {
-  plot_->drawBestFit(device, groupInd_, name_, ig_, is_);
+  auto *bestFit = getBestFit();
+
+  if (name_ == "")
+    plot_->drawBestFit(device, bestFit, ig_);
+  else
+    plot_->drawBestFit(device, bestFit, is_);
+}
+
+CQChartsFitData *
+CQChartsPointBestFitObj::
+getBestFit() const
+{
+  bool created;
+
+  BestFit *fitData = nullptr;
+
+  if (name_ == "") {
+    // get fit data for group (add if needed)
+    fitData = plot_->getBestFit(groupInd_, created);
+
+    if (created)
+      plot_->initGroupBestFit(fitData, ig_.i, QVariant(groupInd_), /*isGroup*/true);
+  }
+  else {
+    // get fit data for set (add if needed)
+    fitData = plot_->getBestFit(is_.i, created);
+
+    if (created)
+      plot_->initGroupBestFit(fitData, is_.i, QVariant(name_), /*isGroup*/false);
+  }
+
+  return fitData;
 }
 
 //------
@@ -1142,6 +1124,36 @@ calcId() const
   return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(is().i);
 }
 
+QString
+CQChartsPointHullObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  auto *hull = getHull();
+
+  auto area = hull->area();
+
+  QString groupName;
+
+  if (name_ == "")
+    groupName = plot_->groupIndName(groupInd_);
+  else {
+    ColorInd ind;
+
+    groupName = plot_->singleGroupName(ind);
+
+    if (groupName == "")
+      groupName = name_;
+  }
+
+  tableTip.addBoldLine("Convex Hull");
+  tableTip.addTableRow("Group", groupName);
+  tableTip.addTableRow("Area" , area);
+
+  return tableTip.str();
+}
+
 void
 CQChartsPointHullObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
@@ -1153,5 +1165,65 @@ void
 CQChartsPointHullObj::
 draw(PaintDevice *device) const
 {
-  plot_->drawHull(device, groupInd_, name_, ig_, is_);
+  // draw hull
+  auto drawHullData = [&](const Hull *hull, const ColorInd &ic) {
+    // set pen/brush
+    PenBrush penBrush;
+
+    plot_->setPenBrush(penBrush, plot_->hullPenData(ic), plot_->hullBrushData(ic));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    hull->draw(plot_, device);
+  };
+
+  //---
+
+  auto *hull = getHull();
+
+  if (name_ != "")
+    drawHullData(hull, is_);
+  else
+    drawHullData(hull, ig_);
+}
+
+CQChartsGrahamHull *
+CQChartsPointHullObj::
+getHull() const
+{
+  using Points = std::vector<Point>;
+
+  auto addHullPoints = [&](Hull *hull, const Points &points) {
+    for (const auto &p : points)
+      hull->addPoint(p);
+  };
+
+  //---
+
+  bool created;
+
+  Hull *hull = nullptr;
+
+  if (name_ == "") {
+    // get hull for group (add if needed)
+    hull = plot_->getHull(groupInd_, created);
+
+    if (created) {
+      const auto &points = plot_->indPoints(QVariant(groupInd_), /*isGroup*/true);
+
+      addHullPoints(hull, points);
+    }
+  }
+  else {
+    // get hull for set (add if needed)
+    hull = plot_->getHull(is_.i, created);
+
+    if (created) {
+      const auto &points = plot_->indPoints(QVariant(name_), /*isGroup*/false);
+
+      addHullPoints(hull, points);
+    }
+  }
+
+  return hull;
 }

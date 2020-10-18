@@ -287,3 +287,14 @@ bbox() const
 
   return hpoly.boundingBox();
 }
+
+double
+CQChartsGrahamHull::
+area() const
+{
+  Polygon hpoly;
+
+  getHull(hpoly);
+
+  return hpoly.area();
+}

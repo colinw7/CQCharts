@@ -12,6 +12,17 @@ class CQCharts;
 /*!
  * \brief Charts object base class
  * \ingroup Charts
+ *
+ * An object has the following properties:
+ *  . unique id
+ *  . bounding box (rect)
+ *  . tooltip
+ *  . is selected
+ *  . is mouse inside
+ *  . can be selected
+ *  . can be edited
+ *
+ * Id and Tip Id are cached (calculated by calcId and calcTipId virtuals)
  */
 class CQChartsObj : public QObject {
   Q_OBJECT
@@ -35,17 +46,21 @@ class CQChartsObj : public QObject {
 
   //---
 
+  //! get charts
   CQCharts *charts() const { return charts_; }
 
   //---
 
   // unique id of object
+
+  //! has unique id
   bool hasId() const { return !!id_; }
 
+  //! get/set unique id
   const QString &id() const;
   void setId(const QString &s);
 
-  // calculate unique id of object (on demand)
+  //! calculate unique id of object (on demand) : must be non-empty
   virtual QString calcId() const { return ""; }
 
   //---
@@ -56,19 +71,25 @@ class CQChartsObj : public QObject {
 
   //---
 
+  //! intersect shape with line (used for arrow annotation connection point)
   virtual bool intersectShape(const Point & /*p1*/, const Point & /*p2*/,
                               Point & /*pi*/) const { return false; }
 
   //---
 
   // tip id for object (string to display in tooltip)
+
+  //! has tp id
   bool hasTipId() const { return !!tipId_; }
 
+  //! get/set tip id
   const QString &tipId() const;
-  void setTipId(const QString &s) { tipId_ = s; dataInvalidate(); }
+  void setTipId(const QString &s);
+
+  //! reset tip id (force recalc(
   void resetTipId() { tipId_ = OptString(); dataInvalidate(); }
 
-  // calculate tip id (on demand)
+  //! calculate tip id (on demand)
   virtual QString calcTipId() const { return calcId(); }
 
   //---
@@ -87,20 +108,23 @@ class CQChartsObj : public QObject {
 
   //---
 
-  // is selectable
+  //! get/set is selectable
   virtual bool isSelectable() const { return selectable_; }
   virtual void setSelectable(bool b) { selectable_ = b; }
 
-  // is editable
+  //! get/set is editable
   virtual bool isEditable() const { return editable_; }
   virtual void setEditable(bool b) { editable_ = b; }
 
   //---
 
+  //! is point inside object
   virtual bool contains(const Point &p) const = 0;
 
   //---
 
+  //! handle data change
+  //! TODO: signal ?
   virtual void dataInvalidate() { }
 
  signals:
@@ -119,7 +143,7 @@ class CQChartsObj : public QObject {
   bool               inside_     { false };   //!< is mouse inside
   bool               editable_   { false };   //!< is editable
   bool               selectable_ { true };    //!< is selectable
-  mutable std::mutex mutex_;                  //!< mutex
+  mutable std::mutex mutex_;                  //!< mutex for calc id/tip
 };
 
 #endif

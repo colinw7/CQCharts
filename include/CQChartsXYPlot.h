@@ -454,6 +454,12 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawHull         (PaintDevice *device) const;
+  void drawLines        (PaintDevice *device) const;
+  void drawBestFit      (PaintDevice *device) const;
+  void drawStatsLines   (PaintDevice *device) const;
+  void drawMovingAverage(PaintDevice *device) const;
+
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;
 
   //---
@@ -627,6 +633,7 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 CQCHARTS_NAMED_LINE_DATA(Impulse, impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate, bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder, fillUnder)
+CQCHARTS_NAMED_LINE_DATA(MovingAverage, movingAverage)
 
 /*!
  * \brief XY Plot
@@ -639,11 +646,12 @@ CQCHARTS_NAMED_FILL_DATA(FillUnder, fillUnder)
  *   + \image html xychart.png
  */
 class CQChartsXYPlot : public CQChartsPointPlot,
- public CQChartsObjLineData         <CQChartsXYPlot>,
- public CQChartsObjPointData        <CQChartsXYPlot>,
- public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
- public CQChartsObjBivariateLineData<CQChartsXYPlot>,
- public CQChartsObjFillUnderFillData<CQChartsXYPlot> {
+ public CQChartsObjLineData             <CQChartsXYPlot>,
+ public CQChartsObjPointData            <CQChartsXYPlot>,
+ public CQChartsObjImpulseLineData      <CQChartsXYPlot>,
+ public CQChartsObjBivariateLineData    <CQChartsXYPlot>,
+ public CQChartsObjFillUnderFillData    <CQChartsXYPlot>,
+ public CQChartsObjMovingAverageLineData<CQChartsXYPlot> {
   Q_OBJECT
 
   // columns
@@ -685,6 +693,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   Q_PROPERTY(bool roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
 
   CQCHARTS_LINE_DATA_PROPERTIES
+
+  // moving average
+  Q_PROPERTY(bool movingAverage    READ isMovingAverage  WRITE setMovingAverage)
+  Q_PROPERTY(int  numMovingAverage READ numMovingAverage WRITE setNumMovingAverage)
+
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(MovingAverage, movingAverage)
 
   // key
   Q_PROPERTY(bool keyLine READ isKeyLine WRITE setKeyLine)
@@ -788,6 +802,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
+
+  //---
+
+  // draw moving average
+  bool isMovingAverage() const { return movingAverageData_.displayed; }
+
+  int numMovingAverage() const { return movingAverageData_.n; }
+  void setNumMovingAverage(int b);
 
   //---
 
@@ -952,29 +974,32 @@ class CQChartsXYPlot : public CQChartsPointPlot,
              const QString &viewVarName) const override;
 
  public slots:
-  // set points visible
+  //! set points visible
   void setPointsSlot(bool b);
 
-  // set lines visible
+  //! set lines visible
   void setLinesSlot(bool b);
 
-  // set bivariate
+  //! set bivariate
   void setBivariateLinesSlot(bool b);
 
-  // set stacked
+  //! set stacked
   void setStacked(bool b);
 
-  // set cumulative
+  //! set cumulative
   void setCumulative(bool b);
 
-  // set impulse
+  //! set impulse
   void setImpulseLinesSlot(bool b);
 
-  // set vectors
+  //! set vectors
   void setVectors(bool b);
 
-  // set fill under
+  //! set fill under
   void setFillUnderFilledSlot(bool b);
+
+  //! set draw moving average
+  void setMovingAverage(bool b);
 
  private:
   struct IndPoly {
@@ -1029,6 +1054,14 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   bool cumulative_      { false }; //!< cumulate values
   bool roundedLines_    { false }; //!< draw rounded (smooth) lines
   bool linesSelectable_ { false }; //!< are lines selectable
+
+  // overlays
+  struct MovingAverageData {
+    bool displayed { false };
+    int  n         { 3 };
+  };
+
+  MovingAverageData movingAverageData_; //!< moving average data
 
   // key
   bool keyLine_ { false }; //!< draw line on key

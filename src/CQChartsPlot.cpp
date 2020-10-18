@@ -11237,7 +11237,7 @@ addImageAnnotation(const Rect &rect, const Image &image)
 
 CQChartsKeyAnnotation *
 CQChartsPlot::
-addKeyAnnotation(const CQChartsColumn &column)
+addKeyAnnotation(const Column &column)
 {
   return addAnnotationT<CQChartsKeyAnnotation>(
     new CQChartsKeyAnnotation(this, column));
@@ -13968,6 +13968,46 @@ lengthPlotHeight(const Length &len) const
     return pixelToWindowHeight(len.value()*view()->fontEm());
   else if (len.units() == CQChartsUnits::EX)
     return pixelToWindowHeight(len.value()*view()->fontEx());
+
+  return len.value();
+}
+
+double
+CQChartsPlot::
+lengthPlotSignedWidth(const Length &len) const
+{
+  if      (len.units() == CQChartsUnits::PIXEL)
+    return pixelToSignedWindowWidth(len.value());
+  else if (len.units() == CQChartsUnits::PLOT)
+    return len.value();
+  else if (len.units() == CQChartsUnits::VIEW)
+    return pixelToSignedWindowWidth(view()->windowToPixelWidth(len.value()));
+  else if (len.units() == CQChartsUnits::PERCENT)
+    return len.value()*displayRangeBBox().getWidth()/100.0;
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToSignedWindowWidth(len.value()*view()->fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToSignedWindowWidth(len.value()*view()->fontEx());
+
+  return len.value();
+}
+
+double
+CQChartsPlot::
+lengthPlotSignedHeight(const Length &len) const
+{
+  if      (len.units() == CQChartsUnits::PIXEL)
+    return pixelToSignedWindowHeight(len.value());
+  else if (len.units() == CQChartsUnits::PLOT)
+    return len.value();
+  else if (len.units() == CQChartsUnits::VIEW)
+    return pixelToSignedWindowHeight(view()->windowToPixelHeight(len.value()));
+  else if (len.units() == CQChartsUnits::PERCENT)
+    return len.value()*displayRangeBBox().getHeight()/100.0;
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToSignedWindowHeight(len.value()*view()->fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToSignedWindowHeight(len.value()*view()->fontEx());
 
   return len.value();
 }

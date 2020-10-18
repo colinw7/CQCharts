@@ -68,11 +68,11 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  CQChartsColumn  nameColumn;
+  Column          nameColumn;
   CQChartsColumns numericColumns;
 
   for (int c = 0; c < details->numColumns(); ++c) {
-    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     if      (columnDetails->isNumeric()) {
@@ -152,14 +152,14 @@ term()
 
 void
 CQChartsRadarPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
-setValueColumns(const CQChartsColumns &c)
+setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -595,7 +595,7 @@ columnValue(const ModelIndex &ind, double &value) const
 
 void
 CQChartsRadarPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   class RowVisitor : public ModelVisitor {
    public:
@@ -679,7 +679,7 @@ hasBackground() const
 
 void
 CQChartsRadarPlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   int nv = valueColumns().count();
 
@@ -963,7 +963,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsRadarObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! poly_.size())
     return;
@@ -1045,7 +1045,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsRadarObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

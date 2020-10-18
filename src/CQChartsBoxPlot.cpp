@@ -151,7 +151,7 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   int nc = details->numColumns();
 
   for (int i = 0; i < nc; ++i) {
-    auto *columnDetails = details->columnDetails(CQChartsColumn(i));
+    auto *columnDetails = details->columnDetails(Column(i));
 
     if (columnDetails && columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -234,21 +234,21 @@ term()
 
 void
 CQChartsBoxPlot::
-setValueColumns(const CQChartsColumns &c)
+setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setSetColumn(const CQChartsColumn &c)
+setSetColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(setColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -257,49 +257,49 @@ setNameColumn(const CQChartsColumn &c)
 
 void
 CQChartsBoxPlot::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setMinColumn(const CQChartsColumn &c)
+setMinColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(minColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setLowerMedianColumn(const CQChartsColumn &c)
+setLowerMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setMedianColumn(const CQChartsColumn &c)
+setMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(medianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setUpperMedianColumn(const CQChartsColumn &c)
+setUpperMedianColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setMaxColumn(const CQChartsColumn &c)
+setMaxColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(maxColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
-setOutliersColumn(const CQChartsColumn &c)
+setOutliersColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -1753,7 +1753,7 @@ initCalcObjs(PlotObjs &objs) const
 
 void
 CQChartsBoxPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
@@ -2185,7 +2185,7 @@ inside(const Point &p) const
 
 void
 CQChartsBoxPlotWhiskerObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   device->setColorNames();
 
@@ -2486,7 +2486,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsBoxPlotWhiskerObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -2694,7 +2694,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotOutlierObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // get color index
   auto colorInd = this->calcColorInd();
@@ -2800,7 +2800,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotDataObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // set whisker fill and stroke
   PenBrush whiskerPenBrush;
@@ -3130,7 +3130,7 @@ inside(const Point &p) const
 
 void
 CQChartsBoxPlotConnectedObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // draw range polygon
   int np = poly_.size();
@@ -3221,7 +3221,7 @@ checkDrawBBox(const BBox &bbox) const
 
 bool
 CQChartsBoxPlotObj::
-drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
+drawHText(PaintDevice *device, double xl, double xr, double y,
           const QString &text, bool onLeft, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
@@ -3272,7 +3272,7 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
 
 bool
 CQChartsBoxPlotObj::
-drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
+drawVText(PaintDevice *device, double yb, double yt, double x,
           const QString &text, bool onBottom, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
@@ -3448,7 +3448,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotPointObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   auto symbolType = plot_->jitterSymbolType();
   auto symbolSize = plot_->jitterSymbolSize();

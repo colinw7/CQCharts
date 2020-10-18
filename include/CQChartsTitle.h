@@ -92,7 +92,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  TextBoxObj *subTitleTextBox() const { return subTitle_; }
+  TextBoxObj *subTitle() const { return subTitle_; }
 
   //---
 

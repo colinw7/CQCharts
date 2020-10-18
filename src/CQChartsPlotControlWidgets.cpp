@@ -253,7 +253,7 @@ CQChartsPlotRealControl(QWidget *parent) :
 }
 
 CQChartsPlotRealControl::
-CQChartsPlotRealControl(CQChartsPlot *plot, const CQChartsColumn &column) :
+CQChartsPlotRealControl(Plot *plot, const Column &column) :
  CQChartsPlotControlIFace(plot, column)
 {
   init();
@@ -371,7 +371,7 @@ CQChartsPlotIntControl(QWidget *parent) :
 }
 
 CQChartsPlotIntControl::
-CQChartsPlotIntControl(CQChartsPlot *plot, const CQChartsColumn &column) :
+CQChartsPlotIntControl(Plot *plot, const Column &column) :
  CQChartsPlotControlIFace(plot, column)
 {
   init();
@@ -489,7 +489,7 @@ CQChartsPlotTimeControl(QWidget *parent) :
 }
 
 CQChartsPlotTimeControl::
-CQChartsPlotTimeControl(CQChartsPlot *plot, const CQChartsColumn &column) :
+CQChartsPlotTimeControl(Plot *plot, const Column &column) :
  CQChartsPlotControlIFace(plot, column)
 {
   init();
@@ -607,7 +607,7 @@ CQChartsPlotValueControl(QWidget *parent) :
 }
 
 CQChartsPlotValueControl::
-CQChartsPlotValueControl(CQChartsPlot *plot, const CQChartsColumn &column) :
+CQChartsPlotValueControl(Plot *plot, const Column &column) :
  CQChartsPlotControlIFace(plot, column)
 {
   init();
@@ -723,7 +723,7 @@ CQChartsPlotControlIFace(QWidget *parent) :
 }
 
 CQChartsPlotControlIFace::
-CQChartsPlotControlIFace(CQChartsPlot *plot, const CQChartsColumn &column) :
+CQChartsPlotControlIFace(Plot *plot, const Column &column) :
  QFrame(plot->view()), plot_(plot), column_(column)
 {
 }

@@ -915,13 +915,21 @@ void
 CQChartsView::
 setMode(const Mode &mode)
 {
+  Mode lastMode = mode_;
+
   CQChartsUtil::testAndSet(mode_, mode, [&]() {
     endRegionBand();
 
     for (auto &probeBand : probeBands_)
       probeBand->hide();
 
-    deselectAll();
+    if (mode == Mode::EDIT && lastMode == Mode::SELECT) {
+      invalidateOverlay();
+
+      updatePlots();
+    }
+    else
+      deselectAll();
 
     emit modeChanged();
   } );
@@ -7297,6 +7305,42 @@ lengthViewHeight(const CQChartsLength &len) const
     return pixelToWindowHeight(len.value()*fontEm());
   else if (len.units() == CQChartsUnits::EX)
     return pixelToWindowHeight(len.value()*fontEx());
+
+  return len.value();
+}
+
+double
+CQChartsView::
+lengthViewSignedWidth(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsUnits::PIXEL)
+    return pixelToSignedWindowWidth(len.value());
+  else if (len.units() == CQChartsUnits::VIEW)
+    return len.value();
+  else if (len.units() == CQChartsUnits::PERCENT)
+    return len.value()*viewportRange()/100.0;
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToSignedWindowWidth(len.value()*fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToSignedWindowWidth(len.value()*fontEx());
+
+  return len.value();
+}
+
+double
+CQChartsView::
+lengthViewSignedHeight(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsUnits::PIXEL)
+    return pixelToSignedWindowHeight(len.value());
+  else if (len.units() == CQChartsUnits::VIEW)
+    return len.value();
+  else if (len.units() == CQChartsUnits::PERCENT)
+    return len.value()*viewportRange()/100.0;
+  else if (len.units() == CQChartsUnits::EM)
+    return pixelToSignedWindowHeight(len.value()*fontEm());
+  else if (len.units() == CQChartsUnits::EX)
+    return pixelToSignedWindowHeight(len.value()*fontEx());
 
   return len.value();
 }

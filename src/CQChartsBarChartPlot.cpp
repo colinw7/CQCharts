@@ -165,14 +165,14 @@ term()
 
 void
 CQChartsBarChartPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
-setLabelColumn(const CQChartsColumn &c)
+setLabelColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -401,7 +401,7 @@ calcRange() const
   if (! isValueRange())
     initGroupData(valueColumns(), nameColumn());
   else
-    initGroupData(CQChartsColumns(), nameColumn());
+    initGroupData(Columns(), nameColumn());
 
   //---
 
@@ -610,7 +610,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
   // add value for each column (non-range)
   if (! isValueRange()) {
     for (const auto &column : valueColumns()) {
-      CQChartsColumns columns { column };
+      Columns columns { column };
 
       addRowColumn(data, columns, dataRange);
     }
@@ -623,7 +623,7 @@ addRow(const ModelVisitor::VisitData &data, Range &dataRange) const
 
 void
 CQChartsBarChartPlot::
-addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
+addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
              Range &dataRange) const
 {
   auto *th = const_cast<CQChartsBarChartPlot *>(this);
@@ -662,7 +662,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
     ind = ModelIndex(th, data.row, valueColumn, data.parent);
   }
   else {
-    ind = ModelIndex(th, data.row, CQChartsColumn(), data.parent);
+    ind = ModelIndex(th, data.row, Column(), data.parent);
   }
 
   //---
@@ -842,7 +842,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
           valueData.setGroupName(groupName);
       }
 
-      auto setColumnNameValue = [&](const CQChartsColumn &column, const QString &header,
+      auto setColumnNameValue = [&](const Column &column, const QString &header,
                                     const QString &value) {
         if (! value.length()) return;
 
@@ -1399,7 +1399,7 @@ mappedYAxis() const
 
 void
 CQChartsBarChartPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
@@ -1946,7 +1946,7 @@ isHidden() const
 
 void
 CQChartsBarChartObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   //if (isHidden())
   //  return;
@@ -2075,7 +2075,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsBarChartObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   // draw data label on foreground layers
   if (! plot_->dataLabel()->isVisible())
@@ -2213,7 +2213,7 @@ calcBarColor() const
 
 void
 CQChartsBarChartObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -2257,7 +2257,7 @@ valueSet() const
 //------
 
 CQChartsBarKeyColor::
-CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const QString &name, const ColorInd &is,
+CQChartsBarKeyColor(Plot *plot, const QString &name, const ColorInd &is,
                     const ColorInd &ig, const ColorInd &iv) :
  CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot), name_(name)
 {
@@ -2489,7 +2489,7 @@ setSetHidden(bool b)
 //------
 
 CQChartsBarKeyText::
-CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorInd &ic) :
+CQChartsBarKeyText(Plot *plot, const QString &text, const ColorInd &ic) :
  CQChartsKeyText(plot, text, ic)
 {
 }

@@ -47,7 +47,7 @@ CQChartsWindowMgr::
 
 CQChartsWindow *
 CQChartsWindowMgr::
-createWindow(CQChartsView *view)
+createWindow(View *view)
 {
   auto *window = new CQChartsWindow(view);
 
@@ -82,7 +82,7 @@ removeWindow(CQChartsWindow *window)
 
 CQChartsWindow *
 CQChartsWindowMgr::
-getWindowForView(CQChartsView *view) const
+getWindowForView(View *view) const
 {
   for (const auto &window : windows_)
     if (window->view() == view)
@@ -94,7 +94,7 @@ getWindowForView(CQChartsView *view) const
 //------
 
 CQChartsWindow::
-CQChartsWindow(CQChartsView *view) :
+CQChartsWindow(View *view) :
  QFrame(nullptr), view_(view)
 {
   setWindowTitle("Window: View " + view_->id());
@@ -447,7 +447,7 @@ expansionChangeSlot()
 
 void
 CQChartsWindow::
-removeViewSlot(CQChartsView *view)
+removeViewSlot(View *view)
 {
   if (view_ != view)
     return;
@@ -521,7 +521,7 @@ selectPropertyObjects()
   for (auto &obj : selectedObjs)
     selectedObjSet.insert(obj);
 
-  CQChartsView::Plots plots;
+  View::Plots plots;
 
   view_->getPlots(plots);
 
@@ -537,11 +537,11 @@ selectPropertyObjects()
   //---
 
   // get selected charts objects
-  CQChartsView::Objs objs;
+  View::Objs objs;
 
   view_->allSelectedObjs(objs);
 
-  CQChartsView::Plots selectedPlots;
+  View::Plots selectedPlots;
 
   view_->selectedPlots(selectedPlots);
 
@@ -633,7 +633,7 @@ objectPlot(QObject *obj) const
   auto *obj1 = obj;
 
   while (obj1) {
-    auto *plot = qobject_cast<CQChartsPlot *>(obj1);
+    auto *plot = qobject_cast<Plot *>(obj1);
 
     if (plot)
       return plot;

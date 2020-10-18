@@ -742,7 +742,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  void addKeyItems(CQChartsPlotKey *key) override;
+  void addKeyItems(PlotKey *key) override;
 
   //---
 

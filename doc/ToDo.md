@@ -3,7 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + rolling average for xy plot
+ + tip
+   + signal on show
+   + show in separate area
+   + set position (tl, br, ...)
+ + more reference objects for annotations
+   + handle invalidation and re-create to same object
  + more objects in scatter plot (point plot) overlays
    + use objects ?? mouse over tip ....
  + Completion
@@ -12,6 +17,7 @@ TODO:
  + barchart column header names in tip
  + sankey placement
    + don't center single item at src/dest when align src/dest
+   + center max X vertically and let align handle rest
  + console widget
    + cut/paste
    + scroll bottom

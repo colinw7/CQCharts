@@ -63,7 +63,7 @@ term()
 
 void
 CQChartsBarPlot::
-setValueColumns(const CQChartsColumns &c)
+setValueColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }

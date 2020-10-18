@@ -498,7 +498,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsCompositePlot::
-drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes,
+drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
                           bool bgKey, bool bgAnnotations) const
 {
   for (auto &plot : plots_) {
@@ -521,7 +521,7 @@ drawBackgroundDeviceParts(CQChartsPaintDevice *device, bool bgLayer, bool bgAxes
 
 void
 CQChartsCompositePlot::
-drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg) const
+drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -536,7 +536,7 @@ drawMiddleDeviceParts(CQChartsPaintDevice *device, bool bg, bool mid, bool fg) c
 
 void
 CQChartsCompositePlot::
-drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
+drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
                           bool fgAnnotations, bool title, bool foreground, bool tabbed) const
 {
   if (fgAxes)
@@ -570,7 +570,7 @@ drawForegroundDeviceParts(CQChartsPaintDevice *device, bool fgAxes, bool fgKey,
 
 void
 CQChartsCompositePlot::
-drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_annotations,
+drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations,
                        bool boxes, bool edit_handles, bool over_objs, bool over_annotations) const
 {
   for (auto &plot : plots_) {
@@ -587,7 +587,7 @@ drawOverlayDeviceParts(CQChartsPaintDevice *device, bool sel_objs, bool sel_anno
 
 void
 CQChartsCompositePlot::
-drawBgAxes(CQChartsPaintDevice *device) const
+drawBgAxes(PaintDevice *device) const
 {
   // common y different x axis
   if      (compositeType_ == CompositeType::X1X2) {
@@ -630,7 +630,7 @@ drawBgAxes(CQChartsPaintDevice *device) const
 
 void
 CQChartsCompositePlot::
-drawFgAxes(CQChartsPaintDevice *device) const
+drawFgAxes(PaintDevice *device) const
 {
   // common y different x axis
   if      (compositeType_ == CompositeType::X1X2) {
@@ -687,7 +687,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
 void
 CQChartsCompositePlot::
-drawTitle(CQChartsPaintDevice *device) const
+drawTitle(PaintDevice *device) const
 {
 #if 0
   for (auto &plot : plots_) {

@@ -12,7 +12,7 @@ CQChartsPixelPaintDevice(QPainter *painter) :
 //---
 
 CQChartsViewPaintDevice::
-CQChartsViewPaintDevice(CQChartsView *view, QPainter *painter) :
+CQChartsViewPaintDevice(View *view, QPainter *painter) :
  CQChartsViewPlotPaintDevice(view, painter)
 {
 }
@@ -20,7 +20,7 @@ CQChartsViewPaintDevice(CQChartsView *view, QPainter *painter) :
 //---
 
 CQChartsPlotPaintDevice::
-CQChartsPlotPaintDevice(CQChartsPlot *plot, QPainter *painter) :
+CQChartsPlotPaintDevice(Plot *plot, QPainter *painter) :
  CQChartsViewPlotPaintDevice(plot, painter)
 {
 }
@@ -28,7 +28,7 @@ CQChartsPlotPaintDevice(CQChartsPlot *plot, QPainter *painter) :
 //---
 
 CQChartsViewPlotPaintDevice::
-CQChartsViewPlotPaintDevice(CQChartsView *view, QPainter *painter) :
+CQChartsViewPlotPaintDevice(View *view, QPainter *painter) :
  CQChartsPaintDevice(view), painter_(painter)
 {
   setHandDrawn    (view->isHandDrawn());
@@ -407,7 +407,7 @@ drawTransformedText(const Point &p, const QString &text)
 
 void
 CQChartsViewPlotPaintDevice::
-drawImageInRect(const BBox &bbox, const CQChartsImage &image, bool stretch)
+drawImageInRect(const BBox &bbox, const Image &image, bool stretch)
 {
   if (! bbox.isSet()) return;
 

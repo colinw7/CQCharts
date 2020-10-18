@@ -115,6 +115,8 @@ class CQChartsViewPlotObj : public CQChartsObj {
   Point positionToParent(const ObjRef &objRef, const Position &pos) const;
   Point positionToPixel (const ObjRef &objRef, const Position &pos) const;
 
+  Position positionFromParent(const ObjRef &objRef, const Position &pos) const;
+
   Point positionToParent(const Position &pos) const;
   Point positionToPixel (const Position &pos) const;
 
@@ -126,6 +128,9 @@ class CQChartsViewPlotObj : public CQChartsObj {
 
   double lengthParentWidth (const Length &len) const;
   double lengthParentHeight(const Length &len) const;
+
+  double lengthParentSignedWidth (const Length &len) const;
+  double lengthParentSignedHeight(const Length &len) const;
 
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;

@@ -6,6 +6,7 @@
 
 class CQChartsPlot;
 class CQChartsPaintDevice;
+class CMathBivariate;
 
 /*!
  * \brief Bivariate (2D) density class
@@ -19,6 +20,7 @@ class CQChartsBivariateDensity {
   using Values      = std::vector<Point>;
   using BBox        = CQChartsGeom::BBox;
   using RMinMax     = CQChartsGeom::RMinMax;
+  using Bivariate   = CMathBivariate;
 
   //! grid input data
   struct Data {
@@ -36,16 +38,21 @@ class CQChartsBivariateDensity {
   };
 
  public:
-  CQChartsBivariateDensity() { }
+  CQChartsBivariateDensity();
+ ~CQChartsBivariateDensity();
 
   void calc(const Plot *plot, const Data &data);
 
   void draw(const Plot *plot, PaintDevice *device);
 
+  double xStdDev() const;
+  double yStdDev() const;
+
  private:
   using Cells = std::vector<Cell>;
 
-  Cells cells_;
+  Cells      cells_;
+  Bivariate* bivariate_ { nullptr };
 };
 
 #endif

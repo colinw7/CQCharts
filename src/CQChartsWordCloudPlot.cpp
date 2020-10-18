@@ -66,19 +66,19 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   auto *details = modelData->details();
   if (! details) return;
 
-  CQChartsColumn valueColumn;
-//CQChartsColumn countColumn;
-  int            numUnique = -1;
+  Column valueColumn;
+//Column countColumn;
+  int    numUnique = -1;
 
   for (int c = 0; c < details->numColumns(); ++c) {
-    const auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    const auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     int numUnique1 = columnDetails->numUnique();
     if (numUnique < 2) continue;
 
     if (numUnique < 0 || numUnique1 < numUnique) {
-      valueColumn = CQChartsColumn(c);
+      valueColumn = Column(c);
       numUnique   = numUnique1;
     }
   }
@@ -135,14 +135,14 @@ term()
 
 void
 CQChartsWordCloudPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsWordCloudPlot::
-setCountColumn(const CQChartsColumn &c)
+setCountColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(countColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -374,7 +374,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsWordObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc stroke and brush
   PenBrush penBrush;
@@ -418,7 +418,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsWordObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

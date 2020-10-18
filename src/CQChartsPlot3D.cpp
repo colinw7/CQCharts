@@ -243,14 +243,13 @@ plotObjsAtPoint(const Point &p, PlotObjs &objs) const
 
 void
 CQChartsPlot3D::
-drawBackgroundRects(CQChartsPaintDevice *) const
+drawBackgroundRects(PaintDevice *) const
 {
 }
 
 void
 CQChartsPlot3D::
-addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
-        const CQChartsColumn &zColumn) const
+addAxis(const Column &xColumn, const Column &yColumn, const Column &zColumn) const
 {
   if (! range3D_.isSet())
     return;
@@ -315,7 +314,7 @@ addAxis(const CQChartsColumn &xColumn, const CQChartsColumn &yColumn,
         pt3 = Point3D(range3D_.xmax() + 2*dx, range3D_.ymax(), min);
       }
 
-      auto *tickLineObj = new CQChartsLine3DObj(this, pt1, pt2, pc);
+      auto *tickLineObj = createLineObj(pt1, pt2, pc);
 
       th->addBgPointObj((pt1 + pt2)/2.0, tickLineObj);
     }
@@ -603,7 +602,7 @@ addFgPointObj(const Point3D &p, CQChartsPlot3DObj *obj)
 
 void
 CQChartsPlot3D::
-drawPointObjs(CQChartsPaintDevice *device) const
+drawPointObjs(PaintDevice *device) const
 {
   auto *camera = this->camera();
 
@@ -761,7 +760,7 @@ CQChartsLine3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &
 
 void
 CQChartsLine3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   auto *camera = plot3D()->camera();
 
@@ -785,7 +784,7 @@ CQChartsText3DObj(const CQChartsPlot3D *plot, const Point3D &p1, const Point3D &
 
 void
 CQChartsText3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   auto *camera = plot3D()->camera();
 
@@ -846,7 +845,7 @@ CQChartsPolygon3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
 
 void
 CQChartsPolygon3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   if (! checkVisible())
     return;
@@ -925,7 +924,7 @@ CQChartsPolyline3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
 
 void
 CQChartsPolyline3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   CQChartsPenBrush penBrush;
 
@@ -955,7 +954,7 @@ CQChartsAxisPolygon3DObj(const CQChartsPlot3D *plot, const Polygon3D &poly) :
 
 void
 CQChartsAxisPolygon3DObj::
-postDraw(CQChartsPaintDevice *device)
+postDraw(PaintDevice *device)
 {
   if (! checkVisible())
     return;

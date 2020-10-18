@@ -31,14 +31,14 @@ term()
 
 void
 CQChartsHierPlot::
-setNameColumns(const CQChartsColumns &c)
+setNameColumns(const Columns &c)
 {
   CQChartsUtil::testAndSet(nameColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }

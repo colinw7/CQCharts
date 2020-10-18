@@ -268,7 +268,7 @@ calcRange() const
       auto *plot = const_cast<Plot *>(plot_);
 
       for (int col = 0; col < numCols(); ++col) {
-        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(col), data.parent);
+        ModelIndex columnModelInd(plot, data.row, Column(col), data.parent);
 
         if (columnTypes_[col] == CQBaseModelType::IMAGE) {
           valueRange_.add(0.0);
@@ -367,7 +367,7 @@ createObjs(PlotObjs &objs) const
       x_ = 0.0;
 
       for (int ic = 0; ic < numCols(); ++ic) {
-        ModelIndex columnModelInd(plot, data.row, CQChartsColumn(ic), data.parent);
+        ModelIndex columnModelInd(plot, data.row, Column(ic), data.parent);
 
         auto ind = plot_->modelIndex(columnModelInd);
 
@@ -533,7 +533,7 @@ hasForeground() const
 
 void
 CQChartsImagePlot::
-execDrawForeground(CQChartsPaintDevice *device) const
+execDrawForeground(PaintDevice *device) const
 {
   if (isXLabels())
     drawXLabels(device);
@@ -544,7 +544,7 @@ execDrawForeground(CQChartsPaintDevice *device) const
 
 void
 CQChartsImagePlot::
-drawXLabels(CQChartsPaintDevice *device) const
+drawXLabels(PaintDevice *device) const
 {
   view()->setPlotPainterFont(this, device, xLabelTextFont());
 
@@ -585,7 +585,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   double th = 0.0;
 
   for (int c = 0; c < numColumns(); ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -609,7 +609,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   double tm = 4;
 
   for (int c = 0; c < numColumns(); ++c) {
-    CQChartsColumn col(c);
+    Column col(c);
 
     bool ok;
 
@@ -637,7 +637,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
 void
 CQChartsImagePlot::
-drawYLabels(CQChartsPaintDevice *device) const
+drawYLabels(PaintDevice *device) const
 {
   view()->setPlotPainterFont(this, device, yLabelTextFont());
 
@@ -746,7 +746,7 @@ calcAnnotationBBox() const
     double tw = 0.0;
 
     for (int c = 0; c < numColumns(); ++c) {
-      CQChartsColumn col(c);
+      Column col(c);
 
       bool ok;
 
@@ -871,7 +871,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsImageObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -1009,7 +1009,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsImageObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 

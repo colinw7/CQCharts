@@ -148,13 +148,13 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   if (! details) return;
 
   // set x column
-  CQChartsColumn xColumn;
+  Column xColumn;
 
   int nc = details->numColumns();
 
   for (int c = 0; c < nc; ++c) {
     if (! xColumn.isValid()) {
-      auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+      auto *columnDetails = details->columnDetails(Column(c));
       if (! columnDetails) continue;
 
       if      (columnDetails->isMonotonic())
@@ -171,13 +171,13 @@ analyzeModel(ModelData *modelData, AnalyzeModelData &analyzeModelData)
   else if (hasX)
     xColumn = (*px).second;
 
-  CQChartsColumns yColumns;
+  Columns yColumns;
 
   for (int c = 0; c < nc; ++c) {
     if (c == xColumn.column())
       continue;
 
-    auto *columnDetails = details->columnDetails(CQChartsColumn(c));
+    auto *columnDetails = details->columnDetails(Column(c));
     if (! columnDetails) continue;
 
     if (columnDetails->isNumeric())
@@ -200,11 +200,12 @@ create(View *view, const ModelP &model) const
 CQChartsXYPlot::
 CQChartsXYPlot(View *view, const ModelP &model) :
  CQChartsPointPlot(view, view->charts()->plotType("xy"), model),
- CQChartsObjLineData         <CQChartsXYPlot>(this),
- CQChartsObjPointData        <CQChartsXYPlot>(this),
- CQChartsObjImpulseLineData  <CQChartsXYPlot>(this),
- CQChartsObjBivariateLineData<CQChartsXYPlot>(this),
- CQChartsObjFillUnderFillData<CQChartsXYPlot>(this)
+ CQChartsObjLineData             <CQChartsXYPlot>(this),
+ CQChartsObjPointData            <CQChartsXYPlot>(this),
+ CQChartsObjImpulseLineData      <CQChartsXYPlot>(this),
+ CQChartsObjBivariateLineData    <CQChartsXYPlot>(this),
+ CQChartsObjFillUnderFillData    <CQChartsXYPlot>(this),
+ CQChartsObjMovingAverageLineData<CQChartsXYPlot>(this)
 {
 }
 
@@ -244,7 +245,7 @@ init()
   //---
 
   // arrow object
-  arrowObj_ = new CQChartsArrow(this);
+  arrowObj_ = new Arrow(this);
 
   arrowObj_->setVisible(false);
 
@@ -327,7 +328,7 @@ CQChartsXYPlot::
 resetBestFit()
 {
   for (const auto &plotObj : plotObjs_) {
-    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<PolylineObj *>(plotObj);
 
     if (polyObj)
       polyObj->resetBestFit();
@@ -522,6 +523,14 @@ addProperties()
   addProp("lines", "roundedLines"   , "rounded"   , "Smooth lines");
 
   addLineProperties("lines/stroke", "lines", "Lines");
+
+  //---
+
+  // moving average
+  addProp("movingAverage", "movingAverage"   , "visible", "Show moving average");
+  addProp("movingAverage", "numMovingAverage", "size"   , "Moving average window size");
+
+  addLineProperties("movingAverage", "movingAverageLines", "Lines");
 
   //---
 
@@ -1022,6 +1031,22 @@ setFillUnderFilledSlot(bool b)
 
 //---
 
+void
+CQChartsXYPlot::
+setMovingAverage(bool b)
+{
+  CQChartsUtil::testAndSet(movingAverageData_.displayed, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setNumMovingAverage(int n)
+{
+  CQChartsUtil::testAndSet(movingAverageData_.n, n, [&]() { drawObjs(); } );
+}
+
+//---
+
 bool
 CQChartsXYPlot::
 createObjs(PlotObjs &objs) const
@@ -1034,12 +1059,14 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  const auto &dataRange = this->dataRange();
-  if (! dataRange.isSet()) return false;
-
+  // calc symbol width (for mouse over of points)
   // TODO: use actual symbol size
-  th->symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
-  th->symbolHeight_ = (dataRange.ymax() - dataRange.ymin())/100.0;
+  const auto &dataRange = this->dataRange();
+
+  if (dataRange.isSet()) {
+    th->symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
+    th->symbolHeight_ = (dataRange.ymax() - dataRange.ymin())/100.0;
+  }
 
   //---
 
@@ -1430,12 +1457,12 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       auto fillUnderSideType = fillUnderSide().type();
 
-      if      (fillUnderSideType == CQChartsFillUnderSide::Type::BOTH) {
+      if      (fillUnderSideType == FillUnderSide::Type::BOTH) {
         // add upper poly line to lower one (points reversed) to build fill polygon
         for (int k = len - 1; k >= 0; --k)
           poly1.addPoint(poly2.point(k));
       }
-      else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
+      else if (fillUnderSideType == FillUnderSide::Type::ABOVE) {
         Polygon poly3, poly4;
         Point   pa1, pb1;
 
@@ -1471,7 +1498,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
         poly1 = poly3;
       }
-      else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
+      else if (fillUnderSideType == FillUnderSide::Type::BELOW) {
         Polygon poly3, poly4;
         Point   pa1, pb1;
 
@@ -2052,26 +2079,26 @@ calcFillUnderPos(double x, double y) const
 
   const auto &dataRange = this->dataRange();
 
-  if      (pos.xtype() == CQChartsFillUnderPos::Type::MIN) {
+  if      (pos.xtype() == FillUnderPos::Type::MIN) {
     if (dataRange.isSet())
       x1 = dataRange.xmin();
   }
-  else if (pos.xtype() == CQChartsFillUnderPos::Type::MAX) {
+  else if (pos.xtype() == FillUnderPos::Type::MAX) {
     if (dataRange.isSet())
       x1 = dataRange.xmax();
   }
-  else if (pos.xtype() == CQChartsFillUnderPos::Type::POS)
+  else if (pos.xtype() == FillUnderPos::Type::POS)
     x1 = pos.xpos();
 
-  if      (pos.ytype() == CQChartsFillUnderPos::Type::MIN) {
+  if      (pos.ytype() == FillUnderPos::Type::MIN) {
     if (dataRange.isSet())
       y1 = dataRange.ymin();
   }
-  else if (pos.ytype() == CQChartsFillUnderPos::Type::MAX) {
+  else if (pos.ytype() == FillUnderPos::Type::MAX) {
     if (dataRange.isSet())
       y1 = dataRange.ymax();
   }
-  else if (pos.ytype() == CQChartsFillUnderPos::Type::POS)
+  else if (pos.ytype() == FillUnderPos::Type::POS)
     y1 = pos.ypos();
 
   return Point(x1, y1);
@@ -2204,7 +2231,7 @@ valueName(int is, int ns, int irow, bool tip) const
 
 void
 CQChartsXYPlot::
-addKeyItems(CQChartsPlotKey *key)
+addKeyItems(PlotKey *key)
 {
   // start at next row (vertical) or next column (horizontal) from previous key
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
@@ -2370,7 +2397,7 @@ interpY(double x, std::vector<double> &yvals) const
   }
 
   for (const auto &plotObj : plotObjs_) {
-    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<PolylineObj *>(plotObj);
 
     if (! polyObj)
       continue;
@@ -2393,7 +2420,7 @@ CQChartsXYPlot::
 getGroupObj(int ig) const
 {
   for (const auto &plotObj : plotObjs_) {
-    auto *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+    auto *polyObj = dynamic_cast<PolylineObj *>(plotObj);
 
     if (polyObj) {
       if (polyObj->is().n == 1 && polyObj->ig().n > 1 && polyObj->ig().i == ig)
@@ -2473,11 +2500,13 @@ addMenuItems(QMenu *menu)
   auto *overlaysMenu = new QMenu("Overlays", menu);
 
   (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
-                              isBestFit   (), SLOT(setBestFit       (bool)));
+                              isBestFit      (), SLOT(setBestFit       (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Hull"       ,
-                              isHull      (), SLOT(setHull          (bool)));
+                              isHull         (), SLOT(setHull          (bool)));
   (void) addMenuCheckedAction(overlaysMenu, "Statistic Lines",
-                              isStatsLines(), SLOT(setStatsLinesSlot(bool)));
+                              isStatsLines   (), SLOT(setStatsLinesSlot(bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Moving Average",
+                              isMovingAverage(), SLOT(setMovingAverage (bool)));
 
   menu->addMenu(overlaysMenu);
 
@@ -2657,7 +2686,7 @@ drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const
 
 void
 CQChartsXYPlot::
-drawArrow(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
+drawArrow(PaintDevice *device, const Point &p1, const Point &p2) const
 {
   CQChartsWidgetUtil::AutoDisconnect arrowDisconnect(
     arrowObj_, SIGNAL(dataChanged()), const_cast<CQChartsXYPlot *>(this), SLOT(updateSlot()));
@@ -2736,10 +2765,10 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 //------
 
 CQChartsXYBiLineObj::
-CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+CQChartsXYBiLineObj(const Plot *plot, int groupInd, const BBox &rect,
                     double x, double y1, double y2, const QModelIndex &ind,
                     const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
  groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
   setModelInd(ind);
@@ -2835,7 +2864,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYBiLineObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -2852,7 +2881,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsXYBiLineObj::
-drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
+drawLines(PaintDevice *device, const Point &p1, const Point &p2) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -2876,7 +2905,7 @@ drawLines(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
 
 void
 CQChartsXYBiLineObj::
-drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
+drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
 {
   // get symbol and size
   auto symbol = plot()->symbolType();
@@ -2908,10 +2937,10 @@ drawPoints(CQChartsPaintDevice *device, const Point &p1, const Point &p2) const
 //------
 
 CQChartsXYImpulseLineObj::
-CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+CQChartsXYImpulseLineObj(const Plot *plot, int groupInd, const BBox &rect,
                          double x, double y1, double y2, const QModelIndex &ind,
                          const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
  groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
   setModelInd(ind);
@@ -3004,7 +3033,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYImpulseLineObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -3057,9 +3086,9 @@ draw(CQChartsPaintDevice *device) const
 //------
 
 CQChartsXYPointObj::
-CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect, const Point &pos,
+CQChartsXYPointObj(const Plot *plot, int groupInd, const BBox &rect, const Point &pos,
                    const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, iv),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
 {
 }
@@ -3079,7 +3108,7 @@ setSelected(bool b)
   CQChartsPlotObj::setSelected(b);
 
   if (plot()->isPointLineSelect() && lineObj())
-    const_cast<CQChartsXYPolylineObj *>(lineObj())->setSelected(b);
+    const_cast<PolylineObj *>(lineObj())->setSelected(b);
 }
 
 //---
@@ -3396,7 +3425,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYPointObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   bool isVector = this->isVector();
 
@@ -3498,10 +3527,10 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 //------
 
 CQChartsXYLabelObj::
-CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+CQChartsXYLabelObj(const Plot *plot, int groupInd, const BBox &rect,
                    double x, double y, const QString &label, const QModelIndex &ind,
                    const ColorInd &is, const ColorInd &iv) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
  groupInd_(groupInd), pos_(x, y), label_(label)
 {
   setModelInd(ind);
@@ -3588,7 +3617,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsXYLabelObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -3625,7 +3654,7 @@ draw(CQChartsPaintDevice *device) const
 
     font1.setPointSizeF(fontPixelSize);
 
-    const_cast<CQChartsXYPlot *>(plot_)->setDataLabelFont(font1);
+    const_cast<Plot *>(plot_)->setDataLabelFont(font1);
   }
 
   //---
@@ -3645,7 +3674,7 @@ draw(CQChartsPaintDevice *device) const
 
   // reset font
   if (fontSize.isValid()) {
-    const_cast<CQChartsXYPlot *>(plot_)->setDataLabelFont(font);
+    const_cast<Plot *>(plot_)->setDataLabelFont(font);
   }
 
   // draw text
@@ -3655,10 +3684,10 @@ draw(CQChartsPaintDevice *device) const
 //------
 
 CQChartsXYPolylineObj::
-CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+CQChartsXYPolylineObj(const Plot *plot, int groupInd, const BBox &rect,
                       const Polygon &poly, const QString &name, const ColorInd &is,
                       const ColorInd &ig) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -3865,144 +3894,223 @@ initStats()
 
 void
 CQChartsXYPolylineObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
-  if (! plot()->isLines() && ! plot()->isBestFit() && ! plot()->isStatsLines())
-    return;
-
-  //---
-
-  if (plot()->isHull()) {
-    auto *th = const_cast<CQChartsXYPolylineObj *>(this);
-
-    if (! th->hull_)
-      th->hull_ = new CQChartsGrahamHull;
-
-    auto *hull = th->hull_;
-
-    //---
-
-    hull->clear();
-
-    for (int i = 0; i < poly_.size(); ++i) {
-      if (plot()->isInterrupt())
-        return;
-
-      hull->addPoint(poly_.point(i));
-    }
-
-    //---
-
-    // set pen/brush
-    auto ic = (ig_.n > 1 ? ig_ : is_);
-
-    PenBrush penBrush;
-
-    plot()->setPenBrush(penBrush, plot()->hullPenData(ic), plot_->hullBrushData(ic));
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    hull->draw(plot(), device);
-  }
+  if (plot()->isHull())
+    drawHull(device);
 
   //---
 
   // draw lines
-  if (plot()->isLines()) {
-    // calc pen and brush
-    PenBrush penBrush;
+  if (plot()->isLines())
+    drawLines(device);
 
-    bool updateState = device->isInteractive();
+  //---
 
-    calcPenBrush(penBrush, updateState);
+  if (plot()->isBestFit())
+    drawBestFit(device);
 
-    //---
+  //---
+
+  if (plot()->isStatsLines())
+    drawStatsLines(device);
+
+  //---
+
+  if (plot()->isMovingAverage())
+    drawMovingAverage(device);
+}
+
+void
+CQChartsXYPolylineObj::
+drawHull(PaintDevice *device) const
+{
+  auto *th = const_cast<CQChartsXYPolylineObj *>(this);
+
+  if (! th->hull_)
+    th->hull_ = new Hull;
+
+  auto *hull = th->hull_;
+
+  //---
+
+  hull->clear();
+
+  for (int i = 0; i < poly_.size(); ++i)
+    hull->addPoint(poly_.point(i));
+
+  //---
+
+  // calc pen/brush
+  auto ic = (ig_.n > 1 ? ig_ : is_);
+
+  PenBrush penBrush;
+
+  plot()->setPenBrush(penBrush, plot()->hullPenData(ic), plot_->hullBrushData(ic));
+
+  //---
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  hull->draw(plot(), device);
+}
+
+void
+CQChartsXYPolylineObj::
+drawLines(PaintDevice *device) const
+{
+  // calc pen and brush
+  PenBrush penBrush;
+
+  bool updateState = device->isInteractive();
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  if (plot()->isRoundedLines()) {
+    initSmooth();
+
+    // draw path
+    auto path = smooth_->createPath(/*closed*/false);
+
+    device->setColorNames();
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    if (plot()->isRoundedLines()) {
-      initSmooth();
+    device->drawPath(path);
 
-      // draw path
-      auto path = smooth_->createPath(/*closed*/false);
+    device->resetColorNames();
+  }
+  else {
+    // draw path
+    device->setColorNames();
 
-      device->setColorNames();
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
+    int np = poly_.size();
 
-      device->drawPath(path);
+    for (int i = 1; i < np; ++i)
+      device->drawLine(poly_.point(i - 1), poly_.point(i));
 
-      device->resetColorNames();
+    device->resetColorNames();
+  }
+}
+
+void
+CQChartsXYPolylineObj::
+drawBestFit(PaintDevice *device) const
+{
+  const_cast<CQChartsXYPolylineObj *>(this)->initBestFit();
+
+  auto ic = (ig_.n > 1 ? ig_ : is_);
+
+  plot()->drawBestFit(device, &bestFit_, ic);
+}
+
+void
+CQChartsXYPolylineObj::
+drawStatsLines(PaintDevice *device) const
+{
+  const_cast<CQChartsXYPolylineObj *>(this)->initStats();
+
+  //---
+
+  // calc pen and brush
+  auto ic = (ig_.n > 1 ? ig_ : is_);
+
+  PenBrush penBrush;
+
+  auto c = plot()->interpStatsLinesColor(ic);
+
+  plot()->setPenBrush(penBrush,
+    PenData  (true, c, plot()->statsLinesAlpha(),
+              plot()->statsLinesWidth(), plot()->statsLinesDash()),
+    BrushData(false));
+
+  plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+
+  //---
+
+  // draw lines
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  const auto &dataRange = plot()->dataRange();
+
+  auto drawStatLine = [&](double y) {
+    Point p1(dataRange.xmin(), y);
+    Point p2(dataRange.xmax(), y);
+
+    device->drawLine(p1, p2);
+  };
+
+  drawStatLine(statData_.loutlier   );
+  drawStatLine(statData_.lowerMedian);
+  drawStatLine(statData_.median     );
+  drawStatLine(statData_.upperMedian);
+  drawStatLine(statData_.uoutlier   );
+}
+
+void
+CQChartsXYPolylineObj::
+drawMovingAverage(PaintDevice *device) const
+{
+  int na = plot_->numMovingAverage();
+  if (na < 2) return;
+
+  int np = poly_.size();
+
+  using Points = std::vector<Point>;
+
+  Points points;
+
+  for (int i = na; i < np; ++i) {
+    double xsum = 0.0, ysum = 0.0;
+
+    for (int j = 0; j < na; ++j) {
+      auto p = poly_.point(i - na + j);
+
+      xsum += p.x;
+      ysum += p.y;
     }
-    else {
-      // draw path
-      device->setColorNames();
 
-      CQChartsDrawUtil::setPenBrush(device, penBrush);
+    auto xa = xsum/na;
+    auto ya = ysum/na;
 
-      int np = poly_.size();
-
-      for (int i = 1; i < np; ++i)
-        device->drawLine(poly_.point(i - 1), poly_.point(i));
-
-      device->resetColorNames();
-    }
+    points.push_back(Point(xa, ya));
   }
 
   //---
 
-  if (plot()->isBestFit()) {
-    const_cast<CQChartsXYPolylineObj *>(this)->initBestFit();
+  // calc pen and brush
+  PenBrush penBrush;
 
-    //---
+  auto ic = (ig_.n > 1 ? ig_ : is_);
 
-    auto ic = (ig_.n > 1 ? ig_ : is_);
+  auto strokeColor = plot()->interpMovingAverageLinesColor(ic);
 
-    plot()->drawBestFitData(device, &bestFit_, ic);
-  }
+  plot()->setPenBrush(penBrush,
+    PenData  (true, strokeColor, plot()->movingAverageLinesAlpha(),
+              plot()->movingAverageLinesWidth(), plot()->movingAverageLinesDash()),
+    BrushData(false));
+
+  plot()->updateObjPenBrushState(this, penBrush);
 
   //---
 
-  if (plot()->isStatsLines()) {
-    const_cast<CQChartsXYPolylineObj *>(this)->initStats();
+  // draw lines
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    //---
+  np = points.size();
 
-    // calc pen and brush
-    auto ic = (ig_.n > 1 ? ig_ : is_);
+  QPainterPath path;
 
-    PenBrush penBrush;
+  path.moveTo(points[0].qpoint());
 
-    auto c = plot()->interpStatsLinesColor(ic);
+  for (int i = 1; i < np; ++i)
+    path.lineTo(points[i].qpoint());
 
-    plot()->setPenBrush(penBrush,
-      PenData  (true, c, plot()->statsLinesAlpha(),
-                plot()->statsLinesWidth(), plot()->statsLinesDash()),
-      BrushData(false));
-
-    plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
-
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-    //---
-
-    const auto &dataRange = plot()->dataRange();
-
-    auto drawStatLine = [&](double y) {
-      Point p1(dataRange.xmin(), y);
-      Point p2(dataRange.xmax(), y);
-
-      device->drawLine(p1, p2);
-    };
-
-    drawStatLine(statData_.loutlier   );
-    drawStatLine(statData_.lowerMedian);
-    drawStatLine(statData_.median     );
-    drawStatLine(statData_.upperMedian);
-    drawStatLine(statData_.uoutlier   );
-  }
+  device->drawPath(path);
 }
 
 void
@@ -4023,7 +4131,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsXYPolylineObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -4033,10 +4141,10 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsXYPolygonObj::
-CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const BBox &rect,
+CQChartsXYPolygonObj(const Plot *plot, int groupInd, const BBox &rect,
                      const Polygon &poly, const QString &name, const ColorInd &is,
                      const ColorInd &ig, bool under) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+ CQChartsPlotObj(const_cast<Plot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name), under_(under)
 {
   setDetailHint(DetailHint::MAJOR);
@@ -4139,7 +4247,7 @@ initSmooth() const
 
 void
 CQChartsXYPolygonObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -4201,7 +4309,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsXYPolygonObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -4211,7 +4319,7 @@ writeScriptData(CQChartsScriptPaintDevice *device) const
 //------
 
 CQChartsXYKeyColor::
-CQChartsXYKeyColor(CQChartsXYPlot *plot, const ColorInd &is, const ColorInd &ig) :
+CQChartsXYKeyColor(Plot *plot, const ColorInd &is, const ColorInd &ig) :
  CQChartsKeyColorBox(plot, is, ig, ColorInd()), plot_(plot)
 {
   setClickable(true);
@@ -4246,7 +4354,7 @@ doSelect(CQChartsSelMod selMod)
 
 void
 CQChartsXYKeyColor::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
+draw(PaintDevice *device, const BBox &rect) const
 {
   if (plot()->isKeyLine())
     drawLine(device, rect);
@@ -4256,7 +4364,7 @@ draw(CQChartsPaintDevice *device, const BBox &rect) const
 
 void
 CQChartsXYKeyColor::
-drawLine(CQChartsPaintDevice *device, const BBox &rect) const
+drawLine(PaintDevice *device, const BBox &rect) const
 {
   device->save();
 
@@ -4457,238 +4565,8 @@ plotObj() const
 
 //------
 
-#if 0
-CQChartsXYKeyLine::
-CQChartsXYKeyLine(CQChartsXYPlot *plot, const ColorInd &is, const ColorInd &ig) :
- CQChartsKeyItem(plot->key(), is.n > 1 ? is : ig), plot_(plot), is_(is), ig_(ig)
-{
-  setClickable(true);
-}
-
-CQChartsGeom::Size
-CQChartsXYKeyLine::
-size() const
-{
-  auto *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
-
-  if (! keyPlot)
-    keyPlot = plot();
-
-  auto font = plot()->view()->plotFont(plot(), key_->textFont());
-
-  QFontMetricsF fm(font);
-
-  double w = fm.width("-X-");
-  double h = fm.height();
-
-  double ww = keyPlot->pixelToWindowWidth (w + 8);
-  double wh = keyPlot->pixelToWindowHeight(h + 2);
-
-  return Size(ww, wh);
-}
-
-void
-CQChartsXYKeyLine::
-doSelect(CQChartsSelMod selMod)
-{
-  auto *obj = plotObj();
-  if (! obj) return;
-
-  if      (selMod == CQChartsSelMod::REPLACE) {
-    for (int ig = 0; ig < ig_.n; ++ig) {
-      auto *obj1 = plot()->getGroupObj(ig);
-
-      if (obj1)
-        obj1->setSelected(obj1 == obj);
-    }
-  }
-  else if (selMod == CQChartsSelMod::ADD)
-    obj->setSelected(true);
-  else if (selMod == CQChartsSelMod::REMOVE)
-    obj->setSelected(false);
-  else if (selMod == CQChartsSelMod::TOGGLE)
-    obj->setSelected(! obj->isSelected());
-
-  plot()->invalidateOverlay();
-
-  key_->redraw(/*wait*/ true);
-}
-
-//---
-
-void
-CQChartsXYKeyLine::
-draw(CQChartsPaintDevice *device, const BBox &rect) const
-{
-  device->save();
-
-  auto *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
-
-  //auto *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
-  //if (! xyKeyPlot) xyKeyPlot = plot();
-
-  auto prect = keyPlot->windowToPixel(rect);
-
-  bool swapped;
-  auto pbbox1 = prect.adjusted(2, 2, -2, -2, swapped);
-  if (swapped) rerurn;
-
-  device->setClipRect(pbbox1, Qt::IntersectClip);
-
-  QColor hideBg;
-  Alpha  hideAlpha;
-
-  if (plot()->isSetHidden(ic_.i)) {
-    hideBg    = key_->interpBgColor();
-    hideAlpha = key_->hiddenAlpha();
-  }
-
-  if (plot()->isFillUnderFilled()) {
-    PenBrush fillPenBrush;
-
-    auto fillColor = plot()->interpFillUnderFillColor(ic_);
-
-    plot()->setPenBrush(fillPenBrush,
-      PenData  (false),
-      BrushData(true, fillColor, plot()->fillUnderFillAlpha(), plot()->fillUnderFillPattern()));
-
-    double x1 = prect.getXMin() + 4;
-    double x2 = prect.getXMax() - 4;
-    double y1 = prect.getYMin() + 4;
-    double y2 = prect.getYMax() - 4;
-
-    if (isInside())
-      fillPenBrush.brush.setColor(plot()->insideColor(fillPenBrush.brush.color()));
-
-    CQChartsDrawUtil::setPenBrush(device, fillPenBrush);
-
-    BBox pbbox1(x1, y1, x2, y2);
-
-    device->fillRect(pbbox1);
-  }
-
-  if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
-    double x1 = prect.getXMin() + 4;
-    double x2 = prect.getXMax() - 4;
-    double y  = prect.getYMid();
-
-    PenBrush linePenBrush;
-
-    if      (plot()->isLines()) {
-      auto lineColor = plot()->interpLinesColor(ic_);
-
-      if (plot()->isSetHidden(ic_.i))
-        lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
-
-      plot()->setPenBrush(linePenBrush,
-        PenData  (true, lineColor, plot()->linesAlpha(),
-                  plot()->linesWidth(), plot()->linesDash());
-        BrushData(false));
-    }
-    else if (plot()->isBestFit()) {
-      auto fitColor = plot()->interpBestFitStrokeColor(ic_);
-
-      if (plot()->isSetHidden(ic_.i))
-        fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
-
-      plot()->setPenBrush(linePenBrush,
-        PenData  (true, fitColor, plot()->bestFitStrokeAlpha(),
-                  plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
-        BrushData(false));
-    }
-    else {
-      auto impulseColor = plot()->interpImpulseLinesColor(ic_);
-
-      if (plot()->isSetHidden(ic_.i))
-        impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
-
-      plot()->setPenBrush(linePenBrush,
-        PenData  (true, impulseColor, plot()->impulseLinesAlpha(),
-                  plot()->impulseLinesWidth(), plot()->impulseLinesDash());
-        BrushData(false));
-    }
-
-    linePenBrush.brush = QBrush(Qt::NoBrush);
-
-    auto *obj = plotObj();
-
-    if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
-
-    if (isInside())
-      linePenBrush.pen = plot()->insideColor(linePenBrush.pen.color());
-
-    device->setPen(linePenBrush.pen);
-
-    device->drawLine(plot()->pixelToWindow(Point(x1, y)), plot()->pixelToWindow(Point(x2, y)));
-  }
-
-  if (plot()->isPoints()) {
-    double dx = keyPlot->pixelToWindowWidth(4);
-
-    double x1 = rect.getXMin() + dx;
-    double x2 = rect.getXMax() - dx;
-    double y  = rect.getYMid();
-
-    auto p1 = keyPlot->windowToPixel(Point(x1, y));
-    auto p2 = keyPlot->windowToPixel(Point(x2, y));
-
-    //---
-
-    auto pointStrokeColor = plot()->interpSymbolStrokeColor(ic_);
-    auto pointFillColor   = plot()->interpSymbolFillColor  (ic_);
-
-    if (plot()->isSetHidden(ic_.i)) {
-      pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, hideBg, hideAlpha);
-      pointFillColor   = CQChartsUtil::blendColors(pointFillColor  , hideBg, hideAlpha);
-    }
-
-    //---
-
-    PenBrush penBrush;
-
-    plot()->setPenBrush(penBrush,
-      PenData  (plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
-                plot()->symbolStrokeWidth(), plot()->symbolStrokeDash()),
-      BrushData(plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),
-                plot()->symbolFillPattern()));
-
-    auto *obj = plotObj();
-
-    if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
-
-    //---
-
-    auto symbolType = plot()->symbolType();
-    auto symbolSize = plot()->symbolSize();
-
-    Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
-
-    plot()->drawSymbol(device, plot()->pixelToWindow(ps), symbolType, symbolSize, penBrush);
-  }
-
-  device->restore();
-}
-
-CQChartsPlotObj *
-CQChartsXYKeyLine::
-plotObj() const
-{
-  if (ig_.n <= 1)
-    return nullptr;
-
-  auto *obj = plot()->getGroupObj(ig_.i);
-
-  return obj;
-}
-#endif
-
-//------
-
 CQChartsXYKeyText::
-CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text,
-                  const ColorInd &is, const ColorInd &ig) :
+CQChartsXYKeyText(Plot *plot, const QString &text, const ColorInd &is, const ColorInd &ig) :
  CQChartsKeyText(plot, text, is.n > 1 ? is : ig), plot_(plot)
 {
 }

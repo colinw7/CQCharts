@@ -1146,7 +1146,7 @@ resetNodeExpansion(HierNode *hierNode)
 #if 0
 void
 CQChartsSunburstPlot::
-drawNodes(CQChartsPaintDevice *device, HierNode *hier) const
+drawNodes(PaintDevice *device, HierNode *hier) const
 {
   for (auto &node : hier->getNodes())
     drawNode(device, nullptr, node);
@@ -1163,7 +1163,7 @@ drawNodes(CQChartsPaintDevice *device, HierNode *hier) const
 
 void
 CQChartsSunburstPlot::
-drawNode(CQChartsPaintDevice *device, NodeObj *nodeObj, Node *node) const
+drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 {
   if (! node->placed())
     return;
@@ -1472,7 +1472,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsSunburstNodeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   plot_->drawNode(device, const_cast<CQChartsSunburstNodeObj *>(this), node_);
 }

@@ -1271,6 +1271,9 @@ class CQChartsPlot : public CQChartsObj,
   double lengthPlotWidth (const Length &len) const;
   double lengthPlotHeight(const Length &len) const;
 
+  double lengthPlotSignedWidth (const Length &len) const;
+  double lengthPlotSignedHeight(const Length &len) const;
+
   double lengthPixelSize(const Length &len, bool horizontal) const;
 
   double lengthPixelWidth (const Length &len) const;

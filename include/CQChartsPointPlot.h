@@ -38,7 +38,8 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Plot = CQChartsPointPlot;
+  using Plot    = CQChartsPointPlot;
+  using BestFit = CQChartsFitData;
 
  public:
   CQChartsPointBestFitObj(const Plot *plot, int groupInd, const QString &name,
@@ -54,6 +55,8 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
@@ -63,6 +66,9 @@ class CQChartsPointBestFitObj : public CQChartsPlotObj {
   void draw(PaintDevice *device) const override;
 
   bool drawMouseOver() const override { return false; }
+
+ private:
+  BestFit *getBestFit() const;
 
  private:
   const Plot* plot_     { nullptr }; //!< scatter plot
@@ -81,6 +87,7 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
 
  public:
   using Plot = CQChartsPointPlot;
+  using Hull = CQChartsGrahamHull;
 
  public:
   CQChartsPointHullObj(const Plot *plot, int groupInd, const QString &name,
@@ -96,6 +103,8 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
@@ -105,6 +114,9 @@ class CQChartsPointHullObj : public CQChartsPlotObj {
   void draw(PaintDevice *device) const override;
 
   bool drawMouseOver() const override { return false; }
+
+ private:
+  Hull *getHull() const;
 
  private:
   const Plot* plot_     { nullptr }; //!< scatter plot
@@ -186,7 +198,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
+  using Hull       = CQChartsGrahamHull;
   using HullObj    = CQChartsPointHullObj;
+  using BestFit    = CQChartsFitData;
   using BestFitObj = CQChartsPointBestFitObj;
 
  public:
@@ -311,7 +325,18 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   void clearFitData ();
+
+  BestFit *getBestFit(int ind, bool &created) const;
+
+  //---
+
   void clearHullData();
+
+  Hull *getHull(int ind, bool &created) const;
+
+  //---
+
+  virtual QString singleGroupName(ColorInd &) const { return ""; }
 
   //---
 
@@ -364,7 +389,9 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   virtual HullObj *createHullObj(int groupInd, const QString &name, const ColorInd &ig,
                                  const ColorInd &is, const BBox &rect) const;
 
- protected:
+  //---
+
+ public:
   using Points = std::vector<Point>;
 
   Points indPoints(const QVariant &var, int isGroup) const;
@@ -372,18 +399,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
  public:
-  void drawBestFit(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
-                   const ColorInd &is) const;
+  void drawBestFit(PaintDevice *device, const BestFit *fitData, const ColorInd &ic) const;
 
-  void drawBestFitData(PaintDevice *device, const CQChartsFitData *fitData,
-                       const ColorInd &ic) const;
-
-  void drawHull(PaintDevice *device, int groupInd, const QString &name, const ColorInd &ig,
-                const ColorInd &is) const;
+  void initGroupBestFit(BestFit *fitData, int ind, const QVariant &var, bool isGroup) const;
 
  protected:
-  void initGroupBestFit(CQChartsFitData *fitData, int ind, const QVariant &var, bool isGroup) const;
-
   void initGroupStats(int ind, const QVariant &var, bool isGroup) const;
 
   //---
@@ -452,9 +472,7 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
  protected:
   using GroupPoints   = std::map<int, Points>;
   using GroupStatData = std::map<int, StatData>;
-  using FitData       = CQChartsFitData;
-  using GroupFitData  = std::map<int, FitData *>;
-  using Hull          = CQChartsGrahamHull;
+  using GroupFitData  = std::map<int, BestFit *>;
   using GroupHull     = std::map<int, Hull *>;
   using RugP          = std::unique_ptr<CQChartsAxisRug>;
 

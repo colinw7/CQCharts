@@ -131,28 +131,28 @@ term()
 
 void
 CQChartsDelaunayPlot::
-setXColumn(const CQChartsColumn &c)
+setXColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
-setYColumn(const CQChartsColumn &c)
+setYColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
-setNameColumn(const CQChartsColumn &c)
+setNameColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
@@ -521,7 +521,7 @@ hasForeground() const
 
 void
 CQChartsDelaunayPlot::
-execDrawBackground(CQChartsPaintDevice *device) const
+execDrawBackground(PaintDevice *device) const
 {
   device->save();
 
@@ -538,13 +538,13 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
 void
 CQChartsDelaunayPlot::
-execDrawForeground(CQChartsPaintDevice *) const
+execDrawForeground(PaintDevice *) const
 {
 }
 
 void
 CQChartsDelaunayPlot::
-drawDelaunay(CQChartsPaintDevice *device) const
+drawDelaunay(PaintDevice *device) const
 {
   if (! delaunayData_)
     return;
@@ -585,7 +585,7 @@ drawDelaunay(CQChartsPaintDevice *device) const
 
 void
 CQChartsDelaunayPlot::
-drawVoronoi(CQChartsPaintDevice *device) const
+drawVoronoi(PaintDevice *device) const
 {
   if (! delaunayData_)
     return;
@@ -823,7 +823,7 @@ getObjSelectIndices(Indices &inds) const
 
 void
 CQChartsDelaunayPointObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   if (! isVisible())
     return;

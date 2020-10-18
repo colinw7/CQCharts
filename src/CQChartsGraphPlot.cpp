@@ -2873,7 +2873,7 @@ getConnected() const
 
 void
 CQChartsGraphNodeObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -2922,7 +2922,7 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsGraphNodeObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! plot_->isTextVisible())
     return;
@@ -3017,7 +3017,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsGraphNodeObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -3361,7 +3361,7 @@ draw(PaintDevice *device) const
 
 void
 CQChartsGraphEdgeObj::
-drawFg(CQChartsPaintDevice *device) const
+drawFg(PaintDevice *device) const
 {
   if (! plot_->isTextVisible())
     return;
@@ -3467,7 +3467,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsGraphEdgeObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
@@ -3623,7 +3623,7 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
 void
 CQChartsGraphGraphObj::
-draw(CQChartsPaintDevice *device) const
+draw(PaintDevice *device) const
 {
   // calc pen and brush
   PenBrush penBrush;
@@ -3671,7 +3671,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
 void
 CQChartsGraphGraphObj::
-writeScriptData(CQChartsScriptPaintDevice *device) const
+writeScriptData(ScriptPaintDevice *device) const
 {
   calcPenBrush(penBrush_, /*updateState*/ false);
 
