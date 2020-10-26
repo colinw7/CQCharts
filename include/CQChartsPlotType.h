@@ -43,9 +43,11 @@ class CQChartsPlotTypeMgr {
   void getTypes(Types &types) const;
 
  private:
-  using NameTypes = std::map<QString, CQChartsPlotType*>;
+  using NameTypes     = std::map<QString, CQChartsPlotType*>;
+  using TypeNameNames = std::map<QString, QString>;
 
-  NameTypes nameTypes_;
+  NameTypes     nameTypes_;     //!< registered type name to type class
+  TypeNameNames typeNameNames_; //!< type's name to registered type name
 };
 
 //----

@@ -1537,11 +1537,11 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 
     double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers()) : y);
 
-    Point pos;
+    Point pos1;
     BBox  rect;
 
     if (! isHorizontal()) {
-      pos = Point(x, y1);
+      pos1 = Point(x, y1);
 
       if (! isNormalized())
         rect = BBox(x - 0.1, y1 - 0.1, x + 0.1, y1 + 0.1);
@@ -1549,7 +1549,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
         rect = BBox(x - 0.01, y1 - 0.01, x + 0.01, y1 + 0.01);
     }
     else {
-      pos = Point(y1, x);
+      pos1 = Point(y1, x);
 
       if (! isNormalized())
         rect = BBox(y1 - 0.1, x - 0.1, y1 + 0.1, x + 0.1);
@@ -1557,7 +1557,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
         rect = BBox(y1 - 0.01, x - 0.01, y1 + 0.01, x + 0.01);
     }
 
-    auto *pointObj = createPointObj(rect, setId, groupInd, pos, value.ind,
+    auto *pointObj = createPointObj(rect, setId, groupInd, pos1, value.ind,
                                     is, ig, ColorInd(iv, nv));
 
     objs.push_back(pointObj);
@@ -3236,7 +3236,9 @@ drawHText(PaintDevice *device, double xl, double xr, double y,
 
   QFontMetricsF fm(device->font());
 
-  double yf = (fm.ascent() - fm.descent())/2.0;
+  double fa = fm.ascent ();
+  double fd = fm.descent();
+  double yf = (fa - fd)/2.0;
 
   Point tp;
 
@@ -3258,9 +3260,11 @@ drawHText(PaintDevice *device, double xl, double xr, double y,
   auto tw = plot_->pixelToWindow(tp);
 
   auto psize = CQChartsDrawUtil::calcTextSize(text, device->font(), options);
-  auto size  = plot()->pixelToWindowSize(psize);
 
-  bbox = BBox(tw.x, tw.y, tw.x + size.width(), tw.y + size.height());
+  auto pbbox = BBox(tp.x                , tp.y - psize.height()/2.0,
+                    tp.x + psize.width(), tp.y + psize.height()/2.0);
+
+  bbox = plot_->pixelToWindow(pbbox);
 
   if (! checkDrawBBox(bbox))
     return false;

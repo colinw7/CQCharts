@@ -9,7 +9,7 @@ class CQChartsColumnCombo;
 class CQChartsModelData;
 
 /*!
- * \brief Column line edit
+ * \brief Column Number Line Edit
  * \ingroup Charts
  */
 class CQChartsColumnNumLineEdit : public QFrame {

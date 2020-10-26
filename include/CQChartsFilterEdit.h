@@ -6,7 +6,6 @@
 class CQChartsFilterEditEdit;
 class CQIconCombo;
 class CQSwitch;
-class QCheckBox;
 
 /*!
  * \brief filter edit

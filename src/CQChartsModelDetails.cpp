@@ -1264,12 +1264,12 @@ initData()
 
       auto var = CQChartsModelUtil::modelValue(
         charts_, model, data.row, details_->column(), data.parent, ok);
-      if (! ok) return State::SKIP;
 
-      details_->addValue(var);
+      if (ok)
+        details_->addValue(var);
 
       if      (details_->type() == CQBaseModelType::INTEGER) {
-        long i = CQChartsVariant::toInt(var, ok);
+        long i = (ok ? CQChartsVariant::toInt(var, ok) : 0);
 
         if (ok && ! details_->checkRow(int(i)))
           return State::SKIP;
@@ -1280,7 +1280,7 @@ initData()
           addInt(i);
       }
       else if (details_->type() == CQBaseModelType::REAL) {
-        double r = CQChartsVariant::toReal(var, ok);
+        double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(r))
           return State::SKIP;
@@ -1293,7 +1293,8 @@ initData()
       else if (details_->type() == CQBaseModelType::STRING) {
         QString s;
 
-        ok = CQChartsVariant::toString(var, s);
+        if (ok)
+          ok = CQChartsVariant::toString(var, s);
 
         if (ok && ! details_->checkRow(s))
           return State::SKIP;
@@ -1303,7 +1304,7 @@ initData()
         addString(s);
       }
       else if (details_->type() == CQBaseModelType::TIME) {
-        double t = CQChartsVariant::toReal(var, ok);
+        double t = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(t))
           return State::SKIP;
@@ -1316,7 +1317,8 @@ initData()
       else if (details_->type() == CQBaseModelType::COLOR) {
         CQChartsColor color;
 
-        ok = details_->columnColor(var, color);
+        if (ok)
+          ok = details_->columnColor(var, color);
 
         if (ok && ! details_->checkRow(CQChartsVariant::fromColor(color)))
           return State::SKIP;
@@ -1327,7 +1329,7 @@ initData()
           addColor(color);
       }
       else if (details_->type() == CQBaseModelType::SYMBOL_SIZE) {
-        double r = CQChartsVariant::toReal(var, ok);
+        double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(r))
           return State::SKIP;
@@ -1338,7 +1340,7 @@ initData()
           addReal(r);
       }
       else if (details_->type() == CQBaseModelType::FONT_SIZE) {
-        double r = CQChartsVariant::toReal(var, ok);
+        double r = (ok ? CQChartsVariant::toReal(var, ok) : 0.0);
 
         if (ok && ! details_->checkRow(r))
           return State::SKIP;
@@ -1351,7 +1353,8 @@ initData()
       else {
         QString s;
 
-        ok = CQChartsVariant::toString(var, s);
+        if (ok)
+          ok = CQChartsVariant::toString(var, s);
 
         if (ok && ! details_->checkRow(s))
           return State::SKIP;

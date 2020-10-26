@@ -25,7 +25,7 @@ class CQTcl;
  * \brief Expression model
  * \ingroup Charts
  *
- * Evaluates expression in a model.
+ * Supports expression evaluation in a model.
  *
  * Supports functions:
  *   column    : get column value for current row

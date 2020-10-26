@@ -36,6 +36,12 @@ class CQChartsColumnTypeParam {
   using Type = CQBaseModelType;
 
  public:
+  enum class Attribute {
+    NONE       = 0,
+    NULL_VALUE = (1<<0)
+  };
+
+ public:
   CQChartsColumnTypeParam(const QString &name, Type type, int role, const QString &tip,
                           const QVariant &def=QVariant()) :
    name_(name), type_(type), role_(role), tip_(tip), def_(def) {
@@ -66,17 +72,28 @@ class CQChartsColumnTypeParam {
   QStringList values() const { return values_; }
 
   bool isHidden() const { return hidden_; }
-  CQChartsColumnTypeParam &setHidden(bool hidden) { hidden_ = hidden; return *this; }
+  CQChartsColumnTypeParam &setHidden(bool b) { hidden_ = b; return *this; }
+
+  bool isNullValue() const { return hidden_; }
+  CQChartsColumnTypeParam &setNullValue(bool b) { return setAttribute(b, Attribute::NULL_VALUE); }
 
  private:
-  QString     name_;                  //!< name
-  Type        type_ { Type::STRING }; //!< type
-  int         role_ { -1 };           //!< model role
-  QString     tip_;                   //!< tip string
-  QString     desc_;                  //!< description string
-  QVariant    def_;                   //!< default value
-  QStringList values_;                //!< enum values
-  bool        hidden_ { false };      //!< is hidden param
+  CQChartsColumnTypeParam &setAttribute(bool b, Attribute attribute) {
+    if (b) attributes_ |=  int(attribute);
+    else   attributes_ &= ~int(attribute);
+    return *this;
+  }
+
+ private:
+  QString     name_;                        //!< name
+  Type        type_       { Type::STRING }; //!< type
+  int         role_       { -1 };           //!< model role
+  QString     tip_;                         //!< tip string
+  QString     desc_;                        //!< description string
+  QVariant    def_;                         //!< default value
+  QStringList values_;                      //!< enum values
+  bool        hidden_     { false };        //!< is hidden param
+  uint        attributes_ { 0 };            //!< paramter attributes
 };
 
 //---

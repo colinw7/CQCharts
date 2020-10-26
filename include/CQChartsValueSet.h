@@ -274,14 +274,14 @@ class CQChartsIValues {
       valueCounts.push_back(ValueCount(vi.first, vi.second.second));
   }
 
-  void uniqueValues(Values &values) {
-    for (const auto &vi : valset_)
-      values.push_back(vi.first);
-  }
-
   void uniqueCounts(Counts &counts) {
     for (const auto &vi : valset_)
       counts.push_back(vi.second.second);
+  }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
   }
 
   // calculated stats
@@ -417,17 +417,17 @@ class CQChartsSValues {
       valueCounts.push_back(ValueCount(vi.first, vi.second.second));
   }
 
-  void uniqueValues(Values &values) {
-    for (const auto &sv : setvals_)
-      values.push_back(sv.second);
-  }
-
   void uniqueCounts(Counts &counts) {
     for (const auto &sv : setvals_) {
       auto p = valset_.find(sv.second);
 
       counts.push_back((*p).second.second);
     }
+  }
+
+  void uniqueValues(Values &values) {
+    for (const auto &sv : setvals_)
+      values.push_back(sv.second);
   }
 
   // map value into real in range
@@ -554,14 +554,14 @@ class CQChartsCValues {
       valueCounts.push_back(ValueCount(vi.first, vi.second.second));
   }
 
-  void uniqueValues(Values &values) {
-    for (const auto &vi : valset_)
-      values.push_back(vi.first);
-  }
-
   void uniqueCounts(Counts &counts) {
     for (const auto &vi : valset_)
       counts.push_back(vi.second.second);
+  }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
   }
 
   // map value into real in range
@@ -732,6 +732,18 @@ class CQChartsValueSet : public QObject {
   // get bucket string
   QString buckets(int ind) const;
 
+  //---
+
+  // get minimum value
+  QVariant min(const QVariant &def=QVariant()) const;
+  // get maximum value
+  QVariant max(const QVariant &def=QVariant()) const;
+
+  // get value range
+  QVariant range(const QVariant &def=QVariant()) const;
+
+  //---
+
   // get minimum index value
   // (for integers this is the minimum value, for real/string this is zero)
   int imin(int def=0) const;
@@ -741,6 +753,8 @@ class CQChartsValueSet : public QObject {
   // less than the number of unique values)
   int imax(int def=0) const;
 
+  //---
+
   // get minimum real value
   // (for integers and reals this is the minimum unique value, otherwise this is imin)
   double rmin(double def=CMathUtil::getNaN()) const;
@@ -748,6 +762,8 @@ class CQChartsValueSet : public QObject {
   // get maximum real value
   // (for integers and reals this is the maximum unique value, otherwise this is imax)
   double rmax(double def=CMathUtil::getNaN()) const;
+
+  double rmedian(double def=CMathUtil::getNaN()) const;
 
   // get sum real value
   // (for integers and reals this is the sum value, otherwise this is 0.0)
@@ -757,16 +773,21 @@ class CQChartsValueSet : public QObject {
   // (for integers and reals this is the mean value, otherwise this is imax/2)
   double rmean() const;
 
+  //---
+
   // get real index
   int rid(double r) const;
-
   // get indexed real
   double idr(int i) const;
+
+  //---
 
   // get integer index
   int iid(int i) const;
   // get indexed integer
   int idi(int i) const;
+
+  //---
 
   void reals(std::vector<double> &reals) const;
 

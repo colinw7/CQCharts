@@ -37,11 +37,11 @@ set day_col [process_charts_model -model $model -add -expr {timeval(0,"%u")} -he
 # fold on day number and flatten
 set day_model [fold_charts_model -model $model -column $day_col]
 
-set mean_day_model [flatten_charts_model -model $day_model -sum]
+set mean_day_model [flatten_charts_model -model $day_model -default_op sum]
 
 #---
 
 # flatten directly on day number
-set mean_day_model [flatten_charts_model -model $model -group Day -sum]
+set mean_day_model [flatten_charts_model -model $model -group Day -default_op sum]
 
 show_charts_manage_models_dlg

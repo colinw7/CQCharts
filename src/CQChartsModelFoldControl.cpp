@@ -5,6 +5,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsModelUtil.h>
+////#include <CQChartsColumnCombo.h>
 #include <CQCharts.h>
 #include <CQUtil.h>
 
@@ -32,9 +33,8 @@ CQChartsModelFoldControl(QWidget *parent) :
 
   //---
 
-  auto addLineEdit = [&](const QString &name, const QString &objName) {
+  auto addWidgetEdit = [&](const QString &name, const QString &objName, QWidget *edit) {
     auto *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-    auto *edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit" );
 
     label->setText(name);
 
@@ -46,40 +46,43 @@ CQChartsModelFoldControl(QWidget *parent) :
     return edit;
   };
 
+  auto addLineEdit = [&](const QString &name, const QString &objName) {
+    auto *edit = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit" );
+
+    (void) addWidgetEdit(name, objName, edit);
+
+    return edit;
+  };
+
   //---
 
   // fold column
-  columnEdit_ = addLineEdit("Column", "column");
+  //columnEdit_ = new CQChartsColumnCombo;
+  columnEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("columnEdit");
 
-  columnEdit_->setToolTip("Fold Column");
+  (void) addWidgetEdit("Column(s)", "column", columnEdit_);
+
+  columnEdit_->setToolTip("Fold Column(s)");
 
   //---
 
   // fold type
-  auto *foldTypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "type");
-
   typeCombo_ = CQUtil::makeWidget<QComboBox>("foldType");
 
+  (void) addWidgetEdit("Type", "type", typeCombo_);
+
   typeCombo_->addItems(QStringList() << "Bucketed" << "Hier Separator");
-
-  gridLayout->addWidget(foldTypeLabel, row, 0);
-  gridLayout->addWidget(typeCombo_   , row, 1); ++row;
-
   typeCombo_->setToolTip("Fold using bucketed values or hierarchical separator");
 
   //---
 
   // fold auto check
-  auto *foldAutoLabel = CQUtil::makeLabelWidget<QLabel>("Auto", "auto");
-
   autoCheck_ = CQUtil::makeWidget<CQCheckBox>("foldAuto");
+
+  (void) addWidgetEdit("Auto", "auto", autoCheck_);
 
   autoCheck_->setText("Auto");
   autoCheck_->setChecked(true);
-
-  gridLayout->addWidget(foldAutoLabel, row, 0);
-  gridLayout->addWidget(autoCheck_   , row, 1); ++row;
-
   autoCheck_->setToolTip("Automatically determine fold buckets");
 
   //---
@@ -134,6 +137,8 @@ CQChartsModelFoldControl::
 setModelData(CQChartsModelData *modelData)
 {
   modelData_ = modelData;
+
+//columnEdit_->setModelData(modelData_);
 }
 
 void

@@ -7,11 +7,11 @@ proc describe_model { model } {
   for {set c 0} {$c < $nc} {incr c} {
     set name [get_charts_data -model $model -column $c -header -name value]
 
-    set num_null [get_charts_data -model $model -column $c -name num_null]
+    set num_null [get_charts_data -model $model -column $c -name details.num_null]
 
     set num_non_null [expr {$nr - $num_null}]
 
-    set type [get_charts_data -model $model -column $c -name type]
+    set type [get_charts_data -model $model -column $c -name details.type]
 
     puts "$name\t$num_non_null non-null $type"
   }

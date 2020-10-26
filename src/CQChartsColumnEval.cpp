@@ -23,6 +23,7 @@ CQChartsColumnEval()
 {
   qtcl_ = new CQChartsExprTcl();
 
+  // add column, color expressions
   addFunc("column", (CQTcl::ObjCmdProc) &CQChartsColumnEval::columnCmd);
   addFunc("color" , (CQTcl::ObjCmdProc) &CQChartsColumnEval::colorCmd );
 
@@ -40,6 +41,34 @@ CQChartsColumnEval::
 qtcl() const
 {
   return qtcl_;
+}
+
+const QAbstractItemModel *
+CQChartsColumnEval::
+model() const
+{
+  return qtcl_->model();
+}
+
+void
+CQChartsColumnEval::
+setModel(const QAbstractItemModel *model)
+{
+  qtcl_->setModel(model);
+}
+
+int
+CQChartsColumnEval::
+row() const
+{
+  return qtcl_->row();
+}
+
+void
+CQChartsColumnEval::
+setRow(int r)
+{
+  qtcl_->setRow(r);
 }
 
 void
@@ -64,8 +93,11 @@ evaluateExpression(const QString &expr, QVariant &value, bool showError)
 
   std::unique_lock<std::mutex> lock(mutex_);
 
+  // set current model
   qtcl_->setModel(const_cast<QAbstractItemModel *>(model()));
-  qtcl_->setRow  (row());
+
+  // set current row
+  qtcl_->setRow(row());
 
   return qtcl_->evaluateExpression(expr, value, (showError || isDebug()));
 }
@@ -134,18 +166,14 @@ void
 CQChartsColumnEval::
 parseCmd(int objc, const Tcl_Obj **objv, Values &values)
 {
-  for (int i = 1; i < objc; ++i) {
-    const auto *obj = objv[i];
-
-    values.push_back(qtcl()->variantFromObj(obj));
-  }
+  return qtcl_->parseCmd(objc, objv, values);
 }
 
 int
 CQChartsColumnEval::
 setResult(const QVariant &res)
 {
-  qtcl()->setResult(res);
+  qtcl_->setResult(res);
 
   return TCL_OK;
 }
@@ -156,64 +184,26 @@ bool
 CQChartsColumnEval::
 getColumnValue(const Values &values, int &ind, int &col) const
 {
-  if (ind >= int(values.size()))
-    return false;
-
-  bool ok;
-
-  col = CQChartsVariant::toInt(values[ind], ok);
-  if (! ok) return false;
-
-  ++ind;
-
-  return true;
+  return qtcl_->getColumnValue(values, ind, col);
 }
 
 bool
 CQChartsColumnEval::
 getRowValue(const Values &values, int &ind, int &row) const
 {
-  if (ind >= int(values.size()))
-    return false;
-
-  bool ok;
-
-  row = CQChartsVariant::toInt(values[ind], ok);
-  if (! ok) return false;
-
-  ++ind;
-
-  return true;
+  return qtcl_->getRowValue(values, ind, row);
 }
 
 bool
 CQChartsColumnEval::
 checkIndex(int row, int col) const
 {
-  if (! model_)
-    return false;
-
-  if (row < 0 || row >= model_->rowCount   ()) return false;
-  if (col < 0 || col >= model_->columnCount()) return false;
-
-  return true;
+  return qtcl_->checkIndex(row, col);
 }
 
 QVariant
 CQChartsColumnEval::
 getModelData(int row, int col) const
 {
-  if (! model_)
-    return QVariant();
-
-  QModelIndex parent; // TODO
-
-  auto ind = model_->index(row, col, parent);
-
-  auto var = model_->data(ind, Qt::EditRole);
-
-  if (! var.isValid())
-    var = model_->data(ind, Qt::DisplayRole);
-
-  return var;
+  return qtcl_->getModelData(row, col);
 }

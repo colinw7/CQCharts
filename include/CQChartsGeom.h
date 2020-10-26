@@ -1046,6 +1046,13 @@ class Range {
 
   bool isSet() const { return set_; }
 
+  bool isValid() const {
+    return (! CMathUtil::isNaN(x1_) && ! CMathUtil::isNaN(y1_) &&
+            ! CMathUtil::isNaN(x2_) && ! CMathUtil::isNaN(y2_));
+  }
+
+  //---
+
   void set(double x1, double y1, double x2, double y2) {
     set_ = true;
 

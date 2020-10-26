@@ -340,6 +340,53 @@ snum() const
     return -1;
 }
 
+//---
+
+QVariant
+CQChartsValueSet::
+min(const QVariant &def) const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.min();
+  else if (type() == Type::REAL)
+    return rvals_.min();
+  else if (type() == Type::STRING)
+    return svals_.min();
+  else if (type() == Type::COLOR)
+    return CQChartsVariant::fromColor(cvals_.min());
+  else if (type() == Type::TIME)
+    return tvals_.min();
+  else
+    return def;
+}
+
+QVariant
+CQChartsValueSet::
+max(const QVariant &def) const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.max();
+  else if (type() == Type::REAL)
+    return rvals_.max();
+  else if (type() == Type::STRING)
+    return svals_.max();
+  else if (type() == Type::COLOR)
+    return CQChartsVariant::fromColor(cvals_.max());
+  else if (type() == Type::TIME)
+    return tvals_.max();
+  else
+    return def;
+}
+
+QVariant
+CQChartsValueSet::
+range(const QVariant &def) const
+{
+  return QString("%1-%2").arg(min(def).toString()).arg(max(def).toString());
+}
+
+//---
+
 int
 CQChartsValueSet::
 imin(int def) const
@@ -408,6 +455,24 @@ rmax(double def) const
     return cvals_.imax(int(def));
   else if (type() == Type::TIME)
     return tvals_.max(def);
+  else
+    return def;
+}
+
+double
+CQChartsValueSet::
+rmedian(double def) const
+{
+  if      (type() == Type::INTEGER)
+    return def;
+  else if (type() == Type::REAL)
+    return rvals_.median();
+  else if (type() == Type::STRING)
+    return def;
+  else if (type() == Type::COLOR)
+    return def;
+  else if (type() == Type::TIME)
+    return def;
   else
     return def;
 }

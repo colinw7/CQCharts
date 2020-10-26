@@ -71,7 +71,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
   getColumnData(index, columnData);
 
-  const auto &nullStr = columnData.details->nullValue();
+  QString nullStr;
+
+  if (columnData.details)
+    nullStr = columnData.details->nullValue();
 
   //---
 

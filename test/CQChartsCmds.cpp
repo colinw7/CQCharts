@@ -353,10 +353,15 @@ exec(CQChartsCmdArgs &argv)
 
   inputData.separator = argv.getParseStr("separator");
 
+  //---
+
+  // column names
   auto columnsStr = argv.getParseStr("columns");
 
   if (! CQTcl::splitList(columnsStr, inputData.columns))
     return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
+
+  //---
 
   inputData.transpose = argv.getParseBool("transpose");
 
@@ -447,12 +452,14 @@ addArgs(CQChartsCmdArgs &argv)
                  "column for delete, modify, calc, query, analyze");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-add"    , CQChartsCmdArg::Type::Boolean, "add column");
-  argv.addCmdArg("-delete" , CQChartsCmdArg::Type::Boolean, "delete column");
-  argv.addCmdArg("-modify" , CQChartsCmdArg::Type::Boolean, "modify column values");
-  argv.addCmdArg("-calc"   , CQChartsCmdArg::Type::Boolean, "calc column");
-  argv.addCmdArg("-query"  , CQChartsCmdArg::Type::Boolean, "query column");
-  argv.addCmdArg("-analyze", CQChartsCmdArg::Type::Boolean, "analyze data");
+  argv.addCmdArg("-add"         , CQChartsCmdArg::Type::Boolean, "add column");
+  argv.addCmdArg("-delete"      , CQChartsCmdArg::Type::Boolean, "delete column");
+  argv.addCmdArg("-modify"      , CQChartsCmdArg::Type::Boolean, "modify column values");
+  argv.addCmdArg("-calc"        , CQChartsCmdArg::Type::Boolean, "calc column");
+  argv.addCmdArg("-query"       , CQChartsCmdArg::Type::Boolean, "query column");
+  argv.addCmdArg("-analyze"     , CQChartsCmdArg::Type::Boolean, "analyze data");
+  argv.addCmdArg("-replace"     , CQChartsCmdArg::Type::String , "replace value");
+  argv.addCmdArg("-replace_null", CQChartsCmdArg::Type::Boolean, "replace null values");
   argv.endCmdGroup();
 
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
@@ -460,6 +467,7 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
   argv.addCmdArg("-vars"  , CQChartsCmdArg::Type::String, "variables for expression");
   argv.addCmdArg("-tcl"   , CQChartsCmdArg::Type::String, "tcl data for add/modify");
+  argv.addCmdArg("-value" , CQChartsCmdArg::Type::String, "value for replace and replace null");
 
   argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
   argv.addCmdArg("-debug", CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
@@ -777,6 +785,44 @@ exec(CQChartsCmdArgs &argv)
     }
 
     analyzeModel.print();
+  }
+  else if (argv.hasParseArg("replace")) {
+    auto oldValue = argv.getParseStr("replace");
+
+    if (! argv.hasParseArg("column"))
+      return errorMsg("Missing column for -replace");
+
+    if (! argv.hasParseArg("value"))
+      return errorMsg("Missing value for -replace");
+
+    auto column = argv.getParseColumn("column", model.data());
+
+    if (! column.isValid())
+      return errorMsg("Invalid/missing column for -replace");
+
+    auto newValue = argv.getParseStr("value");
+
+    int n = modelData->replaceValue(column, oldValue, newValue);
+
+    return cmdBase_->setCmdRc(n);
+  }
+  else if (argv.getParseBool("replace_null")) {
+    if (! argv.hasParseArg("column"))
+      return errorMsg("Missing column for -replace_null");
+
+    if (! argv.hasParseArg("value"))
+      return errorMsg("Missing value for -replace_null");
+
+    auto column = argv.getParseColumn("column", model.data());
+
+    if (! column.isValid())
+      return errorMsg("Invalid/missing column for -replace_null");
+
+    auto value = argv.getParseStr("value");
+
+    int n = modelData->replaceNullValues(column, value);
+
+    return cmdBase_->setCmdRc(n);
   }
   else {
 #if 0
@@ -1229,7 +1275,7 @@ exec(CQChartsCmdArgs &argv)
 
   //--
 
-  // plot columns
+  // plot columns (name (plot column) and value (model column))
   auto columnsStrs = argv.getParseStrs("columns");
 
   for (int i = 0; i < columnsStrs.length(); ++i) {
@@ -1243,12 +1289,9 @@ exec(CQChartsCmdArgs &argv)
     if (! CQTcl::splitList(columnsStr, strs))
       return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
 
-    //QStringList strs = stringToNamedColumns(columnsStr);
-
     for (int j = 0; j < strs.size(); ++j) {
       const auto &nameValue = strs[j];
 
-#if 1
       QStringList strs1;
 
       if (! CQTcl::splitList(nameValue, strs1))
@@ -1259,15 +1302,6 @@ exec(CQChartsCmdArgs &argv)
 
       auto name  = strs1[0];
       auto value = strs1[1];
-#else
-      auto pos = nameValue.indexOf('=');
-
-      if (pos < 0)
-        return errorMsg("Invalid -columns option '" + columnsStr + "'");
-
-      auto name  = nameValue.mid(0, pos).simplified();
-      auto value = nameValue.mid(pos + 1).simplified();
-#endif
 
       nameValueData.columns[name] = value;
     }
@@ -1283,7 +1317,6 @@ exec(CQChartsCmdArgs &argv)
 
     QString name, value;
 
-#if 1
     QStringList strs1;
 
     if (! CQTcl::splitList(parameterStr, strs1))
@@ -1294,18 +1327,6 @@ exec(CQChartsCmdArgs &argv)
 
     name  = strs1[0];
     value = strs1[1];
-#else
-    auto pos = parameterStr.indexOf('=');
-
-    if (pos >= 0) {
-      name  = parameterStr.mid(0, pos).simplified();
-      value = parameterStr.mid(pos + 1).simplified();
-    }
-    else {
-      name  = parameterStr;
-      value = "true";
-    }
-#endif
 
     nameValueData.parameters[name] = value;
   }
@@ -2603,7 +2624,6 @@ exec(CQChartsCmdArgs &argv)
         double v = j*dv;
         QColor c;
 
-#if 1
         QStringList strs1;
 
         if (! CQTcl::splitList(strs[j], strs1))
@@ -2623,18 +2643,6 @@ exec(CQChartsCmdArgs &argv)
           lhs    = strs1[0];
           isPair = false;
         }
-#else
-        int pos = strs[j].indexOf('=');
-
-        if (pos > 0) {
-          lhs = strs[j].mid(0, pos).simplified();
-          rhs = strs[j].mid(pos + 1).simplified();
-        }
-        else {
-          lhs    = strs[j];
-          isPair = false;
-        }
-#endif
 
         if (isPair) {
           bool ok;
@@ -2897,8 +2905,8 @@ exec(CQChartsCmdArgs &argv)
   auto viewName   = argv.getParseStr ("view");
   bool vertical   = argv.getParseBool("vertical");
   bool horizontal = argv.getParseBool("horizontal");
-  int  rows       = argv.getParseInt ("rows"   , -1);
-  int  columns    = argv.getParseInt ("columns", -1);
+  int  rows       = argv.getParseInt ("rows"   , -1); // number of rows
+  int  columns    = argv.getParseInt ("columns", -1); // number of columns
 
   const auto &plotNames = argv.getParseArgs();
 
@@ -3037,10 +3045,12 @@ void
 CQChartsFlattenChartsModelCmd::
 addArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String, "model_id");
-  argv.addCmdArg("-group", CQChartsCmdArg::Type::Column, "grouping column id");
-  argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::String, "columns to calculate sum");
-  argv.addCmdArg("-mean" , CQChartsCmdArg::Type::String, "columns to calculate mean");
+  argv.addCmdArg("-model"       , CQChartsCmdArg::Type::String, "model_id");
+  argv.addCmdArg("-group"       , CQChartsCmdArg::Type::Column, "grouping column id");
+  argv.addCmdArg("-sum_columns" , CQChartsCmdArg::Type::String, "columns to calculate sum");
+  argv.addCmdArg("-mean_columns", CQChartsCmdArg::Type::String, "columns to calculate mean");
+  argv.addCmdArg("-default_op"  , CQChartsCmdArg::Type::String, "default operation");
+  argv.addCmdArg("-column_ops"  , CQChartsCmdArg::Type::String, "operations and columns to use");
 }
 
 QStringList
@@ -3110,8 +3120,64 @@ exec(CQChartsCmdArgs &argv)
   };
 
   // get sum and mean columns
-  std::vector<CQChartsColumn> sumColumns  = argStringToColumns("sum" );
-  std::vector<CQChartsColumn> meanColumns = argStringToColumns("mean");
+  std::vector<CQChartsColumn> sumColumns  = argStringToColumns("sum_columns" );
+  std::vector<CQChartsColumn> meanColumns = argStringToColumns("mean_columns");
+
+  //---
+
+  CQChartsModelUtil::FlattenOp defOp = CQChartsModelUtil::FlattenOp::NONE;
+
+  if (argv.hasParseArg("default_op"))
+    defOp = CQChartsModelUtil::stringToOp(argv.getParseStr("default_op"));
+
+  //---
+
+  using ColumnOps = CQChartsModelUtil::FlattenData::ColumnOps;
+
+  auto stringToColumnOps = [&](const QString &opStr) {
+    ColumnOps columnOps;
+
+    QStringList strs;
+
+    if (! CQTcl::splitList(opStr, strs))
+      return columnOps;
+
+    for (const auto &str : strs) {
+      QStringList strs1;
+
+      if (! CQTcl::splitList(str, strs1))
+        continue;
+
+      if (strs1.size() != 2) {
+        errorMsg(QString("Invalid column op '%1'").arg(str));
+        continue;
+      }
+
+      auto flattenOp = CQChartsModelUtil::stringToOp(strs1[0]);
+
+      if (flattenOp == CQChartsModelUtil::FlattenOp::NONE) {
+        errorMsg(QString("Invalid column op '%1'").arg(strs1[0]));
+        continue;
+      }
+
+      CQChartsColumn column;
+
+      if (! CQChartsModelUtil::stringToColumn(model.data(), strs1[1], column)) {
+        errorMsg("Bad column '" + strs1[1] + "'");
+        continue;
+      }
+
+      columnOps.push_back(CQChartsModelUtil::FlattenData::ColumnOp(column, flattenOp));
+    }
+
+    return columnOps;
+  };
+
+  // get sum and mean columns
+  ColumnOps columnOps;
+
+  if (argv.hasParseArg("column_ops"))
+    columnOps = stringToColumnOps(argv.getParseStr("column_ops"));
 
   //---
 
@@ -3122,15 +3188,17 @@ exec(CQChartsCmdArgs &argv)
   CQChartsModelUtil::FlattenData flattenData;
 
   flattenData.groupColumn = groupColumn;
+  flattenData.defOp       = defOp;
 
   for (const auto &c : sumColumns)
-    flattenData.columnOp[c] = CQChartsModelUtil::FlattenOp::SUM;
+    flattenData.columnOpMap[c] = CQChartsModelUtil::FlattenOp::SUM;
 
   for (const auto &c : meanColumns)
-    flattenData.columnOp[c] = CQChartsModelUtil::FlattenOp::MEAN;
+    flattenData.columnOpMap[c] = CQChartsModelUtil::FlattenOp::MEAN;
 
-  CQChartsFilterModel *filterModel =
-    CQChartsModelUtil::flattenModel(charts(), model.data(), flattenData);
+  flattenData.columnOps = columnOps;
+
+  auto *filterModel = CQChartsModelUtil::flattenModel(charts(), model.data(), flattenData);
 
   CQChartsCmds::ModelP dataModelP(filterModel);
 
@@ -3148,8 +3216,11 @@ void
 CQChartsCopyChartsModelCmd::
 addArgs(CQChartsCmdArgs &argv)
 {
+  // TODO: columns, allow add row index ?
+
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::String , "model_id");
   argv.addCmdArg("-filter", CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-rows"  , CQChartsCmdArg::Type::Integer, "number of rows");
   argv.addCmdArg("-debug" , CQChartsCmdArg::Type::Boolean, "debug expression evaulation");
 }
 
@@ -3184,6 +3255,13 @@ exec(CQChartsCmdArgs &argv)
 
   bool debug = argv.getParseBool("debug");
 
+  //--
+
+  int nr = -1;
+
+  if (argv.hasParseArg("rows"))
+    nr = argv.getParseInt("rows", -1);
+
   //---
 
   auto modelId = argv.getParseStr("model");
@@ -3191,6 +3269,7 @@ exec(CQChartsCmdArgs &argv)
   CQChartsModelData::CopyData copyData;
 
   copyData.filter = argv.getParseStr("filter");
+  copyData.nr     = nr;
   copyData.debug  = debug;
 
   //------
@@ -3277,25 +3356,12 @@ exec(CQChartsCmdArgs &argv)
   //---
 
   // split into strings per column
+  CQChartsCmds::Columns columns;
+
   auto columnsStr = argv.getParseStr("columns");
 
-  using Columns = std::vector<CQChartsColumn>;
-
-  Columns columns;
-
-  QStringList columnStrs;
-
-  if (! CQTcl::splitList(columnsStr, columnStrs))
-    return errorMsg("Bad columns '" + columnsStr + "'");
-
-  for (const auto &columnStr : columnStrs) {
-    CQChartsColumn column;
-
-    if (! CQChartsModelUtil::stringToColumn(model0.data(), columnStr, column))
-      return errorMsg("Bad column '" + columnStr + "'");
-
-    columns.push_back(column);
-  }
+  if (! cmds()->stringToModelColumns(model0, columnsStr, columns))
+    return false;
 
   if (columns.size() < 1)
     return errorMsg("Need one or more column to join");
@@ -3368,25 +3434,12 @@ exec(CQChartsCmdArgs &argv)
 
   //---
 
+  CQChartsCmds::Columns columns;
+
   auto columnsStr = argv.getParseStr("columns");
 
-  QStringList columnStrs;
-
-  if (! CQTcl::splitList(columnsStr, columnStrs))
-    return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
-
-  CQChartsModelData::Columns columns;
-
-  for (const auto &columnStr : columnStrs) {
-    CQChartsColumn column;
-
-    if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
-      (void) errorMsg("Bad column '" + columnStr + "'");
-      continue;
-    }
-
-    columns.push_back(column);
-  }
+  if (! cmds()->stringToModelColumns(model, columnsStr, columns))
+    return false;
 
   //---
 
@@ -3413,6 +3466,7 @@ addArgs(CQChartsCmdArgs &argv)
 {
   argv.addCmdArg("-model"    , CQChartsCmdArg::Type::String , "model_id");
   argv.addCmdArg("-header"   , CQChartsCmdArg::Type::SBool  , "show header");
+  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "columns to ouput");
   argv.addCmdArg("-max_rows" , CQChartsCmdArg::Type::Integer, "maximum number of rows to write");
   argv.addCmdArg("-max_width", CQChartsCmdArg::Type::Integer, "maximum column width");
   argv.addCmdArg("-hier"     , CQChartsCmdArg::Type::SBool  , "output hierarchically");
@@ -3451,7 +3505,7 @@ exec(CQChartsCmdArgs &argv)
 
   auto modelId = argv.getParseStr("model");
 
-  //------
+  //---
 
   // get model
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
@@ -3459,7 +3513,18 @@ exec(CQChartsCmdArgs &argv)
 
   auto model = modelData->currentModel();
 
-  //------
+  //---
+
+  CQChartsCmds::Columns columns;
+
+  if (argv.hasParseArg("columns")) {
+    auto columnsStr = argv.getParseStr("columns");
+
+    if (! cmds()->stringToModelColumns(model, columnsStr, columns))
+      return false;
+  }
+
+  //---
 
   // get max rows
   int maxRows = -1;
@@ -3621,10 +3686,17 @@ exec(CQChartsCmdArgs &argv)
     int          maxDepth_ { 0 };
   };
 
+  //---
+
   // list values
   int role = Qt::DisplayRole;
 
-  int nc = model.data()->columnCount();
+  int nc = 0;
+
+  if (columns.empty())
+    nc = model.data()->columnCount();
+  else
+    nc = columns.size();
 
   OutputRows output(nc, maxWidth);
 
@@ -3633,19 +3705,35 @@ exec(CQChartsCmdArgs &argv)
   auto outputColumns = [&]() {
     QStringList strs;
 
-    for (int c = 0; c < nc; ++c) {
-      bool ok;
+    if (columns.empty()) {
+      for (int ic = 0; ic < nc; ++ic) {
+        bool ok;
 
-      QVariant var =
-        CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::Horizontal, role, ok);
+        QVariant var =
+          CQChartsModelUtil::modelHeaderValue(model.data(), ic, Qt::Horizontal, role, ok);
 
-      QString str = var.toString();
+        QString str = var.toString();
 
-      strs += str;
+        strs += str;
+      }
+    }
+    else {
+      for (const auto &c : columns) {
+        bool ok;
+
+        QVariant var =
+          CQChartsModelUtil::modelHeaderValue(model.data(), c.column(), Qt::Horizontal, role, ok);
+
+        QString str = var.toString();
+
+        strs += str;
+      }
     }
 
     output.setHeader(strs);
   };
+
+  //---
 
   std::function<void(const QModelIndex &, int)> outputHier;
 
@@ -3658,15 +3746,29 @@ exec(CQChartsCmdArgs &argv)
     for (int r = 0; r < nr; ++r) {
       QStringList strs;
 
-      for (int c = 0; c < nc; ++c) {
-        bool ok;
+      if (columns.empty()) {
+        for (int ic = 0; ic < nc; ++ic) {
+          CQChartsColumn c(ic);
 
-        auto var = CQChartsModelUtil::modelValue(charts(), model.data(), r,
-                                                 CQChartsColumn(c), parent, role, ok);
+          bool ok;
 
-        QString str = var.toString();
+          auto var = CQChartsModelUtil::modelValue(charts(), model.data(), r, c, parent, role, ok);
 
-        strs += str;
+          QString str = var.toString();
+
+          strs += str;
+        }
+      }
+      else {
+        for (const auto &c : columns) {
+          bool ok;
+
+          auto var = CQChartsModelUtil::modelValue(charts(), model.data(), r, c, parent, role, ok);
+
+          QString str = var.toString();
+
+          strs += str;
+        }
       }
 
       output.addRow(depth, strs);
@@ -3751,7 +3853,11 @@ exec(CQChartsCmdArgs &argv)
 
   auto model = modelData->currentModel();
 
+  //---
+
+  // get column
   auto column = argv.getParseColumn("column", model.data());
+  if (! column.isValid()) return errorMsg("Invalid column");
 
   //---
 
@@ -3872,8 +3978,9 @@ void
 CQChartsCreateChartsCorrelationModelCmd::
 addArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::String , "model_id");
-  argv.addCmdArg("-flip" , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
+  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::String , "model_id");
+  argv.addCmdArg("-flip"   , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
+  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String , "columns to correlate");
 }
 
 QStringList
@@ -3910,17 +4017,36 @@ exec(CQChartsCmdArgs &argv)
   auto modelId = argv.getParseStr ("model");
   bool flip    = argv.getParseBool("flip");
 
-  //------
+  //---
 
   // get model
   auto *modelData = cmds()->getModelDataOrCurrent(modelId);
   if (! modelData) return errorMsg("No model data for '" + modelId + "'");
 
-  //------
+  auto model = modelData->currentModel();
+
+  //---
+
+  CQChartsCmds::Columns columns;
+
+  if (argv.hasParseArg("columns")) {
+    auto columnsStr = argv.getParseStr("columns");
+
+    if (! cmds()->stringToModelColumns(model, columnsStr, columns))
+      return false;
+  }
+
+  //---
 
   CQChartsLoader loader(charts());
 
-  auto *correlationModel = loader.createCorrelationModel(modelData->currentModel().data(), flip);
+  CQChartsLoader::CorrelationData correlationData;
+
+  correlationData.flip    = flip;
+  correlationData.columns = columns;
+
+  auto *correlationModel =
+    loader.createCorrelationModel(modelData->currentModel().data(), correlationData);
 
   CQChartsCmds::ModelP correlationModelP(correlationModel);
 
@@ -4792,7 +4918,7 @@ exec(CQChartsCmdArgs &argv)
     return columns;
   };
 
-  std::vector<CQChartsColumn> columns = argStringToColumns("columns");
+  auto columns = argStringToColumns("columns");
 
   using ColumnSet = std::set<int>;
 
@@ -4959,8 +5085,8 @@ exec(CQChartsCmdArgs &argv)
   //---
 
   // get model
-  int nr = argv.getParseInt("rows"   , 0);
-  int nc = argv.getParseInt("columns", 0);
+  int nr = argv.getParseInt("rows"   , 0); // number of rows
+  int nc = argv.getParseInt("columns", 0); // number of columns
 
   //---
 
@@ -10370,7 +10496,6 @@ bool
 CQChartsCmds::
 setAnnotationProperties(CQChartsAnnotation *annotation, const QString &properties)
 {
-#if 1
   auto errorMsg = [&](const QString &msg) {
     charts_->errorMsg(msg);
     return false;
@@ -10400,10 +10525,6 @@ setAnnotationProperties(CQChartsAnnotation *annotation, const QString &propertie
 
   if (! rc)
     return errorMsg("Failed to set annotation properties '" + properties + "'");
-#else
-  if (! annotation->setProperties(properties))
-    return errorMsg("Failed to set annotation properties '" + properties + "'");
-#endif
 
   return true;
 }
@@ -10863,4 +10984,30 @@ CQChartsCmds::
 roleArgValues() const
 {
   return CQChartsModelUtil::roleNames();
+}
+
+bool
+CQChartsCmds::
+stringToModelColumns(const ModelP &model, const QString &columnsStr, Columns &columns)
+{
+  // split into strings per column
+  QStringList columnStrs;
+
+  if (! CQTcl::splitList(columnsStr, columnStrs)) {
+    charts_->errorMsg("Bad columns '" + columnsStr + "'");
+    return false;
+  }
+
+  for (const auto &columnStr : columnStrs) {
+    CQChartsColumn column;
+
+    if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
+      charts_->errorMsg("Bad column '" + columnStr + "'");
+      return false;
+    }
+
+    columns.push_back(column);
+  }
+
+  return true;
 }

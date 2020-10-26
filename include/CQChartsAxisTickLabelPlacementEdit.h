@@ -4,6 +4,8 @@
 #include <CQChartsAxisTickLabelPlacement.h>
 #include <CQChartsEnumEdit.h>
 
+class QComboBox;
+
 /*!
  * \brief editor for CQChartsAxisTickLabelPlacement
  * \ingroup Charts

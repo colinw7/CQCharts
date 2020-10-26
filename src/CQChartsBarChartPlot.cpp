@@ -1200,8 +1200,10 @@ createObjs(PlotObjs &objs) const
           }
         }
 
-        if (value1 == value2)
-          continue;
+        if (value1 == value2) {
+          if (isSkipEmpty())
+            continue;
+        }
 
         if (isStacked())
           brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);

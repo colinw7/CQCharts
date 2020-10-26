@@ -6,7 +6,11 @@
 #include <QSharedPointer>
 
 class CQChartsModelExprControl;
+class CQChartsModelFilterControl;
+#ifdef CQCHARTS_FOLDED_MODEL
 class CQChartsModelFoldControl;
+#endif
+class CQChartsModelFlattenControl;
 class CQChartsModelColumnDataControl;
 
 class CQCharts;
@@ -34,15 +38,18 @@ class CQChartsModelControl : public QFrame {
 
  public slots:
   void updateCurrentModel();
+  void filterTextSlot(const QString &);
 
  private:
-  CQChartsModelExprControl *addExprFrame();
-
+  CQChartsModelExprControl       *addExprFrame();
+  CQChartsModelFilterControl     *addFilterFrame();
 #ifdef CQCHARTS_FOLDED_MODEL
-  CQChartsModelFoldControl *addFoldFrame();
+  CQChartsModelFoldControl       *addFoldFrame();
 #endif
-
+  CQChartsModelFlattenControl    *addFlattenFrame();
   CQChartsModelColumnDataControl *addColumnDataFrame();
+
+  //---
 
   QFrame *addPropertiesFrame();
 
@@ -50,9 +57,11 @@ class CQChartsModelControl : public QFrame {
   CQCharts*                       charts_          { nullptr };
   CQChartsModelData*              modelData_       { nullptr };
   CQChartsModelExprControl*       exprFrame_       { nullptr };
+  CQChartsModelFilterControl*     filterFrame_     { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
   CQChartsModelFoldControl*       foldFrame_       { nullptr };
 #endif
+  CQChartsModelFlattenControl*    flattenFrame_    { nullptr };
   CQChartsModelColumnDataControl* columnDataFrame_ { nullptr };
   CQPropertyViewModel*            propertyModel_   { nullptr };
   CQPropertyViewTree*             propertyTree_    { nullptr };

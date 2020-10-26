@@ -9,24 +9,24 @@ proc modelDetails { modelId } {
   for {set c 0} {$c < $nc} {incr c} {
     puts "Column: $c"
 
-    set type [get_charts_data -model $modelId -column $c -name type]
-    set minv [get_charts_data -model $modelId -column $c -name min]
-    set maxv [get_charts_data -model $modelId -column $c -name max]
+    set type [get_charts_data -model $modelId -column $c -name details.type]
+    set minv [get_charts_data -model $modelId -column $c -name details.min]
+    set maxv [get_charts_data -model $modelId -column $c -name details.max]
 
     puts "  Type: $type"
     puts "  Range: $minv, $maxv"
 
-    set monotonic  [get_charts_data -model $modelId -column $c -name monotonic]
-    set increasing [get_charts_data -model $modelId -column $c -name increasing]
+    set monotonic  [get_charts_data -model $modelId -column $c -name details.monotonic]
+    set increasing [get_charts_data -model $modelId -column $c -name details.increasing]
 
     puts "  Monotonic: $monotonic"
     puts "  Increasing: $increasing"
 
-    set num_unique [get_charts_data -model $modelId -column $c -name num_unique]
+    set num_unique [get_charts_data -model $modelId -column $c -name details.num_unique]
 
     puts "  Num Unique: $num_unique"
 
-    set num_null [get_charts_data -model $modelId -column $c -name num_null]
+    set num_null [get_charts_data -model $modelId -column $c -name details.num_null]
 
     puts "  Num Null: $num_null"
   }

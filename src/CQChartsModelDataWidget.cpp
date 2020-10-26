@@ -65,6 +65,9 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 
   connect(filterEdit, SIGNAL(returnPressed()), this, SLOT(filterSlot()));
 
+  connect(filterEdit, SIGNAL(textChanged(const QString &)),
+          this, SIGNAL(filterTextChanged(const QString &)));
+
   //---
 
 #ifdef CQCHARTS_MODEL_VIEW

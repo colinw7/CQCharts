@@ -523,7 +523,12 @@ addFromToValue(const FromToData &fromToData) const
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);
 
-    srcNode->addEdge(destNode, fromToData.value);
+    auto value = fromToData.value;
+
+    if (! value.isSet())
+      value = OptReal(1.0);
+
+    srcNode->addEdge(destNode, value);
 
     for (const auto &nv : fromToData.nameValues.nameValues()) {
       auto value = nv.second.toString();

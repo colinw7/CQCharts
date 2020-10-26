@@ -1212,3 +1212,8 @@
 # 10/18/2020
  + Add obj ref position support to more annotation types
  + Improve tip for scatter plot overlays
+# 10/25/2020
+ + Add strip plot
+ + Move preview plot widget to seprate file
+ + Support null value replacement model dialog
+ + Support flatten in model dialog and allow specific and duplcate columns

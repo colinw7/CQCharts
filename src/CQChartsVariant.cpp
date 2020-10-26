@@ -113,12 +113,45 @@ bool toString(const QVariant &var, QString &str) {
 //---
 
 int cmp(const QVariant &var1, const QVariant &var2) {
+  auto cmpInt = [&]() {
+    int i1 = var1.value<int>();
+    int i2 = var2.value<int>();
+
+    if (i1 < i2) return -1;
+    if (i1 > i2) return  1;
+
+    return 0;
+  };
+
+  auto cmpReal = [&]() {
+    double r1 = var1.value<double>();
+    double r2 = var2.value<double>();
+
+    if (r1 < r2) return -1;
+    if (r1 > r2) return  1;
+
+    return 0;
+  };
+
   bool isNumber1 = (var1.type() == QVariant::Int || var1.type() == QVariant::Double);
   bool isNumber2 = (var2.type() == QVariant::Int || var2.type() == QVariant::Double);
 
   if (isNumber1 && isNumber2) {
+    if (var1.type() == var2.type()) {
+      if      (var1.type() == QVariant::Int)
+        return cmpInt();
+      else if (var1.type() == QVariant::Double)
+        return cmpReal();
+    }
+
+    //---
+
     bool ok1; double r1 = toReal(var1, ok1);
     bool ok2; double r2 = toReal(var2, ok2);
+
+    if      (! ok1 && ! ok2) return  0;
+    else if (! ok1 &&   ok2) return -1;
+    else if (  ok1 && ! ok1) return  1;
 
     if (r1 < r2) return -1;
     if (r1 > r2) return  1;
@@ -129,29 +162,26 @@ int cmp(const QVariant &var1, const QVariant &var2) {
   //---
 
   if (var1.type() != var2.type()) {
+    bool isNull1 = (var1.type() == QVariant::String && var1.toString().length() == 0);
+    bool isNull2 = (var2.type() == QVariant::String && var2.toString().length() == 0);
+
+    if      (  isNull1 &&   isNull2) return  0;
+    else if (  isNull1 && ! isNull2) return -1;
+    else if (! isNull1 &&   isNull2) return  1;
+
     if (var1.type() < var2.type()) return -1;
     if (var1.type() > var2.type()) return  1;
 
     assert(false);
   }
 
+  //---
+
   if      (var1.type() == QVariant::Int) {
-    int i1 = var1.value<int>();
-    int i2 = var2.value<int>();
-
-    if (i1 < i2) return -1;
-    if (i1 > i2) return  1;
-
-    return 0;
+    return cmpInt();
   }
   else if (var1.type() == QVariant::Double) {
-    double r1 = var1.value<double>();
-    double r2 = var2.value<double>();
-
-    if (r1 < r2) return -1;
-    if (r1 > r2) return  1;
-
-    return 0;
+    return cmpReal();
   }
   else if (var1.type() == QVariant::UserType) {
     if (var1.userType() != var2.userType()) {

@@ -20,10 +20,10 @@ addParameters()
 
   if (isGroupRequired())
     addColumnParameter("group", "Group", "groupColumn").
-     setRequired().setGroupable().setTip("Group column");
+     setRequired().setGroupable().setBasic().setTip("Group column");
   else
     addColumnParameter("group", "Group", "groupColumn").
-     setGroupable().setTip("Group column");
+     setGroupable().setBasic().setTip("Group column");
 
   if (allowRowGrouping())
     addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").

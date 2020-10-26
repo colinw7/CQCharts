@@ -215,9 +215,16 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  int replaceValue(const CQChartsColumn &column, const QVariant &oldValue,
+                   const QVariant &newValue);
+  int replaceNullValues(const CQChartsColumn &column, const QVariant &newValue);
+
+  //---
+
   //! copy model data
   struct CopyData {
     QString filter;
+    int     nr    { -1 };
     bool    debug { false };
   };
 

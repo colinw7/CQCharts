@@ -34,6 +34,9 @@ class CQChartsModelDataWidget : public QFrame {
 
   void setDetails();
 
+ signals:
+  void filterTextChanged(const QString &);
+
  private slots:
   void reloadModelSlot();
 

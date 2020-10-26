@@ -7,7 +7,7 @@ proc create_stat_model { model } {
   set c1 0
 
   for {set c 0} {$c < $nc} {incr c} {
-    set type [get_charts_data -model $model -column $c -name type]
+    set type [get_charts_data -model $model -column $c -name details.type]
 
     if {$type != "real" && $type != "integer"} {
       continue
@@ -18,13 +18,13 @@ proc create_stat_model { model } {
     set stat_column($c1) {}
 
     lappend stat_column($c1) $name
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name mean]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name min]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name lower_median]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name median]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name upper_median]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name max]
-    lappend stat_column($c1) [get_charts_data -model $model -column $c -name outliers]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.mean]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.min]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.lower_median]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.median]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.upper_median]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.max]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name details.outliers]
 
     incr c1
   }

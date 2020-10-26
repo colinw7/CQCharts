@@ -1,6 +1,7 @@
 #ifndef CQChartsExprTcl_H
 #define CQChartsExprTcl_H
 
+#include <CQChartsVariant.h>
 #include <CQTclUtil.h>
 #include <CMathUtil.h>
 
@@ -9,180 +10,109 @@
 /*!
  * \brief Tcl evaluation wrapper class for model data
  * \ingroup Charts
+ *
+ * The following variables are traced and allowed in expressions
+ *  . <column_name> : encoded column name (initialized before processing model)
+ *  . "row"         : current row
+ *  . "x"           : same as "row"
+ *  . "column"      : current column
+ *  . "col"         : same as "column"
+ *  . "PI"          : value of PI
+ *  . "NaN"         : NaN value
+ *  . "_"           : last computed value
+ *
+ * The following optional functions are supported
+ *  . "column" : named/numbered column value in current row
  */
 class CQChartsExprTcl : public CQTcl {
  public:
-  CQChartsExprTcl(QAbstractItemModel *model=nullptr) :
-   model_(model) {
-  }
+  using Values = std::vector<QVariant>;
 
+ public:
+  CQChartsExprTcl(QAbstractItemModel *model=nullptr);
+
+  //! get/set model
   const QAbstractItemModel *model() const { return model_; }
-  void setModel(QAbstractItemModel *p) { model_ = p; }
+  void setModel(const QAbstractItemModel *p) { model_ = p; }
 
+  //! get/set row
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
+  //! get/set column
   int column() const { return column_; }
   void setColumn(int i) { column_ = i; }
 
+  //! get/set last value
   const QVariant &lastValue() const { return lastValue_; }
   void setLastValue(const QVariant &v) { lastValue_ = v; }
   void resetLastValue() { lastValue_ = QVariant(); }
   bool hasLastValue() const { return lastValue_.isValid(); }
 
-  int nameColumn(const QString &name) const {
-    auto p = nameColumns_.find(name);
+  //---
 
-    return (p != nameColumns_.end() ? (*p).second : -1);
-  }
-  void setNameColumn(const QString &name, int column) {
-    nameColumns_[name] = column;
+  //! get/set name column
+  int nameColumn(const QString &name) const;
+  void setNameColumn(const QString &name, int column);
 
-    traceVar(name);
-  }
+  //---
 
-  static QString encodeColumnName(const QString &name) {
-    assert(name.length());
-
-    QString name1;
-
-    for (int i = 0; i < name.length(); ++i) {
-      const auto &c = name[i];
-
-      if (i == 0) {
-        if (c.isLetter() || c == '_')
-          name1 += c;
-        else {
-          name1 += "C";
-
-          if (c.isLetter() || c.isNumber() || c == '_')
-            name1 += c;
-          else
-            name1 += '_';
-        }
-      }
-      else {
-        if (c.isLetter() || c.isNumber() || c == '_')
-          name1 += c;
-        else
-          name1 += '_';
-      }
-    }
-
-    return name1;
-  }
+  static QString encodeColumnName(const QString &name);
 
   void setColumnRole(int column, int role) {
     columnRoles_[column] = role;
   }
 
-  void resetColumns() { nameColumns_.clear(); columnRoles_.clear(); }
+  void resetColumns();
 
-  void handleTrace(const char *name, int flags) override {
-    if (flags & TCL_TRACE_READS)
-      setVar(name, row(), column());
-  }
+  void handleTrace(const char *name, int flags) override;
 
-  void initVars() {
-    // TODO: x optional ?
-    traceVar("row"   );
-    traceVar("x"     );
-    traceVar("column");
-    traceVar("col"   );
-    traceVar("PI"    );
-    traceVar("NaN"   );
-    traceVar("_"     );
-  }
+  void initVars();
 
-  void defineProc(const QString &name, const QString &args, const QString &body) {
-    eval(QString("proc ::tcl::mathfunc::%1 {%2} {%3}").arg(name).arg(args).arg(body));
-  }
+  void initFunctions();
 
-  bool evaluateExpression(const QString &expr, QVariant &value, bool showError=false) const {
-    auto *th = const_cast<CQChartsExprTcl *>(this);
+  void defineProc(const QString &name, const QString &args, const QString &body);
 
-    int rc = th->evalExpr(expr, showError);
+  bool evaluateExpression(const QString &expr, QVariant &value, bool showError=false) const;
 
-    if (rc != TCL_OK) {
-      if (isDomainError(rc)) {
-        double x = CMathUtil::getNaN();
+  int errorCount() const { return errorCount_; }
 
-        value = QVariant(x);
+  void incErrorCount() const { ++errorCount_; }
 
-        th->setLastValue(value);
+  //---
 
-        return true;
-      }
+  void parseCmd(int objc, const Tcl_Obj **objv, Values &values);
 
-      if (showError)
-        std::cerr << errorInfo(rc).toStdString() << std::endl;
+  //---
 
-      return false;
-    }
+  bool getColumnValue(const Values &values, int &ind, int &col) const;
 
-    value = getResult();
+  bool getRowValue(const Values &values, int &ind, int &row) const;
 
-    th->setLastValue(value);
+  QVariant getModelData(int row, int col) const;
 
-    return true;
-  }
+  bool checkIndex(int row, int col) const;
 
  private:
-  void setVar(const QString &name, int row, int column) {
-    int nameCol = (model_ ? nameColumn(name) : -1);
+  void setVar(const QString &name, int row, int column);
 
-    if      (nameCol >= 0) {
-      // get model value
-      QModelIndex parent; // TODO
+  static int columnCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
-      QModelIndex ind = model_->index(row, nameCol, parent);
+  bool checkColumn(int col) const;
 
-      QVariant var;
-
-      auto pr = columnRoles_.find(column);
-
-      if (pr != columnRoles_.end())
-        var = model_->data(ind, (*pr).second);
-
-      if (! var.isValid())
-        var = model_->data(ind, Qt::EditRole);
-
-      if (! var.isValid())
-        var = model_->data(ind, Qt::DisplayRole);
-
-      // store value in column variable
-      createVar(name, var);
-    }
-    else if (name == "row" || name == "x") {
-      createVar(name, row);
-    }
-    else if (name == "column" || name == "col") {
-      createVar(name, column);
-    }
-    else if (name == "PI") {
-      createVar(name, QVariant(M_PI));
-    }
-    else if (name == "NaN") {
-      createVar(name, QVariant(CMathUtil::getNaN()));
-    }
-    else if (name == "_") {
-      if (hasLastValue())
-        createVar(name, QVariant(lastValue()));
-      else
-        createVar(name, QVariant(0.0));
-    }
-  }
+  QVariant getModelData(const QModelIndex &ind) const;
 
  private:
   using NameColumns = std::map<QString, int>;
   using ColumnRoles = std::map<int, int>;
 
-  QAbstractItemModel *model_  { nullptr };
-  int                 row_    { -1 };
-  int                 column_ { -1 };
-  QVariant            lastValue_;
-  NameColumns         nameColumns_;
-  ColumnRoles         columnRoles_;
+  const QAbstractItemModel *model_      { nullptr }; //!< parent model
+  int                       row_        { -1 };      //!< current row
+  int                       column_     { -1 };      //!< current column
+  QVariant                  lastValue_;              //!< last valid result
+  mutable int               errorCount_ { 0 };       //!< number of errors
+  NameColumns               nameColumns_;            //!< named columns
+  ColumnRoles               columnRoles_;            //!< column roles
 };
 
 #endif

@@ -2267,16 +2267,76 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
       return groupValue_[row];
     }
 
+    //---
+
     double hierSum(int r, int c) const {
-      return valueSet(r, c).rsum();
+      auto &vs = valueSet(r, c);
+
+      vs.setType(CQChartsValueSet::Type::REAL);
+
+      return vs.rsum();
     }
 
     double hierMean(int r, int c) const {
-      return valueSet(r, c).rmean();
+      auto &vs = valueSet(r, c);
+
+      vs.setType(CQChartsValueSet::Type::REAL);
+
+      return vs.rmean();
     }
 
+    double hierMedian(int r, int c) const {
+      auto &vs = valueSet(r, c);
+
+      vs.setType(CQChartsValueSet::Type::REAL);
+
+      return vs.rmedian();
+    }
+
+    //---
+
+    QVariant hierCount(int r, int c) const {
+      auto &vs = valueSet(r, c);
+
+      return vs.numValues();
+    }
+
+    QVariant hierUnique(int r, int c) const {
+      auto &vs = valueSet(r, c);
+
+      return vs.numUnique();
+    }
+
+    QVariant hierMax(int r, int c, bool numeric=false) const {
+      auto &vs = valueSet(r, c);
+
+      if (numeric)
+        vs.setType(CQChartsValueSet::Type::REAL);
+
+      return vs.max();
+    }
+
+    QVariant hierMin(int r, int c, bool numeric=false) const {
+      auto &vs = valueSet(r, c);
+
+      if (numeric)
+        vs.setType(CQChartsValueSet::Type::REAL);
+
+      return vs.min();
+    }
+
+    QVariant hierRange(int r, int c) const {
+      auto &vs = valueSet(r, c);
+
+      return vs.range();
+    }
+
+    //---
+
     QVariant uniqueValue(int r, int c) const {
-      return valueSet(r, c).uniqueValue();
+      auto &vs = valueSet(r, c);
+
+      return vs.uniqueValue();
     }
 
    private:
@@ -2307,15 +2367,22 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   CQChartsModelVisit::exec(charts, model, flattenVisitor);
 
-  int nh = flattenVisitor.numHierColumns();
+  int nh = flattenVisitor.numHierColumns(); // 1 or 0
   int nc = flattenVisitor.numFlatColumns();
   int nr = flattenVisitor.numHierRows();
 
-  //---
+  CQDataModel *dataModel = nullptr;
 
-  auto *columnTypeMgr = charts->columnTypeMgr();
+  bool specifiedColumns = (flattenData.columnOpMap.empty() && ! flattenData.columnOps.empty());
 
-  auto *dataModel = new CQDataModel(nc + nh, nr);
+  if (! specifiedColumns || flattenVisitor.isHierarchical()) {
+    dataModel = new CQDataModel(nc + nh, nr);
+  }
+  else {
+    nc = 1 + flattenData.columnOps.size(); // groupColumn + each column with op
+
+    dataModel = new CQDataModel(nc, nr);
+  }
 
   auto *filterModel = new CQChartsFilterModel(charts, dataModel);
 
@@ -2323,25 +2390,54 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   //---
 
-  auto initModelColumn = [&](int c, bool isGroup) {
+  auto *columnTypeMgr = charts->columnTypeMgr();
+
+  using NumericColumns = std::set<int>;
+
+  NumericColumns numericColumns;
+
+  //---
+
+  auto opName = [&](FlattenOp flattenOp) {
+    if      (flattenOp == FlattenOp::SUM   ) return "Sum";
+    else if (flattenOp == FlattenOp::MEAN  ) return "Mean";
+    else if (flattenOp == FlattenOp::COUNT ) return "Count";
+    else if (flattenOp == FlattenOp::UNIQUE) return "Num Unique";
+    else if (flattenOp == FlattenOp::MAX   ) return "Max";
+    else if (flattenOp == FlattenOp::MEDIAN) return "Median";
+    else if (flattenOp == FlattenOp::MIN   ) return "Min";
+    else if (flattenOp == FlattenOp::RANGE ) return "Range";
+    else                                     return "";
+  };
+
+  //---
+
+  auto initModelColumn = [&](int src, int dest, FlattenOp flattenOp, bool isGroup) {
     bool ok;
 
-    auto name = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+    auto name = CQChartsModelUtil::modelHeaderString(model, src, Qt::Horizontal, ok);
 
-    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal, name);
+    if (flattenOp != FlattenOp::NONE)
+      name += QString(" (") +  opName(flattenOp) + ")";
 
-    CQChartsColumn column(c);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, dest, Qt::Horizontal, name);
+
+    CQChartsColumn srcColumn (src);
+    CQChartsColumn destColumn(dest);
 
     CQChartsModelTypeData columnTypeData;
 
-    if (! CQChartsModelUtil::columnValueType(charts, model, column, columnTypeData))
+    if (! CQChartsModelUtil::columnValueType(charts, model, srcColumn, columnTypeData))
       return;
 
     const auto *typeData = columnTypeMgr->getType(columnTypeData.type);
 
     if (typeData) {
+      if (typeData->isNumeric())
+        numericColumns.insert(src);
+
       if (isGroup || typeData->isNumeric()) {
-        (void) columnTypeMgr->setModelColumnType(dataModel, column, columnTypeData.type,
+        (void) columnTypeMgr->setModelColumnType(dataModel, destColumn, columnTypeData.type,
                                                  columnTypeData.nameValues);
       }
     }
@@ -2349,7 +2445,7 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
     const auto *headerTypeData = columnTypeMgr->getType(columnTypeData.headerType);
 
     if (headerTypeData) {
-      (void) columnTypeMgr->setModelHeaderType(dataModel, column, columnTypeData.headerType,
+      (void) columnTypeMgr->setModelHeaderType(dataModel, destColumn, columnTypeData.headerType,
                                                columnTypeData.headerNameValues);
     }
   };
@@ -2358,56 +2454,112 @@ CQChartsFilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
 
   // set hierarchical column
   if (flattenVisitor.isHierarchical()) {
-    initModelColumn(0, /*isGroup*/ true);
+    initModelColumn(0, 0, FlattenOp::NONE, /*isGroup*/true);
   }
 
   // set other columns and types
-  for (int c = 0; c < nc; ++c) {
-    bool isGroup = (flattenData.groupColumn.column() == c);
+  if (! specifiedColumns || flattenVisitor.isHierarchical()) {
+    for (int c = 0; c < nc; ++c) {
+      bool isGroup = (flattenData.groupColumn.column() == c);
 
-    initModelColumn(c + nh, isGroup);
+      initModelColumn(c + nh, c + nh, FlattenOp::NONE, isGroup);
+    }
+  }
+  else {
+    int i = 0;
+
+    initModelColumn(flattenData.groupColumn.column(), i++, FlattenOp::NONE, true);
+
+    for (auto &columnOp : flattenData.columnOps) {
+      auto srcColumn = columnOp.first;
+      auto flattenOp = columnOp.second;
+
+      initModelColumn(srcColumn.column(), i++, flattenOp, false);
+    }
   }
 
   //--
 
-  for (int r = 0; r < nr; ++r) {
-    if (flattenVisitor.isHierarchical()) {
-      auto var = flattenVisitor.groupValue(r);
+  auto calcOpValue = [&](FlattenOp flattenOp, int r, int c) {
+    QVariant v;
 
-      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
+    auto pn = numericColumns.find(c);
+
+    if (pn != numericColumns.end()) {
+      if      (flattenOp == FlattenOp::SUM   ) v = flattenVisitor.hierSum   (r, c);
+      else if (flattenOp == FlattenOp::MEAN  ) v = flattenVisitor.hierMean  (r, c);
+      else if (flattenOp == FlattenOp::COUNT ) v = flattenVisitor.hierCount (r, c);
+      else if (flattenOp == FlattenOp::UNIQUE) v = flattenVisitor.hierUnique(r, c);
+      else if (flattenOp == FlattenOp::MAX   ) v = flattenVisitor.hierMax   (r, c, true);
+      else if (flattenOp == FlattenOp::MEDIAN) v = flattenVisitor.hierMedian(r, c);
+      else if (flattenOp == FlattenOp::MIN   ) v = flattenVisitor.hierMin   (r, c, true);
+      else if (flattenOp == FlattenOp::RANGE ) v = flattenVisitor.hierRange (r, c);
+    }
+    else {
+      if      (flattenOp == FlattenOp::COUNT ) v = flattenVisitor.hierCount (r, c);
+      else if (flattenOp == FlattenOp::UNIQUE) v = flattenVisitor.hierUnique(r, c);
+      else if (flattenOp == FlattenOp::MAX   ) v = flattenVisitor.hierMax   (r, c);
+      else if (flattenOp == FlattenOp::MIN   ) v = flattenVisitor.hierMin   (r, c);
     }
 
-    for (int c = 0; c < nc; ++c) {
-      QVariant v;
+    return v;
+  };
 
-      bool isGroup = (flattenData.groupColumn.column() == c);
+  //---
 
-      if (! isGroup) {
-        CQChartsColumn column(c);
+  if (! specifiedColumns || flattenVisitor.isHierarchical()) {
+    for (int r = 0; r < nr; ++r) {
+      if (flattenVisitor.isHierarchical()) {
+        auto var = flattenVisitor.groupValue(r);
 
-        auto po = flattenData.columnOp.find(column);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
+      }
 
-        if (po != flattenData.columnOp.end()) {
-          auto flattenOp = (*po).second;
+      for (int c = 0; c < nc; ++c) {
+        QVariant v;
 
-          double rv = 0.0;
+        bool isGroup = (flattenData.groupColumn.column() == c);
 
-          if      (flattenOp == FlattenOp::SUM)
-            rv = flattenVisitor.hierSum(r, c);
-          else if (flattenOp == FlattenOp::MEAN)
-            rv = flattenVisitor.hierMean(r, c);
+        if (! isGroup) {
+          CQChartsColumn column(c);
 
-          v = QVariant(rv);
+          auto po = flattenData.columnOpMap.find(column);
+
+          if (po != flattenData.columnOpMap.end()) {
+            auto flattenOp = (*po).second;
+
+            v = calcOpValue(flattenOp, r, c);
+          }
+          else {
+            v = flattenVisitor.uniqueValue(r, c);
+          }
         }
         else {
-          v = flattenVisitor.uniqueValue(r, c);
+          v = flattenVisitor.groupValue(r);
         }
-      }
-      else {
-        v = flattenVisitor.groupValue(r);
-      }
 
-      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
+      }
+    }
+  }
+  else {
+    for (int r = 0; r < nr; ++r) {
+      int c = 0;
+
+      auto v = flattenVisitor.groupValue(r);
+
+      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), v);
+
+      //---
+
+      for (auto &columnOp : flattenData.columnOps) {
+        auto srcColumn = columnOp.first;
+        auto flattenOp = columnOp.second;
+
+        auto v = calcOpValue(flattenOp, r, srcColumn.column());
+
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c++), v);
+      }
     }
   }
 

@@ -39,10 +39,11 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
-  using Vars   = std::vector<QVariant>;
-  using ModelP = QSharedPointer<QAbstractItemModel>;
-  using ViewP  = QPointer<CQChartsView>;
-  using Plots  = std::vector<CQChartsPlot *>;
+  using Vars    = std::vector<QVariant>;
+  using ModelP  = QSharedPointer<QAbstractItemModel>;
+  using ViewP   = QPointer<CQChartsView>;
+  using Plots   = std::vector<CQChartsPlot *>;
+  using Columns = std::vector<CQChartsColumn>;
 
  private:
   using OptReal = boost::optional<double>;
@@ -107,8 +108,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  static bool stringToColumn(QAbstractItemModel *model, const QString &str,
-                             CQChartsColumn &column);
+  bool stringToModelColumns(const ModelP &model, const QString &columnsStr, Columns &columns);
 
  public:
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,

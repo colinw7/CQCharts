@@ -5,7 +5,6 @@
 #include <CQChartsEnumEdit.h>
 
 class CQRealSpin;
-class QComboBox;
 
 /*!
  * \brief key location edit

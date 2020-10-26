@@ -351,21 +351,43 @@ using FilterModel = CQChartsFilterModel;
 enum class FlattenOp {
   NONE,
   SUM,
-  MEAN
+  MEAN,
+  COUNT,
+  UNIQUE,
+  MAX,
+  MEDIAN,
+  MIN,
+  RANGE
 };
 
 //! flattend data
 struct FlattenData {
-  using Column   = CQChartsColumn;
-  using ColumnOp = std::map<Column, FlattenOp>;
+  using Column      = CQChartsColumn;
+  using ColumnOpMap = std::map<Column, FlattenOp>;
+  using ColumnOp    = std::pair<Column, FlattenOp>;
+  using ColumnOps   = std::vector<ColumnOp>;
 
-  Column    groupColumn;
-  FlattenOp defOp { FlattenOp::NONE };
-  ColumnOp  columnOp;
+  Column      groupColumn;
+  FlattenOp   defOp      { FlattenOp::NONE };
+  ColumnOpMap columnOpMap;
+  ColumnOps   columnOps;
 };
 
 FilterModel *flattenModel(CQCharts *charts, QAbstractItemModel *model,
                           const FlattenData &flattenData);
+
+inline FlattenOp stringToOp(const QString &str) {
+  if      (str == "sum"   ) return FlattenOp::SUM;
+  else if (str == "mean"  ) return FlattenOp::MEAN;
+  else if (str == "avg"   ) return FlattenOp::MEAN;
+  else if (str == "count" ) return FlattenOp::COUNT;
+  else if (str == "unique") return FlattenOp::UNIQUE;
+  else if (str == "max"   ) return FlattenOp::MAX;
+  else if (str == "median") return FlattenOp::MEDIAN;
+  else if (str == "min"   ) return FlattenOp::MIN;
+  else if (str == "range" ) return FlattenOp::RANGE;
+  else                      return FlattenOp::NONE;
+}
 
 }
 

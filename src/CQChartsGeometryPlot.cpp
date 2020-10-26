@@ -36,8 +36,8 @@ addParameters()
    setRequired().setTip("Polygon List, Polygon, Rect or Path geometry");
 
   // optional value, name, style
-  addColumnParameter("value", "Value", "valueColumn");
-  addColumnParameter("name" , "Name" , "nameColumn" );
+  addColumnParameter("value", "Value", "valueColumn").setBasic();
+  addColumnParameter("name" , "Name" , "nameColumn" ).setBasic();
   addColumnParameter("style", "Style", "styleColumn");
 
   endParameterGroup();
@@ -723,10 +723,7 @@ QString
 CQChartsGeometryObj::
 calcId() const
 {
-  if (! plot_->valueColumn().isValid())
-    return name();
-
-  return QString("%1:%2:%3").arg(typeName()).arg(name()).arg(value());
+  return QString("%1:%2").arg(typeName()).arg(iv().i);
 }
 
 QString

@@ -467,6 +467,12 @@ lessThan(const QModelIndex &lhs, const QModelIndex &rhs) const
   if (! rdata.isValid())
     rdata = sourceModel()->data(rhs, Qt::DisplayRole);
 
+  // invalid is less than everything
+  if      (! ldata.isValid())
+    return rdata.isValid();
+  else if (! rdata.isValid())
+    return ldata.isValid();
+
   return (CQChartsVariant::cmp(ldata, rdata) < 0);
 //return QSortFilterProxyModel::lessThan(lhs, rhs);
 }

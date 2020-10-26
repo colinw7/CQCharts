@@ -19,7 +19,13 @@ void
 CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
+  assert(nameTypes_.find(name) == nameTypes_.end());
+
   nameTypes_[name] = type;
+
+  assert(typeNameNames_.find(type->name()) == typeNameNames_.end());
+
+  typeNameNames_[type->name()] = name;
 
   type->addParameters();
 }

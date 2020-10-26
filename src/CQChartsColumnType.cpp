@@ -798,7 +798,7 @@ CQChartsColumnType(Type type) :
 
   // null value
   addParam("null_value", Type::STRING, "Null Value", "")->
-    setDesc("Null value string");
+    setDesc("Null value string").setNullValue(true);
 
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->

@@ -827,12 +827,14 @@ calcAnnotationBBox() const
 
   BBox bbox;
 
-  if (! isHorizontal())
-    bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
-  else
-    bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
-                normalizedDataRange_.xmax() + ts, normalizedDataRange_.ymax());
+  if (normalizedDataRange_.isSet()) {
+    if (! isHorizontal())
+      bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                  normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
+    else
+      bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                  normalizedDataRange_.xmax() + ts, normalizedDataRange_.ymax());
+  }
 
   return bbox;
 }

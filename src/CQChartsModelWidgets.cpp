@@ -38,6 +38,9 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 
   split->addWidget(modelControl_, "Control");
 
+  connect(modelList_, SIGNAL(filterTextChanged(const QString &)),
+          modelControl_, SLOT(filterTextSlot(const QString &)));
+
   //---
 
   connect(charts_, SIGNAL(currentModelChanged(int)),

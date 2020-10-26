@@ -16,6 +16,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelChooser.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsPreviewPlot.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsLineEdit.h>
 #include <CQCharts.h>
@@ -922,42 +923,15 @@ createPreviewFrame()
   auto *previewFrame  = CQUtil::makeWidget<QFrame>("preview");
   auto *previewLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 0, 2);
 
-  //--
+  //---
 
-  auto *previewControl       = CQUtil::makeWidget<QFrame>("previewControl");
-  auto *previewControlLayout = CQUtil::makeLayout<QHBoxLayout>(previewControl, 2, 2);
+  previewPlot_ = new CQChartsPreviewPlot(charts_);
 
-  previewEnabledCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Enabled", "previewEnabled");
+  connect(previewPlot_, SIGNAL(enableStateChanged()), this, SLOT(previewEnabledSlot()));
 
-  previewEnabledCheck_->setToolTip("Enable plot preview");
-
-  connect(previewEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewEnabledSlot()));
-
-  previewControlLayout->addWidget(previewEnabledCheck_);
-
-  auto *previewFitButton = CQUtil::makeLabelWidget<QPushButton>("Fit", "previewFit");
-
-  connect(previewFitButton, SIGNAL(clicked()), this, SLOT(previewFitSlot()));
-
-  previewControlLayout->addStretch(1);
-
-  previewLayout->addWidget(previewControl);
+  previewLayout->addWidget(previewPlot_);
 
   //--
-
-  //auto *previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
-
-  //previewLayout->addWidget(previewTab);
-
-  //--
-
-  previewView_ = charts_->createView();
-
-  previewView_->setPreview(true);
-
-  previewLayout->addWidget(previewView_);
-
-  //----
 
   return previewFrame;
 }
@@ -2234,11 +2208,12 @@ void
 CQChartsCreatePlotDlg::
 updatePreviewPlot(bool valid)
 {
-  if (valid && previewEnabledCheck_->isChecked()) {
-    // create plot for typename of current tab
+  if (valid && previewPlot_->isEnabled()) {
+    // get current plot type
     auto *type = getPlotType();
     assert(type);
 
+    // get model to use (current or summary)
     ModelP previewModel;
 
     auto *summaryModel = modelData_->summaryModel();
@@ -2248,33 +2223,13 @@ updatePreviewPlot(bool valid)
     else
       previewModel = model_;
 
-    if (! previewPlot_ || previewPlot_->type() != type || previewPlot_->model() != previewModel) {
-      previewView_->removeAllPlots();
+    // update plot
+    previewPlot_->updatePlot(previewModel, type, isAdvanced() ? whereEdit_->text() : "");
 
-      previewPlot_ = type->createAndInit(previewView_, previewModel);
-
-      previewPlot_->setPreview(true);
-
-      previewPlot_->setId("Preview");
-
-      if (isAdvanced())
-        previewPlot_->setFilterStr(whereEdit_->text());
-
-      previewView_->addPlot(previewPlot_);
-
-      previewPlot_->setAutoFit(true);
-    }
-
-    applyPlot(previewPlot_, /*preview*/true);
+    applyPlot(previewPlot_->plot(), /*preview*/true);
   }
   else {
-    if (previewPlot_) {
-      previewView_->removeAllPlots();
-
-      previewPlot_ = nullptr;
-
-      previewView_->update();
-    }
+    previewPlot_->resetPlot();
   }
 }
 
@@ -2491,10 +2446,12 @@ validate(QStringList &msgs)
     }
   }
 
+#if 0
   if (num_valid == 0 && num_cols > 0) {
     msgs << "no columns specified";
     rc = false;
   }
+#endif
 
   return rc;
 }
@@ -2504,14 +2461,6 @@ CQChartsCreatePlotDlg::
 previewEnabledSlot()
 {
   validateSlot();
-}
-
-void
-CQChartsCreatePlotDlg::
-previewFitSlot()
-{
-  if (previewPlot_)
-    previewPlot_->autoFit();
 }
 
 void

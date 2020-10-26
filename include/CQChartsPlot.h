@@ -121,6 +121,18 @@ CQCHARTS_NAMED_SHAPE_DATA(Fit, fit)
 /*!
  * \brief Base class for Plot
  * \ingroup Charts
+ *
+ * All plots are derived from this base class which contains the virtual functions
+ * to handle the required customization.
+ *
+ * A plot performs the following required steps:
+ *  + calcRange  : calculate display range
+ *  + createObjs : create plot objects
+ *
+ * Other key operations are:
+ *  + addProperties : add customization properties to property view tree
+ *  + addMenuItems  : add custom menu items to context menu
+ *
  */
 class CQChartsPlot : public CQChartsObj,
  public CQChartsObjPlotShapeData<CQChartsPlot>,

@@ -22,9 +22,12 @@ CQChartsModelList(CQCharts *charts) :
   // per model tab
   viewTab_ = CQUtil::makeWidget<QTabWidget>("viewTab");
 
+  viewTab_->setTabsClosable(true);
+
   layout->addWidget(viewTab_);
 
   connect(viewTab_, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
+  connect(viewTab_, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTabSlot(int)));
 
   //---
 
@@ -66,6 +69,9 @@ addModelData(CQChartsModelData *modelData)
   viewTab_->addTab(modelWidget, QString("Model %1").arg(ind));
 
   viewTab_->setCurrentIndex(viewTab_->count() - 1);
+
+  connect(modelWidget, SIGNAL(filterTextChanged(const QString &)),
+          this, SIGNAL(filterTextChanged(const QString &)));
 
   //---
 
@@ -117,6 +123,21 @@ currentTabChanged(int)
 
   if (modelDataWidget)
     charts_->setCurrentModelData(modelDataWidget->modelData());
+}
+
+void
+CQChartsModelList::
+closeTabSlot(int i)
+{
+  auto *modelDataWidget = qobject_cast<CQChartsModelDataWidget *>(viewTab_->widget(i));
+  if (! modelDataWidget) return;
+
+  auto *modelData = modelDataWidget->modelData();
+  if (! modelData) return;
+
+  delete modelDataWidget;
+
+  charts_->removeModelData(modelData);
 }
 
 CQChartsModelData *

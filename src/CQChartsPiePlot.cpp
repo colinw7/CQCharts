@@ -28,12 +28,12 @@ addParameters()
 {
   startParameterGroup("Pie");
 
-  // name, desc, propName, attributes, default
+  // args: name, desc, propName, attributes, default
   addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 
   addColumnParameter("label", "Label", "labelColumn").
-    setString().setTip("Custom label column");
+    setString().setBasic().setTip("Custom label column");
 
   addColumnParameter("radius", "Radius", "radiusColumn").
     setNumeric().setTip("Custom radius column");
@@ -69,6 +69,8 @@ description() const
     h3("Example").
      p(IMG("images/piechart.png"));
 }
+
+// TODO: analyzeModel
 
 CQChartsPlot *
 CQChartsPiePlotType::

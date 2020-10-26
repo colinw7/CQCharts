@@ -27,6 +27,9 @@ class CQChartsModelList : public QFrame {
 
   CQChartsModelData *currentModelData() const;
 
+ signals:
+  void filterTextChanged(const QString &);
+
  private slots:
   void updateCurrentModel();
 
@@ -42,6 +45,7 @@ class CQChartsModelList : public QFrame {
 
  private slots:
   void currentTabChanged(int);
+  void closeTabSlot(int);
 
  private:
   CQCharts*   charts_  { nullptr };

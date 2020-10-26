@@ -20,6 +20,14 @@ class  CQChartsEditHandles;
  * \brief Plot Object base class
  * \ingroup Charts
  *
+ * All interactive objects in the plot need to be derived from this base class.
+ *
+ * The object interface supports:
+ *  + drawing including mouse over
+ *  + selection
+ *  + edit
+ *  + properties
+ *
  * Maintains three indices (set, group and value) and x, y values for color interpolation
  */
 class CQChartsPlotObj : public CQChartsObj {

@@ -2,6 +2,7 @@
 #define CQChartsLength_H
 
 #include <CQChartsTypes.h>
+#include <CMathUtil.h>
 #include <QString>
 #include <iostream>
 #include <cassert>
@@ -36,7 +37,7 @@ class CQChartsLength {
 
   //---
 
-  bool isValid() const { return units_ != Units::NONE; }
+  bool isValid() const { return (units_ != Units::NONE && ! CMathUtil::isNaN(value_)); }
 
   bool isSet() const { return (units_ != Units::PIXEL || value_ != 0.0); }
 

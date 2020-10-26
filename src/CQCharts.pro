@@ -87,6 +87,7 @@ CQChartsPivotPlot.cpp \
 CQChartsRadarPlot.cpp \
 CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
+CQChartsStripPlot.cpp \
 CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
@@ -146,7 +147,10 @@ CQChartsModelFoldControl.cpp \
 CQChartsModelExprControl.cpp \
 CQChartsModelDetailsWidget.cpp \
 CQChartsModelDetailsTable.cpp \
+CQChartsModelFlattenControl.cpp \
+CQChartsModelFilterControl.cpp \
 CQChartsModelChooser.cpp \
+CQChartsPreviewPlot.cpp \
 CQChartsParamEdit.cpp \
 \
 CQChartsLoader.cpp \
@@ -154,6 +158,7 @@ CQChartsLoader.cpp \
 CQChartsModelViewHolder.cpp \
 CQChartsModelView.cpp \
 CQChartsColumnEval.cpp \
+CQChartsExprTcl.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -421,6 +426,7 @@ HEADERS += \
 ../include/CQChartsRadarPlot.h \
 ../include/CQChartsSankeyPlot.h \
 ../include/CQChartsScatterPlot.h \
+../include/CQChartsStripPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \
 ../include/CQChartsTreeMapPlot.h \
@@ -520,7 +526,10 @@ HEADERS += \
 ../include/CQChartsModelExprControl.h \
 ../include/CQChartsModelDetailsWidget.h \
 ../include/CQChartsModelDetailsTable.h \
+../include/CQChartsModelFlattenControl.h \
+../include/CQChartsModelFilterControl.h \
 ../include/CQChartsModelChooser.h \
+../include/CQChartsPreviewPlot.h \
 ../include/CQChartsParamEdit.h \
 \
 ../include/CQChartsLoader.h \
@@ -528,6 +537,7 @@ HEADERS += \
 ../include/CQChartsModelViewHolder.h \
 ../include/CQChartsModelView.h \
 ../include/CQChartsColumnEval.h \
+../include/CQChartsExprTcl.h \
 \
 ../include/CQChartsFilterEdit.h \
 \

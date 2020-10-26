@@ -1351,6 +1351,8 @@ void
 CQChartsPlot::
 setDisplayRange(const DisplayRange &r)
 {
+  assert(r.isValid());
+
   *displayRange_ = r;
 }
 
@@ -1360,6 +1362,8 @@ void
 CQChartsPlot::
 setDataRange(const Range &r, bool update)
 {
+  assert(r.isValid());
+
   CQChartsUtil::testAndSet(dataRange_, r, [&]() {
     if (debugUpdate_)
       std::cerr << "setDataRange: " << id().toStdString() << " : " << dataRange_ << "\n";
@@ -1875,6 +1879,8 @@ void
 CQChartsPlot::
 setFitMarginLeft(const Length &l)
 {
+  assert(l.isValid());
+
   if (l != fitMargin_.left()) { fitMargin_.setLeft(l); postResize(); }
 }
 
@@ -1882,6 +1888,8 @@ void
 CQChartsPlot::
 setFitMarginTop(const Length &t)
 {
+  assert(t.isValid());
+
   if (t != fitMargin_.top()) { fitMargin_.setTop(t); postResize(); }
 }
 
@@ -1889,6 +1897,8 @@ void
 CQChartsPlot::
 setFitMarginRight(const Length &r)
 {
+  assert(r.isValid());
+
   if (r != fitMargin_.right()) { fitMargin_.setRight(r); postResize(); }
 }
 
@@ -1896,6 +1906,8 @@ void
 CQChartsPlot::
 setFitMarginBottom(const Length &b)
 {
+  assert(b.isValid());
+
   if (b != fitMargin_.bottom()) { fitMargin_.setBottom(b); postResize(); }
 }
 

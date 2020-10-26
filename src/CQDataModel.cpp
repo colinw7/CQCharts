@@ -358,7 +358,8 @@ data(const QModelIndex &index, int role) const
     if (var.type() == QVariant::String) {
       QVariant var1 = typeStringToVariant(var.toString(), type);
 
-      setRowRoleValue(r, int(CQBaseModelRole::CachedValue), var1);
+      if (var1.isValid())
+        setRowRoleValue(r, int(CQBaseModelRole::CachedValue), var1);
 
       return var1;
     }
@@ -417,7 +418,10 @@ setData(const QModelIndex &index, const QVariant &value, int role)
 
   Cells &cells = data_[r];
 
-  if (c >= int(cells.size()))
+//int nc = int(cells.size());
+  int nc = columnCount();
+
+  if (c < 0 || c >= nc)
     return false;
 
   //---
@@ -459,6 +463,9 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   }
   else if (role == Qt::EditRole) {
     //CQBaseModelType type = columnType(c);
+
+    while (c >= int(cells.size()))
+      cells.push_back(QVariant());
 
     cells[c] = value;
 

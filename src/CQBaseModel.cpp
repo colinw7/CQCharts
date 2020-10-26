@@ -958,6 +958,9 @@ typeStringToVariant(const QString &str, CQBaseModelType type)
 
     if (ok)
       return QVariant(real);
+
+    if (! str.length())
+      return QVariant();
   }
   else if (type == CQBaseModelType::INTEGER) {
     bool ok { false };
@@ -966,6 +969,9 @@ typeStringToVariant(const QString &str, CQBaseModelType type)
 
     if (ok)
       return QVariant(int(integer));
+
+    if (! str.length())
+      return QVariant();
   }
 #if 0
   else if (type == CQBaseModelType::TIME) {

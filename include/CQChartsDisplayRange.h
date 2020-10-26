@@ -2,6 +2,7 @@
 #define CQChartsDisplayRange_H
 
 #include <CQChartsGeom.h>
+#include <CMathUtil.h>
 
 /*!
  * \brief Class to represent a 2D mapping from window to pixel coordinates
@@ -33,34 +34,37 @@ class CQChartsDisplayRange {
 
  public:
   //! value range template
-  template<typename T>
-  struct RangeT {
-   T xmin, ymin, xmax, ymax;
+  struct Range {
+   double xmin, ymin, xmax, ymax;
 
-   RangeT(T xmin1=0, T ymin1=0, T xmax1=0, T ymax1=0) :
+   Range(double xmin1=0.0, double ymin1=0.0, double xmax1=0.0, double ymax1=0.0) :
     xmin(xmin1), ymin(ymin1), xmax(xmax1), ymax(ymax1) {
    }
 
-   void set(T xmin1, T ymin1, T xmax1, T ymax1) {
+   bool isValid() const {
+     return (! CMathUtil::isNaN(xmin) && ! CMathUtil::isNaN(ymin) &&
+             ! CMathUtil::isNaN(xmax) && ! CMathUtil::isNaN(ymax));
+   }
+
+   void set(double xmin1, double ymin1, double xmax1, double ymax1) {
      xmin = xmin1; ymin = ymin1; xmax = xmax1; ymax = ymax1;
    }
 
-   void get(T *xmin1, T *ymin1, T *xmax1, T *ymax1) const {
+   void get(double *xmin1, double *ymin1, double *xmax1, double *ymax1) const {
      *xmin1 = xmin; *ymin1 = ymin; *xmax1 = xmax; *ymax1 = ymax;
    }
 
-   T dx() const { return xmax - xmin; }
-   T dy() const { return ymax - ymin; }
+   double dx() const { return xmax - xmin; }
+   double dy() const { return ymax - ymin; }
 
-   T xmid() const { return (xmin + xmax)/2 ; }
-   T ymid() const { return (ymin + ymax)/2; }
+   double xmid() const { return (xmin + xmax)/2 ; }
+   double ymid() const { return (ymin + ymax)/2; }
 
-   void incX(T dx) { xmin += dx; xmax += dx; }
-   void incY(T dy) { ymin += dy; ymax += dy; }
+   void incX(double dx) { xmin += dx; xmax += dx; }
+   void incY(double dy) { ymin += dy; ymax += dy; }
   };
 
-//using IRange = RangeT<int>;
-  using RRange = RangeT<double>;
+  //---
 
  public:
   CQChartsDisplayRange(double pixel_xmin  =   0, double pixel_ymin  =   0,
@@ -70,6 +74,10 @@ class CQChartsDisplayRange {
    pixel_ (pixel_xmin , pixel_ymin , pixel_xmax , pixel_ymax ),
    window_(window_xmin, window_ymin, window_xmax, window_ymax), window1_(window_) {
     reset();
+  }
+
+  bool isValid() const {
+    return (pixel_.isValid() && window_.isValid());
   }
 
   void setPixelRange(double pixel_xmin, double pixel_ymin, double pixel_xmax, double pixel_ymax) {
@@ -390,10 +398,10 @@ class CQChartsDisplayRange {
   }
 
  private:
-  RRange pixel_;
-  RRange window_;
+  Range pixel_;
+  Range window_;
 
-  RRange window1_;
+  Range window1_;
 
   double window_xc1_     { 0.0 };
   double window_yc1_     { 0.0 };

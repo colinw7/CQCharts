@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 
 class CQChartsModelData;
+//class CQChartsColumnCombo;
 class CQChartsLineEdit;
 
 class QAbstractItemModel;
@@ -35,13 +36,14 @@ class CQChartsModelFoldControl : public QFrame {
   void clearSlot();
 
  private:
-  CQChartsModelData* modelData_     { nullptr };
-  CQChartsLineEdit*  columnEdit_    { nullptr };
-  QComboBox*         typeCombo_     { nullptr };
-  QCheckBox*         autoCheck_     { nullptr };
-  CQChartsLineEdit*  deltaEdit_     { nullptr };
-  CQChartsLineEdit*  countEdit_     { nullptr };
-  CQChartsLineEdit*  separatorEdit_ { nullptr };
+  CQChartsModelData*   modelData_     { nullptr };
+//CQChartsColumnCombo* columnEdit_    { nullptr };
+  CQChartsLineEdit*    columnEdit_    { nullptr };
+  QComboBox*           typeCombo_     { nullptr };
+  QCheckBox*           autoCheck_     { nullptr };
+  CQChartsLineEdit*    deltaEdit_     { nullptr };
+  CQChartsLineEdit*    countEdit_     { nullptr };
+  CQChartsLineEdit*    separatorEdit_ { nullptr };
 };
 
 #endif

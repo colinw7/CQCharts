@@ -49,8 +49,8 @@ addParameters()
   //---
 
   // options
-  addBoolParameter("lines" , "Lines" , "lines", true).setTip("Draw Lines");
-  addBoolParameter("points", "Points", "points"     ).setTip("Draw Points");
+  addBoolParameter("lines" , "Lines" , "lines", true).setBasic().setTip("Draw Lines");
+  addBoolParameter("points", "Points", "points"     ).setBasic().setTip("Draw Points");
 
   addBoolParameter("columnSeries", "Column Series", "columnSeries").setTip("Columns are series");
 

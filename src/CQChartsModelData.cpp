@@ -411,7 +411,8 @@ select(const QItemSelection &sel)
       sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionSlot()));
 
-    sm->select(sel, QItemSelectionModel::ClearAndSelect);
+    if (sm)
+      sm->select(sel, QItemSelectionModel::ClearAndSelect);
   }
 }
 
@@ -1361,7 +1362,7 @@ writeCSV(std::ostream &fs) const
     const auto &nullValue = columnDetails->nullValue();
 
     if (nullValue.length())
-       writeMetaColumnData("null_value", nullValue);
+      writeMetaColumnData("null_value", nullValue);
 
     writeMetaColumnData("key", "1");
 
@@ -1505,6 +1506,108 @@ writeCSV(std::ostream &fs) const
 
 //------
 
+int
+CQChartsModelData::
+replaceValue(const CQChartsColumn &column, const QVariant &oldValue, const QVariant &newValue)
+{
+  int icolumn = column.column();
+  if (icolumn < 0) return 0;
+
+  auto *model = this->model().data();
+  if (! model) return 0;
+
+  auto *details = this->details();
+
+  int nr = details->numRows();
+
+  //---
+
+  // update model data
+  int numReplaced = 0;
+
+  auto *dataModel = CQChartsModelUtil::getDataModel(model);
+
+  bool readOnly = (dataModel ? dataModel->isReadOnly() : false);
+
+  if (readOnly)
+    dataModel->setReadOnly(false);
+
+  for (int r = 0; r < nr; ++r) {
+    auto ind = model->index(r, icolumn);
+
+    auto var = model->data(ind);
+
+    if (var == oldValue) {
+      model->setData(ind, newValue);
+
+      ++numReplaced;
+    }
+  }
+
+  if (readOnly)
+    dataModel->setReadOnly(true);
+
+  return numReplaced;
+}
+
+//------
+
+int
+CQChartsModelData::
+replaceNullValues(const CQChartsColumn &column, const QVariant &newValue)
+{
+  int icolumn = column.column();
+  if (icolumn < 0) return 0;
+
+  auto *model = this->model().data();
+  if (! model) return 0;
+
+  auto *details = this->details();
+
+  int nr = details->numRows();
+
+  //---
+
+  auto *columnDetails = details->columnDetails(column);
+
+  auto nullStr = columnDetails->nullValue();
+
+  auto isNullVar = [&](const QVariant &var) {
+    return (! var.isValid() || var.toString() == nullStr);
+  };
+
+  //---
+
+  // update model data
+  int numReplaced = 0;
+
+  auto *dataModel = CQChartsModelUtil::getDataModel(model);
+
+  bool readOnly = (dataModel ? dataModel->isReadOnly() : false);
+
+  if (readOnly)
+    dataModel->setReadOnly(false);
+
+  for (int r = 0; r < nr; ++r) {
+    auto ind = model->index(r, icolumn);
+
+    auto var = model->data(ind);
+
+    if (isNullVar(var)) {
+      model->setData(ind, newValue);
+
+      ++numReplaced;
+    }
+  }
+
+  if (readOnly)
+    dataModel->setReadOnly(true);
+
+  return numReplaced;
+}
+
+//------
+
 QAbstractItemModel *
 CQChartsModelData::
 copy(const CopyData &copyData)
@@ -1521,6 +1624,9 @@ copy(const CopyData &copyData)
 
   int nc = details->numColumns();
   int nr = details->numRows();
+
+  if (copyData.nr > 0)
+    nr = copyData.nr;
 
   //---
 
@@ -1557,6 +1663,7 @@ copy(const CopyData &copyData)
     }
 
     expr->initVars();
+    expr->initFunctions();
 
     //---
 

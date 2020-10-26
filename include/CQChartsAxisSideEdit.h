@@ -4,6 +4,8 @@
 #include <CQChartsAxisSide.h>
 #include <CQChartsEnumEdit.h>
 
+class QComboBox;
+
 /*!
  * \brief editor for CQChartsAxisSide
  * \ingroup Charts

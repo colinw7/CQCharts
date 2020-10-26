@@ -1,8 +1,10 @@
 #include <CQChartsModelControl.h>
 #include <CQChartsModelExprControl.h>
+#include <CQChartsModelFilterControl.h>
 #ifdef CQCHARTS_FOLDED_MODEL
 #include <CQChartsModelFoldControl.h>
 #endif
+#include <CQChartsModelFlattenControl.h>
 #include <CQChartsModelColumnDataControl.h>
 
 #include <CQChartsModelData.h>
@@ -34,9 +36,27 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
+  columnDataFrame_ = addColumnDataFrame();
+
+  controlTab->addTab(columnDataFrame_, "Column Data");
+
+  //---
+
+  auto *propertiesFrame = addPropertiesFrame();
+
+  controlTab->addTab(propertiesFrame, "Properties");
+
+  //---
+
   exprFrame_ = addExprFrame();
 
-  controlTab->addTab(exprFrame_, "Expression");
+  controlTab->addTab(exprFrame_, "Extra Colummns");
+
+  //---
+
+  filterFrame_ = addFilterFrame();
+
+  controlTab->addTab(filterFrame_, "Filter");
 
   //---
 
@@ -48,15 +68,9 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  columnDataFrame_ = addColumnDataFrame();
+  flattenFrame_ = addFlattenFrame();
 
-  controlTab->addTab(columnDataFrame_, "Column Data");
-
-  //---
-
-  auto *propertiesFrame = addPropertiesFrame();
-
-  controlTab->addTab(propertiesFrame, "Properties");
+  controlTab->addTab(flattenFrame_, "Flatten");
 
   //---
 
@@ -70,30 +84,6 @@ CQChartsModelControl::
 
   delete propertyModel_;
 }
-
-CQChartsModelExprControl *
-CQChartsModelControl::
-addExprFrame()
-{
-  auto *exprFrame = new CQChartsModelExprControl(this);
-
-  exprFrame->setModelData(modelData_);
-
-  return exprFrame;
-}
-
-#ifdef CQCHARTS_FOLDED_MODEL
-CQChartsModelFoldControl *
-CQChartsModelControl::
-addFoldFrame()
-{
-  auto *foldFrame = new CQChartsModelFoldControl(this);
-
-  foldFrame->setModelData(modelData_);
-
-  return foldFrame;
-}
-#endif
 
 CQChartsModelColumnDataControl *
 CQChartsModelControl::
@@ -126,6 +116,52 @@ addPropertiesFrame()
   return propertiesFrame;
 }
 
+CQChartsModelExprControl *
+CQChartsModelControl::
+addExprFrame()
+{
+  auto *exprFrame = new CQChartsModelExprControl(this);
+
+  exprFrame->setModelData(modelData_);
+
+  return exprFrame;
+}
+
+CQChartsModelFilterControl *
+CQChartsModelControl::
+addFilterFrame()
+{
+  auto *filterFrame = new CQChartsModelFilterControl(this);
+
+  filterFrame->setModelData(modelData_);
+
+  return filterFrame;
+}
+
+#ifdef CQCHARTS_FOLDED_MODEL
+CQChartsModelFoldControl *
+CQChartsModelControl::
+addFoldFrame()
+{
+  auto *foldFrame = new CQChartsModelFoldControl(this);
+
+  foldFrame->setModelData(modelData_);
+
+  return foldFrame;
+}
+#endif
+
+CQChartsModelFlattenControl *
+CQChartsModelControl::
+addFlattenFrame()
+{
+  auto *flattenFrame = new CQChartsModelFlattenControl(this);
+
+  flattenFrame->setModelData(modelData_);
+
+  return flattenFrame;
+}
+
 void
 CQChartsModelControl::
 updateCurrentModel()
@@ -137,17 +173,24 @@ updateCurrentModel()
 
 void
 CQChartsModelControl::
+filterTextSlot(const QString &text)
+{
+  filterFrame_->setFilterText(text);
+}
+
+void
+CQChartsModelControl::
 setModelData(CQChartsModelData *modelData)
 {
   if (modelData != modelData_) {
     modelData_ = modelData;
 
-    exprFrame_->setModelData(modelData_);
-
+    exprFrame_     ->setModelData(modelData_);
+    filterFrame_   ->setModelData(modelData_);
 #ifdef CQCHARTS_FOLDED_MODEL
-    foldFrame_->setModelData(modelData_);
+    foldFrame_     ->setModelData(modelData_);
 #endif
-
+    flattenFrame_  ->setModelData(modelData_);
     columnDataFrame_->setModelData(modelData_);
 
     //---

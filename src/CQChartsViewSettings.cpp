@@ -23,7 +23,6 @@
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsUtil.h>
-#include <CQChartsExprTcl.h>
 
 #include <CQChartsPlotControlWidgets.h>
 

@@ -27,6 +27,7 @@
 #include <CQChartsSankeyPlot.h>
 #include <CQChartsScatterPlot.h>
 #include <CQChartsScatterPlot3D.h>
+#include <CQChartsStripPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
@@ -432,6 +433,7 @@ init()
   plotTypeMgr_->addType("sankey"       , new CQChartsSankeyPlotType       );
   plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
   plotTypeMgr_->addType("scatter3d"    , new CQChartsScatterPlot3DType    );
+  plotTypeMgr_->addType("strip"        , new CQChartsStripPlotType        );
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("table"        , new CQChartsTablePlotType        );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );

@@ -90,7 +90,7 @@ init()
   // create correlation model
   CQChartsLoader loader(charts());
 
-  correlationModel_ = loader.createCorrelationModel(model().data(), /*flip*/false);
+  correlationModel_ = loader.createCorrelationModel(model().data());
 
   baseModel_ = dynamic_cast<CQChartsCorrelationModel *>(correlationModel_->baseModel());
 
@@ -869,7 +869,9 @@ CQChartsCorrelationCellObj(const CQChartsCorrelationPlot *plot, const BBox &rect
 
   valueColorInd(iv_);
 
-  setModelInd(ind);
+  if (ind.isValid()) {
+    //setModelInd(ind);
+  }
 }
 
 QString

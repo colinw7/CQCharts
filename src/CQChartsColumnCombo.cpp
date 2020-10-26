@@ -48,7 +48,9 @@ void
 CQChartsColumnCombo::
 setColumn(const CQChartsColumn &column)
 {
-  int ind = findData(column.column());
+  int icolumn = column.column();
+
+  int ind = findData(QVariant(icolumn));
 
   if (ind > 0)
     setCurrentIndex(ind);
@@ -108,7 +110,7 @@ updateItems()
     else
       label = QString("%1 : %2").arg(c).arg(name);
 
-    addItem(label, c);
+    addItem(label, QVariant(c));
   }
 
   int ind = findData(icolumn);

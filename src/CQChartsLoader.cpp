@@ -3,7 +3,6 @@
 #include <CQChartsFileType.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsFilterModel.h>
-#include <CQChartsExprModel.h>
 #include <CQChartsVarsModel.h>
 #include <CQChartsTclModel.h>
 #include <CQChartsCorrelationModel.h>
@@ -559,7 +558,7 @@ createTclModel(const InputData &inputData)
 
 CQChartsFilterModel *
 CQChartsLoader::
-createCorrelationModel(QAbstractItemModel *model, bool flip)
+createCorrelationModel(QAbstractItemModel *model, const CorrelationData &correlationData)
 {
   CQPerfTrace trace("CQChartsLoader::createCorrelationModel");
 
@@ -581,11 +580,19 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
   using ColumnSet = std::set<CQChartsColumn>;
 
+  ColumnSet inputColumnSet;
+
+  for (auto &c : correlationData.columns)
+    inputColumnSet.insert(c);
+
   ColumnSet columnSet;
 
-  if (! flip) {
+  if (! correlationData.flip) {
     for (int ic = 0; ic < nc; ++ic) {
       CQChartsColumn c(ic);
+
+      if (! inputColumnSet.empty() && inputColumnSet.find(c) == inputColumnSet.end())
+        continue;
 
       CQChartsModelTypeData typeData;
 

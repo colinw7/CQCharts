@@ -19,6 +19,7 @@ class CQChartsModelViewHolder;
 class CQChartsModelData;
 class CQChartsModelDetailsWidget;
 class CQChartsModelChooser;
+class CQChartsPreviewPlot;
 class CQChartsLineEdit;
 
 class CQSummaryModel;
@@ -45,15 +46,13 @@ class CQChartsCreatePlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  using ModelP = QSharedPointer<QAbstractItemModel>;
-
- public:
   using Plot          = CQChartsPlot;
   using PlotType      = CQChartsPlotType;
   using ModelData     = CQChartsModelData;
   using Column        = CQChartsColumn;
   using Columns       = CQChartsColumns;
   using PlotParameter = CQChartsPlotParameter;
+  using ModelP        = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsCreatePlotDlg(CQCharts *charts, ModelData *modelData);
@@ -230,7 +229,6 @@ class CQChartsCreatePlotDlg : public QDialog {
   void updateFormatSlot();
 
   void previewEnabledSlot();
-  void previewFitSlot();
 
   void summaryEnabledSlot();
   void updateSummaryTypeSlot();
@@ -314,11 +312,10 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   CQChartsModelDetailsWidget* detailsWidget_ { nullptr };
 
-  // preview widgets
-  QCheckBox*    previewEnabledCheck_    { nullptr }; //!< preview enabled checkbox
-  CQChartsView* previewView_            { nullptr }; //!< preview chart view
-  Plot*         previewPlot_            { nullptr }; //!< preview plot
+  //! preview
+  CQChartsPreviewPlot *previewPlot_ { nullptr };
 
+  //! misc
   Plot* plot_        { nullptr }; //!< last created plot (apply)
   bool  initialized_ { false   }; //!< is initialized
 

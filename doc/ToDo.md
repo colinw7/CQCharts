@@ -3,43 +3,32 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + allow chaining. get indices, process ...
+ + more common expression/filter evaluation code (remove old wildcard/regexp ?)
+ + crashes in preview plot
+ + add fit for preview (better auto fit)
+ + flatten from Manage Models Dialog
  + tip
    + signal on show
    + show in separate area
    + set position (tl, br, ...)
- + more reference objects for annotations
-   + handle invalidation and re-create to same object
  + more objects in scatter plot (point plot) overlays
    + use objects ?? mouse over tip ....
  + Completion
    + more command value completion (all ?)
    + add completion support for all args (and values)
  + barchart column header names in tip
- + sankey placement
-   + don't center single item at src/dest when align src/dest
-   + center max X vertically and let align handle rest
- + console widget
-   + cut/paste
-   + scroll bottom
  + polygon data label (text) does not set bbox. Check if inside ?
    + rotated text box draw (correct ?)
  + region tool mgr activate/deactivate view region tool
- + annotation select in rect (overlay)
- + more types in create/edit annotation dialog
  + null, bad values special draw in table delegate
    + per column null value
- + sankey remove edge overlaps (limit move up/down)
-   + edit constraints
- + key annotation (custom key)
-   + key column ?
  + unset column from editor is -1 ?
  + simplify column expressions (no back references, all calc on demand)
    + update test case with running sum
- + sankey_node.tcl bad placement (single x) -> rand ?
  + context menu for key/axis/... under mouse
    + editing controls in menu (property to action(s)
  + opengl renderer (more work)
- + axis annotations for all 2d plots
  + surface plot
  + othello game
    + improve controls
@@ -63,50 +52,33 @@ TODO:
    + signal, point+size, rect. widget tracks
    + status bar
    + sync widget state on/off
- + powerpoint like text in box for annotation (with edit support)
-   + mouse tool ?
  + hier bubble plot labels
  + size hint for init size
  + multiple axes for overlay plots
    + stacked axes
  + better bubble plot margin with title ?
    + signal on first calc/redraw
- + update of visible for widget annotation (create and set property)
  + assert right model index (normalized)
  + hier bubble min value/group column (bucket name column for integer/real (control))
  + rect/position edit values from plot (region edit)
  + image edit/widget edit
- + widget annotation edit
  + drag label
  + key tip includes text (could be clipped) - all keys
  + no recalc updates (skip empty, fit, ...)
  + xy overlay key position outside plot
  + consistent model indices in tcl (-model and object indices)
  + hide tip columns if not supported
- + Move dot/graphviz plot to separate plot type (out of sankey)
  + more common code in connection plot
  + skip empty for distribution plot filter range
  + support notip/tip columns in all plots
  + arrow relative position to other object (start/end)
- + support shapes/sides for annotation (which ?)
  + arrow position is shape dependent
  + text overlap graph/remover/clipper (text movable, clippable, priority)
  + cleanup edit interface (move to base class)
- + Arrow annotation new style
  + Better pattern fills (pattern shape as fill)
- + Sankey editing
-   + Better feedback for selected/over object
- + Annotations
-   + Widget annotations (combox, text edit, check, radio, ...)
  + Recalc margin from current value on resize as may have changed due to font change
  + Auto size title/axis to outer margin
  + Pie chart mouse over center label
- + Annotation Dialogs (all types)
- + Dot language (Sankey)
-   + More support
-   + Better arrow connectors
-   + Better node shapes
-   + Manually move/place nodes
  + Better handling of scaled (icon) images like SVG
  + tcl proc to run command with current location ? tcl state machine to add annotation ?
  + filterObjs for all connection types (chord, ...)
@@ -130,7 +102,6 @@ TODO:
  + Connection Plots
    + how handle different src/dest values (bi-directional connection)
    + more common code
-   + allow manual placement of sankey nodes ? (object editable)
    + object for chord plot connection
  + Model
    + Bucket and Fold by Hier
@@ -237,8 +208,6 @@ High
  + const everywhere ?
  + SVG interactive output
  + Arrow polyline (mid points and mid symbols)
- + Axis Annotation (independent coords ?, angle)
- + Annotation connectors (arc like sankey, lines)
  + Table chart interactive features
  + Generate table in JS output
  + access to model data in JS output (JSON)
@@ -267,8 +236,6 @@ High
  + More help content
  + Scaled rotated text
  + Improve edit arrow annotation preview
- + Create View or Plot Annotation
- + Edit View Annotation with mouse
  + Multiline text in box formatting (tree map/bubble text + value)
    + Standard library for this
  + Move Layer painter to standard library
@@ -339,11 +306,9 @@ High
  + More variant properties to remove string conversion
  + More variant editors
  + More annotations (symbol, box, ...)
- + Annotation tip, select, ..., widget (float widget in plot)
  + Filter by Zoom
  + Key/Title should be positioned relative to plot
  + Use Quad Tree to limit number of objects draw (min rect size)
- + Position class for point position on view, plot, ... Use for annotations
  + text format, flow or split, format to aspect and then scale
  + use plot percent for key, title ? unzoomed ?
  + custom editors for column, columns, position, length
@@ -366,7 +331,6 @@ Medium
  + Documentation
  + More testing of x/y flip for axis/key/...
  + Radial Coords/Plot
- + More annotation range support (bar chart, pie ...)
  + Compose BoxObj, FillObj, TextBoxObj together
  + Buffer texts and remove overlaps (per layer/type)
  + Standard format (formats) for hierarchical and connectivity (node/edge) data
@@ -506,6 +470,24 @@ Annotations
  + Annotation Layer
  + Delete all
  + Animate
+ + Update Annotation Dialogs to Handle All Types
+ + Axis Annotation (independent coords ?, angle)
+ + Annotation connectors (arc like sankey, lines)
+ + Edit View Annotation with mouse
+ + Annotation tip, select, ..., widget (float widget in plot)
+ + more reference objects for annotations
+   + handle invalidation and re-create to same object (by name)
+ + annotation select in rect (overlay)
+ + key annotation (custom key)
+   + key column ?
+ + axis annotations for all 2d plots
+ + powerpoint like text in box for annotation (with edit support)
+   + mouse tool ?
+ + update of visible for widget annotation (create and set property)
+ + widget annotation edit
+ + support shapes/sides for annotation (which ?)
+ + Arrow annotation new style
+ + More annotation range support (bar chart, pie ...)
 
 Functions
  + Improved Filter
@@ -638,6 +620,22 @@ Radar Plot
  + Add Key
  + Stacked
  + Percent of Total/Max
+
+Sankey
+ + placement
+   + don't center single item at src/dest when align src/dest
+   + center max X vertically and let align handle rest
+ + sankey remove edge overlaps (limit move up/down)
+   + edit constraints
+ + sankey_node.tcl bad placement (single x) -> rand ?
+ + Move dot/graphviz plot to separate plot type (out of sankey)
+ + Sankey editing
+   + Better feedback for selected/over object
+ + Dot language (Sankey)
+   + More support
+   + Better arrow connectors
+   + Better node shapes
+   + Manually move/place nodes
 
 Scatter
  + Use FillObj for circles
