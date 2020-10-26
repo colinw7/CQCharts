@@ -55,6 +55,11 @@ class CQChartsAngle {
 
   //---
 
+  double cos() const { return std::cos(radians()); }
+  double sin() const { return std::sin(radians()); }
+
+  //---
+
   // operator +, +=
   friend CQChartsAngle operator+(const CQChartsAngle &lhs, const CQChartsAngle &rhs) {
     return CQChartsAngle(lhs.a_ + rhs.a_);

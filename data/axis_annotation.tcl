@@ -7,3 +7,5 @@ set plotId [create_charts_plot -type xy -columns {{x X} {y Y}} -title "X/Y"]
 
 set axisId1 [create_charts_axis_annotation -plot $plotId \
  -direction vertical -start 0.0 -end 1.0 -position 1.0]
+
+set_charts_property -annotation $axisId1 -name label.text.string -value "Axis Annotation"

@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + axis html labels if user defined label or annotation
+ + html support for all text if possible. Remove all calls to QFontMetricsF::width)
  + allow chaining. get indices, process ...
  + more common expression/filter evaluation code (remove old wildcard/regexp ?)
  + crashes in preview plot

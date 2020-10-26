@@ -327,6 +327,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
                "Axis label text contrast");
   addStyleProp(labelTextPath, "axesLabelTextContrastAlpha", "contrastAlpha",
                "Axis label text contrast alpha");
+  addStyleProp(labelTextPath, "axesLabelTextHtml"         , "html",
+               "Axis label text is HTML");
   addStyleProp(labelTextPath, "axesLabelTextClipLength"   , "clipLength",
                "Axis label text clip length");
   addStyleProp(labelTextPath, "axesLabelTextClipElide"    , "clipElide",
@@ -803,6 +805,22 @@ CQChartsAxis::
 setIncludeZero(bool b)
 {
   CQChartsUtil::testAndSet(includeZero_, b, [&]() { updatePlotRange(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setAnnotation(bool b)
+{
+  CQChartsUtil::testAndSet(annotation_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setAllowHtmlLabels(bool b)
+{
+  CQChartsUtil::testAndSet(allowHtmlLabels_, b, [&]() { redraw(); } );
 }
 
 //---
@@ -1521,15 +1539,18 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
   //---
 
   if (isAxesLabelTextVisible()) {
-    auto text = userLabel();
+    auto text      = userLabel();
+    bool allowHtml = true;
 
-    if (! text.length())
-      text = label().string();
+    if (! text.length()) {
+      text      = label().string();
+      allowHtml = false;
+    }
 
     if (! text.length())
       text = label().defValue();
 
-    drawAxisLabel(plot, device, apos1, amin, amax, text);
+    drawAxisLabel(plot, device, apos1, amin, amax, text, allowHtml);
   }
 
   //---
@@ -1874,9 +1895,10 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   auto text1 = CQChartsDrawUtil::clipTextToLength(text, device->font(), clipLength, clipElide);
 
-  double tw = fm.width(text1);
   double ta = fm.ascent();
   double td = fm.descent();
+
+  double tw = fm.width(text1); // TODO: support HTML
 
   if (isHorizontal()) {
     bool isPixelBottom = (side() == CQChartsAxisSide::Type::BOTTOM_LEFT && ! plot->isInvertY()) ||
@@ -2228,7 +2250,6 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (angle.isZero()) {
-      //double tx = pt.x - (isPixelLeft ? tw : 0.0);
         double tx = pt.x - tw;
 
         Point p;
@@ -2338,7 +2359,6 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (angle.isZero()) {
-      //double tx = pt.x - (! isPixelLeft ? 0.0 : tw);
         double tx = pt.x;
 
         Point p;
@@ -2461,8 +2481,8 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
 void
 CQChartsAxis::
-drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-              double apos, double amin, double amax, const QString &text)
+drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos,
+              double amin, double amax, const QString &text, bool allowHtml)
 {
   if (! text.length())
     return;
@@ -2489,14 +2509,27 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   auto clipLength = plot_->lengthPixelWidth(axesLabelTextClipLength());
   auto clipElide  = axesLabelTextClipElide();
+  auto html       = ((allowHtml || isAllowHtmlLabels()) && isAxesLabelTextHtml());
 
   QFontMetricsF fm(device->font());
 
   auto text1 = CQChartsDrawUtil::clipTextToLength(text, device->font(), clipLength, clipElide);
 
-  double tw = fm.width(text1);
   double ta = fm.ascent();
   double td = fm.descent();
+
+  double tw = 0.0;
+
+  if (html) {
+    CQChartsTextOptions options;
+
+    options.html = html;
+
+    tw = CQChartsDrawUtil::calcTextSize(text1, device->font(), options).width();
+  }
+  else {
+    tw = fm.width(text1);
+  }
 
   BBox bbox;
 
@@ -2527,6 +2560,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.html          = html;
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
@@ -2558,6 +2592,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.html          = html;
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
@@ -2588,17 +2623,15 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     //int pxs = (isPixelLeft ? 1 : -1);
 
     double atw;
-    double ath = plot->pixelToWindowHeight(tw/2);
+    double ath = plot->pixelToWindowHeight(tw/2.0);
 
     if (isPixelLeft) {
-      double aym = (a2.y + a1.y)/2 + tw/2;
+      double aym = (a2.y + a1.y)/2.0 + tw/2.0;
 
       atw = plot->pixelToWindowWidth((a3.x - lbbox_.getXMin()) + tgap) + wfh;
 
     //double tx = lbbox_.getXMin() - tgap - td;
       double tx = lbbox_.getXMin() - tgap;
-
-      auto p1 = plot->pixelToWindow(Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2606,10 +2639,21 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.html          = html;
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
-      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
+      if (options.html) {
+        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMin(), (a2.y + a1.y)/2));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false,
+                                          -tgap - td, 0.0);
+      }
+      else {
+        auto p1 = plot->pixelToWindow(Point(tx, aym));
+
+        CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
+      }
 
       if (! plot_->isInvertX()) {
         bbox += Point(apos - (atw      ), (amin + amax)/2 - ath);
@@ -2630,25 +2674,11 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       double aym = (a2.y + a1.y)/2 - tw/2;
 
       double tx = lbbox_.getXMax() + tgap + td;
-
-      auto p1 = plot->pixelToWindow(Point(tx, aym));
-
-      CQChartsTextOptions options;
-
-      options.angle         = -Angle(90.0);
-      options.align         = Qt::AlignLeft | Qt::AlignBottom;
-      options.contrast      = isAxesLabelTextContrast();
-      options.contrastAlpha = axesLabelTextContrastAlpha();
-      options.clipLength    = clipLength;
-      options.clipElide     = clipElide;
-
-      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #else
       double aym = (a2.y + a1.y)/2 + tw/2;
 
       double tx = lbbox_.getXMax() + tgap + ta + td;
-
-      auto p1 = plot->pixelToWindow(Point(tx, aym));
+#endif
 
       CQChartsTextOptions options;
 
@@ -2656,11 +2686,21 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.align         = Qt::AlignLeft | Qt::AlignBottom;
       options.contrast      = isAxesLabelTextContrast();
       options.contrastAlpha = axesLabelTextContrastAlpha();
+      options.html          = html;
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
-      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
-#endif
+      if (options.html) {
+        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMax(), (a2.y + a1.y)/2));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false,
+                                          tgap + ta, 0.0);
+      }
+      else {
+        auto p1 = plot->pixelToWindow(Point(tx, aym));
+
+        CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
+      }
 
       if (! plot_->isInvertX()) {
         bbox += Point(apos + (atw      ), (amin + amax)/2 - ath);

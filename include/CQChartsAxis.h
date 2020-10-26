@@ -57,13 +57,16 @@ class CQChartsAxis : public CQChartsObj,
 
   Q_PROPERTY(CQChartsAxisValueType valueType READ valueType WRITE setValueType)
 
-  Q_PROPERTY(QString        format         READ format         WRITE setFormat        )
-  Q_PROPERTY(double         maxFitExtent   READ maxFitExtent   WRITE setMaxFitExtent  )
-  Q_PROPERTY(CQChartsOptInt tickIncrement  READ tickIncrement  WRITE setTickIncrement )
-  Q_PROPERTY(CQChartsOptInt majorIncrement READ majorIncrement WRITE setMajorIncrement)
-  Q_PROPERTY(double         start          READ start          WRITE setStart         )
-  Q_PROPERTY(double         end            READ end            WRITE setEnd           )
-  Q_PROPERTY(bool           includeZero    READ isIncludeZero  WRITE setIncludeZero   )
+  Q_PROPERTY(QString        format          READ format            WRITE setFormat         )
+  Q_PROPERTY(double         maxFitExtent    READ maxFitExtent      WRITE setMaxFitExtent   )
+  Q_PROPERTY(CQChartsOptInt tickIncrement   READ tickIncrement     WRITE setTickIncrement  )
+  Q_PROPERTY(CQChartsOptInt majorIncrement  READ majorIncrement    WRITE setMajorIncrement )
+  Q_PROPERTY(double         start           READ start             WRITE setStart          )
+  Q_PROPERTY(double         end             READ end               WRITE setEnd            )
+  Q_PROPERTY(bool           includeZero     READ isIncludeZero     WRITE setIncludeZero    )
+
+  Q_PROPERTY(bool annotation      READ isAnnotation      WRITE setAnnotation     )
+  Q_PROPERTY(bool allowHtmlLabels READ isAllowHtmlLabels WRITE setAllowHtmlLabels)
 
   Q_PROPERTY(CQChartsOptReal valueStart READ valueStart WRITE setValueStart)
   Q_PROPERTY(CQChartsOptReal valueEnd   READ valueEnd   WRITE setValueEnd  )
@@ -232,6 +235,14 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isIncludeZero() const { return includeZero_; }
   void setIncludeZero(bool b);
+
+  //---
+
+  bool isAnnotation() const { return annotation_; }
+  void setAnnotation(bool b);
+
+  bool isAllowHtmlLabels() const { return allowHtmlLabels_; }
+  void setAllowHtmlLabels(bool b);
 
   //---
 
@@ -487,7 +498,7 @@ class CQChartsAxis : public CQChartsObj,
   void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device);
 
   void drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
-                     double amin, double amax, const QString &text);
+                     double amin, double amax, const QString &text, bool allowHtml);
 
   void getTickLabelsPositions(std::set<int> &positions) const;
 
@@ -598,6 +609,10 @@ class CQChartsAxis : public CQChartsObj,
 
   OptReal valueStart_; //!< custom value start
   OptReal valueEnd_;   //!< custom value end
+
+  // customization (for annotations)
+  bool annotation_      { false }; //!< is annotation
+  bool allowHtmlLabels_ { false }; //!< allow html labels
 
   // internal calculation data
   CInterval interval_;            //!< interval data

@@ -1785,18 +1785,6 @@ drawText(PaintDevice *device, const BBox &bbox) const
       }
       else
         CQChartsDrawUtil::drawStringsInBox(device, bbox1, strs, textOptions);
-
-#if 0
-      double th = fm.height();
-
-      auto pc = ibbox.getCenter();
-
-      Point tp1(pc.x, pc.y - th/2);
-      Point tp2(pc.x, pc.y + th/2);
-
-      CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp1), strs[0], textOptions);
-      CQChartsDrawUtil::drawTextAtPoint(device, plot_->pixelToWindow(tp2), strs[1], textOptions);
-#endif
     }
   }
 

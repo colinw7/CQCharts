@@ -1217,3 +1217,5 @@
  + Move preview plot widget to seprate file
  + Support null value replacement model dialog
  + Support flatten in model dialog and allow specific and duplcate columns
+# 10/26/2020
+ + Support html text on axes labels for annotations and custom labels

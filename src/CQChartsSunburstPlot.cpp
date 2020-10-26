@@ -1347,8 +1347,6 @@ drawNode(PaintDevice *device, NodeObj *nodeObj, Node *node) const
 
     CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
 
-  //CQChartsRotatedText::draw(device, pt, name, options);
-
     //---
 
     if (! isCircle)

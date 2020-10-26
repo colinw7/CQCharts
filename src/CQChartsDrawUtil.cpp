@@ -278,7 +278,7 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect,
 
 CQChartsGeom::BBox
 calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
-                    const CQChartsTextOptions &options, bool centered, double dx, double dy)
+                    const CQChartsTextOptions &options, bool centered, double pdx, double pdy)
 {
   auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
@@ -315,15 +315,15 @@ calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QStri
 
     if (! centered) { // point is left
       if      (options.align & Qt::AlignHCenter) dx1 = -tw/2.0;
-      else if (options.align & Qt::AlignRight  ) dx1 = -tw - dx;
+      else if (options.align & Qt::AlignRight  ) dx1 = -tw - pdx;
     }
     else {            // point is center
-      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + dx;
-      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - dx;
+      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + pdx;
+      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - pdx;
     }
 
-    if      (options.align & Qt::AlignTop    ) dy1 =  ta + dy;
-    else if (options.align & Qt::AlignBottom ) dy1 = -td - dy;
+    if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
+    else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
     else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
     auto tp = point;
@@ -365,7 +365,7 @@ calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QStri
 
 void
 drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
-                const CQChartsTextOptions &options, bool centered, double dx, double dy)
+                const CQChartsTextOptions &options, bool centered, double pdx, double pdy)
 {
   auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
@@ -384,7 +384,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
     if (options.scaled)
       CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text1, options);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, rect, text1, options);
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text1, options, pdx, pdy);
 
     return;
   }
@@ -407,15 +407,15 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
 
     if (! centered) { // point is left
       if      (options.align & Qt::AlignHCenter) dx1 = -tw/2.0;
-      else if (options.align & Qt::AlignRight  ) dx1 = -tw - dx;
+      else if (options.align & Qt::AlignRight  ) dx1 = -tw - pdx;
     }
     else {            // point is center
-      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + dx;
-      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - dx;
+      if      (options.align & Qt::AlignLeft ) dx1 =  tw/2.0 + pdx;
+      else if (options.align & Qt::AlignRight) dx1 = -tw/2.0 - pdx;
     }
 
-    if      (options.align & Qt::AlignTop    ) dy1 =  ta + dy;
-    else if (options.align & Qt::AlignBottom ) dy1 = -td - dy;
+    if      (options.align & Qt::AlignTop    ) dy1 =  ta + pdy;
+    else if (options.align & Qt::AlignBottom ) dy1 = -td - pdy;
     else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
     auto tp = point;
@@ -453,7 +453,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
 
 void
 drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text,
-                Qt::Alignment align, double dx, double dy)
+                Qt::Alignment align, double pdx, double pdy)
 {
   QFontMetricsF fm(device->font());
 
@@ -463,12 +463,12 @@ drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text
 
   double dx1 = 0.0, dy1 = 0.0;
 
-  if      (align & Qt::AlignLeft   ) dx1 = dx;
-  else if (align & Qt::AlignRight  ) dx1 = -tw - dx;
+  if      (align & Qt::AlignLeft   ) dx1 = pdx;
+  else if (align & Qt::AlignRight  ) dx1 = -tw - pdx;
   else if (align & Qt::AlignHCenter) dx1 = -tw/2;
 
-  if      (align & Qt::AlignTop    ) dy1 =  ta + dy;
-  else if (align & Qt::AlignBottom ) dy1 = -td - dy;
+  if      (align & Qt::AlignTop    ) dy1 =  ta + pdy;
+  else if (align & Qt::AlignBottom ) dy1 = -td - pdy;
   else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
   auto pp = device->windowToPixel(p);
@@ -481,7 +481,7 @@ drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text
 
 CQChartsGeom::BBox
 calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point &p,
-                    const QString &text, Qt::Alignment align, double dx, double dy)
+                    const QString &text, Qt::Alignment align, double pdx, double pdy)
 {
   QFontMetricsF fm(font);
 
@@ -491,12 +491,12 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point 
 
   double dx1 = 0.0, dy1 = 0.0;
 
-  if      (align & Qt::AlignLeft   ) dx1 = dx;
-  else if (align & Qt::AlignRight  ) dx1 = -tw - dx;
+  if      (align & Qt::AlignLeft   ) dx1 = pdx;
+  else if (align & Qt::AlignRight  ) dx1 = -tw - pdx;
   else if (align & Qt::AlignHCenter) dx1 = -tw/2;
 
-  if      (align & Qt::AlignTop    ) dy1 =  ta + dy;
-  else if (align & Qt::AlignBottom ) dy1 = -td - dy;
+  if      (align & Qt::AlignTop    ) dy1 =  ta + pdy;
+  else if (align & Qt::AlignBottom ) dy1 = -td - pdy;
   else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
   auto pp = device->windowToPixel(p);
@@ -999,7 +999,7 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString
 
 void
 drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text,
-             const CQChartsTextOptions &options)
+             const CQChartsTextOptions &options, double pdx, double pdy)
 {
   assert(tbbox.isValid());
 
@@ -1009,21 +1009,35 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
 
   auto psize = calcHtmlTextSize(text, device->font(), options.margin);
 
-  double dx = 0.0, dy = 0.0;
+  double c = options.angle.cos();
+  double s = options.angle.sin();
+
+  double pdx1 = 0.0, pdy1 = 0.0;
 
   if (! options.formatted) {
     if      (options.align & Qt::AlignHCenter)
-      dx = (ptbbox.getWidth() - psize.width())/2.0;
+      pdx1 = (ptbbox.getWidth() - psize.width())/2.0;
     else if (options.align & Qt::AlignRight)
-      dx = ptbbox.getWidth() - psize.width();
+      pdx1 = ptbbox.getWidth() - psize.width();
 
     if      (options.align & Qt::AlignVCenter)
-      dy = (ptbbox.getHeight() - psize.height())/2.0;
+      pdy1 = (ptbbox.getHeight() - psize.height())/2.0;
     else if (options.align & Qt::AlignBottom)
-      dy = ptbbox.getHeight() - psize.height();
+      pdy1 = ptbbox.getHeight() - psize.height();
   }
 
-  ptbbox = ptbbox.translated(dx, dy);
+  if (! options.angle.isZero()) {
+    double pdx2 = c*pdx1 - s*pdy1;
+    double pdy2 = s*pdx1 + c*pdy1;
+
+    pdx1 = pdx2;
+    pdy1 = pdy2;
+  }
+
+  pdx += pdx1;
+  pdy += pdy1;
+
+  ptbbox = ptbbox.translated(pdx, pdy);
 
   //---
 
@@ -1047,10 +1061,10 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   painter->save();
 
   if (! options.angle.isZero()) {
-    auto tc = tbbox.getCenter().qpoint();
+    auto tc = ptbbox.getCenter().qpoint();
 
     painter->translate(tc);
-    painter->rotate(options.angle.value());
+    painter->rotate(-options.angle.value());
     painter->translate(-tc);
   }
 

@@ -311,7 +311,7 @@ void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &t
                         const TextOptions &options);
 
 void drawHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                  const TextOptions &options);
+                  const TextOptions &options, double pdx=0.0, double pdy=0.0);
 
 }
 

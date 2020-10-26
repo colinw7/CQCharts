@@ -3801,6 +3801,9 @@ CQChartsAxisAnnotation(Plot *plot, Qt::Orientation direction, double start, doub
 
   axis_ = new Axis(plot, direction, start, end);
 
+  axis_->setAnnotation     (true);
+  axis_->setAllowHtmlLabels(true);
+
   connect(axis_, SIGNAL(ticksChanged()), this, SLOT(emitDataChanged()));
 
   connect(axis_, SIGNAL(appearanceChanged()), this, SLOT(invalidateSlot()));

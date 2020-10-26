@@ -794,8 +794,6 @@ execDrawBackground(PaintDevice *device) const
             options.clipElide     = textClipElide();
 
             CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
-
-          //CQChartsDrawUtil::drawAlignedText(device, p1, name, align, 2, 2);
           }
         }
 
