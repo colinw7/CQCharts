@@ -150,6 +150,7 @@ class CQChartsAxis : public CQChartsObj,
   using PaintDevice            = CQChartsPaintDevice;
   using Column                 = CQChartsColumn;
   using Angle                  = CQChartsAngle;
+  using Alpha                  = CQChartsAlpha;
   using PenData                = CQChartsPenData;
   using BrushData              = CQChartsBrushData;
 

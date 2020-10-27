@@ -303,6 +303,7 @@ using PaintDevice = CQChartsPaintDevice;
 using TextOptions = CQChartsTextOptions;
 using BBox        = CQChartsGeom::BBox;
 using Size        = CQChartsGeom::Size;
+using Point       = CQChartsGeom::Point;
 
 // private
 Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
@@ -310,8 +311,9 @@ Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
                         const TextOptions &options);
 
-void drawHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
-                  const TextOptions &options, double pdx=0.0, double pdy=0.0);
+void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
+                  const QString &text, const TextOptions &options,
+                  double pdx=0.0, double pdy=0.0);
 
 }
 

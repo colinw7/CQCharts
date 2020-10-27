@@ -2463,7 +2463,7 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (textColor().isValid())
     os << " -color {" << textColor().toString().toStdString() << "}";
 
-  if (textAlpha() != CQChartsAlpha())
+  if (textAlpha() != Alpha())
     os << " -alpha " << textAlpha().value();
 
   if (textAngle() != CQChartsAngle())

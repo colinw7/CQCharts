@@ -151,7 +151,7 @@ draw(PaintDevice *device, const Polygon &poly) const
     auto bgColor = interpFillColor(ColorInd());
 
     setPenBrush(penBrush,
-      PenData(false, QColor(), CQChartsAlpha(), CQChartsLength(), CQChartsLineDash()),
+      PenData(false, QColor(), Alpha(), CQChartsLength(), CQChartsLineDash()),
       BrushData(true , bgColor, fillAlpha(), fillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -166,7 +166,7 @@ draw(PaintDevice *device, const Polygon &poly) const
 
     setPenBrush(penBrush,
       PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
-      BrushData(false, QColor(), CQChartsAlpha(), CQChartsFillPattern()));
+      BrushData(false, QColor(), Alpha(), FillPattern()));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 

@@ -2821,7 +2821,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   auto tc = plot_->interpThemeColor(ColorInd(1.0));
 
-  plot_->setPen(penBrush, PenData(true, tc, CQChartsAlpha()));
+  plot_->setPen(penBrush, PenData(true, tc, Alpha()));
 
   device->setPen(penBrush.pen);
 

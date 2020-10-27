@@ -72,7 +72,7 @@ init()
   setAxesMinorGridLinesDash (CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
   setAxesGridFillColor(themeGray3);
-  setAxesGridFillAlpha(CQChartsAlpha(0.5));
+  setAxesGridFillAlpha(Alpha(0.5));
 
   needsCalc_ = true;
 
@@ -123,12 +123,13 @@ swap(CQChartsAxis *lhs, CQChartsAxis *rhs)
   std::swap(lhs->tickLabelAutoHide_ , rhs->tickLabelAutoHide_ );
   std::swap(lhs->tickLabelPlacement_, rhs->tickLabelPlacement_);
 
-  std::swap(lhs->start_         , rhs->start_         );
-  std::swap(lhs->end_           , rhs->end_           );
-  std::swap(lhs->includeZero_   , rhs->includeZero_   );
-  std::swap(lhs->maxMajorTicks_ , rhs->maxMajorTicks_ );
-  std::swap(lhs->tickIncrement_ , rhs->tickIncrement_ );
-  std::swap(lhs->majorIncrement_, rhs->majorIncrement_);
+  std::swap(lhs->start_          , rhs->start_          );
+  std::swap(lhs->end_            , rhs->end_            );
+  std::swap(lhs->includeZero_    , rhs->includeZero_    );
+  std::swap(lhs->allowHtmlLabels_, rhs->allowHtmlLabels_);
+  std::swap(lhs->maxMajorTicks_  , rhs->maxMajorTicks_  );
+  std::swap(lhs->tickIncrement_  , rhs->tickIncrement_  );
+  std::swap(lhs->majorIncrement_ , rhs->majorIncrement_ );
 
   std::swap(lhs->tickSpaces_      , rhs->tickSpaces_      );
   std::swap(lhs->tickLabels_      , rhs->tickLabels_      );
@@ -933,7 +934,7 @@ valueStr(const CQChartsPlot *plot, double pos) const
     if (isRequireTickLabel())
       return "";
 
-    valuePos = QVariant(int(pos));
+    valuePos = QVariant(int(ipos));
   }
 
   if (formatStr_.length()) {
@@ -2449,6 +2450,8 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   QFontMetricsF fm(device->font());
 
+  auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
+
   for (const auto &data : axisTickLabelDrawDatas_) {
     if (! data.visible)
       continue;
@@ -2463,7 +2466,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     options.contrast      = isAxesTickLabelTextContrast();
     options.contrastAlpha = axesTickLabelTextContrastAlpha();
     options.formatted     = isAxesTickLabelTextFormatted();
-    options.clipLength    = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
+    options.clipLength    = clipLength;
     options.clipElide     = axesTickLabelTextClipElide();
 
     CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
@@ -2523,7 +2526,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
   if (html) {
     CQChartsTextOptions options;
 
-    options.html = html;
+    options.html = true;
 
     tw = CQChartsDrawUtil::calcTextSize(text1, device->font(), options).width();
   }
@@ -2553,7 +2556,8 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       Point pt(axm, lbbox_.getYMax() + ta + tgap);
 
       // angle, align not supported
-      // html and formatted not supported (axis code controls string)
+      // formatted not supported (axis code controls string)
+      // html supported only for use label or annotation axis
       CQChartsTextOptions options;
 
       options.angle         = Angle();
@@ -2564,8 +2568,18 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
-                                        options, /*centered*/false);
+      if (options.html) {
+        options.align = Qt::AlignCenter;
+
+        auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMax() + (ta + td)/2.0 + tgap));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+      }
+      else {
+        auto p1 = plot->pixelToWindow(pt);
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false);
+      }
 
       if (! plot_->isInvertY()) {
         bbox += Point((amin + amax)/2 - atw, apos - (ath      ));
@@ -2585,7 +2599,8 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       Point pt(axm, lbbox_.getYMin() - td - tgap);
 
       // angle, align not supported
-      // html and formatted not supported (axis code controls string)
+      // formatted not supported (axis code controls string)
+      // html supported only for use label or annotation axis
       CQChartsTextOptions options;
 
       options.angle         = Angle();
@@ -2596,8 +2611,18 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       options.clipLength    = clipLength;
       options.clipElide     = clipElide;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
-                                        options, /*centered*/false);
+      if (options.html) {
+        options.align = Qt::AlignCenter;
+
+        auto p1 = plot->pixelToWindow(Point(axm + tw/2, lbbox_.getYMin() - (ta + td)/2.0 - tgap));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
+      }
+      else {
+        auto p1 = plot->pixelToWindow(pt);
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false);
+      }
 
       if (! plot_->isInvertY()) {
         bbox += Point((amin + amax)/2 - atw, apos + (ath      ));
@@ -2644,10 +2669,12 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       options.clipElide     = clipElide;
 
       if (options.html) {
-        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMin(), (a2.y + a1.y)/2));
+        options.align = Qt::AlignCenter;
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false,
-                                          -tgap - td, 0.0);
+        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMin() - tgap - (ta + td)/2.0,
+                                            (a2.y + a1.y)/2));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(Point(tx, aym));
@@ -2691,10 +2718,12 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
       options.clipElide     = clipElide;
 
       if (options.html) {
-        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMax(), (a2.y + a1.y)/2));
+        options.align = Qt::AlignCenter;
 
-        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/false,
-                                          tgap + ta, 0.0);
+        auto p1 = plot->pixelToWindow(Point(lbbox_.getXMax() + tgap + (ta + td)/2.0,
+                                            (a2.y + a1.y)/2));
+
+        CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options, /*centered*/true);
       }
       else {
         auto p1 = plot->pixelToWindow(Point(tx, aym));

@@ -144,7 +144,7 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
     if (options.scaled)
       CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
     else
-      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
+      CQChartsDrawPrivate::drawHtmlText(device, rect.getCenter(), rect, text, options);
 
     return;
   }
@@ -371,32 +371,41 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
 
   //---
 
-  // handle html separately
-  if (options.html) {
-    Size psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
-
-    auto sw = device->pixelToWindowWidth (psize.width () + 4);
-    auto sh = device->pixelToWindowHeight(psize.height() + 4);
-
-    BBox rect(point.x - sw/2.0, point.y - sh/2.0,
-              point.x + sw/2.0, point.y + sh/2.0);
-
-    if (options.scaled)
-      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text1, options);
-    else
-      CQChartsDrawPrivate::drawHtmlText(device, rect, text1, options, pdx, pdy);
-
-    return;
-  }
-
-  //---
-
   QFontMetricsF fm(device->font());
 
   double ta = fm.ascent();
   double td = fm.descent();
 
   double tw = fm.width(text1);
+
+  //---
+
+  // handle html separately
+  if (options.html) {
+    auto psize = CQChartsDrawPrivate::calcHtmlTextSize(text1, device->font(), options.margin);
+
+    auto sw = device->pixelToWindowWidth (psize.width () + 4);
+    auto sh = device->pixelToWindowHeight(psize.height() + 4);
+
+    auto dx = device->pixelToSignedWindowWidth (pdx);
+    auto dy = device->pixelToSignedWindowHeight(pdy);
+
+    auto c = Point(point.x + dx, point.y + dy);
+
+    BBox rect;
+
+    if (centered)
+      rect = BBox(c.x - sw/2.0, c.y - sh/2.0, c.x + sw/2.0, c.y + sh/2.0);
+    else
+      rect = BBox(c.x, c.y, c.x + sw, c.y + sh);
+
+    if (options.scaled)
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text1, options);
+    else
+      CQChartsDrawPrivate::drawHtmlText(device, c, rect, text1, options, pdx, pdy);
+
+    return;
+  }
 
   //---
 
@@ -994,12 +1003,12 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString
 
   //---
 
-  drawHtmlText(device, tbbox, text, options);
+  drawHtmlText(device, tbbox.getCenter(), tbbox, text, options);
 }
 
 void
-drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text,
-             const CQChartsTextOptions &options, double pdx, double pdy)
+drawHtmlText(CQChartsPaintDevice *device, const Point &center, const BBox &tbbox,
+             const QString &text, const CQChartsTextOptions &options, double pdx, double pdy)
 {
   assert(tbbox.isValid());
 
@@ -1037,7 +1046,7 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   pdx += pdx1;
   pdy += pdy1;
 
-  ptbbox = ptbbox.translated(pdx, pdy);
+  auto ptbbox1 = ptbbox.translated(pdx, pdy); // inner text rect
 
   //---
 
@@ -1061,7 +1070,8 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   painter->save();
 
   if (! options.angle.isZero()) {
-    auto tc = ptbbox.getCenter().qpoint();
+  //auto tc = ptbbox1.getCenter().qpoint();
+    auto tc = device->windowToPixel(center).qpoint();
 
     painter->translate(tc);
     painter->rotate(-options.angle.value());
@@ -1074,12 +1084,13 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   td.setHtml(text);
   td.setDefaultFont(device->font());
 
-  auto ptbbox1 = ptbbox.translated(-ptbbox.getXMin(), -ptbbox.getYMin());
+  auto ptbbox2 = ptbbox1.translated(-ptbbox.getXMin(), -ptbbox.getYMin()); // move to origin
 
   if (device->isInteractive())
-    painter->translate(ptbbox.getXMin(), ptbbox.getYMin());
+    painter->translate(ptbbox1.getXMin(), ptbbox1.getYMin());
 
-  painter->setClipRect(ptbbox1.qrect(), Qt::IntersectClip);
+  if (options.angle.isZero())
+    painter->setClipRect(ptbbox2.qrect(), Qt::IntersectClip);
 
   int pm = 8;
 
@@ -1136,7 +1147,7 @@ drawHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text
   }
 
   if (device->isInteractive())
-    painter->translate(-ptbbox.getXMin(), -ptbbox.getYMin());
+    painter->translate(-ptbbox1.getXMin(), -ptbbox1.getYMin());
 
   //---
 

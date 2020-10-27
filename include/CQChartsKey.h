@@ -569,6 +569,7 @@ class CQChartsKeyItem : public QObject {
   using BrushData   = CQChartsBrushData;
   using PenData     = CQChartsPenData;
   using PaintDevice = CQChartsPaintDevice;
+  using Alpha       = CQChartsAlpha;
   using ColorInd    = CQChartsUtil::ColorInd;
 
   using BBox  = CQChartsGeom::BBox;

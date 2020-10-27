@@ -221,6 +221,22 @@ pixelToWindowHeight(double ph) const
     plot_->pixelToWindowHeight(ph)) : view_->pixelToWindowHeight(ph));
 }
 
+double
+CQChartsPaintDevice::
+pixelToSignedWindowWidth(double pw) const
+{
+  return (! view_ ? (! plot_ ? 0.0 :
+    plot_->pixelToSignedWindowWidth(pw)) : view_->pixelToSignedWindowWidth(pw));
+}
+
+double
+CQChartsPaintDevice::
+pixelToSignedWindowHeight(double ph) const
+{
+  return (! view_ ? (! plot_ ? 0.0 :
+    plot_->pixelToSignedWindowHeight(ph)) : view_->pixelToSignedWindowHeight(ph));
+}
+
 QPainterPath
 CQChartsPaintDevice::
 windowToPixel(const QPainterPath &path) const
