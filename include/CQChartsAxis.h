@@ -136,6 +136,15 @@ class CQChartsAxis : public CQChartsObj,
     MAJOR
   };
 
+  enum class PropertyType {
+    STATE  = (1<<0),
+    STROKE = (1<<1),
+
+    NONE  = 0,
+    BASIC = 0,
+    ALL   = STATE | STROKE
+  };
+
   using Plot                   = CQChartsPlot;
   using View                   = CQChartsView;
   using Axis                   = CQChartsAxis;
@@ -434,7 +443,8 @@ class CQChartsAxis : public CQChartsObj,
 
   //--
 
-  void addProperties(CQPropertyViewModel *model, const QString &path);
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const PropertyType &propertyTypes=PropertyType::ALL);
 
   void updatePlotPosition();
 
@@ -472,7 +482,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void drawAt(double pos, const Plot *plot, PaintDevice *device);
 
-  void draw(const Plot *plot, PaintDevice *device);
+  void draw(const Plot *plot, PaintDevice *device, bool usePen=false, bool forceColor=false);
 
   void drawEditHandles(QPainter *painter) const;
 
@@ -640,6 +650,10 @@ class CQChartsAxis : public CQChartsObj,
   BBox                   lbbox_;                  //!< label box
 //BBox                   lastTickLabelRect_;      //!< last tick box (for auto hide)
   AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
+
+  mutable bool usePen_     { false }; //!< use painter pen
+  mutable bool forceColor_ { false }; //!< force painter color for all
+  mutable QPen savePen_;              //!< override pen to use
 };
 
 #endif

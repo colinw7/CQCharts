@@ -321,14 +321,14 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   model->setObjectRoot(path, this);
 
   addProp(path, "id"        , "id"        , "Annotation id");
-  addProp(path, "visible"   , "visible"   , "Is visible"   , true);
+  addProp(path, "visible"   , "visible"   , "Is visible");
   addProp(path, "enabled"   , "enabled"   , "Is enabled"   , true);
   addProp(path, "checkable" , "checkable" , "Is checkable" , true);
   addProp(path, "checked"   , "checked"   , "Is checked"   , true);
   addProp(path, "selected"  , "selected"  , "Is selected"  , true);
-  addProp(path, "selectable", "selectable", "Is selectable", true);
+  addProp(path, "selectable", "selectable", "Is selectable");
   addProp(path, "editable"  , "editable"  , "Is editable"  , true);
-  addProp(path, "drawLayer" , "drawLayer" , "Draw layer");
+  addProp(path, "drawLayer" , "drawLayer" , "Draw layer"   , true);
 
   auto coloringPath = path + "/coloring";
 
@@ -373,7 +373,7 @@ addFillProperties(PropertyModel *model, const QString &path)
 
 void
 CQChartsAnnotation::
-addStrokeProperties(PropertyModel *model, const QString &path)
+addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden=false) {
@@ -396,8 +396,11 @@ addStrokeProperties(PropertyModel *model, const QString &path)
   addStyleProp(path, "strokeColor", "color"     , "Stroke color"     );
   addStyleProp(path, "strokeAlpha", "alpha"     , "Stroke alpha"     );
   addStyleProp(path, "strokeWidth", "width"     , "Stroke width"     );
-  addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
-  addStyleProp(path, "borderSides", "sides"     , "Box visible sides");
+
+  if (isSolid) {
+    addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
+    addStyleProp(path, "borderSides", "sides"     , "Box visible sides");
+  }
 }
 
 bool
@@ -1333,7 +1336,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
 
   //---
 
@@ -1528,7 +1531,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
 
   //---
 
@@ -1716,7 +1719,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
 
   //---
 
@@ -1832,7 +1835,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(path1, "polygon"     , ""       , "Polyline points");
   addProp(path1, "roundedLines", "rounded", "Smooth lines");
 
-  addStrokeProperties(model, path1 + "/stroke");
+  addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 }
 
 void
@@ -2298,7 +2301,7 @@ draw(PaintDevice *device)
   calcPenBrush(penBrush);
 
   if (isEnabled())
-    updatePenBrushState(penBrush);
+    updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
 
   //---
 
@@ -2332,7 +2335,7 @@ draw(PaintDevice *device)
   penBrush.brush.setStyle(Qt::NoBrush);
 
   if (isEnabled())
-    updatePenBrushState(penBrush);
+    updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2760,7 +2763,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::IMAGE);
 
   //---
 
@@ -3240,7 +3243,8 @@ draw(PaintDevice *device)
     PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
     BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
 
-  updatePenBrushState(penBrush);
+  // TODO: check line
+  updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
   //---
 
@@ -3252,7 +3256,15 @@ draw(PaintDevice *device)
   arrow()->setFrom(start);
   arrow()->setTo  (end  );
 
-  arrow()->draw(device, penBrush);
+  bool skipPen = false;
+
+  if (plot()) {
+    if ((plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER && isInside  ()) ||
+        (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION  && isSelected()))
+      skipPen = true;
+  }
+
+  arrow()->draw(device, penBrush, skipPen);
   }
 
   //---
@@ -3752,7 +3764,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
 
   //---
 
@@ -3822,6 +3834,9 @@ init()
   setObjectName(QString("axis.%1").arg(ind()));
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (false);
 }
 
 Qt::Orientation
@@ -3888,9 +3903,9 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addStrokeProperties(model, path1 + "/stroke");
+  addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 
-  axis_->addProperties(model, path1);
+  axis_->addProperties(model, path1, CQChartsAxis::PropertyType::BASIC);
 }
 
 void
@@ -3925,13 +3940,21 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
   //---
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  axis_->draw(plot(), device);
+  bool usePen = true;
+
+  bool forceColor = false;
+
+  if ((plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER && isInside  ()) ||
+      (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION  && isSelected()))
+    forceColor = true;
+
+  axis_->draw(plot(), device, usePen, forceColor);
 
   //---
 
@@ -4111,7 +4134,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
   //---
 
@@ -4256,7 +4279,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
 
   //---
 
@@ -4545,7 +4568,7 @@ draw(PaintDevice *device)
 
   calcPenBrush(penBrush);
 
-  updatePenBrushState(penBrush);
+  updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
 
   //---
 
@@ -5200,7 +5223,7 @@ draw(PaintDevice *)
     widget_.resize(CMathRound::RoundNearest(ptbbox.getWidth()),
                    CMathRound::RoundNearest(ptbbox.getHeight()));
 
-    widget_.move(int(ptbbox.getXMin()), int(ptbbox.getYMin()));
+    widget_.move(int(ptbbox.getXMin()), int(ptbbox.getYMax()));
 
     //---
 

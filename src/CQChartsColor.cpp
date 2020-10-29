@@ -250,7 +250,7 @@ setColorStr(const QString &str)
     else
       setIndValue(Type::PALETTE, int(ind), 0.0);
   }
-  else if (strs[0] == "ind_palette") {
+  else if (strs[0] == "ind_palette" || strs[0] == "index_palette") {
     if (strs.length() > 1) {
       int  value;
       bool hasValue, invert;
@@ -268,7 +268,8 @@ setColorStr(const QString &str)
     else
       setValue(Type::INDEXED, 0);
   }
-  else if (startsWith(strs[0], "ind_palette#", rhs)) {
+  else if (startsWith(strs[0], "ind_palette#", rhs) ||
+           startsWith(strs[0], "index_palette#", rhs)) {
     bool ok;
 
     long ind = CQChartsUtil::toInt(rhs, ok);

@@ -5554,6 +5554,9 @@ annotationsSelectPress(const Point &w, SelMod selMod)
   }
 
   for (const auto &annotation : pressAnnotations_) {
+    if (! annotation->isSelectable())
+      continue;
+
     if (! annotation->selectPress(w, selMod))
       continue;
 

@@ -25,6 +25,18 @@ class QObject;
  *  . A model color                     : "model <r> <g> <b>"
  *  . An explicit model color           : "model <r> <g> <b> <value>"
  *  . An explicit rgb color name        : "<name>"
+ *
+ * To convert a CQChartsColor to a QColor the application needs state from the
+ * CQCharts object i.e.
+ *  . palette color needs colors from the specified palette in the palette mgr
+ *    and the value (intepolated index or numeric index) to use to get the color from the palette
+ *  . interface color needs the interface palette from the palette mgr
+ *    and the value (intepolated index or numeric index) to use to get the color from the palette
+ *  . contrast needs the color underneath the object being colored
+ *  . lighter/darker needs a reference color
+ *  . model needs the model palette in the palette mgr
+ *
+ * Only an explicit named color can be converted without state.
  */
 class CQChartsColor {
  public:

@@ -176,7 +176,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void addStrokeFillProperties(PropertyModel *model, const QString &path);
 
   //! add stroke properties
-  void addStrokeProperties(PropertyModel *model, const QString &path);
+  void addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid=true);
 
   //! add fill properties
   void addFillProperties(PropertyModel *model, const QString &path);

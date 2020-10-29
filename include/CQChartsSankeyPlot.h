@@ -777,9 +777,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(double nodeMargin READ nodeMargin WRITE setNodeMargin)
-  Q_PROPERTY(double nodeWidth  READ nodeWidth  WRITE setNodeWidth )
-  Q_PROPERTY(bool   edgeLine   READ isEdgeLine WRITE setEdgeLine  )
+  Q_PROPERTY(CQChartsLength nodeMargin READ nodeMargin WRITE setNodeMargin)
+  Q_PROPERTY(CQChartsLength nodeWidth  READ nodeWidth  WRITE setNodeWidth )
+  Q_PROPERTY(bool           edgeLine   READ isEdgeLine WRITE setEdgeLine  )
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
@@ -790,6 +790,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   // placement
   Q_PROPERTY(Align  align              READ align                WRITE setAlign             )
   Q_PROPERTY(Spread spread             READ spread               WRITE setSpread            )
+  Q_PROPERTY(bool   alignEnds          READ isAlignEnds          WRITE setAlignEnds         )
   Q_PROPERTY(bool   sortPathIdNodes    READ isSortPathIdNodes    WRITE setSortPathIdNodes   )
   Q_PROPERTY(bool   sortPathIdEdges    READ isSortPathIdEdges    WRITE setSortPathIdEdges   )
   Q_PROPERTY(bool   adjustNodes        READ isAdjustNodes        WRITE setAdjustNodes       )
@@ -838,6 +839,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     SRC,
     DEST,
     JUSTIFY,
+    LARGEST,
     RAND
   };
 
@@ -905,14 +907,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //---
 
   //! get/set node y margin
-  double nodeMargin() const { return nodeMargin_; }
-  void setNodeMargin(double r);
+  const Length &nodeMargin() const { return nodeMargin_; }
+  void setNodeMargin(const Length &r);
 
   //---
 
   //! get/set x width
-  double nodeWidth() const { return nodeWidth_; }
-  void setNodeWidth(double r);
+  const Length &nodeWidth() const { return nodeWidth_; }
+  void setNodeWidth(const Length &l);
 
   //---
 
@@ -949,6 +951,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void setSpread(const Spread &s);
 
   //---
+
+  //! get/set align ends
+  bool isAlignEnds() const { return alignEnds_; }
+  void setAlignEnds(bool b);
 
   //! get/set sort path id edges
   bool isSortPathIdNodes() const { return sortPathIdNodes_; }
@@ -1035,7 +1041,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void fitToBBox(const BBox &bbox);
+  bool fitToBBox() const;
 
   //---
 
@@ -1169,6 +1175,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool adjustNodeCentersLtoR(bool placed=false, bool force=false) const;
   bool adjustNodeCentersRtoL(bool placed=false, bool force=false) const;
 
+  bool adjustPosNodes(int xpos, bool placed, bool useSrc=true, bool useDest=true) const;
+
 //bool adjustEdgeOverlaps(bool force=false) const;
 
   bool removeOverlaps(bool spread=true, bool constrain=true, bool force=false) const;
@@ -1185,7 +1193,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool increasing) const;
   void createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const;
 
-  bool adjustNode(Node *node, bool placed=false) const;
+  bool adjustNode(Node *node, bool placed, bool useSrc=true, bool useDest=true) const;
 
   //---
 
@@ -1206,6 +1214,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Align  align_              { Align::JUSTIFY };     //!< align
   Spread spread_             { Spread::FIRST_LAST }; //!< spread
   int    alignRand_          { 10 };                 //!< number of random values for align
+  bool   alignEnds_          { true };               //!< align start left and end right
   bool   sortPathIdNodes_    { true };               //!< sort nodes at depth by path id
   bool   sortPathIdEdges_    { true };               //!< sort node edges by path id
   bool   adjustNodes_        { true };               //!< adjust nodes
@@ -1221,9 +1230,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool edgeLine_ { false }; //!< draw line for edge
 
   // bbox, margin, node width
-  BBox   targetBBox_ { -1, -1, 1, 1 }; //!< target range bbox
-  double nodeMargin_ { 0.2 };          //!< node margin (y)
-  double nodeWidth_  { 16 };           //!< node x width in pixels
+  BBox   targetBBox_ { -1, -1, 1, 1 };     //!< target range bbox
+  Length nodeMargin_ { 0.2, Units::PLOT }; //!< node margin (y)
+  Length nodeWidth_  { 16, Units::PIXEL }; //!< node x width in pixels
 
   // text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
@@ -1242,7 +1251,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Edges       edges_;                     //!< edges
   BBox        bbox_;                      //!< bbox
   int         maxNodeDepth_  { 0 };       //!< max node depth (all graphs)
-  double      minNodeMargin_ { 4 };       //!< minimum node margin (in pixels)
+  double      minNodeMargin_ { 0.1 };     //!< minimum node margin (in pixels)
   double      boxMargin_     { 0.01 };    //!< bounding box margin
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling

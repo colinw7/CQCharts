@@ -52,7 +52,9 @@ enum class CQChartsResizeSide {
 enum class CQChartsObjDrawType {
   LINE,
   BOX,
-  SYMBOL
+  SYMBOL,
+  TEXT,
+  IMAGE
 };
 
 //! color value type

@@ -1233,7 +1233,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     for (const auto &value : data_.values()) {
@@ -1607,7 +1607,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
     if (fromObj) { fromObj->setInside(true); fromObj->draw(device); fromObj->setInside(false); }

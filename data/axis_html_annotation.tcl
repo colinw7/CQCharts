@@ -1,7 +1,7 @@
 set x { X 0 1 }
 set y { Y 0 1 }
 
-set modelId [load_charts_model -tcl [list $x $y] -first_line_header]
+set model [load_charts_model -tcl [list $x $y] -first_line_header]
 
 set plot [create_charts_plot -type xy -columns {{x X} {y Y}} -title "X/Y"]
 

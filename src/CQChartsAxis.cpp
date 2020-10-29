@@ -203,7 +203,7 @@ emitSelectionChanged()
 
 void
 CQChartsAxis::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const PropertyType &propertyTypes)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc, bool hidden=false) {
@@ -221,10 +221,15 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
+  if (int(propertyTypes) & int(PropertyType::STATE)) {
+    addProp(path, "visible"  , "", "Axis visible");
+    addProp(path, "editable" , "", "Axis editable");
+  }
+
+  //---
+
   addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
 
-  addProp(path, "visible"  , "", "Axis visible");
-  addProp(path, "editable" , "", "Axis editable");
   addProp(path, "side"     , "", "Axis plot side");
   addProp(path, "valueType", "", "Axis value type");
   addProp(path, "format"   , "", "Axis tick value format string");
@@ -252,14 +257,16 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   //---
 
-  auto linePath = path + "/stroke";
+  if (int(propertyTypes) & int(PropertyType::STROKE)) {
+    auto linePath = path + "/stroke";
 
-  addStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
-  addStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
-  addStyleProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
-  addStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
-  addStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
-  addStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+    addStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
+    addStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
+    addStyleProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
+    addStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
+    addStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
+    addStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+  }
 
   //---
 
@@ -1315,8 +1322,14 @@ drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
 void
 CQChartsAxis::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
+draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool forceColor)
 {
+  usePen_     = usePen;
+  forceColor_ = forceColor;
+  savePen_    = device->pen();
+
+  //---
+
   fitBBox_   = BBox(); // fit box
   fitLBBox_  = BBox(); // label fit box
   fitTLBBox_ = BBox(); // tick label fit box
@@ -1350,9 +1363,13 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
   //---
 
   // axis line
-  if (isAxesLines()) {
+  bool lineVisible = isAxesLines();
+
+  if (usePen_)
+    lineVisible = (savePen_.style() != Qt::NoPen);
+
+  if (lineVisible)
     drawLine(plot, device, apos1, amin, amax);
-  }
 
   //---
 
@@ -1604,6 +1621,11 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   if (fitLBBox_.isSet())
     fitBBox_ += adjustLabelFitBox(fitLBBox_);
+
+  //---
+
+  usePen_     = false;
+  forceColor_ = false;
 }
 
 void
@@ -1697,7 +1719,10 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double 
   plot_->setPen(penBrush,
     PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
-  device->setPen(penBrush.pen);
+  if (! usePen_)
+    device->setPen(penBrush.pen);
+  else
+    device->setPen(savePen_);
 
   //---
 
@@ -1719,6 +1744,9 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   plot_->setPen(penBrush,
     PenData(true, lc, axesMajorGridLinesAlpha(), axesMajorGridLinesWidth(),
             axesMajorGridLinesDash()));
+
+  if (forceColor_)
+    penBrush.pen.setColor(savePen_.color());
 
   device->setPen(penBrush.pen);
 
@@ -1742,6 +1770,9 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   plot_->setPen(penBrush,
     PenData(true, lc, axesMinorGridLinesAlpha(), axesMinorGridLinesWidth(),
             axesMinorGridLinesDash()));
+
+  if (forceColor_)
+    penBrush.pen.setColor(savePen_.color());
 
   device->setPen(penBrush.pen);
 
@@ -1798,9 +1829,12 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
   auto lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(penBrush,
-   PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
+    PenData(true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash()));
 
-  device->setPen(penBrush.pen);
+  if (! usePen_)
+    device->setPen(penBrush.pen);
+  else
+    device->setPen(savePen_);
 
   //---
 
@@ -1875,16 +1909,6 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
   auto pp = windowToPixel(plot, tpos, apos);
 
   //---
-
-#if 0
-  QPen tpen;
-
-  auto tc = interpAxesTickLabelTextColor(ColorInd());
-
-  plot->setPen(tpen, true, tc, axesTickLabelTextAlpha());
-
-  device->setPen(tpen);
-#endif
 
   view()->setPlotPainterFont(plot, device, axesTickLabelTextFont());
 
@@ -2442,9 +2466,10 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   plot->setPen(tpenBrush, PenData(true, tc, axesTickLabelTextAlpha()));
 
-  device->setPen(tpenBrush.pen);
+  if (forceColor_)
+    tpenBrush.pen.setColor(savePen_.color());
 
-  //view()->setPlotPainterFont(plot, device, axesTickLabelTextFont());
+  device->setPen(tpenBrush.pen);
 
   //---
 
@@ -2506,6 +2531,9 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
   plot->setPen(tpenBrush, PenData(true, tc, axesLabelTextAlpha()));
 
+  if (forceColor_)
+    tpenBrush.pen.setColor(savePen_.color());
+
   device->setPen(tpenBrush.pen);
 
   view()->setPlotPainterFont(plot, device, axesLabelTextFont());
@@ -2557,7 +2585,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
       // angle, align not supported
       // formatted not supported (axis code controls string)
-      // html supported only for use label or annotation axis
+      // html supported only for user label or annotation axis
       CQChartsTextOptions options;
 
       options.angle         = Angle();
@@ -2600,7 +2628,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos
 
       // angle, align not supported
       // formatted not supported (axis code controls string)
-      // html supported only for use label or annotation axis
+      // html supported only for user label or annotation axis
       CQChartsTextOptions options;
 
       options.angle         = Angle();

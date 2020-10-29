@@ -3,8 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + axis html labels if user defined label or annotation
- + html support for all text if possible. Remove all calls to QFontMetricsF::width)
+ + sankey non-pixel gaps
+ + sankey path column
+ + restore tree state in property view when showing hidden
+ + html support for all text if possible.
+   + Remove all calls to QFontMetricsF::width)
+   + Only if user generated ?
  + allow chaining. get indices, process ...
  + more common expression/filter evaluation code (remove old wildcard/regexp ?)
  + crashes in preview plot

@@ -200,16 +200,16 @@ clearNodesAndEdges()
 
 void
 CQChartsSankeyPlot::
-setNodeMargin(double r)
+setNodeMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeMargin_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeMargin_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsSankeyPlot::
-setNodeWidth(double r)
+setNodeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeWidth_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -252,6 +252,13 @@ setSpread(const Spread &s)
 }
 
 //---
+
+void
+CQChartsSankeyPlot::
+setAlignEnds(bool b)
+{
+  CQChartsUtil::testAndSet(alignEnds_, b, [&]() { updateRangeAndObjs(); } );
+}
 
 void
 CQChartsSankeyPlot::
@@ -357,6 +364,7 @@ addProperties()
   // placement
   addProp("placement", "align"             , "align"             , "Node alignment");
   addProp("placement", "spread"            , "spread"            , "Node spread");
+  addProp("placement", "alignEnds"         , "alignEnds"         , "Align start/end nodes");
   addProp("placement", "sortPathIdNodes"   , "sortPathIdNodes"   , "Sort depth nodes by path id");
   addProp("placement", "sortPathIdEdges"   , "sortPathIdEdges"   , "Sort node edges by path id");
   addProp("placement", "adjustNodes"       , "adjustNodes"       , "Adjust node placement");
@@ -379,7 +387,7 @@ addProperties()
 
   // node
   addProp("node", "nodeMargin", "margin", "Node margin (Y)");
-  addProp("node", "nodeWidth" , "width" , "Node width (in pixels)");
+  addProp("node", "nodeWidth" , "width" , "Node width");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -429,6 +437,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::calcRange");
 
+#if 0
 //auto *th = const_cast<CQChartsSankeyPlot *>(this);
 
   Range dataRange;
@@ -446,16 +455,23 @@ calcRange() const
   //---
 
   return dataRange;
+#else
+  return targetBBox_;
+#endif
 }
 
 CQChartsGeom::Range
 CQChartsSankeyPlot::
 getCalcDataRange() const
 {
-  double xm = pixelToWindowWidth(nodeWidth());
+#if 0
+  double xm = lengthPlotWidth(nodeWidth());
 
   return Range(bbox_.getXMin() - xm/2.0, bbox_.getYMax(),
                bbox_.getXMax() + xm/2.0, bbox_.getYMin());
+#else
+  return targetBBox_;
+#endif
 }
 
 CQChartsGeom::Range
@@ -553,47 +569,88 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
-void
+bool
 CQChartsSankeyPlot::
-fitToBBox(const BBox &bbox)
+fitToBBox() const
 {
-  // TODO: center at 0, 0 after fit
+  bool changed = false;
+
+  //---
 
   // current
-  double x1 = bbox_.getXMin  ();
+  auto *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->bbox_ = nodesBBox();
+
+//double x1 = bbox_.getXMin  ();
   double y1 = bbox_.getYMin  ();
-  double w1 = bbox_.getWidth ();
+//double w1 = bbox_.getWidth ();
   double h1 = bbox_.getHeight();
 
   // target
-  double x2 = bbox.getXMin  ();
+  auto bbox = targetBBox_;
+
+//double x2 = bbox.getXMin  ();
   double y2 = bbox.getYMin  ();
-  double w2 = bbox.getWidth ();
+//double w2 = bbox.getWidth ();
   double h2 = bbox.getHeight();
 
-  double xf = w2/w1;
-  double yf = h2/h1;
+  //---
 
-  double f = std::min(xf, yf);
-
-  for (const auto &idNode : indNodeMap_) {
+  // move all to bottom
+  for (const auto &idNode : th->indNodeMap_) {
     auto *node = idNode.second;
     if (! node->isVisible()) continue;
 
-    double nx1 = x2 + (node->rect().getXMin() - x1)*f;
-    double ny1 = y2 + (node->rect().getYMin() - y1)*f;
-  //double nx2 = x2 + (node->rect().getXMax() - x1)*f;
-  //double ny2 = y2 + (node->rect().getYMax() - y1)*f;
+    double ny1 = y2 + (node->rect().getYMin() - y1);
 
-    node->scale(f, f);
+    double dy = ny1 - node->rect().getYMin();
 
-    node->moveBy(Point(nx1 - node->rect().getXMin(), ny1 - node->rect().getYMin()));
+    if (std::abs(dy) > 1E-6) {
+      node->moveBy(Point(0.0, dy));
+      changed = true;
+    }
   }
+
+  //---
+
+  th->bbox_ = nodesBBox();
+
+//x1 = bbox_.getXMin  ();
+  y1 = bbox_.getYMin  ();
+//w1 = bbox_.getWidth ();
+  h1 = bbox_.getHeight();
+
+  //---
+
+  // spread all to top
+  double yf = h2/h1;
+
+  for (const auto &idNode : th->indNodeMap_) {
+    auto *node = idNode.second;
+    if (! node->isVisible()) continue;
+
+    double ny1 = y2 + (node->rect().getYMin() - y1)*yf;
+
+    double dy = ny1 - node->rect().getYMin();
+
+    if (std::abs(dy) > 1E-6) {
+      node->moveBy(Point(0.0, dy));
+      changed = true;
+    }
+  }
+
+  //---
+
+  if (! changed)
+    return false;
 
   //---
 
   if (graph_)
     graph_->updateRect();
+
+  return true;
 }
 
 //------
@@ -1559,10 +1616,12 @@ calcValueMarginScale()
 
   double ys = 2.0; // default size of bbox
 
+#if 0
   if (bbox_.isSet()) {
   //ys = bbox.getHeight();
     ys = std::max(bbox_.getWidth(), bbox_.getHeight());
   }
+#endif
 
   double ys1 = nodeMargin*ys;
   double ys2 = ys - ys1; // size minus margin
@@ -1578,7 +1637,9 @@ double
 CQChartsSankeyPlot::
 calcNodeMargin() const
 {
-  double nodeMargin = std::min(std::max(this->nodeMargin(), 0.0), 1.0);
+  double nodeMargin = lengthPlotHeight(this->nodeMargin());
+
+  nodeMargin = std::min(std::max(nodeMargin, 0.0), 1.0);
 
   auto pixelNodeMargin = windowToPixelHeight(nodeMargin);
 
@@ -1605,13 +1666,16 @@ void
 CQChartsSankeyPlot::
 placeDepthSubNodes(int xpos, const Nodes &nodes) const
 {
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
   // place nodes to fit in bbox
-  double ys = bbox_.getHeight();
+  double ys = bbox.getHeight();
 
   int minX = this->minX();
   int maxX = this->maxX();
 
-  double xm = pixelToWindowWidth(nodeWidth());
+  double xm = lengthPlotWidth(nodeWidth());
 
   //---
 
@@ -1627,7 +1691,7 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
   //---
 
   // calc top (placing top to bottom)
-  double y1 = bbox_.getYMax() - (ys - height)/2.0;
+  double y1 = bbox.getYMax() - (ys - height)/2.0;
 
   //---
 
@@ -1644,10 +1708,6 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
     int xpos1 = calcXPos(node);
     assert(xpos == xpos1);
 
-    // map xpos to bbox range (use for left)
-    double x11 = CMathUtil::map(xpos1, minX, maxX, bbox_.getXMin(), bbox_.getXMax());
-    double x12 = x11 + xm;
-
     double yc = y1 - h/2.0; // placement center
 
     double y11 = yc - h/2.0; // y1 - h
@@ -1658,17 +1718,19 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
     // calc bbox (adjust align for first left edge (minX) or right edge (maxX))
     BBox rect;
 
-    if      (xpos1 == minX)
-      rect = BBox(x11, y11, x12, y12); // left edge (left align)
-    else if (xpos1 == maxX) {
-      x11 -= xm; x12 -= xm;
+    if (isAlignEnds()) {
+      // map xpos to bbox range minus margins
+      double x11 = CMathUtil::map(xpos1, minX + xm/2.0, maxX - xm/2.0,
+                                  targetBBox_.getXMin(), targetBBox_.getXMax());
 
-      rect = BBox(x11, y11, x12, y12); // right edge (right align)
+      rect = BBox(x11 - xm/2.0, y11, x11 + xm/2.0, y12); // center align
     }
     else {
-      x11 -= xm/2.0; x12 -= xm/2.0;
+      // map xpos to bbox range (use for left)
+      double x11 = CMathUtil::map(xpos1, minX, maxX,
+                                  targetBBox_.getXMin(), targetBBox_.getXMax());
 
-      rect = BBox(x11, y11, x12, y12); // center align
+      rect = BBox(x11 - xm/2.0, y11, x11 + xm/2.0, y12); // center align
     }
 
     //---
@@ -1731,7 +1793,7 @@ calcXPos(Node *node) const
         xpos = srcDepth;
       else if (align() == Align::DEST)
         xpos = graph_->maxNodeDepth() - destDepth;
-      else if (align() == Align::JUSTIFY) {
+      else if (align() == Align::JUSTIFY || align() == Align::LARGEST) {
         double f = 1.0*srcDepth/(srcDepth + destDepth);
 
         xpos = int(f*graph_->maxNodeDepth());
@@ -1757,8 +1819,11 @@ CQChartsSankeyEdgeObj *
 CQChartsSankeyPlot::
 addEdgeObj(Edge *edge) const
 {
-  double xm = bbox_.getHeight()*edgeMargin_;
-  double ym = bbox_.getWidth ()*edgeMargin_;
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
+  double xm = bbox.getHeight()*edgeMargin_;
+  double ym = bbox.getWidth ()*edgeMargin_;
 
   BBox nodeRect;
 
@@ -1849,7 +1914,10 @@ adjustGraphNodes(const Nodes &nodes, bool placed, bool force) const
 
   //---
 
-  (void) removeOverlaps();
+  bool spread    = true;
+  bool constrain = (this->spread() != Spread::NONE);
+
+  (void) removeOverlaps(spread, constrain, force);
 
   //---
 
@@ -1887,11 +1955,43 @@ adjustNodeCenters(bool placed, bool force) const
   if (placed)
     placeEdges();
 
-  if (adjustNodeCentersLtoR(placed, force))
-    changed = true;
+  if (align() == Align::LARGEST) {
+    int minX = this->minX();
+    int maxX = this->maxX();
 
-  if (adjustNodeCentersRtoL(placed, force))
-    changed = true;
+    int maxN   = 0;
+    int maxPos = minX;
+
+    for (int xpos = minX; xpos <= maxX; ++xpos) {
+      if (! graph_->hasPosNodes(xpos)) continue;
+
+      const auto &nodes = graph_->posNodes(xpos);
+
+      if (int(nodes.size()) > maxN) {
+        maxN   = nodes.size();
+        maxPos = xpos;
+      }
+    }
+
+    for (int xpos = maxPos - 1; xpos >= minX; --xpos) {
+      if (adjustPosNodes(xpos, placed, /*useSrc*/false, /*useDest*/true))
+        changed = true;
+    }
+
+    for (int xpos = maxPos + 1; xpos <= maxX; ++xpos) {
+      if (adjustPosNodes(xpos, placed, /*useSrc*/true, /*useDest*/false))
+        changed = true;
+    }
+
+    return changed;
+  }
+  else {
+    if (adjustNodeCentersLtoR(placed, force))
+      changed = true;
+
+    if (adjustNodeCentersRtoL(placed, force))
+      changed = true;
+  }
 
   return changed;
 }
@@ -1920,17 +2020,8 @@ adjustNodeCentersLtoR(bool placed, bool force) const
     endX = maxX;
 
   for (int xpos = startX; xpos <= endX; ++xpos) {
-    if (! graph_->hasPosNodes(xpos)) continue;
-
-    const auto &nodes = graph_->posNodes(xpos);
-
-    for (const auto &node : nodes) {
-      if (isAdjustSelected() && ! node->isSelected())
-        continue;
-
-      if (adjustNode(node, placed))
-        changed = true;
-    }
+    if (adjustPosNodes(xpos, placed))
+      changed = true;
   }
 
   return changed;
@@ -1960,17 +2051,32 @@ adjustNodeCentersRtoL(bool placed, bool force) const
     startX = minX;
 
   for (int xpos = endX; xpos >= startX; --xpos) {
-    if (! graph_->hasPosNodes(xpos)) continue;
+    if (adjustPosNodes(xpos, placed))
+      changed = true;
+  }
 
-    const auto &nodes = graph_->posNodes(xpos);
+  return changed;
+}
 
-    for (const auto &node : nodes) {
-      if (isAdjustSelected() && ! node->isSelected())
-        continue;
+bool
+CQChartsSankeyPlot::
+adjustPosNodes(int xpos, bool placed, bool useSrc, bool useDest) const
+{
+  assert(useSrc || useDest);
 
-      if (adjustNode(node, placed))
-        changed = true;
-    }
+  if (! graph_->hasPosNodes(xpos))
+    return false;
+
+  bool changed = false;
+
+  const auto &nodes = graph_->posNodes(xpos);
+
+  for (const auto &node : nodes) {
+    if (isAdjustSelected() && ! node->isSelected())
+      continue;
+
+    if (adjustNode(node, placed, useSrc, useDest))
+      changed = true;
   }
 
   return changed;
@@ -2125,7 +2231,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
             double dy = rect1.getYMax() + ym - rect2.getYMin();
 
             if (std::abs(dy) > 1E-6) {
-              node2->moveBy(Point(0, dy));
+              node2->moveBy(Point(0.0, dy));
               changed = true;
             }
           }
@@ -2136,7 +2242,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
             double dy = rect1.getYMin() - ym - rect2.getYMax();
 
             if (std::abs(dy) > 1E-6) {
-              node2->moveBy(Point(0, dy));
+              node2->moveBy(Point(0.0, dy));
               changed = true;
             }
           }
@@ -2199,6 +2305,13 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
       changed = true;
   }
 
+  //---
+
+  if (this->spread() == Spread::NONE) {
+    if (fitToBBox())
+      changed = true;
+  }
+
   return changed;
 }
 
@@ -2206,6 +2319,9 @@ bool
 CQChartsSankeyPlot::
 spreadNodes() const
 {
+  if (this->spread() == Spread::NONE)
+    return false;
+
   bool changed = false;
 
   auto nodes = graph_->placeableNodes();
@@ -2215,10 +2331,18 @@ spreadNodes() const
   for (const auto &posNodes : graph_->posNodesMap()) {
     int pos = posNodes.first;
 
-    if (pos == minX() || pos == maxX()) {
-      if (spreadPosNodes(pos, posNodes.second))
-        changed = true;
+    if      (this->spread() == Spread::FIRST) {
+      if (pos != minX()) continue;
     }
+    else if (this->spread() == Spread::LAST) {
+      if (pos != maxX()) continue;
+    }
+    else if (this->spread() == Spread::FIRST_LAST) {
+      if (pos != minX() && pos != maxX()) continue;
+    }
+
+    if (spreadPosNodes(pos, posNodes.second))
+      changed = true;
   }
 
   return changed;
@@ -2232,7 +2356,7 @@ spreadPosNodes(int pos, const Nodes &nodes) const
 
   createPosNodeMap(pos, nodes, posNodeMap, /*increasing*/false);
 
-  BBox bbox;
+  BBox spreadBBox;
 
   Node *node1 = nullptr, *node2 = nullptr;
 
@@ -2241,23 +2365,28 @@ spreadPosNodes(int pos, const Nodes &nodes) const
 
     if (! node1) node1 = node2;
 
-    bbox += node2->rect();
+    spreadBBox += node2->rect();
   }
 
   if (! node1 || ! node2)
     return false;
 
+  //---
+
   double dy1 = node1->rect().getHeight()/2.0; // top
   double dy2 = node2->rect().getHeight()/2.0; // bottom
 
-  if (! bbox.isValid() || (bbox.getHeight() - dy1 - dy2) <= 0.0)
+  if (! spreadBBox.isValid() || (spreadBBox.getHeight() - dy1 - dy2) <= 0.0)
     return false;
 
-  double ymin = bbox_.getYMin() + dy2;
-  double ymax = bbox_.getYMax() - dy1;
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
+  double ymin = bbox.getYMin() + dy2;
+  double ymax = bbox.getYMax() - dy1;
 
   double dy = ymin - node2->rect().getYMid();
-  double ys = (ymax - ymin)/(bbox.getHeight() - dy1 - dy2);
+  double ys = (ymax - ymin)/(spreadBBox.getHeight() - dy1 - dy2);
 
   if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(ys, 1.0))
     return false;
@@ -2265,11 +2394,11 @@ spreadPosNodes(int pos, const Nodes &nodes) const
   for (const auto &posNode : posNodeMap) {
     auto *node = posNode.second;
 
-    node->moveBy(Point(0, dy));
+    node->moveBy(Point(0.0, dy));
 
     double y1 = ys*(node->rect().getYMid() - ymin) + ymin;
 
-    node->moveBy(Point(0, y1 - node->rect().getYMid()));
+    node->moveBy(Point(0.0, y1 - node->rect().getYMid()));
   }
 
   return true;
@@ -2301,7 +2430,7 @@ constrainPosNodes(int pos, const Nodes &nodes, bool center) const
 
   createPosNodeMap(pos, nodes, posNodeMap, /*increasing*/false);
 
-  BBox bbox;
+  BBox constrainBBox;
 
   Node *node1 = nullptr, *node2 = nullptr;
 
@@ -2310,14 +2439,17 @@ constrainPosNodes(int pos, const Nodes &nodes, bool center) const
 
     if (! node1) node1 = node2;
 
-    bbox += node2->rect();
+    constrainBBox += node2->rect();
   }
 
   if (! node1 || ! node2)
     return false;
 
-  double dy1 = node2->rect().getYMin() - bbox_.getYMin();
-  double dy2 = bbox_.getYMax() - node1->rect().getYMax();
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
+  double dy1 = node2->rect().getYMin() - bbox.getYMin();
+  double dy2 = bbox.getYMax() - node1->rect().getYMax();
 
   double dy = 0.0;
 
@@ -2325,11 +2457,11 @@ constrainPosNodes(int pos, const Nodes &nodes, bool center) const
     if (! center)
       return false;
 
-    dy = bbox_.getYMid() - bbox.getYMid();
+    dy = bbox.getYMid() - constrainBBox.getYMid();
   }
   else {
     if      (dy1 < 0 && dy2 < 0) {
-      dy = bbox_.getYMid() - bbox.getYMid();
+      dy = bbox.getYMid() - constrainBBox.getYMid();
     }
     else if (dy1 < 0) {
       dy = -dy1;
@@ -2345,7 +2477,7 @@ constrainPosNodes(int pos, const Nodes &nodes, bool center) const
   for (const auto &posNode : posNodeMap) {
     auto *node = posNode.second;
 
-    node->moveBy(Point(0, dy));
+    node->moveBy(Point(0.0, dy));
   }
 
   return true;
@@ -2406,6 +2538,9 @@ createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool incre
 {
   assert(pos >= 0);
 
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
   for (const auto &node : nodes) {
     if (! node->isVisible()) continue;
 
@@ -2413,7 +2548,7 @@ createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool incre
     if (! rect.isValid()) continue;
 
     // use distance from bottom (increasing) or distance from top (decreasing)
-    double y = (increasing ? rect.getYMid() - bbox_.getYMin() : bbox_.getYMax() - rect.getYMid());
+    double y = (increasing ? rect.getYMid() - bbox.getYMin() : bbox.getYMax() - rect.getYMid());
 
     NodeYPos ypos(y, node->id(), increasing ? node->minPathId() : -node->minPathId());
 
@@ -2428,6 +2563,9 @@ void
 CQChartsSankeyPlot::
 createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
 {
+//auto bbox = bbox_;
+  auto bbox = targetBBox_;
+
   for (const auto &edge : edges) {
     auto *node = (isSrc ? edge->srcNode() : edge->destNode());
     if (! node->isVisible()) continue;
@@ -2436,7 +2574,7 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     if (! rect.isValid()) continue;
 
     // use distance from top (decreasing)
-    double y = bbox_.getYMax() - rect.getYMid();
+    double y = bbox.getYMax() - rect.getYMid();
 
     NodeYPos ypos(y, edge->id(), -node->minPathId());
 
@@ -2449,24 +2587,28 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
 
 bool
 CQChartsSankeyPlot::
-adjustNode(Node *node, bool placed) const
+adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
 {
+  assert(useSrc || useDest);
+
   // get bounds of source edges
   BBox srcBBox;
 
-  for (const auto &edge : node->srcEdges()) {
-    if (edge->isSelf()) continue;
+  if (useSrc) {
+    for (const auto &edge : node->srcEdges()) {
+      if (edge->isSelf()) continue;
 
-    auto *srcNode = edge->srcNode();
-    if (! srcNode->isVisible()) continue;
+      auto *srcNode = edge->srcNode();
+      if (! srcNode->isVisible()) continue;
 
-    if (! placed)
-      srcBBox += srcNode->rect();
-    else {
-      if (srcNode->hasDestEdgeRect(edge))
-        srcBBox += srcNode->destEdgeRect(edge);
-      else
+      if (! placed)
         srcBBox += srcNode->rect();
+      else {
+        if (srcNode->hasDestEdgeRect(edge))
+          srcBBox += srcNode->destEdgeRect(edge);
+        else
+          srcBBox += srcNode->rect();
+      }
     }
   }
 
@@ -2475,19 +2617,21 @@ adjustNode(Node *node, bool placed) const
   // get bounds of dest edges
   BBox destBBox;
 
-  for (const auto &edge : node->destEdges()) {
-    if (edge->isSelf()) continue;
+  if (useDest) {
+    for (const auto &edge : node->destEdges()) {
+      if (edge->isSelf()) continue;
 
-    auto *destNode = edge->destNode();
-    if (! destNode->isVisible()) continue;
+      auto *destNode = edge->destNode();
+      if (! destNode->isVisible()) continue;
 
-    if (! placed)
-      destBBox += destNode->rect();
-    else {
-      if (destNode->hasSrcEdgeRect(edge))
-        destBBox += destNode->srcEdgeRect(edge);
-      else
+      if (! placed)
         destBBox += destNode->rect();
+      else {
+        if (destNode->hasSrcEdgeRect(edge))
+          destBBox += destNode->srcEdgeRect(edge);
+        else
+          destBBox += destNode->rect();
+      }
     }
   }
 
@@ -2496,7 +2640,7 @@ adjustNode(Node *node, bool placed) const
   // calc average y
   double midY = 0.0;
 
-  if       (srcBBox.isValid() && destBBox.isValid())
+  if      (srcBBox.isValid() && destBBox.isValid())
     midY = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
   else if (srcBBox.isValid())
     midY = srcBBox.getYMid();
@@ -2513,7 +2657,7 @@ adjustNode(Node *node, bool placed) const
   if (std::abs(dy) < 1E-6) // better tolerance ?
     return false;
 
-  node->moveBy(Point(0, dy));
+  node->moveBy(Point(0.0, dy));
 
   return true;
 }
@@ -2595,7 +2739,11 @@ keyPress(int key, int modifier)
       drawObjs();
   }
   else if (key == Qt::Key_O) {
-    if (removeOverlaps(/*spread*/false, /*constrain*/false, /*force*/true))
+    bool spread    = false;
+    bool constrain = false;
+    bool force     = true;
+
+    if (removeOverlaps(spread, constrain, force))
       drawObjs();
   }
   else if (key == Qt::Key_I) {
@@ -2607,11 +2755,8 @@ keyPress(int key, int modifier)
       drawObjs();
   }
   else if (key == Qt::Key_F) {
-    bbox_ = nodesBBox(); // current
-
-    fitToBBox(targetBBox_);
-
-    drawObjs();
+    if (fitToBBox())
+      drawObjs();
   }
   else if (key == Qt::Key_P) {
     placeGraph(/*placed*/false);
@@ -2965,25 +3110,27 @@ void
 CQChartsSankeyPlotNode::
 moveBy(const Point &delta)
 {
-  rect_.moveBy(delta);
+  Point delta1(0.0, delta.y);
+
+  rect_.moveBy(delta1);
 
   if (obj_)
-    obj_->moveBy(delta);
+    obj_->moveBy(delta1);
 
   //---
 
-  moveSrcEdgeRectsBy (delta);
-  moveDestEdgeRectsBy(delta);
+  moveSrcEdgeRectsBy (delta1);
+  moveDestEdgeRectsBy(delta1);
 }
 
 void
 CQChartsSankeyPlotNode::
-scale(double fx, double fy)
+scale(double /*fx*/, double fy)
 {
-  rect_.scale(fx, fy);
+  rect_.scale(1.0, fy);
 
   if (obj_)
-    obj_->scale(fx, fy);
+    obj_->scale(1.0, fy);
 
   //---
 
@@ -3169,7 +3316,7 @@ adjustSrcDestRects()
       continue;
 
     if (srcEdgeSum() > destEdgeSum()) {
-      destRect.moveBy(Point(0, dy));
+      destRect.moveBy(Point(0.0, dy));
 
       for (auto &edge : this->destEdges()) {
         if (edge->pathId() == pathId)
@@ -3177,7 +3324,7 @@ adjustSrcDestRects()
       }
     }
     else {
-      srcRect.moveBy(Point(0, -dy));
+      srcRect.moveBy(Point(0.0, -dy));
 
       for (auto &edge : this->srcEdges()) {
         if (edge->pathId() == pathId)
@@ -3539,15 +3686,16 @@ CQChartsSankeyNodeObj::
 moveBy(const Point &delta)
 {
   //std::cerr << "  Move " << node()->str().toStdString() << " by " << delta.y << "\n";
+  Point delta1(0.0, delta.y);
 
-  rect_.moveBy(delta);
+  rect_.moveBy(delta1);
 }
 
 void
 CQChartsSankeyNodeObj::
-scale(double fx, double fy)
+scale(double /*fx*/, double fy)
 {
-  rect_.scale(fx, fy);
+  rect_.scale(1.0, fy);
 }
 
 //---
@@ -3614,10 +3762,10 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 {
   assert(bbox.isSet());
 
-  double dx = bbox.getXMin() - rect_.getXMin();
+//double dx = bbox.getXMin() - rect_.getXMin();
   double dy = bbox.getYMin() - rect_.getYMin();
 
-  node()->moveBy(Point(dx, dy));
+  node()->moveBy(Point(0.0, dy));
 }
 
 //---
@@ -3677,7 +3825,7 @@ draw(PaintDevice *device) const
   //---
 
   // show source and destination nodes on inside
-  if (plot_->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (plot_->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
@@ -4116,7 +4264,7 @@ draw(PaintDevice *device) const
   //---
 
   // show source and destination nodes on inside
-  if (plot()->view()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
+  if (plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     if (plot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       auto drawNodeInside = [&](const Node *node, bool isSrc) {
         auto *nodeObj = node->obj(); if (! nodeObj) return;
@@ -4423,17 +4571,17 @@ setRect(const BBox &rect)
   // rect is always from nodes so adjust nodes to give rect
   updateRect();
 
-  double fx = (rect_.getWidth () > 0.0 ? rect.getWidth ()/rect_.getWidth () : 1.0);
+//double fx = (rect_.getWidth () > 0.0 ? rect.getWidth ()/rect_.getWidth () : 1.0);
   double fy = (rect_.getHeight() > 0.0 ? rect.getHeight()/rect_.getHeight() : 1.0);
 
-  scale(fx, fy);
+  scale(1.0, fy);
 
   updateRect();
 
-  double dx = rect.getXMin() - rect_.getXMin();
+//double dx = rect.getXMin() - rect_.getXMin();
   double dy = rect.getYMin() - rect_.getYMin();
 
-  moveBy(Point(dx, dy));
+  moveBy(Point(0.0, dy));
 
   updateRect();
 }
@@ -4468,24 +4616,26 @@ void
 CQChartsSankeyPlotGraph::
 moveBy(const Point &delta)
 {
-  rect_.moveBy(delta);
+  Point delta1(0.0, delta.y);
+
+  rect_.moveBy(delta1);
 
   for (const auto &node : nodes())
-    node->moveBy(delta);
+    node->moveBy(delta1);
 }
 
 void
 CQChartsSankeyPlotGraph::
-scale(double fx, double fy)
+scale(double /*fx*/, double fy)
 {
   auto p = rect().getCenter();
 
   for (const auto &node : nodes()) {
     auto p1 = node->rect().getCenter();
 
-    double xc = p.x + (p1.x - p.x)*fx;
+  //double xc = p.x + (p1.x - p.x)*fx;
     double yc = p.y + (p1.y - p.y)*fy;
 
-    node->moveBy(Point(xc - p1.x, yc - p1.y));
+    node->moveBy(Point(0.0, yc - p1.y));
   }
 }

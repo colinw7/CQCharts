@@ -199,7 +199,7 @@ class CQChartsArrow : public QObject,
 
   // draw arrow
   void draw(PaintDevice *device) const;
-  void draw(PaintDevice *device, const PenBrush &penBrush) const;
+  void draw(PaintDevice *device, const PenBrush &penBrush, bool skipPen=false) const;
 
   //---
 
@@ -330,8 +330,9 @@ class CQChartsArrow : public QObject,
   bool                 debugLabels_ { false };
   mutable PointLabels  pointLabels_;
 #endif
-  mutable PaintDevice* device_;                  //!< paint device
-  mutable QPainterPath path_;
+  mutable PaintDevice* device_  { nullptr }; //!< paint device
+  mutable QPainterPath path_;                //!< draw path
+  mutable bool         skipPen_ { false };   //!< skip set pen/brush
 
   // inside data
   mutable Line    frontLine1_;

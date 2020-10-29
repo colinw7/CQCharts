@@ -123,16 +123,26 @@ void
 CQChartsFillPatternLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  // TODO: allow specify color
-  QColor c(71, 118, 180);
+  // draw pattern
+  QColor bg(0, 0, 0);
+  QColor fg(255, 255, 255);
 
+  QPen   pen;
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, true, c, CQChartsAlpha(), fillPattern());
+  CQChartsUtil::setPen(pen, true, fg);
+  CQChartsUtil::setBrush(brush, true, bg, CQChartsAlpha(), fillPattern());
+
+  painter->setPen(pen);
 
   painter->fillRect(rect, brush);
 
   //---
+
+  // draw text
+  CQChartsUtil::setPen(pen, true, QColor(0, 0, 0));
+
+  painter->setPen(pen);
 
   auto str = (fillPattern().isValid() ? fillPattern().toString() : "<none>");
 
@@ -186,18 +196,26 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   //---
 
-  // TODO: allow specify color
-  QColor c(71, 118, 180);
+  // draw pattern
+  QColor bg(0, 0, 0);
+  QColor fg(255, 255, 255);
 
+  QPen   pen;
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, true, c, CQChartsAlpha(), fillPattern);
+  CQChartsUtil::setPen(pen, true, fg);
+  CQChartsUtil::setBrush(brush, true, bg, CQChartsAlpha(), fillPattern);
+
+  painter->setPen(pen);
 
   painter->fillRect(rect, brush);
 
   //---
 
-  painter->setPen(Qt::black);
+  // draw border
+  CQChartsUtil::setPen(pen, true, QColor(200, 200, 200));
+
+  painter->setPen(pen);
 
   painter->drawRect(rect);
 

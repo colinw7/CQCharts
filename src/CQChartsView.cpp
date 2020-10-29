@@ -148,8 +148,11 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   setSelectedMode(HighlightDataMode::FILL);
 
-  setSelectedFillAlpha(Alpha(0.8));
+  setSelectedFillAlpha  (Alpha(0.8));
+  setSelectedStrokeWidth(CQChartsLength("2px"));
+
   setInsideFillAlpha  (Alpha(0.8));
+  setInsideStrokeWidth(CQChartsLength("2px"));
 
   //---
 

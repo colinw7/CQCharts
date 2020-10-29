@@ -1219,3 +1219,7 @@
  + Support flatten in model dialog and allow specific and duplcate columns
 # 10/26/2020
  + Support html text on axes labels for annotations and custom labels
+# 10/29/2020
+ + Allow align largest and spread none in sankey plot
+ + Make sankey plot range more stable
+ + Use length based node width and margin
