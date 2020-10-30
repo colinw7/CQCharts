@@ -54,7 +54,9 @@ addParameters()
 
   addColumnParameter("depth", "Depth", "depthColumn").setBasic().
     setNumeric().setTip("Connection depth");
-  addColumnParameter("attributes", "Attributes", "attributesColumn").setBasic().
+  addColumnParameter("pathId", "PathId", "pathIdColumn").
+    setString().setTip("Path Id");
+  addColumnParameter("attributes", "Attributes", "attributesColumn").
     setString().setTip("Node/Edge attributes");
 
   addColumnParameter("group", "Group", "groupColumn").
@@ -314,6 +316,13 @@ setGroupColumn(const Column &c)
 
 void
 CQChartsConnectionPlot::
+setPathIdColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(pathIdColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsConnectionPlot::
 setAttributesColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(attributesColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -398,6 +407,7 @@ addProperties()
   addProp("columns", "valueColumn", "value", "Value column");
   addProp("columns", "depthColumn", "depth", "Depth column");
 
+  addProp("columns", "pathIdColumn"    , "pathId"    , "Path Id column");
   addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
   addProp("columns", "groupColumn", "group", "Grouping column");
@@ -454,6 +464,12 @@ checkColumns() const
   else {
     return th->addError("Required columns not specified");
   }
+
+  // pathId optional
+  if (checkColumn(pathIdColumn(), "PathId"))
+    modelColumns_.push_back(pathIdColumn());
+  else
+    columnsValid = false;
 
   // attributes optional
   if (checkColumn(attributesColumn(), "Attributes"))
@@ -1006,10 +1022,23 @@ initFromToObjs() const
         fromToData.valueModelInd = ModelIndex(plot, data.row, plot_->valueColumn(), data.parent);
 
         bool ok3;
-        double value = plot_->modelReal(fromToData.valueModelInd, ok3);
+        auto value = plot_->modelReal(fromToData.valueModelInd, ok3);
         if (! ok3) return State::SKIP;
 
         fromToData.value = OptReal(value);
+      }
+
+      //---
+
+      // get pathId from optional column
+      if (plot_->pathIdColumn().isValid()) {
+        fromToData.pathIdModelInd = ModelIndex(plot, data.row, plot_->pathIdColumn(), data.parent);
+
+        bool ok4;
+        auto value = plot_->modelInteger(fromToData.pathIdModelInd, ok4);
+        if (! ok4) return State::SKIP;
+
+        fromToData.pathId = OptInt(value);
       }
 
       //---
@@ -1018,9 +1047,9 @@ initFromToObjs() const
       if (plot_->attributesColumn().isValid()) {
         ModelIndex attributesModelInd(plot, data.row, plot_->attributesColumn(), data.parent);
 
-        bool ok4;
-        auto attributesStr = plot_->modelString(attributesModelInd, ok4);
-        if (! ok4) return State::SKIP;
+        bool ok5;
+        auto attributesStr = plot_->modelString(attributesModelInd, ok5);
+        if (! ok5) return State::SKIP;
 
         fromToData.nameValues = CQChartsNameValues(attributesStr);
       }

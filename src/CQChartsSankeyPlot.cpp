@@ -1022,12 +1022,22 @@ addFromToValue(const FromToData &fromToData) const
         edge->addModelInd(modelInd);
     };
 
-    addModelInd(fromToData.fromModelInd );
-    addModelInd(fromToData.toModelInd   );
-    addModelInd(fromToData.valueModelInd);
-    addModelInd(fromToData.depthModelInd);
+    addModelInd(fromToData.fromModelInd  );
+    addModelInd(fromToData.toModelInd    );
+    addModelInd(fromToData.valueModelInd );
+    addModelInd(fromToData.depthModelInd );
+    addModelInd(fromToData.pathIdModelInd);
 
-    edge->setValueColumn(fromToData.valueModelInd.column());
+    edge->setNamedColumn("From"  , fromToData.fromModelInd  .column());
+    edge->setNamedColumn("To"    , fromToData.toModelInd    .column());
+    edge->setNamedColumn("Value" , fromToData.valueModelInd .column());
+    edge->setNamedColumn("PathId", fromToData.pathIdModelInd.column());
+
+    //---
+
+    // set path id if column specified
+    if (fromToData.pathId.isSet())
+      edge->setPathId(fromToData.pathId.integer());
 
     //---
 
@@ -4157,20 +4167,25 @@ calcTipId() const
   if (srcName  == "") srcName  = srcObj ->id();
   if (destName == "") destName = destObj->id();
 
-  tableTip.addTableRow("Src"  , srcName);
-  tableTip.addTableRow("Dest" , destName);
+  //---
 
-  if (edge()->hasValue()) {
-    QString headerStr("Value");
+  auto getColumnName = [&](const QString &name, const QString &defName="") {
+    if (! edge()->hasNamedColumn(name))
+      return (defName.length() ? defName : name);
 
-    if (edge()->valueColumn().isValid())
-      headerStr = plot_->columnHeaderName(edge()->valueColumn());
+    return plot_->columnHeaderName(edge()->namedColumn(name));
+  };
 
-    tableTip.addTableRow(headerStr, edge()->value().real());
-  }
+  //---
+
+  tableTip.addTableRow(getColumnName("From"), srcName);
+  tableTip.addTableRow(getColumnName("To"  ), destName);
+
+  if (edge()->hasValue())
+    tableTip.addTableRow(getColumnName("Value"), edge()->value().real());
 
   if (edge()->pathId() >= 0)
-    tableTip.addTableRow("Path Id", edge()->pathId());
+    tableTip.addTableRow(getColumnName("PathId", "Path Id"), edge()->pathId());
 
   //---
 

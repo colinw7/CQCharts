@@ -340,9 +340,21 @@ class CQChartsSankeyPlotEdge {
   const OptReal &value() const { return value_; }
   void setValue(const OptReal &r) { value_ = r; }
 
-  //! get/set value column
-  const Column &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const Column &c) { valueColumn_ = c; }
+  //---
+
+  //! get/set named column
+  bool hasNamedColumn(const QString &name) const {
+    return (namedColumn_.find(name) != namedColumn_.end());
+  }
+
+  Column namedColumn(const QString &name) const {
+    auto p = namedColumn_.find(name);
+    return (p != namedColumn_.end() ? (*p).second : Column());
+  }
+
+  void setNamedColumn(const QString &name, const Column &c) { namedColumn_[name] = c; }
+
+  //---
 
 #if 0
   //! get/set label
@@ -390,10 +402,12 @@ class CQChartsSankeyPlotEdge {
   bool edgePath(QPainterPath &path, bool isLine=false) const;
 
  protected:
+  using NamedColumn = std::map<QString, Column>;
+
   const Plot* plot_     { nullptr }; //!< plot
   int         id_       { -1 };      //!< unique id
   OptReal     value_;                //!< value
-  Column      valueColumn_;          //!< value column
+  NamedColumn namedColumn_;          //!< named columns
 //QString     label_;                //!< label
   Color       color_;                //!< color
   int         pathId_   { -1 };      //!< path id
