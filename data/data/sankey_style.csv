@@ -1,0 +1,8 @@
+From,To,Attributes
+0,1,"src_color=red,src_alpha=0.5,src_pattern=palette::plasma@90,src_width=2px,src_stroke_color=white"
+0,2,""
+1,3,"src_color=green,src_alpha=0.5,src_pattern=horiz,src_width=4px,src_dash='2,2',src_stroke_color=green"
+2,4,"src_color=blue,src_alpha=0.5,src_pattern=vert,src_width=4px,src_dash='4,4',src_stroke_alpha=0.5"
+3,5,"src_color=purple,src_alpha=0.5,src_pattern=fdiag,src_width=2px,src_dash='8,8'"
+4,5,"src_color=orange,src_alpha=0.5,src_pattern=bdiag,src_width=2px,src_dash='1,1'"
+5,,"color=cyan,alpha=0.5,pattern=palette:moreland@90,width=8px,dash='4,2',stroke_color=red,stroke_alpha=0.2"

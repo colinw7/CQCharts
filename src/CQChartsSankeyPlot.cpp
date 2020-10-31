@@ -990,7 +990,7 @@ addFromToValue(const FromToData &fromToData) const
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
-      srcNode->setColor(c);
+      srcNode->setFillColor(c);
 
     //---
 
@@ -1031,13 +1031,19 @@ addFromToValue(const FromToData &fromToData) const
     edge->setNamedColumn("From"  , fromToData.fromModelInd  .column());
     edge->setNamedColumn("To"    , fromToData.toModelInd    .column());
     edge->setNamedColumn("Value" , fromToData.valueModelInd .column());
+    edge->setNamedColumn("Depth" , fromToData.depthModelInd .column());
     edge->setNamedColumn("PathId", fromToData.pathIdModelInd.column());
 
     //---
 
     // set path id if column specified
-    if (fromToData.pathId.isSet())
-      edge->setPathId(fromToData.pathId.integer());
+    if (fromToData.pathId.isSet()) {
+      int pathId = fromToData.pathId.integer();
+
+      edge->setPathId(pathId);
+
+      pathIdMinMax_.add(pathId);
+    }
 
     //---
 
@@ -1045,7 +1051,7 @@ addFromToValue(const FromToData &fromToData) const
     Color c;
 
     if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
-      edge->setColor(c);
+      edge->setFillColor(c);
 
     //---
 
@@ -1103,7 +1109,7 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   if (colorColumnColor(linkConnectionData.linkModelInd.row(),
                        linkConnectionData.linkModelInd.parent(), c))
-    edge->setColor(c);
+    edge->setFillColor(c);
 
   //---
 
@@ -1271,14 +1277,40 @@ CQChartsSankeyPlot::
 processNodeNameValues(Node *node, const NameValues &nameValues) const
 {
   for (const auto &nv : nameValues.nameValues()) {
-    auto value = nv.second.toString();
+    const auto &name  = nv.first;
+    auto        value = nv.second.toString();
 
-    if      (nv.first == "label") {
-      node->setLabel(value);
-    }
-    else if (nv.first == "color") {
-      node->setColor(CQChartsColor(value));
-    }
+    processNodeNameValue(node, name, value);
+  }
+}
+
+void
+CQChartsSankeyPlot::
+processNodeNameValue(Node *node, const QString &name, const QString &value) const
+{
+  if      (name == "label") {
+    node->setLabel(value);
+  }
+  else if (name == "fill_color" || name == "color") {
+    node->setFillColor(CQChartsColor(value));
+  }
+  else if (name == "fill_alpha" || name == "alpha") {
+    node->setFillAlpha(CQChartsAlpha(value));
+  }
+  else if (name == "fill_pattern" || name == "pattern") {
+    node->setFillPattern(CQChartsFillPattern(value));
+  }
+  else if (name == "stroke_color") {
+    node->setStrokeColor(CQChartsColor(value));
+  }
+  else if (name == "stroke_alpha") {
+    node->setStrokeAlpha(CQChartsAlpha(value));
+  }
+  else if (name == "stroke_width" || name == "width") {
+    node->setStrokeWidth(CQChartsLength(value));
+  }
+  else if (name == "stroke_dash" || name == "dash") {
+    node->setStrokeDash(CQChartsLineDash(value));
   }
 }
 
@@ -1290,9 +1322,12 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
   auto *destNode = edge->destNode();
 
   for (const auto &nv : nameValues.nameValues()) {
-    auto value = nv.second.toString();
+    const auto &name  = nv.first;
+    auto        value = nv.second.toString();
 
-    if      (nv.first == "path_id") {
+    // TODO: remove path_id and color (use columns)
+
+    if      (name == "path_id") {
       bool ok;
       int pathId = value.toInt(&ok);
       if (! ok || pathId < 0) continue;
@@ -1301,25 +1336,19 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
 
       pathIdMinMax_.add(pathId);
     }
-    else if (nv.first == "color") {
-      edge->setColor(CQChartsColor(value));
+    else if (name == "color") {
+      edge->setFillColor(CQChartsColor(value));
     }
 #if 0
-    else if (nv.first == "label") {
+    else if (name == "label") {
       edge->setLabel(value);
     }
 #endif
-    else if (nv.first == "src_label") {
-      srcNode->setLabel(value);
+    else if (name.left(4) == "src_") {
+      processNodeNameValue(srcNode, name.mid(4), value);
     }
-    else if (nv.first == "dest_label") {
-      destNode->setLabel(value);
-    }
-    else if (nv.first == "src_color") {
-      srcNode->setColor(CQChartsColor(value));
-    }
-    else if (nv.first == "dest_color") {
-      destNode->setColor(CQChartsColor(value));
+    else if (name.left(5) == "dest_") {
+      processNodeNameValue(destNode, name.mid(5), value);
     }
   }
 }
@@ -1730,15 +1759,15 @@ placeDepthSubNodes(int xpos, const Nodes &nodes) const
 
     if (isAlignEnds()) {
       // map xpos to bbox range minus margins
-      double x11 = CMathUtil::map(xpos1, minX + xm/2.0, maxX - xm/2.0,
-                                  targetBBox_.getXMin(), targetBBox_.getXMax());
+      double x11 = CMathUtil::map(xpos1, minX, maxX,
+                     targetBBox_.getXMin() + xm/2.0, targetBBox_.getXMax() - xm/2.0);
 
       rect = BBox(x11 - xm/2.0, y11, x11 + xm/2.0, y12); // center align
     }
     else {
       // map xpos to bbox range (use for left)
       double x11 = CMathUtil::map(xpos1, minX, maxX,
-                                  targetBBox_.getXMin(), targetBBox_.getXMax());
+                     targetBBox_.getXMin(), targetBBox_.getXMax());
 
       rect = BBox(x11 - xm/2.0, y11, x11 + xm/2.0, y12); // center align
     }
@@ -2851,7 +2880,7 @@ void
 CQChartsSankeyPlotNode::
 addSrcEdge(Edge *edge, bool primary)
 {
-  edge->destNode()->parent_ = edge->srcNode();
+  edge->destNode()->setParent(edge->srcNode());
 
   srcEdges_.push_back(edge);
 
@@ -3399,8 +3428,8 @@ calcColor() const
   else
     ic = CQChartsUtil::ColorInd(id(), plot_->numNodes());
 
-  if (color_.isValid())
-    return plot_->interpColor(color_, ic);
+  if (fillColor().isValid())
+    return plot_->interpColor(fillColor(), ic);
   else
     return plot_->interpNodeFillColor(ic);
 }
@@ -3602,16 +3631,16 @@ setDepth(int depth)
 
 CQChartsColor
 CQChartsSankeyNodeObj::
-color() const
+fillColor() const
 {
-  return node()->color();
+  return node()->fillColor();
 }
 
 void
 CQChartsSankeyNodeObj::
-setColor(const CQChartsColor &c)
+setFillColor(const CQChartsColor &c)
 {
-  node()->setColor(c);
+  node()->setFillColor(c);
 }
 
 void
@@ -3632,6 +3661,24 @@ QString
 CQChartsSankeyNodeObj::
 calcTipId() const
 {
+  Edge *edge = nullptr;
+
+  if      (! node()->srcEdges().empty())
+    edge = *node()->srcEdges().begin();
+  else if (! node()->destEdges().empty())
+    edge = *node()->destEdges().begin();
+
+  auto namedColumn = [&](const QString &name, const QString &defName="") {
+    QString headerName = (defName.length() ? defName : name);
+
+    if (edge && edge->hasNamedColumn(name))
+      return plot_->columnHeaderName(edge->namedColumn(name));
+
+    return headerName;
+  };
+
+  //---
+
   CQChartsTableTip tableTip;
 
   auto name = this->name();
@@ -3647,19 +3694,18 @@ calcTipId() const
   tableTip.addTableRow("Name", name);
 
   if (node()->hasValue())
-    tableTip.addTableRow("Value", value());
+    tableTip.addTableRow(namedColumn("Value"), value());
 
   if (depth() >= 0)
-    tableTip.addTableRow("Depth", depth());
+    tableTip.addTableRow(namedColumn("Depth"), depth());
 
   int ns = node()->srcEdges ().size();
   int nd = node()->destEdges().size();
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
 
-  if (plot_->groupColumn().isValid()) {
+  if (plot_->groupColumn().isValid())
     tableTip.addTableRow("Group", node()->group());
-  }
 
   //---
 
@@ -4067,14 +4113,30 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set fill and stroke
   auto ic = calcColorInd();
 
-  auto bc = plot_->interpNodeStrokeColor(ic);
+  QColor bc;
+
+  if (node()->strokeColor().isValid())
+    bc = plot_->interpColor(node()->strokeColor(), ic);
+  else
+    bc = plot_->interpNodeStrokeColor(ic);
+
   auto fc = calcFillColor();
 
+  auto fillAlpha   = (node()->fillAlpha  ().isValid() ?
+    node()->fillAlpha() : plot_->nodeFillAlpha());
+  auto fillPattern = (node()->fillPattern().isValid() ?
+    node()->fillPattern() : plot_->nodeFillPattern());
+
+  auto strokeAlpha = (node()->strokeAlpha().isValid() ?
+    node()->strokeAlpha() : plot_->nodeStrokeAlpha());
+  auto strokeWidth = (node()->strokeWidth().isValid() ?
+    node()->strokeWidth() : plot_->nodeStrokeWidth());
+  auto strokeDash  = (node()->strokeDash ().isValid() ?
+    node()->strokeDash () : plot_->nodeStrokeDash());
+
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
-              plot_->nodeStrokeWidth(), plot_->nodeStrokeDash()),
-    BrushData(plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(),
-              plot_->nodeFillPattern()));
+    PenData  (plot_->isNodeStroked(), bc, strokeAlpha, strokeWidth, strokeDash),
+    BrushData(plot_->isNodeFilled (), fc, fillAlpha, fillPattern));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -4107,8 +4169,8 @@ calcFillColor() const
   else {
     auto ic = calcColorInd();
 
-    if (color().isValid())
-      fc = plot_->interpColor(color(), ic);
+    if (fillColor().isValid())
+      fc = plot_->interpColor(fillColor(), ic);
     else
       fc = plot_->interpNodeFillColor(ic);
   }
@@ -4156,6 +4218,17 @@ QString
 CQChartsSankeyEdgeObj::
 calcTipId() const
 {
+  auto namedColumn = [&](const QString &name, const QString &defName="") {
+    QString headerName = (defName.length() ? defName : name);
+
+    if (edge()->hasNamedColumn(name))
+      return plot_->columnHeaderName(edge()->namedColumn(name));
+
+    return headerName;
+  };
+
+  //---
+
   CQChartsTableTip tableTip;
 
   auto *srcObj  = edge()->srcNode ()->obj();
@@ -4169,23 +4242,14 @@ calcTipId() const
 
   //---
 
-  auto getColumnName = [&](const QString &name, const QString &defName="") {
-    if (! edge()->hasNamedColumn(name))
-      return (defName.length() ? defName : name);
-
-    return plot_->columnHeaderName(edge()->namedColumn(name));
-  };
-
-  //---
-
-  tableTip.addTableRow(getColumnName("From"), srcName);
-  tableTip.addTableRow(getColumnName("To"  ), destName);
+  tableTip.addTableRow(namedColumn("From"), srcName);
+  tableTip.addTableRow(namedColumn("To"  ), destName);
 
   if (edge()->hasValue())
-    tableTip.addTableRow(getColumnName("Value"), edge()->value().real());
+    tableTip.addTableRow(namedColumn("Value"), edge()->value().real());
 
   if (edge()->pathId() >= 0)
-    tableTip.addTableRow(getColumnName("PathId", "Path Id"), edge()->pathId());
+    tableTip.addTableRow(namedColumn("PathId", "Path Id"), edge()->pathId());
 
   //---
 
@@ -4458,7 +4522,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc fill color
   QColor fc;
 
-  if (! edge()->color().isValid()) {
+  if (! edge()->fillColor().isValid()) {
     if (plot()->isBlendEdgeColor()) {
       auto fc1 = srcNode ->obj()->calcFillColor();
       auto fc2 = destNode->obj()->calcFillColor();
@@ -4469,7 +4533,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       fc = plot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fc = plot()->interpColor(edge()->color(), colorInd);
+    fc = plot()->interpColor(edge()->fillColor(), colorInd);
   }
 
   //---

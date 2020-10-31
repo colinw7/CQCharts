@@ -2473,8 +2473,6 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //---
 
-  QFontMetricsF fm(device->font());
-
   auto clipLength = plot_->lengthPixelWidth(axesTickLabelTextClipLength());
 
   for (const auto &data : axisTickLabelDrawDatas_) {

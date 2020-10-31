@@ -44,6 +44,24 @@ charts() const
     return nullptr;
 }
 
+bool
+CQChartsArrow::
+isSolid() const
+{
+  if (isRectilinear())
+    return true;
+
+  bool linePoly = (lineWidth().value() > 0);
+
+  if (! linePoly)
+    return true;
+
+  bool isFrontSolid = (isFrontVisible() && ! isFrontLineEnds());
+  bool isTailSolid  = (isTailVisible () && ! isTailLineEnds ());
+
+  return (! isFrontSolid && ! isTailSolid);
+}
+
 void
 CQChartsArrow::
 draw(CQChartsPaintDevice *device) const
@@ -61,15 +79,13 @@ draw(CQChartsPaintDevice *device) const
 
 void
 CQChartsArrow::
-draw(CQChartsPaintDevice *device, const PenBrush &penBrush, bool skipPen) const
+draw(CQChartsPaintDevice *device, const PenBrush &penBrush) const
 {
   device_  = device;
-  skipPen_ = skipPen;
 
   drawContents(penBrush);
 
   device_  = nullptr;
-  skipPen_ = false;
 }
 
 void
@@ -789,8 +805,7 @@ drawLine(const Point &point1, const Point &point2, double width, const PenBrush 
 
   pen1.setWidthF(width);
 
-  if (! skipPen_)
-    device_->setPen(pen1);
+  device_->setPen(pen1);
 
   auto p1 = pixelToWindow(point1);
   auto p2 = pixelToWindow(point2);
@@ -810,8 +825,7 @@ drawPointLabel(const Point &point, const QString &text, bool above) const
 
   CQChartsUtil::setPen(tpen, true, tc, CQChartsAlpha(), 0.0);
 
-  if (! skipPen_)
-    device_->setPen(tpen);
+  device_->setPen(tpen);
 
   Point p1(point.x - 4, point.y    );
   Point p2(point.x + 4, point.y    );

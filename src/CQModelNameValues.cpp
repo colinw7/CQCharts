@@ -226,23 +226,47 @@ splitNameValues(const QString &str)
 
   QString word;
 
-  while (! parse.eof()) {
-    if      (parse.isChar('\\')) {
-      parse.skipChar();
+  bool in_quotes = false;
 
-      if (! parse.eof())
+  while (! parse.eof()) {
+    if (! in_quotes) {
+      if      (parse.isChar('\\')) {
+        parse.skipChar();
+
+        if (! parse.eof())
+          word += parse.getChar();
+      }
+      else if (parse.isChar('\'')) {
+        parse.skipChar();
+
+        in_quotes = true;
+      }
+      else if (parse.isChar(',')) {
+        parse.skipChar();
+
+        if (word.length())
+          words.push_back(word);
+
+        word = "";
+      }
+      else
         word += parse.getChar();
     }
-    else if (parse.isChar(',')) {
-      parse.skipChar();
+    else {
+      if     (parse.isChar('\\')) {
+        parse.skipChar();
 
-      if (word.length())
-        words.push_back(word);
+        if (! parse.eof())
+          word += parse.getChar();
+      }
+      else if (parse.isChar('\'')) {
+        parse.skipChar();
 
-      word = "";
+        in_quotes = false;
+      }
+      else
+        word += parse.getChar();
     }
-    else
-      word += parse.getChar();
   }
 
   if (word.length())

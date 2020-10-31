@@ -148,11 +148,15 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   setSelectedMode(HighlightDataMode::FILL);
 
+  setSelectedFillColor  (Color(Color::Type::CONTRAST));
   setSelectedFillAlpha  (Alpha(0.8));
-  setSelectedStrokeWidth(CQChartsLength("2px"));
+  setSelectedStrokeColor(Color(Color::Type::CONTRAST));
+  setSelectedStrokeWidth(Length("2px"));
 
+  setInsideFillColor  (Color(Color::Type::CONTRAST));
   setInsideFillAlpha  (Alpha(0.8));
-  setInsideStrokeWidth(CQChartsLength("2px"));
+  setInsideStrokeColor(Color(Color::Type::CONTRAST));
+  setInsideStrokeWidth(Length("2px"));
 
   //---
 
@@ -1244,7 +1248,7 @@ addAnnotationGroup()
 
 CQChartsArrowAnnotation *
 CQChartsView::
-addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
+addArrowAnnotation(const Position &start, const Position &end)
 {
   return addAnnotationT<CQChartsArrowAnnotation>(
     new CQChartsArrowAnnotation(this, start, end));
@@ -1252,8 +1256,7 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 
 CQChartsEllipseAnnotation *
 CQChartsView::
-addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
-                     const CQChartsLength &yRadius)
+addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
 {
   return addAnnotationT<CQChartsEllipseAnnotation>(
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius));
@@ -1261,7 +1264,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsImageAnnotation *
 CQChartsView::
-addImageAnnotation(const CQChartsPosition &pos, const CQChartsImage &image)
+addImageAnnotation(const Position &pos, const CQChartsImage &image)
 {
   return addAnnotationT<CQChartsImageAnnotation>(
     new CQChartsImageAnnotation(this, pos, image));
@@ -1285,8 +1288,8 @@ addKeyAnnotation()
 
 CQChartsPieSliceAnnotation *
 CQChartsView::
-addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
-                      const CQChartsLength &outerRadius, const CQChartsAngle &startAngle,
+addPieSliceAnnotation(const Position &pos, const Length &innerRadius,
+                      const Length &outerRadius, const CQChartsAngle &startAngle,
                       const CQChartsAngle &spanAngle)
 {
   return addAnnotationT<CQChartsPieSliceAnnotation>(
@@ -1295,7 +1298,7 @@ addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRa
 
 CQChartsPointAnnotation *
 CQChartsView::
-addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+addPointAnnotation(const Position &pos, const CQChartsSymbol &type)
 {
   return addAnnotationT<CQChartsPointAnnotation>(
     new CQChartsPointAnnotation(this, pos, type));
@@ -1335,7 +1338,7 @@ addRectangleAnnotation(const CQChartsRect &rect)
 
 CQChartsTextAnnotation *
 CQChartsView::
-addTextAnnotation(const CQChartsPosition &pos, const QString &text)
+addTextAnnotation(const Position &pos, const QString &text)
 {
   return addAnnotationT<CQChartsTextAnnotation>(
     new CQChartsTextAnnotation(this, pos, text));
@@ -1359,7 +1362,7 @@ addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values
 
 CQChartsButtonAnnotation *
 CQChartsView::
-addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
+addButtonAnnotation(const Position &pos, const QString &text)
 {
   return addAnnotationT<CQChartsButtonAnnotation>(
     new CQChartsButtonAnnotation(this, pos, text));
@@ -1367,7 +1370,7 @@ addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
 
 CQChartsWidgetAnnotation *
 CQChartsView::
-addWidgetAnnotation(const CQChartsPosition &pos, const CQChartsWidget &widget)
+addWidgetAnnotation(const Position &pos, const CQChartsWidget &widget)
 {
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, pos, widget));
@@ -4456,6 +4459,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
       if (penBrush.pen.style() != Qt::NoPen) {
         auto pc = penBrush.pen.color();
 
+        charts()->setContrastColor(pc);
+
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
         else
@@ -4465,6 +4470,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
       }
       else {
         auto bc = penBrush.brush.color();
+
+        charts()->setContrastColor(bc);
 
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
@@ -4477,10 +4484,14 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
 
       if (outline)
         setBrush(penBrush, BrushData(false));
+
+      charts()->resetContrastColor();
     }
     // fill box, symbol
     else if (insideMode() == CQChartsView::HighlightDataMode::FILL) {
       auto bc = penBrush.brush.color();
+
+      charts()->setContrastColor(bc);
 
       QColor ibc;
 
@@ -4508,11 +4519,15 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
       }
 
       setBrush(penBrush, BrushData(true, ibc, alpha, insideFillPattern()));
+
+      charts()->resetContrastColor();
     }
   }
   // just stroke
   else {
     auto pc = penBrush.pen.color();
+
+    charts()->setContrastColor(pc);
 
     QColor opc;
 
@@ -4525,6 +4540,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
 
     setPen(penBrush,
       PenData(true, opc, alpha, insideStrokeWidth(), insideStrokeDash()));
+
+    charts()->resetContrastColor();
   }
 }
 
@@ -4542,6 +4559,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       if (penBrush.pen.style() != Qt::NoPen) {
         auto pc = penBrush.pen.color();
 
+        charts()->setContrastColor(pc);
+
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
         else
@@ -4551,6 +4570,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       }
       else {
         auto bc = penBrush.brush.color();
+
+        charts()->setContrastColor(bc);
 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
@@ -4562,10 +4583,14 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
         PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
 
       setBrush(penBrush, BrushData(false));
+
+      charts()->resetContrastColor();
     }
     // fill box, symbol
     else if (selectedMode() == CQChartsView::HighlightDataMode::FILL) {
       auto bc = penBrush.brush.color();
+
+      charts()->setContrastColor(bc);
 
       QColor ibc;
 
@@ -4590,11 +4615,15 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
       }
 
       setBrush(penBrush, BrushData(true, ibc, alpha, selectedFillPattern()));
+
+      charts()->resetContrastColor();
     }
   }
   // just stroke
   else if (penBrush.pen.style() != Qt::NoPen) {
     auto pc = penBrush.pen.color();
+
+    charts()->setContrastColor(pc);
 
     QColor opc;
 
@@ -4607,6 +4636,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, PenBrush &penBrush, DrawType 
 
     setPen(penBrush,
       PenData(true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash()));
+
+    charts()->resetContrastColor();
   }
 }
 
@@ -5881,7 +5912,7 @@ updateTheme()
   setInsideFillColor  (theme()->insideColor());
 #endif
 
-  setInsideStrokeWidth(CQChartsLength("2px"));
+  setInsideStrokeWidth(Length("2px"));
 
   updateAll();
 
@@ -7138,7 +7169,7 @@ write(std::ostream &os) const
 
 CQChartsGeom::Point
 CQChartsView::
-positionToView(const CQChartsPosition &pos) const
+positionToView(const Position &pos) const
 {
   auto p  = pos.p();
   auto p1 = p;
@@ -7169,7 +7200,7 @@ positionToView(const CQChartsPosition &pos) const
 
 CQChartsGeom::Point
 CQChartsView::
-positionToPixel(const CQChartsPosition &pos) const
+positionToPixel(const Position &pos) const
 {
   auto p  = pos.p();
   auto p1 = p;
@@ -7278,7 +7309,7 @@ rectToPixel(const CQChartsRect &rect) const
 
 double
 CQChartsView::
-lengthViewWidth(const CQChartsLength &len) const
+lengthViewWidth(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
@@ -7296,7 +7327,7 @@ lengthViewWidth(const CQChartsLength &len) const
 
 double
 CQChartsView::
-lengthViewHeight(const CQChartsLength &len) const
+lengthViewHeight(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
@@ -7314,7 +7345,7 @@ lengthViewHeight(const CQChartsLength &len) const
 
 double
 CQChartsView::
-lengthViewSignedWidth(const CQChartsLength &len) const
+lengthViewSignedWidth(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowWidth(len.value());
@@ -7332,7 +7363,7 @@ lengthViewSignedWidth(const CQChartsLength &len) const
 
 double
 CQChartsView::
-lengthViewSignedHeight(const CQChartsLength &len) const
+lengthViewSignedHeight(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToSignedWindowHeight(len.value());
@@ -7350,7 +7381,7 @@ lengthViewSignedHeight(const CQChartsLength &len) const
 
 double
 CQChartsView::
-lengthPixelWidth(const CQChartsLength &len) const
+lengthPixelWidth(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
@@ -7371,7 +7402,7 @@ lengthPixelWidth(const CQChartsLength &len) const
 
 double
 CQChartsView::
-lengthPixelHeight(const CQChartsLength &len) const
+lengthPixelHeight(const Length &len) const
 {
   if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();

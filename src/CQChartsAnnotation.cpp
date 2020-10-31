@@ -1934,6 +1934,8 @@ draw(PaintDevice *device)
   setPen(penBrush,
     PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
 
+  updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
+
   //---
 
   // create path
@@ -3068,6 +3070,11 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
                     "Arrow tail head is drawn using lines", /*hidden*/true);
 
+  //---
+
+#if 0
+  addStrokeFillProperties(model, path1);
+#else
   auto fillPath = path1 + "/fill";
 
   addArrowStyleProp(fillPath, "filled"   , "visible", "Arrow fill visible");
@@ -3080,9 +3087,10 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addArrowStyleProp(strokePath, "strokeColor", "color"  , "Arrow stroke color");
   addArrowStyleProp(strokePath, "strokeAlpha", "alpha"  , "Arrow stroke alpha");
   addArrowStyleProp(strokePath, "strokeWidth", "width"  , "Arrow stroke width");
+#endif
 
 #if DEBUG_LABELS
-  addArrowProp(path1, "debugLabels", "debugLabels", "Show debug labels");
+  addArrowProp(path1, "debugLabels", "debugLabels", "Show debug labels", /*hidden*/true);
 #endif
 }
 
@@ -3243,8 +3251,10 @@ draw(PaintDevice *device)
     PenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
     BrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
 
-  // TODO: check line
-  updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
+  if (arrow()->isSolid())
+    updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+  else
+    updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
   //---
 
@@ -3256,15 +3266,7 @@ draw(PaintDevice *device)
   arrow()->setFrom(start);
   arrow()->setTo  (end  );
 
-  bool skipPen = false;
-
-  if (plot()) {
-    if ((plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER && isInside  ()) ||
-        (plot()->drawLayerType() == CQChartsLayer::Type::SELECTION  && isSelected()))
-      skipPen = true;
-  }
-
-  arrow()->draw(device, penBrush, skipPen);
+  arrow()->draw(device, penBrush);
   }
 
   //---
@@ -3572,7 +3574,12 @@ draw(PaintDevice *device)
               strokeData.width(), strokeData.dash()),
     BrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
 
-  updatePenBrushState(penBrush, Plot::DrawType::SYMBOL);
+  bool isSolid = (fillData.isVisible() && symbolData.type() != CQChartsSymbol::Type::DOT);
+
+  if (isSolid)
+    updatePenBrushState(penBrush, CQChartsObjDrawType::SYMBOL);
+  else
+    updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3946,8 +3953,7 @@ draw(PaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  bool usePen = true;
-
+  bool usePen     = true;
   bool forceColor = false;
 
   if ((plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER && isInside  ()) ||

@@ -485,20 +485,20 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   };
 
   // columns
-  Column      nodeColumn_;                                 //!< connection node column
-  Column      connectionsColumn_;                          //!< connections column
-  ColumnType  connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
-  Column      linkColumn_;                                 //!< link column
-  Column      pathColumn_;                                 //!< path column
-  Column      fromColumn_;                                 //!< from column
-  Column      toColumn_;                                   //!< to column
-  Column      valueColumn_;                                //!< value column
-  Column      depthColumn_;                                //!< depth column
-  Column      pathIdColumn_;                               //!< pathId column
-  Column      attributesColumn_;                           //!< attributes column
-  Column      groupColumn_;                                //!< group column
-  ColumnType  linkColumnType_ { ColumnType::NONE };        //!< link column type
-  Column      nameColumn_;                                 //!< name column
+  Column     nodeColumn_;                                 //!< connection node column
+  Column     connectionsColumn_;                          //!< connections column
+  ColumnType connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
+  Column     linkColumn_;                                 //!< link column
+  Column     pathColumn_;                                 //!< path column
+  Column     fromColumn_;                                 //!< from column
+  Column     toColumn_;                                   //!< to column
+  Column     valueColumn_;                                //!< value column
+  Column     depthColumn_;                                //!< depth column
+  Column     pathIdColumn_;                               //!< pathId column
+  Column     attributesColumn_;                           //!< attributes column
+  Column     groupColumn_;                                //!< group column
+  ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type
+  Column     nameColumn_;                                 //!< name column
 
   mutable ColumnArray modelColumns_; //!< used columns
 

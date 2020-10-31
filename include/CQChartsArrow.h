@@ -191,6 +191,10 @@ class CQChartsArrow : public QObject,
 
   //---
 
+  bool isSolid() const;
+
+  //---
+
   // get/set arrow data
   const ArrowData &data() const { return data_; }
   void setData(const ArrowData &data) { data_ = data; emit dataChanged(); }
@@ -199,7 +203,8 @@ class CQChartsArrow : public QObject,
 
   // draw arrow
   void draw(PaintDevice *device) const;
-  void draw(PaintDevice *device, const PenBrush &penBrush, bool skipPen=false) const;
+
+  void draw(PaintDevice *device, const PenBrush &penBrush) const;
 
   //---
 
@@ -332,7 +337,6 @@ class CQChartsArrow : public QObject,
 #endif
   mutable PaintDevice* device_  { nullptr }; //!< paint device
   mutable QPainterPath path_;                //!< draw path
-  mutable bool         skipPen_ { false };   //!< skip set pen/brush
 
   // inside data
   mutable Line    frontLine1_;

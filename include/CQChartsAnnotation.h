@@ -125,25 +125,25 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  // get/set enabled
+  //! get/set enabled
   bool isEnabled() const { return enabled_; }
   void setEnabled(bool b);
 
-  // get/set checkable
+  //! get/set checkable
   bool isCheckable() const { return checkable_; }
   void setCheckable(bool b);
 
-  // get/set checked
+  //! get/set checked
   bool isChecked() const { return checked_; }
   void setChecked(bool b);
 
   //---
 
-  // get/set disabled lighter
+  //! get/set disabled lighter
   double disabledLighter() const { return disabledLighter_; }
   void setDisabledLighter(double r) { disabledLighter_ = r; }
 
-  // get/set unchecked lighter
+  //! get/set unchecked lighter
   double uncheckedLighter() const { return uncheckedLighter_; }
   void setUncheckedLighter(double r) { uncheckedLighter_ = r; }
 
