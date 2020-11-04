@@ -13,6 +13,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQColors.h>
 
 #include <QScrollBar>
 #include <QStylePainter>
@@ -1141,7 +1142,7 @@ doLayout()
   //---
 
   // get items in each cell and dimension of grid
-  using ColItems    = std::map<int, Items>;
+  using ColItems    = std::map<int, KeyItems>;
   using RowColItems = std::map<int, ColItems>;
 
   RowColItems rowColItems;
@@ -2206,7 +2207,7 @@ doShow(SelMod selMod)
 {
   auto *plot = key_->plot();
 
-  const auto &ic = colorIndex();
+  auto ic = calcColorInd();
 
   if      (selMod == SelMod::REPLACE) {
     for (int i = 0; i < ic.n; ++i)
@@ -2268,7 +2269,7 @@ setKey(PlotKey *key)
 
 void
 CQChartsKeyItemGroup::
-addItem(Item *item)
+addItem(KeyItem *item)
 {
   if (item->group())
     const_cast<CQChartsKeyItemGroup *>(item->group())->removeItem(item, /*keep*/true);
@@ -2282,11 +2283,11 @@ addItem(Item *item)
 
 void
 CQChartsKeyItemGroup::
-removeItem(Item *item, bool keep)
+removeItem(KeyItem *item, bool keep)
 {
   assert(item->group() == this);
 
-  Items items;
+  KeyItems items;
 
   for (auto &item1 : items_)
     if (item1 != item)
@@ -2636,6 +2637,13 @@ CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig) :
   setClickable(true);
 }
 
+CQChartsKeyLine::
+CQChartsKeyLine(PlotKey *key, const ColorInd &is, const ColorInd &ig) :
+ CQChartsKeyItem(key, is.n > 1 ? is : ig), is_(is), ig_(ig)
+{
+  setClickable(true);
+}
+
 CQChartsGeom::Size
 CQChartsKeyLine::
 size() const
@@ -2725,10 +2733,17 @@ CQChartsGradientKeyItem(Plot *plot) :
 {
 }
 
+CQChartsGradientKeyItem::
+CQChartsGradientKeyItem(PlotKey *key) :
+ CQChartsKeyItem(key, ColorInd()), plot_(key->plot())
+{
+}
+
 CQChartsGeom::Size
 CQChartsGradientKeyItem::
 size() const
 {
+  // get char width/height
   auto font = plot_->view()->plotFont(plot_, key_->textFont());
 
   QFontMetricsF fm(font);
@@ -2736,9 +2751,19 @@ size() const
   double fw = fm.width("X");
   double fh = fm.height();
 
-  int n = maxN();
+  //---
 
-  double tw = fm.width(QString("%1").arg(n));
+  // calc max label width
+  QStringList labels;
+
+  calcLabels(labels);
+
+  double tw = 0.0;
+
+  for (const auto &label : labels)
+    tw = std::max(tw, fm.width(label));
+
+  //--
 
   double ww = plot_->pixelToWindowWidth (2*fw + tw + 6);
   double wh = plot_->pixelToWindowHeight(7*fh + fh + 4);
@@ -2750,21 +2775,34 @@ void
 CQChartsGradientKeyItem::
 draw(PaintDevice *device, const BBox &rect) const
 {
-  // calc text width
+  // get char height
   plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
 
   QFontMetricsF fm(device->font());
 
-//double fw = fm.width("X");
   double fh = fm.height();
 
-  int n = maxN();
+  //---
 
-  double tw  = fm.width(QString("%1").arg(n));
+  // calc max label width
+  QStringList labels;
+
+  calcLabels(labels);
+
+  double tw = 0.0;
+
+  for (const auto &label : labels)
+    tw = std::max(tw, fm.width(label));
+
   double wtw = plot_->pixelToWindowWidth(tw);
 
+  //---
+
+  // calc margins
   double wxm = plot_->pixelToWindowWidth (2);
   double wym = plot_->pixelToWindowHeight(fh/2 + 2);
+
+  //---
 
   // calc left/right boxes
   BBox lrect(rect.getXMin() + wxm, rect.getYMin() + wym,
@@ -2783,7 +2821,14 @@ draw(PaintDevice *device, const BBox &rect) const
 
   QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
 
-  plot_->view()->themePalette()->setLinearGradient(lg, 1.0);
+  CQColorsPalette *colorsPalette = nullptr;
+
+  if (palette() == "")
+    colorsPalette = plot_->view()->themePalette();
+  else
+    colorsPalette = CQColorsMgrInst->getNamedPalette(palette());
+
+  colorsPalette->setLinearGradient(lg, 1.0);
 
   QBrush brush(lg);
 
@@ -2796,23 +2841,15 @@ draw(PaintDevice *device, const BBox &rect) const
 
   //---
 
-  // calc label positions
-  int n1 = 0;
-  int n5 = n;
-
-  double dn = (n5 - n1)/4.0;
-
-  int n2 = int(n1 + dn);
-  int n4 = int(n5 - dn);
-  int n3 = int((n5 + n1)/2.0);
-
+  // rect (pixel) positions of label positions
   double y1 = rprect.getYMax();
   double y5 = rprect.getYMin();
-  double dy = (y1 - y5)/4.0;
 
-  double y2 = y1 - dy;
-  double y4 = y5 + dy;
-  double y3 = (y5 + y1)/2.0;
+  double dy = (y1 - y5)/4.0; // delta for min, lower mid, mid, upper mid, max
+
+  double y2 = y1 - dy;       // lower mid
+  double y4 = y5 + dy;       // upper mid
+  double y3 = (y5 + y1)/2.0; // mid
 
   //---
 
@@ -2827,25 +2864,44 @@ draw(PaintDevice *device, const BBox &rect) const
 
   //---
 
-  // draw key labels
-  auto drawTextLabel = [&](const Point &p, int n) {
+  // draw labels
+  auto drawTextLabel = [&](const Point &p, const QString &label) {
     auto p1 = plot_->pixelToWindow(p);
-
-    auto text = QString("%1").arg(n);
 
     CQChartsTextOptions options;
 
     options.align = Qt::AlignLeft;
 
-    CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options);
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, label, options);
   };
 
   double x1 = rprect.getXMin();
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  drawTextLabel(Point(x1, y1 + df), n1);
-  drawTextLabel(Point(x1, y2 + df), n2);
-  drawTextLabel(Point(x1, y3 + df), n3);
-  drawTextLabel(Point(x1, y4 + df), n4);
-  drawTextLabel(Point(x1, y5 + df), n5);
+  drawTextLabel(Point(x1, y1 + df), labels[0]);
+  drawTextLabel(Point(x1, y2 + df), labels[1]);
+  drawTextLabel(Point(x1, y3 + df), labels[2]);
+  drawTextLabel(Point(x1, y4 + df), labels[3]);
+  drawTextLabel(Point(x1, y5 + df), labels[4]);
+}
+
+void
+CQChartsGradientKeyItem::
+calcLabels(QStringList &labels) const
+{
+  // calc label values
+  double n1 = minValue_;
+  double n5 = maxValue_;
+
+  double dn = (n5 - n1)/4.0; // delta for min, lower mid, mid, upper mid, max
+
+  double n2 = n1 + dn;       // lower mid
+  double n4 = n5 - dn;       // upper mid
+  double n3 = (n5 + n1)/2.0; // mid
+
+  labels.push_back(QString("%1").arg(n1));
+  labels.push_back(QString("%1").arg(n2));
+  labels.push_back(QString("%1").arg(n3));
+  labels.push_back(QString("%1").arg(n4));
+  labels.push_back(QString("%1").arg(n5));
 }

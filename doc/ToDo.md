@@ -3,6 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + symbol key as separate class and allow as annotation
+ + test write properties with enum values
+ + R in Action
+ + hierarchical key ? (tree map)
+ + annotation gradient key
+ + errors in more plots
  + html support for all text if possible.
    + Remove all calls to QFontMetricsF::width()
    + Only if user generated ?
@@ -12,7 +18,6 @@ TODO:
  + more common expression/filter evaluation code (remove old wildcard/regexp ?)
  + crashes in preview plot
  + add fit for preview (better auto fit)
- + flatten from Manage Models Dialog
  + tip
    + signal on show
    + show in separate area
@@ -22,7 +27,8 @@ TODO:
  + Completion
    + more command value completion (all ?)
    + add completion support for all args (and values)
- + barchart column header names in tip
+ + column header names in tip
+   + barchart, all plots ?
  + polygon data label (text) does not set bbox. Check if inside ?
    + rotated text box draw (correct ?)
  + region tool mgr activate/deactivate view region tool

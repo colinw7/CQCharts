@@ -128,6 +128,26 @@
 #include <CQPropertyView.h>
 #include <CQPropertyViewItem.h>
 
+#include <CQIntRangeSlider.h>
+#include <CQDoubleRangeSlider.h>
+#include <CQTimeRangeSlider.h>
+
+#include <CQAlignEdit.h>
+#include <CQColorEdit.h>
+#include <CQCustomCombo.h>
+#include <CQDragLabel.h>
+#include <CQFilename.h>
+#include <CQFontEdit.h>
+#include <CQGroupBox.h>
+#include <CQIconCombo.h>
+#include <CQIntegerSpin.h>
+#include <CQRadioButtons.h>
+#include <CQRealSpin.h>
+#include <CQSwitch.h>
+#include <CQTabWidget.h>
+#include <CQTableWidget.h>
+#include <CQWinWidget.h>
+
 #include <CQWidgetFactory.h>
 #include <CQTclUtil.h>
 
@@ -575,6 +595,47 @@ init()
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEditGroup>());
     CQWidgetFactoryMgrInst->addWidgetFactory("CQChartsPlotPropertyEdit",
       new CQWidgetFactoryNoArgsT<CQChartsPlotPropertyEdit>());
+
+    // basic
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQIntRangeSlider",
+      new CQWidgetFactoryT<CQIntRangeSlider>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQDoubleRangeSlider",
+      new CQWidgetFactoryT<CQDoubleRangeSlider>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQTimeRangeSlider",
+      new CQWidgetFactoryT<CQTimeRangeSlider>());
+
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQAlignEdit",
+      new CQWidgetFactoryT<CQAlignEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQCheckBox",
+      new CQWidgetFactoryT<CQAlignEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQColorEdit",
+      new CQWidgetFactoryT<CQColorEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQCustomCombo",
+      new CQWidgetFactoryT<CQCustomCombo>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQDragLabel",
+      new CQWidgetFactoryT<CQDragLabel>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQFilename",
+      new CQWidgetFactoryT<CQFilename>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQFontEdit",
+      new CQWidgetFactoryT<CQFontEdit>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQGroupBox",
+      new CQWidgetFactoryT<CQGroupBox>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQIconCombo",
+      new CQWidgetFactoryT<CQIconCombo>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQIntegerSpin",
+      new CQWidgetFactoryT<CQIntegerSpin>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQRadioButtons",
+      new CQWidgetFactoryT<CQRadioButtons>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQRealSpin",
+      new CQWidgetFactoryT<CQRealSpin>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQSwitch",
+      new CQWidgetFactoryT<CQSwitch>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQTableWidget",
+      new CQWidgetFactoryT<CQTableWidget>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQTabWidget",
+      new CQWidgetFactoryT<CQTabWidget>());
+    CQWidgetFactoryMgrInst->addWidgetFactory("CQWinWidget",
+      new CQWidgetFactoryT<CQWinWidget>());
   }
 }
 

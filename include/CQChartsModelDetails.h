@@ -226,7 +226,7 @@ class CQChartsModelColumnDetails {
  private:
   bool initData();
 
-  void initType() const;
+  bool initType() const;
   bool calcType();
 
   void addInt   (long i, bool ok);

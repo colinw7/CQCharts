@@ -2177,7 +2177,9 @@ void
 CQChartsScatterPlot::
 addGridKeyItems(PlotKey *key)
 {
-  auto *item = new CQChartsScatterGridKeyItem(this);
+  int n = gridData().maxN();
+
+  auto *item = new CQChartsScatterGridKeyItem(this, n);
 
   key->addItem(item, 0, 0);
 }
@@ -2186,7 +2188,9 @@ void
 CQChartsScatterPlot::
 addHexKeyItems(PlotKey *key)
 {
-  auto *item = new CQChartsScatterHexKeyItem(this);
+  int n = hexMapMaxN();
+
+  auto *item = new CQChartsScatterHexKeyItem(this, n);
 
   key->addItem(item, 0, 0);
 }
@@ -3977,29 +3981,21 @@ hideIndex() const
 //---
 
 CQChartsScatterGridKeyItem::
-CQChartsScatterGridKeyItem(Plot *plot) :
+CQChartsScatterGridKeyItem(Plot *plot, int n) :
  CQChartsGradientKeyItem(plot), plot_(plot)
 {
-}
-
-int
-CQChartsScatterGridKeyItem::
-maxN() const
-{
-  return plot_->gridData().maxN();
+  setMinValue(0);
+  setMaxValue(n);
+  setInteger (true);
 }
 
 //---
 
 CQChartsScatterHexKeyItem::
-CQChartsScatterHexKeyItem(Plot *plot) :
+CQChartsScatterHexKeyItem(Plot *plot, int n) :
  CQChartsGradientKeyItem(plot), plot_(plot)
 {
-}
-
-int
-CQChartsScatterHexKeyItem::
-maxN() const
-{
-  return plot_->hexMapMaxN();
+  setMinValue(0);
+  setMaxValue(n);
+  setInteger (true);
 }

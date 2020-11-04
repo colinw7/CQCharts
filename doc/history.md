@@ -1223,3 +1223,7 @@
  + Allow align largest and spread none in sankey plot
  + Make sankey plot range more stable
  + Use length based node width and margin
+# 11/03/2020
+ + Improve gradient key and use for xy plot X/Y/Index value coloring
+ + Add support for set/get of key_item properties
+ + Add more widget factories

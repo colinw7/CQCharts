@@ -1190,10 +1190,8 @@ initData()
 
   //---
 
-  if (! typeInitialized_) {
-    if (! calcType())
-      return false;
-  }
+  if (! initType())
+    return false;
 
   //---
 
@@ -1602,7 +1600,7 @@ initData()
   return true;
 }
 
-void
+bool
 CQChartsModelColumnDetails::
 initType() const
 {
@@ -1612,9 +1610,11 @@ initType() const
     if (! typeInitialized_) {
       auto *th = const_cast<CQChartsModelColumnDetails *>(this);
 
-      (void) th->calcType();
+      return th->calcType();
     }
   }
+
+  return true;
 }
 
 bool

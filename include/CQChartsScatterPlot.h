@@ -364,9 +364,7 @@ class CQChartsScatterGridKeyItem : public CQChartsGradientKeyItem {
   using Plot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterGridKeyItem(Plot *plot);
-
-  int maxN() const override;
+  CQChartsScatterGridKeyItem(Plot *plot, int n);
 
  private:
   Plot* plot_ { nullptr };
@@ -383,9 +381,7 @@ class CQChartsScatterHexKeyItem : public CQChartsGradientKeyItem {
   using Plot = CQChartsScatterPlot;
 
  public:
-  CQChartsScatterHexKeyItem(Plot *plot);
-
-  int maxN() const override;
+  CQChartsScatterHexKeyItem(Plot *plot, int n);
 
  private:
   Plot* plot_ { nullptr };

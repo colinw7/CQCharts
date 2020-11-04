@@ -39,6 +39,17 @@ init(int numCols, int numRows)
     data_[i].resize(numCols);
 }
 
+void
+CQDataModel::
+resizeModel(int numCols, int numRows)
+{
+  beginResetModel();
+
+  init(numCols, numRows);
+
+  endResetModel();
+}
+
 //------
 
 void

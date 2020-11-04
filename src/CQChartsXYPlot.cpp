@@ -1259,6 +1259,8 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
     ng = parentPlot()->numChildPlots();
   }
 
+  maxNumPoints_ = 0;
+
   for (auto &p : groupSetIndPoly) {
     if (isInterrupt())
       return false;
@@ -1613,6 +1615,10 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
     int np = poly.size();
     assert(prevPoly.size() == np);
 
+    maxNumPoints_ = std::max(maxNumPoints_, np);
+
+    //---
+
     auto pointStartIndex = [&]() {
       if      (pointStart_ == 0)
         return 0;
@@ -1643,6 +1649,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         return true;
       }
     };
+
+    //---
 
     // add points to fill under polygon, poly line, and create point objects
     for (int ip = 0; ip < np; ++ip) {
@@ -2237,7 +2245,7 @@ addKeyItems(PlotKey *key)
   int row = (! key->isHorizontal() ? key->maxRow() : 0);
   int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
-  auto addKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
+  auto addColorKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
     auto *colorItem = new CQChartsXYKeyColor(this, is, ig);
     auto *textItem  = new CQChartsXYKeyText (this, name, is, ig);
 
@@ -2253,6 +2261,17 @@ addKeyItems(PlotKey *key)
     }
 
     key->addItem(groupItem, row, col);
+
+    key->nextRowCol(row, col);
+  };
+
+  auto addGradientKeyItem = [&](double min, double max) {
+    auto *gradientItem = new CQChartsGradientKeyItem(this);
+
+    gradientItem->setMinValue(min);
+    gradientItem->setMaxValue(max);
+
+    key->addItem(gradientItem, row, col);
 
     key->nextRowCol(row, col);
   };
@@ -2283,7 +2302,7 @@ addKeyItems(PlotKey *key)
 
     ColorInd is, ig;
 
-    addKeyItem(name, is, ig);
+    addColorKeyItem(name, is, ig);
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
@@ -2299,72 +2318,90 @@ addKeyItems(PlotKey *key)
 
       ColorInd is(i, ns), ig;
 
-      addKeyItem(name, is, ig);
+      addColorKeyItem(name, is, ig);
     }
   }
   else {
-    if      (ns > 1) {
-      for (int i = 0; i < ns; ++i) {
-        QString name;
+    // colored by x axis value
+    if      (colorType() == ColorType::X_VALUE) {
+      const auto &dataRange = this->dataRange();
 
-        if (! isColumnSeries()) {
-          auto yColumn = yColumns().getColumn(i);
-
-          bool ok;
-
-          name = modelHHeaderString(yColumn, ok);
-        }
-
-#if 0
-        if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
-          if      (titleStr().length())
-            name = titleStr();
-          else if (fileName().length())
-            name = fileName();
-        }
-#endif
-#if 0
-        if (ns == 1 && ! isOverlay() && (titleStr().length() || fileName().length())) {
-          if      (titleStr().length())
-            name = titleStr();
-          else if (fileName().length())
-            name = fileName();
-        }
-#endif
-
-        ColorInd is(i, ns), ig;
-
-        addKeyItem(name, is, ig);
-      }
+      addGradientKeyItem(dataRange.xmin(), dataRange.xmax());
     }
-    else if (ng > 1) {
-      for (int i = 0; i < ng; ++i) {
-        auto name = groupIndName(i);
+    else if (colorType() == ColorType::Y_VALUE) {
+      const auto &dataRange = this->dataRange();
 
-        ColorInd is, ig(i, ng);
+      addGradientKeyItem(dataRange.ymin(), dataRange.ymax());
+    }
+    else if (colorType() == ColorType::INDEX) {
+      const auto &dataRange = this->dataRange();
 
-        addKeyItem(name, is, ig);
-      }
+      addGradientKeyItem(0, maxNumPoints_);
     }
     else {
-      auto name = groupIndName(0);
+      if      (ns > 1) {
+        for (int i = 0; i < ns; ++i) {
+          QString name;
 
-      if (name == "")
-        (void) yAxisName(name);
+          if (! isColumnSeries()) {
+            auto yColumn = yColumns().getColumn(i);
 
-      if (name == "")
-        name = titleStr();
+            bool ok;
 
-      ColorInd is, ig;
+            name = modelHHeaderString(yColumn, ok);
+          }
 
-      if (parentPlot()) {
-        int i = parentPlot()->childPlotIndex(this);
-        int n = parentPlot()->numChildPlots();
+  #if 0
+          if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
+            if      (titleStr().length())
+              name = titleStr();
+            else if (fileName().length())
+              name = fileName();
+          }
+  #endif
+  #if 0
+          if (ns == 1 && ! isOverlay() && (titleStr().length() || fileName().length())) {
+            if      (titleStr().length())
+              name = titleStr();
+            else if (fileName().length())
+              name = fileName();
+          }
+  #endif
 
-        ig = ColorInd(i, n);
+          ColorInd is(i, ns), ig;
+
+          addColorKeyItem(name, is, ig);
+        }
       }
+      else if (ng > 1) {
+        for (int i = 0; i < ng; ++i) {
+          auto name = groupIndName(i);
 
-      addKeyItem(name, is, ig);
+          ColorInd is, ig(i, ng);
+
+          addColorKeyItem(name, is, ig);
+        }
+      }
+      else {
+        auto name = groupIndName(0);
+
+        if (name == "")
+          (void) yAxisName(name);
+
+        if (name == "")
+          name = titleStr();
+
+        ColorInd is, ig;
+
+        if (parentPlot()) {
+          int i = parentPlot()->childPlotIndex(this);
+          int n = parentPlot()->numChildPlots();
+
+          ig = ColorInd(i, n);
+        }
+
+        addColorKeyItem(name, is, ig);
+      }
     }
   }
 

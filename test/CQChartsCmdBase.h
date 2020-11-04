@@ -143,11 +143,16 @@ class CQChartsCmdBaseSlot : public QObject {
   const QString &proc() const { return procName_; }
 
  public slots:
+  // button
   void clicked();
   void clicked(bool);
 
+  // spin box (integer/real)
+  void valueChanged(int i);
+  void valueChanged(double r);
+
  private:
-  void execProc();
+  void execProc(const QString &args="");
 
  private:
   CQChartsCmdBase *base_ { nullptr };

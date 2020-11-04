@@ -29,7 +29,7 @@ class CQDataModel : public CQBaseModel {
   //---
 
   //! resize
-  void resizeMode(int numCols, int numRows) { init(numCols, numRows); }
+  void resizeModel(int numCols, int numRows);
 
   //---
 

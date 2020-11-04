@@ -21,6 +21,7 @@ class CQChartsColumn;
 class CQChartsModelData;
 class CQChartsPlotType;
 class CQChartsAnnotation;
+class CQChartsKeyItem;
 
 class CQChartsCmds;
 
@@ -132,6 +133,8 @@ class CQChartsCmds : public QObject {
   CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name) const;
 
   CQChartsAnnotation *getAnnotationByName(const QString &name) const;
+
+  CQChartsKeyItem *getKeyItemById(const QString &id) const;
 
   //---
 

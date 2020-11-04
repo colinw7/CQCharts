@@ -278,7 +278,8 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
  public:
-  using KeyItem = CQChartsKeyItem;
+  using KeyItem  = CQChartsKeyItem;
+  using KeyItems = std::vector<KeyItem*>;
 
  public:
   CQChartsPlotKey(Plot *plot);
@@ -356,6 +357,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
+
+  const KeyItems &items() const { return items_; }
 
   //---
 
@@ -479,7 +482,6 @@ class CQChartsPlotKey : public CQChartsKey {
     bool   pixelHeightExceeded { false }; //!< pixel max height exceeded
   };
 
-  using Items      = std::vector<KeyItem*>;
   using ColCell    = std::map<int, Cell>;
   using RowColCell = std::map<int, ColCell>;
   using RowHeights = std::map<int, double>;
@@ -495,7 +497,7 @@ class CQChartsPlotKey : public CQChartsKey {
   Location           locationData_;            //!< key location data
   double             spacing_       { 2 };     //!< key item spacing (pixels)
   bool               flipped_       { false }; //!< key order flipped
-  Items              items_;                   //!< key items
+  KeyItems           items_;                   //!< key items
   int                maxRow_        { 0 };     //!< maximum key row
   int                maxCol_        { 0 };     //!< maximum key column
   bool               needsLayout_   { true };  //!< needs layout
@@ -594,9 +596,15 @@ class CQChartsKeyItem : public QObject {
   const ItemGroup *group() const { return group_; }
   void setGroup(ItemGroup *g) { group_ = g; }
 
+  //---
+
   //! get/set associated color index
   const ColorInd &colorIndex() const { return ic_; }
   void setColorIndex(const ColorInd &v) { ic_ = v; }
+
+  virtual ColorInd calcColorInd() const { return colorIndex(); }
+
+  //---
 
   //! get/set row
   int row() const { return row_; }
@@ -670,7 +678,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  using Item = CQChartsKeyItem;
+  using KeyItem  = CQChartsKeyItem;
+  using KeyItems = std::vector<KeyItem *>;
 
  public:
   CQChartsKeyItemGroup(Plot *plot);
@@ -682,10 +691,12 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
 
   void setKey(PlotKey *p) override;
 
+  const KeyItems &items() const { return items_; }
+
   //---
 
-  void addItem(Item *item);
-  void removeItem(Item *item, bool keep=false);
+  void addItem(KeyItem *item);
+  void removeItem(KeyItem *item, bool keep=false);
 
   //---
 
@@ -710,10 +721,8 @@ class CQChartsKeyItemGroup : public CQChartsKeyItem {
   void draw(PaintDevice *device, const BBox &rect) const override;
 
  protected:
-  using Items = std::vector<Item *>;
-
-  Plot* plot_ { nullptr };
-  Items items_;
+  Plot*    plot_ { nullptr };
+  KeyItems items_;
 };
 
 //---
@@ -788,7 +797,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QColor interpStrokeColor(const ColorInd &ic) const;
 
-  ColorInd calcColorInd() const;
+  ColorInd calcColorInd() const override;
 
   virtual double xColorValue(bool relative=true) const;
   virtual double yColorValue(bool relative=true) const;
@@ -836,6 +845,7 @@ class CQChartsKeyLine : public CQChartsKeyItem {
 
  public:
   CQChartsKeyLine(Plot *plot, const ColorInd &is, const ColorInd &ig);
+  CQChartsKeyLine(PlotKey *key, const ColorInd &is, const ColorInd &ig);
 
   Plot *plot() const { return plot_; }
 
@@ -876,17 +886,44 @@ class CQChartsKeyLine : public CQChartsKeyItem {
 class CQChartsGradientKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
+  Q_PROPERTY(double  minValue READ minValue  WRITE setMinValue)
+  Q_PROPERTY(double  maxValue READ maxValue  WRITE setMaxValue)
+  Q_PROPERTY(bool    integer  READ isInteger WRITE setInteger )
+  Q_PROPERTY(QString palette  READ palette   WRITE setPalette )
+
  public:
   CQChartsGradientKeyItem(Plot *plot);
+  CQChartsGradientKeyItem(PlotKey *key);
+
+  //---
+
+  double minValue() const { return minValue_; }
+  void setMinValue(double r) { minValue_ = r; }
+
+  double maxValue() const { return maxValue_; }
+  void setMaxValue(double r) { maxValue_ = r; }
+
+  bool isInteger() const { return integer_; }
+  void setInteger(bool b) { integer_ = b; }
+
+  const QString &palette() const { return palette_; }
+  void setPalette(const QString &v) { palette_ = v; }
+
+  //---
 
   Size size() const override;
 
   void draw(PaintDevice *device, const BBox &rect) const override;
 
-  virtual int maxN() const = 0;
+ private:
+  void calcLabels(QStringList &labels) const;
 
  private:
-  Plot* plot_ { nullptr };
+  Plot*   plot_     { nullptr };
+  double  minValue_ { 0 };
+  double  maxValue_ { 100 };
+  bool    integer_  { false };
+  QString palette_;
 };
 
 #endif

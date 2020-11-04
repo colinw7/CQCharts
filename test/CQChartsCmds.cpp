@@ -1558,6 +1558,7 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
   argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.addCmdArg("-key_item"  , CQChartsCmdArg::Type::String, "key item name");
   argv.endCmdGroup();
 
   argv.addCmdArg("-object", CQChartsCmdArg::Type::String , "object id");
@@ -1626,6 +1627,7 @@ exec(CQChartsCmdArgs &argv)
   auto name     = argv.getParseStr ("name");
   bool hidden   = argv.getParseBool("hidden");
 
+  // get view property
   if      (argv.hasParseArg("view")) {
     auto viewName = argv.getParseStr("view");
 
@@ -1708,6 +1710,7 @@ exec(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(value);
     }
   }
+  // get plot property
   else if (argv.hasParseArg("plot")) {
     auto plotName = argv.getParseStr("plot");
 
@@ -1818,6 +1821,7 @@ exec(CQChartsCmdArgs &argv)
       }
     }
   }
+  // get annotation property
   else if (argv.hasParseArg("annotation")) {
     auto annotationName = argv.getParseStr("annotation");
 
@@ -1902,6 +1906,7 @@ exec(CQChartsCmdArgs &argv)
       //return cmdBase_->setCmdRc(value);
     }
   }
+  // get model property
   else if (argv.hasParseArg("model")) {
     auto modelId = argv.getParseStr("model");
 
@@ -1924,6 +1929,20 @@ exec(CQChartsCmdArgs &argv)
       return cmdBase_->setCmdRc(value);
     }
   }
+  // get key item property
+  else if (argv.hasParseArg("key_item")) {
+    auto keyItemId = argv.getParseStr("key_item");
+
+    auto *keyItem = cmds()->getKeyItemById(keyItemId);
+    if (! keyItem) return false;
+
+    QVariant value;
+
+    if (! CQUtil::getProperty(keyItem, name, value))
+      return errorMsg("Failed to get key item property '" + name + "'");
+
+    return cmdBase_->setCmdRc(value);
+  }
 
   return true;
 }
@@ -1939,6 +1958,7 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
   argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.addCmdArg("-key_item"  , CQChartsCmdArg::Type::String, "key item name");
   argv.endCmdGroup();
 
 //argv.addCmdArg("-object", CQChartsCmdArg::Type::String , "object id");
@@ -1986,6 +2006,7 @@ exec(CQChartsCmdArgs &argv)
   auto value    = argv.getParseStr ("value");
 //bool hidden   = argv.getParseBool("hidden");
 
+  // set view property
   if      (argv.hasParseArg("view")) {
     auto viewName = argv.getParseStr("view");
 
@@ -1995,6 +2016,7 @@ exec(CQChartsCmdArgs &argv)
     if (! view->setProperty(name, value))
       return errorMsg("Failed to set view property '" + name + "' '" + value + "'");
   }
+  // set plot property
   else if (argv.hasParseArg("plot")) {
     auto plotName = argv.getParseStr("plot");
 
@@ -2004,6 +2026,7 @@ exec(CQChartsCmdArgs &argv)
     if (! plot->setProperty(name, value))
       return errorMsg("Failed to set plot property '" + name + "' '" + value + "'");
   }
+  // set annotation property
   else if (argv.hasParseArg("annotation")) {
     auto annotationName = argv.getParseStr("annotation");
 
@@ -2013,6 +2036,7 @@ exec(CQChartsCmdArgs &argv)
     if (! annotation->setProperty(name, value))
       return errorMsg("Failed to set annotation property '" + name + "' '" + value + "'");
   }
+  // set model property
   else if (argv.hasParseArg("model")) {
     auto modelId = argv.getParseStr("model");
 
@@ -2021,6 +2045,16 @@ exec(CQChartsCmdArgs &argv)
 
     if (! modelData->setPropertyData(name, value))
       return errorMsg("Failed to set model property '" + name + "' '" + value + "'");
+  }
+  // set key item property
+  else if (argv.hasParseArg("key_item")) {
+    auto keyItemId = argv.getParseStr("key_item");
+
+    auto *keyItem = cmds()->getKeyItemById(keyItemId);
+    if (! keyItem) return false;
+
+    if (! CQUtil::setProperty(keyItem, name, value))
+      return errorMsg("Failed to set key item property '" + name + "' '" + value + "'");
   }
 
   return true;
@@ -6520,6 +6554,28 @@ exec(CQChartsCmdArgs &argv)
     else if (name == "process_expression") {
       CQChartsModelUtil::processExpression(model.data(), value);
     }
+    // data model size
+    else if (name == "size") {
+      QStringList strs;
+
+      if (! CQTcl::splitList(value, strs) || strs.length() != 2)
+        return errorMsg(QString("Invalid size string '%1'").arg(value));
+
+      bool ok1, ok2;
+
+      int r = strs[0].toInt(&ok1);
+      int c = strs[1].toInt(&ok2);
+
+      if (! ok1 || ! ok2 || r < 0 || c < 0)
+        return errorMsg(QString("Invalid size values '%1' and '%2'").arg(strs[0]).arg(strs[1]));
+
+      auto *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      if (! dataModel)
+        return errorMsg(QString("Invalid model type"));
+
+      dataModel->resizeModel(c, r);
+    }
 #if 0
     // model property
     else if (name.left(9) == "property.") {
@@ -9215,14 +9271,17 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
   argv.endCmdGroup();
 
+  argv.addCmdArg("-id", CQChartsCmdArg::Type::String , "item id");
+
   argv.addCmdArg("-row"  , CQChartsCmdArg::Type::Integer, "item row");
   argv.addCmdArg("-col"  , CQChartsCmdArg::Type::Integer, "item column");
   argv.addCmdArg("-nrows", CQChartsCmdArg::Type::Integer, "item row count");
   argv.addCmdArg("-ncols", CQChartsCmdArg::Type::Integer, "item column count");
 
-  argv.addCmdArg("-text"  , CQChartsCmdArg::Type::String, "item text");
-  argv.addCmdArg("-color" , CQChartsCmdArg::Type::Color , "item color");
-  argv.addCmdArg("-symbol", CQChartsCmdArg::Type::Color , "item symbol");
+  argv.addCmdArg("-text"    , CQChartsCmdArg::Type::String, "item text");
+  argv.addCmdArg("-color"   , CQChartsCmdArg::Type::Color , "item color");
+  argv.addCmdArg("-symbol"  , CQChartsCmdArg::Type::Color , "item symbol");
+  argv.addCmdArg("-gradient", CQChartsCmdArg::Type::String, "item gradient");
 }
 
 QStringList
@@ -9258,6 +9317,7 @@ exec(CQChartsCmdArgs &argv)
 
   //---
 
+  // get parent view, plot or key annotation
   CQChartsView*          view          = nullptr;
   CQChartsPlot*          plot          = nullptr;
   CQChartsKeyAnnotation* keyAnnotation = nullptr;
@@ -9291,9 +9351,11 @@ exec(CQChartsCmdArgs &argv)
 
   //---
 
+  // get key
   CQChartsPlotKey *plotKey = nullptr;
 
   if      (view) {
+    // TODO: not supported yet
     auto *key = view->key();
     if (! key) return errorMsg("view has no key");
   }
@@ -9311,10 +9373,7 @@ exec(CQChartsCmdArgs &argv)
 
   //---
 
-  auto text = argv.getParseStr("text");
-
-  CQChartsUtil::ColorInd colorInd;
-
+  // get position of next row, column
   int nr = plotKey->calcNumRows();
 
   int row   = (argv.hasParseArg("row") ? argv.getParseInt("row") : nr);
@@ -9322,13 +9381,21 @@ exec(CQChartsCmdArgs &argv)
   int nrows = argv.getParseInt("nrows", 1);
   int ncols = argv.getParseInt("ncols", 1);
 
+  //---
+
+  // get text label
+  auto text = argv.getParseStr("text");
+
+  //---
+
+  // add text and symbol
   if      (argv.hasParseArg("symbol")) {
     CQChartsSymbolData symbolData;
 
     symbolData.setType(CQChartsSymbol(argv.getParseStr("symbol")));
 
     if (argv.hasParseArg("color")) {
-      CQChartsColor color = argv.getParseColor("color");
+      auto color = argv.getParseColor("color");
 
       CQChartsStrokeData strokeData;
       CQChartsFillData   fillData;
@@ -9340,35 +9407,83 @@ exec(CQChartsCmdArgs &argv)
       symbolData.setFill  (fillData);
     }
 
-    auto *item1 = new CQChartsKeyLine(plotKey->plot(), colorInd, colorInd);
-    auto *item2 = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+    CQChartsUtil::ColorInd colorInd;
+
+    auto *item1 = new CQChartsKeyLine(plotKey, colorInd, colorInd);
+    auto *item2 = new CQChartsKeyText(plotKey, text    , colorInd);
 
     item1->setSymbolData(symbolData);
 
-    item1->setId(QString("%1,%2").arg(row).arg(col    ));
-    item2->setId(QString("%1,%2").arg(row).arg(col + 1));
+    if (argv.hasParseArg("id")) {
+      auto id = argv.getParseStr("id");
+
+      item1->setId(QString("keyitem:%1:line").arg(id));
+      item2->setId(QString("keyitem:%1:text").arg(id));
+    }
+    else {
+      item1->setId(QString("keyitem:%1:%2").arg(row).arg(col    ));
+      item2->setId(QString("keyitem:%1:%2").arg(row).arg(col + 1));
+    }
 
     plotKey->addItem(item1, row, col    , nrows);
     plotKey->addItem(item2, row, col + 1, ncols);
   }
+  // add text and color box
   else if (argv.hasParseArg("color")) {
-    CQChartsColor color = argv.getParseColor("color");
+    auto color = argv.getParseColor("color");
 
-    auto *item1 = new CQChartsKeyColorBox(plotKey->plot(), colorInd, colorInd, colorInd);
-    auto *item2 = new CQChartsKeyText(plotKey->plot(), text, colorInd);
+    CQChartsUtil::ColorInd colorInd;
+
+    auto *item1 = new CQChartsKeyColorBox(plotKey, colorInd, colorInd, colorInd);
+    auto *item2 = new CQChartsKeyText    (plotKey, text    , colorInd);
 
     item1->setColor(color);
 
-    item1->setId(QString("%1,%2").arg(row).arg(col    ));
-    item2->setId(QString("%1,%2").arg(row).arg(col + 1));
+    if (argv.hasParseArg("id")) {
+      auto id = argv.getParseStr("id");
+
+      item1->setId(QString("keyitem:%1:color").arg(id));
+      item2->setId(QString("keyitem:%1:text" ).arg(id));
+    }
+    else {
+      item1->setId(QString("keyitem:%1,%2").arg(row).arg(col    ));
+      item2->setId(QString("keyitem:%1,%2").arg(row).arg(col + 1));
+    }
 
     plotKey->addItem(item1, row, col    , nrows);
     plotKey->addItem(item2, row, col + 1, ncols);
   }
+  // add text and gradient
+  else if (argv.hasParseArg("gradient")) {
+    auto palette = argv.getParseStr("gradient");
+
+    auto *item = new CQChartsGradientKeyItem(plotKey);
+
+    item->setPalette(palette);
+
+    if (argv.hasParseArg("id")) {
+      auto id = argv.getParseStr("id");
+
+      item->setId(QString("keyitem:%1:gradient").arg(id));
+    }
+    else
+      item->setId(QString("keyitem:%1,%2").arg(row).arg(col));
+
+    plotKey->addItem(item, row, col, nrows);
+  }
+  // add text
   else {
+    CQChartsUtil::ColorInd colorInd;
+
     auto *item = new CQChartsKeyText(plotKey->plot(), text, colorInd);
 
-    item->setId(QString("%1,%2").arg(row).arg(col));
+    if (argv.hasParseArg("id")) {
+      auto id = argv.getParseStr("id");
+
+      item->setId(QString("keyitem:%1:text").arg(id));
+    }
+    else
+      item->setId(QString("%1,%2").arg(row).arg(col));
 
     plotKey->addItem(item, row, col, nrows, ncols);
   }
@@ -10119,121 +10234,121 @@ exec(CQChartsCmdArgs &argv)
     const auto &type = types[i];
 
     if      (type == "alpha") {
-      auto edit = new CQChartsAlphaEdit; addEdit(edit, type);
+      auto *edit = new CQChartsAlphaEdit; addEdit(edit, type);
     }
     else if (type == "arrow_data") {
-      auto edit = new CQChartsArrowDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsArrowDataEdit; addEdit(edit, type);
     }
     else if (type == "arrow_data_line") {
       auto *edit = new CQChartsArrowDataLineEdit; addEdit(edit, type);
     }
     else if (type == "box_data") {
-      auto edit = new CQChartsBoxDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsBoxDataEdit; addEdit(edit, type);
     }
     else if (type == "box_data_line") {
-      auto edit = new CQChartsBoxDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsBoxDataLineEdit; addEdit(edit, type);
     }
     else if (type == "color") {
-      auto edit = new CQChartsColorEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColorEdit; addEdit(edit, type);
     }
     else if (type == "color_line") {
-      auto edit = new CQChartsColorLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColorLineEdit; addEdit(edit, type);
     }
     else if (type == "column") {
-      auto edit = new CQChartsColumnEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColumnEdit; addEdit(edit, type);
     }
     else if (type == "column_line") {
-      auto edit = new CQChartsColumnLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColumnLineEdit; addEdit(edit, type);
     }
     else if (type == "columns") {
-      auto edit = new CQChartsColumnsEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColumnsEdit; addEdit(edit, type);
     }
     else if (type == "columns_line") {
-      auto edit = new CQChartsColumnsLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsColumnsLineEdit; addEdit(edit, type);
     }
     else if (type == "fill_data") {
-      auto edit = new CQChartsFillDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillDataEdit; addEdit(edit, type);
     }
     else if (type == "fill_data_line") {
-      auto edit = new CQChartsFillDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillDataLineEdit; addEdit(edit, type);
     }
     else if (type == "fill_pattern") {
-      auto edit = new CQChartsFillPatternEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillPatternEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_side") {
-      auto edit = new CQChartsFillUnderSideEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillUnderSideEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_pos") {
-      auto edit = new CQChartsFillUnderPosEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillUnderPosEdit; addEdit(edit, type);
     }
     else if (type == "fill_under_pos_line") {
-      auto edit = new CQChartsFillUnderPosLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFillUnderPosLineEdit; addEdit(edit, type);
     }
     else if (type == "filter") {
-      auto edit = new CQChartsFilterEdit; addEdit(edit, type);
+      auto *edit = new CQChartsFilterEdit; addEdit(edit, type);
     }
     else if (type == "key_location") {
-      auto edit = new CQChartsKeyLocationEdit; addEdit(edit, type);
+      auto *edit = new CQChartsKeyLocationEdit; addEdit(edit, type);
     }
     else if (type == "length") {
-      auto edit = new CQChartsLengthEdit; addEdit(edit, type);
+      auto *edit = new CQChartsLengthEdit; addEdit(edit, type);
     }
     else if (type == "line_dash") {
-      auto edit = new CQChartsLineDashEdit; addEdit(edit, type);
+      auto *edit = new CQChartsLineDashEdit; addEdit(edit, type);
     }
     else if (type == "line_data") {
-      auto edit = new CQChartsLineDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsLineDataEdit; addEdit(edit, type);
     }
     else if (type == "line_data_line") {
-      auto edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
     }
     else if (type == "polygon") {
-      auto edit = new CQChartsPolygonEdit; addEdit(edit, type);
+      auto *edit = new CQChartsPolygonEdit; addEdit(edit, type);
     }
     else if (type == "polygon_line") {
-      auto edit = new CQChartsPolygonLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsPolygonLineEdit; addEdit(edit, type);
     }
     else if (type == "position") {
-      auto edit = new CQChartsPositionEdit; addEdit(edit, type);
+      auto *edit = new CQChartsPositionEdit; addEdit(edit, type);
     }
     else if (type == "rectangle") {
-      auto edit = new CQChartsRectEdit; addEdit(edit, type);
+      auto *edit = new CQChartsRectEdit; addEdit(edit, type);
     }
     else if (type == "shape_data") {
-      auto edit = new CQChartsShapeDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsShapeDataEdit; addEdit(edit, type);
     }
     else if (type == "shape_data_line") {
-      auto edit = new CQChartsShapeDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsShapeDataLineEdit; addEdit(edit, type);
     }
     else if (type == "sides") {
-      auto edit = new CQChartsSidesEdit; addEdit(edit, type);
+      auto *edit = new CQChartsSidesEdit; addEdit(edit, type);
     }
     else if (type == "stroke_data") {
-      auto edit = new CQChartsStrokeDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsStrokeDataEdit; addEdit(edit, type);
     }
     else if (type == "stroke_data_line") {
-      auto edit = new CQChartsStrokeDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsStrokeDataLineEdit; addEdit(edit, type);
     }
     else if (type == "symbol_data") {
-      auto edit = new CQChartsSymbolDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsSymbolDataEdit; addEdit(edit, type);
     }
     else if (type == "symbol_data_line") {
-      auto edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
     }
     else if (type == "symbol_type") {
-      auto edit = new CQChartsSymbolEdit; addEdit(edit, type);
+      auto *edit = new CQChartsSymbolEdit; addEdit(edit, type);
     }
     else if (type == "text_box_data") {
-      auto edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);
     }
     else if (type == "text_box_data_line") {
-      auto edit = new CQChartsTextBoxDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsTextBoxDataLineEdit; addEdit(edit, type);
     }
     else if (type == "text_data") {
-      auto edit = new CQChartsTextDataEdit; addEdit(edit, type);
+      auto *edit = new CQChartsTextDataEdit; addEdit(edit, type);
     }
     else if (type == "text_data_line") {
-      auto edit = new CQChartsTextDataLineEdit; addEdit(edit, type);
+      auto *edit = new CQChartsTextDataLineEdit; addEdit(edit, type);
     }
     else
       return errorMsg("Bad edit type '" + type + "'");
@@ -10714,6 +10829,57 @@ getAnnotationByName(const QString &name) const
   }
 
   charts_->errorMsg("No annotation '" + name + "'");
+
+  return nullptr;
+}
+
+//------
+
+CQChartsKeyItem *
+CQChartsCmds::
+getKeyItemById(const QString &id) const
+{
+  CQCharts::Views views;
+
+  charts_->getViews(views);
+
+  for (auto &view : views) {
+    CQChartsView::Plots plots;
+
+    view->getPlots(plots);
+
+    for (auto &plot : plots) {
+      // check plot key
+      auto *plotKey = plot->key();
+
+      if (plotKey) {
+        for (const auto &item : plotKey->items()) {
+          if (item->id() == id)
+            return item;
+        }
+      }
+
+      //---
+
+      // check key annotations
+      const auto &annotations = plot->annotations();
+
+      for (const auto &annotation : annotations) {
+        auto *keyAnnotation = dynamic_cast<CQChartsKeyAnnotation *>(annotation);
+        if (! keyAnnotation) continue;
+
+        auto *key = dynamic_cast<CQChartsPlotKey *>(keyAnnotation->key());
+        if (! key) continue;
+
+        for (const auto &item : key->items()) {
+          if (item->id() == id)
+            return item;
+        }
+      }
+    }
+  }
+
+  charts_->errorMsg("No key item '" + id + "'");
 
   return nullptr;
 }

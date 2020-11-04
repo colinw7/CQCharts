@@ -992,12 +992,24 @@ CQDataModel *
 getDataModel(QAbstractItemModel *model)
 {
   auto *modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
-  if (! modelFilter) return nullptr;
 
-  auto *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
-  if (! dataModel) return nullptr;
+  if (modelFilter) {
+    auto *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
 
-  return dataModel;
+    if (dataModel)
+      return dataModel;
+  }
+
+  auto *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+  if (sortModel) {
+    auto *dataModel = dynamic_cast<CQDataModel *>(sortModel->sourceModel());
+
+    if (dataModel)
+      return dataModel;
+  }
+
+  return nullptr;
 }
 
 QAbstractItemModel *

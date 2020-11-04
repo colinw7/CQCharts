@@ -1080,6 +1080,8 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   mutable AxisSideSize xAxisSideHeight_; //!< top or bottom
   mutable AxisSideSize yAxisSideWidth_;  //!< left or right
+
+  mutable int maxNumPoints_ { 0 };
 };
 
 #endif

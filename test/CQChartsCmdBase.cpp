@@ -1312,19 +1312,48 @@ void
 CQChartsCmdBaseSlot::
 clicked()
 {
-  execProc();
+  execProc("");
 }
 
 void
 CQChartsCmdBaseSlot::
-clicked(bool)
+clicked(bool b)
 {
-  execProc();
+  QString args = (b ? "1" : "0");
+
+  execProc(args);
 }
 
 void
 CQChartsCmdBaseSlot::
-execProc()
+valueChanged(int i)
 {
-  base_->qtcl()->eval(procName_, /*showError*/true, /*showResult*/false);
+  QString args;
+
+  args.setNum(i);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+valueChanged(double r)
+{
+  QString args;
+
+  args.setNum(r);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+execProc(const QString &args)
+{
+  QString cmd = procName_;
+
+  if (args != "")
+   cmd += " " + args;
+
+  base_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 }

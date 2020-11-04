@@ -1278,7 +1278,8 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChart
       double c = std::cos(a);
       double s = std::sin(a);
 
-      QLinearGradient lg(0, 0, c, s);
+      QLinearGradient lg(std::abs(std::min(0.0, c)), std::abs(std::min(0.0, s)),
+                         std::abs(std::max(0.0, c)), std::abs(std::max(0.0, s)));
 
       lg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
