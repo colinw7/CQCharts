@@ -1328,7 +1328,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Edges       edges_;                     //!< edges
   BBox        bbox_;                      //!< bbox
   int         maxNodeDepth_  { 0 };       //!< max node depth (all graphs)
-  double      minNodeMargin_ { 0.1 };     //!< minimum node margin (in pixels)
+  double      minNodeMargin_ { 2 };       //!< minimum node margin (in pixels)
   double      boxMargin_     { 0.01 };    //!< bounding box margin
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling

@@ -1,0 +1,5 @@
+From,To,Depth
+A,B,0
+B,C,1
+B,D,1
+C,E,2

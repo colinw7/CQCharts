@@ -2643,8 +2643,14 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
       if (! placed)
         srcBBox += srcNode->rect();
       else {
-        if (srcNode->hasDestEdgeRect(edge))
-          srcBBox += srcNode->destEdgeRect(edge);
+        if (srcNode->hasDestEdgeRect(edge)) {
+          auto srcRect = srcNode->destEdgeRect(edge);
+
+          if (srcRect.isSet())
+            srcBBox += srcRect;
+          else
+            srcBBox += srcNode->rect();
+        }
         else
           srcBBox += srcNode->rect();
       }
@@ -2666,8 +2672,14 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
       if (! placed)
         destBBox += destNode->rect();
       else {
-        if (destNode->hasSrcEdgeRect(edge))
-          destBBox += destNode->srcEdgeRect(edge);
+        if (destNode->hasSrcEdgeRect(edge)) {
+          auto destRect = destNode->srcEdgeRect(edge);
+
+          if (destRect.isSet())
+            destBBox += destRect;
+          else
+            destBBox += destNode->rect();;
+        }
         else
           destBBox += destNode->rect();
       }
