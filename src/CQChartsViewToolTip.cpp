@@ -1,13 +1,9 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsView.h>
-#include <CQChartsPlot.h>
-#include <CQChartsKey.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
-#include <QLabel>
 
-using Point = CQChartsGeom::Point;
-
+#ifndef CQCHARTS_FLOAT_TIP
 CQChartsViewToolTip::
 CQChartsViewToolTip(CQChartsView *view) :
  view_(view) {
@@ -59,56 +55,9 @@ bool
 CQChartsViewToolTip::
 showTip(const QPoint &gpos)
 {
-  auto p = view_->mapFromGlobal(gpos);
-
-  auto wpos = view_->pixelToWindow(Point(p.x(), p.y()));
-
-  CQChartsView::Plots plots;
-
-  view_->plotsAt(wpos, plots);
-
-  if (plots.empty())
-    return false;
-
   QString tip;
 
-  for (const auto &plot : plots) {
-    if (! plot->isVisible())
-      continue;
-
-    auto w = plot->pixelToWindow(Point(p));
-
-    QString tip1;
-
-    if (plot->plotTipText(w, tip1)) {
-      if (tip.length())
-        tip += "\n";
-
-      tip += tip1;
-    }
-  }
-
-  if (! tip.length()) {
-    for (const auto &plot : plots) {
-      auto *key = plot->key();
-      if (! key) continue;
-
-      auto w = plot->pixelToWindow(Point(p));
-
-      if (key->contains(w)) {
-        QString tip1;
-
-        if (key->tipText(w, tip1)) {
-          if (tip.length())
-            tip += "\n";
-
-          tip += tip1;
-        }
-      }
-    }
-  }
-
-  if (! tip.length())
+  if (! view_->calcTip(gpos, tip))
     return false;
 
   widget_->setText("<font></font>" + tip);
@@ -132,3 +81,50 @@ sizeHint() const
 {
   return widget_->sizeHint();
 }
+#else
+CQChartsViewToolTip::
+CQChartsViewToolTip(CQChartsView *view) :
+ CQFloatTip(view), view_(view) {
+}
+
+void
+CQChartsViewToolTip::
+showTip(const QPoint &gpos)
+{
+  tipPos_ = gpos;
+
+  updateTip();
+
+  CQFloatTip::showTip(gpos);
+}
+
+void
+CQChartsViewToolTip::
+updateTip()
+{
+  QString tip;
+
+  if (! view_->calcTip(tipPos_, tip))
+    return;
+
+  CQFloatTip::setText("<font></font>" + tip);
+}
+
+void
+CQChartsViewToolTip::
+hideTip()
+{
+  CQFloatTip::hideTip();
+}
+
+bool
+CQChartsViewToolTip::
+isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const
+{
+  if (key == Qt::Key_Tab || key == Qt::Key_Backtab || key == Qt::Key_F1)
+    return true;
+
+  return CQFloatTip::isIgnoreKey(key, modifiers);
+}
+
+#endif

@@ -4278,7 +4278,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
 
-    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha().value());
+    auto *palette = plot_->view()->themePalette();
+
+    palette->setLinearGradient(lg, plot_->barFillAlpha().value());
 
     penBrush.brush = QBrush(lg);
   }

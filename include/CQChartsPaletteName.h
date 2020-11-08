@@ -5,6 +5,8 @@
 #include <QColor>
 #include <iostream>
 
+class CQColorsPalette;
+
 class QObject;
 
 /*!
@@ -19,22 +21,23 @@ class CQChartsPaletteName {
 
  public:
   //! default constructor
-  CQChartsPaletteName(const QString &name="") :
-   name_(name) {
-  }
+  CQChartsPaletteName(const QString &name="");
 
-  bool isValid() const { return name_ != ""; }
+  bool isValid() const;
 
   //! get/set name
   const QString &name() const { return name_; }
-  void setName(const QString &name) { name_  = name; }
+  bool setName(const QString &name);
+
+  //---
+
+  CQColorsPalette *palette() const;
 
   //---
 
   //! color to/from string for QVariant
   QString toString() const { return name(); }
-
-  bool fromString(const QString &s) { setName(s); return true; }
+  bool fromString(const QString &s) { return setName(s); }
 
   //---
 

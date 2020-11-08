@@ -10,6 +10,7 @@ QMAKE_CXXFLAGS += \
 -std=c++14 \
 -DCQCHARTS_FOLDED_MODEL \
 -DCQCHARTS_MODEL_VIEW \
+-DCQCHARTS_FLOAT_TIP \
 -Wno-maybe-uninitialized \
 
 MOC_DIR = .moc
@@ -351,6 +352,8 @@ CQRangeSlider.cpp \
 \
 CQCommand.cpp \
 CQScrollArea.cpp \
+CQFloatTip.cpp \
+CQPixmapButton.cpp \
 CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
 \
@@ -696,6 +699,8 @@ HEADERS += \
 \
 ../include/CQCommand.h \
 ../include/CQScrollArea.h \
+../include/CQFloatTip.h \
+../include/CQPixmapButton.h \
 ../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
 \

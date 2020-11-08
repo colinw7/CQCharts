@@ -3,6 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + lockable tip (win widget), quick corner move (drag) auto placement + align
  + zoom in should zoom plot background ?
  + symbol key as separate class and allow as annotation
  + test write properties with enum values

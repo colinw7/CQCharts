@@ -2334,8 +2334,6 @@ addKeyItems(PlotKey *key)
       addGradientKeyItem(dataRange.ymin(), dataRange.ymax());
     }
     else if (colorType() == ColorType::INDEX) {
-      const auto &dataRange = this->dataRange();
-
       addGradientKeyItem(0, maxNumPoints_);
     }
     else {

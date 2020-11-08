@@ -167,13 +167,13 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
 
   // color map
-  Q_PROPERTY(ColorType          colorType       READ colorType       WRITE setColorType      )
-  Q_PROPERTY(bool               colorMapped     READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double             colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double             colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
-  Q_PROPERTY(QString            colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
-  Q_PROPERTY(CQChartsColorStops colorXStops     READ colorXStops     WRITE setColorXStops    )
-  Q_PROPERTY(CQChartsColorStops colorYStops     READ colorYStops     WRITE setColorYStops    )
+  Q_PROPERTY(ColorType           colorType       READ colorType       WRITE setColorType      )
+  Q_PROPERTY(bool                colorMapped     READ isColorMapped   WRITE setColorMapped    )
+  Q_PROPERTY(double              colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
+  Q_PROPERTY(double              colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
+  Q_PROPERTY(CQChartsPaletteName colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
+  Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
+  Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
 
   // rectangle and data range
   Q_PROPERTY(CQChartsGeom::BBox viewRect READ viewBBox WRITE setViewBBox)
@@ -1744,6 +1744,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //--
 
+ public:
   // coloring
   const ColorType &colorType() const { return colorColumnData_.colorType; }
   void setColorType(const ColorType &t);
@@ -1757,8 +1758,8 @@ class CQChartsPlot : public CQChartsObj,
   double colorMapMax() const { return colorColumnData_.map_max; }
   void setColorMapMax(double r);
 
-  const QString &colorMapPalette() const { return colorColumnData_.palette; }
-  void setColorMapPalette(const QString &s);
+  const PaletteName &colorMapPalette() const { return colorColumnData_.palette; }
+  void setColorMapPalette(const PaletteName &name);
 
   const ColorStops &colorXStops() const { return colorColumnData_.xStops; }
   void setColorXStops(const ColorStops &s);
@@ -1766,8 +1767,13 @@ class CQChartsPlot : public CQChartsObj,
   const ColorStops &colorYStops() const { return colorColumnData_.yStops; }
   void setColorYStops(const ColorStops &s);
 
+ protected:
+  double colorMapDataMin() const { return colorColumnData_.data_min; }
+  double colorMapDataMax() const { return colorColumnData_.data_max; }
+
   //---
 
+ public:
   // color column
   bool colorColumnColor(int row, const QModelIndex &parent, Color &color) const;
 
@@ -2802,21 +2808,25 @@ class CQChartsPlot : public CQChartsObj,
   using ColumnRows      = std::map<int, Rows>;
   using IndexColumnRows = std::map<QModelIndex, ColumnRows>;
 
+  //---
+
   //! \brief color column data
   struct ColorColumnData {
-    Column     column;
-    ColorType  colorType { ColorType::AUTO };
-    bool       valid     { false };
-    bool       mapped    { true };
-    double     map_min   { 0.0 };
-    double     map_max   { 1.0 };
-    double     data_min  { 0.0 };
-    double     data_max  { 1.0 };
-    ColumnType modelType;
-    QString    palette;
-    ColorStops xStops;
-    ColorStops yStops;
+    Column      column;
+    ColorType   colorType { ColorType::AUTO };
+    bool        valid     { false };
+    bool        mapped    { true };
+    double      map_min   { 0.0 };
+    double      map_max   { 1.0 };
+    double      data_min  { 0.0 };
+    double      data_max  { 1.0 };
+    ColumnType  modelType;
+    PaletteName palette;
+    ColorStops  xStops;
+    ColorStops  yStops;
   };
+
+  //---
 
   //! \brief every row selection data
   struct EveryData {
@@ -2825,6 +2835,8 @@ class CQChartsPlot : public CQChartsObj,
     int  end     { std::numeric_limits<int>::max() };
     int  step    { 1 };
   };
+
+  //---
 
   //! \brief mouse state (event) data
   struct MouseData {
@@ -2837,11 +2849,15 @@ class CQChartsPlot : public CQChartsObj,
     bool               dragged     { false };
   };
 
+  //---
+
   //! \brief animation data
   struct AnimateData {
     QTimer* timer   { nullptr };
     int     tickLen { 30 };
   };
+
+  //---
 
   //! \brief update state data
   struct UpdatesData {
@@ -2863,6 +2879,8 @@ class CQChartsPlot : public CQChartsObj,
       //stateFlag.clear();
     }
   };
+
+  //---
 
   using ColumnNames = std::map<Column, QString>;
 

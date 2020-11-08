@@ -2101,7 +2101,7 @@ addPointKeyItems(PlotKey *key)
 
       if (colorColumn().isValid() && colorColumn().isGroup()) {
         if (isColorMapped()) {
-          double r = CMathUtil::map(groupInd, colorColumnData_.data_min, colorColumnData_.data_max,
+          double r = CMathUtil::map(groupInd, colorMapDataMin(), colorMapDataMax(),
                                     colorMapMin(), colorMapMax());
 
           auto color = Color(Color::Type::PALETTE_VALUE, r);

@@ -149,12 +149,12 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   setSelectedMode(HighlightDataMode::FILL);
 
   setSelectedFillColor  (Color(Color::Type::CONTRAST));
-  setSelectedFillAlpha  (Alpha(0.8));
+  setSelectedFillAlpha  (Alpha(0.3));
   setSelectedStrokeColor(Color(Color::Type::CONTRAST));
   setSelectedStrokeWidth(Length("2px"));
 
   setInsideFillColor  (Color(Color::Type::CONTRAST));
-  setInsideFillAlpha  (Alpha(0.8));
+  setInsideFillAlpha  (Alpha(0.3));
   setInsideStrokeColor(Color(Color::Type::CONTRAST));
   setInsideStrokeWidth(Length("2px"));
 
@@ -174,7 +174,13 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  CQToolTip::setToolTip(this, new CQChartsViewToolTip(this));
+  tip_ = new CQChartsViewToolTip(this);
+
+#ifndef CQCHARTS_FLOAT_TIP
+  CQToolTip::setToolTip(this, tip_);
+#else
+  tip_->setFont(tipFont().calcFont(font_.font()));
+#endif
 
   //---
 
@@ -234,7 +240,9 @@ CQChartsView::
 
   delete popupMenu_;
 
+#ifndef CQCHARTS_FLOAT_TIP
   CQToolTip::unsetToolTip(this);
+#endif
 }
 
 void
@@ -335,7 +343,8 @@ addProperties()
   addStyleProp("text", "scaleFont" , "scaled", "Scale font to view size");
   addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->
     setMinValue(0.001);
-  addStyleProp("text", "font"      , "font"  , "Global text font");
+  addStyleProp("text", "font"      , "font"   , "Global text font");
+  addStyleProp("text", "tipFont"   , "tipFont", "Tip font");
 
   // plot separators
   addStyleProp("options", "plotSeparators", "", "Show plot separators");
@@ -588,6 +597,17 @@ setFont(const CQChartsFont &f)
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
 }
 
+void
+CQChartsView::
+setTipFont(const CQChartsFont &f)
+{
+  CQChartsUtil::testAndSet(tipFont_, f, [&]() {
+#ifdef CQCHARTS_FLOAT_TIP
+    tip_->setFont(tipFont().calcFont(font_.font()));
+#endif
+  } );
+}
+
 double
 CQChartsView::
 fontEm() const
@@ -747,7 +767,7 @@ CQChartsView::
 plotFont(const Plot *plot, const CQChartsFont &font, bool scaled) const
 {
   // adjust font by plot font and then by view font
-  auto font1 = font.calcFont(plot->font());
+  auto font1 = font .calcFont(plot->font());
   auto font2 = font1.calcFont(font_.font());
 
   if (scaled && isScaleFont())
@@ -2639,8 +2659,16 @@ keyPressEvent(QKeyEvent *ke)
       cycleEdit();
   }
   else if (ke->key() == Qt::Key_F1) {
-    if (mode() == Mode::EDIT)
-      cycleEdit();
+    if (ke->modifiers() & Qt::ControlModifier) {
+#ifdef CQCHARTS_FLOAT_TIP
+      if (tip_->isVisible())
+        tip_->setLocked(true);
+#endif
+    }
+    else {
+      if (mode() == Mode::EDIT)
+        cycleEdit();
+    }
   }
 
   //---
@@ -2932,12 +2960,74 @@ editMouseRelease()
 
 //------
 
+bool
+CQChartsView::
+calcTip(const QPoint &gpos, QString &tip)
+{
+  auto p = this->mapFromGlobal(gpos);
+
+  auto wpos = this->pixelToWindow(Point(p));
+
+  CQChartsView::Plots plots;
+
+  this->plotsAt(wpos, plots);
+
+  if (plots.empty())
+    return false;
+
+  for (const auto &plot : plots) {
+    if (! plot->isVisible())
+      continue;
+
+    auto w = plot->pixelToWindow(Point(p));
+
+    QString tip1;
+
+    if (plot->plotTipText(w, tip1)) {
+      if (tip.length())
+        tip += "\n";
+
+      tip += tip1;
+    }
+  }
+
+  if (! tip.length()) {
+    for (const auto &plot : plots) {
+      if (! plot->isVisible())
+        continue;
+
+      auto *key = plot->key();
+      if (! key) continue;
+
+      auto w = plot->pixelToWindow(Point(p));
+
+      if (key->contains(w)) {
+        QString tip1;
+
+        if (key->tipText(w, tip1)) {
+          if (tip.length())
+            tip += "\n";
+
+          tip += tip1;
+        }
+      }
+    }
+  }
+
+  if (! tip.length())
+    return false;
+
+  return true;
+}
+
+//------
+
 void
 CQChartsView::
 showProbeLines(const Point &p)
 {
   auto addVerticalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
-                                  double px, double py1, double py2) -> void {
+                                  double px, double py1, double py2) {
     while (ind >= int(probeBands_.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
@@ -2950,7 +3040,7 @@ showProbeLines(const Point &p)
   };
 
   auto addHorizontalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
-                                    double px1, double px2, double py) -> void {
+                                    double px1, double px2, double py) {
     while (ind >= int(probeBands_.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
@@ -6961,6 +7051,18 @@ calcCurrentPlotInd(bool remap) const
   }
 
   return getIndForPlot(plot);
+}
+
+//---
+
+void
+CQChartsView::
+updateTip()
+{
+#ifdef CQCHARTS_FLOAT_TIP
+  if (tip_->isVisible())
+    tip_->updateTip();
+#endif
 }
 
 //---

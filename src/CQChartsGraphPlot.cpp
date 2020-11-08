@@ -183,23 +183,23 @@ clearNodesAndEdges()
 
 void
 CQChartsGraphPlot::
-setNodeXMargin(double r)
+setNodeXMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeXMargin_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeXMargin_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGraphPlot::
-setNodeYMargin(double r)
+setNodeYMargin(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeYMargin_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeYMargin_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGraphPlot::
-setNodeWidth(double r)
+setNodeWidth(const Length &l)
 {
-  CQChartsUtil::testAndSet(nodeWidth_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -236,6 +236,15 @@ setEdgeScaled(bool b)
 
 void
 CQChartsGraphPlot::
+setBlendEdgeColor(bool b)
+{
+  CQChartsUtil::testAndSet(blendEdgeColor_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsGraphPlot::
 setAlign(const Align &a)
 {
   CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
@@ -264,8 +273,11 @@ CQChartsGraphPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    auto *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
@@ -274,9 +286,12 @@ addProperties()
 
   //---
 
-  // options
-  addProp("options", "adjustNodes"     , "adjustNodes"     , "Adjust node placement");
-  addProp("options", "autoCreateGraphs", "autoCreateGraphs", "Auto create graphs");
+  // placment
+  addProp("placement", "adjustNodes"     , "adjustNodes"     , "Adjust node placement");
+  addProp("placement", "autoCreateGraphs", "autoCreateGraphs", "Auto create graphs");
+
+  // coloring
+  addProp("coloring", "blendEdgeColor", "", "Blend Edge Node Colors");
 
   // node
   addProp("node", "nodeShape"  , "shapeType", "Node shape type");
@@ -426,10 +441,6 @@ createObjs(PlotObjs &objs) const
   auto *th = const_cast<CQChartsGraphPlot *>(this);
 
   th->clearErrors();
-
-  //---
-
-//th->nodeYSet_  = false;
 
   //---
 
@@ -600,6 +611,9 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
   if (maxDepth() <= 0 || destDepth <= maxDepth())
     destNode = findNode(destStr);
 
+  //---
+
+  // create edge and link src/dest nodes
   auto *edge = (srcNode && destNode ? createEdge(OptReal(value), srcNode, destNode) : nullptr);
 
   if (edge) {
@@ -607,6 +621,9 @@ initHierObjsAddConnection(const QString &srcStr, const QString &destStr, int src
     destNode->addSrcEdge (edge);
   }
 
+  //---
+
+  // set node depths
   if (srcNode)
     srcNode->setDepth(srcDepth);
 
@@ -672,6 +689,7 @@ addPathValue(const PathData &pathData) const
       bool hasEdge = srcNode->hasDestNode(destNode);
 
       if (! hasEdge) {
+        // create edge and link src/dest nodes
         auto *edge = createEdge(OptReal(), srcNode, destNode);
 
         srcNode ->addDestEdge(edge);
@@ -679,12 +697,27 @@ addPathValue(const PathData &pathData) const
       }
     }
     else {
+      // create edge and link src/dest nodes
       auto *edge = createEdge(OptReal(), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
 
-      destNode->setValue(OptReal(pathData.value));
+      //---
+
+      // add model indices
+      auto addModelInd = [&](const ModelIndex &modelInd) {
+        if (modelInd.isValid())
+          edge->addModelInd(modelInd);
+      };
+
+      addModelInd(pathData.pathModelInd );
+      addModelInd(pathData.valueModelInd);
+
+      //---
+
+      // set destination node value (will be propagated up)
+      destNode->setValue(pathData.value);
     }
 
     path1 = path2;
@@ -725,18 +758,20 @@ propagatePathValues()
       // propagate set node value up to source nodes
       if (node->hasValue()) {
         if (! node->srcEdges().empty()) {
-          assert(node->srcEdges().size() == 1);
+          //int ns = node->srcEdges().size();
 
-          auto *srcEdge = *node->srcEdges().begin();
+          double value = node->value().realOr(1.0);
 
-          if (! srcEdge->hasValue())
-            srcEdge->setValue(node->value());
+          for (auto &srcEdge : node->srcEdges()) {
+            if (! srcEdge->hasValue())
+              srcEdge->setValue(OptReal(value));
 
-          auto *srcNode = srcEdge->srcNode();
+            auto *srcNode = srcEdge->srcNode();
 
-          for (const auto &edge : srcNode->destEdges()) {
-            if (edge->destNode() == node)
-              edge->setValue(node->value());
+            for (const auto &edge : srcNode->destEdges()) {
+              if (edge->destNode() == node)
+                edge->setValue(OptReal(value));
+            }
           }
         }
       }
@@ -759,59 +794,39 @@ void
 CQChartsGraphPlot::
 addFromToValue(const FromToData &fromToData) const
 {
-  auto *th = const_cast<CQChartsGraphPlot *>(this);
-
+  // get src node
   auto *srcNode = findNode(fromToData.fromStr);
 
   if (fromToData.depth > 0)
     srcNode->setDepth(fromToData.depth);
 
+  //---
+
+  // set group
+  if (fromToData.groupData.ng > 1) {
+    srcNode->setGroup(fromToData.groupData.ig, fromToData.groupData.ng);
+
+    auto *th = const_cast<CQChartsGraphPlot *>(this);
+
+    th->numGroups_ = std::max(numGroups_, fromToData.groupData.ng);
+  }
+  else
+    srcNode->setGroup(-1);
+
+  //---
+
   // Just node
   if (fromToData.toStr == "") {
-    for (const auto &nv : fromToData.nameValues.nameValues()) {
-      auto value = nv.second.toString();
+    // set node color (if color column specified)
+    Color c;
 
-      if      (nv.first == "shape") {
-        if      (value == "diamond")
-          srcNode->setShapeType(Node::ShapeType::DIAMOND);
-        else if (value == "box")
-          srcNode->setShapeType(Node::ShapeType::BOX);
-        else if (value == "polygon")
-          srcNode->setShapeType(Node::ShapeType::POLYGON);
-        else if (value == "circle")
-          srcNode->setShapeType(Node::ShapeType::CIRCLE);
-        else if (value == "doublecircle")
-          srcNode->setShapeType(Node::ShapeType::DOUBLE_CIRCLE);
-        else if (value == "record")
-          srcNode->setShapeType(Node::ShapeType::BOX);
-        else if (value == "plaintext")
-          srcNode->setShapeType(Node::ShapeType::BOX);
-        else
-          srcNode->setShapeType(Node::ShapeType::BOX);
-      }
-      else if (nv.first == "num_sides") {
-        bool ok;
+    if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
+      srcNode->setFillColor(c);
 
-        int n = value.toInt(&ok);
+    //---
 
-        if (ok)
-          srcNode->setNumSides(n);
-      }
-      else if (nv.first == "label") {
-        srcNode->setLabel(value);
-      }
-      else if (nv.first == "color") {
-        srcNode->setColor(QColor(value));
-      }
-      else if (nv.first == "fillcolor") {
-        auto colors = value.split(":");
-
-        if (colors.length() > 0)
-          srcNode->setColor(QColor(colors[0]));
-      }
-      else if (nv.first == "gradientangle") {
-      }
-    }
+    // set node name values (attribute column)
+    processNodeNameValues(srcNode, fromToData.nameValues);
 
     //---
 
@@ -822,6 +837,8 @@ addFromToValue(const FromToData &fromToData) const
     int ng = groupNames.length();
 
     if (ng > 0) {
+      auto *th = const_cast<CQChartsGraphPlot *>(this);
+
       graphId = th->groupValueInd_.calcId(groupNames[ng - 1]);
 
       if (ng > 1)
@@ -843,22 +860,44 @@ addFromToValue(const FromToData &fromToData) const
     if (fromToData.depth > 0)
       destNode->setDepth(fromToData.depth + 1);
 
+    //---
+
+    // create edge and link src/dest nodes
     auto *edge = createEdge(fromToData.value, srcNode, destNode);
 
     srcNode ->addDestEdge(edge, /*primary*/true );
     destNode->addSrcEdge (edge, /*primary*/false);
 
-    for (const auto &nv : fromToData.nameValues.nameValues()) {
-      auto value = nv.second.toString();
+    //---
 
-      if      (nv.first == "shape") {
-        if (value == "arrow")
-          edge->setShapeType(Edge::ShapeType::ARROW);
-      }
-      else if (nv.first == "label") {
-        edge->setLabel(value);
-      }
-    }
+    // add model indices
+    auto addModelInd = [&](const ModelIndex &modelInd) {
+      if (modelInd.isValid())
+        edge->addModelInd(modelInd);
+    };
+
+    addModelInd(fromToData.fromModelInd  );
+    addModelInd(fromToData.toModelInd    );
+    addModelInd(fromToData.valueModelInd );
+    addModelInd(fromToData.depthModelInd );
+
+    edge->setNamedColumn("From" , fromToData.fromModelInd  .column());
+    edge->setNamedColumn("To"   , fromToData.toModelInd    .column());
+    edge->setNamedColumn("Value", fromToData.valueModelInd .column());
+    edge->setNamedColumn("Depth", fromToData.depthModelInd .column());
+
+    //---
+
+    // set edge color (if color column specified)
+    Color c;
+
+    if (colorColumnColor(fromToData.fromModelInd.row(), fromToData.fromModelInd.parent(), c))
+      edge->setFillColor(c);
+
+    //---
+
+    // set edge name values (attribute column)
+    processEdgeNameValues(edge, fromToData.nameValues);
   }
 }
 
@@ -877,27 +916,63 @@ void
 CQChartsGraphPlot::
 addLinkConnection(const LinkConnectionData &linkConnectionData) const
 {
+  // get src/dest nodes (TODO: allow single source node)
   auto *srcNode  = findNode(linkConnectionData.srcStr);
   auto *destNode = findNode(linkConnectionData.destStr);
 //assert(srcNode != destNode);
 
-  auto *edge = createEdge(OptReal(linkConnectionData.value), srcNode, destNode);
+  //---
+
+  // create edge and link src/dest nodes
+  auto *edge = createEdge(linkConnectionData.value, srcNode, destNode);
 
   srcNode ->addDestEdge(edge);
   destNode->addSrcEdge (edge);
 
-  destNode->setValue(OptReal(linkConnectionData.value));
+  //---
 
+  // add model indices
+  auto addModelInd = [&](const ModelIndex &modelInd) {
+    if (modelInd.isValid())
+      edge->addModelInd(modelInd);
+  };
+
+  addModelInd(linkConnectionData.groupModelInd);
+  addModelInd(linkConnectionData.linkModelInd );
+  addModelInd(linkConnectionData.valueModelInd);
+  addModelInd(linkConnectionData.nameModelInd );
+  addModelInd(linkConnectionData.depthModelInd);
+
+  //---
+
+  // set edge color (if color column specified)
+  Color c;
+
+  if (colorColumnColor(linkConnectionData.linkModelInd.row(),
+                       linkConnectionData.linkModelInd.parent(), c))
+    edge->setFillColor(c);
+
+  //---
+
+  // set value on dest node (NEEDED ?)
+  destNode->setValue(linkConnectionData.value);
+
+  //---
+
+  // set group
   if (linkConnectionData.groupData.isValid()) {
-    auto *th = const_cast<CQChartsGraphPlot *>(this);
+    srcNode->setGroup(linkConnectionData.groupData.ig, linkConnectionData.groupData.ng);
 
-    srcNode->setGroup(linkConnectionData.groupData.ig);
+    auto *th = const_cast<CQChartsGraphPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, linkConnectionData.groupData.ng);
   }
   else
     srcNode->setGroup(-1);
 
+  //---
+
+  // set name index
   if (linkConnectionData.nameModelInd.isValid()) {
     auto nameModelInd1 = normalizeIndex(linkConnectionData.nameModelInd);
 
@@ -906,10 +981,16 @@ addLinkConnection(const LinkConnectionData &linkConnectionData) const
 
   //---
 
+  // set depth
   if (linkConnectionData.depth > 0) {
     srcNode ->setDepth(linkConnectionData.depth);
     destNode->setDepth(linkConnectionData.depth + 1);
   }
+
+  //---
+
+  // set edge name values (attribute column)
+  processEdgeNameValues(edge, linkConnectionData.nameValues);
 }
 
 //---
@@ -927,31 +1008,65 @@ void
 CQChartsGraphPlot::
 addConnectionObj(int id, const ConnectionsData &connectionsData) const
 {
+  // get src node
   auto srcStr = QString("%1").arg(id);
 
   auto *srcNode = findNode(srcStr);
 
   srcNode->setName(connectionsData.name);
 
-  if (connectionsData.groupData.isValid()) {
-    auto *th = const_cast<CQChartsGraphPlot *>(this);
+  //---
 
-    srcNode->setGroup(connectionsData.groupData.ig);
+  // set group
+  if (connectionsData.groupData.isValid()) {
+    srcNode->setGroup(connectionsData.groupData.ig, connectionsData.groupData.ng);
+
+    auto *th = const_cast<CQChartsGraphPlot *>(this);
 
     th->numGroups_ = std::max(numGroups_, connectionsData.groupData.ng);
   }
   else
     srcNode->setGroup(-1);
 
+  //---
+
+  // add model indices
+  auto addModelInd = [&](const ModelIndex &modelInd) {
+    if (modelInd.isValid())
+      srcNode->addModelInd(modelInd);
+  };
+
+  addModelInd(connectionsData.nodeModelInd);
+  addModelInd(connectionsData.connectionsModelInd);
+  addModelInd(connectionsData.nameModelInd);
+  addModelInd(connectionsData.groupModelInd);
+
+  //---
+
+  // set node name values (attribute column)
+  processNodeNameValues(srcNode, connectionsData.nameValues);
+
+  //---
+
+  // process connections
   for (const auto &connection : connectionsData.connections) {
+    // get destination node
     auto destStr = QString("%1").arg(connection.node);
 
     auto *destNode = findNode(destStr);
 
+    //---
+
+    // create edge and link src/dest nodes
     auto *edge = createEdge(OptReal(connection.value), srcNode, destNode);
 
     srcNode ->addDestEdge(edge);
     destNode->addSrcEdge (edge);
+
+    //---
+
+    // set value
+    destNode->setValue(OptReal(connection.value));
   }
 }
 
@@ -986,13 +1101,14 @@ initTableObjs() const
     auto *srcNode = findNode(srcStr);
 
     srcNode->setName (tableConnectionData.name());
-    srcNode->setGroup(tableConnectionData.group().ig);
+    srcNode->setGroup(tableConnectionData.group().ig, tableConnectionData.group().ng);
 
     for (const auto &value : tableConnectionData.values()) {
       auto destStr = QString("%1").arg(value.to);
 
       auto *destNode = findNode(destStr);
 
+      // create edge and link src/dest nodes
       auto *edge = createEdge(OptReal(value.value), srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
@@ -1003,6 +1119,108 @@ initTableObjs() const
   //---
 
   return true;
+}
+
+//---
+
+void
+CQChartsGraphPlot::
+processNodeNameValues(Node *node, const NameValues &nameValues) const
+{
+  for (const auto &nv : nameValues.nameValues()) {
+    const auto &name  = nv.first;
+    auto        value = nv.second.toString();
+
+    processNodeNameValue(node, name, value);
+  }
+}
+
+void
+CQChartsGraphPlot::
+processNodeNameValue(Node *node, const QString &name, const QString &value) const
+{
+  // shape
+  if      (name == "shape") {
+    if      (value == "diamond")
+      node->setShapeType(Node::ShapeType::DIAMOND);
+    else if (value == "box")
+      node->setShapeType(Node::ShapeType::BOX);
+    else if (value == "polygon")
+      node->setShapeType(Node::ShapeType::POLYGON);
+    else if (value == "circle")
+      node->setShapeType(Node::ShapeType::CIRCLE);
+    else if (value == "doublecircle")
+      node->setShapeType(Node::ShapeType::DOUBLE_CIRCLE);
+    else if (value == "record")
+      node->setShapeType(Node::ShapeType::BOX);
+    else if (value == "plaintext")
+      node->setShapeType(Node::ShapeType::BOX);
+    else
+      node->setShapeType(Node::ShapeType::BOX);
+  }
+  // num sides
+  else if (name == "num_sides") {
+    bool ok;
+
+    int n = value.toInt(&ok);
+
+    if (ok)
+      node->setNumSides(n);
+  }
+  else if (name == "label") {
+    node->setLabel(value);
+  }
+  else if (name == "fill_color" || name == "color") {
+    node->setFillColor(CQChartsColor(value));
+  }
+  else if (name == "fill_alpha" || name == "alpha") {
+    node->setFillAlpha(CQChartsAlpha(value));
+  }
+  else if (name == "fill_pattern" || name == "pattern") {
+    node->setFillPattern(CQChartsFillPattern(value));
+  }
+  else if (name == "stroke_color") {
+    node->setStrokeColor(CQChartsColor(value));
+  }
+  else if (name == "stroke_alpha") {
+    node->setStrokeAlpha(CQChartsAlpha(value));
+  }
+  else if (name == "stroke_width" || name == "width") {
+    node->setStrokeWidth(CQChartsLength(value));
+  }
+  else if (name == "stroke_dash" || name == "dash") {
+    node->setStrokeDash(CQChartsLineDash(value));
+  }
+}
+
+void
+CQChartsGraphPlot::
+processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
+{
+  auto *srcNode  = edge->srcNode ();
+  auto *destNode = edge->destNode();
+
+  for (const auto &nv : nameValues.nameValues()) {
+    const auto &name  = nv.first;
+    auto        value = nv.second.toString();
+
+    if      (name == "shape") {
+      if (value == "arrow")
+        edge->setShapeType(Edge::ShapeType::ARROW);
+    }
+    else if (name == "label") {
+      edge->setLabel(value);
+    }
+    else if (name == "color") {
+      edge->setFillColor(CQChartsColor(value));
+    }
+    else if (name.left(4) == "src_") {
+      processNodeNameValue(srcNode, name.mid(4), value);
+    }
+    else if (name.left(5) == "dest_") {
+      processNodeNameValue(destNode, name.mid(5), value);
+    }
+  }
 }
 
 //---
@@ -1172,6 +1390,8 @@ placeGraphNodes(Graph *graph, const Nodes &nodes) const
 
   // calc y value scale and margins to fit in bbox
   th->calcValueMarginScale(graph);
+
+  //---
 
   // place node objects at each depth (xpos)
   placeDepthNodes(graph);
@@ -1405,15 +1625,17 @@ calcValueMarginScale(Graph *graph)
   //---
 
   // calc value margin/scale
-  graph->setValueMargin(graph->maxHeight() > 1 ? ys1/(graph->maxHeight() - 1) : 0.0);
-  graph->setValueScale (graph->maxHeight() > 0 ? ys2/ graph->maxHeight()      : 1.0);
+  graph->setValueMargin(graph->maxHeight() > 1.0 ? ys1/(graph->maxHeight() - 1) : 0.0);
+  graph->setValueScale (graph->maxHeight() > 0.0 ? ys2/ graph->maxHeight()      : 1.0);
 }
 
 double
 CQChartsGraphPlot::
 calcNodeXMargin() const
 {
-  double nodeXMargin = std::min(std::max(this->nodeXMargin(), 0.0), 1.0);
+  double nodeXMargin = lengthPlotWidth(this->nodeXMargin());
+
+  nodeXMargin = std::min(std::max(nodeXMargin, 0.0), 1.0);
 
   auto pixelNodeXMargin = windowToPixelWidth(nodeXMargin);
 
@@ -1427,7 +1649,9 @@ double
 CQChartsGraphPlot::
 calcNodeYMargin() const
 {
-  double nodeYMargin = std::min(std::max(this->nodeYMargin(), 0.0), 1.0);
+  double nodeYMargin = lengthPlotHeight(this->nodeYMargin());
+
+  nodeYMargin = std::min(std::max(nodeYMargin, 0.0), 1.0);
 
   auto pixelNodeYMargin = windowToPixelHeight(nodeYMargin);
 
@@ -1469,8 +1693,8 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
       dx = xs/graph->maxNodeDepth();
   }
 
-  double xm = pixelToWindowWidth (nodeWidth());
-  double ym = pixelToWindowHeight(nodeWidth());
+  double xm = lengthPlotWidth (nodeWidth());
+  double ym = lengthPlotHeight(nodeWidth());
 
   if (isNodeXScaled()) {
     xm = dx - xmargin;
@@ -1486,7 +1710,7 @@ placeDepthSubNodes(Graph *graph, int xpos, const Nodes &nodes) const
 
   //---
 
-  // place top to bottom
+  // calc tip (placing top to bottom)
   double y1 = bbox_.getYMax() - (ys - height)/2.0;
 
   //---
@@ -1585,16 +1809,10 @@ createObjFromNode(Graph *, Node *node) const
     shapeType = (NodeObj::ShapeType) nodeShape();
 
   nodeObj->setShapeType(shapeType);
-  nodeObj->setNumSides (node->numSides());
-  nodeObj->setHierName (node->str  ());
+  nodeObj->setHierName (node->str());
 
-  if (node->hasValue())
-    nodeObj->setValue(node->value().real());
-
-  nodeObj->setDepth(node->depth());
-
-  if (node->color().isValid())
-    nodeObj->setColor(node->color());
+  for (const auto &modelInd : node->modelInds())
+    nodeObj->addModelInd(normalizedModelIndex(modelInd));
 
   node->setObj(nodeObj);
 
@@ -1628,6 +1846,15 @@ calcXPos(Graph *graph, Node *node) const
 
         xpos = int(f*graph->maxNodeDepth());
       }
+#if 0
+      else if (align() == Align::RAND) {
+        CQChartsRand::RealInRange rand(0, alignRand_);
+
+        xpos = CMathRound::RoundNearest(rand.gen());
+
+        const_cast<Node *>(node)->setDepth(xpos);
+      }
+#endif
     }
   }
 
@@ -1645,8 +1872,13 @@ addEdgeObj(Edge *edge) const
   double xm = bbox_.getHeight()*edgeMargin_;
   double ym = bbox_.getWidth ()*edgeMargin_;
 
-  BBox rect(bbox_.getXMin() - xm, bbox_.getYMin() - ym,
-            bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+  BBox nodeRect;
+
+  nodeRect += edge->srcNode ()->rect();
+  nodeRect += edge->destNode()->rect();
+
+  BBox rect(nodeRect.getXMin() - xm, nodeRect.getYMin() - ym,
+            nodeRect.getXMax() + xm, nodeRect.getYMax() + ym);
 
   auto *edgeObj = createEdgeObj(rect, edge);
 
@@ -1744,7 +1976,7 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
       //std::cerr << "Pass " << pass << "\n";
 
       if (! adjustNodeCenters(graph)) {
-        std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
+        //std::cerr << "adjustNodeCenters (#" << pass + 1 << " Passes)\n";
         break;
       }
     }
@@ -1757,10 +1989,6 @@ adjustGraphNodes(Graph *graph, const Nodes &nodes) const
   //---
 
 //placeDepthNodes(graph);
-
-  //---
-
-//th->nodeYSet_ = true;
 
   //---
 
@@ -1789,14 +2017,8 @@ adjustNodeCenters(Graph *graph) const
   int posNodesDepth = graph->posNodesMap().size();
 
   for (int xpos = 1; xpos <= posNodesDepth; ++xpos) {
-    if (! graph->hasPosNodes(xpos)) continue;
-
-    const auto &nodes = graph->posNodes(xpos);
-
-    for (const auto &node : nodes) {
-      if (adjustNode(node))
-        changed = true;
-    }
+    if (adjustPosNodes(graph, xpos))
+      changed = true;
   }
 
   removeOverlaps(graph);
@@ -1805,17 +2027,30 @@ adjustNodeCenters(Graph *graph) const
 
   // second to last to first
   for (int xpos = posNodesDepth - 1; xpos >= 0; --xpos) {
-    if (! graph->hasPosNodes(xpos)) continue;
-
-    const auto &nodes = graph->posNodes(xpos);
-
-    for (const auto &node : nodes) {
-      if (adjustNode(node))
-        changed = true;
-    }
+    if (adjustPosNodes(graph, xpos))
+      changed = true;
   }
 
   removeOverlaps(graph);
+
+  return changed;
+}
+
+bool
+CQChartsGraphPlot::
+adjustPosNodes(Graph *graph, int xpos) const
+{
+  if (! graph->hasPosNodes(xpos))
+    return false;
+
+  bool changed = false;
+
+  const auto &nodes = graph->posNodes(xpos);
+
+  for (const auto &node : nodes) {
+    if (adjustNode(node))
+      changed = true;
+  }
 
   return changed;
 }
@@ -1839,6 +2074,8 @@ CQChartsGraphPlot::
 removePosOverlaps(Graph *graph, const Nodes &nodes) const
 {
   double ym = pixelToWindowHeight(minNodeMargin());
+
+  //---
 
   // get nodes sorted by y (max to min)
   PosNodeMap posNodeMap;
@@ -1872,6 +2109,8 @@ removePosOverlaps(Graph *graph, const Nodes &nodes) const
     node1 = node2;
   }
 
+  //---
+
   // move back inside bbox (needed ?)
   if (node1) {
     const auto &rect1 = node1->rect();
@@ -1883,7 +2122,7 @@ removePosOverlaps(Graph *graph, const Nodes &nodes) const
   return changed;
 }
 
-void
+bool
 CQChartsGraphPlot::
 spreadPosNodes(Graph *, const Nodes &nodes) const
 {
@@ -1891,7 +2130,7 @@ spreadPosNodes(Graph *, const Nodes &nodes) const
 
   createPosNodeMap(nodes, posNodeMap);
 
-  BBox bbox;
+  BBox spreadBBox;
 
   Node *node1 = nullptr, *node2 = nullptr;
 
@@ -1900,20 +2139,28 @@ spreadPosNodes(Graph *, const Nodes &nodes) const
 
     if (! node1) node1 = node2;
 
-    bbox += node2->rect();
+    spreadBBox += node2->rect();
   }
+
+  if (! node1 || ! node2)
+    return false;
+
+  //---
 
   double dy1 = node1->rect().getHeight()/2.0; // top
   double dy2 = node2->rect().getHeight()/2.0; // bottom
 
-  if (! bbox.isValid() || (bbox.getHeight() - dy1 - dy2) <= 0.0)
-    return;
+  if (! spreadBBox.isValid() || (spreadBBox.getHeight() - dy1 - dy2) <= 0.0)
+    return false;
 
   double ymin = bbox_.getYMin() + dy2;
   double ymax = bbox_.getYMax() - dy1;
 
   double dy = ymin - node2->rect().getYMid();
-  double ys = (ymax - ymin)/(bbox.getHeight() - dy1 - dy2);
+  double ys = (ymax - ymin)/(spreadBBox.getHeight() - dy1 - dy2);
+
+  if (CMathUtil::realEq(dy, 0.0) && CMathUtil::realEq(ys, 1.0))
+    return false;
 
   for (const auto &posNode : posNodeMap) {
     auto *node = posNode.second;
@@ -1924,6 +2171,8 @@ spreadPosNodes(Graph *, const Nodes &nodes) const
 
     node->moveBy(Point(0, y1 - node->rect().getYMid()));
   }
+
+  return true;
 }
 
 bool
@@ -1975,9 +2224,12 @@ CQChartsGraphPlot::
 createPosNodeMap(const Nodes &nodes, PosNodeMap &posNodeMap) const
 {
   for (const auto &node : nodes) {
+    if (! node->isVisible()) continue;
+
     const auto &rect = node->rect();
     if (! rect.isValid()) continue;
 
+    // use distance from top (decreasing)
     double y = bbox_.getYMax() - rect.getYMid();
 
     auto p = posNodeMap.find(y);
@@ -2001,11 +2253,10 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     if (! node->isVisible()) continue;
 
     const auto &rect = node->rect();
+    if (! rect.isValid()) continue;
 
-    double y = 0.0;
-
-    if (rect.isValid())
-      y = bbox_.getYMax() - rect.getYMid();
+    // use distance from top (decreasing)
+    double y = bbox_.getYMax() - rect.getYMid();
 
     auto p = posEdgeMap.find(y);
 
@@ -2023,7 +2274,8 @@ bool
 CQChartsGraphPlot::
 adjustNode(Node *node) const
 {
-  BBox bbox;
+  // get bounds of source edges
+  BBox srcBBox;
 
   for (const auto &edge : node->srcEdges()) {
     if (edge->isSelf()) continue;
@@ -2031,8 +2283,13 @@ adjustNode(Node *node) const
     auto *srcNode = edge->srcNode();
     if (! srcNode->isVisible()) continue;
 
-    bbox += srcNode->rect();
+    srcBBox += srcNode->rect();
   }
+
+  //---
+
+  // get bounds of dest edges
+  BBox destBBox;
 
   for (const auto &edge : node->destEdges()) {
     if (edge->isSelf()) continue;
@@ -2040,18 +2297,32 @@ adjustNode(Node *node) const
     auto *destNode = edge->destNode();
     if (! destNode->isVisible()) continue;
 
-    bbox += destNode->rect();
+    destBBox += destNode->rect();
   }
 
-  if (! bbox.isValid())
+  //---
+
+  // calc average y
+  double midY = 0.0;
+
+  if      (srcBBox.isValid() && destBBox.isValid())
+    midY = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
+  else if (srcBBox.isValid())
+    midY = srcBBox.getYMid();
+  else if (destBBox.isValid())
+    midY = destBBox.getYMid();
+  else
     return false;
 
-  double dy = bbox.getYMid() - node->rect().getYMid();
+  //---
 
-  if (std::abs(dy) < 1E-6)
+  // move node to average
+  double dy = midY - node->rect().getYMid();
+
+  if (std::abs(dy) < 1E-6) // better tolerance
     return false;
 
-  node->moveBy(Point(0, dy));
+  node->moveBy(Point(0.0, dy));
 
   return true;
 }
@@ -2387,12 +2658,14 @@ rect() const
 
 void
 CQChartsGraphPlotNode::
-setRect(const BBox &r)
+setRect(const BBox &rect)
 {
-  rect_ = r;
+  assert(rect.isSet());
+
+  rect_ = rect;
 
   if (obj_) // TODO: assert null or use move by
-    obj_->setRect(r);
+    obj_->setRect(rect);
 }
 
 CQChartsGraphPlotGraph *
@@ -2409,7 +2682,12 @@ double
 CQChartsGraphPlotNode::
 edgeSum() const
 {
-  return std::max(srcEdgeSum(), destEdgeSum());
+  double sum = std::max(srcEdgeSum(), destEdgeSum());
+
+  if (CMathUtil::realEq(sum, 0.0))
+    sum = 1.0;
+
+  return sum;
 }
 
 double
@@ -2461,6 +2739,11 @@ moveBy(const Point &delta)
 
   if (obj_)
     obj_->moveBy(delta);
+
+  //---
+
+  moveSrcEdgeRectsBy (delta);
+  moveDestEdgeRectsBy(delta);
 }
 
 void
@@ -2473,6 +2756,99 @@ scale(double fx, double fy)
 
   if (obj_)
     obj_->scale(fx, fy);
+}
+
+//---
+
+void
+CQChartsGraphPlotNode::
+placeEdges()
+{
+  double x1 = rect().getXMin();
+  double x2 = rect().getXMax();
+  double y1 = rect().getYMin();
+  double y2 = rect().getYMax();
+
+  clearSrcEdgeRects ();
+  clearDestEdgeRects();
+
+  if (this->srcEdges().size() == 1) {
+    auto *edge = *this->srcEdges().begin();
+
+    setSrcEdgeRect(edge, BBox(x1, y1, x2, y2));
+  }
+  else {
+    double total = 0.0;
+
+    for (const auto &edge : this->srcEdges()) {
+      if (edge->hasValue())
+        total += edge->value().real();
+    }
+
+    double y3 = y2; // top
+
+    for (const auto &edge : this->srcEdges()) {
+      if (! edge->hasValue()) {
+        setSrcEdgeRect(edge, BBox());
+        continue;
+      }
+
+      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
+      double y4 = y3 - h1;
+
+      if (! hasSrcEdgeRect(edge))
+        setSrcEdgeRect(edge, BBox(x1, y4, x2, y3));
+
+      y3 = y4;
+    }
+  }
+
+  //---
+
+  if (this->destEdges().size() == 1) {
+    auto *edge = *this->destEdges().begin();
+
+    setDestEdgeRect(edge, BBox(x1, y1, x2, y2));
+  }
+  else {
+    double total = 0.0;
+
+    for (const auto &edge : this->destEdges()) {
+      if (edge->hasValue())
+        total += edge->value().real();
+    }
+
+    double y3 = y2; // top
+
+    for (const auto &edge : this->destEdges()) {
+      if (! edge->hasValue()) {
+        setDestEdgeRect(edge, BBox());
+        continue;
+      }
+
+      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
+      double y4 = y3 - h1;
+
+      if (! hasDestEdgeRect(edge))
+        setDestEdgeRect(edge, BBox(x1, y4, x2, y3));
+
+      y3 = y4;
+    }
+  }
+}
+
+void
+CQChartsGraphPlotNode::
+setSrcEdgeRect(Edge *edge, const BBox &bbox)
+{
+  srcEdgeRect_[edge] = bbox;
+}
+
+void
+CQChartsGraphPlotNode::
+setDestEdgeRect(Edge *edge, const BBox &bbox)
+{
+  destEdgeRect_[edge] = bbox;
 }
 
 //------
@@ -2593,112 +2969,54 @@ setNumSides(int n)
 
 CQChartsColor
 CQChartsGraphNodeObj::
-color() const
+fillColor() const
 {
-  return node()->color();
+  return node()->fillColor();
 }
 
 void
 CQChartsGraphNodeObj::
-setColor(const CQChartsColor &c)
+setFillColor(const Color &c)
 {
-  node()->setColor(c);
+  node()->setFillColor(c);
 }
 
 void
 CQChartsGraphNodeObj::
 placeEdges()
 {
-  double x1 = rect().getXMin();
-  double x2 = rect().getXMax();
-  double y1 = rect().getYMin();
-  double y2 = rect().getYMax();
-
-  srcEdgeRect_ .clear();
-  destEdgeRect_.clear();
-
-  if (node_->srcEdges().size() == 1) {
-    auto *edge = *node_->srcEdges().begin();
-
-    srcEdgeRect_[edge] = BBox(x1, y1, x2, y2);
-  }
-  else {
-    double total = 0.0;
-
-    for (const auto &edge : node_->srcEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
-    }
-
-    double y3 = y2;
-
-    for (const auto &edge : node_->srcEdges()) {
-      if (! edge->hasValue()) {
-        srcEdgeRect_[edge] = BBox();
-        continue;
-      }
-
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-
-      double y4 = y3 - h1;
-
-      auto p = srcEdgeRect_.find(edge);
-
-      if (p == srcEdgeRect_.end())
-        srcEdgeRect_[edge] = BBox(x1, y4, x2, y3);
-
-      y3 = y4;
-    }
-  }
-
-  //---
-
-  if (node_->destEdges().size() == 1) {
-    auto *edge = *node_->destEdges().begin();
-
-    destEdgeRect_[edge] = BBox(x1, y1, x2, y2);
-  }
-  else {
-    double total = 0.0;
-
-    for (const auto &edge : node_->destEdges()) {
-      if (edge->hasValue())
-        total += edge->value().real();
-    }
-
-    double y3 = y2;
-
-    for (const auto &edge : node_->destEdges()) {
-      if (! edge->hasValue()) {
-        destEdgeRect_[edge] = BBox();
-        continue;
-      }
-
-      double h1 = (total > 0.0 ? (y2 - y1)*edge->value().real()/total : 0.0);
-
-      double y4 = y3 - h1;
-
-      auto p = destEdgeRect_.find(edge);
-
-      if (p == destEdgeRect_.end())
-        destEdgeRect_[edge] = BBox(x1, y4, x2, y3);
-
-      y3 = y4;
-    }
-  }
+  node()->placeEdges();
 }
 
 QString
 CQChartsGraphNodeObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(iv_.i);
+  return QString("%1:%2").arg(typeName()).arg(node()->id());
 }
 
 QString
 CQChartsGraphNodeObj::
 calcTipId() const
 {
+  Edge *edge = nullptr;
+
+  if      (! node()->srcEdges().empty())
+    edge = *node()->srcEdges().begin();
+  else if (! node()->destEdges().empty())
+    edge = *node()->destEdges().begin();
+
+  auto namedColumn = [&](const QString &name, const QString &defName="") {
+    if (edge && edge->hasNamedColumn(name))
+      return plot_->columnHeaderName(edge->namedColumn(name));
+
+    QString headerName = (defName.length() ? defName : name);
+
+    return headerName;
+  };
+
+  //---
+
   CQChartsTableTip tableTip;
 
   auto name = this->name();
@@ -2714,15 +3032,18 @@ calcTipId() const
   tableTip.addTableRow("Name", name);
 
   if (node()->hasValue())
-    tableTip.addTableRow("Value", value());
+    tableTip.addTableRow(namedColumn("Value"), value());
 
   if (depth() >= 0)
-    tableTip.addTableRow("Depth", depth());
+    tableTip.addTableRow(namedColumn("Depth"), depth());
 
   int ns = node()->srcEdges ().size();
   int nd = node()->destEdges().size();
 
   tableTip.addTableRow("Edges", QString("In:%1, Out:%2").arg(ns).arg(nd));
+
+  if (plot_->groupColumn().isValid())
+    tableTip.addTableRow("Group", node()->group());
 
   //---
 
@@ -2763,16 +3084,6 @@ moveBy(const Point &delta)
   //std::cerr << "  Move " << node()->str().toStdString() << " by " << delta.y << "\n";
 
   rect_.moveBy(delta);
-
-  for (auto &edgeRect : srcEdgeRect_) {
-    if (edgeRect.second.isSet())
-      edgeRect.second.moveBy(delta);
-  }
-
-  for (auto &edgeRect : destEdgeRect_) {
-    if (edgeRect.second.isSet())
-      edgeRect.second.moveBy(delta);
-  }
 }
 
 void
@@ -2846,6 +3157,8 @@ void
 CQChartsGraphNodeObj::
 setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 {
+  assert(bbox.isSet());
+
   double dx = bbox.getXMin() - rect_.getXMin();
   double dy = bbox.getYMin() - rect_.getYMin();
 
@@ -2860,10 +3173,10 @@ getConnected() const
 {
   PlotObjs plotObjs;
 
-  for (auto &edgeRect : srcEdgeRect_)
+  for (auto &edgeRect : node()->srcEdgeRects())
     plotObjs.push_back(edgeRect.first->obj());
 
-  for (auto &edgeRect : destEdgeRect_)
+  for (auto &edgeRect : node()->destEdgeRects())
     plotObjs.push_back(edgeRect.first->obj());
 
   return plotObjs;
@@ -2958,8 +3271,18 @@ drawFg(PaintDevice *device) const
   if (! str.length())
     str = node()->name();
 
+  //---
+
   double ptw = fm.width(str);
-  double tw  = plot_->pixelToWindowWidth(ptw);
+
+  double clipLength = plot_->lengthPixelWidth(plot()->textClipLength());
+
+  if (clipLength > 0.0)
+    ptw = std::min(ptw, clipLength);
+
+  double tw = plot_->pixelToWindowWidth(ptw);
+
+  //---
 
   double xm = plot_->getCalcDataRange().xmid();
 
@@ -2975,7 +3298,8 @@ drawFg(PaintDevice *device) const
   options.angle         = Angle();
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
-  options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
+  options.align         = Qt::AlignLeft;
+  options.clipLength    = clipLength;
   options.clipElide     = plot_->textClipElide();
 
   if (shapeType() == ShapeType::DIAMOND || shapeType() == ShapeType::BOX ||
@@ -2999,20 +3323,49 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // set fill and stroke
   auto ic = calcColorInd();
 
-  auto bc = plot_->interpNodeStrokeColor(ic);
-  auto fc = plot_->interpNodeFillColor  (ic);
+  QColor bc;
 
-  if (color().isValid())
-    fc = color().color();
+  if (node()->strokeColor().isValid())
+    bc = plot_->interpColor(node()->strokeColor(), ic);
+  else
+    bc = plot_->interpNodeStrokeColor(ic);
+
+  auto fc = calcFillColor();
+
+  auto fillAlpha   = (node()->fillAlpha  ().isValid() ?
+    node()->fillAlpha() : plot_->nodeFillAlpha());
+  auto fillPattern = (node()->fillPattern().isValid() ?
+    node()->fillPattern() : plot_->nodeFillPattern());
+
+  auto strokeAlpha = (node()->strokeAlpha().isValid() ?
+    node()->strokeAlpha() : plot_->nodeStrokeAlpha());
+  auto strokeWidth = (node()->strokeWidth().isValid() ?
+    node()->strokeWidth() : plot_->nodeStrokeWidth());
+  auto strokeDash  = (node()->strokeDash ().isValid() ?
+    node()->strokeDash () : plot_->nodeStrokeDash());
 
   plot_->setPenBrush(penBrush,
-    PenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
-              plot_->nodeStrokeWidth(), plot_->nodeStrokeDash()),
-    BrushData(plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(),
-              plot_->nodeFillPattern()));
+    PenData  (plot_->isNodeStroked(), bc, strokeAlpha, strokeWidth, strokeDash),
+    BrushData(plot_->isNodeFilled (), fc, fillAlpha, fillPattern));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
+}
+
+QColor
+CQChartsGraphNodeObj::
+calcFillColor() const
+{
+  QColor fc;
+
+  auto ic = calcColorInd();
+
+  if (fillColor().isValid())
+    fc = plot_->interpColor(fillColor(), ic);
+  else
+    fc = plot_->interpNodeFillColor(ic);
+
+  return fc;
 }
 
 void
@@ -3065,13 +3418,25 @@ calcId() const
   auto *srcObj  = edge()->srcNode ()->obj();
   auto *destObj = edge()->destNode()->obj();
 
-  return QString("%1:%2:%3").arg(typeName()).arg(srcObj->calcId()).arg(destObj->calcId());
+  return QString("%1:%2:%3:%4").arg(typeName()).
+           arg(srcObj->calcId()).arg(destObj->calcId()).arg(edge()->id());
 }
 
 QString
 CQChartsGraphEdgeObj::
 calcTipId() const
 {
+  auto namedColumn = [&](const QString &name, const QString &defName="") {
+    if (edge()->hasNamedColumn(name))
+      return plot_->columnHeaderName(edge()->namedColumn(name));
+
+    QString headerName = (defName.length() ? defName : name);
+
+    return headerName;
+  };
+
+  //---
+
   CQChartsTableTip tableTip;
 
   auto *srcObj  = edge()->srcNode ()->obj();
@@ -3083,11 +3448,13 @@ calcTipId() const
   if (srcName  == "") srcName  = srcObj ->id();
   if (destName == "") destName = destObj->id();
 
-  tableTip.addTableRow("Src"  , srcName);
-  tableTip.addTableRow("Dest" , destName);
+  //---
+
+  tableTip.addTableRow(namedColumn("From"), srcName);
+  tableTip.addTableRow(namedColumn("To"  ), destName);
 
   if (edge()->hasValue())
-    tableTip.addTableRow("Value", edge()->value().real());
+    tableTip.addTableRow(namedColumn("Value"), edge()->value().real());
 
   //---
 
@@ -3122,6 +3489,8 @@ inside(const Point &p) const
   return path_.contains(p.qpoint());
 }
 
+//---
+
 CQChartsGraphEdgeObj::PlotObjs
 CQChartsGraphEdgeObj::
 getConnected() const
@@ -3150,9 +3519,9 @@ draw(PaintDevice *device) const
 
   calcPenBrush(penBrush, updateState);
 
-  //---
-
   CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
 
   device->setColorNames();
 
@@ -3164,11 +3533,14 @@ draw(PaintDevice *device) const
 
   bool isSelf = (srcObj == destObj);
 
-  auto srcRect  = srcObj ->destEdgeRect(edge());
-  auto destRect = destObj->srcEdgeRect (edge());
+  auto srcRect  = srcObj ->node()->destEdgeRect(edge());
+  auto destRect = destObj->node()->srcEdgeRect (edge());
 
-  if (! srcRect.isSet() || ! destRect.isSet())
-    return;
+  if (! srcRect.isSet())
+    srcRect = edge()->srcNode()->rect();
+
+  if (! destRect.isSet())
+    destRect = edge()->destNode()->rect();
 
   if (shapeType() == ShapeType::ARROW || ! plot_->isEdgeScaled()) {
     if (edge()->srcNode()->shapeType() == Node::ShapeType::DIAMOND ||
@@ -3185,6 +3557,9 @@ draw(PaintDevice *device) const
       destRect = destObj->rect();
     }
   }
+
+  if (! srcRect.isSet() || ! destRect.isSet())
+    return;
 
   //---
 
@@ -3266,7 +3641,7 @@ draw(PaintDevice *device) const
   }
   else {
     if (plot_->isEdgeScaled()) {
-      // start y range from source node, and end y range fron dest node
+      // start y range from source node, and end y range from dest node
       double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
       double y21 = destRect.getYMax(), y22 = destRect.getYMin();
 
@@ -3316,10 +3691,6 @@ draw(PaintDevice *device) const
         path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
 
         path_.closeSubpath();
-
-        //---
-
-        device->drawPath(path_);
       }
       else {
         double xr = srcRect.getWidth ()/2.0;
@@ -3348,11 +3719,11 @@ draw(PaintDevice *device) const
         path_.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
 
         path_.closeSubpath();
-
-        //---
-
-        device->drawPath(path_);
       }
+
+      //---
+
+      device->drawPath(path_);
     }
   }
 
@@ -3374,8 +3745,8 @@ drawFg(PaintDevice *device) const
 
   bool isSelf = (srcObj == destObj);
 
-  auto srcRect  = srcObj ->destEdgeRect(edge());
-  auto destRect = destObj->srcEdgeRect (edge());
+  auto srcRect  = srcObj ->node()->destEdgeRect(edge());
+  auto destRect = destObj->node()->srcEdgeRect (edge());
 
   if (! srcRect.isSet() || ! destRect.isSet())
     return;
@@ -3426,6 +3797,7 @@ drawFg(PaintDevice *device) const
   options.angle         = Angle();
   options.contrast      = plot_->isTextContrast();
   options.contrastAlpha = plot_->textContrastAlpha();
+  options.align         = Qt::AlignLeft;
   options.clipLength    = plot_->lengthPixelWidth(plot_->textClipLength());
   options.clipElide     = plot_->textClipElide();
 
@@ -3440,20 +3812,50 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto *srcNode  = edge()->srcNode ();
   auto *destNode = edge()->destNode();
 
-  int numNodes = plot_->numNodes();
+  //---
 
-  ColorInd ic1(srcNode ->id(), numNodes);
-  ColorInd ic2(destNode->id(), numNodes);
+  ColorInd colorInd;
 
-  auto fc1 = plot_->interpEdgeFillColor(ic1);
-  auto fc2 = plot_->interpEdgeFillColor(ic2);
+  //---
 
-  auto fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+  // calc fill color
+  QColor fc;
 
-  auto sc1 = plot_->interpEdgeStrokeColor(ic1);
-  auto sc2 = plot_->interpEdgeStrokeColor(ic2);
+  if (! edge()->fillColor().isValid()) {
+    if (plot()->isBlendEdgeColor()) {
+      auto fc1 = srcNode ->obj()->calcFillColor();
+      auto fc2 = destNode->obj()->calcFillColor();
 
-  auto sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+      fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+    }
+    else
+      fc = plot()->interpEdgeFillColor(colorInd);
+  }
+  else {
+    fc = plot()->interpColor(edge()->fillColor(), colorInd);
+  }
+
+  //---
+
+  // calc stroke color
+  QColor sc;
+
+  if (plot()->isBlendEdgeColor()) {
+    int numNodes = plot()->numNodes();
+
+    ColorInd ic1(srcNode ->id(), numNodes);
+    ColorInd ic2(destNode->id(), numNodes);
+
+    auto sc1 = plot()->interpEdgeStrokeColor(ic1);
+    auto sc2 = plot()->interpEdgeStrokeColor(ic2);
+
+    sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+  }
+  else {
+    sc = plot()->interpEdgeStrokeColor(colorInd);
+  }
+
+  //---
 
   plot_->setPenBrush(penBrush,
     PenData  (plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),

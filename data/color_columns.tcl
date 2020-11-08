@@ -15,3 +15,4 @@ set plot [create_charts_plot -model $model -type barchart \
 
 set_charts_property -plot $plot -name mapping.color.enabled -value 1
 set_charts_property -plot $plot -name mapping.color.palette -value plasma
+#set_charts_property -plot $plot -name mapping.color.palette -value bad

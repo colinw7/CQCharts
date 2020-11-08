@@ -1227,3 +1227,6 @@
  + Improve gradient key and use for xy plot X/Y/Index value coloring
  + Add support for set/get of key_item properties
  + Add more widget factories
+# 11/08/2020
+ + update graph plot to match latest sankey plot code
+ + add float tip widget

@@ -7095,9 +7095,9 @@ setColorMapMax(double r)
 
 void
 CQChartsPlot::
-setColorMapPalette(const QString &s)
+setColorMapPalette(const PaletteName &name)
 {
-  CQChartsUtil::testAndSet(colorColumnData_.palette, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(colorColumnData_.palette, name, [&]() { updateObjs(); } );
 }
 
 void
@@ -7194,7 +7194,7 @@ bool
 CQChartsPlot::
 modelIndexColor(const ModelIndex &colorInd, Color &color) const
 {
-  if (! colorColumnData_.valid)
+  if (! isColorMapped())
     return false;
 
   // get model edit value
@@ -7214,11 +7214,13 @@ columnValueColor(const QVariant &var, Color &color) const
     // use named palette if defined or current palette value
     Color color;
 
-    if (colorColumnData_.palette != "") {
-      auto *palette = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette);
+    if (colorMapPalette().isValid()) {
+      auto *palette = colorMapPalette().palette();
 
       if (palette)
         color = palette->getColor(r);
+      else
+        color = Color(Color::Type::PALETTE_VALUE, r);
     }
     else
       color = Color(Color::Type::PALETTE_VALUE, r);
@@ -7239,8 +7241,8 @@ columnValueColor(const QVariant &var, Color &color) const
     // map real from data range if enabled
     double r1;
 
-    if (colorColumnData_.mapped)
-      r1 = CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
+    if (isColorMapped())
+      r1 = CMathUtil::map(r, colorMapDataMin(), colorMapDataMax(), 0.0, 1.0);
     else
       r1 = r;
 
@@ -7257,7 +7259,7 @@ columnValueColor(const QVariant &var, Color &color) const
     color = CQChartsVariant::toColor(var, ok);
   }
   else {
-    if (colorColumnData_.mapped) {
+    if (isColorMapped()) {
       // use index of value in unique values to generate value in range
       auto *columnDetails = this->columnDetails(colorColumn());
       if (! columnDetails) return false;
@@ -7935,6 +7937,8 @@ cycleNextPrev(bool prev)
     auto objText = insideObjectText();
 
     view()->setStatusText(objText);
+
+    view()->updateTip();
 
     invalidateOverlay();
   }
@@ -10976,6 +10980,9 @@ updateAutoFit()
 {
   // auto fit based on last draw
   if (needsAutoFit_) {
+    if (calcNextState() != UpdateState::INVALID)
+      return;
+
     needsAutoFit_ = false;
 
     autoFit();

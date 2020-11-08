@@ -1,10 +1,11 @@
 #ifndef CQChartsViewToolTip_H
 #define CQChartsViewToolTip_H
 
+class CQChartsView;
+
+#ifndef CQCHARTS_FLOAT_TIP
 #include <CQToolTip.h>
 #include <QLabel>
-
-class CQChartsView;
 
 /*!
  * \brief Charts View Tooltip
@@ -42,5 +43,30 @@ class CQChartsViewToolTip : public CQToolTipIFace {
   QLabel*       widget_ { nullptr };
   QPoint        gpos_;
 };
+#else
+#include <CQFloatTip.h>
+
+/*!
+ * \brief Charts View Tooltip
+ * \ingroup Charts
+ */
+class CQChartsViewToolTip : public CQFloatTip {
+ public:
+  CQChartsViewToolTip(CQChartsView *view);
+
+  CQChartsView *view() const { return view_; }
+
+  void showTip(const QPoint &gpos) override;
+  void hideTip() override;
+
+  bool isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const override;
+
+  void updateTip();
+
+ private:
+  CQChartsView *view_ { nullptr };
+  QPoint        tipPos_;
+};
+#endif
 
 #endif

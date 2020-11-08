@@ -73,8 +73,8 @@ class CQChartsSankeyPlotNode {
   using ModelIndex  = CQChartsModelIndex;
   using ModelInds   = std::vector<ModelIndex>;
   using BBox        = CQChartsGeom::BBox;
-  using Point       = CQChartsGeom::Point;
   using EdgeRect    = std::map<Edge *, BBox>;
+  using Point       = CQChartsGeom::Point;
   using PathIdRect  = std::map<int, BBox>;
 
  public:
@@ -85,7 +85,7 @@ class CQChartsSankeyPlotNode {
   //! get plot
   const Plot *plot() const { return plot_; }
 
-  //! get edge parent
+  //! get/set edge parent
   Node *parent() const { return parent_; }
   void setParent(Node *parent) { parent_ = parent; }
 
@@ -224,6 +224,8 @@ class CQChartsSankeyPlotNode {
   //! get destination edge (max) sum
   double destEdgeSum() const;
 
+  //---
+
   //! move node by delta
   void moveBy(const Point &delta);
 
@@ -233,6 +235,8 @@ class CQChartsSankeyPlotNode {
   //---
 
   void placeEdges(bool reset=true);
+
+  //---
 
   void clearSrcEdgeRects() { srcEdgeRect_.clear(); }
 
@@ -296,7 +300,7 @@ class CQChartsSankeyPlotNode {
 
   //---
 
-  void allSrcNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const;
+  void allSrcNodesAndEdges (NodeSet &nodeSet, EdgeSet &edgeSet) const;
   void allDestNodesAndEdges(NodeSet &nodeSet, EdgeSet &edgeSet) const;
 
   //---
@@ -421,7 +425,7 @@ class CQChartsSankeyPlotEdge {
 
   //--- custom appearance
 
-  //! get/set color
+  //! get/set fill color
   const Color &fillColor() const { return color_; }
   void setFillColor(const Color &c) { color_ = c; }
 
@@ -852,9 +856,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_OBJECT
 
   // options
-  Q_PROPERTY(CQChartsLength nodeMargin READ nodeMargin WRITE setNodeMargin)
-  Q_PROPERTY(CQChartsLength nodeWidth  READ nodeWidth  WRITE setNodeWidth )
-  Q_PROPERTY(bool           edgeLine   READ isEdgeLine WRITE setEdgeLine  )
+  Q_PROPERTY(CQChartsLength nodeMargin    READ nodeMargin    WRITE setNodeMargin   )
+  Q_PROPERTY(double         minNodeMargin READ minNodeMargin WRITE setMinNodeMargin)
+  Q_PROPERTY(CQChartsLength nodeWidth     READ nodeWidth     WRITE setNodeWidth    )
+  Q_PROPERTY(bool           edgeLine      READ isEdgeLine    WRITE setEdgeLine     )
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
@@ -873,7 +878,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(bool   removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
   Q_PROPERTY(bool   reorderEdges       READ isReorderEdges       WRITE setReorderEdges      )
 //Q_PROPERTY(bool   adjustEdgeOverlaps READ isAdjustEdgeOverlaps WRITE setAdjustEdgeOverlaps)
-  Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
+//Q_PROPERTY(bool   adjustSelected     READ isAdjustSelected     WRITE setAdjustSelected    )
   Q_PROPERTY(int    adjustIterations   READ adjustIterations     WRITE setAdjustIterations  )
   Q_PROPERTY(bool   adjustText         READ isAdjustText         WRITE setAdjustText        )
 
@@ -985,6 +990,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   const Length &nodeMargin() const { return nodeMargin_; }
   void setNodeMargin(const Length &l);
 
+  //! get/set min node y margin
+  double minNodeMargin() const { return minNodeMargin_; }
+  void setMinNodeMargin(double r);
+
   //---
 
   //! get/set x width
@@ -1061,9 +1070,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void setAdjustEdgeOverlaps(bool b);
 #endif
 
+#if 0
   //! get/set adjust selected
   bool isAdjustSelected() const { return adjustSelected_; }
   void setAdjustSelected(bool b);
+#endif
 
   //! get/set adjust iterations
   int adjustIterations() const { return adjustIterations_; }
@@ -1274,10 +1285,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
-  int minNodeMargin() const { return minNodeMargin_; }
-
-  //---
-
   virtual NodeObj *createNodeObj(const BBox &rect, Node *node,
                                  const ColorInd &ig, const ColorInd &iv) const;
   virtual EdgeObj *createEdgeObj(const BBox &rect, Edge *edge) const;
@@ -1299,7 +1306,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool   removeOverlaps_     { true };               //!< remove overlaps
   bool   reorderEdges_       { true };               //!< reorder edges
 //bool   adjustEdgeOverlaps_ { false };              //!< adjust edge overlaps
-  bool   adjustSelected_     { false };              //!< adjust only selected
+//bool   adjustSelected_     { false };              //!< adjust only selected
   int    adjustIterations_   { 25 };                 //!< number of adjust iterations
   bool   adjustText_         { false };              //!< adjust text position
 
@@ -1307,9 +1314,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool edgeLine_ { false }; //!< draw line for edge
 
   // bbox, margin, node width
-  BBox   targetBBox_ { -1, -1, 1, 1 };     //!< target range bbox
-  Length nodeMargin_ { 0.2, Units::PLOT }; //!< node margin (y)
-  Length nodeWidth_  { 16, Units::PIXEL }; //!< node x width in pixels
+  BBox   targetBBox_    { -1, -1, 1, 1 };     //!< target range bbox
+  Length nodeMargin_    { 0.2, Units::PLOT }; //!< node margin (y)
+  double minNodeMargin_ { 0.1 };              //!< minimum node margin (in pixels)
+  Length nodeWidth_     { 16, Units::PIXEL }; //!< node x width in pixels
 
   // text visible
   bool insideTextVisible_   { false }; //!< is inside text visble (when text invisible)
@@ -1328,7 +1336,6 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Edges       edges_;                     //!< edges
   BBox        bbox_;                      //!< bbox
   int         maxNodeDepth_  { 0 };       //!< max node depth (all graphs)
-  double      minNodeMargin_ { 2 };       //!< minimum node margin (in pixels)
   double      boxMargin_     { 0.01 };    //!< bounding box margin
   double      edgeMargin_    { 0.01 };    //!< edge bounding box margin
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling

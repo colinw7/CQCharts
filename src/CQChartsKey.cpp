@@ -2823,10 +2823,10 @@ draw(PaintDevice *device, const BBox &rect) const
 
   CQColorsPalette *colorsPalette = nullptr;
 
-  if (palette() == "")
-    colorsPalette = plot_->view()->themePalette();
+  if (palette().isValid())
+    colorsPalette = palette().palette();
   else
-    colorsPalette = CQColorsMgrInst->getNamedPalette(palette());
+    colorsPalette = plot_->view()->themePalette();
 
   colorsPalette->setLinearGradient(lg, 1.0);
 

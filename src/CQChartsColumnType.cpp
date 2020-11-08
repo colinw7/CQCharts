@@ -1988,9 +1988,9 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
   converted = true;
 
-  bool    mapped = false;
-  double  min    = 0.0, max = 1.0;
-  QString paletteName;
+  bool        mapped = false;
+  double      min    = 0.0, max = 1.0;
+  PaletteName paletteName;
 
   getMapData(charts, model, column, typeData.nameValues, mapped, min, max, paletteName);
 
@@ -2008,8 +2008,8 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
       CQChartsColor color;
 
-      if (paletteName.simplified().length()) {
-        auto *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+      if (paletteName.isValid()) {
+        auto *palette = paletteName.palette();
 
         if (palette)
           color = palette->getColor(r1);
@@ -2039,8 +2039,8 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
         CQChartsColor color;
 
-        if (paletteName.simplified().length()) {
-          auto *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+        if (paletteName.isValid()) {
+          auto *palette = paletteName.palette();
 
           if (palette)
             color = palette->getColor(r);
@@ -2094,13 +2094,17 @@ bool
 CQChartsColumnColorType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
            const CQChartsNameValues &nameValues, bool &mapped,
-           double &map_min, double &map_max, QString &paletteName) const
+           double &map_min, double &map_max, PaletteName &paletteName) const
 {
   if (! CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped))
     mapped = false;
 
-  if (! nameValueString(nameValues, "palette", paletteName))
-    paletteName = "";
+  QString paletteName1;
+
+  if (nameValueString(nameValues, "palette", paletteName1))
+    paletteName = PaletteName(paletteName1);
+  else
+    paletteName = PaletteName();
 
   map_min = 0.0;
   map_max = 1.0;

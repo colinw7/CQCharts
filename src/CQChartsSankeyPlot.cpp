@@ -207,6 +207,13 @@ setNodeMargin(const Length &l)
 
 void
 CQChartsSankeyPlot::
+setMinNodeMargin(double r)
+{
+  CQChartsUtil::testAndSet(minNodeMargin_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
 setNodeWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(nodeWidth_, l, [&]() { updateRangeAndObjs(); } );
@@ -311,12 +318,14 @@ setAdjustEdgeOverlaps(bool b)
 }
 #endif
 
+#if 0
 void
 CQChartsSankeyPlot::
 setAdjustSelected(bool b)
 {
   CQChartsUtil::testAndSet(adjustSelected_, b, [&]() { updateRangeAndObjs(); } );
 }
+#endif
 
 void
 CQChartsSankeyPlot::
@@ -372,7 +381,7 @@ addProperties()
   addProp("placement", "removeOverlaps"    , "removeOverlaps"    , "Remove overlapping nodes");
   addProp("placement", "reorderEdges"      , "reorderEdges"      , "Reorder edges");
 //addProp("placement", "adjustEdgeOverlaps", "adjustEdgeOverlaps", "Adjust edge overlaps");
-  addProp("placement", "adjustSelected"    , "adjustSelected"    , "Adjust only selected");
+//addProp("placement", "adjustSelected"    , "adjustSelected"    , "Adjust only selected");
   addProp("placement", "adjustIterations"  , "adjustIterations"  , "Adjust iterations");
   addProp("placement", "adjustText"        , "adjustText"        , "Adjust text placement");
 
@@ -386,8 +395,9 @@ addProperties()
   addProp("coloring", "mouseNodeColoring", "", "Mouse Over Node Coloring");
 
   // node
-  addProp("node", "nodeMargin", "margin", "Node margin (Y)");
-  addProp("node", "nodeWidth" , "width" , "Node width");
+  addProp("node", "nodeMargin"   , "margin", "Node margin (Y)");
+  addProp("node", "minNodeMargin", "margin", "Min Node margin (Pixels)", /*hidden*/true);
+  addProp("node", "nodeWidth"    , "width" , "Node width");
 
   // node style
   addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
@@ -582,17 +592,12 @@ fitToBBox() const
 
   th->bbox_ = nodesBBox();
 
-//double x1 = bbox_.getXMin  ();
-  double y1 = bbox_.getYMin  ();
-//double w1 = bbox_.getWidth ();
-  double h1 = bbox_.getHeight();
+  double y1 = bbox_.getYMin();
 
   // target
   auto bbox = targetBBox_;
 
-//double x2 = bbox.getXMin  ();
   double y2 = bbox.getYMin  ();
-//double w2 = bbox.getWidth ();
   double h2 = bbox.getHeight();
 
   //---
@@ -616,10 +621,9 @@ fitToBBox() const
 
   th->bbox_ = nodesBBox();
 
-//x1 = bbox_.getXMin  ();
-  y1 = bbox_.getYMin  ();
-//w1 = bbox_.getWidth ();
-  h1 = bbox_.getHeight();
+  y1 = bbox_.getYMin();
+
+  double h1 = bbox_.getHeight();
 
   //---
 
@@ -1336,14 +1340,14 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
 
       pathIdMinMax_.add(pathId);
     }
-    else if (name == "color") {
-      edge->setFillColor(CQChartsColor(value));
-    }
 #if 0
     else if (name == "label") {
       edge->setLabel(value);
     }
 #endif
+    else if (name == "color") {
+      edge->setFillColor(CQChartsColor(value));
+    }
     else if (name.left(4) == "src_") {
       processNodeNameValue(srcNode, name.mid(4), value);
     }
@@ -2111,8 +2115,8 @@ adjustPosNodes(int xpos, bool placed, bool useSrc, bool useDest) const
   const auto &nodes = graph_->posNodes(xpos);
 
   for (const auto &node : nodes) {
-    if (isAdjustSelected() && ! node->isSelected())
-      continue;
+//  if (isAdjustSelected() && ! node->isSelected())
+//    continue;
 
     if (adjustNode(node, placed, useSrc, useDest))
       changed = true;
@@ -3543,7 +3547,7 @@ edgePath(QPainterPath &path, bool isLine) const
     swapped = true;
   }
 
-  // start y range from source node, and end y range fron dest node
+  // start y range from source node, and end y range from dest node
   double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
   double y21 = destRect.getYMax(), y22 = destRect.getYMin();
 
@@ -3681,10 +3685,10 @@ calcTipId() const
     edge = *node()->destEdges().begin();
 
   auto namedColumn = [&](const QString &name, const QString &defName="") {
-    QString headerName = (defName.length() ? defName : name);
-
     if (edge && edge->hasNamedColumn(name))
       return plot_->columnHeaderName(edge->namedColumn(name));
+
+    QString headerName = (defName.length() ? defName : name);
 
     return headerName;
   };
@@ -4231,10 +4235,10 @@ CQChartsSankeyEdgeObj::
 calcTipId() const
 {
   auto namedColumn = [&](const QString &name, const QString &defName="") {
-    QString headerName = (defName.length() ? defName : name);
-
     if (edge()->hasNamedColumn(name))
       return plot_->columnHeaderName(edge()->namedColumn(name));
+
+    QString headerName = (defName.length() ? defName : name);
 
     return headerName;
   };

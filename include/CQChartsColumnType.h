@@ -20,6 +20,8 @@
 #include <CQChartsColorStops.h>
 #include <CQChartsUtil.h>
 #include <CQChartsModelTypes.h>
+#include <CQChartsPaletteName.h>
+
 #include <QObject>
 #include <QString>
 #include <future>
@@ -571,6 +573,9 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
  */
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
+  using PaletteName = CQChartsPaletteName;
+
+ public:
   CQChartsColumnColorType();
 
   QString desc() const override;
@@ -587,7 +592,7 @@ class CQChartsColumnColorType : public CQChartsColumnType {
 
   bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const Column &column,
                   const NameValues &nameValues, bool &mapped,
-                  double &map_min, double &map_max, QString &palette) const;
+                  double &map_min, double &map_max, PaletteName &palette) const;
 };
 
 //---

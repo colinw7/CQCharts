@@ -25,6 +25,7 @@ class CQChartsWindow;
 class CQChartsPlot;
 class CQChartsObj;
 class CQChartsViewKey;
+class CQChartsViewToolTip;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -150,6 +151,7 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool         scaleFont  READ isScaleFont WRITE setScaleFont )
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
+  Q_PROPERTY(CQChartsFont tipFont    READ tipFont     WRITE setTipFont   )
 
   // separators
   Q_PROPERTY(bool plotSeparators READ isPlotSeparators WRITE setPlotSeparators)
@@ -369,6 +371,9 @@ class CQChartsView : public QFrame,
   const Font &font() const { return font_; }
   void setFont(const Font &f);
 
+  const Font &tipFont() const { return tipFont_; }
+  void setTipFont(const Font &f);
+
   double fontEm() const;
   double fontEx() const;
 
@@ -415,10 +420,6 @@ class CQChartsView : public QFrame,
   void expandedModelIndices(QModelIndexList &inds);
 
  private:
-//QFont viewFont(const QFont &font) const;
-
-//QFont plotFont(const Plot *plot, const QFont &font, bool scaled=true) const;
-
   QFont scaledFont(const QFont &font, const Size &size) const;
   QFont scaledFont(const QFont &font, double s) const;
 
@@ -745,6 +746,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // calc tip
+  bool calcTip(const QPoint &gpos, QString &tip);
+
+  //---
+
   // probe lines
   void showProbeLines(const Point &p);
 
@@ -841,6 +847,10 @@ class CQChartsView : public QFrame,
   Plot *currentPlot(bool remap=true) const;
 
   int calcCurrentPlotInd(bool remap=true) const;
+
+  //---
+
+  void updateTip();
 
   //---
 
@@ -1346,67 +1356,87 @@ class CQChartsView : public QFrame,
 
   static QSize defSizeHint_;
 
-  CQCharts*          charts_            { nullptr };           //!< parent charts
-  Window*            window_            { nullptr };           //!< parent window
-  QImage*            image_             { nullptr };           //!< image buffer
-  QPainter*          ipainter_          { nullptr };           //!< image painter
-  DisplayRange*      displayRange_      { nullptr };           //!< display range
-  PropertyModel*     propertyModel_     { nullptr };           //!< property model
-  QString            id_;                                      //!< view id
-  QString            title_;                                   //!< view title
-  CQChartsViewKey*   keyObj_            { nullptr };           //!< key object
-  Plots              plots_;                                   //!< child plots
-  int                currentPlotInd_    { -1 };                //!< current plot index
-  Annotations        annotations_;                             //!< annotations
-  Mode               mode_              { Mode::SELECT };      //!< mouse mode
-  SelectData         selectData_;                              //!< select sub mode data
-  HighlightData      selectedHighlight_;                       //!< select highlight
-  HighlightData      insideHighlight_;                         //!< inside highlight
-  RegionData         regionData_;                              //!< region sub mode
-  QString            defaultPalette_;                          //!< default palette
-  ScrollData         scrollData_;                              //!< scroll data
-  bool               antiAlias_         { true };              //!< anti alias
-//bool               showTable_         { false };             //!< show table with plot
-  bool               bufferLayers_      { true };              //!< buffer draw layers
-  bool               preview_           { false };             //!< preview
-  bool               scaleFont_         { true };              //!< auto scale font
-  double             fontFactor_        { 1.0 };               //!< font scale factor
-  Font               font_;                                    //!< font
-  Font               saveFont_;                                //!< saved font
-  bool               plotSeparators_    { false };             //!< show plot separators
-  bool               handDrawn_         { false };             //!< is handdrawn
-  double             handRoughness_     { 1.0 };               //!< handdrawn roughness
-  double             handFillDelta_     { 16 };                //!< handdrawn fill delta
-  SizeData           sizeData_;                                //!< size control
-  PosTextType        posTextType_       { PosTextType::PLOT }; //!< position text type
-  BBox               prect_             { 0, 0, 100, 100 };    //!< plot rect
-  double             aspect_            { 1.0 };               //!< current aspect
-  MouseData          mouseData_;                               //!< mouse data
-  int                searchTimeout_     { 10 };                //!< search timeout
-  QTimer*            searchTimer_       { nullptr };           //!< search timer
-  Point              searchPos_;                               //!< search pos
-  RegionBand         regionBand_;                              //!< zoom region rubberband
-  ProbeBands         probeBands_;                              //!< probe lines
-  QMenu*             popupMenu_         { nullptr };           //!< context menu
-  QSize              viewSizeHint_;                            //!< view size hint
-  Buffer*            bgBuffer_          { nullptr };           //!< buffer for view bg
-  Buffer*            fgBuffer_          { nullptr };           //!< buffer for view fg
-  Buffer*            overlayBuffer_     { nullptr };           //!< buffer for view overlays
-  LayerType          drawLayerType_     { LayerType::NONE };   //!< current draw layer type
-  mutable std::mutex painterMutex_;                            //!< painter mutex
-  EditAnnotationDlg* editAnnotationDlg_ { nullptr };           //!< edit annotation dialog
-  EditAxisDlg*       editAxisDlg_       { nullptr };           //!< edit axis dialog
-  EditKeyDlg*        editKeyDlg_        { nullptr };           //!< edit key dialog
-  EditTitleDlg*      editTitleDlg_      { nullptr };           //!< edit title dialog
-  QString            scriptSelectProc_;                        //!< script select proc
-  Annotations        pressAnnotations_;                        //!< press annotations
-  CQChartsDocument*  noDataText_        { nullptr };           //!< no data text
-  bool               updateNoData_      { true };              //!< no data needs update
-  Separators         separators_;
-  bool               separatorsInvalid_ { true };
-  bool               plotsHorizontal_   { false };
-  bool               plotsVertical_     { false };
-  CQChartsRegionMgr* regionMgr_         { nullptr };
+  CQCharts*        charts_            { nullptr };      //!< parent charts
+  Window*          window_            { nullptr };      //!< parent window
+  QImage*          image_             { nullptr };      //!< image buffer
+  QPainter*        ipainter_          { nullptr };      //!< image painter
+  DisplayRange*    displayRange_      { nullptr };      //!< display range
+  PropertyModel*   propertyModel_     { nullptr };      //!< property model
+  QString          id_;                                 //!< view id
+  QString          title_;                              //!< view title
+  CQChartsViewKey* keyObj_            { nullptr };      //!< key object
+  Plots            plots_;                              //!< child plots
+  int              currentPlotInd_    { -1 };           //!< current plot index
+  Annotations      annotations_;                        //!< annotations
+  Mode             mode_              { Mode::SELECT }; //!< mouse mode
+  SelectData       selectData_;                         //!< select sub mode data
+  HighlightData    selectedHighlight_;                  //!< select highlight
+  HighlightData    insideHighlight_;                    //!< inside highlight
+  RegionData       regionData_;                         //!< region sub mode
+  QString          defaultPalette_;                     //!< default palette
+  ScrollData       scrollData_;                         //!< scroll data
+  bool             antiAlias_         { true };         //!< anti alias
+//bool             showTable_         { false };        //!< show table with plot
+  bool             bufferLayers_      { true };         //!< buffer draw layers
+  bool             preview_           { false };        //!< preview
+
+  // fonts
+  bool   scaleFont_  { true }; //!< auto scale font
+  double fontFactor_ { 1.0 };  //!< font scale factor
+  Font   font_;                //!< font
+  Font   saveFont_;            //!< saved font
+  Font   tipFont_;             //!< tip font
+
+  bool        plotSeparators_ { false };             //!< show plot separators
+  bool        handDrawn_      { false };             //!< is handdrawn
+  double      handRoughness_  { 1.0 };               //!< handdrawn roughness
+  double      handFillDelta_  { 16 };                //!< handdrawn fill delta
+  SizeData    sizeData_;                             //!< size control
+  PosTextType posTextType_    { PosTextType::PLOT }; //!< position text type
+  BBox        prect_          { 0, 0, 100, 100 };    //!< plot rect
+  double      aspect_         { 1.0 };               //!< current aspect
+  MouseData   mouseData_;                            //!< mouse data
+
+  // mouse search data
+  int     searchTimeout_ { 10 };      //!< search timeout
+  QTimer* searchTimer_   { nullptr }; //!< search timer
+  Point   searchPos_;                 //!< search pos
+
+  // rubber bands
+  RegionBand regionBand_; //!< zoom region rubberband
+  ProbeBands probeBands_; //!< probe lines
+
+  // menu
+  QMenu* popupMenu_ { nullptr }; //!< context menu
+
+  QSize viewSizeHint_; //!< view size hint
+
+  // draw layer buffers
+  Buffer*            bgBuffer_      { nullptr };         //!< buffer for view bg
+  Buffer*            fgBuffer_      { nullptr };         //!< buffer for view fg
+  Buffer*            overlayBuffer_ { nullptr };         //!< buffer for view overlays
+  LayerType          drawLayerType_ { LayerType::NONE }; //!< current draw layer type
+  mutable std::mutex painterMutex_;                      //!< painter mutex
+
+  // dialogs
+  EditAnnotationDlg* editAnnotationDlg_ { nullptr }; //!< edit annotation dialog
+  EditAxisDlg*       editAxisDlg_       { nullptr }; //!< edit axis dialog
+  EditKeyDlg*        editKeyDlg_        { nullptr }; //!< edit key dialog
+  EditTitleDlg*      editTitleDlg_      { nullptr }; //!< edit title dialog
+
+  QString              scriptSelectProc_;              //!< script select proc
+  Annotations          pressAnnotations_;              //!< press annotations
+  CQChartsDocument*    noDataText_        { nullptr }; //!< no data text
+  bool                 updateNoData_      { true };    //!< no data needs update
+
+  // separator data
+  Separators separators_;                  //!< plot separator widgets
+  bool       separatorsInvalid_ { true };  //!< plot seprators invalid
+  bool       plotsHorizontal_   { false }; //!< plots are horizontal
+  bool       plotsVertical_     { false }; //!< plots are vertical
+
+  CQChartsRegionMgr*   regionMgr_ { nullptr }; //!< region widget manager
+  CQChartsViewToolTip* tip_       { nullptr }; //!< tooltip
 };
 
 //------

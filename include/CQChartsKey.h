@@ -4,6 +4,7 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsObjData.h>
 #include <CQChartsKeyLocation.h>
+#include <CQChartsPaletteName.h>
 #include <CQChartsOptLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
@@ -886,10 +887,13 @@ class CQChartsKeyLine : public CQChartsKeyItem {
 class CQChartsGradientKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
-  Q_PROPERTY(double  minValue READ minValue  WRITE setMinValue)
-  Q_PROPERTY(double  maxValue READ maxValue  WRITE setMaxValue)
-  Q_PROPERTY(bool    integer  READ isInteger WRITE setInteger )
-  Q_PROPERTY(QString palette  READ palette   WRITE setPalette )
+  Q_PROPERTY(double              minValue READ minValue  WRITE setMinValue)
+  Q_PROPERTY(double              maxValue READ maxValue  WRITE setMaxValue)
+  Q_PROPERTY(bool                integer  READ isInteger WRITE setInteger )
+  Q_PROPERTY(CQChartsPaletteName palette  READ palette   WRITE setPalette )
+
+ public:
+  using PaletteName = CQChartsPaletteName;
 
  public:
   CQChartsGradientKeyItem(Plot *plot);
@@ -906,8 +910,8 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   bool isInteger() const { return integer_; }
   void setInteger(bool b) { integer_ = b; }
 
-  const QString &palette() const { return palette_; }
-  void setPalette(const QString &v) { palette_ = v; }
+  const PaletteName &palette() const { return palette_; }
+  void setPalette(const PaletteName &n) { palette_ = n; }
 
   //---
 
@@ -919,11 +923,11 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   void calcLabels(QStringList &labels) const;
 
  private:
-  Plot*   plot_     { nullptr };
-  double  minValue_ { 0 };
-  double  maxValue_ { 100 };
-  bool    integer_  { false };
-  QString palette_;
+  Plot*       plot_     { nullptr };
+  double      minValue_ { 0 };
+  double      maxValue_ { 100 };
+  bool        integer_  { false };
+  PaletteName palette_;
 };
 
 #endif
