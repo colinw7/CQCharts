@@ -3,6 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
 
+#include <iostream>
+
 #ifndef CQCHARTS_FLOAT_TIP
 CQChartsViewToolTip::
 CQChartsViewToolTip(CQChartsView *view) :
@@ -46,8 +48,6 @@ updateWidget(const QPoint &gpos)
   if (view_->mode() != CQChartsView::Mode::SELECT)
     return false;
 
-  gpos_ = gpos;
-
   return showTip(gpos);
 }
 
@@ -57,8 +57,10 @@ showTip(const QPoint &gpos)
 {
   QString tip;
 
-  if (! view_->calcTip(gpos, tip))
+  if (! view_->calcGlobalTip(gpos, tip))
     return false;
+
+  qpos_ = gpos;
 
   widget_->setText("<font></font>" + tip);
 
@@ -91,23 +93,32 @@ void
 CQChartsViewToolTip::
 showTip(const QPoint &gpos)
 {
+  auto oldPos = tipPos_;
+
   tipPos_ = gpos;
 
-  updateTip();
+  if (! updateTip()) {
+    tipPos_ = oldPos;
+    return;
+  }
 
-  CQFloatTip::showTip(gpos);
+  //std::cerr << "Tip Pos : " << tipPos_.x() << " " << tipPos_.y() << "\n";
+
+  CQFloatTip::showTip(tipPos_);
 }
 
-void
+bool
 CQChartsViewToolTip::
 updateTip()
 {
   QString tip;
 
-  if (! view_->calcTip(tipPos_, tip))
-    return;
+  if (! view_->calcGlobalTip(tipPos_, tip))
+    return false;
 
   CQFloatTip::setText("<font></font>" + tip);
+
+  return true;
 }
 
 void
@@ -115,6 +126,17 @@ CQChartsViewToolTip::
 hideTip()
 {
   CQFloatTip::hideTip();
+}
+
+void
+CQChartsViewToolTip::
+showQuery(const QPoint &)
+{
+  auto pos = view_->mapFromGlobal(tipPos_);
+
+  auto wpos = view_->pixelToWindow(CQChartsGeom::Point(pos));
+
+  view_->showQueryAt(wpos);
 }
 
 bool
@@ -126,5 +148,4 @@ isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const
 
   return CQFloatTip::isIgnoreKey(key, modifiers);
 }
-
 #endif

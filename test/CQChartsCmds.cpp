@@ -157,39 +157,41 @@ addCommands()
 
     // annotations
     addCommand("create_charts_annotation_group"    ,
-               new CQChartsCreateChartsAnnotationGroupCmd    (this));
+               new CQChartsCreateChartsAnnotationGroupCmd       (this));
     addCommand("create_charts_arrow_annotation"    ,
-               new CQChartsCreateChartsArrowAnnotationCmd    (this));
+               new CQChartsCreateChartsArrowAnnotationCmd       (this));
     addCommand("create_charts_axis_annotation"     ,
-               new CQChartsCreateChartsAxisAnnotationCmd     (this));
+               new CQChartsCreateChartsAxisAnnotationCmd        (this));
     addCommand("create_charts_button_annotation"   ,
-               new CQChartsCreateChartsButtonAnnotationCmd   (this));
+               new CQChartsCreateChartsButtonAnnotationCmd      (this));
     addCommand("create_charts_ellipse_annotation"  ,
-               new CQChartsCreateChartsEllipseAnnotationCmd  (this));
+               new CQChartsCreateChartsEllipseAnnotationCmd     (this));
     addCommand("create_charts_image_annotation"    ,
-               new CQChartsCreateChartsImageAnnotationCmd    (this));
+               new CQChartsCreateChartsImageAnnotationCmd       (this));
     addCommand("create_charts_key_annotation"      ,
-               new CQChartsCreateChartsKeyAnnotationCmd      (this));
+               new CQChartsCreateChartsKeyAnnotationCmd         (this));
     addCommand("create_charts_pie_slice_annotation",
-               new CQChartsCreateChartsPieSliceAnnotationCmd (this));
+               new CQChartsCreateChartsPieSliceAnnotationCmd    (this));
     addCommand("create_charts_point_annotation"    ,
-               new CQChartsCreateChartsPointAnnotationCmd    (this));
+               new CQChartsCreateChartsPointAnnotationCmd       (this));
     addCommand("create_charts_point_set_annotation"    ,
-               new CQChartsCreateChartsPointSetAnnotationCmd (this));
+               new CQChartsCreateChartsPointSetAnnotationCmd    (this));
     addCommand("create_charts_polygon_annotation"  ,
-               new CQChartsCreateChartsPolygonAnnotationCmd  (this));
+               new CQChartsCreateChartsPolygonAnnotationCmd     (this));
     addCommand("create_charts_polyline_annotation" ,
-               new CQChartsCreateChartsPolylineAnnotationCmd (this));
+               new CQChartsCreateChartsPolylineAnnotationCmd    (this));
     addCommand("create_charts_rectangle_annotation",
-               new CQChartsCreateChartsRectangleAnnotationCmd(this));
+               new CQChartsCreateChartsRectangleAnnotationCmd   (this));
     addCommand("create_charts_text_annotation"     ,
-               new CQChartsCreateChartsTextAnnotationCmd     (this));
+               new CQChartsCreateChartsTextAnnotationCmd        (this));
     addCommand("create_charts_value_set_annotation",
-               new CQChartsCreateChartsValueSetAnnotationCmd (this));
+               new CQChartsCreateChartsValueSetAnnotationCmd    (this));
     addCommand("create_charts_widget_annotation",
-               new CQChartsCreateChartsWidgetAnnotationCmd   (this));
+               new CQChartsCreateChartsWidgetAnnotationCmd      (this));
+    addCommand("create_charts_symbol_map_key_annotation",
+               new CQChartsCreateChartsSymbolMapKeyAnnotationCmd(this));
     addCommand("remove_charts_annotation"          ,
-               new CQChartsRemoveChartsAnnotationCmd         (this));
+               new CQChartsRemoveChartsAnnotationCmd            (this));
 
     // key
     addCommand("add_charts_key_item", new CQChartsAddChartsKeyItemCmd(this));
@@ -6793,6 +6795,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7012,7 +7017,7 @@ void
 CQChartsCreateChartsAxisAnnotationCmd::
 addArgs(CQChartsCmdArgs &argv)
 {
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name").setRequired();
 
   argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
 
@@ -7070,6 +7075,9 @@ exec(CQChartsCmdArgs &argv)
     if (! plot) return false;
   }
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7218,6 +7226,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7355,6 +7366,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7467,6 +7481,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7621,6 +7638,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7744,6 +7764,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -7883,6 +7906,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8022,6 +8048,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8155,6 +8184,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8309,6 +8341,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8472,6 +8507,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8679,6 +8717,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8847,6 +8888,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -8965,6 +9009,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -9096,6 +9143,9 @@ exec(CQChartsCmdArgs &argv)
   if (! cmds()->getViewPlotArg(argv, view, plot))
     return false;
 
+  //---
+
+  // get parent group
   CQChartsAnnotationGroup *group = nullptr;
 
   if (argv.hasParseArg("group")) {
@@ -9154,6 +9204,106 @@ exec(CQChartsCmdArgs &argv)
 
   if (! annotation)
     return errorMsg("Failed to create widget annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
+addArgs(CQChartsCmdArgs &argv)
+{
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name").setRequired();;
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsSymbolMapKeyAnnotationCmd::
+exec(CQChartsCmdArgs &argv)
+{
+#if 0
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+#endif
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsSymbolMapKeyAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot
+  CQChartsPlot *plot = nullptr;
+
+  if (argv.hasParseArg("plot")) {
+    auto plotName = argv.getParseStr("plot");
+
+    plot = cmds()->getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  //---
+
+  auto *annotation = plot->addSymbolMapKeyAnnotation();
 
   if (id != "")
     annotation->setId(id);

@@ -15,6 +15,7 @@
 #include <iostream>
 
 #include <svg/lock_svg.h>
+#include <svg/query_svg.h>
 
 CQFloatTip::
 CQFloatTip(QWidget *widget) :
@@ -40,12 +41,20 @@ CQFloatTip(QWidget *widget) :
 
   QFontMetrics fm(font());
 
-  int is = fm.height();
+  int is = fm.height() - 2;
 
-  //--
+  //---
+
+  auto *headerLayout = new QHBoxLayout();
+  headerLayout->setMargin(0); headerLayout->setSpacing(0);
+
+  layout->addLayout(headerLayout);
+
+  //---
 
   lockButton_ = new CQPixmapButton(CQPixmapCacheInst->getIcon("LOCK"));
 
+  lockButton_->setObjectName("lock");
   lockButton_->setMargin(2);
   lockButton_->setIconSize(QSize(is, is));
   lockButton_->setFocusPolicy(Qt::NoFocus);
@@ -55,11 +64,28 @@ CQFloatTip(QWidget *widget) :
 
   connect(lockButton_, SIGNAL(clicked(bool)), this, SLOT(lockSlot(bool)));
 
-  layout->addWidget(lockButton_);
+  headerLayout->addWidget(lockButton_);
+
+  //---
+
+  queryButton_ = new CQPixmapButton(CQPixmapCacheInst->getIcon("QUERY"));
+
+  queryButton_->setObjectName("query");
+  queryButton_->setMargin(2);
+  queryButton_->setIconSize(QSize(is, is));
+  queryButton_->setFocusPolicy(Qt::NoFocus);
+
+  connect(queryButton_, SIGNAL(clicked(bool)), this, SLOT(querySlot()));
+
+  headerLayout->addWidget(queryButton_);
+
+  headerLayout->addStretch(1);
 
   //---
 
   label_ = new QLabel;
+
+  label_->setObjectName("label");
 
   layout->addWidget(label_);
 
@@ -137,10 +163,12 @@ setMargin(int i)
 
 void
 CQFloatTip::
-showTip(const QPoint &)
+showTip(const QPoint &gpos)
 {
   if (! widget_)
     return;
+
+  gpos_ = gpos;
 
   setParent(widget_);
 
@@ -153,6 +181,12 @@ showTip(const QPoint &)
   this->setVisible(true);
 
   startHideTimer();
+}
+
+void
+CQFloatTip::
+showQuery(const QPoint &)
+{
 }
 
 void
@@ -221,6 +255,13 @@ lockSlot(bool b)
 
 void
 CQFloatTip::
+querySlot()
+{
+  showQuery(gpos_);
+}
+
+void
+CQFloatTip::
 paintEvent(QPaintEvent *)
 {
   QStylePainter painter(this);
@@ -240,12 +281,12 @@ paintEvent(QPaintEvent *)
   bool draggable = (inside_ && isLocked());
 
   int x1 = width() - border() - 2;
-  int x2 = border() + lockButton_->width() + 4;
+  int x2 = border() + lockButton_->width() + queryButton_->width() + 6;
 
   int y1 = border();
   int y2 = y1 + lockButton_->height();
 
-  int nl = 3;
+  int nl = titleLines();;
 
   double dy = (y2 - y1)/(nl + 1);
 
@@ -316,7 +357,7 @@ sizeHint() const
   auto s1 = lockButton_->sizeHint();
   auto s2 = label_->sizeHint();
 
-  return QSize(std::max(s1.width(), s2.width()) + 2*border(),
+  return QSize(std::max(2*s1.width(), s2.width()) + 2*border(),
                         s1.height() + s2.height() + 2*border());
 }
 
@@ -325,6 +366,12 @@ CQFloatTip::
 eventFilter(QObject *o, QEvent *e)
 {
   auto *widget = static_cast<QWidget *>(o);
+
+  auto isChildWidget = [&]() {
+    return (widget == lockButton_ || widget == queryButton_ || widget == label_);
+  };
+
+  //---
 
   switch (e->type()) {
     case QEvent::KeyPress:
@@ -339,7 +386,7 @@ eventFilter(QObject *o, QEvent *e)
       break;
     }
     case QEvent::Enter: {
-      if (widget == this || widget == lockButton_ || widget == label_) {
+      if (widget == this || isChildWidget()) {
         startHideTimer();
       }
 
@@ -354,7 +401,7 @@ eventFilter(QObject *o, QEvent *e)
 
         update();
       }
-      else if (widget == lockButton_ || widget == label_) {
+      else if (isChildWidget()) {
         startHideTimer();
       }
 
@@ -424,7 +471,7 @@ eventFilter(QObject *o, QEvent *e)
 
         return true; // don't propagate
       }
-      else if (widget == lockButton_ || widget == label_) {
+      else if (isChildWidget()) {
         startHideTimer();
       }
 
@@ -444,7 +491,7 @@ eventFilter(QObject *o, QEvent *e)
       if (widget == widget_)
         hideLater();
 
-      if (widget == this || widget == lockButton_ || widget == label_) {
+      if (widget == this || isChildWidget()) {
         startHideTimer();
       }
 
@@ -452,19 +499,24 @@ eventFilter(QObject *o, QEvent *e)
     }
 #endif
     case QEvent::MouseMove: {
-      if (widget == widget_)
+      auto *me = static_cast<QMouseEvent *>(e);
+
+      auto gpos = me->globalPos();
+
+      if (widget == widget_) {
+        if (isVisible() && isLocked() && isFollowMouse()) {
+          showTip(gpos);
+        }
+
         break;
+      }
 
       if      (widget == this) {
         startHideTimer();
 
-        auto *me = static_cast<QMouseEvent *>(e);
-
         if (dragging_) {
           if (! isVisible())
             break;
-
-          auto gpos = me->globalPos();
 
           auto pos = widget_->mapFromGlobal(gpos);
 
@@ -484,7 +536,7 @@ eventFilter(QObject *o, QEvent *e)
 
         return true; // don't propagate
       }
-      else if (widget == lockButton_ || widget == label_) {
+      else if (isChildWidget()) {
         startHideTimer();
       }
 
@@ -497,7 +549,7 @@ eventFilter(QObject *o, QEvent *e)
         showTip(he->globalPos());
       }
 
-      if (widget == this || widget == lockButton_ || widget == label_) {
+      if (widget == this || isChildWidget()) {
         startHideTimer();
       }
 
@@ -523,7 +575,7 @@ fontSlot()
 {
   QFontMetrics fm(font());
 
-  int is = fm.height();
+  int is = fm.height() - 2;
 
   lockButton_->setIconSize(QSize(is, is));
 

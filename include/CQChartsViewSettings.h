@@ -47,6 +47,7 @@ class QPushButton;
 class QToolButton;
 class QRadioButton;
 class QCheckBox;
+class QTextEdit;
 class QLabel;
 class QGridLayout;
 class QButtonGroup;
@@ -74,6 +75,8 @@ class CQChartsViewSettings : public QFrame {
   CQChartsPropertyViewTree *viewPropertyTree() const;
 
   CQChartsPropertyViewTree *plotPropertyTree(Plot *plot) const;
+
+  void showQueryTab();
 
   void showErrorsTab();
 
@@ -103,6 +106,8 @@ class CQChartsViewSettings : public QFrame {
   void updatePlotObjects();
 
   void updateLayers();
+
+  void showQueryText(const QString &text);
 
   void updateErrorsSlot();
   void updateErrors();
@@ -208,6 +213,7 @@ class CQChartsViewSettings : public QFrame {
   void initObjectsFrame    (QFrame *objectsFrame);
   void initThemeFrame      (QFrame *themeFrame);
   void initLayersFrame     (QFrame *layersFrame);
+  void initQueryFrame      (QFrame *queryFrame);
   void initErrorsFrame     (QFrame *errorsFrame);
 
   void updatePaletteWidgets();
@@ -322,6 +328,7 @@ class CQChartsViewSettings : public QFrame {
   ObjectsWidgets            objectsWidgets_;                 //!< objects widgets
   ThemeWidgets              themeWidgets_;                   //!< theme widgets
   LayersWidgets             layersWidgets_;                  //!< layers widgets
+  QTextEdit*                queryText_          { nullptr }; //!< query text
   CQChartsViewError*        error_              { nullptr }; //!< error widget
 
   // dialogs

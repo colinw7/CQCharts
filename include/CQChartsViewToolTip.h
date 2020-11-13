@@ -59,9 +59,11 @@ class CQChartsViewToolTip : public CQFloatTip {
   void showTip(const QPoint &gpos) override;
   void hideTip() override;
 
+  void showQuery(const QPoint &gpos) override;
+
   bool isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const override;
 
-  void updateTip();
+  bool updateTip();
 
  private:
   CQChartsView *view_ { nullptr };

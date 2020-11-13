@@ -1224,7 +1224,7 @@ keyPress(int key, int modifier)
 
 bool
 CQChartsForceDirectedPlot::
-plotTipText(const Point &p, QString &tip) const
+plotTipText(const Point &p, QString &tip, bool /*single*/) const
 {
   if (! isRunning()) {
     Springy::NodePoint nodePoint = forceDirected_->nearest(Springy::Vector(p.x, p.y));

@@ -2712,8 +2712,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   CQChartsPenBrush penBrush;
 
-  plot->setPenBrush(penBrush,
-    PenData(true, lc), BrushData(true, fc));
+  plot->setPenBrush(penBrush, PenData(true, lc), BrushData(true, fc));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2904,4 +2903,325 @@ calcLabels(QStringList &labels) const
   labels.push_back(QString("%1").arg(n3));
   labels.push_back(QString("%1").arg(n4));
   labels.push_back(QString("%1").arg(n5));
+}
+
+//------
+
+CQChartsSymbolMapKey::
+CQChartsSymbolMapKey(Plot *plot) :
+ plot_(plot)
+{
+}
+
+void
+CQChartsSymbolMapKey::
+draw(PaintDevice *device, bool usePenBrush)
+{
+  drawCircles(device, usePenBrush);
+
+  CQChartsTextOptions textOptions;
+
+  drawText(device, textOptions, usePenBrush);
+
+  drawBorder(device, usePenBrush);
+}
+
+void
+CQChartsSymbolMapKey::
+drawCircles(PaintDevice *device, bool usePenBrush)
+{
+  auto drawEllipse = [&](const QColor &c, const BBox &pbbox) {
+    PenBrush penBrush;
+
+    if (! usePenBrush) {
+      auto strokeColor = plot_->interpThemeColor(ColorInd(1.0));
+
+      plot_->setPenBrush(penBrush,
+        PenData(true, strokeColor), BrushData(true, c, this->alpha()));
+    }
+    else {
+      penBrush.pen   = device->pen();
+      penBrush.brush = device->brush();
+
+      penBrush.brush.setColor(c);
+    }
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+    device->drawEllipse(plot_->pixelToWindow(pbbox));
+  };
+
+  //---
+
+  BBoxes pbboxes;
+
+  getSymbolBoxes(pbboxes);
+
+  if (pbboxes.empty())
+    return;
+
+  //---
+
+  // draw ellipse for min, mean, max radii
+  auto *palette = (paletteName_.isValid() ? paletteName_.palette() : nullptr);
+
+  double y  = 1.0;
+  double dy = (pbboxes.size() > 1 ? 1.0/(pbboxes.size() - 1) : 0.0);
+
+  for (const auto &pbbox : pbboxes) {
+    auto fillColor = (palette ?
+      palette->getColor(y, /*scale*/false, /*invert*/false) :
+      plot_->interpPaletteColor(ColorInd(y)));
+
+    drawEllipse(fillColor, pbbox);
+
+    y -= dy;
+  }
+}
+
+void
+CQChartsSymbolMapKey::
+drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePenBrush)
+{
+  if (! usePenBrush) {
+    PenBrush penBrush;
+
+    auto strokeColor = plot_->interpThemeColor(ColorInd(1.0));
+
+    plot_->setPenBrush(penBrush, PenData(true, strokeColor), BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  }
+
+  //---
+
+  QFontMetricsF fm(device->font());
+
+  auto drawText = [&](const Point &p, double value, double &tw, Qt::Alignment align) {
+    QString text;
+
+    if      (CMathUtil::realEq(value, 0.0))
+      text = "0.0";
+    else if (CMathUtil::realEq(value, 1.0))
+      text = "1.0";
+    else
+      text.setNum(value);
+
+    tw = fm.width(text);
+
+    auto textOptions1 = textOptions;
+
+    textOptions1.align = Qt::AlignLeft;
+
+    Point p1;
+
+    if (! isStacked()) {
+      p1 = Point(p.x - tw/2, p.y);
+    }
+    else {
+      if      (align & Qt::AlignLeft)
+        p1 = Point(p.x - tw    , p.y + (fm.ascent() - fm.descent())/2.0);
+      else if (align & Qt::AlignRight)
+        p1 = Point(p.x         , p.y + (fm.ascent() - fm.descent())/2.0);
+      else
+        p1 = Point(p.x - tw/2.0, p.y + (fm.ascent() - fm.descent())/2.0);
+    }
+
+    auto p2 = plot_->pixelToWindow(p1);
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p2, text, textOptions1);
+  };
+
+  //---
+
+  BBoxes pbboxes;
+
+  getSymbolBoxes(pbboxes);
+
+  if (pbboxes.empty())
+    return;
+
+  auto &pbbox1 = pbboxes[0];
+
+  //---
+
+  double min = this->dataMin();
+  double max = this->dataMax();
+
+  double y  = 1.0;
+  double dy = (pbboxes.size() > 1 ? 1.0/(pbboxes.size() - 1) : 0.0);
+
+  // outer margin
+  double pm = this->margin();
+
+  double pxt1 = (! isStacked() ? pbbox1.getXMid() : pbbox1.getXMax() + pm);
+  double pyt1 = (! isStacked() ? pbbox1.getYMid() : pbbox1.getYMin()     );
+  double pxt2 = pxt1;
+  double pyt2 = pyt1;
+
+  double fh = fm.height();
+  double fa = fm.ascent();
+
+  for (const auto &pbbox : pbboxes) {
+    double r = CMathUtil::map(y, 0.0, 1.0, min, max);
+
+    double tw;
+
+    if (! isStacked()) {
+      drawText(Point(pbbox.getXMid(), pbbox.getYMin() - 2), r, tw, align());
+
+      pxt1 = std::min(pxt1, pbbox.getXMid() - tw/2.0 - pm);
+      pxt2 = std::max(pxt2, pbbox.getXMid() + tw/2.0 + pm);
+
+      pyt1 = std::min(pyt1, pbbox.getYMin() - 2 - fa - pm);
+      pyt2 = std::max(pyt2, pbbox.getYMin() - 2      + pm);
+    }
+    else {
+      if      (align() & Qt::AlignLeft) {
+        drawText(Point(pbbox1.getXMin() - pm, pbbox.getYMid()), r, tw, align());
+
+        pxt1 = std::min(pxt1, pbbox1.getXMin() - pm - tw - pm);
+      }
+      else if (align() & Qt::AlignRight) {
+        drawText(Point(pbbox1.getXMax() + pm, pbbox.getYMid()), r, tw, align());
+
+        pxt2 = std::max(pxt2, pbbox1.getXMax() + pm + tw + pm);
+      }
+      else {
+        drawText(Point(pbbox1.getXMid(), pbbox.getYMid()), r, tw, align());
+
+        pxt1 = std::min(pxt2, pbbox1.getXMid() - tw/2.0 - pm);
+        pxt2 = std::max(pxt2, pbbox1.getXMid() + tw/2.0 + pm);
+      }
+
+      pyt1 = std::min(pyt1, pbbox1.getYMid() - fh/2.0 - pm);
+      pyt2 = std::max(pyt2, pbbox1.getYMid() - fh/2.0 + pm);
+    }
+
+    y -= dy;
+  }
+
+  //---
+
+  auto *th = const_cast<CQChartsSymbolMapKey *>(this);
+
+  th->tbbox_ = plot_->pixelToWindow(BBox(pxt1, pyt1, pxt2, pyt2));
+}
+
+void
+CQChartsSymbolMapKey::
+drawBorder(PaintDevice *device, bool usePenBrush)
+{
+  if (! border_)
+    return;
+
+  BBoxes pbboxes;
+
+  getSymbolBoxes(pbboxes);
+
+  if (pbboxes.empty())
+    return;
+
+  if (! usePenBrush) {
+    PenBrush penBrush;
+
+    auto strokeColor = plot_->interpThemeColor(ColorInd(1.0));
+
+    plot_->setPenBrush(penBrush, PenData(true, strokeColor), BrushData(false));
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+  }
+
+  auto bbox = bbox_ + tbbox_;
+
+  device->drawRect(bbox);
+}
+
+void
+CQChartsSymbolMapKey::
+getSymbolBoxes(BBoxes &pbboxes) const
+{
+  // symbol sizes
+  double prmin = scale()*this->mapMin();
+  double prmax = scale()*this->mapMax();
+
+  //---
+
+  // calc center
+  Point pos;
+
+  if (position_.isValid()) {
+    pos = plot_->positionToPixel(position_);
+  }
+  else {
+    auto pbbox = plot_->calcPlotPixelRect();
+
+    double px = pbbox.getXMax() - prmin;
+    double py = pbbox.getYMax() - prmin;
+
+    pos = Point(px, py);
+  }
+
+  double xm = pos.x;
+  double ym = pos.y;
+
+  //---
+
+  if (rows() < 1)
+    return;
+
+  double y  = 1.0;
+  double dy = (rows() > 1 ? 1.0/(rows() - 1) : 0.0);
+
+  // outer margin
+  double pm = this->margin();
+
+  //---
+
+  auto *th = const_cast<CQChartsSymbolMapKey *>(this);
+
+  if (! isStacked()) {
+    double yb = ym + prmax;
+
+    for (int i = 0; i < rows(); ++i) {
+      double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
+
+      auto pbbox = BBox(xm - pr, yb - 2*pr, xm + pr, yb);
+
+      pbboxes.push_back(pbbox);
+
+      y -= dy;
+    }
+
+    th->bbox_ = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - prmax - pm,
+                                          xm + prmax + pm, ym + prmax + pm));
+  }
+  else {
+    double h = (rows() - 1)*pm;
+
+    for (int i = 0; i < rows(); ++i) {
+      h += 2*CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
+
+      y -= dy;
+    }
+
+    y = 1.0;
+
+    double yt = ym - h/2;
+
+    for (int i = 0; i < rows(); ++i) {
+      double pr = CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
+
+      auto pbbox = BBox(xm - pr, yt + 2*pr, xm + pr, yt);
+
+      pbboxes.push_back(pbbox);
+
+      yt += 2*pr + pm;
+
+      y -= dy;
+    }
+
+    th->bbox_ = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - h/2 - pm,
+                                          xm + prmax + pm, ym + h/2 + pm));
+  }
 }

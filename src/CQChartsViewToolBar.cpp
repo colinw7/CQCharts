@@ -25,6 +25,9 @@
 #include <svg/pan_light_svg.h>
 #include <svg/pan_dark_svg.h>
 
+#include <svg/query_light_svg.h>
+#include <svg/query_dark_svg.h>
+
 #include <svg/probe_light_svg.h>
 #include <svg/probe_dark_svg.h>
 
@@ -116,6 +119,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_OUT_LIGHT", "ZOOM_OUT_DARK"), "Zoom Out");
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"     , "PAN_DARK"     ), "Pan"     );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT"   , "PROBE_DARK"   ), "Probe"   );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("QUERY_LIGHT"   , "QUERY_DARK"   ), "Query"   );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("EDIT_LIGHT"    , "EDIT_DARK"    ), "Edit"    );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("REGION_LIGHT"  , "REGION_DARK"  ), "Region"  );
 
@@ -371,8 +375,9 @@ modeSlot(int ind)
   else if (ind == 2) view()->setMode(CQChartsView::Mode::ZOOM_OUT);
   else if (ind == 3) view()->setMode(CQChartsView::Mode::PAN);
   else if (ind == 4) view()->setMode(CQChartsView::Mode::PROBE);
-  else if (ind == 5) view()->setMode(CQChartsView::Mode::EDIT);
-  else if (ind == 6) view()->setMode(CQChartsView::Mode::REGION);
+  else if (ind == 5) view()->setMode(CQChartsView::Mode::QUERY);
+  else if (ind == 6) view()->setMode(CQChartsView::Mode::EDIT);
+  else if (ind == 7) view()->setMode(CQChartsView::Mode::REGION);
 
   updateMode();
 }

@@ -23,6 +23,7 @@ class CQChartsDensity;
 class CQChartsKey;
 class CQChartsAxis;
 class CQChartsHtmlPaintDevice;
+class CQChartsSymbolMapKey;
 
 class CQPropertyViewItem;
 
@@ -61,7 +62,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     POINT_SET,
     VALUE_SET,
     BUTTON,
-    WIDGET
+    WIDGET,
+    SYMBOL_MAP_KEY,
   };
 
   enum class DrawLayer {
@@ -173,13 +175,15 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
 
   //! add stroke and fill properties
-  void addStrokeFillProperties(PropertyModel *model, const QString &path);
+  void addStrokeFillProperties(PropertyModel *model, const QString &path, bool isSolid=true);
 
   //! add stroke properties
   void addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid=true);
 
   //! add fill properties
   void addFillProperties(PropertyModel *model, const QString &path);
+
+  void addTextProperties(PropertyModel *model, const QString &path, uint types);
 
   bool setProperties(const QString &properties);
 
@@ -1737,6 +1741,69 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
   QSizePolicy   sizePolicy_;                                   //!< size policy
   bool          interactive_ { false };                        //!< is interactive
   CQWinWidget*  winWidget_   { nullptr };                      //!< window frame
+};
+
+//---
+
+/*!
+ * \brief symbol key annotation
+ * \ingroup Charts
+ */
+class CQChartsSymbolMapKeyAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+
+ public:
+  using Key      = CQChartsSymbolMapKey;
+  using Position = CQChartsPosition;
+
+ public:
+  CQChartsSymbolMapKeyAnnotation(Plot *plot);
+
+  virtual ~CQChartsSymbolMapKeyAnnotation();
+
+  //---
+
+  const char *typeName() const override { return "symbolMapKey"; }
+
+  const char *propertyName() const override { return "symbolMapKeyAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_symbol_map_key_annotation"; }
+
+  //---
+
+  Key *key() const { return key_; }
+
+  const Position &position() const { return position_; }
+  void setPosition(const Position &p) { position_ = p; }
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private slots:
+  void updateLocationSlot();
+
+ private:
+  Key*     key_ { nullptr }; //!< key
+  Position position_;
 };
 
 #endif

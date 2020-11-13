@@ -19,6 +19,7 @@ struct CQChartsTextOptions {
     HTML        = (1<<5),
     CLIP_LENGTH = (1<<6),
     CLIP_ELIDE  = (1<<7),
+    DATA        = (1<<8),
 
     NONE   = 0,
     SIMPLE = (ANGLE | CONTRAST | HTML),

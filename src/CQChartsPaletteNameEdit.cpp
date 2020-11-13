@@ -2,6 +2,7 @@
 #include <CQCharts.h>
 #include <CQChartsPlot.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsObjUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQColorsTheme.h>
@@ -134,7 +135,11 @@ createEdit(QWidget *parent)
 
   auto *obj = (item ? item->object() : nullptr);
 
-  auto *plot = qobject_cast<CQChartsPlot *>(obj);
+  CQChartsPlot *plot   = nullptr;
+  CQChartsView *view   = nullptr;
+  CQCharts     *charts = nullptr;
+
+  CQChartsObjUtil::getObjPlotViewChart(obj, plot, view, charts);
 
   //---
 

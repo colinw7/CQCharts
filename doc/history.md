@@ -1230,3 +1230,6 @@
 # 11/08/2020
  + update graph plot to match latest sankey plot code
  + add float tip widget
+# 11/12/2020
+ + add symbol map key annotation
+ + improve float tip widget

@@ -252,6 +252,7 @@ CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsTextAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsWidgetAnnotation)
+CQCHARTS_DEF_CMD(CreateChartsSymbolMapKeyAnnotation)
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation)
 
 //---

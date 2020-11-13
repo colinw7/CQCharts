@@ -746,8 +746,10 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // calc tip
-  bool calcTip(const QPoint &gpos, QString &tip);
+  // calc tip (global or local coords)
+  bool calcGlobalTip(const QPoint &gpos, QString &tip);
+
+  bool calcTip(const Point &pos, QString &tip, bool single);
 
   //---
 
@@ -936,6 +938,12 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void showQueryAt(const Point &wpos);
+
+  void showQuery(const QString &text);
+
+  //---
+
   CQChartsRegionMgr *regionMgr() const { return regionMgr_; }
 
   //---
@@ -1028,6 +1036,9 @@ class CQChartsView : public QFrame,
 
   // emitted when errors added
   void updateErrors();
+
+  // emitted in query mode with new query text
+  void showQueryText(const QString &);
 
  public slots:
   void updateNoData();
@@ -1184,12 +1195,16 @@ class CQChartsView : public QFrame,
 
   void panMouseMove();
 
+  void queryMousePress();
+
   void resetConnections(bool notify);
   void resetConnections(const Plots &plots, bool notify);
 
   void initOverlayPlot(Plot *firstPlot);
 
   int plotPos(Plot *plot) const;
+
+  void searchAt(const Point &w);
 
   void annotationsAtPoint(const Point &w, Annotations &annotations) const;
 

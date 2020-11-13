@@ -65,6 +65,7 @@ class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
 class CQChartsWidgetAnnotation;
+class CQChartsSymbolMapKeyAnnotation;
 
 class CQChartsPlotParameter;
 class CQChartsDisplayRange;
@@ -1895,7 +1896,7 @@ class CQChartsPlot : public CQChartsObj,
   bool tipText(const Point &p, QString &tip) const;
 
   // get tip text at point (unchecked)
-  virtual bool plotTipText(const Point &p, QString &tip) const;
+  virtual bool plotTipText(const Point &p, QString &tip, bool single) const;
 
   void addNoTipColumns(CQChartsTableTip &tableTip) const;
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
@@ -2028,52 +2029,56 @@ class CQChartsPlot : public CQChartsObj,
 
   // --- annotations ---
 
-  using Annotation          = CQChartsAnnotation;
-  using Annotations         = std::vector<Annotation *>;
-  using AnnotationGroup     = CQChartsAnnotationGroup;
-  using ArrowAnnotation     = CQChartsArrowAnnotation;
-  using AxisAnnotation      = CQChartsAxisAnnotation;
-  using ButtonAnnotation    = CQChartsButtonAnnotation;
-  using EllipseAnnotation   = CQChartsEllipseAnnotation;
-  using ImageAnnotation     = CQChartsImageAnnotation;
-  using KeyAnnotation       = CQChartsKeyAnnotation;
-  using PieSliceAnnotation  = CQChartsPieSliceAnnotation;
-  using PointAnnotation     = CQChartsPointAnnotation;
-  using PointSetAnnotation  = CQChartsPointSetAnnotation;
-  using PolygonAnnotation   = CQChartsPolygonAnnotation;
-  using PolylineAnnotation  = CQChartsPolylineAnnotation;
-  using RectangleAnnotation = CQChartsRectangleAnnotation;
-  using TextAnnotation      = CQChartsTextAnnotation;
-  using ValueSetAnnotation  = CQChartsValueSetAnnotation;
-  using WidgetAnnotation    = CQChartsWidgetAnnotation;
+  using Annotation             = CQChartsAnnotation;
+  using Annotations            = std::vector<Annotation *>;
+  using AnnotationGroup        = CQChartsAnnotationGroup;
+  using ArrowAnnotation        = CQChartsArrowAnnotation;
+  using AxisAnnotation         = CQChartsAxisAnnotation;
+  using ButtonAnnotation       = CQChartsButtonAnnotation;
+  using EllipseAnnotation      = CQChartsEllipseAnnotation;
+  using ImageAnnotation        = CQChartsImageAnnotation;
+  using KeyAnnotation          = CQChartsKeyAnnotation;
+  using PieSliceAnnotation     = CQChartsPieSliceAnnotation;
+  using PointAnnotation        = CQChartsPointAnnotation;
+  using PointSetAnnotation     = CQChartsPointSetAnnotation;
+  using PolygonAnnotation      = CQChartsPolygonAnnotation;
+  using PolylineAnnotation     = CQChartsPolylineAnnotation;
+  using RectangleAnnotation    = CQChartsRectangleAnnotation;
+  using TextAnnotation         = CQChartsTextAnnotation;
+  using ValueSetAnnotation     = CQChartsValueSetAnnotation;
+  using WidgetAnnotation       = CQChartsWidgetAnnotation;
+  using SymbolMapKeyAnnotation = CQChartsSymbolMapKeyAnnotation;
 
   // get annotations
   const Annotations &annotations() const { return annotations_; }
 
   // --- add annotation ---
 
-  AnnotationGroup     *addAnnotationGroup    ();
-  ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
-  AxisAnnotation      *addAxisAnnotation     (Qt::Orientation direction, double start, double end);
-  ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
-  EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,
-                                              const Length &yRadius);
-  ImageAnnotation     *addImageAnnotation    (const Position &pos, const Image &image);
-  ImageAnnotation     *addImageAnnotation    (const Rect &rect, const Image &image);
-  KeyAnnotation       *addKeyAnnotation      (const CQChartsColumn &column=CQChartsColumn());
-  PieSliceAnnotation  *addPieSliceAnnotation (const Position &pos, const Length &innerRadius,
-                                              const Length &outerRadius, const Angle &startAngle,
-                                              const Angle &spanAngle);
-  PointAnnotation     *addPointAnnotation    (const Position &pos, const Symbol &type);
-  PointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
-  PolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
-  PolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
-  RectangleAnnotation *addRectangleAnnotation(const Rect &rect);
-  TextAnnotation      *addTextAnnotation     (const Position &pos, const QString &text);
-  TextAnnotation      *addTextAnnotation     (const Rect &rect, const QString &text);
-  ValueSetAnnotation  *addValueSetAnnotation (const Rect &rect, const CQChartsReals &values);
-  WidgetAnnotation    *addWidgetAnnotation   (const Position &pos, const Widget &widget);
-  WidgetAnnotation    *addWidgetAnnotation   (const Rect &rect, const Widget &widget);
+  AnnotationGroup        *addAnnotationGroup       ();
+  ArrowAnnotation        *addArrowAnnotation       (const Position &start, const Position &end);
+  AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
+                                                    double end);
+  ButtonAnnotation       *addButtonAnnotation      (const Position &pos, const QString &text);
+  EllipseAnnotation      *addEllipseAnnotation     (const Position &center, const Length &xRadius,
+                                                    const Length &yRadius);
+  ImageAnnotation        *addImageAnnotation       (const Position &pos, const Image &image);
+  ImageAnnotation        *addImageAnnotation       (const Rect &rect, const Image &image);
+  KeyAnnotation          *addKeyAnnotation         (const CQChartsColumn &column=CQChartsColumn());
+  PieSliceAnnotation     *addPieSliceAnnotation    (const Position &pos, const Length &innerRadius,
+                                                    const Length &outerRadius,
+                                                    const Angle &startAngle,
+                                                    const Angle &spanAngle);
+  PointAnnotation        *addPointAnnotation       (const Position &pos, const Symbol &type);
+  PointSetAnnotation     *addPointSetAnnotation    (const CQChartsPoints &values);
+  PolygonAnnotation      *addPolygonAnnotation     (const CQChartsPolygon &polygon);
+  PolylineAnnotation     *addPolylineAnnotation    (const CQChartsPolygon &polygon);
+  RectangleAnnotation    *addRectangleAnnotation   (const Rect &rect);
+  TextAnnotation         *addTextAnnotation        (const Position &pos, const QString &text);
+  TextAnnotation         *addTextAnnotation        (const Rect &rect, const QString &text);
+  ValueSetAnnotation     *addValueSetAnnotation    (const Rect &rect, const CQChartsReals &values);
+  WidgetAnnotation       *addWidgetAnnotation      (const Position &pos, const Widget &widget);
+  WidgetAnnotation       *addWidgetAnnotation      (const Rect &rect, const Widget &widget);
+  SymbolMapKeyAnnotation *addSymbolMapKeyAnnotation();
 
   void addAnnotation(Annotation *annotation);
 

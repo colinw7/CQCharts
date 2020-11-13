@@ -930,4 +930,147 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
   PaletteName palette_;
 };
 
+//-----
+
+// TODO:
+//  . custom palette
+//  . shape
+//  . spread/overlay
+//  . text align left/center/right
+//  . separate border style
+class CQChartsSymbolMapKey : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(double              margin      READ margin      WRITE setMargin     )
+  Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
+  Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
+  Q_PROPERTY(double              mapMin      READ mapMin      WRITE setMapMin     )
+  Q_PROPERTY(double              mapMax      READ mapMax      WRITE setMapMax     )
+  Q_PROPERTY(double              scale       READ scale       WRITE setScale      )
+  Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
+  Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
+  Q_PROPERTY(CQChartsPosition    position    READ position    WRITE setPosition   )
+  Q_PROPERTY(bool                border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsAlpha       alpha       READ alpha       WRITE setAlpha      )
+  Q_PROPERTY(Qt::Alignment       align       READ align       WRITE setAlign      )
+  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+
+ public:
+  using Plot        = CQChartsPlot;
+  using Alpha       = CQChartsAlpha;
+  using PenBrush    = CQChartsPenBrush;
+  using BrushData   = CQChartsBrushData;
+  using PenData     = CQChartsPenData;
+  using PaintDevice = CQChartsPaintDevice;
+  using Position    = CQChartsPosition;
+  using PaletteName = CQChartsPaletteName;
+  using ColorInd    = CQChartsUtil::ColorInd;
+
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
+
+ public:
+  CQChartsSymbolMapKey(Plot *plot);
+
+  Plot *plot() const { return plot_; }
+
+  double margin() const { return margin_; }
+  void setMargin(double r) { margin_ = r; invalidate(); }
+
+  //---
+
+  double dataMin() const { return dataMin_; }
+  void setDataMin(double r) { dataMin_ = r; invalidate(); }
+
+  double dataMax() const { return dataMax_; }
+  void setDataMax(double r) { dataMax_ = r; invalidate(); }
+
+  double mapMin() const { return mapMin_; }
+  void setMapMin(double r) { mapMin_ = r; invalidate(); }
+
+  double mapMax() const { return mapMax_; }
+  void setMapMax(double r) { mapMax_ = r; invalidate(); }
+
+  //---
+
+  double scale() const { return scale_; }
+  void setScale(double r) { scale_ = r; invalidate(); }
+
+  bool isStacked() const { return stacked_; }
+  void setStacked(bool b) { stacked_ = b; invalidate(); }
+
+  int rows() const { return rows_; }
+  void setRows(int i) { rows_ = i; invalidate(); }
+
+  //---
+
+  const Position &position() const { return position_; }
+  void setPosition(const Position &v) { position_ = v; invalidate(); }
+
+  //---
+
+  bool isBorder() const { return border_; }
+  void setBorder(bool b) { border_ = b; invalidate(); }
+
+  const Alpha &alpha() const { return alpha_; }
+  void setAlpha(const Alpha &a) { alpha_ = a; invalidate(); }
+
+  const Qt::Alignment &align() const { return align_; }
+  void setAlign(const Qt::Alignment &v) { align_ = v; invalidate(); }
+
+  const PaletteName &paletteName() const { return paletteName_; }
+  void setPaletteName(const PaletteName &v) { paletteName_ = v; invalidate(); }
+
+  //---
+
+  void draw(PaintDevice *device, bool usePenBrush=false);
+
+  void drawCircles(PaintDevice *device, bool usePenBrush=false);
+
+  void drawText(PaintDevice *device, const CQChartsTextOptions &textOptions,
+                bool usePenBrush=false);
+
+  void drawBorder(PaintDevice *device, bool usePenBrush=false);
+
+  const BBox &bbox() { return bbox_; }
+
+ private:
+  void invalidate() {
+    emit dataChanged();
+  }
+
+ signals:
+  void dataChanged();
+
+ private:
+  using BBoxes = std::vector<BBox>;
+
+  void getSymbolBoxes(BBoxes &pbboxes) const;
+
+ private:
+  Plot*  plot_   { nullptr }; //!< parent plot
+  double margin_ { 4.0 };     //!< margin in pixels
+
+  double dataMin_ { 0.0 }; //!< model data min
+  double dataMax_ { 1.0 }; //!< model data max
+
+  double mapMin_ { 5.0 };  //!< mapped symbol size min (pixels)
+  double mapMax_ { 17.0 }; //!< mapped symbol size max (pixels)
+
+  double scale_ { 1.0 }; //! scale symbol sizes
+
+  bool stacked_ { false }; //! draw stacked
+  int  rows_    { 3 };     //! number of symbol rows
+
+  Position position_;
+
+  bool          border_ { false };                           //!< draw border
+  Alpha         alpha_  { 0.2 };                             //!< background alpha
+  Qt::Alignment align_  { Qt::AlignRight|Qt::AlignVCenter }; //!< text align
+  PaletteName   paletteName_;                                //!< custom palette
+
+  BBox bbox_;
+  BBox tbbox_;
+};
+
 #endif

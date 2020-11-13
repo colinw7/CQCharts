@@ -338,9 +338,9 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
 void
 CQChartsAnnotation::
-addStrokeFillProperties(PropertyModel *model, const QString &path)
+addStrokeFillProperties(PropertyModel *model, const QString &path, bool isSolid)
 {
-  addStrokeProperties(model, path + "/stroke");
+  addStrokeProperties(model, path + "/stroke", isSolid);
   addFillProperties  (model, path + "/fill"  );
 }
 
@@ -401,6 +401,57 @@ addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid)
     addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
     addStyleProp(path, "borderSides", "sides"     , "Box visible sides");
   }
+}
+
+void
+CQChartsAnnotation::
+addTextProperties(PropertyModel *model, const QString &path, uint types)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    auto *item = addProp(path, name, alias, desc, hidden);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  if (types & uint(CQChartsTextOptions::ValueType::DATA))
+    addStyleProp(path, "textData", "style", "Text style", true);
+
+  addStyleProp(path, "textColor", "color", "Text color");
+  addStyleProp(path, "textAlpha", "alpha", "Text alpha");
+  addStyleProp(path, "textFont" , "font" , "Text font");
+
+  if (types & uint(CQChartsTextOptions::ValueType::ALIGN))
+    addStyleProp(path, "textAlign", "align", "Text align");
+
+  if (types & uint(CQChartsTextOptions::ValueType::ANGLE))
+    addStyleProp(path, "textAngle", "angle", "Text angle");
+
+  if (types & uint(CQChartsTextOptions::ValueType::CONTRAST))
+    addStyleProp(path, "textContrast", "contrast", "Text has contrast");
+
+  if (types & uint(CQChartsTextOptions::ValueType::FORMATTED))
+    addStyleProp(path, "textFormatted", "formatted", "Text formatted to fit in box");
+
+  if (types & uint(CQChartsTextOptions::ValueType::SCALED))
+    addStyleProp(path, "textScaled", "scaled", "Text scaled to fit box");
+
+  if (types & uint(CQChartsTextOptions::ValueType::HTML))
+    addStyleProp(path, "textHtml", "html", "Text is HTML");
+
+  if (types & uint(CQChartsTextOptions::ValueType::CLIP_LENGTH))
+    addStyleProp(path, "textClipLength", "clipLength", "Text clip length");
+
+  if (types & uint(CQChartsTextOptions::ValueType::CLIP_ELIDE))
+    addStyleProp(path, "textClipElide" , "clipElide" , "Text clip elide");
 }
 
 bool
@@ -2037,10 +2088,8 @@ init(const QString &textStr)
 {
   setObjectName(QString("text.%1").arg(ind()));
 
-  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
-
   setTextStr  (textStr);
-  setTextColor(themeFg);
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
 
   setStroked(false);
   setFilled (true);
@@ -2131,13 +2180,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
   //---
 
   auto path1 = path + "/" + propertyId();
@@ -2152,18 +2194,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   addProp(textPath, "textStr", "string", "Text string");
 
-  addStyleProp(textPath, "textData"      , "style"     , "Text style", true);
-  addStyleProp(textPath, "textColor"     , "color"     , "Text color");
-  addStyleProp(textPath, "textAlpha"     , "alpha"     , "Text alpha");
-  addStyleProp(textPath, "textFont"      , "font"      , "Text font");
-  addStyleProp(textPath, "textAngle"     , "angle"     , "Text angle");
-  addStyleProp(textPath, "textContrast"  , "contrast"  , "Text has contrast");
-  addStyleProp(textPath, "textAlign"     , "align"     , "Text align");
-  addStyleProp(textPath, "textFormatted" , "formatted" , "Text formatted to fit in box");
-  addStyleProp(textPath, "textScaled"    , "scaled"    , "Text scaled to fit box");
-  addStyleProp(textPath, "textHtml"      , "html"      , "Text is HTML");
-  addStyleProp(textPath, "textClipLength", "clipLength", "Text clip length");
-  addStyleProp(textPath, "textClipElide" , "clipElide" , "Text clip elide");
+  addTextProperties(model, textPath, CQChartsTextOptions::ValueType::ALL);
 
   addProp(path1, "padding", "", "Text rectangle inner padding");
   addProp(path1, "margin" , "", "Text rectangle outer margin");
@@ -2332,9 +2363,7 @@ draw(PaintDevice *device)
     c = CQChartsUtil::blendColors(backgroundColor(), c, f);
   }
 
-  setPen(penBrush, PenData(true, c, textAlpha()));
-
-  penBrush.brush.setStyle(Qt::NoBrush);
+  setPenBrush(penBrush, PenData(true, c, textAlpha()), BrushData(false));
 
   if (isEnabled())
     updatePenBrushState(penBrush, CQChartsObjDrawType::TEXT);
@@ -2546,8 +2575,6 @@ CQChartsImageAnnotation::
 init()
 {
   setObjectName(QString("image.%1").arg(ind()));
-
-  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   disabledImage_ = Image();
 
@@ -4068,8 +4095,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   auto keyPath = path1 + "/key";
 
   key_->addProperties(model, keyPath, "");
-
-  key_->addProperties(model, keyPath, "");
 }
 
 void
@@ -4638,10 +4663,8 @@ init(const QString &textStr)
 {
   setObjectName(QString("button.%1").arg(ind()));
 
-  Color themeFg(Color::Type::INTERFACE_VALUE, 1);
-
   setTextStr  (textStr);
-  setTextColor(themeFg);
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
 }
 
 void
@@ -4665,13 +4688,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc, bool hidden=false) {
-    auto *item = addProp(path, name, alias, desc, hidden);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
-
   //---
 
   auto path1 = path + "/" + propertyId();
@@ -4684,10 +4700,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   addProp(textPath, "textStr", "string", "Text string");
 
-  addStyleProp(textPath, "textColor", "color", "Text color");
-  addStyleProp(textPath, "textAlpha", "alpha", "Text alpha");
-  addStyleProp(textPath, "textFont" , "font" , "Text font");
-  addStyleProp(textPath, "textAlign", "align", "Text align");
+  addTextProperties(model, textPath, CQChartsTextOptions::ValueType::NONE);
 
   addStrokeFillProperties(model, path1);
 }
@@ -5322,6 +5335,214 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
   if (widget_.isValid())
     os << " -widget {" << widget_.path().toStdString() << "}";
 
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//------
+
+CQChartsSymbolMapKeyAnnotation::
+CQChartsSymbolMapKeyAnnotation(Plot *plot) :
+ CQChartsAnnotation(plot, Type::SYMBOL_MAP_KEY)
+{
+  init();
+
+  key_ = new CQChartsSymbolMapKey(plot);
+
+  connect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+}
+
+CQChartsSymbolMapKeyAnnotation::
+~CQChartsSymbolMapKeyAnnotation()
+{
+  delete key_;
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+init()
+{
+  setObjectName(QString("symbolMapKey.%1").arg(ind()));
+
+  setStroked(true);
+  setFilled (true);
+
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addStrokeFillProperties(model, path1, /*isSolid*/false);
+
+  auto textPath = path1 + "/text";
+
+  addTextProperties(model, textPath, CQChartsTextOptions::ValueType::NONE);
+
+  //---
+
+  auto keyPath = path1 + "/key";
+
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(keyPath, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  auto addKeyProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(keyPath, key_, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
+  addKeyProp("margin", "Margin");
+
+  addKeyProp("dataMin", "Model Data Min");
+  addKeyProp("dataMax", "Model Data Max");
+
+  addKeyProp("mapMin", "Symbol Size Min");
+  addKeyProp("mapMax", "Symbol Size Max");
+
+  addKeyProp("scale"  , "Scale Factor");
+  addKeyProp("stacked", "Stacked Vertical instead of overlaid");
+  addKeyProp("rows"   , "Number of symbol rows");
+
+  addKeyProp("border"     , "Border");
+  addKeyProp("alpha"      , "Alpha");
+  addKeyProp("align"      , "Text Align");
+  addKeyProp("paletteName", "Palette Name");
+
+  addProp("position", "Position");
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+updateLocationSlot()
+{
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+setEditBBox(const BBox &bbox, const ResizeSide &)
+{
+  position_ = Position(bbox.getCenter());
+}
+
+//---
+
+bool
+CQChartsSymbolMapKeyAnnotation::
+inside(const Point &p) const
+{
+  return annotationBBox().inside(p);
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+draw(PaintDevice *device)
+{
+  drawInit(device);
+
+  //---
+
+  // set position
+  disconnect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+
+  if (position_.isSet())
+    key_->setPosition(position_);
+  else
+    key_->setPosition(Position());
+
+  connect(key_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+
+  //---
+
+  // set pen and brush for circles
+  PenBrush penBrush;
+
+  calcPenBrush(penBrush);
+
+  updatePenBrushState(penBrush, CQChartsObjDrawType::BOX);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw circles
+  key_->drawCircles(device, /*usePenBrush*/true);
+
+  //---
+
+  // set text options for text
+  CQChartsTextOptions textOptions;
+
+  textOptions.angle         = textAngle();
+  textOptions.align         = Qt::AlignLeft;
+  textOptions.contrast      = isTextContrast();
+  textOptions.contrastAlpha = textContrastAlpha();
+  textOptions.formatted     = isTextFormatted();
+  textOptions.scaled        = isTextScaled();
+  textOptions.html          = isTextHtml();
+  textOptions.clipLength    = lengthPixelWidth(textClipLength());
+  textOptions.clipElide     = textClipElide();
+  textOptions.clipped       = false;
+
+  adjustTextOptions(textOptions);
+
+  //---
+
+  // set text pen and font
+  auto c = interpColor(textColor(), ColorInd());
+
+  setPenBrush(penBrush, PenData(true, c, textAlpha()), BrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  setPainterFont(device, textFont());
+
+  //---
+
+  // draw text
+  key_->drawText(device, textOptions, /*usePenBrush*/true);
+
+  //---
+
+  // draw border
+  auto bc = interpColor(strokeColor(), ColorInd());
+
+  setPenBrush(penBrush,
+    PenData(true, bc, strokeAlpha(), strokeWidth(), strokeDash()),
+    BrushData(false));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  key_->drawBorder(device, /*usePenBrush*/true);
+
+  //---
+
+  drawTerm(device);
+
+  //---
+
+  setAnnotationBBox(key_->bbox());
+}
+
+void
+CQChartsSymbolMapKeyAnnotation::
+writeDetails(std::ostream &os, const QString &, const QString &varName) const
+{
   os << "]\n";
 
   //---

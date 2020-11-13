@@ -55,6 +55,7 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QLabel>
+#include <QTextEdit>
 #include <QButtonGroup>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -918,6 +919,9 @@ addWidgets()
 
   // Layers Tab
   initLayersFrame(addTab("Layers"));
+
+  // Query Tab
+  initQueryFrame(addTab("Query"));
 
   // Errors Tab
   initErrorsFrame(addTab("Errors"));
@@ -1810,6 +1814,44 @@ initLayersFrame(QFrame *layersFrame)
 
 void
 CQChartsViewSettings::
+initQueryFrame(QFrame *queryFrame)
+{
+  auto *queryFrameLayout = CQUtil::makeLayout<QVBoxLayout>(queryFrame, 2, 2);
+
+  //---
+
+  queryText_ = CQUtil::makeWidget<QTextEdit>("queryText");
+
+  queryFrameLayout->addWidget(queryText_);
+
+  //---
+
+  auto *view = window_->view();
+
+  connect(view, SIGNAL(showQueryText(const QString &)),
+          this, SLOT(showQueryText(const QString &)));
+}
+
+void
+CQChartsViewSettings::
+showQueryText(const QString &text)
+{
+  queryText_->setText(text);
+
+  showQueryTab();
+}
+
+void
+CQChartsViewSettings::
+showQueryTab()
+{
+  tab_->setCurrentIndex(7);
+}
+
+//------
+
+void
+CQChartsViewSettings::
 initErrorsFrame(QFrame *errorsFrame)
 {
   auto *errorsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(errorsFrame, 2, 2);
@@ -1859,7 +1901,7 @@ void
 CQChartsViewSettings::
 showErrorsTab()
 {
-  tab_->setCurrentIndex(7);
+  tab_->setCurrentIndex(8);
 }
 
 //------

@@ -8285,44 +8285,58 @@ tipText(const Point &p, QString &tip) const
   if (isOverlay() && ! isFirstPlot())
     return false;
 
-  return plotTipText(p, tip);
+  return plotTipText(p, tip, /*single*/true);
 }
 
 bool
 CQChartsPlot::
-plotTipText(const Point &p, QString &tip) const
+plotTipText(const Point &p, QString &tip, bool single) const
 {
   int objNum  = 0;
   int numObjs = 0;
 
   Obj *tipObj = nullptr;
 
+  Objs tipObjs;
+
   if (isFollowMouse()) {
-    objNum  = insideInd_;
-    numObjs = insideObjs_.size();
+    objNum = insideInd_;
 
     tipObj = insideObject();
+
+    tipObjs.clear();
+
+    for (const auto &obj : insideObjs_)
+      tipObjs.push_back(obj);
   }
   else {
-    Objs objs;
+    objsAtPoint(p, tipObjs, Constraints::SELECTABLE);
 
-    objsAtPoint(p, objs, Constraints::SELECTABLE);
-
-    numObjs = objs.size();
-
-    if (numObjs)
-      tipObj = *objs.begin();
+    if (! tipObjs.empty())
+      tipObj = *tipObjs.begin();
   }
 
+  numObjs = tipObjs.size();
+
   if (tipObj) {
-    if (tip != "")
-      tip += " ";
+    if (single) {
+      if (tip != "")
+        tip += " ";
 
-    tip += tipObj->tipId();
+      tip += tipObj->tipId();
 
-    if (numObjs > 1)
-      tip += QString("<br><font color=\"blue\">&nbsp;&nbsp;%1 of %2</font>").
-               arg(objNum + 1).arg(numObjs);
+      if (numObjs > 1)
+        tip += QString("<br><font color=\"blue\">&nbsp;&nbsp;%1 of %2</font>").
+                 arg(objNum + 1).arg(numObjs);
+    }
+    else {
+      for (const auto &obj : tipObjs) {
+        if (tip != "")
+          tip += " ";
+
+        tip += obj->tipId();
+      }
+    }
   }
 
   return tip.length();
@@ -11415,6 +11429,14 @@ addWidgetAnnotation(const Rect &rect, const Widget &widget)
 {
   return addAnnotationT<CQChartsWidgetAnnotation>(
     new CQChartsWidgetAnnotation(this, rect, widget));
+}
+
+CQChartsSymbolMapKeyAnnotation *
+CQChartsPlot::
+addSymbolMapKeyAnnotation()
+{
+  return addAnnotationT<CQChartsSymbolMapKeyAnnotation>(
+    new CQChartsSymbolMapKeyAnnotation(this));
 }
 
 void

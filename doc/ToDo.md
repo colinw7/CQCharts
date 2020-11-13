@@ -3,13 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
- + lockable tip (win widget), quick corner move (drag) auto placement + align
  + zoom in should zoom plot background ?
- + symbol key as separate class and allow as annotation
+ + symbol size key as separate class and allow as annotation
  + test write properties with enum values
  + R in Action
  + hierarchical key ? (tree map)
- + annotation gradient key
  + errors in more plots
  + html support for all text if possible.
    + Remove all calls to QFontMetricsF::width()

@@ -2442,6 +2442,7 @@ mousePressEvent(QMouseEvent *me)
     else if (mode() == Mode::PROBE) {
     }
     else if (mode() == Mode::QUERY) {
+      queryMousePress();
     }
     else if (mode() == Mode::EDIT)
       (void) editMousePress();
@@ -2962,11 +2963,20 @@ editMouseRelease()
 
 bool
 CQChartsView::
-calcTip(const QPoint &gpos, QString &tip)
+calcGlobalTip(const QPoint &gpos, QString &tip)
 {
   auto p = this->mapFromGlobal(gpos);
 
   auto wpos = this->pixelToWindow(Point(p));
+
+  return calcTip(wpos, tip, /*single*/true);
+}
+
+bool
+CQChartsView::
+calcTip(const Point &wpos, QString &tip, bool single)
+{
+  searchAt(wpos);
 
   CQChartsView::Plots plots;
 
@@ -2975,15 +2985,17 @@ calcTip(const QPoint &gpos, QString &tip)
   if (plots.empty())
     return false;
 
+  auto ppos = windowToPixel(wpos);
+
   for (const auto &plot : plots) {
     if (! plot->isVisible())
       continue;
 
-    auto w = plot->pixelToWindow(Point(p));
+    auto w = plot->pixelToWindow(ppos);
 
     QString tip1;
 
-    if (plot->plotTipText(w, tip1)) {
+    if (plot->plotTipText(w, tip1, single)) {
       if (tip.length())
         tip += "\n";
 
@@ -2999,7 +3011,7 @@ calcTip(const QPoint &gpos, QString &tip)
       auto *key = plot->key();
       if (! key) continue;
 
-      auto w = plot->pixelToWindow(Point(p));
+      auto w = plot->pixelToWindow(ppos);
 
       if (key->contains(w)) {
         QString tip1;
@@ -3621,6 +3633,35 @@ CQChartsView::
 endRegionBand()
 {
   regionBand_.hide();
+}
+
+//---
+
+void
+CQChartsView::
+queryMousePress()
+{
+  auto wpos = this->pixelToWindow(mouseData_.pressPoint);
+
+  showQueryAt(wpos);
+}
+
+void
+CQChartsView::
+showQueryAt(const Point &wpos)
+{
+  QString tip;
+
+  calcTip(wpos, tip, /*single*/false);
+
+  showQuery(tip);
+}
+
+void
+CQChartsView::
+showQuery(const QString &text)
+{
+  emit showQueryText(text);
 }
 
 //------
@@ -4760,13 +4801,22 @@ void
 CQChartsView::
 searchSlot()
 {
+  setStatusText("");
+
   auto w = pixelToWindow(searchPos_);
 
+  searchAt(w);
+}
+
+void
+CQChartsView::
+searchAt(const Point &w)
+{
   plotsAt(w, mouseData_.plots, mouseData_.plot, /*clear*/true, /*first*/true);
 
   //---
 
-  setStatusText("");
+  auto p = windowToPixel(w);
 
   bool handled = false;
 
@@ -4777,7 +4827,7 @@ searchSlot()
       handled = true;
 
     return false;
-  }, searchPos_);
+  }, p);
 
   //---
 
