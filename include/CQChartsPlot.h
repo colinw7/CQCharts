@@ -340,9 +340,11 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
+  //---
+
   //! \brief probe value data
   struct ProbeValue {
-    double  value;
+    double  value { 0.0 };
     QString label;
 
     ProbeValue() = default;
@@ -362,6 +364,8 @@ class CQChartsPlot : public CQChartsObj,
     Qt::Orientation direction { Qt::Vertical };
     bool            both      { false };
   };
+
+  //---
 
   using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
@@ -392,7 +396,7 @@ class CQChartsPlot : public CQChartsObj,
 
   using ColorInd = CQChartsUtil::ColorInd;
 
-  using DrawType = CQChartsView::DrawType;
+  using DrawType = CQChartsObjDrawType;
 
   using View          = CQChartsView;
   using Axis          = CQChartsAxis;
@@ -538,8 +542,6 @@ class CQChartsPlot : public CQChartsObj,
     Point dataOffset { 0.0, 0.0 }; //!< data offset (pan)
   };
 
-  double dataScale() const;
-
   double dataScaleX() const;
   void setDataScaleX(double r);
 
@@ -558,6 +560,8 @@ class CQChartsPlot : public CQChartsObj,
   void updateDataScale(double r);
   void updateDataScaleX(double r);
   void updateDataScaleY(double r);
+
+  double dataScale() const;
 
   //---
 
@@ -648,6 +652,10 @@ class CQChartsPlot : public CQChartsObj,
 
   QFont qfont() const;
   QFont qfont(const Font &font) const;
+
+  //! get/set tabbed bar font
+  void setTabbedFont(const Font &f);
+  const Font &tabbedFont() const;
 
   //---
 
@@ -870,11 +878,7 @@ class CQChartsPlot : public CQChartsObj,
   //! get connection state summary string
   QString connectionStateStr() const;
 
-  //! get/set tabbed bar font
-  void setTabbedFont(const Font &f);
-  const Font &tabbedFont() const;
-
-  //-
+  //---
 
   Plot *prevPlot() const { return connectData_.prev; }
   Plot *nextPlot() const { return connectData_.next; }
@@ -1997,6 +2001,7 @@ class CQChartsPlot : public CQChartsObj,
 
   BBox calcPlotRect() const;
   BBox calcPlotPixelRect() const;
+  BBox calcPlotViewRect() const;
 
   BBox calcFitPixelRect() const;
 

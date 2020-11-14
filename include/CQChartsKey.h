@@ -941,6 +941,7 @@ class CQChartsGradientKeyItem : public CQChartsKeyItem {
 class CQChartsSymbolMapKey : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(bool                visible     READ isVisible   WRITE setVisible    )
   Q_PROPERTY(double              margin      READ margin      WRITE setMargin     )
   Q_PROPERTY(double              dataMin     READ dataMin     WRITE setDataMin    )
   Q_PROPERTY(double              dataMax     READ dataMax     WRITE setDataMax    )
@@ -950,21 +951,23 @@ class CQChartsSymbolMapKey : public QObject {
   Q_PROPERTY(bool                stacked     READ isStacked   WRITE setStacked    )
   Q_PROPERTY(int                 rows        READ rows        WRITE setRows       )
   Q_PROPERTY(CQChartsPosition    position    READ position    WRITE setPosition   )
+  Q_PROPERTY(Qt::Alignment       align       READ align       WRITE setAlign      )
   Q_PROPERTY(bool                border      READ isBorder    WRITE setBorder     )
   Q_PROPERTY(CQChartsAlpha       alpha       READ alpha       WRITE setAlpha      )
-  Q_PROPERTY(Qt::Alignment       align       READ align       WRITE setAlign      )
+  Q_PROPERTY(Qt::Alignment       textAlign   READ textAlign   WRITE setTextAlign  )
   Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
 
  public:
-  using Plot        = CQChartsPlot;
-  using Alpha       = CQChartsAlpha;
-  using PenBrush    = CQChartsPenBrush;
-  using BrushData   = CQChartsBrushData;
-  using PenData     = CQChartsPenData;
-  using PaintDevice = CQChartsPaintDevice;
-  using Position    = CQChartsPosition;
-  using PaletteName = CQChartsPaletteName;
-  using ColorInd    = CQChartsUtil::ColorInd;
+  using Plot          = CQChartsPlot;
+  using Alpha         = CQChartsAlpha;
+  using PenBrush      = CQChartsPenBrush;
+  using BrushData     = CQChartsBrushData;
+  using PenData       = CQChartsPenData;
+  using PaintDevice   = CQChartsPaintDevice;
+  using Position      = CQChartsPosition;
+  using PaletteName   = CQChartsPaletteName;
+  using ColorInd      = CQChartsUtil::ColorInd;
+  using PropertyModel = CQPropertyViewModel;
 
   using BBox  = CQChartsGeom::BBox;
   using Point = CQChartsGeom::Point;
@@ -979,12 +982,22 @@ class CQChartsSymbolMapKey : public QObject {
 
   //---
 
+  // visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; }
+
+  //---
+
+  // data range
   double dataMin() const { return dataMin_; }
   void setDataMin(double r) { dataMin_ = r; invalidate(); }
 
   double dataMax() const { return dataMax_; }
   void setDataMax(double r) { dataMax_ = r; invalidate(); }
 
+  //---
+
+  // map range
   double mapMin() const { return mapMin_; }
   void setMapMin(double r) { mapMin_ = r; invalidate(); }
 
@@ -1007,6 +1020,9 @@ class CQChartsSymbolMapKey : public QObject {
   const Position &position() const { return position_; }
   void setPosition(const Position &v) { position_ = v; invalidate(); }
 
+  const Qt::Alignment &align() const { return align_; }
+  void setAlign(const Qt::Alignment &v) { align_ = v; invalidate(); }
+
   //---
 
   bool isBorder() const { return border_; }
@@ -1015,11 +1031,15 @@ class CQChartsSymbolMapKey : public QObject {
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; invalidate(); }
 
-  const Qt::Alignment &align() const { return align_; }
-  void setAlign(const Qt::Alignment &v) { align_ = v; invalidate(); }
+  const Qt::Alignment &textAlign() const { return textAlign_; }
+  void setTextAlign(const Qt::Alignment &v) { textAlign_ = v; invalidate(); }
 
   const PaletteName &paletteName() const { return paletteName_; }
   void setPaletteName(const PaletteName &v) { paletteName_ = v; invalidate(); }
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path);
 
   //---
 
@@ -1048,8 +1068,10 @@ class CQChartsSymbolMapKey : public QObject {
   void getSymbolBoxes(BBoxes &pbboxes) const;
 
  private:
-  Plot*  plot_   { nullptr }; //!< parent plot
-  double margin_ { 4.0 };     //!< margin in pixels
+  Plot* plot_ { nullptr }; //!< parent plot
+
+  bool   visible_ { true }; //!< visible
+  double margin_  { 4.0 };  //!< margin in pixels
 
   double dataMin_ { 0.0 }; //!< model data min
   double dataMax_ { 1.0 }; //!< model data max
@@ -1062,12 +1084,13 @@ class CQChartsSymbolMapKey : public QObject {
   bool stacked_ { false }; //! draw stacked
   int  rows_    { 3 };     //! number of symbol rows
 
-  Position position_;
+  Position      position_;                                         //!< key position
+  Qt::Alignment align_    { Qt::AlignHCenter | Qt::AlignVCenter }; //!< key align
 
-  bool          border_ { false };                           //!< draw border
-  Alpha         alpha_  { 0.2 };                             //!< background alpha
-  Qt::Alignment align_  { Qt::AlignRight|Qt::AlignVCenter }; //!< text align
-  PaletteName   paletteName_;                                //!< custom palette
+  bool          border_    { false };                             //!< draw border
+  Alpha         alpha_     { 0.6 };                               //!< background alpha
+  Qt::Alignment textAlign_ { Qt::AlignRight | Qt::AlignVCenter }; //!< text align
+  PaletteName   paletteName_;                                     //!< custom palette
 
   BBox bbox_;
   BBox tbbox_;

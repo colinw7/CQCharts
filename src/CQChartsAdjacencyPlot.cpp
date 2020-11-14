@@ -1506,7 +1506,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     BrushData(true, bc, plot_->shapeData().fill  ()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 void

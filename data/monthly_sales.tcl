@@ -10,7 +10,7 @@ set plot1 [create_charts_plot -type barchart -columns \
 
 set view [get_charts_property -plot $plot1 -name viewId]
 
-set_charts_property -view $view -name title.string -value "Monthly Sales Data"
+set_charts_property -view $view -name title.text.string -value "Monthly Sales Data"
 
 ###---
 

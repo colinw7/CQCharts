@@ -229,6 +229,8 @@ class CQChartsAdjacencyCellObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(PaintDevice *device) const override;
 
   void calcPenBrush(PenBrush &penBrush, bool updateState) const;

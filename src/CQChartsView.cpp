@@ -168,19 +168,26 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   font_.setFont(QFont());
 
+  tipFont_.decFontSize(4);
+
   //---
 
   addProperties();
 
   //---
 
-  tip_ = new CQChartsViewToolTip(this);
+  toolTip_  = new CQChartsViewToolTip (this);
+  floatTip_ = new CQChartsViewFloatTip(this);
 
-#ifndef CQCHARTS_FLOAT_TIP
-  CQToolTip::setToolTip(this, tip_);
-#else
-  tip_->setFont(tipFont().calcFont(font_.font()));
-#endif
+  if (! isFloatTip())
+    CQToolTip::setToolTip(this, toolTip_);
+
+  {
+  auto tipFont = this->tipFont().calcFont(font_.font());
+
+  toolTip_ ->setFont(tipFont);
+  floatTip_->setFont(tipFont);
+  }
 
   //---
 
@@ -240,9 +247,8 @@ CQChartsView::
 
   delete popupMenu_;
 
-#ifndef CQCHARTS_FLOAT_TIP
-  CQToolTip::unsetToolTip(this);
-#endif
+  if (! isFloatTip())
+    CQToolTip::unsetToolTip(this);
 }
 
 void
@@ -344,7 +350,10 @@ addProperties()
   addStyleProp("text", "fontFactor", "factor", "Global text scale factor")->
     setMinValue(0.001);
   addStyleProp("text", "font"      , "font"   , "Global text font");
-  addStyleProp("text", "tipFont"   , "tipFont", "Tip font");
+
+  // tip
+  addStyleProp("tip", "floatTip", "float", "Use floating tip");
+  addStyleProp("tip", "tipFont" , "font" , "Tip font");
 
   // plot separators
   addStyleProp("options", "plotSeparators", "", "Show plot separators");
@@ -420,6 +429,9 @@ addProperties()
 
   if (key())
     key()->addProperties(propertyModel(), "key");
+
+  // probe
+  addProp("probe", "probeObjects", "objects", "Probe nearest object");
 }
 
 //---
@@ -597,17 +609,6 @@ setFont(const CQChartsFont &f)
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
 }
 
-void
-CQChartsView::
-setTipFont(const CQChartsFont &f)
-{
-  CQChartsUtil::testAndSet(tipFont_, f, [&]() {
-#ifdef CQCHARTS_FLOAT_TIP
-    tip_->setFont(tipFont().calcFont(font_.font()));
-#endif
-  } );
-}
-
 double
 CQChartsView::
 fontEm() const
@@ -626,6 +627,38 @@ fontEx() const
   QFontMetricsF fm(qfont);
 
   return fm.width("x");
+}
+
+//---
+
+void
+CQChartsView::
+setFloatTip(bool b)
+{
+  CQChartsUtil::testAndSet(isFloatTip_, b, [&]() {
+    if (! isFloatTip()) {
+      floatTip_->setEnabled(false);
+
+      CQToolTip::setToolTip(this, toolTip_);
+    }
+    else {
+      CQToolTip::unsetToolTip(this);
+
+      floatTip_->setEnabled(true);
+    }
+  } );
+}
+
+void
+CQChartsView::
+setTipFont(const CQChartsFont &f)
+{
+  CQChartsUtil::testAndSet(tipFont_, f, [&]() {
+    auto tipFont = this->tipFont().calcFont(font_.font());
+
+    toolTip_ ->setFont(tipFont);
+    floatTip_->setFont(tipFont);
+  } );
 }
 
 //---
@@ -2661,10 +2694,8 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_F1) {
     if (ke->modifiers() & Qt::ControlModifier) {
-#ifdef CQCHARTS_FLOAT_TIP
-      if (tip_->isVisible())
-        tip_->setLocked(true);
-#endif
+      if (floatTip_->isVisible())
+        floatTip_->setLocked(true);
     }
     else {
       if (mode() == Mode::EDIT)
@@ -3064,84 +3095,106 @@ showProbeLines(const Point &p)
     ++ind;
   };
 
-  //int px = p.x;
+  //---
 
   auto w = pixelToWindow(p);
+
+  int probeInd = 0;
 
   Plots plots;
   Plot* plot;
 
   plotsAt(w, plots, plot);
 
-  int probeInd = 0;
+  //---
 
-  for (auto &plot : plots) {
-    auto w = plot->pixelToWindow(p);
+  if (! isProbeObjects()) {
+    if (plot) {
+      auto dataRange = plot->calcDataRange();
 
-    //---
+      auto pp = plot->pixelToWindow(p);
 
-    Plot::ProbeData probeData;
+      auto p1 = plot->windowToPixel(Point(dataRange.getXMin(), dataRange.getYMin()));
+      auto p2 = plot->windowToPixel(Point(dataRange.getXMax(), dataRange.getYMax()));
 
-    probeData.p = w;
+      auto tip = QString("%1, %2").arg(plot->xStr(pp.x)).arg(plot->yStr(pp.y));
 
-    if (! plot->probe(probeData))
-      continue;
-
-    if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x);
-    if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y);
-
-    auto dataRange = plot->calcDataRange();
-
-    if      (probeData.both) {
-      // add probe lines from xmin to probed x values and from ymin to probed y values
-      auto px1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
-      auto py1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
-
-      int nx = probeData.xvals.size();
-      int ny = probeData.yvals.size();
-
-      int n = std::min(nx, ny);
-
-      for (int i = 0; i < n; ++i) {
-        const auto &xval = probeData.xvals[i];
-        const auto &yval = probeData.yvals[i];
-
-        auto px2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
-        auto py2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
-
-        auto tip = QString("%1, %2").
-          arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
-          arg(yval.label.length() ? yval.label : plot->yStr(yval.value));
-
-        addVerticalProbeBand  (probeInd, plot, tip, py1.x, py1.y, py2.y);
-        addHorizontalProbeBand(probeInd, plot, "" , px1.x, px2.x, px2.y);
-      }
+      addVerticalProbeBand  (probeInd, plot, "" , p.x, p1.y, p2.y);
+      addHorizontalProbeBand(probeInd, plot, "" , p1.x, p2.x, p.y);
+      addVerticalProbeBand  (probeInd, plot, tip, p.x, p.y, p.y + 4);
     }
-    else if (probeData.direction == Qt::Vertical) {
-      // add probe lines from ymin to probed y values
-      auto p1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
+  }
+  else {
+    for (auto &plot : plots) {
+      auto w = plot->pixelToWindow(p);
 
-      for (const auto &yval : probeData.yvals) {
-        auto p2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
+      //---
 
-        auto tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+      Plot::ProbeData probeData;
 
-        addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+      probeData.p = w;
+
+      if (! plot->probe(probeData))
+        continue;
+
+      if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x);
+      if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y);
+
+      auto dataRange = plot->calcDataRange();
+
+      if      (probeData.both) {
+        // add probe lines from xmin to probed x values and from ymin to probed y values
+        auto px1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
+        auto py1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
+
+        int nx = probeData.xvals.size();
+        int ny = probeData.yvals.size();
+
+        int n = std::min(nx, ny);
+
+        for (int i = 0; i < n; ++i) {
+          const auto &xval = probeData.xvals[i];
+          const auto &yval = probeData.yvals[i];
+
+          auto px2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
+          auto py2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
+
+          auto tip = QString("%1, %2").
+            arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
+            arg(yval.label.length() ? yval.label : plot->yStr(yval.value));
+
+          addVerticalProbeBand  (probeInd, plot, tip, py1.x, py1.y, py2.y);
+          addHorizontalProbeBand(probeInd, plot, "" , px1.x, px2.x, px2.y);
+        }
       }
-    }
-    else {
-      // add probe lines from xmin to probed x values
-      auto p1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
+      else if (probeData.direction == Qt::Vertical) {
+        // add probe lines from ymin to probed y values
+        auto p1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
 
-      for (const auto &xval : probeData.xvals) {
-        auto p2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
+        for (const auto &yval : probeData.yvals) {
+          auto p2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
 
-        auto tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+          auto tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
-        addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
+          addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+        }
+      }
+      else {
+        // add probe lines from xmin to probed x values
+        auto p1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
+
+        for (const auto &xval : probeData.xvals) {
+          auto p2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
+
+          auto tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+
+          addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
+        }
       }
     }
   }
+
+  //---
 
   for (int i = probeInd; i < int(probeBands_.size()); ++i)
     probeBands_[i]->hide();
@@ -7109,10 +7162,8 @@ void
 CQChartsView::
 updateTip()
 {
-#ifdef CQCHARTS_FLOAT_TIP
-  if (tip_->isVisible())
-    tip_->updateTip();
-#endif
+  if (floatTip_->isVisible())
+    floatTip_->updateTip();
 }
 
 //---

@@ -186,6 +186,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   CQChartsBoxPlotWhiskerObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                             const Whisker *whisker, const ColorInd &is, const ColorInd &ig);
 
+  //---
+
   QString typeName() const override { return "whisker"; }
 
   //---
@@ -254,7 +256,15 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   CQChartsBoxPlotOutlierObj(const Plot *plot, const BBox &rect, int setId, int groupInd,
                             const Whisker *whisker, const ColorInd &is, const ColorInd &ig, int io);
 
+  //---
+
   QString typeName() const override { return "outlier"; }
+
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
 
   QString calcId   () const override;
   QString calcTipId() const override;
@@ -373,12 +383,20 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "point"; }
 
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   QString calcId   () const override;
   QString calcTipId() const override;
 
   bool inside(const Point &p) const override;
 
   void getObjSelectIndices(Indices &) const override;
+
+  //---
 
   void draw(PaintDevice *device) const override;
 

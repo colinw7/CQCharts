@@ -228,6 +228,13 @@ setEdgeLine(bool b)
   CQChartsUtil::testAndSet(edgeLine_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsSankeyPlot::
+setZoomText(bool b)
+{
+  CQChartsUtil::testAndSet(zoomText_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -387,6 +394,7 @@ addProperties()
 
   // options
   addProp("options", "useMaxTotals", "useMaxTotals", "Use max of src/dest totals for edge scaling");
+  addProp("options", "zoomText"    , "zoomText"    , "Scale text when zoom");
 
   // coloring
   addProp("coloring", "srcColoring"      , "", "Color by Source Nodes");
@@ -2682,7 +2690,7 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
           if (destRect.isSet())
             destBBox += destRect;
           else
-            destBBox += destNode->rect();;
+            destBBox += destNode->rect();
         }
         else
           destBBox += destNode->rect();
@@ -3590,6 +3598,7 @@ CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
   setDetailHint(DetailHint::MAJOR);
 
   setEditable(true);
+  setZoomText(plot->isZoomText());
 
   //---
 
@@ -4210,6 +4219,8 @@ CQChartsSankeyEdgeObj(const Plot *plot, const BBox &rect, Edge *edge) :
  CQChartsPlotObj(const_cast<Plot *>(plot), rect), plot_(plot), edge_(edge)
 {
   //setDetailHint(DetailHint::MAJOR);
+
+  setZoomText(plot->isZoomText());
 }
 
 CQChartsSankeyEdgeObj::

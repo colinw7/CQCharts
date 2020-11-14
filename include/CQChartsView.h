@@ -26,6 +26,7 @@ class CQChartsPlot;
 class CQChartsObj;
 class CQChartsViewKey;
 class CQChartsViewToolTip;
+class CQChartsViewFloatTip;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
@@ -151,7 +152,10 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool         scaleFont  READ isScaleFont WRITE setScaleFont )
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
-  Q_PROPERTY(CQChartsFont tipFont    READ tipFont     WRITE setTipFont   )
+
+  // tip
+  Q_PROPERTY(bool         floatTip READ isFloatTip WRITE setFloatTip)
+  Q_PROPERTY(CQChartsFont tipFont  READ tipFont    WRITE setTipFont )
 
   // separators
   Q_PROPERTY(bool plotSeparators READ isPlotSeparators WRITE setPlotSeparators)
@@ -163,6 +167,8 @@ class CQChartsView : public QFrame,
 
   //! search timeout
   Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
+
+  Q_PROPERTY(bool probeObjects READ isProbeObjects WRITE setProbeObjects)
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -371,11 +377,17 @@ class CQChartsView : public QFrame,
   const Font &font() const { return font_; }
   void setFont(const Font &f);
 
-  const Font &tipFont() const { return tipFont_; }
-  void setTipFont(const Font &f);
-
   double fontEm() const;
   double fontEx() const;
+
+  //---
+
+  // tip
+  bool isFloatTip() const { return isFloatTip_; }
+  void setFloatTip(bool b);
+
+  const Font &tipFont() const { return tipFont_; }
+  void setTipFont(const Font &f);
 
   //---
 
@@ -755,6 +767,9 @@ class CQChartsView : public QFrame,
 
   // probe lines
   void showProbeLines(const Point &p);
+
+  bool isProbeObjects() const { return probeObjects_; }
+  void setProbeObjects(bool b) { probeObjects_ = b; }
 
   //---
 
@@ -1400,7 +1415,12 @@ class CQChartsView : public QFrame,
   double fontFactor_ { 1.0 };  //!< font scale factor
   Font   font_;                //!< font
   Font   saveFont_;            //!< saved font
-  Font   tipFont_;             //!< tip font
+
+  // tip
+  bool                  isFloatTip_ { true };  //!< is float tip enabled
+  Font                  tipFont_;              //!< tip font
+  CQChartsViewToolTip*  toolTip_  { nullptr }; //!< mouse tooltip
+  CQChartsViewFloatTip* floatTip_ { nullptr }; //!< float tooltip
 
   bool        plotSeparators_ { false };             //!< show plot separators
   bool        handDrawn_      { false };             //!< is handdrawn
@@ -1420,6 +1440,7 @@ class CQChartsView : public QFrame,
   // rubber bands
   RegionBand regionBand_; //!< zoom region rubberband
   ProbeBands probeBands_; //!< probe lines
+  bool       probeObjects_ { true };
 
   // menu
   QMenu* popupMenu_ { nullptr }; //!< context menu
@@ -1450,8 +1471,7 @@ class CQChartsView : public QFrame,
   bool       plotsHorizontal_   { false }; //!< plots are horizontal
   bool       plotsVertical_     { false }; //!< plots are vertical
 
-  CQChartsRegionMgr*   regionMgr_ { nullptr }; //!< region widget manager
-  CQChartsViewToolTip* tip_       { nullptr }; //!< tooltip
+  CQChartsRegionMgr* regionMgr_ { nullptr }; //!< region widget manager
 };
 
 //------

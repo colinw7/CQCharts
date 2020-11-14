@@ -1624,12 +1624,12 @@ draw(PaintDevice *device) const
   auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
   auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
-  bool isPoint = this->isPoint();
+  bool isNodePoint = this->isNodePoint();
 
   BBox  bbox;
   Point point;
 
-  if (isPoint)
+  if (isNodePoint)
     point = Point(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
   else
     bbox = BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
@@ -1641,7 +1641,7 @@ draw(PaintDevice *device) const
 
   bool updateState = device->isInteractive();
 
-  calcPenBrush(penBrush, isPoint, updateState);
+  calcPenBrush(penBrush, isNodePoint, updateState);
 
   //---
 
@@ -1650,7 +1650,7 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if (isPoint)
+  if (isNodePoint)
     device->drawPoint(plot_->pixelToWindow(point));
   else
     device->drawRect(plot_->pixelToWindow(bbox));
@@ -1659,7 +1659,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (isPoint)
+  if (isNodePoint)
     return;
 
   //---
@@ -1709,7 +1709,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
   PenBrush penBrush;
 
-  calcPenBrush(penBrush, /*isPoint*/false, /*updateState*/false);
+  calcPenBrush(penBrush, /*isNodePoint*/false, /*updateState*/false);
 
   plot_->charts()->setContrastColor(penBrush.brush.color());
 
@@ -1797,14 +1797,14 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
 void
 CQChartsTreeMapNodeObj::
-calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const
+calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const
 {
   auto colorInd = calcColorInd();
 
   auto bc = plot_->interpStrokeColor(colorInd);
   auto fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  if (isPoint) {
+  if (isNodePoint) {
     if      (plot_->isFilled())
       plot_->setPenBrush(penBrush,
         PenData  (true, fc, plot_->fillAlpha()),
@@ -1827,7 +1827,7 @@ calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const
 
 bool
 CQChartsTreeMapNodeObj::
-isPoint() const
+isNodePoint() const
 {
   auto p1 = plot_->windowToPixel(Point(node_->x()             , node_->y()             ));
   auto p2 = plot_->windowToPixel(Point(node_->x() + node_->w(), node_->y() + node_->h()));
@@ -1842,9 +1842,9 @@ void
 CQChartsTreeMapNodeObj::
 writeScriptData(ScriptPaintDevice *device) const
 {
-  bool isPoint = this->isPoint();
+  bool isNodePoint = this->isNodePoint();
 
-  calcPenBrush(penBrush_, isPoint, /*updateState*/ false);
+  calcPenBrush(penBrush_, isNodePoint, /*updateState*/ false);
 
   CQChartsPlotObj::writeScriptData(device);
 

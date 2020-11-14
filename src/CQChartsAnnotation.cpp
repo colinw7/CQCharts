@@ -5398,31 +5398,11 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
-  auto addKeyProp = [&](const QString &name, const QString &desc, bool hidden=false) {
-    auto *item = model->addProperty(keyPath, key_, name);
-    item->setDesc(desc);
-    if (hidden) CQCharts::setItemIsHidden(item);
-    return item;
-  };
-
   //---
 
-  addKeyProp("margin", "Margin");
+  key_->addProperties(model, keyPath);
 
-  addKeyProp("dataMin", "Model Data Min");
-  addKeyProp("dataMax", "Model Data Max");
-
-  addKeyProp("mapMin", "Symbol Size Min");
-  addKeyProp("mapMax", "Symbol Size Max");
-
-  addKeyProp("scale"  , "Scale Factor");
-  addKeyProp("stacked", "Stacked Vertical instead of overlaid");
-  addKeyProp("rows"   , "Number of symbol rows");
-
-  addKeyProp("border"     , "Border");
-  addKeyProp("alpha"      , "Alpha");
-  addKeyProp("align"      , "Text Align");
-  addKeyProp("paletteName", "Palette Name");
+  //---
 
   addProp("position", "Position");
 }

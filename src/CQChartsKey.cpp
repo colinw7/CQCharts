@@ -2915,6 +2915,40 @@ CQChartsSymbolMapKey(Plot *plot) :
 
 void
 CQChartsSymbolMapKey::
+addProperties(PropertyModel *model, const QString &path)
+{
+  auto addProp = [&](const QString &name, const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addProp("dataMin", "Model Data Min");
+  addProp("dataMax", "Model Data Max");
+
+  addProp("mapMin", "Symbol Size Min");
+  addProp("mapMax", "Symbol Size Max");
+
+  addProp("position", "Key Position");
+  addProp("align"   , "Key Align");
+
+  addProp("margin", "Margin");
+
+  addProp("scale"  , "Scale Factor");
+  addProp("stacked", "Stacked Vertical instead of overlaid");
+  addProp("rows"   , "Number of symbol rows");
+
+  addProp("textAlign"  , "Text Align");
+  addProp("paletteName", "Palette Name");
+
+  addProp("border", "Border");
+
+  addProp("alpha", "Alpha");
+}
+
+void
+CQChartsSymbolMapKey::
 draw(PaintDevice *device, bool usePenBrush)
 {
   drawCircles(device, usePenBrush);
@@ -3068,7 +3102,7 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
     double tw;
 
     if (! isStacked()) {
-      drawText(Point(pbbox.getXMid(), pbbox.getYMin() - 2), r, tw, align());
+      drawText(Point(pbbox.getXMid(), pbbox.getYMin() - 2), r, tw, textAlign());
 
       pxt1 = std::min(pxt1, pbbox.getXMid() - tw/2.0 - pm);
       pxt2 = std::max(pxt2, pbbox.getXMid() + tw/2.0 + pm);
@@ -3077,18 +3111,18 @@ drawText(PaintDevice *device, const CQChartsTextOptions &textOptions, bool usePe
       pyt2 = std::max(pyt2, pbbox.getYMin() - 2      + pm);
     }
     else {
-      if      (align() & Qt::AlignLeft) {
-        drawText(Point(pbbox1.getXMin() - pm, pbbox.getYMid()), r, tw, align());
+      if      (textAlign() & Qt::AlignLeft) {
+        drawText(Point(pbbox1.getXMin() - pm, pbbox.getYMid()), r, tw, textAlign());
 
         pxt1 = std::min(pxt1, pbbox1.getXMin() - pm - tw - pm);
       }
-      else if (align() & Qt::AlignRight) {
-        drawText(Point(pbbox1.getXMax() + pm, pbbox.getYMid()), r, tw, align());
+      else if (textAlign() & Qt::AlignRight) {
+        drawText(Point(pbbox1.getXMax() + pm, pbbox.getYMid()), r, tw, textAlign());
 
         pxt2 = std::max(pxt2, pbbox1.getXMax() + pm + tw + pm);
       }
       else {
-        drawText(Point(pbbox1.getXMid(), pbbox.getYMid()), r, tw, align());
+        drawText(Point(pbbox1.getXMid(), pbbox.getYMid()), r, tw, textAlign());
 
         pxt1 = std::min(pxt2, pbbox1.getXMid() - tw/2.0 - pm);
         pxt2 = std::max(pxt2, pbbox1.getXMid() + tw/2.0 + pm);
@@ -3171,12 +3205,14 @@ getSymbolBoxes(BBoxes &pbboxes) const
     return;
 
   double y  = 1.0;
-  double dy = (rows() > 1 ? 1.0/(rows() - 1) : 0.0);
+  double sy = (rows() > 1 ? 1.0/(rows() - 1) : 0.0);
 
   // outer margin
   double pm = this->margin();
 
   //---
+
+  BBox bbox;
 
   auto *th = const_cast<CQChartsSymbolMapKey *>(this);
 
@@ -3190,11 +3226,11 @@ getSymbolBoxes(BBoxes &pbboxes) const
 
       pbboxes.push_back(pbbox);
 
-      y -= dy;
+      y -= sy;
     }
 
-    th->bbox_ = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - prmax - pm,
-                                          xm + prmax + pm, ym + prmax + pm));
+    bbox = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - prmax - pm,
+                                     xm + prmax + pm, ym + prmax + pm));
   }
   else {
     double h = (rows() - 1)*pm;
@@ -3202,7 +3238,7 @@ getSymbolBoxes(BBoxes &pbboxes) const
     for (int i = 0; i < rows(); ++i) {
       h += 2*CMathUtil::map(y, 0.0, 1.0, prmin, prmax);
 
-      y -= dy;
+      y -= sy;
     }
 
     y = 1.0;
@@ -3218,10 +3254,37 @@ getSymbolBoxes(BBoxes &pbboxes) const
 
       yt += 2*pr + pm;
 
-      y -= dy;
+      y -= sy;
     }
 
-    th->bbox_ = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - h/2 - pm,
-                                          xm + prmax + pm, ym + h/2 + pm));
+    bbox = plot_->pixelToWindow(BBox(xm - prmax - pm, ym - h/2 - pm,
+                                     xm + prmax + pm, ym + h/2 + pm));
   }
+
+  //---
+
+  double w = bbox.getWidth ();
+  double h = bbox.getHeight();
+
+  double dx = 0.0;
+  double dy = 0.0;
+
+  if      (align() & Qt::AlignLeft ) dx =  w/2.0;
+  else if (align() & Qt::AlignRight) dx = -w/2.0;
+
+  if      (align() & Qt::AlignBottom) dy =  h/2.0;
+  else if (align() & Qt::AlignTop   ) dy = -h/2.0;
+
+  bbox = bbox.translated(dx, dy);
+
+  double pdx = plot_->windowToSignedPixelWidth (dx);
+  double pdy = plot_->windowToSignedPixelHeight(dy);
+
+  for (auto &pbbox : pbboxes) {
+    pbbox = pbbox.translated(pdx, pdy);
+  }
+
+  //---
+
+  th->bbox_ = bbox;
 }

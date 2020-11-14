@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + probe, no snap to object, snap to coord (axis minor tick)
+ + annotations have 'fit' property to be included in plot fit algorithm
  + zoom in should zoom plot background ?
  + symbol size key as separate class and allow as annotation
  + test write properties with enum values

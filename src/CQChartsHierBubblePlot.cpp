@@ -1423,11 +1423,11 @@ draw(PaintDevice *device) const
 
   //---
 
-  bool isPoint = this->isPoint();
+  bool isCirclePoint = this->isCirclePoint();
 
   Point point;
 
-  if (isPoint)
+  if (isCirclePoint)
     point = Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
 
   //---
@@ -1446,7 +1446,7 @@ draw(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if (isPoint)
+  if (isCirclePoint)
     device->drawPoint(point);
   else
     device->drawEllipse(bbox);
@@ -1455,7 +1455,7 @@ draw(PaintDevice *device) const
 
   //---
 
-  if (isPoint)
+  if (isCirclePoint)
     return;
 
   //---
@@ -1578,7 +1578,7 @@ drawText(PaintDevice *device, const BBox &bbox) const
 
 bool
 CQChartsHierBubbleNodeObj::
-isPoint() const
+isCirclePoint() const
 {
   // check if small enough to draw as point
   double r = this->radius();
@@ -1599,9 +1599,9 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   auto bc = plot_->interpStrokeColor(colorInd);
   auto fc = node()->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  bool isPoint = this->isPoint();
+  bool isCirclePoint = this->isCirclePoint();
 
-  if (isPoint) {
+  if (isCirclePoint) {
     if      (plot_->isFilled())
       plot_->setPenBrush(penBrush,
         PenData  (true, fc, plot_->fillAlpha()),

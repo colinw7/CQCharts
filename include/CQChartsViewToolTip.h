@@ -3,7 +3,6 @@
 
 class CQChartsView;
 
-#ifndef CQCHARTS_FLOAT_TIP
 #include <CQToolTip.h>
 #include <QLabel>
 
@@ -33,6 +32,8 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   bool grabKey() const override { return true; }
 
+  void setFont(const QFont &font);
+
   QSize sizeHint() const override;
 
  private:
@@ -42,17 +43,20 @@ class CQChartsViewToolTip : public CQToolTipIFace {
   CQChartsView* view_   { nullptr };
   QLabel*       widget_ { nullptr };
   QPoint        gpos_;
+  QFont         font_;
 };
-#else
+
+//------
+
 #include <CQFloatTip.h>
 
 /*!
  * \brief Charts View Tooltip
  * \ingroup Charts
  */
-class CQChartsViewToolTip : public CQFloatTip {
+class CQChartsViewFloatTip : public CQFloatTip {
  public:
-  CQChartsViewToolTip(CQChartsView *view);
+  CQChartsViewFloatTip(CQChartsView *view);
 
   CQChartsView *view() const { return view_; }
 
@@ -69,6 +73,5 @@ class CQChartsViewToolTip : public CQFloatTip {
   CQChartsView *view_ { nullptr };
   QPoint        tipPos_;
 };
-#endif
 
 #endif

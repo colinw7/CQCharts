@@ -1233,3 +1233,8 @@
 # 11/12/2020
  + add symbol map key annotation
  + improve float tip widget
+# 11/14/2020
+ + Use new symbol map key in scatter plot
+ + Support zoom text for plot object (enable in sankey)
+ + Fix zoom data rect clip
+ + support probe for all positions

@@ -3556,7 +3556,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   if (updateState)
-    plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    plot()->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 //------
@@ -4063,7 +4063,7 @@ drawStatsLines(PaintDevice *device) const
               plot()->statsLinesWidth(), plot()->statsLinesDash()),
     BrushData(false));
 
-  plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+  plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
 
   //---
 
@@ -4161,7 +4161,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     BrushData(false));
 
   if (updateState)
-    plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+    plot()->updateObjPenBrushState(this, ic, penBrush, drawType());
 }
 
 void

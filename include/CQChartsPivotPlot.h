@@ -157,6 +157,12 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "pivot_point"; }
 
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;

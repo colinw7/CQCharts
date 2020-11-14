@@ -197,14 +197,17 @@ class CQChartsChordArcObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "arc"; }
 
-  QString calcId() const override;
-
-  QString calcTipId() const override;
-
   //---
 
   bool isArc() const override { return true; }
+
   CQChartsArcData arcData() const override;
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
 
   //---
 

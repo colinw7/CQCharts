@@ -24,7 +24,18 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
  ~CQChartsViewPlotPaintDevice();
 
+  //---
+
   bool isInteractive() const override { return true; }
+
+  //---
+
+  bool isZoomFont() const { return zoomFont_; }
+  void setZoomFont(bool b) { zoomFont_ = b; }
+
+  //---
+
+  // hand draw
 
   bool isHandDrawn() const { return handDrawn_; }
   void setHandDrawn(bool b);
@@ -34,6 +45,8 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
 
   double handFillDelta() const { return handFillDelta_; }
   void setHandFillDelta(double r);
+
+  //---
 
   QPainter *painter() const { return painter_; }
 
@@ -92,6 +105,7 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   QPainter*           painter_       { nullptr };
   BBox                clipRect_;
   QPainterPath        clipPath_;
+  bool                zoomFont_      { false };
   bool                handDrawn_     { false };
   double              handRoughness_ { 1.0 };
   double              handFillDelta_ { 16.0 };

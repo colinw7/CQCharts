@@ -23,6 +23,6 @@ set_charts_property -plot $plot1 -name yaxis.label.text.string -value "Y=X"
 set_charts_property -plot $plot2 -name yaxis.customTickLabels -value $z
 set_charts_property -plot $plot2 -name yaxis.label.text.string -value "y=1/x"
 
-set_charts_property -view $view -name title.string -value "An Example of Creative Axes"
+set_charts_property -view $view -name title.text.string -value "An Example of Creative Axes"
 
 group_charts_plots -y1y2 -overlay $plot1 $plot2

@@ -474,7 +474,18 @@ void
 CQChartsViewPlotPaintDevice::
 setFont(const QFont &f)
 {
-  painter_->setFont(f);
+  if (isZoomFont() && plot_) {
+    auto f1 = f;
+
+    auto ps = std::max(f.pointSizeF()*plot_->dataScale(), 1.0/72.0);
+
+    f1.setPointSizeF(ps);
+
+    painter_->setFont(f1);
+  }
+  else {
+    painter_->setFont(f);
+  }
 }
 
 void

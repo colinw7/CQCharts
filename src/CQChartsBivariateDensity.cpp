@@ -142,4 +142,3 @@ yStdDev() const
 {
   return (bivariate_ ? bivariate_->yStdDev() : 0.0);
 }
-

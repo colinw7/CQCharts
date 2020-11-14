@@ -101,16 +101,18 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "pie"; }
 
+  //---
+
+  bool isArc() const override { return true; }
+  ArcData arcData() const override;
+
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
 
   void calcTipData(QString &groupName, QString &label, QString &valueStr) const;
-
-  //---
-
-  bool isArc() const override { return true; }
-  ArcData arcData() const override;
 
   //---
 

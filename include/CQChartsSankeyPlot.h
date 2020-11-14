@@ -655,6 +655,11 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
+  //! typename
+  QString typeName() const override { return "node"; }
+
+  //---
+
   //! get plot
   const Plot *plot() const { return plot_; }
 
@@ -686,9 +691,6 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   void setFillColor(const CQChartsColor &c);
 
   //---
-
-  //! typename
-  QString typeName() const override { return "node"; }
 
   //! get unique id
   QString calcId() const override;
@@ -860,6 +862,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(double         minNodeMargin READ minNodeMargin WRITE setMinNodeMargin)
   Q_PROPERTY(CQChartsLength nodeWidth     READ nodeWidth     WRITE setNodeWidth    )
   Q_PROPERTY(bool           edgeLine      READ isEdgeLine    WRITE setEdgeLine     )
+  Q_PROPERTY(bool           zoomText      READ isZoomText    WRITE setZoomText     )
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
@@ -1005,6 +1008,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set edge line
   bool isEdgeLine() const { return edgeLine_; }
   void setEdgeLine(bool b);
+
+  //! get/set zoom text
+  bool isZoomText() const { return zoomText_; }
+  void setZoomText(bool b);
 
   //---
 
@@ -1312,6 +1319,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // options
   bool edgeLine_ { false }; //!< draw line for edge
+  bool zoomText_ { true };  //!< zoom text
 
   // bbox, margin, node width
   BBox   targetBBox_    { -1, -1, 1, 1 };     //!< target range bbox

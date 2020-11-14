@@ -846,7 +846,7 @@ addPointObjects() const
           CQChartsTextOptions textOptions;
 
           textOptions.angle         = dataLabel()->textAngle();
-          textOptions.align         = Qt::AlignHCenter|Qt::AlignBottom;
+          textOptions.align         = Qt::AlignHCenter | Qt::AlignBottom;
           textOptions.contrast      = dataLabel()->isTextContrast();
           textOptions.contrastAlpha = dataLabel()->textContrastAlpha();
           textOptions.clipLength    = lengthPixelWidth(dataLabel()->textClipLength());

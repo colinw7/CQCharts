@@ -15,6 +15,7 @@ class CQFloatTip : public QFrame {
 
   Q_PROPERTY(QString       text        READ text          WRITE setText       )
   Q_PROPERTY(Qt::Alignment align       READ align         WRITE setAlign      )
+  Q_PROPERTY(bool          enabled     READ isEnabled     WRITE setEnabled    )
   Q_PROPERTY(bool          locked      READ isLocked      WRITE setLocked     )
   Q_PROPERTY(bool          followMouse READ isFollowMouse WRITE setFollowMouse)
   Q_PROPERTY(int           border      READ border        WRITE setBorder     )
@@ -34,6 +35,9 @@ class CQFloatTip : public QFrame {
 
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &v) { align_ = v; }
+
+  bool isEnabled() const { return enabled_; }
+  void setEnabled(bool b);
 
   bool isLocked() const { return locked_; }
   void setLocked(bool b);
@@ -95,10 +99,11 @@ class CQFloatTip : public QFrame {
   QString  text_;   //!< tip text
 
   // placement
-  Qt::Alignment align_  { Qt::AlignRight | Qt::AlignBottom }; //!< align in parent widget
-  int           x_      { -1 };                               //!< explicit x position
-  int           y_      { -1 };                               //!< explicit y position
-  bool          locked_ { false };                            //!< is locked visible
+  Qt::Alignment align_   { Qt::AlignRight | Qt::AlignBottom }; //!< align in parent widget
+  int           x_       { -1 };                               //!< explicit x position
+  int           y_       { -1 };                               //!< explicit y position
+  bool          enabled_ { true };                             //!< is enabled
+  bool          locked_  { false };                            //!< is locked visible
 
   bool followMouse_ { false }; //!< update on mouse move when locked
 

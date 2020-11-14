@@ -290,6 +290,14 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "bubble"; }
 
+  //---
+
+  bool isCircle() const override { return true; }
+
+  double radius() const override { return node_->radius(); }
+
+  //---
+
   Node *node() const { return node_; }
 
   HierObj *parent() const { return hierObj_; }
@@ -301,12 +309,6 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   QString calcTipId() const override;
-
-  //---
-
-  bool isCircle() const override { return true; }
-
-  double radius() const override { return node_->radius(); }
 
   //---
 
@@ -322,7 +324,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   //---
 
-  bool isPoint() const;
+  bool isCirclePoint() const;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 

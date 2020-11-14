@@ -20,6 +20,6 @@ set_charts_property -plot $plot2 -name points.symbol.fill.color   -value {palett
 
 set view [get_charts_data -plot $plot1 -name view]
 
-set_charts_property -view $view -name title.string -value "Growth in Internet Users Globally"
+set_charts_property -view $view -name title.text.string -value "Growth in Internet Users Globally"
 
 group_charts_plots -y1y2 -overlay $plot1 $plot2

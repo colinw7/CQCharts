@@ -1396,7 +1396,7 @@ draw(PaintDevice *device) const
 
   plot_->setSymbolPenBrush(penBrush, colorInd);
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   //---
 

@@ -76,6 +76,14 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "point"; }
+
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   // position
   const Point &point() const { return pos_; }
 
@@ -95,8 +103,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void setImage(const Image &i) { image_ = i; }
 
   //---
-
-  QString typeName() const override { return "point"; }
 
   QString calcId() const override;
 
@@ -580,13 +586,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // symbol map key
-  bool isSymbolMapKey() const { return symbolMapKeyData_.displayed; }
+  bool isSymbolMapKey() const;
   void setSymbolMapKey(bool b);
 
-  const Alpha &symbolMapKeyAlpha() const { return symbolMapKeyData_.alpha; }
+  const Alpha &symbolMapKeyAlpha() const;
   void setSymbolMapKeyAlpha(const Alpha &a);
 
-  double symbolMapKeyMargin() const { return symbolMapKeyData_.margin; }
+  double symbolMapKeyMargin() const;
   void setSymbolMapKeyMargin(double r);
 
   //---
@@ -777,9 +783,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
  private:
   //! symbol map key daya
   struct SymbolMapKeyData {
-    bool   displayed { false }; //!< is symbol map key displayed
-    Alpha  alpha     { 0.2 };   //!< symbol map key background alpha
-    double margin    { 16.0 };  //!< symbol map key margin in pixels
+    bool displayed { false }; //!< is symbol map key displayed
   };
 
   using GroupInds         = std::set<int>;
@@ -838,7 +842,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   GroupNamedDensity groupNamedDensity_; //!< group named density
 
   // symbol map
-  SymbolMapKeyData symbolMapKeyData_; //!< symbol map key data
+  CQChartsSymbolMapKey* symbolMapKey_ { nullptr }; //!< symbol map key
 
   // axis side data
   using AxisSideSize = std::map<CQChartsAxisSide::Type, double>;

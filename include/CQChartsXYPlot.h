@@ -205,6 +205,14 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "point"; }
+
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   void setSelected(bool b) override;
 
   //---
@@ -236,8 +244,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   void setLabelObj(const LabelObj *obj) { labelObj_ = obj; }
 
   //---
-
-  QString typeName() const override { return "point"; }
 
   QString calcId() const override;
 

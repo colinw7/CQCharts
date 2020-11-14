@@ -126,6 +126,16 @@ setText(const QString &text)
 
 void
 CQFloatTip::
+setEnabled(bool b)
+{
+  enabled_ = b;
+
+  if (! b)
+    setLocked(false);
+}
+
+void
+CQFloatTip::
 setLocked(bool b)
 {
   locked_ = b;
@@ -165,7 +175,7 @@ void
 CQFloatTip::
 showTip(const QPoint &gpos)
 {
-  if (! widget_)
+  if (! widget_ || ! isEnabled())
     return;
 
   gpos_ = gpos;
@@ -244,6 +254,9 @@ lockSlot(bool b)
   locked_ = b;
 
   if (b) {
+    if (! isEnabled())
+      return;
+
     if (! this->isVisible())
       this->setVisible(true);
   }
@@ -286,7 +299,7 @@ paintEvent(QPaintEvent *)
   int y1 = border();
   int y2 = y1 + lockButton_->height();
 
-  int nl = titleLines();;
+  int nl = titleLines();
 
   double dy = (y2 - y1)/(nl + 1);
 
@@ -577,7 +590,8 @@ fontSlot()
 
   int is = fm.height() - 2;
 
-  lockButton_->setIconSize(QSize(is, is));
+  lockButton_ ->setIconSize(QSize(is, is));
+  queryButton_->setIconSize(QSize(is, is));
 
   layout()->invalidate();
 

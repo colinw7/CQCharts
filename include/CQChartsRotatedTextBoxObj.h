@@ -18,11 +18,11 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   CQChartsRotatedTextBoxObj(Plot *plot);
 
   void draw(PaintDevice *device, const Point &c, const QString &text,
-            double angle=0.0, Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
+            double angle=0.0, Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
             bool isRotated=false) const;
 
   BBox bbox(const Point &pcenter, const QString &text, double angle=0.0,
-            Qt::Alignment align=Qt::AlignHCenter|Qt::AlignVCenter,
+            Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter,
             bool isRotated=false) const;
 
   void drawConnectedRadialText(PaintDevice *device, const Point &center,

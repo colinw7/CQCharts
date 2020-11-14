@@ -2730,7 +2730,8 @@ addBaseProperties()
   addProp("", "name", "name", "Plot name", true);
 
   // font
-  addStyleProp("font", "font", "font", "Base font");
+  addStyleProp("font", "font"      , "font"      , "Base font");
+  addStyleProp("font", "tabbedFont", "tabbedFont", "Font for tabs");
 
   // columns
   addProp("columns", "idColumn"      , "id"      , "Id column");
@@ -8224,8 +8225,19 @@ bool
 CQChartsPlot::
 isZoomFull() const
 {
-  return (dataScaleX () == 1.0 && dataScaleY () == 1.0 &&
-          dataOffsetX() == 0.0 && dataOffsetY() == 0.0);
+  if (allowZoomX() && ! CMathUtil::realEq(dataScaleX(), 1.0))
+    return false;
+
+  if (allowZoomY() && ! CMathUtil::realEq(dataScaleY(), 1.0))
+    return false;
+
+  if (! CMathUtil::realEq(dataOffsetX(), 0.0))
+    return false;
+
+  if (! CMathUtil::realEq(dataOffsetY(), 0.0))
+    return false;
+
+  return true;
 }
 
 void
@@ -9495,9 +9507,9 @@ drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations,
 
   if (edit_handles) {
     if (device->isInteractive()) {
-      auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+      auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
-      drawGroupedEditHandles(painter->painter());
+      drawGroupedEditHandles(viewPlotDevice->painter());
     }
   }
 
@@ -9855,7 +9867,8 @@ bool
 CQChartsPlot::
 hasObjs(const Layer::Type &layerType) const
 {
-  auto bbox = displayRangeBBox();
+//auto bbox = displayRangeBBox();
+  auto bbox = calcPlotViewRect();
 
   bool anyObjs = false;
 
@@ -9925,7 +9938,8 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
 
   //---
 
-  auto bbox = displayRangeBBox();
+//auto bbox = displayRangeBBox();
+  auto bbox = calcPlotViewRect();
 
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible())
@@ -9952,6 +9966,11 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
       continue;
 
     //---
+
+    auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+
+    if (plotObj->isZoomText() && viewPlotDevice)
+      viewPlotDevice->setZoomFont(true);
 
     // draw object on layer
     if      (layerType == Layer::Type::SELECTION) {
@@ -9985,6 +10004,11 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
           plotObj->draw  (device);
       }
     }
+
+    //---
+
+    if (plotObj->isZoomText() && viewPlotDevice)
+      viewPlotDevice->setZoomFont(false);
 
     //---
 
@@ -10944,6 +10968,13 @@ CQChartsPlot::
 calcPlotPixelRect() const
 {
   return view()->windowToPixel(calcViewBBox());
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcPlotViewRect() const
+{
+  return pixelToWindow(calcPlotPixelRect());
 }
 
 CQChartsGeom::Size
@@ -11995,14 +12026,14 @@ CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size) const
 {
   if (bufferSymbols_) {
-    auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+    auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
-    if (painter) {
+    if (viewPlotDevice) {
       double sx, sy;
 
       plotSymbolSize(size, sx, sy);
 
-      drawBufferedSymbol(painter->painter(), p, symbol, std::min(sx, sy));
+      drawBufferedSymbol(viewPlotDevice->painter(), p, symbol, std::min(sx, sy));
     }
     else {
       CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
@@ -12092,29 +12123,29 @@ void
 CQChartsPlot::
 drawWindowColorBox(PaintDevice *device, const BBox &bbox, const QColor &c) const
 {
-  auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-  if (! painter) return;
+  auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+  if (! viewPlotDevice) return;
 
   if (! bbox.isSet())
     return;
 
   //auto prect = windowToPixel(bbox);
-  //drawColorBox(painter, prect, c);
+  //drawColorBox(viewPlotDevice, prect, c);
 
-  drawColorBox(painter, bbox, c);
+  drawColorBox(viewPlotDevice, bbox, c);
 }
 
 void
 CQChartsPlot::
 drawColorBox(PaintDevice *device, const BBox &bbox, const QColor &c) const
 {
-  auto *painter = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
-  if (! painter) return;
+  auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
+  if (! viewPlotDevice) return;
 
-  painter->setPen(c);
-  painter->setBrush(Qt::NoBrush);
+  viewPlotDevice->setPen(c);
+  viewPlotDevice->setBrush(Qt::NoBrush);
 
-  painter->drawRect(bbox);
+  viewPlotDevice->drawRect(bbox);
 }
 
 //------

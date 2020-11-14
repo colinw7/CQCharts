@@ -185,6 +185,12 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "point"; }
 
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 

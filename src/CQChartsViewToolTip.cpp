@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#ifndef CQCHARTS_FLOAT_TIP
 CQChartsViewToolTip::
 CQChartsViewToolTip(CQChartsView *view) :
  view_(view) {
@@ -17,12 +16,25 @@ CQChartsViewToolTip::
   delete widget_;
 }
 
+void
+CQChartsViewToolTip::
+setFont(const QFont &font)
+{
+  font_ = font;
+
+  if (widget_)
+    widget_->setFont(font);
+}
+
 QWidget *
 CQChartsViewToolTip::
 showWidget(const QPoint &gpos)
 {
-  if (! widget_)
+  if (! widget_) {
     widget_ = CQUtil::makeLabelWidget<QLabel>("", "label");
+
+    widget_->setFont(font_);
+  }
 
   if (! updateWidget(gpos))
     return nullptr;
@@ -60,7 +72,7 @@ showTip(const QPoint &gpos)
   if (! view_->calcGlobalTip(gpos, tip))
     return false;
 
-  qpos_ = gpos;
+  gpos_ = gpos;
 
   widget_->setText("<font></font>" + tip);
 
@@ -83,14 +95,16 @@ sizeHint() const
 {
   return widget_->sizeHint();
 }
-#else
-CQChartsViewToolTip::
-CQChartsViewToolTip(CQChartsView *view) :
+
+//------
+
+CQChartsViewFloatTip::
+CQChartsViewFloatTip(CQChartsView *view) :
  CQFloatTip(view), view_(view) {
 }
 
 void
-CQChartsViewToolTip::
+CQChartsViewFloatTip::
 showTip(const QPoint &gpos)
 {
   auto oldPos = tipPos_;
@@ -108,9 +122,12 @@ showTip(const QPoint &gpos)
 }
 
 bool
-CQChartsViewToolTip::
+CQChartsViewFloatTip::
 updateTip()
 {
+  if (view_->mode() != CQChartsView::Mode::SELECT)
+    return false;
+
   QString tip;
 
   if (! view_->calcGlobalTip(tipPos_, tip))
@@ -122,14 +139,14 @@ updateTip()
 }
 
 void
-CQChartsViewToolTip::
+CQChartsViewFloatTip::
 hideTip()
 {
   CQFloatTip::hideTip();
 }
 
 void
-CQChartsViewToolTip::
+CQChartsViewFloatTip::
 showQuery(const QPoint &)
 {
   auto pos = view_->mapFromGlobal(tipPos_);
@@ -140,7 +157,7 @@ showQuery(const QPoint &)
 }
 
 bool
-CQChartsViewToolTip::
+CQChartsViewFloatTip::
 isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const
 {
   if (key == Qt::Key_Tab || key == Qt::Key_Backtab || key == Qt::Key_F1)
@@ -148,4 +165,3 @@ isIgnoreKey(Qt::Key key, Qt::KeyboardModifiers modifiers) const
 
   return CQFloatTip::isIgnoreKey(key, modifiers);
 }
-#endif

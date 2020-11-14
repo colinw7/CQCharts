@@ -127,8 +127,6 @@ CQChartsScatterPlot(View *view, const ModelP &model) :
  CQChartsObjPointData        <CQChartsScatterPlot>(this),
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
-  setLayerActive(CQChartsLayer::Type::BG_PLOT, true);
-  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 }
 
 CQChartsScatterPlot::
@@ -148,6 +146,11 @@ init()
   //---
 
   NoUpdate noUpdate(this);
+
+  //---
+
+  setLayerActive(CQChartsLayer::Type::BG_PLOT, true);
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   //---
 
@@ -197,6 +200,15 @@ init()
 
   xAxisWhisker_ = createAxisWhisker(Qt::Horizontal);
   yAxisWhisker_ = createAxisWhisker(Qt::Vertical);
+
+  //---
+
+  symbolMapKey_ = new CQChartsSymbolMapKey(this);
+
+  symbolMapKey_->setVisible(false);
+  symbolMapKey_->setAlign(Qt::AlignRight | Qt::AlignBottom);
+
+  connect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 }
 
 void
@@ -300,25 +312,58 @@ setPlotType(PlotType type)
 
 //---
 
+bool
+CQChartsScatterPlot::
+isSymbolMapKey() const
+{
+  return symbolMapKey_->isVisible();
+}
+
 void
 CQChartsScatterPlot::
 setSymbolMapKey(bool b)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.displayed, b, [&]() { drawObjs(); } );
+  if (b != symbolMapKey_->isVisible()) {
+    symbolMapKey_->setVisible(b);
+
+    drawObjs();
+  }
+}
+
+const CQChartsAlpha &
+CQChartsScatterPlot::
+symbolMapKeyAlpha() const
+{
+  return symbolMapKey_->alpha();
 }
 
 void
 CQChartsScatterPlot::
 setSymbolMapKeyAlpha(const Alpha &a)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { drawObjs(); } );
+  if (a != symbolMapKey_->alpha()) {
+    symbolMapKey_->setAlpha(a);
+
+    drawObjs();
+  }
+}
+
+double
+CQChartsScatterPlot::
+symbolMapKeyMargin() const
+{
+  return symbolMapKey_->margin();
 }
 
 void
 CQChartsScatterPlot::
 setSymbolMapKeyMargin(double m)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.margin, m, [&]() { drawObjs(); } );
+  if (m != symbolMapKey_->margin()) {
+    symbolMapKey_->setMargin(m);
+
+    drawObjs();
+  }
 }
 
 //---
@@ -588,12 +633,18 @@ addProperties()
   //---
 
   // symbol key
-  addProp     ("symbol/key"     , "symbolMapKey"      , "visible",
-               "Symbol size key visible");
-  addProp     ("symbol/key"     , "symbolMapKeyMargin", "margin" ,
+  auto symbolKeyPath = "symbol/key";
+
+  addProp(symbolKeyPath, "symbolMapKey", "visible", "Symbol size key visible");
+
+#if 0
+  addProp     (symbolKeyPath          , "symbolMapKeyMargin", "margin" ,
                "Symbol size key margin in pixels")->setMinValue(0.0);
-  addStyleProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  ,
+  addStyleProp(symbolKeyPath + "/fill", "symbolMapKeyAlpha" , "alpha"  ,
                "Symbol size key fill alpha");
+#endif
+
+  symbolMapKey_->addProperties(propertyModel(), symbolKeyPath);
 
   //---
 
@@ -3107,6 +3158,25 @@ drawSymbolMapKey(PaintDevice *device) const
 
   //---
 
+  disconnect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  symbolMapKey_->setDataMin(symbolSizeData_.data_min);
+  symbolMapKey_->setDataMax(symbolSizeData_.data_max);
+
+  symbolMapKey_->setMapMin(symbolSizeData_.map_min);
+  symbolMapKey_->setMapMax(symbolSizeData_.map_max);
+
+  auto bbox = displayRangeBBox();
+
+  symbolMapKey_->setPosition(bbox.getLR());
+
+  connect(symbolMapKey_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  //---
+
+  symbolMapKey_->draw(device);
+
+#if 0
   // draw size key
   double min  = symbolSizeData_.data_min;
   double mean = symbolSizeData_.data_mean;
@@ -3183,6 +3253,7 @@ drawSymbolMapKey(PaintDevice *device) const
   drawText(Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
   drawText(Point(pbbox2.getXMid(), pbbox2.getYMin()), mean);
   drawText(Point(pbbox3.getXMid(), pbbox3.getYMin()), min );
+#endif
 }
 
 //------
@@ -3595,7 +3666,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   }
 
   if (updateState)
-    plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+    plot()->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 double

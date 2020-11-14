@@ -62,9 +62,15 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "point"; }
 
+  bool isPoint() const override { return true; }
+
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
 
   bool isVisible() const override;
 

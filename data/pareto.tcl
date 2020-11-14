@@ -19,7 +19,7 @@ set_charts_data -plot $plot1 -name updates_enabled -value 0
 
 set view [get_charts_property -plot $plot1 -name viewId]
 
-set_charts_property -view $view -name title.string -value "Popular Fast Food Chains"
+set_charts_property -view $view -name title.text.string -value "Popular Fast Food Chains"
 
 set_charts_property -plot $plot1 -name "yaxis.grid.lines" -value MAJOR
 

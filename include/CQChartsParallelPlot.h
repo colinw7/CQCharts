@@ -63,16 +63,18 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "line"; }
 
-  QString calcId() const override;
-
-  QString calcTipId() const override;
-
   //---
 
   bool isPolygon() const override { return true; }
   Polygon polygon() const override { return polyLine_; }
 
   bool isSolid() const override { return false; }
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
 
   //---
 
@@ -124,6 +126,12 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
                            const QModelIndex &ind, const ColorInd &is, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
+
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
 
   QString calcId() const override;
 

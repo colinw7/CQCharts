@@ -396,6 +396,12 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "scatter"; }
 
+  //---
+
+  bool isPoint() const override { return true; }
+
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;

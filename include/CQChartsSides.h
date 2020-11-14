@@ -16,7 +16,7 @@ class CQChartsSides {
     RIGHT  = (1<<1),
     TOP    = (1<<2),
     BOTTOM = (1<<3),
-    ALL    = LEFT|RIGHT|TOP|BOTTOM
+    ALL    = LEFT | RIGHT | TOP | BOTTOM
   };
 
   using Sides = unsigned int;

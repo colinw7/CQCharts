@@ -297,9 +297,9 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void drawText(PaintDevice *device, const BBox &bbox) const;
 
-  void calcPenBrush(PenBrush &penBrush, bool isPoint, bool updateState) const;
+  void calcPenBrush(PenBrush &penBrush, bool isNodePoint, bool updateState) const;
 
-  bool isPoint() const;
+  bool isNodePoint() const;
 
   //---
 

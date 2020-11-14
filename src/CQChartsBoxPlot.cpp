@@ -2217,7 +2217,7 @@ draw(PaintDevice *device) const
 
   plot_->setBrush(whiskerPenBrush, BrushData(false));
 
-  plot_->updateObjPenBrushState(this, whiskerPenBrush);
+  plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
@@ -2305,7 +2305,7 @@ draw(PaintDevice *device) const
         PenData  (true, strokeColor, plot_->boxShapeData().stroke()),
         BrushData(true, boxColor   , plot_->boxShapeData().fill  ()));
 
-      plot_->updateObjPenBrushState(this, symbolPenBrush, CQChartsPlot::DrawType::SYMBOL);
+      plot_->updateObjPenBrushState(this, symbolPenBrush, drawType());
 
       CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
@@ -2481,7 +2481,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush);
+    plot_->updateObjPenBrushState(this, penBrush, drawType());
 }
 
 void
@@ -2709,7 +2709,7 @@ draw(PaintDevice *device) const
 
   plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -2809,7 +2809,7 @@ draw(PaintDevice *device) const
 
   plot_->setBrush(whiskerPenBrush, BrushData(false));
 
-  plot_->updateObjPenBrushState(this, whiskerPenBrush);
+  plot_->updateObjPenBrushState(this, whiskerPenBrush, drawType());
 
   //---
 
@@ -2824,7 +2824,7 @@ draw(PaintDevice *device) const
               plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
     BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
-  plot_->updateObjPenBrushState(this, penBrush);
+  plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -3147,7 +3147,7 @@ draw(PaintDevice *device) const
                 plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
       BrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
-    plot_->updateObjPenBrushState(this, pPenBrush);
+    plot_->updateObjPenBrushState(this, pPenBrush, drawType());
 
     CQChartsDrawUtil::setPenBrush(device, pPenBrush);
 
@@ -3169,7 +3169,7 @@ draw(PaintDevice *device) const
   plot_->setPen(lPenBrush,
     PenData(true, lineColor, plot_->boxShapeData().stroke()));
 
-  plot_->updateObjPenBrushState(this, lPenBrush);
+  plot_->updateObjPenBrushState(this, lPenBrush, drawType());
 
   device->setPen(lPenBrush.pen);
 
@@ -3472,7 +3472,7 @@ draw(PaintDevice *device) const
 
   plot_->setJitterSymbolPenBrush(penBrush, colorInd);
 
-  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, drawType());
 
   //---
 

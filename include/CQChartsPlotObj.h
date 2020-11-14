@@ -33,9 +33,12 @@ class  CQChartsEditHandles;
 class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString   typeName  READ typeName )
-  Q_PROPERTY(DrawLayer drawLayer READ drawLayer)
+  Q_PROPERTY(QString    typeName   READ typeName  )
+  Q_PROPERTY(DetailHint detailHint READ detailHint)
+  Q_PROPERTY(DrawLayer  drawLayer  READ drawLayer )
+  Q_PROPERTY(bool       zoomText   READ isZoomText WRITE setZoomText)
 
+  Q_ENUMS(DetailHint)
   Q_ENUMS(DrawLayer)
 
  public:
@@ -110,13 +113,19 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  //! get/set zoom text
+  bool isZoomText() const { return zoomText_; }
+  void setZoomText(bool b) { zoomText_ = b; }
+
+  //---
+
   // shapes
 
   // get is polygon and polygon shape
   virtual bool isPolygon() const { return false; }
   virtual Polygon polygon() const { return Polygon(); }
 
-  // get is circle and circle shape
+  // get is circle and circle radius
   virtual bool isCircle() const { return false; }
   virtual double radius() const { return 1.0; }
 
@@ -126,6 +135,26 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //! get is solid (not a point/line)
   virtual bool isSolid() const { return true; }
+
+  //! get is point
+  virtual bool isPoint() const { return false; }
+
+  //! get is text
+  virtual bool isText() const { return false; }
+
+  //! get is image
+  virtual bool isImage() const { return false; }
+
+  //---
+
+  virtual CQChartsObjDrawType drawType() const {
+    if (  isPoint()) return CQChartsObjDrawType::SYMBOL;
+    if (! isSolid()) return CQChartsObjDrawType::LINE;
+    if (  isText ()) return CQChartsObjDrawType::TEXT;
+    if (  isImage()) return CQChartsObjDrawType::IMAGE;
+
+    return CQChartsObjDrawType::BOX;
+  }
 
   //---
 
@@ -307,6 +336,7 @@ class CQChartsPlotObj : public CQChartsObj {
   Plot*                plot_        { nullptr };           //!< parent plot
   DetailHint           detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
   DrawLayer            drawLayer_   { DrawLayer::NONE };   //!< draw layer
+  bool                 zoomText_    { false };             //!< zoom object text
   ColorInd             is_;                                //!< set index
   ColorInd             ig_;                                //!< group index
   ColorInd             iv_;                                //!< value index
