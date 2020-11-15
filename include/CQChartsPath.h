@@ -68,7 +68,16 @@ class CQChartsPath {
 
   //---
 
+  bool isValid() const { return ! path().isEmpty(); }
+
+  //---
+
   QPolygonF qpoly() const { return path().toFillPolygon(); }
+
+  //---
+
+  void move(double dx, double dy);
+  void flip(bool flipX, bool flipY);
 
   //---
 
@@ -110,6 +119,9 @@ class CQChartsPath {
 
     return path_;
   }
+
+  QPainterPath movePath(const QPainterPath &path, double dx, double dy) const;
+  QPainterPath flipPath(const QPainterPath &path, bool flipX, bool flipY) const;
 
  private:
   QPainterPath* path_ { nullptr };

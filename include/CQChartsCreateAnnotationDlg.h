@@ -100,6 +100,14 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsLineEdit*     disabledImageEdit { nullptr };
   };
 
+  struct PathWidgets : public Widgets {
+    QRadioButton*         positionRadio { nullptr };
+    QRadioButton*         rectRadio     { nullptr };
+    CQChartsPositionEdit* positionEdit  { nullptr };
+    CQChartsRectEdit*     rectEdit      { nullptr };
+    CQChartsLineEdit*     pathEdit      { nullptr };
+  };
+
   struct ArrowWidgets : public Widgets {
     CQChartsPositionEdit*  startEdit       { nullptr };
     CQChartsPositionEdit*  endEdit         { nullptr };
@@ -155,6 +163,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void createPolyLineFrame();
   void createTextFrame    ();
   void createImageFrame   ();
+  void createPathFrame    ();
   void createArrowFrame   ();
   void createPointFrame   ();
   void createPieSliceFrame();
@@ -195,6 +204,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool createPolylineAnnotation ();
   bool createTextAnnotation     ();
   bool createImageAnnotation    ();
+  bool createPathAnnotation     ();
   bool createArrowAnnotation    ();
   bool createPointAnnotation    ();
   bool createPieSliceAnnotation ();
@@ -233,6 +243,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   PolylineWidgets   polylineWidgets_;              //!< polyline edit widgets
   TextWidgets       textWidgets_;                  //!< text edit widgets
   ImageWidgets      imageWidgets_;                 //!< image edit widgets
+  PathWidgets       pathWidgets_;                  //!< path edit widgets
   ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
   PointWidgets      pointWidgets_;                 //!< point edit widgets
   PieSliceWidgets   pieSliceWidgets_;              //!< pie slice widgets

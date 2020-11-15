@@ -142,6 +142,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   auto *zoomOutControls = CQUtil::makeWidget<QFrame>("zoom_out");
   auto *panControls     = CQUtil::makeWidget<QFrame>("pan");
   auto *probeControls   = CQUtil::makeWidget<QFrame>("probe");
+  auto *queryControls   = CQUtil::makeWidget<QFrame>("query");
   auto *editControls    = CQUtil::makeWidget<QFrame>("edit");
   auto *regionControls  = CQUtil::makeWidget<QFrame>("region");
 
@@ -150,6 +151,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   controlsStack_->addWidget(zoomOutControls);
   controlsStack_->addWidget(panControls);
   controlsStack_->addWidget(probeControls);
+  controlsStack_->addWidget(queryControls);
   controlsStack_->addWidget(editControls);
   controlsStack_->addWidget(regionControls);
 
@@ -240,6 +242,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   auto *panButton = makePushButton("Reset", "reset", "Reset Pan", SLOT(panResetSlot()));
 
   panControlsLayout->addWidget(panButton);
+
+  //-----
+
+#if 0
+  auto *queryControlsLayout = CQUtil::makeLayout<QHBoxLayout>(queryControls, 0, 2);
+#endif
 
   //-----
 
@@ -474,13 +482,17 @@ updateMode()
     modeCombo_    ->setCurrentIndex(4);
     controlsStack_->setCurrentIndex(4);
   }
-  else if (view()->mode() == CQChartsView::Mode::EDIT) {
+  else if (view()->mode() == CQChartsView::Mode::QUERY) {
     modeCombo_    ->setCurrentIndex(5);
     controlsStack_->setCurrentIndex(5);
   }
-  else if (view()->mode() == CQChartsView::Mode::REGION) {
+  else if (view()->mode() == CQChartsView::Mode::EDIT) {
     modeCombo_    ->setCurrentIndex(6);
     controlsStack_->setCurrentIndex(6);
+  }
+  else if (view()->mode() == CQChartsView::Mode::REGION) {
+    modeCombo_    ->setCurrentIndex(7);
+    controlsStack_->setCurrentIndex(7);
   }
 }
 

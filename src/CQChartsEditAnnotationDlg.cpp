@@ -88,6 +88,8 @@ initWidgets()
     createTextFrame();
   else if (annotation()->type() == CQChartsAnnotation::Type::IMAGE)
     createImageFrame();
+  else if (annotation()->type() == CQChartsAnnotation::Type::PATH)
+    createPathFrame();
   else if (annotation()->type() == CQChartsAnnotation::Type::ARROW)
     createArrowFrame();
   else if (annotation()->type() == CQChartsAnnotation::Type::POINT)
@@ -519,6 +521,12 @@ createImageFrame()
   //---
 
   frameLayout->addStretch(1);
+}
+
+void
+CQChartsEditAnnotationDlg::
+createPathFrame()
+{
 }
 
 void
@@ -1113,6 +1121,8 @@ applySlot()
     rc = updateTextAnnotation();
   else if (annotation()->type() == CQChartsAnnotation::Type::IMAGE)
     rc = updateImageAnnotation();
+  else if (annotation()->type() == CQChartsAnnotation::Type::PATH)
+    rc = updatePathAnnotation();
   else if (annotation()->type() == CQChartsAnnotation::Type::ARROW)
     rc = updateArrowAnnotation();
   else if (annotation()->type() == CQChartsAnnotation::Type::POINT)
@@ -1405,6 +1415,13 @@ updateImageAnnotation()
     annotation->setRectangle(rect);
 
   return true;
+}
+
+bool
+CQChartsEditAnnotationDlg::
+updatePathAnnotation()
+{
+  return false;
 }
 
 bool

@@ -1317,7 +1317,7 @@ addEllipseAnnotation(const Position &center, const Length &xRadius, const Length
 
 CQChartsImageAnnotation *
 CQChartsView::
-addImageAnnotation(const Position &pos, const CQChartsImage &image)
+addImageAnnotation(const Position &pos, const Image &image)
 {
   return addAnnotationT<CQChartsImageAnnotation>(
     new CQChartsImageAnnotation(this, pos, image));
@@ -1325,10 +1325,18 @@ addImageAnnotation(const Position &pos, const CQChartsImage &image)
 
 CQChartsImageAnnotation *
 CQChartsView::
-addImageAnnotation(const CQChartsRect &rect, const CQChartsImage &image)
+addImageAnnotation(const CQChartsRect &rect, const Image &image)
 {
   return addAnnotationT<CQChartsImageAnnotation>(
     new CQChartsImageAnnotation(this, rect, image));
+}
+
+CQChartsPathAnnotation *
+CQChartsView::
+addPathAnnotation(const Path &path)
+{
+  return addAnnotationT<CQChartsPathAnnotation>(
+    new CQChartsPathAnnotation(this, path));
 }
 
 CQChartsKeyAnnotation *

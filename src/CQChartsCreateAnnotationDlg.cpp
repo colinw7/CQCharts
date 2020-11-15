@@ -92,12 +92,14 @@ initWidgets()
 
   layout->addWidget(typeStack_);
 
+  // create widget frames
   createRectFrame    ();
   createEllipseFrame ();
   createPolygonFrame ();
   createPolyLineFrame();
   createTextFrame    ();
   createImageFrame   ();
+  createPathFrame    ();
   createArrowFrame   ();
   createPointFrame   ();
   createPieSliceFrame();
@@ -110,12 +112,16 @@ initWidgets()
   createValueSetFrame();
   createButtonFrame  ();
 
+  //---
+
+  // add to stack
   typeStack_->addWidget(rectWidgets_    .frame);
   typeStack_->addWidget(ellipseWidgets_ .frame);
   typeStack_->addWidget(polygonWidgets_ .frame);
   typeStack_->addWidget(polylineWidgets_.frame);
   typeStack_->addWidget(textWidgets_    .frame);
   typeStack_->addWidget(imageWidgets_   .frame);
+  typeStack_->addWidget(pathWidgets_    .frame);
   typeStack_->addWidget(arrowWidgets_   .frame);
   typeStack_->addWidget(pointWidgets_   .frame);
   typeStack_->addWidget(pieSliceWidgets_.frame);
@@ -158,7 +164,7 @@ typeNames() const
 
   if (strs.length() == 0) {
     strs << "Rectangle" << "Ellipse" << "Polygon" << "Polyline" << "Text" << "Image" <<
-            "Arrow" << "Point" << "Pie Slice";
+            "Path" << "Arrow" << "Point" << "Pie Slice";
 
     if (plot_)
       strs << "Axis";
@@ -490,6 +496,12 @@ createImageFrame()
   //---
 
   frameLayout->addStretch(1);
+}
+
+void
+CQChartsCreateAnnotationDlg::
+createPathFrame()
+{
 }
 
 void
@@ -1018,6 +1030,8 @@ imagePositionSlot(bool)
   }
 }
 
+//---
+
 void
 CQChartsCreateAnnotationDlg::
 okSlot()
@@ -1034,32 +1048,39 @@ applySlot()
 
   bool rc = false;
 
-  if      (ind == 0) rc = createRectangleAnnotation();
-  else if (ind == 1) rc = createEllipseAnnotation  ();
-  else if (ind == 2) rc = createPolygonAnnotation  ();
-  else if (ind == 3) rc = createPolylineAnnotation ();
-  else if (ind == 4) rc = createTextAnnotation     ();
-  else if (ind == 5) rc = createImageAnnotation    ();
-  else if (ind == 6) rc = createArrowAnnotation    ();
-  else if (ind == 7) rc = createPointAnnotation    ();
-  else if (ind == 8) rc = createPieSliceAnnotation ();
+  int ind1 = 0;
+
+  if (ind == ind1++) rc = createRectangleAnnotation();
+  if (ind == ind1++) rc = createEllipseAnnotation  ();
+  if (ind == ind1++) rc = createPolygonAnnotation  ();
+  if (ind == ind1++) rc = createPolylineAnnotation ();
+  if (ind == ind1++) rc = createTextAnnotation     ();
+  if (ind == ind1++) rc = createImageAnnotation    ();
+  if (ind == ind1++) rc = createPathAnnotation     ();
+  if (ind == ind1++) rc = createArrowAnnotation    ();
+  if (ind == ind1++) rc = createPointAnnotation    ();
+  if (ind == ind1++) rc = createPieSliceAnnotation ();
 
   if (plot_) {
-    if      (ind == 9 ) rc = createAxisAnnotation    ();
-    else if (ind == 10) rc = createKeyAnnotation     ();
-    else if (ind == 11) rc = createPointSetAnnotation();
-    else if (ind == 12) rc = createValueSetAnnotation();
-    else if (ind == 13) rc = createButtonAnnotation  ();
+    if (ind == ind1++) rc = createAxisAnnotation();
   }
-  else {
-    if      (ind ==  9) rc = createKeyAnnotation     ();
-    else if (ind == 10) rc = createPointSetAnnotation();
-    else if (ind == 11) rc = createValueSetAnnotation();
-    else if (ind == 12) rc = createButtonAnnotation  ();
-  }
+
+  if (ind == ind1++) rc = createKeyAnnotation     ();
+  if (ind == ind1++) rc = createPointSetAnnotation();
+  if (ind == ind1++) rc = createValueSetAnnotation();
+  if (ind == ind1++) rc = createButtonAnnotation  ();
 
   return rc;
 }
+
+void
+CQChartsCreateAnnotationDlg::
+cancelSlot()
+{
+  close();
+}
+
+//---
 
 bool
 CQChartsCreateAnnotationDlg::
@@ -1404,6 +1425,13 @@ createImageAnnotation()
 
 bool
 CQChartsCreateAnnotationDlg::
+createPathAnnotation()
+{
+  return false;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
 createArrowAnnotation()
 {
   CQChartsShapeData shapeData;
@@ -1685,12 +1713,7 @@ createButtonAnnotation()
   return false;
 }
 
-void
-CQChartsCreateAnnotationDlg::
-cancelSlot()
-{
-  close();
-}
+//------
 
 bool
 CQChartsCreateAnnotationDlg::

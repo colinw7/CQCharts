@@ -34,6 +34,7 @@ class CQChartsArrowAnnotation;
 class CQChartsButtonAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
+class CQChartsPathAnnotation;
 class CQChartsKeyAnnotation;
 class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
@@ -237,6 +238,7 @@ class CQChartsView : public QFrame,
   using Angle       = CQChartsAngle;
   using Symbol      = CQChartsSymbol;
   using Image       = CQChartsImage;
+  using Path        = CQChartsPath;
   using Widget      = CQChartsWidget;
   using Font        = CQChartsFont;
   using Color       = CQChartsColor;
@@ -547,6 +549,7 @@ class CQChartsView : public QFrame,
   using ButtonAnnotation    = CQChartsButtonAnnotation;
   using EllipseAnnotation   = CQChartsEllipseAnnotation;
   using ImageAnnotation     = CQChartsImageAnnotation;
+  using PathAnnotation      = CQChartsPathAnnotation;
   using KeyAnnotation       = CQChartsKeyAnnotation;
   using PieSliceAnnotation  = CQChartsPieSliceAnnotation;
   using PointAnnotation     = CQChartsPointAnnotation;
@@ -572,6 +575,7 @@ class CQChartsView : public QFrame,
                                               const Length &yRadius);
   ImageAnnotation     *addImageAnnotation    (const Position &pos, const Image &image);
   ImageAnnotation     *addImageAnnotation    (const Rect &rect, const Image &image);
+  PathAnnotation      *addPathAnnotation     (const Path &path);
   KeyAnnotation       *addKeyAnnotation      ();
   PieSliceAnnotation  *addPieSliceAnnotation (const Position &pos, const Length &innerRadius,
                                               const Length &outerRadius, const Angle &startAngle,

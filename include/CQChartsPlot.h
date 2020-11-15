@@ -55,6 +55,7 @@ class CQChartsAxisAnnotation;
 class CQChartsButtonAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
+class CQChartsPathAnnotation;
 class CQChartsKeyAnnotation;
 class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
@@ -416,6 +417,7 @@ class CQChartsPlot : public CQChartsObj,
   using Position    = CQChartsPosition;
   using Rect        = CQChartsRect;
   using Image       = CQChartsImage;
+  using Path        = CQChartsPath;
   using Widget      = CQChartsWidget;
 
   using PaintDevice       = CQChartsPaintDevice;
@@ -2042,6 +2044,7 @@ class CQChartsPlot : public CQChartsObj,
   using ButtonAnnotation       = CQChartsButtonAnnotation;
   using EllipseAnnotation      = CQChartsEllipseAnnotation;
   using ImageAnnotation        = CQChartsImageAnnotation;
+  using PathAnnotation         = CQChartsPathAnnotation;
   using KeyAnnotation          = CQChartsKeyAnnotation;
   using PieSliceAnnotation     = CQChartsPieSliceAnnotation;
   using PointAnnotation        = CQChartsPointAnnotation;
@@ -2068,6 +2071,7 @@ class CQChartsPlot : public CQChartsObj,
                                                     const Length &yRadius);
   ImageAnnotation        *addImageAnnotation       (const Position &pos, const Image &image);
   ImageAnnotation        *addImageAnnotation       (const Rect &rect, const Image &image);
+  PathAnnotation         *addPathAnnotation        (const Path &path);
   KeyAnnotation          *addKeyAnnotation         (const CQChartsColumn &column=CQChartsColumn());
   PieSliceAnnotation     *addPieSliceAnnotation    (const Position &pos, const Length &innerRadius,
                                                     const Length &outerRadius,

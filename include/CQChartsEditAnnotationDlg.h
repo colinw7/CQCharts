@@ -152,6 +152,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   void createPolyLineFrame();
   void createTextFrame    ();
   void createImageFrame   ();
+  void createPathFrame    ();
   void createArrowFrame   ();
   void createPointFrame   ();
   void createPieSliceFrame();
@@ -196,6 +197,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   bool updatePolylineAnnotation ();
   bool updateTextAnnotation     ();
   bool updateImageAnnotation    ();
+  bool updatePathAnnotation     ();
   bool updateArrowAnnotation    ();
   bool updatePointAnnotation    ();
   bool updatePieSliceAnnotation ();

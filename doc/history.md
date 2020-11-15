@@ -1238,3 +1238,7 @@
  + Support zoom text for plot object (enable in sankey)
  + Fix zoom data rect clip
  + support probe for all positions
+# 11/15/2020
+ + Add path annotation
+ + Improve path parser
+ + Support annotation group flip and allow skip layout

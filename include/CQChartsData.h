@@ -153,6 +153,8 @@ CQUTIL_DCL_META_TYPE(CQChartsTextData)
  * \ingroup Charts
  *
  *   visible, color, alpha, width, dash
+ *
+ *   TODO: line cap, line join
  */
 class CQChartsLineData {
  public:

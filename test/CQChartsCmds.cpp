@@ -168,6 +168,8 @@ addCommands()
                new CQChartsCreateChartsEllipseAnnotationCmd     (this));
     addCommand("create_charts_image_annotation"    ,
                new CQChartsCreateChartsImageAnnotationCmd       (this));
+    addCommand("create_charts_path_annotation"     ,
+               new CQChartsCreateChartsPathAnnotationCmd        (this));
     addCommand("create_charts_key_annotation"      ,
                new CQChartsCreateChartsKeyAnnotationCmd         (this));
     addCommand("create_charts_pie_slice_annotation",
@@ -7556,6 +7558,127 @@ exec(CQChartsCmdArgs &argv)
 
   if (! annotation)
     return errorMsg("Failed to create image annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  if (group)
+    group->addAnnotation(annotation);
+
+  //---
+
+  // set properties
+  cmds()->setAnnotationArgProperties(argv, annotation);
+
+  //---
+
+  return cmdBase_->setCmdRc(annotation->pathId());
+}
+
+//------
+
+void
+CQChartsCreateChartsPathAnnotationCmd::
+addArgs(CQChartsCmdArgs &argv)
+{
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::String, "annotation group");
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-path", CQChartsCmdArg::Type::String, "path string");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+}
+
+QStringList
+CQChartsCreateChartsPathAnnotationCmd::
+getArgValues(const QString &arg, const NameValueMap &)
+{
+  if      (arg == "view") return cmds()->viewArgValues();
+  else if (arg == "plot") return cmds()->plotArgValues(nullptr);
+
+  return QStringList();
+}
+
+bool
+CQChartsCreateChartsPathAnnotationCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts()->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCreateChartsPathAnnotationCmd::exec");
+
+  addArgs(argv);
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get parent plot or view
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (! cmds()->getViewPlotArg(argv, view, plot))
+    return false;
+
+  //---
+
+  // get parent group
+  CQChartsAnnotationGroup *group = nullptr;
+
+  if (argv.hasParseArg("group")) {
+    group = dynamic_cast<CQChartsAnnotationGroup *>(
+              cmds()->getAnnotationByName(argv.getParseStr("group")));
+    if (! group) return false;
+  }
+
+  //---
+
+  // get id and tip
+  auto id    = argv.getParseStr("id");
+  auto tipId = argv.getParseStr("tip");
+
+  //---
+
+  // get path
+  auto pathStr = argv.getParseStr("path");
+
+  CQChartsPath path(pathStr);
+
+  if (! path.isValid())
+    return errorMsg(QString("Invalid path string '%1'").arg(pathStr));
+
+  //---
+
+  // create annotation
+  CQChartsPathAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPathAnnotation(path);
+  else if (plot)
+    annotation = plot->addPathAnnotation(path);
+
+  if (! annotation)
+    return errorMsg("Failed to create path annotation");
 
   if (id != "")
     annotation->setId(id);

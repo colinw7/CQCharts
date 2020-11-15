@@ -9,6 +9,7 @@
 #include <CQChartsOptRect.h>
 #include <CQChartsOptPosition.h>
 #include <CQChartsPolygon.h>
+#include <CQChartsPath.h>
 #include <CQChartsPoints.h>
 #include <CQChartsReals.h>
 #include <CQChartsGeom.h>
@@ -54,6 +55,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     POLYLINE,
     TEXT,
     IMAGE,
+    PATH,
     ARROW,
     POINT,
     PIE_SLICE,
@@ -343,8 +345,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 class CQChartsAnnotationGroup : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(Qt::Orientation orientation   READ orientation   WRITE setOrientation  )
-  Q_PROPERTY(Qt::Alignment   alignment     READ alignment     WRITE setAlignment    )
+  Q_PROPERTY(bool            layout        READ isLayout      WRITE setLayout       )
+  Q_PROPERTY(Qt::Orientation layoutOrient  READ layoutOrient  WRITE setLayoutOrient )
+  Q_PROPERTY(Qt::Alignment   layoutAlign   READ layoutAlign   WRITE setLayoutAlign  )
   Q_PROPERTY(int             layoutMargin  READ layoutMargin  WRITE setLayoutMargin )
   Q_PROPERTY(int             layoutSpacing READ layoutSpacing WRITE setLayoutSpacing)
 
@@ -362,11 +365,15 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   //---
 
-  const Qt::Orientation &orientation() const { return orientation_; }
-  void setOrientation(const Qt::Orientation &o) { orientation_ = o; invalidateLayout(); }
+  // layout
+  bool isLayout() const { return layout_; }
+  void setLayout(bool b) { layout_ = b; invalidateLayout(); }
 
-  const Qt::Alignment &alignment() const { return align_; }
-  void setAlignment(const Qt::Alignment &a) { align_ = a; invalidateLayout(); }
+  const Qt::Orientation &layoutOrient() const { return layoutOrient_; }
+  void setLayoutOrient(const Qt::Orientation &o) { layoutOrient_ = o; invalidateLayout(); }
+
+  const Qt::Alignment &layoutAlign() const { return layoutAlign_; }
+  void setLayoutAlign(const Qt::Alignment &a) { layoutAlign_ = a; invalidateLayout(); }
 
   int layoutMargin() const { return layoutMargin_; }
   void setLayoutMargin(int i) { layoutMargin_ = i; invalidateLayout(); }
@@ -376,7 +383,7 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   //---
 
-  void addAnnotation(CQChartsAnnotation *annotation);
+  void addAnnotation   (CQChartsAnnotation *annotation);
   void removeAnnotation(CQChartsAnnotation *annotation);
 
   //---
@@ -385,12 +392,21 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
 
   //---
 
-  bool inside(const Point &p) const override;
-
   void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
 
+  void flip(Qt::Orientation orient) override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
   void layout();
+
   void invalidateLayout() { needsLayout_ = true; invalidate(); }
+
+  //---
 
   void draw(PaintDevice *device) override;
 
@@ -404,8 +420,9 @@ class CQChartsAnnotationGroup : public CQChartsAnnotation {
   using Annotations = std::vector<CQChartsAnnotation *>;
 
   Annotations     annotations_;
-  Qt::Orientation orientation_   { Qt::Horizontal };
-  Qt::Alignment   align_         { Qt::AlignHCenter | Qt::AlignVCenter };
+  bool            layout_        { false };
+  Qt::Orientation layoutOrient_  { Qt::Horizontal };
+  Qt::Alignment   layoutAlign_   { Qt::AlignHCenter | Qt::AlignVCenter };
   int             layoutMargin_  { 2 }; //!< layout margin in pixel
   int             layoutSpacing_ { 2 }; //!< layout spacing in pixel
   mutable bool    needsLayout_   { true };
@@ -801,6 +818,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
+  //---
+
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
@@ -897,6 +916,8 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
 
+  //---
+
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
@@ -956,6 +977,76 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   Image             image_;                                         //!< image
   Image             disabledImage_;                                 //!< disabled image
   DisabledImageType disabledImageType_ { DisabledImageType::NONE }; //!< disabled image type
+};
+
+//---
+
+/*!
+ * \brief path annotation
+ * \ingroup Charts
+ *
+ * Path shape
+ */
+class CQChartsPathAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsObjRef objRef READ objRef WRITE setObjRef)
+  Q_PROPERTY(CQChartsPath   path   READ path   WRITE setPath  )
+
+ public:
+  using Path = CQChartsPath;
+
+ public:
+  CQChartsPathAnnotation(View *view, const Path &path=Path());
+  CQChartsPathAnnotation(Plot *plot, const Path &path=Path());
+
+  virtual ~CQChartsPathAnnotation();
+
+  //---
+
+  const char *typeName() const override { return "path"; }
+
+  const char *propertyName() const override { return "pathAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_path_annotation"; }
+
+  //---
+
+  const ObjRef &objRef() const { return objRef_; }
+  void setObjRef(const ObjRef &o) { objRef_ = o; }
+
+  //---
+
+  const Path &path() const { return path_; }
+  void setPath(const Path &path);
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  void flip(Qt::Orientation orient) override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private:
+  ObjRef objRef_;    //!< object ref
+  Path   path_;      //!< path
 };
 
 //---
@@ -1679,6 +1770,8 @@ class CQChartsWidgetAnnotation : public CQChartsAnnotation {
 
   Rect rectangleValue() const;
   void setRectangle(const Rect &r);
+
+  //---
 
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }

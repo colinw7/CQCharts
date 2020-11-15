@@ -11302,6 +11302,14 @@ addImageAnnotation(const Rect &rect, const Image &image)
     new CQChartsImageAnnotation(this, rect, image));
 }
 
+CQChartsPathAnnotation *
+CQChartsPlot::
+addPathAnnotation(const Path &path)
+{
+  return addAnnotationT<CQChartsPathAnnotation>(
+    new CQChartsPathAnnotation(this, path));
+}
+
 CQChartsKeyAnnotation *
 CQChartsPlot::
 addKeyAnnotation(const Column &column)
