@@ -42,6 +42,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   using Angle       = CQChartsAngle;
   using Margin      = CQChartsGeom::Margin;
   using BBox        = CQChartsGeom::BBox;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsDataLabel(Plot *plot);

@@ -409,8 +409,12 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // search for objects under mouse
+
   int searchTimeout() const { return searchTimeout_; }
   void setSearchTimeout(int i);
+
+  void searchMouse();
 
   //---
 
@@ -778,6 +782,8 @@ class CQChartsView : public QFrame,
   //---
 
   // update cursor position text
+  void updateMousePosText();
+
   void updatePosText(const Point &pos);
 
   //---
@@ -1162,7 +1168,10 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void showBoxesSlot(bool b);
+  void showBoxesSlot        (bool b);
+  void showSelectedBoxesSlot(bool b);
+
+  //---
 
   void bufferLayersSlot(bool b);
 
@@ -1215,6 +1224,7 @@ class CQChartsView : public QFrame,
   void panMouseMove();
 
   void queryMousePress();
+  void queryMouseMotion();
 
   void resetConnections(bool notify);
   void resetConnections(const Plots &plots, bool notify);

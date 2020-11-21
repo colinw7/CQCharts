@@ -1226,8 +1226,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 
 namespace CQChartsUtil {
 
-void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAlpha &strokeAlpha,
-            double strokeWidth, const CQChartsLineDash &strokeDash) {
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
+            double strokeWidth, const LineDash &strokeDash, const LineCap &lineCap) {
   double width = limitLineWidth(strokeWidth);
 
   // calc pen (stroke)
@@ -1246,17 +1246,19 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const CQChartsAl
       pen.setWidthF(0.0);
 
     penSetLineDash(pen, strokeDash);
+
+    pen.setCapStyle(lineCap.cap());
   }
   else {
     pen.setStyle(Qt::NoPen);
   }
 }
 
-void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChartsAlpha &fillAlpha,
-              const CQChartsFillPattern &pattern) {
+void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &fillAlpha,
+              const FillPattern &pattern) {
   // calc brush (fill)
   if (filled) {
-    if      (pattern.type() == CQChartsFillPattern::Type::LGRADIENT) {
+    if      (pattern.type() == FillPattern::Type::LGRADIENT) {
       QLinearGradient lg(0, 0, 1, 1);
 
       lg.setCoordinateMode(QGradient::ObjectBoundingMode);
@@ -1266,7 +1268,7 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const CQChart
 
       brush = QBrush(lg);
     }
-    else if (pattern.type() == CQChartsFillPattern::Type::PALETTE) {
+    else if (pattern.type() == FillPattern::Type::PALETTE) {
       int paletteInd = CQColorsMgrInst->getNamedPaletteInd(pattern.palette());
       if (paletteInd < 0) paletteInd = 0;
 

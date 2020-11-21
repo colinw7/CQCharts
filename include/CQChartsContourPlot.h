@@ -54,6 +54,9 @@ class CQChartsContourPlot : public CQChartsPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Contour, contour)
 
  public:
+  using Color = CQChartsColor;
+
+ public:
   CQChartsContourPlot(View *view, const ModelP &model);
  ~CQChartsContourPlot();
 

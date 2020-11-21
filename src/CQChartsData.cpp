@@ -156,6 +156,9 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (dash() != LineDash())
     nameValues.setNameValueType<LineDash>("dash", dash());
+
+  if (lineCap() != LineCap())
+    nameValues.setNameValueType<LineCap>("cap", lineCap());
 }
 
 bool
@@ -182,8 +185,9 @@ getNameValues(const CQChartsNameValues &nameValues)
   (void) nameValues.nameValueColor("color"  , color_  , ok1); if (! ok1) ok = false;
   (void) nameValueAlpha           ("alpha"  , alpha_  , ok1); if (! ok1) ok = false;
 
-  (void) nameValues.nameValueType<Length>  ("width", width_, ok1); if (! ok1) ok = false;
-  (void) nameValues.nameValueType<LineDash>("dash" , dash_ , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<Length>  ("width", width_  , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<LineDash>("dash" , dash_   , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<LineCap> ("cap"  , lineCap_, ok1); if (! ok1) ok = false;
 
   return ok;
 }
@@ -486,6 +490,9 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (dash() != LineDash())
     nameValues.setNameValueType<LineDash>("strokeDash" , dash());
 
+  if (lineCap() != LineCap())
+    nameValues.setNameValueType<LineCap>("cap", lineCap());
+
   if (cornerSize() != Length("0px"))
     nameValues.setNameValueType<Length>("strokeCornerSize", cornerSize());
 }
@@ -518,6 +525,9 @@ getNameValues(const CQChartsNameValues &nameValues)
   if (! ok1) ok = false;
 
   (void) nameValues.nameValueType<LineDash>("strokeDash", dash_, ok1);
+  if (! ok1) ok = false;
+
+  (void) nameValues.nameValueType<LineCap>("strokeCap", lineCap_, ok1);
   if (! ok1) ok = false;
 
   (void) nameValues.nameValueType<Length>("strokeCornerSize", cornerSize_, ok1);

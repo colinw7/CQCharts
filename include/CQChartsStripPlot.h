@@ -111,6 +111,12 @@ class CQChartsStripPlot : public CQChartsGroupPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
+  using Symbol   = CQChartsSymbol;
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsStripPlot(View *view, const ModelP &model);
  ~CQChartsStripPlot();
 

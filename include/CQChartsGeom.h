@@ -188,8 +188,8 @@ class Point {
   //-----
 
   Point rotate(const Point &center, double da) const {
-    double s = sin(da);
-    double c = cos(da);
+    double s = std::sin(da);
+    double c = std::cos(da);
 
     double x1 = x - center.x;
     double y1 = y - center.y;
@@ -1665,7 +1665,7 @@ class Matrix {
   }
 
   void setReflection(double a) {
-    setUnitInnerReflection(cos(a), sin(a));
+    setUnitInnerReflection(std::cos(a), std::sin(a));
     setOuterIdentity      ();
     setBottomIdentity     ();
   }
@@ -1969,7 +1969,7 @@ class Matrix {
   }
 
   double getAngle() const {
-    return asin(m10_);
+    return std::asin(m10_);
   }
 
   void getSize(double *sx, double *sy) const {
@@ -2150,30 +2150,30 @@ class Matrix {
   }
 
   void setInnerRotation(double a) {
-    double c = ::cos(a);
-    double s = ::sin(a);
+    double c = std::cos(a);
+    double s = std::sin(a);
 
     m00_ =  c, m01_ = -s;
     m10_ =  s, m11_ =  c;
   }
 
   void setInnerSkew(double x, double y) {
-    double tx = ::tan(x);
-    double ty = ::tan(y);
+    double tx = std::tan(x);
+    double ty = std::tan(y);
 
     m00_ = 1 , m01_ = tx;
     m10_ = ty, m11_ = 1 ;
   }
 
   void setInnerSkewX(double x) {
-    double tx = ::tan(x);
+    double tx = std::tan(x);
 
     m00_ = 1, m01_ = tx;
     m10_ = 0, m11_ = 1 ;
   }
 
   void setInnerSkewY(double y) {
-    double ty = ::tan(y);
+    double ty = std::tan(y);
 
     m00_ = 1 , m01_ = 0;
     m10_ = ty, m11_ = 1;
@@ -2275,14 +2275,14 @@ using Point = CQChartsGeom::Point;
 
 // point on circle perimeter (center (c), radius(r), radian angle (a))
 inline Point circlePoint(const Point &c, double r, double a) {
-  double ca = cos(a); double sa = sin(a);
+  double ca = std::cos(a); double sa = std::sin(a);
 
   return Point(c.x + r*ca, c.y + r*sa);
 }
 
 #if 0
 inline Point ellipsePoint(const Point &c, double xr, double yr, double a) {
-  double ca = cos(a); double sa = sin(a);
+  double ca = std::cos(a); double sa = std::sin(a);
 
   double n = xr*yr;
   double d = std::hypot(xr*sa, yr*ca);

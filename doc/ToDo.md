@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + object reference for path annotation
+ + tip on mouse pressed when locked
  + probe, no snap to object, snap to coord (axis minor tick)
  + annotations have 'fit' property to be included in plot fit algorithm
  + zoom in should zoom plot background ?
@@ -24,6 +26,7 @@ TODO:
    + signal on show
    + show in separate area
    + set position (tl, br, ...)
+   + show at mouse
  + more objects in scatter plot (point plot) overlays
    + use objects ?? mouse over tip ....
  + Completion

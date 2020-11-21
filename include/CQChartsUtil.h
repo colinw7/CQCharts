@@ -273,15 +273,20 @@ void findStringCaseSplits(const QString &str, std::vector<int> &splits);
 
 namespace CQChartsUtil {
 
-void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
+using Alpha       = CQChartsAlpha;
+using LineDash    = CQChartsLineDash;
+using LineCap     = CQChartsLineCap;
+using FillPattern = CQChartsFillPattern;
+
+void penSetLineDash(QPen &pen, const LineDash &dash);
 
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
-            const CQChartsAlpha &strokeAlpha=CQChartsAlpha(),
-            double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());
+            const Alpha &strokeAlpha=Alpha(), double strokeWidth=0.0,
+            const LineDash &strokeDash=LineDash(), const LineCap &strokeCap=LineCap());
 
 void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
-              const CQChartsAlpha &fillAlpha=CQChartsAlpha(),
-              const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
+              const Alpha &fillAlpha=Alpha(),
+              const FillPattern &pattern=FillPattern::Type::SOLID);
 
 double limitLineWidth(double w);
 

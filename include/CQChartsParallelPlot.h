@@ -179,6 +179,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
+  using Color    = CQChartsColor;
+  using Alpha    = CQChartsAlpha;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using PenBrush = CQChartsPenBrush;
+
+ public:
   CQChartsParallelPlot(View *view, const ModelP &model);
  ~CQChartsParallelPlot();
 

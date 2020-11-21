@@ -75,7 +75,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
   // handle edit press, move, motion, release
   virtual bool editPress  (const Point &) { return false; }
   virtual bool editMove   (const Point &) { return false; }
-  virtual bool editMotion (const Point &) { return false; }
+  virtual bool editMotion (const Point &) { return false; } // return true if inside
   virtual bool editRelease(const Point &) { return true; }
 
   //! handle edit move by (move)

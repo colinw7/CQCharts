@@ -434,6 +434,9 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   using HierNode = CQChartsBubbleHierNode;
   using HierObj  = CQChartsBubbleHierObj;
   using NodeObj  = CQChartsBubbleNodeObj;
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsBubblePlot(View *view, const ModelP &model);

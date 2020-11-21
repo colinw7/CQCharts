@@ -274,19 +274,23 @@ setAlignEnds(bool b)
   CQChartsUtil::testAndSet(alignEnds_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlot::
 setSortPathIdNodes(bool b)
 {
   CQChartsUtil::testAndSet(sortPathIdNodes_, b, [&]() { updateRangeAndObjs(); } );
 }
+#endif
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlot::
 setSortPathIdEdges(bool b)
 {
   CQChartsUtil::testAndSet(sortPathIdEdges_, b, [&]() { updateRangeAndObjs(); } );
 }
+#endif
 
 void
 CQChartsSankeyPlot::
@@ -381,8 +385,10 @@ addProperties()
   addProp("placement", "align"             , "align"             , "Node alignment");
   addProp("placement", "spread"            , "spread"            , "Node spread");
   addProp("placement", "alignEnds"         , "alignEnds"         , "Align start/end nodes");
+#ifdef CQCHARTS_GRAPH_PATH_ID
   addProp("placement", "sortPathIdNodes"   , "sortPathIdNodes"   , "Sort depth nodes by path id");
   addProp("placement", "sortPathIdEdges"   , "sortPathIdEdges"   , "Sort node edges by path id");
+#endif
   addProp("placement", "adjustNodes"       , "adjustNodes"       , "Adjust node placement");
   addProp("placement", "adjustCenters"     , "adjustCenters"     , "Adjust node centers");
   addProp("placement", "removeOverlaps"    , "removeOverlaps"    , "Remove overlapping nodes");
@@ -548,7 +554,9 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   pathIdMinMax_.reset();
+#endif
 
   //---
 
@@ -1038,16 +1046,21 @@ addFromToValue(const FromToData &fromToData) const
     addModelInd(fromToData.toModelInd    );
     addModelInd(fromToData.valueModelInd );
     addModelInd(fromToData.depthModelInd );
+#ifdef CQCHARTS_GRAPH_PATH_ID
     addModelInd(fromToData.pathIdModelInd);
+#endif
 
     edge->setNamedColumn("From"  , fromToData.fromModelInd  .column());
     edge->setNamedColumn("To"    , fromToData.toModelInd    .column());
     edge->setNamedColumn("Value" , fromToData.valueModelInd .column());
     edge->setNamedColumn("Depth" , fromToData.depthModelInd .column());
+#ifdef CQCHARTS_GRAPH_PATH_ID
     edge->setNamedColumn("PathId", fromToData.pathIdModelInd.column());
+#endif
 
     //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
     // set path id if column specified
     if (fromToData.pathId.isSet()) {
       int pathId = fromToData.pathId.integer();
@@ -1056,6 +1069,7 @@ addFromToValue(const FromToData &fromToData) const
 
       pathIdMinMax_.add(pathId);
     }
+#endif
 
     //---
 
@@ -1337,23 +1351,7 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
     const auto &name  = nv.first;
     auto        value = nv.second.toString();
 
-    // TODO: remove path_id and color (use columns)
-
-    if      (name == "path_id") {
-      bool ok;
-      int pathId = value.toInt(&ok);
-      if (! ok || pathId < 0) continue;
-
-      edge->setPathId(pathId);
-
-      pathIdMinMax_.add(pathId);
-    }
-#if 0
-    else if (name == "label") {
-      edge->setLabel(value);
-    }
-#endif
-    else if (name == "color") {
+    if      (name == "color") {
       edge->setFillColor(CQChartsColor(value));
     }
     else if (name.left(4) == "src_") {
@@ -1362,6 +1360,23 @@ processEdgeNameValues(Edge *edge, const NameValues &nameValues) const
     else if (name.left(5) == "dest_") {
       processNodeNameValue(destNode, name.mid(5), value);
     }
+#if 0
+    else if (name == "label") {
+      edge->setLabel(value);
+    }
+#endif
+#ifdef CQCHARTS_GRAPH_PATH_ID
+    // TODO: remove path_id and color (use columns)
+    else if (name == "path_id") {
+      bool ok;
+      int pathId = value.toInt(&ok);
+      if (! ok || pathId < 0) continue;
+
+      edge->setPathId(pathId);
+
+      pathIdMinMax_.add(pathId);
+    }
+#endif
   }
 }
 
@@ -1407,16 +1422,20 @@ createObjsGraph(PlotObjs &objs) const
   // place graph
   placeGraph(/*placed*/false);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   // adjust rects to match path id
-  adjustSrcDestRects();
+  adjustPathIdSrcDestRects();
+#endif
 
   //---
 
   // re-place graph using placed edges
   placeGraph(/*placed*/true);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   // adjust rects to match path id
-  adjustSrcDestRects();
+  adjustPathIdSrcDestRects();
+#endif
 
   //---
 
@@ -1509,9 +1528,11 @@ placeGraphNodes(const Nodes &nodes, bool placed) const
 
   //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   // sort x nodes by associated path ids
   if (hasAnyPathId())
-    th->sortDepthNodes();
+    th->sortPathIdDepthNodes();
+#endif
 
   //---
 
@@ -1586,9 +1607,10 @@ calcGraphNodesXPos(const Nodes &nodes) const
   }
 }
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlot::
-sortDepthNodes(bool force)
+sortPathIdDepthNodes(bool force)
 {
   if (! force && ! isSortPathIdNodes())
     return;
@@ -1610,10 +1632,12 @@ sortDepthNodes(bool force)
     depthNodes.second.nodes = nodes;
   }
 }
+#endif
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlot::
-adjustSrcDestRects() const
+adjustPathIdSrcDestRects() const
 {
   if (! hasAnyPathId())
     return;
@@ -1623,8 +1647,9 @@ adjustSrcDestRects() const
 
   // adjust node rects to align on matching path id
   for (auto *node : graph_->nodes())
-    node->adjustSrcDestRects();
+    node->adjustPathIdSrcDestRects();
 }
+#endif
 
 void
 CQChartsSankeyPlot::
@@ -2004,7 +2029,7 @@ adjustNodeCenters(bool placed, bool force) const
   bool changed = false;
 
   if (placed)
-    placeEdges();
+    placeEdges(); /* reset */
 
   if (align() == Align::LARGEST) {
     int minX = this->minX();
@@ -2601,7 +2626,11 @@ createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool incre
     // use distance from bottom (increasing) or distance from top (decreasing)
     double y = (increasing ? rect.getYMid() - bbox.getYMin() : bbox.getYMax() - rect.getYMid());
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
     NodeYPos ypos(y, node->id(), increasing ? node->minPathId() : -node->minPathId());
+#else
+    NodeYPos ypos(y, node->id());
+#endif
 
     auto p = posNodeMap.find(ypos);
     assert(p == posNodeMap.end());
@@ -2627,7 +2656,11 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     // use distance from top (decreasing)
     double y = bbox.getYMax() - rect.getYMid();
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
     NodeYPos ypos(y, edge->id(), -node->minPathId());
+#else
+    NodeYPos ypos(y, edge->id());
+#endif
 
     auto p = posEdgeMap.find(ypos);
     assert(p == posEdgeMap.end());
@@ -2656,6 +2689,12 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
         srcBBox += srcNode->rect();
       else {
         if (srcNode->hasDestEdgeRect(edge)) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
+          srcNode->adjustPathIdSrcDestRects();
+#endif
+
+          //---
+
           auto srcRect = srcNode->destEdgeRect(edge);
 
           if (srcRect.isSet())
@@ -2685,6 +2724,12 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
         destBBox += destNode->rect();
       else {
         if (destNode->hasSrcEdgeRect(edge)) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
+          destNode->adjustPathIdSrcDestRects();
+#endif
+
+          //---
+
           auto destRect = destNode->srcEdgeRect(edge);
 
           if (destRect.isSet())
@@ -2824,7 +2869,7 @@ keyPress(int key, int modifier)
   else if (key == Qt::Key_P) {
     placeGraph(/*placed*/false);
 
-    placeEdges();
+    placeEdges(); /* reset */
 
     drawObjs();
   }
@@ -2928,6 +2973,7 @@ addDestEdge(Edge *edge, bool primary)
     nonPrimaryEdges_.push_back(edge);
 }
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlotNode::
 sortPathIdEdges(bool force)
@@ -2959,7 +3005,9 @@ sortPathIdEdges(bool force)
     for (const auto &edge : pe.second)
       destEdges_.push_back(edge);
 }
+#endif
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 int
 CQChartsSankeyPlotNode::
 minPathId() const
@@ -2984,6 +3032,7 @@ minPathId() const
 
   return minPathId;
 }
+#endif
 
 bool
 CQChartsSankeyPlotNode::
@@ -3197,7 +3246,7 @@ scale(double /*fx*/, double fy)
 
   //---
 
-  placeEdges();
+  placeEdges(/*reset*/true);
 }
 
 //---
@@ -3213,8 +3262,10 @@ placeEdges(bool reset)
 
   //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   if (plot()->hasAnyPathId())
     sortPathIdEdges();
+#endif
 
   //---
 
@@ -3336,8 +3387,10 @@ setSrcEdgeRect(Edge *edge, const BBox &bbox)
 {
   srcEdgeRect_[edge] = bbox;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   if (edge->pathId() >= 0)
     srcPathIdRect_[edge->pathId()] = bbox;
+#endif
 }
 
 void
@@ -3346,13 +3399,16 @@ setDestEdgeRect(Edge *edge, const BBox &bbox)
 {
   destEdgeRect_[edge] = bbox;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   if (edge->pathId() >= 0)
     destPathIdRect_[edge->pathId()] = bbox;
+#endif
 }
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsSankeyPlotNode::
-adjustSrcDestRects()
+adjustPathIdSrcDestRects()
 {
   if (! plot_->useMaxTotals())
     return;
@@ -3396,6 +3452,7 @@ adjustSrcDestRects()
     }
   }
 }
+#endif
 
 //---
 
@@ -3602,7 +3659,7 @@ CQChartsSankeyNodeObj(const Plot *plot, const BBox &rect, Node *node,
 
   //---
 
-//placeEdges();
+//placeEdges(/*reset*/true);
 }
 
 CQChartsSankeyNodeObj::
@@ -3910,7 +3967,7 @@ draw(PaintDevice *device) const
     if (plot_->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      drawConnectionMouseOver(device, (int) plot_->mouseColoring(), -1);
+      drawConnectionMouseOver(device, (int) plot_->mouseColoring());
 
       plot_->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
@@ -3919,7 +3976,11 @@ draw(PaintDevice *device) const
 
 void
 CQChartsSankeyNodeObj::
+#ifdef CQCHARTS_GRAPH_PATH_ID
 drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) const
+#else
+drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
+#endif
 {
   auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
 
@@ -3931,7 +3992,11 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
     edgeObj->setInside(true); edgeObj->draw(device); edgeObj->setInside(false);
   };
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   auto drawNodeInside = [&](const Node *node, bool isSrc) {
+#else
+  auto drawNodeInside = [&](const Node *node, bool /*isSrc*/) {
+#endif
     auto *nodeObj = node->obj(); if (! nodeObj) return;
 
     nodeObj->setInside(true);
@@ -3939,6 +4004,7 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
     if (plot_->isMouseNodeColoring())
       nodeObj->draw(device);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
     if (pathId >= 0) {
       Edge *edge = nullptr;
 
@@ -3971,6 +4037,9 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
     }
     else
       nodeObj->drawFg(device);
+#else
+    nodeObj->drawFg(device);
+#endif
 
     nodeObj->setInside(false);
   };
@@ -3980,8 +4049,12 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
     for (const auto &edge : node()->srcEdges()) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pathId < 0 || edge->pathId() == pathId)
         drawEdgeInside(edge);
+#else
+      drawEdgeInside(edge);
+#endif
     }
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC ||
@@ -3992,8 +4065,12 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
     node()->allSrcNodesAndEdges(nodeSet, edgeSet);
 
     for (const auto &edge : edgeSet) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pathId < 0 || edge->pathId() == pathId)
         drawEdgeInside(edge);
+#else
+      drawEdgeInside(edge);
+#endif
     }
 
     for (const auto &node : nodeSet)
@@ -4003,8 +4080,12 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
   if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::DEST ||
            mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
     for (const auto &edge : node()->destEdges()) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pathId < 0 || edge->pathId() == pathId)
         drawEdgeInside(edge);
+#else
+      drawEdgeInside(edge);
+#endif
     }
   }
   else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST ||
@@ -4015,8 +4096,12 @@ drawConnectionMouseOver(PaintDevice *device, int imouseColoring, int pathId) con
     node()->allDestNodesAndEdges(nodeSet, edgeSet);
 
     for (const auto &edge : edgeSet) {
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pathId < 0 || edge->pathId() == pathId)
         drawEdgeInside(edge);
+#else
+      drawEdgeInside(edge);
+#endif
     }
 
     for (const auto &node : nodeSet)
@@ -4275,8 +4360,10 @@ calcTipId() const
   if (edge()->hasValue())
     tableTip.addTableRow(namedColumn("Value"), edge()->value().real());
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   if (edge()->pathId() >= 0)
     tableTip.addTableRow(namedColumn("PathId", "Path Id"), edge()->pathId());
+#endif
 
   //---
 
@@ -4372,72 +4459,94 @@ draw(PaintDevice *device) const
   // show source and destination nodes on inside
   if (plot()->drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
     if (plot()->mouseColoring() != CQChartsSankeyPlot::ConnectionType::NONE) {
-      auto drawNodeInside = [&](const Node *node, bool isSrc) {
-        auto *nodeObj = node->obj(); if (! nodeObj) return;
-
-        auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
-        if (! rect.isSet()) return;
-
-        nodeObj->setInside(true);
-
-        if (plot()->isMouseNodeColoring())
-          nodeObj->draw(device);
-
-        if (! plot()->isTextVisible())
-          nodeObj->drawFgRect(device, rect);
-
-        nodeObj->setInside(false);
-      };
-
-      //---
-
-      auto *srcNode  = edge()->srcNode ();
-      auto *destNode = edge()->destNode();
-
-      auto *srcNodeObj  = srcNode ->obj();
-      auto *destNodeObj = destNode->obj();
-
       plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER_EXTRA);
 
-      if      (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC) {
-        drawNodeInside(srcNode , /*isSrc*/true );
-      }
-      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::DEST) {
-        drawNodeInside(destNode, /*isSrc*/false);
-      }
-      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
-        drawNodeInside(srcNode , /*isSrc*/true );
-        drawNodeInside(destNode, /*isSrc*/false);
-      }
-      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
-        drawNodeInside(srcNode , /*isSrc*/true );
-
-        if (srcNodeObj)
-          srcNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
-      }
-      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
-        drawNodeInside(destNode, /*isSrc*/false);
-
-        if (destNodeObj)
-          destNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
-      }
-      else if (plot()->mouseColoring() == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
-        drawNodeInside(srcNode , /*isSrc*/true );
-        drawNodeInside(destNode, /*isSrc*/false);
-
-        if (srcNodeObj)
-          srcNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
-
-        if (destNodeObj)
-          destNodeObj->drawConnectionMouseOver(device,
-            (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
-      }
+      drawConnectionMouseOver(device, (int) plot()->mouseColoring());
 
       plot()->view()->setDrawLayerType(CQChartsLayer::Type::MOUSE_OVER);
     }
+  }
+}
+
+void
+CQChartsSankeyEdgeObj::
+drawConnectionMouseOver(PaintDevice *device, int imouseColoring) const
+{
+  auto mouseColoring = (CQChartsSankeyPlot::ConnectionType) imouseColoring;
+
+  //---
+
+  auto drawNodeInside = [&](const Node *node, bool isSrc) {
+    auto *nodeObj = node->obj(); if (! nodeObj) return;
+
+    auto rect = (isSrc ? node->destEdgeRect(edge()) : node->srcEdgeRect(edge()));
+    if (! rect.isSet()) return;
+
+    nodeObj->setInside(true);
+
+    if (plot()->isMouseNodeColoring())
+      nodeObj->draw(device);
+
+    if (! plot()->isTextVisible())
+      nodeObj->drawFgRect(device, rect);
+
+    nodeObj->setInside(false);
+  };
+
+  //---
+
+  auto *srcNode  = edge()->srcNode ();
+  auto *destNode = edge()->destNode();
+
+  if      (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC) {
+    drawNodeInside(srcNode , /*isSrc*/true );
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::DEST) {
+    drawNodeInside(destNode, /*isSrc*/false);
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::SRC_DEST) {
+    drawNodeInside(srcNode , /*isSrc*/true );
+    drawNodeInside(destNode, /*isSrc*/false);
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC) {
+    drawNodeInside(srcNode , /*isSrc*/true );
+
+#ifdef CQCHARTS_GRAPH_PATH_ID
+    auto *srcNodeObj = srcNode->obj();
+
+    if (srcNodeObj)
+      srcNodeObj->drawConnectionMouseOver(device,
+        (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
+#endif
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_DEST) {
+    drawNodeInside(destNode, /*isSrc*/false);
+
+#ifdef CQCHARTS_GRAPH_PATH_ID
+    auto *destNodeObj = destNode->obj();
+
+    if (destNodeObj)
+      destNodeObj->drawConnectionMouseOver(device,
+        (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
+#endif
+  }
+  else if (mouseColoring == CQChartsSankeyPlot::ConnectionType::ALL_SRC_DEST) {
+    drawNodeInside(srcNode , /*isSrc*/true );
+    drawNodeInside(destNode, /*isSrc*/false);
+
+#ifdef CQCHARTS_GRAPH_PATH_ID
+    auto *srcNodeObj = srcNode->obj();
+
+    if (srcNodeObj)
+      srcNodeObj->drawConnectionMouseOver(device,
+        (int) CQChartsSankeyPlot::ConnectionType::ALL_SRC, edge()->pathId());
+
+    auto *destNodeObj = destNode->obj();
+
+    if (destNodeObj)
+      destNodeObj->drawConnectionMouseOver(device,
+        (int) CQChartsSankeyPlot::ConnectionType::ALL_DEST, edge()->pathId());
+#endif
   }
 }
 
@@ -4536,6 +4645,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   ColorInd colorInd;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   if (edge()->pathId() >= 0) {
     const auto &pathIdMinMax = plot()->pathIdMinMax();
 
@@ -4543,6 +4653,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
       colorInd = ColorInd(edge()->pathId() - pathIdMinMax.min(),
                           pathIdMinMax.max() - pathIdMinMax.min() + 1);
   }
+#endif
 
   //---
 

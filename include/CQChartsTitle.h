@@ -36,6 +36,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   using TextBoxObj    = CQChartsTextBoxObj;
   using Position      = CQChartsPosition;
   using Rect          = CQChartsRect;
+  using ColorInd      = CQChartsUtil::ColorInd;
 
  public:
   CQChartsTitle(Plot *plot);

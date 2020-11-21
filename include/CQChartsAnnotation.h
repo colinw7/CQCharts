@@ -82,6 +82,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using ColorInd   = CQChartsUtil::ColorInd;
   using ObjRef     = CQChartsObjRef;
   using Units      = CQChartsUnits;
+  using Alpha      = CQChartsAlpha;
 
   using PaintDevice     = CQChartsPaintDevice;
   using HtmlPaintDevice = CQChartsHtmlPaintDevice;
@@ -1165,6 +1166,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   using Position = CQChartsPosition;
   using ObjRef   = CQChartsObjRef;
   using Symbol   = CQChartsSymbol;
+  using PenBrush = CQChartsPenBrush;
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPointAnnotation(View *view, const Position &p=Position(),

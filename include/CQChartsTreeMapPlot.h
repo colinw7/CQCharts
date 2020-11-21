@@ -418,13 +418,18 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool textClipped READ isTextClipped WRITE setTextClipped)
 
  public:
-  using Node      = CQChartsTreeMapNode;
-  using Nodes     = std::vector<Node*>;
-  using HierNode  = CQChartsTreeMapHierNode;
-  using HierObj   = CQChartsTreeMapHierObj;
-  using NodeObj   = CQChartsTreeMapNodeObj;
+  using Node     = CQChartsTreeMapNode;
+  using Nodes    = std::vector<Node*>;
+  using HierNode = CQChartsTreeMapHierNode;
+  using HierObj  = CQChartsTreeMapHierObj;
+  using NodeObj  = CQChartsTreeMapNodeObj;
+
   using OptLength = CQChartsOptLength;
   using OptReal   = CQChartsOptReal;
+  using Length    = CQChartsLength;
+  using Color     = CQChartsColor;
+  using Alpha     = CQChartsAlpha;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsTreeMapPlot(View *view, const ModelP &model);

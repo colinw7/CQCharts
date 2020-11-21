@@ -58,7 +58,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn depthColumn READ depthColumn WRITE setDepthColumn)
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   Q_PROPERTY(CQChartsColumn pathIdColumn     READ pathIdColumn     WRITE setPathIdColumn    )
+#endif
   Q_PROPERTY(CQChartsColumn attributesColumn READ attributesColumn WRITE setAttributesColumn)
 
   Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
@@ -77,6 +79,7 @@ class CQChartsConnectionPlot : public CQChartsPlot {
  public:
   using ColumnArray = std::vector<Column>;
   using OptInt      = CQChartsOptInt;
+  using Alpha       = CQChartsAlpha;
 
  public:
   CQChartsConnectionPlot(View *view, PlotType *plotType, const ModelP &model);
@@ -121,9 +124,11 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   const Column &depthColumn() const { return depthColumn_; }
   void setDepthColumn(const Column &c);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   //! get/set pathId column
   const Column &pathIdColumn() const { return pathIdColumn_; }
   void setPathIdColumn(const Column &c);
+#endif
 
   //! get/set attributes column
   const Column &attributesColumn() const { return attributesColumn_; }
@@ -451,8 +456,10 @@ class CQChartsConnectionPlot : public CQChartsPlot {
     OptReal    value;          //!< optional value
     ModelIndex depthModelInd;  //!< depth model index
     int        depth { -1 };   //!< source node depth
+#ifdef CQCHARTS_GRAPH_PATH_ID
     ModelIndex pathIdModelInd; //!< pathId model index
     OptInt     pathId;         //!< optional path id
+#endif
     NameValues nameValues;     //!< node/edge attributes
     GroupData  groupData;      //!< grouping data
   };
@@ -494,7 +501,9 @@ class CQChartsConnectionPlot : public CQChartsPlot {
   Column     toColumn_;                                   //!< to column
   Column     valueColumn_;                                //!< value column
   Column     depthColumn_;                                //!< depth column
+#ifdef CQCHARTS_GRAPH_PATH_ID
   Column     pathIdColumn_;                               //!< pathId column
+#endif
   Column     attributesColumn_;                           //!< attributes column
   Column     groupColumn_;                                //!< group column
   ColumnType linkColumnType_ { ColumnType::NONE };        //!< link column type

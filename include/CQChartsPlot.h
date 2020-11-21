@@ -290,8 +290,9 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
 
-  Q_PROPERTY(bool queueUpdate    READ isQueueUpdate  WRITE setQueueUpdate   )
-  Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
+  Q_PROPERTY(bool queueUpdate       READ isQueueUpdate     WRITE setQueueUpdate      )
+  Q_PROPERTY(bool showBoxes         READ showBoxes         WRITE setShowBoxes        )
+  Q_PROPERTY(bool showSelectedBoxes READ showSelectedBoxes WRITE setShowSelectedBoxes)
 
   Q_ENUMS(ColorType)
 
@@ -738,6 +739,9 @@ class CQChartsPlot : public CQChartsObj,
 
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b);
+
+  bool showSelectedBoxes() const { return showSelectedBoxes_; }
+  void setShowSelectedBoxes(bool b);
 
   //---
 
@@ -1858,7 +1862,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool editPress  (const Point &p, const Point &w, bool inside=false);
   virtual bool editMove   (const Point &p, const Point &w, bool first=false);
-  virtual bool editMotion (const Point &p, const Point &w);
+  virtual bool editMotion (const Point &p, const Point &w); // return true if inside
   virtual bool editRelease(const Point &p, const Point &w);
 
   virtual void editMoveBy(const Point &d);
@@ -3002,11 +3006,12 @@ class CQChartsPlot : public CQChartsObj,
   bool preview_        { false }; //!< is preview plot
   int  previewMaxRows_ { 1000 };  //!< preview max rows
 
-  bool sequential_    { false }; //!< is sequential (non-threaded)
-  bool queueUpdate_   { true };  //!< is queued update
-  bool bufferSymbols_ { false }; //!< buffer symbols
-  bool showBoxes_     { false }; //!< show debug boxes
-  bool overview_      { false }; //!< is overview
+  bool sequential_        { false }; //!< is sequential (non-threaded)
+  bool queueUpdate_       { true };  //!< is queued update
+  bool bufferSymbols_     { false }; //!< buffer symbols
+  bool showBoxes_         { false }; //!< show debug boxes
+  bool showSelectedBoxes_ { false }; //!< show selected debug boxes
+  bool overview_          { false }; //!< is overview
 
   // invert
   bool invertX_ { false }; //!< x values inverted

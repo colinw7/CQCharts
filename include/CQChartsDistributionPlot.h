@@ -587,9 +587,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     ALL
   };
 
-  using Bucket = CQChartsDistributionBucket;
-
+  using Bucket     = CQChartsDistributionBucket;
   using RangeValue = CQChartsGeom::RangeValue;
+  using LineDash   = CQChartsLineDash;
+  using Symbol     = CQChartsSymbol;
+  using Length     = CQChartsLength;
+  using Color      = CQChartsColor;
+  using ColorInd   = CQChartsUtil::ColorInd;
+  using PenBrush   = CQChartsPenBrush;
 
  public:
   CQChartsDistributionPlot(View *view, const ModelP &model);

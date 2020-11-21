@@ -305,6 +305,11 @@ class CQChartsAdjacencyPlot : public CQChartsConnectionPlot,
 
   using AdjacencyNode = CQChartsAdjacencyNode;
   using CellObj       = CQChartsAdjacencyCellObj;
+  using Length        = CQChartsLength;
+  using Angle         = CQChartsAngle;
+  using Color         = CQChartsColor;
+  using Alpha         = CQChartsAlpha;
+  using ColorInd      = CQChartsUtil::ColorInd;
 
  public:
   CQChartsAdjacencyPlot(View *view, const ModelP &model);

@@ -101,6 +101,9 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
  public:
   using HierNode = CQChartsDendrogram::HierNode;
   using Node     = CQChartsDendrogram::Node;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using PenBrush = CQChartsPenBrush;
 
  public:
   CQChartsDendrogramPlot(View *view, const ModelP &model);

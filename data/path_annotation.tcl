@@ -22,7 +22,7 @@ set path5 [create_charts_path_annotation -plot $plot -id five -group $group \
 set path6 [create_charts_path_annotation -plot $plot -id six -group $group \
   -path "M41,6c1-1,4-3,8-3c3-0,9-1,14,3l-1,2h-2h-2c0,0-3,1-5,0c-2-1-1-1-1-1l-3,1l-2-1h-1c0,0-1,2-3,2c0,0-2-1-2-3M17,34l0-2c0,0,35-20,71-3v2c0,0-35-17-71,3M5,62c3-2,5-2,8,0c3,2,13,6,8,11c-2,2-6,0-8,0c-1,1-4,2-6,1c-4-3-6-8-2-12M99,59c0,0-9-2-11,4l-3,5c0,1-2,3,3,3c5,0,5,2,7,2c3,0,7-1,7-4c0-4-1-11-3-10" -properties {{fill.color #FFF200} {stroke.visible 0}}]
 set path7 [create_charts_path_annotation -plot $plot -id seven -group $group \
-  -path "M56,78v1M55,69v1M55,87v1" -properties {{stroke.color #000} {stroke.width 1.0}}]
+  -path "M56,78v1M55,69v1M55,87v1" -properties {{stroke.color #000} {stroke.width 1.0} {stroke.cap round}}]
 set path8 [create_charts_path_annotation -plot $plot -id eight -group $group \
   -path "M60,36a1 1 0 1 1 0-0.1M49,36a1 1 0 1 1 0-0.1M57,55a2 3 0 1 1 0-0.1M12,94c0,0,20-4,42,0c0,0,27-4,39,0z" -properties {{fill.color #000} {stroke.visible 0}}]
 set path9 [create_charts_path_annotation -plot $plot -id nine -group $group \

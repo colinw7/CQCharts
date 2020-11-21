@@ -336,6 +336,11 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   using Node      = CQChartsSunburstNode;
   using NodeObj   = CQChartsSunburstNodeObj;
 
+  using Angle    = CQChartsAngle;
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+
  public:
   CQChartsSunburstPlot(View *view, const ModelP &model);
  ~CQChartsSunburstPlot();

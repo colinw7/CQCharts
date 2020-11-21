@@ -13,6 +13,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
   using Plot        = CQChartsPlot;
   using PaintDevice = CQChartsPaintDevice;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsRotatedTextBoxObj(Plot *plot);

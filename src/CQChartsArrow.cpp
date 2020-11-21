@@ -71,7 +71,7 @@ draw(CQChartsPaintDevice *device) const
   auto fc = interpFillColor  (ColorInd());
   auto sc = interpStrokeColor(ColorInd());
 
-  CQChartsUtil::setPen  (penBrush.pen  , isStroked(), sc, strokeAlpha(), 0.0, CQChartsLineDash());
+  CQChartsUtil::setPen  (penBrush.pen  , isStroked(), sc, strokeAlpha());
   CQChartsUtil::setBrush(penBrush.brush, isFilled (), fc, fillAlpha(), fillPattern());
 
   draw(device, penBrush);
@@ -823,7 +823,7 @@ drawPointLabel(const Point &point, const QString &text, bool above) const
 
   auto tc = Qt::black;
 
-  CQChartsUtil::setPen(tpen, true, tc, CQChartsAlpha(), 0.0);
+  CQChartsUtil::setPen(tpen, true, tc);
 
   device_->setPen(tpen);
 

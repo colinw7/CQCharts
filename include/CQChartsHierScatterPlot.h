@@ -264,6 +264,10 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
  public:
   using GroupValueSets = std::map<Column, CQChartsValueSet *>;
+  using Length         = CQChartsLength;
+  using Symbol         = CQChartsSymbol;
+  using Color          = CQChartsColor;
+  using ColorInd       = CQChartsUtil::ColorInd;
 
  public:
   CQChartsHierScatterPlot(View *view, const ModelP &model);

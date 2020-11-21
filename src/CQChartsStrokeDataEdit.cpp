@@ -400,7 +400,8 @@ draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
 
   QPen pen;
 
-  CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha(), width, data.dash());
+  CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha(), width,
+                       data.dash(), data.lineCap());
 
   painter->setPen(pen);
 

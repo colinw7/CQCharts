@@ -63,6 +63,7 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsLineDataEdit.h>
 #include <CQChartsLineDashEdit.h>
+#include <CQChartsLineCapEdit.h>
 #include <CQChartsMarginEdit.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsPolygonEdit.h>
@@ -341,6 +342,7 @@ CQCharts()
   CQChartsKeyPressBehavior      ::registerMetaType();
   CQChartsLength                ::registerMetaType();
   CQChartsLineDash              ::registerMetaType();
+  CQChartsLineCap               ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
   CQChartsModelIndex            ::registerMetaType();
@@ -519,6 +521,7 @@ init()
     viewMgr->addType("CQChartsTitleLocation"   , new CQChartsTitleLocationPropertyViewType   );
     viewMgr->addType("CQChartsLength"          , new CQChartsLengthPropertyViewType          );
     viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
+    viewMgr->addType("CQChartsLineCap"         , new CQChartsLineCapPropertyViewType         );
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
     viewMgr->addType("CQChartsMargin"          , new CQChartsMarginPropertyViewType          );
 //  viewMgr->addType("CQChartsObjRef"          , new CQChartsObjRefPropertyViewType          );

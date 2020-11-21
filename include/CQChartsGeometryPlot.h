@@ -186,6 +186,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   using OptReal = boost::optional<double>;
   using Style   = CQChartsStyle;
+  using Color   = CQChartsColor;
 
   //! geometry data
   struct Geometry {
@@ -200,6 +201,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   using DataLabel   = CQChartsDataLabel;
   using GeometryObj = CQChartsGeometryObj;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsGeometryPlot(View *view, const ModelP &model);

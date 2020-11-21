@@ -27,7 +27,8 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td></tr>\n").
+    str_ += QString("<tr><th style=\"text-align:right\">%1</th>"
+                    "<td>&nbsp;</td><td>%2</td></tr>\n").
               arg(escapeText(name)).arg(value);
 
     inTable_ = true;
@@ -37,7 +38,8 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td></tr>\n").
+    str_ += QString("<tr><th style=\"text-align:right\">%1</th>"
+                    "<td>&nbsp;</td><td>%2</td></tr>\n").
               arg(escapeText(name)).arg(escapeText(value));
 
     inTable_ = true;
@@ -47,7 +49,8 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td><td>%3</td></tr>\n").
+    str_ += QString("<tr><th style=\"text-align:right\">%1</th>"
+                    "<td>&nbsp;</td><td>%2</td><td>%3</td></tr>\n").
               arg(escapeText(name)).arg(escapeText(value1)).arg(escapeText(value2));
 
     inTable_ = true;

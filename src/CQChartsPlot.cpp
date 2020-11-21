@@ -1929,6 +1929,15 @@ setShowBoxes(bool b)
 
 void
 CQChartsPlot::
+setShowSelectedBoxes(bool b)
+{
+  CQChartsUtil::testAndSet(showSelectedBoxes_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
 setViewBBox(const BBox &bbox)
 {
   viewBBox_      = bbox;
@@ -2784,8 +2793,9 @@ addBaseProperties()
 
   // debug
   if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG")) {
-    addProp("debug", "showBoxes"  , "", "Show object bounding boxes");
-    addProp("debug", "followMouse", "", "Enable mouse tracking");
+    addProp("debug", "showBoxes"        , "", "Show object bounding boxes");
+    addProp("debug", "showSelectedBoxes", "", "Show selected object bounding boxes");
+    addProp("debug", "followMouse"      , "", "Enable mouse tracking");
   }
 
   //------
@@ -6561,33 +6571,33 @@ editMotion(const Point &, const Point &w)
     auto v = windowToView(w);
 
     if (! editHandles_->selectInside(v))
-      return true;
+      return false;
   }
   else if (key() && key()->isSelected()) {
     if (! key()->editMotion(w))
-      return true;
+      return false;
   }
   else if (xAxis() && xAxis()->isSelected()) {
     if (! xAxis()->editMotion(w))
-      return true;
+      return false;
   }
   else if (yAxis() && yAxis()->isSelected()) {
     if (! yAxis()->editMotion(w))
-      return true;
+      return false;
   }
   else if (title() && title()->isSelected()) {
     if (! title()->editMotion(w))
-      return true;
+      return false;
   }
   else {
-    bool edited = false;
+    bool inside = false;
 
     for (const auto &annotation : annotations()) {
       if (! annotation->isSelected())
         continue;
 
       if (annotation->editMotion(w)) {
-        edited = true;
+        inside = true;
         break;
       }
     }
@@ -6600,13 +6610,13 @@ editMotion(const Point &, const Point &w)
         continue;
 
       if (plotObj->editMotion(w)) {
-        edited = true;
+        inside = true;
         break;
       }
     }
 
-    if (! edited)
-      return true;
+    if (! inside)
+      return false;
   }
 
   invalidateOverlay();
@@ -10013,7 +10023,7 @@ execDrawObjs(PaintDevice *device, const Layer::Type &layerType) const
     //---
 
     // show debug box
-    if (showBoxes())
+    if (showBoxes() || (plotObj->isSelected() && showSelectedBoxes()))
       plotObj->drawDebugRect(device);
   }
 
@@ -12212,7 +12222,7 @@ setPen(PenBrush &penBrush, const PenData &penData) const
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
-                       width, penData.dash());
+                       width, penData.dash(), penData.lineCap());
 }
 
 void

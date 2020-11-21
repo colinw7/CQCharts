@@ -153,6 +153,10 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
     CONFIDENCE
   };
 
+  using Angle    = CQChartsAngle;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+
  public:
   CQChartsCorrelationPlot(View *view, const ModelP &model);
  ~CQChartsCorrelationPlot();

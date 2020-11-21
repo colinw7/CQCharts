@@ -35,6 +35,8 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   };
 
   using PropertyModel = CQPropertyViewModel;
+  using Alpha         = CQChartsAlpha;
+  using FillPattern   = CQChartsFillPattern;
 
  public:
   CQChartsBoxObj(View *view);

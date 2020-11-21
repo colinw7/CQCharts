@@ -198,10 +198,16 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   };
 
  protected:
+  using DataLabel  = CQChartsDataLabel;
   using Hull       = CQChartsGrahamHull;
   using HullObj    = CQChartsPointHullObj;
   using BestFit    = CQChartsFitData;
   using BestFitObj = CQChartsPointBestFitObj;
+  using Length     = CQChartsLength;
+  using Color      = CQChartsColor;
+  using Alpha      = CQChartsAlpha;
+  using ColorInd   = CQChartsUtil::ColorInd;
+  using PenBrush   = CQChartsPenBrush;
 
  public:
   CQChartsPointPlot(View *view, PlotType *plotType, const ModelP &model);
@@ -215,8 +221,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   // data label
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+  const DataLabel *dataLabel() const { return dataLabel_; }
+  DataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -305,8 +311,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsSymbol &xRugSymbolType() const;
   void setXRugSymbolType(const CQChartsSymbol &s);
 
-  const CQChartsLength &xRugSymbolSize() const;
-  void setXRugSymbolSize(const CQChartsLength &l);
+  const Length &xRugSymbolSize() const;
+  void setXRugSymbolSize(const Length &l);
 
   //--
 
@@ -319,8 +325,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const CQChartsSymbol &yRugSymbolType() const;
   void setYRugSymbolType(const CQChartsSymbol &s);
 
-  const CQChartsLength &yRugSymbolSize() const;
-  void setYRugSymbolSize(const CQChartsLength &l);
+  const Length &yRugSymbolSize() const;
+  void setYRugSymbolSize(const Length &l);
 
   //---
 
@@ -374,12 +380,12 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   //---
 
   void initSymbolSizeData() const;
-  bool columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const;
+  bool columnSymbolSize(int row, const QModelIndex &parent, Length &symbolSize) const;
 
   //---
 
   void initFontSizeData() const;
-  bool columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const;
+  bool columnFontSize(int row, const QModelIndex &parent, Length &fontSize) const;
 
   //---
 

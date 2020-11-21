@@ -174,6 +174,7 @@ CQChartsModelVisitor.cpp \
 CQChartsData.cpp \
 CQChartsInvalidator.cpp \
 \
+CQChartsLineCap.cpp \
 CQChartsLineDash.cpp \
 \
 CQChartsRotatedText.cpp \
@@ -279,6 +280,7 @@ CQChartsFontEdit.cpp \
 CQChartsKeyLocationEdit.cpp \
 CQChartsKeyPressBehaviorEdit.cpp \
 CQChartsLengthEdit.cpp \
+CQChartsLineCapEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
@@ -338,6 +340,8 @@ CQCollapseModel.cpp \
 CQPivotModel.cpp \
 CQBucketer.cpp \
 CQTrie.cpp \
+\
+CSVGUtil.cpp \
 \
 CQHandDrawnPainter.cpp \
 CQFilename.cpp \
@@ -556,6 +560,7 @@ HEADERS += \
 ../include/CQChartsData.h \
 ../include/CQChartsInvalidator.h \
 \
+../include/CQChartsLineCap.h \
 ../include/CQChartsLineDash.h \
 \
 ../include/CQChartsRotatedText.h \
@@ -624,6 +629,7 @@ HEADERS += \
 ../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsKeyPressBehaviorEdit.h \
 ../include/CQChartsLengthEdit.h \
+../include/CQChartsLineCapEdit.h \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
 ../include/CQChartsLineEditBase.h \
@@ -673,6 +679,8 @@ HEADERS += \
 ../include/CQPivotModel.h \
 ../include/CQBucketer.h \
 ../include/CQTrie.h \
+\
+../include/CSVGUtil.h \
 \
 ../include/CQBaseModel.h \
 ../include/CQBaseModelTypes.h \

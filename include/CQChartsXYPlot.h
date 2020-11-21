@@ -738,6 +738,12 @@ class CQChartsXYPlot : public CQChartsPointPlot,
   using LabelObj       = CQChartsXYLabelObj;
   using ImpulseLineObj = CQChartsXYImpulseLineObj;
 
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using Alpha    = CQChartsAlpha;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using PenBrush = CQChartsPenBrush;
+
  public:
   CQChartsXYPlot(View *view, const ModelP &model);
  ~CQChartsXYPlot();

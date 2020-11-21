@@ -574,6 +574,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   using GroupSetWhiskerMap = std::map<int, SetWhiskerMap>;
   using WhiskerDataList    = std::vector<WhiskerData>;
   using Symbol             = CQChartsSymbol;
+  using Length             = CQChartsLength;
+  using Color              = CQChartsColor;
+  using ColorInd           = CQChartsUtil::ColorInd;
 
  public:
   CQChartsBoxPlot(View *view, const ModelP &model);

@@ -50,6 +50,9 @@ class CQChartsKey : public CQChartsBoxObj,
   using Location    = CQChartsKeyLocation;
   using KeyBehavior = CQChartsKeyPressBehavior;
   using OptLength   = CQChartsOptLength;
+  using Font        = CQChartsFont;
+  using Alpha       = CQChartsAlpha;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsKey(View *view);

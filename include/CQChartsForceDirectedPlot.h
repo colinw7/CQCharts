@@ -112,6 +112,12 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(int numEdges READ numEdges)
 
  public:
+  using Length   = CQChartsLength;
+  using Alpha    = CQChartsAlpha;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using PenBrush = CQChartsPenBrush;
+
+ public:
   CQChartsForceDirectedPlot(View *view, const ModelP &model);
  ~CQChartsForceDirectedPlot();
 

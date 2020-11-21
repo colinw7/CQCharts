@@ -130,6 +130,11 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+  using PenBrush = CQChartsPenBrush;
+
+ public:
   CQChartsDelaunayPlot(View *view, const ModelP &model);
  ~CQChartsDelaunayPlot();
 
@@ -211,17 +216,19 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
                                    const QModelIndex &ind, const ColorInd &iv) const;
 
  private:
-  Column            xColumn_;                    //!< x column
-  Column            yColumn_;                    //!< y column
-  Column            nameColumn_;                 //!< name column
-  Column            valueColumn_;                //!< value column
-  bool              delaunay_       { false };   //!< is delaunay
-  bool              voronoi_        { true };    //!< is voronoi
-  bool              voronoiCircles_ { false };   //!< voronoi circle
-  bool              voronoiPolygon_ { false };   //!< voronoi polygon
-  RMinMax           valueRange_;                 //!< value range
-  CQChartsDelaunay* delaunayData_   { nullptr }; //!< delaunay data
-  QString           yname_;                      //!< y name
+  using Delaunay = CQChartsDelaunay;
+
+  Column    xColumn_;                    //!< x column
+  Column    yColumn_;                    //!< y column
+  Column    nameColumn_;                 //!< name column
+  Column    valueColumn_;                //!< value column
+  bool      delaunay_       { false };   //!< is delaunay
+  bool      voronoi_        { true };    //!< is voronoi
+  bool      voronoiCircles_ { false };   //!< voronoi circle
+  bool      voronoiPolygon_ { false };   //!< voronoi polygon
+  RMinMax   valueRange_;                 //!< value range
+  Delaunay* delaunayData_   { nullptr }; //!< delaunay data
+  QString   yname_;                      //!< y name
 };
 
 #endif

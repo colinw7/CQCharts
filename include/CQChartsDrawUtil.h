@@ -47,13 +47,16 @@ class CQChartsPenData {
   using Alpha    = CQChartsAlpha;
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
+  using LineCap  = CQChartsLineCap;
 
  public:
   CQChartsPenData() = default;
 
   explicit CQChartsPenData(bool visible, const QColor &color=QColor(), const Alpha &alpha=Alpha(),
-                           const Length &width=Length(), const LineDash &dash=LineDash()) :
-   visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
+                           const Length &width=Length(), const LineDash &dash=LineDash(),
+                           const LineCap &lineCap=LineCap()) :
+   visible_(visible), color_(color), alpha_(alpha), width_(width),
+   dash_(dash), lineCap_(lineCap) {
   }
 
   CQChartsPenData(bool visible, const QColor &color, const CQChartsStrokeData &strokeData) :
@@ -61,27 +64,39 @@ class CQChartsPenData {
    dash_(strokeData.dash()) {
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  //! get/set color
   const QColor &color() const { return color_; }
   void setColor(const QColor &v) { color_ = v; }
 
+  //! get/set alpha
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
+  //! get/set width
   const Length &width() const { return width_; }
   void setWidth(const Length &v) { width_ = v; }
 
+  //! get/set line dash
   const LineDash &dash() const { return dash_; }
   void setDash(const LineDash &v) { dash_ = v; }
 
+  //! get/set line cap
+  const LineCap &lineCap() const { return lineCap_; }
+  void setLineCap(const LineCap &c) { lineCap_ = c; }
+
  private:
-  bool     visible_ { true };  //!< visible
-  QColor   color_;             //!< pen color
-  Alpha    alpha_;             //!< pen alpha
-  Length   width_   { "0px" }; //!< pen width
-  LineDash dash_    { };       //!< pen dash
+  bool     visible_  { true };  //!< visible
+  QColor   color_;              //!< pen color
+  Alpha    alpha_;              //!< pen alpha
+  Length   width_    { "0px" }; //!< pen width
+  LineDash dash_;               //!< pen line dash
+  LineCap  lineCap_;            //!< pen line cap
 };
 
 //---

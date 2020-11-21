@@ -331,6 +331,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
  public:
   using DataLabel = CQChartsDataLabel;
+  using Color     = CQChartsColor;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPivotPlot(View *view, const ModelP &model);

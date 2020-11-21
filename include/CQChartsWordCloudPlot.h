@@ -115,6 +115,10 @@ class CQChartsWordCloudPlot : public CQChartsPlot,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsWordCloudPlot(View *view, const ModelP &model);
  ~CQChartsWordCloudPlot();
 

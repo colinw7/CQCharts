@@ -432,6 +432,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   using PieTextObj  = CQChartsPieTextObj;
   using PieGroupObj = CQChartsPieGroupObj;
   using PieObj      = CQChartsPieObj;
+  using Color       = CQChartsColor;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPiePlot(View *view, const ModelP &model);

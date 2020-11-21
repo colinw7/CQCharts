@@ -8,6 +8,7 @@
 #include <CQChartsPosition.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
+#include <CQChartsLineCap.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
 #include <CQChartsAngle.h>
@@ -44,6 +45,8 @@ class CQChartsTextData {
   explicit CQChartsTextData(const QString &str) {
     (void) fromString(str);
   }
+
+  //---
 
   //! get/set visible
   bool isVisible() const { return visible_; }
@@ -167,6 +170,7 @@ class CQChartsLineData {
   using Alpha    = CQChartsAlpha;
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
+  using LineCap  = CQChartsLineCap;
 
  public:
   CQChartsLineData() = default;
@@ -175,27 +179,38 @@ class CQChartsLineData {
     (void) fromString(str);
   }
 
-  explicit CQChartsLineData(bool visible, const Color &color=Color(),
-                            const Alpha &alpha=Alpha(),
-                            const Length &width=Length(),
-                            const LineDash &dash=LineDash()) :
-   visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
+  explicit CQChartsLineData(bool visible, const Color &color=Color(), const Alpha &alpha=Alpha(),
+                            const Length &width=Length(), const LineDash &dash=LineDash(),
+                            const LineCap &lineCap=LineCap()) :
+   visible_(visible), color_(color), alpha_(alpha), width_(width),
+   dash_(dash), lineCap_(lineCap) {
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  //! get/set color
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
+  //! get/set alpha
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
+  //! get/set width
   const Length &width() const { return width_; }
   void setWidth(const Length &l) { width_ = l; }
 
+  //! get/set line dash
   const LineDash &dash() const { return dash_; }
   void setDash(const LineDash &d) { dash_ = d; }
+
+  //! get/set line cap
+  const LineCap &lineCap() const { return lineCap_; }
+  void setLineCap(const LineCap &c) { lineCap_ = c; }
 
   //---
 
@@ -208,11 +223,12 @@ class CQChartsLineData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool     visible_ { true };                              //!< visible
-  Color    color_   { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
-  Alpha    alpha_;                                         //!< stroke alpha
-  Length   width_   { "0px" };                             //!< stroke width
-  LineDash dash_    { };                                   //!< stroke dash
+  bool     visible_  { true };                              //!< line visible
+  Color    color_    { Color::Type::INTERFACE_VALUE, 1.0 }; //!< line color
+  Alpha    alpha_;                                          //!< line alpha
+  Length   width_    { "0px" };                             //!< line width
+  LineDash dash_;                                           //!< line dash
+  LineCap  lineCap_;                                        //!< line cap
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -248,12 +264,17 @@ class CQChartsFillData {
    visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  //! get/set color
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
+  //! get/set alpha
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
@@ -298,6 +319,7 @@ class CQChartsStrokeData {
   using Alpha    = CQChartsAlpha;
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
+  using LineCap  = CQChartsLineCap;
 
  public:
   CQChartsStrokeData() = default;
@@ -306,21 +328,33 @@ class CQChartsStrokeData {
     (void) fromString(str);
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  //! get/set color
   const Color &color() const { return color_; }
   void setColor(const Color &c) { color_ = c; }
 
+  //! get/set alpha
   const Alpha &alpha() const { return alpha_; }
   void setAlpha(const Alpha &a) { alpha_ = a; }
 
+  //! get/set width
   const Length &width() const { return width_; }
   void setWidth(const Length &w) { width_ = w; }
 
+  //! get/set line dash
   const LineDash &dash() const { return dash_; }
   void setDash(const LineDash &d) { dash_ = d; }
 
+  //! get/set line cap
+  const LineCap &lineCap() const { return lineCap_; }
+  void setLineCap(const LineCap &c) { lineCap_ = c; }
+
+  //! get/set corner size
   const Length &cornerSize() const { return cornerSize_; }
   void setCornerSize(const Length &l) { cornerSize_ = l; }
 
@@ -339,8 +373,9 @@ class CQChartsStrokeData {
   Color    color_      { Color::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
   Alpha    alpha_;                                            //!< stroke color alpha
   Length   width_      { "0px" };                             //!< stroke width
-  LineDash dash_       { };                                   //!< stroke dash
-  Length   cornerSize_ { "0px" };                             //!< corner size
+  LineDash dash_;                                             //!< stroke line dash
+  LineCap  lineCap_;                                          //!< stroke line cap
+  Length   cornerSize_ { "0px" };                             //!< corner size (for border)
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
@@ -423,6 +458,9 @@ class CQChartsBoxData {
     (void) fromString(str);
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
@@ -540,6 +578,9 @@ class CQChartsSymbolData {
     (void) fromString(str);
   }
 
+  //---
+
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 

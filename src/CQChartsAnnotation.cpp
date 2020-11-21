@@ -392,10 +392,12 @@ addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid)
 
   //---
 
-  addStyleProp(path, "stroked"    , "visible"   , "Stroke visible"   );
-  addStyleProp(path, "strokeColor", "color"     , "Stroke color"     );
-  addStyleProp(path, "strokeAlpha", "alpha"     , "Stroke alpha"     );
-  addStyleProp(path, "strokeWidth", "width"     , "Stroke width"     );
+  addStyleProp(path, "stroked"    , "visible", "Stroke visible");
+  addStyleProp(path, "strokeColor", "color"  , "Stroke color"  );
+  addStyleProp(path, "strokeAlpha", "alpha"  , "Stroke alpha"  );
+  addStyleProp(path, "strokeWidth", "width"  , "Stroke width"  );
+  addStyleProp(path, "strokeDash" , "dash"   , "Stroke dash"   );
+  addStyleProp(path, "strokeCap"  , "cap"    , "Stroke cap"    );
 
   if (isSolid) {
     addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
@@ -778,7 +780,7 @@ calcPenBrush(CQChartsPenBrush &penBrush)
   }
 
   setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()),
     BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 }
 
@@ -2067,7 +2069,7 @@ draw(PaintDevice *device)
   auto strokeColor = interpStrokeColor(ColorInd());
 
   setPen(penBrush,
-    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash()));
+    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()));
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
@@ -4654,7 +4656,8 @@ draw(PaintDevice *device)
 
     auto strokeColor = interpStrokeColor(ColorInd());
 
-    PenData penData1(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+    PenData penData1(isStroked(), strokeColor, strokeAlpha(), strokeWidth(),
+                     strokeDash(), strokeCap());
 
     //---
 
@@ -5755,7 +5758,7 @@ draw(PaintDevice *device)
   auto bc = interpColor(strokeColor(), ColorInd());
 
   setPenBrush(penBrush,
-    PenData(true, bc, strokeAlpha(), strokeWidth(), strokeDash()),
+    PenData(true, bc, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()),
     BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);

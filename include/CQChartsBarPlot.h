@@ -28,6 +28,9 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
  public:
   using DataLabel = CQChartsDataLabel;
+  using Length    = CQChartsLength;
+  using Color     = CQChartsColor;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsBarPlot(View *view, PlotType *plotType, const ModelP &model);

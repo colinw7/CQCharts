@@ -413,6 +413,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     SUM
   };
 
+  using Length   = CQChartsLength;
+  using Color    = CQChartsColor;
+  using ColorInd = CQChartsUtil::ColorInd;
+
  public:
   CQChartsBarChartPlot(View *view, const ModelP &model);
  ~CQChartsBarChartPlot();

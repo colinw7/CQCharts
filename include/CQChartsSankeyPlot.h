@@ -75,7 +75,10 @@ class CQChartsSankeyPlotNode {
   using BBox        = CQChartsGeom::BBox;
   using EdgeRect    = std::map<Edge *, BBox>;
   using Point       = CQChartsGeom::Point;
+#ifdef CQCHARTS_GRAPH_PATH_ID
   using PathIdRect  = std::map<int, BBox>;
+#endif
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsSankeyPlotNode(const Plot *plot, const QString &str);
@@ -140,10 +143,14 @@ class CQChartsSankeyPlotNode {
   //! add destination edge
   void addDestEdge(Edge *edge, bool primary=true);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   //! sort edges path id
   void sortPathIdEdges(bool force=false);
+#endif
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   int minPathId() const;
+#endif
 
   //! has destination edge
   bool hasDestNode(CQChartsSankeyPlotNode *destNode) const;
@@ -234,7 +241,7 @@ class CQChartsSankeyPlotNode {
 
   //---
 
-  void placeEdges(bool reset=true);
+  void placeEdges(bool reset);
 
   //---
 
@@ -296,7 +303,7 @@ class CQChartsSankeyPlotNode {
 
   //---
 
-  void adjustSrcDestRects();
+  void adjustPathIdSrcDestRects();
 
   //---
 
@@ -354,8 +361,10 @@ class CQChartsSankeyPlotNode {
   ModelInds   modelInds_;                   //!< model inds
   EdgeRect    srcEdgeRect_;                 //!< edge to src
   EdgeRect    destEdgeRect_;                //!< edge to dest
+#ifdef CQCHARTS_GRAPH_PATH_ID
   PathIdRect  srcPathIdRect_;               //!< src path id rect
   PathIdRect  destPathIdRect_;              //!< dest path id rect
+#endif
   Obj*        obj_             { nullptr }; //!< plot object
   bool        selected_        { false };   //!< is selected
 };
@@ -431,9 +440,11 @@ class CQChartsSankeyPlotEdge {
 
   //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   //! get/set path id
   int pathId() const { return pathId_; }
   void setPathId(int i) { pathId_ = i; }
+#endif
 
   //---
 
@@ -475,7 +486,9 @@ class CQChartsSankeyPlotEdge {
   NamedColumn namedColumn_;          //!< named columns
 //QString     label_;                //!< label
   Color       color_;                //!< color
+#ifdef CQCHARTS_GRAPH_PATH_ID
   int         pathId_   { -1 };      //!< path id
+#endif
   ModelInds   modelInds_;            //!< model inds
   Node*       srcNode_  { nullptr }; //!< source node
   Node*       destNode_ { nullptr }; //!< destination node
@@ -716,7 +729,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   //---
 
-  void placeEdges(bool reset=true);
+  void placeEdges(bool reset);
 
   //---
 
@@ -739,7 +752,11 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   void drawConnectionMouseOver(PaintDevice *device, int mouseColoring, int pathId=-1) const;
+#else
+  void drawConnectionMouseOver(PaintDevice *device, int mouseColoring) const;
+#endif
 
   void drawFg(PaintDevice *device) const override;
 
@@ -825,6 +842,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   void draw(PaintDevice *device) const override;
 
+  void drawConnectionMouseOver(PaintDevice *device, int mouseColoring) const;
+
 #if 0
   void drawFg(PaintDevice *device) const override;
 #endif
@@ -874,8 +893,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_PROPERTY(Align  align              READ align                WRITE setAlign             )
   Q_PROPERTY(Spread spread             READ spread               WRITE setSpread            )
   Q_PROPERTY(bool   alignEnds          READ isAlignEnds          WRITE setAlignEnds         )
+#ifdef CQCHARTS_GRAPH_PATH_ID
   Q_PROPERTY(bool   sortPathIdNodes    READ isSortPathIdNodes    WRITE setSortPathIdNodes   )
   Q_PROPERTY(bool   sortPathIdEdges    READ isSortPathIdEdges    WRITE setSortPathIdEdges   )
+#endif
   Q_PROPERTY(bool   adjustNodes        READ isAdjustNodes        WRITE setAdjustNodes       )
   Q_PROPERTY(bool   adjustCenters      READ isAdjustCenters      WRITE setAdjustCenters     )
   Q_PROPERTY(bool   removeOverlaps     READ isRemoveOverlaps     WRITE setRemoveOverlaps    )
@@ -944,22 +965,36 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   using NodeObj     = CQChartsSankeyNodeObj;
   using EdgeObj     = CQChartsSankeyEdgeObj;
   using Graph       = CQChartsSankeyPlotGraph;
+  using Length      = CQChartsLength;
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
   struct NodeYPos {
     double y      { 0.0 };
     int    id     { -1 };
+#ifdef CQCHARTS_GRAPH_PATH_ID
     int    pathId { -1 };
+#endif
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
     NodeYPos(double y, int id, int pathId=-1) :
      y(y), id(id), pathId(pathId) {
     }
+#else
+    NodeYPos(double y, int id) :
+     y(y), id(id) {
+    }
+#endif
 
     friend bool operator<(const NodeYPos &pos1, const NodeYPos &pos2) {
       if (std::fabs(pos1.y - pos2.y) >= 1E-4)
         return pos1.y < pos2.y;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pos1.pathId != pos2.pathId)
         return (pos1.pathId < pos2.pathId);
+#endif
 
       return (pos1.id < pos2.id);
     }
@@ -968,15 +1003,17 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
       if (std::fabs(pos1.y - pos2.y) >= 1E-4)
         return false;
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
       if (pos1.pathId != pos2.pathId)
         return false;
+#endif
 
       return (pos1.id == pos2.id);
     }
   };
 
-  using PosNodeMap  = std::map<NodeYPos, Node *>;
-  using PosEdgeMap  = std::map<NodeYPos, Edge *>;
+  using PosNodeMap = std::map<NodeYPos, Node *>;
+  using PosEdgeMap = std::map<NodeYPos, Edge *>;
 
  public:
   CQChartsSankeyPlot(View *view, const ModelP &model);
@@ -1047,6 +1084,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool isAlignEnds() const { return alignEnds_; }
   void setAlignEnds(bool b);
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   //! get/set sort path id edges
   bool isSortPathIdNodes() const { return sortPathIdNodes_; }
   void setSortPathIdNodes(bool b);
@@ -1054,6 +1092,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   //! get/set sort path id edges
   bool isSortPathIdEdges() const { return sortPathIdEdges_; }
   void setSortPathIdEdges(bool b);
+#endif
 
   //! get/set adjust nodes
   bool isAdjustNodes() const { return adjustNodes_; }
@@ -1221,9 +1260,11 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   bool hasAnyPathId() const { return pathIdMinMax_.isSet(); }
 
   const IMinMax &pathIdMinMax() const { return pathIdMinMax_; }
+#endif
 
  protected:
   void clearNodesAndEdges();
@@ -1235,9 +1276,13 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   void createObjsGraph(PlotObjs &objs) const;
 
-  void sortDepthNodes(bool force=false);
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  void sortPathIdDepthNodes(bool force=false);
+#endif
 
-  void adjustSrcDestRects() const;
+#ifdef CQCHARTS_GRAPH_PATH_ID
+  void adjustPathIdSrcDestRects() const;
+#endif
 
   void createGraph() const;
 
@@ -1306,8 +1351,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Spread spread_             { Spread::FIRST_LAST }; //!< spread
   int    alignRand_          { 10 };                 //!< number of random values for align
   bool   alignEnds_          { true };               //!< align start left and end right
+#ifdef CQCHARTS_GRAPH_PATH_ID
   bool   sortPathIdNodes_    { true };               //!< sort nodes at depth by path id
   bool   sortPathIdEdges_    { true };               //!< sort node edges by path id
+#endif
   bool   adjustNodes_        { true };               //!< adjust nodes
   bool   adjustCenters_      { true };               //!< adjust centers
   bool   removeOverlaps_     { true };               //!< remove overlaps
@@ -1349,7 +1396,9 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool        useMaxTotals_  { true };    //!< use max total for node src/dest scaling
   bool        pressed_       { false };   //!< mouse pressed
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   mutable IMinMax pathIdMinMax_; //!< min/max path id
+#endif
 
  public:
   //! draw text data

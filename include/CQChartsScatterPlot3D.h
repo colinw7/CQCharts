@@ -205,6 +205,7 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
  public:
   using Point3D = CQChartsGeom::Point3D;
+  using Color   = CQChartsColor;
 
   //! value data
   struct ValueData {
@@ -235,6 +236,8 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
   //--
 
   using DataLabel = CQChartsDataLabel;
+  using Length    = CQChartsLength;
+  using ColorInd  = CQChartsUtil::ColorInd;
 
  public:
   CQChartsScatterPlot3D(View *view, const ModelP &model);

@@ -1012,6 +1012,10 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   using GraphObj    = CQChartsGraphGraphObj;
   using PosNodeMap  = std::map<double, Node *>;
   using PosEdgeMap  = std::map<double, Edge *>;
+  using Length      = CQChartsLength;
+  using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
+  using ColorInd    = CQChartsUtil::ColorInd;
 
  public:
   CQChartsGraphPlot(View *view, const ModelP &model);

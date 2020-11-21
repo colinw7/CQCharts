@@ -54,8 +54,10 @@ addParameters()
 
   addColumnParameter("depth", "Depth", "depthColumn").setBasic().
     setNumeric().setTip("Connection depth");
+#ifdef CQCHARTS_GRAPH_PATH_ID
   addColumnParameter("pathId", "PathId", "pathIdColumn").
     setString().setTip("Path Id");
+#endif
   addColumnParameter("attributes", "Attributes", "attributesColumn").
     setString().setTip("Node/Edge attributes");
 
@@ -314,12 +316,14 @@ setGroupColumn(const Column &c)
 
 //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
 void
 CQChartsConnectionPlot::
 setPathIdColumn(const Column &c)
 {
   CQChartsUtil::testAndSet(pathIdColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
+#endif
 
 void
 CQChartsConnectionPlot::
@@ -407,7 +411,9 @@ addProperties()
   addProp("columns", "valueColumn", "value", "Value column");
   addProp("columns", "depthColumn", "depth", "Depth column");
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   addProp("columns", "pathIdColumn"    , "pathId"    , "Path Id column");
+#endif
   addProp("columns", "attributesColumn", "attributes", "Attributes column");
 
   addProp("columns", "groupColumn", "group", "Grouping column");
@@ -454,9 +460,11 @@ checkColumns() const
     else
       columnsValid = false;
   }
+#ifdef CQCHARTS_GRAPH_PATH_ID
   else if (pathColumn().isValid()) {
     modelColumns_.push_back(pathColumn());
   }
+#endif
   else if (fromColumn().isValid() && toColumn().isValid()) {
     modelColumns_.push_back(fromColumn());
     modelColumns_.push_back(toColumn  ());
@@ -465,11 +473,13 @@ checkColumns() const
     return th->addError("Required columns not specified");
   }
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
   // pathId optional
   if (checkColumn(pathIdColumn(), "PathId"))
     modelColumns_.push_back(pathIdColumn());
   else
     columnsValid = false;
+#endif
 
   // attributes optional
   if (checkColumn(attributesColumn(), "Attributes"))
@@ -1030,6 +1040,7 @@ initFromToObjs() const
 
       //---
 
+#ifdef CQCHARTS_GRAPH_PATH_ID
       // get pathId from optional column
       if (plot_->pathIdColumn().isValid()) {
         fromToData.pathIdModelInd = ModelIndex(plot, data.row, plot_->pathIdColumn(), data.parent);
@@ -1040,6 +1051,7 @@ initFromToObjs() const
 
         fromToData.pathId = OptInt(value);
       }
+#endif
 
       //---
 

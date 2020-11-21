@@ -360,6 +360,9 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
   using ArcObj            = CQChartsChordArcObj;
   using EdgeObj           = CQChartsChordEdgeObj;
   using RotatedTextBoxObj = CQChartsRotatedTextBoxObj;
+  using Color             = CQChartsColor;
+  using Alpha             = CQChartsAlpha;
+  using ColorInd          = CQChartsUtil::ColorInd;
 
  public:
   CQChartsChordPlot(View *view, const ModelP &model);

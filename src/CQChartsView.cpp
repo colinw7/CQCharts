@@ -2474,10 +2474,15 @@ mousePressEvent(QMouseEvent *me)
   //---
 
   if (mouseButton() == Qt::LeftButton) {
-    if      (mode() == Mode::SELECT)
+    if      (mode() == Mode::SELECT) {
       selectMousePress();
-    else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT)
+
+      if (floatTip_->isVisible() && floatTip_->isLocked())
+        floatTip_->showTip(me->globalPos());
+    }
+    else if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
       zoomMousePress();
+    }
     else if (mode() == Mode::PAN) {
     }
     else if (mode() == Mode::PROBE) {
@@ -2485,10 +2490,12 @@ mousePressEvent(QMouseEvent *me)
     else if (mode() == Mode::QUERY) {
       queryMousePress();
     }
-    else if (mode() == Mode::EDIT)
+    else if (mode() == Mode::EDIT) {
       (void) editMousePress();
-    else if (mode() == Mode::REGION)
+    }
+    else if (mode() == Mode::REGION) {
       regionMousePress();
+    }
   }
   else if (mouseButton() == Qt::MiddleButton) {
   }
@@ -2529,7 +2536,7 @@ mouseMoveEvent(QMouseEvent *me)
   //---
 
   if (mode() == Mode::ZOOM_IN || mode() == Mode::ZOOM_OUT) {
-    updatePosText(mouseMovePoint());
+    updateMousePosText();
   }
 
   //---
@@ -2543,7 +2550,7 @@ mouseMoveEvent(QMouseEvent *me)
   //---
 
   if (mode() == Mode::QUERY) {
-    updatePosText(mouseMovePoint());
+    queryMouseMotion();
     return;
   }
 
@@ -2551,7 +2558,7 @@ mouseMoveEvent(QMouseEvent *me)
 
   if (! mousePressed()) {
     if (mode() == Mode::EDIT) {
-      updatePosText(mouseMovePoint());
+      updateMousePosText();
 
       editMouseMotion();
     }
@@ -2583,7 +2590,7 @@ mouseMoveEvent(QMouseEvent *me)
     else if (mode() == Mode::EDIT)
       (void) editMouseMove();
     else if (mode() == Mode::REGION) {
-      updatePosText(mouseMovePoint());
+      updateMousePosText();
 
       regionMouseMove();
     }
@@ -2972,19 +2979,28 @@ editMouseMotion()
   //---
 
   // update plot mouse inside
+  bool inside = false;
+
   Plots plots;
   Plot* plot;
 
   plotsAt(w, plots, plot);
 
-  if (plot)
-    plot->editMouseMotion(p);
+  if (plot && plot->editMouseMotion(p))
+    inside = true;
 
   for (auto &plot1 : plots) {
     if (plot1 == plot) continue;
 
-    plot1->editMouseMotion(p);
+    if (plot1->editMouseMotion(p))
+      inside = true;
   }
+
+  //---
+
+  // nothing inside so do search (TODO: only editable)
+  if (! inside)
+    searchMouse();
 }
 
 void
@@ -3300,16 +3316,9 @@ void
 CQChartsView::
 selectMouseMotion()
 {
-  updatePosText(mouseMovePoint());
+  updateMousePosText();
 
-  //---
-
-  searchPos_ = mouseMovePoint();
-
-  if (searchTimer_)
-    searchTimer_->start();
-  else
-    searchSlot();
+  searchMouse();
 }
 
 void
@@ -3449,7 +3458,7 @@ void
 CQChartsView::
 regionMouseMotion()
 {
-  updatePosText(mouseMovePoint());
+  updateMousePosText();
 }
 
 void
@@ -3531,6 +3540,13 @@ editObjs(Objs &objs)
 }
 
 //------
+
+void
+CQChartsView::
+updateMousePosText()
+{
+  updatePosText(mouseMovePoint());
+}
 
 void
 CQChartsView::
@@ -3705,6 +3721,15 @@ queryMousePress()
   auto wpos = this->pixelToWindow(mouseData_.pressPoint);
 
   showQueryAt(wpos);
+}
+
+void
+CQChartsView::
+queryMouseMotion()
+{
+  updateMousePosText();
+
+  searchMouse();
 }
 
 void
@@ -4574,7 +4599,7 @@ setPen(PenBrush &penBrush, const PenData &penData) const
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
-                       width, penData.dash());
+                       width, penData.dash(), penData.lineCap());
 }
 
 void
@@ -4658,7 +4683,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, PenBrush &penBrush,
         else
           opc = CQChartsUtil::invColor(pc);
 
-        alpha = Alpha(pc.alphaF());
+      //alpha = Alpha(pc.alphaF());
       }
       else {
         auto bc = penBrush.brush.color();
@@ -4857,6 +4882,18 @@ updateSlot()
 }
 
 //------
+
+void
+CQChartsView::
+searchMouse()
+{
+  searchPos_ = mouseMovePoint();
+
+  if (searchTimer_)
+    searchTimer_->start();
+  else
+    searchSlot();
+}
 
 void
 CQChartsView::
@@ -5614,6 +5651,12 @@ showMenu(const Point &p)
 
       if (basePlot)
         showBoxesAction->setChecked(basePlot->showBoxes());
+
+      auto *showSelectedBoxesAction =
+        addCheckAction(popupMenu, "Show Selected Boxes", false, SLOT(showSelectedBoxesSlot(bool)));
+
+      if (basePlot)
+        showSelectedBoxesAction->setChecked(basePlot->showSelectedBoxes());
 
       //---
 
@@ -6759,6 +6802,19 @@ showBoxesSlot(bool b)
   if (basePlot)
     basePlot->setShowBoxes(b);
 }
+
+void
+CQChartsView::
+showSelectedBoxesSlot(bool b)
+{
+  auto *currentPlot = this->currentPlot(/*remap*/true);
+  auto *basePlot    = (currentPlot ? this->basePlot(currentPlot) : nullptr);
+
+  if (basePlot)
+    basePlot->setShowSelectedBoxes(b);
+}
+
+//---
 
 void
 CQChartsView::
