@@ -13,7 +13,7 @@
 namespace CQChartsDrawUtil {
 
 void
-setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
+setPenBrush(CQChartsPaintDevice *device, const PenBrush &penBrush)
 {
   device->setPen      (penBrush.pen);
   device->setBrush    (penBrush.brush);
@@ -22,14 +22,14 @@ setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
 }
 
 void
-setPenBrush(QPainter *painter, const CQChartsPenBrush &penBrush)
+setPenBrush(QPainter *painter, const PenBrush &penBrush)
 {
   painter->setPen  (penBrush.pen);
   painter->setBrush(penBrush.brush);
 }
 
 void
-setBrush(QBrush &brush, const CQChartsBrushData &data)
+setBrush(QBrush &brush, const BrushData &data)
 {
   CQChartsUtil::setBrush(brush, data.isVisible(), data.color(), data.alpha(), data.pattern());
 }
@@ -37,16 +37,85 @@ setBrush(QBrush &brush, const CQChartsBrushData &data)
 //---
 
 void
-drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
-                   const CQChartsLength &len, const CQChartsSides &sides)
+drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+            const Length &lineWidth, bool horizontal,
+            const Symbol &symbolType, const Length &symbolSize)
 {
-  drawRoundedPolygon(device, bbox, len, len, sides);
+  // draw solid line
+  double lw = (! horizontal ? device->lengthPixelWidth (lineWidth) :
+                              device->lengthPixelHeight(lineWidth));
+
+  if (! horizontal) {
+    if (lw < 3) {
+      setPenBrush(device, penBrush);
+
+      double xc = bbox.getXMid();
+
+      device->drawLine(Point(xc, bbox.getYMin()), Point(xc, bbox.getYMax()));
+    }
+    else {
+      auto pbbox = device->windowToPixel(bbox);
+
+      double xc = pbbox.getXMid();
+
+      BBox pbbox1(xc - lw/2, pbbox.getYMin(), xc + lw/2, pbbox.getYMax());
+
+      drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
+    }
+  }
+  else {
+    if (lw < 3) {
+      setPenBrush(device, penBrush);
+
+      double yc = bbox.getYMid();
+
+      device->drawLine(Point(bbox.getXMin(), yc), Point(bbox.getXMax(), yc));
+    }
+    else {
+      auto pbbox = device->windowToPixel(bbox);
+
+      double yc = pbbox.getYMid();
+
+      BBox pbbox1(pbbox.getXMid(), yc - lw/2, pbbox.getXMax(), yc + lw/2);
+
+      drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
+    }
+  }
+
+  //---
+
+  // draw dot
+  Point p;
+
+  if (! horizontal)
+    p = Point(bbox.getXMid(), bbox.getYMax());
+  else
+    p = Point(bbox.getXMax(), bbox.getYMid());
+
+  drawSymbol(device, penBrush, symbolType, p, symbolSize);
+}
+
+//---
+
+void
+drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+                   const Length &cornerSize, const Sides &sides)
+{
+  setPenBrush(device, penBrush);
+
+  drawRoundedPolygon(device, bbox, cornerSize, cornerSize, sides);
 }
 
 void
-drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
-                   const CQChartsLength &xlen, const CQChartsLength &ylen,
-                   const CQChartsSides &sides)
+drawRoundedPolygon(PaintDevice *device, const BBox &bbox,
+                   const Length &cornerSize, const Sides &sides)
+{
+  drawRoundedPolygon(device, bbox, cornerSize, cornerSize, sides);
+}
+
+void
+drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerSize,
+                   const Length &yCornerSize, const Sides &sides)
 {
   static double minSize1 = 2.5; // pixels
   static double minSize2 = 1.5; // pixels
@@ -55,8 +124,8 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
 
   double minSize = pbbox.getMinSize();
 
-  double xsize = device->lengthPixelWidth (xlen);
-  double ysize = device->lengthPixelHeight(ylen);
+  double xsize = device->lengthPixelWidth (xCornerSize);
+  double ysize = device->lengthPixelHeight(yCornerSize);
 
   if      (minSize >= minSize1) {
     CQChartsRoundedPolygon::draw(device, bbox, xsize, ysize, sides);
@@ -91,25 +160,34 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const BBox &bbox,
 }
 
 void
-drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly, const CQChartsLength &len)
+drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const Polygon &poly,
+                   const Length &cornerSize)
 {
-  drawRoundedPolygon(device, poly, len, len);
+  setPenBrush(device, penBrush);
+
+  drawRoundedPolygon(device, poly, cornerSize, cornerSize);
 }
 
 void
-drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
-                   const CQChartsLength &xlen, const CQChartsLength &ylen)
+drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &cornerSize)
+{
+  drawRoundedPolygon(device, poly, cornerSize, cornerSize);
+}
+
+void
+drawRoundedPolygon(PaintDevice *device, const Polygon &poly,
+                   const Length &xCornerSize, const Length &yCornerSize)
 {
   static double minSize = 2.5; // pixels
 
   auto bbox = poly.boundingBox();
 
-  double pw = device->lengthPixelWidth (CQChartsLength(bbox.getWidth (), CQChartsUnits::PLOT));
-  double ph = device->lengthPixelHeight(CQChartsLength(bbox.getHeight(), CQChartsUnits::PLOT));
+  double pw = device->lengthPixelWidth (Length(bbox.getWidth (), device->parentUnits()));
+  double ph = device->lengthPixelHeight(Length(bbox.getHeight(), device->parentUnits()));
 
   if (pw > minSize && ph > minSize) {
-    double xsize = device->lengthPixelWidth (xlen);
-    double ysize = device->lengthPixelHeight(ylen);
+    double xsize = device->lengthPixelWidth (xCornerSize);
+    double ysize = device->lengthPixelHeight(yCornerSize);
 
     CQChartsRoundedPolygon::draw(device, poly, xsize, ysize);
   }
@@ -128,9 +206,11 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const Polygon &poly,
   }
 }
 
+//------
+
 void
-drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
-              const QString &text, const CQChartsTextOptions &options)
+drawTextInBox(PaintDevice *device, const BBox &rect,
+              const QString &text, const TextOptions &options)
 {
   assert(rect.isValid());
 
@@ -193,8 +273,8 @@ drawTextInBox(CQChartsPaintDevice *device, const BBox &rect,
 }
 
 void
-drawStringsInBox(CQChartsPaintDevice *device, const BBox &rect,
-                 const QStringList &strs, const CQChartsTextOptions &options)
+drawStringsInBox(PaintDevice *device, const BBox &rect,
+                 const QStringList &strs, const TextOptions &options)
 {
   auto prect = device->windowToPixel(rect);
 
@@ -264,8 +344,8 @@ drawStringsInBox(CQChartsPaintDevice *device, const BBox &rect,
 }
 
 void
-drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect,
-                     const QString &text, const QPen &pen, const CQChartsTextOptions &options)
+drawRotatedTextInBox(PaintDevice *device, const BBox &rect,
+                     const QString &text, const QPen &pen, const TextOptions &options)
 {
   assert(rect.isValid());
 
@@ -277,8 +357,8 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const BBox &rect,
 //------
 
 CQChartsGeom::BBox
-calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QString &text,
-                    const CQChartsTextOptions &options, bool centered, double pdx, double pdy)
+calcTextAtPointRect(PaintDevice *device, const Point &point, const QString &text,
+                    const TextOptions &options, bool centered, double pdx, double pdy)
 {
   auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
@@ -364,8 +444,8 @@ calcTextAtPointRect(CQChartsPaintDevice *device, const Point &point, const QStri
 }
 
 void
-drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &text,
-                const CQChartsTextOptions &options, bool centered, double pdx, double pdy)
+drawTextAtPoint(PaintDevice *device, const Point &point, const QString &text,
+                const TextOptions &options, bool centered, double pdx, double pdy)
 {
   auto text1 = clipTextToLength(text, device->font(), options.clipLength, options.clipElide);
 
@@ -461,7 +541,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const Point &point, const QString &
 //------
 
 void
-drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text,
+drawAlignedText(PaintDevice *device, const Point &p, const QString &text,
                 Qt::Alignment align, double pdx, double pdy)
 {
   QFontMetricsF fm(device->font());
@@ -489,7 +569,7 @@ drawAlignedText(CQChartsPaintDevice *device, const Point &p, const QString &text
 //------
 
 CQChartsGeom::BBox
-calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point &p,
+calcAlignedTextRect(PaintDevice *device, const QFont &font, const Point &p,
                     const QString &text, Qt::Alignment align, double pdx, double pdy)
 {
   QFontMetricsF fm(font);
@@ -519,8 +599,7 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const Point 
 //------
 
 void
-drawContrastText(CQChartsPaintDevice *device, const Point &p,
-                 const QString &text, const CQChartsAlpha &alpha)
+drawContrastText(PaintDevice *device, const Point &p, const QString &text, const Alpha &alpha)
 {
   auto pen = device->pen();
 
@@ -561,7 +640,7 @@ drawContrastText(CQChartsPaintDevice *device, const Point &p,
 //------
 
 CQChartsGeom::Size
-calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options)
+calcTextSize(const QString &text, const QFont &font, const TextOptions &options)
 {
   if (options.html)
     return CQChartsDrawPrivate::calcHtmlTextSize(text, font, options.margin);
@@ -576,7 +655,7 @@ calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &
 //------
 
 void
-drawCenteredText(CQChartsPaintDevice *device, const Point &pos, const QString &text)
+drawCenteredText(PaintDevice *device, const Point &pos, const QString &text)
 {
   QFontMetricsF fm(device->font());
 
@@ -590,7 +669,7 @@ drawCenteredText(CQChartsPaintDevice *device, const Point &pos, const QString &t
 //------
 
 void
-drawSimpleText(CQChartsPaintDevice *device, const Point &pos, const QString &text)
+drawSimpleText(PaintDevice *device, const Point &pos, const QString &text)
 {
   device->drawText(pos, text);
 }
@@ -598,9 +677,20 @@ drawSimpleText(CQChartsPaintDevice *device, const Point &pos, const QString &tex
 //---
 
 void
-drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
-           const Point &c, const CQChartsLength &size)
+drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
+           const Point &c, const Length &size)
 {
+  setPenBrush(device, penBrush);
+
+  drawSymbol(device, symbol, c, size);
+}
+
+void
+drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size)
+{
+  if (! size.isValid())
+    return;
+
   CQChartsPlotSymbolRenderer srenderer(device, Point(c), size);
 
   if (device->brush().style() != Qt::NoBrush) {
@@ -616,7 +706,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
 }
 
 void
-drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const BBox &bbox)
+drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
 {
   assert(bbox.isValid());
 
@@ -626,7 +716,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const BBox
   double cy = bbox.getYMid();
   double ss = pbbox.getMinSize();
 
-  CQChartsLength symbolSize(ss/2.0, CQChartsUnits::PIXEL);
+  Length symbolSize(ss/2.0, device->parentUnits());
 
   drawSymbol(device, symbol, Point(cx, cy), symbolSize);
 }
@@ -634,7 +724,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const BBox
 //---
 
 void
-drawPieSlice(CQChartsPaintDevice *device, const Point &c, double ri, double ro,
+drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro,
              const Angle &a1, const Angle &a2, bool isInvertX, bool isInvertY)
 {
   QPainterPath path;
@@ -696,7 +786,7 @@ pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Ang
 //---
 
 void
-drawEllipse(CQChartsPaintDevice *device, const BBox &bbox)
+drawEllipse(PaintDevice *device, const BBox &bbox)
 {
   QPainterPath path;
 
@@ -734,7 +824,7 @@ ellipsePath(QPainterPath &path, const BBox &bbox)
 //---
 
 void
-drawArc(CQChartsPaintDevice *device, const BBox &bbox, const Angle &angle, const Angle &dangle)
+drawArc(PaintDevice *device, const BBox &bbox, const Angle &angle, const Angle &dangle)
 {
   QPainterPath path;
 
@@ -760,7 +850,7 @@ arcPath(QPainterPath &path, const BBox &bbox, const Angle &angle, const Angle &d
 //---
 
 void
-drawArcSegment(CQChartsPaintDevice *device, const BBox &ibbox, const BBox &obbox,
+drawArcSegment(PaintDevice *device, const BBox &ibbox, const BBox &obbox,
                const Angle &angle, const Angle &dangle)
 {
   QPainterPath path;
@@ -792,7 +882,7 @@ arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
 //---
 
 void
-drawArcsConnector(CQChartsPaintDevice *device, const BBox &ibbox, const Angle &a1,
+drawArcsConnector(PaintDevice *device, const BBox &ibbox, const Angle &a1,
                   const Angle &da1, const Angle &a2, const Angle &da2, bool isSelf)
 {
   QPainterPath path;
@@ -846,9 +936,54 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
 
 //---
 
+void
+edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine)
+{
+  // x from right of source rect to left of dest rect
+  bool swapped = false;
+
+  double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
+
+  if (x1 > x2) {
+    x1 = obbox.getXMax(), x2 = ibbox.getXMin();
+    swapped = true;
+  }
+
+  // start y range from source node, and end y range from dest node
+  double y11 = ibbox.getYMax(), y12 = ibbox.getYMin();
+  double y21 = obbox.getYMax(), y22 = obbox.getYMin();
+
+  if (swapped) {
+    std::swap(y11, y21);
+    std::swap(y12, y22);
+  }
+
+  // curve control point x at 1/3 and 2/3
+  double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+  double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+
+  if (isLine) {
+    double y1m = CMathUtil::avg(y11, y12);
+    double y2m = CMathUtil::avg(y21, y22);
+
+    path.moveTo (QPointF(x1, y1m));
+    path.cubicTo(QPointF(x3, y1m), QPointF(x4, y2m), QPointF(x2, y2m));
+  }
+  else {
+    path.moveTo (QPointF(x1, y11));
+    path.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
+    path.lineTo (QPointF(x2, y22));
+    path.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
+
+    path.closeSubpath();
+  }
+}
+
+//---
+
 QString
-clipTextToLength(CQChartsPaintDevice *device, const QString &text,
-                 const CQChartsLength &clipLength, const Qt::TextElideMode &clipElide)
+clipTextToLength(PaintDevice *device, const QString &text,
+                 const Length &clipLength, const Qt::TextElideMode &clipElide)
 {
   if (! clipLength.isValid())
     return text;
@@ -974,8 +1109,8 @@ calcHtmlTextSize(const QString &text, const QFont &font, int margin)
 //------
 
 void
-drawScaledHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString &text,
-                   const CQChartsTextOptions &options)
+drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &text,
+                   const TextOptions &options)
 {
   assert(tbbox.isValid());
 
@@ -1007,8 +1142,8 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const BBox &tbbox, const QString
 }
 
 void
-drawHtmlText(CQChartsPaintDevice *device, const Point &center, const BBox &tbbox,
-             const QString &text, const CQChartsTextOptions &options, double pdx, double pdy)
+drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
+             const QString &text, const TextOptions &options, double pdx, double pdy)
 {
   assert(tbbox.isValid());
 

@@ -32,7 +32,7 @@ class CQChartsGrahamHull {
 
   void getHull(Polygon &points) const;
 
-  void draw(const Plot *plot, PaintDevice *device) const;
+  void draw(PaintDevice *device) const;
 
   BBox bbox() const;
 

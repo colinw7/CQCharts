@@ -502,9 +502,9 @@ drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
   if (hier) {
     auto ph = windowToPixel(Point(hier->x(), hier->yc()));
 
-//  double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
-    double x1 = ph.x + cs/2.0;      double y1 = ph.y;
-    double x4 = pn.x - cs/2.0;      double y4 = pn.y;
+    double x1 = ph.x + cs/2.0; double y1 = ph.y;
+    double x4 = pn.x - cs/2.0; double y4 = pn.y;
+
     double x2 = x1 + (x4 - x1)/3.0; double y2 = y1;
     double x3 = x2 + (x4 - x1)/3.0; double y3 = y4;
 

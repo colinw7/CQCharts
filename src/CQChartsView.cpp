@@ -1307,6 +1307,14 @@ addArrowAnnotation(const Position &start, const Position &end)
     new CQChartsArrowAnnotation(this, start, end));
 }
 
+CQChartsArcAnnotation *
+CQChartsView::
+addArcAnnotation(const Rect &start, const Rect &end)
+{
+  return addAnnotationT<CQChartsArcAnnotation>(
+    new CQChartsArcAnnotation(this, start, end));
+}
+
 CQChartsEllipseAnnotation *
 CQChartsView::
 addEllipseAnnotation(const Position &center, const Length &xRadius, const Length &yRadius)
@@ -4914,6 +4922,13 @@ searchAt(const Point &w)
 
   //---
 
+  Plot::Constraints constraints = Plot::Constraints::SELECTABLE;
+
+  if (mode() == Mode::EDIT)
+    constraints = Plot::Constraints::EDITABLE;
+
+  //---
+
   auto p = windowToPixel(w);
 
   bool handled = false;
@@ -4921,7 +4936,7 @@ searchAt(const Point &w)
   processMouseDataPlots([&](Plot *plot, const Point &pos) {
     auto w = plot->pixelToWindow(pos);
 
-    if (plot->selectMove(w, ! handled))
+    if (plot->selectMove(w, constraints, ! handled))
       handled = true;
 
     return false;

@@ -30,6 +30,7 @@ class CQChartsViewFloatTip;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
+class CQChartsArcAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsButtonAnnotation;
 class CQChartsEllipseAnnotation;
@@ -549,6 +550,7 @@ class CQChartsView : public QFrame,
   using Annotation          = CQChartsAnnotation;
   using Annotations         = std::vector<Annotation *>;
   using AnnotationGroup     = CQChartsAnnotationGroup;
+  using ArcAnnotation       = CQChartsArcAnnotation;
   using ArrowAnnotation     = CQChartsArrowAnnotation;
   using ButtonAnnotation    = CQChartsButtonAnnotation;
   using EllipseAnnotation   = CQChartsEllipseAnnotation;
@@ -573,6 +575,7 @@ class CQChartsView : public QFrame,
   // --- add annotation ---
 
   AnnotationGroup     *addAnnotationGroup    ();
+  ArcAnnotation       *addArcAnnotation      (const Rect &start, const Rect &end);
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
   ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
   EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,

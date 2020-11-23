@@ -642,8 +642,6 @@ drawVoronoi(PaintDevice *device) const
 
     setVoronoiSymbolPenBrush(penBrush, ColorInd());
 
-    CQChartsDrawUtil::setPenBrush(device, penBrush);
-
     // get symbol type and size
     auto symbolType = this->voronoiSymbolType();
     auto symbolSize = this->voronoiSymbolSize();
@@ -656,7 +654,7 @@ drawVoronoi(PaintDevice *device) const
 
       Point p(v->x(), v->y());
 
-      drawSymbol(device, p, symbolType, symbolSize, penBrush);
+      CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize);
     }
   }
 
@@ -837,8 +835,6 @@ draw(PaintDevice *device) const
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // get symbol type and size
@@ -850,5 +846,5 @@ draw(PaintDevice *device) const
   // draw symbol
   Point p(x_, y_);
 
-  plot_->drawSymbol(device, p, symbolType, symbolSize, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize);
 }

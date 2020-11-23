@@ -700,5 +700,5 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  plot_->drawSymbol(device, p_, symbolType, symbolSize, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
 }

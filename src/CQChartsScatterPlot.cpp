@@ -3545,7 +3545,7 @@ draw(PaintDevice *device) const
   if (! image.isValid()) {
     auto ps1 = plot_->pixelToWindow(ps);
 
-    plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, ps1, symbolSize);
   }
   else {
     double aspect = (1.0*image.width())/image.height();

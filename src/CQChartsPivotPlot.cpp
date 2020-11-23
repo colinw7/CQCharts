@@ -1250,7 +1250,7 @@ draw(PaintDevice *device) const
   // draw bar
   device->setColorNames();
 
-  drawRoundedPolygon(device, penBrush, rect(), plot_->barCornerSize());
+  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, rect(), plot_->barCornerSize());
 
   device->resetColorNames();
 }
@@ -1450,7 +1450,7 @@ draw(PaintDevice *device) const
     CQChartsLength ss("5px");
 
     for (int i = 0; i < np; ++i)
-      plot()->drawSymbol(device, polygon_.point(i), symbol, ss, penBrush);
+      CQChartsDrawUtil::drawSymbol(device, symbol, polygon_.point(i), ss);
   }
 
   // draw line
@@ -1556,13 +1556,11 @@ draw(PaintDevice *device) const
 
   plot_->updateObjPenBrushState(this, penBrush);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
   CQChartsLength ss("5px");
 
-  plot()->drawSymbol(device, p_, symbol, ss, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p_, ss);
 }
 
 //------

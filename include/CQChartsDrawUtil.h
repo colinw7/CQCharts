@@ -188,10 +188,13 @@ inline QPainterPath polygonToPath(const Polygon &polygon, bool closed=false) {
 // pen/brush
 namespace CQChartsDrawUtil {
 
-void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush);
-void setPenBrush(QPainter *device, const CQChartsPenBrush &penBrush);
+using PenBrush  = CQChartsPenBrush;
+using BrushData = CQChartsBrushData;
 
-void setBrush(QBrush &brush, const CQChartsBrushData &data);
+void setPenBrush(CQChartsPaintDevice *device, const PenBrush &penBrush);
+void setPenBrush(QPainter *device, const PenBrush &penBrush);
+
+void setBrush(QBrush &brush, const BrushData &data);
 
 inline void setBrushAlpha(QBrush &brush, double a) {
   auto c = brush.color();
@@ -219,11 +222,19 @@ using BBox        = CQChartsGeom::BBox;
 using Size        = CQChartsGeom::Size;
 using Point       = CQChartsGeom::Point;
 
+void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+                 const Length &lineWidth, bool horizontal,
+                 const Symbol &symbolType, const Length &symbolSize);
+
+void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+                        const Length &size=Length(), const Sides &sides=Sides(Sides::Side::ALL));
 void drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &size=Length(),
                         const Sides &sides=Sides(Sides::Side::ALL));
 void drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xsize,
                         const Length &ysize, const Sides &sides=Sides(Sides::Side::ALL));
 
+void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const Polygon &poly,
+                        const Length &size=Length());
 void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &size=Length());
 void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xsize,
                         const Length &ysize);
@@ -260,6 +271,10 @@ void drawCenteredText(PaintDevice *device, const Point &pos, const QString &text
 
 void drawSimpleText(PaintDevice *device, const Point &pos, const QString &text);
 
+//---
+
+void drawSymbol(PaintDevice *device, const PenBrush &penBrush, const Symbol &symbol,
+                const Point &c, const Length &size);
 void drawSymbol(PaintDevice *device, const Symbol &symbol, const Point &c, const Length &size);
 void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox);
 
@@ -298,6 +313,10 @@ void drawArcsConnector(PaintDevice *device, const BBox &ibbox, const Angle &a1, 
 
 void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, const Angle &da1,
                        const Angle &a2, const Angle &da2, bool isSelf);
+
+//---
+
+void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine=false);
 
 //---
 

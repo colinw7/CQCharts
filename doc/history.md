@@ -1242,3 +1242,8 @@
  + Add path annotation
  + Improve path parser
  + Support annotation group flip and allow skip layout
+# 11/22/2020
+ + Add arc annotation
+ + support dot line shape for rect annotation
+ + support angle for rect shape
+ + move more common draw code to draw util class

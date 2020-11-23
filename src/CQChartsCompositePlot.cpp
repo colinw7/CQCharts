@@ -866,7 +866,7 @@ selectPress(const Point &w, SelMod selMod)
 
 bool
 CQChartsCompositePlot::
-selectMove(const Point &w, bool first)
+selectMove(const Point &w, Constraints constraints, bool first)
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -875,7 +875,7 @@ selectMove(const Point &w, bool first)
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    if (plot->selectMove(w, first))
+    if (plot->selectMove(w, constraints, first))
       return true;
   }
 

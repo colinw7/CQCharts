@@ -30,6 +30,7 @@ class CQChartsPaintDevice {
   using Angle   = CQChartsAngle;
   using Image   = CQChartsImage;
   using Length  = CQChartsLength;
+  using Units   = CQChartsUnits;
   using Point   = CQChartsGeom::Point;
   using BBox    = CQChartsGeom::BBox;
   using Size    = CQChartsGeom::Size;
@@ -56,11 +57,24 @@ class CQChartsPaintDevice {
   CQChartsPaintDevice(Plot *plot) : plot_(plot) { }
   CQChartsPaintDevice() { }
 
+  //---
+
   const View *view() const { return view_; }
   void setView(View *p) { view_ = p; }
 
   const Plot *plot() const { return plot_; }
   void setPlot(Plot *p) { plot_ = p; }
+
+  //---
+
+  Units parentUnits() const {
+    if      (plot()) return Units::PLOT;
+    else if (view()) return Units::VIEW;
+
+    return Units::PIXEL;
+  }
+
+  //---
 
   virtual Type type() const = 0;
 
@@ -97,9 +111,11 @@ class CQChartsPaintDevice {
 
   //---
 
-  static bool polygonSidesPath(const BBox &bbox, int n, QPainterPath &path);
+  static bool polygonSidesPath(const BBox &bbox, int n, const Angle &angle, QPainterPath &path);
 
-  void drawPolygonSides(const BBox &bbox, int n);
+  void drawPolygonSides(const BBox &bbox, int n, const Angle &angle=Angle());
+
+  //---
 
   static bool diamondPath(const BBox &bbox, QPainterPath &path);
 

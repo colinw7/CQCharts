@@ -282,7 +282,7 @@ eval(double x) const
 
 void
 CQChartsDensity::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect)
+draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect)
 {
   constInit();
 
@@ -302,22 +302,22 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect)
 
   switch (drawType()) {
     case DrawType::WHISKER:
-      drawWhisker(plot, device, rect1, orientation());
+      drawWhisker(device, rect1, orientation());
       break;
     case DrawType::WHISKER_BAR:
-      drawWhiskerBar(plot, device, rect1, orientation());
+      drawWhiskerBar(device, rect1, orientation());
       break;
     case DrawType::DISTRIBUTION:
       drawDistribution(plot, device, rect1, orientation(), opts);
       break;
     case DrawType::CROSS_BAR:
-      drawCrossBar(plot, device, rect1, mean, orientation(), CQChartsLength());
+      drawCrossBar(device, rect1, mean, orientation(), CQChartsLength());
       break;
     case DrawType::POINT_RANGE:
-      drawPointRange(plot, device, rect1, mean, orientation(), symbolData);
+      drawPointRange(device, rect1, mean, orientation(), symbolData);
       break;
     case DrawType::ERROR_BAR:
-      drawErrorBar(plot, device, rect1, mean, orientation(), symbolData);
+      drawErrorBar(device, rect1, mean, orientation(), symbolData);
       break;
     default:
       break;
@@ -342,8 +342,7 @@ bbox(const BBox &rect) const
 
 void
 CQChartsDensity::
-drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
-            const Qt::Orientation &orientation) const
+drawWhisker(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation) const
 {
   CQChartsLength ws;
 
@@ -354,13 +353,12 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &r
 
   std::vector<double> outliers;
 
-  CQChartsBoxWhiskerUtil::drawWhisker(plot, device, statData_, outliers, rect, ws, orientation);
+  CQChartsBoxWhiskerUtil::drawWhisker(device, statData_, outliers, rect, ws, orientation);
 }
 
 void
 CQChartsDensity::
-drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
-               const Qt::Orientation &orientation) const
+drawWhiskerBar(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation) const
 {
   std::vector<double> outliers;
 
@@ -374,11 +372,11 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox
   bool           median  { true };
 
   if (orientation == Qt::Horizontal)
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot, device, statData_, rect.getYMid(),
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData_, rect.getYMid(),
                                            orientation, rect.getHeight(), rect.getHeight(),
                                            cornerSize, notched, median, outliers);
   else
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot, device, statData_, rect.getXMid(),
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData_, rect.getXMid(),
                                            orientation, rect.getWidth(), rect.getWidth(),
                                            cornerSize, notched, median, outliers);
 }
@@ -387,7 +385,7 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox
 
 void
 CQChartsDensity::
-drawDistribution(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
+drawDistribution(const Plot *plot, PaintDevice *device, const BBox &rect,
                  const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
   Polygon poly;
@@ -557,8 +555,7 @@ calcDistributionPoly(Polygon &poly, const CQChartsPlot *plot, const BBox &rect,
 
 void
 CQChartsDensity::
-drawBuckets(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
-            const Qt::Orientation &orientation) const
+drawBuckets(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation) const
 {
   CQBucketer bucketer;
 
@@ -629,8 +626,8 @@ drawBuckets(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
 
 void
 CQChartsDensity::
-drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
-             double mean, const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
+drawCrossBar(PaintDevice *device, const BBox &rect, double mean,
+             const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
 {
   double lpos, tpos, bl, br;
 
@@ -680,11 +677,11 @@ drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect
 
 void
 CQChartsDensity::
-drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
-               double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
+drawPointRange(PaintDevice *device, const BBox &rect, double mean,
+               const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
 {
   // draw line
-  drawLineRange(plot, device, rect, orientation);
+  drawLineRange(device, rect, orientation);
 
   // draw symbol at mean
   Point pm;
@@ -694,13 +691,13 @@ drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox
   else
     pm = Point(mean, rect.getYMid());
 
-  plot->drawSymbol(device, Point(pm.x, pm.y), symbol.type(), symbol.size());
+  CQChartsDrawUtil::drawSymbol(device, symbol.type(), Point(pm.x, pm.y), symbol.size());
 }
 
 void
 CQChartsDensity::
-drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &rect,
-             double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
+drawErrorBar(PaintDevice *device, const BBox &rect, double mean,
+             const Qt::Orientation &orientation, const CQChartsSymbolData &symbol)
 {
   double lpos, tpos, bl, bm, br;
 
@@ -758,13 +755,12 @@ drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const BBox &
   else
     pm = Point(mean, rect.getYMid());
 
-  plot->drawSymbol(device, Point(pm.x, pm.y), symbol.type(), symbol.size());
+  CQChartsDrawUtil::drawSymbol(device, symbol.type(), Point(pm.x, pm.y), symbol.size());
 }
 
 void
 CQChartsDensity::
-drawLineRange(const CQChartsPlot *, CQChartsPaintDevice *device, const BBox &rect,
-              const Qt::Orientation &orientation)
+drawLineRange(PaintDevice *device, const BBox &rect, const Qt::Orientation &orientation)
 {
   double lpos, tpos, bm;
 

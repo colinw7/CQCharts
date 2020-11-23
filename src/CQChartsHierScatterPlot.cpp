@@ -910,8 +910,6 @@ draw(PaintDevice *device) const
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // get symbol type and size
@@ -919,7 +917,7 @@ draw(PaintDevice *device) const
   auto symbolSize = plot_->symbolSize();
 
   // draw symbol
-  plot_->drawSymbol(device, p_, symbolType, symbolSize, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p_, symbolSize);
 
   //---
 

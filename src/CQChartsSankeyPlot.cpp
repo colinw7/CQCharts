@@ -3602,44 +3602,7 @@ edgePath(QPainterPath &path, bool isLine) const
 
   //---
 
-  // x from right of source rect to left of dest rect
-  bool swapped = false;
-
-  double x1 = srcRect.getXMax(), x2 = destRect.getXMin();
-
-  if (x1 > x2) {
-    x1 = destRect.getXMax(), x2 = srcRect.getXMin();
-    swapped = true;
-  }
-
-  // start y range from source node, and end y range from dest node
-  double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
-  double y21 = destRect.getYMax(), y22 = destRect.getYMin();
-
-  if (swapped) {
-    std::swap(y11, y21);
-    std::swap(y12, y22);
-  }
-
-  // curve control point x at 1/3 and 2/3
-  double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-  double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
-
-  if (isLine) {
-    double y1m = CMathUtil::avg(y11, y12);
-    double y2m = CMathUtil::avg(y21, y22);
-
-    path.moveTo (QPointF(x1, y1m));
-    path.cubicTo(QPointF(x3, y1m), QPointF(x4, y2m), QPointF(x2, y2m));
-  }
-  else {
-    path.moveTo (QPointF(x1, y11));
-    path.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
-    path.lineTo (QPointF(x2, y22));
-    path.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
-
-    path.closeSubpath();
-  }
+  CQChartsDrawUtil::edgePath(path, srcRect, destRect, isLine);
 
   return true;
 }

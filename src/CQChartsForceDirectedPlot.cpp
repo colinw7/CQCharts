@@ -1175,7 +1175,7 @@ selectPress(const Point &p, SelMod /*selMod*/)
 
 bool
 CQChartsForceDirectedPlot::
-selectMove(const Point &p, bool first)
+selectMove(const Point &p, Constraints constraints, bool first)
 {
   if (pressed_) {
     if (forceDirected_->currentPoint())
@@ -1192,7 +1192,7 @@ selectMove(const Point &p, bool first)
     forceDirected_->setCurrentPoint(nodePoint.second);
   }
 
-  return CQChartsPlot::selectMove(p, first);
+  return CQChartsPlot::selectMove(p, constraints, first);
 }
 
 bool

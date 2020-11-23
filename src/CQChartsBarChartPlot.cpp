@@ -745,8 +745,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   //---
 
   // get value set for group
-  CQChartsBarChartValueSet *valueSet =
-    const_cast<CQChartsBarChartValueSet *>(groupValueSet(groupInd));
+  auto *valueSet = const_cast<CQChartsBarChartValueSet *>(groupValueSet(groupInd));
 
   //---
 
@@ -1355,15 +1354,33 @@ initObjAxesI()
 
       int nvs = valueSet.numValues();
 
-      for (int ivs = 0; ivs < nvs; ++ivs) {
-        if (isValueHidden(ivs))
-          continue;
+      if (isValueValue()) {
+        for (int ivs = 0; ivs < nvs; ++ivs) {
+          if (isValueHidden(ivs))
+            continue;
 
-        if (positions.find(numVisible) != positions.end()) {
+          if (positions.find(numVisible) != positions.end()) {
+            const auto &value = valueSet.value(ivs);
+
+            xAxis->setTickLabel(numVisible, value.valueName());
+          }
+
+          ++numVisible;
+        }
+      }
+      else {
+        QStringList names;
+
+        for (int ivs = 0; ivs < nvs; ++ivs) {
+          if (isValueHidden(ivs))
+            continue;
+
           const auto &value = valueSet.value(ivs);
 
-          xAxis->setTickLabel(numVisible, value.valueName());
+          names += value.valueName();
         }
+
+        xAxis->setTickLabel(numVisible, names.join(", "));
 
         ++numVisible;
       }
@@ -2005,74 +2022,20 @@ draw(PaintDevice *device) const
 
   //---
 
+  device->setColorNames();
+
   if (! plot_->isDotLines()) {
     // draw rect
-    device->setColorNames();
-
-    drawRoundedPolygon(device, barPenBrush, rect, plot_->barCornerSize());
-
-    device->resetColorNames();
+    CQChartsDrawUtil::drawRoundedPolygon(device, barPenBrush, rect, plot_->barCornerSize());
   }
   else {
-    // draw line
-    device->setColorNames();
-
-    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
-
-    CQChartsDrawUtil::setPenBrush(device, barPenBrush);
-
-    if (! plot_->isHorizontal()) {
-      if (lw < 3) {
-        double xc = rect.getXMid();
-
-        device->drawLine(Point(xc, rect.getYMin()), Point(xc, rect.getYMax()));
-      }
-      else {
-        double xc = prect.getXMid();
-
-        BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
-
-        CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(pbbox1));
-      }
-    }
-    else {
-      if (lw < 3) {
-        double yc = rect.getYMid();
-
-        device->drawLine(Point(rect.getXMin(), yc), Point(rect.getXMax(), yc));
-      }
-      else {
-        double yc = prect.getYMid();
-
-        BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
-
-        CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(pbbox1));
-      }
-    }
-
-    device->resetColorNames();
-
-    //---
-
-    // draw dot
-    device->setColorNames();
-
-    auto symbolType = plot_->dotSymbolType();
-    auto symbolSize = plot_->dotSymbolSize();
-
-    CQChartsDrawUtil::setPenBrush(device, barPenBrush);
-
-    Point p;
-
-    if (! plot_->isHorizontal())
-      p = Point(rect.getXMid(), rect.getYMax());
-    else
-      p = Point(rect.getXMax(), rect.getYMid());
-
-    plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush);
-
-    device->resetColorNames();
+    // draw dot line
+    CQChartsDrawUtil::drawDotLine(device, barPenBrush, rect, plot_->dotLineWidth(),
+                                  plot_->isHorizontal(), plot_->dotSymbolType(),
+                                  plot_->dotSymbolSize());
   }
+
+  device->resetColorNames();
 }
 
 void
@@ -2085,22 +2048,69 @@ drawFg(PaintDevice *device) const
 
   //---
 
-  const auto *value = this->value();
+  QString minLabel, maxLabel;
+  double  minValue = 0;
 
-  auto minLabel = value->getNameValue("Label");
-  auto maxLabel = minLabel;
+  // calc min/max value
+  if (plot_->isValueValue()) {
+    const auto *value = this->value();
 
-  CQChartsBarChartValue::ValueInd minInd, maxInd;
-  double                          mean = 0.0, sum = 0.0;
+    minLabel = value->getNameValue("Label");
+    maxLabel = minLabel;
 
-  if (! plot_->labelColumn().isValid()) {
-    value->calcRange(minInd, maxInd, mean, sum);
+    CQChartsBarChartValue::ValueInd minInd, maxInd;
+    double                          mean = 0.0, sum = 0.0;
 
-    minLabel = plot_->valueStr(minInd.value);
-    maxLabel = plot_->valueStr(maxInd.value);
+    if (! plot_->labelColumn().isValid()) {
+      value->calcRange(minInd, maxInd, mean, sum);
+
+      double scale = 1.0;
+
+      if (plot_->isPercent()) {
+        const auto *valueSet = this->valueSet();
+
+        double posSum = 0.0, negSum = 0.0;
+
+        valueSet->calcSums(posSum, negSum);
+
+        double total = posSum - negSum;
+
+        scale = (total > 0.0 ? 100.0/total : 1.0);
+      }
+
+      minLabel = plot_->valueStr(scale*minInd.value);
+      maxLabel = plot_->valueStr(scale*maxInd.value);
+    }
+
+    minValue = minInd.value;
+  }
+  else {
+    const auto *valueSet = this->valueSet();
+
+    double min = 0.0, max = 0.0, mean = 0.0, sum = 0.0;
+
+    (void) valueSet->calcStats(min, max, mean, sum);
+
+    if      (plot_->isValueMin())
+      minLabel = plot_->valueStr(min);
+    else if (plot_->isValueMax())
+      minLabel = plot_->valueStr(max);
+    else if (plot_->isValueRange()) {
+      minLabel = plot_->valueStr(min);
+      maxLabel = plot_->valueStr(max);
+    }
+    else if (plot_->isValueMean())
+      minLabel = plot_->valueStr(mean);
+    else if (plot_->isValueSum())
+      minLabel = plot_->valueStr(sum);
+
+    if (maxLabel == "")
+      maxLabel = minLabel;
+
+    minValue = min;
   }
 
-  auto pos = plot_->dataLabel()->position();
+  //---
 
   if (! plot_->dataLabel()->isPositionOutside()) {
     PenBrush barPenBrush;
@@ -2110,8 +2120,12 @@ drawFg(PaintDevice *device) const
     plot_->charts()->setContrastColor(barPenBrush.brush.color());
   }
 
+  //---
+
   if (minLabel == maxLabel) {
-    if (! plot_->labelColumn().isValid() && minInd.value < 0)
+    auto pos = plot_->dataLabel()->position();
+
+    if (! plot_->labelColumn().isValid() && minValue < 0)
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
@@ -2133,6 +2147,8 @@ drawFg(PaintDevice *device) const
       plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
   }
+
+  //---
 
   plot_->charts()->resetContrastColor();
 }

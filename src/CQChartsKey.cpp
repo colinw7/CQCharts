@@ -2565,9 +2565,9 @@ draw(PaintDevice *device, const BBox &rect) const
   if (isInside())
     penBrush.brush.setColor(plot->insideColor(penBrush.brush.color()));
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
+  auto bbox = plot->pixelToWindow(prect1);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, plot->pixelToWindow(prect1), cornerRadius());
+  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, bbox, cornerRadius());
 }
 
 QBrush
@@ -2720,8 +2720,8 @@ draw(PaintDevice *device, const BBox &rect) const
 
   Point ps(CMathUtil::avg(x1, x2), y);
 
-  plot->drawSymbol(device, plot->pixelToWindow(ps), symbolData_.type(),
-                   symbolData_.size(), penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolData_.type(), plot->pixelToWindow(ps),
+                               symbolData_.size());
 }
 
 //------

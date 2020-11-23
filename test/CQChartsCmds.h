@@ -237,6 +237,7 @@ CQCHARTS_DEF_CMD(SetChartsPalette)
 //---
 
 CQCHARTS_DEF_CMD(CreateChartsAnnotationGroup)
+CQCHARTS_DEF_CMD(CreateChartsArcAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsAxisAnnotation)
 CQCHARTS_DEF_CMD(CreateChartsButtonAnnotation)

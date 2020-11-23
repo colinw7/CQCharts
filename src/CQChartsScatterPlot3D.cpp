@@ -1676,8 +1676,6 @@ postDraw(PaintDevice *device)
 
   device->setColorNames();
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // get symbol type and size
@@ -1695,7 +1693,7 @@ postDraw(PaintDevice *device)
 
   auto pt2 = pt.point2D();
 
-  plot_->drawSymbol(device, pt2, symbolType, symbolSize, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pt2, symbolSize);
 
   //---
 

@@ -312,9 +312,6 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void postDraw(PaintDevice *) { }
 
-  void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush,
-                          const BBox &rect, const CQChartsLength &cornerSize) const;
-
   void drawDebugRect(PaintDevice *device);
 
   virtual bool drawMouseOver() const { return true; }

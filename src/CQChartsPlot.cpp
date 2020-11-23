@@ -5135,12 +5135,12 @@ findEmptyBBox(double w, double h) const
 
 bool
 CQChartsPlot::
-updateInsideObjects(const Point &w)
+updateInsideObjects(const Point &w, Constraints constraints)
 {
   // get objects at point
   Objs objs;
 
-  objsAtPoint(w, objs, Constraints::SELECTABLE);
+  objsAtPoint(w, objs, constraints);
 
   //---
 
@@ -5731,12 +5731,12 @@ selectMouseMove(const Point &pos, bool first)
 
   auto w = pixelToWindow(pos);
 
-  return selectMove(w, first);
+  return selectMove(w, Constraints::SELECTABLE, first);
 }
 
 bool
 CQChartsPlot::
-selectMove(const Point &w, bool first)
+selectMove(const Point &w, Constraints constraints, bool first)
 {
   if (key()) {
     bool handled = key()->selectMove(w);
@@ -5761,7 +5761,7 @@ selectMove(const Point &w, bool first)
   QString objText;
 
   if (isFollowMouse()) {
-    bool changed = updateInsideObjects(w);
+    bool changed = updateInsideObjects(w, constraints);
 
     objText = insideObjectText();
 
@@ -11280,6 +11280,14 @@ addArrowAnnotation(const Position &start, const Position &end)
     new CQChartsArrowAnnotation(this, start, end));
 }
 
+CQChartsArcAnnotation *
+CQChartsPlot::
+addArcAnnotation(const Rect &start, const Rect &end)
+{
+  return addAnnotationT<CQChartsArcAnnotation>(
+    new CQChartsArcAnnotation(this, start, end));
+}
+
 CQChartsAxisAnnotation *
 CQChartsPlot::
 addAxisAnnotation(Qt::Orientation direction, double start, double end)
@@ -12029,16 +12037,7 @@ getFirstPlotKey() const
 
 //------
 
-void
-CQChartsPlot::
-drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size,
-           const PenBrush &penBrush) const
-{
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
-}
-
+#if 0
 void
 CQChartsPlot::
 drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol, const Length &size) const
@@ -12122,6 +12121,9 @@ drawBufferedSymbol(QPainter *painter, const Point &p, const Symbol &symbol, doub
 
   painter->drawImage(int(p.x - is), int(p.y - is), imageBuffer.image);
 }
+#endif
+
+//------
 
 CQChartsTextOptions
 CQChartsPlot::
@@ -14107,9 +14109,9 @@ lengthPlotSignedHeight(const Length &len) const
 
 double
 CQChartsPlot::
-lengthPixelSize(const Length &len, bool horizontal) const
+lengthPixelSize(const Length &len, bool vertical) const
 {
-  return (horizontal ? lengthPixelWidth(len) : lengthPixelHeight(len));
+  return (vertical ? lengthPixelWidth(len) : lengthPixelHeight(len));
 }
 
 double

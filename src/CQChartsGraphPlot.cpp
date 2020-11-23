@@ -3669,7 +3669,7 @@ draw(PaintDevice *device) const
       double lw = plot_->pixelToWindowWidth(8);
 
       if (! isSelf) {
-        // start y range from source node, and end y range fron dest node
+        // start y range from source node, and end y range from dest node
         double y1 = srcRect .getYMid();
         double y2 = destRect.getYMid();
 

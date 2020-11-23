@@ -57,6 +57,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     IMAGE,
     PATH,
     ARROW,
+    ARC,
     POINT,
     PIE_SLICE,
     AXIS,
@@ -469,12 +470,16 @@ class CQChartsPolyShapeAnnotation : public CQChartsAnnotation {
 class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle)
-  Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
-  Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
-  Q_PROPERTY(CQChartsObjRef   objRef    READ objRef    WRITE setObjRef   )
-  Q_PROPERTY(ShapeType        shapeType READ shapeType WRITE setShapeType)
-  Q_PROPERTY(int              numSides  READ numSides  WRITE setNumSides )
+  Q_PROPERTY(CQChartsRect     rectangle  READ rectangle  WRITE setRectangle )
+  Q_PROPERTY(CQChartsPosition start      READ start      WRITE setStart     )
+  Q_PROPERTY(CQChartsPosition end        READ end        WRITE setEnd       )
+  Q_PROPERTY(CQChartsObjRef   objRef     READ objRef     WRITE setObjRef    )
+  Q_PROPERTY(ShapeType        shapeType  READ shapeType  WRITE setShapeType )
+  Q_PROPERTY(int              numSides   READ numSides   WRITE setNumSides  )
+  Q_PROPERTY(CQChartsAngle    angle      READ angle      WRITE setAngle     )
+  Q_PROPERTY(CQChartsLength   lineWidth  READ lineWidth  WRITE setLineWidth )
+  Q_PROPERTY(CQChartsSymbol   symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsLength   symbolSize READ symbolSize WRITE setSymbolSize)
 
   Q_ENUMS(ShapeType)
 
@@ -486,12 +491,15 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
     BOX           = (int) CQChartsAnnotation::ShapeType::BOX,
     POLYGON       = (int) CQChartsAnnotation::ShapeType::POLYGON,
     CIRCLE        = (int) CQChartsAnnotation::ShapeType::CIRCLE,
-    DOUBLE_CIRCLE = (int) CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE
+    DOUBLE_CIRCLE = (int) CQChartsAnnotation::ShapeType::DOUBLE_CIRCLE,
+    DOT_LINE      = (int) CQChartsAnnotation::ShapeType::DOT_LINE
   };
 
  public:
   using Rect     = CQChartsRect;
   using Position = CQChartsPosition;
+  using Symbol   = CQChartsSymbol;
+  using Length   = CQChartsLength;
 
  public:
   CQChartsRectangleAnnotation(View *view, const Rect &rect=Rect());
@@ -514,14 +522,15 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void setRectangle(const Rect &rectangle);
   void setRectangle(const Position &start, const Position &end);
 
-  //! get/set start
+  //! get/set start point
   Position start() const;
   void setStart(const Position &p);
 
-  //! get/set end
+  //! get/set end point
   Position end() const;
   void setEnd(const Position &p);
 
+  //! get/set object reference
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
@@ -534,6 +543,24 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   //! get/set number of sides
   int numSides() const { return numSides_; }
   void setNumSides(int n);
+
+  //! get/set angle
+  const Angle &angle() const { return angle_; }
+  void setAngle(const Angle &a);
+
+  //---
+
+  //! get/set line width (for dot line)
+  const Length &lineWidth() const { return lineWidth_; }
+  void setLineWidth(const Length &l);
+
+  //! get/set symbol type (for dot line)
+  const Symbol &symbolType() const { return symbolType_; }
+  void setSymbolType(const Symbol &t);
+
+  //! get/set symbol size (for dot line)
+  const Length &symbolSize() const { return symbolSize_; }
+  void setSymbolSize(const Length &s);
 
   //---
 
@@ -556,10 +583,14 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   void init();
 
  private:
-  Rect      rectangle_;                     //!< rectangle
-  ObjRef    objRef_;                        //!< object ref
-  ShapeType shapeType_ { ShapeType::NONE }; //!< shape type
-  int       numSides_  { -1 };              //!< number of sides
+  Rect      rectangle_;                           //!< rectangle
+  ObjRef    objRef_;                              //!< object ref
+  ShapeType shapeType_  { ShapeType::NONE };      //!< shape type
+  int       numSides_   { -1 };                   //!< number of sides
+  Angle     angle_;                               //!< rotation angle
+  Length    lineWidth_  { Units::PLOT, 1.0 };     //!< line width
+  Symbol    symbolType_ { Symbol::Type::CIRCLE }; //!< symbol type
+  Length    symbolSize_ { Units::PLOT, 1.0 };     //!< symbol size
 };
 
 //---
@@ -983,7 +1014,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 //---
 
 /*!
- * \brief path annotation
+ * \brief path annotation (SVG path definition)
  * \ingroup Charts
  *
  * Path shape
@@ -1073,9 +1104,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   using ObjRef   = CQChartsObjRef;
 
  public:
-  CQChartsArrowAnnotation(View *view, const Position &start=Position(),
+  CQChartsArrowAnnotation(View *view, const Position &start=Position(Point(0, 0)),
                           const Position &end=Position(Point(1, 1)));
-  CQChartsArrowAnnotation(Plot *plot, const Position &start=Position(),
+  CQChartsArrowAnnotation(Plot *plot, const Position &start=Position(Point(0, 0)),
                           const Position &end=Position(Point(1, 1)));
 
   virtual ~CQChartsArrowAnnotation();
@@ -1143,6 +1174,91 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Position end_         { Point(1, 1) }; //!< arrow end
   ObjRef   endObjRef_;                   //!< arrow end reference object
   ArrowP   arrow_;                       //!< arrow data
+};
+
+//---
+
+class CQChartsArrow;
+
+/*!
+ * \brief arc annotation
+ * \ingroup Charts
+ *
+ * Arc between two rectangles/objects
+ */
+class CQChartsArcAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsRect   start       READ start       WRITE setStart      )
+  Q_PROPERTY(CQChartsObjRef startObjRef READ startObjRef WRITE setStartObjRef)
+  Q_PROPERTY(CQChartsRect   end         READ end         WRITE setEnd        )
+  Q_PROPERTY(CQChartsObjRef endObjRef   READ endObjRef   WRITE setEndObjRef  )
+
+ public:
+  using Rect   = CQChartsRect;
+  using ObjRef = CQChartsObjRef;
+
+ public:
+  CQChartsArcAnnotation(View *view, const Rect &start=Rect(),
+                        const Rect &end=Rect(BBox(Point(0, 0), Point(0, 1))));
+  CQChartsArcAnnotation(Plot *plot, const Rect &start=Rect(),
+                        const Rect &end=Rect(BBox(Point(1, 0), Point(1, 1))));
+
+  virtual ~CQChartsArcAnnotation();
+
+  //---
+
+  const char *typeName() const override { return "arc"; }
+
+  const char *propertyName() const override { return "arcAnnotation"; }
+
+  const char *cmdName() const override { return "create_charts_arc_annotation"; }
+
+  //---
+
+  const Rect &start() const { return start_; }
+  void setStart(const Rect &p) { start_ = p; emit dataChanged(); }
+
+  const ObjRef &startObjRef() const { return startObjRef_; }
+  void setStartObjRef(const ObjRef &o) { startObjRef_ = o; }
+
+  const Rect &end() const { return end_; }
+  void setEnd(const Rect &p) { end_ = p; emit dataChanged(); }
+
+  const ObjRef &endObjRef() const { return endObjRef_; }
+  void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
+
+  //---
+
+  void addProperties(PropertyModel *model, const QString &path, const QString &desc="") override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const override;
+
+  //---
+
+  void setEditBBox(const BBox &bbox, const ResizeSide &dragSide) override;
+
+  //---
+
+  bool inside(const Point &p) const override;
+
+  //---
+
+  void draw(PaintDevice *device) override;
+
+  void writeDetails(std::ostream &os, const QString &parentVarName="",
+                    const QString &varName="") const override;
+
+ private:
+  void init();
+
+  void calcPath(QPainterPath &path) const;
+
+ private:
+  Rect   start_       { BBox(Point(0, 0), Point(0, 1)) }; //!< arc start
+  ObjRef startObjRef_;                                    //!< arc start reference object
+  Rect   end_         { BBox(Point(1, 0), Point(1, 1)) }; //!< arc end
+  ObjRef endObjRef_;                                      //!< arc end reference object
 };
 
 //---

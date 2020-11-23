@@ -320,16 +320,6 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsPlotObj::
-drawRoundedPolygon(PaintDevice *device, const CQChartsPenBrush &penBrush,
-                   const BBox &rect, const CQChartsLength &cornerSize) const
-{
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
-  CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize);
-}
-
-void
-CQChartsPlotObj::
 drawDebugRect(PaintDevice *device)
 {
   plot()->drawWindowColorBox(device, rect());

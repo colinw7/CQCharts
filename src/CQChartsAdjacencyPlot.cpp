@@ -1276,9 +1276,7 @@ execDrawBackground(PaintDevice *device) const
       if (! connected) {
         auto cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
 
-        CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
-
-        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox, cornerSize);
+        CQChartsDrawUtil::drawRoundedPolygon(device, emptyPenBrush, cellBBox, cornerSize);
       }
 
       px += pxs;
@@ -1424,7 +1422,7 @@ draw(PaintDevice *device) const
   // draw box
   device->setColorNames();
 
-  drawRoundedPolygon(device, penBrush, BBox(rect()), plot_->cornerSize());
+  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
 
   device->resetColorNames();
 }

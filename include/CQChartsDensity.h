@@ -105,9 +105,10 @@ class CQChartsDensity : public QObject {
 
   //---
 
-  void drawWhisker(const Plot *plot, PaintDevice *device, const BBox &rect,
+  void drawWhisker(PaintDevice *device, const BBox &rect,
                    const Qt::Orientation &orientation) const;
-  void drawWhiskerBar(const Plot *plot, PaintDevice *device, const BBox &rect,
+
+  void drawWhiskerBar(PaintDevice *device, const BBox &rect,
                       const Qt::Orientation &orientation) const;
 
   void drawDistribution(const Plot *plot, PaintDevice *device, const BBox &rect,
@@ -118,23 +119,22 @@ class CQChartsDensity : public QObject {
                             const Qt::Orientation &orientation,
                             const WhiskerOpts &opts=WhiskerOpts()) const;
 
-  void drawBuckets(const Plot *plot, PaintDevice *device, const BBox &rect,
+  void drawBuckets(PaintDevice *device, const BBox &rect,
                    const Qt::Orientation &orientation) const;
 
   //---
 
-  static void drawCrossBar(const Plot *plot, PaintDevice *device, const BBox &rect,
-                           double mean, const Qt::Orientation &orientation,
-                           const Length &cornerSize);
+  static void drawCrossBar(PaintDevice *device, const BBox &rect, double mean,
+                           const Qt::Orientation &orientation, const Length &cornerSize);
 
-  static void drawPointRange(const Plot *plot, PaintDevice *device, const BBox &rect, double mean,
+  static void drawPointRange(PaintDevice *device, const BBox &rect, double mean,
                              const Qt::Orientation &orientation, const SymbolData &symbol);
 
-  static void drawErrorBar(const Plot *plot, PaintDevice *device, const BBox &rect, double mean,
+  static void drawErrorBar(PaintDevice *device, const BBox &rect, double mean,
                            const Qt::Orientation &orientation, const SymbolData &symbol);
 
-  static void drawLineRange(const Plot *plot, PaintDevice *device,
-                            const BBox &rect, const Qt::Orientation &orientation);
+  static void drawLineRange(PaintDevice *device, const BBox &rect,
+                            const Qt::Orientation &orientation);
 
  private:
   void invalidate() {

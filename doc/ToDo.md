@@ -3,8 +3,11 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + annotations for all plot draw types
+   + contour
+   + arc
+   + all code through draw util ?
  + object reference for path annotation
- + tip on mouse pressed when locked
  + probe, no snap to object, snap to coord (axis minor tick)
  + annotations have 'fit' property to be included in plot fit algorithm
  + zoom in should zoom plot background ?

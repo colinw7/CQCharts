@@ -2958,15 +2958,13 @@ drawPoints(PaintDevice *device, const Point &p1, const Point &p2) const
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // draw symbols
   auto ss = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PLOT);
 
-  plot()->drawSymbol(device, p1, symbol, ss, penBrush);
-  plot()->drawSymbol(device, p2, symbol, ss, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p1, ss);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbol, p2, ss);
 }
 
 //------
@@ -3493,7 +3491,7 @@ draw(PaintDevice *device) const
     auto image = this->image();
 
     if (! image.isValid()) {
-      plot()->drawSymbol(device, pos_, symbolType, symbolSize, penBrush);
+      CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pos_, symbolSize);
     }
     else {
       // get point
@@ -3987,7 +3985,7 @@ drawHull(PaintDevice *device) const
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  hull->draw(plot(), device);
+  hull->draw(device);
 }
 
 void
@@ -4095,9 +4093,7 @@ drawMovingAverage(PaintDevice *device) const
 
   int np = poly_.size();
 
-  using Points = std::vector<Point>;
-
-  Points points;
+  Polygon poly;
 
   for (int i = na; i < np; ++i) {
     double xsum = 0.0, ysum = 0.0;
@@ -4112,7 +4108,7 @@ drawMovingAverage(PaintDevice *device) const
     auto xa = xsum/na;
     auto ya = ysum/na;
 
-    points.push_back(Point(xa, ya));
+    poly.addPoint(Point(xa, ya));
   }
 
   //---
@@ -4136,16 +4132,7 @@ drawMovingAverage(PaintDevice *device) const
   // draw lines
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  np = points.size();
-
-  QPainterPath path;
-
-  path.moveTo(points[0].qpoint());
-
-  for (int i = 1; i < np; ++i)
-    path.lineTo(points[i].qpoint());
-
-  device->drawPath(path);
+  device->drawPolyline(poly);
 }
 
 void
@@ -4545,7 +4532,8 @@ drawLine(PaintDevice *device, const BBox &rect) const
 
     Point ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
-    plot()->drawSymbol(device, plot()->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, plot()->pixelToWindow(ps),
+                                 symbolSize);
   }
 
   device->restore();

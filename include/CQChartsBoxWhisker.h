@@ -442,15 +442,15 @@ using Point       = CQChartsGeom::Point;
 using BBox        = CQChartsGeom::BBox;
 using Polygon     = CQChartsGeom::Polygon;
 
-void drawWhisker(const Plot *plot, PaintDevice *device, const BoxWhisker &whisker,
+void drawWhisker(PaintDevice *device, const BoxWhisker &whisker, const BBox &bbox,
+                 const Length &width, const Qt::Orientation &orientation,
+                 const Length &cornerSize=Length());
+void drawWhisker(PaintDevice *device, const CQStatData &data, const std::vector<double> &outliers,
                  const BBox &bbox, const Length &width, const Qt::Orientation &orientation,
                  const Length &cornerSize=Length());
-void drawWhisker(const Plot *plot, PaintDevice *device, const CQStatData &data,
-                 const std::vector<double> &outliers, const BBox &bbox, const Length &width,
-                 const Qt::Orientation &orientation, const Length &cornerSize=Length());
 
-void drawWhiskerBar(const Plot *plot, PaintDevice *device, const CQStatData &data,
-                    double pos, const Qt::Orientation &orientation, double ww, double bw,
+void drawWhiskerBar(PaintDevice *device, const CQStatData &data, double pos,
+                    const Qt::Orientation &orientation, double ww, double bw,
                     const Length &cornerSize, bool notched, bool median,
                     const std::vector<double> &outliers);
 

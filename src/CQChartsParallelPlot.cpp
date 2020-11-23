@@ -1420,7 +1420,7 @@ draw(PaintDevice *device) const
   // draw symbol
   Point p(x_, y_);
 
-  plot->drawSymbol(device, p, symbolType, symbolSize1, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p, symbolSize1);
 
   //---
 

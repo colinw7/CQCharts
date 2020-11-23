@@ -3616,7 +3616,7 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    plot_->drawSymbol(device, plot_->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(ps), symbolSize);
   }
 }
 
@@ -3828,8 +3828,6 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
 
     plot_->setDotSymbolPenBrush(dotPenBrush, ic);
 
-    CQChartsDrawUtil::setPenBrush(device, dotPenBrush);
-
     //---
 
     // draw dot
@@ -3840,7 +3838,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     else
       p = Point(bbox.getXMax(), bbox.getYMid());
 
-    plot_->drawSymbol(device, p, symbolType, symbolSize);
+    CQChartsDrawUtil::drawSymbol(device, dotPenBrush, symbolType, p, symbolSize);
   }
 
   device->resetColorNames();
@@ -4242,7 +4240,7 @@ drawRug(PaintDevice *device) const
     else
       ps.setX(ps.x - sx);
 
-    plot_->drawSymbol(device, plot_->pixelToWindow(ps), symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(ps), symbolSize);
   }
 }
 
@@ -4399,7 +4397,7 @@ draw(PaintDevice *device) const
 
     Point p(pll.x + px, pll.y + py);
 
-    plot_->drawSymbol(device, plot_->pixelToWindow(p), symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, symbolType, plot_->pixelToWindow(p), symbolSize);
   }
 }
 

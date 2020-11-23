@@ -7,29 +7,28 @@
 namespace CQChartsBoxWhiskerUtil {
 
 void
-drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-            const CQChartsBoxWhisker &whisker, const BBox &bbox, const CQChartsLength &width,
-            const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
+drawWhisker(PaintDevice *device, const BoxWhisker &whisker, const BBox &bbox,
+            const Length &width, const Qt::Orientation &orientation, const Length &cornerSize)
 {
   std::vector<double> outliers;
 
-  drawWhisker(plot, device, whisker.statData(), outliers, bbox, width, orientation, cornerSize);
+  drawWhisker(device, whisker.statData(), outliers, bbox, width, orientation, cornerSize);
 }
 
 void
-drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatData &statData,
-            const std::vector<double> &outliers, const BBox &bbox, const CQChartsLength &width,
-            const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
+drawWhisker(PaintDevice *device, const CQStatData &statData,
+            const std::vector<double> &outliers, const BBox &bbox, const Length &width,
+            const Qt::Orientation &orientation, const Length &cornerSize)
 {
   // calc widths and position
   double ww, bw;
 
   if (orientation == Qt::Horizontal) {
-    ww = plot->lengthPlotHeight(width);
+    ww = device->lengthWindowHeight(width);
     bw = ww;
   }
   else {
-    ww = plot->lengthPlotWidth(width);
+    ww = device->lengthWindowWidth(width);
     bw = ww;
   }
 
@@ -45,14 +44,14 @@ drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatD
   bool notched = false;
   bool median  = false;
 
-  drawWhiskerBar(plot, device, statData, pos, orientation, ww, bw, cornerSize,
+  drawWhiskerBar(device, statData, pos, orientation, ww, bw, cornerSize,
                  notched, median, outliers);
 }
 
 void
-drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatData &statData,
+drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
                double pos, const Qt::Orientation &orientation, double ww, double bw,
-               const CQChartsLength &cornerSize, bool notched, bool median,
+               const Length &cornerSize, bool notched, bool median,
                const std::vector<double> &outliers)
 {
   auto pointPosValue = [&](double pos, double value) {
@@ -157,7 +156,7 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
       else
         po = Point(outlier, p3.y);
 
-      plot->drawSymbol(device, po, symbol.type(), symbol.size());
+      CQChartsDrawUtil::drawSymbol(device, symbol.type(), po, symbol.size());
     }
   }
 }
@@ -167,7 +166,7 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
 //------
 
 CQChartsAxisBoxWhisker::
-CQChartsAxisBoxWhisker(CQChartsPlot *plot, const Qt::Orientation &direction) :
+CQChartsAxisBoxWhisker(Plot *plot, const Qt::Orientation &direction) :
  CQChartsObj(plot->charts()), plot_(plot), direction_(direction)
 {
 }
@@ -188,21 +187,21 @@ setDirection(const Qt::Orientation &o)
 
 void
 CQChartsAxisBoxWhisker::
-setWidth(const CQChartsLength &l)
+setWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
-setMargin(const CQChartsLength &l)
+setMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(margin_, l, [&]() { dataInvalidate(); } );
 }
 
 void
 CQChartsAxisBoxWhisker::
-setAlpha(const CQChartsAlpha &a)
+setAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
 }
@@ -337,7 +336,7 @@ addProperties(const QString &path, const QString &desc)
 
 void
 CQChartsAxisBoxWhisker::
-draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, double delta)
+draw(PaintDevice *device, const PenBrush &penBrush, int ind, double delta)
 {
   auto penBrush1 = penBrush;
 
@@ -349,7 +348,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
 
   auto dataRange = CQChartsGeom::Range(plot()->calcDataRange());
 
-  CQChartsGeom::BBox rect;
+  BBox rect;
 
   if (direction() == Qt::Horizontal) {
     double ww = plot()->lengthPlotHeight(width ());
@@ -359,7 +358,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
       dataRange.ymin() - delta - (ind + 1)*ww - wm :
       dataRange.ymax() + delta +  ind     *ww + wm);
 
-    rect = CQChartsGeom::BBox(whisker_.min(), pos, whisker_.max(), pos + ww);
+    rect = BBox(whisker_.min(), pos, whisker_.max(), pos + ww);
   }
   else {
     double ww = plot()->lengthPlotWidth(width ());
@@ -369,12 +368,12 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
       dataRange.xmin() - delta - (ind + 1)*ww - wm :
       dataRange.xmax() + delta +  ind     *ww + wm);
 
-    rect = CQChartsGeom::BBox(pos, whisker_.min(), pos + ww, whisker_.max());
+    rect = BBox(pos, whisker_.min(), pos + ww, whisker_.max());
   }
 
   switch (drawType()) {
     case DrawType::WHISKER:
-      CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_, rect, width(), direction());
+      CQChartsBoxWhiskerUtil::drawWhisker(device, whisker_, rect, width(), direction());
       break;
     case DrawType::WHISKER_BAR: {
       std::vector<double> outliers;
@@ -384,7 +383,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
           outliers.push_back(x);
       }
 
-      CQChartsBoxWhiskerUtil::drawWhisker(plot(), device, whisker_.statData(), outliers, rect,
+      CQChartsBoxWhiskerUtil::drawWhisker(device, whisker_.statData(), outliers, rect,
                                           width(), direction());
       break;
     }
@@ -399,7 +398,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, int ind, dou
 //------
 
 CQChartsAxisDensity::
-CQChartsAxisDensity(CQChartsPlot *plot, const Qt::Orientation &direction) :
+CQChartsAxisDensity(Plot *plot, const Qt::Orientation &direction) :
  CQChartsObj(plot->charts()), plot_(plot), direction_(direction)
 {
 }
@@ -420,14 +419,14 @@ setDirection(const Qt::Orientation &o)
 
 void
 CQChartsAxisDensity::
-setWidth(const CQChartsLength &l)
+setWidth(const Length &l)
 {
   CQChartsUtil::testAndSet(width_, l, [&]() { dataInvalidate(); } );
 }
 
 void
 CQChartsAxisDensity::
-setAlpha(const CQChartsAlpha &a)
+setAlpha(const Alpha &a)
 {
   CQChartsUtil::testAndSet(alpha_, a, [&]() { dataInvalidate(); } );
 }
@@ -527,7 +526,7 @@ addProperties(const QString &path, const QString &desc)
 
 void
 CQChartsAxisDensity::
-draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta)
+draw(PaintDevice *device, const PenBrush &penBrush, double delta)
 {
   auto penBrush1 = penBrush;
 
@@ -542,7 +541,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta
   double xmin = density().xmin1();
   double xmax = density().xmax1();
 
-  CQChartsGeom::BBox rect;
+  BBox rect;
 
   if (direction() == Qt::Horizontal) {
     double dh = plot()->lengthPlotHeight(width());
@@ -550,7 +549,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta
     double pos = (side() == Side::Type::BOTTOM_LEFT ? dataRange.ymin() - delta - dh :
                                                       dataRange.ymax() + delta);
 
-    rect = CQChartsGeom::BBox(xmin, pos, xmax, pos + dh);
+    rect = BBox(xmin, pos, xmax, pos + dh);
   }
   else {
     double dw = plot()->lengthPlotWidth(width());
@@ -558,7 +557,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta
     double pos = (side() == Side::Type::BOTTOM_LEFT ? dataRange.xmin() - delta - dw :
                                                       dataRange.xmax() + delta);
 
-    rect = CQChartsGeom::BBox(pos, xmin, pos + dw, xmax);
+    rect = BBox(pos, xmin, pos + dw, xmax);
   }
 
   //---
@@ -568,7 +567,7 @@ draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush, double delta
       density().drawDistribution(plot(), device, rect, direction());
       break;
     case DrawType::BUCKETS:
-      density().drawBuckets(plot(), device, rect, direction());
+      density().drawBuckets(device, rect, direction());
       break;
     default:
       break;

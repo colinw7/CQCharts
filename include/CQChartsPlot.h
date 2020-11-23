@@ -50,6 +50,7 @@ class CQChartsPlotObjTree;
 
 class CQChartsAnnotation;
 class CQChartsAnnotationGroup;
+class CQChartsArcAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsAxisAnnotation;
 class CQChartsButtonAnnotation;
@@ -365,6 +366,14 @@ class CQChartsPlot : public CQChartsObj,
     Values          yvals;
     Qt::Orientation direction { Qt::Vertical };
     bool            both      { false };
+  };
+
+  //---
+
+  enum class Constraints {
+    NONE       = 0,
+    SELECTABLE = (1<<0),
+    EDITABLE   = (1<<1)
   };
 
   //---
@@ -1297,7 +1306,7 @@ class CQChartsPlot : public CQChartsObj,
   double lengthPlotSignedWidth (const Length &len) const;
   double lengthPlotSignedHeight(const Length &len) const;
 
-  double lengthPixelSize(const Length &len, bool horizontal) const;
+  double lengthPixelSize(const Length &len, bool vertical) const;
 
   double lengthPixelWidth (const Length &len) const;
   double lengthPixelHeight(const Length &len) const;
@@ -1660,7 +1669,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void invalidateObjTree();
 
-  bool updateInsideObjects(const Point &w);
+  bool updateInsideObjects(const Point &w, Constraints constraints);
 
   Obj *insideObject() const;
 
@@ -1822,7 +1831,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool selectMouseRelease(const Point &p);
 
   virtual bool selectPress  (const Point &p, SelMod selMod);
-  virtual bool selectMove   (const Point &p, bool first=false);
+  virtual bool selectMove   (const Point &p, Constraints constraints=Constraints::EDITABLE,
+                             bool first=false);
   virtual bool selectRelease(const Point &p);
 
   //-
@@ -2043,6 +2053,7 @@ class CQChartsPlot : public CQChartsObj,
   using Annotation             = CQChartsAnnotation;
   using Annotations            = std::vector<Annotation *>;
   using AnnotationGroup        = CQChartsAnnotationGroup;
+  using ArcAnnotation          = CQChartsArcAnnotation;
   using ArrowAnnotation        = CQChartsArrowAnnotation;
   using AxisAnnotation         = CQChartsAxisAnnotation;
   using ButtonAnnotation       = CQChartsButtonAnnotation;
@@ -2067,6 +2078,7 @@ class CQChartsPlot : public CQChartsObj,
   // --- add annotation ---
 
   AnnotationGroup        *addAnnotationGroup       ();
+  ArcAnnotation          *addArcAnnotation         (const Rect &start, const Rect &end);
   ArrowAnnotation        *addArrowAnnotation       (const Position &start, const Position &end);
   AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
                                                     double end);
@@ -2367,6 +2379,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+#if 0
   void drawSymbol(PaintDevice *device, const Point &p, const Symbol &symbol,
                   const Length &size, const PenBrush &penBrush) const;
   void drawSymbol(PaintDevice *device, const Point &p,
@@ -2374,6 +2387,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void drawBufferedSymbol(QPainter *painter, const Point &p,
                           const Symbol &symbol, double size) const;
+#endif
 
   //---
 
@@ -2677,12 +2691,6 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  enum class Constraints {
-    NONE       = 0,
-    SELECTABLE = (1<<0),
-    EDITABLE   = (1<<1)
-  };
-
   void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
 
   void annotationsAtPoint(const Point &p, Annotations &annotations) const;

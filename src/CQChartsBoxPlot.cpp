@@ -2283,8 +2283,7 @@ draw(PaintDevice *device) const
                                           pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      CQChartsDensity::drawCrossBar(plot_, device, rect, mean, orientation,
-                                    plot_->boxCornerSize());
+      CQChartsDensity::drawCrossBar(device, rect, mean, orientation, plot_->boxCornerSize());
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsSymbolData symbol;
@@ -2292,7 +2291,7 @@ draw(PaintDevice *device) const
       symbol.setType(Symbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
-      CQChartsDensity::drawErrorBar(plot_, device, rect, mean, orientation, symbol);
+      CQChartsDensity::drawErrorBar(device, rect, mean, orientation, symbol);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
@@ -2316,10 +2315,10 @@ draw(PaintDevice *device) const
       symbol.setType(Symbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
-      CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol);
+      CQChartsDensity::drawPointRange(device, rect, mean, orientation, symbol);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
-      CQChartsDensity::drawLineRange(plot_, device, rect, orientation);
+      CQChartsDensity::drawLineRange(device, rect, orientation);
     }
 
     drawBox = false;
@@ -2347,7 +2346,7 @@ draw(PaintDevice *device) const
 
     std::vector<double> outliers;
 
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation, ww, bw,
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
                                            plot_->boxCornerSize(), plot_->isNotched(),
                                            median, outliers);
   }
@@ -2711,8 +2710,6 @@ draw(PaintDevice *device) const
 
   plot_->updateObjPenBrushState(this, penBrush, drawType());
 
-  CQChartsDrawUtil::setPenBrush(device, penBrush);
-
   //---
 
   // draw symbol
@@ -2721,8 +2718,8 @@ draw(PaintDevice *device) const
 
   Point pos(ox, oy);
 
-  plot_->drawSymbol(device, pos, plot_->outlierSymbolType(),
-                    plot_->outlierSymbolSize(), penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, plot_->outlierSymbolType(), pos,
+                               plot_->outlierSymbolSize());
 }
 
 double
@@ -2856,7 +2853,7 @@ draw(PaintDevice *device) const
 
   std::vector<double> outliers;
 
-  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation, ww, bw,
+  CQChartsBoxWhiskerUtil::drawWhiskerBar(device, statData, pos, orientation, ww, bw,
                                          plot_->boxCornerSize(), notched, median, outliers);
 
   //---
@@ -3276,8 +3273,8 @@ drawHText(PaintDevice *device, double xl, double xr, double y,
 
 bool
 CQChartsBoxPlotObj::
-drawVText(PaintDevice *device, double yb, double yt, double x,
-          const QString &text, bool onBottom, BBox &bbox) const
+drawVText(PaintDevice *device, double yb, double yt, double x, const QString &text,
+          bool onBottom, BBox &bbox) const
 {
   double margin  = plot_->textMargin();
   bool   invertY = plot_->isInvertY();
@@ -3479,7 +3476,7 @@ draw(PaintDevice *device) const
   // draw symbol
   auto pos = plot_->pixelToWindow(p_);
 
-  plot_->drawSymbol(device, pos, symbolType, symbolSize, penBrush);
+  CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, pos, symbolSize);
 }
 
 //------

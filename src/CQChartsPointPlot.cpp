@@ -1174,7 +1174,7 @@ draw(PaintDevice *device) const
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-    hull->draw(plot_, device);
+    hull->draw(device);
   };
 
   //---

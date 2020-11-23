@@ -4,7 +4,7 @@
 
 bool
 CQChartsPaintDevice::
-polygonSidesPath(const BBox &bbox, int n, QPainterPath &path)
+polygonSidesPath(const BBox &bbox, int n, const Angle &angle, QPainterPath &path)
 {
   path = QPainterPath();
 
@@ -13,17 +13,18 @@ polygonSidesPath(const BBox &bbox, int n, QPainterPath &path)
   double xc = bbox.getXMid();
   double yc = bbox.getYMid();
 
-  double r = bbox.getWidth()/2.0;
+  double xr = bbox.getWidth ()/2.0;
+  double yr = bbox.getHeight()/2.0;
 
-  double a  = M_PI/2.0;
+  double a  = M_PI/2.0 - angle.radians();
   double da = 2.0*M_PI/n;
 
   for (int i = 0; i < n; ++i) {
     double c = std::cos(a);
     double s = std::sin(a);
 
-    double x = xc + c*r;
-    double y = yc + s*r;
+    double x = xc + c*xr;
+    double y = yc + s*yr;
 
     if (i == 0)
       path.moveTo(QPointF(x, y));
@@ -40,11 +41,11 @@ polygonSidesPath(const BBox &bbox, int n, QPainterPath &path)
 
 void
 CQChartsPaintDevice::
-drawPolygonSides(const BBox &bbox, int n)
+drawPolygonSides(const BBox &bbox, int n, const Angle &angle)
 {
   QPainterPath path;
 
-  if (! polygonSidesPath(bbox, n, path))
+  if (! polygonSidesPath(bbox, n, angle, path))
     return;
 
   drawPath(path);

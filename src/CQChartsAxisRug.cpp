@@ -146,7 +146,7 @@ draw(CQChartsPaintDevice *device, double delta)
     plot()->setPenBrush(penBrush,
       CQChartsPenData(true, p.c, symbolAlpha), CQChartsBrushData(false));
 
-    plot()->drawSymbol(device, p1, symbolType, symbolSize, penBrush);
+    CQChartsDrawUtil::drawSymbol(device, penBrush, symbolType, p1, symbolSize);
   }
 
   if (plot()->showBoxes())

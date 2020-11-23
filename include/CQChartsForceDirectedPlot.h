@@ -224,7 +224,7 @@ class CQChartsForceDirectedPlot : public CQChartsConnectionPlot,
   //---
 
   bool selectPress  (const Point &p, SelMod selMod) override;
-  bool selectMove   (const Point &p, bool first=false) override;
+  bool selectMove   (const Point &p, Constraints constraints, bool first=false) override;
   bool selectRelease(const Point &p) override;
 
   void keyPress(int key, int modifier) override;
