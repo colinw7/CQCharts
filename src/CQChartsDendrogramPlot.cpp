@@ -505,9 +505,6 @@ drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
     double x1 = ph.x + cs/2.0; double y1 = ph.y;
     double x4 = pn.x - cs/2.0; double y4 = pn.y;
 
-    double x2 = x1 + (x4 - x1)/3.0; double y2 = y1;
-    double x3 = x2 + (x4 - x1)/3.0; double y3 = y4;
-
     //---
 
     PenBrush lPenBrush;
@@ -523,12 +520,9 @@ drawNode(PaintDevice *device, CQChartsDendrogram::HierNode *hier,
     QPainterPath path;
 
     auto p1 = pixelToWindow(Point(x1, y1));
-    auto p2 = pixelToWindow(Point(x2, y2));
-    auto p3 = pixelToWindow(Point(x3, y3));
     auto p4 = pixelToWindow(Point(x4, y4));
 
-    path.moveTo (p1.qpoint());
-    path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
+    CQChartsDrawUtil::curvePath(path, p1, p4);
 
     device->drawPath(path);
   }

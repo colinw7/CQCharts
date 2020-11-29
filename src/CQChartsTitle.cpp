@@ -630,16 +630,12 @@ draw(CQChartsPaintDevice *device)
 
 void
 CQChartsTitle::
-drawEditHandles(QPainter *painter) const
+setEditHandlesBBox() const
 {
-  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
-
   auto *th = const_cast<CQChartsTitle *>(this);
 
   if (location() != CQChartsTitleLocation::Type::ABSOLUTE_RECTANGLE)
     th->editHandles()->setBBox(this->bbox());
-
-  editHandles()->draw(painter);
 }
 
 void

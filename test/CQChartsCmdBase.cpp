@@ -94,6 +94,8 @@ addCommands()
 
     addCommand("qt_sync", new CQChartsBaseQtSyncCmd(this));
 
+    addCommand("qt_timer", new CQChartsBaseTimerCmd(this));
+
     addCommand("widget_test", new CQChartsBaseWidgetTestCmd(this));
 
     addCommand("perf", new CQChartsBasePerfCmd(this));
@@ -715,6 +717,54 @@ exec(CQChartsCmdArgs &argv)
 
     qApp->processEvents();
   }
+
+  return true;
+}
+
+//------
+
+void
+CQChartsBaseTimerCmd::
+addArgs(CQChartsCmdArgs &argv)
+{
+  argv.addCmdArg("-delay", CQChartsCmdArg::Type::Integer, "delay in ms");
+  argv.addCmdArg("-proc" , CQChartsCmdArg::Type::String , "proc to call");
+}
+
+QStringList
+CQChartsBaseTimerCmd::
+getArgValues(const QString &, const NameValueMap &)
+{
+  return QStringList();
+}
+
+bool
+CQChartsBaseTimerCmd::
+exec(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsBaseTimerCmd::exec");
+
+  addArgs(argv);
+
+  if (! argv.parse())
+    return false;
+
+  int delay = 100;
+
+  if (argv.hasParseArg("delay"))
+    delay = argv.getParseInt("delay");
+
+  QString procName;
+
+  if (argv.hasParseArg("proc"))
+    procName = argv.getParseStr("proc");
+
+  if (procName == "")
+    return errorMsg("No proc");
+
+  auto *slot = new CQChartsCmdBaseSlot(cmdBase_, procName);
+
+  QTimer::singleShot(delay, slot, SLOT(timerSlot()));
 
   return true;
 }
@@ -1344,6 +1394,15 @@ valueChanged(double r)
   args.setNum(r);
 
   execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+timerSlot()
+{
+  execProc("");
+
+  this->deleteLater();
 }
 
 void

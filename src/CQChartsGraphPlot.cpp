@@ -232,6 +232,13 @@ setEdgeScaled(bool b)
   CQChartsUtil::testAndSet(edgeScaled_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsGraphPlot::
+setEdgeWidth(const Length &l)
+{
+  CQChartsUtil::testAndSet(edgeWidth_, l, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -3564,9 +3571,9 @@ draw(PaintDevice *device) const
   //---
 
   // x from right of source rect to left of dest rect
-  bool swapped = false;
-
   double x1 = srcRect.getXMax(), x2 = destRect.getXMin();
+
+  bool swapped = false;
 
   if (x1 > x2) {
     x1 = destRect.getXMax(), x2 = srcRect.getXMin();
@@ -3587,11 +3594,14 @@ draw(PaintDevice *device) const
 
     const_cast<CQChartsGraphPlot *>(plot())->setUpdatesEnabled(false);
 
+    double lw = plot_->lengthPlotHeight(plot()->edgeWidth());
+
     if (! isSelf) {
+#if 0
       CQChartsArrow arrow(const_cast<CQChartsGraphPlot *>(plot()), Point(x1, y1), Point(x2, y2));
 
       arrow.setRectilinear (true);
-      arrow.setLineWidth   (Length(8, CQChartsUnits::PIXEL));
+      arrow.setLineWidth   (plot()->edgeWidth());
       arrow.setFrontVisible(false);
       arrow.setFilled      (true);
       arrow.setFillColor   (penBrush.brush.color());
@@ -3601,38 +3611,21 @@ draw(PaintDevice *device) const
       arrow.draw(device);
 
       path_ = arrow.drawnPath();
-    }
-    else {
+#else
+      QPainterPath lpath;
+
+      CQChartsDrawUtil::curvePath(lpath, srcRect, destRect, /*rectilinear*/true);
+
       CQChartsArrowData arrowData;
 
-      arrowData.setFHead(true);
-      arrowData.setTHead(true);
-      arrowData.setLineWidth(Length(8, CQChartsUnits::PIXEL));
+      arrowData.setFHead(/*fhead*/true);
+      arrowData.setTHead(/*thead*/true);
 
-      double xr = srcRect.getWidth ()/2.0;
-      double yr = srcRect.getHeight()/2.0;
-
-      double a = M_PI/4.0;
-
-      double c = std::cos(a);
-      double s = std::sin(a);
-
-      double xm = srcRect.getXMid();
-      double ym = srcRect.getYMid();
-
-      double yt = srcRect.getYMax() + yr/2.0;
-
-      double x1 = xm - xr*c, y1 = ym + xr*s;
-      double x2 = xm + xr*c, y2 = y1;
-
-      QPainterPath path;
-
-      path.moveTo (QPointF(x1, y1));
-      path.cubicTo(QPointF(x1, yt), QPointF(x2, yt), QPointF(x2, y2));
-
-      //---
-
-      CQChartsArrow::pathAddArrows(const_cast<CQChartsGraphPlot *>(plot()), path, arrowData, path_);
+      CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 1.0, path_);
+#endif
+    }
+    else {
+      CQChartsArrow::selfPath(path_, srcRect, /*fhead*/true, /*thead*/true, lw);
 
       device->drawPath(path_);
     }
@@ -3641,90 +3634,27 @@ draw(PaintDevice *device) const
   }
   else {
     if (plot_->isEdgeScaled()) {
-      // start y range from source node, and end y range from dest node
-      double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
-      double y21 = destRect.getYMax(), y22 = destRect.getYMin();
-
-      if (swapped) {
-        std::swap(y11, y21);
-        std::swap(y12, y22);
-      }
-
-      // curve control point x at 1/3 and 2/3
-      double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-      double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
-
-      path_.moveTo (QPointF(x1, y11));
-      path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
-      path_.lineTo (QPointF(x2, y22));
-      path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
-
-      path_.closeSubpath();
-
-      //---
-
-      device->drawPath(path_);
+      CQChartsDrawUtil::edgePath(path_, srcRect, destRect, /*isLine*/false);
     }
     else {
-      double lw = plot_->pixelToWindowWidth(8);
+      double lw = plot_->lengthPlotHeight(plot()->edgeWidth()); // TODO: config
 
       if (! isSelf) {
         // start y range from source node, and end y range from dest node
         double y1 = srcRect .getYMid();
         double y2 = destRect.getYMid();
 
-        double y11 = y1 + lw/2.0, y12 = y1 - lw/2.0;
-        double y21 = y2 + lw/2.0, y22 = y2 - lw/2.0;
+        if (swapped)
+          std::swap(y1, y2);
 
-        if (swapped) {
-          std::swap(y11, y21);
-          std::swap(y12, y22);
-        }
-
-        // curve control point x at 1/3 and 2/3
-        double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-        double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
-
-        path_.moveTo (QPointF(x1, y11));
-        path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
-        path_.lineTo (QPointF(x2, y22));
-        path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
-
-        path_.closeSubpath();
+        CQChartsDrawUtil::edgePath(path_, Point(x1, y1), Point(x2, y2), lw);
       }
       else {
-        double xr = srcRect.getWidth ()/2.0;
-        double yr = srcRect.getHeight()/2.0;
-
-        double a = M_PI/4.0;
-
-        double c = std::cos(a);
-        double s = std::sin(a);
-
-        double xm = srcRect.getXMid();
-        double ym = srcRect.getYMid();
-
-        double yt = srcRect.getYMax() + yr/2.0;
-        double yt1 = yt - lw/2.0;
-        double yt2 = yt + lw/2.0;
-
-        double x1 = xm - xr*c, y1 = ym + xr*s;
-        double x2 = xm + xr*c, y2 = y1;
-
-        double lw1 = sqrt(2)*lw/2.0;
-
-        path_.moveTo (QPointF(x1 - lw1, y1 - lw1));
-        path_.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
-        path_.lineTo (QPointF(x2 - lw1, y2 + lw1));
-        path_.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
-
-        path_.closeSubpath();
+        CQChartsDrawUtil::selfEdgePath(path_, srcRect, lw);
       }
-
-      //---
-
-      device->drawPath(path_);
     }
+
+    device->drawPath(path_);
   }
 
   device->resetColorNames();

@@ -134,7 +134,9 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void draw(PaintDevice *device);
 
-  void drawEditHandles(QPainter *painter) const override;
+  //---
+
+  void setEditHandlesBBox() const override;
 
  private:
   void init();

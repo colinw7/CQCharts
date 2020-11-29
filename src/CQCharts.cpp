@@ -64,6 +64,7 @@
 #include <CQChartsLineDataEdit.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLineCapEdit.h>
+#include <CQChartsLineJoinEdit.h>
 #include <CQChartsMarginEdit.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsPolygonEdit.h>
@@ -341,9 +342,10 @@ CQCharts()
   CQChartsKeyLocation           ::registerMetaType();
   CQChartsKeyPressBehavior      ::registerMetaType();
   CQChartsLength                ::registerMetaType();
-  CQChartsLineDash              ::registerMetaType();
   CQChartsLineCap               ::registerMetaType();
+  CQChartsLineDash              ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
+  CQChartsLineJoin              ::registerMetaType();
   CQChartsMargin                ::registerMetaType();
   CQChartsModelIndex            ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
@@ -520,9 +522,10 @@ init()
     viewMgr->addType("CQChartsKeyPressBehavior", new CQChartsKeyPressBehaviorPropertyViewType);
     viewMgr->addType("CQChartsTitleLocation"   , new CQChartsTitleLocationPropertyViewType   );
     viewMgr->addType("CQChartsLength"          , new CQChartsLengthPropertyViewType          );
-    viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
     viewMgr->addType("CQChartsLineCap"         , new CQChartsLineCapPropertyViewType         );
+    viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
+    viewMgr->addType("CQChartsLineJoin"        , new CQChartsLineJoinPropertyViewType        );
     viewMgr->addType("CQChartsMargin"          , new CQChartsMarginPropertyViewType          );
 //  viewMgr->addType("CQChartsObjRef"          , new CQChartsObjRefPropertyViewType          );
 //  viewMgr->addType("CQChartsObjRefPos"       , new CQChartsObjRefPosPropertyViewType       );

@@ -159,6 +159,9 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   if (lineCap() != LineCap())
     nameValues.setNameValueType<LineCap>("cap", lineCap());
+
+  if (lineJoin() != LineJoin())
+    nameValues.setNameValueType<LineJoin>("join", lineJoin());
 }
 
 bool
@@ -185,9 +188,10 @@ getNameValues(const CQChartsNameValues &nameValues)
   (void) nameValues.nameValueColor("color"  , color_  , ok1); if (! ok1) ok = false;
   (void) nameValueAlpha           ("alpha"  , alpha_  , ok1); if (! ok1) ok = false;
 
-  (void) nameValues.nameValueType<Length>  ("width", width_  , ok1); if (! ok1) ok = false;
-  (void) nameValues.nameValueType<LineDash>("dash" , dash_   , ok1); if (! ok1) ok = false;
-  (void) nameValues.nameValueType<LineCap> ("cap"  , lineCap_, ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<Length>  ("width", width_   , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<LineDash>("dash" , dash_    , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<LineCap> ("cap"  , lineCap_ , ok1); if (! ok1) ok = false;
+  (void) nameValues.nameValueType<LineJoin>("join" , lineJoin_, ok1); if (! ok1) ok = false;
 
   return ok;
 }
@@ -493,6 +497,9 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (lineCap() != LineCap())
     nameValues.setNameValueType<LineCap>("cap", lineCap());
 
+  if (lineJoin() != LineJoin())
+    nameValues.setNameValueType<LineJoin>("join", lineJoin());
+
   if (cornerSize() != Length("0px"))
     nameValues.setNameValueType<Length>("strokeCornerSize", cornerSize());
 }
@@ -528,6 +535,9 @@ getNameValues(const CQChartsNameValues &nameValues)
   if (! ok1) ok = false;
 
   (void) nameValues.nameValueType<LineCap>("strokeCap", lineCap_, ok1);
+  if (! ok1) ok = false;
+
+  (void) nameValues.nameValueType<LineJoin>("strokeJoin", lineJoin_, ok1);
   if (! ok1) ok = false;
 
   (void) nameValues.nameValueType<Length>("strokeCornerSize", cornerSize_, ok1);
@@ -625,7 +635,8 @@ setFHeadType(HeadType type)
   setFrontLineEnds(false);
   setFHead        (true);
 
-  if      (fheadData_.type == HeadType::TRIANGLE ||
+  if      (fheadData_.type == HeadType::ARROW    ||
+           fheadData_.type == HeadType::TRIANGLE ||
            fheadData_.type == HeadType::STEALTH  ||
            fheadData_.type == HeadType::DIAMOND) {
     Angle angle, backAngle;
@@ -651,7 +662,8 @@ setTHeadType(HeadType type)
   setTailLineEnds(false);
   setTHead       (true);
 
-  if      (theadData_.type == HeadType::TRIANGLE ||
+  if      (theadData_.type == HeadType::ARROW    ||
+           theadData_.type == HeadType::TRIANGLE ||
            theadData_.type == HeadType::STEALTH  ||
            theadData_.type == HeadType::DIAMOND) {
     Angle angle, backAngle;
@@ -792,7 +804,8 @@ bool
 CQChartsArrowData::
 getTypeAngles(const HeadType &type, Angle &angle, Angle &backAngle)
 {
-  if      (type == HeadType::TRIANGLE) angle = Angle(30.0);
+  if      (type == HeadType::ARROW   ) angle = Angle(45.0);
+  else if (type == HeadType::TRIANGLE) angle = Angle(30.0);
   else if (type == HeadType::STEALTH ) angle = Angle(30.0);
   else if (type == HeadType::DIAMOND ) angle = Angle(30.0);
   else return false;
@@ -806,14 +819,11 @@ bool
 CQChartsArrowData::
 getTypeBackAngle(const HeadType &type, const Angle &angle, Angle &backAngle)
 {
-  if      (type == HeadType::TRIANGLE)
-    backAngle = Angle(90.0);
-  else if (type == HeadType::STEALTH )
-    backAngle = Angle(90.0 - 2.0*angle.value()/3.0);
-  else if (type == HeadType::DIAMOND )
-    backAngle = Angle(180.0 - angle.value());
-  else
-    return false;
+  if      (type == HeadType::ARROW   ) backAngle = Angle(90.0);
+  else if (type == HeadType::TRIANGLE) backAngle = Angle(90.0);
+  else if (type == HeadType::STEALTH ) backAngle = Angle(90.0 - 2.0*angle.value()/3.0);
+  else if (type == HeadType::DIAMOND ) backAngle = Angle(180.0 - angle.value());
+  else return false;
 
   return true;
 }

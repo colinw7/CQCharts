@@ -6,4 +6,4 @@ set plot [create_charts_plot -model $model -type graph \
 set_charts_property -plot $plot -name node.scaleX -value 1
 set_charts_property -plot $plot -name edge.scaled -value 0
 
-set_charts_property -plot $plot -name options.adjustNodes -value 0
+#set_charts_property -plot $plot -name options.adjustNodes -value 0

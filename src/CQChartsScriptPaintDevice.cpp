@@ -141,49 +141,38 @@ addPathParts(const QPainterPath &path)
 {
   *os_ << "  " << context() << ".gc.beginPath();\n";
 
-  int n = path.elementCount();
-
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
-
-    if      (e.isMoveTo())
-      *os_ << "  " << context() << ".moveTo(" << e.x << ", " << e.y << ");\n";
-    else if (e.isLineTo())
-      *os_ << "  " << context() << ".lineTo(" << e.x << ", " << e.y << ");\n";
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
-
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
-      }
-
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        if (e2t == QPainterPath::CurveToDataElement) {
-          *os_ << "  " << context() << ".curveTo(" << e.x << ", " << e.y << ", " <<
-                  e1.x << ", " << e1.y << ", " << e2.x << ", " << e2.y << ");\n";
-
-          i += 2;
-        }
-        else {
-          *os_ << "  " << context() << ".quadTo(" <<
-                  e.x << ", " << e.y << ", " << e1.x << ", " << e1.y << ");\n";
-
-          ++i;
-        }
-      }
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(std::ostream *os, const std::string &context) :
+     os_(os), context_(context) {
     }
-    else {
-      assert(false);
+
+    void moveTo(const Point &p) override {
+      *os_ << "  " << context_ << ".moveTo(" << p.x << ", " << p.y << ");\n";
     }
-  }
+
+    void lineTo(const Point &p) override {
+      *os_ << "  " << context_ << ".lineTo(" << p.x << ", " << p.y << ");\n";
+    }
+
+    void quadTo(const Point &p1, const Point &p2) override {
+      *os_ << "  " << context_ << ".quadTo(" <<
+              p1.x << ", " << p1.y << ", " << p2.x << ", " << p2.y << ");\n";
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      *os_ << "  " << context_ << ".curveTo(" << p1.x << ", " << p1.y << ", " <<
+              p2.x << ", " << p2.y << ", " << p3.x << ", " << p3.y << ");\n";
+    }
+
+   private:
+    std::ostream *os_ { nullptr };
+    std::string   context_;
+  };
+
+  PathVisitor visitor(os_, context());
+
+  CQChartsDrawUtil::visitPath(path, visitor);
 
   //*os_ << "  " << context() << ".gc.closePath();\n";
 }

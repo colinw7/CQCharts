@@ -65,6 +65,7 @@ class CQChartsPlotObj : public CQChartsObj {
   using ModelIndex    = CQChartsModelIndex;
   using Color         = CQChartsColor;
   using Alpha         = CQChartsAlpha;
+  using EditHandles   = CQChartsEditHandles;
 
   using PaintDevice       = CQChartsPaintDevice;
   using ScriptPaintDevice = CQChartsScriptPaintDevice;
@@ -266,7 +267,7 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   //! get edit handles
-  CQChartsEditHandles *editHandles() const;
+  EditHandles *editHandles() const;
 
   virtual void drawEditHandles(QPainter *painter) const;
 
@@ -330,16 +331,16 @@ class CQChartsPlotObj : public CQChartsObj {
   void layerChanged();
 
  protected:
-  Plot*                plot_        { nullptr };           //!< parent plot
-  DetailHint           detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
-  DrawLayer            drawLayer_   { DrawLayer::NONE };   //!< draw layer
-  bool                 zoomText_    { false };             //!< zoom object text
-  ColorInd             is_;                                //!< set index
-  ColorInd             ig_;                                //!< group index
-  ColorInd             iv_;                                //!< value index
-  QModelIndices        modelInds_;                         //!< associated model indices
-  CQChartsEditHandles* editHandles_ { nullptr };           //!< edit handles
-  mutable PenBrush     penBrush_;                          //!< current pen/brush
+  Plot*            plot_        { nullptr };           //!< parent plot
+  DetailHint       detailHint_  { DetailHint::MINOR }; //!< interaction detail hint
+  DrawLayer        drawLayer_   { DrawLayer::NONE };   //!< draw layer
+  bool             zoomText_    { false };             //!< zoom object text
+  ColorInd         is_;                                //!< set index
+  ColorInd         ig_;                                //!< group index
+  ColorInd         iv_;                                //!< value index
+  QModelIndices    modelInds_;                         //!< associated model indices
+  EditHandles*     editHandles_ { nullptr };           //!< edit handles
+  mutable PenBrush penBrush_;                          //!< current pen/brush
 };
 
 //------

@@ -885,7 +885,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
 
   // coloring
   Q_PROPERTY(bool           srcColoring       READ isSrcColoring       WRITE setSrcColoring      )
-  Q_PROPERTY(bool           blendEdgeColor    READ isBlendEdgeColor    WRITE setBlendEdgeColor   )
+  Q_PROPERTY(BlendType      blendEdgeColor    READ blendEdgeColor      WRITE setBlendEdgeColor   )
   Q_PROPERTY(ConnectionType mouseColoring     READ mouseColoring       WRITE setMouseColoring    )
   Q_PROPERTY(bool           mouseNodeColoring READ isMouseNodeColoring WRITE setMouseNodeColoring)
 
@@ -927,6 +927,7 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   Q_ENUMS(ConnectionType)
   Q_ENUMS(Align)
   Q_ENUMS(Spread)
+  Q_ENUMS(BlendType)
 
  public:
   enum class ConnectionType {
@@ -953,6 +954,14 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
     LAST,
     FIRST_LAST,
     ALL
+  };
+
+  enum class BlendType {
+    NONE,
+    FILL_AVERAGE,
+    STROKE_AVERAGE,
+    FILL_STROKE_AVERAGE,
+    FILL_GRADIENT
   };
 
   using Node        = CQChartsSankeyPlotNode;
@@ -1057,8 +1066,8 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   void setSrcColoring(bool b);
 
   //! get/set blend node colors for edge
-  bool isBlendEdgeColor() const { return blendEdgeColor_; }
-  void setBlendEdgeColor(bool b);
+  const BlendType &blendEdgeColor() const { return blendEdgeColor_; }
+  void setBlendEdgeColor(const BlendType &t);
 
   //! get/set mouse over node/edge coloring
   const ConnectionType &mouseColoring() const { return mouseColoring_; }
@@ -1379,10 +1388,10 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool selectedTextVisible_ { false }; //!< is selected text visble (when text invisible)
 
   // coloring
-  bool           srcColoring_       { false };                //!< color by source nodes
-  bool           blendEdgeColor_    { true };                 //!< blend edge color
-  ConnectionType mouseColoring_     { ConnectionType::NONE }; //!< mouse over color connections
-  bool           mouseNodeColoring_ { false };                //!< mouse over color nodes
+  bool           srcColoring_       { false };                   //!< color by source nodes
+  BlendType      blendEdgeColor_    { BlendType::FILL_AVERAGE }; //!< blend edge color type
+  ConnectionType mouseColoring_     { ConnectionType::NONE };    //!< mouse over color connections
+  bool           mouseNodeColoring_ { false };                   //!< mouse over color nodes
 
   // data
   NameNodeMap nameNodeMap_;               //!< name node map

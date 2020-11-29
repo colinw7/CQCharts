@@ -45,7 +45,8 @@ enum class CQChartsResizeSide {
   LL,
   LR,
   UL,
-  UR
+  UR,
+  EXTRA
 };
 
 //! object draw type

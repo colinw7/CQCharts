@@ -1,6 +1,7 @@
 #ifndef CQChartsPath_H
 #define CQChartsPath_H
 
+#include <CQChartsGeom.h>
 #include <QPainterPath>
 #include <iostream>
 
@@ -15,6 +16,10 @@ class CQChartsPath {
   static void registerMetaType();
 
   static int metaTypeId;
+
+ public:
+  using Point  = CQChartsGeom::Point;
+  using Points = std::vector<Point>;
 
  public:
   CQChartsPath() = default;
@@ -76,6 +81,14 @@ class CQChartsPath {
 
   //---
 
+  int numPoints() const { return path().elementCount(); }
+
+  Point pointAt(int i) const { auto e = path().elementAt(i); return Point(e.x, e.y); }
+
+  void setPointAt(int i, const Point &p) { path().setElementPositionAt(i, p.x, p.y); }
+
+  //---
+
   void move(double dx, double dy);
   void flip(bool flipX, bool flipY);
 
@@ -108,6 +121,20 @@ class CQChartsPath {
 
   //---
 
+  static QString pathToString(const QPainterPath &path);
+
+  static QPainterPath movePath(const QPainterPath &path, double dx, double dy);
+
+  static QPainterPath flipPath(const QPainterPath &path, bool flipX, bool flipY);
+
+  static QPainterPath reversePath(const QPainterPath &path);
+
+  static QPainterPath combinePaths(const QPainterPath &path1, const QPainterPath &path2);
+
+  //---
+
+  static Points pathPoints(const QPainterPath &path);
+
  private:
   const QPainterPath *pathPtr() const { return const_cast<CQChartsPath *>(this)->pathPtr(); }
 
@@ -119,9 +146,6 @@ class CQChartsPath {
 
     return path_;
   }
-
-  QPainterPath movePath(const QPainterPath &path, double dx, double dy) const;
-  QPainterPath flipPath(const QPainterPath &path, bool flipX, bool flipY) const;
 
  private:
   QPainterPath* path_ { nullptr };

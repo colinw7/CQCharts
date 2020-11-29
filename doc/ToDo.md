@@ -3,6 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + game of life
+ + particles demo
+ + sankey
+   + remove overlaps keeps path id order (especially if single value)
+   + track space below and reuse if possible
+ + better title bar renderer for tip
  + annotations for all plot draw types
    + contour
    + arc

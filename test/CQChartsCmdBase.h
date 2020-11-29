@@ -151,6 +151,8 @@ class CQChartsCmdBaseSlot : public QObject {
   void valueChanged(int i);
   void valueChanged(double r);
 
+  void timerSlot();
+
  private:
   void execProc(const QString &args="");
 
@@ -197,6 +199,7 @@ CQCHARTS_BASE_DEF_CMD(HasProperty)
 
 // misc
 CQCHARTS_BASE_DEF_CMD(QtSync)
+CQCHARTS_BASE_DEF_CMD(Timer)
 
 CQCHARTS_BASE_DEF_CMD(WidgetTest)
 

@@ -124,6 +124,9 @@ addParameters()
   addColumnParameter("color", "Color", "colorColumn").
    setTip("Row Color Column").setMapped();
 
+  addColumnParameter("alpha", "Alpha", "alphaColumn").
+   setTip("Row Alpha Column").setMapped();
+
   addColumnParameter("font", "Font", "fontColumn").
    setTip("Row Font Column");
 

@@ -14,8 +14,8 @@ class CQFloatTip : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(QString       text        READ text          WRITE setText       )
-  Q_PROPERTY(Qt::Alignment align       READ align         WRITE setAlign      )
   Q_PROPERTY(bool          enabled     READ isEnabled     WRITE setEnabled    )
+  Q_PROPERTY(Qt::Alignment align       READ align         WRITE setAlign      )
   Q_PROPERTY(bool          locked      READ isLocked      WRITE setLocked     )
   Q_PROPERTY(bool          followMouse READ isFollowMouse WRITE setFollowMouse)
   Q_PROPERTY(int           border      READ border        WRITE setBorder     )
@@ -33,11 +33,11 @@ class CQFloatTip : public QFrame {
   const QString &text() const { return text_; }
   void setText(const QString &s);
 
-  const Qt::Alignment &align() const { return align_; }
-  void setAlign(const Qt::Alignment &v) { align_ = v; }
-
   bool isEnabled() const { return enabled_; }
   void setEnabled(bool b);
+
+  const Qt::Alignment &align() const { return align_; }
+  void setAlign(const Qt::Alignment &v) { align_ = v; }
 
   bool isLocked() const { return locked_; }
   void setLocked(bool b);
@@ -67,6 +67,8 @@ class CQFloatTip : public QFrame {
 
   void paintEvent(QPaintEvent *) override;
 
+  void drawTitleBar(QPainter *painter);
+
   QSize sizeHint() const override;
 
   bool eventFilter(QObject *o, QEvent *e) override;
@@ -79,6 +81,8 @@ class CQFloatTip : public QFrame {
   void stopTimer();
 
   void hideLater();
+
+  void setWidgetPalette(QWidget *w);
 
  private slots:
   void hideSlot();
@@ -98,11 +102,12 @@ class CQFloatTip : public QFrame {
   QWidgetP widget_; //!< parent widget for tip
   QString  text_;   //!< tip text
 
+  bool enabled_ { true }; //!< is enabled
+
   // placement
   Qt::Alignment align_   { Qt::AlignRight | Qt::AlignBottom }; //!< align in parent widget
   int           x_       { -1 };                               //!< explicit x position
   int           y_       { -1 };                               //!< explicit y position
-  bool          enabled_ { true };                             //!< is enabled
   bool          locked_  { false };                            //!< is locked visible
 
   bool followMouse_ { false }; //!< update on mouse move when locked
@@ -121,7 +126,7 @@ class CQFloatTip : public QFrame {
   int hideTimer_ { 0 }; //!< hide delay timer
 
   // tip state
-  QPoint gpos_;
+  QPoint gpos_; //!< last tip pos
 
   // drag state
   bool   dragging_   { false }; //!< is dragging

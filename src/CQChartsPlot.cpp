@@ -166,6 +166,9 @@ init()
 
   //---
 
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
   ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
   ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
   ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
@@ -177,6 +180,9 @@ init()
   updateData_.rangeThread->setDebug(debugUpdate_);
   updateData_.objsThread ->setDebug(debugUpdate_);
   updateData_.drawThread ->setDebug(debugUpdate_);
+  }
+
+  //---
 
   startThreadTimer();
 }
@@ -563,34 +569,19 @@ void
 CQChartsPlot::
 setUpdatesEnabled(bool b, bool update)
 {
+  bool doUpdate = false;
+
+  {
+  std::unique_lock<std::mutex> lock(updatesMutex_);
+
   if (b) {
     assert(updatesData_.enabled > 0);
 
     --updatesData_.enabled;
 
-    if (isUpdatesEnabled()) {
-      if (update) {
-        // calc range and objs
-        if      (isUpdateRangeAndObjs()) {
-          updateRangeAndObjs();
-
-          drawObjs();
-        }
-        // calc objs
-        else if (isUpdateObjs()) {
-          updateObjs();
-
-          drawObjs();
-        }
-        // apply range
-        else if (isApplyDataRange()) {
-          applyDataRangeAndDraw();
-        }
-        // draw objs
-        else if (isInvalidateLayers()) {
-          drawObjs();
-        }
-      }
+    if (updatesData_.enabled == 0) {
+      if (update)
+        doUpdate = true;
 
       updatesData_.reset();
     }
@@ -601,6 +592,32 @@ setUpdatesEnabled(bool b, bool update)
     }
 
     ++updatesData_.enabled;
+  }
+  }
+
+  //---
+
+  if (doUpdate) {
+    // calc range and objs
+    if      (isUpdateRangeAndObjs()) {
+      updateRangeAndObjs();
+
+      drawObjs();
+    }
+    // calc objs
+    else if (isUpdateObjs()) {
+      updateObjs();
+
+      drawObjs();
+    }
+    // apply range
+    else if (isApplyDataRange()) {
+      applyDataRangeAndDraw();
+    }
+    // draw objs
+    else if (isInvalidateLayers()) {
+      drawObjs();
+    }
   }
 }
 
@@ -625,8 +642,12 @@ updateRange()
     if (debugUpdate_)
       std::cerr << "updateRange : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+    }
 
     startThreadTimer();
   }
@@ -654,9 +675,13 @@ updateRangeAndObjs()
     if (debugUpdate_)
       std::cerr << "updateRangeAndObjs : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
     ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+    }
 
     startThreadTimer();
   }
@@ -691,8 +716,12 @@ updateObjs()
     if (debugUpdate_)
       std::cerr << "updateObjs : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+    }
 
     startThreadTimer();
   }
@@ -751,7 +780,11 @@ drawBackground()
     if (debugUpdate_)
       std::cerr << "drawBackground : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND];
+    }
 
     startThreadTimer();
   }
@@ -774,7 +807,11 @@ drawForeground()
     if (debugUpdate_)
       std::cerr << "drawForeground : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND];
+    }
 
     startThreadTimer();
   }
@@ -802,7 +839,11 @@ drawObjs()
     if (debugUpdate_)
       std::cerr << "drawObjs : " << id().toStdString() << "\n";
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
+    }
 
     startThreadTimer();
   }
@@ -2213,7 +2254,11 @@ updateOverlay()
     plot->stopThreadTimer ();
     plot->startThreadTimer();
 
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     plot->updatesData_.reset();
+    }
   });
 
   applyDataRangeAndDraw();
@@ -2748,6 +2793,7 @@ addBaseProperties()
   addProp("columns", "noTipColumns"  , "notips"  , "No Tip columns");
   addProp("columns", "visibleColumn" , "visible" , "Visible column");
   addProp("columns", "colorColumn"   , "color"   , "Color column");
+  addProp("columns", "alphaColumn"   , "color"   , "Alpha column");
   addProp("columns", "fontColumn"    , "font"    , "Font column");
   addProp("columns", "imageColumn"   , "image"   , "Image column");
   addProp("columns", "controlColumns", "controls", "Control columns");
@@ -3630,6 +3676,8 @@ threadTimerSlot()
   }
   else if (updateState == UpdateState::INVALID) {
     //if (nextState == UpdateState::INVALID) {
+    //  std::unique_lock<std::mutex> lock(updatesMutex_);
+
     //  ++updatesData_.stateFlag[UpdateState::UPDATE_RANGE    ];
     //  ++updatesData_.stateFlag[UpdateState::UPDATE_OBJS     ];
     //  ++updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS];
@@ -3658,14 +3706,22 @@ threadTimerSlot()
   //---
 
   if      (nextState == UpdateState::UPDATE_RANGE) {
+    {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.stateFlag[UpdateState::UPDATE_RANGE] = 0;
+    }
 
     this->execUpdateRange();
   }
   else if (nextState == UpdateState::UPDATE_OBJS) {
     // don't update until range calculated
     if (updateState != UpdateState::CALC_RANGE) {
+      {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
+
       updatesData_.stateFlag[UpdateState::UPDATE_OBJS] = 0;
+      }
 
       this->execUpdateObjs();
     }
@@ -3674,9 +3730,13 @@ threadTimerSlot()
     // don't update until range and objs calculated
     if (updateState != UpdateState::CALC_RANGE &&
         updateState != UpdateState::CALC_OBJS) {
+      {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
+
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS      ] = 0;
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] = 0;
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] = 0;
+      }
 
       this->execInvalidateLayers();
 
@@ -3686,7 +3746,11 @@ threadTimerSlot()
   else if (nextState == UpdateState::UPDATE_DRAW_BACKGROUND) {
     // don't update until objs drawn
     if (updateState != UpdateState::DRAW_OBJS) {
+      {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
+
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] = 0;
+      }
 
       this->invalidateLayer(Buffer::Type::BACKGROUND);
 
@@ -3698,7 +3762,11 @@ threadTimerSlot()
   else if (nextState == UpdateState::UPDATE_DRAW_FOREGROUND) {
     // don't update until objs drawn
     if (updateState != UpdateState::DRAW_OBJS) {
+      {
+      std::unique_lock<std::mutex> lock(updatesMutex_);
+
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] = 0;
+      }
 
       this->invalidateLayer(Buffer::Type::FOREGROUND);
 
@@ -3721,6 +3789,8 @@ calcNextState() const
   auto *th = const_cast<CQChartsPlot *>(this);
 
   auto nextState = UpdateState::INVALID;
+
+  std::unique_lock<std::mutex> lock(updatesMutex_);
 
   // check queued updates to determine required state
   if      (th->updatesData_.stateFlag[UpdateState::UPDATE_RANGE] > 0) {
@@ -3840,7 +3910,10 @@ CQChartsPlot::
 execUpdateRangeAndObjs()
 {
   if (! isUpdatesEnabled()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.updateRangeAndObjs = true;
+
     return;
   }
 
@@ -4112,7 +4185,10 @@ CQChartsPlot::
 execUpdateObjs()
 {
   if (! isUpdatesEnabled()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.updateObjs = true;
+
     return;
   }
 
@@ -4419,12 +4495,18 @@ applyDataRange(bool propagate)
   //---
 
   if (! isUpdatesEnabled()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.applyDataRange = true;
+
     return;
   }
 
   if (! dataRange_.isSet()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.applyDataRange = true;
+
     return;
   }
 
@@ -5047,6 +5129,7 @@ updateColumnNames()
 {
   setColumnHeaderName(idColumn   (), "Id"   );
   setColumnHeaderName(colorColumn(), "Color");
+  setColumnHeaderName(alphaColumn(), "Alpha");
   setColumnHeaderName(fontColumn (), "Font" );
   setColumnHeaderName(imageColumn(), "Image");
 }
@@ -5857,6 +5940,7 @@ editPress(const Point &p, const Point &w, bool inside)
   mouseData_.pressPoint = p;
   mouseData_.movePoint  = mouseData_.pressPoint;
   mouseData_.dragged    = false;
+  mouseData_.dragSide   = CQChartsResizeSide::NONE;
 
   //---
 
@@ -5865,12 +5949,14 @@ editPress(const Point &p, const Point &w, bool inside)
     auto v = windowToView(w);
 
     // to edit must be in handle
-    mouseData_.dragSide = editHandles_->inside(v);
+    CQChartsEditHandles::InsideData insideData;
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    if (editHandles_->inside(v, insideData)) {
+      mouseData_.dragSide = insideData.resizeSide;
+
       setDragObj(DragObjType::PLOT_HANDLE, this);
 
-      editHandles_->setDragSide(mouseData_.dragSide);
+      editHandles_->setDragData(insideData);
       editHandles_->setDragPos (w);
 
       invalidateOverlay();
@@ -5929,15 +6015,19 @@ keyEditPress(CQChartsPlotKey *key, const Point &w)
   if (! key->isSelected())
     return false;
 
-  // start drag on already selected key handle
-  mouseData_.dragSide = key->editHandles()->inside(w);
+  mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+  // start drag on already selected key handle
+  CQChartsEditHandles::InsideData insideData;
+
+  if (key->editHandles()->inside(w, insideData)) {
+     mouseData_.dragSide = insideData.resizeSide;
+
     setDragObj(DragObjType::KEY, key);
 
     key->editPress(w);
 
-    key->editHandles()->setDragSide(mouseData_.dragSide);
+    key->editHandles()->setDragData(insideData);
     key->editHandles()->setDragPos (w);
 
     invalidateOverlay();
@@ -5961,15 +6051,19 @@ axisEditPress(CQChartsAxis *axis, const Point &w)
   if (! axis->isSelected())
     return false;
 
-  // start drag on already selected axis handle
-  mouseData_.dragSide = axis->editHandles()->inside(w);
+  mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+  // start drag on already selected axis handle
+  CQChartsEditHandles::InsideData insideData;
+
+  if (axis->editHandles()->inside(w, insideData)) {
+    mouseData_.dragSide = insideData.resizeSide;
+
     setDragObj(axis == xAxis() ? DragObjType::XAXIS : DragObjType::YAXIS, axis);
 
     axis->editPress(w);
 
-    axis->editHandles()->setDragSide(mouseData_.dragSide);
+    axis->editHandles()->setDragData(insideData);
     axis->editHandles()->setDragPos (w);
 
     invalidateOverlay();
@@ -5993,15 +6087,19 @@ titleEditPress(CQChartsTitle *title, const Point &w)
   if (! title->isSelected())
     return false;
 
-  // start drag on already selected title handle
-  mouseData_.dragSide = title->editHandles()->inside(w);
+  mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-  if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+  // start drag on already selected title handle
+  CQChartsEditHandles::InsideData insideData;
+
+  if (title->editHandles()->inside(w, insideData)) {
+    mouseData_.dragSide = insideData.resizeSide;
+
     setDragObj(DragObjType::TITLE, title);
 
     title->editPress(w);
 
-    title->editHandles()->setDragSide(mouseData_.dragSide);
+    title->editHandles()->setDragData(insideData);
     title->editHandles()->setDragPos (w);
 
     invalidateOverlay();
@@ -6016,6 +6114,8 @@ bool
 CQChartsPlot::
 annotationsEditPress(const Point &w)
 {
+  mouseData_.dragSide = CQChartsResizeSide::NONE;
+
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
     if (! annotation->isVisible() || ! annotation->isEditable())
@@ -6024,12 +6124,14 @@ annotationsEditPress(const Point &w)
     if (! annotation->isSelected())
       continue;
 
-    mouseData_.dragSide = annotation->editHandles()->inside(w);
+    CQChartsEditHandles::InsideData insideData;
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    if (annotation->editHandles()->inside(w, insideData)) {
+      mouseData_.dragSide = insideData.resizeSide;
+
       setDragObj(DragObjType::ANNOTATION, annotation);
 
-      annotation->editHandles()->setDragSide(mouseData_.dragSide);
+      annotation->editHandles()->setDragData(insideData);
       annotation->editHandles()->setDragPos (w);
 
       invalidateOverlay();
@@ -6045,6 +6147,8 @@ bool
 CQChartsPlot::
 objectsEditPress(const Point &w, bool)
 {
+  mouseData_.dragSide = CQChartsResizeSide::NONE;
+
   // start drag on already selected object handle
   for (auto &plotObj : plotObjects()) {
     if (! plotObj->isEditable())
@@ -6053,12 +6157,14 @@ objectsEditPress(const Point &w, bool)
     if (! plotObj->isSelected())
       continue;
 
-    mouseData_.dragSide = plotObj->editHandles()->inside(w);
+    CQChartsEditHandles::InsideData insideData;
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
+    if (plotObj->editHandles()->inside(w, insideData)) {
+      mouseData_.dragSide = insideData.resizeSide;
+
       setDragObj(DragObjType::OBJECT, plotObj);
 
-      plotObj->editHandles()->setDragSide(mouseData_.dragSide);
+      plotObj->editHandles()->setDragData(insideData);
       plotObj->editHandles()->setDragPos (w);
 
       invalidateOverlay();
@@ -7125,7 +7231,7 @@ setColorYStops(const ColorStops &s)
   CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() { updateObjs(); } );
 }
 
-//------
+//---
 
 void
 CQChartsPlot::
@@ -7205,8 +7311,8 @@ bool
 CQChartsPlot::
 modelIndexColor(const ModelIndex &colorInd, Color &color) const
 {
-  if (! isColorMapped())
-    return false;
+  //if (! isColorMapped())
+  //  return false;
 
   // get model edit value
   bool ok;
@@ -7241,7 +7347,7 @@ columnValueColor(const QVariant &var, Color &color) const
 
   //---
 
-  if (CQChartsVariant::isNumeric(var)) {
+  if      (CQChartsVariant::isNumeric(var)) {
     // get real value
     bool ok;
     double r = CQChartsVariant::toReal(var, ok);
@@ -7293,6 +7399,103 @@ columnValueColor(const QVariant &var, Color &color) const
   }
 
   return color.isValid();
+}
+
+//------
+
+void
+CQChartsPlot::
+setAlphaColumn(const Column &c)
+{
+  CQChartsUtil::testAndSet(alphaColumnData_.column, c, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsPlot::
+setAlphaMapped(bool b)
+{
+  CQChartsUtil::testAndSet(alphaColumnData_.mapped, b, [&]() { updateObjs(); } );
+}
+
+//---
+
+// get color from colorColumn at specified row
+bool
+CQChartsPlot::
+alphaColumnAlpha(int row, const QModelIndex &parent, Alpha &alpha) const
+{
+  auto *th = const_cast<CQChartsPlot *>(this);
+
+  ModelIndex alphaInd(th, row, alphaColumn(), parent);
+
+  return modelIndexAlpha(alphaInd, alpha);
+}
+
+bool
+CQChartsPlot::
+modelIndexAlpha(const ModelIndex &alphaInd, Alpha &alpha) const
+{
+  //if (! isAlphaMapped())
+  //  return false;
+
+  // get model edit value
+  bool ok;
+
+  auto var = modelValue(alphaInd, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  return columnValueAlpha(var, alpha);
+}
+
+bool
+CQChartsPlot::
+columnValueAlpha(const QVariant &var, Alpha &alpha) const
+{
+  if      (CQChartsVariant::isNumeric(var)) {
+    // get real value
+    bool ok;
+    double r = CQChartsVariant::toReal(var, ok);
+    if (! ok) return false;
+
+    //--
+
+    // map real from data range if enabled
+    double r1;
+
+    if (isAlphaMapped())
+      r1 = CMathUtil::map(r, alphaMapDataMin(), alphaMapDataMax(), 0.0, 1.0);
+    else
+      r1 = r;
+
+    // skip if invalid value
+    if (r1 < 0.0 || r1 > 1.0) return false;
+
+    //--
+
+    alpha = Alpha(r);
+
+    return true;
+  }
+  else {
+    if (isAlphaMapped()) {
+      // use index of value in unique values to generate value in range
+      auto *columnDetails = this->columnDetails(alphaColumn());
+      if (! columnDetails) return false;
+
+      // use unique index/count of edit values (which may have been converted)
+      // not same as CQChartsColumnAlphaType::userData
+      int n = columnDetails->numUnique();
+      int i = columnDetails->valueInd(var);
+
+      double r = CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+
+      alpha = Alpha(r);
+
+      return true;
+    }
+    else
+      return false;
+  }
 }
 
 //------
@@ -11282,7 +11485,7 @@ addArrowAnnotation(const Position &start, const Position &end)
 
 CQChartsArcAnnotation *
 CQChartsPlot::
-addArcAnnotation(const Rect &start, const Rect &end)
+addArcAnnotation(const Position &start, const Position &end)
 {
   return addAnnotationT<CQChartsArcAnnotation>(
     new CQChartsArcAnnotation(this, start, end));
@@ -11833,7 +12036,10 @@ CQChartsPlot::
 execInvalidateLayers()
 {
   if (! isUpdatesEnabled()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.invalidateLayers = true;
+
     return;
   }
 
@@ -11874,7 +12080,10 @@ CQChartsPlot::
 execInvalidateLayer(const Buffer::Type &type)
 {
   if (! isUpdatesEnabled()) {
+    std::unique_lock<std::mutex> lock(updatesMutex_);
+
     updatesData_.invalidateLayers = true;
+
     return;
   }
 
@@ -12224,7 +12433,7 @@ setPen(PenBrush &penBrush, const PenData &penData) const
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
-                       width, penData.dash(), penData.lineCap());
+                       width, penData.dash(), penData.lineCap(), penData.lineJoin());
 }
 
 void
@@ -12238,7 +12447,7 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
   else
     penBrush.altColor = QColor();
 
-  penBrush.fillAngle = brushData.pattern().angle();
+  penBrush.fillAngle = brushData.pattern().angle().degrees();
 }
 
 //------
@@ -14500,59 +14709,51 @@ QPainterPath
 CQChartsPlot::
 windowToPixel(const QPainterPath &path) const
 {
-  QPainterPath ppath;
-
-  int n = path.elementCount();
-
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
-
-    if      (e.isMoveTo()) {
-      auto p1 = windowToPixel(Point(e.x, e.y));
-
-      ppath.moveTo(p1.qpoint());
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(const Plot *plot) :
+     plot_(plot) {
     }
-    else if (e.isLineTo()) {
-      auto p1 = windowToPixel(Point(e.x, e.y));
 
-      ppath.lineTo(p1.qpoint());
+    void moveTo(const Point &p) override {
+      auto pp = plot_->windowToPixel(p);
+
+      path_.moveTo(pp.qpoint());
     }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      auto p1 = windowToPixel(Point(e.x, e.y));
+    void lineTo(const Point &p) override {
+      auto pp = plot_->windowToPixel(p);
 
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
-      }
-
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        auto p2 = windowToPixel(Point(e1.x, e1.y)); ++i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          auto p3 = windowToPixel(Point(e2.x, e2.y)); ++i;
-
-          ppath.cubicTo(p1.qpoint(), p2.qpoint(), p3.qpoint());
-        }
-        else {
-          ppath.quadTo(p1.qpoint(), p2.qpoint());
-        }
-      }
+      path_.lineTo(pp.qpoint());
     }
-    else {
-      assert(false);
-    }
-  }
 
-  return ppath;
+    void quadTo(const Point &p1, const Point &p2) override {
+      auto pp1 = plot_->windowToPixel(p1);
+      auto pp2 = plot_->windowToPixel(p2);
+
+      path_.quadTo(pp1.qpoint(), pp2.qpoint());
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      auto pp1 = plot_->windowToPixel(p1);
+      auto pp2 = plot_->windowToPixel(p2);
+      auto pp3 = plot_->windowToPixel(p3);
+
+      path_.cubicTo(pp1.qpoint(), pp2.qpoint(), pp3.qpoint());
+    }
+
+    const QPainterPath &path() const { return path_; }
+
+   private:
+    const Plot*  plot_ { nullptr };
+    QPainterPath path_;
+  };
+
+  PathVisitor visitor(this);
+
+  CQChartsDrawUtil::visitPath(path, visitor);
+
+  return visitor.path();
 }
 
 //------

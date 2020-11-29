@@ -176,6 +176,7 @@ CQChartsInvalidator.cpp \
 \
 CQChartsLineCap.cpp \
 CQChartsLineDash.cpp \
+CQChartsLineJoin.cpp \
 \
 CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
@@ -277,6 +278,7 @@ CQChartsFillDataEdit.cpp \
 CQChartsFillPatternEdit.cpp \
 CQChartsFillUnderEdit.cpp \
 CQChartsFontEdit.cpp \
+CQChartsImageEdit.cpp \
 CQChartsKeyLocationEdit.cpp \
 CQChartsKeyPressBehaviorEdit.cpp \
 CQChartsLengthEdit.cpp \
@@ -284,6 +286,7 @@ CQChartsLineCapEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
+CQChartsLineJoinEdit.cpp \
 CQChartsMarginEdit.cpp \
 CQChartsOptIntEdit.cpp \
 CQChartsOptRealEdit.cpp \
@@ -562,6 +565,7 @@ HEADERS += \
 \
 ../include/CQChartsLineCap.h \
 ../include/CQChartsLineDash.h \
+../include/CQChartsLineJoin.h \
 \
 ../include/CQChartsRotatedText.h \
 ../include/CQChartsRoundedPolygon.h \
@@ -626,6 +630,7 @@ HEADERS += \
 ../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsFillUnderEdit.h \
 ../include/CQChartsFontEdit.h \
+../include/CQChartsImageEdit.h \
 ../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsKeyPressBehaviorEdit.h \
 ../include/CQChartsLengthEdit.h \
@@ -633,6 +638,7 @@ HEADERS += \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
 ../include/CQChartsLineEditBase.h \
+../include/CQChartsLineJoinEdit.h \
 ../include/CQChartsMarginEdit.h \
 ../include/CQChartsOptIntEdit.h \
 ../include/CQChartsOptRealEdit.h \

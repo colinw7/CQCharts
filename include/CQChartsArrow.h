@@ -67,6 +67,7 @@ class CQChartsArrow : public QObject,
  public:
   enum class HeadType {
     NONE     = int(CQChartsArrowData::HeadType::NONE),
+    ARROW    = int(CQChartsArrowData::HeadType::ARROW),
     TRIANGLE = int(CQChartsArrowData::HeadType::TRIANGLE),
     STEALTH  = int(CQChartsArrowData::HeadType::STEALTH),
     DIAMOND  = int(CQChartsArrowData::HeadType::DIAMOND),
@@ -81,6 +82,7 @@ class CQChartsArrow : public QObject,
   using PenBrush    = CQChartsPenBrush;
   using ColorInd    = CQChartsUtil::ColorInd;
   using Point       = CQChartsGeom::Point;
+  using BBox        = CQChartsGeom::BBox;
   using GeomPolygon = CQChartsGeom::Polygon;
   using PaintDevice = CQChartsPaintDevice;
 
@@ -223,7 +225,7 @@ class CQChartsArrow : public QObject,
 
   //! arrow angle data (caches cos/sin)
   struct ArrowAngle {
-    double angle { 0.0 };
+    double angle { 0.0 }; // radians
     double sin   { 0.0 };
     double cos   { 1.0 };
 
@@ -246,8 +248,11 @@ class CQChartsArrow : public QObject,
     }
   };
 
-  static void pathAddArrows(Plot *plot, const QPainterPath &path,
-                            const CQChartsArrowData &arrowData, QPainterPath &arrowPath);
+  static void selfPath(QPainterPath &path, const BBox &rect,
+                       double fhead, double thead, double lw);
+
+  static void pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
+                            double lw, double alen, QPainterPath &arrowPath);
 
   static void addWidthToPoint(const Point &p, const ArrowAngle &a, double lw,
                               Point &p1, Point &p2);

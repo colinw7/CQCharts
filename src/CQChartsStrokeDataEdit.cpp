@@ -401,7 +401,7 @@ draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
   QPen pen;
 
   CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha(), width,
-                       data.dash(), data.lineCap());
+                       data.dash(), data.lineCap(), data.lineJoin());
 
   painter->setPen(pen);
 

@@ -22,10 +22,11 @@ CQChartsEditHandles::
 ~CQChartsEditHandles()
 {
   delete moveHandle_;
-  delete llHandle_;
-  delete lrHandle_;
-  delete ulHandle_;
-  delete urHandle_;
+
+  for (auto &pc : cornerHandles_)
+    delete pc.second;
+
+  removeExtraHandles();
 }
 
 void
@@ -38,11 +39,34 @@ init()
   };
 
   moveHandle_ = createHandle(ResizeSide::MOVE);
-  llHandle_   = createHandle(ResizeSide::LL  );
-  lrHandle_   = createHandle(ResizeSide::LR  );
-  ulHandle_   = createHandle(ResizeSide::UL  );
-  urHandle_   = createHandle(ResizeSide::UR  );
+
+  std::vector<ResizeSide> resizeSides = {
+    ResizeSide::LL, ResizeSide::LR, ResizeSide::UL, ResizeSide::UR };
+
+  for (const auto &resizeSide : resizeSides)
+    cornerHandles_[resizeSide] = createHandle(resizeSide);
 }
+
+//---
+
+void
+CQChartsEditHandles::
+addExtraHandle(Handle *handle)
+{
+  extraHandles_.push_back(handle);
+}
+
+void
+CQChartsEditHandles::
+removeExtraHandles()
+{
+  for (auto &handle : extraHandles_)
+    delete handle;
+
+  extraHandles_.clear();
+}
+
+//---
 
 bool
 CQChartsEditHandles::
@@ -53,30 +77,59 @@ selectInside(const Point &p)
   if (moveHandle_->selectInside(p)) ++changed;
 
   if (mode() == Mode::RESIZE) {
-    if (llHandle_->selectInside(p)) ++changed;
-    if (lrHandle_->selectInside(p)) ++changed;
-    if (ulHandle_->selectInside(p)) ++changed;
-    if (urHandle_->selectInside(p)) ++changed;
+    for (const auto &pc : cornerHandles_) {
+      auto *cornerHandle = pc.second;
+
+      if (cornerHandle->selectInside(p))
+        ++changed;
+    }
+  }
+
+  for (auto &handle : extraHandles_) {
+    if (handle->selectInside(p))
+      ++changed;
   }
 
   return changed;
 }
 
-CQChartsResizeSide
+bool
 CQChartsEditHandles::
-inside(const Point &p) const
+inside(const Point &p, InsideData &insideData) const
 {
-  if (moveHandle()->inside(p)) return ResizeSide::MOVE;
+  if (moveHandle()->inside(p)) {
+    insideData.resizeSide = ResizeSide::MOVE;
+    insideData.data       = QVariant();
 
-  if (mode() == Mode::RESIZE) {
-    if (llHandle()->inside(p)) return ResizeSide::LL;
-    if (lrHandle()->inside(p)) return ResizeSide::LR;
-    if (ulHandle()->inside(p)) return ResizeSide::UL;
-    if (urHandle()->inside(p)) return ResizeSide::UR;
+    return true;
   }
 
-  return ResizeSide::NONE;
+  if (mode() == Mode::RESIZE) {
+    for (const auto &pc : cornerHandles_) {
+      auto *cornerHandle = pc.second;
+
+      if (cornerHandle->inside(p)) {
+        insideData.resizeSide = pc.first;
+        insideData.data       = QVariant();
+
+        return true;
+      }
+    }
+  }
+
+  for (auto &handle : extraHandles_) {
+    if (handle->inside(p)) {
+      insideData.resizeSide = ResizeSide::EXTRA;
+      insideData.data       = handle->data();
+
+      return true;
+    }
+  }
+
+  return false;
 }
+
+//---
 
 void
 CQChartsEditHandles::
@@ -100,26 +153,33 @@ updateBBox(double dx, double dy)
   else if (dragSide() == ResizeSide::UR) {
     bbox_.setUR(bbox_.getUR() + Point(dx, dy));
   }
+  else if (dragSide() == ResizeSide::EXTRA) {
+    emit extraHandleMoved(dragData(), dx, dy);
+  }
+  else {
+    assert(false);
+  }
 }
+
+//---
 
 void
 CQChartsEditHandles::
 draw(QPainter *painter) const
 {
-  auto ll = windowToPixel(bbox_.getLL());
-  auto ur = windowToPixel(bbox_.getUR());
-
-  QPainterPath path;
-
-  path.moveTo(ll.x, ll.y);
-  path.lineTo(ur.x, ll.y);
-  path.lineTo(ur.x, ur.y);
-  path.lineTo(ll.x, ur.y);
-  path.closeSubpath();
-
   QPen pen(Qt::black);
 
   pen.setStyle(Qt::DashLine);
+
+  //---
+
+  auto windowToPixel =[&](const BBox &bbox) {
+    return (view_ ? view_->windowToPixel(bbox) : plot_->windowToPixel(bbox));
+  };
+
+  QPainterPath path;
+
+  CQChartsDrawUtil::editHandlePath(path, windowToPixel(bbox_));
 
   painter->strokePath(path, pen);
 
@@ -128,16 +188,16 @@ draw(QPainter *painter) const
   moveHandle_->setBBox(bbox_); moveHandle_->draw(painter);
 
   if (mode() == Mode::RESIZE) {
-    llHandle_->setBBox(bbox_); llHandle_->draw(painter);
-    lrHandle_->setBBox(bbox_); lrHandle_->draw(painter);
-    ulHandle_->setBBox(bbox_); ulHandle_->draw(painter);
-    urHandle_->setBBox(bbox_); urHandle_->draw(painter);
-  }
-}
+    for (const auto &pc : cornerHandles_) {
+      auto *cornerHandle = pc.second;
 
-CQChartsGeom::Point
-CQChartsEditHandles::
-windowToPixel(const Point &p) const
-{
-  return (view_ ? view_->windowToPixel(p) : plot_->windowToPixel(p));
+      cornerHandle->setBBox(bbox_);
+
+      cornerHandle->draw(painter);
+    }
+  }
+
+  for (auto &handle : extraHandles_) {
+    handle->draw(painter);
+  }
 }

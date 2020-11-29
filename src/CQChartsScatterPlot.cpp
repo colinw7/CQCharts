@@ -1330,6 +1330,19 @@ addPointObjects(PlotObjs &objs) const
 
         //---
 
+        // set optional symbol fill alpha
+        Alpha symbolAlpha(-1.0);
+
+        if (alphaColumn().isValid()) {
+          if (! alphaColumnAlpha(valuePoint.row, valuePoint.ind.parent(), symbolAlpha))
+            symbolAlpha = Alpha(-1.0);
+        }
+
+        if (symbolAlpha.isValid())
+          pointObj->setAlpha(symbolAlpha);
+
+        //---
+
         // set optional point label
         QString pointName;
         Column  pointNameColumn;
@@ -1907,9 +1920,8 @@ addNameValues() const
       Color color;
 
       // get color label (needed if not string ?)
-      if (plot_->colorColumn().isValid()) {
+      if (plot_->colorColumn().isValid())
         (void) plot_->colorColumnColor(data.row, data.parent, color);
-      }
 
       //---
 
@@ -3317,6 +3329,15 @@ color() const
   return color;
 }
 
+CQChartsAlpha
+CQChartsScatterPointObj::
+alpha() const
+{
+  auto alpha = extraData().alpha;
+
+  return alpha;
+}
+
 CQChartsFont
 CQChartsScatterPointObj::
 font() const
@@ -3465,6 +3486,14 @@ calcTipId() const
 
   //---
 
+  // add alpha column
+  if (valuePoint.alpha.isValid())
+    tableTip.addTableRow(plot_->alphaHeaderName(/*tip*/true), valuePoint.alpha.toString());
+  else
+    addColumnRowValue(plot_->alphaColumn());
+
+  //---
+
   plot()->addTipColumns(tableTip, modelInd());
 
   //---
@@ -3502,6 +3531,7 @@ getObjSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->symbolSizeColumn());
   addColumnSelectIndex(inds, plot_->fontSizeColumn  ());
   addColumnSelectIndex(inds, plot_->colorColumn     ());
+  addColumnSelectIndex(inds, plot_->alphaColumn     ());
 }
 
 //---
@@ -3661,6 +3691,17 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
     auto c = plot_->interpColor(color, ic);
 
     c.setAlphaF(plot_->symbolFillAlpha().value());
+
+    penBrush.brush.setColor(c);
+  }
+
+  // override symbol fill alpha for custom alpha
+  auto alpha = this->alpha();
+
+  if (alpha.isValid()) {
+    auto c = penBrush.brush.color();
+
+    c.setAlphaF(alpha.value());
 
     penBrush.brush.setColor(c);
   }

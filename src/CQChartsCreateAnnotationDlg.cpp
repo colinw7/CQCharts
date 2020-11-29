@@ -14,6 +14,7 @@
 #include <CQChartsFillDataEdit.h>
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsArrowDataEdit.h>
+#include <CQChartsImageEdit.h>
 #include <CQChartsColorEdit.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
@@ -101,6 +102,7 @@ initWidgets()
   createImageFrame   ();
   createPathFrame    ();
   createArrowFrame   ();
+  createArcFrame     ();
   createPointFrame   ();
   createPieSliceFrame();
 
@@ -111,6 +113,9 @@ initWidgets()
   createPointSetFrame();
   createValueSetFrame();
   createButtonFrame  ();
+//createWidgetFrame  ();
+
+//createSymbolMapKeyFrame();
 
   //---
 
@@ -123,6 +128,7 @@ initWidgets()
   typeStack_->addWidget(imageWidgets_   .frame);
   typeStack_->addWidget(pathWidgets_    .frame);
   typeStack_->addWidget(arrowWidgets_   .frame);
+  typeStack_->addWidget(arcWidgets_     .frame);
   typeStack_->addWidget(pointWidgets_   .frame);
   typeStack_->addWidget(pieSliceWidgets_.frame);
 
@@ -164,7 +170,7 @@ typeNames() const
 
   if (strs.length() == 0) {
     strs << "Rectangle" << "Ellipse" << "Polygon" << "Polyline" << "Text" << "Image" <<
-            "Path" << "Arrow" << "Point" << "Pie Slice";
+            "Path" << "Arrow" << "Arc" << "Point" << "Pie Slice";
 
     if (plot_)
       strs << "Axis";
@@ -475,8 +481,8 @@ createImageFrame()
 
   //---
 
-  imageWidgets_.imageEdit         = createLineEdit("imageEdit"        , "Image");
-  imageWidgets_.disabledImageEdit = createLineEdit("disabledImageEdit", "Disabled Image");
+  imageWidgets_.imageEdit         = createImageEdit("imageEdit"        , "Image");
+  imageWidgets_.disabledImageEdit = createImageEdit("disabledImageEdit", "Disabled Image");
 
   //---
 
@@ -502,6 +508,7 @@ void
 CQChartsCreateAnnotationDlg::
 createPathFrame()
 {
+  pathWidgets_.frame = CQUtil::makeWidget<QFrame>("pathFrame");
 }
 
 void
@@ -574,6 +581,13 @@ createArrowFrame()
   //---
 
   frameLayout->addStretch(1);
+}
+
+void
+CQChartsCreateAnnotationDlg::
+createArcFrame()
+{
+  arcWidgets_.frame = CQUtil::makeWidget<QFrame>("arcFrame");
 }
 
 void
@@ -940,6 +954,18 @@ createMarginEdit(const QString &name, const QString &tip) const
   return edit;
 }
 
+CQChartsImageEdit *
+CQChartsCreateAnnotationDlg::
+createImageEdit(const QString &name, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsImageEdit>(name);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
 CQChartsColorLineEdit *
 CQChartsCreateAnnotationDlg::
 createColorEdit(const QString &name, const QString &tip) const
@@ -1058,6 +1084,7 @@ applySlot()
   if (ind == ind1++) rc = createImageAnnotation    ();
   if (ind == ind1++) rc = createPathAnnotation     ();
   if (ind == ind1++) rc = createArrowAnnotation    ();
+  if (ind == ind1++) rc = createArcAnnotation      ();
   if (ind == ind1++) rc = createPointAnnotation    ();
   if (ind == ind1++) rc = createPieSliceAnnotation ();
 
@@ -1385,11 +1412,8 @@ createImageAnnotation()
       return setErrorMsg("Invalid image rectangle");
   }
 
-  auto imageText    = imageWidgets_.imageEdit->text();
-  auto disImageText = imageWidgets_.disabledImageEdit->text();
-
-  CQChartsImage image   (imageText);
-  CQChartsImage disImage(disImageText);
+  auto image    = imageWidgets_.imageEdit->image();
+  auto disImage = imageWidgets_.disabledImageEdit->image();
 
   //---
 
@@ -1481,6 +1505,13 @@ createArrowAnnotation()
   annotation->arrow()->setShapeData(shapeData);
 
   return true;
+}
+
+bool
+CQChartsCreateAnnotationDlg::
+createArcAnnotation()
+{
+  return false;
 }
 
 bool

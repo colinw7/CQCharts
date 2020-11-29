@@ -1247,3 +1247,10 @@
  + support dot line shape for rect annotation
  + support angle for rect shape
  + move more common draw code to draw util class
+# 11/29/2020
+ + Add custom resize handles for polyline, polygon and path annotations
+ + Support arrow types for arc annotation from/back ends
+ + support line join style
+ + support image as fill pattern
+ + reorganize path generation/processing code
+ + add alpha column support

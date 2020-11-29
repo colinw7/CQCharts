@@ -9,6 +9,7 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsLineCap.h>
+#include <CQChartsLineJoin.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
 #include <CQChartsAngle.h>
@@ -155,9 +156,7 @@ CQUTIL_DCL_META_TYPE(CQChartsTextData)
  * \brief Line Properties
  * \ingroup Charts
  *
- *   visible, color, alpha, width, dash
- *
- *   TODO: line cap, line join
+ *   visible, color, alpha, width, dash, line cap, line join
  */
 class CQChartsLineData {
  public:
@@ -171,6 +170,7 @@ class CQChartsLineData {
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
   using LineCap  = CQChartsLineCap;
+  using LineJoin = CQChartsLineJoin;
 
  public:
   CQChartsLineData() = default;
@@ -181,9 +181,9 @@ class CQChartsLineData {
 
   explicit CQChartsLineData(bool visible, const Color &color=Color(), const Alpha &alpha=Alpha(),
                             const Length &width=Length(), const LineDash &dash=LineDash(),
-                            const LineCap &lineCap=LineCap()) :
+                            const LineCap &lineCap=LineCap(), const LineJoin &lineJoin=LineJoin()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width),
-   dash_(dash), lineCap_(lineCap) {
+   dash_(dash), lineCap_(lineCap), lineJoin_(lineJoin) {
   }
 
   //---
@@ -212,6 +212,10 @@ class CQChartsLineData {
   const LineCap &lineCap() const { return lineCap_; }
   void setLineCap(const LineCap &c) { lineCap_ = c; }
 
+  //! get/set line join
+  const LineJoin &lineJoin() const { return lineJoin_; }
+  void setLineJoin(const LineJoin &j) { lineJoin_ = j; }
+
   //---
 
   bool isValid() const { return true; }
@@ -229,6 +233,7 @@ class CQChartsLineData {
   Length   width_    { "0px" };                             //!< line width
   LineDash dash_;                                           //!< line dash
   LineCap  lineCap_;                                        //!< line cap
+  LineJoin lineJoin_;                                       //!< line join
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -320,6 +325,7 @@ class CQChartsStrokeData {
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
   using LineCap  = CQChartsLineCap;
+  using LineJoin = CQChartsLineJoin;
 
  public:
   CQChartsStrokeData() = default;
@@ -354,6 +360,10 @@ class CQChartsStrokeData {
   const LineCap &lineCap() const { return lineCap_; }
   void setLineCap(const LineCap &c) { lineCap_ = c; }
 
+  //! get/set line join
+  const LineJoin &lineJoin() const { return lineJoin_; }
+  void setLineJoin(const LineJoin &j) { lineJoin_ = j; }
+
   //! get/set corner size
   const Length &cornerSize() const { return cornerSize_; }
   void setCornerSize(const Length &l) { cornerSize_ = l; }
@@ -375,6 +385,7 @@ class CQChartsStrokeData {
   Length   width_      { "0px" };                             //!< stroke width
   LineDash dash_;                                             //!< stroke line dash
   LineCap  lineCap_;                                          //!< stroke line cap
+  LineJoin lineJoin_;                                         //!< stroke line join
   Length   cornerSize_ { "0px" };                             //!< corner size (for border)
 };
 
@@ -635,6 +646,7 @@ class CQChartsArrowData {
  public:
   enum class HeadType {
     NONE,
+    ARROW,
     TRIANGLE,
     STEALTH,
     DIAMOND,
@@ -706,6 +718,7 @@ class CQChartsArrowData {
 
   //---
 
+  // consistent tail+head angles
   const Angle &angle() const { return tailAngle(); }
   void setAngle(const Angle &a) { setFrontAngle(a); setTailAngle(a); }
 

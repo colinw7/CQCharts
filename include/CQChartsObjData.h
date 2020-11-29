@@ -14,7 +14,8 @@ Q_PROPERTY(CQChartsColor    linesColor READ linesColor WRITE setLinesColor) \
 Q_PROPERTY(CQChartsAlpha    linesAlpha READ linesAlpha WRITE setLinesAlpha) \
 Q_PROPERTY(CQChartsLength   linesWidth READ linesWidth WRITE setLinesWidth) \
 Q_PROPERTY(CQChartsLineDash linesDash  READ linesDash  WRITE setLinesDash ) \
-Q_PROPERTY(CQChartsLineCap  linesCap   READ linesCap   WRITE setLinesCap  )
+Q_PROPERTY(CQChartsLineCap  linesCap   READ linesCap   WRITE setLinesCap  ) \
+Q_PROPERTY(CQChartsLineJoin linesJoin  READ linesJoin  WRITE setLinesJoin )
 
 /*!
  * \brief Object line data
@@ -28,6 +29,7 @@ class CQChartsObjLineData {
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
   using LineCap  = CQChartsLineCap;
+  using LineJoin = CQChartsLineJoin;
   using PenBrush = CQChartsPenBrush;
   using ColorInd = CQChartsUtil::ColorInd;
   using LineData = CQChartsLineData;
@@ -80,12 +82,19 @@ class CQChartsObjLineData {
       lineData_.setLineCap(c); lineDataInvalidate(); }
   }
 
+  const LineJoin &linesJoin() const { return lineData_.lineJoin(); }
+  void setLinesJoin(const LineJoin &j) {
+    if (j != lineData_.lineJoin()) {
+      lineData_.setLineJoin(j); lineDataInvalidate(); }
+  }
+
   void setLineDataPen(QPen &pen, const ColorInd &ind) const {
     QColor lc = interpLinesColor(ind);
 
     PenBrush penBrush;
     lineDataObj_->setPen(penBrush,
-      CQChartsPenData(isLines(), lc, linesAlpha(), linesWidth(), linesDash(), linesCap()));
+      CQChartsPenData(isLines(), lc, linesAlpha(), linesWidth(), linesDash(),
+                      linesCap(), linesJoin()));
     pen = penBrush.pen;
   }
 
@@ -120,7 +129,8 @@ Q_PROPERTY(CQChartsColor    LNAME##LinesColor READ LNAME##LinesColor WRITE set##
 Q_PROPERTY(CQChartsAlpha    LNAME##LinesAlpha READ LNAME##LinesAlpha WRITE set##UNAME##LinesAlpha) \
 Q_PROPERTY(CQChartsLength   LNAME##LinesWidth READ LNAME##LinesWidth WRITE set##UNAME##LinesWidth) \
 Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##UNAME##LinesDash ) \
-Q_PROPERTY(CQChartsLineCap  LNAME##LinesCap   READ LNAME##LinesCap   WRITE set##UNAME##LinesCap  )
+Q_PROPERTY(CQChartsLineCap  LNAME##LinesCap   READ LNAME##LinesCap   WRITE set##UNAME##LinesCap  ) \
+Q_PROPERTY(CQChartsLineJoin LNAME##LinesJoin  READ LNAME##LinesJoin  WRITE set##UNAME##LinesJoin )
 
 /*!
  * \brief Object named line data
@@ -135,6 +145,7 @@ class CQChartsObj##UNAME##LineData { \
   using Length   = CQChartsLength; \
   using LineDash = CQChartsLineDash; \
   using LineCap  = CQChartsLineCap; \
+  using LineJoin = CQChartsLineJoin; \
   using PenBrush = CQChartsPenBrush; \
   using ColorInd = CQChartsUtil::ColorInd; \
   using LineData = CQChartsLineData; \
@@ -187,13 +198,20 @@ class CQChartsObj##UNAME##LineData { \
       LNAME##LineData_.setLineCap(c); LNAME##LineDataInvalidate(); } \
   } \
 \
+  const LineJoin &LNAME##LinesJoin() const { return LNAME##LineData_.lineJoin(); } \
+  void set##UNAME##LinesJoin(const LineJoin &j) { \
+    if (j != LNAME##LineData_.lineJoin()) { \
+      LNAME##LineData_.setLineJoin(j); LNAME##LineDataInvalidate(); } \
+  } \
+\
   void set##UNAME##LineDataPen(QPen &pen, const ColorInd &ind) const { \
     QColor lc = interp##UNAME##LinesColor(ind); \
 \
     PenBrush penBrush; \
     LNAME##LineDataObj_->setPen(penBrush, \
       CQChartsPenData(is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
-                      LNAME##LinesWidth(), LNAME##LinesDash(), LNAME##LinesCap())); \
+                      LNAME##LinesWidth(), LNAME##LinesDash(), LNAME##LinesCap(), \
+                      LNAME##LinesJoin())); \
     pen = penBrush.pen; \
   } \
 \
@@ -947,6 +965,7 @@ Q_PROPERTY(CQChartsAlpha    strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
 Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLineCap  strokeCap   READ strokeCap   WRITE setStrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin strokeJoin  READ strokeJoin  WRITE setStrokeJoin ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
 /*!
@@ -961,6 +980,7 @@ class CQChartsObjStrokeData {
   using Length     = CQChartsLength;
   using LineDash   = CQChartsLineDash;
   using LineCap    = CQChartsLineCap;
+  using LineJoin   = CQChartsLineJoin;
   using ColorInd   = CQChartsUtil::ColorInd;
   using StrokeData = CQChartsStrokeData;
 
@@ -1005,6 +1025,12 @@ class CQChartsObjStrokeData {
   void setStrokeCap(const LineCap &c) {
     if (c != strokeData_.lineCap()) {
       strokeData_.setLineCap(c); strokeDataInvalidate(); }
+  }
+
+  const LineJoin &strokeJoin() const { return strokeData_.lineJoin(); }
+  void setStrokeJoin(const LineJoin &j) {
+    if (j != strokeData_.lineJoin()) {
+      strokeData_.setLineJoin(j); strokeDataInvalidate(); }
   }
 
   const Length &cornerSize() const { return strokeData_.cornerSize(); }
@@ -1053,6 +1079,7 @@ Q_PROPERTY(CQChartsAlpha    strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
 Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLineCap  strokeCap   READ strokeCap   WRITE setStrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin strokeJoin  READ strokeJoin  WRITE setStrokeJoin ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
 Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
@@ -1072,6 +1099,7 @@ class CQChartsObjShapeData {
   using Length      = CQChartsLength;
   using LineDash    = CQChartsLineDash;
   using LineCap     = CQChartsLineCap;
+  using LineJoin    = CQChartsLineJoin;
   using FillPattern = CQChartsFillPattern;
   using ColorInd    = CQChartsUtil::ColorInd;
   using ShapeData   = CQChartsShapeData;
@@ -1117,6 +1145,12 @@ class CQChartsObjShapeData {
   void setStrokeCap(const LineCap &c) {
     if (c != shapeData_.stroke().lineCap()) {
       shapeData_.stroke().setLineCap(c); shapeDataInvalidate(); }
+  }
+
+  const LineJoin &strokeJoin() const { return shapeData_.stroke().lineJoin(); }
+  void setStrokeJoin(const LineJoin &j) {
+    if (j != shapeData_.stroke().lineJoin()) {
+      shapeData_.stroke().setLineJoin(j); shapeDataInvalidate(); }
   }
 
   const Length &cornerSize() const { return shapeData_.stroke().cornerSize(); }
@@ -1203,6 +1237,8 @@ Q_PROPERTY(CQChartsLineDash LNAME##StrokeDash \
            READ LNAME##StrokeDash  WRITE set##UNAME##StrokeDash ) \
 Q_PROPERTY(CQChartsLineCap  LNAME##StrokeCap \
            READ LNAME##StrokeCap   WRITE set##UNAME##StrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin LNAME##StrokeJoin \
+           READ LNAME##StrokeJoin  WRITE set##UNAME##StrokeJoin ) \
 Q_PROPERTY(CQChartsLength   LNAME##CornerSize \
            READ LNAME##CornerSize  WRITE set##UNAME##CornerSize ) \
 \
@@ -1227,7 +1263,8 @@ class CQChartsObj##UNAME##ShapeData { \
   using Alpha       = CQChartsAlpha; \
   using Length      = CQChartsLength; \
   using LineDash    = CQChartsLineDash; \
-  using LineCap    = CQChartsLineCap; \
+  using LineCap     = CQChartsLineCap; \
+  using LineJoin    = CQChartsLineJoin; \
   using FillPattern = CQChartsFillPattern; \
   using ColorInd    = CQChartsUtil::ColorInd; \
   using ShapeData   = CQChartsShapeData; \
@@ -1274,6 +1311,12 @@ class CQChartsObj##UNAME##ShapeData { \
   void set##UNAME##StrokeCap(const LineCap &c) { \
     if (c != LNAME##ShapeData_.stroke().lineCap()) { \
       LNAME##ShapeData_.stroke().setLineCap(c); LNAME##ShapeDataInvalidate(); } \
+  } \
+\
+  const LineJoin &LNAME##StrokeJoin() const { return LNAME##ShapeData_.stroke().lineJoin(); } \
+  void set##UNAME##StrokeJoin(const LineJoin &j) { \
+    if (j != LNAME##ShapeData_.stroke().lineJoin()) { \
+      LNAME##ShapeData_.stroke().setLineJoin(j); LNAME##ShapeDataInvalidate(); } \
   } \
 \
   const Length &LNAME##CornerSize() const { return LNAME##ShapeData_.stroke().cornerSize(); } \
@@ -1360,6 +1403,7 @@ Q_PROPERTY(CQChartsAlpha    strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
 Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
 Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLineCap  strokeCap   READ strokeCap   WRITE setStrokeCap  ) \
+Q_PROPERTY(CQChartsLineJoin strokeJoin  READ strokeJoin  WRITE setStrokeJoin ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
 Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
@@ -1382,6 +1426,7 @@ class CQChartsObjBoxData {
   using Length      = CQChartsLength;
   using LineDash    = CQChartsLineDash;
   using LineCap     = CQChartsLineCap;
+  using LineJoin    = CQChartsLineJoin;
   using FillPattern = CQChartsFillPattern;
   using Sides       = CQChartsSides;
   using ColorInd    = CQChartsUtil::ColorInd;
@@ -1441,6 +1486,12 @@ class CQChartsObjBoxData {
   void setStrokeCap(const LineCap &c) {
     if (c != boxData_.shape().stroke().lineCap()) {
       boxData_.shape().stroke().setLineCap(c); boxDataInvalidate(); }
+  }
+
+  const LineJoin &strokeJoin() const { return boxData_.shape().stroke().lineJoin(); }
+  void setStrokeJoin(const LineJoin &j) {
+    if (j != boxData_.shape().stroke().lineJoin()) {
+      boxData_.shape().stroke().setLineJoin(j); boxDataInvalidate(); }
   }
 
   const Length &cornerSize() const { return boxData_.shape().stroke().cornerSize(); }

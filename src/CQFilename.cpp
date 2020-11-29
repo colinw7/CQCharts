@@ -13,7 +13,9 @@ CQFilename::
 CQFilename(QWidget *parent) :
  QFrame(parent), pattern_("Files (*.*)")
 {
-  QHBoxLayout *layout = new QHBoxLayout(this);
+  setObjectName("filename");
+
+  auto *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
   edit_ = new QLineEdit;

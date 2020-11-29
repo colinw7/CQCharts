@@ -276,13 +276,15 @@ namespace CQChartsUtil {
 using Alpha       = CQChartsAlpha;
 using LineDash    = CQChartsLineDash;
 using LineCap     = CQChartsLineCap;
+using LineJoin    = CQChartsLineJoin;
 using FillPattern = CQChartsFillPattern;
 
 void penSetLineDash(QPen &pen, const LineDash &dash);
 
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(),
             const Alpha &strokeAlpha=Alpha(), double strokeWidth=0.0,
-            const LineDash &strokeDash=LineDash(), const LineCap &strokeCap=LineCap());
+            const LineDash &strokeDash=LineDash(), const LineCap &strokeCap=LineCap(),
+            const LineJoin &strokeJoin=LineJoin());
 
 void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(),
               const Alpha &fillAlpha=Alpha(),

@@ -111,13 +111,7 @@ class CQChartsPaintDevice {
 
   //---
 
-  static bool polygonSidesPath(const BBox &bbox, int n, const Angle &angle, QPainterPath &path);
-
   void drawPolygonSides(const BBox &bbox, int n, const Angle &angle=Angle());
-
-  //---
-
-  static bool diamondPath(const BBox &bbox, QPainterPath &path);
 
   void drawDiamond(const BBox &bbox);
 

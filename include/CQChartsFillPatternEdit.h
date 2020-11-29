@@ -49,7 +49,10 @@ class CQChartsFillPatternLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
-class CQFillPatternsEditModel;
+class CQChartsPaletteNameEdit;
+class CQChartsAngleEdit;
+class CQChartsImageEdit;
+
 class CQRealSpin;
 
 class QComboBox;
@@ -90,13 +93,15 @@ class CQChartsFillPatternEdit : public CQChartsEditBase {
  private:
   using WidgetLabels = std::map<QWidget*, QWidget*>;
 
-  CQChartsFillPattern    fillPattern_;              //!< fillPattern
-  QComboBox*             typeCombo_    { nullptr }; //!< type combo
-  CQChartsLineEdit*      paletteEdit_  { nullptr }; //!< palette name edit
-  CQRealSpin*            angleEdit_    { nullptr }; //!< angle edit
-  CQChartsColorLineEdit* altColorEdit_ { nullptr }; //!< alt color edit
-  WidgetLabels           widgetLabels_;             //!< widget labels
-  bool                   connected_    { false };   //!< is connected
+  CQChartsFillPattern      fillPattern_;              //!< fill pattern
+  QComboBox*               typeCombo_    { nullptr }; //!< type combo
+  CQRealSpin*              scaleEdit_    { nullptr }; //!< scale edit
+  CQChartsPaletteNameEdit* paletteEdit_  { nullptr }; //!< palette name edit
+  CQChartsImageEdit*       imageEdit_    { nullptr }; //!< image edit
+  CQChartsAngleEdit*       angleEdit_    { nullptr }; //!< angle edit
+  CQChartsColorLineEdit*   altColorEdit_ { nullptr }; //!< alt color edit
+  WidgetLabels             widgetLabels_;             //!< widget labels
+  bool                     connected_    { false };   //!< is connected
 };
 
 //------

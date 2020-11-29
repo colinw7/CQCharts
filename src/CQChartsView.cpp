@@ -1309,7 +1309,7 @@ addArrowAnnotation(const Position &start, const Position &end)
 
 CQChartsArcAnnotation *
 CQChartsView::
-addArcAnnotation(const Rect &start, const Rect &end)
+addArcAnnotation(const Position &start, const Position &end)
 {
   return addAnnotationT<CQChartsArcAnnotation>(
     new CQChartsArcAnnotation(this, start, end));
@@ -2740,6 +2740,10 @@ keyPressEvent(QKeyEvent *ke)
 
   if (plot)
     plot->keyPress(ke->key(), ke->modifiers());
+
+  //---
+
+  emit keyEventPress(ke->text());
 }
 
 //------
@@ -2804,9 +2808,10 @@ editMousePress()
 
   Annotations selAnnotations;
 
+  CQChartsEditHandles::InsideData insideData;
+
   for (const auto &annotation : annotations()) {
-    if (annotation->contains(w) ||
-        (annotation->editHandles()->inside(w) != CQChartsResizeSide::NONE))
+    if (annotation->contains(w) || annotation->editHandles()->inside(w, insideData))
       selAnnotations.push_back(annotation);
   }
 
@@ -2814,12 +2819,13 @@ editMousePress()
   if (! selAnnotations.empty() && selAnnotations[0]->isSelected()) {
     auto *annotation = selAnnotations[0];
 
-    mouseData_.dragSide = annotation->editHandles()->inside(w);
+    mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::ANNOTATION;
+    if (annotation->editHandles()->inside(w, insideData)) {
+      mouseData_.dragObj  = DragObj::ANNOTATION;
+      mouseData_.dragSide = insideData.resizeSide;
 
-      annotation->editHandles()->setDragSide(mouseData_.dragSide);
+      annotation->editHandles()->setDragData(insideData);
       annotation->editHandles()->setDragPos (w);
 
       invalidateOverlay();
@@ -2830,14 +2836,15 @@ editMousePress()
 
   // start drag on already selected key handle
   if (key() && key()->isSelected()) {
-    mouseData_.dragSide = key()->editHandles()->inside(w);
+    mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
-      mouseData_.dragObj = DragObj::KEY;
+    if (key()->editHandles()->inside(w, insideData)) {
+      mouseData_.dragObj  = DragObj::KEY;
+      mouseData_.dragSide = insideData.resizeSide;
 
       key()->editPress(w);
 
-      key()->editHandles()->setDragSide(mouseData_.dragSide);
+      key()->editHandles()->setDragData(insideData);
       key()->editHandles()->setDragPos (w);
 
       invalidateOverlay();
@@ -4607,7 +4614,7 @@ setPen(PenBrush &penBrush, const PenData &penData) const
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(penData.width()));
 
   CQChartsUtil::setPen(penBrush.pen, penData.isVisible(), penData.color(), penData.alpha(),
-                       width, penData.dash(), penData.lineCap());
+                       width, penData.dash(), penData.lineCap(), penData.lineJoin());
 }
 
 void
@@ -7869,59 +7876,51 @@ QPainterPath
 CQChartsView::
 windowToPixel(const QPainterPath &path) const
 {
-  QPainterPath ppath;
-
-  int n = path.elementCount();
-
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
-
-    if      (e.isMoveTo()) {
-      auto p1 = windowToPixel(Point(e.x, e.y));
-
-      ppath.moveTo(p1.qpoint());
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(const View *view) :
+     view_(view) {
     }
-    else if (e.isLineTo()) {
-      auto p1 = windowToPixel(Point(e.x, e.y));
 
-      ppath.lineTo(p1.qpoint());
+    void moveTo(const Point &p) override {
+      auto pp = view_->windowToPixel(p);
+
+      path_.moveTo(pp.qpoint());
     }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      auto p1 = windowToPixel(Point(e.x, e.y));
+    void lineTo(const Point &p) override {
+      auto pp = view_->windowToPixel(p);
 
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
-      }
-
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        auto p2 = windowToPixel(Point(e1.x, e1.y)); ++i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          auto p3 = windowToPixel(Point(e2.x, e2.y)); ++i;
-
-          ppath.cubicTo(p1.qpoint(), p2.qpoint(), p3.qpoint());
-        }
-        else {
-          ppath.quadTo(p1.qpoint(), p2.qpoint());
-        }
-      }
+      path_.lineTo(pp.qpoint());
     }
-    else {
-      assert(false);
-    }
-  }
 
-  return ppath;
+    void quadTo(const Point &p1, const Point &p2) override {
+      auto pp1 = view_->windowToPixel(p1);
+      auto pp2 = view_->windowToPixel(p2);
+
+      path_.quadTo(pp1.qpoint(), pp2.qpoint());
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      auto pp1 = view_->windowToPixel(p1);
+      auto pp2 = view_->windowToPixel(p2);
+      auto pp3 = view_->windowToPixel(p3);
+
+      path_.cubicTo(pp1.qpoint(), pp2.qpoint(), pp3.qpoint());
+    }
+
+    const QPainterPath &path() const { return path_; }
+
+   private:
+    const View*  view_ { nullptr };
+    QPainterPath path_;
+  };
+
+  PathVisitor visitor(this);
+
+  CQChartsDrawUtil::visitPath(path, visitor);
+
+  return visitor.path();
 }
 
 //---

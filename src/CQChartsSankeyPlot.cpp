@@ -246,9 +246,9 @@ setSrcColoring(bool b)
 
 void
 CQChartsSankeyPlot::
-setBlendEdgeColor(bool b)
+setBlendEdgeColor(const BlendType &t)
 {
-  CQChartsUtil::testAndSet(blendEdgeColor_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(blendEdgeColor_, t, [&]() { drawObjs(); } );
 }
 
 void
@@ -4621,20 +4621,35 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   //---
 
   // calc fill color
-  QColor fc;
+  QColor fillColor;
 
   if (! edge()->fillColor().isValid()) {
-    if (plot()->isBlendEdgeColor()) {
-      auto fc1 = srcNode ->obj()->calcFillColor();
-      auto fc2 = destNode->obj()->calcFillColor();
+    if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_AVERAGE) {
+      auto fillColor1 = srcNode ->obj()->calcFillColor();
+      auto fillColor2 = destNode->obj()->calcFillColor();
 
-      fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+      fillColor = CQChartsUtil::blendColors(fillColor1, fillColor2, 0.5);
     }
     else
-      fc = plot()->interpEdgeFillColor(colorInd);
+      fillColor = plot()->interpEdgeFillColor(colorInd);
   }
   else {
-    fc = plot()->interpColor(edge()->fillColor(), colorInd);
+    fillColor = plot()->interpColor(edge()->fillColor(), colorInd);
+  }
+
+  // calc fill pattern
+  CQChartsFillPattern fillPattern = plot()->edgeFillPattern();
+
+  if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::FILL_GRADIENT) {
+    auto fillColor1 = srcNode ->obj()->calcFillColor();
+    auto fillColor2 = destNode->obj()->calcFillColor();
+
+    fillColor = fillColor1;
+
+    fillColor2.setAlphaF(plot()->edgeFillAlpha().value());
+
+    fillPattern.setType    (CQChartsFillPattern::Type::LGRADIENT);
+    fillPattern.setAltColor(fillColor2);
   }
 
   //---
@@ -4642,7 +4657,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   // calc stroke color
   QColor sc;
 
-  if (plot()->isBlendEdgeColor()) {
+  if (plot()->blendEdgeColor() == CQChartsSankeyPlot::BlendType::STROKE_AVERAGE) {
     int numNodes = plot()->numNodes();
 
     ColorInd ic1(srcNode ->id(), numNodes);
@@ -4662,8 +4677,8 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
   plot()->setPenBrush(penBrush,
     PenData  (plot()->isEdgeStroked(), sc, plot()->edgeStrokeAlpha(),
               plot()->edgeStrokeWidth(), plot()->edgeStrokeDash()),
-    BrushData(plot()->isEdgeFilled(), fc, plot()->edgeFillAlpha(),
-              plot()->edgeFillPattern()));
+    BrushData(plot()->isEdgeFilled(), fillColor, plot()->edgeFillAlpha(),
+              fillPattern));
 
   if (updateState)
     plot()->updateObjPenBrushState(this, penBrush);

@@ -20,11 +20,21 @@ toString() const
 {
   auto str = typeToString(type_);
 
-  if (type_ == Type::PALETTE)
-    str += ":" + palette_;
+  if      (type_ == Type::PALETTE)
+    str += ":" + palette().toString();
+  else if (type_ == Type::IMAGE)
+    str += ":" + image().toString();
+  else if (altColor().isValid())
+    str += ":";
 
-  if (angle() != 0.0)
-    str += QString("@%1").arg(angle());
+  if (altColor().isValid())
+    str += QString(":%1").arg(altColor().toString());
+
+  if (scale() != 1.0)
+    str += QString("*%1").arg(scale());
+
+  if (! angle().isZero())
+    str += QString("@%1").arg(angle().toString());
 
   return str;
 }
@@ -36,55 +46,155 @@ fromString(const QString &s)
   return setValue(s);
 }
 
+// format:
+//   <typeStr>[:<dataStr>][:<altColor>][*<scale>][@<angle>]
 bool
 CQChartsFillPattern::
 setValue(const QString &s)
 {
-  auto s1 = s;
+  QString typeStr, dataStr, altColorStr, scaleStr, angleStr;
 
-  QString s2;
-  QString s3;
+  auto lhs = s;
 
-  auto pos = s1.indexOf(":");
+  QString rhs;
 
+  auto pos = lhs.indexOf(":");
+
+  // :<dataStr>[:<altColor>][*<scale>][@<angle>]
   if (pos >= 0) {
-    s2 = s1.mid(pos + 1);
-    s1 = s1.mid(0, pos);
+    rhs     = lhs.mid(pos + 1);
+    typeStr = lhs.mid(0, pos);
 
-    auto pos1 = s2.indexOf("@");
+    auto pos1 = rhs.indexOf(":");
 
+    // :<altColor>[*<scale>][@<angle>]
     if (pos1 >= 0) {
-      s3 = s2.mid(pos1 + 1);
-      s2 = s2.mid(0, pos1);
+      dataStr = rhs.mid(0, pos1);
+      rhs     = rhs.mid(pos1 + 1);
+
+      auto pos2 = rhs.indexOf("*");
+
+      // *<scale>[@<angle>]
+      if (pos2 >= 0) {
+        altColorStr = rhs.mid(0, pos2);
+        rhs         = rhs.mid(pos2 + 1);
+
+        auto pos3 = rhs.indexOf("@");
+
+        // @<angle>
+        if (pos3 >= 0) {
+          angleStr = rhs.mid(pos3 + 1);
+          scaleStr = rhs.mid(0, pos3);
+        }
+        else
+          scaleStr = rhs;
+      }
+      // [@<angle>]
+      else {
+        auto pos3 = rhs.indexOf("@");
+
+        // @<angle>
+        if (pos3 >= 0) {
+          angleStr    = rhs.mid(pos3 + 1);
+          altColorStr = rhs.mid(0, pos3);
+        }
+        else
+          altColorStr = rhs;
+      }
+    }
+    // [*<scale>][@<angle>]
+    else {
+      auto pos2 = rhs.indexOf("*");
+
+      // *<scale>[@<angle>]
+      if (pos2 >= 0) {
+        dataStr = rhs.mid(0, pos2);
+        rhs     = rhs.mid(pos2 + 1);
+
+        auto pos3 = rhs.indexOf("@");
+
+        // @<angle>
+        if (pos3 >= 0) {
+          angleStr = rhs.mid(pos3 + 1);
+          scaleStr = rhs.mid(0, pos3);
+        }
+        else
+          scaleStr = rhs;
+      }
+      // [@<angle>]
+      else {
+        auto pos3 = rhs.indexOf("@");
+
+        // @<angle>
+        if (pos3 >= 0) {
+          angleStr = rhs.mid(pos3 + 1);
+          dataStr  = rhs.mid(0, pos3);
+        }
+        else
+          dataStr = rhs;
+      }
     }
   }
+  // [*<scale>][@<angle>]
   else {
-    auto pos1 = s1.indexOf("@");
+    rhs = lhs;
 
+    auto pos1 = rhs.indexOf("*");
+
+    // *<scale>[@<angle>]
     if (pos1 >= 0) {
-      s3 = s1.mid(pos1 + 1);
-      s1 = s1.mid(0, pos1);
+      typeStr = rhs.mid(0, pos1);
+      rhs     = rhs.mid(pos1 + 1);
+
+      auto pos2 = rhs.indexOf("@");
+
+      // @<angle>
+      if (pos2 >= 0) {
+        angleStr = rhs.mid(pos2 + 1);
+        scaleStr = rhs.mid(0, pos2);
+      }
+      else
+        scaleStr = rhs;
+    }
+    // [@<angle>]
+    else {
+      auto pos2 = rhs.indexOf("@");
+
+      if (pos2 >= 0) {
+        angleStr = rhs.mid(pos2 + 1);
+        typeStr  = rhs.mid(0, pos2);
+      }
+      else
+        typeStr = rhs;
     }
   }
 
-  auto type = stringToType(s1);
+  auto type = stringToType(typeStr);
 
   if (type == Type::NONE)
     return false;
 
   type_ = type;
 
-  if (type_ == Type::PALETTE)
-    palette_ = s2;
-
-  if (s3.length()) {
+  if (scaleStr != "") {
     bool ok;
-
-    angle_ = s3.toDouble(&ok);
-
-    if (! ok)
-      return false;
+    scale_ = scaleStr.toDouble(&ok);
+    if (! ok) scale_ = 1.0;
   }
+
+  if      (type_ == Type::PALETTE)
+    palette_ = dataStr;
+  else if (type_ == Type::IMAGE)
+    image_ = dataStr;
+
+  if (angleStr != "") {
+    bool ok;
+    angle_ = Angle(angleStr.toDouble(&ok));
+    if (! ok) angle_ = Angle();
+  }
+
+  if (altColorStr != "")
+    altColor_ = Color(altColorStr);
 
   return true;
 }
@@ -107,6 +217,7 @@ stringToType(const QString &str)
   if (ustr == "LGRADIENT" ) return Type::LGRADIENT;
   if (ustr == "RGRADIENT" ) return Type::RGRADIENT;
   if (ustr == "PALETTE"   ) return Type::PALETTE;
+  if (ustr == "IMAGE"     ) return Type::IMAGE;
 
   return Type::NONE;
 }
@@ -126,6 +237,7 @@ typeToString(const Type &type)
     case Type::LGRADIENT: return "LGRADIENT";
     case Type::RGRADIENT: return "RGRADIENT";
     case Type::PALETTE:   return "PALETTE";
+    case Type::IMAGE:     return "IMAGE";
     default:              return "NONE";
   }
 }
@@ -144,6 +256,7 @@ styleToType(const Qt::BrushStyle &style)
     case Qt::BDiagPattern         : return Type::BDIAG;
     case Qt::LinearGradientPattern: return Type::LGRADIENT;
     case Qt::RadialGradientPattern: return Type::RGRADIENT;
+    case Qt::TexturePattern       : return Type::IMAGE;
     default                       : return Type::NONE;
   }
 }
@@ -163,6 +276,7 @@ typeToStyle(const Type &type)
     case Type::LGRADIENT: return Qt::LinearGradientPattern;
     case Type::RGRADIENT: return Qt::RadialGradientPattern;
     case Type::PALETTE:   return Qt::LinearGradientPattern;
+    case Type::IMAGE:     return Qt::TexturePattern;
     default:              return Qt::NoBrush;
   }
 }
@@ -173,7 +287,7 @@ enumNames() const
 {
   static QStringList names = QStringList() <<
     "SOLID" << "HATCH" << "DENSE" << "HORIZONTAL" << "VERTICAL" << "FDIAG" << "BDIAG" <<
-    "LGRADIENT" << "RGRADIENT" << "PALETTE";
+    "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE";
 
   return names;
 }

@@ -1227,7 +1227,8 @@ formatStringInRect(const QString &str, const QFont &font, const BBox &bbox,
 namespace CQChartsUtil {
 
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &strokeAlpha,
-            double strokeWidth, const LineDash &strokeDash, const LineCap &lineCap) {
+            double strokeWidth, const LineDash &strokeDash, const LineCap &lineCap,
+            const LineJoin &lineJoin) {
   double width = limitLineWidth(strokeWidth);
 
   // calc pen (stroke)
@@ -1247,7 +1248,8 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &str
 
     penSetLineDash(pen, strokeDash);
 
-    pen.setCapStyle(lineCap.cap());
+    pen.setCapStyle (lineCap .cap ());
+    pen.setJoinStyle(lineJoin.join());
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -1256,29 +1258,53 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, const Alpha &str
 
 void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &fillAlpha,
               const FillPattern &pattern) {
+  auto color = fillColor;
+
+  color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
+
   // calc brush (fill)
   if (filled) {
+    // Linear gradient
     if      (pattern.type() == FillPattern::Type::LGRADIENT) {
-      QLinearGradient lg(0, 0, 1, 1);
+      double c = pattern.angle().cos();
+      double s = pattern.angle().sin();
+
+      QLinearGradient lg(std::abs(std::min(0.0, c)), std::abs(std::min(0.0, s)),
+                         std::abs(std::max(0.0, c)), std::abs(std::max(0.0, s)));
 
       lg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
-      lg.setColorAt(0, fillColor);
-      lg.setColorAt(1, Qt::white);
+      lg.setColorAt(0, color);
+      lg.setColorAt(1, pattern.altColor().isValid() ? pattern.altColor().color() : Qt::white);
 
       brush = QBrush(lg);
     }
-    else if (pattern.type() == FillPattern::Type::PALETTE) {
-      int paletteInd = CQColorsMgrInst->getNamedPaletteInd(pattern.palette());
-      if (paletteInd < 0) paletteInd = 0;
+    // Radial gradient
+    else if (pattern.type() == FillPattern::Type::RGRADIENT) {
+      double c = pattern.angle().cos();
+      double s = pattern.angle().sin();
 
-      auto *palette = CQColorsMgrInst->getIndPalette(paletteInd);
+      QPointF center(0.5, 0.5);
+      QPointF focus (c, s);
+
+      double radius = 0.5;
+
+      QRadialGradient rg(center, radius, focus);
+
+      rg.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+      rg.setColorAt(0, color);
+      rg.setColorAt(1, pattern.altColor().isValid() ? pattern.altColor().color() : Qt::white);
+
+      brush = QBrush(rg);
+    }
+    // Palette
+    else if (pattern.type() == FillPattern::Type::PALETTE) {
+      auto *palette = pattern.palette().palette();
       if (! palette) return;
 
-      double a = CMathUtil::Deg2Rad(pattern.angle());
-
-      double c = std::cos(a);
-      double s = std::sin(a);
+      double c = pattern.angle().cos();
+      double s = pattern.angle().sin();
 
       QLinearGradient lg(std::abs(std::min(0.0, c)), std::abs(std::min(0.0, s)),
                          std::abs(std::max(0.0, c)), std::abs(std::max(0.0, s)));
@@ -1289,13 +1315,15 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
 
       brush = QBrush(lg);
     }
+    // Image
+    else if (pattern.type() == FillPattern::Type::IMAGE) {
+      brush.setColor(color);
+
+      brush.setTextureImage(pattern.image().image());
+    }
+    // SOLID, HATCH, DENSE, HORIZ, VERT, FDIAG, BDIAG
     else {
       brush.setStyle(pattern.style());
-
-      auto color = fillColor;
-
-      color.setAlphaF(CMathUtil::clamp(fillAlpha.value(), 0.0, 1.0));
-
       brush.setColor(color);
     }
 

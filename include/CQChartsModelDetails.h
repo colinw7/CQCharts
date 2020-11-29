@@ -100,7 +100,8 @@ class CQChartsModelDetails : public QObject {
   ColumnDetailsMap columnDetails_;                      //!< model column details
 
   // mutex
-  mutable std::mutex mutex_; //!< mutex
+  mutable std::mutex initMutex_;   //!< mutex for init
+  mutable std::mutex columnMutex_; //!< mutex for column details
 };
 
 //---
@@ -224,10 +225,12 @@ class CQChartsModelColumnDetails {
   const CQChartsColumnType *columnType() const;
 
  private:
-  bool initData();
+  void initCache1() const;
+  bool calcCache ();
 
-  bool initType() const;
-  bool calcType();
+  bool initType () const;
+  bool initType1() const;
+  bool calcType ();
 
   void addInt   (long i, bool ok);
   void addReal  (double r, bool ok);
@@ -272,7 +275,8 @@ class CQChartsModelColumnDetails {
   CQChartsColorStops    tableDrawStops_;
 
   // mutex
-  mutable std::mutex    mutex_; //!< mutex
+  mutable std::mutex        initMutex_;     //!< mutex
+  mutable std::atomic<bool> initializing_; //!< initializing
 };
 
 #endif

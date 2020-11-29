@@ -2,11 +2,26 @@
 #define CQChartsFillPattern_H
 
 #include <CQChartsEnum.h>
+#include <CQChartsPaletteName.h>
+#include <CQChartsImage.h>
 #include <CQChartsColor.h>
+#include <CQChartsAngle.h>
 
 /*!
  * \brief fill pattern
  * \ingroup Charts
+ *
+ * Fill Pattern is applied to fill operation (color/alpha).
+ *
+ * Supports:
+ *  Solid Color
+ *   uses fill color/alpha
+ *  Pattern (Hatch, Dense, Hozizontal, Vertical, Diagonal (Forward/Back)
+ *   uses fill color/alpha, scale
+ *  Gradient (Linear, Radial, Palette)
+ *   uses fill color/alpha, optional pattern alt color and pattern angle
+ *  Image
+ *   uses image
  */
 class CQChartsFillPattern {
  public:
@@ -21,13 +36,20 @@ class CQChartsFillPattern {
     BDIAG,
     LGRADIENT,
     RGRADIENT,
-    PALETTE
+    PALETTE,
+    IMAGE
   };
 
  public:
   static void registerMetaType();
 
   static int metaTypeId;
+
+ public:
+  using PaletteName = CQChartsPaletteName;
+  using Image       = CQChartsImage;
+  using Color       = CQChartsColor;
+  using Angle       = CQChartsAngle;
 
  public:
   CQChartsFillPattern(Type type=Type::SOLID) :
@@ -40,30 +62,43 @@ class CQChartsFillPattern {
 
   //---
 
+  //! get/set type
   Type type() const { return type_; }
   void setType(Type type) { type_  = type; }
+
+  //---
 
   bool isValid() const { return type() != Type::NONE; }
 
   //---
 
+  //! get/set scale factor (for pattern)
   double scale() const { return scale_; }
   void setScale(double r) { scale_ = r; }
 
   //---
 
-  const QString &palette() const { return palette_; }
-  void setPalette(const QString &s) { palette_ = s; }
+  //! get/set palette name
+  const PaletteName &palette() const { return palette_; }
+  void setPalette(const PaletteName &p) { palette_ = p; }
 
   //---
 
-  double angle() const { return angle_; }
-  void setAngle(double r) { angle_ = r; }
+  //! get/set image
+  const Image &image() const { return image_; }
+  void setImage(const Image &i) { image_ = i; }
 
   //---
 
-  const CQChartsColor &altColor() const { return altColor_; }
-  void setAltColor(const CQChartsColor &c) { altColor_ = c; }
+  //! get/set palette angle
+  const Angle &angle() const { return angle_; }
+  void setAngle(const Angle &a) { angle_ = a; }
+
+  //---
+
+  //! get/set alt color (for pattern)
+  const Color &altColor() const { return altColor_; }
+  void setAltColor(const Color &c) { altColor_ = c; }
 
   //---
 
@@ -92,6 +127,7 @@ class CQChartsFillPattern {
     return (lhs.type    () == rhs.type    () &&
             lhs.scale   () == rhs.scale   () &&
             lhs.palette () == rhs.palette () &&
+            lhs.image   () == rhs.image   () &&
             lhs.angle   () == rhs.angle   () &&
             lhs.altColor() == rhs.altColor());
   }
@@ -115,11 +151,12 @@ class CQChartsFillPattern {
   bool setValue(const QString &str);
 
  private:
-  Type          type_  { Type::NONE };
-  double        scale_ { 1.0 };
-  QString       palette_;
-  double        angle_ { 0.0 };
-  CQChartsColor altColor_;
+  Type        type_  { Type::NONE };
+  double      scale_ { 1.0 };
+  PaletteName palette_;
+  Image       image_;
+  Angle       angle_;
+  Color       altColor_;
 };
 
 //---

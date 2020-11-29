@@ -41,9 +41,16 @@ void
 CQChartsEnumEdit::
 setEnumString(const QString &str)
 {
+  auto lstr = str.toLower();
+
   connectSlots(false);
 
-  combo_->setCurrentIndex(combo_->findText(str));
+  for (int i = 0; i < combo_->count(); ++i) {
+    if (combo_->itemText(i).toLower() == lstr) {
+      combo_->setCurrentIndex(i);
+      break;
+    }
+  }
 
   connectSlots(true);
 }

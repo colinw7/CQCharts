@@ -309,6 +309,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   Column     styleColumn_;                             //!< style column
   ColumnType geometryColumnType_ { ColumnType::NONE }; //!< geometry column type
   ColumnType colorColumnType_    { ColumnType::NONE }; //!< color column type
+  ColumnType alphaColumnType_    { ColumnType::NONE }; //!< alpha column type
   ColumnType styleColumnType_    { ColumnType::NONE }; //!< style column type
 
   // labels

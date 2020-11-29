@@ -76,7 +76,7 @@ columnDetails(const CQChartsColumn &c)
 
   //---
 
-  std::unique_lock<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> columnLock(columnMutex_);
 
   auto p = columnDetails_.find(c);
 
@@ -96,7 +96,7 @@ CQChartsModelDetails::
 initSimpleData() const
 {
   if (initialized_ == Initialized::NONE) {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> initLock(initMutex_);
 
     if (initialized_ == Initialized::NONE) {
       auto *th = const_cast<CQChartsModelDetails *>(this);
@@ -111,7 +111,7 @@ CQChartsModelDetails::
 initFullData() const
 {
   if (initialized_ != Initialized::FULL) {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> initLock(initMutex_);
 
     if (initialized_ != Initialized::FULL) {
       auto *th = const_cast<CQChartsModelDetails *>(this);
@@ -125,11 +125,7 @@ void
 CQChartsModelDetails::
 reset()
 {
-  {
-  std::unique_lock<std::mutex> lock(mutex_);
-
   resetValues();
-  }
 
   emit detailsReset();
 }
@@ -138,10 +134,16 @@ void
 CQChartsModelDetails::
 resetValues()
 {
+  std::unique_lock<std::mutex> initLock(initMutex_);
+
   initialized_  = Initialized::NONE;
   numColumns_   = 0;
   numRows_      = 0;
   hierarchical_ = false;
+
+  //---
+
+  std::unique_lock<std::mutex> columnLock(columnMutex_);
 
   for (auto &cd : columnDetails_)
     delete cd.second;
@@ -1161,6 +1163,8 @@ void
 CQChartsModelColumnDetails::
 resetTypeInitialized()
 {
+  std::unique_lock<std::mutex> initLock(initMutex_);
+
   typeInitialized_ = false;
   initialized_     = false; // dependent on type
 }
@@ -1170,33 +1174,51 @@ CQChartsModelColumnDetails::
 initCache() const
 {
   if (! initialized_) {
-    std::unique_lock<std::mutex> lock(mutex_);
+    if (initializing_.load())
+      return;
+
+    assert(! initializing_.load());
+
+    std::unique_lock<std::mutex> initLock(initMutex_);
 
     if (! initialized_) {
-      auto *th = const_cast<CQChartsModelColumnDetails *>(this);
+      initializing_.store(true);
 
-      (void) th->initData();
+      initCache1();
+
+      initializing_.store(false);
     }
   }
 }
 
+void
+CQChartsModelColumnDetails::
+initCache1() const
+{
+  auto *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+  (void) th->calcCache();
+}
+
 bool
 CQChartsModelColumnDetails::
-initData()
+calcCache()
 {
-  CQPerfTrace trace("CQChartsModelColumnDetails::initData");
+  CQPerfTrace trace("CQChartsModelColumnDetails::calcCache");
 
   assert(! initialized_);
 
   //---
 
-  if (! initType())
+  if (! initType1())
     return false;
 
   //---
 
   auto *model = details_->model();
-  if (! model) return false;
+
+  if (! model)
+    return false;
 
   //---
 
@@ -1578,7 +1600,9 @@ initData()
   DetailVisitor detailVisitor(this);
 
   auto *charts = details()->charts();
-  if (! charts) return false;
+
+  if (! charts)
+    return false;
 
   CQChartsModelVisit::exec(charts, model, detailVisitor);
 
@@ -1604,14 +1628,36 @@ bool
 CQChartsModelColumnDetails::
 initType() const
 {
+  bool rc = true;
+
   if (! typeInitialized_) {
-    std::unique_lock<std::mutex> lock(mutex_);
+    if (initializing_.load())
+      return rc;
+
+    assert(! initializing_.load());
+
+    std::unique_lock<std::mutex> initLock(initMutex_);
 
     if (! typeInitialized_) {
-      auto *th = const_cast<CQChartsModelColumnDetails *>(this);
+      initializing_.store(true);
 
-      return th->calcType();
+      rc = initType1();
+
+      initializing_.store(false);
     }
+  }
+
+  return rc;
+}
+
+bool
+CQChartsModelColumnDetails::
+initType1() const
+{
+  if (! typeInitialized_) {
+    auto *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+    return th->calcType();
   }
 
   return true;
@@ -1628,7 +1674,9 @@ calcType()
   //---
 
   auto *model = details_->model();
-  if (! model) return false;
+
+  if (! model)
+    return false;
 
   if (! column_.isValid())
     return false;
@@ -1659,7 +1707,9 @@ calcType()
   // get column type and name values
   // TODO: calls CQChartsModelVisitor, integrate into this visitor
   auto *charts = details_->charts();
-  if (! charts) return false;
+
+  if (! charts)
+    return false;
 
   if (! CQChartsModelUtil::columnValueType(charts, model, column_, typeData_)) {
     typeData_.type     = CQBaseModelType::NONE;

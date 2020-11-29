@@ -928,180 +928,367 @@ write(std::ostream &os, const QString &varName) const
 
 void
 CQChartsArrow::
-pathAddArrows(CQChartsPlot *plot, const QPainterPath &path,
-              const CQChartsArrowData &arrowData, QPainterPath &arrowPath)
+selfPath(QPainterPath &path, const BBox &rect, double fhead, double thead, double lw)
 {
-  bool first = true;
+  double xr = rect.getWidth ()/2.0;
+  double yr = rect.getHeight()/2.0;
 
-  double lw = plot->lengthPlotWidth(arrowData.lineWidth());
+  double a = M_PI/4.0;
 
-  QPainterPath arrowPath1, arrowPath2;
+  double c = std::cos(a);
+  double s = std::sin(a);
 
-  // start is front point, end is end point
-  int n = path.elementCount();
+  double xm = rect.getXMid();
+  double ym = rect.getYMid();
 
-  Point p1, p2;
+  double yt = rect.getYMax() + yr/2.0;
 
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
+  double x1 = xm - xr*c, y1 = ym + xr*s;
+  double x2 = xm + xr*c, y2 = y1;
 
-    if      (e.isMoveTo()) {
-      p1 = Point(e.x, e.y);
-      p2 = p1;
+  QPainterPath lpath;
+
+  lpath.moveTo (QPointF(x1, y1));
+  lpath.cubicTo(QPointF(x1, yt), QPointF(x2, yt), QPointF(x2, y2));
+
+  //---
+
+  CQChartsArrowData arrowData;
+
+  arrowData.setFHead(fhead);
+  arrowData.setTHead(thead);
+
+  pathAddArrows(lpath, arrowData, lw, 1.0, path);
+}
+
+void
+CQChartsArrow::
+pathAddArrows(const QPainterPath &path, const CQChartsArrowData &arrowData,
+              double lw, double alen, QPainterPath &arrowPath)
+{
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(double lw, double alen, const CQChartsArrowData &arrowData) :
+     lw_(lw), alen_(alen), arrowData_(arrowData) {
+      bool isFHead = arrowData_.isFHead();
+      bool isTHead = arrowData_.isTHead();
+
+      arrowData_.setFHeadType(arrowData_.fheadType());
+      arrowData_.setTHeadType(arrowData_.theadType());
+
+      arrowData_.setFHead(isFHead);
+      arrowData_.setTHead(isTHead);
     }
-    else if (e.isLineTo()) {
-      p1 = p2;
-      p2 = Point(e.x, e.y);
 
-      ArrowAngle a(p1, p2);
+    void moveTo(const Point &p) override {
+      p1_ = p;
+      p2_ = p;
+    }
 
-      Point lp1, lp2;
+    void lineTo(const Point &p) override {
+      p1_ = p2_;
+      p2_ = p;
 
-      addWidthToPoint(p1, a, lw, lp2, lp1); // above/below
+      handleFirst();
 
-      if (first) {
-        if (arrowData.isFHead()) {
-          auto pf = movePointOnLine(p1, a, -lw);
+      //---
 
-          arrowPath1.moveTo(pf.qpoint());
-          arrowPath2.moveTo(pf.qpoint());
+      auto a1 = ArrowAngle(p1_, p2_);
 
-          Point ap1, ap2;
+      if (nextP != p2_) {
+        auto a2 = ArrowAngle(p2_, nextP);
 
-          addWidthToPoint(p1, a, 2*lw, ap2, ap1); // above/below
+        Point lp1, lp2, lp3, lp4, lp5, lp6, lp7, lp8;
 
-          arrowPath1.lineTo(ap1.qpoint());
-          arrowPath2.lineTo(ap2.qpoint());
+        addWidthToPoint(p1_  , a1, lw_, lp2, lp1); // above/below
+        addWidthToPoint(p2_  , a1, lw_, lp4, lp3); // above/below
+        addWidthToPoint(p2_  , a2, lw_, lp6, lp5); // above/below
+        addWidthToPoint(nextP, a2, lw_, lp8, lp7); // above/below
 
-          arrowPath1.lineTo(lp1.qpoint());
-          arrowPath2.lineTo(lp2.qpoint());
-        }
-        else {
-          arrowPath1.moveTo(lp1.qpoint());
-          arrowPath2.moveTo(lp2.qpoint());
-        }
+        Point pi1, pi2;
 
-        first = false;
+        CQChartsUtil::intersectLines(lp1, lp3, lp5, lp7, pi1);
+        CQChartsUtil::intersectLines(lp2, lp4, lp6, lp8, pi2);
+
+        arrowPath1_.lineTo(pi1.qpoint());
+        arrowPath2_.lineTo(pi2.qpoint());
       }
+      else {
+        //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2_, a1, -lw_) : p2_);
+        bool skipLast = (arrowData_.isTHead() && isLast());
 
-      addWidthToPoint(p2, a, lw, lp1, lp2);
-
-      arrowPath1.lineTo(lp1.qpoint());
-      arrowPath2.lineTo(lp2.qpoint());
-    }
-    else if (e.isCurveTo()) {
-      p1 = p2;
-
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
-
-      auto pc1 = Point(e.x, e.y);
-
-      ArrowAngle a(p1, pc1);
-
-      if (first) {
         Point lp1, lp2;
 
-        addWidthToPoint(p1, a, lw, lp2, lp1); // above/below
+        addWidthToPoint(p2_, a1, lw_, lp2, lp1); // above/below
 
-        if (arrowData.isFHead()) {
-          auto pf = movePointOnLine(p1, a, -lw);
-
-          arrowPath1.moveTo(pf.qpoint());
-          arrowPath2.moveTo(pf.qpoint());
-
-          Point ap1, ap2;
-
-          addWidthToPoint(p1, a, 2*lw, ap2, ap1); // above/below
-
-          arrowPath1.lineTo(ap1.qpoint());
-          arrowPath2.lineTo(ap2.qpoint());
-
-          arrowPath1.lineTo(lp1.qpoint());
-          arrowPath2.lineTo(lp2.qpoint());
+        if (! skipLast) {
+          arrowPath1_.lineTo(lp1.qpoint());
+          arrowPath2_.lineTo(lp2.qpoint());
         }
         else {
-          arrowPath1.moveTo(lp1.qpoint());
-          arrowPath2.moveTo(lp2.qpoint());
+          skipN_ = 1;
         }
+      }
+    }
 
-        first = false;
+    void quadTo(const Point &pc1, const Point &p2) override {
+      p1_ = p2_;
+      p2_ = pc1;
+
+      handleFirst();
+
+      //---
+
+      auto a1 = ArrowAngle(p1_, pc1);
+      auto a2 = ArrowAngle(pc1, p2 );
+
+      //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2, a2, -lw_) : p2);
+      bool skipLast = (arrowData_.isTHead() && isLast());
+
+      Point lp11, lp21, lp12, lp22;
+
+      addWidthToPoint(pc1, a1, lw_, lp21, lp11); // above/below
+      addWidthToPoint(p2 , a2, lw_, lp22, lp12); // above/below
+
+      if (! skipLast) {
+        arrowPath1_.quadTo(lp11.qpoint(), lp12.qpoint());
+        arrowPath2_.quadTo(lp21.qpoint(), lp22.qpoint());
+      }
+      else {
+        skipN_   = 2;
+        skipLP1_ = lp11;
+        skipUP1_ = lp21;
       }
 
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
+      //---
+
+      p1_ = pc1;
+      p2_ = p2;
+    }
+
+    void curveTo(const Point &pc1, const Point &pc2, const Point &p2) override {
+      p1_ = p2_;
+      p2_ = pc1;
+
+      handleFirst();
+
+      //---
+
+      auto a1 = ArrowAngle(p1_, pc1);
+      auto a2 = ArrowAngle(pc1, pc2);
+      auto a3 = ArrowAngle(pc2, p2 );
+
+      //auto pf = (arrowData_.isTHead() && isLast() ? movePointOnLine(p2, a3, -lw_) : p2);
+      bool skipLast = (arrowData_.isTHead() && isLast());
+
+      Point lp11, lp21, lp12, lp22, lp13, lp23;
+
+      addWidthToPoint(pc1, a1, lw_, lp21, lp11); // above/below
+      addWidthToPoint(pc2, a2, lw_, lp22, lp12); // above/below
+      addWidthToPoint(p2 , a3, lw_, lp23, lp13); // above/below
+
+      if (! skipLast) {
+        arrowPath1_.cubicTo(lp11.qpoint(), lp12.qpoint(), lp13.qpoint());
+        arrowPath2_.cubicTo(lp21.qpoint(), lp22.qpoint(), lp23.qpoint());
+      }
+      else {
+        skipN_   = 3;
+        skipLP1_ = lp11;
+        skipUP1_ = lp21;
+        skipLP2_ = lp12;
+        skipUP2_ = lp22;
       }
 
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
+      //---
 
-      if (e1t == QPainterPath::CurveToDataElement) {
-        if (e2t == QPainterPath::CurveToDataElement) {
-          auto pc2 = Point(e1.x, e1.y); ++i;
+      p1_ = pc2;
+      p2_ = p2;
+    }
 
-          p2 = Point(e2.x, e2.y); ++i;
+    void handleFirst() {
+      if (first_) {
+        ArrowAngle a(p1_, p2_);
 
-          Point lp11, lp21, lp12, lp22, lp13, lp23;
+        if (arrowData_.isFHead()) {
+          // head point bottom/top
+          arrowPath1_.moveTo(p1_.qpoint());
+          arrowPath2_.moveTo(p1_.qpoint());
 
-          addWidthToPoint(pc1, ArrowAngle(p1 , pc1), lw, lp21, lp11); // above/below
-          addWidthToPoint(pc2, ArrowAngle(pc2, pc2), lw, lp22, lp12); // above/below
-          addWidthToPoint(p2 , ArrowAngle(pc2, p2 ), lw, lp23, lp13); // above/below
+          //---
 
-          arrowPath1.cubicTo(lp11.qpoint(), lp12.qpoint(), lp13.qpoint());
-          arrowPath2.cubicTo(lp21.qpoint(), lp22.qpoint(), lp23.qpoint());
+          // move in to arrow right edge
+          auto pf = movePointOnLine(p1_, a, alen_*lw_);
+
+          //---
+
+          // get end arrow points bottom top using front angle
+          auto a1 = ArrowAngle(a.angle - arrowData_.frontAngle().radians());
+          auto a2 = ArrowAngle(a.angle + arrowData_.frontAngle().radians());
+
+          auto pf1 = movePointOnLine(p1_, a1, lw_);
+          auto pf2 = movePointOnLine(p1_, a2, lw_);
+
+          Point ap1, ap2, ap3, ap4;
+
+          addWidthToPoint(p1_, a, lw_, ap2, ap1); // above/below
+          addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
+
+          Point pi1, pi2;
+
+          CQChartsUtil::intersectLines(p1_, pf1, pf, ap3, pi1);
+          CQChartsUtil::intersectLines(p1_, pf2, pf, ap4, pi2);
+
+          //---
+
+          // get back angle intersection with line border
+          auto a3 = ArrowAngle(a.angle - arrowData_.frontBackAngle().radians());
+          auto a4 = ArrowAngle(a.angle + arrowData_.frontBackAngle().radians());
+
+          auto pf3 = movePointOnLine(pi1, a3, lw_);
+          auto pf4 = movePointOnLine(pi2, a4, lw_);
+
+          Point pi3, pi4;
+
+          CQChartsUtil::intersectLines(pi1, pf3, ap1, ap3, pi3);
+          CQChartsUtil::intersectLines(pi2, pf4, ap2, ap4, pi4);
+
+          //---
+
+          arrowPath1_.lineTo(pi1.qpoint());
+          arrowPath2_.lineTo(pi2.qpoint());
+
+          arrowPath1_.lineTo(pi3.qpoint());
+          arrowPath2_.lineTo(pi4.qpoint());
         }
         else {
-          p2 = Point(e1.x, e1.y); ++i;
+          arrowPath1_.moveTo(p1_.qpoint());
+          arrowPath2_.moveTo(p1_.qpoint());
 
-          Point lp11, lp21, lp12, lp22;
+          Point lp1, lp2;
 
-          addWidthToPoint(pc1, ArrowAngle(p1 , pc1), lw, lp21, lp11); // above/below
-          addWidthToPoint(p2 , ArrowAngle(pc1, p2 ), lw, lp22, lp12); // above/below
+          addWidthToPoint(p1_, a, lw_, lp2, lp1); // above/below
 
-          arrowPath1.quadTo(lp11.qpoint(), lp12.qpoint());
-          arrowPath2.quadTo(lp21.qpoint(), lp22.qpoint());
+          arrowPath1_.lineTo(lp1.qpoint());
+          arrowPath2_.lineTo(lp2.qpoint());
         }
+
+        first_ = false;
       }
     }
-    else {
-      assert(false);
+
+    bool isLast() const {
+      return (i == (n - 1));
     }
-  }
 
-  if (! first) {
-    if (arrowData.isTHead()) {
-      ArrowAngle a(p1, p2);
+    void term() override {
+      if (! first_) {
+        if (arrowData_.isTHead()) {
+          ArrowAngle a(p1_, p2_);
 
-      Point lp1, lp2;
+          // move in to arrow left edge
+          auto pf = movePointOnLine(p2_, a, -alen_*lw_);
 
-      addWidthToPoint(p2, a, lw, lp2, lp1); // above/below
+          //---
 
-      arrowPath1.lineTo(lp1.qpoint());
-      arrowPath2.lineTo(lp2.qpoint());
+          // get end arrow points bottom top using front angle
+          auto a1 = ArrowAngle(a.angle + M_PI + arrowData_.tailAngle().radians());
+          auto a2 = ArrowAngle(a.angle + M_PI - arrowData_.tailAngle().radians());
 
-      Point ap1, ap2;
+          auto pf1 = movePointOnLine(p2_, a1, lw_);
+          auto pf2 = movePointOnLine(p2_, a2, lw_);
 
-      addWidthToPoint(p2, a, 2*lw, ap2, ap1); // above/below
+          Point ap1, ap2, ap3, ap4;
 
-      arrowPath1.lineTo(ap1.qpoint());
-      arrowPath2.lineTo(ap2.qpoint());
+          addWidthToPoint(p2_, a, lw_, ap2, ap1); // above/below
+          addWidthToPoint(pf , a, lw_, ap4, ap3); // above/below
 
-      auto pf = movePointOnLine(p2, a, lw);
+          Point pi1, pi2;
 
-      arrowPath1.lineTo(pf.qpoint());
-      arrowPath2.lineTo(pf.qpoint());
+          CQChartsUtil::intersectLines(p2_, pf1, pf, ap3, pi1);
+          CQChartsUtil::intersectLines(p2_, pf2, pf, ap4, pi2);
+
+          //---
+
+          // get back angle intersection with line border
+          auto a3 = ArrowAngle(a.angle + M_PI + arrowData_.tailBackAngle().radians());
+          auto a4 = ArrowAngle(a.angle + M_PI - arrowData_.tailBackAngle().radians());
+
+          auto pf3 = movePointOnLine(pi1, a3, lw_);
+          auto pf4 = movePointOnLine(pi2, a4, lw_);
+
+          Point pi3, pi4;
+
+          CQChartsUtil::intersectLines(pi1, pf3, ap3, ap1, pi3);
+          CQChartsUtil::intersectLines(pi2, pf4, ap4, ap2, pi4);
+
+          //---
+
+          assert(skipN_ >= 1 && skipN_ <= 3);
+
+          if      (skipN_ == 1) {
+            arrowPath1_.lineTo(pi3.qpoint());
+            arrowPath2_.lineTo(pi4.qpoint());
+          }
+          else if (skipN_ == 2) {
+            arrowPath1_.quadTo(skipLP1_.qpoint(), pi3.qpoint());
+            arrowPath2_.quadTo(skipUP1_.qpoint(), pi4.qpoint());
+          }
+          else if (skipN_ == 3) {
+            arrowPath1_.cubicTo(skipLP1_.qpoint(), skipLP2_.qpoint(), pi3.qpoint());
+            arrowPath2_.cubicTo(skipUP1_.qpoint(), skipUP2_.qpoint(), pi4.qpoint());
+          }
+
+          arrowPath1_.lineTo(pi1.qpoint());
+          arrowPath2_.lineTo(pi2.qpoint());
+
+          //---
+
+          // tail point bottom/top
+          arrowPath1_.lineTo(p2_.qpoint());
+          arrowPath2_.lineTo(p2_.qpoint());
+        }
+      }
+
+      //printPath("arrowPath1", arrowPath1_);
+      //printPath("arrowPath2", arrowPath2_);
+
+      arrowPath2_ = CQChartsPath::reversePath(arrowPath2_);
+      //printPath("reversed", arrowPath2_);
+
+      arrowPath1_ = CQChartsPath::combinePaths(arrowPath1_, arrowPath2_);
+      //printPath("combined", arrowPath1_);
     }
-  }
 
-  arrowPath2 = arrowPath2.toReversed();
+#if 0
+    void printPath(const QString &name, const QPainterPath &path) {
+      std::cerr << name.toStdString() << ": " <<
+        CQChartsPath::pathToString(path).toStdString() << "\n";
+    }
+#endif
 
-  arrowPath1.addPath(arrowPath2);
+    const QPainterPath &arrowPath() const { return arrowPath1_; }
 
-  arrowPath = arrowPath1;
+   private:
+    double            lw_      { 1.0 };         // line width
+    double            alen_    { 1.0 };         // arrow length
+    CQChartsArrowData arrowData_;               // arrow data
+    Point             p1_, p2_;                 // start is front point, end is end point
+    bool              first_   { true };        // is first point
+    QPainterPath      arrowPath1_, arrowPath2_; // top, bottom path
+    int               skipN_   { 0 };
+    Point             skipLP1_;
+    Point             skipUP1_;
+    Point             skipLP2_;
+    Point             skipUP2_;
+  };
+
+  //---
+
+  PathVisitor visitor(lw, alen, arrowData);
+
+  CQChartsDrawUtil::visitPath(path, visitor);
+
+  arrowPath = visitor.arrowPath();
 }
 
 void

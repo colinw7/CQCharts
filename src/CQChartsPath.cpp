@@ -1,4 +1,6 @@
 #include <CQChartsPath.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPropertyView.h>
 #include <CSVGUtil.h>
 
@@ -24,56 +26,53 @@ toString() const
   if (! path_)
     return "";
 
-  QString str;
+  return pathToString(*path_);
+}
 
-  int n = path_->elementCount();
-  if (n == 0) return "";
+QString
+CQChartsPath::
+pathToString(const QPainterPath &path)
+{
+  using Point = CQChartsGeom::Point;
 
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path_->elementAt(i);
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    void moveTo(const Point &p) override {
+      if (str_.length()) str_ += " ";
 
-    if (str.length())
-      str += " ";
-
-    if      (e.isMoveTo()) {
-      str += QString("M %1 %2").arg(e.x).arg(e.y);
+      str_ += QString("M %1 %2").arg(p.x).arg(p.y);
     }
-    else if (e.isLineTo()) {
-      str += QString("L %1 %2").arg(e.x).arg(e.y);
+
+    void lineTo(const Point &p) override {
+      if (str_.length()) str_ += " ";
+
+      str_ += QString("L %1 %2").arg(p.x).arg(p.y);
     }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      if (i < n - 1) {
-        e1  = path_->elementAt(i + 1);
-        e1t = e1.type;
-      }
+    void quadTo(const Point &p1, const Point &p2) override {
+      if (str_.length()) str_ += " ";
 
-      if (i < n - 2) {
-        e2  = path_->elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        ++i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          ++i;
-
-          str += QString("C %1 %2 %3 %4 %5 %6").
-            arg(e.x).arg(e.y).arg(e1.x).arg(e1.y).arg(e2.x).arg(e2.y);
-        }
-        else {
-          str += QString("Q %1 %2 %3 %4").
-            arg(e.x).arg(e.y).arg(e1.x).arg(e1.y);
-        }
-      }
+      str_ += QString("Q %1 %2 %3 %4").arg(p1.x).arg(p1.y).arg(p2.x).arg(p2.y);
     }
-  }
 
-  return str;
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      if (str_.length()) str_ += " ";
+
+      str_ += QString("C %1 %2 %3 %4 %5 %6").
+                arg(p1.x).arg(p1.y).arg(p2.x).arg(p2.y).arg(p3.x).arg(p3.y);
+    }
+
+    const QString &str() const { return str_; }
+
+   private:
+    QString str_;
+  };
+
+  PathVisitor visitor;
+
+  CQChartsDrawUtil::visitPath(path, visitor);
+
+  return visitor.str();
 }
 
 void
@@ -92,121 +91,197 @@ flip(bool flipX, bool flipY)
 
 QPainterPath
 CQChartsPath::
-movePath(const QPainterPath &path, double dx, double dy) const
+movePath(const QPainterPath &path, double dx, double dy)
 {
-  QPainterPath ppath;
+  using Point = CQChartsGeom::Point;
 
-  int n = path.elementCount();
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(double dx, double dy) :
+     dx_(dx), dy_(dy) {
+    }
 
-  auto moveElement = [&](const QPainterPath::Element &e) {
-    return QPointF(e.x + dx, e.y + dy);
+    void moveTo(const Point &p) override {
+      path_.moveTo(movePoint(p));
+    }
+
+    void lineTo(const Point &p) override {
+      path_.lineTo(movePoint(p));
+    }
+
+    void quadTo(const Point &p1, const Point &p2) override {
+      path_.quadTo(movePoint(p1), movePoint(p2));
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      path_.cubicTo(movePoint(p1), movePoint(p2), movePoint(p3));
+    }
+
+    const QPainterPath &path() const { return path_; }
+
+   private:
+    QPointF movePoint(const Point &p) const {
+      return QPointF(p.x + dx_, p.y + dy_);
+    };
+
+   private:
+    double       dx_ { 0.0 };
+    double       dy_ { 0.0 };
+    QPainterPath path_;
   };
 
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
+  PathVisitor visitor(dx, dy);
 
-    if      (e.isMoveTo()) {
-      ppath.moveTo(moveElement(e));
-    }
-    else if (e.isLineTo()) {
-      ppath.lineTo(moveElement(e));
-    }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+  CQChartsDrawUtil::visitPath(path, visitor);
 
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
-      }
-
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        ++i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          ++i;
-
-          ppath.cubicTo(moveElement(e), moveElement(e1), moveElement(e2));
-        }
-        else {
-          ppath.quadTo(moveElement(e), moveElement(e1));
-        }
-      }
-    }
-    else {
-      assert(false);
-    }
-  }
-
-  return ppath;
+  return visitor.path();
 }
 
 QPainterPath
 CQChartsPath::
-flipPath(const QPainterPath &path, bool flipX, bool flipY) const
+flipPath(const QPainterPath &path, bool flipX, bool flipY)
 {
-  QPainterPath ppath;
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
 
-  auto bbox = path.boundingRect();
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(const BBox &bbox, bool flipX, bool flipY) :
+     bbox_(bbox), flipX_(flipX), flipY_(flipY) {
+      center_ = bbox_.getCenter();
+    }
 
-  auto center = bbox.center();
+    void moveTo(const Point &p) override {
+      path_.moveTo(flipPoint(p));
+    }
 
-  int n = path.elementCount();
+    void lineTo(const Point &p) override {
+      path_.lineTo(flipPoint(p));
+    }
 
-  auto flipElement = [&](const QPainterPath::Element &e) {
-    return QPointF((flipX ? 2*center.x() - e.x : e.x), (flipY ? 2*center.y() - e.y : e.y));
+    void quadTo(const Point &p1, const Point &p2) override {
+      path_.quadTo(flipPoint(p1), flipPoint(p2));
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      path_.cubicTo(flipPoint(p1), flipPoint(p2), flipPoint(p3));
+    }
+
+    const QPainterPath &path() const { return path_; }
+
+   private:
+    QPointF flipPoint(const Point &p) const {
+      return QPointF((flipX_ ? 2*center_.x - p.x : p.x),
+                     (flipY_ ? 2*center_.y - p.y : p.y));
+    };
+
+   private:
+    BBox         bbox_;
+    Point        center_;
+    bool         flipX_ { false };
+    bool         flipY_ { false };
+    QPainterPath path_;
   };
 
-  for (int i = 0; i < n; ++i) {
-    const auto &e = path.elementAt(i);
+  auto rect = path.boundingRect();
 
-    if      (e.isMoveTo()) {
-      ppath.moveTo(flipElement(e));
-    }
-    else if (e.isLineTo()) {
-      ppath.lineTo(flipElement(e));
-    }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+  PathVisitor visitor(BBox(rect), flipX, flipY);
 
-      if (i < n - 1) {
-        e1  = path.elementAt(i + 1);
-        e1t = e1.type;
-      }
+  CQChartsDrawUtil::visitPath(path, visitor);
 
-      if (i < n - 2) {
-        e2  = path.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        ++i;
-
-        if (e2t == QPainterPath::CurveToDataElement) {
-          ++i;
-
-          ppath.cubicTo(flipElement(e), flipElement(e1), flipElement(e2));
-        }
-        else {
-          ppath.quadTo(flipElement(e), flipElement(e1));
-        }
-      }
-    }
-    else {
-      assert(false);
-    }
-  }
-
-  return ppath;
+  return visitor.path();
 }
+
+QPainterPath
+CQChartsPath::
+reversePath(const QPainterPath &path)
+{
+  return path.toReversed();
+}
+
+QPainterPath
+CQChartsPath::
+combinePaths(const QPainterPath &path1, const QPainterPath &path2)
+{
+  // return path1.addPath(path2);
+
+  using Point = CQChartsGeom::Point;
+
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    PathVisitor(const QPainterPath &path) :
+     path_(path) {
+    }
+
+    void moveTo(const Point &p) override {
+      path_.lineTo(p.x, p.y);
+    }
+
+    void lineTo(const Point &p) override {
+      path_.lineTo(p.x, p.y);
+    }
+
+    void quadTo(const Point &p1, const Point &p2) override {
+      path_.quadTo(p1.x, p1.y, p2.x, p2.y);
+    }
+
+    void curveTo(const Point &p1, const Point &p2, const Point &p3) override {
+      path_.cubicTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+    }
+
+    const QPainterPath &path() const { return path_; }
+
+   private:
+    QPainterPath path_;
+  };
+
+  PathVisitor visitor(path1);
+
+  CQChartsDrawUtil::visitPath(path2, visitor);
+
+  return visitor.path();
+}
+
+CQChartsPath::Points
+CQChartsPath::
+pathPoints(const QPainterPath &path)
+{
+  class PathVisitor : public CQChartsDrawUtil::PathVisitor {
+   public:
+    void moveTo(const Point &p) override {
+      assert(i == 0);
+
+      points_.push_back(p);
+    }
+
+    void lineTo(const Point &p) override {
+      assert(i > 0);
+
+      auto pp1 = points_.back();
+      auto pp2 = p;
+
+      points_.push_back((pp1 + pp2)/2.0);
+      points_.push_back(pp2);
+    }
+
+    void quadTo(const Point &, const Point &) override { assert(false); }
+
+    void curveTo(const Point &, const Point &, const Point &) override { assert(false); }
+
+    const Points &points() const { return points_; }
+
+   private:
+    Points points_;
+  };
+
+  PathVisitor visitor;
+
+  CQChartsDrawUtil::visitPath(path, visitor);
+
+  return visitor.points();
+}
+
+//---
 
 bool
 CQChartsPath::

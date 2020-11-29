@@ -122,6 +122,12 @@ setText(const QString &text)
   text_ = text;
 
   label_->setText(text_);
+
+  //---
+
+  setWidgetPalette(label_      );
+  setWidgetPalette(lockButton_ );
+  setWidgetPalette(queryButton_);
 }
 
 void
@@ -218,7 +224,7 @@ place()
     else if (align_ & Qt::AlignRight)
       x = pw - w - margin() - 1;
     else
-      x = (pw - w)/2.0;
+      x = (pw - w)/2;
   }
 
   if (y < 0) {
@@ -227,7 +233,7 @@ place()
     else if (align_ & Qt::AlignBottom)
       y = ph - h - margin() - 1;
     else
-      y = (ph - h)/2.0;
+      y = (ph - h)/2;
   }
 
   this->move(x, y);
@@ -291,46 +297,13 @@ paintEvent(QPaintEvent *)
   //---
 
   // draw title lines
-  bool draggable = (inside_ && isLocked());
-
-  int x1 = width() - border() - 2;
-  int x2 = border() + lockButton_->width() + queryButton_->width() + 6;
-
-  int y1 = border();
-  int y2 = y1 + lockButton_->height();
-
-  int nl = titleLines();
-
-  double dy = (y2 - y1)/(nl + 1);
-
-  double y = y1 + dy;
-
-  for (int i = 0; i < nl; ++i) {
-    int iy = int(y);
-
-    if (draggable) {
-      painter.setPen(QColor(100, 100, 220));
-
-      painter.drawLine(x1, iy, x2, iy);
-
-      painter.setPen(QColor(255, 255, 255));
-
-      ++iy;
-
-      painter.drawLine(x1, iy, x2, iy);
-    }
-    else {
-      painter.setPen(QColor(128, 128, 128));
-
-      painter.drawLine(x1, iy, x2, iy);
-    }
-
-    y += dy;
-  }
+  drawTitleBar(&painter);
 
   //---
 
   // if inside draw and locked inside borders
+  bool draggable = (inside_ && isLocked());
+
   if (draggable) {
     int bw = 3;
 
@@ -361,6 +334,77 @@ paintEvent(QPaintEvent *)
       drawHBorder(height() - 1 - bw);
     }
   }
+}
+
+void
+CQFloatTip::
+drawTitleBar(QPainter *painter)
+{
+  bool draggable = (inside_ && isLocked());
+
+  int x1 = border() + lockButton_->width() + queryButton_->width() + 6;
+  int x2 = width() - border() - 2;
+
+  int y1 = border();
+  int y2 = y1 + lockButton_->height();
+
+#if 0
+  int nl = std::max(titleLines(), 2);
+
+  double dy = 1.0*(y2 - y1)/(nl + 1);
+
+  double y = y1 + dy;
+
+  for (int i = 0; i < nl; ++i) {
+    int iy = int(y);
+
+    if (draggable) {
+      painter->setPen(QColor(100, 100, 220));
+
+      painter->drawLine(x1, iy, x2, iy);
+
+      painter->setPen(QColor(255, 255, 255));
+
+      ++iy;
+
+      painter->drawLine(x1, iy, x2, iy);
+    }
+    else {
+      painter->setPen(QColor(128, 128, 128));
+
+      painter->drawLine(x1, iy, x2, iy);
+    }
+
+    y += dy;
+  }
+#else
+  auto mergedColors = [&](const QColor &colorA, const QColor &colorB, double factor = 50.0) {
+    const double maxFactor = 100.0;
+
+    QColor tmp = colorA;
+
+    tmp.setRed  ((tmp.red  ()*factor)/maxFactor + (colorB.red  ()*(maxFactor - factor))/maxFactor);
+    tmp.setGreen((tmp.green()*factor)/maxFactor + (colorB.green()*(maxFactor - factor))/maxFactor);
+    tmp.setBlue ((tmp.blue ()*factor)/maxFactor + (colorB.blue ()*(maxFactor - factor))/maxFactor);
+
+    return tmp;
+  };
+
+  QRect rect(x1, y1, x2 - x1, y2 - y1);
+
+  QColor barColor = (draggable ? QColor(100, 100, 220) : QColor(180, 180, 180));
+  QColor bgColor  = palette().color(QPalette::ToolTipBase);
+
+  QColor gradientStartColor = mergedColors(barColor, bgColor, 40);
+  QColor gradientStopColor  = mergedColors(barColor, bgColor, 10);
+
+  QLinearGradient gradient(rect.left(), rect.top(), rect.right(), rect.bottom());
+
+  gradient.setColorAt(0, gradientStartColor);
+  gradient.setColorAt(1, gradientStopColor);
+
+  painter->fillRect(rect, gradient);
+#endif
 }
 
 QSize
@@ -621,7 +665,7 @@ startHideTimer()
 
   double hideSecs = 3.0;
 
-  hideTimer_ = startTimer(hideSecs*1000);
+  hideTimer_ = startTimer(int(hideSecs*1000));
 }
 
 void
@@ -665,4 +709,20 @@ hideSlot()
   this->setMouseTracking(false);
 
   stopTimer();
+}
+
+void
+CQFloatTip::
+setWidgetPalette(QWidget *w)
+{
+  auto palette = this->palette();
+
+  palette.setColor(QPalette::Window    , palette.color(QPalette::ToolTipBase));
+  palette.setColor(QPalette::WindowText, palette.color(QPalette::ToolTipText));
+  palette.setColor(QPalette::Base      , palette.color(QPalette::ToolTipBase));
+  palette.setColor(QPalette::Text      , palette.color(QPalette::ToolTipText));
+  palette.setColor(QPalette::Button    , palette.color(QPalette::ToolTipBase));
+  palette.setColor(QPalette::ButtonText, palette.color(QPalette::ToolTipText));
+
+  w->setPalette(palette);
 }

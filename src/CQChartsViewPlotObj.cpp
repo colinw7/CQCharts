@@ -64,16 +64,21 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == View::Mode::EDIT && isSelected());
 
-  auto *th = const_cast<CQChartsViewPlotObj *>(this);
-
-  auto rect = this->rect();
-
-  if (! rect.isValid())
-    return;
-
-  th->editHandles()->setBBox(rect);
+  setEditHandlesBBox();
 
   editHandles()->draw(painter);
+}
+
+void
+CQChartsViewPlotObj::
+setEditHandlesBBox() const
+{
+  auto rect = this->rect();
+  if (! rect.isValid()) return;
+
+  auto *th = const_cast<CQChartsViewPlotObj *>(this);
+
+  th->editHandles()->setBBox(rect);
 }
 
 //---

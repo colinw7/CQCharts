@@ -3160,8 +3160,8 @@ exec(CQChartsCmdArgs &argv)
   };
 
   // get sum and mean columns
-  std::vector<CQChartsColumn> sumColumns  = argStringToColumns("sum_columns" );
-  std::vector<CQChartsColumn> meanColumns = argStringToColumns("mean_columns");
+  auto sumColumns  = argStringToColumns("sum_columns" );
+  auto meanColumns = argStringToColumns("mean_columns");
 
   //---
 
@@ -4677,8 +4677,8 @@ exec(CQChartsCmdArgs &argv)
   };
 
   // get sum and mean columns
-  std::vector<CQChartsColumn> sumColumns  = argStringToColumns("sum" );
-  std::vector<CQChartsColumn> meanColumns = argStringToColumns("mean");
+  auto sumColumns  = argStringToColumns("sum" );
+  auto meanColumns = argStringToColumns("mean");
 
   //---
 
@@ -4817,8 +4817,8 @@ exec(CQChartsCmdArgs &argv)
     return columns;
   };
 
-  CQPivotModel::Columns hColumns = argStringToColumns("hcolumns" );
-  CQPivotModel::Columns vColumns = argStringToColumns("vcolumns");
+  auto hColumns = argStringToColumns("hcolumns" );
+  auto vColumns = argStringToColumns("vcolumns");
 
   CQChartsColumn dcolumn;
 
@@ -5878,7 +5878,7 @@ exec(CQChartsCmdArgs &argv)
 
       CQChartsPosition pos(data, CQChartsUnits::VIEW);
 
-      CQChartsGeom::Point p = view->positionToPixel(pos);
+      auto p = view->positionToPixel(pos);
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
@@ -5994,7 +5994,7 @@ exec(CQChartsCmdArgs &argv)
     auto *plot = cmds()->getPlotByName(view, plotName);
     if (! plot) return false;
 
-    CQChartsRow row = argv.getParseRow("row", plot);
+    auto row = argv.getParseRow("row", plot);
 
     //---
 
@@ -6157,7 +6157,7 @@ exec(CQChartsCmdArgs &argv)
       if (! objectId.length())
         return errorMsg("Missing object id");
 
-      std::vector<CQChartsObj *> objs = plot->getObjectConnected(objectId);
+      auto objs = plot->getObjectConnected(objectId);
 
       QVariantList vars;
 
@@ -6207,7 +6207,7 @@ exec(CQChartsCmdArgs &argv)
 
       CQChartsPosition pos(data, CQChartsUnits::PLOT);
 
-      CQChartsGeom::Point p = plot->positionToPixel(pos);
+      auto p = plot->positionToPixel(pos);
 
       return cmdBase_->setCmdRc(p.qpoint());
     }
@@ -7031,8 +7031,8 @@ addArgs(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Rect, "start position");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Rect, "end position");
+  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
+  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 }
@@ -7094,8 +7094,8 @@ exec(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  auto start = argv.getParseRect(view, plot, "start");
-  auto end   = argv.getParseRect(view, plot, "end"  );
+  auto start = argv.getParsePosition(view, plot, "start");
+  auto end   = argv.getParsePosition(view, plot, "end"  );
 
   //---
 
@@ -7372,8 +7372,8 @@ exec(CQChartsCmdArgs &argv)
 
   auto center = argv.getParsePosition(view, plot, "center");
 
-  CQChartsLength rx = argv.getParseLength(view, plot, "rx");
-  CQChartsLength ry = argv.getParseLength(view, plot, "ry");
+  auto rx = argv.getParseLength(view, plot, "rx");
+  auto ry = argv.getParseLength(view, plot, "ry");
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
@@ -8306,7 +8306,7 @@ exec(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  CQChartsPoints values = argv.getParsePoints(view, plot, "values");
+  auto values = argv.getParsePoints(view, plot, "values");
 
   if (values.points().empty()) {
   }
@@ -8451,7 +8451,7 @@ exec(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  CQChartsGeom::Polygon points = argv.getParsePoly("points");
+  auto points = argv.getParsePoly("points");
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
@@ -8608,7 +8608,7 @@ exec(CQChartsCmdArgs &argv)
   auto id    = argv.getParseStr("id");
   auto tipId = argv.getParseStr("tip");
 
-  CQChartsGeom::Polygon points = argv.getParsePoly("points");
+  auto points = argv.getParsePoly("points");
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
@@ -9151,7 +9151,7 @@ exec(CQChartsCmdArgs &argv)
   if (! rect.isValid())
     return errorMsg("Invalid rectangle value");
 
-  CQChartsReals values = argv.getParseReals("values");
+  auto values = argv.getParseReals("values");
 
   //---
 
@@ -10006,9 +10006,13 @@ exec(CQChartsCmdArgs &argv)
     else if (fromName == "selectionChanged") {
       cmds()->connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
     }
+    else if (fromName == "keyEventPress") {
+      cmds()->connect(view, SIGNAL(keyEventPress(const QString &)),
+                      createCmdsSlot(), SLOT(keyEventPress(const QString &)));
+    }
     else if (fromName == "?") {
       QStringList names = QStringList() <<
-        "objIdPressed" << "annotationIdPressed" << "selectionChanged";
+        "objIdPressed" << "annotationIdPressed" << "selectionChanged" << "keyEventPress";
 
       return cmdBase_->setCmdRc(names);
     }

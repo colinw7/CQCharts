@@ -221,10 +221,12 @@ fillPath(const QPainterPath &path, const QBrush &brush)
 {
   auto ppath = windowToPixel(path);
 
+  auto brush1 = adjustFillBrush(brush, BBox(ppath.boundingRect()));
+
   if (handDrawn_)
-    hdPainter_->fillPath(ppath, brush);
+    hdPainter_->fillPath(ppath, brush1);
   else
-    painter_->fillPath(ppath, brush);
+    painter_->fillPath(ppath, brush1);
 }
 
 void
@@ -259,10 +261,51 @@ fillRect(const BBox &bbox)
 
   auto pbbox = windowToPixel(bbox);
 
+  auto brush = adjustFillBrush(this->brush(), pbbox);
+
   if (handDrawn_)
-    hdPainter_->fillRect(pbbox.qrect(), this->brush());
+    hdPainter_->fillRect(pbbox.qrect(), brush);
   else
-    painter_->fillRect(pbbox.qrect(), this->brush());
+    painter_->fillRect(pbbox.qrect(), brush);
+}
+
+QBrush
+CQChartsViewPlotPaintDevice::
+adjustFillBrush(const QBrush &brush, const BBox &pbbox) const
+{
+  auto brush1 = brush;
+
+  if (brush1.style() == Qt::TexturePattern) {
+    QImage image  = brush1.textureImage();
+    QImage image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
+
+    double r = brush1.color().redF  ();
+    double g = brush1.color().greenF();
+    double b = brush1.color().blueF ();
+    double a = brush1.color().alphaF();
+
+    if (a < 1.0) {
+      for (int y = 0; y < image1.height(); ++y) {
+        for (int x = 0; x < image1.width(); ++x) {
+          auto rgb = image1.pixel(x, y);
+
+          double r1 = qRed  (rgb)/255.0;
+          double g1 = qGreen(rgb)/255.0;
+          double b1 = qBlue (rgb)/255.0;
+
+          int ir = int(255.0*(r1*a + (1 - a)*r));
+          int ig = int(255.0*(g1*a + (1 - a)*g));
+          int ib = int(255.0*(b1*a + (1 - a)*b));
+
+          image1.setPixel(x, y, qRgba(ir, ig, ib, 255));
+        }
+      }
+    }
+
+    brush1.setTextureImage(image1);
+  }
+
+  return brush1;
 }
 
 void

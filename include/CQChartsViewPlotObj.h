@@ -87,9 +87,11 @@ class CQChartsViewPlotObj : public CQChartsObj {
   //---
 
   //! get edit handles
-  EditHandles *editHandles() const;
+  virtual EditHandles *editHandles() const;
 
   virtual void drawEditHandles(QPainter *painter) const;
+
+  virtual void setEditHandlesBBox() const;
 
   //---
 

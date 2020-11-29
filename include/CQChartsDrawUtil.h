@@ -48,15 +48,16 @@ class CQChartsPenData {
   using Length   = CQChartsLength;
   using LineDash = CQChartsLineDash;
   using LineCap  = CQChartsLineCap;
+  using LineJoin = CQChartsLineJoin;
 
  public:
   CQChartsPenData() = default;
 
   explicit CQChartsPenData(bool visible, const QColor &color=QColor(), const Alpha &alpha=Alpha(),
                            const Length &width=Length(), const LineDash &dash=LineDash(),
-                           const LineCap &lineCap=LineCap()) :
+                           const LineCap &lineCap=LineCap(), const LineJoin &lineJoin=LineJoin()) :
    visible_(visible), color_(color), alpha_(alpha), width_(width),
-   dash_(dash), lineCap_(lineCap) {
+   dash_(dash), lineCap_(lineCap), lineJoin_(lineJoin) {
   }
 
   CQChartsPenData(bool visible, const QColor &color, const CQChartsStrokeData &strokeData) :
@@ -90,6 +91,10 @@ class CQChartsPenData {
   const LineCap &lineCap() const { return lineCap_; }
   void setLineCap(const LineCap &c) { lineCap_ = c; }
 
+  //! get/set line join
+  const LineJoin &lineJoin() const { return lineJoin_; }
+  void setLineJoin(const LineJoin &j) { lineJoin_ = j; }
+
  private:
   bool     visible_  { true };  //!< visible
   QColor   color_;              //!< pen color
@@ -97,6 +102,7 @@ class CQChartsPenData {
   Length   width_    { "0px" }; //!< pen width
   LineDash dash_;               //!< pen line dash
   LineCap  lineCap_;            //!< pen line cap
+  LineJoin lineJoin_;           //!< pen line join
 };
 
 //---
@@ -239,6 +245,9 @@ void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &
 void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xsize,
                         const Length &ysize);
 
+void drawAdjustedRoundedPolygon(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
+                                const CQChartsSides &sides);
+
 void drawTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                    const TextOptions &options);
 
@@ -280,6 +289,22 @@ void drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox);
 
 //---
 
+bool polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle);
+
+void diamondPath(QPainterPath &path, const BBox &bbox);
+
+void trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &p3);
+
+void editHandlePath(QPainterPath &path, const BBox &bbox);
+
+//---
+
+void roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w);
+
+bool roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, double ysize);
+
+//---
+
 void drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro, const Angle &a1,
                   const Angle &a2, bool isInvertX=false, bool isInvertY=false);
 
@@ -318,8 +343,25 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine=false);
 
+void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw);
+
+void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw);
+
+void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear=false);
+
+void curvePath(QPainterPath &path, const Point &p1, const Point &p4, bool rectilinear=false);
+
+void selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear=false);
+
 //---
 
+void cornerHandlePath(QPainterPath &path, const Point &p);
+void resizeHandlePath(QPainterPath &path, const Point &p);
+void extraHandlePath (QPainterPath &path, const Point &p);
+
+//---
+
+// clip text
 QString clipTextToLength(PaintDevice *device, const QString &text, const QFont &font,
                          const Length &clipLength, const Qt::TextElideMode &clipElide);
 
@@ -348,6 +390,136 @@ void drawScaledHtmlText(PaintDevice *device, const BBox &tbbox, const QString &t
 void drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
                   const QString &text, const TextOptions &options,
                   double pdx=0.0, double pdy=0.0);
+
+}
+
+//---
+
+namespace CQChartsDrawUtil {
+
+// path visitor
+class PathVisitor {
+ public:
+  PathVisitor() { }
+
+ ~PathVisitor() { }
+
+  virtual void init() { }
+  virtual void term() { }
+
+  virtual void moveTo (const Point &p) = 0;
+  virtual void lineTo (const Point &p) = 0;
+  virtual void quadTo (const Point &p1, const Point &p2) = 0;
+  virtual void curveTo(const Point &p1, const Point &p2, const Point &p3) = 0;
+
+ public:
+  int   i { -1 };
+  int   n { 0 };
+  Point lastP;
+  Point nextP;
+};
+
+inline void visitPath(const QPainterPath &path, PathVisitor &visitor) {
+  visitor.n = path.elementCount();
+
+  visitor.init();
+
+  for (visitor.i = 0; visitor.i < visitor.n; ++visitor.i) {
+    const auto &e = path.elementAt(visitor.i);
+
+    if      (e.isMoveTo()) {
+      Point p(e.x, e.y);
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        visitor.nextP = Point(e1.x, e1.y);
+      }
+      else
+        visitor.nextP = p;
+
+      visitor.moveTo(p);
+
+      visitor.lastP = p;
+    }
+    else if (e.isLineTo()) {
+      Point p(e.x, e.y);
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        visitor.nextP = Point(e1.x, e1.y);
+      }
+      else
+        visitor.nextP = p;
+
+      visitor.lineTo(p);
+
+      visitor.lastP = p;
+    }
+    else if (e.isCurveTo()) {
+      Point p(e.x, e.y);
+
+      Point p1, p2;
+
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+
+      if (visitor.i < visitor.n - 1) {
+        auto e1 = path.elementAt(visitor.i + 1);
+
+        e1t = e1.type;
+
+        p1 = Point(e1.x, e1.y);
+      }
+
+      if (visitor.i < visitor.n - 2) {
+        auto e2 = path.elementAt(visitor.i + 2);
+
+        e2t = e2.type;
+
+        p2 = Point(e2.x, e2.y);
+      }
+
+      if (e1t == QPainterPath::CurveToDataElement) {
+        ++visitor.i;
+
+        if (e2t == QPainterPath::CurveToDataElement) {
+          ++visitor.i;
+
+          if (visitor.i < visitor.n - 1) {
+            auto e3 = path.elementAt(visitor.i + 1);
+
+            visitor.nextP = Point(e3.x, e3.y);
+          }
+          else
+            visitor.nextP = p;
+
+          visitor.curveTo(p, p1, p2);
+
+          visitor.lastP = p;
+        }
+        else {
+          if (visitor.i < visitor.n - 1) {
+            auto e3 = path.elementAt(visitor.i + 1);
+
+            visitor.nextP = Point(e3.x, e3.y);
+          }
+          else
+            visitor.nextP = p;
+
+          visitor.quadTo(p, p1);
+
+          visitor.lastP = p;
+        }
+      }
+    }
+    else
+      assert(false);
+  }
+
+  visitor.term();
+}
 
 }
 

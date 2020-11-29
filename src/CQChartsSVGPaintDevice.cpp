@@ -1,6 +1,7 @@
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsUtil.h>
 #include <CQChartsImage.h>
+#include <CQChartsPath.h>
 #include <QBuffer>
 
 CQChartsSVGPaintDevice::
@@ -128,48 +129,7 @@ addPathParts(const QPainterPath &path)
 {
   auto ppath = windowToPixel(path);
 
-  int n = ppath.elementCount();
-
-  for (int i = 0; i < n; ++i) {
-    const auto &e = ppath.elementAt(i);
-
-    if      (e.isMoveTo())
-      *os_ << " M " << e.x << " " << e.y;
-    else if (e.isLineTo())
-      *os_ << " L " << e.x << ", " << e.y;
-    else if (e.isCurveTo()) {
-      QPainterPath::Element     e1, e2;
-      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
-      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
-
-      if (i < n - 1) {
-        e1  = ppath.elementAt(i + 1);
-        e1t = e1.type;
-      }
-
-      if (i < n - 2) {
-        e2  = ppath.elementAt(i + 2);
-        e2t = e2.type;
-      }
-
-      if (e1t == QPainterPath::CurveToDataElement) {
-        if (e2t == QPainterPath::CurveToDataElement) {
-          *os_ << " C" << e.x << " " << e.y << " " <<
-                  e1.x << " " << e1.y << " " << e2.x << " " << e2.y;
-
-          i += 2;
-        }
-        else {
-          *os_ << " Q" << e.x << " " << e.y << " " << e1.x << " " << e1.y;
-
-          ++i;
-        }
-      }
-    }
-    else {
-      assert(false);
-    }
-  }
+  *os_ << " " << CQChartsPath::pathToString(ppath).toStdString();
 }
 
 void

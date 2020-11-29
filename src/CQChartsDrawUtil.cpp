@@ -1,7 +1,6 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsUtil.h>
 
@@ -58,7 +57,7 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       double xc = pbbox.getXMid();
 
-      BBox pbbox1(xc - lw/2, pbbox.getYMin(), xc + lw/2, pbbox.getYMax());
+      BBox pbbox1(xc - lw/2.0, pbbox.getYMin(), xc + lw/2.0, pbbox.getYMax());
 
       drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
     }
@@ -76,7 +75,7 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       double yc = pbbox.getYMid();
 
-      BBox pbbox1(pbbox.getXMid(), yc - lw/2, pbbox.getXMax(), yc + lw/2);
+      BBox pbbox1(pbbox.getXMid(), yc - lw/2.0, pbbox.getXMax(), yc + lw/2.0);
 
       drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
     }
@@ -124,11 +123,11 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
 
   double minSize = pbbox.getMinSize();
 
-  double xsize = device->lengthPixelWidth (xCornerSize);
-  double ysize = device->lengthPixelHeight(yCornerSize);
+  double xsize = device->lengthWindowWidth (xCornerSize);
+  double ysize = device->lengthWindowHeight(yCornerSize);
 
   if      (minSize >= minSize1) {
-    CQChartsRoundedPolygon::draw(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedPolygon(device, bbox, xsize, ysize, sides);
   }
   else if (minSize >= minSize2) {
     auto pen = device->pen();
@@ -142,7 +141,7 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
 
     device->setPen(pen);
 
-    CQChartsRoundedPolygon::draw(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedPolygon(device, bbox, xsize, ysize, sides);
   }
   else {
     auto bc = device->brush().color();
@@ -156,6 +155,41 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
     else
       device->drawLine(Point(bbox.getXMid(), bbox.getYMin()),
                        Point(bbox.getXMid(), bbox.getYMax()));
+  }
+}
+
+void
+drawAdjustedRoundedPolygon(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
+                           const CQChartsSides &sides)
+{
+  if (xsize > 0 || ysize > 0) {
+    QPainterPath path;
+
+    path.addRoundedRect(bbox.qrect(), xsize, ysize);
+
+    device->drawPath(path);
+  }
+  else {
+    QPainterPath path;
+
+    if (sides.isAll()) {
+      device->drawRect(bbox);
+    }
+    else {
+      device->fillRect(bbox);
+
+      if (sides.isLeft())
+        device->drawLine(bbox.getLL(), bbox.getUL());
+
+      if (sides.isRight())
+        device->drawLine(bbox.getLR(), bbox.getUR());
+
+      if (sides.isTop())
+        device->drawLine(bbox.getUL(), bbox.getUR());
+
+      if (sides.isBottom())
+        device->drawLine(bbox.getLL(), bbox.getLR());
+    }
   }
 }
 
@@ -186,10 +220,17 @@ drawRoundedPolygon(PaintDevice *device, const Polygon &poly,
   double ph = device->lengthPixelHeight(Length(bbox.getHeight(), device->parentUnits()));
 
   if (pw > minSize && ph > minSize) {
-    double xsize = device->lengthPixelWidth (xCornerSize);
-    double ysize = device->lengthPixelHeight(yCornerSize);
+    double xsize = device->lengthWindowWidth (xCornerSize);
+    double ysize = device->lengthWindowHeight(yCornerSize);
 
-    CQChartsRoundedPolygon::draw(device, poly, xsize, ysize);
+    QPainterPath path;
+
+    if (! roundedPolygonPath(path, poly, xsize, ysize)) {
+      device->drawPolygon(poly);
+      return;
+    }
+
+    device->drawPath(path);
   }
   else {
     auto bc = device->brush().color();
@@ -723,6 +764,229 @@ drawSymbol(PaintDevice *device, const Symbol &symbol, const BBox &bbox)
 
 //---
 
+bool
+polygonSidesPath(QPainterPath &path, const BBox &bbox, int n, const Angle &angle)
+{
+  path = QPainterPath();
+
+  if (n < 3) return false;
+
+  double xc = bbox.getXMid();
+  double yc = bbox.getYMid();
+
+  double xr = bbox.getWidth ()/2.0;
+  double yr = bbox.getHeight()/2.0;
+
+  double a  = M_PI/2.0 - angle.radians();
+  double da = 2.0*M_PI/n;
+
+  for (int i = 0; i < n; ++i) {
+    double c = std::cos(a);
+    double s = std::sin(a);
+
+    double x = xc + c*xr;
+    double y = yc + s*yr;
+
+    if (i == 0)
+      path.moveTo(QPointF(x, y));
+    else
+      path.lineTo(QPointF(x, y));
+
+    a += da;
+  }
+
+  path.closeSubpath();
+
+  return true;
+}
+
+void
+diamondPath(QPainterPath &path, const BBox &bbox)
+{
+  path = QPainterPath();
+
+  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
+  double x2 = bbox.getXMid(), y2 = bbox.getYMid();
+  double x3 = bbox.getXMax(), y3 = bbox.getYMax();
+
+  path.moveTo(QPointF(x1, y2));
+  path.lineTo(QPointF(x2, y1));
+  path.lineTo(QPointF(x3, y2));
+  path.lineTo(QPointF(x2, y3));
+
+  path.closeSubpath();
+}
+
+void
+trianglePath(QPainterPath &path, const Point &p1, const Point &p2, const Point &p3)
+{
+  path = QPainterPath();
+
+  path.moveTo(p1.x, p1.y);
+  path.lineTo(p2.x, p2.y);
+  path.lineTo(p3.x, p3.y);
+
+  path.closeSubpath();
+}
+
+//---
+
+void
+editHandlePath(QPainterPath &path, const BBox &bbox)
+{
+  path = QPainterPath();
+
+  //---
+
+  auto ll = bbox.getLL();
+  auto ur = bbox.getUR();
+
+  path.moveTo(ll.x, ll.y);
+  path.lineTo(ur.x, ll.y);
+  path.lineTo(ur.x, ur.y);
+  path.lineTo(ll.x, ur.y);
+
+  path.closeSubpath();
+}
+
+//---
+
+void
+roundedLinePath(QPainterPath &path, const Point &p1, const Point &p2, double w)
+{
+  path = QPainterPath();
+
+  double w2 = w/2.0;
+
+  double a = std::atan2(p2.y - p1.y, p2.x - p1.x);
+
+  double c = std::cos(a);
+  double s = std::sin(a);
+
+  QPointF pl1(p1.x + w2*s, p1.y - w2*c);
+  QPointF pl2(p2.x + w2*s, p2.y - w2*c);
+  QPointF pl6(p2.x - w2*s, p2.y + w2*c);
+  QPointF pl7(p1.x - w2*s, p1.y + w2*c);
+
+  QPointF pl4(p2.x + w2*c, p2.y + w2*s);
+  QPointF pl9(p1.x - w2*c, p1.y - w2*s);
+
+  QPointF pl3(pl2.x() + w2*c, pl2.y() + w2*s);
+  QPointF pl5(pl6.x() + w2*c, pl6.y() + w2*s);
+  QPointF pl8(pl7.x() - w2*c, pl7.y() - w2*s);
+  QPointF pl0(pl1.x() - w2*c, pl1.y() - w2*s);
+
+  QPointF pl23((pl2.x() + pl3.x())/2.0, (pl2.y() + pl3.y())/2.0);
+  QPointF pl34((pl3.x() + pl4.x())/2.0, (pl3.y() + pl4.y())/2.0);
+  QPointF pl45((pl4.x() + pl5.x())/2.0, (pl4.y() + pl5.y())/2.0);
+  QPointF pl56((pl5.x() + pl6.x())/2.0, (pl5.y() + pl6.y())/2.0);
+
+  QPointF pl78((pl7.x() + pl8.x())/2.0, (pl7.y() + pl8.y())/2.0);
+  QPointF pl89((pl8.x() + pl9.x())/2.0, (pl8.y() + pl9.y())/2.0);
+  QPointF pl90((pl9.x() + pl0.x())/2.0, (pl9.y() + pl0.y())/2.0);
+  QPointF pl01((pl0.x() + pl1.x())/2.0, (pl0.y() + pl1.y())/2.0);
+
+  path.moveTo (pl1);
+  path.lineTo (pl2);
+  path.cubicTo(pl23, pl34, pl4);
+  path.cubicTo(pl45, pl56, pl6);
+  path.lineTo (pl7);
+  path.cubicTo(pl78, pl89, pl9);
+  path.cubicTo(pl90, pl01, pl1);
+
+  path.closeSubpath();
+}
+
+bool
+roundedPolygonPath(QPainterPath &path, const Polygon &poly, double xsize, double ysize)
+{
+  auto interpLine = [&](const QPointF &p1, const QPointF &p2, QPointF &pc1, QPointF &pc2) {
+    double dx = p2.x() - p1.x();
+    double dy = p2.y() - p1.y();
+
+    double l = std::hypot(dx, dy);
+
+    if (l < 1E-6) {
+      pc1 = p1;
+      pc2 = p2;
+
+      return;
+    }
+
+    double mx1 = (xsize < l/2 ? xsize/l : 0.5);
+    double mx2 = 1.0 - mx1;
+
+    double my1 = (ysize < l/2 ? ysize/l : 0.5);
+    double my2 = 1.0 - my1;
+
+    double x1 = p1.x() + mx1*dx;
+    double y1 = p1.y() + my1*dy;
+
+    double x2 = p1.x() + mx2*dx;
+    double y2 = p1.y() + my2*dy;
+
+    pc1 = QPointF(x1, y1);
+    pc2 = QPointF(x2, y2);
+  };
+
+  //---
+
+  path = QPainterPath();
+
+  //---
+
+  if (poly.size() < 3)
+    return false;
+
+  int i1 = poly.size() - 1;
+  int i2 = 0;
+  int i3 = 1;
+
+  while (i2 < poly.size()) {
+    const auto &p1 = poly.qpoint(i1);
+    const auto &p2 = poly.qpoint(i2);
+    const auto &p3 = poly.qpoint(i3);
+
+    if (xsize > 0 || ysize > 0) {
+      QPointF p12s, p12e, p23s, p23e;
+
+      interpLine(p1, p2, p12s, p12e);
+      interpLine(p2, p3, p23s, p23e);
+
+      if (i2 == 0)
+        path.moveTo(p12s);
+      else
+        path.lineTo(p12s);
+
+      path.lineTo(p12e);
+      path.quadTo(p2, p23s);
+    }
+    else {
+      if (i2 == 0)
+        path.moveTo(p2);
+      else
+        path.lineTo(p2);
+
+      path.lineTo(p3);
+    }
+
+    i1 = i2;
+    i2 = i3++;
+
+    if (i2 == 0)
+      break;
+
+    if (i3 >= poly.size())
+      i3 = 0;
+  }
+
+  path.closeSubpath();
+
+  return true;
+}
+
+//---
+
 void
 drawPieSlice(PaintDevice *device, const Point &c, double ri, double ro,
              const Angle &a1, const Angle &a2, bool isInvertX, bool isInvertY)
@@ -738,6 +1002,10 @@ void
 pieSlicePath(QPainterPath &path, const Point &c, double ri, double ro, const Angle &a1,
              const Angle &a2, bool isInvertX, bool isInvertY)
 {
+  path = QPainterPath();
+
+  //---
+
   BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
 
   //---
@@ -798,6 +1066,10 @@ drawEllipse(PaintDevice *device, const BBox &bbox)
 void
 ellipsePath(QPainterPath &path, const BBox &bbox)
 {
+  path = QPainterPath();
+
+  //---
+
   double xc = bbox.getXMid();
   double yc = bbox.getYMid();
 
@@ -836,6 +1108,10 @@ drawArc(PaintDevice *device, const BBox &bbox, const Angle &angle, const Angle &
 void
 arcPath(QPainterPath &path, const BBox &bbox, const Angle &angle, const Angle &dangle)
 {
+  path = QPainterPath();
+
+  //---
+
   auto c = bbox.getCenter();
 
   auto rect = bbox.qrect();
@@ -864,6 +1140,8 @@ void
 arcSegmentPath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
                const Angle &angle, const Angle &dangle)
 {
+  path = QPainterPath();
+
   // arc segment for start angle and delta angle for circles in inner and outer boxes
   auto angle2 = angle + dangle;
 
@@ -898,6 +1176,8 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
                   const Angle &da1, const Angle &a2, const Angle &da2,
                   bool isSelf)
 {
+  path = QPainterPath();
+
   // draw connecting arc between inside of two arc segments
   // . arc segments have start angle and delta angle for circles in inner and outer boxes
   // isSelf is true if connecting arcs are the same
@@ -936,9 +1216,12 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
 
 //---
 
+// TODO: support path angle, offset control points by line width
 void
 edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine)
 {
+  path = QPainterPath();
+
   // x from right of source rect to left of dest rect
   bool swapped = false;
 
@@ -959,17 +1242,16 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine)
   }
 
   // curve control point x at 1/3 and 2/3
-  double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-  double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
-
   if (isLine) {
     double y1m = CMathUtil::avg(y11, y12);
     double y2m = CMathUtil::avg(y21, y22);
 
-    path.moveTo (QPointF(x1, y1m));
-    path.cubicTo(QPointF(x3, y1m), QPointF(x4, y2m), QPointF(x2, y2m));
+    curvePath(path, Point(x1, y1m), Point(x2, y2m));
   }
   else {
+    double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+    double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+
     path.moveTo (QPointF(x1, y11));
     path.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
     path.lineTo (QPointF(x2, y22));
@@ -977,6 +1259,185 @@ edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine)
 
     path.closeSubpath();
   }
+}
+
+void
+edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw)
+{
+  double y11 = p1.y + lw/2.0, y12 = p1.y - lw/2.0;
+  double y21 = p2.y + lw/2.0, y22 = p2.y - lw/2.0;
+
+  // curve control point x at 1/3 and 2/3
+  double x3 = CMathUtil::lerp(1.0/3.0, p1.x, p2.x);
+  double x4 = CMathUtil::lerp(2.0/3.0, p1.x, p2.x);
+
+  path.moveTo (QPointF(p1.x, y11));
+  path.cubicTo(QPointF(x3  , y11), QPointF(x4, y21), QPointF(p2.x, y21));
+  path.lineTo (QPointF(p2.x, y22));
+  path.cubicTo(QPointF(x4  , y22), QPointF(x3, y12), QPointF(p1.x, y12));
+
+  path.closeSubpath();
+}
+
+void
+selfEdgePath(QPainterPath &path, const BBox &bbox, double lw)
+{
+  double xr = bbox.getWidth ()/2.0;
+  double yr = bbox.getHeight()/2.0;
+
+  // draw arc from 45 degrees left of vertical to 45 degrees right of vertical
+  double a = M_PI/4.0;
+
+  double c = std::cos(a);
+  double s = std::sin(a);
+
+  double xm = bbox.getXMid();
+  double ym = bbox.getYMid();
+
+  double yt = bbox.getYMax() + yr/2.0;
+  double yt1 = yt - lw/2.0;
+  double yt2 = yt + lw/2.0;
+
+  double x1 = xm - xr*c, y1 = ym + xr*s;
+  double x2 = xm + xr*c, y2 = y1;
+
+  double lw1 = sqrt(2)*lw/2.0;
+
+  path.moveTo (QPointF(x1 - lw1, y1 - lw1));
+  path.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
+  path.lineTo (QPointF(x2 - lw1, y2 + lw1));
+  path.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
+
+  path.closeSubpath();
+}
+
+void
+curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear)
+{
+  // x from right of source rect to left of dest rect
+  bool swapped = false;
+
+  double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
+
+  if (x1 > x2) {
+    x1 = obbox.getXMax(), x2 = ibbox.getXMin();
+    swapped = true;
+  }
+
+  double y1 = ibbox.getYMid();
+  double y2 = obbox.getYMid();
+
+  if (swapped)
+    std::swap(y1, y2);
+
+  curvePath(path, Point(x1, y1), Point(x2, y2), rectilinear);
+}
+
+void
+curvePath(QPainterPath &path, const Point &p1, const Point &p4, bool rectilinear)
+{
+  path = QPainterPath();
+
+  //---
+
+  if (! rectilinear) {
+    double x2 = CMathUtil::lerp(1.0/3.0, p1.x, p4.x);
+    double x3 = CMathUtil::lerp(2.0/3.0, p1.x, p4.x);
+
+    auto p2 = Point(x2, p1.y);
+    auto p3 = Point(x3, p4.y);
+
+    path.moveTo (p1.qpoint());
+    path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
+  }
+  else {
+    double x2 = CMathUtil::lerp(0.5, p1.x, p4.x);
+
+    auto p2 = Point(x2, p1.y);
+    auto p3 = Point(x2, p4.y);
+
+    path.moveTo(p1.qpoint());
+    path.lineTo(p2.qpoint());
+    path.lineTo(p3.qpoint());
+    path.lineTo(p4.qpoint());
+  }
+}
+
+void
+selfCurvePath(QPainterPath &path, const BBox &bbox, bool rectilinear)
+{
+  path = QPainterPath();
+
+  //---
+
+  double xr = bbox.getWidth ()/2.0;
+  double yr = bbox.getHeight()/2.0;
+
+  // draw arc from 45 degrees left of vertical to 45 degrees right of vertical
+  double a = M_PI/4.0;
+
+  double c = std::cos(a);
+  double s = std::sin(a);
+
+  double xm = bbox.getXMid();
+  double ym = bbox.getYMid();
+
+  double yt = bbox.getYMax() + yr/2.0;
+
+  double x1 = xm - xr*c, y1 = ym + xr*s;
+  double x2 = xm + xr*c, y2 = y1;
+
+  if (! rectilinear) {
+    path.moveTo (QPointF(x1, y1));
+    path.cubicTo(QPointF(x1, yt), QPointF(x2, yt), QPointF(x2, y2));
+  }
+  else {
+    path.moveTo(QPointF(x1, y1));
+    path.lineTo(QPointF(x1, yt));
+    path.lineTo(QPointF(x2, yt));
+    path.lineTo(QPointF(x2, y2));
+  }
+}
+
+//---
+
+void
+cornerHandlePath(QPainterPath &path, const Point &p)
+{
+  double s = 16;
+
+  path.addEllipse(p.x - s/2, p.y - s/2, s, s);
+}
+
+void
+resizeHandlePath(QPainterPath &path, const Point &p)
+{
+  double ms1 = 12;
+  double ms2 = 4;
+
+  path.moveTo(p.x - ms1, p.y      );
+  path.lineTo(p.x - ms2, p.y + ms2);
+  path.lineTo(p.x      , p.y + ms1);
+  path.lineTo(p.x + ms2, p.y + ms2);
+  path.lineTo(p.x + ms1, p.y      );
+  path.lineTo(p.x + ms2, p.y - ms2);
+  path.lineTo(p.x      , p.y - ms1);
+  path.lineTo(p.x - ms2, p.y - ms2);
+
+  path.closeSubpath();
+}
+
+void
+extraHandlePath(QPainterPath &path, const Point &p)
+{
+  double s = 16;
+
+  path.moveTo(QPointF(p.x - s/2, p.y - s/2));
+  path.lineTo(QPointF(p.x + s/2, p.y - s/2));
+  path.lineTo(QPointF(p.x + s/2, p.y + s/2));
+  path.lineTo(QPointF(p.x - s/2, p.y + s/2));
+
+  path.closeSubpath();
 }
 
 //---

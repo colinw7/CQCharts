@@ -16,6 +16,7 @@ class CQChartsTextDataEdit;
 class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
+class CQChartsImageEdit;
 class CQChartsColorLineEdit;
 class CQChartsAngleEdit;
 class CQChartsLineEdit;
@@ -58,12 +59,14 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsSidesEdit*      borderSidesEdit    { nullptr };
   };
 
+  // rectange, start, end, objRef, shapeType, numSides, angle, lineWidth, symbolType, symbolSize
   struct RectWidgets : public Widgets {
     CQChartsRectEdit*   rectEdit    { nullptr };
     CQChartsMarginEdit* marginEdit  { nullptr };
     CQChartsMarginEdit* paddingEdit { nullptr };
   };
 
+  // center, xRadius, yRadius, objRef
   struct EllipseWidgets : public Widgets {
     QRadioButton*         centerRadio { nullptr };
     QRadioButton*         rectRadio   { nullptr };
@@ -74,14 +77,17 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsLineEdit*     paddingEdit { nullptr };
   };
 
+  // polygon, roundedLines
   struct PolygonWidgets : public Widgets {
     CQChartsPolygonEdit* pointsEdit { nullptr };
   };
 
+  // polygon, roundedLines
   struct PolylineWidgets : public Widgets {
     CQChartsPolygonEdit* pointsEdit { nullptr };
   };
 
+  // position, rectangle, objRef
   struct TextWidgets : public Widgets {
     QRadioButton*         positionRadio { nullptr };
     QRadioButton*         rectRadio     { nullptr };
@@ -91,23 +97,22 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
+  // position, rectangle, objRef, image, disabledImage
   struct ImageWidgets : public Widgets {
     QRadioButton*         positionRadio     { nullptr };
     QRadioButton*         rectRadio         { nullptr };
     CQChartsPositionEdit* positionEdit      { nullptr };
     CQChartsRectEdit*     rectEdit          { nullptr };
-    CQChartsLineEdit*     imageEdit         { nullptr };
-    CQChartsLineEdit*     disabledImageEdit { nullptr };
+    CQChartsImageEdit*    imageEdit         { nullptr };
+    CQChartsImageEdit*    disabledImageEdit { nullptr };
   };
 
+  // objRef, path
   struct PathWidgets : public Widgets {
-    QRadioButton*         positionRadio { nullptr };
-    QRadioButton*         rectRadio     { nullptr };
-    CQChartsPositionEdit* positionEdit  { nullptr };
-    CQChartsRectEdit*     rectEdit      { nullptr };
-    CQChartsLineEdit*     pathEdit      { nullptr };
+    CQChartsLineEdit* pathEdit { nullptr };
   };
 
+  // start, startObjRef, end, endObjRef
   struct ArrowWidgets : public Widgets {
     CQChartsPositionEdit*  startEdit       { nullptr };
     CQChartsPositionEdit*  endEdit         { nullptr };
@@ -118,11 +123,17 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsColorLineEdit* fillColorEdit   { nullptr };
   };
 
+  // start, startObjRef, end, endObjRef, isLine, rectilinear, frontType, tailType, lineWidth
+  struct ArcWidgets : public Widgets {
+  };
+
+  // position, objRef, point data
   struct PointWidgets : public Widgets {
     CQChartsPositionEdit*   positionEdit { nullptr };
     CQChartsSymbolDataEdit* dataEdit     { nullptr };
   };
 
+  // position, objRef, innerRadius, outerRadius, startAngle, spanAngle
   struct PieSliceWidgets : public Widgets {
     CQChartsPositionEdit* centerEdit      { nullptr };
     CQChartsLengthEdit*   innerRadiusEdit { nullptr };
@@ -131,6 +142,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsAngleEdit*    spanAngleEdit   { nullptr };
   };
 
+  // direction, position, start, end, objRef
   struct AxisWidgets : public Widgets {
     QComboBox*  orientationEdit { nullptr };
     CQRealSpin* positionEdit    { nullptr };
@@ -138,18 +150,30 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQRealSpin* endEdit         { nullptr };
   };
 
+  // objRef
   struct KeyWidgets : public Widgets {
   };
 
+  // objRef, values, drawType
   struct PointSetWidgets : public Widgets {
   };
 
+  // rectangle, objRef, values
   struct ValueSetWidgets : public Widgets {
   };
 
+  // position, objRef
   struct ButtonWidgets : public Widgets {
     CQChartsPositionEdit* positionEdit { nullptr };
     CQChartsLineEdit*     textEdit     { nullptr };
+  };
+
+  // position, rectangle, objRef, widget, align, sizePolicy, interactive
+  struct WidgetWidgets : public Widgets {
+  };
+
+  // position
+  struct SymbolMapKeyWidgets : public Widgets {
   };
 
  private:
@@ -165,6 +189,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void createImageFrame   ();
   void createPathFrame    ();
   void createArrowFrame   ();
+  void createArcFrame     ();
   void createPointFrame   ();
   void createPieSliceFrame();
   void createAxisFrame    ();
@@ -192,6 +217,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   CQChartsRectEdit*      createRectEdit(const QString &name, const QString &tip="") const;
   CQChartsPolygonEdit*   createPolygonEdit(const QString &name, const QString &tip="") const;
   CQChartsMarginEdit*    createMarginEdit(const QString &name, const QString &tip="") const;
+  CQChartsImageEdit*     createImageEdit(const QString &name, const QString &tip="") const;
   CQChartsColorLineEdit* createColorEdit(const QString &name, const QString &tip="") const;
   CQChartsAngleEdit*     createAngleEdit(const QString &name, double a,
                                          const QString &tip="") const;
@@ -206,6 +232,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool createImageAnnotation    ();
   bool createPathAnnotation     ();
   bool createArrowAnnotation    ();
+  bool createArcAnnotation      ();
   bool createPointAnnotation    ();
   bool createPieSliceAnnotation ();
   bool createAxisAnnotation     ();
@@ -245,6 +272,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   ImageWidgets      imageWidgets_;                 //!< image edit widgets
   PathWidgets       pathWidgets_;                  //!< path edit widgets
   ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
+  ArcWidgets        arcWidgets_;                   //!< arc edit widgets
   PointWidgets      pointWidgets_;                 //!< point edit widgets
   PieSliceWidgets   pieSliceWidgets_;              //!< pie slice widgets
   AxisWidgets       axisWidgets_;                  //!< axis widgets

@@ -37,8 +37,14 @@ class CQChartsResizeHandle : QObject {
   CQChartsResizeHandle(const View *view, ResizeSide side);
   CQChartsResizeHandle(const Plot *plot, ResizeSide side);
 
+  virtual ~CQChartsResizeHandle() { }
+
+  //---
+
   const View* view() const { return view_; }
   const Plot* plot() const { return plot_; }
+
+  //---
 
   const BBox &bbox() const { return bbox_; }
   void setBBox(const BBox &v) { bbox_ = v; }
@@ -47,6 +53,11 @@ class CQChartsResizeHandle : QObject {
 
   bool isSelected() const { return selected_; }
   void setSelected(bool b) { selected_ = b; }
+
+  const QVariant &data() const { return data_; }
+  void setData(const QVariant &v) { data_ = v; }
+
+  //---
 
   const QColor &fillColor() const { return fillColor_; }
   void setFillColor(const QColor &v) { fillColor_ = v; }
@@ -57,7 +68,13 @@ class CQChartsResizeHandle : QObject {
   const QColor &strokeColor() const { return strokeColor_; }
   void setStrokeColor(const QColor &v) { strokeColor_ = v; }
 
-  void draw(QPainter *painter) const;
+  //---
+
+  virtual void draw(QPainter *painter) const;
+
+  virtual QPainterPath calcPath() const;
+
+  //---
 
   bool selectInside(const Point &p);
 
@@ -72,8 +89,9 @@ class CQChartsResizeHandle : QObject {
   BBox                 bbox_;
   ResizeSide           side_        { ResizeSide::NONE };
   bool                 selected_    { false };
+  QVariant             data_;
   QColor               fillColor_   { "#4444aa" };
-  Alpha                fillAlpha_   { 0.5 };
+  Alpha                fillAlpha_   { 0.8 };
   QColor               strokeColor_ { Qt::black };
   mutable QPainterPath path_;
 };

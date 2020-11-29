@@ -15,6 +15,7 @@
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsArrowDataEdit.h>
 #include <CQChartsColorEdit.h>
+#include <CQChartsImageEdit.h>
 #include <CQChartsAngleEdit.h>
 #include <CQChartsLineEdit.h>
 #include <CQChartsWidgetUtil.h>
@@ -496,12 +497,10 @@ createImageFrame()
 
   //--
 
-  imageWidgets_.imageEdit = createLineEdit("imageEdit", annotation->image().toString(), "Image");
-
-  //---
+  imageWidgets_.imageEdit = createImageEdit("imageEdit", annotation->image(), "Image");
 
   imageWidgets_.disabledImageEdit =
-    createLineEdit("disabledImageEdit", annotation->disabledImage().toString(), "Disabled Image");
+    createImageEdit("disabledImageEdit", annotation->disabledImage(), "Disabled Image");
 
   //---
 
@@ -592,21 +591,21 @@ createArrowFrame()
   // stroke width, stroke color, filled and fill color
   arrowWidgets_.strokeWidthEdit =
     createLengthEdit("strokeWidthEdit", stroke.width(), "Arrow Stroke Width");
-  arrowWidgets_.strokeColorEdit = CQUtil::makeWidget<CQChartsColorLineEdit>("strokeColorEdit");
-  arrowWidgets_.strokeColorEdit->setColor  (stroke.color());
+  arrowWidgets_.strokeColorEdit =
+    createColorEdit("strokeColorEdit", stroke.color(), "Arrow Stroke Color");
 
   arrowWidgets_.filledCheck = CQUtil::makeWidget<CQCheckBox>("filledCheck");
-  arrowWidgets_.filledCheck->setToolTip("Is Filled");
+  arrowWidgets_.filledCheck->setToolTip("Arrow Is Filled");
   arrowWidgets_.filledCheck->setChecked(fill.isVisible());
 
-  arrowWidgets_.fillColorEdit = CQUtil::makeWidget<CQChartsColorLineEdit>("fillColorEdit");
-  arrowWidgets_.fillColorEdit->setColor  (fill.color());
+  arrowWidgets_.fillColorEdit->setColor(fill.color());
+    createColorEdit("fillColorEdit", fill.color(), "Arrow Fill Color");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Width",
     arrowWidgets_.strokeWidthEdit, row1);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Color",
     arrowWidgets_.strokeColorEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Filled"      ,
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Is Filled"      ,
     arrowWidgets_.filledCheck    , row1);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Fill Color"  ,
     arrowWidgets_.fillColorEdit  , row1);
@@ -887,6 +886,34 @@ addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget)
 }
 
 //---
+
+CQChartsImageEdit *
+CQChartsEditAnnotationDlg::
+createImageEdit(const QString &name, const CQChartsImage &image, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsImageEdit>(name);
+
+  edit->setImage(image);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
+
+CQChartsColorLineEdit *
+CQChartsEditAnnotationDlg::
+createColorEdit(const QString &name, const CQChartsColor &color, const QString &tip) const
+{
+  auto *edit = CQUtil::makeWidget<CQChartsColorLineEdit>(name);
+
+  edit->setColor(color);
+
+  if (tip != "")
+    edit->setToolTip(tip);
+
+  return edit;
+}
 
 CQChartsLineEdit *
 CQChartsEditAnnotationDlg::
@@ -1390,8 +1417,8 @@ updateImageAnnotation()
   auto pos  = imageWidgets_.positionEdit->position();
   auto rect = imageWidgets_.rectEdit->rect();
 
-  auto imageStr         = imageWidgets_.imageEdit->text();
-  auto disabledImageStr = imageWidgets_.disabledImageEdit->text();
+  auto image         = imageWidgets_.imageEdit->image();
+  auto disabledImage = imageWidgets_.disabledImageEdit->image();
 
   if (! imageWidgets_.positionRadio->isChecked()) {
     if (! rect.isValid())
@@ -1406,8 +1433,8 @@ updateImageAnnotation()
   annotation->setId(id);
   annotation->setTipId(tipId);
 
-  annotation->setImage        (CQChartsImage(imageStr        , CQChartsImage::Type::NONE));
-  annotation->setDisabledImage(CQChartsImage(disabledImageStr, CQChartsImage::Type::NONE));
+  annotation->setImage        (image);
+  annotation->setDisabledImage(disabledImage);
 
   if (imageWidgets_.positionRadio->isChecked())
     annotation->setPosition(pos);

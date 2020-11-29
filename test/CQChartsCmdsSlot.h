@@ -35,6 +35,7 @@ class CQChartsCmdsSlot : public QObject {
   void selectPress          (const CQChartsGeom::Point &);
   void themeChanged         ();
   void interfaceThemeChanged();
+  void keyEventPress        (const QString &);
 
  private:
   CQChartsCmds*       cmds_       { nullptr };

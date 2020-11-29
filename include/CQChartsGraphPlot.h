@@ -1060,6 +1060,10 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   bool isEdgeScaled() const { return edgeScaled_; }
   void setEdgeScaled(bool b);
 
+  //! get/set edge width
+  const Length &edgeWidth() const { return edgeWidth_; }
+  void setEdgeWidth(const Length &l);
+
   //---
 
   //! get/set blend node colors for edge
@@ -1263,7 +1267,8 @@ class CQChartsGraphPlot : public CQChartsConnectionPlot,
   BBox   targetBBox_  { -1, -1, 1, 1 };      //!< target range bbox
   Length nodeXMargin_ { 0.01, Units::PLOT }; //!< node x margin
   Length nodeYMargin_ { 0.2, Units::PLOT };  //!< node y margin
-  Length nodeWidth_   { 16, Units::PIXEL };  //!< node x width in pixels
+  Length nodeWidth_   { 16, Units::PIXEL };  //!< node x width
+  Length edgeWidth_   { 8, Units::PIXEL };   //!< edge width
 
   // coloring
   bool blendEdgeColor_ { true }; //!< blend edge color

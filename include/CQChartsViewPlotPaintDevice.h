@@ -103,6 +103,9 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setRenderHints(QPainter::RenderHints hints, bool on) override;
 
  private:
+  QBrush adjustFillBrush(const QBrush &brush, const BBox &bbox) const;
+
+ private:
   QPainter*           painter_       { nullptr };
   BBox                clipRect_;
   QPainterPath        clipPath_;

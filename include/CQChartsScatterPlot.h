@@ -53,6 +53,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
   Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
   Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
+  Q_PROPERTY(CQChartsAlpha  alpha      READ alpha      WRITE setAlpha     )
   Q_PROPERTY(CQChartsFont   font       READ font       WRITE setFont      )
 
  public:
@@ -126,6 +127,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Color color() const;
   void setColor(const Color &c) { extraData().color = c; }
 
+  // alpha
+  Alpha alpha() const;
+  void setAlpha(const Alpha &a) { extraData().alpha = a; }
+
   // font
   Font font() const;
   void setFont(const Font &f) { extraData().font = f; }
@@ -158,6 +163,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
     Symbol symbolType { Symbol::Type::NONE }; //!< symbol type
     Length symbolSize { Units::NONE, 0.0 };   //!< symbol size
     Color  color;                             //!< symbol fill color
+    Alpha  alpha      { -1 };                 //!< symbol fill alpha
     Length fontSize   { Units::NONE, 0.0 };   //!< font size
     Font   font;                              //!< text font
   };

@@ -156,7 +156,7 @@ class CQChartsPlot : public CQChartsObj,
   // . idColumn used as unique id for row (tcl row lookup can use)
   // . tipColumns/noTipColumns used for object tooltips for data in extra rows
   // . visibleColumn used for individual row hide in model traversal
-  // . colorColumn used for custom color for data on row
+  // . colorColumn and alphaColumn used for custom color for data on row
   // . fontColumn used for custom font for data on row
   // . fontColumn used for custom image for data on row
   // . controlColumns used for controls for filters on data in specified column
@@ -165,6 +165,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumns noTipColumns   READ noTipColumns   WRITE setNoTipColumns  )
   Q_PROPERTY(CQChartsColumn  visibleColumn  READ visibleColumn  WRITE setVisibleColumn )
   Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(CQChartsColumn  alphaColumn    READ alphaColumn    WRITE setAlphaColumn   )
   Q_PROPERTY(CQChartsColumn  fontColumn     READ fontColumn     WRITE setFontColumn    )
   Q_PROPERTY(CQChartsColumn  imageColumn    READ imageColumn    WRITE setImageColumn   )
   Q_PROPERTY(CQChartsColumns controlColumns READ controlColumns WRITE setControlColumns)
@@ -177,6 +178,9 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsPaletteName colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
   Q_PROPERTY(CQChartsColorStops  colorXStops     READ colorXStops     WRITE setColorXStops    )
   Q_PROPERTY(CQChartsColorStops  colorYStops     READ colorYStops     WRITE setColorYStops    )
+
+  // alpha map
+  Q_PROPERTY(bool alphaMapped READ isAlphaMapped WRITE setAlphaMapped)
 
   // rectangle and data range
   Q_PROPERTY(CQChartsGeom::BBox viewRect READ viewBBox WRITE setViewBBox)
@@ -1756,6 +1760,9 @@ class CQChartsPlot : public CQChartsObj,
   const Column &colorColumn() const { return colorColumnData_.column; };
   void setColorColumn(const Column &c);
 
+  const Column &alphaColumn() const { return alphaColumnData_.column; };
+  void setAlphaColumn(const Column &c);
+
   const Column &fontColumn() const { return fontColumn_; };
   void setFontColumn(const Column &c);
 
@@ -1794,12 +1801,29 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
+  bool isAlphaMapped() const { return alphaColumnData_.mapped; }
+  void setAlphaMapped(bool b);
+
+ protected:
+  double alphaMapDataMin() const { return alphaColumnData_.data_min; }
+  double alphaMapDataMax() const { return alphaColumnData_.data_max; }
+
+ public:
   // color column
   bool colorColumnColor(int row, const QModelIndex &parent, Color &color) const;
 
   bool modelIndexColor(const ModelIndex &ind, Color &color) const;
 
   bool columnValueColor(const QVariant &var, Color &color) const;
+
+  //---
+
+  // alpha column
+  bool alphaColumnAlpha(int row, const QModelIndex &parent, Alpha &alpha) const;
+
+  bool modelIndexAlpha(const ModelIndex &ind, Alpha &alpha) const;
+
+  bool columnValueAlpha(const QVariant &var, Alpha &alpha) const;
 
   //---
 
@@ -2078,7 +2102,7 @@ class CQChartsPlot : public CQChartsObj,
   // --- add annotation ---
 
   AnnotationGroup        *addAnnotationGroup       ();
-  ArcAnnotation          *addArcAnnotation         (const Rect &start, const Rect &end);
+  ArcAnnotation          *addArcAnnotation         (const Position &start, const Position &end);
   ArrowAnnotation        *addArrowAnnotation       (const Position &start, const Position &end);
   AxisAnnotation         *addAxisAnnotation        (Qt::Orientation direction, double start,
                                                     double end);
@@ -2514,6 +2538,7 @@ class CQChartsPlot : public CQChartsObj,
 
   QString idHeaderName   (bool tip=false) const { return columnHeaderName(idColumn   (), tip); }
   QString colorHeaderName(bool tip=false) const { return columnHeaderName(colorColumn(), tip); }
+  QString alphaHeaderName(bool tip=false) const { return columnHeaderName(alphaColumn(), tip); }
   QString fontHeaderName (bool tip=false) const { return columnHeaderName(fontColumn (), tip); }
   QString imageHeaderName(bool tip=false) const { return columnHeaderName(imageColumn(), tip); }
 
@@ -2852,6 +2877,18 @@ class CQChartsPlot : public CQChartsObj,
     ColorStops  yStops;
   };
 
+  //! \brief alpha column data
+  struct AlphaColumnData {
+    Column     column;
+    bool       valid     { false };
+    bool       mapped    { true };
+    double     map_min   { 0.0 };
+    double     map_max   { 1.0 };
+    double     data_min  { 0.0 };
+    double     data_max  { 1.0 };
+    ColumnType modelType;
+  };
+
   //---
 
   //! \brief every row selection data
@@ -2983,8 +3020,10 @@ class CQChartsPlot : public CQChartsObj,
   Columns controlColumns_; //!< control columns
 
   // color data
-  ColorColumnData    colorColumnData_; //!< color color data
+  ColorColumnData    colorColumnData_; //!< color column data
   mutable std::mutex colorMutex_;      //!< color mutex
+
+  AlphaColumnData alphaColumnData_; //!< alpha column data
 
   // cached column names
   ColumnNames columnNames_; //!< column header names
@@ -3131,7 +3170,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  mutable std::mutex resizeMutex_; //!< resize mutex
+  mutable std::mutex resizeMutex_;  //!< resize mutex
+  mutable std::mutex updatesMutex_; //!< updates enabled mutex
 };
 
 //------

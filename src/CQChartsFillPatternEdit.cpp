@@ -1,11 +1,14 @@
 #include <CQChartsFillPatternEdit.h>
 #include <CQChartsView.h>
+#include <CQChartsPaletteNameEdit.h>
 #include <CQChartsColorEdit.h>
+#include <CQChartsAngleEdit.h>
+#include <CQChartsImageEdit.h>
 #include <CQChartsVariant.h>
 #include <CQChartsWidgetUtil.h>
 
-#include <CQWidgetMenu.h>
 #include <CQRealSpin.h>
+#include <CQWidgetMenu.h>
 
 #include <QComboBox>
 #include <QLabel>
@@ -323,6 +326,7 @@ CQChartsFillPatternEdit(QWidget *parent) :
 
   //---
 
+  // type
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItems(QStringList() << fillPattern_.enumNames());
@@ -333,7 +337,17 @@ CQChartsFillPatternEdit(QWidget *parent) :
 
   //---
 
-  paletteEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("paletteEdit");
+  // scale
+  scaleEdit_ = CQUtil::makeWidget<CQRealSpin>("scaleEdit");
+
+  scaleEdit_->setToolTip("Palette scale factor");
+
+  addLabelWidget("Scale", scaleEdit_);
+
+  //---
+
+  // palette
+  paletteEdit_ = CQUtil::makeWidget<CQChartsPaletteNameEdit>("paletteEdit");
 
   paletteEdit_->setToolTip("Palette name");
 
@@ -341,15 +355,25 @@ CQChartsFillPatternEdit(QWidget *parent) :
 
   //---
 
-  angleEdit_ = CQUtil::makeWidget<CQRealSpin>("angleEdit");
+  // image
+  imageEdit_ = CQUtil::makeWidget<CQChartsImageEdit>("imageEdit");
+
+  imageEdit_->setToolTip("Image name");
+
+  addLabelWidget("Image", imageEdit_);
+
+  //---
+
+  // angle
+  angleEdit_ = CQUtil::makeWidget<CQChartsAngleEdit>("angleEdit");
 
   angleEdit_->setToolTip("Palette angle");
-  angleEdit_->setRange(-360.0, 360.0);
 
   addLabelWidget("Angle", angleEdit_);
 
   //---
 
+  // alt color
   altColorEdit_ = CQUtil::makeWidget<CQChartsColorLineEdit>("altColor");
 
   altColorEdit_->setToolTip("Alternate color");
@@ -389,7 +413,9 @@ CQChartsFillPatternEdit::
 setNoFocus()
 {
   typeCombo_   ->setFocusPolicy(Qt::NoFocus);
+//scaleEdit_   ->setFocusPolicy(Qt::NoFocus);
 //paletteEdit_ ->setFocusPolicy(Qt::NoFocus);
+//imageEdit_   ->setFocusPolicy(Qt::NoFocus);
 //angleEdit_   ->setFocusPolicy(Qt::NoFocus);
 //altColorEdit_->setFocusPolicy(Qt::NoFocus);
 }
@@ -410,9 +436,13 @@ connectSlots(bool b)
 
   connectDisconnect(typeCombo_   , SIGNAL(currentIndexChanged(int)),
                     SLOT(widgetsToFillPattern()));
-  connectDisconnect(paletteEdit_ , SIGNAL(textChanged(const QString &)),
+  connectDisconnect(scaleEdit_ , SIGNAL(valueChanged(double)),
                     SLOT(widgetsToFillPattern()));
-  connectDisconnect(angleEdit_   , SIGNAL(valueChanged(double)),
+  connectDisconnect(paletteEdit_ , SIGNAL(nameChanged()),
+                    SLOT(widgetsToFillPattern()));
+  connectDisconnect(imageEdit_ , SIGNAL(imageChanged()),
+                    SLOT(widgetsToFillPattern()));
+  connectDisconnect(angleEdit_   , SIGNAL(angleChanged()),
                     SLOT(widgetsToFillPattern()));
   connectDisconnect(altColorEdit_, SIGNAL(colorChanged()),
                     SLOT(widgetsToFillPattern()));
@@ -425,6 +455,7 @@ fillPatternToWidgets()
   connectSlots(false);
 
   if (fillPattern_.isValid()) {
+    // set type
     auto names = fillPattern_.enumNames();
 
     for (int i = 0; i < names.length(); ++i) {
@@ -432,10 +463,15 @@ fillPatternToWidgets()
         typeCombo_->setCurrentIndex(i);
     }
 
-    if (fillPattern_.type() == CQChartsFillPattern::Type::PALETTE)
-      paletteEdit_->setText(fillPattern_.palette());
+    //---
 
-    angleEdit_   ->setValue(fillPattern_.angle());
+    scaleEdit_->setValue(fillPattern_.scale());
+
+    if (fillPattern_.type() == CQChartsFillPattern::Type::PALETTE)
+      paletteEdit_->setPaletteName(fillPattern_.palette());
+
+    imageEdit_   ->setImage(fillPattern_.image());
+    angleEdit_   ->setAngle(fillPattern_.angle());
     altColorEdit_->setColor(fillPattern_.altColor());
   }
   else {
@@ -449,16 +485,22 @@ void
 CQChartsFillPatternEdit::
 widgetsToFillPattern()
 {
+  // get type
   auto typeName = typeCombo_->currentText();
 
   auto type = fillPattern_.stringToType(typeName);
 
   auto fillPattern = CQChartsFillPattern(type);
 
-  if (fillPattern.type() == CQChartsFillPattern::Type::PALETTE)
-    fillPattern.setPalette(paletteEdit_->text());
+  //---
 
-  fillPattern.setAngle   (angleEdit_   ->value());
+  fillPattern.setScale(scaleEdit_->value());
+
+  if (fillPattern.type() == CQChartsFillPattern::Type::PALETTE)
+    fillPattern.setPalette(paletteEdit_->paletteName());
+
+  fillPattern.setImage   (imageEdit_   ->image());
+  fillPattern.setAngle   (angleEdit_   ->angle());
   fillPattern.setAltColor(altColorEdit_->color());
 
   fillPattern_ = fillPattern;
@@ -480,12 +522,17 @@ updateState()
     widgetLabels_[w]->setVisible(visible);
   };
 
+//setEditVisible(scaleEdit_   , false);
   setEditVisible(paletteEdit_ , false);
+  setEditVisible(imageEdit_   , false);
 //setEditVisible(angleEdit_   , false);
 //setEditVisible(altColorEdit_, false);
 
-  if (fillPattern_.type() == CQChartsFillPattern::Type::PALETTE) {
+  if      (fillPattern_.type() == CQChartsFillPattern::Type::PALETTE) {
     setEditVisible(paletteEdit_, true);
+  }
+  else if (fillPattern_.type() == CQChartsFillPattern::Type::IMAGE) {
+    setEditVisible(imageEdit_, true);
   }
 }
 

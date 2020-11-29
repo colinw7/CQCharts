@@ -721,8 +721,13 @@ class CQChartsPolygonAnnotation : public CQChartsPolyShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
+ private slots:
+  void moveExtraHandle(const QVariant &data, double dx, double dy);
+
  private:
   void init();
+
+  EditHandles *editHandles() const override;
 
   void initSmooth() const;
 
@@ -785,8 +790,13 @@ class CQChartsPolylineAnnotation : public CQChartsPolyShapeAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
+ private slots:
+  void moveExtraHandle(const QVariant &data, double dx, double dy);
+
  private:
   void init();
+
+  EditHandles *editHandles() const override;
 
   void initSmooth() const;
 
@@ -1073,8 +1083,13 @@ class CQChartsPathAnnotation : public CQChartsAnnotation {
   void writeDetails(std::ostream &os, const QString &parentVarName="",
                     const QString &varName="") const override;
 
+ private slots:
+  void moveExtraHandle(const QVariant &data, double dx, double dy);
+
  private:
   void init();
+
+  EditHandles *editHandles() const override;
 
  private:
   ObjRef objRef_;    //!< object ref
@@ -1178,8 +1193,6 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
 //---
 
-class CQChartsArrow;
-
 /*!
  * \brief arc annotation
  * \ingroup Charts
@@ -1189,20 +1202,36 @@ class CQChartsArrow;
 class CQChartsArcAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect   start       READ start       WRITE setStart      )
-  Q_PROPERTY(CQChartsObjRef startObjRef READ startObjRef WRITE setStartObjRef)
-  Q_PROPERTY(CQChartsRect   end         READ end         WRITE setEnd        )
-  Q_PROPERTY(CQChartsObjRef endObjRef   READ endObjRef   WRITE setEndObjRef  )
+  Q_PROPERTY(CQChartsPosition start       READ start         WRITE setStart      )
+  Q_PROPERTY(CQChartsObjRef   startObjRef READ startObjRef   WRITE setStartObjRef)
+  Q_PROPERTY(CQChartsPosition end         READ end           WRITE setEnd        )
+  Q_PROPERTY(CQChartsObjRef   endObjRef   READ endObjRef     WRITE setEndObjRef  )
+  Q_PROPERTY(bool             isLine      READ isLine        WRITE setLine       )
+  Q_PROPERTY(bool             rectilinear READ isRectilinear WRITE setRectilinear)
+  Q_PROPERTY(HeadType         frontType   READ frontType     WRITE setFrontType  )
+  Q_PROPERTY(HeadType         tailType    READ tailType      WRITE setTailType   )
+  Q_PROPERTY(CQChartsLength   lineWidth   READ lineWidth     WRITE setLineWidth  )
+
+  Q_ENUMS(HeadType)
 
  public:
-  using Rect   = CQChartsRect;
-  using ObjRef = CQChartsObjRef;
+  enum class HeadType {
+    NONE     = int(CQChartsArrowData::HeadType::NONE),
+    ARROW    = int(CQChartsArrowData::HeadType::ARROW),
+    TRIANGLE = int(CQChartsArrowData::HeadType::TRIANGLE),
+    STEALTH  = int(CQChartsArrowData::HeadType::STEALTH),
+    DIAMOND  = int(CQChartsArrowData::HeadType::DIAMOND)
+  };
+
+  using Position = CQChartsPosition;
+  using ObjRef   = CQChartsObjRef;
+  using Length   = CQChartsLength;
 
  public:
-  CQChartsArcAnnotation(View *view, const Rect &start=Rect(),
-                        const Rect &end=Rect(BBox(Point(0, 0), Point(0, 1))));
-  CQChartsArcAnnotation(Plot *plot, const Rect &start=Rect(),
-                        const Rect &end=Rect(BBox(Point(1, 0), Point(1, 1))));
+  CQChartsArcAnnotation(View *view, const Position &start=Position(Point(0, 0)),
+                        const Position &end=Position(Point(1, 1)));
+  CQChartsArcAnnotation(Plot *plot, const Position &start=Position(Point(0, 0)),
+                        const Position &end=Position(Point(1, 1)));
 
   virtual ~CQChartsArcAnnotation();
 
@@ -1216,17 +1245,45 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
 
   //---
 
-  const Rect &start() const { return start_; }
-  void setStart(const Rect &p) { start_ = p; emit dataChanged(); }
+  //! get/set start rectangle
+  const Position &start() const { return start_; }
+  void setStart(const Position &p) { start_ = p; emit dataChanged(); }
 
+  //! get/set start object reference
   const ObjRef &startObjRef() const { return startObjRef_; }
   void setStartObjRef(const ObjRef &o) { startObjRef_ = o; }
 
-  const Rect &end() const { return end_; }
-  void setEnd(const Rect &p) { end_ = p; emit dataChanged(); }
+  //! get/set end rectangle
+  const Position &end() const { return end_; }
+  void setEnd(const Position &p) { end_ = p; emit dataChanged(); }
 
+  //! get/set end object reference
   const ObjRef &endObjRef() const { return endObjRef_; }
   void setEndObjRef(const ObjRef &o) { endObjRef_ = o; }
+
+  //---
+
+  //! get/set edge line
+  bool isLine() const { return isLine_; }
+  void setLine(bool b);
+
+  //! get/set edge rectilinear
+  bool isRectilinear() const { return rectilinear_; }
+  void setRectilinear(bool b);
+
+  //---
+
+  //! get/set front arrow head type
+  const HeadType &frontType() const { return frontType_; }
+  void setFrontType(const HeadType &type);
+
+  //! get/set draw tail arrow head type
+  const HeadType &tailType() const { return tailType_; }
+  void setTailType(const HeadType &type);
+
+  //! get/set line width
+  const Length &lineWidth() const { return lineWidth_; }
+  void setLineWidth(const Length &l);
 
   //---
 
@@ -1255,10 +1312,15 @@ class CQChartsArcAnnotation : public CQChartsAnnotation {
   void calcPath(QPainterPath &path) const;
 
  private:
-  Rect   start_       { BBox(Point(0, 0), Point(0, 1)) }; //!< arc start
-  ObjRef startObjRef_;                                    //!< arc start reference object
-  Rect   end_         { BBox(Point(1, 0), Point(1, 1)) }; //!< arc end
-  ObjRef endObjRef_;                                      //!< arc end reference object
+  Position start_       { Point(0, 0) };              //!< arc start
+  ObjRef   startObjRef_;                              //!< arc start reference object
+  Position end_         { Point(1, 1) };              //!< arc end
+  ObjRef   endObjRef_;                                //!< arc end reference object
+  bool     isLine_      { false };                    //!< is line
+  bool     rectilinear_ { false };                    //!< is rectilinear
+  HeadType frontType_   { HeadType::NONE };           //!< front head type
+  HeadType tailType_    { HeadType::NONE };           //!< tail head type
+  Length   lineWidth_   { 16, CQChartsUnits::PIXEL }; //!< line width
 };
 
 //---

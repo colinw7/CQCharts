@@ -145,6 +145,25 @@ interfaceThemeChanged()
 
 void
 CQChartsCmdsSlot::
+keyEventPress(const QString &text)
+{
+  if (! view_) return;
+
+  disconnect(view_, SIGNAL(keyEventPress(const QString &)),
+             this, SLOT(keyEventPress(const QString &)));
+
+  QString cmd = getTclCmd();
+
+  cmd += QString(" {%1}").arg(text);
+
+  evalCmd(cmd);
+
+  connect(view_, SIGNAL(keyEventPress(const QString &)),
+          this, SLOT(keyEventPress(const QString &)));
+}
+
+void
+CQChartsCmdsSlot::
 evalCmd(const QString &cmd)
 {
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);

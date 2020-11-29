@@ -233,6 +233,7 @@ class CQChartsView : public QFrame,
   using PlotSet = std::set<Plot *>;
 
   using Window      = CQChartsWindow;
+  using View        = CQChartsView;
   using Position    = CQChartsPosition;
   using Rect        = CQChartsRect;
   using Length      = CQChartsLength;
@@ -575,7 +576,7 @@ class CQChartsView : public QFrame,
   // --- add annotation ---
 
   AnnotationGroup     *addAnnotationGroup    ();
-  ArcAnnotation       *addArcAnnotation      (const Rect &start, const Rect &end);
+  ArcAnnotation       *addArcAnnotation      (const Position &start, const Position &end);
   ArrowAnnotation     *addArrowAnnotation    (const Position &start, const Position &end);
   ButtonAnnotation    *addButtonAnnotation   (const Position &pos, const QString &text);
   EllipseAnnotation   *addEllipseAnnotation  (const Position &center, const Length &xRadius,
@@ -1067,6 +1068,8 @@ class CQChartsView : public QFrame,
 
   // emitted in query mode with new query text
   void showQueryText(const QString &);
+
+  void keyEventPress(const QString &);
 
  public slots:
   void updateNoData();

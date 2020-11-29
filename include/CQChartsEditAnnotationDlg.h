@@ -20,7 +20,10 @@ class CQChartsTextDataEdit;
 class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
+class CQChartsColor;
 class CQChartsColorLineEdit;
+class CQChartsImage;
+class CQChartsImageEdit;
 class CQChartsAngle;
 class CQChartsAngleEdit;
 class CQChartsLineEdit;
@@ -95,8 +98,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
     QRadioButton*         rectRadio         { nullptr };
     CQChartsPositionEdit* positionEdit      { nullptr };
     CQChartsRectEdit*     rectEdit          { nullptr };
-    CQChartsLineEdit*     imageEdit         { nullptr };
-    CQChartsLineEdit*     disabledImageEdit { nullptr };
+    CQChartsImageEdit*    imageEdit         { nullptr };
+    CQChartsImageEdit*    disabledImageEdit { nullptr };
   };
 
   struct ArrowWidgets : public Widgets {
@@ -173,20 +176,24 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
   //---
 
-  CQChartsLineEdit*     createLineEdit(const QString &name, const QString &text,
-                                       const QString &tip) const;
-  CQRealSpin*           createRealEdit(const QString &name, double r, const QString &tip) const;
-  CQChartsPositionEdit* createPositionEdit(const QString &name, const CQChartsPosition &pos,
-                                           const QString &tip) const;
-  CQChartsLengthEdit*   createLengthEdit(const QString &name, const CQChartsLength &len,
-                                         const QString &tip) const;
-  CQChartsRectEdit*     createRectEdit(const QString &name, const CQChartsRect &rect,
-                                       const QString &tip) const;
-  CQChartsPolygonEdit*  createPolygonEdit(const QString &name, const CQChartsPolygon &poly,
+  CQChartsPositionEdit*  createPositionEdit(const QString &name, const CQChartsPosition &pos,
+                                            const QString &tip) const;
+  CQChartsLengthEdit*    createLengthEdit(const QString &name, const CQChartsLength &len,
                                           const QString &tip) const;
-  CQChartsMarginEdit*   createMarginEdit(const QString &name, const CQChartsMargin &margin,
+  CQChartsRectEdit*      createRectEdit(const QString &name, const CQChartsRect &rect,
+                                        const QString &tip) const;
+  CQChartsPolygonEdit*   createPolygonEdit(const QString &name, const CQChartsPolygon &poly,
+                                           const QString &tip) const;
+  CQChartsMarginEdit*    createMarginEdit(const QString &name, const CQChartsMargin &margin,
+                                          const QString &tip) const;
+  CQChartsAngleEdit*     createAngleEdit(const QString &name, const CQChartsAngle &a,
                                          const QString &tip) const;
-  CQChartsAngleEdit*    createAngleEdit(const QString &name, const CQChartsAngle &a,
+  CQChartsColorLineEdit* createColorEdit(const QString &name, const CQChartsColor &c,
+                                         const QString &tip) const;
+  CQChartsImageEdit*     createImageEdit(const QString &name, const CQChartsImage &i,
+                                         const QString &tip) const;
+  CQRealSpin*            createRealEdit(const QString &name, double r, const QString &tip) const;
+  CQChartsLineEdit*      createLineEdit(const QString &name, const QString &text,
                                         const QString &tip) const;
 
   //---

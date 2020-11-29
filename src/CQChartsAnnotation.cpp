@@ -16,6 +16,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsResizeHandle.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -432,6 +433,7 @@ addStrokeProperties(PropertyModel *model, const QString &path, bool isSolid)
   addStyleProp(path, "strokeWidth", "width"  , "Stroke width"  );
   addStyleProp(path, "strokeDash" , "dash"   , "Stroke dash"   );
   addStyleProp(path, "strokeCap"  , "cap"    , "Stroke cap"    );
+  addStyleProp(path, "strokeJoin" , "join"   , "Stroke join"   );
 
   if (isSolid) {
     addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
@@ -814,7 +816,8 @@ calcPenBrush(CQChartsPenBrush &penBrush)
   }
 
   setPenBrush(penBrush,
-    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()),
+    PenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
+              strokeCap(), strokeJoin()),
     BrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 }
 
@@ -1389,38 +1392,17 @@ intersectShape(const Point &p1, const Point &p2, Point &pi) const
     return true;
   }
   else if (shapeType() == ShapeType::POLYGON) {
+    // get polygon path
     QPainterPath path;
 
-    CQChartsPaintDevice::polygonSidesPath(rect, numSides() > 2 ? numSides() : 4, angle(), path);
+    CQChartsDrawUtil::polygonSidesPath(path, rect, numSides() > 2 ? numSides() : 4, angle());
 
-    using Points = std::vector<Point>;
+    auto points = CQChartsPath::pathPoints(path);
 
-    Points points;
+    //---
 
-    int n = path.elementCount();
-
-    for (int i = 0; i < n; ++i) {
-      const auto &e = path.elementAt(i);
-
-      if      (e.isMoveTo()) {
-        assert(i == 0);
-
-        points.push_back(Point(e.x, e.y));
-      }
-      else if (e.isLineTo()) {
-        assert(i > 0);
-
-        auto pp1 = points.back();
-        auto pp2 = Point(e.x, e.y);
-
-        points.push_back((pp1 + pp2)/2.0);
-        points.push_back(pp2);
-      }
-      else
-        assert(false);
-    }
-
-    n = points.size();
+    // find closest point
+    int n = points.size();
 
     int    ind = -1;
     double d   = 0.0;
@@ -1826,6 +1808,9 @@ init()
   setFilled (true);
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
+          this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
 
 void
@@ -1888,6 +1873,23 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   }
 }
 
+void
+CQChartsPolygonAnnotation::
+moveExtraHandle(const QVariant &data, double dx, double dy)
+{
+  bool ok;
+  int i = data.toInt(&ok);
+
+  int np = polygon_.numPoints();
+
+  if (! ok || i < 0 || i >= np)
+    return;
+
+  auto p = polygon_.point(i);
+
+  polygon_.setPoint(i, Point(p.x + dx, p.y + dy));
+}
+
 //---
 
 bool
@@ -1898,6 +1900,8 @@ inside(const Point &p) const
 
   return (polygon.containsPoint(p, Qt::OddEvenFill));
 }
+
+//---
 
 void
 CQChartsPolygonAnnotation::
@@ -1962,6 +1966,46 @@ draw(PaintDevice *device)
   drawTerm(device);
 }
 
+//--
+
+CQChartsEditHandles *
+CQChartsPolygonAnnotation::
+editHandles() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  int np = polygon_.numPoints();
+
+  while (int(extraHandles.size()) < np) {
+    auto *extraHandle = (handles->view() ?
+      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
+      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+
+    handles->addExtraHandle(extraHandle);
+  }
+
+  double pw = pixelToWindowWidth (4);
+  double ph = pixelToWindowHeight(4);
+
+  int i = 0;
+
+  for (auto &extraHandle : handles->extraHandles()) {
+    extraHandle->setData(QVariant(i));
+
+    auto p = polygon_.point(i);
+
+    extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
+
+    ++i;
+  }
+
+  return handles;
+}
+
+//--
+
 void
 CQChartsPolygonAnnotation::
 initSmooth() const
@@ -2022,6 +2066,9 @@ init()
   setStroked(true);
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
+          this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
 
 void
@@ -2084,6 +2131,23 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   }
 }
 
+void
+CQChartsPolylineAnnotation::
+moveExtraHandle(const QVariant &data, double dx, double dy)
+{
+  bool ok;
+  int i = data.toInt(&ok);
+
+  int np = polygon_.numPoints();
+
+  if (! ok || i < 0 || i >= np)
+    return;
+
+  auto p = polygon_.point(i);
+
+  polygon_.setPoint(i, Point(p.x + dx, p.y + dy));
+}
+
 //---
 
 bool
@@ -2112,6 +2176,8 @@ inside(const Point &p) const
 
   return false;
 }
+
+//---
 
 void
 CQChartsPolylineAnnotation::
@@ -2149,7 +2215,8 @@ draw(PaintDevice *device)
   auto strokeColor = interpStrokeColor(ColorInd());
 
   setPen(penBrush,
-    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()));
+    PenData(true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
+            strokeCap(), strokeJoin()));
 
   updatePenBrushState(penBrush, CQChartsObjDrawType::LINE);
 
@@ -2178,6 +2245,46 @@ draw(PaintDevice *device)
   drawTerm(device);
 }
 
+//--
+
+CQChartsEditHandles *
+CQChartsPolylineAnnotation::
+editHandles() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  int np = polygon_.numPoints();
+
+  while (int(extraHandles.size()) < np) {
+    auto *extraHandle = (handles->view() ?
+      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
+      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+
+    handles->addExtraHandle(extraHandle);
+  }
+
+  double pw = pixelToWindowWidth (4);
+  double ph = pixelToWindowHeight(4);
+
+  int i = 0;
+
+  for (auto &extraHandle : handles->extraHandles()) {
+    extraHandle->setData(QVariant(i));
+
+    auto p = polygon_.point(i);
+
+    extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
+
+    ++i;
+  }
+
+  return handles;
+}
+
+//--
+
 void
 CQChartsPolylineAnnotation::
 initSmooth() const
@@ -2191,6 +2298,8 @@ initSmooth() const
     th->smooth_ = new Smooth(polygon, /*sorted*/false);
   }
 }
+
+//--
 
 void
 CQChartsPolylineAnnotation::
@@ -3165,6 +3274,9 @@ init()
   setFilled (true);
 
   editHandles()->setMode(EditHandles::Mode::RESIZE);
+
+  connect(editHandles(), SIGNAL(extraHandleMoved(const QVariant &, double, double)),
+          this, SLOT(moveExtraHandle(const QVariant &, double, double)));
 }
 
 void
@@ -3226,6 +3338,23 @@ flip(Qt::Orientation orient)
   emitDataChanged();
 }
 
+void
+CQChartsPathAnnotation::
+moveExtraHandle(const QVariant &data, double dx, double dy)
+{
+  bool ok;
+  int i = data.toInt(&ok);
+
+  int np = path_.numPoints();
+
+  if (! ok || i < 0 || i >= np)
+    return;
+
+  auto p = path_.pointAt(i);
+
+  path_.setPointAt(i, Point(p.x + dx, p.y + dy));
+}
+
 //---
 
 bool
@@ -3267,6 +3396,46 @@ draw(PaintDevice *device)
 
   setAnnotationBBox(bbox);
 }
+
+//--
+
+CQChartsEditHandles *
+CQChartsPathAnnotation::
+editHandles() const
+{
+  auto *handles = CQChartsViewPlotObj::editHandles();
+
+  const auto &extraHandles = handles->extraHandles();
+
+  int np = path_.numPoints();
+
+  while (int(extraHandles.size()) < np) {
+    auto *extraHandle = (handles->view() ?
+      new CQChartsResizeHandle(handles->view(), CQChartsResizeSide::EXTRA) :
+      new CQChartsResizeHandle(handles->plot(), CQChartsResizeSide::EXTRA));
+
+    handles->addExtraHandle(extraHandle);
+  }
+
+  double pw = pixelToWindowWidth (4);
+  double ph = pixelToWindowHeight(4);
+
+  int i = 0;
+
+  for (auto &extraHandle : handles->extraHandles()) {
+    extraHandle->setData(QVariant(i));
+
+    auto p = path_.pointAt(i);
+
+    extraHandle->setBBox(BBox(p.x - pw, p.y - ph, p.x + pw, p.y + ph));
+
+    ++i;
+  }
+
+  return handles;
+}
+
+//--
 
 void
 CQChartsPathAnnotation::
@@ -3753,14 +3922,14 @@ writeDetails(std::ostream &os, const QString &, const QString &varName) const
 //------
 
 CQChartsArcAnnotation::
-CQChartsArcAnnotation(View *view, const Rect &start, const Rect &end) :
+CQChartsArcAnnotation(View *view, const Position &start, const Position &end) :
  CQChartsAnnotation(view, Type::ARC), start_(start), end_(end)
 {
   init();
 }
 
 CQChartsArcAnnotation::
-CQChartsArcAnnotation(Plot *plot, const Rect &start, const Rect &end) :
+CQChartsArcAnnotation(Plot *plot, const Position &start, const Position &end) :
  CQChartsAnnotation(plot, Type::ARC), start_(start), end_(end)
 {
   init();
@@ -3781,6 +3950,43 @@ init()
 
   setStroked(true);
   setFilled (true);
+}
+
+//---
+
+void
+CQChartsArcAnnotation::
+setLine(bool b)
+{
+  CQChartsUtil::testAndSet(isLine_, b, [&]() { invalidate(); } );
+}
+
+void
+CQChartsArcAnnotation::
+setRectilinear(bool b)
+{
+  CQChartsUtil::testAndSet(rectilinear_, b, [&]() { invalidate(); } );
+}
+
+void
+CQChartsArcAnnotation::
+setFrontType(const HeadType &type)
+{
+  CQChartsUtil::testAndSet(frontType_, type, [&]() { invalidate(); } );
+}
+
+void
+CQChartsArcAnnotation::
+setTailType(const HeadType &type)
+{
+  CQChartsUtil::testAndSet(tailType_, type, [&]() { invalidate(); } );
+}
+
+void
+CQChartsArcAnnotation::
+setLineWidth(const Length &l)
+{
+  CQChartsUtil::testAndSet(lineWidth_, l, [&]() { invalidate(); } );
 }
 
 void
@@ -3806,6 +4012,11 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(path1, "startObjRef", "", "Arc start object reference");
   addProp(path1, "end"        , "", "Arc end point");
   addProp(path1, "endObjRef"  , "", "Arc end object reference");
+  addProp(path1, "isLine"     , "", "Arc is line");
+  addProp(path1, "rectilinear", "", "Arc is rectilinear");
+  addProp(path1, "frontType"  , "", "Arc front type");
+  addProp(path1, "tailType"   , "", "Arc tail type");
+  addProp(path1, "lineWidth"  , "", "Arc line width");
 
   //---
 
@@ -3825,8 +4036,8 @@ void
 CQChartsArcAnnotation::
 setEditBBox(const BBox &bbox, const ResizeSide &)
 {
-  auto start = positionToParent(startObjRef(), this->start().center());
-  auto end   = positionToParent(endObjRef  (), this->end  ().center());
+  auto start = positionToParent(startObjRef(), this->start());
+  auto end   = positionToParent(endObjRef  (), this->end  ());
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
@@ -3836,14 +4047,14 @@ setEditBBox(const BBox &bbox, const ResizeSide &)
   double dx2 = x2 - end  .x;
   double dy2 = y2 - end  .y;
 
-  auto sbbox = this->start().bbox();
-  auto ebbox = this->end  ().bbox();
+  auto spos = this->start().p();
+  auto epos = this->end  ().p();
 
-  sbbox.setCenter(this->start().center().p() + Point(dx1, dy1));
-  ebbox.setCenter(this->end  ().center().p() + Point(dx2, dy2));
+  spos += Point(dx1, dy1);
+  epos += Point(dx2, dy2);
 
-  start_ = Rect(sbbox, start_.units());
-  end_   = Rect(ebbox, end_  .units());
+  start_ = Position(spos, start_.units());
+  end_   = Position(epos, end_  .units());
 
   setAnnotationBBox(bbox);
 }
@@ -3858,6 +4069,7 @@ inside(const Point &p) const
 
   calcPath(path);
 
+  // TODO: handle line
   return path.contains(p.qpoint());
 }
 
@@ -3885,6 +4097,9 @@ draw(PaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
+  if (isLine())
+    device->setBrush(Qt::NoBrush);
+
   device->drawPath(path);
 
   //---
@@ -3896,20 +4111,58 @@ void
 CQChartsArcAnnotation::
 calcPath(QPainterPath &path) const
 {
-  auto start = positionToParent(startObjRef(), this->start().center());
-  auto end   = positionToParent(endObjRef  (), this->end  ().center());
+  bool isSelf = (startObjRef().isValid() && startObjRef() == endObjRef());
 
-  double iw = this->start().bbox().getWidth ();
-  double ih = this->start().bbox().getHeight();
-  double ow = this->end  ().bbox().getWidth ();
-  double oh = this->end  ().bbox().getHeight();
+  auto start = positionToParent(startObjRef(), this->start());
+  auto end   = positionToParent(endObjRef  (), this->end  ());
 
-  BBox ibbox(Point(start.x - iw/2.0, start.y - ih/2.0),
-             Point(start.x + iw/2.0, start.y + ih/2.0));
-  BBox obbox(Point(end  .x - ow/2.0, end  .y - oh/2.0),
-             Point(end  .x + ow/2.0, end  .y + oh/2.0));
+  double lw  = lengthParentHeight(lineWidth());
+  double lw2 = lw/2.0;
 
-  CQChartsDrawUtil::edgePath(path, ibbox, obbox);
+  BBox         ibbox, obbox;
+  CQChartsObj *startObj = nullptr, *endObj = nullptr;
+
+  if (! startObjRef().isValid() || ! objectRect(startObjRef(), startObj, ibbox))
+    ibbox = BBox(Point(start.x - lw2, start.y - lw2), Point(start.x + lw2, start.y + lw2));
+  if (! endObjRef  ().isValid() || ! objectRect(endObjRef  (), endObj  , obbox))
+    obbox = BBox(Point(end  .x - lw2, end  .y - lw2), Point(end  .x + lw2, end  .y + lw2));
+
+  CQChartsArrowData arrowData;
+
+  arrowData.setFHeadType((CQChartsArrowData::HeadType) frontType());
+  arrowData.setTHeadType((CQChartsArrowData::HeadType) tailType ());
+
+  arrowData.setLength(Length(lw, parentUnits()));
+
+  QPainterPath lpath;
+
+  if (! arrowData.isFHead() && ! arrowData.isTHead() && ! isRectilinear()) {
+    if (! isSelf) {
+      if (startObj || endObj)
+        CQChartsDrawUtil::edgePath(path, ibbox, obbox, isLine());
+      else {
+        CQChartsDrawUtil::curvePath(lpath, start, end, isLine());
+
+        CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, path);
+      }
+    }
+    else {
+      CQChartsDrawUtil::selfEdgePath(path, ibbox, lw);
+    }
+  }
+  else {
+    if (! isSelf) {
+      if (startObj || endObj)
+        CQChartsDrawUtil::curvePath(lpath, ibbox, obbox, isRectilinear());
+      else
+        CQChartsDrawUtil::curvePath(lpath, start, end, isRectilinear());
+    }
+    else {
+      CQChartsDrawUtil::selfCurvePath(lpath, ibbox, isRectilinear());
+    }
+
+    CQChartsArrow::pathAddArrows(lpath, arrowData, lw, 2.0, path);
+  }
 }
 
 void
@@ -4889,7 +5142,7 @@ draw(PaintDevice *device)
     auto strokeColor = interpStrokeColor(ColorInd());
 
     PenData penData1(isStroked(), strokeColor, strokeAlpha(), strokeWidth(),
-                     strokeDash(), strokeCap());
+                     strokeDash(), strokeCap(), strokeJoin());
 
     //---
 
@@ -5990,7 +6243,8 @@ draw(PaintDevice *device)
   auto bc = interpColor(strokeColor(), ColorInd());
 
   setPenBrush(penBrush,
-    PenData(true, bc, strokeAlpha(), strokeWidth(), strokeDash(), strokeCap()),
+    PenData(true, bc, strokeAlpha(), strokeWidth(), strokeDash(),
+            strokeCap(), strokeJoin()),
     BrushData(false));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);

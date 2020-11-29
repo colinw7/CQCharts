@@ -572,11 +572,7 @@ drawDelaunay(PaintDevice *device) const
 
       QPainterPath path;
 
-      path.moveTo(p1.x, p1.y);
-      path.lineTo(p2.x, p2.y);
-      path.lineTo(p3.x, p3.y);
-
-      path.closeSubpath();
+      CQChartsDrawUtil::trianglePath(path, p1, p2, p3);
 
       device->strokePath(path, pen);
     }

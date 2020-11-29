@@ -421,10 +421,11 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
     int         row { -1 };
     QModelIndex ind;
     Color       color;
+    Alpha       alpha;
 
     ValueData(const Point &p=Point(), int row=-1, const QModelIndex &ind=QModelIndex(),
-              const Color &color=Color()) :
-     p(p), row(row), ind(ind), color(color) {
+              const Color &color=Color(), const Alpha &alpha=Alpha()) :
+     p(p), row(row), ind(ind), color(color), alpha(alpha) {
     }
   };
 
