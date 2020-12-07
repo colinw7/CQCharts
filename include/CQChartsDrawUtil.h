@@ -26,6 +26,7 @@ struct CQChartsPenBrush {
   QPen   pen;
   QBrush brush;
   QColor altColor;
+  double altAlpha  { 1.0 };
   double fillAngle { 45 };
 
   CQChartsPenBrush() = default;

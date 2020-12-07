@@ -33,11 +33,7 @@ init()
 
   //---
 
-  CQChartsFont font;
-
-  font.incFontSize(4);
-
-  textData_.setFont(font);
+  textData_.setFont(CQChartsFont().incFontSize(4));
 
   //---
 

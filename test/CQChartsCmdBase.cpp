@@ -10,6 +10,7 @@
 
 #include <QApplication>
 #include <QVBoxLayout>
+#include <QComboBox>
 
 namespace {
 
@@ -626,6 +627,20 @@ exec(CQChartsCmdArgs &argv)
 
   if (! obj)
     return errorMsg(QString("No object '%1'").arg(objectName));
+
+  if (propName == "items" && qobject_cast<QComboBox *>(obj)) {
+    QComboBox *combo = qobject_cast<QComboBox *>(obj);
+
+    QStringList strs;
+
+    (void) CQTcl::splitList(value, strs);
+
+    combo->clear();
+
+    combo->addItems(strs);
+
+    return true;
+  }
 
   if (! CQUtil::setProperty(obj, propName, value))
     return errorMsg(QString("Failed to set property '%1' for '%2'").arg(propName).arg(objectName));
@@ -1362,7 +1377,7 @@ void
 CQChartsCmdBaseSlot::
 clicked()
 {
-  execProc("");
+  execProc();
 }
 
 void
@@ -1398,9 +1413,41 @@ valueChanged(double r)
 
 void
 CQChartsCmdBaseSlot::
+textEdited(const QString &s)
+{
+  QString args = QString("{%1}").arg(s);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
+returnPressed()
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
+editingFinished()
+{
+  execProc();
+}
+
+void
+CQChartsCmdBaseSlot::
+currentIndexChanged(const QString &s)
+{
+  QString args = QString("{%1}").arg(s);
+
+  execProc(args);
+}
+
+void
+CQChartsCmdBaseSlot::
 timerSlot()
 {
-  execProc("");
+  execProc();
 
   this->deleteLater();
 }

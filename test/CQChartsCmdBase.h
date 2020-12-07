@@ -151,6 +151,14 @@ class CQChartsCmdBaseSlot : public QObject {
   void valueChanged(int i);
   void valueChanged(double r);
 
+  // line edit
+  void textEdited(const QString &);
+  void returnPressed();
+  void editingFinished();
+
+  // combo box
+  void currentIndexChanged(const QString &s);
+
   void timerSlot();
 
  private:

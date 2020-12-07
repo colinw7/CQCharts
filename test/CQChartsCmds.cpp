@@ -9851,7 +9851,7 @@ exec(CQChartsCmdArgs &argv)
 
     auto *item = new CQChartsGradientKeyItem(plotKey);
 
-    item->setPalette(palette);
+    item->setPalette(CQChartsPaletteName(palette));
 
     if (argv.hasParseArg("id")) {
       auto id = argv.getParseStr("id");

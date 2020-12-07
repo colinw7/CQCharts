@@ -317,7 +317,7 @@ set_charts_property -plot $plot -name plotBox.fill.pattern -value "IMAGE:data/ni
 
 #set_charts_property -plot $plot -name symbol.type           -value box
 set_charts_property -plot $plot -name symbol.stroke.visible -value 0
-#set_charts_property -plot $plot -name symbol.fill.pattern   -value "IMAGE:data/particle.png"
+set_charts_property -plot $plot -name symbol.fill.pattern   -value "TEXTURE:data/particle.png"
 
 set_charts_property -plot $plot -name key.visible -value 0
 set_charts_property -plot $plot -name xaxis.visible -value 0

@@ -1275,7 +1275,16 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       lg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
       lg.setColorAt(0, color);
-      lg.setColorAt(1, pattern.altColor().isValid() ? pattern.altColor().color() : Qt::white);
+
+      if (pattern.altColor().isValid()) {
+        QColor altColor = pattern.altColor().color();
+
+        altColor.setAlphaF(pattern.altAlpha().value());
+
+        lg.setColorAt(1, altColor);
+      }
+      else
+        lg.setColorAt(1, Qt::white);
 
       brush = QBrush(lg);
     }
@@ -1294,7 +1303,16 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       rg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
       rg.setColorAt(0, color);
-      rg.setColorAt(1, pattern.altColor().isValid() ? pattern.altColor().color() : Qt::white);
+
+      if (pattern.altColor().isValid()) {
+        QColor altColor = pattern.altColor().color();
+
+        altColor.setAlphaF(pattern.altAlpha().value());
+
+        rg.setColorAt(1, altColor);
+      }
+      else
+        rg.setColorAt(1, Qt::white);
 
       brush = QBrush(rg);
     }
@@ -1303,23 +1321,40 @@ void setBrush(QBrush &brush, bool filled, const QColor &fillColor, const Alpha &
       auto *palette = pattern.palette().palette();
       if (! palette) return;
 
-      double c = pattern.angle().cos();
-      double s = pattern.angle().sin();
+      auto a1 = -pattern.angle();
 
-      QLinearGradient lg(std::abs(std::min(0.0, c)), std::abs(std::min(0.0, s)),
-                         std::abs(std::max(0.0, c)), std::abs(std::max(0.0, s)));
+      // (0, 0) Top Left -> (1, 1) Bottom Right
+
+      // cos/sin from (-1, -1, 1, 1)
+      double x1 = 0.0;
+      double y1 = 0.0;
+      double x2 = a1.cos();
+      double y2 = a1.sin();
+
+      if (x2 < 0.0) { x1 += 1.0; x2 += 1.0; }
+      if (y2 < 0.0) { y1 += 1.0; y2 += 1.0; }
+
+      QLinearGradient lg(x1, y1, x2, y2);
 
       lg.setCoordinateMode(QGradient::ObjectBoundingMode);
 
-      palette->setLinearGradient(lg, 1.0);
+      // store palette in linear gradient
+      palette->setLinearGradient(lg, 1.0, pattern.palette().min(), pattern.palette().max());
 
       brush = QBrush(lg);
     }
     // Image
-    else if (pattern.type() == FillPattern::Type::IMAGE) {
+    else if (pattern.type() == FillPattern::Type::IMAGE ||
+             pattern.type() == FillPattern::Type::TEXTURE ||
+             pattern.type() == FillPattern::Type::MASK) {
       brush.setColor(color);
 
-      brush.setTextureImage(pattern.image().image());
+      auto image = pattern.image().image();
+
+      image.setText("altColor", pattern.altColor().toString());
+      image.setText("altAlpha", pattern.altAlpha().toString());
+
+      brush.setTextureImage(image);
     }
     // SOLID, HATCH, DENSE, HORIZ, VERT, FDIAG, BDIAG
     else {

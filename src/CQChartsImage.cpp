@@ -196,3 +196,10 @@ fromString(const QString &s, Type type)
 
   return true;
 }
+
+void
+CQChartsImage::
+setImageType(const QString &type)
+{
+  image_.setText("imageType", type);
+}

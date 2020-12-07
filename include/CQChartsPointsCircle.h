@@ -4,6 +4,7 @@
 /*
  * Smallest enclosing circle
  */
+#include <CQChartsRand.h>
 #include <cassert>
 #include <vector>
 #include <cmath>
@@ -95,20 +96,15 @@ PointArray slice(const PointArray &points, int i1, int i2) {
   return points1;
 }
 
-// TODO: better rand
-int randIn(int low, int high) {
-  int number = (abs(rand()) % (high - low + 1)) + low;
-
-  return std::min(std::max(number, low), high);
-}
-
-// seed rand ?
+// TODO: seed rand ?
 void shufflePoints(PointArray &points) {
   int n = points.size();
 
   for (int i = 0; i < n; ++i) {
-    int i1 = randIn(0, n - 1);
-    int i2 = randIn(0, n - 1);
+    CQChartsRand::IntInRange rand(0, n - 1);
+
+    int i1 = rand.gen();
+    int i2 = rand.gen();
 
     if (i1 != i2)
       std::swap(points[i1], points[i2]);

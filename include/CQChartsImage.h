@@ -28,7 +28,7 @@ class CQChartsImage {
   CQChartsImage() = default;
   CQChartsImage(const CQChartsImage &image);
   CQChartsImage(const QImage &image);
-  CQChartsImage(const QString &s, Type type=Type::IMAGE);
+  CQChartsImage(const QString &s, Type type=Type::NONE);
 
  ~CQChartsImage();
 
@@ -75,6 +75,10 @@ class CQChartsImage {
   friend bool operator!=(const CQChartsImage &lhs, const CQChartsImage &rhs) {
     return ! operator==(lhs, rhs);
   }
+
+  //---
+
+  void setImageType(const QString &type);
 
  private:
   QImage           image_;

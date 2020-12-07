@@ -2224,6 +2224,33 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
+  struct BackgroundParts {
+    bool rects       { false };
+    bool axes        { false };
+    bool key         { false };
+    bool annotations { false };
+    bool custom      { false };
+  };
+
+  struct ForegroundParts {
+    bool axes        { false };
+    bool key         { false };
+    bool annotations { false };
+    bool title       { false };
+    bool custom      { false };
+    bool tabbed      { false };
+  };
+
+  struct OverlayParts {
+    bool selObjs         { false };
+    bool selAnnotations  { false };
+    bool boxes           { false };
+    bool editHandles     { false };
+    bool overObjs        { false };
+    bool overAnnotations { false };
+    bool custom          { false };
+  };
+
   // draw plot parts
   virtual void drawParts(QPainter *painter) const;
 
@@ -2234,8 +2261,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawBackgroundParts(QPainter *painter) const;
 
   // draw background layer plot device parts
-  virtual void drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
-                                         bool bgKey, bool bgAnnotations) const;
+  virtual void drawBackgroundDeviceParts(PaintDevice *device, const BackgroundParts &bgParts) const;
 
   // draw middle layer plot parts
   virtual void drawMiddleParts(QPainter *painter) const;
@@ -2247,9 +2273,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawForegroundParts(QPainter *painter) const;
 
   // draw foreground layer plot device parts
-  virtual void drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
-                                         bool fgAnnotations, bool title, bool foreground,
-                                         bool tabbed) const;
+  virtual void drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) const;
 
   virtual void drawTabs(PaintDevice *device) const;
 
@@ -2260,25 +2284,24 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawOverlayParts(QPainter *painter) const;
 
   // draw overlay layer plot device parts
-  virtual void drawOverlayDeviceParts(PaintDevice *device, bool sel_objs,
-                                      bool sel_annotations, bool boxes, bool edit_handles,
-                                      bool over_objs, bool over_annotations) const;
+  virtual void drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) const;
 
   //---
 
-  // draw background (layer and detail)
-  virtual bool hasBackgroundLayer() const;
-
-  virtual void drawBackgroundLayer(PaintDevice *device) const;
+  // draw background rects
+  virtual bool hasBackgroundRects() const;
 
   virtual void drawBackgroundRects(PaintDevice *device) const;
 
-  virtual bool hasBackground() const;
-
-  virtual void execDrawBackground(PaintDevice *device) const;
-
   virtual void drawBackgroundSides(PaintDevice *device, const BBox &bbox,
                                    const Sides &sides) const;
+
+  // draw custom background
+  virtual bool hasBackground() const;
+
+  virtual void drawCustomBackground(PaintDevice *device) const;
+
+  virtual void execDrawBackground(PaintDevice *device) const;
 
   // draw axes on background
   virtual bool hasGroupedBgAxes() const;
@@ -2363,6 +2386,8 @@ class CQChartsPlot : public CQChartsObj,
   // draw foreground
   virtual bool hasForeground() const;
 
+  virtual void drawCustomForeground(PaintDevice *device) const;
+
   virtual void execDrawForeground(PaintDevice *device) const;
 
   // draw debug boxes
@@ -2382,6 +2407,13 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool hasEditHandles() const;
 
   virtual void drawEditHandles(QPainter *painter) const;
+
+  // draw custom overlay
+  virtual bool hasOverlay() const;
+
+  virtual void drawCustomOverlay(PaintDevice *device) const;
+
+  virtual void execDrawOverlay(PaintDevice *device) const;
 
   //---
 

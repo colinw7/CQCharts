@@ -498,8 +498,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsCompositePlot::
-drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
-                          bool bgKey, bool bgAnnotations) const
+drawBackgroundDeviceParts(PaintDevice *device, const BackgroundParts &bgParts) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -508,14 +507,18 @@ drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawBackgroundDeviceParts(device, bgLayer, /*bgAxes*/false, /*bgKey*/false,
-                                    bgAnnotations);
+    BackgroundParts bgParts1 = bgParts;
+
+    bgParts1.axes = false;
+    bgParts1.key  = false;
+
+    plot->drawBackgroundDeviceParts(device, bgParts1);
   }
 
-  if (bgAxes)
+  if (bgParts.axes)
     drawGroupedBgAxes(device);
 
-  if (bgKey)
+  if (bgParts.key)
     drawBgKey(device);
 }
 
@@ -536,16 +539,15 @@ drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const
 
 void
 CQChartsCompositePlot::
-drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
-                          bool fgAnnotations, bool title, bool foreground, bool tabbed) const
+drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) const
 {
-  if (fgAxes)
+  if (fgParts.axes)
     drawGroupedFgAxes(device);
 
-  if (fgKey)
+  if (fgParts.key)
     drawFgKey(device);
 
-  if (title)
+  if (fgParts.title)
     drawTitle(device);
 
   for (auto &plot : plots_) {
@@ -555,13 +557,19 @@ drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawForegroundDeviceParts(device, /*fgAxes*/false, /*fgKey*/false, fgAnnotations,
-                                    /*title*/false, foreground, /*tabbed*/false);
+    ForegroundParts fgParts1 = fgParts;
+
+    fgParts1.axes   = false;
+    fgParts1.key    = false;
+    fgParts1.title  = false;
+    fgParts1.tabbed = false;
+
+    plot->drawForegroundDeviceParts(device, fgParts1);
   }
 
   //---
 
-  if (tabbed)
+  if (fgParts.tabbed)
     drawTabs(device);
 
   if (compositeType_ == CompositeType::TABBED)
@@ -570,8 +578,7 @@ drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
 
 void
 CQChartsCompositePlot::
-drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations,
-                       bool boxes, bool edit_handles, bool over_objs, bool over_annotations) const
+drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) const
 {
   for (auto &plot : plots_) {
     if (! plot->isVisible())
@@ -580,8 +587,7 @@ drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations,
     if (compositeType_ == CompositeType::TABBED && plot != currentPlot())
       continue;
 
-    plot->drawOverlayDeviceParts(device, sel_objs, sel_annotations, boxes,
-                                 edit_handles, over_objs, over_annotations);
+    plot->drawOverlayDeviceParts(device, overlayParts);
   }
 }
 

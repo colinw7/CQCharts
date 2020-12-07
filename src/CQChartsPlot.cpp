@@ -958,17 +958,24 @@ writeScript(ScriptPaintDevice *device) const
 
   //---
 
-  // background parts (bg axis, bg key, bg annotations, backgroun)
-  if (hasBackgroundLayer()) {
-    os << "\n"; drawBackgroundLayer(device);
+  // background rects
+  if (hasBackgroundRects()) {
+    os << "\n"; drawBackgroundRects(device);
   }
 
+  // custom background
+  if (hasBackground()) {
+    os << "\n"; drawCustomBackground(device);
+  }
+
+  // background axis and key
   bool bgAxes = hasGroupedBgAxes();
   bool bgKey  = hasGroupedBgKey();
 
   if (bgAxes) { os << "\n"; os << "  this.drawBgAxis();\n"; }
   if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
 
+  // background annotations
   if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
     os << "\n"; os << "  this.drawBgAnnotations();\n";
   }
@@ -980,25 +987,28 @@ writeScript(ScriptPaintDevice *device) const
 
   //---
 
-  // foreground parts (fg annotations, fg axis, fg key, title, foreground)
+  // foreground annotations
   if (hasGroupedAnnotations(Layer::Type::FG_ANNOTATION)) {
     os << "\n"; os << "  this.drawFgAnnotations();\n";
   }
 
+  // foreground axis and key
   bool fgAxes = hasGroupedFgAxes();
   bool fgKey  = hasGroupedFgKey();
 
   if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
   if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
 
+  // foreground title
   bool title = hasTitle();
 
   if (title) {
     os << "\n"; os << "  this.drawTitle();\n";
   }
 
+  // custom foreground
   if (this->hasForeground()) {
-    os << "\n"; execDrawForeground(device);
+    os << "\n"; drawCustomForeground(device);
   }
 
   //---
@@ -1236,12 +1246,12 @@ writeSVG(SVGPaintDevice *device) const
 
   device->startGroup(plotId, groupData);
 
-  if (hasBackgroundLayer()) {
-    drawBackgroundLayer(device);
+  if (hasBackgroundRects()) {
+    drawBackgroundRects(device);
   }
 
-  if (hasForeground()) {
-    execDrawBackground(device);
+  if (hasBackground()) {
+    drawCustomBackground(device);
   }
 
   if (hasGroupedBgAxes()) {
@@ -1263,6 +1273,8 @@ writeSVG(SVGPaintDevice *device) const
   if (hasGroupedAnnotations(Layer::Type::BG_ANNOTATION)) {
     drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
   }
+
+  //---
 
   for (const auto &plotObj : plotObjects()) {
     auto objId = QString("obj_") + plotId + "_" + plotObj->id();
@@ -1288,8 +1300,10 @@ writeSVG(SVGPaintDevice *device) const
     drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
   }
 
+  //---
+
   if (hasForeground()) {
-    execDrawForeground(device);
+    drawCustomForeground(device);
   }
 
   if (hasGroupedFgAxes()) {
@@ -5079,8 +5093,23 @@ createObjs()
   if (! createObjs(objs))
     return false;
 
-  for (auto &obj : objs)
-    addPlotObject(obj);
+  if (type()->isPrioritySort()) {
+    using PriorityObjs = std::map<int, PlotObjs>;
+
+    PriorityObjs priorityObjs;
+
+    for (auto &obj : objs)
+      priorityObjs[obj->priority()].push_back(obj);
+
+    for (auto &po : priorityObjs) {
+      for (auto &obj : po.second)
+        addPlotObject(obj);
+    }
+  }
+  else {
+    for (auto &obj : objs)
+      addPlotObject(obj);
+  }
 
   //---
 
@@ -9269,12 +9298,18 @@ drawBackgroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundParts");
 
-  bool bgLayer       = hasBackgroundLayer();
-  bool bgAxes        = hasGroupedBgAxes();
-  bool bgKey         = hasGroupedBgKey();
-  bool bgAnnotations = hasGroupedAnnotations(Layer::Type::BG_ANNOTATION);
+  // check for background rects (plot bbox, data bbox, fit bbox), background axes,
+  // background key, background annotations or custom background
+  BackgroundParts bgParts;
 
-  if (! bgLayer && ! bgAxes && ! bgKey && ! bgAnnotations)
+  bgParts.rects       = hasBackgroundRects();
+  bgParts.axes        = hasGroupedBgAxes();
+  bgParts.key         = hasGroupedBgKey();
+  bgParts.annotations = hasGroupedAnnotations(Layer::Type::BG_ANNOTATION);
+  bgParts.custom      = hasBackground();
+
+  if (! bgParts.rects && ! bgParts.axes && ! bgParts.key &&
+      ! bgParts.annotations && ! bgParts.custom)
     return;
 
   //---
@@ -9291,7 +9326,7 @@ drawBackgroundParts(QPainter *painter) const
 
     CQChartsPlotPaintDevice device(th, painter1);
 
-    drawBackgroundDeviceParts(&device, bgLayer, bgAxes, bgKey, bgAnnotations);
+    drawBackgroundDeviceParts(&device, bgParts);
 
     //---
 
@@ -9309,30 +9344,35 @@ drawBackgroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
-                          bool bgKey, bool bgAnnotations) const
+drawBackgroundDeviceParts(PaintDevice *device, const BackgroundParts &bgParts) const
 {
   const_cast<CQChartsPlot *>(this)->initAxisSizes();
 
   //---
 
   // draw background (plot/data fill)
-  if (bgLayer)
-    drawBackgroundLayer(device);
+  if (bgParts.rects)
+    drawBackgroundRects(device);
+
+  //---
+
+  // draw custom background
+  if (bgParts.custom)
+    drawCustomBackground(device);
 
   //---
 
   // draw axes/key below plot
-  if (bgAxes)
+  if (bgParts.axes)
     drawGroupedBgAxes(device);
 
-  if (bgKey)
+  if (bgParts.key)
     drawBgKey(device);
 
   //---
 
   // draw annotations
-  if (bgAnnotations)
+  if (bgParts.annotations)
     drawGroupedAnnotations(device, Layer::Type::BG_ANNOTATION);
 }
 
@@ -9498,13 +9538,18 @@ drawForegroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
 
-  bool fgAxes        = hasGroupedFgAxes();
-  bool fgKey         = hasGroupedFgKey();
-  bool fgAnnotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
-  bool title         = hasTitle();
-  bool foreground    = hasForeground();
+  ForegroundParts fgParts;
 
-  if (! fgAxes && ! fgKey && ! fgAnnotations && ! title && ! foreground)
+  // check for foreground axes, foreground key, foreground annotations, title or
+  // custom foreground
+  fgParts.axes        = hasGroupedFgAxes();
+  fgParts.key         = hasGroupedFgKey();
+  fgParts.annotations = hasGroupedAnnotations(Layer::Type::FG_ANNOTATION);
+  fgParts.title       = hasTitle();
+  fgParts.custom      = hasForeground();
+
+  if (! fgParts.axes && ! fgParts.key && ! fgParts.annotations &&
+      ! fgParts.title && ! fgParts.custom)
     return;
 
   //---
@@ -9521,9 +9566,9 @@ drawForegroundParts(QPainter *painter) const
 
     CQChartsPlotPaintDevice device(th, painter1);
 
-    bool tabbed = (isTabbed() && isCurrent());
+    fgParts.tabbed = (isTabbed() && isCurrent());
 
-    drawForegroundDeviceParts(&device, fgAxes, fgKey, fgAnnotations, title, foreground, tabbed);
+    drawForegroundDeviceParts(&device, fgParts);
   }
 
   //---
@@ -9533,37 +9578,36 @@ drawForegroundParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey, bool fgAnnotations,
-                          bool title, bool foreground, bool tabbed) const
+drawForegroundDeviceParts(PaintDevice *device, const ForegroundParts &fgParts) const
 {
   // draw annotations
-  if (fgAnnotations)
+  if (fgParts.annotations)
     drawGroupedAnnotations(device, Layer::Type::FG_ANNOTATION);
 
   //---
 
   // draw axes/key above plot
-  if (fgAxes)
+  if (fgParts.axes)
     drawGroupedFgAxes(device);
 
-  if (fgKey)
+  if (fgParts.key)
     drawFgKey(device);
 
   //---
 
   // draw title
-  if (title)
+  if (fgParts.title)
     drawTitle(device);
 
   //---
 
-  // draw foreground
-  if (foreground)
-    execDrawForeground(device);
+  // draw custom foreground
+  if (fgParts.custom)
+    drawCustomForeground(device);
 
   //---
 
-  if (tabbed)
+  if (fgParts.tabbed)
     drawTabs(device);
 }
 
@@ -9664,15 +9708,21 @@ drawOverlayParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawOverlayParts");
 
-  bool sel_objs         = hasGroupedObjs(Layer::Type::SELECTION);
-  bool sel_annotations  = hasGroupedAnnotations(Layer::Type::SELECTION);
-  bool boxes            = hasGroupedBoxes();
-  bool edit_handles     = hasGroupedEditHandles();
-  bool over_objs        = hasGroupedObjs(Layer::Type::MOUSE_OVER);
-  bool over_annotations = hasGroupedAnnotations(Layer::Type::MOUSE_OVER);
+  // check for selected objects/annotations, debug boxes, edit handle,
+  // mouse objects/annotations or custom overlay
+  OverlayParts overlayParts;
 
-  if (! sel_objs && ! sel_annotations && ! boxes &&
-      ! edit_handles && ! over_objs && ! over_annotations)
+  overlayParts.selObjs         = hasGroupedObjs(Layer::Type::SELECTION);
+  overlayParts.selAnnotations  = hasGroupedAnnotations(Layer::Type::SELECTION);
+  overlayParts.boxes           = hasGroupedBoxes();
+  overlayParts.editHandles     = hasGroupedEditHandles();
+  overlayParts.overObjs        = hasGroupedObjs(Layer::Type::MOUSE_OVER);
+  overlayParts.overAnnotations = hasGroupedAnnotations(Layer::Type::MOUSE_OVER);
+  overlayParts.custom          = hasOverlay();
+
+  if (! overlayParts.selObjs && ! overlayParts.selAnnotations && ! overlayParts.boxes &&
+      ! overlayParts.editHandles && ! overlayParts.overObjs && ! overlayParts.overAnnotations &&
+      ! overlayParts.custom)
     return;
 
   //---
@@ -9689,8 +9739,7 @@ drawOverlayParts(QPainter *painter) const
 
     CQChartsPlotPaintDevice device(th, painter1);
 
-    drawOverlayDeviceParts(&device, sel_objs, sel_annotations, boxes, edit_handles,
-                           over_objs, over_annotations);
+    drawOverlayDeviceParts(&device, overlayParts);
   }
 
   //---
@@ -9700,25 +9749,30 @@ drawOverlayParts(QPainter *painter) const
 
 void
 CQChartsPlot::
-drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations, bool boxes,
-                       bool edit_handles, bool over_objs, bool over_annotations) const
+drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) const
 {
+  // draw custom overlay
+  if (overlayParts.custom)
+    drawCustomOverlay(device);
+
+  //---
+
   // draw selection
-  if (sel_objs)
+  if (overlayParts.selObjs)
     drawGroupedObjs(device, Layer::Type::SELECTION);
 
-  if (sel_annotations)
+  if (overlayParts.selAnnotations)
     drawGroupedAnnotations(device, Layer::Type::SELECTION);
 
   //---
 
   // draw debug boxes
-  if (boxes)
+  if (overlayParts.boxes)
     drawGroupedBoxes(device);
 
   //---
 
-  if (edit_handles) {
+  if (overlayParts.editHandles) {
     if (device->isInteractive()) {
       auto *viewPlotDevice = dynamic_cast<CQChartsViewPlotPaintDevice *>(device);
 
@@ -9729,16 +9783,18 @@ drawOverlayDeviceParts(PaintDevice *device, bool sel_objs, bool sel_annotations,
   //---
 
   // draw mouse over
-  if (over_objs)
+  if (overlayParts.overObjs)
     drawGroupedObjs(device, Layer::Type::MOUSE_OVER);
 
-  if (over_annotations)
+  if (overlayParts.overAnnotations)
     drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
 }
 
+//---
+
 bool
 CQChartsPlot::
-hasBackgroundLayer() const
+hasBackgroundRects() const
 {
   // only first plot has background for overlay
   if (isOverlay() && ! isFirstPlot())
@@ -9749,9 +9805,8 @@ hasBackgroundLayer() const
   bool hasPlotBackground = (isPlotFilled() || isPlotStroked());
   bool hasDataBackground = (isDataFilled() || isDataStroked());
   bool hasFitBackground  = (isFitFilled () || isFitStroked ());
-  bool hasBackground     = this->hasBackground();
 
-  if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground && ! hasBackground)
+  if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground)
     return false;
 
   if (! isLayerActive(Layer::Type::BACKGROUND))
@@ -9762,36 +9817,10 @@ hasBackgroundLayer() const
 
 void
 CQChartsPlot::
-drawBackgroundLayer(PaintDevice *device) const
-{
-  CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
-
-  //---
-
-  drawBackgroundRects(device);
-
-  //---
-
-  if (isOverlay()) {
-    Plots oplots;
-
-    overlayPlots(oplots);
-
-    for (const auto &oplot : oplots) {
-      if (oplot->hasBackground())
-        oplot->execDrawBackground(device);
-    }
-  }
-  else {
-    if (this->hasBackground())
-      execDrawBackground(device);
-  }
-}
-
-void
-CQChartsPlot::
 drawBackgroundRects(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsPlot::drawBackgroundRects");
+
   auto drawBackgroundRect = [&](const BBox &rect, const BrushData &brushData,
                                 const PenData &penData, const Sides &sides) {
     if (brushData.isVisible()) {
@@ -9830,6 +9859,25 @@ drawBackgroundRects(PaintDevice *device) const
                        dataBorderSides());
 }
 
+void
+CQChartsPlot::
+drawBackgroundSides(PaintDevice *device, const BBox &bbox, const Sides &sides) const
+{
+  if (sides.isAll()) {
+    device->setBrush(Qt::NoBrush);
+
+    device->drawRect(bbox);
+  }
+  else {
+    if (sides.isTop   ()) device->drawLine(bbox.getUL(), bbox.getUR());
+    if (sides.isLeft  ()) device->drawLine(bbox.getUL(), bbox.getLL());
+    if (sides.isBottom()) device->drawLine(bbox.getLL(), bbox.getLR());
+    if (sides.isRight ()) device->drawLine(bbox.getUR(), bbox.getLR());
+  }
+}
+
+//---
+
 bool
 CQChartsPlot::
 hasBackground() const
@@ -9849,26 +9897,33 @@ hasBackground() const
 
 void
 CQChartsPlot::
-execDrawBackground(PaintDevice *) const
+drawCustomBackground(PaintDevice *device) const
 {
+  CQPerfTrace trace("CQChartsPlot::drawCustomBackground");
+
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      if (oplot->hasBackground())
+        oplot->execDrawBackground(device);
+    }
+  }
+  else {
+    if (this->hasBackground())
+      execDrawBackground(device);
+  }
 }
 
 void
 CQChartsPlot::
-drawBackgroundSides(PaintDevice *device, const BBox &bbox, const Sides &sides) const
+execDrawBackground(PaintDevice *) const
 {
-  if (sides.isAll()) {
-    device->setBrush(Qt::NoBrush);
-
-    device->drawRect(bbox);
-  }
-  else {
-    if (sides.isTop   ()) device->drawLine(bbox.getUL(), bbox.getUR());
-    if (sides.isLeft  ()) device->drawLine(bbox.getUL(), bbox.getLL());
-    if (sides.isBottom()) device->drawLine(bbox.getLL(), bbox.getLR());
-    if (sides.isRight ()) device->drawLine(bbox.getUR(), bbox.getLR());
-  }
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -9956,6 +10011,8 @@ drawBgAxes(PaintDevice *device) const
   if (showYGrid) drawYGrid(device);
 }
 
+//---
+
 bool
 CQChartsPlot::
 hasGroupedBgKey() const
@@ -10022,6 +10079,8 @@ drawBgKey(PaintDevice *device) const
       key->draw(device);
   }
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -10256,6 +10315,8 @@ objInsideBox(PlotObj *plotObj, const BBox &bbox) const
   return plotObj->rectIntersect(bbox, /*inside*/ false);
 }
 
+//---
+
 bool
 CQChartsPlot::
 hasGroupedFgAxes() const
@@ -10354,8 +10415,6 @@ drawYGrid(PaintDevice *device) const
 {
   yAxis()->drawGrid(this, device);
 }
-
-//---
 
 void
 CQChartsPlot::
@@ -10678,6 +10737,8 @@ drawFgKey(PaintDevice *device) const
   }
 }
 
+//---
+
 bool
 CQChartsPlot::
 hasTitle() const
@@ -10705,6 +10766,8 @@ drawTitle(PaintDevice *device) const
 
   title()->draw(device);
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -10864,11 +10927,45 @@ drawAnnotations(PaintDevice *device, const Layer::Type &layerType) const
   view()->setDrawLayerType(Layer::Type::NONE);
 }
 
+//---
+
 bool
 CQChartsPlot::
 hasForeground() const
 {
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots)
+      if (oplot->hasForeground())
+        return true;
+  }
+
   return false;
+}
+
+void
+CQChartsPlot::
+drawCustomForeground(PaintDevice *device) const
+{
+  CQPerfTrace trace("CQChartsPlot::drawCustomForeground");
+
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      if (oplot->hasForeground())
+        oplot->execDrawForeground(device);
+    }
+  }
+  else {
+    if (this->hasForeground())
+      execDrawForeground(device);
+  }
 }
 
 void
@@ -10876,6 +10973,8 @@ CQChartsPlot::
 execDrawForeground(PaintDevice *) const
 {
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -10967,6 +11066,8 @@ drawBoxes(PaintDevice *device) const
   drawWindowColorBox(device, CQChartsUtil::rangeBBox(dataRange_        ), Qt::green);
   drawWindowColorBox(device, CQChartsUtil::rangeBBox(outerDataRange_   ), Qt::green);
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -11113,6 +11214,55 @@ drawEditHandles(QPainter *painter) const
       plotObj->drawEditHandles(painter);
   }
 }
+
+//---
+
+bool
+CQChartsPlot::
+hasOverlay() const
+{
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots)
+      if (oplot->hasOverlay())
+        return true;
+  }
+
+  return false;
+}
+
+void
+CQChartsPlot::
+drawCustomOverlay(PaintDevice *device) const
+{
+  CQPerfTrace trace("CQChartsPlot::drawCustomOverlay");
+
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      if (oplot->hasOverlay())
+        oplot->execDrawOverlay(device);
+    }
+  }
+  else {
+    if (this->hasOverlay())
+      execDrawOverlay(device);
+  }
+}
+
+void
+CQChartsPlot::
+execDrawOverlay(PaintDevice *) const
+{
+}
+
+//---
 
 const CQChartsLayer::Type &
 CQChartsPlot::
@@ -12446,6 +12596,11 @@ setBrush(PenBrush &penBrush, const BrushData &brushData) const
     penBrush.altColor = brushData.pattern().altColor().color();
   else
     penBrush.altColor = QColor();
+
+  if (brushData.pattern().altAlpha().isValid())
+    penBrush.altAlpha = brushData.pattern().altAlpha().value();
+  else
+    penBrush.altAlpha = 1.0;
 
   penBrush.fillAngle = brushData.pattern().angle().degrees();
 }

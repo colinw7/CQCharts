@@ -82,6 +82,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      canProbe           READ canProbe          )
   Q_PROPERTY(bool      canRectSelect      READ canRectSelect     )
   Q_PROPERTY(bool      hasObjs            READ hasObjs           )
+  Q_PROPERTY(bool      prioritySorted     READ isPrioritySort    )
 
   Q_ENUMS(Dimension)
 
@@ -154,6 +155,8 @@ class CQChartsPlotType : public QObject {
   virtual bool canRectSelect() const { return true; }
 
   virtual bool hasObjs() const { return true; }
+
+  virtual bool isPrioritySort() const { return false; }
 
   //---
 

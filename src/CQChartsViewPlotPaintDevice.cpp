@@ -1,6 +1,7 @@
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsEnv.h>
 #include <CQHandDrawnPainter.h>
+#include <QBitmap>
 #include <QBuffer>
 
 CQChartsPixelPaintDevice::
@@ -190,7 +191,35 @@ void
 CQChartsViewPlotPaintDevice::
 setAltColor(const QColor &c)
 {
+  altColor_ = c;
+
+  if (handDrawn_)
+    hdPainter_->setAltColor(c);
+
+  updateBackground();
+}
+
+void
+CQChartsViewPlotPaintDevice::
+setAltAlpha(double a)
+{
+  altAlpha_ = a;
+
+  //if (handDrawn_)
+  //  hdPainter_->setAltAlpha(a);
+
+  updateBackground();
+}
+
+void
+CQChartsViewPlotPaintDevice::
+updateBackground()
+{
+  auto c = altColor_;
+
   if (c.isValid()) {
+    c.setAlphaF(altAlpha_);
+
     painter_->setBackgroundMode(Qt::OpaqueMode);
     painter_->setBackground(c);
   }
@@ -198,9 +227,6 @@ setAltColor(const QColor &c)
     painter_->setBackgroundMode(Qt::TransparentMode);
     painter_->setBackground(c);
   }
-
-  if (handDrawn_)
-    hdPainter_->setAltColor(c);
 }
 
 void
@@ -221,7 +247,10 @@ fillPath(const QPainterPath &path, const QBrush &brush)
 {
   auto ppath = windowToPixel(path);
 
-  auto brush1 = adjustFillBrush(brush, BBox(ppath.boundingRect()));
+  QBrush brush1;
+
+  if (adjustFillBrush(brush, BBox(ppath.boundingRect()), brush1))
+    painter_->setBrushOrigin(ppath.boundingRect().topLeft());
 
   if (handDrawn_)
     hdPainter_->fillPath(ppath, brush1);
@@ -261,33 +290,139 @@ fillRect(const BBox &bbox)
 
   auto pbbox = windowToPixel(bbox);
 
-  auto brush = adjustFillBrush(this->brush(), pbbox);
+  QBrush brush1;
+
+  if (adjustFillBrush(this->brush(), pbbox, brush1))
+    painter_->setBrushOrigin(pbbox.qrect().topLeft());
 
   if (handDrawn_)
-    hdPainter_->fillRect(pbbox.qrect(), brush);
+    hdPainter_->fillRect(pbbox.qrect(), brush1);
   else
-    painter_->fillRect(pbbox.qrect(), brush);
+    painter_->fillRect(pbbox.qrect(), brush1);
 }
 
-QBrush
+bool
 CQChartsViewPlotPaintDevice::
-adjustFillBrush(const QBrush &brush, const BBox &pbbox) const
+adjustFillBrush(const QBrush &brush, const BBox &pbbox, QBrush &brush1) const
 {
-  auto brush1 = brush;
+  brush1 = brush;
 
-  if (brush1.style() == Qt::TexturePattern) {
-    QImage image  = brush1.textureImage();
-    QImage image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
+  if (brush1.style() != Qt::TexturePattern)
+    return false;
 
-    double r = brush1.color().redF  ();
-    double g = brush1.color().greenF();
-    double b = brush1.color().blueF ();
+  //---
+
+  QImage image = brush1.textureImage();
+
+  //auto format = image.format();
+  //assert(format == QImage::Format_ARGB32 || format == QImage::Format_ARGB32_Premultiplied);
+
+  const QString imageType = image.text("imageType");
+
+  //---
+
+  QImage image1 = image.scaled(pbbox.getWidth(), pbbox.getHeight());
+
+  //auto format1 = image1.format();
+  //assert(format1 == QImage::Format_ARGB32 || format1 == QImage::Format_ARGB32_Premultiplied);
+
+  //---
+
+  QBitmap  maskBitmap;
+  bool     masked = false;
+
+  if      (imageType == "texture") {
+    double ir = brush1.color().red  ();
+    double ig = brush1.color().green();
+    double ib = brush1.color().blue ();
+
+    for (int y = 0; y < image1.height(); ++y) {
+      for (int x = 0; x < image1.width(); ++x) {
+        QRgb rgb = image1.pixel(x, y);
+
+        int g1 = qGray(rgb);
+
+        image1.setPixel(x, y, qRgba(ir, ig, ib, g1));
+      }
+    }
+  }
+  else if (imageType == "mask") {
+    auto altColorStr = image.text("altColor");
+    auto altAlphaStr = image.text("altAlpha");
+
+    QColor altColor(0, 0, 0, 0);
+
+    if (altColorStr.length()) {
+      altColor = QColor(altColorStr);
+
+      if (altAlphaStr.length()) {
+        bool ok;
+
+        auto alpha = altAlphaStr.toDouble(&ok);
+
+        if (ok && alpha < 1.0) {
+          altColor.setAlphaF(alpha);
+
+          masked = true;
+        }
+      }
+    }
+
+    if (masked) {
+      maskBitmap = QBitmap(image1.width(), image1.height());
+
+      maskBitmap.fill(Qt::color1);
+    }
+
+    QPainter maskPainter;
+
+    if (masked) {
+      maskPainter.begin(&maskBitmap);
+
+      maskPainter.setPen(Qt::color0);
+    }
+
+    double ir = brush1.color().red  ();
+    double ig = brush1.color().green();
+    double ib = brush1.color().blue ();
+    double ia = brush1.color().alpha();
+
+    double iar = altColor.red  ();
+    double iag = altColor.green();
+    double iab = altColor.blue ();
+    double iaa = altColor.alpha();
+
+    for (int y = 0; y < image1.height(); ++y) {
+      for (int x = 0; x < image1.width(); ++x) {
+        QRgb rgb = image1.pixel(x, y);
+
+        int g1 = qGray(rgb);
+
+        if (g1 < 128)
+          image1.setPixel(x, y, qRgba(ir, ig, ib, ia));
+        else {
+          if (! masked)
+            image1.setPixel(x, y, qRgba(iar, iag, iab, iaa));
+          else
+            maskPainter.drawPoint(x, y);
+        }
+      }
+    }
+
+    if (masked)
+      maskPainter.end();
+  }
+  else {
     double a = brush1.color().alphaF();
 
     if (a < 1.0) {
+      double r = brush1.color().redF  ();
+      double g = brush1.color().greenF();
+      double b = brush1.color().blueF ();
+
       for (int y = 0; y < image1.height(); ++y) {
         for (int x = 0; x < image1.width(); ++x) {
-          auto rgb = image1.pixel(x, y);
+          QRgb rgb = image1.pixel(x, y);
 
           double r1 = qRed  (rgb)/255.0;
           double g1 = qGreen(rgb)/255.0;
@@ -301,11 +436,17 @@ adjustFillBrush(const QBrush &brush, const BBox &pbbox) const
         }
       }
     }
-
-    brush1.setTextureImage(image1);
   }
 
-  return brush1;
+  //brush1.setTextureImage(image1);
+  auto pixmap = QPixmap::fromImage(image1);
+
+  if (masked)
+    pixmap.setMask(maskBitmap);
+
+  brush1.setTexture(pixmap);
+
+  return true;
 }
 
 void
@@ -315,6 +456,14 @@ drawRect(const BBox &bbox)
   if (! bbox.isValid()) return;
 
   auto pbbox = windowToPixel(bbox);
+
+  QBrush brush1;
+
+  if (adjustFillBrush(this->brush(), pbbox, brush1)) {
+    setBrush(brush1);
+
+    painter_->setBrushOrigin(pbbox.qrect().topLeft());
+  }
 
   if (handDrawn_)
     hdPainter_->drawRect(pbbox.qrect());

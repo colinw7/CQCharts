@@ -125,18 +125,16 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   //---
 
-  void drawBackgroundDeviceParts(PaintDevice *device, bool bgLayer, bool bgAxes,
-                                 bool bgKey, bool bgAnnotations) const override;
+  void drawBackgroundDeviceParts(PaintDevice *device,
+                                 const BackgroundParts &bgParts) const override;
 
   void drawMiddleDeviceParts(PaintDevice *device, bool bg, bool mid, bool fg) const override;
 
-  void drawForegroundDeviceParts(PaintDevice *device, bool fgAxes, bool fgKey,
-                                 bool fgAnnotations, bool title, bool foreground,
-                                 bool tabbed) const override;
+  void drawForegroundDeviceParts(PaintDevice *device,
+                                 const ForegroundParts &fgParts) const override;
 
-  void drawOverlayDeviceParts(PaintDevice *device, bool sel_objs,
-                              bool sel_annotations, bool boxes, bool edit_handles,
-                              bool over_objs, bool over_annotations) const override;
+  void drawOverlayDeviceParts(PaintDevice *device,
+                              const OverlayParts &overlayParts) const override;
 
   void drawBgAxes(PaintDevice *device) const override;
   void drawFgAxes(PaintDevice *device) const override;

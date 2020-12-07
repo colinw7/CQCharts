@@ -13,6 +13,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsHtml.h>
 
+#include <CQTclUtil.h>
 #include <CQBaseModel.h>
 #include <CQColors.h>
 #include <CQColorsPalette.h>
@@ -812,6 +813,14 @@ CQChartsColumnType(Type type) :
   // draw stops for table view
   addParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
     setDesc("Table value draw stop values");
+
+  // name to color map
+  addParam("named_colors", Type::STRING, "Named Colors", "")->
+    setDesc("Named colors");
+
+  // name to image map
+  addParam("named_images", Type::STRING, "Named Images", "")->
+    setDesc("Named images");
 }
 
 CQChartsColumnType::
@@ -966,6 +975,64 @@ drawStops(const CQChartsNameValues &nameValues) const
     stops = CQChartsColorStops(stopsStr);
 
   return stops;
+}
+
+CQChartsNameValues
+CQChartsColumnType::
+namedColors(const CQChartsNameValues &nameValues) const
+{
+  QString namedColorsStr;
+
+  if (! nameValueString(nameValues, "named_colors", namedColorsStr))
+    namedColorsStr = "";
+
+  CQChartsNameValues namedColors;
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(namedColorsStr, strs))
+    return namedColors;
+
+  for (const auto &str : strs) {
+    QStringList strs1;
+
+    if (! CQTcl::splitList(str, strs1) || strs1.length() != 2)
+      continue;
+
+    namedColors.setNameValue(strs1[0], QColor(strs1[1]));
+  }
+
+  return namedColors;
+}
+
+CQChartsNameValues
+CQChartsColumnType::
+namedImages(const CQChartsNameValues &nameValues) const
+{
+  QString namedImagesStr;
+
+  if (! nameValueString(nameValues, "named_images", namedImagesStr))
+    namedImagesStr = "";
+
+  CQChartsNameValues namedImages;
+
+  QStringList strs;
+
+  if (! CQTcl::splitList(namedImagesStr, strs))
+    return namedImages;
+
+  for (const auto &str : strs) {
+    QStringList strs1;
+
+    if (! CQTcl::splitList(str, strs1) || strs1.length() != 2)
+      continue;
+
+    CQChartsImage image(strs1[1]);
+
+    namedImages.setNameValue(strs1[0], CQChartsVariant::fromImage(image));
+  }
+
+  return namedImages;
 }
 
 bool

@@ -17,6 +17,7 @@ setPenBrush(CQChartsPaintDevice *device, const PenBrush &penBrush)
   device->setPen      (penBrush.pen);
   device->setBrush    (penBrush.brush);
   device->setAltColor (penBrush.altColor);
+  device->setAltAlpha (penBrush.altAlpha);
   device->setFillAngle(penBrush.fillAngle);
 }
 
@@ -1642,7 +1643,9 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   pdx += pdx1;
   pdy += pdy1;
 
-  auto ptbbox1 = ptbbox.translated(pdx, pdy); // inner text rect
+//auto ptbbox1 = ptbbox.translated(pdx, pdy); // inner text rect
+  BBox ptbbox1(ptbbox.getXMin() + pdx                , ptbbox.getYMin() + pdy,
+               ptbbox.getXMin() + pdx + psize.width(), ptbbox.getYMin() + pdy + psize.height());
 
   //---
 
@@ -1665,6 +1668,9 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
 
   painter->save();
 
+  //painter->drawRect(ptbbox .qrect()); // DEBUG
+  //painter->drawRect(ptbbox1.qrect()); // DEBUG
+
   if (! options.angle.isZero()) {
   //auto tc = ptbbox1.getCenter().qpoint();
     auto tc = device->windowToPixel(center).qpoint();
@@ -1680,29 +1686,37 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   td.setHtml(text);
   td.setDefaultFont(device->font());
 
-  auto ptbbox2 = ptbbox1.translated(-ptbbox.getXMin(), -ptbbox.getYMin()); // move to origin
+  //auto ptbbox2 = ptbbox1.translated(-ptbbox.getXMin(), -ptbbox.getYMin()); // move to origin
+
+  double tx = ptbbox1.getXMin();
+  double ty = ptbbox1.getYMin();
 
   if (device->isInteractive())
-    painter->translate(ptbbox1.getXMin(), ptbbox1.getYMin());
+    painter->translate(tx, ty);
 
-  if (options.angle.isZero())
-    painter->setClipRect(ptbbox2.qrect(), Qt::IntersectClip);
+  //if (options.angle.isZero())
+  //  painter->setClipRect(ptbbox2.qrect(), Qt::IntersectClip);
 
+  int pw = ptbbox.getWidth();  // psize.width() ?
+  int ph = ptbbox.getHeight(); // psize.width() ?
   int pm = 8;
 
-  td.setPageSize(QSizeF(ptbbox.getWidth() + pm, ptbbox.getHeight() + pm));
+  td.setPageSize(QSizeF(pw + pm, ph + pm));
 
   //---
 
-  QTextCursor cursor(&td);
+  // TODO: setting 'global' align screws up existing align in html text
+  if (options.alignHtml) {
+    QTextCursor cursor(&td);
 
-  cursor.select(QTextCursor::Document);
+    cursor.select(QTextCursor::Document);
 
-  QTextBlockFormat f;
+    QTextBlockFormat f;
 
-  f.setAlignment(options.align);
+    f.setAlignment(options.align);
 
-  cursor.setBlockFormat(f);
+    cursor.setBlockFormat(f);
+  }
 
   //---
 
@@ -1743,7 +1757,7 @@ drawHtmlText(PaintDevice *device, const Point &center, const BBox &tbbox,
   }
 
   if (device->isInteractive())
-    painter->translate(-ptbbox1.getXMin(), -ptbbox1.getYMin());
+    painter->translate(-tx, -ty);
 
   //---
 

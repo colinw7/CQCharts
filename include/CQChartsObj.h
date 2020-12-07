@@ -35,6 +35,7 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(bool               inside     READ isInside     WRITE setInside    )
   Q_PROPERTY(bool               selectable READ isSelectable WRITE setSelectable)
   Q_PROPERTY(bool               editable   READ isEditable   WRITE setEditable  )
+  Q_PROPERTY(int                priority   READ priority     WRITE setPriority  )
 
  public:
   using BBox  = CQChartsGeom::BBox;
@@ -118,6 +119,12 @@ class CQChartsObj : public QObject {
 
   //---
 
+  //! get/set priority
+  int priority() const { return priority_; }
+  void setPriority(int i) { priority_ = i; }
+
+  //---
+
   //! is point inside object
   virtual bool contains(const Point &p) const = 0;
 
@@ -143,6 +150,7 @@ class CQChartsObj : public QObject {
   bool               inside_     { false };   //!< is mouse inside
   bool               editable_   { false };   //!< is editable
   bool               selectable_ { true };    //!< is selectable
+  int                priority_   { 0 };       //!< priority
   mutable std::mutex mutex_;                  //!< mutex for calc id/tip
 };
 

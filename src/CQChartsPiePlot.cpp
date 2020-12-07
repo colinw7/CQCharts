@@ -1260,7 +1260,7 @@ QString
 CQChartsPieObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(colorIndex());
+  return QString("%1:%2:%3").arg(typeName()).arg(ig().i).arg(iv().i);
 }
 
 QString
@@ -1587,7 +1587,7 @@ draw(PaintDevice *device) const
 
       textOptions.html = true;
 
-      CQChartsDrawUtil::drawTextAtPoint(device, pt, labelStr, textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(device, pt, labelStr, textOptions, /*centered*/true);
     }
   }
 }

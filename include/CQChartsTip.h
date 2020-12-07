@@ -12,7 +12,7 @@ class CQChartsTableTip {
  public:
   CQChartsTableTip() {
     //str_ += "<b></b>\n";
-    str_ += "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>";
+    //str_ += "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>";
   }
 
   void addBoldLine(const QString &name) {
@@ -57,10 +57,13 @@ class CQChartsTableTip {
   }
 
   QString str() {
+    if (str_ == "")
+      return str_;
+
     if (inTable_)
       str_ += "</table>";
 
-    return str_;
+    return "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>" + str_;
   }
 
   void addColumn(const CQChartsColumn &c) {

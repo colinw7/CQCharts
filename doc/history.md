@@ -1254,3 +1254,7 @@
  + support image as fill pattern
  + reorganize path generation/processing code
  + add alpha column support
+# 12/07/2020
+ + add support for named colors and images
+ + add wheel plot (weather wheel)
+ + allow custom plot overlay draw

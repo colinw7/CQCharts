@@ -92,6 +92,7 @@ CQChartsStripPlot.cpp \
 CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
+CQChartsWheelPlot.cpp \
 CQChartsWordCloudPlot.cpp \
 CQChartsXYPlot.cpp \
 \
@@ -440,6 +441,7 @@ HEADERS += \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTablePlot.h \
 ../include/CQChartsTreeMapPlot.h \
+../include/CQChartsWheelPlot.h \
 ../include/CQChartsWordCloudPlot.h \
 ../include/CQChartsXYPlot.h \
 \

@@ -5,6 +5,7 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsImage.h>
 #include <CQChartsColor.h>
+#include <CQChartsAlpha.h>
 #include <CQChartsAngle.h>
 
 /*!
@@ -20,8 +21,8 @@
  *   uses fill color/alpha, scale
  *  Gradient (Linear, Radial, Palette)
  *   uses fill color/alpha, optional pattern alt color and pattern angle
- *  Image
- *   uses image
+ *  Image, Texture, MASK
+ *   uses image (texture is gray scale colored by fill color, mask is b/w with dark fg)
  */
 class CQChartsFillPattern {
  public:
@@ -37,7 +38,9 @@ class CQChartsFillPattern {
     LGRADIENT,
     RGRADIENT,
     PALETTE,
-    IMAGE
+    IMAGE,
+    TEXTURE,
+    MASK
   };
 
  public:
@@ -49,6 +52,7 @@ class CQChartsFillPattern {
   using PaletteName = CQChartsPaletteName;
   using Image       = CQChartsImage;
   using Color       = CQChartsColor;
+  using Alpha       = CQChartsAlpha;
   using Angle       = CQChartsAngle;
 
  public:
@@ -86,7 +90,7 @@ class CQChartsFillPattern {
 
   //! get/set image
   const Image &image() const { return image_; }
-  void setImage(const Image &i) { image_ = i; }
+  void setImage(const Image &i);
 
   //---
 
@@ -99,6 +103,10 @@ class CQChartsFillPattern {
   //! get/set alt color (for pattern)
   const Color &altColor() const { return altColor_; }
   void setAltColor(const Color &c) { altColor_ = c; }
+
+  //! get/set alt alpha (for pattern)
+  const Alpha &altAlpha() const { return altAlpha_; }
+  void setAltAlpha(const Alpha &a) { altAlpha_ = a; }
 
   //---
 
@@ -123,13 +131,28 @@ class CQChartsFillPattern {
 
   //---
 
+  void reset() {
+    type_     = Type::NONE;
+    scale_    = 1.0;
+    palette_  = PaletteName();
+    image_    = Image();
+    angle_    = Angle();
+    altColor_ = Color();
+    altAlpha_ = Alpha();
+  }
+
+  //---
+
   friend bool operator==(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
-    return (lhs.type    () == rhs.type    () &&
-            lhs.scale   () == rhs.scale   () &&
+    if (lhs.type() != rhs.type()) return false;
+
+    // TODO: only compare values for type
+    return (lhs.scale   () == rhs.scale   () &&
             lhs.palette () == rhs.palette () &&
             lhs.image   () == rhs.image   () &&
             lhs.angle   () == rhs.angle   () &&
-            lhs.altColor() == rhs.altColor());
+            lhs.altColor() == rhs.altColor() &&
+            lhs.altAlpha() == rhs.altAlpha());
   }
 
   friend bool operator!=(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
@@ -151,12 +174,13 @@ class CQChartsFillPattern {
   bool setValue(const QString &str);
 
  private:
-  Type        type_  { Type::NONE };
-  double      scale_ { 1.0 };
-  PaletteName palette_;
-  Image       image_;
-  Angle       angle_;
-  Color       altColor_;
+  Type        type_     { Type::NONE }; //! pattern type
+  double      scale_    { 1.0 };        //! scale for pattern (ldiag, ...)
+  PaletteName palette_;                 //! palette name for gradients
+  Image       image_;                   //! image
+  Angle       angle_;                   //! angle for gradient
+  Color       altColor_;                //! alt color for gradient/image background
+  Alpha       altAlpha_;                //! alt alpha for gradient/image background
 };
 
 //---

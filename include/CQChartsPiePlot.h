@@ -564,8 +564,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   virtual PieGroupObj *createGroupObj(const BBox &bbox, int groupInd, const QString &name,
                                       const ColorInd &ig) const;
 
-  virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind,
-                               const ColorInd &ig) const;
+  virtual PieObj *createPieObj(const BBox &rect, const QModelIndex &ind, const ColorInd &ig) const;
 
  public slots:
   void setDonut(bool b);

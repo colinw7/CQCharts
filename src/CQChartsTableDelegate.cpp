@@ -235,48 +235,9 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     //---
 
-    const auto &drawColor = columnData.details->tableDrawColor();
-    const auto &drawStops = columnData.details->tableDrawStops();
-
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
-      QColor bg;
-
-      if (drawColor.isValid()) {
-        if (drawColor.isDirect()) {
-          // blend fixed color with background color using normalized value
-          CQChartsUtil::ColorInd colorInd;
-
-          auto bg1 = charts()->interpColor(drawColor, colorInd);
-          auto bg2 = option.palette.color(QPalette::Window);
-
-          bg = CQChartsUtil::blendColors(bg1, bg2, norm);
-        }
-        else {
-          bool hasStops = drawStops.isValid();
-          bool relative = (hasStops ? drawStops.isPercent() : true);
-
-          if (hasStops) {
-            int ind = drawStops.ind(relative ? norm : r);
-
-            CQChartsUtil::ColorInd colorInd(ind, drawStops.size() + 1);
-
-            bg = charts()->interpColor(drawColor, colorInd);
-          }
-          else {
-            // use interpolated color directly
-            CQChartsUtil::ColorInd colorInd(norm);
-
-            bg = charts()->interpColor(drawColor, colorInd);
-          }
-        }
-      }
-      else {
-        // blend default color (red) with background color using normalized value
-        auto bg1 = QColor(255, 0, 0);
-        auto bg2 = option.palette.color(QPalette::Window);
-
-        bg = CQChartsUtil::blendColors(bg1, bg2, norm);
-      }
+      auto bg = columnData.details->
+        heatmapColor(r, min, max, option.palette.color(QPalette::Window));
 
       //---
 
@@ -305,14 +266,8 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       double lw =      norm *option.rect.width();
       double rw = (1 - norm)*option.rect.width();
 
-      auto bg1 = QColor(160, 160, 160);
+      auto bg1 = columnData.details->barchartColor();
       auto bg2 = option.palette.color(QPalette::Window);
-
-      if (drawColor.isValid()) {
-        CQChartsUtil::ColorInd colorInd;
-
-        bg1 = charts()->interpColor(drawColor, colorInd);
-      }
 
       QRectF lrect(option.rect.left()     , option.rect.top(), lw, option.rect.height());
       QRectF rrect(option.rect.left() + lw, option.rect.top(), rw, option.rect.height());

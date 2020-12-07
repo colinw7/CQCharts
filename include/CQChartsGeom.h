@@ -348,7 +348,7 @@ class BBox {
   }
 
   explicit BBox(const QRectF &rect) :
-   pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(rect.isValid()) {
+   pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(! rect.isNull()) {
     if (isSet())
       (void) update();
   }

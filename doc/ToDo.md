@@ -3,11 +3,17 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + draw html text in box does not work when box larger than text
+ + set model column_type data should not lose existing data
+ + chord directional arrow (triangle end)
+ + better mutex handling in model/column details
  + game of life
- + particles demo
+ + particles demo (fireworks)
  + sankey
    + remove overlaps keeps path id order (especially if single value)
    + track space below and reuse if possible
+     + spread by smallest and use groups
+   + adjust bezier to reduce overlaps
  + better title bar renderer for tip
  + annotations for all plot draw types
    + contour

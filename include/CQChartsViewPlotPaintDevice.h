@@ -66,6 +66,8 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setBrush(const QBrush &brush) override;
 
   void setAltColor(const QColor &c) override;
+  void setAltAlpha(double alpha) override;
+
   void setFillAngle(double a) override;
 
   void fillPath  (const QPainterPath &path, const QBrush &brush) override;
@@ -103,12 +105,16 @@ class CQChartsViewPlotPaintDevice : public CQChartsPaintDevice {
   void setRenderHints(QPainter::RenderHints hints, bool on) override;
 
  private:
-  QBrush adjustFillBrush(const QBrush &brush, const BBox &bbox) const;
+  void updateBackground();
+
+  bool adjustFillBrush(const QBrush &brush, const BBox &bbox, QBrush &brush1) const;
 
  private:
   QPainter*           painter_       { nullptr };
   BBox                clipRect_;
   QPainterPath        clipPath_;
+  QColor              altColor_;
+  double              altAlpha_      { 1.0 };
   bool                zoomFont_      { false };
   bool                handDrawn_     { false };
   double              handRoughness_ { 1.0 };

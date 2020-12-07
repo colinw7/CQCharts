@@ -21,23 +21,32 @@ class CQChartsPaletteName {
 
  public:
   //! default constructor
-  CQChartsPaletteName(const QString &name="");
+  explicit CQChartsPaletteName(const QString &str="");
 
   bool isValid() const;
+
+  //---
 
   //! get/set name
   const QString &name() const { return name_; }
   bool setName(const QString &name);
 
+  double min() const { return min_; }
+  void setMin(double r) { min_ = r; }
+
+  double max() const { return max_; }
+  void setMax(double r) { max_ = r; }
+
   //---
 
+  //! get associated palette data
   CQColorsPalette *palette() const;
 
   //---
 
   //! color to/from string for QVariant
-  QString toString() const { return name(); }
-  bool fromString(const QString &s) { return setName(s); }
+  QString toString() const;
+  bool fromString(const QString &s);
 
   //---
 
@@ -52,7 +61,9 @@ class CQChartsPaletteName {
   }
 
  private:
-  QString name_; //!< name
+  QString name_;        //!< name
+  double  min_ { 0.0 }; //!< min
+  double  max_ { 1.0 }; //!< max
 };
 
 //---

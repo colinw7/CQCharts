@@ -92,6 +92,9 @@ class CQChartsModelData : public QObject {
   // get id string (name or index)
   QString id() const;
 
+  // get default id string (from index)
+  QString defId() const;
+
   //---
 
   void select(const QItemSelection &sel);

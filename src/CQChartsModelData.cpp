@@ -120,6 +120,13 @@ id() const
   if (name().length())
     return name();
 
+  return defId();
+}
+
+QString
+CQChartsModelData::
+defId() const
+{
   return QString("model:%1").arg(ind());
 }
 

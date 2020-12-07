@@ -14,21 +14,45 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsFillPattern", "fill_pattern");
 }
 
+void
+CQChartsFillPattern::
+setImage(const Image &i)
+{
+  image_ = i;
+
+  if      (type_ == Type::TEXTURE)
+    image_.setImageType("texture");
+  else if (type_ == Type::MASK)
+    image_.setImageType("mask");
+  else
+    image_.setImageType("image");
+}
+
 QString
 CQChartsFillPattern::
 toString() const
 {
   auto str = typeToString(type_);
 
-  if      (type_ == Type::PALETTE)
-    str += ":" + palette().toString();
-  else if (type_ == Type::IMAGE)
-    str += ":" + image().toString();
-  else if (altColor().isValid())
-    str += ":";
+  if      (type_ == Type::PALETTE) {
+    QString name = palette().toString();
 
-  if (altColor().isValid())
+    if (name != "")
+      str += ":" + name;
+  }
+  else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
+    QString name = image().toString();
+
+    if (name != "")
+      str += ":" + name;
+  }
+
+  if (altColor().isValid()) {
     str += QString(":%1").arg(altColor().toString());
+
+    if (altAlpha() != Alpha())
+      str += QString("|%1").arg(altAlpha().toString());
+  }
 
   if (scale() != 1.0)
     str += QString("*%1").arg(scale());
@@ -47,12 +71,27 @@ fromString(const QString &s)
 }
 
 // format:
-//   <typeStr>[:<dataStr>][:<altColor>][*<scale>][@<angle>]
+//   <typeStr>[:<dataStr>][:<altColor>[|<altAlpha>]][*<scale>][@<angle>]
 bool
 CQChartsFillPattern::
 setValue(const QString &s)
 {
+  reset();
+
+  //---
+
   QString typeStr, dataStr, altColorStr, scaleStr, angleStr;
+
+  auto updateType = [&]() {
+    auto type = stringToType(typeStr);
+    if (type == Type::NONE) return false;
+
+    type_ = type;
+
+    return true;
+  };
+
+  //---
 
   auto lhs = s;
 
@@ -60,14 +99,22 @@ setValue(const QString &s)
 
   auto pos = lhs.indexOf(":");
 
-  // :<dataStr>[:<altColor>][*<scale>][@<angle>]
+  // :<dataStr>[:<altColor>[|<altAlpha>]][*<scale>][@<angle>]
   if (pos >= 0) {
     rhs     = lhs.mid(pos + 1);
     typeStr = lhs.mid(0, pos);
 
+    //---
+
+    // update type which can change later parse
+    if (! updateType())
+      return false;
+
+    //---
+
     auto pos1 = rhs.indexOf(":");
 
-    // :<altColor>[*<scale>][@<angle>]
+    // :<altColor>[|<altAlpha>][*<scale>][@<angle>]
     if (pos1 >= 0) {
       dataStr = rhs.mid(0, pos1);
       rhs     = rhs.mid(pos1 + 1);
@@ -146,6 +193,14 @@ setValue(const QString &s)
       typeStr = rhs.mid(0, pos1);
       rhs     = rhs.mid(pos1 + 1);
 
+      //---
+
+      // get type
+      if (! updateType())
+        return false;
+
+      //---
+
       auto pos2 = rhs.indexOf("@");
 
       // @<angle>
@@ -166,15 +221,14 @@ setValue(const QString &s)
       }
       else
         typeStr = rhs;
+
+      //---
+
+      // get type
+      if (! updateType())
+        return false;
     }
   }
-
-  auto type = stringToType(typeStr);
-
-  if (type == Type::NONE)
-    return false;
-
-  type_ = type;
 
   if (scaleStr != "") {
     bool ok;
@@ -182,10 +236,22 @@ setValue(const QString &s)
     if (! ok) scale_ = 1.0;
   }
 
+  //---
+
+  assert(type_ != Type::NONE);
+
   if      (type_ == Type::PALETTE)
-    palette_ = dataStr;
-  else if (type_ == Type::IMAGE)
-    image_ = dataStr;
+    palette_ = CQChartsPaletteName(dataStr);
+  else if (type_ == Type::IMAGE || type_ == Type::TEXTURE || type_ == Type::MASK) {
+    image_ = CQChartsImage(dataStr);
+
+    if      (type_ == Type::TEXTURE)
+      image_.setImageType("texture");
+    else if (type_ == Type::MASK)
+      image_.setImageType("mask");
+    else
+      image_.setImageType("image");
+  }
 
   if (angleStr != "") {
     bool ok;
@@ -193,8 +259,21 @@ setValue(const QString &s)
     if (! ok) angle_ = Angle();
   }
 
-  if (altColorStr != "")
+  if (altColorStr != "") {
+    auto pos = altColorStr.indexOf('|');
+
+    if (pos >= 0) {
+      QString altAlphaStr = altColorStr.mid(pos + 1);
+
+      altColorStr = altColorStr.mid(0, pos);
+
+      bool ok;
+      altAlpha_ = Alpha(altAlphaStr.toDouble(&ok));
+      if (! ok) altAlpha_ = Alpha();
+    }
+
     altColor_ = Color(altColorStr);
+  }
 
   return true;
 }
@@ -218,6 +297,8 @@ stringToType(const QString &str)
   if (ustr == "RGRADIENT" ) return Type::RGRADIENT;
   if (ustr == "PALETTE"   ) return Type::PALETTE;
   if (ustr == "IMAGE"     ) return Type::IMAGE;
+  if (ustr == "TEXTURE"   ) return Type::TEXTURE;
+  if (ustr == "MASK"      ) return Type::MASK;
 
   return Type::NONE;
 }
@@ -238,6 +319,8 @@ typeToString(const Type &type)
     case Type::RGRADIENT: return "RGRADIENT";
     case Type::PALETTE:   return "PALETTE";
     case Type::IMAGE:     return "IMAGE";
+    case Type::TEXTURE:   return "TEXTURE";
+    case Type::MASK:      return "MASK";
     default:              return "NONE";
   }
 }
@@ -277,6 +360,8 @@ typeToStyle(const Type &type)
     case Type::RGRADIENT: return Qt::RadialGradientPattern;
     case Type::PALETTE:   return Qt::LinearGradientPattern;
     case Type::IMAGE:     return Qt::TexturePattern;
+    case Type::TEXTURE:   return Qt::TexturePattern;
+    case Type::MASK:      return Qt::TexturePattern;
     default:              return Qt::NoBrush;
   }
 }
@@ -287,7 +372,7 @@ enumNames() const
 {
   static QStringList names = QStringList() <<
     "SOLID" << "HATCH" << "DENSE" << "HORIZONTAL" << "VERTICAL" << "FDIAG" << "BDIAG" <<
-    "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE";
+    "LGRADIENT" << "RGRADIENT" << "PALETTE" << "IMAGE" << "TEXTURE" << "MASK";
 
   return names;
 }

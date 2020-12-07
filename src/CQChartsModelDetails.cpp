@@ -604,9 +604,7 @@ dataName(const QVariant &v) const
   if (! charts) return QVariant();
 
   const auto *columnType = this->columnType();
-
-  if (! columnType)
-    return v;
+  if (! columnType) return v;
 
   auto *model = details_->model();
 
@@ -1188,6 +1186,8 @@ initCache() const
 
       initializing_.store(false);
     }
+
+    assert(! initializing_.load());
   }
 }
 
@@ -1645,6 +1645,8 @@ initType() const
 
       initializing_.store(false);
     }
+
+    assert(! initializing_.load());
   }
 
   return rc;
@@ -1674,9 +1676,7 @@ calcType()
   //---
 
   auto *model = details_->model();
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   if (! column_.isValid())
     return false;
@@ -1707,9 +1707,7 @@ calcType()
   // get column type and name values
   // TODO: calls CQChartsModelVisitor, integrate into this visitor
   auto *charts = details_->charts();
-
-  if (! charts)
-    return false;
+  if (! charts) return false;
 
   if (! CQChartsModelUtil::columnValueType(charts, model, column_, typeData_)) {
     typeData_.type     = CQBaseModelType::NONE;
@@ -1741,6 +1739,9 @@ calcType()
     tableDrawColor_ = columnType->drawColor(nameValues);
     tableDrawType_  = columnType->drawType (nameValues);
     tableDrawStops_ = columnType->drawStops(nameValues);
+
+  //namedColors_ = columnType->namedColors(nameValues);
+  //namedImages_ = columnType->namedImages(nameValues);
   }
 
   //---
@@ -1839,9 +1840,7 @@ CQChartsModelColumnDetails::
 columnNameValue(const QString &name, QString &value) const
 {
   const auto *columnType = this->columnType();
-
-  if (! columnType)
-    return false;
+  if (! columnType) return false;
 
   if (! columnType->nameValueString(nameValues(), name, value))
     return false;
@@ -1859,4 +1858,137 @@ columnType() const
   auto *columnTypeMgr = charts->columnTypeMgr();
 
   return columnTypeMgr->getType(typeData_.type);
+}
+
+//---
+
+QColor
+CQChartsModelColumnDetails::
+heatmapColor(double r, double min, double max, const QColor &bg) const
+{
+  initType();
+
+  QColor c = bg;
+
+  auto *charts = details_->charts();
+  if (! charts) return c;
+
+  double norm = (max > min ? (r - min)/(max - min) : 0.0);
+
+  const auto &drawColor = this->tableDrawColor();
+
+  if (drawColor.isValid()) {
+    if (drawColor.isDirect()) {
+      // blend fixed color with background color using normalized value
+      CQChartsUtil::ColorInd colorInd;
+
+      auto bg1 = charts->interpColor(drawColor, colorInd);
+      auto bg2 = bg;
+
+      c = CQChartsUtil::blendColors(bg1, bg2, norm);
+    }
+    else {
+      const auto &drawStops = this->tableDrawStops();
+
+      bool hasStops = drawStops.isValid();
+      bool relative = (hasStops ? drawStops.isPercent() : true);
+
+      if (hasStops) {
+        int ind = drawStops.ind(relative ? norm : r);
+
+        CQChartsUtil::ColorInd colorInd(ind, drawStops.size() + 1);
+
+        c = charts->interpColor(drawColor, colorInd);
+      }
+      else {
+        // use interpolated color directly
+        CQChartsUtil::ColorInd colorInd(norm);
+
+        c = charts->interpColor(drawColor, colorInd);
+      }
+    }
+  }
+  else {
+    // blend default color (red) with background color using normalized value
+    auto bg1 = QColor(255, 0, 0);
+    auto bg2 = bg;
+
+    c = CQChartsUtil::blendColors(bg1, bg2, norm);
+  }
+
+  return c;
+}
+
+QColor
+CQChartsModelColumnDetails::
+barchartColor() const
+{
+  initType();
+
+  auto c = QColor(160, 160, 160); // gray
+
+  auto *charts = details_->charts();
+  if (! charts) return c;
+
+  const auto &drawColor = this->tableDrawColor();
+
+  if (drawColor.isValid()) {
+    CQChartsUtil::ColorInd colorInd;
+
+    c = charts->interpColor(drawColor, colorInd);
+  }
+
+  return c;
+}
+
+bool
+CQChartsModelColumnDetails::
+namedColor(const QString &name, Color &color) const
+{
+  initType();
+
+  const auto *columnType = this->columnType();
+  if (! columnType) return false;
+
+  const auto &nameValues  = typeData_.nameValues;
+  const auto &namedColors = columnType->namedColors(nameValues);
+
+  QVariant value;
+
+  if (! namedColors.nameValue(name, value))
+    return false;
+
+  bool ok;
+  auto color1 = CQChartsVariant::toColor(value, ok);
+  if (! ok) return false;
+
+  color = color1;
+
+  return true;
+}
+
+bool
+CQChartsModelColumnDetails::
+namedImage(const QString &name, CQChartsImage &image) const
+{
+  initType();
+
+  const auto *columnType = this->columnType();
+  if (! columnType) return false;
+
+  const auto &nameValues  = typeData_.nameValues;
+  const auto &namedImages = columnType->namedImages(nameValues);
+
+  QVariant value;
+
+  if (! namedImages.nameValue(name, value))
+    return false;
+
+  bool ok;
+  auto image1 = CQChartsVariant::toImage(value, ok);
+  if (! ok) return false;
+
+  image = image1;
+
+  return true;
 }

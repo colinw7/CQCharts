@@ -127,6 +127,9 @@ class CQChartsColumnType {
   using NameValues      = CQChartsNameValues;
   using ColumnTypeParam = CQChartsColumnTypeParam;
   using ModelTypeData   = CQChartsModelTypeData;
+  using Color           = CQChartsColor;
+  using ColorStops      = CQChartsColorStops;
+  using ColumnDetails   = CQChartsModelColumnDetails;
 
  public:
   CQChartsColumnType(Type type);
@@ -184,14 +187,16 @@ class CQChartsColumnType {
   // index type (TODO: assert if index invalid or not supported ?)
   virtual Type indexType(const QString &) const { return type(); }
 
-  CQChartsModelColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
-                                            const Column &column) const;
+  ColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
+                               const Column &column) const;
 
-  int                preferredWidth(const NameValues &nameValues) const;
-  QString            nullValue     (const NameValues &nameValues) const;
-  CQChartsColor      drawColor     (const NameValues &nameValues) const;
-  DrawType           drawType      (const NameValues &nameValues) const;
-  CQChartsColorStops drawStops     (const NameValues &nameValues) const;
+  int        preferredWidth(const NameValues &nameValues) const;
+  QString    nullValue     (const NameValues &nameValues) const;
+  Color      drawColor     (const NameValues &nameValues) const;
+  DrawType   drawType      (const NameValues &nameValues) const;
+  ColorStops drawStops     (const NameValues &nameValues) const;
+  NameValues namedColors   (const NameValues &nameValues) const;
+  NameValues namedImages   (const NameValues &nameValues) const;
 
   bool nameValueString(const NameValues &nameValues, const QString &name, QString &value) const;
 

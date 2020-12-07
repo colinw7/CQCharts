@@ -31,6 +31,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTablePlot.h>
 #include <CQChartsTreeMapPlot.h>
+#include <CQChartsWheelPlot.h>
 #include <CQChartsWordCloudPlot.h>
 #include <CQChartsXYPlot.h>
 
@@ -227,6 +228,8 @@ description()
         IMG("images/table.png")),
      LI("TreeMap : Hierarchical tree map" +
         IMG("images/treemap.png")),
+     LI("Wheel : Wheel plot" +
+        IMG("images/wheel.png")),
      LI("Word Cloud : Word Cloud plot" +
         IMG("images/wordcloud.png")),
      LI("XY : x/y monotonic value plot" +
@@ -461,6 +464,7 @@ init()
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("table"        , new CQChartsTablePlotType        );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
+  plotTypeMgr_->addType("wheel"        , new CQChartsWheelPlotType        );
   plotTypeMgr_->addType("wordCloud"    , new CQChartsWordCloudPlotType    );
   plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
 
@@ -1259,6 +1263,10 @@ getModelDataById(const QString &id) const
 {
   for (auto &modelData : modelDatas_)
     if (modelData->id() == id)
+      return modelData;
+
+  for (auto &modelData : modelDatas_)
+    if (modelData->defId() == id)
       return modelData;
 
   return nullptr;

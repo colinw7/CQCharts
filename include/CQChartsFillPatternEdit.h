@@ -6,6 +6,8 @@
 
 class CQChartsFillPatternEdit;
 class CQChartsColorLineEdit;
+class CQChartsAlphaEdit;
+class CQCharts;
 
 /*!
  * \brief FillPattern line edit
@@ -18,6 +20,8 @@ class CQChartsFillPatternLineEdit : public CQChartsLineEditBase {
 
  public:
   CQChartsFillPatternLineEdit(QWidget *parent=nullptr);
+
+  void setCharts(CQCharts *charts);
 
   const CQChartsFillPattern &fillPattern() const;
   void setFillPattern(const CQChartsFillPattern &c);
@@ -69,6 +73,8 @@ class CQChartsFillPatternEdit : public CQChartsEditBase {
  public:
   CQChartsFillPatternEdit(QWidget *parent=nullptr);
 
+  void setCharts(CQCharts *charts);
+
   const CQChartsFillPattern &fillPattern() const { return fillPattern_; }
   void setFillPattern(const CQChartsFillPattern &c);
 
@@ -100,6 +106,7 @@ class CQChartsFillPatternEdit : public CQChartsEditBase {
   CQChartsImageEdit*       imageEdit_    { nullptr }; //!< image edit
   CQChartsAngleEdit*       angleEdit_    { nullptr }; //!< angle edit
   CQChartsColorLineEdit*   altColorEdit_ { nullptr }; //!< alt color edit
+  CQChartsAlphaEdit*       altAlphaEdit_ { nullptr }; //!< alt alpha edit
   WidgetLabels             widgetLabels_;             //!< widget labels
   bool                     connected_    { false };   //!< is connected
 };

@@ -4,6 +4,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsAxisRug.h>
 #include <CQChartsKey.h>
+#include <CQChartsAnnotation.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsArrow.h>
 #include <CQCharts.h>
@@ -16,17 +17,23 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
   charts = nullptr;
 
   plot = qobject_cast<CQChartsPlot *>(obj);
-  if (plot) return;
+
+  if (plot) {
+    charts = plot->charts();
+    return;
+  }
 
   view = qobject_cast<CQChartsView *>(obj);
-  if (view) return;
+
+  if (view) {
+    charts = view->charts();
+    return;
+  }
 
   auto *axis = qobject_cast<CQChartsAxis *>(obj);
 
   if (axis) {
-    plot = axis->plot();
-    if (plot) return;
-
+    plot   = axis->plot();
     charts = axis->charts();
 
     return;
@@ -35,13 +42,23 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
   auto *key = qobject_cast<CQChartsKey *>(obj);
 
   if (key) {
-    plot = key->plot();
-    if (plot) return;
-
-    view = key->view();
-    if (view) return;
-
+    plot   = key->plot();
     charts = key->charts();
+
+    if (! plot)
+      view = key->view();
+
+    return;
+  }
+
+  auto *annotation = qobject_cast<CQChartsAnnotation *>(obj);
+
+  if (annotation) {
+    plot   = annotation->plot();
+    charts = annotation->charts();
+
+    if (! plot)
+      view = annotation->view();
 
     return;
   }
@@ -50,19 +67,23 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
 
   if (symbolMapKey) {
     plot = symbolMapKey->plot();
-    if (plot) return;
+
+    if (plot) {
+      charts = plot->charts();
+      return;
+    }
   }
 
   auto *boxObj = qobject_cast<CQChartsBoxObj *>(obj);
 
   if (boxObj) {
-    plot = boxObj->plot();
-    if (plot) return;
+    plot   = boxObj->plot();
+    charts = boxObj->charts();
+
+    if (plot)
+      return;
 
     view = boxObj->view();
-    if (view) return;
-
-    charts = boxObj->charts();
 
     return;
   }
@@ -70,13 +91,11 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
   auto *arrow = qobject_cast<CQChartsArrow *>(obj);
 
   if (arrow) {
-    plot = arrow->plot();
-    if (plot) return;
-
-    view = arrow->view();
-    if (view) return;
-
+    plot   = arrow->plot();
     charts = arrow->charts();
+
+    if (! plot)
+      view = arrow->view();
 
     return;
   }
@@ -85,9 +104,11 @@ getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCh
 
   if (axisRug) {
     plot = axisRug->plot();
-    if (plot) return;
 
-    return;
+    if (plot) {
+      charts = plot->charts();
+      return;
+    }
   }
 
   assert(false);

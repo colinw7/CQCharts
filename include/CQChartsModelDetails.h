@@ -26,16 +26,17 @@ class CQChartsModelDetails : public QObject {
   Q_PROPERTY(int hierarchical READ isHierarchical)
 
  public:
+  using ModelData     = CQChartsModelData;
   using Column        = CQChartsColumn;
   using Columns       = CQChartsColumns;
   using ColumnDetails = CQChartsModelColumnDetails;
 
  public:
-  CQChartsModelDetails(CQChartsModelData *data);
+  CQChartsModelDetails(ModelData *data);
 
  ~CQChartsModelDetails();
 
-  CQChartsModelData *data() const { return data_; }
+  ModelData *data() const { return data_; }
 
   int numColumns() const;
   int numRows   () const;
@@ -90,7 +91,7 @@ class CQChartsModelDetails : public QObject {
  private:
   using ColumnDetailsMap = std::map<Column, ColumnDetails *>;
 
-  CQChartsModelData* data_ { nullptr }; //!< model data
+  ModelData* data_ { nullptr }; //!< model data
 
   // cached data
   Initialized      initialized_  { Initialized::NONE }; //!< is initialized
@@ -113,11 +114,17 @@ class CQChartsModelDetails : public QObject {
 class CQChartsModelColumnDetails {
  public:
   using Details       = CQChartsModelDetails;
+  using ModelTypeData = CQChartsModelTypeData;
   using Column        = CQChartsColumn;
   using ColumnType    = CQBaseModelType;
   using TableDrawType = CQChartsColumnType::DrawType;
   using ValueCount    = std::pair<QVariant, int>;
   using ValueCounts   = std::vector<ValueCount>;
+  using NameValues    = CQChartsNameValues;
+  using ValueSet      = CQChartsValueSet;
+  using ColorStops    = CQChartsColorStops;
+  using Color         = CQChartsColor;
+  using Image         = CQChartsImage;
 
  public:
   CQChartsModelColumnDetails(Details *details, const Column &column);
@@ -134,7 +141,7 @@ class CQChartsModelColumnDetails {
 
   QString typeName() const;
 
-  const CQChartsModelTypeData &typeData() const;
+  const ModelTypeData &typeData() const;
 
   ColumnType type() const;
   void setType(ColumnType type);
@@ -142,7 +149,7 @@ class CQChartsModelColumnDetails {
   ColumnType baseType() const;
   void setBaseType(ColumnType type);
 
-  const CQChartsNameValues &nameValues() const;
+  const NameValues &nameValues() const;
 
   static const QStringList &getLongNamedValues();
   static const QStringList &getShortNamedValues();
@@ -195,7 +202,7 @@ class CQChartsModelColumnDetails {
 
   //---
 
-  CQChartsValueSet *valueSet() const { return valueSet_; }
+  ValueSet *valueSet() const { return valueSet_; }
 
   //---
 
@@ -205,16 +212,24 @@ class CQChartsModelColumnDetails {
   const QString &nullValue() const { return nullValue_; }
   void setNullValue(const QString &v) { nullValue_ = v; }
 
-  const CQChartsColor &tableDrawColor() const { return tableDrawColor_; }
-  void setTableDrawColor(const CQChartsColor &c) { tableDrawColor_ = c; }
+  const Color &tableDrawColor() const { return tableDrawColor_; }
+  void setTableDrawColor(const Color &c) { tableDrawColor_ = c; }
 
   const TableDrawType &tableDrawType() const { return tableDrawType_; }
   void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
 
-  const CQChartsColorStops &tableDrawStops() const { return tableDrawStops_; }
-  void setTableDrawType(const CQChartsColorStops &s) { tableDrawStops_ = s; }
+  const ColorStops &tableDrawStops() const { return tableDrawStops_; }
+  void setTableDrawType(const ColorStops &s) { tableDrawStops_ = s; }
+
+//const NameValues &namedColors() const { return namedColors_; }
+//void setNamedColors(const NameValues &s) { namedColors_ = s; }
+
+//const NameValues &namedImages() const { return namedImages_; }
+//void setNamedImages(const NameValues &s) { namedImages_ = s; }
 
   bool columnNameValue(const QString &name, QString &value) const;
+
+  //---
 
   virtual bool checkRow(const QVariant &) { return true; }
 
@@ -223,6 +238,15 @@ class CQChartsModelColumnDetails {
   void initCache() const;
 
   const CQChartsColumnType *columnType() const;
+
+  //---
+
+  QColor heatmapColor(double r, double min, double max, const QColor &bgColor) const;
+
+  QColor barchartColor() const;
+
+  bool namedColor(const QString &name, Color &color) const;
+  bool namedImage(const QString &name, Image &image) const;
 
  private:
   void initCache1() const;
@@ -236,11 +260,11 @@ class CQChartsModelColumnDetails {
   void addReal  (double r, bool ok);
   void addString(const QString &s);
   void addTime  (double t, bool ok);
-  void addColor (const CQChartsColor &c, bool ok);
+  void addColor (const Color &c, bool ok);
 
   void addValue(const QVariant &value);
 
-  bool columnColor(const QVariant &var, CQChartsColor &color) const;
+  bool columnColor(const QVariant &var, Color &color) const;
 
  private:
   CQChartsModelColumnDetails(const CQChartsModelColumnDetails &) = delete;
@@ -253,29 +277,31 @@ class CQChartsModelColumnDetails {
   Column   column_;
 
   // cached type data
-  bool                  typeInitialized_ { false }; //!< is type data set
-  CQChartsModelTypeData typeData_;                  //!< column data type
-  QString               typeName_;                  //!< type name
+  bool          typeInitialized_ { false }; //!< is type data set
+  ModelTypeData typeData_;                  //!< column data type
+  QString       typeName_;                  //!< type name
 
   // cached data
-  bool                  initialized_     { false };   //!< is data set
-  QVariant              minValue_;                    //!< min value (as variant)
-  QVariant              maxValue_;                    //!< max value (as variant)
-  int                   numRows_         { 0 };       //!< number of rows
-  bool                  monotonic_       { true };    //!< values are monotonic
-  bool                  increasing_      { true };    //!< values are increasing
-  CQChartsValueSet*     valueSet_        { nullptr }; //!< values
-  VariantInds           valueInds_;                   //!< unique values
+  bool        initialized_ { false };   //!< is data set
+  QVariant    minValue_;                //!< min value (as variant)
+  QVariant    maxValue_;                //!< max value (as variant)
+  int         numRows_     { 0 };       //!< number of rows
+  bool        monotonic_   { true };    //!< values are monotonic
+  bool        increasing_  { true };    //!< values are increasing
+  ValueSet*   valueSet_    { nullptr }; //!< values
+  VariantInds valueInds_;               //!< unique values
 
-  // table render data
-  int                   preferredWidth_ { -1 };
-  QString               nullValue_;
-  CQChartsColor         tableDrawColor_;
-  TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
-  CQChartsColorStops    tableDrawStops_;
+  // cached parameter values
+  int           preferredWidth_  { -1 };
+  QString       nullValue_;
+  Color         tableDrawColor_;
+  TableDrawType tableDrawType_   { TableDrawType::HEATMAP };
+  ColorStops    tableDrawStops_;
+//NameValues    namedColors_;
+//NameValues    namedImages_;
 
   // mutex
-  mutable std::mutex        initMutex_;     //!< mutex
+  mutable std::mutex        initMutex_;    //!< mutex
   mutable std::atomic<bool> initializing_; //!< initializing
 };
 

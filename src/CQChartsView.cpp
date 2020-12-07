@@ -4233,7 +4233,13 @@ drawBackground(CQChartsPaintDevice *device) const
 
   device->setBrush(penBrush.brush);
 
-  device->fillRect(prect_);
+  //device->fillRect(prect_);
+
+  double vr = CQChartsView::viewportRange();
+
+  BBox bbox(0, 0, vr, vr);
+
+  device->fillRect(bbox);
 }
 
 void
