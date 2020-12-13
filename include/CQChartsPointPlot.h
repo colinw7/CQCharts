@@ -360,7 +360,6 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
 
   // data labels
   bool isPointLabels() const;
-  void setPointLabels(bool b);
 
   void setDataLabelFont(const CQChartsFont &font);
 
@@ -445,6 +444,8 @@ class CQChartsPointPlot : public CQChartsGroupPlot,
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
  public slots:
+  void setPointLabels(bool b);
+
   // overlays
   void setBestFit       (bool b);
   void setHull          (bool b);

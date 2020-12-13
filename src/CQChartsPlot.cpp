@@ -1473,6 +1473,8 @@ void
 CQChartsPlot::
 setDataScaleX(double x)
 {
+  assert(allowZoomX());
+
   zoomData_.dataScale.x = x;
 }
 
@@ -1499,6 +1501,8 @@ void
 CQChartsPlot::
 setDataScaleY(double y)
 {
+  assert(allowZoomY());
+
   zoomData_.dataScale.y = y;
 }
 
@@ -1569,8 +1573,11 @@ void
 CQChartsPlot::
 updateDataScale(double r)
 {
-  setDataScaleX(r);
-  setDataScaleY(r);
+  if (allowZoomX())
+    setDataScaleX(r);
+
+  if (allowZoomY())
+    setDataScaleY(r);
 
   applyDataRangeAndDraw();
 }
@@ -1579,7 +1586,8 @@ void
 CQChartsPlot::
 updateDataScaleX(double r)
 {
-  setDataScaleX(r);
+  if (allowZoomX())
+    setDataScaleX(r);
 
   applyDataRangeAndDraw();
 }
@@ -1588,7 +1596,8 @@ void
 CQChartsPlot::
 updateDataScaleY(double r)
 {
-  setDataScaleY(r);
+  if (allowZoomY())
+    setDataScaleY(r);
 
   applyDataRangeAndDraw();
 }
@@ -5249,7 +5258,7 @@ bool
 CQChartsPlot::
 updateInsideObjects(const Point &w, Constraints constraints)
 {
-  // get objects at point
+  // get objects and annotations at point
   Objs objs;
 
   objsAtPoint(w, objs, constraints);
@@ -5736,10 +5745,12 @@ objectsSelectPress(const Point &w, SelMod selMod)
     setInsideObject();
   }
   else {
+    // get selectable objects and annotations at point
     Objs objs;
 
     objsAtPoint(w, objs, Constraints::SELECTABLE);
 
+    // use first object for select
     if (! objs.empty())
       selectObj = *objs.begin();
   }
@@ -5759,11 +5770,11 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
     //---
 
-    //selectObj->selectPress();
-
     auto *selectPlotObj = dynamic_cast<PlotObj *>(selectObj);
 
     if (selectPlotObj) {
+      selectPlotObj->selectPress(w, selMod);
+
       emit objPressed  (selectPlotObj);
       emit objIdPressed(selectPlotObj->id());
     }
@@ -6343,12 +6354,17 @@ objectsEditSelect(const Point &w, bool inside)
     invalidateOverlay();
   };
 
-  // select/deselect plot
-  // (to select point must be inside a plot object)
+  //---
+
+  // get editiable objects and annotations at point
   Objs objs;
 
   objsAtPoint(w, objs, Constraints::EDITABLE);
 
+  //---
+
+  // select/deselect plot
+  // (to select point must be inside a plot object)
   for (const auto &obj : objs) {
     auto *plotObj = dynamic_cast<PlotObj *>(obj);
     if (! plotObj) continue;
@@ -7987,6 +8003,21 @@ posStr(const Point &w) const
   return xStr(w.x) + " " + yStr(w.y);
 }
 
+#if 0
+QString
+CQChartsPlot::
+xStr(const QVariant &var) const
+{
+  bool ok;
+  auto r = var.toDouble(&ok);
+
+  if (ok)
+    return xStr(r);
+
+  return var.toString();
+}
+#endif
+
 QString
 CQChartsPlot::
 xStr(double x) const
@@ -7999,6 +8030,21 @@ xStr(double x) const
   else
     return CQChartsUtil::formatReal(x);
 }
+
+#if 0
+QString
+CQChartsPlot::
+yStr(const QVariant &var) const
+{
+  bool ok;
+  auto r = var.toDouble(&ok);
+
+  if (ok)
+    return yStr(r);
+
+  return var.toString();
+}
+#endif
 
 QString
 CQChartsPlot::
@@ -8186,6 +8232,52 @@ cycleNextPrev(bool prev)
     invalidateOverlay();
   }
 }
+
+//---
+
+void
+CQChartsPlot::
+wheelHScroll(int delta)
+{
+  double panFactor = 0.50;
+
+  if      (delta > 0)
+    panLeft(panFactor);
+  else if (delta < 0)
+    panRight(panFactor);
+}
+
+void
+CQChartsPlot::
+wheelVScroll(int delta)
+{
+  double panFactor = 0.50;
+
+  if      (delta > 0)
+    panUp(panFactor);
+  else if (delta < 0)
+    panDown(panFactor);
+}
+
+void
+CQChartsPlot::
+wheelZoom(const Point &pp, int delta)
+{
+  double zoomFactor = 1.10;
+
+  auto pp1 = pixelToWindow(pp);
+
+  if      (delta > 0)
+    updateDataScale(dataScale()*zoomFactor);
+  else if (delta < 0)
+    updateDataScale(dataScale()/zoomFactor);
+
+  auto pp2 = pixelToWindow(pp); // mapping may have changed
+
+  pan(pp1.x - pp2.x, pp1.y - pp2.y);
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -8564,8 +8656,10 @@ plotTipText(const Point &p, QString &tip, bool single) const
       tipObjs.push_back(obj);
   }
   else {
+    // get selectable objects and annotations at point
     objsAtPoint(p, tipObjs, Constraints::SELECTABLE);
 
+    // use first object for tip
     if (! tipObjs.empty())
       tipObj = *tipObjs.begin();
   }
@@ -8648,6 +8742,7 @@ resetObjTips()
 
 //------
 
+// get objects and annotations at point
 void
 CQChartsPlot::
 objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const
@@ -12754,6 +12849,13 @@ CQChartsPlot::
 calcTextColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
+}
+
+CQChartsColor
+CQChartsPlot::
+calcTextColor(const CQChartsColor &bg) const
+{
+  return CQChartsColor(CQChartsUtil::bwColor(interpColor(bg, ColorInd())));
 }
 
 CQChartsPlot::ColorInd

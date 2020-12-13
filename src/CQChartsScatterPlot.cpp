@@ -2274,8 +2274,8 @@ probe(ProbeData &probeData) const
   probeData.p    = c;
   probeData.both = true;
 
-  probeData.xvals.push_back(c.x);
-  probeData.yvals.push_back(c.y);
+  probeData.xvals.emplace_back(c.x, "", "");
+  probeData.yvals.emplace_back(c.y, "", "");
 
   return true;
 }
@@ -2311,6 +2311,11 @@ addMenuItems(QMenu *menu)
   (void) addMenuCheckedAction(typeMenu, "Hex Cells" , isHexCells (), SLOT(setHexCells(bool)));
 
   menu->addMenu(typeMenu);
+
+  //---
+
+  if (labelColumn().isValid() || nameColumn().isValid())
+    addMenuCheckedAction(menu, "Labels", isPointLabels(), SLOT(setPointLabels(bool)));
 
   //---
 
@@ -3598,9 +3603,8 @@ draw(PaintDevice *device) const
   //---
 
   // draw text labels
-  if (plot_->dataLabel()->isVisible()) {
+  if (plot_->isPointLabels() && name().length())
     drawDataLabel(device);
-  }
 }
 
 void

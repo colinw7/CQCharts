@@ -45,7 +45,6 @@ addParameters()
   addColumnsParameter("outerBubble", "OuterBubble", "outerBubbleColumn").
     setNumeric().setTip("Outer Bubble Column");
 
-
   endParameterGroup();
 
   //---

@@ -2412,24 +2412,23 @@ bool
 CQChartsXYPlot::
 probe(ProbeData &probeData) const
 {
-  std::vector<double> yvals;
+  InterpValues yvals;
 
   if (! interpY(probeData.p.x, yvals))
     return false;
 
   for (const auto &yval : yvals)
-    probeData.yvals.emplace_back(yval);
+    probeData.yvals.emplace_back(yval.y, columnHeaderName(yval.column), "");
 
   return true;
 }
 
 bool
 CQChartsXYPlot::
-interpY(double x, std::vector<double> &yvals) const
+interpY(double x, InterpValues &yvals) const
 {
-  if (isBivariateLines()) {
+  if (isBivariateLines())
     return false;
-  }
 
   for (const auto &plotObj : plotObjs_) {
     auto *polyObj = dynamic_cast<PolylineObj *>(plotObj);
@@ -2437,12 +2436,19 @@ interpY(double x, std::vector<double> &yvals) const
     if (! polyObj)
       continue;
 
+    Column yColumn;
+
+    if (! isColumnSeries())
+      yColumn = yColumns().getColumn(polyObj->is().i);
+    else
+      yColumn = yColumns().getColumn(0);
+
     std::vector<double> yvals1;
 
     polyObj->interpY(x, yvals1);
 
     for (const auto &y1 : yvals1)
-      yvals.push_back(y1);
+      yvals.emplace_back(y1, yColumn);
   }
 
   return ! yvals.empty();
@@ -2519,7 +2525,10 @@ addMenuItems(QMenu *menu)
   //---
 
   addMenuCheckedAction(menu, "Points", isPoints(), SLOT(setPointsSlot(bool)));
-  addMenuCheckedAction(menu, "Lines" , isLines (), SLOT(setLinesSlot(bool)));
+  addMenuCheckedAction(menu, "Lines" , isLines(), SLOT(setLinesSlot(bool)));
+
+  if (labelColumn().isValid())
+    addMenuCheckedAction(menu, "Labels", isPointLabels(), SLOT(setPointLabels(bool)));
 
   menu->addSeparator();
 
@@ -3609,7 +3618,7 @@ bool
 CQChartsXYLabelObj::
 isVisible() const
 {
-  if (! plot()->dataLabel()->isVisible())
+  if (! plot()->isPointLabels())
     return false;
 
   return CQChartsPlotObj::isVisible();

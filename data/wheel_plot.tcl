@@ -1,29 +1,4 @@
-#  0 Address
-#  1 Date time
-#  2 Minimum Temperature
-#  3 Maximum Temperature
-#  4 Temperature
-#  5 Dew Point
-#  6 Relative Humidity
-#  7 Heat Index
-#  8 Wind Speed
-#  9 Wind Gust
-# 10 Wind Direction
-# 11 Wind Chill
-# 12 Precipitation
-# 13 Precipitation Cover
-# 14 Snow Depth
-# 15 Visibility
-# 16 Cloud Cover
-# 17 Sea Level Pressure
-# 18 Weather Type
-# 19 Latitude
-# 20 Longitude
-# 21 Resolved Address
-# 22 Name
-# 23 Info
-# 24 Conditions
-
+# create custom temperature palette
 set palette [create_charts_palette -palette red_green_blue]
 
 set_charts_palette -palette red_green_blue -name defined_colors \
@@ -31,22 +6,50 @@ set_charts_palette -palette red_green_blue -name defined_colors \
 
 #---
 
-set cities {seattle portland sanfrancisco losangeles sandiego}
+# set city ids
+set cities      {seattle portland sanfrancisco losangeles sandiego}
+set city_titles {Seattle Portland {San Francisco} {Los Angeles} {San Diego}}
 
+# create id to name lookup arrays (TODO: use above)
 set city_title(seattle) Seattle
 set city_title(portland) Portland
 set city_title(sanfrancisco) {San Francisco}
 set city_title(losangeles) {Los Angeles}
 set city_title(sandiego) {San Diego}
 
-set city_titles {Seattle Portland {San Francisco} {Los Angeles} {San Diego}}
-
+# create model for each city
 foreach city $cities {
+  #  0 Address
+  #  1 Date time
+  #  2 Minimum Temperature
+  #  3 Maximum Temperature
+  #  4 Temperature
+  #  5 Dew Point
+  #  6 Relative Humidity
+  #  7 Heat Index
+  #  8 Wind Speed
+  #  9 Wind Gust
+  # 10 Wind Direction
+  # 11 Wind Chill
+  # 12 Precipitation
+  # 13 Precipitation Cover
+  # 14 Snow Depth
+  # 15 Visibility
+  # 16 Cloud Cover
+  # 17 Sea Level Pressure
+  # 18 Weather Type
+  # 19 Latitude
+  # 20 Longitude
+  # 21 Resolved Address
+  # 22 Name
+  # 23 Info
+  # 24 Conditions
   set model($city) [load_charts_model -csv data/${city}_weather.csv -first_line_header]
 
   set_charts_data -model $model($city) -column 1 -name column_type \
     -value {{time} {format {%m/%d/%Y}}}
 
+  # set named colors and named images for conditions
   set_charts_data -model $model($city) -column 24 -name column_type \
     -value {{string} {named_colors {
              {{Partially cloudy} {#DDDDDD}}
@@ -68,6 +71,7 @@ foreach city $cities {
              {{Clear} {svg:data/weather_clear.svg}}
             }}}
 
+  # rename columns for shorter tip strings
   set_charts_data -model $model($city) -header -column 1 -name value -value "Date"
   set_charts_data -model $model($city) -header -column 2 -name value -value "Min Temp"
   set_charts_data -model $model($city) -header -column 3 -name value -value "Max Temp"
@@ -75,6 +79,7 @@ foreach city $cities {
   set_charts_data -model $model($city) -header -column 6 -name value -value "Humidity"
 }
 
+# create wheel plot
 set plot [create_charts_plot -type wheel -model $model(seattle) \
   -columns {{x 1} {y 4} {min 2} {max 3} {innerBar 24} {outerBar 6} {outerBubble 12}} \
   -title "Weather for Seattle"]

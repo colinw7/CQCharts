@@ -193,21 +193,22 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool calcColumnRange(int column, int &minVal, int &maxVal);
 
  private:
-  using OptInt     = boost::optional<int>;
-  using OptReal    = boost::optional<double>;
-  using VariantMap = std::map<int, QVariant>;
-  using Args       = std::vector<QString>;
+  using ModelTypeData = CQChartsModelTypeData;
+  using OptInt        = boost::optional<int>;
+  using OptReal       = boost::optional<double>;
+  using VariantMap    = std::map<int, QVariant>;
+  using Args          = std::vector<QString>;
 
   struct ExtraColumn {
-    QString               expr;                          //!< expression
-    QString               header;                        //!< header
-    CQChartsModelTypeData typeData;                      //!< column type data
-    QString               typeValues;                    //!< type extra values
-    QString               headerTypeValues;              //!< header type extra values
-    VariantMap            variantMap;                    //!< calculated values
-    Values                values;                        //!< assign values
-    Function              function   { Function::EVAL }; //!< current eval function
-    std::atomic<bool>     evaluating { false };          //!< is evaluating column
+    QString           expr;                          //!< expression
+    QString           header;                        //!< header
+    ModelTypeData     typeData;                      //!< column type data
+    QString           typeValues;                    //!< type extra values
+    QString           headerTypeValues;              //!< header type extra values
+    VariantMap        variantMap;                    //!< calculated values
+    Values            values;                        //!< assign values
+    Function          function   { Function::EVAL }; //!< current eval function
+    std::atomic<bool> evaluating { false };          //!< is evaluating column
 
     ExtraColumn(const QString &expr, const QString &header="") :
      expr(expr), header(header) {

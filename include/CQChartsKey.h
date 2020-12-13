@@ -29,7 +29,7 @@ class CQChartsKey : public CQChartsBoxObj,
  public CQChartsObjHeaderTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(bool                     horizontal    READ isHorizontal  WRITE setHorizontal   )
+  Q_PROPERTY(Qt::Orientation          orientation   READ orientation   WRITE setOrientation  )
   Q_PROPERTY(bool                     autoHide      READ isAutoHide    WRITE setAutoHide     )
   Q_PROPERTY(bool                     clipped       READ isClipped     WRITE setClipped      )
   Q_PROPERTY(bool                     above         READ isAbove       WRITE setAbove        )
@@ -70,9 +70,11 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //--
 
-  // horizontal
-  bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b);
+  // get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
 
   //---
 
@@ -169,18 +171,18 @@ class CQChartsKey : public CQChartsBoxObj,
     QScrollBar* vbar         { nullptr }; //!< vertical scroll bar
   };
 
-  bool               horizontal_     { false }; //!< is laid out horizontally
-  bool               above_          { true };  //!< draw above view/plot
-  Location           location_;                 //!< key location
-  QString            header_;                   //!< header
-  bool               autoHide_       { true };  //!< auto hide if too big
-  bool               clipped_        { true };  //!< clipped to parent
-  bool               interactive_    { true };  //!< is interactive
-  Alpha              hiddenAlpha_    { 0.3 };   //!< alpha for hidden item
-  int                columns_        { 1 };     //!< columns
-  int                maxRows_        { 100 };   //!< max rows
-  KeyBehavior        pressBehavior_;            //!< press behavior
-  mutable ScrollData scrollData_;               //!< scrollbar data
+  Qt::Orientation    orientation_    { Qt::Vertical }; //!< layout direction
+  bool               above_          { true };         //!< draw above view/plot
+  Location           location_;                        //!< key location
+  QString            header_;                          //!< header
+  bool               autoHide_       { true };         //!< auto hide if too big
+  bool               clipped_        { true };         //!< clipped to parent
+  bool               interactive_    { true };         //!< is interactive
+  Alpha              hiddenAlpha_    { 0.3 };          //!< alpha for hidden item
+  int                columns_        { 1 };            //!< columns
+  int                maxRows_        { 100 };          //!< max rows
+  KeyBehavior        pressBehavior_;                   //!< press behavior
+  mutable ScrollData scrollData_;                      //!< scrollbar data
 };
 
 //------

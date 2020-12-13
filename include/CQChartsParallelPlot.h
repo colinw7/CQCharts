@@ -168,7 +168,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumns yColumns READ yColumns WRITE setYColumns)
 
   // options
-  Q_PROPERTY(bool horizontal READ isHorizontal WRITE setHorizontal)
+  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
 
   // lines (display, stroke)
   CQCHARTS_LINE_DATA_PROPERTIES
@@ -204,8 +204,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  // options
-  bool isHorizontal() const { return horizontal_; }
+  // get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
 
   //---
 
@@ -280,7 +281,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   Column             xColumn_;                             //!< x value column
   Columns            yColumns_;                            //!< y value columns
-  bool               horizontal_      { false };           //!< horizontal bars
+  Qt::Orientation    orientation_     { Qt::Vertical };    //!< axis orientation
   bool               linesSelectable_ { false };           //!< are lines selectable
   Ranges             setRanges_;                           //!< value set ranges
   Qt::Orientation    adir_            { Qt::Horizontal };  //!< axis direction

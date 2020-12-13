@@ -678,8 +678,8 @@ probe(ProbeData &probeData) const
   probeData.p    = c;
   probeData.both = true;
 
-  probeData.xvals.push_back(c.x);
-  probeData.yvals.push_back(c.y);
+  probeData.xvals.emplace_back(c.x, "", "");
+  probeData.yvals.emplace_back(c.y, "", "");
 
   return true;
 }

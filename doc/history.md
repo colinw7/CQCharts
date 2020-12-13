@@ -1258,3 +1258,18 @@
  + add support for named colors and images
  + add wheel plot (weather wheel)
  + allow custom plot overlay draw
+# 12/13/2020
+ + sankey enhancements
+   + support vertical direction
+   + allow display image and value for node label
+ + use orientation instead of horizontal property for consistency
+ + reorder menus to prevent accidental table show
+ + table plot enhancements
+   + separate font for header
+   + support heatmap background
+   + support selection highlight
+   + fix bad zoom with middle mouse
+   + support display of sort state in header and click to toggle direction
+ + probe lines enhancements
+   + allow include column names
+   + allow position top/bottom of plot (with overlap removal)

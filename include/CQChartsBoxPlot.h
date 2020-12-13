@@ -507,12 +507,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn outliersColumn    READ outliersColumn    WRITE setOutliersColumn   )
 
   // options
-  Q_PROPERTY(bool showOutliers READ isShowOutliers WRITE setShowOutliers)
-  Q_PROPERTY(bool connected    READ isConnected    WRITE setConnected   )
-  Q_PROPERTY(bool horizontal   READ isHorizontal   WRITE setHorizontal  )
-  Q_PROPERTY(bool normalized   READ isNormalized   WRITE setNormalized  )
-  Q_PROPERTY(bool notched      READ isNotched      WRITE setNotched     )
-  Q_PROPERTY(bool colorBySet   READ isColorBySet   WRITE setColorBySet  )
+  Q_PROPERTY(bool            showOutliers READ isShowOutliers WRITE setShowOutliers)
+  Q_PROPERTY(bool            connected    READ isConnected    WRITE setConnected   )
+  Q_PROPERTY(Qt::Orientation orientation  READ orientation    WRITE setOrientation )
+  Q_PROPERTY(bool            normalized   READ isNormalized   WRITE setNormalized  )
+  Q_PROPERTY(bool            notched      READ isNotched      WRITE setNotched     )
+  Q_PROPERTY(bool            colorBySet   READ isColorBySet   WRITE setColorBySet  )
 
   // jitter/stacked points
   Q_PROPERTY(PointsType pointsType  READ pointsType WRITE setPointsType)
@@ -631,18 +631,25 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  //! get/set show outliers
   bool isShowOutliers() const { return showOutliers_; }
   void setShowOutliers(bool b);
 
+  //! get/set show connection line
   bool isConnected() const { return connected_; }
   void setConnected(bool b);
 
+  //! get/set box width
   const Length &boxWidth() const { return boxWidth_; }
   void setBoxWidth(const Length &l);
 
   //---
 
-  bool isHorizontal() const { return horizontal_; }
+  //! get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &o);
+
+  //---
 
   bool isNormalized() const { return normalized_; }
 
@@ -846,7 +853,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool               showOutliers_      { true };                    //!< show outliers
   bool               connected_         { false };                   //!< connect boxes
-  bool               horizontal_        { false };                   //!< horizontal bars
+  Qt::Orientation    orientation_       { Qt::Vertical };            //!< bar draw direction
   bool               normalized_        { false };                   //!< normalized values
   PointsType         pointsType_        { PointsType::NONE };        //!< show points type
   bool               notched_           { false };                   //!< show notch

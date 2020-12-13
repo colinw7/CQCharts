@@ -170,7 +170,9 @@ class CQChartsView : public QFrame,
   //! search timeout
   Q_PROPERTY(int searchTimeout READ searchTimeout WRITE setSearchTimeout)
 
-  Q_PROPERTY(bool probeObjects READ isProbeObjects WRITE setProbeObjects)
+  Q_PROPERTY(bool     probeObjects READ isProbeObjects WRITE setProbeObjects)
+  Q_PROPERTY(bool     probeNamed   READ isProbeNamed   WRITE setProbeNamed  )
+  Q_PROPERTY(ProbePos probePos     READ probePos       WRITE setProbePos    )
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -178,6 +180,7 @@ class CQChartsView : public QFrame,
   Q_ENUMS(RegionMode)
   Q_ENUMS(ThemeType)
   Q_ENUMS(PosTextType)
+  Q_ENUMS(ProbePos)
 
  public:
   using SelMod = CQChartsSelMod;
@@ -217,6 +220,12 @@ class CQChartsView : public QFrame,
     PLOT,
     VIEW,
     PIXEL
+  };
+
+  enum class ProbePos {
+    MIN,
+    MAX,
+    VALUE
   };
 
   using DrawType = CQChartsObjDrawType;
@@ -780,8 +789,18 @@ class CQChartsView : public QFrame,
   // probe lines
   void showProbeLines(const Point &p);
 
-  bool isProbeObjects() const { return probeObjects_; }
-  void setProbeObjects(bool b) { probeObjects_ = b; }
+  bool isProbeObjects() const { return probeData_.nearestObject; }
+  void setProbeObjects(bool b) { probeData_.nearestObject = b; }
+
+  bool isProbeNamed() const { return probeData_.valueName; }
+  void setProbeNamed(bool b) { probeData_.valueName = b; }
+
+  const ProbePos &probePos() const { return probeData_.pos; }
+  void setProbePos(const ProbePos &p);
+
+  void updateProbes();
+
+  void removeProbeOverlaps();
 
   //---
 
@@ -1398,7 +1417,8 @@ class CQChartsView : public QFrame,
   using EditKeyDlg        = CQChartsEditKeyDlg;
   using EditTitleDlg      = CQChartsEditTitleDlg;
 
-  using ProbeBands = std::vector<CQChartsProbeBand*>;
+  using ProbeBand  = CQChartsProbeBand;
+  using ProbeBands = std::vector<ProbeBand *>;
 
   using LayerType = Layer::Type;
 
@@ -1458,9 +1478,15 @@ class CQChartsView : public QFrame,
   Point   searchPos_;                 //!< search pos
 
   // rubber bands
-  RegionBand regionBand_; //!< zoom region rubberband
-  ProbeBands probeBands_; //!< probe lines
-  bool       probeObjects_ { true };
+  struct ProbeData {
+    RegionBand regionBand;                        //!< zoom region rubberband
+    ProbeBands bands;                             //!< probe lines
+    bool       nearestObject { true };            //!< probe nearest object
+    bool       valueName     { true };            //!< show value name
+    ProbePos   pos           { ProbePos::VALUE }; //!< probe pos
+  };
+
+  ProbeData probeData_;
 
   // menu
   QMenu* popupMenu_ { nullptr }; //!< context menu

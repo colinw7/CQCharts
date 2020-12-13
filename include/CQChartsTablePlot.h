@@ -68,25 +68,39 @@ class CQChartsTablePlot : public CQChartsPlot {
   // columns
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
-  Q_PROPERTY(Mode              mode          READ mode            WRITE setMode         )
-  Q_PROPERTY(int               maxRows       READ maxRows         WRITE setMaxRows      )
-  Q_PROPERTY(CQChartsColumnNum sortColumn    READ sortColumn      WRITE setSortColumn   )
-  Q_PROPERTY(int               sortRole      READ sortRole        WRITE setSortRole     )
-  Q_PROPERTY(Qt::SortOrder     sortOrder     READ sortOrder       WRITE setSortOrder    )
-  Q_PROPERTY(int               pageSize      READ pageSize        WRITE setPageSize     )
-  Q_PROPERTY(int               currentPage   READ currentPage     WRITE setCurrentPage  )
-  Q_PROPERTY(QString           rowNums       READ rowNumsStr      WRITE setRowNumsStr   )
-  Q_PROPERTY(bool              rowColumn     READ isRowColumn     WRITE setRowColumn    )
-  Q_PROPERTY(bool              headerVisible READ isHeaderVisible WRITE setHeaderVisible)
+  // mode
+  Q_PROPERTY(Mode mode    READ mode    WRITE setMode   )
+  Q_PROPERTY(int  maxRows READ maxRows WRITE setMaxRows)
 
-  Q_PROPERTY(CQChartsColor headerColor     READ headerColor     WRITE setHeaderColor    )
-  Q_PROPERTY(CQChartsColor gridColor       READ gridColor       WRITE setGridColor      )
-  Q_PROPERTY(CQChartsColor textColor       READ textColor       WRITE setTextColor      )
-  Q_PROPERTY(CQChartsColor cellColor       READ cellColor       WRITE setCellColor      )
-  Q_PROPERTY(CQChartsColor insideColor     READ insideColor     WRITE setInsideColor    )
-  Q_PROPERTY(CQChartsColor insideTextColor READ insideTextColor WRITE setInsideTextColor)
+  // sort
+  Q_PROPERTY(CQChartsColumnNum sortColumn READ sortColumn WRITE setSortColumn)
+  Q_PROPERTY(int               sortRole   READ sortRole   WRITE setSortRole  )
+  Q_PROPERTY(Qt::SortOrder     sortOrder  READ sortOrder  WRITE setSortOrder )
 
+  // paging
+  Q_PROPERTY(int pageSize    READ pageSize    WRITE setPageSize   )
+  Q_PROPERTY(int currentPage READ currentPage WRITE setCurrentPage)
+
+  // row number column
+  Q_PROPERTY(QString rowNums   READ rowNumsStr  WRITE setRowNumsStr)
+  Q_PROPERTY(bool    rowColumn READ isRowColumn WRITE setRowColumn )
+
+  // header
+  Q_PROPERTY(bool          headerVisible READ isHeaderVisible WRITE setHeaderVisible)
+  Q_PROPERTY(CQChartsColor headerColor   READ headerColor     WRITE setHeaderColor  )
+  Q_PROPERTY(CQChartsFont  headerFont    READ headerFont      WRITE setHeaderFont   )
+
+  // grid
+  Q_PROPERTY(CQChartsColor gridColor READ gridColor WRITE setGridColor)
+
+  // cells
+  Q_PROPERTY(CQChartsColor cellColor     READ cellColor     WRITE setCellColor    )
+  Q_PROPERTY(CQChartsColor insideColor   READ insideColor   WRITE setInsideColor  )
+  Q_PROPERTY(CQChartsColor selectedColor READ selectedColor WRITE setSelectedColor)
+
+  // options
   Q_PROPERTY(double indent      READ indent       WRITE setIndent    )
+  Q_PROPERTY(int    cellMargin  READ cellMargin   WRITE setCellMargin)
   Q_PROPERTY(bool   followView  READ isFollowView WRITE setFollowView)
 
   Q_ENUMS(Mode)
@@ -176,17 +190,17 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  //! get/set mode
+  Mode mode() const;
+  void setMode(const Mode &mode);
+
+  //---
+
   bool allowZoomX() const override { return false; }
   bool allowZoomY() const override { return false; }
 
   bool allowPanX() const override { return false; }
   bool allowPanY() const override { return false; }
-
-  //---
-
-  // mode
-  Mode mode() const;
-  void setMode(const Mode &m);
 
   //---
 
@@ -237,13 +251,13 @@ class CQChartsTablePlot : public CQChartsPlot {
   const Color &headerColor() const { return headerData_.color; }
   void setHeaderColor(const Color &c);
 
+  const Font &headerFont() const { return headerFont_; }
+  void setHeaderFont(const Font &f);
+
   //---
 
   const Color &gridColor() const { return gridColor_; }
   void setGridColor(const Color &c);
-
-  const Color &textColor() const { return textColor_; }
-  void setTextColor(const Color &c);
 
   const Color &cellColor() const { return cellColor_; }
   void setCellColor(const Color &c);
@@ -251,13 +265,16 @@ class CQChartsTablePlot : public CQChartsPlot {
   const Color &insideColor() const { return insideColor_; }
   void setInsideColor(const Color &v);
 
-  const Color &insideTextColor() const { return insideTextColor_; }
-  void setInsideTextColor(const Color &v);
+  const Color &selectedColor() const { return selectedColor_; }
+  void setSelectedColor(const Color &v);
 
   //---
 
   double indent() const { return indent_; }
   void setIndent(double r);
+
+  int cellMargin() const { return cellMargin_; }
+  void setCellMargin(int i);
 
   //---
 
@@ -305,6 +322,12 @@ class CQChartsTablePlot : public CQChartsPlot {
   //---
 
   const QFont &tableFont() const { return tableData_.font; }
+
+  const QFont &tableHeaderFont() const { return tableData_.headerFont; }
+
+  int sortPixelWidth() const { return tableData_.pSortWidth; }
+
+  //---
 
   double scrollX() const;
   double scrollY() const;
@@ -365,24 +388,26 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //! table data
   struct TableData {
+    QFont           headerFont;
     QFont           font;
     QModelIndexList expandInds;
-    int             nc       { 0 };   //!< number of columns
-    int             nr       { 0 };   //!< number of rows
-    int             nvr      { 0 };   //!< number of visible rows
-    int             maxDepth { 0 };   //!< max model item depth
-    double          prh      { 0.0 }; //!< pixel row height
-    double          rh       { 0.0 }; //!< row height
-    double          pcw      { 0.0 }; //!< pixel columns width
-    double          sx       { 0.0 }; //!< scroll x
-    double          sy       { 0.0 }; //!< scroll y
-    double          dx       { 0.0 }; //!< overflow width
-    double          dy       { 0.0 }; //!< overflow height
-    double          xo       { 0.0 }; //!< x offset
-    double          yo       { 0.0 }; //!< y offset
-    int             pmargin  { 2 };   //!< pixel margin
-    ColumnData      rowColumnData;    //!< row column data
-    ColumnDataMap   columnDataMap;    //!< column data map
+    int             nc         { 0 };   //!< number of columns
+    int             nr         { 0 };   //!< number of rows
+    int             nvr        { 0 };   //!< number of visible rows
+    int             maxDepth   { 0 };   //!< max model item depth
+    int             pSortWidth { 16 };  //!< sort pixel width
+    double          prh        { 0.0 }; //!< pixel row height
+    double          rh         { 0.0 }; //!< row height
+    double          pcw        { 0.0 }; //!< pixel columns width
+    double          sx         { 0.0 }; //!< scroll x
+    double          sy         { 0.0 }; //!< scroll y
+    double          dx         { 0.0 }; //!< overflow width
+    double          dy         { 0.0 }; //!< overflow height
+    double          xo         { 0.0 }; //!< x offset
+    double          yo         { 0.0 }; //!< y offset
+    int             pmargin    { 2 };   //!< pixel margin
+    ColumnData      rowColumnData;      //!< row column data
+    ColumnDataMap   columnDataMap;      //!< column data map
   };
 
   //! scroll data
@@ -399,6 +424,7 @@ class CQChartsTablePlot : public CQChartsPlot {
   struct HeaderData {
     bool  visible { true }; //!< header visible
     Color color;            //!< header color
+    Font  font;             //!< header font
   };
 
   //! fit data
@@ -417,31 +443,35 @@ class CQChartsTablePlot : public CQChartsPlot {
   CellObjData&   getCellObjData  (const ModelIndex &ind) const;
 
  private:
-  TableData       tableData_;                //!< cached table data
-  ScrollData      scrollData_;               //!< scroll bar data
-  Columns         columns_;                  //!< columns
-  CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
-  bool            rowColumn_    { false };   //!< draw row numbers column
-  HeaderData      headerData_;               //!< header data
-  FitData         fitData_;                  //!< fit data
-  Color           gridColor_;                //!< grid color
-  Color           textColor_;                //!< text color
-  Color           cellColor_;                //!< cell color
-  Color           insideColor_;              //!< cell inside fill color
-  Color           insideTextColor_;          //!< cell inside text color
-  double          indent_       { 8.0 };     //!< hier indent
-  double          fontScale_    { 1.0 };     //!< font scale
-  bool            followView_   { false };   //!< follow view
-  QMenu*          menu_         { nullptr }; //!< menu
-  CQIntegerSpinP  maxRowsSpin_;              //!< max rows menu edit
-  CQIntegerSpinP  sortColumnSpin_;           //!< sort column menu edit
-  CQIntegerSpinP  pageSizeSpin_;             //!< page size menu edit
-  CQIntegerSpinP  pageNumSpin_;              //!< page number menu edit
+  TableData       tableData_;                     //!< cached table data
+  ScrollData      scrollData_;                    //!< scroll bar data
+  Columns         columns_;                       //!< columns
+  Mode            mode_         { Mode::SORTED }; //!< summary model mode
+  CQSummaryModel* summaryModel_ { nullptr };      //!< summary model
+  bool            rowColumn_    { false };        //!< draw row numbers column
+  HeaderData      headerData_;                    //!< header data
+  FitData         fitData_;                       //!< fit data
+  Font            headerFont_;                    //!< header font
+  Color           gridColor_;                     //!< grid line color
+  Color           cellColor_;                     //!< cell bg color
+  Color           insideColor_;                   //!< cell inside bg color
+  Color           selectedColor_;                 //!< cell selected bg color
+  double          indent_       { 8.0 };          //!< hier indent
+  double          fontScale_    { 1.0 };          //!< font scale
+  int             cellMargin_   { 4 };            //!< cell margin
+  bool            followView_   { false };        //!< follow view
+  QMenu*          menu_         { nullptr };      //!< menu
+  CQIntegerSpinP  maxRowsSpin_;                   //!< max rows menu edit
+  CQIntegerSpinP  sortColumnSpin_;                //!< sort column menu edit
+  CQIntegerSpinP  pageSizeSpin_;                  //!< page size menu edit
+  CQIntegerSpinP  pageNumSpin_;                   //!< page number menu edit
 
   HeaderObjMap headerObjMap_; //!< header object map
   RowObjMap    rowObjMap_;    //!< row object map
   CellObjMap   cellObjMap_;   //!< cell object map
 };
+
+//---
 
 /*!
  * \brief Table Header object
@@ -462,6 +492,8 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  bool selectPress(const Point &p, SelMod selMod) override;
+
   void draw(PaintDevice *device) const override;
 
   void getObjSelectIndices(Indices &inds) const override;
@@ -472,6 +504,8 @@ class CQChartsTableHeaderObj : public CQChartsPlotObj {
   const Plot*         plot_ { nullptr }; //!< parent plot
   Plot::HeaderObjData headerObjData_;
 };
+
+//---
 
 /*!
  * \brief Table Row object
@@ -500,6 +534,8 @@ class CQChartsTableRowObj : public CQChartsPlotObj {
   const Plot*      plot_ { nullptr }; //!< parent plot
   Plot::RowObjData rowObjData_;
 };
+
+//---
 
 /*!
  * \brief Table Cell object

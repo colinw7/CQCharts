@@ -351,13 +351,14 @@ class CQChartsPlot : public CQChartsObj,
 
   //! \brief probe value data
   struct ProbeValue {
-    double  value { 0.0 };
+    double  value;
     QString label;
+    QString valueStr;
 
     ProbeValue() = default;
 
-    ProbeValue(double value, const QString &label="") :
-     value(value), label(label) {
+    explicit ProbeValue(double value, const QString &label, const QString &valueStr) :
+     value(value), label(label), valueStr(valueStr) {
     }
   };
 
@@ -1982,15 +1983,27 @@ class CQChartsPlot : public CQChartsObj,
   virtual void cycleNext();
   virtual void cyclePrev();
 
+  //---
+
+  virtual void wheelHScroll(int delta);
+  virtual void wheelVScroll(int delta);
+  virtual void wheelZoom(const Point &pp, int delta);
+
+  //---
+
   virtual void panLeft (double f=0.125);
   virtual void panRight(double f=0.125);
   virtual void panUp   (double f=0.125);
   virtual void panDown (double f=0.125);
 
+  //---
+
   virtual void zoomIn(double f=1.5);
   virtual void zoomOut(double f=1.5);
 
   virtual void zoomFull(bool notify=true);
+
+  //---
 
   virtual bool allowZoomX() const { return true; }
   virtual bool allowZoomY() const { return true; }
@@ -2518,7 +2531,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  QColor calcTextColor(const QColor &bg) const;
+  QColor        calcTextColor(const QColor &bg) const;
+  CQChartsColor calcTextColor(const CQChartsColor &bg) const;
 
   //---
 
@@ -2748,11 +2762,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
+  virtual void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
 
   void annotationsAtPoint(const Point &p, Annotations &annotations) const;
 
-  void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
+  virtual void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
 
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 

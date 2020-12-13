@@ -297,12 +297,12 @@ class CQChartsPivotPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
 
   // options
-  Q_PROPERTY(PlotType  plotType   READ plotType     WRITE setPlotType  )
-  Q_PROPERTY(ValueType valueType  READ valueType    WRITE setValueType )
-  Q_PROPERTY(bool      horizontal READ isHorizontal WRITE setHorizontal)
-  Q_PROPERTY(bool      xSorted    READ isXSorted    WRITE setXSorted   )
-  Q_PROPERTY(bool      ySorted    READ isYSorted    WRITE setYSorted   )
-  Q_PROPERTY(bool      gridBars   READ isGridBars   WRITE setGridBars  )
+  Q_PROPERTY(PlotType        plotType    READ plotType    WRITE setPlotType   )
+  Q_PROPERTY(ValueType       valueType   READ valueType   WRITE setValueType  )
+  Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
+  Q_PROPERTY(bool            xSorted     READ isXSorted   WRITE setXSorted    )
+  Q_PROPERTY(bool            ySorted     READ isYSorted   WRITE setYSorted    )
+  Q_PROPERTY(bool            gridBars    READ isGridBars  WRITE setGridBars   )
 
   // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar, bar)
@@ -354,19 +354,29 @@ class CQChartsPivotPlot : public CQChartsPlot,
   const Column &valueColumn() const { return valueColumn_; }
   void setValueColumn(const Column &c);
 
+  //---
+
   const PlotType &plotType() const { return plotType_; }
   void setPlotType(const PlotType &v);
 
   const ValueType &valueType() const { return valueType_; }
   void setValueType(const ValueType &v);
 
-  bool isHorizontal() const { return horizontal_; }
+  //---
+
+  // get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
+
+  //---
 
   bool isXSorted() const { return xsorted_; }
   void setXSorted(bool b);
 
   bool isYSorted() const { return ysorted_; }
   void setYSorted(bool b);
+
+  //---
 
   bool isGridBars() const { return gridBars_; }
   void setGridBars(bool b);
@@ -464,17 +474,17 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueTypeSlot(bool b);
 
  private:
-  Columns       xColumns_;                       //!< x columns
-  Columns       yColumns_;                       //!< y columns
-  Column        valueColumn_;                    //!< value columns
-  PlotType      plotType_    { PlotType::BAR };  //!< plot type
-  ValueType     valueType_   { ValueType::SUM }; //!< value type
-  bool          horizontal_  { false };          //!< horizontal
-  bool          xsorted_     { true };           //!< x keys are sorted
-  bool          ysorted_     { true };           //!< y keys are sorted
-  bool          gridBars_    { true };           //!< draw bars on grid
-  CQPivotModel* pivotModel_  { nullptr };        //!< pivot model
-  DataLabel*    dataLabel_   { nullptr };        //!< data label data
+  Columns         xColumns_;                       //!< x columns
+  Columns         yColumns_;                       //!< y columns
+  Column          valueColumn_;                    //!< value columns
+  PlotType        plotType_    { PlotType::BAR };  //!< plot type
+  ValueType       valueType_   { ValueType::SUM }; //!< value type
+  Qt::Orientation orientation_ { Qt::Vertical };   //!< pivot orientation
+  bool            xsorted_     { true };           //!< x keys are sorted
+  bool            ysorted_     { true };           //!< y keys are sorted
+  bool            gridBars_    { true };           //!< draw bars on grid
+  CQPivotModel*   pivotModel_  { nullptr };        //!< pivot model
+  DataLabel*      dataLabel_   { nullptr };        //!< data label data
 };
 
 #endif

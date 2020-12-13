@@ -4001,7 +4001,6 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
-
   //---
 
   auto path1 = path + "/" + propertyId();

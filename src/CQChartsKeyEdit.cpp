@@ -486,7 +486,7 @@ applyData()
   auto *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   key_->setVisible      (data_.visible);
-  key_->setHorizontal   (data_.horizontal);
+  key_->setOrientation  (data_.horizontal ? Qt::Horizontal : Qt::Vertical);
   key_->setAutoHide     (data_.autoHide);
   key_->setClipped      (data_.clipped);
   key_->setAbove        (data_.above);

@@ -99,10 +99,12 @@ setSelected(bool b)
 
 void
 CQChartsKey::
-setHorizontal(bool b)
+setOrientation(const Qt::Orientation &orientation)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateLayout(); } );
+  CQChartsUtil::testAndSet(orientation_, orientation, [&]() { updateLayout(); } );
 }
+
+//---
 
 void
 CQChartsKey::
@@ -335,12 +337,12 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  addProp("visible"   , "Is visible");
-  addProp("selected"  , "Is selected");
-  addProp("editable"  , "Is editable");
-  addProp("horizontal", "Draw items horizontally");
-  addProp("autoHide"  , "Auto hide key when too large");
-  addProp("clipped"   , "Clip key to view");
+  addProp("visible"    , "Is visible");
+  addProp("selected"   , "Is selected");
+  addProp("editable"   , "Is editable");
+  addProp("orientation", "Layout direction");
+  addProp("autoHide"   , "Auto hide key when too large");
+  addProp("clipped"    , "Clip key to view");
 
   addProp("location", "Key placement location");
 
@@ -983,13 +985,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   //---
 
-  addProp("visible"   , "Is visible");
-  addProp("selected"  , "Is selected");
-  addProp("editable"  , "Is editable");
-  addProp("horizontal", "Draw items horizontally");
-  addProp("flipped"   , "Draw name value flipped");
-  addProp("autoHide"  , "Auto hide key when too large");
-  addProp("clipped"   , "Clip key to plot");
+  addProp("visible"    , "Is visible");
+  addProp("selected"   , "Is selected");
+  addProp("editable"   , "Is editable");
+  addProp("orientation", "Layout direction");
+  addProp("flipped"    , "Draw name value flipped");
+  addProp("autoHide"   , "Auto hide key when too large");
+  addProp("clipped"    , "Clip key to plot");
 
   addProp("above"   , "Draw key above plot");
   addProp("insideX" , "Key placed inside plot in x direction");

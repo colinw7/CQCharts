@@ -381,7 +381,7 @@ paramApplySlot()
   //---
 
   // update type parameters
-  CQChartsNameValues nameValues;
+  CQChartsNameValues nameValues = typeData.nameValues;
 
   for (const auto &paramEdit : paramEdits_) {
     auto name = paramEdit.label->text();
@@ -418,6 +418,12 @@ paramApplySlot()
 
     if (value != "")
       nameValues.setNameValue(name, value);
+  }
+
+  if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),
+                                          nameValues)) {
+    charts->errorMsg("Failed to set column type");
+    return;
   }
 
   //---

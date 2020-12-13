@@ -74,6 +74,7 @@ init()
   dataLabel_ = new CQChartsDataLabel(this);
 
   dataLabel_->setClip(false);
+  dataLabel_->setTextColor(Color(Color::Type::INTERFACE_VALUE, 1));
   dataLabel_->setMoveClipped(false);
   dataLabel_->setSendSignal(true);
 

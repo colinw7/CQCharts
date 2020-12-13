@@ -19,9 +19,9 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
 
   // options
-  Q_PROPERTY(bool           horizontal  READ isHorizontal WRITE setHorizontal )
-  Q_PROPERTY(CQChartsLength margin      READ margin       WRITE setMargin     )
-  Q_PROPERTY(CQChartsLength groupMargin READ groupMargin  WRITE setGroupMargin)
+  Q_PROPERTY(Qt::Orientation orientation READ orientation  WRITE setOrientation)
+  Q_PROPERTY(CQChartsLength  margin      READ margin       WRITE setMargin     )
+  Q_PROPERTY(CQChartsLength  groupMargin READ groupMargin  WRITE setGroupMargin)
 
   // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar, bar)
@@ -49,7 +49,9 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool isHorizontal() const { return horizontal_; }
+  // get/set orientation
+  const Qt::Orientation &orientation() const { return orientation_; }
+  void setOrientation(const Qt::Orientation &orient);
 
   //---
 
@@ -63,11 +65,13 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool allowZoomX() const override { return ! isHorizontal(); }
-  bool allowZoomY() const override { return   isHorizontal(); }
+  // customize zoom in x/y based on orientation
+  bool allowZoomX() const override { return orientation() != Qt::Horizontal; }
+  bool allowZoomY() const override { return orientation() == Qt::Horizontal; }
 
-  bool allowPanX() const override { return ! isHorizontal(); }
-  bool allowPanY() const override { return   isHorizontal(); }
+  // customize pan in x/y based on orientation
+  bool allowPanX() const override { return orientation() != Qt::Horizontal; }
+  bool allowPanY() const override { return orientation() == Qt::Horizontal; }
 
   //---
 
@@ -97,11 +101,11 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  Columns    valueColumns_;             //!< value columns
-  bool       horizontal_   { false };   //!< horizontal bars
-  Length     margin_       { "2px" };   //!< bar margin
-  Length     groupMargin_  { "4px" };   //!< bar group margin
-  DataLabel* dataLabel_    { nullptr }; //!< data label data
+  Columns         valueColumns_;                  //!< value columns
+  Qt::Orientation orientation_  { Qt::Vertical }; //!< bar orientation
+  Length          margin_       { "2px" };        //!< bar margin
+  Length          groupMargin_  { "4px" };        //!< bar group margin
+  DataLabel*      dataLabel_    { nullptr };      //!< data label data
 };
 
 #endif

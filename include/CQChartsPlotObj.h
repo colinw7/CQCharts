@@ -72,6 +72,8 @@ class CQChartsPlotObj : public CQChartsObj {
   using BrushData         = CQChartsBrushData;
   using PenData           = CQChartsPenData;
 
+  using SelMod = CQChartsSelMod;
+
   using Point    = CQChartsGeom::Point;
   using Size     = CQChartsGeom::Size;
   using BBox     = CQChartsGeom::BBox;
@@ -238,7 +240,7 @@ class CQChartsPlotObj : public CQChartsObj {
   // Select Interface
 
   //! handle select press, move, release
-  virtual bool selectPress  (const Point &, CQChartsSelMod) { return false; }
+  virtual bool selectPress  (const Point &, SelMod) { return false; }
   virtual bool selectMove   (const Point &) { return false; }
   virtual bool selectRelease(const Point &) { return false; }
 

@@ -342,11 +342,16 @@ void arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1, c
 
 //---
 
-void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine=false);
+void edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox,
+              bool isLine=false, Qt::Orientation orientation=Qt::Horizontal);
 
-void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw);
+void edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
+              Qt::Orientation orientation=Qt::Horizontal);
 
-void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw);
+void selfEdgePath(QPainterPath &path, const BBox &bbox, double lw,
+                  Qt::Orientation orientation=Qt::Horizontal);
+
+//---
 
 void curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear=false);
 

@@ -123,28 +123,29 @@ init()
 
   //---
 
-  Font font;
-
-  font.decFontSize(8);
-
-  font_ = font;
+  font_       = Font().decFontSize(8);
+  headerFont_ = font_;
 
   //---
 
-  if (! CQChartsModelUtil::isHierarchical(model().data()))
+  if (! CQChartsModelUtil::isHierarchical(model().data())) {
     summaryModel_ = new CQSummaryModel(model().data());
+
+    summaryModel_->setMode((CQSummaryModel::Mode) mode_);
+  }
 
   int pageSize = 1024;
 
   setMaxRows (10*pageSize);
   setPageSize(pageSize);
 
-  setGridColor      (Color(Color::Type::INTERFACE_VALUE, 0.50));
-  setTextColor      (Color(Color::Type::INTERFACE_VALUE, 1.00));
-  setHeaderColor    (QColor(150, 150, 200));
-  setCellColor      (Color(Color::Type::INTERFACE_VALUE, 0.00));
-  setInsideColor    (QColor(100, 100, 200));
-  setInsideTextColor(Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setGridColor(Color(Color::Type::INTERFACE_VALUE, 0.50));
+
+  setHeaderColor(QColor("#c0c8dc"));
+
+  setCellColor    (Color(Color::Type::INTERFACE_VALUE, 0.00));
+  setInsideColor  (QColor("#c5c8bc"));
+  setSelectedColor(QColor("#bcc5c8"));
 
   //---
 
@@ -188,8 +189,11 @@ setModel(const ModelP &model)
 
   delete summaryModel_;
 
-  if (! CQChartsModelUtil::isHierarchical(model.data()))
+  if (! CQChartsModelUtil::isHierarchical(model.data())) {
     summaryModel_ = new CQSummaryModel(model.data());
+
+    summaryModel_->setMode((CQSummaryModel::Mode) mode_);
+  }
 
   connectModel();
 
@@ -242,7 +246,7 @@ CQChartsTablePlot::Mode
 CQChartsTablePlot::
 mode() const
 {
-  return (summaryModel_ ? (CQChartsTablePlot::Mode) summaryModel_->mode() : Mode::NORMAL);
+  return (summaryModel_ ? (CQChartsTablePlot::Mode) summaryModel_->mode() : mode_);
 }
 
 void
@@ -250,8 +254,10 @@ CQChartsTablePlot::
 setMode(const Mode &m)
 {
   if (m != mode()) {
+    mode_ = m;
+
     if (summaryModel_)
-      summaryModel_->setMode((CQSummaryModel::Mode) m);
+      summaryModel_->setMode((CQSummaryModel::Mode) mode_);
 
     updateRangeAndObjs();
   }
@@ -458,6 +464,13 @@ setHeaderColor(const Color &c)
   CQChartsUtil::testAndSet(headerData_.color, c, [&]() { updateObjs(); } );
 }
 
+void
+CQChartsTablePlot::
+setHeaderFont(const Font &f)
+{
+  CQChartsUtil::testAndSet(headerFont_, f, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -465,13 +478,6 @@ CQChartsTablePlot::
 setGridColor(const Color &c)
 {
   CQChartsUtil::testAndSet(gridColor_, c, [&]() { updateObjs(); } );
-}
-
-void
-CQChartsTablePlot::
-setTextColor(const Color &c)
-{
-  CQChartsUtil::testAndSet(textColor_, c, [&]() { updateObjs(); } );
 }
 
 void
@@ -490,9 +496,9 @@ setInsideColor(const Color &c)
 
 void
 CQChartsTablePlot::
-setInsideTextColor(const Color &c)
+setSelectedColor(const Color &c)
 {
-  CQChartsUtil::testAndSet(insideTextColor_, c, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(selectedColor_, c, [&]() { updateObjs(); } );
 }
 
 //---
@@ -502,6 +508,13 @@ CQChartsTablePlot::
 setIndent(double r)
 {
   CQChartsUtil::testAndSet(indent_, r, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsTablePlot::
+setCellMargin(int i)
+{
+  CQChartsUtil::testAndSet(cellMargin_, i, [&]() { updateObjs(); } );
 }
 
 //---
@@ -534,26 +547,38 @@ addProperties()
   // columns
   addProp("columns", "columns", "columns", "Columns");
 
-  addProp("options", "mode"       , "mode"       , "Set mode"        );
-  addProp("options", "maxRows"    , "maxRows"    , "Set max rows"    )->setMinValue(1);
-  addProp("options", "sortColumn" , "sortColumn" , "Set sort column" );
-  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"   , true);
-  addProp("options", "sortOrder"  , "sortOrder"  , "Set sort order"  );
+  // mode
+  addProp("options", "mode"   , "mode"   , "Set mode"    );
+  addProp("options", "maxRows", "maxRows", "Set max rows")->setMinValue(1);
+
+  // sort mode
+  addProp("options", "sortColumn" , "sortColumn" , "Set sort column");
+  addProp("options", "sortRole"   , "sortRole"   , "Set sort role"  , true);
+  addProp("options", "sortOrder"  , "sortOrder"  , "Set sort order" );
+
+  // page mode
   addProp("options", "pageSize"   , "pageSize"   , "Set page size"   )->setMinValue(1);
   addProp("options", "currentPage", "currentPage", "Set current page")->setMinValue(0);
-  addProp("options", "rowNums"    , "rowNums"    , "Set row numbers" );
-  addProp("options", "rowColumn"  , "rowColumn"  , "Display row number column" );
 
-  addProp("header", "headerVisible", "visible", "Header visible");
-  addProp("header", "headerColor"  , "color"  , "Header color"  );
+  // rows mode
+  addProp("options", "rowNums"  , "rowNums"  , "Explicit row numbers for ROWS mode");
 
-  addProp("options", "gridColor"      , "gridColor"      , "Grid color"  );
-  addProp("options", "textColor"      , "textColor"      , "Text color"  );
-  addProp("options", "cellColor"      , "cellColor"      , "Cell color"  );
-  addProp("options", "insideColor"    , "insideColor"    , "Cell inside color"  );
-  addProp("options", "insideTextColor", "insideTextColor", "Cell inside text color"  );
+  // header
+  addProp("header", "headerVisible", "visible"   , "Header visible");
+  addProp("header", "headerColor"  , "color"     , "Header color"  );
+  addProp("header", "headerFont"   , "headerFont", "Header font"  );
 
+  // grid
+  addProp("options", "gridColor"    , "gridColor"    , "Grid color");
+
+  // cells
+  addProp("options", "cellColor"    , "cellColor"    , "Cell color");
+  addProp("options", "insideColor"  , "insideColor"  , "Cell inside color");
+  addProp("options", "selectedColor", "selectedColor", "Cell selected color");
+
+  addProp("options", "rowColumn" , "rowColumn" , "Display row number column");
   addProp("options", "indent"    , "indent"    , "Hierarchical row indent")->setMinValue(0.0);
+  addProp("options", "cellMargin", "cellMargin", "Cell margin")->setMinValue(0);
   addProp("options", "followView", "followView", "Follow view");
 }
 
@@ -599,12 +624,16 @@ calcTableSize() const
 
   th->tableData_.expandInds = expandInds;
 
+  th->tableData_.headerFont = view()->viewFont(this->headerFont());
+  th->tableData_.headerFont = CQChartsUtil::scaleFontSize(th->tableData_.headerFont, fontScale_);
+
   th->tableData_.font = view()->viewFont(this->font());
   th->tableData_.font = CQChartsUtil::scaleFontSize(th->tableData_.font, fontScale_);
 
   //th->tabbedFont_ = th->tableData_.font;
 
-  QFontMetricsF fm(th->tableData_.font);
+  QFontMetricsF hfm(th->tableData_.headerFont);
+  QFontMetricsF fm (th->tableData_.font);
 
   th->tableData_.nc = columns_.count();
 
@@ -617,7 +646,10 @@ calcTableSize() const
                                 th->tableData_.maxDepth);
   }
 
-  th->tableData_.prh = fm.height() + 2*tableData_.pmargin;
+  th->tableData_.pmargin    = cellMargin();
+  th->tableData_.pSortWidth = hfm.width("X") + 4;
+
+  th->tableData_.prh = hfm.height() + 2*tableData_.pmargin;
 
   // calc column widths
   if (isRowColumn()) {
@@ -648,10 +680,10 @@ calcTableSize() const
 
     if (! ok) continue;
 
-    double cw = fm.width(str) + 2*tableData_.pmargin;
+    double cw = hfm.width(str) + 2*tableData_.pmargin + tableData_.pSortWidth;
 
     if (i == 0)
-      cw += tableData_.maxDepth*indent();
+      cw += tableData_.maxDepth*indent(); // add hierarchical indent
 
     data.pwidth  = cw;
     data.numeric = columnDetails->isNumeric();
@@ -719,7 +751,7 @@ calcTableSize() const
         double cw = fm_.width(str) + 2*tableData_.pmargin;
 
         if (i == 0)
-          cw += tableData_.maxDepth*plot_->indent();
+          cw += tableData_.maxDepth*plot_->indent(); // add hierarchical indent
 
         data.pwidth = std::max(data.pwidth, cw);
       }
@@ -1867,6 +1899,24 @@ calcTipId() const
   return id;
 }
 
+bool
+CQChartsTableHeaderObj::
+selectPress(const Point & /*p*/, SelMod /*selMod*/)
+{
+  auto *plot = const_cast<CQChartsTablePlot *>(plot_);
+
+  if (plot->sortColumn() != CQChartsColumnNum(headerObjData_.c.column()))
+    plot->setSortColumn(CQChartsColumnNum(headerObjData_.c.column()));
+  else {
+    if (plot_->sortOrder() == Qt::AscendingOrder)
+      plot->setSortOrder(Qt::DescendingOrder);
+    else
+      plot->setSortOrder(Qt::AscendingOrder);
+  }
+
+  return true;
+}
+
 void
 CQChartsTableHeaderObj::
 draw(PaintDevice *device) const
@@ -1879,12 +1929,34 @@ draw(PaintDevice *device) const
 
   //---
 
-  device->setFont(plot_->tableFont());
+  auto *th = const_cast<CQChartsTableHeaderObj *>(this);
+
+  th->rect_ = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+
+  //---
+
+  int pSortWidth = plot_->sortPixelWidth();
+
+  auto trect = rect_;
+
+  if (plot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+    auto sortWidth = plot_->pixelToWindowWidth(pSortWidth);
+
+    trect = BBox(rect_.getXMin()            , rect_.getYMin(),
+                 rect_.getXMax() - sortWidth, rect_.getYMax());
+  }
+
+  //---
+
+  // draw header text
+  device->setFont(plot_->tableHeaderFont());
+
+  auto bg = plot_->interpColor(plot_->headerColor(), ColorInd());
+  auto tc = plot_->calcTextColor(bg);
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
+  plot_->setPen(textPenBrush, PenData(true, tc));
 
   device->setPen(textPenBrush.pen);
 
@@ -1892,11 +1964,49 @@ draw(PaintDevice *device) const
 
   textOptions.align = headerObjData_.align;
 
-  auto *th = const_cast<CQChartsTableHeaderObj *>(this);
+  CQChartsDrawUtil::drawTextInBox(device, trect, headerObjData_.str, textOptions);
 
-  th->rect_ = headerObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+  //---
 
-  CQChartsDrawUtil::drawTextInBox(device, rect_, headerObjData_.str, textOptions);
+  if (plot_->sortColumn() == CQChartsColumnNum(headerObjData_.c.column())) {
+    PenBrush sortPenBrush;
+
+    // 1 (top/bottom), 4 mid
+    int pSortHeight = (plot_->windowToPixelHeight(trect.getHeight()) - 6)/2;
+
+    int px1 = plot_->windowToPixel(Point(trect.getXMax(), 0)).x + 2;
+    int py1 = plot_->windowToPixel(Point(0, trect.getYMax())).y + 1;
+    int px2 = px1 + pSortWidth - 4;
+    int py2 = plot_->windowToPixel(Point(0, trect.getYMin())).y - 1;
+
+    // ascending
+    if (plot_->sortOrder() == Qt::AscendingOrder)
+      plot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
+    else
+      plot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
+
+    Point p1 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py1));
+    Point p2 = plot_->pixelToWindow(Point(px1, py1 + pSortHeight));
+    Point p3 = plot_->pixelToWindow(Point(px2, py1 + pSortHeight));
+
+    Polygon poly1; poly1.addPoint(p1); poly1.addPoint(p2); poly1.addPoint(p3);
+
+    CQChartsDrawUtil::drawRoundedPolygon(device, sortPenBrush, poly1);
+
+    // descending
+    if (plot_->sortOrder() == Qt::AscendingOrder)
+      plot_->setPenBrush(sortPenBrush, PenData(true, tc), BrushData(false));
+    else
+      plot_->setPenBrush(sortPenBrush, PenData(false), BrushData(true, tc));
+
+    Point p4 = plot_->pixelToWindow(Point((px1 + px2)/2.0, py2));
+    Point p5 = plot_->pixelToWindow(Point(px1, py2 - pSortHeight));
+    Point p6 = plot_->pixelToWindow(Point(px2, py2 - pSortHeight));
+
+    Polygon poly2; poly2.addPoint(p4); poly2.addPoint(p5); poly2.addPoint(p6);
+
+    CQChartsDrawUtil::drawRoundedPolygon(device, sortPenBrush, poly2);
+  }
 
   //---
 
@@ -1907,7 +2017,7 @@ void
 CQChartsTableHeaderObj::
 getObjSelectIndices(Indices &inds) const
 {
-  auto modelInd = plot_->modelIndex(0, CQChartsColumn(headerObjData_.c));
+  auto modelInd = plot_->modelIndex(0, headerObjData_.c);
 
   inds.insert(modelInd);
 }
@@ -1964,22 +2074,27 @@ draw(PaintDevice *device) const
 
   //---
 
+  auto *th = const_cast<CQChartsTableRowObj *>(this);
+
+  th->rect_ = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+
+  //---
+
+  // draw row text
   device->setFont(plot_->tableFont());
+
+  auto bg = plot_->interpColor(plot_->cellColor(), ColorInd());
+  auto tc = plot_->calcTextColor(bg);
 
   PenBrush textPenBrush;
 
-  plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(plot_->textColor(), ColorInd()), Alpha()));
+  plot_->setPen(textPenBrush, PenData(true, tc));
 
   device->setPen(textPenBrush.pen);
 
   CQChartsTextOptions textOptions;
 
   textOptions.align = rowObjData_.align;
-
-  auto *th = const_cast<CQChartsTableRowObj *>(this);
-
-  th->rect_ = rowObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   CQChartsDrawUtil::drawTextInBox(device, rect_, rowObjData_.str, textOptions);
 
@@ -2041,34 +2156,94 @@ draw(PaintDevice *device) const
 
   //---
 
+  auto *th = const_cast<CQChartsTableCellObj *>(this);
+
+  th->rect_ = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
+
+  //---
+
+  QColor bg;
+  bool   bgSet { false };
+
+  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
+
   // calc background pen and brush and draw
-  if (isInside()) {
+  if      (isInside()) {
     PenBrush bgPenBrush;
 
-    auto c = plot_->interpColor(plot_->insideColor(), ColorInd());
+    bg    = plot_->interpColor(plot_->insideColor(), ColorInd());
+    bgSet = true;
+  }
+  else if (isSelected()) {
+    PenBrush bgPenBrush;
 
-    plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, c));
+    bg    = plot_->interpColor(plot_->selectedColor(), ColorInd());
+    bgSet = true;
+  }
+  else {
+    auto tableDrawType = (columnDetails ? columnDetails->tableDrawType() :
+                           CQChartsModelColumnDetails::TableDrawType::NORMAL);
+
+    if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
+      auto type = (columnDetails ? columnDetails->type() : CQBaseModelType::STRING);
+
+      if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER) {
+        bool ok;
+        double value = cellObjData_.str.toDouble(&ok);
+
+        // get min/max
+        auto *columnTypeMgr = charts()->columnTypeMgr();
+
+        const auto *columnType = columnTypeMgr->getType(type);
+
+        auto minVar = columnType->minValue(columnDetails->nameValues());
+        if (! minVar.isValid()) minVar = columnDetails->minValue();
+
+        auto maxVar = columnType->maxValue(columnDetails->nameValues());
+        if (! maxVar.isValid()) maxVar = columnDetails->maxValue();
+
+        double min = minVar.toReal(&ok);
+        double max = maxVar.toReal(&ok);
+
+        bg = columnDetails->heatmapColor(value, min, max,
+               plot_->interpColor(plot_->cellColor(), ColorInd()));
+        bgSet = true;
+      }
+    }
+  }
+
+  if (bgSet) {
+    PenBrush bgPenBrush;
+
+    plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg));
 
     CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
-    device->drawRect(rect());
+    device->drawRect(rect_);
   }
 
   //---
 
-  auto textColor = plot_->textColor();
+  CQChartsColor textColor;
 
-  auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
+  if (! bgSet) {
+    textColor = plot_->calcTextColor(plot_->cellColor());
 
-  if (columnDetails) {
-    const auto &drawColor = columnDetails->tableDrawColor();
+    if (columnDetails) {
+      const auto &drawColor = columnDetails->tableDrawColor();
 
-    if (drawColor.isValid())
-      textColor = drawColor;
+      if (drawColor.isValid())
+        textColor = drawColor;
+    }
+
+    if      (isInside())
+      textColor = plot_->calcTextColor(plot_->insideColor());
+    else if (isSelected())
+      textColor = plot_->calcTextColor(plot_->selectedColor());
   }
-
-  if (isInside())
-    textColor = plot_->insideTextColor();
+  else {
+    textColor = CQChartsColor(plot_->calcTextColor(bg));
+  }
 
   //---
 
@@ -2078,17 +2253,13 @@ draw(PaintDevice *device) const
   PenBrush textPenBrush;
 
   plot_->setPen(textPenBrush,
-    PenData(true, plot_->interpColor(textColor, ColorInd()), Alpha()));
+    PenData(true, plot_->interpColor(textColor, ColorInd())));
 
   device->setPen(textPenBrush.pen);
 
   CQChartsTextOptions textOptions;
 
   textOptions.align = cellObjData_.align;
-
-  auto *th = const_cast<CQChartsTableCellObj *>(this);
-
-  th->rect_ = cellObjData_.rect.translated(plot_->scrollX(), -plot_->scrollY());
 
   CQChartsDrawUtil::drawTextInBox(device, rect_, cellObjData_.str, textOptions);
 

@@ -403,7 +403,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  using Plot = CQChartsXYPlot;
+  using Plot   = CQChartsXYPlot;
+  using Column = CQChartsColumn;
 
  public:
   CQChartsXYPolylineObj(const Plot *plot, int groupInd, const BBox &rect,
@@ -444,9 +445,9 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool isSelectable() const override;
 
-  bool interpY(double x, std::vector<double> &yvals) const;
-
   bool isOutlier(double y) const;
+
+  bool interpY(double x, std::vector<double> &yvals) const;
 
   //---
 
@@ -929,7 +930,18 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   bool probe(ProbeData &probeData) const override;
 
-  bool interpY(double x, std::vector<double> &yvals) const;
+  struct InterpValue {
+    double y;
+    Column column;
+
+    InterpValue(double y, Column column) :
+     y(y), column(column) {
+    }
+  };
+
+  using InterpValues = std::vector<InterpValue>;
+
+  bool interpY(double x, InterpValues &yvals) const;
 
   //---
 

@@ -1219,98 +1219,189 @@ arcsConnectorPath(QPainterPath &path, const BBox &ibbox, const Angle &a1,
 
 // TODO: support path angle, offset control points by line width
 void
-edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine)
+edgePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool isLine,
+         Qt::Orientation orientation)
 {
   path = QPainterPath();
 
   // x from right of source rect to left of dest rect
-  bool swapped = false;
+  if (orientation == Qt::Horizontal) {
+    bool swapped = false;
 
-  double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
+    // input on left, output on right
+    double x1 = ibbox.getXMax(), x2 = obbox.getXMin();
 
-  if (x1 > x2) {
-    x1 = obbox.getXMax(), x2 = ibbox.getXMin();
-    swapped = true;
-  }
+    if (x1 > x2) {
+      x1 = obbox.getXMax(), x2 = ibbox.getXMin();
+      swapped = true;
+    }
 
-  // start y range from source node, and end y range from dest node
-  double y11 = ibbox.getYMax(), y12 = ibbox.getYMin();
-  double y21 = obbox.getYMax(), y22 = obbox.getYMin();
+    // start y range from source node, and end y range from dest node
+    double y11 = ibbox.getYMax(), y12 = ibbox.getYMin();
+    double y21 = obbox.getYMax(), y22 = obbox.getYMin();
 
-  if (swapped) {
-    std::swap(y11, y21);
-    std::swap(y12, y22);
-  }
+    if (swapped) {
+      std::swap(y11, y21);
+      std::swap(y12, y22);
+    }
 
-  // curve control point x at 1/3 and 2/3
-  if (isLine) {
-    double y1m = CMathUtil::avg(y11, y12);
-    double y2m = CMathUtil::avg(y21, y22);
+    if (isLine) {
+      double y1m = CMathUtil::avg(y11, y12);
+      double y2m = CMathUtil::avg(y21, y22);
 
-    curvePath(path, Point(x1, y1m), Point(x2, y2m));
+      curvePath(path, Point(x1, y1m), Point(x2, y2m));
+    }
+    else {
+      // curve control point x at 1/3 and 2/3
+      double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+      double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+
+      path.moveTo (QPointF(x1, y11));
+      path.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
+      path.lineTo (QPointF(x2, y22));
+      path.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
+
+      path.closeSubpath();
+    }
   }
   else {
-    double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
-    double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
+    bool swapped = false;
 
-    path.moveTo (QPointF(x1, y11));
-    path.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
-    path.lineTo (QPointF(x2, y22));
-    path.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
+    // input on bottom, output on top
+    double y1 = ibbox.getYMax(), y2 = obbox.getYMin();
+
+    if (y1 > y2) {
+      y1 = obbox.getYMax(), y2 = ibbox.getYMin();
+      swapped = true;
+    }
+
+    // start x range from source node, and end x range from dest node
+    double x11 = ibbox.getXMax(), x12 = ibbox.getXMin();
+    double x21 = obbox.getXMax(), x22 = obbox.getXMin();
+
+    if (swapped) {
+      std::swap(x11, x21);
+      std::swap(x12, x22);
+    }
+
+    if (isLine) {
+      double x1m = CMathUtil::avg(x11, x12);
+      double x2m = CMathUtil::avg(x21, x22);
+
+      curvePath(path, Point(x1m, y1), Point(x2m, y2));
+    }
+    else {
+      // curve control point y at 1/3 and 2/3
+      double y3 = CMathUtil::lerp(1.0/3.0, y1, y2);
+      double y4 = CMathUtil::lerp(2.0/3.0, y1, y2);
+
+      path.moveTo (QPointF(x11, y1));
+      path.cubicTo(QPointF(x11, y3), QPointF(x21, y4), QPointF(x21, y2));
+      path.lineTo (QPointF(x22, y2));
+      path.cubicTo(QPointF(x22, y4), QPointF(x12, y3), QPointF(x12, y1));
+
+      path.closeSubpath();
+    }
+  }
+}
+
+void
+edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw,
+         Qt::Orientation orientation)
+{
+  if (orientation == Qt::Horizontal) {
+    double y11 = p1.y + lw/2.0, y12 = p1.y - lw/2.0;
+    double y21 = p2.y + lw/2.0, y22 = p2.y - lw/2.0;
+
+    // curve control point x at 1/3 and 2/3
+    double x3 = CMathUtil::lerp(1.0/3.0, p1.x, p2.x);
+    double x4 = CMathUtil::lerp(2.0/3.0, p1.x, p2.x);
+
+    path.moveTo (QPointF(p1.x, y11));
+    path.cubicTo(QPointF(x3  , y11), QPointF(x4, y21), QPointF(p2.x, y21));
+    path.lineTo (QPointF(p2.x, y22));
+    path.cubicTo(QPointF(x4  , y22), QPointF(x3, y12), QPointF(p1.x, y12));
+
+    path.closeSubpath();
+  }
+  else {
+    double x11 = p1.x + lw/2.0, x12 = p1.x - lw/2.0;
+    double x21 = p2.x + lw/2.0, x22 = p2.x - lw/2.0;
+
+    // curve control point y at 1/3 and 2/3
+    double y3 = CMathUtil::lerp(1.0/3.0, p1.y, p2.y);
+    double y4 = CMathUtil::lerp(2.0/3.0, p1.y, p2.y);
+
+    path.moveTo (QPointF(x11, p1.y));
+    path.cubicTo(QPointF(x11, y3  ), QPointF(x21, y4), QPointF(x21, p2.y));
+    path.lineTo (QPointF(x22, p2.y));
+    path.cubicTo(QPointF(x22, y4  ), QPointF(x12, y3), QPointF(x12, p1.y));
 
     path.closeSubpath();
   }
 }
 
 void
-edgePath(QPainterPath &path, const Point &p1, const Point &p2, double lw)
-{
-  double y11 = p1.y + lw/2.0, y12 = p1.y - lw/2.0;
-  double y21 = p2.y + lw/2.0, y22 = p2.y - lw/2.0;
-
-  // curve control point x at 1/3 and 2/3
-  double x3 = CMathUtil::lerp(1.0/3.0, p1.x, p2.x);
-  double x4 = CMathUtil::lerp(2.0/3.0, p1.x, p2.x);
-
-  path.moveTo (QPointF(p1.x, y11));
-  path.cubicTo(QPointF(x3  , y11), QPointF(x4, y21), QPointF(p2.x, y21));
-  path.lineTo (QPointF(p2.x, y22));
-  path.cubicTo(QPointF(x4  , y22), QPointF(x3, y12), QPointF(p1.x, y12));
-
-  path.closeSubpath();
-}
-
-void
-selfEdgePath(QPainterPath &path, const BBox &bbox, double lw)
+selfEdgePath(QPainterPath &path, const BBox &bbox, double lw, Qt::Orientation orientation)
 {
   double xr = bbox.getWidth ()/2.0;
   double yr = bbox.getHeight()/2.0;
 
-  // draw arc from 45 degrees left of vertical to 45 degrees right of vertical
-  double a = M_PI/4.0;
+  if (orientation == Qt::Horizontal) {
+    // draw arc from 45 degrees left of vertical to 45 degrees right of vertical
+    double a = M_PI/4.0;
 
-  double c = std::cos(a);
-  double s = std::sin(a);
+    double c = std::cos(a);
+    double s = std::sin(a);
 
-  double xm = bbox.getXMid();
-  double ym = bbox.getYMid();
+    double xm = bbox.getXMid();
+    double ym = bbox.getYMid();
 
-  double yt = bbox.getYMax() + yr/2.0;
-  double yt1 = yt - lw/2.0;
-  double yt2 = yt + lw/2.0;
+    double yt  = bbox.getYMax() + yr/2.0;
+    double yt1 = yt - lw/2.0;
+    double yt2 = yt + lw/2.0;
 
-  double x1 = xm - xr*c, y1 = ym + xr*s;
-  double x2 = xm + xr*c, y2 = y1;
+    double x1 = xm - xr*c, y1 = ym + xr*s;
+    double x2 = xm + xr*c, y2 = y1;
 
-  double lw1 = sqrt(2)*lw/2.0;
+    double lw1 = sqrt(2)*lw/2.0;
 
-  path.moveTo (QPointF(x1 - lw1, y1 - lw1));
-  path.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
-  path.lineTo (QPointF(x2 - lw1, y2 + lw1));
-  path.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
+    path.moveTo (QPointF(x1 - lw1, y1 - lw1));
+    path.cubicTo(QPointF(x1 - lw1, yt2), QPointF(x2 + lw1, yt2), QPointF(x2 + lw1, y2 - lw1));
+    path.lineTo (QPointF(x2 - lw1, y2 + lw1));
+    path.cubicTo(QPointF(x2 - lw1, yt1), QPointF(x1 + lw1, yt1), QPointF(x1 + lw1, y1 + lw1));
 
-  path.closeSubpath();
+    path.closeSubpath();
+  }
+  else {
+    // draw arc from 45 degrees above horizontal to 45 degrees below horizontal
+    double a = M_PI/4.0;
+
+    double c = std::cos(a);
+    double s = std::sin(a);
+
+    double xm = bbox.getXMid();
+    double ym = bbox.getYMid();
+
+    double xt  = bbox.getXMax() + xr/2.0;
+    double xt1 = xt - lw/2.0;
+    double xt2 = xt + lw/2.0;
+
+    double x1 = xm - xr*c, y1 = ym + yr*s;
+    double x2 = xm + xr*c, y2 = y1;
+
+    double lw1 = sqrt(2)*lw/2.0;
+
+    path.moveTo (QPointF(x1 - lw1, y1 - lw1));
+    path.cubicTo(QPointF(xt2     , y1 - lw1), QPointF(xt2, y2 + lw1), QPointF(x2 - lw1, y2 + lw1));
+    path.lineTo (QPointF(x2 + lw1, y2 - lw1));
+    path.cubicTo(QPointF(xt1     , y2 - lw1), QPointF(xt1, y1 + lw1), QPointF(x1 + lw1, y1 + lw1));
+
+    path.closeSubpath();
+  }
 }
+
+//---
 
 void
 curvePath(QPainterPath &path, const BBox &ibbox, const BBox &obbox, bool rectilinear)

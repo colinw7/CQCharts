@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + consistent usage or orientation/horizontal/vertical
+ + support currentColor ? Last used color
  + draw html text in box does not work when box larger than text
  + set model column_type data should not lose existing data
  + chord directional arrow (triangle end)
@@ -20,7 +22,11 @@ TODO:
    + arc
    + all code through draw util ?
  + object reference for path annotation
- + probe, no snap to object, snap to coord (axis minor tick)
+ + probe
+   + no snap to object
+   + snap to coord (axis minor tick)
+   + add value lable
+   + fixed placement/height
  + annotations have 'fit' property to be included in plot fit algorithm
  + zoom in should zoom plot background ?
  + symbol size key as separate class and allow as annotation
@@ -239,7 +245,6 @@ High
  + const everywhere ?
  + SVG interactive output
  + Arrow polyline (mid points and mid symbols)
- + Table chart interactive features
  + Generate table in JS output
  + access to model data in JS output (JSON)
  + Write JSON (test, different formats)
@@ -679,6 +684,9 @@ Sunburst
  + Push/Pop
 
 Table Plot
+ + Locked rows
+ + Column Header Group
+ + More Interactive features
  + Hier Model
  + Selection
  + Header/Number Colors
@@ -686,6 +694,9 @@ Table Plot
  + Resizable columns
  + Mouse Over
  + Mouse Resize
+ + Scaled or Fixed Size Font
+ + Scrollbars
+ + Custom objsAtPoint or improve quad tree
 
 Tree map
  + Rotate text if text aspect > box aspect

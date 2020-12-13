@@ -41,7 +41,7 @@ addParameters()
     setRequired().setNumeric().setTip("Value Column");
 
   // options
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
+  addBoolParameter("orientation", "Orientation", "orientation").setTip("Pivot orientation");
 
   endParameterGroup();
 }
@@ -180,18 +180,29 @@ setValueType(const ValueType &v)
   CQChartsUtil::testAndSet(valueType_, v, [&]() { updatePivot(); updateRangeAndObjs(); } );
 }
 
+//---
+
 void
 CQChartsPivotPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
+  setOrientation(b ? Qt::Horizontal : Qt::Vertical);
+}
+
+void
+CQChartsPivotPlot::
+setOrientation(const Qt::Orientation &orientation)
+{
+  CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
+    dataLabel_->setDirection(orientation);
 
     CQChartsAxis::swap(xAxis(), yAxis());
 
     updateRangeAndObjs();
   } );
 }
+
+//---
 
 void
 CQChartsPivotPlot::
@@ -238,10 +249,11 @@ addProperties()
   addProp("options", "plotType" , "plotType" , "Plot type" );
   addProp("options", "valueType", "valueType", "Value type");
 
-  addProp("options", "horizontal", "horizontal", "Draw horizontal");
-  addProp("options", "xSorted"   , "xSorted"   , "X keys are sorted");
-  addProp("options", "ySorted"   , "ySorted"   , "Y keys are sorted");
-  addProp("options", "gridBars"  , "gridBars"  , "Draw bars in grid cells");
+  addProp("options", "orientation", "orientation", "Pivot orientation");
+
+  addProp("options", "xSorted" , "xSorted" , "X keys are sorted");
+  addProp("options", "ySorted" , "ySorted" , "Y keys are sorted");
+  addProp("options", "gridBars", "gridBars", "Draw bars in grid cells");
 
   // fill
   addProp("fill", "barFilled", "visible", "Bar fill visible");
@@ -340,7 +352,7 @@ calcRange() const
   Range dataRange;
 
   auto updateRange = [&](double x, double y) {
-    if (! isHorizontal())
+    if (orientation() != Qt::Horizontal)
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -645,10 +657,10 @@ createObjs(PlotObjs &objs) const
           BBox rect;
 
           if (hasYValues)
-            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+            rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
                      x1 + ih*dx, 0.0, x1 + (ih + 1)*dx, value);
           else
-            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+            rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
                      x1, 0.0, x1 + dx, value);
 
           if (value != 0.0)
@@ -664,10 +676,10 @@ createObjs(PlotObjs &objs) const
           BBox rect;
 
           if (hasYValues)
-            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+            rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
                      iv - 0.5, oldValue, iv + 0.5, newValue);
           else
-            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+            rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
                      ih - 0.5, oldValue, ih + 0.5, newValue);
 
           if (oldValue != newValue)
@@ -714,9 +726,9 @@ createObjs(PlotObjs &objs) const
           Point p;
 
           if (hasYValues)
-            p = (! isHorizontal() ? Point(iv, 0.0) : Point(0.0, iv));
+            p = (orientation() != Qt::Horizontal ? Point(iv, 0.0) : Point(0.0, iv));
           else
-            p = (! isHorizontal() ? Point(ih, 0.0) : Point(0.0, ih));
+            p = (orientation() != Qt::Horizontal ? Point(ih, 0.0) : Point(0.0, ih));
 
           polygon.addPoint(p);
         }
@@ -724,9 +736,9 @@ createObjs(PlotObjs &objs) const
         Point p;
 
         if (hasYValues)
-          p = (! isHorizontal() ? Point(iv, value) : Point(value, iv));
+          p = (orientation() != Qt::Horizontal ? Point(iv, value) : Point(value, iv));
         else
-          p = (! isHorizontal() ? Point(ih, value) : Point(value, ih));
+          p = (orientation() != Qt::Horizontal ? Point(ih, value) : Point(value, ih));
 
         polygon.addPoint(p);
 
@@ -736,7 +748,7 @@ createObjs(PlotObjs &objs) const
       }
 
       if (isFilled && lastR >= 0) {
-        auto p = (! isHorizontal() ? Point(lastR, 0.0) : Point(0.0, lastR));
+        auto p = (orientation() != Qt::Horizontal ? Point(lastR, 0.0) : Point(0.0, lastR));
 
         polygon.addPoint(p);
       }
@@ -750,9 +762,11 @@ createObjs(PlotObjs &objs) const
       BBox rect;
 
       if (hasYValues)
-        rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nv, maxValue);
+        rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
+                                         0.0, minValue, nv, maxValue);
       else
-        rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nh, maxValue);
+        rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
+                                         0.0, minValue, nh, maxValue);
 
       auto *obj = createLineObj(rect, inds, ic, polygon, name);
 
@@ -787,9 +801,9 @@ createObjs(PlotObjs &objs) const
         Point p;
 
         if (hasYValues)
-          p = (! isHorizontal() ? Point(iv, value) : Point(value, iv));
+          p = (orientation() != Qt::Horizontal ? Point(iv, value) : Point(value, iv));
         else
-          p = (! isHorizontal() ? Point(ih, value) : Point(value, ih));
+          p = (orientation() != Qt::Horizontal ? Point(ih, value) : Point(value, ih));
 
         //---
 
@@ -851,7 +865,7 @@ createObjs(PlotObjs &objs) const
         ColorInd ir(iv, nv);
         ColorInd ic(ih, nh);
 
-        auto rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+        auto rect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
                       iv - 0.5, ih - 0.5, iv + 0.5, ih + 0.5);
 
         auto *obj = createCellObj(rect, inds, ir, ic, name, value, hnorm, vnorm, ok);
@@ -917,14 +931,14 @@ CQChartsAxis *
 CQChartsPivotPlot::
 mappedXAxis() const
 {
-  return (! isHorizontal() ? xAxis() : yAxis());
+  return (orientation() != Qt::Horizontal ? xAxis() : yAxis());
 }
 
 CQChartsAxis *
 CQChartsPivotPlot::
 mappedYAxis() const
 {
-  return (! isHorizontal() ? yAxis() : xAxis());
+  return (orientation() != Qt::Horizontal ? yAxis() : xAxis());
 }
 
 void
@@ -1007,7 +1021,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
+  (void) addCheckedAction("Horizontal", orientation() == Qt::Horizontal, SLOT(setHorizontal(bool)));
 
   auto *typeMenu = new QMenu("Plot Type", menu);
 

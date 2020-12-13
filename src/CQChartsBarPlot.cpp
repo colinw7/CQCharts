@@ -72,6 +72,28 @@ setValueColumns(const Columns &c)
 
 void
 CQChartsBarPlot::
+setOrientation(const Qt::Orientation &orientation)
+{
+  CQChartsUtil::testAndSet(orientation_, orientation, [&]() {
+    dataLabel_->setDirection(orientation);
+
+    CQChartsAxis::swap(xAxis(), yAxis());
+
+    updateRangeAndObjs();
+  } );
+}
+
+void
+CQChartsBarPlot::
+setHorizontal(bool b)
+{
+  setOrientation(b ? Qt::Horizontal : Qt::Vertical);
+}
+
+//---
+
+void
+CQChartsBarPlot::
 addProperties()
 {
   addBoxProperties();
@@ -99,7 +121,7 @@ addBoxProperties()
   addProp("columns", "valueColumns", "values", "Value columns");
 
   // options
-  addProp("options", "horizontal", "", "Draw bars horizontally");
+  addProp("options", "orientation", "", "Bar orientation");
 
   // margins
   addProp("margins", "margin"     , "bar"  , "Bar margin");
@@ -138,21 +160,6 @@ getPropertyNames(QStringList &names, bool hidden) const
 
 void
 CQChartsBarPlot::
-setHorizontal(bool b)
-{
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
-
-    CQChartsAxis::swap(xAxis(), yAxis());
-
-    updateRangeAndObjs();
-  } );
-}
-
-//---
-
-void
-CQChartsBarPlot::
 setMargin(const Length &l)
 {
   CQChartsUtil::testAndSet(margin_, l, [&]() { drawObjs(); } );
@@ -176,9 +183,9 @@ probe(ProbeData &probeData) const
   if (! dataRange.isSet())
     return false;
 
-  if (! isHorizontal()) {
-    probeData.direction = Qt::Vertical;
+  probeData.direction = orientation();
 
+  if (probeData.direction == Qt::Vertical) {
     if (probeData.p.x < dataRange.xmin() + 0.5)
       probeData.p.x = dataRange.xmin() + 0.5;
 
@@ -188,8 +195,6 @@ probe(ProbeData &probeData) const
     probeData.p.x = std::round(probeData.p.x);
   }
   else {
-    probeData.direction = Qt::Horizontal;
-
     if (probeData.p.y < dataRange.ymin() + 0.5)
       probeData.p.y = dataRange.ymin() + 0.5;
 

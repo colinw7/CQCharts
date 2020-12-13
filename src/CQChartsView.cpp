@@ -240,7 +240,7 @@ CQChartsView::
   for (auto &annotation : annotations())
     delete annotation;
 
-  for (auto &probeBand : probeBands_)
+  for (auto &probeBand : probeData_.bands)
     delete probeBand;
 
   delete propertyModel_;
@@ -432,6 +432,8 @@ addProperties()
 
   // probe
   addProp("probe", "probeObjects", "objects", "Probe nearest object");
+  addProp("probe", "probeNamed"  , "named"  , "Show value name");
+  addProp("probe", "probePos"    , "pos"    , "Probe value position");
 }
 
 //---
@@ -740,6 +742,27 @@ setSearchTimeout(int i)
 
 void
 CQChartsView::
+setProbePos(const ProbePos &pos)
+{
+  CQChartsUtil::testAndSet(probeData_.pos, pos, [&]() {
+    probeData_.pos = pos;
+
+    updateProbes();
+  } );
+}
+
+void
+CQChartsView::
+updateProbes()
+{
+  for (auto &probeBand : probeData_.bands)
+    probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+}
+
+//---
+
+void
+CQChartsView::
 setDefaultPalette(const QString &s)
 {
   CQChartsUtil::testAndSet(defaultPalette_, s, [&]() { updatePlots(); } );
@@ -980,7 +1003,7 @@ setMode(const Mode &mode)
   CQChartsUtil::testAndSet(mode_, mode, [&]() {
     endRegionBand();
 
-    for (auto &probeBand : probeBands_)
+    for (auto &probeBand : probeData_.bands)
       probeBand->hide();
 
     if (mode == Mode::EDIT && lastMode == Mode::SELECT) {
@@ -2551,7 +2574,10 @@ mouseMoveEvent(QMouseEvent *me)
 
   // probe mode and move (pressed or not pressed) - show probe lines
   if (mode() == Mode::PROBE) {
+    updateMousePosText();
+
     showProbeLines(mouseMovePoint());
+
     return;
   }
 
@@ -2762,34 +2788,16 @@ wheelEvent(QWheelEvent *e)
   plotsAt(w, plots, plot);
   if (! plot) return;
 
-  double panFactor  = 0.50;
-  double zoomFactor = 1.10;
-
   // scroll vertical
   if      (e->modifiers() & Qt::ShiftModifier) {
-    if      (e->delta() > 0)
-      plot->panUp(panFactor);
-    else if (e->delta() < 0)
-      plot->panDown(panFactor);
+    plot->wheelVScroll(e->delta());
   }
   // scroll horizontal
   else if (e->modifiers() & Qt::ControlModifier) {
-    if      (e->delta() > 0)
-      plot->panLeft(panFactor);
-    else if (e->delta() < 0)
-      plot->panRight(panFactor);
+    plot->wheelHScroll(e->delta());
   }
   else {
-    auto pp1 = plot->pixelToWindow(pp);
-
-    if      (e->delta() > 0)
-      plot->updateDataScale(plot->dataScale()*zoomFactor);
-    else if (e->delta() < 0)
-      plot->updateDataScale(plot->dataScale()/zoomFactor);
-
-    auto pp2 = plot->pixelToWindow(pp);
-
-    plot->pan(pp1.x - pp2.x, pp1.y - pp2.y);
+    plot->wheelZoom(pp, e->delta());
   }
 
   update();
@@ -3109,27 +3117,31 @@ CQChartsView::
 showProbeLines(const Point &p)
 {
   auto addVerticalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
-                                  double px, double py1, double py2) {
-    while (ind >= int(probeBands_.size())) {
+                                  double px, double py1, double py2, double py3) {
+    while (ind >= int(probeData_.bands.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
-      probeBands_.push_back(probeBand);
+      probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+
+      probeData_.bands.push_back(probeBand);
     }
 
-    probeBands_[ind]->showVertical(plot, tip, px, py1, py2);
+    probeData_.bands[ind]->showVertical(plot, tip, px, py1, py2, py3);
 
     ++ind;
   };
 
   auto addHorizontalProbeBand = [&](int &ind, Plot *plot, const QString &tip,
-                                    double px1, double px2, double py) {
-    while (ind >= int(probeBands_.size())) {
+                                    double px1, double px2, double px3, double py) {
+    while (ind >= int(probeData_.bands.size())) {
       auto *probeBand = new CQChartsProbeBand(this);
 
-      probeBands_.push_back(probeBand);
+      probeBand->setLabelPos((CQChartsProbeBand::LabelPos) probeData_.pos);
+
+      probeData_.bands.push_back(probeBand);
     }
 
-    probeBands_[ind]->showHorizontal(plot, tip, px1, px2, py);
+    probeData_.bands[ind]->showHorizontal(plot, tip, px1, px2, px3, py);
 
     ++ind;
   };
@@ -3158,9 +3170,9 @@ showProbeLines(const Point &p)
 
       auto tip = QString("%1, %2").arg(plot->xStr(pp.x)).arg(plot->yStr(pp.y));
 
-      addVerticalProbeBand  (probeInd, plot, "" , p.x, p1.y, p2.y);
-      addHorizontalProbeBand(probeInd, plot, "" , p1.x, p2.x, p.y);
-      addVerticalProbeBand  (probeInd, plot, tip, p.x, p.y, p.y + 4);
+      addVerticalProbeBand  (probeInd, plot, "" , p.x, p1.y, p2.y, p2.y);
+      addHorizontalProbeBand(probeInd, plot, "" , p1.x, p2.x, p2.x, p.y);
+      addVerticalProbeBand  (probeInd, plot, tip, p.x, p.y, p.y + 4, p.y + 4);
     }
   }
   else {
@@ -3176,15 +3188,18 @@ showProbeLines(const Point &p)
       if (! plot->probe(probeData))
         continue;
 
-      if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x);
-      if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y);
+      if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x, "", "");
+      if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y, "", "");
 
       auto dataRange = plot->calcDataRange();
 
       if      (probeData.both) {
         // add probe lines from xmin to probed x values and from ymin to probed y values
         auto px1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
+        auto px2 = plot->windowToPixel(Point(dataRange.getXMax(), probeData.p.y));
+
         auto py1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
+        auto py2 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMax()));
 
         int nx = probeData.xvals.size();
         int ny = probeData.yvals.size();
@@ -3195,39 +3210,66 @@ showProbeLines(const Point &p)
           const auto &xval = probeData.xvals[i];
           const auto &yval = probeData.yvals[i];
 
-          auto px2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
-          auto py2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
+          auto px3 = plot->windowToPixel(Point(xval.value, probeData.p.y));
+          auto py3 = plot->windowToPixel(Point(probeData.p.x, yval.value));
 
-          auto tip = QString("%1, %2").
-            arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
-            arg(yval.label.length() ? yval.label : plot->yStr(yval.value));
+          QString tip;
 
-          addVerticalProbeBand  (probeInd, plot, tip, py1.x, py1.y, py2.y);
-          addHorizontalProbeBand(probeInd, plot, "" , px1.x, px2.x, px2.y);
+          if (isProbeNamed()) {
+            tip = QString("%1: %2, %3: %4").
+              arg(xval.label.length() ? xval.label : "X").
+              arg(xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value)).
+              arg(yval.label.length() ? yval.label : "Y").
+              arg(yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
+          }
+          else {
+            tip = QString("%1, %2").
+              arg(xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value)).
+              arg(yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
+          }
+
+          addVerticalProbeBand  (probeInd, plot, tip, py1.x, py1.y, py3.y, py2.y);
+          addHorizontalProbeBand(probeInd, plot, "" , px1.x, px3.x, px2.x, px1.y);
         }
       }
       else if (probeData.direction == Qt::Vertical) {
         // add probe lines from ymin to probed y values
         auto p1 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMin()));
+        auto p2 = plot->windowToPixel(Point(probeData.p.x, dataRange.getYMax()));
 
         for (const auto &yval : probeData.yvals) {
-          auto p2 = plot->windowToPixel(Point(probeData.p.x, yval.value));
+          auto p3 = plot->windowToPixel(Point(probeData.p.x, yval.value));
 
-          auto tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+          QString tip;
 
-          addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+          if (isProbeNamed())
+            tip = QString("%1: %2").
+              arg(yval.label.length() ? yval.label : "Y").
+              arg(yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
+          else
+            tip = (yval.valueStr.length() ? yval.valueStr : plot->yStr(yval.value));
+
+          addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p3.y, p2.y);
         }
       }
       else {
         // add probe lines from xmin to probed x values
         auto p1 = plot->windowToPixel(Point(dataRange.getXMin(), probeData.p.y));
+        auto p2 = plot->windowToPixel(Point(dataRange.getXMax(), probeData.p.y));
 
         for (const auto &xval : probeData.xvals) {
-          auto p2 = plot->windowToPixel(Point(xval.value, probeData.p.y));
+          auto p3 = plot->windowToPixel(Point(xval.value, probeData.p.y));
 
-          auto tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+          QString tip;
 
-          addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
+          if (isProbeNamed())
+            tip = QString("%1: %2").
+              arg(xval.label.length() ? xval.label : "X").
+              arg(xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value));
+          else
+            tip = (xval.valueStr.length() ? xval.valueStr : plot->xStr(xval.value));
+
+          addHorizontalProbeBand(probeInd, plot, tip, p1.x, p3.x, p2.x, p1.y);
         }
       }
     }
@@ -3235,8 +3277,105 @@ showProbeLines(const Point &p)
 
   //---
 
-  for (int i = probeInd; i < int(probeBands_.size()); ++i)
-    probeBands_[i]->hide();
+  for (int i = probeInd; i < int(probeData_.bands.size()); ++i)
+    probeData_.bands[i]->hide();
+
+  //---
+
+  removeProbeOverlaps();
+}
+
+void
+CQChartsView::
+removeProbeOverlaps()
+{
+  using PosBands = std::map<double, ProbeBand *>;
+
+  // get vertical and horizontal bands in value order (low to high)
+  PosBands vertBands;
+  PosBands horiBands;
+
+  for (auto &probeBand : probeData_.bands) {
+    if (! probeBand->isVisible())
+      continue;
+
+    auto value = probeBand->value();
+
+    if (probeBand->orientation() == Qt::Vertical) {
+      auto p = vertBands.find(value);
+
+      while (p != vertBands.end()) {
+        value += 0.001;
+
+        p = vertBands.find(value);
+      }
+
+      vertBands[value] = probeBand;
+    }
+    else {
+      auto p = horiBands.find(value);
+
+      while (p != horiBands.end()) {
+        value += 0.001;
+
+        p = horiBands.find(value);
+      }
+
+      horiBands[value] = probeBand;
+    }
+  }
+
+  //---
+
+  int d = 4;
+
+  {
+  // remove vertical overlaps
+
+  int  lastPos    { 0 };
+  bool lastPosSet { false };
+  int  delta      { 0 };
+
+  for (const auto &pb : vertBands) {
+    auto rect = pb.second->labelRect();
+
+    if (lastPosSet) {
+      if (rect.bottom() > lastPos) {
+        delta = lastPos - rect.bottom();
+
+        pb.second->moveLabel(0, delta);
+      }
+    }
+
+    lastPos    = rect.top() - d;
+    lastPosSet = true;
+  }
+  }
+
+  //---
+
+  {
+  // remove horizontal overlaps
+
+  int  lastPos    { 0 };
+  bool lastPosSet { false };
+  int  delta      { 0 };
+
+  for (const auto &pb : horiBands) {
+    auto rect = pb.second->labelRect();
+
+    if (lastPosSet) {
+      if (rect.left() < lastPos) {
+        delta = lastPos - rect.left();
+
+        pb.second->moveLabel(0, delta);
+      }
+    }
+
+    lastPos    = rect.right() + d;
+    lastPosSet = true;
+  }
+  }
 }
 
 //------
@@ -3494,7 +3633,7 @@ regionMouseRelease()
   else if (regionMode() == RegionMode::RECT) {
     endRegionBand();
 
-    auto r = pixelToWindow(regionBand_.bbox());
+    auto r = pixelToWindow(probeData_.regionBand.bbox());
 
     emit regionPointRelease(r.getCenter());
     emit regionRectRelease (r);
@@ -3673,10 +3812,10 @@ void
 CQChartsView::
 startRegionBand(const Point &pos)
 {
-  regionBand_.init(this);
+  probeData_.regionBand.init(this);
 
-  regionBand_.setGeometry(BBox(pos, pos));
-  regionBand_.show();
+  probeData_.regionBand.setGeometry(BBox(pos, pos));
+  probeData_.regionBand.show();
 }
 
 void
@@ -3686,10 +3825,10 @@ updateRegionBand(Plot *plot, const Point &pressPoint, const Point &movePoint)
   updateRegionBand(pressPoint, movePoint);
 
   if (! plot->allowZoomX() || ! plot->allowZoomY()) {
-    double x = regionBand_.x     ();
-    double y = regionBand_.y     ();
-    double w = regionBand_.width ();
-    double h = regionBand_.height();
+    double x = probeData_.regionBand.x     ();
+    double y = probeData_.regionBand.y     ();
+    double w = probeData_.regionBand.width ();
+    double h = probeData_.regionBand.height();
 
     auto pixelRect = plot->calcPlotPixelRect();
 
@@ -3703,8 +3842,8 @@ updateRegionBand(Plot *plot, const Point &pressPoint, const Point &movePoint)
       h = int(pixelRect.getHeight());
     }
 
-    regionBand_.setGeometry(BBox(x, y, x + w, y + h));
-    regionBand_.show();
+    probeData_.regionBand.setGeometry(BBox(x, y, x + w, y + h));
+    probeData_.regionBand.show();
   }
 }
 
@@ -3717,14 +3856,14 @@ updateRegionBand(const Point &pressPoint, const Point &movePoint)
   double w = std::abs(movePoint.x - pressPoint.x);
   double h = std::abs(movePoint.y - pressPoint.y);
 
-  regionBand_.setGeometry(BBox(x, y, x + w, y + h));
+  probeData_.regionBand.setGeometry(BBox(x, y, x + w, y + h));
 }
 
 void
 CQChartsView::
 endRegionBand()
 {
-  regionBand_.hide();
+  probeData_.regionBand.hide();
 }
 
 //---
@@ -5128,13 +5267,6 @@ showMenu(const Point &p)
 
   //---
 
-  if (hasPlots)
-    addCheckAction(popupMenu, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
-
-  addCheckAction(popupMenu, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
-
-  //---
-
   // Mode Menu
   if (hasPlots) {
     popupMenu->addSeparator();
@@ -5588,6 +5720,15 @@ showMenu(const Point &p)
     addAction(popupMenu, "Fit"      , SLOT(fitSlot()));
     addAction(popupMenu, "Zoom Full", SLOT(zoomFullSlot()));
   }
+
+  //---
+
+  popupMenu->addSeparator();
+
+  if (hasPlots)
+    addCheckAction(popupMenu, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
+
+  addCheckAction(popupMenu, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
 
   //---
 
