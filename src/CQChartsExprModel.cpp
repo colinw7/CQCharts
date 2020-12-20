@@ -343,7 +343,7 @@ assignColumn(const QString &header, int column, const QString &expr)
     currentRow_ = r;
     currentCol_ = column;
 
-    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).trimmed();
 
     QVariant var;
 
@@ -445,7 +445,7 @@ calcColumn(int column, const QString &expr, Values &values, const NameValues &na
 
     QVariant var;
 
-    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).trimmed();
 
     if (! evaluateExpression(expr1, var))
       ++numErrors;
@@ -472,7 +472,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 
     QVariant var;
 
-    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+    auto expr1 = replaceExprColumns(expr, currentRow_, currentCol_).trimmed();
 
     if (! evaluateExpression(expr1, var)) {
       ++numErrors;
@@ -844,13 +844,13 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
   if      (exprStr[0] == '+') {
     function = Function::ADD;
 
-    expr = exprStr.mid(1).simplified();
+    expr = exprStr.mid(1).trimmed();
   }
   // delete column <n>
   else if (expr[0] == '-') {
     function = Function::DELETE;
 
-    auto columnStr = exprStr.mid(1).simplified();
+    auto columnStr = exprStr.mid(1).trimmed();
 
     bool ok;
 
@@ -862,15 +862,15 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
   else if (expr[0] == '=') {
     function = Function::ASSIGN;
 
-    auto columnExprStr = exprStr.mid(1).simplified();
+    auto columnExprStr = exprStr.mid(1).trimmed();
 
     int pos = columnExprStr.indexOf(':');
 
     if (pos < 0)
       return false;
 
-    auto columnStr = columnExprStr.mid(0, pos).simplified();
-    auto exprStr   = columnExprStr.mid(pos + 1).simplified();
+    auto columnStr = columnExprStr.mid(0, pos).trimmed();
+    auto exprStr   = columnExprStr.mid(pos + 1).trimmed();
 
     bool ok;
 
@@ -879,7 +879,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
     if (! ok)
       return false;
 
-    expr = expr.mid(1).simplified();
+    expr = expr.mid(1).trimmed();
   }
   else {
     function = Function::EVAL;
@@ -898,9 +898,9 @@ decodeExpression(const QString &exprStr, QString &header, QString &expr) const
   int pos = expr.indexOf('=');
 
   if (pos >= 0) {
-    header = expr.mid(0, pos).simplified();
+    header = expr.mid(0, pos).trimmed();
 
-    expr = expr.mid(pos + 1).simplified();
+    expr = expr.mid(pos + 1).trimmed();
   }
 
   return true;
@@ -961,7 +961,7 @@ calcExtraColumnValue(int row, int column, int ecolumn, bool &rc)
 
   auto expr = extraColumn.expr;
 
-  expr = replaceExprColumns(expr, row, column).simplified();
+  expr = replaceExprColumns(expr, row, column).trimmed();
 
   QVariant var;
 

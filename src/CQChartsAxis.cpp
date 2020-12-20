@@ -1140,7 +1140,7 @@ isDrawGrid() const
 
 void
 CQChartsAxis::
-drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
+drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 {
   if (! isDrawGrid())
     return;
@@ -1309,20 +1309,22 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
 void
 CQChartsAxis::
-drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device)
+drawAt(double pos, const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 {
+  auto *th = const_cast<CQChartsAxis *>(this);
+
   auto position = CQChartsOptReal(pos);
 
-  std::swap(position_, position);
+  std::swap(th->position_, position);
 
   draw(plot, device);
 
-  std::swap(position_, position);
+  std::swap(th->position_, position);
 }
 
 void
 CQChartsAxis::
-draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool forceColor)
+draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool forceColor) const
 {
   usePen_     = usePen;
   forceColor_ = forceColor;
@@ -1354,7 +1356,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool fo
     bbox_ += Point(apos1, amax);
   }
 
-  fitBBox_ = bbox_;
+  fitBBox_ = bbox();
 
   //---
 
@@ -1574,7 +1576,7 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool fo
   //---
 
   if (plot->showBoxes()) {
-    plot->drawWindowColorBox(device, bbox_, Qt::blue);
+    plot->drawWindowColorBox(device, bbox(), Qt::blue);
 
     plot->drawColorBox(device, lbbox_, Qt::green);
   }
@@ -1626,6 +1628,12 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, bool usePen, bool fo
 
   usePen_     = false;
   forceColor_ = false;
+
+  //---
+
+  auto *th = const_cast<CQChartsAxis *>(this);
+
+  th->rect_ = bbox_;
 }
 
 void
@@ -1710,7 +1718,8 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double amin, double amax)
+drawLine(const CQChartsPlot *, CQChartsPaintDevice *device,
+         double apos, double amin, double amax) const
 {
   CQChartsPenBrush penBrush;
 
@@ -1735,7 +1744,7 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double 
 void
 CQChartsAxis::
 drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-                  double apos, double dmin, double dmax)
+                  double apos, double dmin, double dmax) const
 {
   CQChartsPenBrush penBrush;
 
@@ -1761,7 +1770,7 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-                  double apos, double dmin, double dmax)
+                  double apos, double dmin, double dmax) const
 {
   CQChartsPenBrush penBrush;
 
@@ -1787,7 +1796,7 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                  double apos, double tpos, bool inside)
+                  double apos, double tpos, bool inside) const
 {
   drawTickLine(plot, device, apos, tpos, inside, /*major*/true);
 }
@@ -1795,7 +1804,7 @@ drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                  double apos, double tpos, bool inside)
+                  double apos, double tpos, bool inside) const
 {
   drawTickLine(plot, device, apos, tpos, inside, /*major*/false);
 }
@@ -1803,7 +1812,7 @@ drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-             double apos, double tpos, bool inside, bool major)
+             double apos, double tpos, bool inside, bool major) const
 {
   int tlen = (major ? majorTickLen() : minorTickLen());
 
@@ -1895,7 +1904,7 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 void
 CQChartsAxis::
 drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-              double apos, double tpos, double value, bool inside)
+              double apos, double tpos, double value, bool inside) const
 {
   auto text = valueStr(plot, value);
   if (! text.length()) return;
@@ -2423,7 +2432,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
 void
 CQChartsAxis::
-drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
+drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device) const
 {
   int n = axisTickLabelDrawDatas_.size();
   if (n < 1) return;
@@ -2508,7 +2517,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 void
 CQChartsAxis::
 drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device, double apos,
-              double amin, double amax, const QString &text, bool allowHtml)
+              double amin, double amax, const QString &text, bool allowHtml) const
 {
   if (! text.length())
     return;
@@ -2789,13 +2798,6 @@ windowToPixel(const CQChartsPlot *plot, double x, double y) const
 }
 
 //---
-
-void
-CQChartsAxis::
-setBBox(const BBox &b)
-{
-  CQChartsUtil::testAndSet(bbox_, b, [&]() { redraw(); } );
-}
 
 CQChartsGeom::BBox
 CQChartsAxis::

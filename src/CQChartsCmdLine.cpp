@@ -382,7 +382,7 @@ void
 CQChartsCmdLine::
 executeCommand(const QString &line)
 {
-  auto line1 = line.simplified();
+  auto line1 = line.trimmed();
 
   if (! line1.length())
     return;

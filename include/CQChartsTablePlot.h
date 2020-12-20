@@ -303,6 +303,12 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  void wheelHScroll(int delta) override;
+  void wheelVScroll(int delta) override;
+  void wheelZoom(const Point &pp, int delta) override;
+
+  //---
+
   void postResize() override;
 
   //---
@@ -362,6 +368,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   virtual CellObj   *createCellObj  (const CellObjData &cellObjData) const;
 
  private slots:
+  void modelTypeChangedSlot(int modelId);
+
   void hscrollSlot(int);
   void vscrollSlot(int);
 
@@ -396,7 +404,9 @@ class CQChartsTablePlot : public CQChartsPlot {
     int             nvr        { 0 };   //!< number of visible rows
     int             maxDepth   { 0 };   //!< max model item depth
     int             pSortWidth { 16 };  //!< sort pixel width
+    double          phrh       { 0.0 }; //!< pixel header row height
     double          prh        { 0.0 }; //!< pixel row height
+    double          hrh        { 0.0 }; //!< header row height
     double          rh         { 0.0 }; //!< row height
     double          pcw        { 0.0 }; //!< pixel columns width
     double          sx         { 0.0 }; //!< scroll x

@@ -97,7 +97,7 @@ textChanged()
 
   auto text = edit_->text();
 
-  if (text.simplified() == "") {
+  if (text.trimmed() == "") {
     column = CQChartsColumn();
   }
   else {
@@ -525,9 +525,9 @@ widgetsToColumn()
     if (! ok)
       role = -1;
 
-    if (indexEdit_->text().simplified().length())
+    if (indexEdit_->text().trimmed().length())
       column = CQChartsColumn(CQChartsColumn::Type::DATA_INDEX, icolumn.column(),
-                              indexEdit_->text().simplified(), int(role));
+                              indexEdit_->text().trimmed(), int(role));
     else
       column = CQChartsColumn(CQChartsColumn::Type::DATA, icolumn.column(),
                               "", int(role));
@@ -535,7 +535,7 @@ widgetsToColumn()
   else if (typeCombo_->currentIndex() == 1) {
     QString str;
 
-    if (expressionEdit_->text().simplified().length())
+    if (expressionEdit_->text().trimmed().length())
       str = QString("%1").arg(expressionEdit_->text());
 
     column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
@@ -550,8 +550,8 @@ widgetsToColumn()
     column = CQChartsColumn(CQChartsColumn::Type::GROUP, -1, "", -1);
   }
 
-  if (nameEdit_->text().simplified().length())
-    column.setName(nameEdit_->text().simplified());
+  if (nameEdit_->text().trimmed().length())
+    column.setName(nameEdit_->text().trimmed());
 
   column_ = column;
 

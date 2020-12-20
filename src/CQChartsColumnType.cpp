@@ -933,7 +933,7 @@ drawColor(const CQChartsNameValues &nameValues) const
 
   CQChartsColor color;
 
-  if (colorName.simplified().length())
+  if (colorName.trimmed().length())
     color = CQChartsColor(colorName);
 
   return color;
@@ -971,7 +971,7 @@ drawStops(const CQChartsNameValues &nameValues) const
 
   CQChartsColorStops stops;
 
-  if (stopsStr.simplified().length())
+  if (stopsStr.trimmed().length())
     stops = CQChartsColorStops(stopsStr);
 
   return stops;

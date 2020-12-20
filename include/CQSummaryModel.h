@@ -9,13 +9,13 @@ class CQSummaryModel : public QAbstractProxyModel {
   Q_OBJECT
 
   // mode
-  Q_PROPERTY(Mode          mode        READ mode         WRITE setMode       )
+  Q_PROPERTY(Mode mode READ mode WRITE setMode)
 
   // max rows
-  Q_PROPERTY(int           maxRows     READ maxRows      WRITE setMaxRows    )
+  Q_PROPERTY(int maxRows READ maxRows WRITE setMaxRows)
 
   // random
-  Q_PROPERTY(bool          randomMode  READ isRandomMode WRITE setRandomMode )
+  Q_PROPERTY(bool randomMode READ isRandomMode WRITE setRandomMode)
 
   // sort
   Q_PROPERTY(bool          sortMode    READ isSortMode   WRITE setSortMode   )
@@ -24,12 +24,12 @@ class CQSummaryModel : public QAbstractProxyModel {
   Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder    WRITE setSortOrder  )
 
   // paged
-  Q_PROPERTY(bool          pagedMode   READ isPagedMode  WRITE setPagedMode  )
-  Q_PROPERTY(int           pageSize    READ pageSize     WRITE setPageSize   )
-  Q_PROPERTY(int           currentPage READ currentPage  WRITE setCurrentPage)
+  Q_PROPERTY(bool pagedMode   READ isPagedMode  WRITE setPagedMode  )
+  Q_PROPERTY(int  pageSize    READ pageSize     WRITE setPageSize   )
+  Q_PROPERTY(int  currentPage READ currentPage  WRITE setCurrentPage)
 
   // rows mode
-  Q_PROPERTY(bool          rowsMode    READ isRowsMode   WRITE setRowsMode   )
+  Q_PROPERTY(bool rowsMode READ isRowsMode WRITE setRowsMode)
 
   Q_ENUMS(Mode)
 

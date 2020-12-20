@@ -15,6 +15,8 @@
 #include <CQCharts.h>
 #include <CQChartsViewPlotPaintDevice.h>
 #include <CQChartsSVGPaintDevice.h>
+#include <CQChartsPlotDrawUtil.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsResizeHandle.h>
 
@@ -123,10 +125,10 @@ writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
 {
   auto parentName = [&]() {
     if (parentVarName == "") {
-      if      (view())
-        return view()->id();
-      else if (plot())
+      if      (plot())
         return plot()->id();
+      else if (view())
+        return view()->id();
       else
         return QString("$parent");
     }
@@ -305,7 +307,7 @@ invalidate()
     view()->invalidateObjects();
     view()->invalidateOverlay();
 
-    view()->update();
+    view()->doUpdate();
   }
 }
 
@@ -849,7 +851,7 @@ drawInit(PaintDevice *device)
   if (plot())
     plot()->setClipRect(device);
 
-  bbox_ = rect_;
+  bbox_ = rect();
 }
 
 void
@@ -1558,7 +1560,7 @@ draw(PaintDevice *device)
                                   symbolType(), symbolSize());
   }
   else {
-    CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedRect(device, rect, cornerSize(), borderSides());
   }
 
   //---
@@ -2616,7 +2618,7 @@ draw(PaintDevice *device)
   //---
 
   // draw box
-  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, rect_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect_, cornerSize(), borderSides());
 
   //---
 
@@ -3072,7 +3074,7 @@ draw(PaintDevice *device)
   //---
 
   // draw box
-  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, rect_, cornerSize(), borderSides());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect_, cornerSize(), borderSides());
 
   //---
 
@@ -5278,11 +5280,14 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
 
   addProp(path1, "rectangle", "", "Rectangle");
   addProp(path1, "values"   , "", "Values");
+  addProp(path1, "drawType" , "", "Draw Type");
 
-  addDensityProp(path1, "numSamples"     , "", "Number of samples");
-  addDensityProp(path1, "smoothParameter", "", "Smooth parameter");
-  addDensityProp(path1, "drawType"       , "", "Density draw types");
-  addDensityProp(path1, "orientation"    , "", "Density orientation");
+  auto densityPath = path1 + "/density";
+
+  addDensityProp(densityPath, "numSamples"     , "", "Number of samples");
+  addDensityProp(densityPath, "smoothParameter", "", "Smooth parameter");
+  addDensityProp(densityPath, "drawType"       , "", "Density draw types");
+  addDensityProp(densityPath, "orientation"    , "", "Density orientation");
 
   addStrokeFillProperties(model, path1);
 }
@@ -5321,6 +5326,8 @@ void
 CQChartsValueSetAnnotation::
 draw(PaintDevice *device)
 {
+  assert(plot());
+
   drawInit(device);
 
   //---
@@ -5338,13 +5345,31 @@ draw(PaintDevice *device)
 
   //---
 
-  // draw density
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  if (plot())
+  // draw pie chart
+  if      (drawType() == DrawType::PIE) {
+    CQChartsRValues values;
+
+    for (const auto &r : values_.reals())
+      values.addValue(r);
+
+    CQChartsPlotDrawUtil::drawPie(const_cast<CQChartsPlot *>(plot()), device,
+                                  values, bbox, plot_->defaultPalette());
+  }
+  else if (drawType() == DrawType::TREEMAP) {
+    CQChartsRValues values;
+
+    for (const auto &r : values_.reals())
+      values.addValue(r);
+
+    CQChartsPlotDrawUtil::drawTreeMap(const_cast<CQChartsPlot *>(plot()), device,
+                                      values, bbox, plot_->defaultPalette());
+  }
+  // draw density
+  else if (drawType() == DrawType::DENSITY) {
     density_->draw(plot(), device, bbox);
-  else
-    assert(false);
+  }
 
   //---
 

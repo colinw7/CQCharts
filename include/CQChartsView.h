@@ -130,6 +130,9 @@ class CQChartsView : public QFrame,
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Inside, inside)
 
+  Q_PROPERTY(bool          overlayFade      READ isOverlayFade    WRITE setOverlayFade)
+  Q_PROPERTY(CQChartsAlpha overlayFadeAlpha READ overlayFadeAlpha WRITE setOverlayFadeAlpha)
+
   //---
 
   // scroll (TODO remove)
@@ -333,6 +336,15 @@ class CQChartsView : public QFrame,
 
   bool isInsideBlend() const { return insideHighlight_.blend; }
   void setInsideBlend(bool b) { insideHighlight_.blend = b; }
+
+  //---
+
+  // overlay fade
+  bool isOverlayFade() const { return overlayFade_; }
+  void setOverlayFade(bool b) { overlayFade_ = b; }
+
+  const Alpha &overlayFadeAlpha() const { return overlayFadeAlpha_; }
+  void setOverlayFadeAlpha(const Alpha &a) { overlayFadeAlpha_ = a; }
 
   //---
 
@@ -932,6 +944,10 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void doUpdate();
+
+  //---
+
   // write all details to output (model, view, plots and annotations)
   void writeAll(std::ostream &os) const;
 
@@ -1262,6 +1278,8 @@ class CQChartsView : public QFrame,
 
   void annotationsAtPoint(const Point &w, Annotations &annotations) const;
 
+  void update() { QFrame::update(); }
+
   void windowToPixelI(double wx, double wy, double &px, double &py) const;
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
 
@@ -1442,6 +1460,8 @@ class CQChartsView : public QFrame,
   SelectData       selectData_;                         //!< select sub mode data
   HighlightData    selectedHighlight_;                  //!< select highlight
   HighlightData    insideHighlight_;                    //!< inside highlight
+  bool             overlayFade_       { false };        //!< overlay fade
+  Alpha            overlayFadeAlpha_  { 0.5 };          //!< overlay fade alpha
   RegionData       regionData_;                         //!< region sub mode
   QString          defaultPalette_;                     //!< default palette
   ScrollData       scrollData_;                         //!< scroll data
@@ -1536,8 +1556,16 @@ class CQChartsSplitter : public QFrame {
  public:
   CQChartsSplitter(View *view, Qt::Orientation orientation);
 
+  //---
+
+  // get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &o);
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
+  //---
 
   void setPlot1(Plot *plot) { plot1_ = plot; }
   void setPlot2(Plot *plot) { plot2_ = plot; }

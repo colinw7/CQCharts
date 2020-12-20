@@ -21,6 +21,15 @@ CQChartsBoxObj(Plot *plot) :
 
 void
 CQChartsBoxObj::
+setBBox(const BBox &b)
+{
+  bbox_ = b;
+
+  setRect(bbox_);
+}
+
+void
+CQChartsBoxObj::
 addProperties(PropertyModel *model, const QString &path, const QString &desc)
 {
   addBoxProperties(model, path, desc);
@@ -96,7 +105,7 @@ void
 CQChartsBoxObj::
 draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
 {
-  bbox_ = bbox;
+  const_cast<CQChartsBoxObj *>(this)->setBBox(bbox);
 
   //---
 
@@ -107,7 +116,7 @@ draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
     penBrush1.pen = QPen(Qt::NoPen);
 
     // fill box
-    CQChartsDrawUtil::drawRoundedPolygon(device, penBrush1, bbox, cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedRect(device, penBrush1, bbox, cornerSize(), borderSides());
   }
 
   if (isStroked()) {
@@ -117,7 +126,7 @@ draw(PaintDevice *device, const BBox &bbox, const PenBrush &penBrush) const
     penBrush1.brush = QBrush(Qt::NoBrush);
 
     // stroke box
-    CQChartsDrawUtil::drawRoundedPolygon(device, penBrush1, bbox, cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedRect(device, penBrush1, bbox, cornerSize(), borderSides());
   }
 }
 
@@ -128,14 +137,14 @@ boxDataInvalidate()
   if      (plot())
     plot()->drawObjs();
   else if (view())
-    view()->update();
+    view()->doUpdate();
 }
 
 void
 CQChartsBoxObj::
 draw(PaintDevice *device, const Polygon &poly) const
 {
-  bbox_ = poly.boundingBox();
+  const_cast<CQChartsBoxObj *>(this)->setBBox(poly.boundingBox());
 
   if (isFilled()) {
     PenBrush penBrush;
@@ -168,5 +177,5 @@ bool
 CQChartsBoxObj::
 contains(const Point &p) const
 {
-  return bbox_.inside(p);
+  return bbox().inside(p);
 }

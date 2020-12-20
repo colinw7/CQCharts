@@ -209,7 +209,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       if (dvar.isValid())
         dstr = dvar.toString();
 
-      if (dstr.simplified() == "")
+      if (dstr.trimmed() == "")
         dstr = QString("%1").arg(r);
 
       return dstr;
@@ -217,31 +217,35 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     //---
 
-    // get min, max
-    auto *columnTypeMgr = charts()->columnTypeMgr();
+    double min { 0.0 }, max { 0.0 }, norm { 0.0 };
 
-    const auto *columnType = columnTypeMgr->getType(type);
+    if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP ||
+        tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART) {
+      // get min, max
+      auto *columnTypeMgr = charts()->columnTypeMgr();
 
-    auto minVar = columnType->minValue(columnData.details->nameValues());
-    if (! minVar.isValid()) minVar = columnData.details->minValue();
+      const auto *columnType = columnTypeMgr->getType(type);
 
-    auto maxVar = columnType->maxValue(columnData.details->nameValues());
-    if (! maxVar.isValid()) maxVar = columnData.details->maxValue();
+      auto minVar = columnType->minValue(columnData.details->nameValues());
+      if (! minVar.isValid()) minVar = columnData.details->minValue();
 
-    double min = minVar.toReal(&ok);
-    double max = maxVar.toReal(&ok);
+      auto maxVar = columnType->maxValue(columnData.details->nameValues());
+      if (! maxVar.isValid()) maxVar = columnData.details->maxValue();
 
-    double norm = (max > min ? (r - min)/(max - min) : 0.0);
+      min = minVar.toReal(&ok);
+      max = maxVar.toReal(&ok);
+
+      norm = (max > min ? (r - min)/(max - min) : 0.0);
+    }
 
     //---
 
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
+      // calc background color
       auto bg = columnData.details->
         heatmapColor(r, min, max, option.palette.color(QPalette::Window));
 
-      //---
-
-      // draw cell
+      // draw background
       painter->fillRect(option.rect, bg);
 
       if (option.state & QStyle::State_Selected)
@@ -252,10 +256,12 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
         option1.palette.setColor(QPalette::Text, tc);
       }
 
+      // draw value
       auto dstr = realDisplayStr(index, r);
 
       QItemDelegate::drawDisplay(painter, option1, option.rect, dstr);
 
+      // draw selection/focus
       if (option.state & QStyle::State_Selected)
         drawSelected();
 
@@ -305,6 +311,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
       painter->restore();
 
+      // draw selection/focus
       if (option.state & QStyle::State_Selected)
         drawSelected();
 

@@ -418,6 +418,9 @@ addProperties()
   addStyleProp("inside/highlight/stroke", "insideStrokeWidth", "width"  , "Inside stroke width");
   addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
 
+  addStyleProp("fade", "overlayFade"     , "enabled", "Fade non-overlay");
+  addStyleProp("fade", "overlayFadeAlpha", "alpha"  , "Fade alpha");
+
   // status
   addProp("status", "posTextType", "posTextType", "Position text type", true);
 
@@ -1492,7 +1495,7 @@ addAnnotation(Annotation *annotation)
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -1536,7 +1539,7 @@ raiseAnnotation(Annotation *annotation)
   if (pos < np - 1)
     std::swap(annotations_[pos + 1], annotations_[pos]);
 
-  update();
+  doUpdate();
 
   emit annotationsReordered();
 }
@@ -1554,7 +1557,7 @@ lowerAnnotation(Annotation *annotation)
   if (pos > 0)
     std::swap(annotations_[pos - 1], annotations_[pos]);
 
-  update();
+  doUpdate();
 
   emit annotationsReordered();
 }
@@ -1602,7 +1605,7 @@ removeAnnotation(Annotation *annotation)
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -1625,7 +1628,7 @@ removeAllAnnotations()
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -1697,7 +1700,7 @@ addPlot(Plot *plot, const BBox &bbox)
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -1719,7 +1722,7 @@ raisePlot(Plot *plot)
   if (pos < np - 1)
     std::swap(plots_[pos + 1], plots_[pos]);
 
-  update();
+  doUpdate();
 
   emit plotsReordered();
 }
@@ -1737,7 +1740,7 @@ lowerPlot(Plot *plot)
   if (pos > 0)
     std::swap(plots_[pos - 1], plots_[pos]);
 
-  update();
+  doUpdate();
 
   emit plotsReordered();
 }
@@ -1810,7 +1813,7 @@ removePlot(Plot *plot)
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -1839,7 +1842,7 @@ removeAllPlots()
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 
   //---
 
@@ -2800,7 +2803,7 @@ wheelEvent(QWheelEvent *e)
     plot->wheelZoom(pp, e->delta());
   }
 
-  update();
+  doUpdate();
 }
 
 //------
@@ -2874,7 +2877,7 @@ editMousePress()
 
     mouseData_.dragObj = DragObj::ANNOTATION;
 
-    update();
+    doUpdate();
 
     return true;
   }
@@ -2887,7 +2890,7 @@ editMousePress()
       if (! key()->isSelected()) {
         selectOneObj(key());
 
-        update();
+        doUpdate();
 
         return true;
       }
@@ -2979,7 +2982,7 @@ editMouseMotion()
     if (key()->editMotion(w)) {
       invalidateOverlay();
 
-      update();
+      doUpdate();
 
       return;
     }
@@ -2991,7 +2994,7 @@ editMouseMotion()
         if (annotation->editMotion(w)) {
           invalidateOverlay();
 
-          update();
+          doUpdate();
 
           return;
         }
@@ -3427,7 +3430,7 @@ selectPointPress()
 
     selectOneObj(selAnnotation);
 
-    update();
+    doUpdate();
 
     emit annotationPressed  (selAnnotation);
     emit annotationIdPressed(selAnnotation->id());
@@ -3673,7 +3676,7 @@ cycleEdit()
 
   selectOneObj(selObj);
 
-  update();
+  doUpdate();
 }
 
 void
@@ -4087,7 +4090,7 @@ resizeEvent(QResizeEvent *)
     // needed if size not changed ?
     doResize(sizeData_.width, sizeData_.height);
 
-    update();
+    doUpdate();
   }
 }
 
@@ -4138,7 +4141,7 @@ hbarScrollSlot(int pos)
 {
   sizeData_.xpos = pos;
 
-  update();
+  doUpdate();
 }
 
 void
@@ -4147,7 +4150,7 @@ vbarScrollSlot(int pos)
 {
   sizeData_.ypos = pos;
 
-  update();
+  doUpdate();
 }
 
 void
@@ -4512,7 +4515,7 @@ updateNoData()
   if (! hasPlots && ! hasBgAnnotations && ! hasFgAnnotations) {
     invalidateObjects();
 
-    update();
+    doUpdate();
   }
 }
 
@@ -4783,6 +4786,11 @@ CQChartsView::
 updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
                        PenBrush &penBrush, DrawType drawType) const
 {
+  if (isOverlayFade())
+    return;
+
+  //---
+
   if (! isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
@@ -5038,6 +5046,13 @@ void
 CQChartsView::
 updateSlot()
 {
+  doUpdate();
+}
+
+void
+CQChartsView::
+doUpdate()
+{
   update();
 }
 
@@ -5111,7 +5126,7 @@ searchAt(const Point &w)
   if (changed) {
     invalidateOverlay();
 
-    update();
+    doUpdate();
   }
 }
 
@@ -5921,7 +5936,7 @@ removeObjectSlot()
     else
       selAnnotation->view()->removeAnnotation(selAnnotation);
 
-    update();
+    doUpdate();
   }
 }
 
@@ -5936,7 +5951,7 @@ viewKeyVisibleSlot(bool b)
 
     invalidateObjects();
 
-    update();
+    doUpdate();
   }
 }
 
@@ -5956,7 +5971,7 @@ viewKeyPositionSlot(QAction *action)
 
   invalidateObjects();
 
-  update();
+  doUpdate();
 }
 
 //------
@@ -7085,7 +7100,7 @@ updateAll()
   invalidateObjects();
   invalidateOverlay();
 
-  update();
+  doUpdate();
 }
 
 void
@@ -7099,7 +7114,7 @@ updatePlots()
     plot->drawObjs();
   }
 
-  update();
+  doUpdate();
 }
 
 //------
@@ -8107,7 +8122,7 @@ paintEvent(QPaintEvent *)
   opt.rect    = rect();
   opt.palette = palette();
 
-  if (orientation() == Qt::Horizontal)
+  if (isHorizontal())
     opt.state = QStyle::State_Horizontal;
   else
     opt.state = QStyle::State_None;
@@ -8144,7 +8159,7 @@ mouseMoveEvent(QMouseEvent *event)
 
   movePos_ = event->globalPos();
 
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     int dy = movePos_.y() - pressPos_.y();
 
     int y1 = initPos_.y() + dy;
@@ -8179,7 +8194,7 @@ mouseReleaseEvent(QMouseEvent *event)
 
   double vr = view_->viewportRange();
 
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     int dy = movePos_.y() - pressPos_.y();
 
     double ph1 = view_->height()*bbox1.getHeight()/vr;

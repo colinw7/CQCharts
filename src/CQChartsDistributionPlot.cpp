@@ -1040,7 +1040,7 @@ calcBucketRanges() const
 
       values->densityData->setXVals(xvals);
 
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         densityBBox.add(values->densityData->xmin1(), values->densityData->ymin1() + doffset);
         densityBBox.add(values->densityData->xmax1(), values->densityData->ymax1() + doffset);
       }
@@ -1210,7 +1210,7 @@ calcBucketRanges() const
   };
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -1483,7 +1483,7 @@ calcAnnotationBBox() const
 
     Point p1, p2;
 
-    if (orientation() != Qt::Horizontal) {
+    if (isVertical()) {
       p1 = Point(dataRange.xmin(), dataRange.ymin()       );
       p2 = Point(dataRange.xmax(), dataRange.ymin() - 2*sy);
     }
@@ -1611,7 +1611,7 @@ createObjs(PlotObjs &objs) const
 #if 0
   const auto &dataRange = this->dataRange();
 
-  double size = dataRange.size(orientation() != Qt::Horizontal);
+  double size = dataRange.size(isVertical());
 
   int inc = intIncrementForSize(size);
 #endif
@@ -1844,7 +1844,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   auto makeBBox = [&](double xmin, double ymin, double xmax, double ymax) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       return BBox(xmin, ymin, xmax, ymax);
     else
       return BBox(ymin, xmin, ymax, xmax);
@@ -1892,7 +1892,7 @@ createObjs(PlotObjs &objs) const
 
       BBox bbox;
 
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         bbox.add(data.xmin, data.ymin + doffset);
         bbox.add(data.xmax, data.ymax + doffset);
       }
@@ -2483,14 +2483,14 @@ CQChartsAxis *
 CQChartsDistributionPlot::
 valueAxis() const
 {
-  return (orientation() != Qt::Horizontal ? xAxis() : yAxis());
+  return (isVertical() ? xAxis() : yAxis());
 }
 
 CQChartsAxis *
 CQChartsDistributionPlot::
 countAxis() const
 {
-  return (orientation() != Qt::Horizontal ? yAxis() : xAxis());
+  return (isVertical() ? yAxis() : xAxis());
 }
 
 void
@@ -2769,7 +2769,7 @@ posStr(const Point &w) const
 
   //---
 
-  if (orientation() != Qt::Horizontal) {
+  if (isVertical()) {
     auto xstr = xStr(int(w.x));
 
     for (const auto &plotObj : plotObjs_) {
@@ -2840,7 +2840,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Horizontal", orientation() == Qt::Horizontal, SLOT(setHorizontal(bool)));
+  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
   QMenu *typeMenu = nullptr;
 
@@ -2994,7 +2994,7 @@ drawStatsLines(PaintDevice *device) const
     auto drawStatLine = [&](double value) {
       Point p1, p2;
 
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         p1 = Point(value, dataRange.ymin());
         p2 = Point(value, dataRange.ymax());
       }
@@ -3444,7 +3444,7 @@ draw(PaintDevice *device) const
   if (getBarColoredRects(colorData_)) {
     auto pbbox = plot_->windowToPixel(bbox);
 
-    double size = (plot_->orientation() != Qt::Horizontal ? pbbox.getHeight() : pbbox.getWidth());
+    double size = (plot_->isVertical() ? pbbox.getHeight() : pbbox.getWidth());
 
     if      (plot_->isValueCount()) {
       double dsize = size/colorData_.nv;
@@ -3460,7 +3460,7 @@ draw(PaintDevice *device) const
 
         BBox pbbox1;
 
-        if (plot_->orientation() != Qt::Horizontal)
+        if (plot_->isVertical())
           pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
                         pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
@@ -3491,7 +3491,7 @@ draw(PaintDevice *device) const
 
         BBox pbbox1;
 
-        if (plot_->orientation() != Qt::Horizontal)
+        if (plot_->isVertical())
           pbbox1 = BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
                         pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
@@ -3572,7 +3572,7 @@ drawRug(PaintDevice *device) const
   auto symbolSize = plot_->rugSymbolSize();
 
   if (symbolType == CQChartsSymbol::Type::NONE)
-    symbolType = (plot_->orientation() != Qt::Horizontal ?
+    symbolType = (plot_->isVertical() ?
       CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
@@ -3604,14 +3604,14 @@ drawRug(PaintDevice *device) const
 
     Point p;
 
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       p = Point(x1, dataRange.ymin());
     else
       p = Point(dataRange.xmin(), x1);
 
     auto ps = plot_->windowToPixel(p);
 
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       ps.setY(ps.y + sy);
     else
       ps.setX(ps.x - sx);
@@ -3624,8 +3624,8 @@ double
 CQChartsDistributionBarObj::
 mapValue(double v) const
 {
-  double bmin = (plot_->orientation() != Qt::Horizontal ? rect_.getXMin() : rect_.getYMin());
-  double bmax = (plot_->orientation() != Qt::Horizontal ? rect_.getXMax() : rect_.getYMax());
+  double bmin = (plot_->isVertical() ? rect_.getXMin() : rect_.getYMin());
+  double bmax = (plot_->isVertical() ? rect_.getXMax() : rect_.getYMax());
 
   return CMathUtil::map(v, value1_, value2_, bmin, bmax);
 }
@@ -3759,7 +3759,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
   if (! plot_->isDotLines()) {
     // draw rect
     if (! useLine) {
-      CQChartsDrawUtil::drawRoundedPolygon(device, bbox, plot_->barCornerSize());
+      CQChartsDrawUtil::drawRoundedRect(device, bbox, plot_->barCornerSize());
     }
     else {
       if (bbox.getWidth() < bbox.getHeight()) { // vertical
@@ -3778,10 +3778,9 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     auto pbbox = plot_->pixelToWindow(bbox);
 
     // draw line
-    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(),
-                                       plot_->orientation() != Qt::Horizontal);
+    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), plot_->isVertical());
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       if (lw < 3.0) {
         double xc = bbox.getXMid();
 
@@ -3794,7 +3793,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
 
         auto bbox1 = plot_->pixelToWindow(pbbox1);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
+        CQChartsDrawUtil::drawRoundedRect(device, bbox1);
       }
     }
     else {
@@ -3810,7 +3809,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
 
         auto bbox1 = plot_->pixelToWindow(pbbox1);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, bbox1);
+        CQChartsDrawUtil::drawRoundedRect(device, bbox1);
       }
     }
 
@@ -3834,7 +3833,7 @@ drawRect(PaintDevice *device, const BBox &bbox, const Color &color, bool useLine
     // draw dot
     Point p;
 
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       p = Point(bbox.getXMid(), bbox.getYMax());
     else
       p = Point(bbox.getXMax(), bbox.getYMid());
@@ -3890,7 +3889,7 @@ isUseLine() const
     auto bbox  = calcRect();
     auto pbbox = plot_->windowToPixel(bbox);
 
-    double s = (plot_->orientation() != Qt::Horizontal ? pbbox.getWidth() : pbbox.getHeight());
+    double s = (plot_->isVertical() ? pbbox.getWidth() : pbbox.getHeight());
 
     useLine = (s <= 2);
   }
@@ -3930,7 +3929,7 @@ calcRect() const
 
   // calc margins
 
-  double ml = plot_->lengthPixelSize(plot_->margin(), plot_->orientation() != Qt::Horizontal);
+  double ml = plot_->lengthPixelSize(plot_->margin(), plot_->isVertical());
   double mr = ml;
 
   if (plot_->hasGroups()) {
@@ -3951,16 +3950,16 @@ calcRect() const
     else {
       // adjust margins for first/last bar in group
       if      (iv_.i == 0)
-        ml = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        ml = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
       else if (iv_.i == iv_.n - 1)
-        mr = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        mr = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
     }
   }
 
   //---
 
   // adjust rect by margins
-  double rs = prect.getSize(plot_->orientation() != Qt::Horizontal);
+  double rs = prect.getSize(plot_->isVertical());
 
   double s1 = rs - 2*std::max(ml, mr);
 
@@ -3969,7 +3968,7 @@ calcRect() const
     mr = ml;
   }
 
-  prect.expandExtent(-ml, -mr, plot_->orientation() != Qt::Horizontal);
+  prect.expandExtent(-ml, -mr, plot_->isVertical());
 
   return plot_->pixelToWindow(prect);
 }
@@ -4010,7 +4009,7 @@ CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const BBox 
 
   double y1 = data_.ymin;
 
-  if (plot->orientation() != Qt::Horizontal) {
+  if (plot->isVertical()) {
     for (int i = 0; i < np; ++i)
       poly_.addPoint(Point(data_.points[i].x, data_.points[i].y - y1 + doffset_));
   }
@@ -4171,7 +4170,7 @@ drawStatsLines(PaintDevice *device) const
   auto drawStatLine = [&](double value) {
     Point p1, p2;
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       p1 = Point(value, dataRange.ymin());
       p2 = Point(value, dataRange.ymax());
     }
@@ -4197,7 +4196,7 @@ drawRug(PaintDevice *device) const
   auto symbolSize = plot_->rugSymbolSize();
 
   if (symbolType == CQChartsSymbol::Type::NONE)
-    symbolType = (plot_->orientation() != Qt::Horizontal ?
+    symbolType = (plot_->isVertical() ?
       CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
@@ -4229,14 +4228,14 @@ drawRug(PaintDevice *device) const
   for (const auto &x1 : xvals) {
     Point p1;
 
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       p1 = Point(x1, dataRange.ymin());
     else
       p1 = Point(dataRange.xmin(), x1);
 
     auto ps = plot_->windowToPixel(p1);
 
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       ps.setY(ps.y + sy);
     else
       ps.setX(ps.x - sx);
@@ -4266,7 +4265,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
     Point pg1, pg2;
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       pg1 = Point(pixelRect.getXMin(), pixelRect.getYMin());
       pg2 = Point(pixelRect.getXMax(), pixelRect.getYMin());
     }
@@ -4387,7 +4386,7 @@ draw(PaintDevice *device) const
   for (const auto &point : points_) {
     double px, py;
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       px = plot_->windowToPixelWidth (point.x);
       py = plot_->windowToPixelHeight(point.y);
     }

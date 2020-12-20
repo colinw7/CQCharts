@@ -60,7 +60,7 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       BBox pbbox1(xc - lw/2.0, pbbox.getYMin(), xc + lw/2.0, pbbox.getYMax());
 
-      drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
+      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1));
     }
   }
   else {
@@ -78,7 +78,7 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 
       BBox pbbox1(pbbox.getXMid(), yc - lw/2.0, pbbox.getXMax(), yc + lw/2.0);
 
-      drawRoundedPolygon(device, penBrush, device->pixelToWindow(pbbox1));
+      drawRoundedRect(device, penBrush, device->pixelToWindow(pbbox1));
     }
   }
 
@@ -98,24 +98,24 @@ drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
 //---
 
 void
-drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-                   const Length &cornerSize, const Sides &sides)
+drawRoundedRect(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+                const Length &cornerSize, const Sides &sides)
 {
   setPenBrush(device, penBrush);
 
-  drawRoundedPolygon(device, bbox, cornerSize, cornerSize, sides);
+  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides);
 }
 
 void
-drawRoundedPolygon(PaintDevice *device, const BBox &bbox,
-                   const Length &cornerSize, const Sides &sides)
+drawRoundedRect(PaintDevice *device, const BBox &bbox,
+                const Length &cornerSize, const Sides &sides)
 {
-  drawRoundedPolygon(device, bbox, cornerSize, cornerSize, sides);
+  drawRoundedRect(device, bbox, cornerSize, cornerSize, sides);
 }
 
 void
-drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerSize,
-                   const Length &yCornerSize, const Sides &sides)
+drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xCornerSize,
+                const Length &yCornerSize, const Sides &sides)
 {
   static double minSize1 = 2.5; // pixels
   static double minSize2 = 1.5; // pixels
@@ -128,7 +128,7 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
   double ysize = device->lengthWindowHeight(yCornerSize);
 
   if      (minSize >= minSize1) {
-    drawAdjustedRoundedPolygon(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides);
   }
   else if (minSize >= minSize2) {
     auto pen = device->pen();
@@ -142,7 +142,7 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
 
     device->setPen(pen);
 
-    drawAdjustedRoundedPolygon(device, bbox, xsize, ysize, sides);
+    drawAdjustedRoundedRect(device, bbox, xsize, ysize, sides);
   }
   else {
     auto bc = device->brush().color();
@@ -160,8 +160,8 @@ drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xCornerS
 }
 
 void
-drawAdjustedRoundedPolygon(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
-                           const CQChartsSides &sides)
+drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
+                        const CQChartsSides &sides)
 {
   if (xsize > 0 || ysize > 0) {
     QPainterPath path;

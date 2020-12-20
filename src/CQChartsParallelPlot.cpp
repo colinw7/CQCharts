@@ -418,7 +418,7 @@ calcRange() const
         if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
           continue;
 
-        if (plot_->orientation() != Qt::Horizontal)
+        if (plot_->isVertical())
           range.updateRange(x, y);
         else
           range.updateRange(y, x);
@@ -450,7 +450,7 @@ calcRange() const
     if (! range.isSet())
       continue;
 
-    if (orientation() != Qt::Horizontal) {
+    if (isVertical()) {
       range.updateRange(   - 0.5, range.ymin());
       range.updateRange(ns - 0.5, range.ymax());
     }
@@ -465,7 +465,7 @@ calcRange() const
   Range dataRange;
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -495,7 +495,7 @@ calcRange() const
     const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
     if (range.isSet()) {
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         axis->setRange(range.ymin(), range.ymax());
         axis->setDefLabel(name);
       }
@@ -564,7 +564,7 @@ createObjs(PlotObjs &objs) const
         if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
           continue;
 
-        if (plot_->orientation() != Qt::Horizontal)
+        if (plot_->isVertical())
           poly.addPoint(Point(x, y));
         else
           poly.addPoint(Point(y, x));
@@ -655,7 +655,7 @@ createObjs(PlotObjs &objs) const
       // scale point to range
       double pos = 0.0;
 
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         double dry = range.ymax() - range.ymin();
 
         if (dry > 0.0)
@@ -670,7 +670,7 @@ createObjs(PlotObjs &objs) const
 
       double x, y;
 
-      if (orientation() != Qt::Horizontal) {
+      if (isVertical()) {
         x = j;
         y = pos;
       }
@@ -719,7 +719,7 @@ probe(ProbeData &probeData) const
 {
   int n = yColumns().count();
 
-  if (orientation() != Qt::Horizontal) {
+  if (isVertical()) {
 #if 0
     int x1 = std::min(std::max(CMathRound::RoundDown(probeData.p.x), 0), n - 1);
     int x2 = std::min(std::max(CMathRound::RoundUp  (probeData.p.x), 0), n - 1);
@@ -793,7 +793,7 @@ addMenuItems(QMenu *menu)
   auto *horizontalAction = new QAction("Horizontal", menu);
 
   horizontalAction->setCheckable(true);
-  horizontalAction->setChecked(orientation() == Qt::Horizontal);
+  horizontalAction->setChecked(isHorizontal());
 
   connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
 
@@ -827,7 +827,7 @@ calcAnnotationBBox() const
 
   double ts;
 
-  if (orientation() != Qt::Horizontal)
+  if (isVertical())
     ts = pixelToWindowHeight(fm.height() + tm);
   else
     ts = pixelToWindowWidth(max_tw_ + tm);
@@ -835,7 +835,7 @@ calcAnnotationBBox() const
   BBox bbox;
 
   if (normalizedDataRange_.isSet()) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       bbox = BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                   normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
     else
@@ -894,7 +894,7 @@ drawFgAxes(PaintDevice *device) const
 
     // set display range to set range
     if (dataRange_.isSet()) {
-      if (orientation() != Qt::Horizontal)
+      if (isVertical())
         displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
       else
         displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
@@ -923,7 +923,7 @@ drawFgAxes(PaintDevice *device) const
     Point p;
 
     if (dataRange_.isSet()) {
-      if (orientation() != Qt::Horizontal)
+      if (isVertical())
         p = windowToPixel(Point(j, dataRange_.ymax()));
       else
         p = windowToPixel(Point(dataRange_.xmax(), j));
@@ -945,7 +945,7 @@ drawFgAxes(PaintDevice *device) const
 
     Point tp;
 
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       tp = Point(p.x - tw/2.0, p.y - td - tm);
     else
       tp = Point(p.x + tm, p.y - (ta - td)/2);
@@ -1002,7 +1002,7 @@ setObjRange(PaintDevice *device)
   const auto &dataRange = this->dataRange();
 
   if (dataRange.isSet()) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       displayRange_->setWindowRange(dataRange.xmin(), 0, dataRange.xmax(), 1);
     else
       displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
@@ -1264,7 +1264,7 @@ getPolyLine(Polygon &poly) const
 
     double x, y;
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       x = poly_.point(i).x;
       y = (poly_.point(i).y - range.ymin())/range.ysize();
     }

@@ -242,7 +242,7 @@ applySlot()
   // apply function
   int icolumn1 = column.column();
 
-  auto expr = valueEdit_->text().simplified();
+  auto expr = valueEdit_->text().trimmed();
 
   if (expr.length()) {
     icolumn1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);

@@ -933,8 +933,8 @@ createPolygonEdit(const QString &name, const QString &tip) const
 
   edit->setPlot(plot());
 
-  if      (view()) edit->setUnits(CQChartsUnits::VIEW);
-  else if (plot()) edit->setUnits(CQChartsUnits::PLOT);
+  if      (plot()) edit->setUnits(CQChartsUnits::PLOT);
+  else if (view()) edit->setUnits(CQChartsUnits::VIEW);
 
   if (tip != "")
     edit->setToolTip(tip);
@@ -998,12 +998,12 @@ void
 CQChartsCreateAnnotationDlg::
 typeSlot(int ind)
 {
-  if      (view())
-    setWindowTitle(QString("Create View %1 Annotation").
-      arg(typeCombo_->currentText()));
-  else if (plot())
+  if      (plot())
     setWindowTitle(QString("Create Plot %1 Annotation (%2)").
       arg(typeCombo_->currentText()).arg(plot()->id()));
+  else if (view())
+    setWindowTitle(QString("Create View %1 Annotation").
+      arg(typeCombo_->currentText()));
 
   typeStack_->setCurrentIndex(ind);
 
@@ -1142,10 +1142,10 @@ createRectangleAnnotation()
 
   CQChartsRectangleAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addRectangleAnnotation(rect);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addRectangleAnnotation(rect);
+  else if (view())
+    annotation = view()->addRectangleAnnotation(rect);
   else
     return false;
 
@@ -1205,10 +1205,10 @@ createEllipseAnnotation()
 
   CQChartsEllipseAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addEllipseAnnotation(center, rx, ry);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addEllipseAnnotation(center, rx, ry);
+  else if (view())
+    annotation = view()->addEllipseAnnotation(center, rx, ry);
   else
     return false;
 
@@ -1240,8 +1240,8 @@ createPolygonAnnotation()
   auto polygon = polygonWidgets_.pointsEdit->polygon();
 
   if (polygon.units() == CQChartsUnits::NONE) {
-    if      (view()) polygon.setUnits(CQChartsUnits::VIEW);
-    else if (plot()) polygon.setUnits(CQChartsUnits::PLOT);
+    if      (plot()) polygon.setUnits(CQChartsUnits::PLOT);
+    else if (view()) polygon.setUnits(CQChartsUnits::VIEW);
   }
 
   if (! polygon.isValid(/*closed*/true))
@@ -1257,10 +1257,10 @@ createPolygonAnnotation()
 
   CQChartsPolygonAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addPolygonAnnotation(polygon);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addPolygonAnnotation(polygon);
+  else if (view())
+    annotation = view()->addPolygonAnnotation(polygon);
   else
     return false;
 
@@ -1292,8 +1292,8 @@ createPolylineAnnotation()
   auto polygon = polylineWidgets_.pointsEdit->polygon();
 
   if (polygon.units() == CQChartsUnits::NONE) {
-    if      (view()) polygon.setUnits(CQChartsUnits::VIEW);
-    else if (plot()) polygon.setUnits(CQChartsUnits::PLOT);
+    if      (plot()) polygon.setUnits(CQChartsUnits::PLOT);
+    else if (view()) polygon.setUnits(CQChartsUnits::VIEW);
   }
 
   if (! polygon.isValid(/*closed*/false))
@@ -1309,10 +1309,10 @@ createPolylineAnnotation()
 
   CQChartsPolylineAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addPolylineAnnotation(polygon);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addPolylineAnnotation(polygon);
+  else if (view())
+    annotation = view()->addPolylineAnnotation(polygon);
   else
     return false;
 
@@ -1351,7 +1351,7 @@ createTextAnnotation()
       return setErrorMsg("Invalid text rectangle");
   }
 
-  if (text.simplified().length() == 0)
+  if (text.trimmed().length() == 0)
     return setErrorMsg("Text string is empty");
 
   auto textData = textWidgets_.dataEdit->data();
@@ -1368,17 +1368,17 @@ createTextAnnotation()
 
   CQChartsTextAnnotation *annotation = nullptr;
 
-  if      (view()) {
-    if (isPos)
-      annotation = view()->addTextAnnotation(pos, text);
-    else
-      annotation = view()->addTextAnnotation(rect, text);
-  }
-  else if (plot()) {
+  if      (plot()) {
     if (isPos)
       annotation = plot()->addTextAnnotation(pos, text);
     else
       annotation = plot()->addTextAnnotation(rect, text);
+  }
+  else if (view()) {
+    if (isPos)
+      annotation = view()->addTextAnnotation(pos, text);
+    else
+      annotation = view()->addTextAnnotation(rect, text);
   }
   else
     return false;
@@ -1419,17 +1419,17 @@ createImageAnnotation()
 
   CQChartsImageAnnotation *annotation = nullptr;
 
-  if      (view()) {
-    if (isPos)
-      annotation = view()->addImageAnnotation(pos, image);
-    else
-      annotation = view()->addImageAnnotation(rect, image);
-  }
-  else if (plot()) {
+  if      (plot()) {
     if (isPos)
       annotation = plot()->addImageAnnotation(pos, image);
     else
       annotation = plot()->addImageAnnotation(rect, image);
+  }
+  else if (view()) {
+    if (isPos)
+      annotation = view()->addImageAnnotation(pos, image);
+    else
+      annotation = view()->addImageAnnotation(rect, image);
   }
   else
     return false;
@@ -1486,10 +1486,10 @@ createArrowAnnotation()
 
   CQChartsArrowAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addArrowAnnotation(start, end);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addArrowAnnotation(start, end);
+  else if (view())
+    annotation = view()->addArrowAnnotation(start, end);
   else
     return false;
 
@@ -1528,10 +1528,10 @@ createPointAnnotation()
 
   CQChartsPointAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addPointAnnotation(pos, symbolData.type());
-  else if (plot())
+  if      (plot())
     annotation = plot()->addPointAnnotation(pos, symbolData.type());
+  else if (view())
+    annotation = view()->addPointAnnotation(pos, symbolData.type());
   else
     return false;
 
@@ -1564,11 +1564,11 @@ createPieSliceAnnotation()
 
   CQChartsPieSliceAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addPieSliceAnnotation(center, innerRadius, outerRadius,
-                                               startAngle, spanAngle);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addPieSliceAnnotation(center, innerRadius, outerRadius,
+                                               startAngle, spanAngle);
+  else if (view())
+    annotation = view()->addPieSliceAnnotation(center, innerRadius, outerRadius,
                                                startAngle, spanAngle);
   else
     return false;
@@ -1631,10 +1631,10 @@ createKeyAnnotation()
 
   CQChartsKeyAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addKeyAnnotation();
-  else if (plot())
+  if      (plot())
     annotation = plot()->addKeyAnnotation();
+  else if (view())
+    annotation = view()->addKeyAnnotation();
   else
     return false;
 
@@ -1661,10 +1661,10 @@ createPointSetAnnotation()
 
   CQChartsPoints points;
 
-  if      (view())
-    annotation = view()->addPointSetAnnotation(points);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addPointSetAnnotation(points);
+  else if (view())
+    annotation = view()->addPointSetAnnotation(points);
   else
     return false;
 
@@ -1693,10 +1693,10 @@ createValueSetAnnotation()
 
   CQChartsReals reals;
 
-  if      (view())
-    annotation = view()->addValueSetAnnotation(rect, reals);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addValueSetAnnotation(rect, reals);
+  else if (view())
+    annotation = view()->addValueSetAnnotation(rect, reals);
   else
     return false;
 
@@ -1720,17 +1720,17 @@ createButtonAnnotation()
   auto pos  = buttonWidgets_.positionEdit->position();
   auto text = buttonWidgets_.textEdit->text();
 
-  if (text.simplified().length() == 0)
+  if (text.trimmed().length() == 0)
     return setErrorMsg("Button text is empty");
 
   //---
 
   CQChartsButtonAnnotation *annotation = nullptr;
 
-  if      (view())
-    annotation = view()->addButtonAnnotation(pos, text);
-  else if (plot())
+  if      (plot())
     annotation = plot()->addButtonAnnotation(pos, text);
+  else if (view())
+    annotation = view()->addButtonAnnotation(pos, text);
   else
     return false;
 

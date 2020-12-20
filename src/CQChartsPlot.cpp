@@ -3802,7 +3802,7 @@ threadTimerSlot()
   //---
 
   if (updateView)
-    view()->update();
+    view()->doUpdate();
 }
 
 CQChartsPlot::UpdateState
@@ -6686,7 +6686,7 @@ editMove(const Point &p, const Point &w, bool /*first*/)
     if (dx != 0.0 || dy != 0.0)
       mouseData_.dragged = true;
 
-    view()->update();
+    view()->doUpdate();
   }
   else {
     return false;
@@ -9145,7 +9145,7 @@ updateDraw()
 
     postDraw();
 
-    view()->update();
+    view()->doUpdate();
   }
 }
 
@@ -9393,6 +9393,11 @@ drawBackgroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundParts");
 
+  auto *buffer = getBuffer(Buffer::Type::BACKGROUND);
+  if (! buffer->isActive()) return;
+
+  //---
+
   // check for background rects (plot bbox, data bbox, fit bbox), background axes,
   // background key, background annotations or custom background
   BackgroundParts bgParts;
@@ -9404,13 +9409,12 @@ drawBackgroundParts(QPainter *painter) const
   bgParts.custom      = hasBackground();
 
   if (! bgParts.rects && ! bgParts.axes && ! bgParts.key &&
-      ! bgParts.annotations && ! bgParts.custom)
+      ! bgParts.annotations && ! bgParts.custom) {
+    buffer->clear();
     return;
+  }
 
   //---
-
-  auto *buffer = getBuffer(Buffer::Type::BACKGROUND);
-  if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
 
@@ -9633,6 +9637,11 @@ drawForegroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
 
+  auto *buffer = getBuffer(Buffer::Type::FOREGROUND);
+  if (! buffer->isActive()) return;
+
+  //---
+
   ForegroundParts fgParts;
 
   // check for foreground axes, foreground key, foreground annotations, title or
@@ -9644,13 +9653,12 @@ drawForegroundParts(QPainter *painter) const
   fgParts.custom      = hasForeground();
 
   if (! fgParts.axes && ! fgParts.key && ! fgParts.annotations &&
-      ! fgParts.title && ! fgParts.custom)
+      ! fgParts.title && ! fgParts.custom) {
+    buffer->clear();
     return;
+  }
 
   //---
-
-  auto *buffer = getBuffer(Buffer::Type::FOREGROUND);
-  if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
 
@@ -9803,6 +9811,11 @@ drawOverlayParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawOverlayParts");
 
+  auto *buffer = getBuffer(Buffer::Type::OVERLAY);
+  if (! buffer->isActive()) return;
+
+  //---
+
   // check for selected objects/annotations, debug boxes, edit handle,
   // mouse objects/annotations or custom overlay
   OverlayParts overlayParts;
@@ -9815,15 +9828,17 @@ drawOverlayParts(QPainter *painter) const
   overlayParts.overAnnotations = hasGroupedAnnotations(Layer::Type::MOUSE_OVER);
   overlayParts.custom          = hasOverlay();
 
-  if (! overlayParts.selObjs && ! overlayParts.selAnnotations && ! overlayParts.boxes &&
-      ! overlayParts.editHandles && ! overlayParts.overObjs && ! overlayParts.overAnnotations &&
-      ! overlayParts.custom)
+  bool anyOverlayParts =
+    overlayParts.selObjs || overlayParts.selAnnotations || overlayParts.boxes ||
+    overlayParts.editHandles || overlayParts.overObjs || overlayParts.overAnnotations ||
+    overlayParts.custom;
+
+  if (! anyOverlayParts) {
+    buffer->clear();
     return;
+  }
 
   //---
-
-  auto *buffer = getBuffer(Buffer::Type::OVERLAY);
-  if (! buffer->isActive()) return;
 
   auto *painter1 = beginPaint(buffer, painter);
 
@@ -9846,6 +9861,11 @@ void
 CQChartsPlot::
 drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) const
 {
+  if (view()->isOverlayFade() && (overlayParts.overObjs || overlayParts.overAnnotations))
+    drawOverlayFade(device);
+
+  //---
+
   // draw custom overlay
   if (overlayParts.custom)
     drawCustomOverlay(device);
@@ -9883,6 +9903,22 @@ drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) co
 
   if (overlayParts.overAnnotations)
     drawGroupedAnnotations(device, Layer::Type::MOUSE_OVER);
+}
+
+void
+CQChartsPlot::
+drawOverlayFade(PaintDevice *device) const
+{
+  PenBrush penBrush;
+
+  setPenBrush(penBrush, PenData(false),
+    BrushData(true, interpPlotFillColor(ColorInd()), view()->overlayFadeAlpha()));
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  auto rect = calcPlotRect();
+
+  device->fillRect(rect);
 }
 
 //---
@@ -12656,7 +12692,7 @@ update()
 {
   assert(fromInvalidate_);
 
-  view()->update();
+  view()->doUpdate();
 
   fromInvalidate_ = false;
 }
@@ -13118,7 +13154,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
     auto name = modelString(nameModelInd, ok);
 
-    if (ok && ! name.simplified().length())
+    if (ok && ! name.trimmed().length())
       ok = false;
 
     if (ok) {
@@ -13140,7 +13176,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
       auto name = modelString(nameModelInd, ok);
 
-      if (ok && ! name.simplified().length())
+      if (ok && ! name.trimmed().length())
         ok = false;
 
       if (ok) {
@@ -13775,9 +13811,18 @@ modelString(const ModelIndex &ind, bool &ok) const
 
 QString
 CQChartsPlot::
+modelString(QAbstractItemModel *model, const ModelIndex &ind, int role, bool &ok) const
+{
+  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(),
+                                        ind.parent(), role, ok);
+}
+
+QString
+CQChartsPlot::
 modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const
 {
-  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(), ind.parent(), ok);
+  return CQChartsModelUtil::modelString(charts(), model, ind.row(), ind.column(),
+                                        ind.parent(), ok);
 }
 
 QString

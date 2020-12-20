@@ -402,22 +402,32 @@ paramApplySlot()
     else if (param->type() == CQBaseModelType::INTEGER) {
       if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
         value = QString("%1").arg(paramEdit.edit->getInteger());
+      else
+        value = paramEdit.edit->getString();
     }
     else if (param->type() == CQBaseModelType::ENUM) {
       if (paramEdit.edit->type() == CQBaseModelType::ENUM)
         value = paramEdit.edit->getEnum();
+      else
+        assert(false);
     }
     else if (param->type() == CQBaseModelType::COLOR) {
       if (paramEdit.edit->type() == CQBaseModelType::COLOR)
         value = paramEdit.edit->getColor();
+      else
+        assert(false);
      }
     else {
       if (paramEdit.edit->type() == CQBaseModelType::STRING)
         value = paramEdit.edit->getString();
+      else
+        assert(false);
     }
 
     if (value != "")
       nameValues.setNameValue(name, value);
+    else
+      nameValues.removeName(name);
   }
 
   if (! columnTypeMgr->setModelColumnType(model.data(), column, columnType->type(),

@@ -1058,6 +1058,7 @@ class CQChartsSymbolMapKey : public QObject {
   void drawBorder(PaintDevice *device, bool usePenBrush=false);
 
   const BBox &bbox() { return bbox_; }
+  void setBBox(const BBox &b) { bbox_ = b; }
 
  private:
   void invalidate() {

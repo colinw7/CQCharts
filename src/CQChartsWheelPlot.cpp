@@ -249,9 +249,9 @@ setColdTemp(double t)
 
 void
 CQChartsWheelPlot::
-setTempPalette(const PaletteName &s)
+setTempPalette(const PaletteName &n)
 {
-  CQChartsUtil::testAndSet(tempPalette_, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(tempPalette_, n, [&]() { drawObjs(); } );
 }
 
 //------

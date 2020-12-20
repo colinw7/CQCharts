@@ -1483,7 +1483,7 @@ writeCSV(std::ostream &fs) const
 
             auto fmt = timeType->getIFormat(columnDetails->nameValues());
 
-            if (fmt.simplified() != "") {
+            if (fmt.trimmed() != "") {
               var = CQChartsUtil::timeToString(fmt, r);
 
               converted = true;

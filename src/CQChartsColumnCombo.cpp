@@ -105,7 +105,7 @@ updateItems()
 
     QString label;
 
-    if (! name.simplified().length())
+    if (! name.trimmed().length())
       label = QString("%1 : <no name>").arg(c);
     else
       label = QString("%1 : %2").arg(c).arg(name);

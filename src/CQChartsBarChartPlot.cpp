@@ -380,7 +380,7 @@ calcRange() const
   //---
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -498,12 +498,12 @@ calcRange() const
 
     //---
 
-    double ymin = (orientation() != Qt::Horizontal ? dataRange.ymin() : dataRange.xmin());
+    double ymin = (isVertical() ? dataRange.ymin() : dataRange.xmin());
 
     updateRange(numVisible - 0.5, ymin);
 
     if (nv == 0) {
-      double xmin = (orientation() != Qt::Horizontal ? dataRange.xmin() : dataRange.ymin());
+      double xmin = (isVertical() ? dataRange.xmin() : dataRange.ymin());
 
       updateRange(xmin, 1.0);
     }
@@ -549,7 +549,7 @@ initRangeAxesI()
   int ng = numGroups();
 
   // needed ?
-  if (orientation() != Qt::Horizontal) {
+  if (isVertical()) {
     setXValueColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
     setYValueColumn(valueColumns().column());
   }
@@ -644,7 +644,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns,
   //---
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -1081,8 +1081,7 @@ createObjs(PlotObjs &objs) const
         else if (isValueSum())
           value2 = sum;
 
-        auto brect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
-                                               bx, value1, bx + 1.0, value2);
+        auto brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
 
         //---
 
@@ -1206,13 +1205,11 @@ createObjs(PlotObjs &objs) const
         }
 
         if (isStacked())
-          brect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
-                                            bx, value1, bx + 1.0, value2);
+          brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
         else
-          brect = CQChartsGeom::makeDirBBox(orientation() == Qt::Horizontal,
-                                            bx1, value1, bx1 + bw1, value2);
+          brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
 
-        if (orientation() != Qt::Horizontal)
+        if (isVertical())
           barWidth_ = std::min(barWidth_, brect.getWidth());
         else
           barWidth_ = std::min(barWidth_, brect.getHeight());
@@ -1409,14 +1406,14 @@ CQChartsAxis *
 CQChartsBarChartPlot::
 mappedXAxis() const
 {
-  return (orientation() != Qt::Horizontal ? xAxis() : yAxis());
+  return (isVertical() ? xAxis() : yAxis());
 }
 
 CQChartsAxis *
 CQChartsBarChartPlot::
 mappedYAxis() const
 {
-  return (orientation() != Qt::Horizontal ? yAxis() : xAxis());
+  return (isVertical() ? yAxis() : xAxis());
 }
 
 void
@@ -1675,7 +1672,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Horizontal", orientation() == Qt::Horizontal, SLOT(setHorizontal(bool)));
+  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
   auto *typeMenu = new QMenu("Plot Type", menu);
 
@@ -1976,21 +1973,21 @@ draw(PaintDevice *device) const
   //---
 
   // calc bar borders
-  double m1 = plot_->lengthPixelSize(plot_->margin(), plot_->orientation() != Qt::Horizontal);
+  double m1 = plot_->lengthPixelSize(plot_->margin(), plot_->isVertical());
   double m2 = m1;
 
   if (! plot_->isStacked()) {
     if      (is_.n > 1) {
       if      (ig_.i == 0)
-        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
       else if (ig_.i == ig_.n - 1)
-        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
     }
     else if (ig_.n > 1) {
       if      (iv_.i == 0)
-        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        m1 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
       else if (iv_.i == iv_.n - 1)
-        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->orientation() != Qt::Horizontal);
+        m2 = plot_->lengthPixelSize(plot_->groupMargin(), plot_->isVertical());
     }
   }
 
@@ -2001,7 +1998,7 @@ draw(PaintDevice *device) const
 
   auto prect = plot_->windowToPixel(rect());
 
-  double rs = prect.getSize(plot_->orientation() != Qt::Horizontal);
+  double rs = prect.getSize(plot_->isVertical());
 
   double s1 = rs - 2*m1;
 
@@ -2010,7 +2007,7 @@ draw(PaintDevice *device) const
     m2 = m1;
   }
 
-  prect.expandExtent(-m1, -m2, plot_->orientation() != Qt::Horizontal);
+  prect.expandExtent(-m1, -m2, plot_->isVertical());
 
   auto rect = plot_->pixelToWindow(prect);
 
@@ -2029,12 +2026,12 @@ draw(PaintDevice *device) const
 
   if (! plot_->isDotLines()) {
     // draw rect
-    CQChartsDrawUtil::drawRoundedPolygon(device, barPenBrush, rect, plot_->barCornerSize());
+    CQChartsDrawUtil::drawRoundedRect(device, barPenBrush, rect, plot_->barCornerSize());
   }
   else {
     // draw dot line
     CQChartsDrawUtil::drawDotLine(device, barPenBrush, rect, plot_->dotLineWidth(),
-                                  plot_->orientation() == Qt::Horizontal, plot_->dotSymbolType(),
+                                  plot_->isHorizontal(), plot_->dotSymbolType(),
                                   plot_->dotSymbolSize());
   }
 
@@ -2164,7 +2161,7 @@ calcPenBrush(PenBrush &penBrush, bool updateState) const
 
   auto prect = plot_->windowToPixel(rect());
 
-  double rs = prect.getSize(plot_->orientation() != Qt::Horizontal);
+  double rs = prect.getSize(plot_->isVertical());
 
   bool skipBorder = (rs < minBorderSize);
 

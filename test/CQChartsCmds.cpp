@@ -1724,10 +1724,31 @@ exec(CQChartsCmdArgs &argv)
     if (! plot) return errorMsg("Invalid plot '" + plotName + "'");
 
     CQChartsPlotObj *plotObj = nullptr;
+    CQChartsObj     *obj     = nullptr;
 
     if (objectId.length()) {
       plotObj = plot->getPlotObject(objectId);
-      if (! plotObj) return errorMsg("Invalid plot object id '" + objectId + "'");
+
+      if (! plotObj) {
+        auto *key   = plot->key();
+        auto *xaxis = plot->xAxis();
+        auto *yaxis = plot->yAxis();
+        auto *title = plot->title();
+
+        if      (key && key->id() == objectId)
+          obj = key;
+        else if (xaxis && xaxis->id() == objectId)
+          obj = xaxis;
+        else if (yaxis && yaxis->id() == objectId)
+          obj = yaxis;
+        else if (title && title->id() == objectId)
+          obj = title;
+      }
+      else
+        obj = plotObj;
+
+      if (! obj)
+        return errorMsg("Invalid object id '" + objectId + "'");
     }
 
     // plot object property
@@ -1743,9 +1764,29 @@ exec(CQChartsCmdArgs &argv)
         QVariant value;
 
         if (! CQUtil::getTclProperty(plotObj, name, value))
-          return errorMsg("Failed to get plot parameter '" + name + "'");
+          return errorMsg("Failed to get plot object property '" + name + "'");
 
-        return cmdBase_->setCmdRc(value);
+        bool rc;
+
+        return cmdBase_->setCmdRc(CQChartsVariant::toString(value, rc));
+      }
+    }
+    // object property
+    else if (obj) {
+      if (name == "?") {
+        QStringList names = CQUtil::getPropertyList(obj, /*inherited*/true);
+
+        return cmdBase_->setCmdRc(names);
+      }
+      else {
+        QVariant value;
+
+        if (! CQUtil::getTclProperty(obj, name, value))
+          return errorMsg("Failed to get object property '" + name + "'");
+
+        bool rc;
+
+        return cmdBase_->setCmdRc(CQChartsVariant::toString(value, rc));
       }
     }
     // plot property

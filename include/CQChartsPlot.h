@@ -1172,6 +1172,7 @@ class CQChartsPlot : public CQChartsObj,
   QString modelString(int row, const Column &column,
                       const QModelIndex &parent, bool &ok) const;
 
+  QString modelString(QAbstractItemModel *model, const ModelIndex &ind, int role, bool &ok) const;
   QString modelString(QAbstractItemModel *model, const ModelIndex &ind, bool &ok) const;
 
   virtual QString modelString(QAbstractItemModel *model, int row, const Column &column,
@@ -2298,6 +2299,8 @@ class CQChartsPlot : public CQChartsObj,
 
   // draw overlay layer plot device parts
   virtual void drawOverlayDeviceParts(PaintDevice *device, const OverlayParts &overlayParts) const;
+
+  void drawOverlayFade(PaintDevice *device) const;
 
   //---
 

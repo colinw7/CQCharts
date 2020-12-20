@@ -1373,7 +1373,7 @@ updateTextAnnotation()
       return setErrorMsg("Invalid text rectangle");
   }
 
-  if (text.simplified().length() == 0)
+  if (text.trimmed().length() == 0)
     return setErrorMsg("Text string is empty");
 
   auto textData = textWidgets_.dataEdit->data();

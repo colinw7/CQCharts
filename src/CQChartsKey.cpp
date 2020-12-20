@@ -70,10 +70,10 @@ QString
 CQChartsKey::
 calcId() const
 {
-  if      (view())
-    return view()->id() + "/key";
-  else if (plot())
+  if      (plot())
     return plot()->id() + "/key";
+  else if (view())
+    return view()->id() + "/key";
   else
     return "key";
 }
@@ -83,14 +83,14 @@ CQChartsKey::
 setSelected(bool b)
 {
   CQChartsUtil::testAndSet(selected_, b, [&]() {
-    if      (view()) {
+    if      (plot()) {
+      plot()->drawObjs();
+    }
+    else if (view()) {
       view()->invalidateObjects();
       view()->invalidateOverlay();
 
-      view()->update();
-    }
-    else if (plot()) {
-      plot()->drawObjs();
+      view()->doUpdate();
     }
   } );
 }
@@ -690,7 +690,7 @@ redraw(bool /*queued*/)
   view()->invalidateObjects();
   view()->invalidateOverlay();
 
-  view()->update();
+  view()->doUpdate();
 }
 
 //------
@@ -2569,7 +2569,7 @@ draw(PaintDevice *device, const BBox &rect) const
 
   auto bbox = plot->pixelToWindow(prect1);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, bbox, cornerRadius());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, bbox, cornerRadius());
 }
 
 QBrush
@@ -3168,7 +3168,7 @@ drawBorder(PaintDevice *device, bool usePenBrush)
     CQChartsDrawUtil::setPenBrush(device, penBrush);
   }
 
-  auto bbox = bbox_ + tbbox_;
+  auto bbox = this->bbox() + tbbox_;
 
   device->drawRect(bbox);
 }
@@ -3288,5 +3288,5 @@ getSymbolBoxes(BBoxes &pbboxes) const
 
   //---
 
-  th->bbox_ = bbox;
+  th->setBBox(bbox);
 }

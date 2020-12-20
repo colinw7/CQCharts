@@ -484,7 +484,7 @@ calcRange() const
 
     QFontMetricsF fm(font);
 
-    if (orientation() == Qt::Horizontal)
+    if (isHorizontal())
       dx = pixelToWindowWidth (fm.height())*1.1;
     else
       dy = pixelToWindowHeight(fm.height())*1.1;
@@ -627,7 +627,7 @@ fitToBBox() const
     auto *node = idNode.second;
     if (! node->isVisible()) continue;
 
-    if (orientation() == Qt::Horizontal) {
+    if (isHorizontal()) {
       double ny1 = y2 + (node->rect().getYMin() - y1);
 
       double dy = ny1 - node->rect().getYMin();
@@ -664,7 +664,7 @@ fitToBBox() const
   // spread all to top/right
   double f = 1.0;
 
-  if (orientation() == Qt::Horizontal)
+  if (isHorizontal())
     f = h2/h1;
   else
     f = w2/w1;
@@ -673,7 +673,7 @@ fitToBBox() const
     auto *node = idNode.second;
     if (! node->isVisible()) continue;
 
-    if (orientation() == Qt::Horizontal) {
+    if (isHorizontal()) {
       double ny1 = y2 + (node->rect().getYMin() - y1)*f;
 
       double dy = ny1 - node->rect().getYMin();
@@ -1760,18 +1760,18 @@ double
 CQChartsSankeyPlot::
 calcNodeMargin() const
 {
-  double nodeMargin = (orientation() == Qt::Horizontal ?
+  double nodeMargin = (isHorizontal() ?
     lengthPlotHeight(this->nodeMargin()) : lengthPlotWidth(this->nodeMargin()));
 
   nodeMargin = std::min(std::max(nodeMargin, 0.0), 1.0);
 
   // get pixel margin perp to position axis
-  auto pixelNodeMargin = (orientation() == Qt::Horizontal ?
+  auto pixelNodeMargin = (isHorizontal() ?
     windowToPixelHeight(nodeMargin) : windowToPixelWidth(nodeMargin));
 
   // stop margin from being too small
   if (pixelNodeMargin < minNodeMargin())
-    nodeMargin = (orientation() == Qt::Horizontal ?
+    nodeMargin = (isHorizontal() ?
       pixelToWindowHeight(minNodeMargin()) : pixelToWindowWidth(minNodeMargin()));
 
   return nodeMargin;
@@ -1797,12 +1797,12 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   auto bbox = targetBBox_;
 
   // place nodes to fit in bbox (perp to position axis)
-  double boxSize = (orientation() == Qt::Horizontal ? bbox.getHeight() : bbox.getWidth());
+  double boxSize = (isHorizontal() ? bbox.getHeight() : bbox.getWidth());
 
   int minPos = this->minPos();
   int maxPos = this->maxPos();
 
-  double posMargin = (orientation() == Qt::Horizontal ?
+  double posMargin = (isHorizontal() ?
     lengthPlotWidth(nodeWidth()) : lengthPlotHeight(nodeWidth()));
 
   //---
@@ -1821,7 +1821,7 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
   // calc perp top (placing top to bottom)
   double perpPos1;
 
-  if (orientation() == Qt::Horizontal)
+  if (isHorizontal())
     perpPos1 = bbox.getYMax() - (boxSize - perpSize)/2.0;
   else
     perpPos1 = bbox.getXMax() - (boxSize - perpSize)/2.0;
@@ -1855,23 +1855,21 @@ placeDepthSubNodes(int pos, const Nodes &nodes) const
 
     // map pos to bbox range minus margins
     if (isAlignEnds()) {
-      posStart = (orientation() == Qt::Horizontal ?
+      posStart = (isHorizontal() ?
         targetBBox_.getXMin() + posMargin/2.0 : targetBBox_.getYMin() + posMargin/2.0);
-      posEnd   = (orientation() == Qt::Horizontal ?
+      posEnd   = (isHorizontal() ?
         targetBBox_.getXMax() - posMargin/2.0 : targetBBox_.getYMax() - posMargin/2.0);
     }
     // map pos to bbox range (use for left)
     else {
-      posStart = (orientation() == Qt::Horizontal ?
-        targetBBox_.getXMin() : targetBBox_.getYMin());
-      posEnd   = (orientation() == Qt::Horizontal ?
-        targetBBox_.getXMax() : targetBBox_.getYMax());
+      posStart = (isHorizontal() ?  targetBBox_.getXMin() : targetBBox_.getYMin());
+      posEnd   = (isHorizontal() ?  targetBBox_.getXMax() : targetBBox_.getYMax());
     }
 
     double nodePos1 = CMathUtil::map(pos1, minPos, maxPos, posStart, posEnd);
 
     // center align
-    if (orientation() == Qt::Horizontal)
+    if (isHorizontal())
       rect = BBox(nodePos1 - posMargin/2.0, nodePerpPos1, nodePos1 + posMargin/2.0, nodePerpPos2);
     else
       rect = BBox(nodePerpPos1, nodePos1 - posMargin/2.0, nodePerpPos2, nodePos1 + posMargin/2.0);
@@ -2331,7 +2329,7 @@ bool
 CQChartsSankeyPlot::
 removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) const
 {
-  double perpMargin = (orientation() == Qt::Horizontal ?
+  double perpMargin = (isHorizontal() ?
     pixelToWindowHeight(minNodeMargin()) : pixelToWindowWidth(minNodeMargin()));
 
   //---
@@ -2365,7 +2363,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
         const auto &rect2 = node2->rect();
 
         if (increasing) {
-          if (orientation() == Qt::Horizontal) {
+          if (isHorizontal()) {
             // if node2 overlaps node1 (not above) then move up
             if (rect2.getYMin() <= rect1.getYMax() + perpMargin) {
               double dy = rect1.getYMax() + perpMargin - rect2.getYMin();
@@ -2389,7 +2387,7 @@ removePosOverlaps(int pos, const Nodes &nodes, bool spread, bool constrain) cons
           }
         }
         else {
-          if (orientation() == Qt::Horizontal) {
+          if (isHorizontal()) {
             // if node2 overlaps node1 (not below) then move down
             if (rect2.getYMax() >= rect1.getYMin() - perpMargin) {
               double dy = rect1.getYMin() - perpMargin - rect2.getYMax();
@@ -2540,7 +2538,7 @@ spreadPosNodes(int pos, const Nodes &nodes) const
 
   auto bbox = targetBBox_;
 
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     double dy1 = node1->rect().getHeight()/2.0; // top
     double dy2 = node2->rect().getHeight()/2.0; // bottom
 
@@ -2639,7 +2637,7 @@ constrainPosNodes(int pos, const Nodes &nodes, bool center) const
 
   auto bbox = targetBBox_;
 
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     double dy1 = node2->rect().getYMin() - bbox.getYMin();
     double dy2 = bbox.getYMax() - node1->rect().getYMax();
 
@@ -2775,7 +2773,7 @@ createPosNodeMap(int pos, const Nodes &nodes, PosNodeMap &posNodeMap, bool incre
     double dist;
 
     // use distance from bottom/left (increasing) or distance from top/right (decreasing)
-    if (orientation() == Qt::Horizontal)
+    if (isHorizontal())
       dist = (increasing ? rect.getYMid() - bbox.getYMin() : bbox.getYMax() - rect.getYMid());
     else
       dist = (increasing ? rect.getXMid() - bbox.getXMin() : bbox.getXMax() - rect.getXMid());
@@ -2809,7 +2807,7 @@ createPosEdgeMap(const Edges &edges, PosEdgeMap &posEdgeMap, bool isSrc) const
     // use distance from top/right (decreasing)
     double dist;
 
-    if (orientation() == Qt::Horizontal)
+    if (isHorizontal())
       dist = bbox.getYMax() - rect.getYMid();
     else
       dist = bbox.getXMax() - rect.getXMid();
@@ -2906,7 +2904,7 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
   // calc average perp position
   double midPerpPos = 0.0;
 
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     if      (srcBBox.isValid() && destBBox.isValid())
       midPerpPos = CMathUtil::avg(srcBBox.getYMid(), destBBox.getYMid());
     else if (srcBBox.isValid())
@@ -2930,7 +2928,7 @@ adjustNode(Node *node, bool placed, bool useSrc, bool useDest) const
   //---
 
   // move node to average
-  if (orientation() == Qt::Horizontal) {
+  if (isHorizontal()) {
     double dy = midPerpPos - node->rect().getYMid();
 
     if (std::abs(dy) < 1E-6) // better tolerance ?
@@ -3462,7 +3460,7 @@ placeEdges(bool reset)
 
   double nodeSize;
 
-  if (plot_->orientation() == Qt::Horizontal)
+  if (plot_->isHorizontal())
     nodeSize = y2 - y1;
   else
     nodeSize = x2 - x1;
@@ -3476,7 +3474,7 @@ placeEdges(bool reset)
     else {
       double boxSize = (srcTotal > 0.0 ? nodeSize/srcTotal : 0.0);
 
-      double perpPos3 = (plot_->orientation() == Qt::Horizontal ? y2 : x2); // top/right
+      double perpPos3 = (plot_->isHorizontal() ? y2 : x2); // top/right
 
       for (const auto &edge : this->srcEdges()) {
         if (! edge->hasValue()) {
@@ -3488,7 +3486,7 @@ placeEdges(bool reset)
         double perpPos4  = perpPos3 - perpSize1;
 
         if (! hasSrcEdgeRect(edge))
-          setSrcEdgeRect(edge, plot_->orientation() == Qt::Horizontal ?
+          setSrcEdgeRect(edge, plot_->isHorizontal() ?
             BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
@@ -3505,7 +3503,7 @@ placeEdges(bool reset)
     else {
       double boxSize = (destTotal > 0.0 ? nodeSize/destTotal : 0.0);
 
-      double perpPos3 = (plot_->orientation() == Qt::Horizontal ? y2 : x2); // top/right
+      double perpPos3 = (plot_->isHorizontal() ? y2 : x2); // top/right
 
       for (const auto &edge : this->destEdges()) {
         if (! edge->hasValue()) {
@@ -3517,7 +3515,7 @@ placeEdges(bool reset)
         double perpPos4  = perpPos3 - perpSize1;
 
         if (! hasDestEdgeRect(edge))
-          setDestEdgeRect(edge, plot_->orientation() == Qt::Horizontal ?
+          setDestEdgeRect(edge, plot_->isHorizontal() ?
             BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
         perpPos3 = perpPos4;
@@ -3532,7 +3530,7 @@ placeEdges(bool reset)
     double dperp1 = (nodeSize - boxSize*srcTotal )/2.0;
     double dperp2 = (nodeSize - boxSize*destTotal)/2.0;
 
-    double perpPos3 = (plot_->orientation() == Qt::Horizontal ?
+    double perpPos3 = (plot_->isHorizontal() ?
       y2 - dperp1 : x2 - dperp1); // top/right
 
     for (const auto &edge : this->srcEdges()) {
@@ -3545,7 +3543,7 @@ placeEdges(bool reset)
       double perpPos4  = perpPos3 - perpSize1;
 
       if (! hasSrcEdgeRect(edge))
-        setSrcEdgeRect(edge, plot_->orientation() == Qt::Horizontal ?
+        setSrcEdgeRect(edge, plot_->isHorizontal() ?
           BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
@@ -3553,8 +3551,7 @@ placeEdges(bool reset)
 
     //---
 
-    perpPos3 = (plot_->orientation() == Qt::Horizontal ?
-      y2 - dperp2 : x2 - dperp2); // top/right
+    perpPos3 = (plot_->isHorizontal() ?  y2 - dperp2 : x2 - dperp2); // top/right
 
     for (const auto &edge : this->destEdges()) {
       if (! edge->hasValue()) {
@@ -3566,7 +3563,7 @@ placeEdges(bool reset)
       double perpPos4  = perpPos3 - perpSize1;
 
       if (! hasDestEdgeRect(edge))
-        setDestEdgeRect(edge, plot_->orientation() == Qt::Horizontal ?
+        setDestEdgeRect(edge, plot_->isHorizontal() ?
           BBox(x1, perpPos4, x2, perpPos3) : BBox(perpPos4, y1, perpPos3, y2));
 
       perpPos3 = perpPos4;
@@ -3619,10 +3616,8 @@ adjustPathIdSrcDestRects()
     if (! srcRect.isSet() || ! destRect.isSet())
       continue;
 
-    double perpPos1 = (plot_->orientation() == Qt::Horizontal ?
-      srcRect .getYMid() : srcRect .getXMid());
-    double perpPos2 = (plot_->orientation() == Qt::Horizontal ?
-      destRect.getYMid() : destRect.getXMid());
+    double perpPos1 = (plot_->isHorizontal() ?  srcRect .getYMid() : srcRect .getXMid());
+    double perpPos2 = (plot_->isHorizontal() ?  destRect.getYMid() : destRect.getXMid());
 
     double dperp = perpPos1 - perpPos2;
 
@@ -3630,7 +3625,7 @@ adjustPathIdSrcDestRects()
       continue;
 
     if (srcEdgeSum() > destEdgeSum()) {
-      if (plot_->orientation() == Qt::Horizontal)
+      if (plot_->isHorizontal())
         destRect.moveBy(Point(0.0, dperp));
       else
         destRect.moveBy(Point(dperp, 0.0));
@@ -3641,7 +3636,7 @@ adjustPathIdSrcDestRects()
       }
     }
     else {
-      if (plot_->orientation() == Qt::Horizontal)
+      if (plot_->isHorizontal())
         srcRect.moveBy(Point(0.0, -dperp));
       else
         srcRect.moveBy(Point(-dperp, 0.0));
@@ -4066,7 +4061,7 @@ setEditBBox(const BBox &bbox, const CQChartsResizeSide &)
 
   double dx = 0.0, dy = 0.0;
 
-  if (plot_->orientation() == Qt::Horizontal)
+  if (plot_->isHorizontal())
     dy = bbox.getYMin() - rect_.getYMin();
   else
     dx = bbox.getXMin() - rect_.getXMin();
@@ -4330,7 +4325,7 @@ drawFgImage(PaintDevice *device, const BBox &rect) const
 
   BBox irect;
 
-  if (plot_->orientation() == Qt::Horizontal) {
+  if (plot_->isHorizontal()) {
     double textMargin = plot_->pixelToWindowWidth(pTextMargin);
 
     double yc;
@@ -4437,7 +4432,7 @@ drawFgText(PaintDevice *device, const BBox &rect) const
 
   Point pt;
 
-  if (plot_->orientation() == Qt::Horizontal) {
+  if (plot_->isHorizontal()) {
     // align left/right depending on left/right of mid x
     double xm = plot_->getCalcDataRange().xmid();
 
@@ -4533,7 +4528,7 @@ drawValueLabel(PaintDevice *device, const BBox &rect) const
 
   Point pt;
 
-  if (plot_->orientation() == Qt::Horizontal) {
+  if (plot_->isHorizontal()) {
     double xm = plot_->getCalcDataRange().xmid();
 
     if (plot_->isTextInternal()) {
@@ -5161,7 +5156,7 @@ setRect(const BBox &rect)
 
   double fx = 1.0, fy = 1.0;
 
-  if (plot_->orientation() == Qt::Horizontal)
+  if (plot_->isHorizontal())
     fy = (rect_.getHeight() > 0.0 ? rect.getHeight()/rect_.getHeight() : 1.0);
   else
     fx = (rect_.getWidth () > 0.0 ? rect.getWidth ()/rect_.getWidth () : 1.0);
@@ -5172,7 +5167,7 @@ setRect(const BBox &rect)
 
   double dx = 0.0, dy = 0.0;
 
-  if (plot_->orientation() == Qt::Horizontal)
+  if (plot_->isHorizontal())
     dy = rect.getYMin() - rect_.getYMin();
   else
     dx = rect.getXMin() - rect_.getXMin();

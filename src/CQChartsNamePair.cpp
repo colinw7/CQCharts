@@ -26,8 +26,8 @@ stringToNames(const QString &str, Names &names, const QChar &separator)
   if (pos == -1)
     return names.valid;
 
-  names.name1 = str.mid(0, pos ).simplified();
-  names.name2 = str.mid(pos + 1).simplified();
+  names.name1 = str.mid(0, pos ).trimmed();
+  names.name2 = str.mid(pos + 1).trimmed();
 
   names.valid = true;
 

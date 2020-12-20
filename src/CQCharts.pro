@@ -79,6 +79,7 @@ CQChartsEmptyPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsGraphPlot.cpp \
+CQChartsGridPlot.cpp \
 CQChartsHierBubblePlot.cpp \
 CQChartsHierScatterPlot.cpp \
 CQChartsImagePlot.cpp \
@@ -240,6 +241,7 @@ CQChartsScriptPaintDevice.cpp \
 CQChartsSVGPaintDevice.cpp \
 CQChartsViewPlotPaintDevice.cpp \
 \
+CQChartsPlotDrawUtil.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsObjUtil.cpp \
 CQChartsUtil.cpp \
@@ -428,6 +430,7 @@ HEADERS += \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsGraphPlot.h \
+../include/CQChartsGridPlot.h \
 ../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsHierScatterPlot.h \
 ../include/CQChartsImagePlot.h \
@@ -508,6 +511,7 @@ HEADERS += \
 ../include/CQChartsSVGPaintDevice.h \
 ../include/CQChartsViewPlotPaintDevice.h \
 \
+../include/CQChartsPlotDrawUtil.h \
 ../include/CQChartsDrawUtil.h \
 ../include/CQChartsObjUtil.h \
 ../include/CQChartsUtil.h \

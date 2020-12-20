@@ -33,7 +33,7 @@ bool
 CQChartsColumnNum::
 fromString(const QString &str)
 {
-  if (str.simplified() == "") {
+  if (str.trimmed() == "") {
     column_ = -1;
     return true;
   }

@@ -535,27 +535,50 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
     }
   }
 
-  LDbl y_diff = 0.0;
+  //---
 
-  int    sub_free = 0;
-  double thresh   = 0.0;
-  double max_w    = 0.0;
+  auto calc_stddev = [&]() {
+    LDbl y_diff        = 0.0;
+    LDbl sum_y_diff_sq = 0.0;
 
-  double **u = 0;
-  double **v = 0;
+    for (int sub_point = 0; sub_point < num_points; sub_point++) {
+      y_diff = y_point[sub_point] - coeff[0];
 
-  std::vector<double> b;
-  std::vector<double> w;
-  std::vector<double> coeff_temp;
+      LDbl x_power_coeff = 1.0;
+
+      for (int sub_coeff = 1; sub_coeff < num_coeffs; sub_coeff++) {
+        x_power_coeff *= x_point[sub_point];
+
+        y_diff -= coeff[sub_coeff]*x_power_coeff;
+      }
+
+      sum_y_diff_sq += y_diff*y_diff;
+    }
+
+    if (num_points > num_free)
+      *deviation = sqrt(double(sum_y_diff_sq/(num_points - num_free)));
+    else
+      *deviation = 0.0;
+  };
+
+  //---
 
   if (num_free <= 0) {
     *return_code = 0;
-    goto stddev;
+
+    /****                                                          ****/
+    /* Evaluate standard deviation                                    */
+    /****                                                          ****/
+    return calc_stddev();
   }
 
   /****                                                            ****/
   /* create the work arrays needed to solve the fit                   */
   /****                                                            ****/
+  std::vector<double> b;
+  std::vector<double> w;
+  std::vector<double> coeff_temp;
+
   b         .resize(num_points);
   w         .resize(num_free);
   coeff_temp.resize(num_free);
@@ -563,38 +586,20 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   /* create the work matrices needed to solve the fit                 */
   /****                                                            ****/
-  u = new double * [num_points];
-  if (! u) {
-    *return_code = 4;
-    return;
-  }
+  double **u = new double * [num_points];
+  if (! u) { *return_code = 4; return; }
 
   u[0] = new double [num_points*num_free];
-  if (! u[0]) {
-    delete [] u;
-    *return_code = 4;
-    return;
-  }
+  if (! u[0]) { delete [] u; *return_code = 4; return; }
 
   for (int sub_point = 1; sub_point < num_points; sub_point++)
     u[sub_point] = u[sub_point - 1] + num_free;
 
-  v = new double * [num_free];
-  if (! v) {
-    delete [] u[0];
-    delete [] u;
-    *return_code = 4;
-    return;
-  }
+  double **v = new double * [num_free];
+  if (! v) { delete [] u[0]; delete [] u; *return_code = 4; return; }
 
   v[0] = new double [num_free*num_free];
-  if (! v[0]) {
-    delete [] v;
-    delete [] u[0];
-    delete [] u;
-    *return_code = 4;
-    return;
-  }
+  if (! v[0]) { delete [] v; delete [] u[0]; delete [] u; *return_code = 4; return; }
 
   for (int sub_coeff = 1; sub_coeff < num_free; sub_coeff++)
     v[sub_coeff] = v[sub_coeff - 1] + num_free;
@@ -603,7 +608,8 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /* Accumulate coefficients of the fitting matrix                    */
   /****                                                            ****/
   for (int sub_point = 0; sub_point < num_points; sub_point++) {
-    int sub_coeff = sub_free = 0;
+    int sub_coeff = 0;
+    int sub_free  = 0;
 
     LDbl x_power_coeff = 1.0;
 
@@ -630,10 +636,8 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   singleValueDecomposition(u, num_points, num_free, &w[0], v, return_code);
 
   if (*return_code != 0) {
-    delete [] v[0];
-    delete [] v;
-    delete [] u[0];
-    delete [] u;
+    delete [] v[0]; delete [] v;
+    delete [] u[0]; delete [] u;
     *return_code = 5;
     return;
   }
@@ -641,14 +645,15 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   /* Edit the singular values to tolerance                            */
   /****                                                            ****/
-  max_w = 0.0;
+  double max_w = 0.0;
 
   for (int sub_coeff = 0; sub_coeff < num_free; sub_coeff++) {
     if (w[sub_coeff] > max_w)
       max_w = w[sub_coeff];
   }
 
-  thresh = TOL*max_w;
+  double thresh = TOL*max_w;
+
   for (int sub_coeff = 0; sub_coeff < num_free; sub_coeff++) {
     if (w[sub_coeff] < thresh)
       w[sub_coeff] = 0.0;
@@ -659,10 +664,8 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   backSubstitution(u, &w[0], v, num_points, num_free, &b[0], &coeff_temp[0], return_code);
   if (*return_code != 0) {
-    delete [] v[0];
-    delete [] v;
-    delete [] u[0];
-    delete [] u;
+    delete [] v[0]; delete [] v;
+    delete [] u[0]; delete [] u;
     *return_code = 6;
     return;
   }
@@ -672,7 +675,7 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   *return_code = 0;
 
-  sub_free = 0;
+  int sub_free = 0;
 
   for (int sub_coeff = 0; sub_coeff < num_coeffs; sub_coeff++) {
     if (coeff_free[sub_coeff]) {
@@ -689,35 +692,13 @@ void leastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   /* clean up                                                         */
   /****                                                            ****/
-  delete [] v[0];
-  delete [] v;
-  delete [] u[0];
-  delete [] u;
+  delete [] v[0]; delete [] v;
+  delete [] u[0]; delete [] u;
 
   /****                                                            ****/
   /* Evaluate standard deviation                                      */
   /****                                                            ****/
- stddev:
-  LDbl sum_y_diff_sq = 0.0;
-
-  for (int sub_point = 0; sub_point < num_points; sub_point++) {
-    y_diff = y_point[sub_point] - coeff[0];
-
-    LDbl x_power_coeff = 1.0;
-
-    for (int sub_coeff = 1; sub_coeff < num_coeffs; sub_coeff++) {
-      x_power_coeff *= x_point[sub_point];
-
-      y_diff -= coeff[sub_coeff]*x_power_coeff;
-    }
-
-    sum_y_diff_sq += y_diff*y_diff;
-  }
-
-  if (num_points > num_free)
-    *deviation = sqrt(double(sum_y_diff_sq/(num_points - num_free)));
-  else
-    *deviation = 0.0;
+  calc_stddev();
 }
 
 /*

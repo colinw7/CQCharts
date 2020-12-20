@@ -208,6 +208,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &orient);
 
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
   //---
 
   // lines

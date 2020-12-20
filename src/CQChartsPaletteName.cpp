@@ -16,7 +16,7 @@ bool
 CQChartsPaletteName::
 isValid() const
 {
-  return (name_.simplified() != "");
+  return (name_.trimmed() != "");
 }
 
 bool

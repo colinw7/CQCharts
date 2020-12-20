@@ -43,7 +43,7 @@ invalidate(bool reload)
   else if (view) {
     view->invalidateObjects();
 
-    view->update();
+    view->doUpdate();
   }
 }
 

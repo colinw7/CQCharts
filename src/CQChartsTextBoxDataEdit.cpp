@@ -428,6 +428,6 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   // draw text box
   CQChartsPixelPaintDevice device(painter);
 
-  CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
-                                       shape.stroke().cornerSize());
+  CQChartsDrawUtil::drawRoundedRect(&device, CQChartsGeom::BBox(rect),
+                                    shape.stroke().cornerSize());
 }

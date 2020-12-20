@@ -39,7 +39,7 @@ editChanged()
 {
   auto str = edit_->text();
 
-  if (str.simplified() != "")
+  if (str.trimmed() != "")
     setTextValue(str);
   else
     resetValue();

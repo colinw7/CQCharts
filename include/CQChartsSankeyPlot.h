@@ -1075,9 +1075,16 @@ class CQChartsSankeyPlot : public CQChartsConnectionPlot,
   bool isZoomText() const { return zoomText_; }
   void setZoomText(bool b);
 
+  //---
+
   //! get/set orientation
   const Qt::Orientation &orientation() const { return orientation_; }
   void setOrientation(const Qt::Orientation &o);
+
+  bool isHorizontal() const { return orientation() == Qt::Horizontal; }
+  bool isVertical  () const { return orientation() == Qt::Vertical  ; }
+
+  //---
 
   //! get/set show value label
   bool isValueLabel() const { return valueLabel_; }

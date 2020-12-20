@@ -233,12 +233,12 @@ void drawDotLine(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox
                  const Length &lineWidth, bool horizontal,
                  const Symbol &symbolType, const Length &symbolSize);
 
-void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
-                        const Length &size=Length(), const Sides &sides=Sides(Sides::Side::ALL));
-void drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &size=Length(),
-                        const Sides &sides=Sides(Sides::Side::ALL));
-void drawRoundedPolygon(PaintDevice *device, const BBox &bbox, const Length &xsize,
-                        const Length &ysize, const Sides &sides=Sides(Sides::Side::ALL));
+void drawRoundedRect(PaintDevice *device, const PenBrush &penBrush, const BBox &bbox,
+                     const Length &size=Length(), const Sides &sides=Sides(Sides::Side::ALL));
+void drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &size=Length(),
+                     const Sides &sides=Sides(Sides::Side::ALL));
+void drawRoundedRect(PaintDevice *device, const BBox &bbox, const Length &xsize,
+                     const Length &ysize, const Sides &sides=Sides(Sides::Side::ALL));
 
 void drawRoundedPolygon(PaintDevice *device, const PenBrush &penBrush, const Polygon &poly,
                         const Length &size=Length());
@@ -246,8 +246,8 @@ void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &
 void drawRoundedPolygon(PaintDevice *device, const Polygon &poly, const Length &xsize,
                         const Length &ysize);
 
-void drawAdjustedRoundedPolygon(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
-                                const CQChartsSides &sides);
+void drawAdjustedRoundedRect(PaintDevice *device, const BBox &bbox, double xsize, double ysize,
+                             const CQChartsSides &sides);
 
 void drawTextInBox(PaintDevice *device, const BBox &rect, const QString &text,
                    const TextOptions &options);

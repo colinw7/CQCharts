@@ -85,12 +85,18 @@ void
 CQChartsColorLineEdit::
 textChanged()
 {
-  CQChartsColor color(edit_->text());
+  CQChartsColor color;
 
-  if (! color.isValid())
-    return;
+  if (edit_->text().trimmed() != "") {
+    color = CQChartsColor(edit_->text());
 
-  updateColor(color, /*updateText*/ false);
+    if (! color.isValid()) {
+      colorToWidgets();
+      return;
+    }
+  }
+
+  updateColor(color, /*updateText*/false);
 }
 
 void

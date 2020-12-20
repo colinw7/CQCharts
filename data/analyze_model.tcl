@@ -1,13 +1,19 @@
 #set model [load_charts_model -tsv data/adjacency.tsv -comment_header \
 #  -column_type {{{3 connection_list}}}]
+
 #set model [load_charts_model -csv data/USArrests.csv -first_line_header -first_column_header]
+
 #set model [load_charts_model -tsv data/multi_series.tsv -comment_header \
 #  -column_type {{{time} {format %Y%m%d}}}]
+
 #set model [load_charts_model -tsv data/scatter.tsv -first_line_header]
+
 #set model [load_charts_model -csv data/sankey_energy.csv -comment_header \
 #  -column_type {{{0 name_pair}}}]
+
 #set model [load_charts_model -tsv data/states.tsv -comment_header \
 #  -column_type {{{1 polygon_list}}}]
+
 set model [load_charts_model -csv data/boxplot.csv -first_line_header]
 
 set tvars [process_charts_model -model $model -analyze]

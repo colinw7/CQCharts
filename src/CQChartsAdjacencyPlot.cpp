@@ -1234,8 +1234,7 @@ execDrawBackground(PaintDevice *device) const
   auto fc = interpBackgroundFillColor(ColorInd());
 
   setPenBrush(device,
-   PenData  (false),
-   BrushData(true, fc, backgroundFillData()));
+   PenData(false), BrushData(true, fc, backgroundFillData()));
 
   BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
@@ -1276,7 +1275,7 @@ execDrawBackground(PaintDevice *device) const
       if (! connected) {
         auto cellBBox = pixelToWindow(BBox(px, py, px + pxs, py + pys));
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, emptyPenBrush, cellBBox, cornerSize);
+        CQChartsDrawUtil::drawRoundedRect(device, emptyPenBrush, cellBBox, cornerSize);
       }
 
       px += pxs;
@@ -1422,7 +1421,7 @@ draw(PaintDevice *device) const
   // draw box
   device->setColorNames();
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
+  CQChartsDrawUtil::drawRoundedRect(device, penBrush, rect(), plot_->cornerSize());
 
   device->resetColorNames();
 }

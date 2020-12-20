@@ -34,6 +34,8 @@ class CQModelNameValues {
   bool nameValue(const QString &name, QVariant &value) const;
   void setNameValue(const QString &name, const QVariant &value);
 
+  void removeName(const QString &name);
+
   template<typename T>
   void setNameValueType(const QString &name, const T &t) {
     setNameValue(name, t.toString());

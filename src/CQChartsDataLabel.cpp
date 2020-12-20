@@ -112,7 +112,7 @@ CQChartsDataLabel::
 draw(PaintDevice *device, const BBox &bbox, const QString &ystr,
      const Position &position, const PenBrush &penBrush) const
 {
-  bbox_ = bbox;
+  const_cast<CQChartsDataLabel *>(this)->setBBox(bbox);
 
   //---
 
@@ -700,7 +700,7 @@ bool
 CQChartsDataLabel::
 contains(const Point &p) const
 {
-  return bbox_.inside(p);
+  return bbox().inside(p);
 }
 
 //---

@@ -97,6 +97,16 @@ setNameValue(const QString &name, const QVariant &value)
   nameValues_[name] = value;
 }
 
+void
+CQModelNameValues::
+removeName(const QString &name)
+{
+  auto p = nameValues_.find(name);
+  if (p == nameValues_.end()) return;
+
+  nameValues_.erase(p);
+}
+
 bool
 CQModelNameValues::
 nameValueString(const QString &name, QString &value, bool &ok) const

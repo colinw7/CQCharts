@@ -1695,8 +1695,6 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
-  //---
-
   const Points &values() const { return values_; }
   void setValues(const Points &values) { values_ = values; updateValues(); }
 
@@ -1753,8 +1751,17 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsRect   rectangle READ rectangle WRITE setRectangle)
   Q_PROPERTY(CQChartsObjRef objRef    READ objRef    WRITE setObjRef   )
   Q_PROPERTY(CQChartsReals  values    READ values    WRITE setValues   )
+  Q_PROPERTY(DrawType       drawType  READ drawType  WRITE setDrawType )
+
+  Q_ENUMS(DrawType)
 
  public:
+  enum class DrawType {
+    PIE,
+    TREEMAP,
+    DENSITY
+  };
+
   using Rect  = CQChartsRect;
   using Reals = CQChartsReals;
 
@@ -1780,10 +1787,11 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   const ObjRef &objRef() const { return objRef_; }
   void setObjRef(const ObjRef &o) { objRef_ = o; }
 
-  //---
-
   const Reals &values() const { return values_; }
   void setValues(const Reals &values) { values_ = values; updateValues(); }
+
+  const DrawType &drawType() const { return drawType_; }
+  void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
 
   //---
 
@@ -1811,10 +1819,11 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
  private:
   using Density = CQChartsDensity;
 
-  Rect     rectangle_;           //!< rectangle
-  ObjRef   objRef_;              //!< object ref
-  Reals    values_;              //!< real values
-  Density* density_ { nullptr }; //!< density object
+  Rect     rectangle_;                      //!< rectangle
+  ObjRef   objRef_;                         //!< object ref
+  Reals    values_;                         //!< real values
+  DrawType drawType_ { DrawType::DENSITY }; //!< draw type
+  Density* density_  { nullptr };           //!< density object
 };
 
 //---

@@ -165,6 +165,10 @@ init()
   connect(scrollData_.vbar, SIGNAL(valueChanged(int)), this, SLOT(vscrollSlot(int)));
 
   scrollData_.pixelBarSize = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
+
+  //---
+
+  connect(charts(), SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 void
@@ -195,11 +199,21 @@ setModel(const ModelP &model)
     summaryModel_->setMode((CQSummaryModel::Mode) mode_);
   }
 
-  connectModel();
+  CQChartsPlot::connectModel();
 
   updateRangeAndObjs();
 
   emit modelChanged();
+}
+
+void
+CQChartsTablePlot::
+modelTypeChangedSlot(int modelInd)
+{
+  auto *modelData = charts()->getModelData(model_);
+
+  if (modelData && modelData->ind() == modelInd)
+    updateRangeAndObjs();
 }
 
 //---
@@ -649,7 +663,8 @@ calcTableSize() const
   th->tableData_.pmargin    = cellMargin();
   th->tableData_.pSortWidth = hfm.width("X") + 4;
 
-  th->tableData_.prh = hfm.height() + 2*tableData_.pmargin;
+  th->tableData_.phrh = hfm.height() + 2.0*tableData_.pmargin;
+  th->tableData_.prh  = fm.height() + 2.0*tableData_.pmargin;
 
   // calc column widths
   if (isRowColumn()) {
@@ -657,7 +672,7 @@ calcTableSize() const
 
     const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
-    data.pwidth  = power*fm.width("X") + 2*tableData_.pmargin;
+    data.pwidth  = power*fm.width("X") + 2.0*tableData_.pmargin;
     data.numeric = false;
   }
 
@@ -680,7 +695,7 @@ calcTableSize() const
 
     if (! ok) continue;
 
-    double cw = hfm.width(str) + 2*tableData_.pmargin + tableData_.pSortWidth;
+    double cw = hfm.width(str) + 2.0*tableData_.pmargin + tableData_.pSortWidth;
 
     if (i == 0)
       cw += tableData_.maxDepth*indent(); // add hierarchical indent
@@ -743,12 +758,13 @@ calcTableSize() const
 
         bool ok;
 
-        auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
+        auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
+                                      Qt::DisplayRole, ok);
         if (! ok) continue;
 
         auto &data = tableData_.columnDataMap[c];
 
-        double cw = fm_.width(str) + 2*tableData_.pmargin;
+        double cw = fm_.width(str) + 2.0*tableData_.pmargin;
 
         if (i == 0)
           cw += tableData_.maxDepth*plot_->indent(); // add hierarchical indent
@@ -797,7 +813,7 @@ calcTableSize() const
     const auto &data = th->tableData_.columnDataMap[c];
 
     if (data.prefWidth > 0)
-      th->tableData_.pcw += data.prefWidth + 2*tableData_.pmargin;
+      th->tableData_.pcw += data.prefWidth + 2.0*tableData_.pmargin;
     else
       th->tableData_.pcw += data.pwidth;
   }
@@ -1072,6 +1088,38 @@ pageNumSlot()
 
 void
 CQChartsTablePlot::
+wheelHScroll(int delta)
+{
+  auto font = view()->plotFont(this, this->font());
+
+  QFontMetrics fm(font);
+
+  //hscrollSlot(scrollData_.hpos + (delta > 0 ? fm.width("X") : -fm.width("X")));
+  scrollData_.hbar->setValue(scrollData_.hpos + (delta > 0 ? fm.width("X") : -fm.width("X")));
+}
+
+void
+CQChartsTablePlot::
+wheelVScroll(int)
+{
+}
+
+void
+CQChartsTablePlot::
+wheelZoom(const Point &, int delta)
+{
+  auto font = view()->viewFont(this->font());
+
+  QFontMetrics fm(font);
+
+  //vscrollSlot(scrollData_.vpos + (delta > 0 ? -fm.height() : fm.height()));
+  scrollData_.vbar->setValue(scrollData_.vpos + (delta > 0 ? -fm.height() : fm.height()));
+}
+
+//---
+
+void
+CQChartsTablePlot::
 postResize()
 {
   calcTableSize();
@@ -1136,7 +1184,8 @@ initDrawData() const
 
   //---
 
-  th->tableData_.rh = pixelToWindowHeight(th->tableData_.prh);
+  th->tableData_.hrh = pixelToWindowHeight(th->tableData_.phrh);
+  th->tableData_.rh  = pixelToWindowHeight(th->tableData_.prh);
 
   //---
 
@@ -1161,7 +1210,7 @@ initDrawData() const
     data.drawWidth = data.width;
 
     if (data.prefWidth > 0)
-      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2*tableData_.pmargin);
+      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2.0*tableData_.pmargin);
 
     th->tableData_.columnDataMap[c] = data;
 
@@ -1196,11 +1245,11 @@ updateScrollBars() const
 
   auto pixelRect = calcTablePixelRect();
 
-  double pdx = pixelRect.getWidth () - 2*tableData_.pmargin - tableData_.pcw;
-  double pdy = pixelRect.getHeight() - 2*tableData_.pmargin - tableData_.prh*tableData_.nvr;
+  double pdx = pixelRect.getWidth () - 2.0*tableData_.pmargin - tableData_.pcw;
+  double pdy = pixelRect.getHeight() - 2.0*tableData_.pmargin - tableData_.prh*tableData_.nvr;
 
   if (isHeaderVisible())
-    pdy -= tableData_.prh;
+    pdy -= tableData_.phrh;
 
   //---
 
@@ -1224,7 +1273,7 @@ updateScrollBars() const
     scrollData_.hbar->resize(pixelRect.getWidth(), scrollData_.pixelBarSize);
 
     scrollData_.hbar->setRange(0, -pdx);
-    scrollData_.hbar->setPageStep(pixelRect.getWidth() - 2*tableData_.pmargin);
+    scrollData_.hbar->setPageStep(pixelRect.getWidth() - 2.0*tableData_.pmargin);
   }
   else
     th->scrollData_.hpos = 0;
@@ -1234,7 +1283,7 @@ updateScrollBars() const
     scrollData_.vbar->resize(scrollData_.pixelBarSize, pixelRect.getHeight());
 
     scrollData_.vbar->setRange(0, -pdy);
-    scrollData_.vbar->setPageStep(pixelRect.getHeight() - 2*tableData_.pmargin);
+    scrollData_.vbar->setPageStep(pixelRect.getHeight() - 2.0*tableData_.pmargin);
   }
   else
     th->scrollData_.vpos = 0;
@@ -1259,11 +1308,11 @@ updatePosition() const
 
   auto pixelRect = calcTablePixelRect();
 
-  double pdx = pixelRect.getWidth () - 2*tableData_.pmargin - tableData_.pcw;
-  double pdy = pixelRect.getHeight() - 2*tableData_.pmargin - tableData_.prh*tableData_.nvr;
+  double pdx = pixelRect.getWidth () - 2.0*tableData_.pmargin - tableData_.pcw;
+  double pdy = pixelRect.getHeight() - 2.0*tableData_.pmargin - tableData_.prh*tableData_.nvr;
 
   if (isHeaderVisible())
-    pdy -= tableData_.prh;
+    pdy -= tableData_.phrh;
 
   //---
 
@@ -1334,7 +1383,7 @@ drawTableBackground(PaintDevice *device) const
     data.drawWidth = data.width;
 
     if (data.prefWidth > 0)
-      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2*tableData_.pmargin);
+      data.drawWidth = pixelToWindowWidth(data.prefWidth + 2.0*tableData_.pmargin);
 
     th->tableData_.columnDataMap[c] = data;
 
@@ -1355,7 +1404,7 @@ drawTableBackground(PaintDevice *device) const
 
   // add optional header height
   if (isHeaderVisible())
-    y1 += tableData_.rh;
+    y1 += th->tableData_.hrh;
 
   // draw header background
   if (isHeaderVisible()) {
@@ -1367,7 +1416,7 @@ drawTableBackground(PaintDevice *device) const
     CQChartsDrawUtil::setPenBrush(device, headerPenBrush);
 
     if (x2 > x1) {
-      BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
+      BBox bbox(x1, y1 - th->tableData_.hrh, x2, y1);
 
       device->fillRect(bbox);
     }
@@ -1422,14 +1471,8 @@ drawTableBackground(PaintDevice *device) const
   // right edge
   device->drawLine(Point(x, y1), Point(x, y2));
 
-  // draw header and row lines
+  // draw header and row lines (bottom to top)
   double y = th->tableData_.yo - th->tableData_.sy;
-
-  if (isHeaderVisible()) {
-    device->drawLine(Point(x1, y), Point(x2, y));
-
-    y += tableData_.rh;
-  }
 
   for (int i = 0; i < tableData_.nvr; ++i) {
     device->drawLine(Point(x1, y), Point(x2, y));
@@ -1437,7 +1480,13 @@ drawTableBackground(PaintDevice *device) const
     y += tableData_.rh;
   }
 
-  // bottom edge
+  if (isHeaderVisible()) {
+    device->drawLine(Point(x1, y), Point(x2, y));
+
+    y += tableData_.hrh;
+  }
+
+  // top edge
   device->drawLine(Point(x1, y), Point(x2, y));
 
   //---
@@ -1475,6 +1524,7 @@ createTableObjData() const
 
       //---
 
+    //const double y = tableData_.yo + (tableData_.nvr - data.vrow)*tableData_.rh - tableData_.hrh;
       const double y = tableData_.yo + (tableData_.nvr - data.vrow - 1)*tableData_.rh;
 
       double x = tableData_.xo;
@@ -1533,6 +1583,7 @@ createTableObjData() const
 
       //---
 
+    //const double y = tableData_.yo + (tableData_.nvr - data.vrow)*tableData_.rh - tableData_.hrh;
       const double y = tableData_.yo + (tableData_.nvr - data.vrow - 1)*tableData_.rh;
 
       double x = tableData_.xo;
@@ -1575,7 +1626,7 @@ createTableObjData() const
 
         const auto &cdata = tableData_.rowColumnData;
 
-        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.hrh);
 
         //---
 
@@ -1606,7 +1657,7 @@ createTableObjData() const
         else
           headerObjData.align = Qt::AlignLeft | Qt::AlignVCenter;
 
-        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
+        headerObjData.rect = BBox(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.hrh);
 
         //---
 
@@ -1651,7 +1702,8 @@ createTableObjData() const
 
       bool ok;
 
-      auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind, ok);
+      auto str = plot_->modelString(const_cast<QAbstractItemModel *>(model_), ind,
+                                    Qt::DisplayRole, ok);
       if (! ok) str = "";
 
       //---
@@ -1756,8 +1808,8 @@ adjustPan()
     if (dataOffsetX() < 0)
       setDataOffsetX(0.0);
 
-    if (dataOffsetX() > 2*dx)
-      setDataOffsetX(2*dx);
+    if (dataOffsetX() > 2.0*dx)
+      setDataOffsetX(2.0*dx);
   }
   else
     setDataOffsetX(0.0);
@@ -1768,8 +1820,8 @@ adjustPan()
     if (dataOffsetY() < 0)
       setDataOffsetY(0.0);
 
-    if (dataOffsetY() > 2*dy)
-      setDataOffsetY(2*dy);
+    if (dataOffsetY() > 2.0*dy)
+      setDataOffsetY(2.0*dy);
   }
   else
     setDataOffsetY(0.0);
@@ -2164,6 +2216,7 @@ draw(PaintDevice *device) const
 
   QColor bg;
   bool   bgSet { false };
+  bool   useDrawColor { true };
 
   auto *columnDetails = plot_->columnDetails(cellObjData_.ind.column());
 
@@ -2184,12 +2237,16 @@ draw(PaintDevice *device) const
     auto tableDrawType = (columnDetails ? columnDetails->tableDrawType() :
                            CQChartsModelColumnDetails::TableDrawType::NORMAL);
 
-    if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
+    bool   hasRange = false;
+    double value { 0.0 }, min { 0.0 }, max { 0.0 }, norm { 0.0 };
+
+    if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP ||
+        tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART) {
       auto type = (columnDetails ? columnDetails->type() : CQBaseModelType::STRING);
 
       if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER) {
         bool ok;
-        double value = cellObjData_.str.toDouble(&ok);
+        value = cellObjData_.str.toDouble(&ok);
 
         // get min/max
         auto *columnTypeMgr = charts()->columnTypeMgr();
@@ -2202,12 +2259,52 @@ draw(PaintDevice *device) const
         auto maxVar = columnType->maxValue(columnDetails->nameValues());
         if (! maxVar.isValid()) maxVar = columnDetails->maxValue();
 
-        double min = minVar.toReal(&ok);
-        double max = maxVar.toReal(&ok);
+        min = minVar.toReal(&ok);
+        max = maxVar.toReal(&ok);
 
+        norm = (max > min ? (value - min)/(max - min) : 0.0);
+
+        hasRange = true;
+      }
+    }
+
+    if (hasRange) {
+      if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
         bg = columnDetails->heatmapColor(value, min, max,
                plot_->interpColor(plot_->cellColor(), ColorInd()));
         bgSet = true;
+      }
+      else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART) {
+        auto xm = plot_->pixelToWindowWidth (1.0);
+        auto ym = plot_->pixelToWindowHeight(2.0);
+
+        double barWidth = rect_.getWidth() - 2.0*xm;
+
+        // draw bar for normalized value
+        double lw =      norm *barWidth;
+        double rw = (1 - norm)*barWidth;
+
+        auto bg1 = columnDetails->barchartColor();
+        auto bg2 = plot_->interpColor(plot_->cellColor(), ColorInd());
+
+        BBox lrect(rect_.getXMin() + xm          , rect_.getYMin() + ym,
+                   rect_.getXMin() + xm + lw     , rect_.getYMax() - ym);
+        BBox rrect(rect_.getXMin() + xm + lw     , rect_.getYMin() + ym,
+                   rect_.getXMin() + xm + lw + rw, rect_.getYMax() - ym);
+
+        PenBrush bgPenBrush;
+
+        plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg1));
+        CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
+
+        device->drawRect(lrect);
+
+        plot_->setPenBrush(bgPenBrush, PenData(false), BrushData(true, bg2));
+        CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
+
+        device->drawRect(rrect);
+
+        useDrawColor = false;
       }
     }
   }
@@ -2229,7 +2326,7 @@ draw(PaintDevice *device) const
   if (! bgSet) {
     textColor = plot_->calcTextColor(plot_->cellColor());
 
-    if (columnDetails) {
+    if (useDrawColor && columnDetails) {
       const auto &drawColor = columnDetails->tableDrawColor();
 
       if (drawColor.isValid())

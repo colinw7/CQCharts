@@ -1273,3 +1273,11 @@
  + probe lines enhancements
    + allow include column names
    + allow position top/bottom of plot (with overlap removal)
+# 12/20/2020
+ + Add grid cartogram plot
+ + Add support for pie/treemap in value set annotation
+ + replace horizontal bool with orientation in more code
+ + Use QString::trimmed() instead of QString::simplified
+ + Add support fade drawn layers when mouse inside object
+ + Fix issues in table plot when header and cell font are different
+ + add barchart support to table plot

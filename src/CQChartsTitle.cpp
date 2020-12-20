@@ -132,7 +132,7 @@ void
 CQChartsTitle::
 updateLocation()
 {
-  bbox_ = BBox();
+  setBBox(BBox());
 
   // all overlay plots and annotation boxes
   auto bbox = plot_->calcGroupedDataRange(
@@ -490,16 +490,16 @@ draw(CQChartsPaintDevice *device)
     w = size_.width ();
     h = size_.height();
 
-    bbox_ = BBox(x, y, x + w, y + h);
+    setBBox(BBox(x, y, x + w, y + h));
   }
   else {
-    bbox_ = absolutePlotRectangle();
+    setBBox(absolutePlotRectangle());
 
-    if (bbox_.isValid()) {
-      x = bbox_.getXMin  ();
-      y = bbox_.getYMin  ();
-      w = bbox_.getWidth ();
-      h = bbox_.getHeight();
+    if (bbox().isValid()) {
+      x = bbox().getXMin  ();
+      y = bbox().getYMin  ();
+      w = bbox().getWidth ();
+      h = bbox().getHeight();
     }
   }
 
@@ -617,7 +617,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowColorBox(device, bbox_, Qt::red);
+    plot_->drawWindowColorBox(device, bbox(), Qt::red);
 
   //---
 
@@ -639,7 +639,7 @@ CQChartsTitle::
 textBoxDataInvalidate()
 {
   if (! isDrawn())
-    bbox_ = BBox();
+    setBBox(BBox());
 
   plot_->drawObjs();
 }

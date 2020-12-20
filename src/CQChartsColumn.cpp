@@ -359,7 +359,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     if (parse.isChar(')'))
       parse.skipChar();
 
-    expr = str.simplified();
+    expr = str.trimmed();
     type = Type::EXPR;
 
     //parse.skipSpace();
@@ -472,7 +472,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
   if (indexStr.length()) {
     type = Type::DATA_INDEX;
-    expr = indexStr.simplified();
+    expr = indexStr.trimmed();
   }
   else
     type = Type::DATA;

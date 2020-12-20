@@ -437,7 +437,7 @@ class CQChartsAxis : public CQChartsObj,
   //--
 
   const BBox &bbox() const { return bbox_; }
-  void setBBox(const BBox &b);
+//void setBBox(const BBox &b);
 
   BBox fitBBox() const;
 
@@ -476,40 +476,40 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isDrawGrid() const;
 
-  void drawGrid(const Plot *plot, PaintDevice *device);
+  void drawGrid(const Plot *plot, PaintDevice *device) const;
 
   //---
 
-  void drawAt(double pos, const Plot *plot, PaintDevice *device);
+  void drawAt(double pos, const Plot *plot, PaintDevice *device) const;
 
-  void draw(const Plot *plot, PaintDevice *device, bool usePen=false, bool forceColor=false);
+  void draw(const Plot *plot, PaintDevice *device, bool usePen=false, bool forceColor=false) const;
 
   void drawEditHandles(QPainter *painter) const;
 
   void calcPos(const Plot *plot, double &apos1, double &apos2) const;
 
-  void drawLine(const Plot *plot, PaintDevice *device, double apos, double amin, double amax);
+  void drawLine(const Plot *plot, PaintDevice *device, double apos, double amin, double amax) const;
 
   void drawMajorGridLine(const Plot *plot, PaintDevice *device, double apos,
-                         double amin, double amax);
+                         double amin, double amax) const;
   void drawMinorGridLine(const Plot *plot, PaintDevice *device, double apos,
-                         double amin, double amax);
+                         double amin, double amax) const;
 
   void drawMajorTickLine(const Plot *plot, PaintDevice *device, double apos,
-                         double tpos, bool inside);
+                         double tpos, bool inside) const;
   void drawMinorTickLine(const Plot *plot, PaintDevice *device, double apos,
-                         double tpos, bool inside);
+                         double tpos, bool inside) const;
 
   void drawTickLine(const Plot *plot, PaintDevice *device, double apos,
-                    double tpos, bool inside, bool major);
+                    double tpos, bool inside, bool major) const;
 
   void drawTickLabel(const Plot *plot, PaintDevice *device, double apos, double tpos,
-                     double value, bool inside);
+                     double value, bool inside) const;
 
-  void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device);
+  void drawAxisTickLabelDatas(const Plot *plot, PaintDevice *device) const;
 
   void drawAxisLabel(const Plot *plot, PaintDevice *device, double apos,
-                     double amin, double amax, const QString &text, bool allowHtml);
+                     double amin, double amax, const QString &text, bool allowHtml) const;
 
   void getTickLabelsPositions(std::set<int> &positions) const;
 
@@ -523,6 +523,8 @@ class CQChartsAxis : public CQChartsObj,
 
  private:
   void init();
+
+  void setConstBBox(const BBox &b) const;
 
  private:
   struct AxisGapData {
@@ -643,13 +645,13 @@ class CQChartsAxis : public CQChartsObj,
   EditHandlesP editHandles_; //!< edit handles
 
   // bbox draw state
-  BBox                   bbox_;                   //!< axis box
-  BBox                   fitBBox_;                //!< fit box
-  BBox                   fitLBBox_;               //!< label fit box
-  BBox                   fitTLBBox_;              //!< tick label fit box
-  BBox                   lbbox_;                  //!< label box
-//BBox                   lastTickLabelRect_;      //!< last tick box (for auto hide)
-  AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
+  mutable BBox                   bbox_;                   //!< axis box
+  mutable BBox                   fitBBox_;                //!< fit box
+  mutable BBox                   fitLBBox_;               //!< label fit box
+  mutable BBox                   fitTLBBox_;              //!< tick label fit box
+  mutable BBox                   lbbox_;                  //!< label box
+//mutable BBox                   lastTickLabelRect_;      //!< last tick box (for auto hide)
+  mutable AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
 
   mutable bool usePen_     { false }; //!< use painter pen
   mutable bool forceColor_ { false }; //!< force painter color for all

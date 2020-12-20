@@ -678,7 +678,7 @@ updateRawRange() const
   RMinMax xrange;
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -954,7 +954,7 @@ updateCalcRange() const
   RMinMax xrange;
 
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -1025,7 +1025,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
            Range &dataRange, RMinMax &xrange) const
 {
   auto updateRange = [&](double x, double y) {
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       dataRange.updateRange(x, y);
     else
       dataRange.updateRange(y, x);
@@ -1322,14 +1322,14 @@ CQChartsAxis *
 CQChartsBoxPlot::
 mappedXAxis() const
 {
-  return (orientation() != Qt::Horizontal ? xAxis() : yAxis());
+  return (isVertical() ? xAxis() : yAxis());
 }
 
 CQChartsAxis *
 CQChartsBoxPlot::
 mappedYAxis() const
 {
-  return (orientation() != Qt::Horizontal ? yAxis() : xAxis());
+  return (isVertical() ? yAxis() : xAxis());
 }
 
 CQChartsGeom::BBox
@@ -1381,8 +1381,8 @@ initRawObjs(PlotObjs &objs) const
   bool hasSets   = this->hasSets();
   bool hasGroups = this->hasGroups();
 
-  double bw2 = lengthPlotSize(boxWidth   (), orientation() != Qt::Horizontal)/2.0;
-  double vw2 = lengthPlotSize(violinWidth(), orientation() != Qt::Horizontal)/2.0;
+  double bw2 = lengthPlotSize(boxWidth   (), isVertical())/2.0;
+  double vw2 = lengthPlotSize(violinWidth(), isVertical())/2.0;
 
   //---
 
@@ -1432,10 +1432,10 @@ initRawObjs(PlotObjs &objs) const
         BBox rect;
 
         if (! isNormalized())
-          rect = CQChartsGeom::makeDirBBox(/*flipped*/ orientation() == Qt::Horizontal,
+          rect = CQChartsGeom::makeDirBBox(/*flipped*/ isHorizontal(),
                    pos - sbw, whisker->lowerMedian(), pos + sbw, whisker->upperMedian());
         else
-          rect = CQChartsGeom::makeDirBBox(/*flipped*/ orientation() == Qt::Horizontal,
+          rect = CQChartsGeom::makeDirBBox(/*flipped*/ isHorizontal(),
                    pos - sbw, 0.0, pos + sbw, 1.0);
 
         auto *boxObj = createWhiskerObj(rect, setId, groupInd, whisker,
@@ -1458,7 +1458,7 @@ initRawObjs(PlotObjs &objs) const
             BBox rect;
 
             if (! isNormalized()) {
-              if (orientation() != Qt::Horizontal)
+              if (isVertical())
                 rect = BBox(pos - osx, ovalue - osy, pos + osx, ovalue + osy);
               else
                 rect = BBox(ovalue - osx, pos - osy, ovalue + osx, pos + osy);
@@ -1467,7 +1467,7 @@ initRawObjs(PlotObjs &objs) const
               double ovalue1 =
                 CMathUtil::map(ovalue, whisker->vmin(), whisker->vmax(), ymargin, 1.0 - ymargin);
 
-              if (orientation() != Qt::Horizontal)
+              if (isVertical())
                 rect = BBox(pos - osx, ovalue1 - osy, pos + osx, ovalue1 + osy);
               else
                 rect = BBox(ovalue1 - osx, pos - osy, ovalue1 + osx, pos + osy);
@@ -1521,7 +1521,7 @@ CQChartsBoxPlot::
 addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
                 const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
-  double vw2 = lengthPlotSize(violinWidth(), orientation() != Qt::Horizontal)/2.0;
+  double vw2 = lengthPlotSize(violinWidth(), isVertical())/2.0;
 
   const auto &density = whisker->density();
 
@@ -1547,7 +1547,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
     Point pos1;
     BBox  rect;
 
-    if (orientation() != Qt::Horizontal) {
+    if (isVertical()) {
       pos1 = Point(x, y1);
 
       if (! isNormalized())
@@ -1648,7 +1648,7 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
     Point pos;
     BBox  rect;
 
-    if (orientation() != Qt::Horizontal)
+    if (isVertical())
       pos = Point(x, y1);
     else
       pos = Point(y1, x);
@@ -1662,7 +1662,7 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
     if (placeRect(rect, prect)) {
       auto ppos = pos;
 
-      if (orientation() != Qt::Horizontal)
+      if (isVertical())
         ppos.setX(prect.getXMid());
       else
         ppos.setY(prect.getYMid());
@@ -1696,11 +1696,11 @@ initCalcObjs(PlotObjs &objs) const
     BBox rect;
 
     if (! isNormalized())
-      rect = CQChartsGeom::makeDirBBox(/*flipped*/orientation() == Qt::Horizontal,
+      rect = CQChartsGeom::makeDirBBox(/*flipped*/isHorizontal(),
                pos - bw, whiskerData.statData.lowerMedian,
                pos + bw, whiskerData.statData.upperMedian);
     else
-      rect = CQChartsGeom::makeDirBBox(/*flipped*/orientation() == Qt::Horizontal,
+      rect = CQChartsGeom::makeDirBBox(/*flipped*/isHorizontal(),
                pos - bw, 0.0, pos + bw, 1.0);
 
     auto *boxObj = createDataObj(rect, whiskerData, ColorInd(is, ns));
@@ -1724,7 +1724,7 @@ initCalcObjs(PlotObjs &objs) const
         BBox rect;
 
         if (! isNormalized()) {
-          if (orientation() != Qt::Horizontal)
+          if (isVertical())
             rect = BBox(pos - osx, ovalue - osy, pos + osx, ovalue + osy);
           else
             rect = BBox(ovalue - osx, pos - osy, ovalue + osx, pos + osy);
@@ -1735,7 +1735,7 @@ initCalcObjs(PlotObjs &objs) const
                            whiskerData.statData.lowerMedian, whiskerData.statData.upperMedian,
                            ymargin, 1.0 - ymargin);
 
-          if (orientation() != Qt::Horizontal)
+          if (isVertical())
             rect = BBox(pos - osx, ovalue1 - osy, pos + osx, ovalue1 + osy);
           else
             rect = BBox(ovalue1 - osx, pos - osy, ovalue1 + osx, pos + osy);
@@ -1880,7 +1880,7 @@ probe(ProbeData &probeData) const
   if (! dataRange.isSet())
     return false;
 
-  if (orientation() != Qt::Horizontal) {
+  if (isVertical()) {
     probeData.p.x =
       std::min(std::max(probeData.p.x, dataRange.xmin() + 0.5), dataRange.xmax() - 0.5);
     probeData.p.x = std::round(probeData.p.x);
@@ -1921,9 +1921,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Horizontal", orientation() == Qt::Horizontal,
-                          SLOT(setHorizontal(bool)));
-
+  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
   (void) addCheckedAction("Normalized", isNormalized(), SLOT(setNormalized(bool)));
 
   //---
@@ -1953,7 +1951,7 @@ bool
 CQChartsBoxPlot::
 hasXAxis() const
 {
-  if (orientation() == Qt::Horizontal && forceNoYAxis_)
+  if (isHorizontal() && forceNoYAxis_)
     return false;
 
   return CQChartsPlot::hasXAxis();
@@ -1963,7 +1961,7 @@ bool
 CQChartsBoxPlot::
 hasYAxis() const
 {
-  if (orientation() != Qt::Horizontal && forceNoYAxis_)
+  if (isVertical() && forceNoYAxis_)
     return false;
 
   return CQChartsPlot::hasYAxis();
@@ -2030,7 +2028,7 @@ double
 CQChartsBoxPlotWhiskerObj::
 pos() const
 {
-  return rect_.getXYMid(plot_->orientation() != Qt::Horizontal);
+  return rect_.getXYMid(plot_->isVertical());
 }
 
 double
@@ -2230,14 +2228,14 @@ draw(PaintDevice *device) const
 
   //---
 
-  auto orientation = (plot_->orientation() != Qt::Horizontal ? Qt::Vertical : Qt::Horizontal);
+  auto orientation = (plot_->isVertical() ? Qt::Vertical : Qt::Horizontal);
 
   //---
 
   double pos = this->pos();
 
   double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->orientation() == Qt::Horizontal);
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
   CQStatData statData;
 
@@ -2259,10 +2257,9 @@ draw(PaintDevice *device) const
   if (plot_->isViolin()) {
     const auto &density = whisker_->density();
 
-    double vw = plot_->lengthPlotSize(plot_->violinWidth(),
-                  plot_->orientation() == Qt::Horizontal)/2.0;
+    double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
 
-    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->orientation() == Qt::Horizontal,
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                           pos - vw, statData.min, pos + vw, statData.max);
 
     CQChartsWhiskerOpts opts;
@@ -2289,7 +2286,7 @@ draw(PaintDevice *device) const
     double dev1 = remapPos(this->mean() - this->stddev());
     double dev2 = remapPos(this->mean() + this->stddev());
 
-    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->orientation() == Qt::Horizontal,
+    auto rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                           pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
@@ -2385,7 +2382,7 @@ draw(PaintDevice *device) const
     if (! device->isInteractive() ||
         plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       auto posToPixel = [&](double pos, double value) {
-        if (plot_->orientation() != Qt::Horizontal)
+        if (plot_->isVertical())
           return plot_->windowToPixel(Point(pos, value));
         else
           return plot_->windowToPixel(Point(value, pos));
@@ -2422,7 +2419,7 @@ draw(PaintDevice *device) const
           auto ustr = QString("%1").arg(this->upperMedian());
           auto strh = QString("%1").arg(this->max        ());
 
-          if (plot_->orientation() != Qt::Horizontal) {
+          if (plot_->isVertical()) {
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true );
             addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
             addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
@@ -2440,7 +2437,7 @@ draw(PaintDevice *device) const
         else {
           auto strl = QString("%1").arg(this->min());
 
-          if (plot_->orientation() != Qt::Horizontal)
+          if (plot_->isVertical())
             addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/true);
           else
             addVText(p1.y, p5.y, p1.x, strl, /*onBottom*/false);
@@ -2529,13 +2526,13 @@ annotationBBox() const
   double pos = this->pos();
 
   double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->orientation() == Qt::Horizontal);
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
   auto posToRemapPixel = [&](double pos, double value) {
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       return plot_->windowToPixel(Point(pos, remapPos(value)));
     else
       return plot_->windowToPixel(Point(remapPos(value), pos));
@@ -2561,7 +2558,7 @@ annotationBBox() const
       auto ustr = QString("%1").arg(upperMedian());
       auto strh = QString("%1").arg(max        ());
 
-      if (plot_->orientation() != Qt::Horizontal) {
+      if (plot_->isVertical()) {
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
         addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
         addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
@@ -2579,7 +2576,7 @@ annotationBBox() const
     else {
       auto strl = QString("%1").arg(min());
 
-      if (plot_->orientation() != Qt::Horizontal)
+      if (plot_->isVertical())
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       else
         addVBBox(pbbox, p1.y, p5.y, p1.x, strl, /*onBottom*/true);
@@ -2723,8 +2720,8 @@ draw(PaintDevice *device) const
   //---
 
   // draw symbol
-  double ox = rect_.getXYMid(plot_->orientation() != Qt::Horizontal);
-  double oy = rect_.getXYMid(plot_->orientation() == Qt::Horizontal);
+  double ox = rect_.getXYMid(plot_->isVertical());
+  double oy = rect_.getXYMid(plot_->isHorizontal());
 
   Point pos(ox, oy);
 
@@ -2760,7 +2757,7 @@ double
 CQChartsBoxPlotDataObj::
 pos() const
 {
-  return rect_.getXYMid(plot_->orientation() != Qt::Horizontal);
+  return rect_.getXYMid(plot_->isVertical());
 }
 
 QString
@@ -2840,7 +2837,7 @@ draw(PaintDevice *device) const
   double pos = this->pos();
 
   double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->orientation() == Qt::Horizontal);
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
   //---
 
@@ -2887,7 +2884,7 @@ draw(PaintDevice *device) const
     double wd2 = bw/2.0;
 
     auto posToRemapPixel = [&](double pos, double value) {
-      if (plot_->orientation() != Qt::Horizontal)
+      if (plot_->isVertical())
         return plot_->windowToPixel(Point(pos, remapPos(value)));
       else
         return plot_->windowToPixel(Point(remapPos(value), pos));
@@ -2921,7 +2918,7 @@ draw(PaintDevice *device) const
     auto ustr = QString("%1").arg(data_.statData.upperMedian);
     auto strh = QString("%1").arg(data_.statData.max        );
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       addHText(p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       addHText(p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
       addHText(p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
@@ -2961,13 +2958,13 @@ annotationBBox() const
   double pos = this->pos();
 
   double ww = plot_->whiskerExtent();
-  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->orientation() == Qt::Horizontal);
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
   auto posToRemapPixel = [&](double pos, double value) {
-    if (plot_->orientation() != Qt::Horizontal)
+    if (plot_->isVertical())
       return plot_->windowToPixel(Point(pos, remapPos(value)));
     else
       return plot_->windowToPixel(Point(remapPos(value), pos));
@@ -2990,7 +2987,7 @@ annotationBBox() const
     auto ustr = QString("%1").arg(data_.statData.upperMedian);
     auto strh = QString("%1").arg(data_.statData.max        );
 
-    if (plot_->orientation() != Qt::Horizontal) {
+    if (plot_->isVertical()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
       addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);

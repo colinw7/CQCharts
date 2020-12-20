@@ -288,7 +288,7 @@ draw(const CQChartsPlot *plot, PaintDevice *device, const BBox &rect)
 
   BBox rect1;
 
-  if (orientation() == Qt::Horizontal)
+  if (isHorizontal())
     rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
   else
     rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
@@ -330,7 +330,7 @@ bbox(const BBox &rect) const
 {
   BBox rect1;
 
-  if (orientation() == Qt::Horizontal)
+  if (isHorizontal())
     rect1 = BBox(statData_.min, rect.getYMin(), statData_.max, rect.getYMax());
   else
     rect1 = BBox(rect.getXMin(), statData_.min, rect.getXMax(), statData_.max);
@@ -664,7 +664,7 @@ drawCrossBar(PaintDevice *device, const BBox &rect, double mean,
   // draw box
   BBox pbbox(p1, p2);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, pbbox, cornerSize);
+  CQChartsDrawUtil::drawRoundedRect(device, pbbox, cornerSize);
 
   //---
 

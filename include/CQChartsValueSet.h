@@ -23,6 +23,7 @@ class CQTriePatterns;
 class CQChartsRValues {
  public:
   using OptReal     = boost::optional<double>;
+  using OptValues   = std::vector<OptReal>;
   using Values      = std::vector<double>;
   using Counts      = std::vector<int>;
   using ValueCount  = std::pair<double, int>;
@@ -31,6 +32,27 @@ class CQChartsRValues {
 
  public:
   CQChartsRValues() { }
+
+  CQChartsRValues(const CQChartsRValues &rhs) {
+    assign(rhs);
+  }
+
+  CQChartsRValues &operator=(const CQChartsRValues &rhs) {
+    assign(rhs);
+
+    return *this;
+  }
+
+  void assign(const CQChartsRValues &rhs) {
+    values_     = rhs.values_;
+    svalues_    = rhs.svalues_;
+    valset_     = rhs.valset_;
+    setvals_    = rhs.setvals_;
+    numNull_    = rhs.numNull_;
+    calculated_ = rhs.calculated_;
+    statData_   = rhs.statData_;
+    outliers_   = rhs.outliers_;
+  }
 
   void clear() {
     values_ .clear();
@@ -47,6 +69,8 @@ class CQChartsRValues {
   bool canMap() const { return ! valset_.empty(); }
 
   int size() const { return values_.size(); }
+
+  const OptValues &values() const { return values_; }
 
   // get nth value (non-unique)
   const OptReal &value(int i) const { return values_[i]; }
@@ -160,7 +184,6 @@ class CQChartsRValues {
   void calc();
 
  private:
-  using OptValues = std::vector<OptReal>;
   using KeyCount  = std::pair<int, int>;
   using ValueSet  = std::map<double, KeyCount, CQChartsUtil::RealCmp>;
   using SetValues = std::map<int, double>;

@@ -1202,7 +1202,8 @@ CQChartsHierBubbleHierObj(const Plot *plot, HierNode *hier, HierObj *hierObj,
                           const BBox &rect, const ColorInd &is) :
  CQChartsHierBubbleNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
-  setModelInd(hier_->ind());
+  if (hier_->ind().isValid())
+    setModelInd(hier_->ind());
 }
 
 QString
@@ -1333,7 +1334,8 @@ CQChartsHierBubbleNodeObj(const Plot *plot, Node *node, HierObj *hierObj,
 {
   setDetailHint(DetailHint::MAJOR);
 
-  setModelInd(node_->ind());
+  if (node_->ind().isValid())
+    setModelInd(node_->ind());
 }
 
 QString

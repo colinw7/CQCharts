@@ -420,7 +420,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
   auto fstrs = columnTypes.split(";", QString::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    auto typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].trimmed();
 
     if (! typeStr.length())
       continue;
@@ -445,7 +445,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
     return false;
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    auto typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].trimmed();
 
     if (! typeStr.length())
       continue;
@@ -471,7 +471,7 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
   int pos = typeStr1.indexOf("#");
 
   if (pos >= 0) {
-    auto columnStr = typeStr1.mid(0, pos).simplified();
+    auto columnStr = typeStr1.mid(0, pos).trimmed();
 
     CQChartsColumn column1;
 
@@ -482,7 +482,7 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
       return false;
     }
 
-    typeStr1 = typeStr1.mid(pos + 1).simplified();
+    typeStr1 = typeStr1.mid(pos + 1).trimmed();
   }
 
   //---
@@ -545,7 +545,7 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
   }
 
   // skip empty definition
-  if (strs.length() == 1 && strs[0].simplified() == "")
+  if (strs.length() == 1 && strs[0].trimmed() == "")
     return true;
 
   CQChartsColumn column;
@@ -594,7 +594,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   }
 
   // skip empty definition
-  if (strs.length() == 1 && strs[0].simplified() == "")
+  if (strs.length() == 1 && strs[0].trimmed() == "")
     return true;
 
   auto typeName = strs[0];
@@ -658,7 +658,7 @@ setHeaderTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
     return false;
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    auto typeStr = fstrs[i].simplified();
+    auto typeStr = fstrs[i].trimmed();
 
     if (! typeStr.length())
       continue;
@@ -691,7 +691,7 @@ setHeaderTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
   }
 
   // skip empty definition
-  if (strs.length() == 1 && strs[0].simplified() == "")
+  if (strs.length() == 1 && strs[0].trimmed() == "")
     return true;
 
   CQChartsColumn column;
@@ -740,7 +740,7 @@ setHeaderTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   }
 
   // skip empty definition
-  if (strs.length() == 1 && strs[0].simplified() == "")
+  if (strs.length() == 1 && strs[0].trimmed() == "")
     return true;
 
   auto typeName = strs[0];
@@ -1778,7 +1778,7 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
   //---
 
   // check for column sub value
-  auto str1 = str.simplified();
+  auto str1 = str.trimmed();
 
   if (str1.right(1) == "]") {
     int pos = str1.lastIndexOf('[');

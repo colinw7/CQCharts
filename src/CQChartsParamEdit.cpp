@@ -121,7 +121,7 @@ getString() const
 {
   assert(edit_);
 
-  return edit_->text().simplified();
+  return edit_->text().trimmed();
 }
 
 bool

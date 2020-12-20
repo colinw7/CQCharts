@@ -428,7 +428,7 @@ class CQChartsWheelPlot : public CQChartsPlot {
   void setColdTemp(double t);
 
   const PaletteName &tempPalette() const { return tempPalette_; }
-  void setTempPalette(const PaletteName &s);
+  void setTempPalette(const PaletteName &n);
 
   //---
 

@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + OpenGL model view ?
+ + named image and name color editors
+ + consistent uses of bbox_ , rect_ , ... in ChartsObj (see Title use of bbox)
  + consistent usage or orientation/horizontal/vertical
  + support currentColor ? Last used color
  + draw html text in box does not work when box larger than text
@@ -237,7 +240,6 @@ High
  + Better filter model (new model)
  + Handle push/pop in tree map follow view
  + Improve coloring with follow view
- + Table Delegate Draw Bar
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
  + values annotation : units, use width instead of rectangle
@@ -685,18 +687,22 @@ Sunburst
 
 Table Plot
  + Locked rows
- + Column Header Group
+ + Total (summary) row (visible/filtered or all)
+ + Multiple Header Lines - Column Header Group
  + More Interactive features
  + Hier Model
  + Selection
  + Header/Number Colors
- + Controls (Sort/Filter)
+ + Controls (Filter)
  + Resizable columns
  + Mouse Over
  + Mouse Resize
  + Scaled or Fixed Size Font
- + Scrollbars
+ + Scrollbars in Plot
  + Custom objsAtPoint or improve quad tree
+ + Mouse wheel scroll
+ + Vertical (no row number column) locked
+ + Cell/Cross/None mouse over highlight
 
 Tree map
  + Rotate text if text aspect > box aspect

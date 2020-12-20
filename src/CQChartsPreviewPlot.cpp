@@ -95,7 +95,7 @@ resetPlot()
 
   plot_ = nullptr;
 
-  view_->update();
+  view_->doUpdate();
 }
 
 void

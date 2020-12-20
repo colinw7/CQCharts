@@ -44,7 +44,7 @@ colorStr() const
     if (type() == Type::PALETTE_VALUE) {
       strs << QString::number(value());
 
-      if (isScale ()) strs << "s";
+      if (isScale()) strs << "s";
     }
 
     if (isInvert()) strs << "i";
@@ -143,7 +143,7 @@ setColorStr(const QString &str)
   if (! CQTcl::splitList(str, strs))
     return false;
 
-  if (strs.length() == 0 || (strs.length() == 1 && strs[0].simplified() == ""))
+  if (strs.length() == 0 || (strs.length() == 1 && strs[0].trimmed() == ""))
     return true;
 
   //---

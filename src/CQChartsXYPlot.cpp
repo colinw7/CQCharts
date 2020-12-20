@@ -1870,7 +1870,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       // add point to polygon
 
       // if first point then add first point of previous polygon
-      if (ip == 0) {
+      if (ip == 0 && dataRange.isSet()) {
         if (isStacked()) {
           double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
 
@@ -1887,7 +1887,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
       polyShape.addPoint(p);
 
       // if last point then add last point of previous polygon
-      if (ip == np - 1) {
+      if (ip == np - 1 && dataRange.isSet()) {
         if (isStacked()) {
           double y1 = (is > 0 ? prevPoly.point(ip).y : dataRange.ymin());
 
@@ -3121,7 +3121,7 @@ draw(PaintDevice *device) const
   else {
     BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, plot_->pixelToWindow(bbox));
+    CQChartsDrawUtil::drawRoundedRect(device, plot_->pixelToWindow(bbox));
   }
 }
 

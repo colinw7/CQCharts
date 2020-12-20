@@ -266,6 +266,8 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
  *  . format_scale - scale factor for output format e.g. 0.001 for multiples of a thousand
  *  . min          - override calculated min value
  *  . max          - override calculated max value
+ *
+ * format is applied to data in model for variant to string (Qt::DisplayRole)
  */
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
@@ -303,6 +305,8 @@ class CQChartsColumnRealType : public CQChartsColumnType {
  *  . format - output format
  *  . min    - override calculated min value
  *  . max    - override calculated max value
+ *
+ * format is applied to data in model for variant to string (Qt::DisplayRole)
  */
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
@@ -340,7 +344,10 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
  * supports the following parameter
  *  . iformat - input format to convert input data to model data (time)
  *  . oformat - output (display) format to convert time to string
- *  - format  - convenience parameter when iformat and oformat are the same
+ *  . format  - convenience parameter when iformat and oformat are the same
+ *
+ * iformat/format is applied to data in model to convert from string to time
+ * oformat/format is applied to time value for string conversion (Qt::DisplayRole)
  */
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:

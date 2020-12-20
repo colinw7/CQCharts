@@ -96,7 +96,7 @@ drawWhiskerBar(PaintDevice *device, const CQStatData &statData,
     BBox pbbox(p2, p4);
 
     if (pbbox.isValid())
-      CQChartsDrawUtil::drawRoundedPolygon(device, pbbox, cornerSize);
+      CQChartsDrawUtil::drawRoundedRect(device, pbbox, cornerSize);
   }
 
   //---
