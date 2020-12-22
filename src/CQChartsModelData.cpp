@@ -414,12 +414,13 @@ CQChartsModelData::
 select(const QItemSelection &sel)
 {
   for (auto &sm : selectionModels_) {
+    if (! sm) continue;
+
     CQChartsWidgetUtil::AutoDisconnect autoDisconnect(
       sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
       this, SLOT(selectionSlot()));
 
-    if (sm)
-      sm->select(sel, QItemSelectionModel::ClearAndSelect);
+    sm->select(sel, QItemSelectionModel::ClearAndSelect);
   }
 }
 

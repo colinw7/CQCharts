@@ -137,8 +137,9 @@ class CQChartsAxis : public CQChartsObj,
   };
 
   enum class PropertyType {
-    STATE  = (1<<0),
-    STROKE = (1<<1),
+    STATE      = (1<<0),
+    STROKE     = (1<<1),
+    ANNOTATION = (1<<2),
 
     NONE  = 0,
     BASIC = 0,

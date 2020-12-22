@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + selection update model table when overlay plot and multiple models
+   + display model of plot of first selected object ?
  + OpenGL model view ?
  + named image and name color editors
  + consistent uses of bbox_ , rect_ , ... in ChartsObj (see Title use of bbox)

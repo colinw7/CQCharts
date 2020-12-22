@@ -218,14 +218,14 @@ getSelectIndices(Indices &indices) const
 
 void
 CQChartsPlotObj::
-addSelectIndices()
+addSelectIndices(Plot *plot)
 {
   Indices inds;
 
   getSelectIndices(inds);
 
   for (const auto &ind : inds)
-    plot()->addSelectIndex(ind);
+    plot->addSelectIndex(ind);
 }
 
 void

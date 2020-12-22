@@ -1281,3 +1281,5 @@
  + Add support fade drawn layers when mouse inside object
  + Fix issues in table plot when header and cell font are different
  + add barchart support to table plot
+# 12/21/2020
+ + fix issues with cross select into table from overlay plot

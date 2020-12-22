@@ -896,8 +896,11 @@ setCurrentPlotInd(int ind)
   // disconnect previous plot
   auto *currentPlot = getPlotForInd(currentPlotInd_);
 
-  if (currentPlot)
+  if (currentPlot) {
     disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+
+    currentPlot->endCurrent();
+  }
 
   //---
 
@@ -909,8 +912,11 @@ setCurrentPlotInd(int ind)
 
   currentPlot = getPlotForInd(currentPlotInd_);
 
-  if (currentPlot)
+  if (currentPlot) {
     connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+
+    currentPlot->startCurrent();
+  }
 
   //---
 
@@ -3453,12 +3459,13 @@ selectPointPress()
   SelData selData(mousePressPoint(), mouseSelMod());
 
   if (processMouseDataPlots([&](Plot *plot, const SelData &data) {
-        if (plot->selectMousePress(data.pos, data.selMod)) {
-          setCurrentPlot(plot);
-          return true;
-        }
-        return false;
-      }, selData)) {
+    if (plot->selectMousePress(data.pos, data.selMod)) {
+      auto *selPlot = plot->selectionPlot();
+      setCurrentPlot(selPlot);
+      return true;
+    }
+    return false;
+  }, selData)) {
     return;
   }
 

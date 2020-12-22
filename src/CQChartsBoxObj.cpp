@@ -24,8 +24,7 @@ CQChartsBoxObj::
 setBBox(const BBox &b)
 {
   bbox_ = b;
-
-  setRect(bbox_);
+  rect_ = bbox_;
 }
 
 void

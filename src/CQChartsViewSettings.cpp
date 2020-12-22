@@ -2282,9 +2282,15 @@ updateCurrentPlot()
 
   //---
 
+  disconnect(plotsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+             this, SLOT(plotsSelectionChangeSlot()));
+
   int ind = view->currentPlotInd();
 
   plotsWidgets_.plotTable->setCurrentInd(ind);
+
+  connect(plotsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(plotsSelectionChangeSlot()));
 
   //---
 
@@ -2379,8 +2385,12 @@ plotsSelectionChangeSlot()
 
   view->deselectAll();
 
-  for (auto &plot : plots)
+  for (auto &plot : plots) {
+    if (! plot->isSelectable())
+      continue;
+
     plot->setSelected(true);
+  }
 
   view->endSelection();
 }

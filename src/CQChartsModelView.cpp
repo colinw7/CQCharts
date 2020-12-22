@@ -480,7 +480,7 @@ void
 CQChartsModelView::
 scrollTo(const QModelIndex &index, ScrollHint hint)
 {
-  if (hint == QAbstractItemView::EnsureVisible)
+  if (hint != QAbstractItemView::EnsureVisible)
     return;
 
   CQModelView::scrollTo(index, hint);

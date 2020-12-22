@@ -228,7 +228,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
+  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION)))
+    addProp(path, "direction", "", "Axis direction", true)->setEditable(false);
 
   addProp(path, "side"     , "", "Axis plot side");
   addProp(path, "valueType", "", "Axis value type");
@@ -236,8 +237,12 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   addProp(path, "tickIncrement" , "", "Axis tick increment");
   addProp(path, "majorIncrement", "", "Axis tick major increment");
-  addProp(path, "start"         , "", "Axis start position");
-  addProp(path, "end"           , "", "Axis end position");
+
+  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION))) {
+    addProp(path, "start", "", "Axis start position");
+    addProp(path, "end"  , "", "Axis end position");
+  }
+
   addProp(path, "includeZero"   , "", "Axis force include zero", true);
 
   addProp(path, "valueStart", "", "Axis custom start position");
@@ -251,9 +256,11 @@ addProperties(CQPropertyViewModel *model, const QString &path, const PropertyTyp
 
   //---
 
-  auto posPath = path + "/position";
+  if (! (int(propertyTypes) & int(PropertyType::ANNOTATION))) {
+    auto posPath = path + "/position";
 
-  addProp(posPath, "position", "value", "Axis position");
+    addProp(posPath, "position", "value", "Axis position");
+  }
 
   //---
 

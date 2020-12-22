@@ -104,15 +104,18 @@ class QPainter;
  */
 class CQChartsPlotUpdateTimer : public QTimer {
  public:
-  CQChartsPlotUpdateTimer(CQChartsPlot *plot) :
+  using Plot = CQChartsPlot;
+
+ public:
+  CQChartsPlotUpdateTimer(Plot *plot) :
    plot_(plot) {
     setSingleShot(true);
   }
 
-  CQChartsPlot *plot() const { return plot_; }
+  Plot *plot() const { return plot_; }
 
  private:
-  CQChartsPlot* plot_ { nullptr };
+  Plot* plot_ { nullptr };
 };
 
 //----
@@ -311,6 +314,8 @@ class CQChartsPlot : public CQChartsObj,
     Y_VALUE = int(CQChartsColorType::Y_VALUE)
   };
 
+  using Plot = CQChartsPlot;
+
   using Point    = CQChartsGeom::Point;
   using BBox     = CQChartsGeom::BBox;
   using Polygon  = CQChartsGeom::Polygon;
@@ -324,15 +329,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //! \brief associated plot for overlay/y1y2
   struct ConnectData {
-    CQChartsPlot* parent  { nullptr }; //!< parent plot
-    bool          x1x2    { false };   //!< is double x axis plot
-    bool          y1y2    { false };   //!< is double y axis plot
-    bool          overlay { false };   //!< is overlay plot
-    bool          tabbed  { false };   //!< is tabbed plot
-    bool          current { false };   //!< is current
-    BBox          tabRect;             //!< tab rect
-    CQChartsPlot* next    { nullptr }; //!< next plot
-    CQChartsPlot* prev    { nullptr }; //!< previous plot
+    Plot* parent  { nullptr }; //!< parent plot
+    bool  x1x2    { false };   //!< is double x axis plot
+    bool  y1y2    { false };   //!< is double y axis plot
+    bool  overlay { false };   //!< is overlay plot
+    bool  tabbed  { false };   //!< is tabbed plot
+    bool  current { false };   //!< is current
+    BBox  tabRect;             //!< tab rect
+    Plot* next    { nullptr }; //!< next plot
+    Plot* prev    { nullptr }; //!< previous plot
 
     ConnectData() { }
 
@@ -400,7 +405,6 @@ class CQChartsPlot : public CQChartsObj,
   using ColumnType = CQBaseModelType;
   using ModelIndex = CQChartsModelIndex;
 
-  using Plot     = CQChartsPlot;
   using Plots    = std::vector<Plot *>;
   using PlotType = CQChartsPlotType;
 
@@ -900,6 +904,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // called by view when current plot changed
+  void startCurrent();
+  void endCurrent  ();
+
+  //---
+
   Plot *prevPlot() const { return connectData_.prev; }
   Plot *nextPlot() const { return connectData_.next; }
 
@@ -969,6 +979,12 @@ class CQChartsPlot : public CQChartsObj,
   void y1y2Plots(Plots &plots);
 
   void resetConnectData(bool notify=true);
+
+  //---
+
+  Plot *selectionPlot() const;
+
+  //---
 
   void cycleNextPlot();
   void cyclePrevPlot();
@@ -1493,6 +1509,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void updatePlotObjs();
 
+  void groupedResetInsideObjs();
   void resetInsideObjs();
 
   void updateGroupedDraw();
@@ -1677,6 +1694,7 @@ class CQChartsPlot : public CQChartsObj,
 
   bool updateInsideObjects(const Point &w, Constraints constraints);
 
+  Obj *groupedInsideObject() const;
   Obj *insideObject() const;
 
   void setInsideObject();
@@ -2371,8 +2389,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual void drawXAxis(PaintDevice *device) const;
   virtual void drawYAxis(PaintDevice *device) const;
 
-  virtual void drawXAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const;
-  virtual void drawYAxisAt(PaintDevice *device, CQChartsPlot *plot, double pos) const;
+  virtual void drawXAxisAt(PaintDevice *device, Plot *plot, double pos) const;
+  virtual void drawYAxisAt(PaintDevice *device, Plot *plot, double pos) const;
 
   void drawXAxis1(PaintDevice *device) const;
   void drawYAxis1(PaintDevice *device) const;
@@ -2613,6 +2631,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool hasForegroundI() const;
+  bool hasBackgroundI() const;
+  bool hasOverlayI() const;
+
+  //---
+
   // draw plot
   virtual void draw(QPainter *painter);
 
@@ -2684,7 +2708,7 @@ class CQChartsPlot : public CQChartsObj,
   void connectDataChanged();
 
   // current connected plot changed
-  void currentPlotChanged(CQChartsPlot *plot);
+  void currentPlotChanged(Plot *plot);
   void currentPlotIdChanged(const QString &id);
 
   // layers changed (active, valid)
@@ -2765,22 +2789,24 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  public:
-  virtual void objsAtPoint(const Point &p, Objs &objs, const Constraints &constraints) const;
+  virtual void groupedObjsAtPoint(const Point &p, Objs &objs,
+                                  const Constraints &constraints) const;
 
-  void annotationsAtPoint(const Point &p, Annotations &annotations) const;
+  void groupedAnnotationsAtPoint(const Point &p, Annotations &annotations) const;
 
-  virtual void objsIntersectRect(const BBox &r, Objs &objs, bool inside, bool select=false) const;
+  virtual void groupedObjsIntersectRect(const BBox &r, Objs &objs,
+                                        bool inside, bool select=false) const;
 
   virtual bool objNearestPoint(const Point &p, PlotObj* &obj) const;
 
  protected:
   virtual void plotObjsAtPoint(const Point &p, PlotObjs &objs) const;
 
-  void plotObjsAtPoint1(const Point &p, PlotObjs &objs) const;
+  void groupedPlotObjsAtPoint(const Point &p, PlotObjs &objs) const;
 
-  void annotationsAtPoint1(const Point &p, Annotations &annotations) const;
+  void annotationsAtPoint(const Point &p, Annotations &annotations) const;
 
-  void plotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
+  void groupedPlotObjsIntersectRect(const BBox &r, PlotObjs &plotObjs, bool inside) const;
 
   void annotationsIntersectRect(const BBox &r, Annotations &annotations, bool inside) const;
   void annotationsIntersectRect1(const BBox &r, Annotations &annotations, bool inside) const;

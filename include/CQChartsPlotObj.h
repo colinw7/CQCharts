@@ -291,7 +291,7 @@ class CQChartsPlotObj : public CQChartsObj {
   bool isSelectIndex(const QModelIndex &ind) const;
   bool isSelectIndices(const Indices &inds) const;
 
-  void addSelectIndices();
+  void addSelectIndices(Plot *plot);
 
   void getHierSelectIndices(Indices &inds) const;
 

@@ -355,6 +355,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  //---
+
   model->setObjectRoot(path, this);
 
   addProp(path, "id"        , "id"        , "Annotation id");
@@ -461,6 +463,8 @@ addTextProperties(PropertyModel *model, const QString &path, uint types)
     CQCharts::setItemIsStyle(item);
     return item;
   };
+
+  //---
 
   if (types & uint(CQChartsTextOptions::ValueType::DATA))
     addStyleProp(path, "textData", "style", "Text style", true);
@@ -946,6 +950,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
+
+  //---
 
   auto path1 = path + "/" + propertyId();
 
@@ -1440,6 +1446,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  //---
+
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
@@ -1651,6 +1659,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  //---
+
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
@@ -1833,6 +1843,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
+
+  //---
 
   auto path1 = path + "/" + propertyId();
 
@@ -2091,6 +2103,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     if (hidden) CQCharts::setItemIsHidden(item);
     return item;
   };
+
+  //---
 
   auto path1 = path + "/" + propertyId();
 
@@ -4448,6 +4462,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  //---
+
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
@@ -4663,13 +4679,28 @@ void
 CQChartsAxisAnnotation::
 addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc, bool hidden=false) {
+    auto *item = model->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addStrokeProperties(model, path1 + "/stroke", /*isSolid*/false);
 
-  axis_->addProperties(model, path1, CQChartsAxis::PropertyType::BASIC);
+  axis_->addProperties(model, path1, CQChartsAxis::PropertyType::ANNOTATION);
+
+  addProp(path1, "direction", "", "Axis direction");
+  addProp(path1, "start"    , "", "Axis start");
+  addProp(path1, "end"      , "", "Axis end");
+  addProp(path1, "position" , "", "Axis position");
 }
 
 //---
@@ -4992,6 +5023,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
     return item;
   };
 
+  //---
+
   auto path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
@@ -5273,6 +5306,8 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
                             const QString &desc) {
     return &(model->addProperty(path, density_, name, alias)->setDesc(desc));
   };
+
+  //---
 
   auto path1 = path + "/" + propertyId();
 
