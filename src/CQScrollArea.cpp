@@ -192,8 +192,8 @@ void
 CQScrollArea::
 updateScrollbars()
 {
-  int w = widget_->width ();
-  int h = widget_->height();
+  int w = (widget_ ? widget_->width () : 100);
+  int h = (widget_ ? widget_->height() : 100);
 
   int dx = std::max(0, getXSize() - w);
   int dy = std::max(0, getYSize() - h);

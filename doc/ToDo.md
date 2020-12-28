@@ -3,11 +3,16 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 TODO:
+ + all overlay plots forward to first overlay plot and collect data for all plots
+   + e.g. insideInd_, insideObjs_, sizeInsideObjs_ (assert if wrong plot)
+   + better and consistent naming convention for overlay and specific plot routines
  + selection update model table when overlay plot and multiple models
    + display model of plot of first selected object ?
  + OpenGL model view ?
  + named image and name color editors
+ + palette editor (all palette names ?) update when new palettes added
  + consistent uses of bbox_ , rect_ , ... in ChartsObj (see Title use of bbox)
+   + careful with invalidate
  + consistent usage or orientation/horizontal/vertical
  + support currentColor ? Last used color
  + draw html text in box does not work when box larger than text
@@ -15,7 +20,7 @@ TODO:
  + chord directional arrow (triangle end)
  + better mutex handling in model/column details
  + game of life
- + particles demo (fireworks)
+ + CQFactor (placement and animation)
  + sankey
    + remove overlaps keeps path id order (especially if single value)
    + track space below and reuse if possible

@@ -31,10 +31,12 @@
  */
 class CQChartsCmdBaseArgs {
  public:
-  using Args    = std::vector<QVariant>;
-  using OptReal = boost::optional<double>;
-  using OptInt  = boost::optional<int>;
-  using OptBool = boost::optional<bool>;
+  using CmdGroup = CQChartsCmdGroup;
+  using CmdArg   = CQChartsCmdArg;
+  using Args     = std::vector<QVariant>;
+  using OptReal  = boost::optional<double>;
+  using OptInt   = boost::optional<int>;
+  using OptBool  = boost::optional<bool>;
 
   /*!
    * \brief command argument
@@ -72,7 +74,7 @@ class CQChartsCmdBaseArgs {
   //---
 
   // start command group
-  CQChartsCmdGroup &startCmdGroup(CQChartsCmdGroup::Type type) {
+  CmdGroup &startCmdGroup(CmdGroup::Type type) {
     int ind = cmdGroups_.size() + 1;
 
     cmdGroups_.emplace_back(ind, type);
@@ -90,13 +92,13 @@ class CQChartsCmdBaseArgs {
   //---
 
   // add argument
-  CQChartsCmdArg &addCmdArg(const QString &name, CQChartsCmdArg::Type type,
-                            const QString &argDesc="", const QString &desc="") {
+  CmdArg &addCmdArg(const QString &name, CmdArg::Type type,
+                    const QString &argDesc="", const QString &desc="") {
     int ind = cmdArgs_.size() + 1;
 
     cmdArgs_.emplace_back(ind, name, type, argDesc, desc);
 
-    CQChartsCmdArg &cmdArg = cmdArgs_.back();
+    CmdArg &cmdArg = cmdArgs_.back();
 
     cmdArg.setGroupInd(groupInd_);
 
@@ -111,6 +113,7 @@ class CQChartsCmdBaseArgs {
   // move to first argument
   void rewind() { i_ = 0; }
 
+  // get next arg
   const Arg &getArg() {
     assert(i_ < argc_);
 
@@ -328,7 +331,7 @@ class CQChartsCmdBaseArgs {
 
     while (! eof()) {
       // get next arg
-      Arg arg = getArg();
+      auto arg = getArg();
 
       if (! allowOpt && arg.isOpt())
         arg.setIsOpt(false);
@@ -360,7 +363,7 @@ class CQChartsCmdBaseArgs {
         //---
 
         // get arg data for option (flag error if not found)
-        CQChartsCmdArg *cmdArg = getCmdOpt(opt);
+        auto *cmdArg = getCmdOpt(opt);
 
         if (! cmdArg) {
           if (opt != "hidden")
@@ -377,11 +380,11 @@ class CQChartsCmdBaseArgs {
         //---
 
         // handle bool option (no value)
-        if      (cmdArg->type() == CQChartsCmdArg::Type::Boolean) {
+        if      (cmdArg->type() == CmdArg::Type::Boolean) {
           parseBool_[opt] = true;
         }
         // handle integer option
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Integer) {
+        else if (cmdArg->type() == CmdArg::Type::Integer) {
           int i = 0;
 
           if (getOptValue(i)) {
@@ -392,7 +395,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle real option
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Real) {
+        else if (cmdArg->type() == CmdArg::Type::Real) {
           double r = 0.0;
 
           if (getOptValue(r)) {
@@ -403,7 +406,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle string option
-        else if (cmdArg->type() == CQChartsCmdArg::Type::String) {
+        else if (cmdArg->type() == CmdArg::Type::String) {
           if (cmdArg->isMultiple()) {
             QStringList strs;
 
@@ -424,7 +427,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle string bool option
-        else if (cmdArg->type() == CQChartsCmdArg::Type::SBool) {
+        else if (cmdArg->type() == CmdArg::Type::SBool) {
           bool b;
 
           if (getOptValue(b)) {
@@ -435,7 +438,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle enum option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Enum) {
+        else if (cmdArg->type() == CmdArg::Type::Enum) {
           QString str;
 
           if (getOptValue(str)) {
@@ -463,7 +466,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle color option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Color) {
+        else if (cmdArg->type() == CmdArg::Type::Color) {
           QString str;
 
           if (getOptValue(str)) {
@@ -474,7 +477,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle line dash option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::LineDash) {
+        else if (cmdArg->type() == CmdArg::Type::LineDash) {
           QString str;
 
           if (getOptValue(str)) {
@@ -485,7 +488,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle length option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Length) {
+        else if (cmdArg->type() == CmdArg::Type::Length) {
           QString str;
 
           if (getOptValue(str)) {
@@ -496,7 +499,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle position option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Position) {
+        else if (cmdArg->type() == CmdArg::Type::Position) {
           QString str;
 
           if (getOptValue(str)) {
@@ -507,7 +510,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle rect option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Rect) {
+        else if (cmdArg->type() == CmdArg::Type::Rect) {
           QString str;
 
           if (getOptValue(str)) {
@@ -518,7 +521,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle polygon option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Polygon) {
+        else if (cmdArg->type() == CmdArg::Type::Polygon) {
           QString str;
 
           if (getOptValue(str)) {
@@ -529,7 +532,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle align option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Align) {
+        else if (cmdArg->type() == CmdArg::Type::Align) {
           QString str;
 
           if (getOptValue(str)) {
@@ -540,7 +543,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle sides option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Sides) {
+        else if (cmdArg->type() == CmdArg::Type::Sides) {
           QString str;
 
           if (getOptValue(str)) {
@@ -551,7 +554,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle column option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Column) {
+        else if (cmdArg->type() == CmdArg::Type::Column) {
           QString str;
 
           if (getOptValue(str)) {
@@ -562,7 +565,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle row option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Row) {
+        else if (cmdArg->type() == CmdArg::Type::Row) {
           QString str;
 
           if (getOptValue(str)) {
@@ -573,7 +576,7 @@ class CQChartsCmdBaseArgs {
           }
         }
         // handle position option (string)
-        else if (cmdArg->type() == CQChartsCmdArg::Type::Reals) {
+        else if (cmdArg->type() == CmdArg::Type::Reals) {
           QString str;
 
           if (getOptValue(str)) {
@@ -639,7 +642,7 @@ class CQChartsCmdBaseArgs {
 
     //---
 
-    //  display parsed data for debug
+    // display parsed data for debug
     if (isDebug()) {
       for (auto &pi : parseInt_) {
         std::cerr << pi.first.toStdString() << "=" << pi.second << "\n";
@@ -836,7 +839,7 @@ class CQChartsCmdBaseArgs {
   //---
 
   // get arg data for option
-  CQChartsCmdArg *getCmdOpt(const QString &name) {
+  CmdArg *getCmdOpt(const QString &name) {
     for (auto &cmdArg : cmdArgs_) {
       if (cmdArg.isOpt() && cmdArg.name() == name)
         return &cmdArg;
@@ -926,7 +929,7 @@ class CQChartsCmdBaseArgs {
 
   // display help for group
   void helpGroup(int groupInd, bool showHidden) const {
-    const CQChartsCmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
+    const CmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
 
     if (! cmdGroup.isRequired())
       std::cerr << "[";
@@ -954,11 +957,11 @@ class CQChartsCmdBaseArgs {
   }
 
   // display help for arg
-  void helpArg(const CQChartsCmdArg &cmdArg) const {
+  void helpArg(const CmdArg &cmdArg) const {
     if (cmdArg.isOpt()) {
       std::cerr << "-" << cmdArg.name().toStdString() << " ";
 
-      if (cmdArg.type() != CQChartsCmdArg::Type::Boolean)
+      if (cmdArg.type() != CmdArg::Type::Boolean)
         std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
     }
     else {
@@ -968,7 +971,7 @@ class CQChartsCmdBaseArgs {
 
   //---
 
-  // variant to string
+  // variant to string list
   static QStringList toStringList(const QVariant &var) {
     QStringList strs;
 
@@ -1013,7 +1016,7 @@ class CQChartsCmdBaseArgs {
 
   //---
 
-  // variant to bool
+  // string to bool
   static bool stringToBool(const QString &str, bool *ok) {
     QString lstr = str.toLower();
 
@@ -1172,8 +1175,8 @@ class CQChartsCmdBaseArgs {
   }
 
  private:
-  using CmdArgs     = std::vector<CQChartsCmdArg>;
-  using CmdGroups   = std::vector<CQChartsCmdGroup>;
+  using CmdArgs     = std::vector<CmdArg>;
+  using CmdGroups   = std::vector<CmdGroup>;
   using NameInt     = std::map<QString, int>;
   using NameReal    = std::map<QString, double>;
   using NameString  = std::map<QString, QString>;
@@ -1214,20 +1217,20 @@ class CQChartsCmdBaseArgs {
   }
 
  protected:
-  QString     cmdName_;              //! command name being processed
-  bool        debug_      { false }; //! is debug
-  Args        argv_;                 //! input args
-  int         i_          { 0 };     //! current arg
-  int         argc_       { 0 };     //! number of args
-  Arg         lastArg_;              //! last processed arg
-  CmdArgs     cmdArgs_;              //! command argument data
-  CmdGroups   cmdGroups_;            //! command argument groups
-  int         groupInd_   { -1 };    //! current group index
-  NameInt     parseInt_;             //! parsed option integers
-  NameReal    parseReal_;            //! parsed option reals
-  NameStrings parseStr_;             //! parsed option strings
-  NameBool    parseBool_;            //! parsed option booleans
-  Args        parseArgs_;            //! parsed arguments
+  QString     cmdName_;             //! command name being processed
+  bool        debug_     { false }; //! is debug
+  Args        argv_;                //! input args
+  int         i_         { 0 };     //! current arg
+  int         argc_      { 0 };     //! number of args
+  Arg         lastArg_;             //! last processed arg
+  CmdArgs     cmdArgs_;             //! command argument data
+  CmdGroups   cmdGroups_;           //! command argument groups
+  int         groupInd_  { -1 };    //! current group index
+  NameInt     parseInt_;            //! parsed option integers
+  NameReal    parseReal_;           //! parsed option reals
+  NameStrings parseStr_;            //! parsed option strings
+  NameBool    parseBool_;           //! parsed option booleans
+  Args        parseArgs_;           //! parsed arguments
 };
 
 //------

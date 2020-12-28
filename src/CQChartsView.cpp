@@ -898,8 +898,6 @@ setCurrentPlotInd(int ind)
 
   if (currentPlot) {
     disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
-
-    currentPlot->endCurrent();
   }
 
   //---
@@ -914,8 +912,6 @@ setCurrentPlotInd(int ind)
 
   if (currentPlot) {
     connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
-
-    currentPlot->startCurrent();
   }
 
   //---

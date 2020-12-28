@@ -46,6 +46,24 @@ isHierarchical() const
   return hierarchical_;
 }
 
+int
+CQModelDetails::
+lookupColumn(const QString &name) const
+{
+  int nc = numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    bool ok;
+
+    auto value = CQModelUtil::modelHeaderString(model(), c, ok);
+
+    if (ok && value == name)
+      return c;
+  }
+
+  return -1;
+}
+
 const CQModelColumnDetails *
 CQModelDetails::
 columnDetails(int c) const
@@ -389,8 +407,7 @@ isKey() const
 {
   bool ok;
 
-  QVariant value =
-    CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Key, ok);
+  auto value = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Key, ok);
 
   return (ok && value.toBool());
 }
@@ -493,7 +510,7 @@ isMonotonic() const
 {
   bool ok;
 
-  QVariant var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Sorted, ok);
+  auto var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Sorted, ok);
 
   if (ok && var.isValid() && var.toBool())
     return true;
@@ -511,10 +528,10 @@ isIncreasing() const
 {
   bool ok;
 
-  QVariant var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Sorted, ok);
+  auto var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::Sorted, ok);
 
   if (ok && var.isValid() && var.toBool()) {
-    QVariant var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::SortOrder, ok);
+    auto var = CQModelUtil::modelHeaderValue(model(), column_, CQBaseModelRole::SortOrder, ok);
 
     if (ok && var.isValid()) {
       bool ok;

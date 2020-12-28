@@ -61,7 +61,7 @@ sizeHint() const
   for (const auto &p : texts_) {
     auto *text = p.second;
 
-    auto doc = text->document();
+    auto *doc = text->document();
 
     if (text->width() < tw) {
       text->resize(tw, text->height());

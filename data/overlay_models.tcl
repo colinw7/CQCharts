@@ -20,3 +20,11 @@ set_charts_property -plot $plot2 -name selectable -value 0
 set_charts_property -plot $plot3 -name selectable -value 0
 
 group_charts_plots -overlay [list $plot1 $plot2 $plot3]
+
+set rect1 [create_charts_rectangle_annotation -plot $plot1 -id rect1 \
+  -start {-20 -8} -end {-10 -4}]
+set rect2 [create_charts_rectangle_annotation -plot $plot2 -id rect1 \
+  -start {-5 -2} -end {10 2}]
+set rect3 [create_charts_rectangle_annotation -plot $plot3 -id rect1 \
+  -start {10 4} -end {20 8}]
+

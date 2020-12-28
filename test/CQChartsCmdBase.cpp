@@ -119,7 +119,7 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 {
   proc->setName(name);
 
-  auto tclCmd = new CQChartsTclCmd(this, name);
+  auto *tclCmd = new CQChartsTclCmd(this, name);
 
   proc->setTclCmd(tclCmd);
 

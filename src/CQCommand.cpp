@@ -213,7 +213,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  // draw entry text before cursor
+  // draw entry text before and after cursor
   painter.setPen(commandColor_);
 
   drawText(&painter, x, y, lhs);
@@ -248,6 +248,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
+  // draw selection
   int lineNum1 = pressLineNum_;
   int charNum1 = pressCharNum_;
   int lineNum2 = moveLineNum_;

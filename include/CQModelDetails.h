@@ -35,6 +35,8 @@ class CQModelDetails : public QObject {
 
   bool isHierarchical() const;
 
+  int lookupColumn(const QString &name) const;
+
   CQModelColumnDetails *columnDetails(int column);
   const CQModelColumnDetails *columnDetails(int column) const;
 

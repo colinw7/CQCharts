@@ -9,6 +9,8 @@
 
 namespace CTclUtil {
 
+bool isCompleteLine(const std::string &line);
+
 inline int eval(Tcl_Interp *interp, const char *str) {
   return Tcl_EvalEx(interp, str, -1, 0);
 }

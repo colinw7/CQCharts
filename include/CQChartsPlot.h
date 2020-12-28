@@ -904,12 +904,6 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // called by view when current plot changed
-  void startCurrent();
-  void endCurrent  ();
-
-  //---
-
   Plot *prevPlot() const { return connectData_.prev; }
   Plot *nextPlot() const { return connectData_.next; }
 
@@ -1509,7 +1503,6 @@ class CQChartsPlot : public CQChartsObj,
 
   void updatePlotObjs();
 
-  void groupedResetInsideObjs();
   void resetInsideObjs();
 
   void updateGroupedDraw();
@@ -1689,6 +1682,8 @@ class CQChartsPlot : public CQChartsObj,
   void addPlotObject(PlotObj *obj);
 
   virtual void clearPlotObjects();
+
+  void clearInsideObjects();
 
   void invalidateObjTree();
 

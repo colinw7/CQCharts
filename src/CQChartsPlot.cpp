@@ -540,7 +540,7 @@ setVisible(bool b)
 {
   CQChartsUtil::testAndSet(visible_, b, [&]() {
     if (! isVisible()) {
-      if (view()->currentPlot() == this)
+      if (view()->currentPlot(/*remap*/false) == this)
         view()->setCurrentPlot(nullptr);
     }
     else {
@@ -2403,20 +2403,6 @@ setCurrent(bool b, bool notify)
 
 void
 CQChartsPlot::
-startCurrent()
-{
-  resetInsideObjs();
-}
-
-void
-CQChartsPlot::
-endCurrent()
-{
-  resetInsideObjs();
-}
-
-void
-CQChartsPlot::
 setNextPlot(Plot *plot, bool notify)
 {
   assert(plot != this && ! connectData_.next);
@@ -2585,10 +2571,11 @@ selectionPlot() const
 
     overlayPlots(oplots);
 
-    for (const auto &oplot : oplots)
+    for (const auto &oplot : oplots) {
       for (auto &plotObj : oplot->plotObjects()) {
         if (plotObj->isSelected())
           return oplot;
+      }
 
       for (auto &annotation : oplot->annotations()) {
         if (annotation->isSelected())
@@ -5275,6 +5262,16 @@ clearPlotObjects()
   for (auto &plotObj : plotObjs)
     delete plotObj;
 
+  clearInsideObjects();
+}
+
+void
+CQChartsPlot::
+clearInsideObjects()
+{
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->clearInsideObjects();
+
   insideObjs_    .clear();
   sizeInsideObjs_.clear();
 }
@@ -5302,6 +5299,11 @@ bool
 CQChartsPlot::
 updateInsideObjects(const Point &w, Constraints constraints)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->updateInsideObjects(w, constraints);
+
+  //---
+
   // get objects and annotations at point
   Objs objs;
 
@@ -5334,7 +5336,7 @@ updateInsideObjects(const Point &w, Constraints constraints)
     //---
 
     // reset inside objects
-    groupedResetInsideObjs();
+    resetInsideObjs();
 
     //---
 
@@ -5358,30 +5360,34 @@ updateInsideObjects(const Point &w, Constraints constraints)
 
 void
 CQChartsPlot::
-groupedResetInsideObjs()
-{
-  // reset inside objects
-  if (isOverlay()) {
-    processOverlayPlots([&](Plot *plot) {
-      plot->resetInsideObjs();
-    });
-  }
-  else {
-    resetInsideObjs();
-  }
-}
-
-void
-CQChartsPlot::
 resetInsideObjs()
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->resetInsideObjs();
+
+  //---
+
   insideObjs_.clear();
 
-  for (auto &obj : plotObjects())
-    obj->setInside(false);
+  if (isOverlay()) {
+    Plots oplots;
 
-  for (auto &annotation : annotations()) {
-    annotation->setInside(false);
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      for (auto &obj : oplot->plotObjects())
+        obj->setInside(false);
+
+      for (auto &annotation : oplot->annotations())
+        annotation->setInside(false);
+    }
+  }
+  else {
+    for (auto &obj : plotObjects())
+      obj->setInside(false);
+
+    for (auto &annotation : annotations())
+      annotation->setInside(false);
   }
 
   sizeInsideObjs_.clear();
@@ -5389,31 +5395,13 @@ resetInsideObjs()
 
 CQChartsObj *
 CQChartsPlot::
-groupedInsideObject() const
-{
-  if (isOverlay()) {
-    Plots oplots;
-
-    overlayPlots(oplots);
-
-    for (auto &oplot : oplots) {
-      auto *plotObj = oplot->insideObject();
-
-      if (plotObj)
-        return plotObj;
-    }
-
-    return nullptr;
-  }
-  else {
-    return insideObject();
-  }
-}
-
-CQChartsObj *
-CQChartsPlot::
 insideObject() const
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->insideObject();
+
+  //---
+
   // get nth inside object
   int i = 0;
 
@@ -5433,6 +5421,11 @@ void
 CQChartsPlot::
 nextInsideInd()
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->nextInsideInd();
+
+  //---
+
   // cycle to next inside object
   ++insideInd_;
 
@@ -5444,6 +5437,11 @@ void
 CQChartsPlot::
 prevInsideInd()
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->prevInsideInd();
+
+  //---
+
   // cycle to prev inside object
   --insideInd_;
 
@@ -5467,6 +5465,11 @@ QString
 CQChartsPlot::
 insideObjectText() const
 {
+  if (isOverlay() && ! isFirstPlot())
+    return firstPlot()->insideObjectText();
+
+  //---
+
   QString objText;
 
   for (const auto &sizeObjs : sizeInsideObjs_) {
@@ -5634,13 +5637,18 @@ selectMousePress(const Point &p, SelMod selMod)
 
   emit selectPressSignal(w);
 
-  return true;
+  return false;
 }
 
 bool
 CQChartsPlot::
 selectPress(const Point &w, SelMod selMod)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   if (tabbedSelectPress(w, selMod))
     return true;
 
@@ -5815,7 +5823,7 @@ objectsSelectPress(const Point &w, SelMod selMod)
   Obj *selectObj = nullptr;
 
   if (isFollowMouse()) {
-    selectObj = groupedInsideObject();
+    selectObj = insideObject();
 
     // TODO: handle overlay
     nextInsideInd();
@@ -5894,8 +5902,10 @@ objectsSelectPress(const Point &w, SelMod selMod)
 
   // update selection if changed
   if (changed) {
-    if (selectionPlot() != this)
-      view()->setCurrentPlot(selectionPlot());
+    auto *selPlot = selectionPlot();
+
+    if (selPlot != view()->currentPlot(/*remap*/false))
+      view()->setCurrentPlot(selPlot);
 
     beginSelectIndex();
 
@@ -5905,7 +5915,8 @@ objectsSelectPress(const Point &w, SelMod selMod)
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
 
-      selectPlotObj->addSelectIndices(this);
+      if (selectPlotObj->plot() == selPlot)
+        selectPlotObj->addSelectIndices(this);
     }
 
     endSelectIndex();
@@ -5943,6 +5954,11 @@ bool
 CQChartsPlot::
 selectMove(const Point &w, Constraints constraints, bool first)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   if (key()) {
     bool handled = key()->selectMove(w);
 
@@ -6004,6 +6020,9 @@ bool
 CQChartsPlot::
 selectRelease(const Point &w)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
   // release pressed annotations
   for (const auto &annotation : pressAnnotations_) {
     annotation->mouseRelease(w);
@@ -6238,28 +6257,51 @@ annotationsEditPress(const Point &w)
 {
   mouseData_.dragSide = CQChartsResizeSide::NONE;
 
-  // start drag on already selected annotation handle
-  for (const auto &annotation : annotations()) {
-    if (! annotation->isVisible() || ! annotation->isEditable())
-      continue;
+  auto annotationsEditPress1 = [&](Plot *plot) {
+    auto w1 = (plot != this ? plot->pixelToWindow(this->windowToPixel(w)) : w);
 
-    if (! annotation->isSelected())
-      continue;
+    // start drag on already selected annotation handle
+    for (const auto &annotation : plot->annotations()) {
+      if (! annotation->isVisible() || ! annotation->isEditable())
+        continue;
 
-    CQChartsEditHandles::InsideData insideData;
+      if (! annotation->isSelected())
+        continue;
 
-    if (annotation->editHandles()->inside(w, insideData)) {
-      mouseData_.dragSide = insideData.resizeSide;
+      CQChartsEditHandles::InsideData insideData;
 
-      setDragObj(DragObjType::ANNOTATION, annotation);
+      if (annotation->editHandles()->inside(w1, insideData)) {
+        mouseData_.dragSide = insideData.resizeSide;
 
-      annotation->editHandles()->setDragData(insideData);
-      annotation->editHandles()->setDragPos (w);
+        setDragObj(DragObjType::ANNOTATION, annotation);
 
-      invalidateOverlay();
+        annotation->editHandles()->setDragData(insideData);
+        annotation->editHandles()->setDragPos (w1);
 
-      return true;
+        invalidateOverlay();
+
+        return true;
+      }
     }
+
+    return false;
+  };
+
+  //---
+
+  if (isOverlay()) {
+    Plots oplots;
+
+    overlayPlots(oplots);
+
+    for (const auto &oplot : oplots) {
+      if (annotationsEditPress1(oplot))
+        return true;
+    }
+  }
+  else {
+    if (annotationsEditPress1(this))
+      return true;
   }
 
   return false;
@@ -6663,10 +6705,12 @@ editMove(const Point &p, const Point &w, bool /*first*/)
       mouseData_.dragged = true;
   }
   else if (mouseData_.dragObjType == DragObjType::XAXIS) {
+    // TODO: all overlay plot axes
     if (xAxis()->editMove(w))
       mouseData_.dragged = true;
   }
   else if (mouseData_.dragObjType == DragObjType::YAXIS) {
+    // TODO: all overlay plot axes
     if (yAxis()->editMove(w))
       mouseData_.dragged = true;
   }
@@ -6677,14 +6721,30 @@ editMove(const Point &p, const Point &w, bool /*first*/)
   else if (mouseData_.dragObjType == DragObjType::ANNOTATION) {
     bool edited = false;
 
-    for (const auto &annotation : annotations()) {
-      if (! annotation->isSelected())
-        continue;
+    auto editAnnotationsMove = [&](Plot *plot) {
+      auto w1 = (plot != this ? plot->pixelToWindow(this->windowToPixel(w)) : w);
 
-      if (annotation->editMove(w))
-        mouseData_.dragged = true;
+      for (const auto &annotation : plot->annotations()) {
+        if (! annotation->isSelected())
+          continue;
 
-      edited = true;
+        if (annotation->editMove(w1))
+          mouseData_.dragged = true;
+
+        edited = true;
+      }
+    };
+
+    if (isOverlay()) {
+      Plots oplots;
+
+      overlayPlots(oplots);
+
+      for (const auto &oplot : oplots)
+        editAnnotationsMove(oplot);
+    }
+    else {
+      editAnnotationsMove(this);
     }
 
     if (! edited)
@@ -6698,17 +6758,33 @@ editMove(const Point &p, const Point &w, bool /*first*/)
   else if (mouseData_.dragObjType == DragObjType::OBJECT) {
     bool edited = false;
 
-    for (const auto &plotObj : plotObjects()) {
-      if (! plotObj->isEditable())
-        continue;
+    auto editObjectsMove = [&](Plot *plot) {
+      auto w1 = (plot != this ? plot->pixelToWindow(this->windowToPixel(w)) : w);
 
-      if (! plotObj->isSelected())
-        continue;
+      for (const auto &plotObj : plot->plotObjects()) {
+        if (! plotObj->isEditable())
+          continue;
 
-      if (plotObj->editMove(w))
-        mouseData_.dragged = true;
+        if (! plotObj->isSelected())
+          continue;
 
-      edited = true;
+        if (plotObj->editMove(w1))
+          mouseData_.dragged = true;
+
+        edited = true;
+      }
+    };
+
+    if (isOverlay()) {
+      Plots oplots;
+
+      overlayPlots(oplots);
+
+      for (const auto &oplot : oplots)
+        editObjectsMove(oplot);
+    }
+    else {
+      editObjectsMove(this);
     }
 
     if (! edited)
@@ -6716,6 +6792,7 @@ editMove(const Point &p, const Point &w, bool /*first*/)
   }
   else if (mouseData_.dragObjType == DragObjType::PLOT ||
            mouseData_.dragObjType == DragObjType::PLOT_HANDLE) {
+    // TODO: all overlay plots ?
     double dx = mouseData_.movePoint.x - lastMovePoint.x;
     double dy = lastMovePoint.y - mouseData_.movePoint.y;
 
@@ -6801,6 +6878,7 @@ editMotion(const Point &, const Point &w)
   //---
 
   if      (isSelected()) {
+    // TODO: process all plots
     auto v = windowToView(w);
 
     if (! editHandles_->selectInside(v))
@@ -6811,10 +6889,12 @@ editMotion(const Point &, const Point &w)
       return false;
   }
   else if (xAxis() && xAxis()->isSelected()) {
+    // TODO: process all axes
     if (! xAxis()->editMotion(w))
       return false;
   }
   else if (yAxis() && yAxis()->isSelected()) {
+    // TODO: process all axes
     if (! yAxis()->editMotion(w))
       return false;
   }
@@ -6825,27 +6905,61 @@ editMotion(const Point &, const Point &w)
   else {
     bool inside = false;
 
-    for (const auto &annotation : annotations()) {
-      if (! annotation->isSelected())
-        continue;
+    auto editAnnotationsMotion = [&](Plot *plot) {
+      auto w1 = (plot != this ? plot->pixelToWindow(this->windowToPixel(w)) : w);
 
-      if (annotation->editMotion(w)) {
-        inside = true;
-        break;
+      for (const auto &annotation : plot->annotations()) {
+        if (! annotation->isSelected())
+          continue;
+
+        if (annotation->editMotion(w1)) {
+          inside = true;
+          break;
+        }
+      }
+
+      return inside;
+    };
+
+    auto editObjectsMotion = [&](Plot *plot) {
+      auto w1 = (plot != this ? plot->pixelToWindow(this->windowToPixel(w)) : w);
+
+      for (const auto &plotObj : plot->plotObjects()) {
+        if (! plotObj->isEditable())
+          continue;
+
+        if (! plotObj->isSelected())
+          continue;
+
+        if (plotObj->editMotion(w1)) {
+          inside = true;
+          break;
+        }
+      }
+
+      return inside;
+    };
+
+    //---
+
+    if (isOverlay()) {
+      Plots oplots;
+
+      overlayPlots(oplots);
+
+      for (const auto &oplot : oplots) {
+        if (editAnnotationsMotion(oplot))
+          break;
+
+        //---
+
+        if (editObjectsMotion(oplot))
+          break;
       }
     }
-
-    for (const auto &plotObj : plotObjects()) {
-      if (! plotObj->isEditable())
-        continue;
-
-      if (! plotObj->isSelected())
-        continue;
-
-      if (plotObj->editMotion(w)) {
-        inside = true;
-        break;
-      }
+    else {
+      if (! editAnnotationsMotion(this))
+        (void) editObjectsMotion(this);
     }
 
     if (! inside)
@@ -7133,8 +7247,10 @@ rectSelect(const BBox &r, SelMod selMod)
 
   // update selection if changed
   if (changed) {
-    if (selectionPlot() != this)
-      view()->setCurrentPlot(selectionPlot());
+    auto *selPlot = selectionPlot();
+
+    if (selPlot != view()->currentPlot(/*remap*/false))
+      view()->setCurrentPlot(selPlot);
 
     beginSelectIndex();
 
@@ -7144,7 +7260,8 @@ rectSelect(const BBox &r, SelMod selMod)
       if (! selectPlotObj || ! selectPlotObj->isSelected())
         continue;
 
-      selectPlotObj->addSelectIndices(this);
+      if (selectPlotObj->plot() == selPlot)
+        selectPlotObj->addSelectIndices(this);
     }
 
     endSelectIndex();
@@ -8714,16 +8831,19 @@ bool
 CQChartsPlot::
 tipText(const Point &p, QString &tip) const
 {
-  if (isOverlay() && ! isFirstPlot())
-    return false;
-
   return plotTipText(p, tip, /*single*/true);
 }
 
+// called for each plot by view
 bool
 CQChartsPlot::
 plotTipText(const Point &p, QString &tip, bool single) const
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   int objNum  = 0;
   int numObjs = 0;
 
@@ -14384,7 +14504,9 @@ addSelectIndex(const QModelIndex &ind)
   if (! ind.isValid())
     return;
 
-  auto ind1 = unnormalizeIndex(ind);
+  auto *selPlot = selectionPlot();
+
+  auto ind1 = selPlot->unnormalizeIndex(ind);
 
   if (! ind1.isValid())
     return;
@@ -14401,6 +14523,8 @@ endSelectIndex()
 //assert(model);
 
   //---
+
+  auto *selPlot = selectionPlot();
 
   // build new selection
   QItemSelection optItemSelection;
@@ -14429,8 +14553,8 @@ endSelectIndex()
           endRow = row;
         }
         else {
-          auto ind1 = modelIndex(startRow, column, parent);
-          auto ind2 = modelIndex(endRow  , column, parent);
+          auto ind1 = selPlot->modelIndex(startRow, column, parent);
+          auto ind2 = selPlot->modelIndex(endRow  , column, parent);
 
           optItemSelection.select(ind1, ind2);
 
@@ -14440,8 +14564,8 @@ endSelectIndex()
       }
 
       if (startRow >= 0) {
-        auto ind1 = modelIndex(startRow, column, parent);
-        auto ind2 = modelIndex(endRow  , column, parent);
+        auto ind1 = selPlot->modelIndex(startRow, column, parent);
+        auto ind2 = selPlot->modelIndex(endRow  , column, parent);
 
         optItemSelection.select(ind1, ind2);
       }
@@ -14451,7 +14575,7 @@ endSelectIndex()
   //---
 
   if (optItemSelection.length()) {
-    auto *modelData = selectionPlot()->getModelData();
+    auto *modelData = selPlot->getModelData();
 
     if (modelData)
       modelData->select(optItemSelection);

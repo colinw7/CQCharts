@@ -17,6 +17,15 @@ class QPainter;
  * the contents at the specified offset.
  *
  * This is more efficient for large widgets or widgets that can clip themselves.
+ *
+ * API:
+ *   Use setXSize and setYSize to set virutal size
+ *
+ *   Use getXOffset and getYOffset when drawing into widget
+ *
+ *   Use setXSingleStep and setYSingleStep to set scroll step
+ *
+ *   Call handleWheelEvent in event override for QEvent::Wheel to scroll on wheel
  */
 class CQScrollArea : public QFrame {
   Q_OBJECT
