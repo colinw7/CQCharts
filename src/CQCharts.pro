@@ -361,7 +361,6 @@ CQTimeRangeSlider.cpp \
 CQRangeSlider.cpp \
 \
 CQCommand.cpp \
-CQScrollArea.cpp \
 CQFloatTip.cpp \
 CQPixmapButton.cpp \
 CQWidgetTest.cpp \
@@ -718,7 +717,6 @@ HEADERS += \
 ../include/CUnixFile.h \
 \
 ../include/CQCommand.h \
-../include/CQScrollArea.h \
 ../include/CQFloatTip.h \
 ../include/CQPixmapButton.h \
 ../include/CQWidgetTest.h \
