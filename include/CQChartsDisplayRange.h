@@ -7,6 +7,8 @@
 /*!
  * \brief Class to represent a 2D mapping from window to pixel coordinates
  * \ingroup Charts
+ *
+ * TODO: keep in sync with CDisplayRange2D.h (reuse)
  */
 class CQChartsDisplayRange {
  public:
@@ -33,7 +35,7 @@ class CQChartsDisplayRange {
   using Matrix = CQChartsGeom::Matrix;
 
  public:
-  //! value range template
+  //! value range
   struct Range {
    double xmin, ymin, xmax, ymax;
 

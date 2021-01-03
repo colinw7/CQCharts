@@ -362,7 +362,6 @@ CQRangeSlider.cpp \
 \
 CQCommand.cpp \
 CQFloatTip.cpp \
-CQPixmapButton.cpp \
 CQWidgetTest.cpp \
 CLeastSquaresFit.cpp \
 \
@@ -718,7 +717,6 @@ HEADERS += \
 \
 ../include/CQCommand.h \
 ../include/CQFloatTip.h \
-../include/CQPixmapButton.h \
 ../include/CQWidgetTest.h \
 ../include/CLeastSquaresFit.h \
 \
