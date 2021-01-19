@@ -6357,7 +6357,7 @@ keyEditSelect(CQChartsPlotKey *key, const Point &w)
 
   // select/deselect key
   if (! key->isSelected()) {
-    selectOneObj(key, /*allObjs*/false);
+    selectOneObj(key, /*allObjs*/true);
     return true;
   }
 
@@ -6385,7 +6385,7 @@ axisEditSelect(CQChartsAxis *axis, const Point &w)
 
   // select/deselect x axis
   if (! axis->isSelected()) {
-    selectOneObj(axis, /*allObjs*/false);
+    selectOneObj(axis, /*allObjs*/true);
     return true;
   }
 
@@ -6413,7 +6413,7 @@ titleEditSelect(CQChartsTitle *title, const Point &w)
 
   // select/deselect title
   if (! title->isSelected()) {
-    selectOneObj(title, /*allObjs*/false);
+    selectOneObj(title, /*allObjs*/true);
     return true;
   }
 
@@ -6442,7 +6442,7 @@ annotationsEditSelect(const Point &w)
       continue;
 
     if (! annotation->isSelected()) {
-      selectOneObj(annotation, /*allObjs*/false);
+      selectOneObj(annotation, /*allObjs*/true);
       return true;
     }
 
@@ -6497,7 +6497,7 @@ objectsEditSelect(const Point &w, bool inside)
       continue;
 
     if (! plotObj->isSelected()) {
-      selectOneObj(plotObj, /*allObjs*/false);
+      selectOneObj(plotObj, /*allObjs*/true);
       return true;
     }
 

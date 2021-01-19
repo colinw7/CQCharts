@@ -492,7 +492,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   void addKeyItems(PlotKey *key) override;
 
-   //---
+  //---
 
   bool isSetHidden  (int i) const;
   bool isValueHidden(int i) const;

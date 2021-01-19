@@ -58,7 +58,7 @@ class CQChartsOptInt {
   }
 
   bool setValue(const QString &s) {
-    if (s.simplified().length() == 0)
+    if (s.trimmed().length() == 0)
       value_ = OptInt();
     else {
       bool ok;

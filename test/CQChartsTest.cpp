@@ -413,8 +413,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
             auto pos = nameValue.indexOf('=');
 
             if (pos >= 0) {
-              auto name  = nameValue.mid(0, pos).simplified();
-              auto value = nameValue.mid(pos + 1).simplified();
+              auto name  = nameValue.mid(0, pos).trimmed();
+              auto value = nameValue.mid(pos + 1).trimmed();
 
               mainData.initData.setNameValue(name, value);
             }
@@ -458,8 +458,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
             QString name, value;
 
             if (pos >= 0) {
-              name  = nameValue.mid(0, pos).simplified();
-              value = nameValue.mid(pos + 1).simplified();
+              name  = nameValue.mid(0, pos).trimmed();
+              value = nameValue.mid(pos + 1).trimmed();
             }
             else {
               name  = nameValue;
@@ -493,8 +493,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
             QString name, value;
 
             if (pos >= 0) {
-              name  = nameValue.mid(0, pos).simplified();
-              value = nameValue.mid(pos + 1).simplified();
+              name  = nameValue.mid(0, pos).trimmed();
+              value = nameValue.mid(pos + 1).trimmed();
             }
             else {
               name  = nameValue;
@@ -520,8 +520,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
             QString name, value;
 
             if (pos >= 0) {
-              name  = nameValue.mid(0, pos).simplified();
-              value = nameValue.mid(pos + 1).simplified();
+              name  = nameValue.mid(0, pos).trimmed();
+              value = nameValue.mid(pos + 1).trimmed();
             }
             else {
               name  = nameValue;

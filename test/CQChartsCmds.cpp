@@ -838,7 +838,7 @@ exec(CQChartsCmdArgs &argv)
 
     CQChartsExprModel::Function function = CQChartsExprModel::Function::EVAL;
 
-    if (expr.simplified().length())
+    if (expr.trimmed().length())
       processExpression(model.data(), expr);
 #endif
   }
@@ -10939,7 +10939,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
         bool ok;
 
-        int i = (int) CQChartsUtil::toInt(value.simplified(), ok);
+        int i = (int) CQChartsUtil::toInt(value.trimmed(), ok);
 
         if (! ok) {
           (void) errorMsg("Invalid integer value '" + value + "' for '" +
@@ -11382,7 +11382,7 @@ sortModel(ModelP &model, const QString &args)
   if (! args.length())
     return false;
 
-  QString columnStr = args.simplified();
+  QString columnStr = args.trimmed();
 
   Qt::SortOrder order = Qt::AscendingOrder;
 
@@ -11433,7 +11433,7 @@ getModelData(const QString &id)
   if (! modelData) {
     bool ok;
 
-    int ind = (int) CQChartsUtil::toInt(id.simplified(), ok);
+    int ind = (int) CQChartsUtil::toInt(id.trimmed(), ok);
 
     modelData = charts_->getModelDataByInd(ind);
   }

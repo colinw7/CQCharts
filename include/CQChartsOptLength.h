@@ -58,7 +58,7 @@ class CQChartsOptLength {
   }
 
   bool setValue(const QString &s) {
-    if (s.simplified().length() == 0)
+    if (s.trimmed().length() == 0)
       value_ = OptLength();
     else {
       CQChartsLength value;
