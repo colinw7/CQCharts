@@ -426,9 +426,9 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsPiePlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsPiePlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsPiePlot::calcExtraFitBBox");
 
   BBox bbox;
 
@@ -438,7 +438,7 @@ calcAnnotationBBox() const
     if (! pieObj || ! pieObj->isVisible())
       continue;
 
-    bbox += pieObj->annotationBBox();
+    bbox += pieObj->extraFitBBox();
   }
 
   return bbox;
@@ -1406,7 +1406,7 @@ calcExploded() const
 
 CQChartsGeom::BBox
 CQChartsPieObj::
-annotationBBox() const
+extraFitBBox() const
 {
   BBox bbox;
 

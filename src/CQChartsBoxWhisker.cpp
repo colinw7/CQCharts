@@ -311,7 +311,7 @@ void
 CQChartsAxisBoxWhisker::
 dataInvalidate()
 {
-  plot()->resetAnnotationBBox();
+  plot()->resetExtraBBox();
 
   plot()->drawObjs();
 }
@@ -502,7 +502,7 @@ void
 CQChartsAxisDensity::
 dataInvalidate()
 {
-  plot()->resetAnnotationBBox();
+  plot()->resetExtraBBox();
 
   plot()->drawObjs();
 }

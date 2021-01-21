@@ -2572,9 +2572,9 @@ addMenuItems(QMenu *menu)
 
 CQChartsGeom::BBox
 CQChartsXYPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsXYPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsXYPlot::calcExtraFitBBox");
 
   BBox bbox;
 

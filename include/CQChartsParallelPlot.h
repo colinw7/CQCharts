@@ -246,7 +246,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   BBox axesFitBBox() const override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   bool hasFgAxes() const override;
 

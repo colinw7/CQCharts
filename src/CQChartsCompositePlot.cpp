@@ -315,7 +315,7 @@ initObjTree()
 
 CQChartsGeom::BBox
 CQChartsCompositePlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
   BBox bbox;
 
@@ -323,7 +323,7 @@ calcAnnotationBBox() const
     if (! plot->isVisible())
       continue;
 
-    bbox += plot->calcAnnotationBBox();
+    bbox += plot->calcExtraFitBBox();
   }
 
   return bbox;

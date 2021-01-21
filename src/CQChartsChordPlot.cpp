@@ -260,9 +260,9 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsChordPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsChordPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsChordPlot::calcExtraFitBBox");
 
   BBox bbox;
 

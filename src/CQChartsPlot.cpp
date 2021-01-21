@@ -4198,7 +4198,7 @@ updateRangeThread()
   if (isOverlay())
     clearOverlayErrors();
 
-  resetAnnotationBBox();
+  resetExtraBBox();
 
   calcDataRange_  = calcRange();
   dataRange_      = adjustDataRange(getCalcDataRange());
@@ -4855,8 +4855,8 @@ calcGroupedDataRange(const RangeTypes &rangeTypes) const
       if (! bbox1.isSet()) return;
 
       if (bbox1.isSet()) {
-        if (rangeTypes.annotation)
-          bbox1 += plot->annotationBBox();
+        if (rangeTypes.extra)
+          bbox1 += plot->extraFitBBox();
 
         if (rangeTypes.axes) {
           bbox1 += plot->calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
@@ -4884,8 +4884,8 @@ calcGroupedDataRange(const RangeTypes &rangeTypes) const
     bbox = calcDataRange();
 
     if (bbox.isSet()) {
-      if (rangeTypes.annotation)
-        bbox += annotationBBox();
+      if (rangeTypes.extra)
+        bbox += extraFitBBox();
 
       if (rangeTypes.axes) {
         bbox += calcGroupedXAxisRange(CQChartsAxisSide::Type::NONE);
@@ -4971,9 +4971,9 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
 
 void
 CQChartsPlot::
-resetAnnotationBBox() const
+resetExtraBBox() const
 {
-  annotationBBox_ = BBox();
+  extraFitBBox_ = BBox();
 }
 
 //------
@@ -5123,7 +5123,7 @@ bool
 CQChartsPlot::
 createObjs()
 {
-  resetAnnotationBBox();
+  resetExtraBBox();
 
   //---
 
@@ -10811,7 +10811,7 @@ drawXAxis(PaintDevice *device) const
     auto dataRange = calcDataRange();
 
     //if (dataRange.isSet())
-    //  dataRange += annotationBBox();
+    //  dataRange += extraFitBBox();
 
     // draw bottom axes
     double bpos = (dataRange.isSet() ? dataRange.getYMin() : 0.0);
@@ -10917,7 +10917,7 @@ drawYAxis(PaintDevice *device) const
     auto dataRange = calcDataRange();
 
     //if (dataRange.isSet())
-    //  dataRange += annotationBBox();
+    //  dataRange += extraFitBBox();
 
     // draw left axes
     double lpos = (dataRange.isSet() ? dataRange.getXMin() : 0.0);
@@ -11405,11 +11405,12 @@ drawBoxes(PaintDevice *device) const
 
   drawWindowColorBox(device, bbox);
 
-  drawWindowColorBox(device, dataFitBBox   ());
-  drawWindowColorBox(device, axesFitBBox   ());
-  drawWindowColorBox(device, keyFitBBox    ());
-  drawWindowColorBox(device, titleFitBBox  ());
-  drawWindowColorBox(device, annotationBBox());
+  drawWindowColorBox(device, dataFitBBox       ());
+  drawWindowColorBox(device, axesFitBBox       ());
+  drawWindowColorBox(device, keyFitBBox        ());
+  drawWindowColorBox(device, titleFitBBox      ());
+  drawWindowColorBox(device, annotationsFitBBox());
+  drawWindowColorBox(device, extraFitBBox      ());
 
   //---
 
@@ -11877,11 +11878,12 @@ fitBBox() const
   // calc fit box
   BBox bbox;
 
-  bbox += dataFitBBox   ();
-  bbox += axesFitBBox   ();
-  bbox += keyFitBBox    ();
-  bbox += titleFitBBox  ();
-  bbox += annotationBBox();
+  bbox += dataFitBBox       ();
+  bbox += axesFitBBox       ();
+  bbox += keyFitBBox        ();
+  bbox += titleFitBBox      ();
+  bbox += annotationsFitBBox();
+  bbox += extraFitBBox      ();
 
   // add margin (TODO: config pixel margin size)
   auto marginSize = pixelToWindowSize(Size(8, 8));
@@ -11952,6 +11954,25 @@ titleFitBBox() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
+annotationsFitBBox() const
+{
+  BBox bbox;
+
+  for (auto &annotation : annotations()) {
+    if (! annotation->isFitted())
+      continue;
+
+    if (! annotation->isVisible())
+      continue;
+
+    bbox += annotation->bbox();
+  }
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
 calcFitPixelRect() const
 {
   // calc current (zoomed/panned) pixel range
@@ -11964,14 +11985,14 @@ calcFitPixelRect() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-annotationBBox() const
+extraFitBBox() const
 {
-  if (annotationBBox_.isSet())
-    return annotationBBox_;
+  if (extraFitBBox_.isSet())
+    return extraFitBBox_;
 
-  annotationBBox_ = calcAnnotationBBox();
+  extraFitBBox_ = calcExtraFitBBox();
 
-  return annotationBBox_;
+  return extraFitBBox_;
 }
 
 //------
@@ -12685,14 +12706,21 @@ setClipRect(PaintDevice *device) const
 
   if      (plot1->isDataClip()) {
     auto bbox  = displayRangeBBox();
-    auto abbox = annotationBBox();
+    auto abbox = annotationsFitBBox();
+    auto ebbox = extraFitBBox();
 
-    if      (dataScaleX() <= 1.0 && dataScaleY() <= 1.0)
+    if      (dataScaleX() <= 1.0 && dataScaleY() <= 1.0) {
       bbox.add(abbox);
-    else if (dataScaleX() <= 1.0)
+      bbox.add(ebbox);
+    }
+    else if (dataScaleX() <= 1.0) {
       bbox.addX(abbox);
-    else if (dataScaleY() <= 1.0)
+      bbox.addX(ebbox);
+    }
+    else if (dataScaleY() <= 1.0) {
       bbox.addY(abbox);
+      bbox.addY(ebbox);
+    }
 
     device->setClipRect(bbox);
   }

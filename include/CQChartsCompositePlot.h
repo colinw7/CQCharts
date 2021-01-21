@@ -99,7 +99,7 @@ class CQChartsCompositePlot : public CQChartsPlot {
 
   void initObjTree() override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   void updateAxisRanges(const BBox &adjustedRange) override;
 

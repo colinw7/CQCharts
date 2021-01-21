@@ -350,8 +350,6 @@ class CQChartsScatterPlot3D : public CQChartsPlot3D,
 
   bool addMenuItems(QMenu *menu) override;
 
-  BBox calcAnnotationBBox() const override;
-
   //---
 
   bool hasBackground() const override;

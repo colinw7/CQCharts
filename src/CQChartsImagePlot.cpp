@@ -730,9 +730,9 @@ drawYLabels(PaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsImagePlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsImagePlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsImagePlot::calcExtraFitBBox");
 
   auto font = view()->plotFont(this, cellLabelTextFont());
 

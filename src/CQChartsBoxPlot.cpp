@@ -1334,9 +1334,9 @@ mappedYAxis() const
 
 CQChartsGeom::BBox
 CQChartsBoxPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsBoxPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsBoxPlot::calcExtraFitBBox");
 
   BBox bbox;
 
@@ -1344,7 +1344,7 @@ calcAnnotationBBox() const
     auto *boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
 
     if (boxObj)
-      bbox += boxObj->annotationBBox();
+      bbox += boxObj->extraFitBBox();
   }
 
   return bbox;
@@ -2516,7 +2516,7 @@ writeScriptData(ScriptPaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsBoxPlotWhiskerObj::
-annotationBBox() const
+extraFitBBox() const
 {
   if (plot_->isErrorBar())
     return BBox();
@@ -2953,7 +2953,7 @@ draw(PaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsBoxPlotDataObj::
-annotationBBox() const
+extraFitBBox() const
 {
   double pos = this->pos();
 

@@ -316,9 +316,9 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsRadarPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsRadarPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsRadarPlot::calcExtraFitBBox");
 
   BBox bbox;
 
@@ -379,7 +379,7 @@ calcAnnotationBBox() const
     auto *obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
 
     if (obj)
-      bbox += obj->annotationBBox();
+      bbox += obj->extraFitBBox();
   }
 
   return bbox;
@@ -939,7 +939,7 @@ inside(const Point &p) const
 
 CQChartsGeom::BBox
 CQChartsRadarObj::
-annotationBBox() const
+extraFitBBox() const
 {
   BBox bbox;
 

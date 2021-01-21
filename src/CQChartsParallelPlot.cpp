@@ -815,9 +815,9 @@ axesFitBBox() const
 
 CQChartsGeom::BBox
 CQChartsParallelPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsParallelPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsParallelPlot::calcExtraFitBBox");
 
   auto font = view()->plotFont(this, view()->font());
 

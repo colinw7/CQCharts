@@ -227,7 +227,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   //---
 
-  BBox annotationBBox() const;
+  BBox extraFitBBox() const;
 
  private:
   double remapPos(double pos) const;
@@ -313,7 +313,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void draw(PaintDevice *device) const override;
 
-  BBox annotationBBox() const;
+  BBox extraFitBBox() const;
 
  private:
   double remapPos(double pos) const;
@@ -752,7 +752,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 

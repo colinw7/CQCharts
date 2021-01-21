@@ -726,7 +726,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   //---
 

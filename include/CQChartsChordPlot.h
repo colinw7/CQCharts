@@ -415,7 +415,7 @@ class CQChartsChordPlot : public CQChartsConnectionPlot,
 
   Range calcRange() const override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 

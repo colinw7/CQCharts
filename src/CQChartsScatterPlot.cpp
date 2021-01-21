@@ -500,7 +500,7 @@ void
 CQChartsScatterPlot::
 setXDensity(bool b)
 {
-  if (b != isXDensity()) { xAxisDensity_->setVisible(b); resetAnnotationBBox(); drawObjs(); }
+  if (b != isXDensity()) { xAxisDensity_->setVisible(b); resetExtraBBox(); drawObjs(); }
 }
 
 bool
@@ -514,7 +514,7 @@ void
 CQChartsScatterPlot::
 setYDensity(bool b)
 {
-  if (b != isYDensity()) { yAxisDensity_->setVisible(b); resetAnnotationBBox(); drawObjs(); }
+  if (b != isYDensity()) { yAxisDensity_->setVisible(b); resetExtraBBox(); drawObjs(); }
 }
 
 //------
@@ -530,7 +530,7 @@ void
 CQChartsScatterPlot::
 setXWhisker(bool b)
 {
-  if (b != isXWhisker()) { xAxisWhisker_->setVisible(b); resetAnnotationBBox(); drawObjs(); }
+  if (b != isXWhisker()) { xAxisWhisker_->setVisible(b); resetExtraBBox(); drawObjs(); }
 }
 
 bool
@@ -544,7 +544,7 @@ void
 CQChartsScatterPlot::
 setYWhisker(bool b)
 {
-  if (b != isYWhisker()) { yAxisWhisker_->setVisible(b); resetAnnotationBBox(); drawObjs(); }
+  if (b != isYWhisker()) { yAxisWhisker_->setVisible(b); resetExtraBBox(); drawObjs(); }
 }
 
 //------
@@ -2355,9 +2355,9 @@ addMenuItems(QMenu *menu)
 
 CQChartsGeom::BBox
 CQChartsScatterPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsScatterPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsScatterPlot::calcExtraFitBBox");
 
   BBox bbox;
 

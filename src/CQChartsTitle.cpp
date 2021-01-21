@@ -136,7 +136,7 @@ updateLocation()
 
   // all overlay plots and annotation boxes
   auto bbox = plot_->calcGroupedDataRange(
-                CQChartsPlot::RangeTypes().setAnnotation().setAxes().setKey());
+                CQChartsPlot::RangeTypes().setExtra().setAxes().setKey());
 
   //---
 

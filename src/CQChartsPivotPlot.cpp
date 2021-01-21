@@ -481,9 +481,9 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsPivotPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsPivotPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsPivotPlot::calcExtraFitBBox");
 
   BBox bbox;
 

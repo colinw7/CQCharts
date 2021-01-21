@@ -1654,15 +1654,17 @@ class CQChartsPlot : public CQChartsObj,
   Range adjustDataRange(const Range &range) const;
 
   struct RangeTypes {
-    bool annotation { false };
     bool axes       { false };
     bool key        { false };
     bool title      { false };
+    bool annotation { false };
+    bool extra      { false };
 
-    RangeTypes &setAnnotation(bool b=true) { annotation = b; return *this; }
     RangeTypes &setAxes      (bool b=true) { axes       = b; return *this; }
     RangeTypes &setKey       (bool b=true) { key        = b; return *this; }
     RangeTypes &setTitle     (bool b=true) { title      = b; return *this; }
+    RangeTypes &setAnnotation(bool b=true) { annotation = b; return *this; }
+    RangeTypes &setExtra     (bool b=true) { extra      = b; return *this; }
 
     RangeTypes() { }
   };
@@ -1672,7 +1674,7 @@ class CQChartsPlot : public CQChartsObj,
   BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
   BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
 
-  void resetAnnotationBBox() const;
+  void resetExtraBBox() const;
 
   //---
 
@@ -2087,15 +2089,15 @@ class CQChartsPlot : public CQChartsObj,
 
   BBox fitBBox() const;
 
-  virtual BBox dataFitBBox () const;
-  virtual BBox axesFitBBox () const;
-  virtual BBox keyFitBBox  () const;
-  virtual BBox titleFitBBox() const;
+  virtual BBox dataFitBBox       () const; // get bounding box to fit data objects
+  virtual BBox axesFitBBox       () const; // get bounding box to fit axes
+  virtual BBox keyFitBBox        () const; // get bounding box to fit key
+  virtual BBox titleFitBBox      () const; // get bounding box to fit title
+  virtual BBox annotationsFitBBox() const; // get bounding box to fit fittable annotations
+  virtual BBox extraFitBBox      () const; // get bounding box of extra 'stuff' outside plot area
 
-  // get bounding box of annotations outside plot area
-  BBox annotationBBox() const;
-
-  virtual BBox calcAnnotationBBox() const { return BBox(); }
+  // return cached extra fit box
+  virtual BBox calcExtraFitBBox() const { return BBox(); }
 
   //---
 
@@ -3115,9 +3117,10 @@ class CQChartsPlot : public CQChartsObj,
   bool followMouse_ { true }; //!< track object under mouse
 
   // fit
-  bool       autoFit_      { false }; //!< auto fit on data change
-  PlotMargin fitMargin_;              //!< fit margin
-  bool       needsAutoFit_ { false }; //!< needs auto fit on next draw
+  bool         autoFit_      { false }; //!< auto fit on data change
+  PlotMargin   fitMargin_;              //!< fit margin
+  bool         needsAutoFit_ { false }; //!< needs auto fit on next draw
+  mutable BBox extraFitBBox_;           //!< cached extra fit bbox
 
   // preview
   bool preview_        { false }; //!< is preview plot
@@ -3190,9 +3193,8 @@ class CQChartsPlot : public CQChartsObj,
   bool         editing_     { false };   //!< is editing
 
   // annotations
-  Annotations  annotations_;      //!< extra annotations
-  Annotations  pressAnnotations_; //!< press annotations
-  mutable BBox annotationBBox_;   //!< cached annotation bbox
+  Annotations annotations_;      //!< extra annotations
+  Annotations pressAnnotations_; //!< press annotations
 
   //---
 

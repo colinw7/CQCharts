@@ -39,6 +39,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_PROPERTY(bool      enabled          READ isEnabled        WRITE setEnabled         )
   Q_PROPERTY(bool      checkable        READ isCheckable      WRITE setCheckable       )
   Q_PROPERTY(bool      checked          READ isChecked        WRITE setChecked         )
+  Q_PROPERTY(bool      fitted           READ isFitted         WRITE setFitted          )
   Q_PROPERTY(double    disabledLighter  READ disabledLighter  WRITE setDisabledLighter )
   Q_PROPERTY(double    uncheckedLighter READ uncheckedLighter WRITE setUncheckedLighter)
   Q_PROPERTY(DrawLayer drawLayer        READ drawLayer        WRITE setDrawLayer       )
@@ -142,6 +143,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! get/set checked
   bool isChecked() const { return checked_; }
   void setChecked(bool b);
+
+  //---
+
+  //! get/set annotation used in plot fit
+  bool isFitted() const { return fitted_; }
+  void setFitted(bool b) { fitted_ = b; }
 
   //---
 
@@ -331,6 +338,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool         enabled_          { true };                  //!< is enabled
   bool         checkable_        { false };                 //!< is checkable
   bool         checked_          { false };                 //!< is checked
+  bool         fitted_           { false };                 //!< is fitted
   double       disabledLighter_  { 0.8 };                   //!< disabled lighter
   double       uncheckedLighter_ { 0.5 };                   //!< unchecked lighter
   BBox         annotationBBox_;                             //!< bbox (plot coords) (remove ?)

@@ -89,7 +89,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   bool inside(const Point &p) const override;
 
-  BBox annotationBBox() const;
+  BBox extraFitBBox() const;
 
   void getObjSelectIndices(Indices &inds) const override;
 
@@ -181,7 +181,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   void addKeyItems(PlotKey *key) override;
 

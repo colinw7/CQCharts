@@ -760,9 +760,9 @@ drawYLabels(PaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsCorrelationPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsCorrelationPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsCorrelationPlot::calcExtraFitBBox");
 
   auto xfont = view()->plotFont(this, xLabelTextFont());
   auto yfont = view()->plotFont(this, yLabelTextFont());

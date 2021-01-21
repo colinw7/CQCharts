@@ -1186,19 +1186,6 @@ addMenuItems(QMenu *)
 
 //------
 
-CQChartsGeom::BBox
-CQChartsScatterPlot3D::
-calcAnnotationBBox() const
-{
-  CQPerfTrace trace("CQChartsScatterPlot3D::calcAnnotationBBox");
-
-  BBox bbox;
-
-  return bbox;
-}
-
-//------
-
 bool
 CQChartsScatterPlot3D::
 hasBackground() const

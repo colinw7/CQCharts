@@ -688,7 +688,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   double xAxisHeight(const CQChartsAxisSide::Type &side) const override;
   double yAxisWidth (const CQChartsAxisSide::Type &side) const override;

@@ -218,7 +218,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
  public slots:
   void setRectStyle   (bool b);

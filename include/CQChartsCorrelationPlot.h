@@ -228,7 +228,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   //---
 

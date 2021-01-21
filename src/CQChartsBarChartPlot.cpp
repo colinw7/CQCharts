@@ -956,9 +956,9 @@ groupValueSetI(int groupInd)
 
 CQChartsGeom::BBox
 CQChartsBarChartPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsBarChartPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsBarChartPlot::calcExtraFitBBox");
 
   BBox bbox;
 

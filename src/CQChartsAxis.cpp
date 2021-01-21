@@ -1697,7 +1697,7 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
   auto dataRange = plot->calcDataRange();
 
   if (dataRange.isSet())
-    dataRange += plot->annotationBBox();
+    dataRange += plot->extraFitBBox();
   else
     dataRange = BBox(0.0, 0.0, 1.0, 1.0);
 

@@ -1454,9 +1454,9 @@ getGroupValues(int groupInd) const
 
 CQChartsGeom::BBox
 CQChartsDistributionPlot::
-calcAnnotationBBox() const
+calcExtraFitBBox() const
 {
-  CQPerfTrace trace("CQChartsDistributionPlot::calcAnnotationBBox");
+  CQPerfTrace trace("CQChartsDistributionPlot::calcExtraFitBBox");
 
   BBox bbox;
 

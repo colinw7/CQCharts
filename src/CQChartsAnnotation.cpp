@@ -367,6 +367,7 @@ addProperties(PropertyModel *model, const QString &path, const QString &/*desc*/
   addProp(path, "selected"  , "selected"  , "Is selected"  , true);
   addProp(path, "selectable", "selectable", "Is selectable");
   addProp(path, "editable"  , "editable"  , "Is editable"  , true);
+  addProp(path, "fitted"    , "fitted"    , "Is fitted"    , true);
   addProp(path, "drawLayer" , "drawLayer" , "Draw layer"   , true);
 
   auto coloringPath = path + "/coloring";

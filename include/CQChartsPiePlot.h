@@ -175,7 +175,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void getObjSelectIndices(Indices &inds) const override;
 
-  BBox annotationBBox() const;
+  BBox extraFitBBox() const;
 
   //---
 
@@ -522,7 +522,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   Range calcRange() const override;
 
-  BBox calcAnnotationBBox() const override;
+  BBox calcExtraFitBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
